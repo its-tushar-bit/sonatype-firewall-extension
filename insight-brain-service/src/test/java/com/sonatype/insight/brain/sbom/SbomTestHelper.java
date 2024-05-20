@@ -30,7 +30,7 @@ import org.xmlunit.util.Predicate;
 
 public class SbomTestHelper
 {
-  public static final List<String> CYCLONEDX_IGNORE_NODES = Arrays.asList("timestamp", "firstIssued", "lastUpdated");
+  public static final List<String> CYCLONEDX_IGNORE_NODES = Collections.singletonList("timestamp");
 
   public static final List<String> CYCLONEDX_IGNORE_ATTRIBS = Collections.singletonList("serialNumber");
 
@@ -57,7 +57,6 @@ public class SbomTestHelper
         return false;
       }
 
-      //ignore name only if it is in the metadata component
       if ("name".equals(node.getNodeName())) {
         Node p = node.getParentNode();
         if (p != null && "component".equals(p.getNodeName())) {
@@ -68,7 +67,6 @@ public class SbomTestHelper
         }
       }
 
-      //ignore version only if it is in the tools section
       if ("version".equals(node.getNodeName())) {
         Node p = node.getParentNode();
         if (p != null && "component".equals(p.getNodeName())) {

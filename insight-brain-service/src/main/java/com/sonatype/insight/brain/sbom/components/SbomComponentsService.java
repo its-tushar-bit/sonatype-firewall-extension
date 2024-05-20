@@ -110,7 +110,8 @@ public class SbomComponentsService
     }
 
     ThirdPartyFileCoordinate component =
-        thirdPartyFileCoordinateDAO.getBySbomMetadataIdAndComponentHash(sbomMetadata.getId(), componentHash);
+        thirdPartyFileCoordinateDAO.getBySbomMetadataIdAndComponentHash(sbomMetadata.getId(), componentHash)
+            .stream().findFirst().orElse(null);
     if (component == null) {
       throw new NotFoundException("Could not find component by hash " + componentHash);
     }

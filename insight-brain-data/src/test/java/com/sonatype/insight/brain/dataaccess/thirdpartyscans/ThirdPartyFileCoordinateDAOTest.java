@@ -231,25 +231,28 @@ public class ThirdPartyFileCoordinateDAOTest
     final ThirdPartyFileCoordinate coordinateC =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFileC, "s3", "f3", "n3", "v3");
 
-    ThirdPartyFileCoordinate actualA =
+    List<ThirdPartyFileCoordinate> actualA =
         thirdPartyFileCoordinateDAO.getBySbomMetadataIdAndComponentHash(thirdPartySbomMetadataA.getId(),
             coordinateA.getHash());
 
-    ThirdPartyFileCoordinate actualB =
+    List<ThirdPartyFileCoordinate> actualB =
         thirdPartyFileCoordinateDAO.getBySbomMetadataIdAndComponentHash(thirdPartySbomMetadataB.getId(),
             coordinateB.getHash());
 
-    assertThat(actualA).isNotNull().usingRecursiveComparison().isEqualTo(coordinateA);
-    assertThat(actualB).isNotNull().usingRecursiveComparison().isEqualTo(coordinateB);
-
+    assertThat(actualA).isNotEmpty();
+    assertThat(actualA.size()).isOne();
+    assertThat(actualA.get(0)).usingRecursiveComparison().isEqualTo(coordinateA);
+    assertThat(actualB).isNotEmpty();
+    assertThat(actualB.size()).isOne();
+    assertThat(actualB.get(0)).usingRecursiveComparison().isEqualTo(coordinateB);
     assertThat(thirdPartyFileCoordinateDAO.getBySbomMetadataIdAndComponentHash(thirdPartySbomMetadataA.getId(),
-        "anyHash")).isNull();
+        "anyHash")).isEmpty();
     assertThat(thirdPartyFileCoordinateDAO.getBySbomMetadataIdAndComponentHash("anySbomId",
-        coordinateA.getHash())).isNull();
+        coordinateA.getHash())).isEmpty();
     assertThat(thirdPartyFileCoordinateDAO.getBySbomMetadataIdAndComponentHash(thirdPartySbomMetadataA.getId(),
-        coordinateC.getHash())).isNull();
+        coordinateC.getHash())).isEmpty();
     assertThat(thirdPartyFileCoordinateDAO.getBySbomMetadataIdAndComponentHash(thirdPartySbomMetadataC.getId(),
-        coordinateC.getHash())).isNotNull();
+        coordinateC.getHash()).size()).isOne();
   }
 
   @Test

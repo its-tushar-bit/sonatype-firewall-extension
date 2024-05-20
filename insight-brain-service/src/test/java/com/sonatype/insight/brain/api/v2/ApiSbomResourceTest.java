@@ -25,12 +25,6 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.ComponentLocator;
-import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.VulnerabilityAnalysis;
-import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.VulnerabilityAnalysis.Justification;
-import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.VulnerabilityAnalysis.Response;
-import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.VulnerabilityAnalysis.State;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomComponentSortableField;
@@ -53,7 +47,6 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -527,49 +520,6 @@ public class ApiSbomResourceTest
 
     assertResponseStatus(Status.BAD_REQUEST.getStatusCode(), response);
     assertThat(response.getBodyText()).isEqualTo("Missing required parameter [applicationId]");
-  }
-
-  @Test
-  public void testSaveVulnerabilityAnalysis() throws Exception {
-    Application app = tempEntity.newApplicationWithParent();
-    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    tempEntity.newThirdPartyScan(thirdPartyFile);
-    String refId = "CVE-123";
-    ThirdPartySbomMetadata sbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), SbomStatus.ACTIVE.toString(),
-            "file.tgz");
-    ThirdPartyFileCoordinate component =
-        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "ThirdParty", "npm", "bloom", "1.0", "hash001",
-            "pkg:npm/bloom@1.0");
-    tempEntity.newThirdPartyCoordinateSecurity(component, refId, "description", "link", 8.1, "Critical", "1.2.0");
-
-    ApiSbomVulnerabilityAnalysisRequestDTO dto = new ApiSbomVulnerabilityAnalysisRequestDTO();
-    dto.setComponentLocator(new ComponentLocator(component.getHash(), null));
-    dto.setVulnerabilityAnalysis(mockAnalysisRequest());
-
-    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_VULNERABILITY_ANALYSIS_ANNOTATION_PATH)
-        .parameter(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion(), refId)
-        .body(dto)
-        .put();
-
-    assertResponseStatus(Status.OK.getStatusCode(), response);
-    JsonNode result = new ObjectMapper().readTree(response.getBodyText());
-    assertThat(result.get("state").asText()).isEqualTo(State.EXPLOITABLE.toString());
-    assertThat(result.get("justification").asText()).isEqualTo(Justification.REQUIRES_DEPENDENCY.toString());
-    assertThat(result.get("response").asText()).isEqualTo(Response.WILL_NOT_FIX.toString());
-    assertThat(result.get("detail").asText()).isEqualTo("detail");
-    assertThat(result.get("createdOn").asText()).isNotNull();
-    assertThat(result.get("lastUpdatedOn").asText()).isNotNull();
-    assertThat(result.get("lastUpdatedBy").asText()).isEqualTo("admin");
-  }
-
-  private static VulnerabilityAnalysis mockAnalysisRequest() {
-    VulnerabilityAnalysis analysis = new VulnerabilityAnalysis();
-    analysis.setState(State.EXPLOITABLE);
-    analysis.setJustification(Justification.REQUIRES_DEPENDENCY);
-    analysis.setResponse(Response.WILL_NOT_FIX);
-    analysis.setDetail("detail");
-    return analysis;
   }
 
   private byte[] loadFileFromAssets(String fileName) throws IOException {

@@ -12,8 +12,6 @@ import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.ComponentLocator;
 import com.sonatype.insight.brain.git.dto.ImportScmOrganizationRequest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -482,17 +480,5 @@ public abstract class AuditData
     setData("status", sbomMetadata.getStatus());
     setData("operation", action);
     return this;
-  }
-
-  public void setVulnerability(
-      final ApiSbomVulnerabilityAnalysisRequestDTO analysisRequestDto,
-      final String refId)
-  {
-    if (analysisRequestDto != null && analysisRequestDto.getComponentLocator() != null) {
-      ComponentLocator componentLocator = analysisRequestDto.getComponentLocator();
-      setData("packageUrl", componentLocator.getPackageUrl());
-      setData("componentHash", componentLocator.getHash());
-    }
-    setData("vulnerabilityReference", refId);
   }
 }

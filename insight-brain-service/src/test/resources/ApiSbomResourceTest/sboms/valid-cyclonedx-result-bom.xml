@@ -77,7 +77,6 @@
           <response>workaround_available</response>
         </responses>
         <detail>vex detail</detail>
-        <firstIssued>2024-05-16T15:30:39Z</firstIssued>
       </analysis>
       <affects>
         <target>

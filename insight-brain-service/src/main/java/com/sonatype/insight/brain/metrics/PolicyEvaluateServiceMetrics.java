@@ -44,12 +44,12 @@ public class PolicyEvaluateServiceMetrics
     this.meterRegistry = meterRegistry;
   }
 
-  public void registerPolicyEvaluationExecutor(final ExecutorService executor) {
+  public ExecutorService registerAndGetTimedPolicyEvaluationExecutor(final ExecutorService executor) {
     if (meterRegistry == null) {
-      return;
+      return executor;
     }
 
-    ExecutorServiceMetrics.monitor(meterRegistry,
+    return ExecutorServiceMetrics.monitor(meterRegistry,
         executor,
         "PolicyEvaluateService",
         Tags.of(KIND_TAG, METRIC_KIND));
@@ -88,7 +88,7 @@ public class PolicyEvaluateServiceMetrics
 
     long analysisDurationNanos = sample.stop();
     long analysisDurationMs = Duration.ofNanos(analysisDurationNanos).toMillis();
-    meterRegistry.timer(EVALUATION_COMPLETED_NAME + "." + DURATION_NAME)
+    meterRegistry.timer(EVALUATION_COMPLETED_NAME + "." + DURATION_NAME, Tags.of(KIND_TAG, METRIC_KIND))
         .record(Duration.ofMillis(analysisDurationMs));
 
     meterRegistry.counter(EVALUATION_COMPLETED_NAME, Tags.of(KIND_TAG, METRIC_KIND)).increment();

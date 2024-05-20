@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -18,10 +19,11 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.lenient;
 
 @Category(SlowTest.class)
 public class PullRequestCommentingEligibilityValidatorTest
+    extends AbstractComponentTest
 {
   @Test
   public void testIsLocationDiscoveryNeededAndAllowed_isNeededAndIsAllowed() {
@@ -232,7 +234,7 @@ public class PullRequestCommentingEligibilityValidatorTest
     private final GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo();
 
     TestScenario withAppearedViolations(boolean hasAppearedViolations) {
-      doReturn(hasAppearedViolations).when(mockPolicyViolationDiff).hasAppeared();
+      lenient().doReturn(hasAppearedViolations).when(mockPolicyViolationDiff).hasAppeared();
       return this;
     }
 
@@ -242,12 +244,12 @@ public class PullRequestCommentingEligibilityValidatorTest
     }
 
     TestScenario withProviderSupportingCodeInsights(boolean supportsCodeInsights) {
-      doReturn(supportsCodeInsights).when(mockSourceControlProvider).supportsCodeInsights();
+      lenient().doReturn(supportsCodeInsights).when(mockSourceControlProvider).supportsCodeInsights();
       return this;
     }
 
     TestScenario withProviderSupportingLineCommenting(boolean supportsLineCommenting) {
-      doReturn(supportsLineCommenting).when(mockSourceControlProvider).supportsPullRequestLineCommenting();
+      lenient().doReturn(supportsLineCommenting).when(mockSourceControlProvider).supportsPullRequestLineCommenting();
       return this;
     }
 

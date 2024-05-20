@@ -99,7 +99,9 @@
         "response" : [
           "workaround_available"
         ],
-        "detail" : "vex detail"
+        "detail" : "vex detail",
+        "firstIssued": "${json-unit.ignore}",
+        "lastUpdated": "${json-unit.ignore}"
       },
       "affects" : [
         {
@@ -137,7 +139,9 @@
       "description" : "example sonatype vuln",
       "analysis" : {
         "state" : "in_triage",
-        "detail" : ""
+        "detail" : "",
+        "firstIssued": "${json-unit.ignore}",
+        "lastUpdated": "${json-unit.ignore}"
       },
       "affects" : [
         {

@@ -17,13 +17,22 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.ComponentLocator;
+import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.VulnerabilityAnalysis;
+import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.VulnerabilityAnalysis.Justification;
+import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.VulnerabilityAnalysis.Response;
+import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.VulnerabilityAnalysis.State;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -110,6 +119,73 @@ public class ApiSbomResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT_SBOM_VERSION, null);
     assertThat(auditDTO.data).containsEntry("applicationId", app.getId());
+  }
+
+  @Test
+  public void testSaveVulnerabilityAnalysis_Authorized() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(thirdPartyFile);
+    String refId = "CVE-123";
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), SbomStatus.ACTIVE.toString(),
+            "file.tgz");
+    ThirdPartyFileCoordinate
+        component =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "ThirdParty", "npm", "bloom", "1.0", "hash001",
+            "pkg:npm/bloom@1.0");
+    tempEntity.newThirdPartyCoordinateSecurity(component, refId, "description", "link", 8.1, "Critical",
+        "1.2.0");
+
+    ApiSbomVulnerabilityAnalysisRequestDTO dto = new ApiSbomVulnerabilityAnalysisRequestDTO();
+    dto.setComponentLocator(new ComponentLocator(component.getHash(), component.getPackageUrl()));
+    dto.setVulnerabilityAnalysis(mockAnalysisRequest());
+
+    restRequest().path(ApiSbomResource.SBOM_VULNERABILITY_ANALYSIS_ANNOTATION_PATH)
+        .parameter(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion(), refId)
+        .body(dto)
+        .put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_SBOM_VULNERABILITY_ANALYSIS, null);
+    assertThat(auditDTO.data).containsEntry("applicationId", app.getId());
+    assertThat(auditDTO.data).containsEntry("applicationPublicId", app.getPublicId());
+    assertThat(auditDTO.data).containsEntry("applicationName", app.getName());
+    assertThat(auditDTO.data).containsEntry("componentHash", component.getHash());
+    assertThat(auditDTO.data).containsEntry("packageUrl", component.getPackageUrl());
+    assertThat(auditDTO.data).containsEntry("vulnerabilityReference", refId);
+  }
+
+  @Test
+  public void testSaveVulnerabilityAnalysis_Unauthorized() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    String refId = "CVE-123";
+
+    ApiSbomVulnerabilityAnalysisRequestDTO dto = new ApiSbomVulnerabilityAnalysisRequestDTO();
+    dto.setComponentLocator(new ComponentLocator("hash001", "purl"));
+    dto.setVulnerabilityAnalysis(mockAnalysisRequest());
+
+    restRequest().path(ApiSbomResource.SBOM_VULNERABILITY_ANALYSIS_ANNOTATION_PATH)
+        .with(unauthorizedUser())
+        .parameter(app.getId(), "v1", refId)
+        .body(dto)
+        .put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_SBOM_VULNERABILITY_ANALYSIS, "unauthorized");
+    assertThat(auditDTO.data).containsEntry("applicationId", app.getId());
+    assertThat(auditDTO.data).containsEntry("applicationPublicId", app.getPublicId());
+    assertThat(auditDTO.data).containsEntry("applicationName", app.getName());
+    assertThat(auditDTO.data).containsEntry("componentHash", "hash001");
+    assertThat(auditDTO.data).containsEntry("packageUrl", "purl");
+    assertThat(auditDTO.data).containsEntry("vulnerabilityReference", refId);
+  }
+
+  private static VulnerabilityAnalysis mockAnalysisRequest() {
+    VulnerabilityAnalysis analysis = new VulnerabilityAnalysis();
+    analysis.setState(State.EXPLOITABLE);
+    analysis.setJustification(Justification.REQUIRES_DEPENDENCY);
+    analysis.setResponse(Response.WILL_NOT_FIX);
+    analysis.setDetail("detail");
+    return analysis;
   }
 
   private byte[] loadFileFromAssets(String fileName) throws IOException {

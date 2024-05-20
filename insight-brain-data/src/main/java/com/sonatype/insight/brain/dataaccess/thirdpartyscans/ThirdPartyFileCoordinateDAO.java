@@ -148,7 +148,7 @@ public class ThirdPartyFileCoordinateDAO
     return getList(tx, sQuery, sbomMetadataId);
   }
 
-  public List<ThirdPartyFileCoordinate> getBySbomMetadataIdAndComponentHash(
+  public ThirdPartyFileCoordinate getBySbomMetadataIdAndComponentHash(
       String sbomMetadataId,
       String componentHash)
   {
@@ -157,7 +157,7 @@ public class ThirdPartyFileCoordinateDAO
     }
   }
 
-  public List<ThirdPartyFileCoordinate> getBySbomMetadataIdAndComponentHash(TransactionContext tx,
+  public ThirdPartyFileCoordinate getBySbomMetadataIdAndComponentHash(TransactionContext tx,
                                                                             String sbomMetadataId,
                                                                             String componentHash)
   {
@@ -165,7 +165,7 @@ public class ThirdPartyFileCoordinateDAO
         " WHERE sbomMetadata.id = ?1 AND entity.thirdPartyFileId = sbomMetadata.thirdPartyFileId" +
         " AND entity.hash = ?2";
 
-    return getList(tx, sQuery, sbomMetadataId, componentHash);
+    return get(tx, sQuery, sbomMetadataId, componentHash);
   }
 
   @SuppressWarnings("unchecked")

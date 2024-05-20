@@ -35,6 +35,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.VulnerabilityAnalysis;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
+import com.sonatype.insight.brain.api.v2.service.ApiSbomVulnerabilityAnalysisService;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomComponentSortableField;
@@ -86,9 +88,15 @@ public class ApiSbomResource
 
   private final ApiSbomService apiSbomService;
 
+  private final ApiSbomVulnerabilityAnalysisService apiSbomVulnerabilityAnalysisService;
+
   @Inject
-  public ApiSbomResource(final ApiSbomService apiSbomService) {
+  public ApiSbomResource(
+      final ApiSbomService apiSbomService,
+      final ApiSbomVulnerabilityAnalysisService apiSbomVulnerabilityAnalysisService)
+  {
     this.apiSbomService = apiSbomService;
+    this.apiSbomVulnerabilityAnalysisService = apiSbomVulnerabilityAnalysisService;
   }
 
   @Operation(summary = "Delete sbom version",
@@ -322,7 +330,8 @@ public class ApiSbomResource
       @RequestBody(description = "Vulnerability analysis details with component information", required = true)
       ApiSbomVulnerabilityAnalysisRequestDTO apiSbomVulnerabilityAnalysisRequestDto)
   {
-    // TODO: Save VEX annotation service method
-    return null;
+    AuditData.get().setVulnerability(apiSbomVulnerabilityAnalysisRequestDto, refId);
+    return apiSbomVulnerabilityAnalysisService.saveVulnerabilityAnalysis(applicationId, sbomVersion, refId,
+        apiSbomVulnerabilityAnalysisRequestDto);
   }
 }

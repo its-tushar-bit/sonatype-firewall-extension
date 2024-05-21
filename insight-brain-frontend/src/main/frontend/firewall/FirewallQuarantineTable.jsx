@@ -24,7 +24,11 @@ import {
 
 import { faSync } from '@fortawesome/pro-solid-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
-import { formatDate, STANDARD_DATE_FORMAT, FIREWALL_TIME_DATE_FORMAT } from 'MainRoot/util/dateUtils';
+import {
+  formatDate,
+  FIREWALL_TIME_DATE_FORMAT,
+  FIREWALL_DATE_TIME_FORMAT
+} from 'MainRoot/util/dateUtils';
 
 export default function FirewallQuarantineTable(props) {
   // actions
@@ -69,28 +73,7 @@ export default function FirewallQuarantineTable(props) {
    * @returns The next sorting direction in the cycle.
    */
   function getNextSortDir(curSort) {
-    return curSort === null ? 'asc' : curSort === 'asc' ? 'desc' : null;
-  }
-
-  function getHighestPolicyViolation(policyViolations) {
-    // A quarantined component is expected to have at least one violation.
-    let chosenViolation = policyViolations[0];
-
-    // Start at 0 because the first element could match the filter criteria.
-    // If not, it's a noop comparing the threat level to itself.
-    for (let i = 0; i < policyViolations.length; i++) {
-      let policyViolation = policyViolations[i];
-
-      // If we match filter criteria, that takes precedence so break the loop.
-      if (filterPolicies === policyViolation.policyId) {
-        chosenViolation = policyViolation;
-        break;
-      } else if (policyViolation.threatLevel > chosenViolation.threatLevel) {
-        chosenViolation = policyViolation;
-      }
-    }
-
-    return chosenViolation;
+    return curSort === null || curSort === 'asc' ? 'desc' : 'asc';
   }
 
   const uiRouterState = useRouterState();
@@ -131,7 +114,7 @@ export default function FirewallQuarantineTable(props) {
                 sortDir={sortField === 'quarantineTime' ? sortDir : null}
                 onClick={() => sortPage('quarantineTime')}
               >
-                Quarantine Date
+                Quarantine Time
               </NxTableCell>
               <NxTableCell>Component</NxTableCell>
               <NxTableCell className="iq-cell--repository">Repository</NxTableCell>
@@ -172,22 +155,21 @@ export default function FirewallQuarantineTable(props) {
           >
             {quarantineList &&
               quarantineList.map((row, index) => {
-                let policyViolation = getHighestPolicyViolation(row.quarantinePolicyViolations);
                 return (
                   <NxTableRow key={index}>
                     <NxTableCell isNumeric>
-                      <NxThreatIndicator policyThreatLevel={policyViolation ? policyViolation.threatLevel : 0} />
-                      <span>{policyViolation ? policyViolation.threatLevel : 0}</span>
+                      <NxThreatIndicator policyThreatLevel={row.threatLevel === null ? 0 : row.threatLevel} />
+                      <span>{row.threatLevel === null ? 0 : row.threatLevel}</span>
                     </NxTableCell>
                     <NxTableCell className="iq-policy-cell">
-                      <NxOverflowTooltip title={policyViolation ? policyViolation.policyName : 'None'}>
+                      <NxOverflowTooltip title={!row.policyName ? 'None' : row.policyName}>
                         <div className="nx-truncate-ellipsis">
-                          {policyViolation ? policyViolation.policyName : 'None'}
+                          {!row.policyName ? 'None' : row.policyName}
                         </div>
                       </NxOverflowTooltip>
                     </NxTableCell>
                     <NxTableCell className="visual-testing-ignore">
-                      {formatDate(row.quarantineDate, STANDARD_DATE_FORMAT)}
+                      {formatDate(row.quarantineDate, FIREWALL_DATE_TIME_FORMAT)}
                     </NxTableCell>
                     <NxTableCell className="iq-firewall-quarantine-table__component-cell">
                       <NxOverflowTooltip title={row.componentDisplayText}>
@@ -212,14 +194,14 @@ export default function FirewallQuarantineTable(props) {
                       </NxOverflowTooltip>
                     </NxTableCell>
                     <NxTableCell>
-                      <NxOverflowTooltip title={row.repository}>
+                      <NxOverflowTooltip title={row.repositoryName}>
                         <div className="nx-truncate-ellipsis">
                           <NxTextLink
                             id="iq-firewall-quarantine-table--repo-view-link"
                             href={uiRouterState.href('repository-report', { repositoryId: row.repositoryId })}
                             truncate
                           >
-                            {row.repository}
+                            {row.repositoryName}
                           </NxTextLink>
                         </div>
                       </NxOverflowTooltip>

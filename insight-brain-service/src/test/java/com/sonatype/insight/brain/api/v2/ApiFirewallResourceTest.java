@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallQuarantineSummaryDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiFirewallQuarantinedComponentDto;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
@@ -332,7 +333,7 @@ public class ApiFirewallResourceTest
   @Test
   public void testGetQuarantineList() throws Exception {
     Date june1st2020 = Date.from(LocalDateTime.of(2020, 6, 1, 1, 0).toInstant(ZoneOffset.UTC));
-    Date june2st2020 = DateUtils.addDays(june1st2020, 1);
+    Date june2nd2020 = DateUtils.addDays(june1st2020, 1);
 
     Repository repository = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo1", true, true);
     Condition condition = new Condition("RelativePopularity", "<=", "10");
@@ -346,7 +347,7 @@ public class ApiFirewallResourceTest
 
     // ADD ANOTHER COMPONENT
     RepositoryComponent component2 =
-        tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", june2st2020, null, false);
+        tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", june2nd2020, null, false);
     component2.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g", "b", "v"));
     repositoryComponentDAO.update(component2);
 
@@ -367,12 +368,12 @@ public class ApiFirewallResourceTest
         .get();
 
     assertResponseStatus(HttpStatus.OK_200, response);
-    ApiPageResult<ApiFirewallComponentDTO> responseDTO = getBodyByTypeReference(response.getBodyBytes(),
-        new TypeReference<ApiPageResult<ApiFirewallComponentDTO>>() { });
+    ApiPageResult<ApiFirewallQuarantinedComponentDto> responseDTO = getBodyByTypeReference(response.getBodyBytes(),
+        new TypeReference<ApiPageResult<ApiFirewallQuarantinedComponentDto>>() { });
     assertThat(responseDTO.getTotal()).isEqualTo(1);
-    final ApiFirewallComponentDTO componentDTO1 = responseDTO.getResults().get(0);
+    final ApiFirewallQuarantinedComponentDto componentDTO1 = responseDTO.getResults().get(0);
     ApiFirewallServiceTest
-        .assertRepositoryComponentWithOnePolicyViolation(policyViolation1, componentDTO1, june1st2020, null);
+        .assertFirewallQuarantinedDetails(repository, component1, policyViolation1, componentDTO1);
 
     // TEST WITH MULTIPLE POLICIES
     Policy policy2 = tempEntity.newPolicy("policy2", constraint);
@@ -390,7 +391,7 @@ public class ApiFirewallResourceTest
     assertResponseStatus(HttpStatus.OK_200, response);
     responseDTO = getBodyByTypeReference(
         response.getBodyBytes(),
-        new TypeReference<ApiPageResult<ApiFirewallComponentDTO>>() { });
+        new TypeReference<ApiPageResult<ApiFirewallQuarantinedComponentDto>>() { });
 
     assertThat(responseDTO.getTotal()).isEqualTo(2);
 
@@ -408,7 +409,7 @@ public class ApiFirewallResourceTest
 
     assertResponseStatus(HttpStatus.BAD_REQUEST_400, response);
     assertThat(response.getBodyText())
-        .isEqualTo("Sortable field releaseQuarantineTime is not applicable to component state QUARANTINE");
+        .isEqualTo("SortableField releaseQuarantineTime is not applicable to get Firewall Quarantined components.");
   }
 
   @Test
@@ -433,12 +434,12 @@ public class ApiFirewallResourceTest
         .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH).get();
 
     assertResponseStatus(HttpStatus.OK_200, response);
-    ApiPageResult<ApiFirewallComponentDTO> responseDTO = getBodyByTypeReference(response.getBodyBytes(),
-        new TypeReference<ApiPageResult<ApiFirewallComponentDTO>>() { });
+    ApiPageResult<ApiFirewallQuarantinedComponentDto> responseDTO = getBodyByTypeReference(response.getBodyBytes(),
+        new TypeReference<ApiPageResult<ApiFirewallQuarantinedComponentDto>>() { });
     assertThat(responseDTO.getTotal()).isEqualTo(1);
-    final ApiFirewallComponentDTO componentDTO1 = responseDTO.getResults().get(0);
+    final ApiFirewallQuarantinedComponentDto componentDTO1 = responseDTO.getResults().get(0);
     ApiFirewallServiceTest
-        .assertRepositoryComponentWithOnePolicyViolation(policyViolation1, componentDTO1, june1st2020, null);
+        .assertFirewallQuarantinedDetails(repository, component1, policyViolation1, componentDTO1);
   }
 
   @Test

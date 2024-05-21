@@ -184,8 +184,8 @@ describe('firewallActions', function () {
           quarantinePageCount: 0,
           pageSize: 12,
           currentPage: null,
-          sortDir: null,
-          sortField: null,
+          sortDir: 'desc',
+          sortField: 'quarantineTime',
           filterPolicies: [],
           lastUpdated: null,
         }),
@@ -1000,7 +1000,7 @@ describe('firewallActions', function () {
 
   describe('loadQuarantineList', function () {
     let payload = { pageCount: 2, results: [{ test: 'testVal' }, { test: 'testVal' }] },
-      defaultParams = '?page=1&pageSize=12';
+      defaultParams = '?page=1&pageSize=12&sortBy=quarantineTime&asc=false';
 
     afterEach(function () {
       expect(axios.get).toHaveBeenCalledWith(firewallQuarantineListUrl + defaultParams);
@@ -1022,7 +1022,7 @@ describe('firewallActions', function () {
     });
 
     describe('after a successful GET call', function () {
-      let defaultParams = '?page=1&pageSize=12',
+      let defaultParams = '?page=1&pageSize=12&sortBy=quarantineTime&asc=false',
         lastUpdated = new Date();
 
       beforeEach(function () {
@@ -1060,7 +1060,7 @@ describe('firewallActions', function () {
     });
 
     describe('after a failed GET call', function () {
-      let defaultParams = '?page=1&pageSize=12';
+      let defaultParams = '?page=1&pageSize=12&sortBy=quarantineTime&asc=false';
 
       it('dispatches an FIREWALL_QUARANTINE_LIST_FAILED action', function (done) {
         mockAxiosCalls({

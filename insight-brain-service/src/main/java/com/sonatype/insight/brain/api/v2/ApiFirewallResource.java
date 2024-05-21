@@ -166,7 +166,7 @@ public class ApiFirewallResource
       @QueryParam("policyId") Set<String> policyIds,
       @QueryParam("componentName") String componentName,
       @QueryParam("sortBy") String sortBy,
-      @DefaultValue("true") @QueryParam("asc") boolean asc
+      @DefaultValue("false") @QueryParam("asc") boolean asc
   )
   {
     return getComponents(uriInfo, page, pageSize, policyIds, componentName, sortBy,
@@ -295,6 +295,13 @@ public class ApiFirewallResource
     final FirewallRepositoryComponentFilter firewallFilter =
         new FirewallRepositoryComponentFilter(page, pageSize, firewallComponentFilterState, sortableField,
             asc, filterFields);
+
+    if (firewallComponentFilterState.equals(FirewallComponentFilterState.QUARANTINE)) {
+      return new PaginationResponseBuilder<>(uriInfo.getAbsolutePath().getPath(), page, pageSize,
+          apiFirewallService.getQuarantinedComponents(firewallFilter))
+          .queryParameters(uriInfo.getQueryParameters())
+          .build();
+    }
 
     final ApiPageResult<ApiFirewallComponentDTO> result = apiFirewallService.getComponents(firewallFilter);
 

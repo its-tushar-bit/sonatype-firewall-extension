@@ -118,7 +118,7 @@ public class RepositoryResultsSummaryTest
     tempEntity.newRepositoryPolicyViolation(repositoryComponent, 3, false, "Policy 2", null);
     tempEntity.newRepositoryPolicyViolation(repositoryComponent, 4, false, "Test Policy", null);
     tempEntity.newRepositoryPolicyViolation(repositoryComponent, 5, false, "Test Policy", null);
-    tempEntity.newRepositoryPolicyViolation(quarantinedComponent, 6, false, "Test Policy", null);
+    tempEntity.newRepositoryPolicyViolation(quarantinedComponent, 6, false, "Test Policy", Action.ID_FAIL);
     tempEntity.newRepositoryPolicyViolation(repositoryComponent, 7, false, "Test Policy", null);
     tempEntity.newRepositoryPolicyViolation(repositoryComponent, 7, false, "Policy 2", null);
     tempEntity.newRepositoryPolicyViolation(repositoryComponent, 8, false, "Test Policy", null);

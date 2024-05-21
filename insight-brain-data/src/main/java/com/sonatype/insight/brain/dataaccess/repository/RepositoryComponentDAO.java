@@ -5,16 +5,20 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -250,6 +254,116 @@ public class RepositoryComponentDAO
       Stream<Object[]> result = query.getResultStream();
       return result
           .collect(Collectors.toMap(array -> ((java.sql.Date) array[0]).toLocalDate(), array -> (Long) array[1]));
+    }
+  }
+
+  public List<FirewallQuarantinedComponentDetails> getQuarantinedComponentsDetails(
+      FirewallRepositoryComponentFilter filter)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      // extracting the highest threat level and name combination
+      String highestThreatLevelPolicyNamePart =
+          "MAX(CONCAT(LPAD(CAST(violation.threat_level AS varchar), 2, '0'), violation.policy_name))";
+      // extracting threat level from concatenated string
+      String threatLevelPart = "SUBSTRING(threat_level_and_policy_name, 1, 2)";
+      // extracting policy name from concatenated string
+      String policyNamePart = "SUBSTRING(threat_level_and_policy_name, 3)";
+
+      String select1 = "SELECT" +
+          " " + highestThreatLevelPolicyNamePart + " AS threat_level_and_policy_name," +
+          " true AS quarantined," + // data is already filtered to quarantined components in the where clause
+          " component.component_id_format," +
+          " component.component_id_coordinates_json," +
+          " component.pathname," +
+          " component.display_name," +
+          " component.repository_id," +
+          " repository.public_id," +
+          " component.hash," +
+          " component.match_state_id," +
+          " component.quarantine_time" +
+          " FROM " + getDatabaseSchema() + ".repository_component component" +
+          " INNER JOIN " + getDatabaseSchema() + ".repository" +
+          " ON repository.repository_id = component.repository_id" +
+          " INNER JOIN " + getDatabaseSchema() + ".repository_policy_violation violation" +
+          " ON component.repository_id = violation.repository_id" +
+          " AND component.pathname = violation.pathname" +
+          " WHERE (component.quarantine_time IS NOT NULL AND component.unquarantine_time IS NULL)" +
+          " AND violation.action_type_id = 'fail'" +
+          " AND violation.active = true" +
+          " AND violation.waived = false";
+
+      if (queryRequiresComponentDisplayName(filter)) {
+        select1 += " AND LOWER(component.display_name) LIKE ?1";
+      }
+
+      List<String> policyIds = Collections.EMPTY_LIST;
+      if (queryRequiresPolicyViolations(filter)) {
+        policyIds = Arrays.asList(filter.getFilterFieldsMap().get(FirewallFilterableField.POLICY_ID)
+            .split(FirewallFilterField.MULTI_VALUE_SEPARATOR));
+        select1 += " AND violation.policy_id IN " + buildPositionalParameters(policyIds, 2);
+      }
+
+      select1 += " GROUP BY component.quarantine_time, component.component_id_format," +
+              " component.component_id_coordinates_json, component.pathname," +
+              " component.repository_id, repository.public_id, component.display_name, component.hash," +
+              " component.match_state_id";
+
+      int offset = (filter.page - 1) * filter.pageSize;
+
+      String select2 = "SELECT " +
+          " CASE WHEN(threat_level_and_policy_name <> '')" +
+          " THEN CAST(" + threatLevelPart + " AS integer) " +
+          " ELSE NULL END AS threat_level," +
+          " CASE WHEN(threat_level_and_policy_name <> '')" +
+          " THEN " + policyNamePart +
+          " ELSE NULL END AS policy_name," +
+          " quarantined," +
+          " component_id_format," +
+          " component_id_coordinates_json," +
+          " pathname," +
+          " display_name," +
+          " repository_id," +
+          " public_id," +
+          " hash," +
+          " match_state_id," +
+          " quarantine_time" +
+          " FROM (" + select1 + ") AS t1" +
+          " ORDER BY quarantine_time";
+
+      if (null != filter.sortableField && filter.sortableField.getColumn().equals("quarantineTime")) {
+        if (filter.asc) {
+          select2 += " NULLS LAST,";
+        }
+        else {
+          select2 += " DESC NULLS LAST,";
+        }
+      }
+
+      select2 += " threat_level DESC NULLS LAST, display_name DESC NULLS LAST" +
+          " LIMIT " + filter.pageSize +
+          " OFFSET " + offset;
+
+      javax.persistence.Query query = tx.createNativeQuery(select2);
+      query.setParameter(1, '%' + filter.getFilterFieldsMap().get(FirewallFilterableField.COMPONENT_NAME) + '%');
+      addPositionalParameters(query, policyIds, 2);
+
+      List<FirewallQuarantinedComponentDetails> results = ((Stream<Object[]>) query.getResultStream())
+          .map(array -> new FirewallQuarantinedComponentDetails(
+              getInteger(array[0]),
+              (String) array[1],
+              (Boolean) array[2],
+              (String) array[3],
+              (String) array[4],
+              (String) array[5],
+              (String) array[6],
+              (String) array[7],
+              (String) array[8],
+              (String) array[9],
+              (String) array[10],
+              array[11] == null ? null : new Date(((Timestamp) array[11]).getTime())
+          )).collect(Collectors.toList());
+
+      return results;
     }
   }
 
@@ -544,5 +658,19 @@ public class RepositoryComponentDAO
     }
 
     entity.setDisplayName(pathname.substring(pathname.lastIndexOf('/') + 1) + " (" + pathname + ")");
+  }
+
+  private static <T> Integer getInteger(T value) {
+    if (value instanceof Short) {
+      return Integer.valueOf((Short) value);
+    }
+    if (value instanceof Integer) {
+      return (Integer) value;
+    }
+    if (value instanceof Long) {
+      return ((Long) value).intValue();
+    }
+
+    return null;
   }
 }

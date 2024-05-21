@@ -466,7 +466,7 @@ export function loadQuarantineList() {
       apiPage = gridState.currentPage ? gridState.currentPage + 1 : 1,
       filterPolicies = gridState.filterPolicies.length < 1 ? null : gridState.filterPolicies,
       filterComponentName = gridState.filterComponentName === '' ? null : gridState.filterComponentName,
-      sortAsc = gridState.sortDir === null ? gridState.sortDir : gridState.sortDir === 'asc';
+      sortAsc = gridState.sortDir === 'asc';
 
     dispatch(loadQuarantineListRequested());
     return axios

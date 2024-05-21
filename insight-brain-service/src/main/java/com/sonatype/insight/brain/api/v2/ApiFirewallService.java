@@ -26,6 +26,7 @@ import com.sonatype.clm.dto.model.repository.RepositoryDTO;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallQuarantineSummaryDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiFirewallQuarantinedComponentDto;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
@@ -46,7 +47,9 @@ import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.FirewallQuarantinedComponentDetails;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
+import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.brain.dataaccess.repository.InvalidRepositoryException;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
@@ -383,6 +386,40 @@ public class ApiFirewallService
     }
 
     return result;
+  }
+
+  ApiPageResult<ApiFirewallQuarantinedComponentDto> getQuarantinedComponents(
+      FirewallRepositoryComponentFilter firewallFilter)
+  {
+    checkReadPermission(RepositoryContainer.SINGLETON);
+
+    this.validateGetQuarantinedComponentsFilter(firewallFilter);
+
+    List<FirewallQuarantinedComponentDetails> detailsList =
+        repositoryComponentDAO.getQuarantinedComponentsDetails(firewallFilter);
+
+    List<ApiFirewallQuarantinedComponentDto> responseDtos =
+        detailsList.stream().map(ApiFirewallQuarantinedComponentDto::new).collect(Collectors.toList());
+
+    final long totalSize = repositoryComponentDAO.getTotalFirewallRepositoryComponents(firewallFilter);
+
+    return new ApiPageResult<>(totalSize, firewallFilter.page, firewallFilter.pageSize, responseDtos);
+  }
+
+  private void validateGetQuarantinedComponentsFilter(final FirewallRepositoryComponentFilter filter) {
+    this.validateFirewallRepositoryComponentFilter(filter);
+
+    if (!filter.firewallComponentFilterState.equals(FirewallComponentFilterState.QUARANTINE)) {
+      throw new BadRequestException(String.format(
+          "FilterState %s is not applicable to get Firewall Quarantined components.",
+          filter.firewallComponentFilterState.name()));
+    }
+
+    if (!FirewallSortableField.QUARANTINE_TIME.equals(filter.sortableField)) {
+      throw new BadRequestException(String.format(
+          "SortableField %s is not applicable to get Firewall Quarantined components.",
+          filter.sortableField.getLabel()));
+    }
   }
 
   private void validateFirewallRepositoryComponentFilter(final FirewallRepositoryComponentFilter filter) {

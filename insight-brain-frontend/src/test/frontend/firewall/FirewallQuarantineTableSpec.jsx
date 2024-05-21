@@ -67,30 +67,10 @@ describe('FirewallQuarantineTable', function () {
       lastUpdated: DATE_TIME,
       quarantineList: [
         {
-          componentDisplayText: 'test-component',
-          repository: 'central',
+          threatLevel: 5,
+          policyName: 'Security-Medium',
+          quarantined: true,
           quarantineDate: DATE_TIME,
-          dateCleared: null,
-          quarantinePolicyViolations: [
-            {
-              policyId: 'test-policy-id',
-              policyName: 'Security-Medium',
-              policyViolationId: 'test-policy-violation-id',
-              threatLevel: 5,
-              constraintViolations: [],
-            },
-            {
-              policyId: 'test-policy-id2',
-              policyName: 'Security-Low',
-              policyViolationId: 'test-policy-violation-id2',
-              threatLevel: 2,
-              constraintViolations: [],
-            },
-          ],
-          repositoryId: 'test-repository-id',
-          hash: 'hash1',
-          pathname: 'pathname1',
-          matchState: 'exact',
           componentIdentifier: {
             format: 'maven',
             coordinates: {
@@ -101,6 +81,12 @@ describe('FirewallQuarantineTable', function () {
               version: '1.0.0',
             },
           },
+          pathname: 'pathname1',
+          componentDisplayText: 'test-component',
+          repositoryId: 'test-repository-id',
+          repositoryName: 'central',
+          hash: 'hash1',
+          matchState: 'exact',
         },
       ],
       policies: [
@@ -173,10 +159,10 @@ describe('FirewallQuarantineTable', function () {
           quarantineList: [
             {
               componentDisplayText: 'test-component',
-              repository: 'central',
+              repositoryName: 'central',
               quarantineDate: DATE_TIME,
-              dateCleared: null,
-              quarantinePolicyViolations: [],
+              threatLevel: 0,
+              policyName: null,
             },
           ],
         }),
@@ -285,7 +271,7 @@ describe('FirewallQuarantineTable', function () {
       });
       expect(link).toHaveProp('href', 'someHref');
       expect(link).toHaveProp('truncate', true);
-      expect(link).toHaveText(minimalProps.quarantineList[0].repository);
+      expect(link).toHaveText(minimalProps.quarantineList[0].repositoryName);
     });
   });
 });

@@ -1,0 +1,184 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import React from 'react';
+import { assocPath } from 'ramda';
+
+import { axiosMockAdapter, fireEvent, render, screen, waitFor } from 'TestRoot/SpecUtil';
+
+import { getBillOfMaterialsComponentsUrl } from 'MainRoot/util/CLMLocation';
+import ComponentsFilterDrawer, {
+  COMPONENTS_FILTER_DRAWER_PORTAL_TARGET_CLASSNAME,
+} from 'MainRoot/sbomManager/features/billOfMaterialsComponentsTile/componentsFilterDrawer/ComponentsFilterDrawer';
+
+import {
+  COMPONENTS_PER_PAGE,
+  SORT_BY_FIELDS,
+  defaultSortConfiguration,
+  defaultFilterConfiguration,
+  paginationInitialState,
+} from 'MainRoot/sbomManager/features/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
+
+export const cleanUpComponentsFilterDrawerPortalContainer = () => {
+  const existingContainer = document.querySelector(`.${COMPONENTS_FILTER_DRAWER_PORTAL_TARGET_CLASSNAME}`);
+  if (existingContainer) {
+    document.body.removeChild(existingContainer);
+  }
+};
+
+export const setupComponentsFilterDrawerPortalContainer = () => {
+  const existingContainer = document.querySelector(`.${COMPONENTS_FILTER_DRAWER_PORTAL_TARGET_CLASSNAME}`);
+  if (existingContainer) {
+    document.body.removeChild(existingContainer);
+  }
+  const container = document.createElement('div');
+  container.setAttribute('class', COMPONENTS_FILTER_DRAWER_PORTAL_TARGET_CLASSNAME);
+  document.body.appendChild(container);
+};
+
+describe('ComponentsFilterDrawer', () => {
+  let axiosMock, initialProps, initialState;
+
+  const INTERNAL_APP_ID = 'internal-app-id';
+  const SBOM_VERSION = 'sbom-version';
+
+  const filterDrawerInitialState = Object.freeze({
+    showDrawer: false,
+    collapsibleItems: {
+      showVulnerabilityThreatLevels: true,
+      showDependencyTypes: true,
+    },
+  });
+
+  const renderComponent = (props, preloadedState) => render(<ComponentsFilterDrawer {...props} />, { preloadedState });
+
+  beforeEach(() => {
+    axiosMock = axiosMockAdapter();
+
+    initialProps = {
+      internalAppId: INTERNAL_APP_ID,
+      sbomVersion: SBOM_VERSION,
+    };
+
+    initialState = {
+      router: {
+        currentParams: {
+          versionId: SBOM_VERSION,
+        },
+      },
+      billOfMaterialsComponentsTile: {
+        loadingComponents: true,
+        loadingComponentsErrorMessage: null,
+
+        components: null,
+        totalNumberOfComponents: null,
+
+        sortConfiguration: { ...defaultSortConfiguration },
+        filterConfiguration: { ...defaultFilterConfiguration },
+        pagination: { ...paginationInitialState },
+
+        filterDrawer: {
+          ...filterDrawerInitialState,
+          showDrawer: true,
+        },
+      },
+    };
+
+    const baseUrlParams = [
+      INTERNAL_APP_ID,
+      SBOM_VERSION,
+      1,
+      COMPONENTS_PER_PAGE,
+      SORT_BY_FIELDS.vulnerabilities,
+      false,
+    ];
+
+    axiosMock
+      .onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams))
+      .reply(200, { totalResultsCount: 0, results: [] });
+  });
+
+  it('renders the correct initial content', async () => {
+    renderComponent(initialProps, initialState);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Filter By/)).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/Vulnerability Threat Level/)).toBeInTheDocument();
+    const vulnerabilityThreatLevelFilterCount = screen.getByTestId('vulnerability-threat-level-filter-count');
+    expect(vulnerabilityThreatLevelFilterCount).toHaveTextContent('4');
+
+    expect(screen.getByText('Critical')).toBeInTheDocument();
+    expect(screen.getByText('High')).toBeInTheDocument();
+    expect(screen.getByText('Medium')).toBeInTheDocument();
+    expect(screen.getByText('Low')).toBeInTheDocument();
+
+    expect(screen.getByText(/Dependency Type/)).toBeInTheDocument();
+    const dependencyTypeFilterCount = screen.getByTestId('dependency-type-filter-count');
+    expect(dependencyTypeFilterCount).toHaveTextContent('3');
+
+    expect(screen.getByText('Direct')).toBeInTheDocument();
+    expect(screen.getByText('Transitive')).toBeInTheDocument();
+    expect(screen.getByText('Unspecified')).toBeInTheDocument();
+
+    const checkboxes = screen.getAllByRole('menuitemcheckbox', { hidden: true });
+    expect(checkboxes.length).toBe(7);
+    for (const checkbox of checkboxes) {
+      expect(checkbox).not.toBeChecked();
+    }
+  });
+
+  it('renders the correct checkbox state that matches filter configuration', async () => {
+    const modifiedInitialState = assocPath(
+      ['billOfMaterialsComponentsTile', 'filterConfiguration'],
+      {
+        vulnerabilityThreatLevels: {
+          critical: true,
+          high: true,
+          medium: true,
+          low: true,
+        },
+        dependencyTypes: {
+          direct: true,
+          transitive: true,
+          unspecified: true,
+        },
+      },
+      initialState
+    );
+
+    renderComponent(initialProps, modifiedInitialState);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Filter By/)).toBeInTheDocument();
+    });
+
+    const checkboxes = screen.getAllByRole('menuitemcheckbox', { hidden: true });
+    expect(checkboxes.length).toBe(7);
+    for (const checkbox of checkboxes) {
+      expect(checkbox).toBeChecked();
+    }
+  });
+
+  it('should have toggleable checkboxes', async () => {
+    renderComponent(initialProps, initialState);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Filter By/)).toBeInTheDocument();
+    });
+
+    const checkboxes = screen.getAllByRole('menuitemcheckbox', { hidden: true });
+
+    for (const checkbox of checkboxes) {
+      expect(checkbox).not.toBeChecked();
+      await fireEvent.click(checkbox);
+    }
+
+    for (const checkbox of checkboxes) {
+      expect(checkbox).toBeChecked();
+    }
+  });
+});

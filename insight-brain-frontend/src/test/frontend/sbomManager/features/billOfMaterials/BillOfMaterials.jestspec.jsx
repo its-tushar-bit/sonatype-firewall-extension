@@ -15,10 +15,18 @@ import {
   getSbomSummaryUrl,
 } from 'MainRoot/util/CLMLocation';
 
+import { initialState as billOfMaterialsComponentsTileInitialState } from 'MainRoot/sbomManager/features/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
+import {
+  cleanUpComponentsFilterDrawerPortalContainer,
+  setupComponentsFilterDrawerPortalContainer,
+} from '../billOfMaterialsComponentsTile/componentsFilterDrawer/ComponentsFilterDrawer.jestspec';
+
 describe('BillOfMaterials page', () => {
   let renderPage;
-  const applicationPublicId = 'app_123';
-  const internalAppId = 'abc123';
+
+  const applicationPublicId = 'application-public-id';
+  const internalAppId = 'internal-app-id';
+
   const axiosMock = axiosMockAdapter();
 
   const sbomMetadataInitialState = Object.freeze({
@@ -143,9 +151,19 @@ describe('BillOfMaterials page', () => {
         vulnerabilitiesSummary: { ...vulnerabilitiesSummaryInitialState },
         annotatedVulnerabilitesPercentage: null,
       },
+      billOfMaterialsComponentsTile: {
+        ...billOfMaterialsComponentsTileInitialState,
+        loadingComponents: false,
+      },
     };
-    renderPage = (additionalPreloadedState = {}) =>
+    renderPage = (additionalPreloadedState = {}) => {
+      setupComponentsFilterDrawerPortalContainer();
       render(<BillOfMaterials />, { preloadedState: { ...preloadedState, ...additionalPreloadedState } });
+    };
+  });
+
+  afterEach(() => {
+    cleanUpComponentsFilterDrawerPortalContainer();
   });
 
   it('renders page content', async () => {

@@ -16,15 +16,42 @@ import {
   SORT_DIRECTION,
 } from 'MainRoot/sbomManager/features/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
 
+import {
+  cleanUpComponentsFilterDrawerPortalContainer,
+  setupComponentsFilterDrawerPortalContainer,
+} from './componentsFilterDrawer/ComponentsFilterDrawer.jestspec';
+
 describe('BillOfMaterialsComponentsTile', () => {
   let axiosMock, initialProps, initialState;
 
-  const internalAppId = 'abc123';
-  const sbomVersion = '1.0-SNAPSHOT_TEST';
+  const INTERNAL_APP_ID = 'internal-app-id';
+  const SBOM_VERSION = 'sbom-version';
 
   const defaultSortConfiguration = Object.freeze({
     sortBy: SORT_BY_FIELDS.vulnerabilities,
     sortDirection: SORT_DIRECTION.DESC,
+  });
+
+  const defaultFilterConfiguration = Object.freeze({
+    vulnerabilityThreatLevels: {
+      critical: false,
+      high: false,
+      medium: false,
+      low: false,
+    },
+    dependencyTypes: {
+      direct: false,
+      transitive: false,
+      unspecified: false,
+    },
+  });
+
+  const filterDrawerInitialState = Object.freeze({
+    showDrawer: false,
+    collapsibleItems: {
+      showVulnerabilityThreatLevels: true,
+      showDependencyTypes: true,
+    },
   });
 
   const paginationInitialState = Object.freeze({
@@ -100,28 +127,30 @@ describe('BillOfMaterialsComponentsTile', () => {
   });
 
   const baseUrlParams = Object.freeze([
-    internalAppId,
-    sbomVersion,
+    INTERNAL_APP_ID,
+    SBOM_VERSION,
     1,
     COMPONENTS_PER_PAGE,
     SORT_BY_FIELDS.vulnerabilities,
     false,
   ]);
 
-  const renderComponent = (props, preloadedState) =>
+  const renderComponent = (props, preloadedState) => {
+    setupComponentsFilterDrawerPortalContainer();
     render(<BillOfMaterialsComponentsTile {...props} />, { preloadedState });
+  };
 
   beforeEach(() => {
     axiosMock = axiosMockAdapter();
 
     initialProps = {
-      internalAppId: internalAppId,
+      internalAppId: INTERNAL_APP_ID,
     };
 
     initialState = {
       router: {
         currentParams: {
-          versionId: sbomVersion,
+          versionId: SBOM_VERSION,
         },
       },
       billOfMaterialsComponentsTile: {
@@ -131,14 +160,20 @@ describe('BillOfMaterialsComponentsTile', () => {
         totalNumberOfComponents: null,
 
         sortConfiguration: { ...defaultSortConfiguration },
-
+        filterConfiguration: { ...defaultFilterConfiguration },
         pagination: { ...paginationInitialState },
+
+        filterDrawer: { ...filterDrawerInitialState },
       },
     };
 
     axiosMock
       .onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams))
       .reply(200, generateResponse(componentParametersList));
+  });
+
+  afterEach(() => {
+    cleanUpComponentsFilterDrawerPortalContainer();
   });
 
   it('renders the correct title', async () => {
@@ -157,6 +192,17 @@ describe('BillOfMaterialsComponentsTile', () => {
     const errorAlert = await screen.findByRole('alert');
     expect(errorAlert).toBeVisible();
     expect(errorAlert).toHaveTextContent('An error occurred loading data. Error Message');
+  });
+
+  describe('Filter By', () => {
+    it('should have the Filter By button', async () => {
+      renderComponent(initialProps, initialState);
+
+      await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+      const filterButton = screen.getByRole('button', { name: 'Filter By' });
+      expect(filterButton).toBeVisible();
+    });
   });
 
   describe('Components Table', () => {

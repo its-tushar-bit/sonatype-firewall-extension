@@ -3,9 +3,24 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import axios from 'axios';
-import { always, cond, equals, T, values, without, includes, findIndex } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import axios from 'axios';
+import {
+  always,
+  assoc,
+  compose,
+  cond,
+  equals,
+  findIndex,
+  has,
+  includes,
+  keys,
+  pickBy,
+  T,
+  values,
+  when,
+  without,
+} from 'ramda';
 
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getBillOfMaterialsComponentsUrl } from 'MainRoot/util/CLMLocation';
@@ -33,6 +48,28 @@ export const defaultSortConfiguration = Object.freeze({
   sortDirection: SORT_DIRECTION.DESC,
 });
 
+export const defaultFilterConfiguration = Object.freeze({
+  vulnerabilityThreatLevels: {
+    critical: false,
+    high: false,
+    medium: false,
+    low: false,
+  },
+  dependencyTypes: {
+    direct: false,
+    transitive: false,
+    unspecified: false,
+  },
+});
+
+const filterDrawerInitialState = Object.freeze({
+  showDrawer: false,
+  collapsibleItems: {
+    showVulnerabilityThreatLevels: true,
+    showDependencyTypes: true,
+  },
+});
+
 const paginationInitialState = Object.freeze({
   pageCount: 1,
   currentPage: 0,
@@ -41,17 +78,21 @@ const paginationInitialState = Object.freeze({
 export const initialState = Object.freeze({
   loadingComponents: true,
   loadingComponentsErrorMessage: null,
+
   components: null,
   totalNumberOfComponents: null,
 
   sortConfiguration: { ...defaultSortConfiguration },
-
+  filterConfiguration: { ...defaultFilterConfiguration },
   pagination: { ...paginationInitialState },
+
+  filterDrawer: { ...filterDrawerInitialState },
 });
 
 // load-components
 const resetLoadComponentsConfigurations = (state) => {
   state.sortConfiguration = { ...defaultSortConfiguration };
+  state.filterConfiguration = { ...defaultFilterConfiguration };
   state.pagination = { ...paginationInitialState };
 };
 
@@ -91,7 +132,12 @@ const loadComponents = createAsyncThunk(
   `${REDUCER_NAME}/loadComponents`,
   async ({ internalAppId, sbomVersion }, { getState, rejectWithValue }) => {
     const state = getState();
-    const { sortConfiguration, pagination } = selectBillOfMaterialsComponentsTile(state);
+    const { sortConfiguration, filterConfiguration, pagination } = selectBillOfMaterialsComponentsTile(state);
+
+    const pickKeysWithTrueValue = compose(
+      keys,
+      pickBy((v) => !!v)
+    );
 
     const sortDirection = cond([
       [equals(SORT_DIRECTION.ASC), always(true)],
@@ -107,7 +153,9 @@ const loadComponents = createAsyncThunk(
           pagination.currentPage + 1,
           COMPONENTS_PER_PAGE,
           sortConfiguration.sortBy,
-          sortDirection
+          sortDirection,
+          pickKeysWithTrueValue(filterConfiguration.vulnerabilityThreatLevels),
+          pickKeysWithTrueValue(filterConfiguration.dependencyTypes)
         )
       )
       .then((response) => response.data)
@@ -146,6 +194,34 @@ const setSortByAndCycleDirection = (state, { payload: newSortBy }) => {
   }
 };
 
+// filter-configuration
+const setFilterVulnerabilityThreatLevels = (state, { payload: { field, value } }) => {
+  state.filterConfiguration.vulnerabilityThreatLevels = when(
+    has(field),
+    assoc(field, value)
+  )(state.filterConfiguration.vulnerabilityThreatLevels);
+};
+
+const setFilterDependencyTypes = (state, { payload: { field, value } }) => {
+  state.filterConfiguration.dependencyTypes = when(
+    has(field),
+    assoc(field, value)
+  )(state.filterConfiguration.dependencyTypes);
+};
+
+// filter-drawer
+const toggleShowFilterDrawer = (state) => {
+  state.filterDrawer.showDrawer = !state.filterDrawer.showDrawer;
+};
+
+const setShowVulnerabilityThreatLevelsCollapsibleItems = (state, { payload }) => {
+  state.filterDrawer.collapsibleItems.showVulnerabilityThreatLevels = payload;
+};
+
+const setShowDependencyTypesCollapsibleItems = (state, { payload }) => {
+  state.filterDrawer.collapsibleItems.showDependencyTypes = payload;
+};
+
 // pagination
 const setCurrentPage = (state, { payload }) => {
   state.pagination.currentPage = payload;
@@ -158,6 +234,11 @@ const billOfMaterialsComponentsTileSlice = createSlice({
     resetLoadComponentsConfigurations,
     setLoadingComponents,
     setSortByAndCycleDirection,
+    toggleShowFilterDrawer,
+    setShowVulnerabilityThreatLevelsCollapsibleItems,
+    setShowDependencyTypesCollapsibleItems,
+    setFilterVulnerabilityThreatLevels,
+    setFilterDependencyTypes,
     setCurrentPage,
   },
   extraReducers: {

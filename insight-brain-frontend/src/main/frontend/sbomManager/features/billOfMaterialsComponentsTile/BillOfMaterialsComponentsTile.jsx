@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import * as PropTypes from 'prop-types';
 import {
@@ -30,6 +31,8 @@ import debounce from 'debounce';
 import classNames from 'classnames';
 import {
   NxBinaryDonutChart,
+  NxButton,
+  NxFontAwesomeIcon,
   NxH2,
   NxPagination,
   NxSmallThreatCounter,
@@ -38,26 +41,35 @@ import {
   NxTile,
   NxTooltip,
 } from '@sonatype/react-shared-components';
+import { faFilter } from '@fortawesome/pro-solid-svg-icons';
 
+import DependencyIndicator from 'MainRoot/DependencyTree/DependencyIndicator';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
-
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
-import DependencyIndicator from 'MainRoot/DependencyTree/DependencyIndicator';
 import { formatNumberLocale } from 'MainRoot/util/formatUtils';
 
-import { selectBillOfMaterialsComponentsTile } from './billOfMaterialsComponentsTileSelectors';
-import { actions, SORT_BY_FIELDS, SORT_DIRECTION, COMPONENTS_PER_PAGE } from './billOfMaterialsComponentsTileSlice';
+import ComponentsFilterDrawer, {
+  COMPONENTS_FILTER_DRAWER_PORTAL_TARGET_CLASSNAME,
+} from './componentsFilterDrawer/ComponentsFilterDrawer';
+import { selectBillOfMaterialsComponentsTile } from './billOfMaterialsComponentsTileSelectors.js';
+import { actions, COMPONENTS_PER_PAGE, SORT_BY_FIELDS, SORT_DIRECTION } from './billOfMaterialsComponentsTileSlice';
 
 import './billOfMaterialsComponentsTile.scss';
 
 const LOAD_COMPONENTS_DEBOUNCE_TIMEOUT_MS = 300;
+
 export default function BillOfMaterialsComponentsTile({ internalAppId }) {
   const { applicationPublicId, versionId: sbomVersion } = useSelector(selectRouterCurrentParams);
 
   const uiRouterState = useRouterState();
 
   const dispatch = useDispatch();
+
+  const toggleFilterDrawer = () => {
+    if (!loadingComponents) dispatch(actions.toggleShowFilterDrawer());
+  };
+
   const loadComponents = () => dispatch(actions.loadComponents({ internalAppId, sbomVersion }));
   const debouncedLoadComponents = useCallback(debounce(loadComponents, LOAD_COMPONENTS_DEBOUNCE_TIMEOUT_MS), []);
 
@@ -210,33 +222,47 @@ export default function BillOfMaterialsComponentsTile({ internalAppId }) {
     ...(isEmpty && { emptyMessage: 'No components found' }),
   };
   return (
-    <NxTile className="sbom-manager-bill-of-materials-components-tile">
-      <NxTile.Header>
-        <NxTile.HeaderTitle>
-          <NxH2>Components</NxH2>
-        </NxTile.HeaderTitle>
-      </NxTile.Header>
-      <NxTile.Content>
-        <NxTable
-          id="bill-of-materials-components-table"
-          className="sbom-manager-bill-of-materials-components-tile__table"
-        >
-          <NxTable.Head>
-            <NxTable.Row>
-              <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.type)}>Type</NxTable.Cell>
-              <NxTable.Cell>Name</NxTable.Cell>
-              <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.vulnerabilities)}>Vulnerabilities</NxTable.Cell>
-              <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.percentageAnnotated)}>
-                Percentage Annotated
-              </NxTable.Cell>
-              <NxTable.Cell>License</NxTable.Cell>
-            </NxTable.Row>
-          </NxTable.Head>
-          <NxTable.Body {...tableBodyProps}>{componentRows}</NxTable.Body>
-        </NxTable>
-        {paginationSection()}
-      </NxTile.Content>
-    </NxTile>
+    <>
+      {createPortal(
+        <ComponentsFilterDrawer internalAppId={internalAppId} sbomVersion={sbomVersion} />,
+        document.querySelector(`.${COMPONENTS_FILTER_DRAWER_PORTAL_TARGET_CLASSNAME}`)
+      )}
+      <NxTile className="sbom-manager-bill-of-materials-components-tile">
+        <NxTile.Header>
+          <NxTile.HeaderTitle>
+            <NxH2>Components</NxH2>
+          </NxTile.HeaderTitle>
+          <NxTile.HeaderActions>
+            <NxButton variant="tertiary" onClick={toggleFilterDrawer} disabled={loadingComponents}>
+              <NxFontAwesomeIcon icon={faFilter} />
+              <span>Filter By</span>
+            </NxButton>
+          </NxTile.HeaderActions>
+        </NxTile.Header>
+        <NxTile.Content>
+          <NxTable
+            id="bill-of-materials-components-table"
+            className="sbom-manager-bill-of-materials-components-tile__table"
+          >
+            <NxTable.Head>
+              <NxTable.Row>
+                <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.type)}>Type</NxTable.Cell>
+                <NxTable.Cell>Name</NxTable.Cell>
+                <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.vulnerabilities)}>
+                  Vulnerabilities
+                </NxTable.Cell>
+                <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.percentageAnnotated)}>
+                  Percentage Annotated
+                </NxTable.Cell>
+                <NxTable.Cell>License</NxTable.Cell>
+              </NxTable.Row>
+            </NxTable.Head>
+            <NxTable.Body {...tableBodyProps}>{componentRows}</NxTable.Body>
+          </NxTable>
+          {paginationSection()}
+        </NxTile.Content>
+      </NxTile>
+    </>
   );
 }
 

@@ -50,20 +50,43 @@ describe('billOfMaterialsComponentsTileSlice', function () {
     sortDirection: SORT_DIRECTION.DESC,
   });
 
+  const defaultFilterConfiguration = Object.freeze({
+    vulnerabilityThreatLevels: {
+      critical: false,
+      high: false,
+      medium: false,
+      low: false,
+    },
+    dependencyTypes: {
+      direct: false,
+      transitive: false,
+      unspecified: false,
+    },
+  });
+
   const paginationInitialState = Object.freeze({
     pageCount: 1,
     currentPage: 0,
   });
 
+  const filterDrawerInitialState = Object.freeze({
+    showDrawer: false,
+    showVulnerabilityThreatLevelsCollapsibleItems: true,
+    showDependencyTypesCollapsibleItems: true,
+  });
+
   const initialState = Object.freeze({
     loadingComponents: true,
     loadingComponentsErrorMessage: null,
+
     components: null,
     totalNumberOfComponents: null,
 
     sortConfiguration: { ...defaultSortConfiguration },
-
+    filterConfiguration: { ...defaultFilterConfiguration },
     pagination: { ...paginationInitialState },
+
+    filterDrawer: { ...filterDrawerInitialState },
   });
 
   describe('setLoadingComponents', () => {
@@ -88,6 +111,19 @@ describe('billOfMaterialsComponentsTileSlice', function () {
           sortBy: SORT_BY_FIELDS.type,
           sortDirection: SORT_DIRECTION.ASC,
         },
+        filterConfiguration: {
+          vulnerabilityThreatLevels: {
+            critical: true,
+            high: true,
+            medium: true,
+            low: true,
+          },
+          dependencyTypes: {
+            direct: true,
+            transitive: true,
+            unspecified: true,
+          },
+        },
         pagination: {
           pageCount: 99,
           currentPage: 42,
@@ -99,6 +135,7 @@ describe('billOfMaterialsComponentsTileSlice', function () {
       });
 
       expect(newState.sortConfiguration).toEqual(defaultSortConfiguration);
+      expect(newState.filterConfiguration).toEqual(defaultFilterConfiguration);
       expect(newState.pagination).toEqual(paginationInitialState);
     });
   });
@@ -312,6 +349,126 @@ describe('billOfMaterialsComponentsTileSlice', function () {
 
       expect(newState3.sortConfiguration.sortBy).toBe(SORT_BY_FIELDS.vulnerabilities);
       expect(newState3.sortConfiguration.sortDirection).toBe(SORT_DIRECTION.ASC);
+    });
+  });
+
+  describe('filterConfiguration', () => {
+    describe('setFilterVulnerabilityThreatLevels', () => {
+      it('sets the state only if the field is valid', () => {
+        const state = {
+          filterConfiguration: { ...defaultFilterConfiguration },
+        };
+
+        const newState1 = reducer(state, {
+          type: 'billOfMaterialsComponentsTile/setFilterVulnerabilityThreatLevels',
+          payload: {
+            field: 'invalid-field',
+            value: true,
+          },
+        });
+
+        expect(newState1.filterConfiguration).toEqual(defaultFilterConfiguration);
+
+        const newState2 = reducer(state, {
+          type: 'billOfMaterialsComponentsTile/setFilterVulnerabilityThreatLevels',
+          payload: {
+            field: 'medium',
+            value: true,
+          },
+        });
+
+        expect(newState2.filterConfiguration.vulnerabilityThreatLevels.medium).toBe(true);
+      });
+    });
+
+    describe('setFilterDependencyTypes', () => {
+      it('sets the state only if the field is valid', () => {
+        const state = {
+          filterConfiguration: { ...defaultFilterConfiguration },
+        };
+
+        const newState1 = reducer(state, {
+          type: 'billOfMaterialsComponentsTile/setFilterDependencyTypes',
+          payload: {
+            field: 'invalid-field',
+            value: true,
+          },
+        });
+
+        expect(newState1.filterConfiguration).toEqual(defaultFilterConfiguration);
+
+        const newState2 = reducer(state, {
+          type: 'billOfMaterialsComponentsTile/setFilterDependencyTypes',
+          payload: {
+            field: 'direct',
+            value: true,
+          },
+        });
+
+        expect(newState2.filterConfiguration.dependencyTypes.direct).toBe(true);
+      });
+    });
+  });
+
+  describe('filterDrawer', () => {
+    describe('toggleShowFilterDrawer', () => {
+      it('should toggle showDrawer state', () => {
+        const state = {
+          filterDrawer: {
+            showDrawer: false,
+          },
+        };
+
+        const newState1 = reducer(state, {
+          type: 'billOfMaterialsComponentsTile/toggleShowFilterDrawer',
+        });
+
+        expect(newState1.filterDrawer.showDrawer).toBe(true);
+
+        const newState2 = reducer(newState1, {
+          type: 'billOfMaterialsComponentsTile/toggleShowFilterDrawer',
+        });
+
+        expect(newState2.filterDrawer.showDrawer).toBe(false);
+      });
+    });
+
+    describe('setShowVulnerabilityThreatLevelsCollapsibleItems', () => {
+      it('should set showVulnerabilityThreatLevels state correctly', () => {
+        const state = {
+          filterDrawer: {
+            collapsibleItems: {
+              showVulnerabilityThreatLevels: false,
+            },
+          },
+        };
+
+        const newState = reducer(state, {
+          type: 'billOfMaterialsComponentsTile/setShowVulnerabilityThreatLevelsCollapsibleItems',
+          payload: true,
+        });
+
+        expect(newState.filterDrawer.collapsibleItems.showVulnerabilityThreatLevels).toBe(true);
+      });
+    });
+
+    describe('setShowDependencyTypesCollapsibleItems', () => {
+      it('should set showDependencyTypesCollapsibleItems correctly', () => {
+        const state = {
+          filterDrawer: {
+            collapsibleItems: {
+              showDependencyTypes: false,
+            },
+          },
+        };
+
+        const newState = reducer(state, {
+          type: 'billOfMaterialsComponentsTile/setShowDependencyTypesCollapsibleItems',
+          payload: true,
+        });
+
+        expect(newState.filterDrawer.collapsibleItems.showDependencyTypes).toBe(true);
+      });
     });
   });
 

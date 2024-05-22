@@ -3,61 +3,102 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { reduce, keys, values } from 'ramda';
-import { NxH2, NxH3, NxTile, NxThreatIndicator, NxTextLink } from '@sonatype/react-shared-components';
+import { useDispatch, useSelector } from 'react-redux';
+import { all, compose, equals, keys, map, prop } from 'ramda';
+import { NxH2, NxH3, NxTile, NxThreatIndicator } from '@sonatype/react-shared-components';
 import { ResponsivePie } from '@nivo/pie';
 
+import { capitalize } from 'MainRoot/util/jsUtil';
+import { formatNumberLocale } from 'MainRoot/util/formatUtils';
 import LoadWrapper from 'MainRoot/react/LoadWrapper';
+
+import { selectVulnerabilitiesByThreatLevelTile } from './vulnerabilitiesByThreatLevelTileSelectors';
+import { actions } from './vulnerabilitiesByThreatLevelTileSlice';
 
 import './VulnerabilitiesByThreatLevelTile.scss';
 
 const NIVO_THREAT_COLORS_MAP = {
   critical: 'var(--nx-color-threat-critical)',
-  severe: 'var(--nx-color-threat-severe)',
-  moderate: 'var(--nx-color-threat-moderate)',
+  high: 'var(--nx-color-threat-severe)',
+  medium: 'var(--nx-color-threat-moderate)',
   low: 'var(--nx-color-threat-low)',
   none: 'var(--nx-color-threat-none)',
   unspecified: 'var(--nx-color-threat-unspecified)',
 };
 
-const VulnerabilitiesByThreatLevelPieChart = ({ data }) => (
-  <div className="sbom-manager-vulnerability-by-threat-level-pie-chart">
-    <ResponsivePie
-      data={data}
-      enableArcLabels={false}
-      enableArcLinkLabels={false}
-      isInteractive={false}
-      cornerRadius={4}
-      borderWidth={0}
-      innerRadius={0.6}
-      padAngle={2}
-      colors={data.map(({ label }) => NIVO_THREAT_COLORS_MAP[label])}
-    />
-  </div>
-);
-
-VulnerabilitiesByThreatLevelPieChart.propTypes = {
-  data: PropTypes.array.isRequired,
+const NIVO_COMPLEMENT_COLOR_MAP = {
+  complement: 'var(--nx-color-progress-background)',
 };
 
-const VulnerabilitiesByThreatLevelTable = ({ data }) => {
-  const threatLevels = keys(data);
+const THREAT_LEVEL_MAP = {
+  critical: 'critical',
+  high: 'severe',
+  medium: 'moderate',
+  low: 'low',
+};
 
-  const tableRows = threatLevels.map((threatLevel) => {
-    return (
-      <tr key={threatLevel}>
-        <td>
-          <NxThreatIndicator threatLevelCategory={threatLevel} presentational />
-          <span>{threatLevel[0].toUpperCase() + threatLevel.slice(1)}</span>
-        </td>
-        <td>{data[threatLevel].unannotated.toLocaleString('en-US')}</td>
-        <td>{data[threatLevel].annotated.toLocaleString('en-US')}</td>
-        <td>{data[threatLevel].total.toLocaleString('en-US')}</td>
-      </tr>
-    );
-  });
+const EMPTY_CHART_DATA = [
+  {
+    id: 'complement',
+    label: 'complement',
+    value: 100,
+  },
+];
+
+const VulnerabilitiesByThreatLevelPieChart = ({ vulnerabilities }) => {
+  const vulnerabilitiesChartData = map(
+    (threat) => ({
+      id: threat,
+      label: threat,
+      value: vulnerabilities[threat].unannotated,
+    }),
+    keys(vulnerabilities)
+  );
+
+  const chartData = compose(all(equals(0)), map(prop('value')))(vulnerabilitiesChartData)
+    ? EMPTY_CHART_DATA
+    : vulnerabilitiesChartData;
+
+  const colorMap = {
+    ...NIVO_THREAT_COLORS_MAP,
+    ...NIVO_COMPLEMENT_COLOR_MAP,
+  };
+
+  return (
+    <div className="sbom-manager-vulnerability-by-threat-level-pie-chart">
+      <ResponsivePie
+        data={chartData}
+        enableArcLabels={false}
+        enableArcLinkLabels={false}
+        isInteractive={false}
+        cornerRadius={4}
+        borderWidth={0}
+        innerRadius={0.6}
+        padAngle={2}
+        colors={map(({ label }) => colorMap[label], chartData)}
+      />
+    </div>
+  );
+};
+
+VulnerabilitiesByThreatLevelPieChart.propTypes = {
+  vulnerabilities: PropTypes.object.isRequired,
+};
+
+const VulnerabilitiesByThreatLevelTable = ({ vulnerabilities }) => {
+  const tableRows = Object.entries(vulnerabilities).map(([threatLevel, value]) => (
+    <tr key={threatLevel}>
+      <td>
+        <NxThreatIndicator threatLevelCategory={THREAT_LEVEL_MAP[threatLevel]} presentational />
+        <span>{capitalize(threatLevel)}</span>
+      </td>
+      <td>{formatNumberLocale(value.unannotated)}</td>
+      <td>{formatNumberLocale(value.annotated)}</td>
+      <td>{formatNumberLocale(value.total)}</td>
+    </tr>
+  ));
 
   return (
     <table className="sbom-manager-vulnerabilities-by-threat-level-table">
@@ -75,47 +116,19 @@ const VulnerabilitiesByThreatLevelTable = ({ data }) => {
 };
 
 VulnerabilitiesByThreatLevelTable.propTypes = {
-  data: PropTypes.object.isRequired,
+  vulnerabilities: PropTypes.object.isRequired,
 };
 
 export default function VulnerabilitiesByThreatLevelTile() {
-  const doLoad = () => {};
-
-  const data = {
-    critical: {
-      unannotated: 811,
-      annotated: 423,
-      total: 1234,
-    },
-    severe: {
-      unannotated: 1100,
-      annotated: 1100,
-      total: 2200,
-    },
-    moderate: {
-      unannotated: 734,
-      annotated: 3500,
-      total: 4234,
-    },
-    low: {
-      unannotated: 760,
-      annotated: 1100,
-      total: 1860,
-    },
-  };
-
-  const totalValues = reduce(
-    (acc, value) => {
-      acc.unannotated = acc.unannotated + value.unannotated;
-      acc.annotated = acc.annotated + value.annotated;
-      acc.total = acc.total + value.total;
-      return acc;
-    },
-    { unannotated: 0, annotated: 0, total: 0 },
-    values(data)
+  const dispatch = useDispatch();
+  const { loading, loadError, vulnerabilities, vulnerabilitiesTotal } = useSelector(
+    selectVulnerabilitiesByThreatLevelTile
   );
+  const load = () => dispatch(actions.loadVulnerabilitesByThreatLevel());
 
-  const chartData = Object.keys(data).map((threat) => ({ id: threat, label: threat, value: data[threat].unannotated }));
+  useEffect(() => {
+    load();
+  }, []);
 
   return (
     <NxTile id="vulnerabilities-by-threat-level-tile" className="sbom-manager-vulnerabilities-by-threat-level-tile">
@@ -126,26 +139,35 @@ export default function VulnerabilitiesByThreatLevelTile() {
         </NxTile.HeaderTitle>
       </NxTile.Header>
       <NxTile.Content>
-        <LoadWrapper retryHandler={doLoad} error={null}>
-          <ul className="sbom-manager-vulnerabilities-by-threat-level-list">
-            <li className="sbom-manager-vulnerabilities-by-threat-level-list__item">
+        <LoadWrapper retryHandler={() => load()} loading={loading} error={loadError}>
+          <ul className="sbom-manager-vulnerabilities-by-threat-level-tile__list">
+            <li
+              className="sbom-manager-vulnerabilities-by-threat-level-tile__list__item"
+              data-testid="vulnerabilities-by-threat-level-tile-total"
+            >
               <span>Total:</span>
-              <span>{totalValues.total.toLocaleString('en-US')}</span>
+              <span>{formatNumberLocale(vulnerabilitiesTotal.totalVulnerabilities)}</span>
             </li>
-            <li className="sbom-manager-vulnerabilities-by-threat-level-list__item">
+            <li
+              className="sbom-manager-vulnerabilities-by-threat-level-tile__list__item"
+              data-testid="vulnerabilities-by-threat-level-tile-total-unannotated"
+            >
               <span>Unannotated:</span>
-              <span>{totalValues.unannotated.toLocaleString('en-US')}</span>
+              <span>{formatNumberLocale(vulnerabilitiesTotal.totalVulnerabilitiesUnannotated)}</span>
             </li>
-            <li className="sbom-manager-vulnerabilities-by-threat-level-list__item">
+            <li
+              className="sbom-manager-vulnerabilities-by-threat-level-tile__list__item"
+              data-testid="vulnerabilities-by-threat-level-tile-total-annotated"
+            >
               <span>Annotated:</span>
-              <span>{totalValues.annotated.toLocaleString('en-US')}</span>
+              <span>{formatNumberLocale(vulnerabilitiesTotal.totalVulnerabilitiesAnnotated)}</span>
             </li>
           </ul>
-          <VulnerabilitiesByThreatLevelPieChart data={chartData} />
-          <VulnerabilitiesByThreatLevelTable data={data} />
-          <div className="sbom-manager-vulnerabilities-by-threat-level-tile__action">
+          <VulnerabilitiesByThreatLevelPieChart vulnerabilities={vulnerabilities} />
+          <VulnerabilitiesByThreatLevelTable vulnerabilities={vulnerabilities} />
+          {/* <div className="sbom-manager-vulnerabilities-by-threat-level-tile__action">
             <NxTextLink href="#">View Applications by most vulnerabilities</NxTextLink>
-          </div>
+          </div> */}
         </LoadWrapper>
       </NxTile.Content>
     </NxTile>

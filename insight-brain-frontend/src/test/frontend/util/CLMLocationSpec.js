@@ -782,6 +782,14 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  describe('getVulnerabilitesByThreatLevelUrl', function () {
+    it('should return the url for getting vulnerabilities by threat level', function () {
+      expect(CLMLocation.getVulnerabilitesByThreatLevelUrl()).toBe(
+        '/api/v2/sbom/dashboard/vulnerabilitiesByThreatLevel'
+      );
+    });
+  });
+
   describe('getExportCycloneDx', function () {
     it('should return SBOM url', () => {
       expect(CLMLocation.getExportCycloneDxUrl('applicationId', 'scanId')).toBe(

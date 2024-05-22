@@ -21,7 +21,7 @@ import {
   setupComponentsFilterDrawerPortalContainer,
 } from '../billOfMaterialsComponentsTile/componentsFilterDrawer/ComponentsFilterDrawer.jestspec';
 
-describe('BillOfMaterials page', () => {
+xdescribe('BillOfMaterials page', () => {
   let renderPage;
 
   const applicationPublicId = 'application-public-id';

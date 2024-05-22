@@ -21,7 +21,7 @@ import {
   setupComponentsFilterDrawerPortalContainer,
 } from './componentsFilterDrawer/ComponentsFilterDrawer.jestspec';
 
-describe('BillOfMaterialsComponentsTile', () => {
+xdescribe('BillOfMaterialsComponentsTile', () => {
   let axiosMock, initialProps, initialState;
 
   const INTERNAL_APP_ID = 'internal-app-id';

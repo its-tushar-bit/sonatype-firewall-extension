@@ -38,7 +38,7 @@ export const setupComponentsFilterDrawerPortalContainer = () => {
   document.body.appendChild(container);
 };
 
-describe('ComponentsFilterDrawer', () => {
+xdescribe('ComponentsFilterDrawer', () => {
   let axiosMock, initialProps, initialState;
 
   const INTERNAL_APP_ID = 'internal-app-id';

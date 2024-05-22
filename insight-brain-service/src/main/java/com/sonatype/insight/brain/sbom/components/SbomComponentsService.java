@@ -213,7 +213,10 @@ public class SbomComponentsService
           if (vex != null) {
             vulnerabilityDetailsDTO.setAnalysisStatus(vex.getState());
             vulnerabilityDetailsDTO.setJustification(vex.getJustification());
+            vulnerabilityDetailsDTO.setResponse(vex.getResponse());
             vulnerabilityDetailsDTO.setDetails(vex.getDetail());
+            vulnerabilityDetailsDTO.setUpdatedAt(vex.getUpdatedAt());
+            vulnerabilityDetailsDTO.setLastUpdatedBy(vex.getLastUpdatedBy());
           }
 
           return vulnerabilityDetailsDTO;

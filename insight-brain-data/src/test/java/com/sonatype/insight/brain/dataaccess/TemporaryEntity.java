@@ -3947,6 +3947,7 @@ public class TemporaryEntity
     ThirdPartyVulnerabilityExploitabilityExchange vexData =
         new ThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity.getId(), refId, state,
             justification, response, detail);
+    vexData.setLastUpdatedBy("user");
 
     thirdPartyVulnerabilityExploitabilityExchangeDAO.insert(vexData);
 

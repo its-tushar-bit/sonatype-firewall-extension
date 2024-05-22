@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.sbom.components;
 
 import java.util.Arrays;
-
+import java.util.Date;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
@@ -95,18 +95,20 @@ public class SbomComponentsServiceTest
     assertComponentSummary(actualA, 9, 1, 1, 1);
     assertThat(actualA.getDisclosedVulnerabilities()).hasSize(2);
     assertVulnerabilities(actualA.getDisclosedVulnerabilities().get(0), vulnerabilityA, vexA.getState(),
-        vexA.getJustification(), vexA.getDetail());
+        vexA.getJustification(), vexA.getResponse(), vexA.getDetail(), vexA.getUpdatedAt(), vexA.getLastUpdatedBy());
     assertVulnerabilities(actualA.getDisclosedVulnerabilities().get(1), vulnerabilityB, vexB.getState(),
-        vexB.getJustification(), vexB.getDetail());
+        vexB.getJustification(), vexB.getResponse(), vexB.getDetail(), vexB.getUpdatedAt(), vexB.getLastUpdatedBy());
     assertThat(actualA.getSonatypeIdentifiedVulnerabilities()).hasSize(1);
-    assertVulnerabilities(actualA.getSonatypeIdentifiedVulnerabilities().get(0), vulnerabilityC, null, null, null);
+    assertVulnerabilities(actualA.getSonatypeIdentifiedVulnerabilities().get(0), vulnerabilityC, null, null, null, null,
+        null, null);
 
     assertSbomComponentDetailsDTO(actualB, componentB, sbomMetadata);
     assertComponentSummary(actualB, 7, 1, 1, 0);
     assertThat(actualB.getDisclosedVulnerabilities()).hasSize(2);
-    assertVulnerabilities(actualB.getDisclosedVulnerabilities().get(0), vulnerabilityD, null, null, null);
+    assertVulnerabilities(actualB.getDisclosedVulnerabilities().get(0), vulnerabilityD, null, null, null, null, null,
+        null);
     assertVulnerabilities(actualB.getDisclosedVulnerabilities().get(1), vulnerabilityE, vexE.getState(),
-        vexE.getJustification(), vexE.getDetail());
+        vexE.getJustification(), vexE.getResponse(), vexE.getDetail(), vexE.getUpdatedAt(), vexE.getLastUpdatedBy());
     assertThat(actualB.getSonatypeIdentifiedVulnerabilities()).isEmpty();
   }
 
@@ -207,13 +209,19 @@ public class SbomComponentsServiceTest
       ThirdPartyCoordinateSecurity vulnerability,
       String vexState,
       String vexJustification,
-      String vexDetail)
+      String vexResponse,
+      String vexDetail,
+      Date updatedAt,
+      String lastUpdatedBy)
   {
     assertThat(actual.getCvssScore()).isEqualTo(vulnerability.getSeverity());
     assertThat(actual.getIssue()).isEqualTo(vulnerability.getRefId());
     assertThat(actual.getAnalysisStatus()).isEqualTo(vexState);
     assertThat(actual.getJustification()).isEqualTo(vexJustification);
+    assertThat(actual.getResponse()).isEqualTo(vexResponse);
     assertThat(actual.getDetails()).isEqualTo(vexDetail);
+    assertThat(actual.getUpdatedAt()).isEqualTo(updatedAt);
+    assertThat(actual.getLastUpdatedBy()).isEqualTo(lastUpdatedBy);
   }
 
   @Test

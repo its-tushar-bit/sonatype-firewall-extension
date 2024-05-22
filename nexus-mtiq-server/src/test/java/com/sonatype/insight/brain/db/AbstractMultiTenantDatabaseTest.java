@@ -73,8 +73,6 @@ public abstract class AbstractMultiTenantDatabaseTest
       // create the database for the tenant
       databaseRule.provisionDatabaseForTenant(t);
 
-      //tenantManager.setTenant(t);
-
       test.accept(t);
     });
   }

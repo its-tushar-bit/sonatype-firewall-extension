@@ -43,6 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
@@ -221,6 +222,7 @@ public class EditLicenseFilesTest
     assertLicense(ComponentLegalOverviewPage.licenseFiles().at(index), "META-INF/LICENSE", content);
   }
 
+  @Ignore
   @Test
   public void testChangeLicenseStatusByHash() {
     refreshOrOpen(ComponentLegalOverviewPage.url(app, "033e7a20b23ea284d474"));

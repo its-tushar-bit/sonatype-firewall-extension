@@ -99,6 +99,7 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.SBOM_MANAGER.getId(),
           SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT.getId(),
           SystemConfigurationPropertyFeature.SAAS_ALP_ENABLED.getId(),
+          SystemConfigurationPropertyFeature.OAUTH2_ENABLED.getId(),
       }
   )).toArray(String[]::new);
 

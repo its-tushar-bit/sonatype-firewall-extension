@@ -72,7 +72,7 @@ public class MTIQFeatureServiceTest
   public void testRegister_setsFeatureFlags() {
     underTest.register();
 
-    verify(service, times(22)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
+    verify(service, times(23)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
     List<String> disabledFlagSet = propertyKeyCaptor.getAllValues();
     assertThat(disabledFlagSet).containsExactlyInAnyOrder(getDisabledSystemConfigurationPropertyFeatures());
   }
@@ -220,6 +220,6 @@ public class MTIQFeatureServiceTest
             .filter(f -> !f.equals(LicensedFeature.SCM_UX_IMPROVEMENTS)),
         stream(NonLicensedFeature.values())
             .filter(f -> !f.equals(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS))
-        ).flatMap(i -> i).map(Feature.class::cast).collect(toSet()).toArray(new Feature[]{});
+    ).flatMap(i -> i).map(Feature.class::cast).collect(toSet()).toArray(new Feature[]{});
   }
 }

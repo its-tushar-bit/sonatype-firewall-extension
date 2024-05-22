@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurat
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2ConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationInternalDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
@@ -356,6 +357,8 @@ public interface DAOFactory
   CallFlowAnalysisConfigDAO createCallFlowAnalysisConfigDAO();
 
   VulnerabilityGroupVulnerabilityDAO createVulnerabilityGroupVulnerabilityDAO();
+
+  OAuth2ConfigurationDAO createOAuth2ConfigurationDAO();
 
   ComponentCategoryDAO createComponentCategoryDAO();
 

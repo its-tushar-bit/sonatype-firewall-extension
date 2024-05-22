@@ -69,6 +69,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurat
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2ConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
@@ -192,6 +193,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
@@ -578,6 +580,8 @@ public class TemporaryEntity
 
   private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
+  private OAuth2ConfigurationDAO oAuth2ConfigurationDAO;
+
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -871,6 +875,7 @@ public class TemporaryEntity
       applicationCountHistoryDAO.getAll().stream()
           .filter(applicationCountHistory -> !applicationCountHistory.getId().equals("initialization"))
           .forEach(applicationCountHistoryDAO::delete);
+      delete(oAuth2ConfigurationDAO.getAll(), oAuth2ConfigurationDAO);
 
       detectEntityLeaks(testEntityLeaksDetectionData);
     }
@@ -4843,6 +4848,23 @@ public class TemporaryEntity
     return sbomMetadata;
   }
 
+  public OAuth2Configuration newOAuth2Configuration(
+      String issuer,
+      String jwsAlgorithm,
+      String jwksUrl,
+      String idpJwks)
+  {
+    OAuth2Configuration oAuth2Configuration = new OAuth2Configuration(issuer, jwsAlgorithm, jwksUrl, idpJwks);
+    oAuth2Configuration.setFirstNameClaim("firstName");
+    oAuth2Configuration.setLastNameClaim("lastName");
+    oAuth2Configuration.setUsernameClaim("username");
+    oAuth2Configuration.setEmailClaim("email");
+    oAuth2Configuration.setGroupsClaim("roles");
+
+    oAuth2ConfigurationDAO.insert(oAuth2Configuration);
+    return oAuth2Configuration;
+  }
+
   private void initializeDAOs() {
     initializeOperationalDataStoreDAOs();
     initializeDataMartDataStoreDAOs();
@@ -4955,6 +4977,7 @@ public class TemporaryEntity
     sastFindingDAO = daoFactory.createSastFindingDAO();
     sastScmScanContextDAO = daoFactory.createSastScmScanContextDAO();
     sastPullRequestCommentDAO = daoFactory.createSastPullRequestCommentDAO();
+    oAuth2ConfigurationDAO = daoFactory.createOAuth2ConfigurationDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {

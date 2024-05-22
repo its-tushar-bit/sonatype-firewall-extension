@@ -725,6 +725,13 @@
       <artifactId>spdx-jackson-store</artifactId>
       <version>1.1.9</version>
     </dependency>
+
+    <!-- OAuth library -->
+    <dependency>
+      <groupId>com.nimbusds</groupId>
+      <artifactId>oauth2-oidc-sdk</artifactId>
+      <version>11.10.1</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -912,6 +919,7 @@
                 <include>**/*Test*</include>
                 <include>**/DatabaseContainerRule*</include>
                 <include>**/H2InMemoryDatabaseConfigProvider*</include>
+                <include>**/JWTGenerator*</include>
               </includes>
             </configuration>
           </execution>

@@ -1721,3 +1721,21 @@ CREATE INDEX repository_repository_manager_idx ON repository (repository_manager
 -- the root org to itself will have a random UUID rather than ROOT_ORGANIZATION_ANCESTOR_ID
 INSERT INTO organization_ancestor (organization_ancestor_id, organization_id, ancestor_id, ancestor_distance)
 VALUES ('ROOT_ORGANIZATION_ANCESTOR_ID', 'ROOT_ORGANIZATION_ID', 'ROOT_ORGANIZATION_ID', 0);
+
+
+-- Since 1.177
+-- SaaS Compatible
+CREATE TABLE IF NOT EXISTS oauth2_configuration
+(
+  idp_issuer               varchar(255) NOT NULL,
+  idp_jwks_url             varchar(255),
+  idp_jws_algorithm        varchar(255) NOT NULL,
+  idp_jwks                 text,
+  username_claim           varchar(255),
+  first_name_claim         varchar(255),
+  last_name_claim          varchar(255),
+  email_claim              varchar(255),
+  groups_claim             varchar(255),
+  exact_match_claims_json  text,
+  CONSTRAINT oauth_configuration_pk PRIMARY KEY (idp_issuer)
+);

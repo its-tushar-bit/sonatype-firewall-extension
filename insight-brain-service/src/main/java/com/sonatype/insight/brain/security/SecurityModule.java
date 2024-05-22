@@ -13,6 +13,8 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.configuration.ldap.LdapRealm;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
+import com.sonatype.insight.brain.security.oauth2.JwtAuthenticationFilter;
+import com.sonatype.insight.brain.security.oauth2.JwtRealm;
 
 import com.google.inject.TypeLiteral;
 import com.google.inject.binder.AnnotatedBindingBuilder;
@@ -43,7 +45,7 @@ public class SecurityModule
   public static final String SESSION_COOKIE_NAME = "CLMSESSIONID";
 
   private static final String CUSTOM_CSRF_FILTERS = "noSessionCreation, clientIPAddressFilter, antiCsrf[%s], " +
-      "reverseProxy, sessionExpirationCookie, secureCookies, authcBasic, requireAuth";
+      "reverseProxy, sessionExpirationCookie, secureCookies,  authcJWT, authcBasic, requireAuth";
 
   @Override
   protected void configureShiro() {
@@ -65,6 +67,7 @@ public class SecurityModule
     bindRealm().to(CrowdRealm.class);
     bindRealm().to(ReverseProxyRealm.class);
     bindRealm().to(SamlRealm.class);
+    bindRealm().to(JwtRealm.class);
     binder().requestInjection(new ComponentConfigurator());
   }
 
@@ -97,17 +100,17 @@ public class SecurityModule
     manager.createChain("/api/v2/vulnerabilities/*",
         anonFilters + ", noSessionCreation, " +
             "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + ",permissive], " +
-            "authcBasic[permissive]");
+            "authcJWT[permissive], authcBasic[permissive]");
     if (isAnonymousAccessEnabled) {
       manager.createChain("/rest/repositories/quarantinedComponent/**", //
           anonFilters + ", noSessionCreation, " + //
               "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + ",permissive], " + //
-              "authcBasic[permissive]");
+              "authcJWT[permissive], authcBasic[permissive]");
     }
     manager.createChain("/api/v2/endpoints/*",
         anonFilters + ", noSessionCreation, " +
             "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + ",permissive], " +
-            "authcBasic[permissive]");
+            "authcJWT[permissive], authcBasic[permissive]");
     manager.createChain("/ping", anonUnrestrictedIPFilters);
 
     // Legal attribution report doesn't need CSRF check as it doesn't update server state (despite being POST form)
@@ -124,12 +127,13 @@ public class SecurityModule
     // public REST API
     manager.createChain("/api/**", "noSessionCreation, clientIPAddressFilter, " +
         "antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], " +
-        "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + "], authcBasic, " +
+        "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + "], authcJWT, authcBasic, " +
         "saml, apiAccessControlFilter, requireAuth");
 
     // login, only means to create sessions, also used by integrations for auth validation
     manager.createChain("/rest/user/session", "sessionExpirationCookie, clientIPAddressFilter, antiCsrf["
-        + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], reverseProxy, secureCookies, authcBasic, saml, requireAuth");
+        + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED +
+        "], reverseProxy, secureCookies, authcJWT, authcBasic, saml, requireAuth");
 
     configureFilterChainsForNonAjaxFormSubmissions(manager);
 
@@ -138,8 +142,8 @@ public class SecurityModule
 
     // internal REST API
     manager.createChain("/**/*",
-        "noSessionCreation, clientIPAddressFilter, antiCsrf, reverseProxy, secureCookies, authcBasic, saml, " +
-            "requireAuth, sessionExpirationCookie");
+        "noSessionCreation, clientIPAddressFilter, antiCsrf, reverseProxy, secureCookies, authcJWT" +
+            ", authcBasic, saml, requireAuth, sessionExpirationCookie");
   }
 
   private void configureFilterChainsForNonAjaxFormSubmissions(FilterChainManager manager) {
@@ -240,6 +244,7 @@ public class SecurityModule
         MissingAuthenticationFilter missingAuthenticationFilter,
         SamlFilter samlFilter,
         InvalidRequestFilter invalidRequestFilter,
+        JwtAuthenticationFilter jwtAuthenticationFilter,
         QuarantinedComponentAccessDAO quarantinedComponentAccessDAO)
     {
       filterChainManager.addFilter("antiCsrf", antiCsrfFilter);
@@ -252,6 +257,7 @@ public class SecurityModule
       filterChainManager.addFilter("secureCookies", secureCookiesFilter);
       filterChainManager.addFilter("sessionExpirationCookie", sessionExpirationCookieFilter);
       filterChainManager.addFilter("sonatypeInvalidRequest", invalidRequestFilter);
+      filterChainManager.addFilter("authcJWT", jwtAuthenticationFilter);
       filterChainManager.setGlobalFilters(Collections.singletonList("sonatypeInvalidRequest"));
 
       configureFilterChains(filterChainManager, quarantinedComponentAccessDAO.isAnonymousAccessEnabled());

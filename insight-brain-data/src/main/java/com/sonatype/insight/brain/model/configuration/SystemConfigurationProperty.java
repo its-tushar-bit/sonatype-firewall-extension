@@ -225,6 +225,8 @@ public class SystemConfigurationProperty
 
   public static final String PRIORITIZED_FINDINGS_REPORT = "prioritizedFindingsReport";
 
+  public static final String OAUTH2_ENABLED = "OAUTH2_ENABLED";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

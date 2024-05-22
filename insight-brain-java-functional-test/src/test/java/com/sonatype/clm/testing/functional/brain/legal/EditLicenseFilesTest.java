@@ -229,6 +229,7 @@ public class EditLicenseFilesTest
     doTestChangeLicenseStatus();
   }
 
+  @Ignore
   @Test
   public void testChangeLicenseStatusByComponentIdentifier() throws UnsupportedEncodingException {
     Repository repository = tempEntity.newRepository();

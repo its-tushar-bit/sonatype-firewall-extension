@@ -12,7 +12,13 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.SbomsAnalyzedMetricsDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ApiSbomApplicationsHistoryMetricDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.VulnerabilitiesThreadLevelMetricDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.utils.CvssV3Severity;
+import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.lang3.time.DateUtils;
@@ -59,6 +65,49 @@ public class ApiSbomDashboardResourceTest
     assertThat(result.applicationsUpdatedLastYear).isEqualTo(7);
     assertThat(result.applicationsUpdatedLastMonth).isEqualTo(4);
     assertThat(result.applicationsUpdatedLastWeek).isEqualTo(3);
+  }
+
+  @Test
+  public void testGetVulnerabilitiesByThreatLevel() throws Exception {
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(tempEntity.newApplicationWithParent().getId())
+        .build();
+
+    ThirdPartyFileCoordinate coordinate =
+        tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(), "s", "f", "n", "v", "", "");
+
+    ThirdPartyCoordinateSecurity coordinateSecurity = tempEntity.newThirdPartyCoordinateSecurity(coordinate, "r", "d",
+        "l", CvssV3Severity.LOW.getStartScoreRange(), CvssV3Severity.LOW.getDisplayName(), "f");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity, coordinateSecurity.getRefId(),
+        "state", "justification", "response", "detail");
+
+    HttpResponse response = restRequest()
+        .path(ApiSbomDashboardResource.SBOMS_VULNERABILITES_BY_THREAT_LEVEL_PATH)
+        .get();
+    assertResponseStatus(200, response);
+
+    VulnerabilitiesThreadLevelMetricDTO result = response.getBody(VulnerabilitiesThreadLevelMetricDTO.class);
+    assertThat(result).isNotNull();
+
+    assertThat(result.getLow()).isOne();
+    assertThat(result.getLowAnnotated()).isOne();
+    assertThat(result.getLowUnannotated()).isZero();
+
+    assertThat(result.getMedium()).isZero();
+    assertThat(result.getMediumAnnotated()).isZero();
+    assertThat(result.getMediumUnannotated()).isZero();
+
+    assertThat(result.getHigh()).isZero();
+    assertThat(result.getHighAnnotated()).isZero();
+    assertThat(result.getHighUnannotated()).isZero();
+
+    assertThat(result.getCritical()).isZero();
+    assertThat(result.getCriticalAnnotated()).isZero();
+    assertThat(result.getCriticalUnannotated()).isZero();
+
+    assertThat(result.getTotalVulnerabilities()).isOne();
+    assertThat(result.getTotalVulnerabilitiesAnnotated()).isOne();
+    assertThat(result.getTotalVulnerabilitiesUnannotated()).isZero();
   }
 
   private void insertSbomData() {

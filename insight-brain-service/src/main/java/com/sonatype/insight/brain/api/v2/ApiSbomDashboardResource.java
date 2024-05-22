@@ -14,9 +14,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.model.thirdpartyscans.ApiSbomApplicationsHistoryMetricDTO;
 import com.sonatype.insight.brain.api.v2.dto.SbomsAnalyzedMetricsDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomDashboardService;
+import com.sonatype.insight.brain.model.thirdpartyscans.ApiSbomApplicationsHistoryMetricDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.VulnerabilitiesThreadLevelMetricDTO;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -34,6 +35,8 @@ public class ApiSbomDashboardResource
   static final String SBOMS_ANALYZED_PATH = "sbomsAnalyzed";
 
   static final String SBOMS_HISTORY_METRICS_PATH = "sbomsHistoryMetrics";
+
+  static final String SBOMS_VULNERABILITES_BY_THREAT_LEVEL_PATH = "vulnerabilitiesByThreatLevel";
 
   private final ApiSbomDashboardService service;
 
@@ -65,5 +68,22 @@ public class ApiSbomDashboardResource
   @Produces(MediaType.APPLICATION_JSON)
   public ApiSbomApplicationsHistoryMetricDTO getApplicationsHistoryMetric() {
     return service.getApplicationsHistoryMetric();
+  }
+
+  @Operation(summary = "Gets counters of vulnerabilities and annotations by threat level",
+      tags = {"sbom dashboard"},
+      description = "Queries how many vulnerabilities and annotations have been found by each threat level",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "Counters of vulnerabilities and annotations by threat level",
+              content = @Content(mediaType = "application/json"))
+      })
+
+  @GET
+  @Path(SBOMS_VULNERABILITES_BY_THREAT_LEVEL_PATH)
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  @Produces(MediaType.APPLICATION_JSON)
+  public VulnerabilitiesThreadLevelMetricDTO getVulnerabilitiesByThreatLevel() {
+    return service.getVulnerabilitiesByThreatLevel();
   }
 }

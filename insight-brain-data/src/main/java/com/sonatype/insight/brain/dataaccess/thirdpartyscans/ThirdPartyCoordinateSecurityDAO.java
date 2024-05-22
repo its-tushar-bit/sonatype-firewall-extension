@@ -5,7 +5,11 @@
  */
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
+import java.sql.JDBCType;
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -13,7 +17,15 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
+import com.sonatype.insight.brain.model.thirdpartyscans.VulnerabilitiesThreadLevelMetricDTO;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.InternalServerException;
+
+import static com.sonatype.insight.brain.utils.CvssV3Severity.CRITICAL;
+import static com.sonatype.insight.brain.utils.CvssV3Severity.HIGH;
+import static com.sonatype.insight.brain.utils.CvssV3Severity.LOW;
+import static com.sonatype.insight.brain.utils.CvssV3Severity.MEDIUM;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 @Named
 @Singleton
@@ -78,5 +90,60 @@ public class ThirdPartyCoordinateSecurityDAO
 
     // lastly delete this entity
     super.delete(tx, coordinateSecurity);
+  }
+
+  public VulnerabilitiesThreadLevelMetricDTO getVulnerabilitiesByThreatLevel(Set<String> applicationIds) {
+    String databaseSchema = getDatabaseSchema();
+    String sQuery = "" + //
+        "SELECT COUNT(CASE WHEN (cs.severity BETWEEN ?1 AND ?2) THEN 1 END) AS low," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?1 AND ?2 " + //
+        "                  AND ve.vulnerability_exploitability_id IS NOT NULL)" + //
+        "             THEN 1 END) AS low_annotated," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?3 AND ?4) THEN 1 END) AS medium," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?3 AND ?4" + //
+        "                  AND ve.vulnerability_exploitability_id IS NOT NULL)" + //
+        "             THEN 1 END) AS medium_annotated," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?5 AND ?6) THEN 1 END) AS high," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?5 AND ?6" + //
+        "                  AND ve.vulnerability_exploitability_id IS NOT NULL)" + //
+        "             THEN 1 END) AS high_annotated," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?7 AND ?8) THEN 1 END) AS critical, " + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?7 AND ?8" + //
+        "                  AND ve.vulnerability_exploitability_id IS NOT NULL)" + //
+        "             THEN 1 END) AS critical_annotated ";
+
+    if (isNotEmpty(applicationIds)) {
+      sQuery += "" + //
+          " FROM " + databaseSchema + ".sbom_metadata sm" + //
+          "   JOIN " + databaseSchema + ".file_coordinate fc" + //
+          "     ON fc.third_party_file_id = sm.third_party_file_id" + //
+          "   JOIN " + databaseSchema + ".coordinate_security cs" + //
+          "     ON cs.file_coordinate_id = fc.file_coordinate_id" + //
+          "   LEFT JOIN " + databaseSchema + ".vulnerability_exploitability ve" + //
+          "     ON cs.coordinate_security_id = ve.coordinate_security_id" + //
+          " WHERE sm.application_id = ANY(array[?9])";
+    }
+    else {
+      sQuery += "" + //
+          " FROM " + databaseSchema + ".coordinate_security cs" + //
+          "   LEFT JOIN " + databaseSchema + ".vulnerability_exploitability ve" + //
+          "     ON cs.coordinate_security_id = ve.coordinate_security_id";
+    }
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = createNativeQuery(tx, sQuery, LOW.getStartScoreRange(), LOW.getEndScoreRange(),
+          MEDIUM.getStartScoreRange(), MEDIUM.getEndScoreRange(), HIGH.getStartScoreRange(), HIGH.getEndScoreRange(),
+          CRITICAL.getStartScoreRange(), CRITICAL.getEndScoreRange());
+
+      if (isNotEmpty(applicationIds)) {
+        query.setParameter(9, createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
+      }
+
+      Object[] result = (Object[]) query.getSingleResult();
+      return new VulnerabilitiesThreadLevelMetricDTO(result);
+    }
+    catch (SQLException e) {
+      throw new InternalServerException(e);
+    }
   }
 }

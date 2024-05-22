@@ -38,6 +38,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -238,6 +239,20 @@ public class ApplicationService
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
   public List<Application> getApplications() {
     return applicationDAO.getAll();
+  }
+
+  /**
+   * Gets a list of filtered applications where the current user has permissions on using
+   * {@link #getApplications(String)} and checks if that list contains all applications. Useful to determine if a user
+   * has permissions in all applications so a filter might not be needed.
+   * 
+   * @return {@link Pair} with the List of applications where the current user has permissions on as left value and as
+   *         right value a flag indicating if that list contains all applications.
+   */
+  public Pair<List<Application>, Boolean> getApplicationsAndCheckIfAll() {
+    List<Application> applications = getApplications();
+    boolean hasPermissionsInAll = !applications.isEmpty() && applications.size() == applicationDAO.getCount();
+    return Pair.of(applications, hasPermissionsInAll);
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)

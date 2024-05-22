@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
@@ -88,6 +89,44 @@ public class ApplicationServiceAuthzTest
   public void testGetAllApplications_Unauthenticated() {
     List<Application> applications = applicationService.getApplications();
     assertThat(applications).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicationsAndCheckIfAll_Authorized() {
+    grantReadPermission(app.getId());
+    Pair<List<Application>, Boolean> result = applicationService.getApplicationsAndCheckIfAll();
+
+    assertThat(result).isNotNull();
+    assertThat(result.getLeft()).extracting(Application::getId).containsExactly(app.getId());
+    assertThat(result.getRight()).isTrue();
+
+    // New application where the user has no permission
+    tempEntity.newApplicationWithParent();
+
+    result = applicationService.getApplicationsAndCheckIfAll();
+
+    assertThat(result).isNotNull();
+    assertThat(result.getLeft()).extracting(Application::getId).containsExactly(app.getId());
+    assertThat(result.getRight()).isFalse();
+  }
+
+  @Test
+  public void testGetApplicationsAndCheckIfAll_Unauthorized() {
+    login();
+    Pair<List<Application>, Boolean> result = applicationService.getApplicationsAndCheckIfAll();
+
+    assertThat(result).isNotNull();
+    assertThat(result.getLeft()).isEmpty();
+    assertThat(result.getRight()).isFalse();
+  }
+
+  @Test
+  public void testGetApplicationsAndCheckIfAll_Unauthenticated() {
+    Pair<List<Application>, Boolean> result = applicationService.getApplicationsAndCheckIfAll();
+
+    assertThat(result).isNotNull();
+    assertThat(result.getLeft()).isEmpty();
+    assertThat(result.getRight()).isFalse();
   }
 
   @Test

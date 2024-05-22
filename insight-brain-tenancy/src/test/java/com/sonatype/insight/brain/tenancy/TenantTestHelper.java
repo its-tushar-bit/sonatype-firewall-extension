@@ -19,7 +19,11 @@ public class TenantTestHelper
     TenantThreadLocal.resetTenantForTesting();
   }
 
-  static void setTenant(final Tenant tenant) {
+  /**
+   * Allows direct invocation of package-private {@link TenantThreadLocal#setTenantWithoutValidation(Tenant)} for usage
+   * by tests that know that they can directly set the tenant in the ThreadLocal without validation.
+   */
+  static void setTenantWithoutValidation(final Tenant tenant) {
     TenantThreadLocal.setTenantWithoutValidation(tenant);
   }
 
@@ -29,7 +33,7 @@ public class TenantTestHelper
 
   public static Tenant setupNewTestTenant(TestName testName) {
     Tenant tenant = createTenant(testName);
-    setTenant(tenant);
+    setTenantWithoutValidation(tenant);
 
     return tenant;
   }
@@ -50,7 +54,7 @@ public class TenantTestHelper
   public static void testAs(Tenant tenant, ConsumerWithException<Tenant> test) {
     Tenant currentTenant = TenantThreadLocal.getTenantWithoutValidation();
     try {
-      setTenant(tenant);
+      setTenantWithoutValidation(tenant);
 
       test.accept(tenant);
     }
@@ -58,7 +62,7 @@ public class TenantTestHelper
       throw new RuntimeException(e);
     }
     finally {
-      setTenant(currentTenant);
+      setTenantWithoutValidation(currentTenant);
     }
   }
 

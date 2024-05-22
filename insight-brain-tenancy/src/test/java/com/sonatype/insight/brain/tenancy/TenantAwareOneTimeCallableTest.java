@@ -23,7 +23,7 @@ public class TenantAwareOneTimeCallableTest
     Callable<?> mockCallable = mock(Callable.class);
 
     Tenant expectedTenant = new Tenant("correcttenant");
-    TenantTestHelper.setTenant(expectedTenant);
+    TenantTestHelper.setTenantWithoutValidation(expectedTenant);
 
     when(mockCallable.call()).then(invocationOnMock -> {
       assertThat(TenantThreadLocal.getTenantWithoutValidation()).isEqualTo(expectedTenant);
@@ -32,7 +32,7 @@ public class TenantAwareOneTimeCallableTest
 
     TenantAwareOneTimeCallable<?> callable = new TenantAwareOneTimeCallable<>(mockCallable);
 
-    TenantTestHelper.setTenant(new Tenant("wrongtenant"));
+    TenantTestHelper.setTenantWithoutValidation(new Tenant("wrongtenant"));
 
     callable.call();
 

@@ -34,7 +34,7 @@ public class TenantScheduledThreadPoolExecutorTest
   @Test
   public void scheduleAtFixedRate_reusesTenant() throws InterruptedException {
     Tenant initialTenant = new Tenant("initial-tenant");
-    TenantTestHelper.setTenant(initialTenant);
+    TenantTestHelper.setTenantWithoutValidation(initialTenant);
 
     CountDownLatch finished = new CountDownLatch(3);
     Runnable mockRunnableSpy = mock(Runnable.class);
@@ -106,11 +106,11 @@ public class TenantScheduledThreadPoolExecutorTest
 
     // The tenants are invalidated here to simulate how it would be run as part of the IQ lifetime, this ensures
     // the encapsulated tenant owned by scheduleAtFixedRate is used.
-    TenantTestHelper.setTenant(tenant1);
+    TenantTestHelper.setTenantWithoutValidation(tenant1);
     scheduledExecutorService.scheduleAtFixedRate(mockRunnable1Spy, delay, interval, SECONDS);
     tenant1.invalidate();
 
-    TenantTestHelper.setTenant(tenant2);
+    TenantTestHelper.setTenantWithoutValidation(tenant2);
     scheduledExecutorService.scheduleAtFixedRate(mockRunnable2Spy, delay, interval, SECONDS);
     tenant2.invalidate();
 

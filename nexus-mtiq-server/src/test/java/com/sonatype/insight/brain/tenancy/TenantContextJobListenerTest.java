@@ -159,7 +159,7 @@ public class TenantContextJobListenerTest
     Tenant jobTenant = TenantTestHelper.createTenant(testName);
 
     when(detail.getKey()).thenAnswer(i -> {
-      TenantTestHelper.setTenant(jobTenant);
+      TenantTestHelper.setTenantWithoutValidation(jobTenant);
 
       throw new RuntimeException("Intentional failure thrown after tenant has been set");
     });

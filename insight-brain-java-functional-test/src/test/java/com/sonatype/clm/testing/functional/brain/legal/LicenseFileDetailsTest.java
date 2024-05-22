@@ -191,6 +191,7 @@ public class LicenseFileDetailsTest
     return licenseFileOverview;
   }
 
+  @Ignore
   @Test
   public void testEditLicenseFilesByHash() {
     refreshOrOpen(

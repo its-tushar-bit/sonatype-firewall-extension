@@ -1467,14 +1467,101 @@ describe('CLMLocation.js', function () {
     });
   });
 
-  describe('getBillsOfMaterialsComponents', () => {
-    it('should return the correct URL with the given parameters', () => {
-      const applicationId = 'abc123';
-      const sbomVersion = 'v1';
-      // TODO pageSize will be properly implemented at CLM-30022
-      const expectedURL = `/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/components?pageSize=10000`;
+  describe('getBillOfMaterialsComponentsUrl', () => {
+    const applicationId = 'abc-123';
+    const sbomVersion = 'sbom-version';
 
-      expect(clmLocation.getBillsOfMaterialsComponents(applicationId, sbomVersion)).toBe(expectedURL);
+    it('should return the correct URL with minimum parameters', () => {
+      const expectedURL = `/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/components`;
+      expect(clmLocation.getBillOfMaterialsComponentsUrl(applicationId, sbomVersion)).toBe(expectedURL);
+    });
+
+    it('should return the correct URL with pagination only', () => {
+      const expectedParams = `?page=1&pageSize=50`;
+      const expectedURL =
+        `/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/components` + expectedParams;
+      expect(clmLocation.getBillOfMaterialsComponentsUrl(applicationId, sbomVersion, 1, 50)).toBe(expectedURL);
+    });
+
+    it('should return the correct URL with sortConfiguration', () => {
+      const expectedParams = `?page=1&sortBy=vulnerabilities&asc=true`;
+      const expectedURL =
+        `/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/components` + expectedParams;
+      expect(
+        clmLocation.getBillOfMaterialsComponentsUrl(applicationId, sbomVersion, 1, null, 'vulnerabilities', true)
+      ).toBe(expectedURL);
+    });
+
+    it('should return the correct URL with only list params', () => {
+      const expectedVulnerabilityThreatLevelsParams = `vulnerabilityThreatLevels=critical&vulnerabilityThreatLevels=medium`;
+      const expectedDependencyTypesParams = `dependencyTypes=direct&dependencyTypes=transitive`;
+
+      const vulnerabilityThreatLevels = ['critical', 'medium'];
+      const dependencyTypes = ['direct', 'transitive'];
+
+      const expectedURL = `/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/components`;
+      expect(
+        clmLocation.getBillOfMaterialsComponentsUrl(
+          applicationId,
+          sbomVersion,
+          null,
+          null,
+          null,
+          null,
+          vulnerabilityThreatLevels
+        )
+      ).toBe(expectedURL + '?' + expectedVulnerabilityThreatLevelsParams);
+
+      expect(
+        clmLocation.getBillOfMaterialsComponentsUrl(
+          applicationId,
+          sbomVersion,
+          null,
+          null,
+          null,
+          null,
+          null,
+          dependencyTypes
+        )
+      ).toBe(expectedURL + '?' + expectedDependencyTypesParams);
+
+      expect(
+        clmLocation.getBillOfMaterialsComponentsUrl(
+          applicationId,
+          sbomVersion,
+          null,
+          null,
+          null,
+          null,
+          vulnerabilityThreatLevels,
+          dependencyTypes
+        )
+      ).toBe(expectedURL + '?' + expectedVulnerabilityThreatLevelsParams + '&' + expectedDependencyTypesParams);
+    });
+
+    it('should return the correct URL with normal and list params', () => {
+      const vulnerabilityThreatLevels = ['critical', 'medium'];
+      const dependencyTypes = ['direct', 'transitive'];
+      const expectedParams = `?page=1&pageSize=50&sortBy=vulnerabilities&asc=false`;
+      const expectedDependencyTypesParams = `&dependencyTypes=direct&dependencyTypes=transitive`;
+      const expectedVulnerabilityThreatLevelsParams = `&vulnerabilityThreatLevels=critical&vulnerabilityThreatLevels=medium`;
+      const expectedURL =
+        `/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/components` +
+        expectedParams +
+        expectedVulnerabilityThreatLevelsParams +
+        expectedDependencyTypesParams;
+      expect(
+        clmLocation.getBillOfMaterialsComponentsUrl(
+          applicationId,
+          sbomVersion,
+          1,
+          50,
+          'vulnerabilities',
+          false,
+          vulnerabilityThreatLevels,
+          dependencyTypes
+        )
+      ).toBe(expectedURL);
     });
   });
 

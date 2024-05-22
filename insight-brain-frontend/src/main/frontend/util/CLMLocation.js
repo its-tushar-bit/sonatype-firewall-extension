@@ -3,10 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { compose, isNil, not, pick } from 'ramda';
+import { always, chain, compose, filter, ifElse, is, isNil, join, map, not, pick, reject, toPairs } from 'ramda';
 
 import commonServicesModule from '../utilAngular/CommonServices';
 import { toURIParams, uriTemplate } from './urlUtil';
+import { isNilOrEmpty } from './jsUtil';
 
 /**
  * Generates the url to fetch the vulnerability details of a given refId.
@@ -1421,9 +1422,42 @@ export const getDownloadSbomFileUrl = (applicationId, applicationVersion) =>
 export const getDeleteSbomByApplicationIdAndVersionUrl = (applicationId, applicationVersion) =>
   uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${applicationVersion}`;
 
-export const getBillsOfMaterialsComponents = (applicationId, sbomVersion) =>
-  // TODO pageSize will be properly implemented at CLM-30022
-  uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/components?pageSize=10000`;
+export const getBillOfMaterialsComponentsUrl = (
+  applicationId,
+  sbomVersion,
+  page,
+  pageSize,
+  sortBy,
+  asc,
+  vulnerabilityThreatLevels,
+  dependencyTypes
+) => {
+  const rawParams = {
+    page,
+    pageSize,
+    sortBy,
+    asc,
+  };
+
+  const listParams = {
+    vulnerabilityThreatLevels,
+    dependencyTypes,
+  };
+
+  const queryTerms = compose(map(join('=')), toPairs, reject(isNilOrEmpty))(rawParams);
+  const isStringArray = ifElse(is(Array), filter(is(String)), always([]));
+  const listQueryTerms = compose(
+    reject(isNilOrEmpty),
+    chain(([key, values]) => map((v) => `${key}=${v}`, isStringArray(values))),
+    toPairs,
+    reject(isNilOrEmpty)
+  )(listParams);
+
+  const composedParams = join('&', [...queryTerms, ...listQueryTerms]);
+  const queryParams = composedParams ? '?' + composedParams : '';
+
+  return uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/components` + queryParams;
+};
 
 export const getSbomComponentDetailsUrl = (applicationId, sbomVersion, componentHash) =>
   uriTemplate`/rest/sbom/applications/${applicationId}/versions/${sbomVersion}/components/${componentHash}`;

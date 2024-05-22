@@ -10,9 +10,9 @@ import { faDownload } from '@fortawesome/pro-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
 
 import LoadWrapper from 'MainRoot/react/LoadWrapper';
-import SummaryTile from 'MainRoot/sbomManager/features/billOfMaterials/summaryTile/SummaryTile';
-import ComponentsBillOfMaterialsTile from 'MainRoot/sbomManager/features/componentsTile/ComponentsBillOfMaterialsTile';
 import SbomVersionDropdown from 'MainRoot/sbomManager/features/sbomVersionDropdown/SbomVersionDropdown';
+import SummaryTile from 'MainRoot/sbomManager/features/billOfMaterials/summaryTile/SummaryTile';
+import BillOfMaterialsComponentsTile from 'MainRoot/sbomManager/features/billOfMaterialsComponentsTile/BillOfMaterialsComponentsTile';
 import { getDownloadSbomFileUrl } from 'MainRoot/util/CLMLocation';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
@@ -22,8 +22,9 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectBillOfMaterialsPage } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSelectors';
 import { formatDate } from 'MainRoot/util/dateUtils';
-
 import { actions } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
+
+import './billOfMaterials.scss';
 
 export default function BillOfMaterials() {
   const dispatch = useDispatch();
@@ -123,11 +124,7 @@ export default function BillOfMaterials() {
           componentSummary={componentSummary}
           vulnerabilitiesSummary={vulnerabilitiesSummary}
         />
-        <ComponentsBillOfMaterialsTile
-          isInternalAppIdLoading={loadingInternalAppId}
-          internalAppId={internalAppId}
-          sbomVersion={currentSbomVersion}
-        />
+        <BillOfMaterialsComponentsTile internalAppId={internalAppId} sbomVersion={currentSbomVersion} />
       </LoadWrapper>
     </div>
   );

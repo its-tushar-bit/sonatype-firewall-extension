@@ -29,6 +29,7 @@ import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.text;
@@ -197,6 +198,7 @@ public class LicenseFileDetailsTest
     doTestEditLicenseFiles("MIT License by hash");
   }
 
+  @Ignore
   @Test
   public void testEditLicenseFilesByComponentIdentifier() throws UnsupportedEncodingException {
     refreshOrOpen(

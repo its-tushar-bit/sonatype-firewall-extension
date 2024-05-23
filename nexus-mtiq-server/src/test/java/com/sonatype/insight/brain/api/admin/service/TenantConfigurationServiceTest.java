@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.api.admin.service;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
@@ -24,6 +26,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
@@ -33,6 +36,35 @@ import static org.mockito.Mockito.when;
 public class TenantConfigurationServiceTest
     extends AbstractMultiTenantTest
 {
+  private static final Map<String, Object> EXPECTED_TENANT_CONFIGURABLE_PROPERTIES = new HashMap<>();
+
+  static {
+    EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(ADVANCED_SEARCH_CSV_EXPORT_DELIMITER, ",");
+    EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES, 1);
+    EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(BASE_URL, "http://127.0.0.1:8070");
+    EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(EVENT_BUS_MAX_THREAD_POOL_SIZE, 1);
+    EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(FRAME_ANCESTORS_ALLOWLIST, "'self'");
+    EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(MAX_ADVANCED_SEARCH_CLAUSE_COUNT, 1);
+    EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(POLICY_MONITORING_HOUR, 1);
+    EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(PURGE_SCAN_FILES, "withReports");
+    EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS, 1);
+    EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(SAAS_LIFECYCLE_SCM_ENABLED, true);
+    EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, true);
+    EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.put(WEBHOOK_SECRET_PASSPHRASE, "pass");
+  }
+
+  private static final Map<String, Object> EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES = new HashMap<>();
+
+  static {
+    EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES.put(HDS_URL, "https://clm-staging.sonatype.com/");
+    EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES.put(SAAS_POLICY_MONITOR_POOL_SIZE, 1);
+    EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES.put(SAAS_PRE_REGISTER_ALL_TENANTS, true);
+    EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES.put(SESSION_TIMEOUT_MINUTES, 1);
+    EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES.put(SOURCE_CONTROL_IMPORT_POOL_SIZE, 1);
+    EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES.put(SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE, 1);
+    EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES.put(USER_AGENT_SUFFIX, "userAgentSuffix");
+  }
+
   @Mock
   private TenantUtil tenantUtil;
 
@@ -109,32 +141,24 @@ public class TenantConfigurationServiceTest
   }
 
   @Test
-  public void shouldSetSinglePropertyConfiguration() {
+  public void testSetPropertiesConfiguration_TenantConfigurable_AsTenant() {
     testAsNewTenant(tenant -> {
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
 
-      String expectedProperty = "baseUrl";
-      String expectedValue = "http://127.0.0.1:8070";
-      Map<String, Object> propertyConfiguration = Collections.singletonMap(expectedProperty, expectedValue);
+      underTest.setPropertiesConfiguration(tenant.tenantSlug, EXPECTED_TENANT_CONFIGURABLE_PROPERTIES);
 
-      underTest.setPropertiesConfiguration(tenant.tenantSlug, propertyConfiguration);
-
-      verify(apiConfigurationService).setConfigurationNoAuthz(propertyConfiguration);
+      verify(apiConfigurationService).setConfigurationNoAuthz(EXPECTED_TENANT_CONFIGURABLE_PROPERTIES);
     });
   }
 
   @Test
-  public void shouldNotThrowRuntimeException_setPropertiesConfiguration_whenUsingGlobalTenant() {
+  public void testSetPropertiesConfiguration_TenantConfigurable_AsGlobal() {
     testAsGlobalTenant(global -> {
       when(tenantUtil.isGlobalTenant()).thenReturn(true);
 
-      String expectedProperty = "baseUrl";
-      String expectedValue = "http://127.0.0.1:8070";
-      Map<String, Object> propertyConfiguration = Collections.singletonMap(expectedProperty, expectedValue);
+      underTest.setPropertiesConfiguration(global.tenantSlug, EXPECTED_TENANT_CONFIGURABLE_PROPERTIES);
 
-      underTest.setPropertiesConfiguration(global.tenantSlug, propertyConfiguration);
-
-      verify(apiConfigurationService).setConfigurationNoAuthz(propertyConfiguration);
+      verify(apiConfigurationService).setConfigurationNoAuthz(EXPECTED_TENANT_CONFIGURABLE_PROPERTIES);
     });
   }
 
@@ -156,34 +180,28 @@ public class TenantConfigurationServiceTest
   }
 
   @Test
-  public void shouldThrowRuntimeException_setPropertiesConfiguration_whenPropertyIsGlobalOnly() {
-    final String errorMessage = "Property sourceControlImport.maxThreadPoolSize is only configurable globally.";
-
+  public void testSetPropertiesConfiguration_GlobalConfigurable_AsTenant() {
     testAsNewTenant(tenant -> {
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+      for (Entry<String, Object> entry : EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES.entrySet()) {
+        Map<String, Object> propertyConfiguration = Collections.singletonMap(entry.getKey(), entry.getValue());
+        String errorMessage = String.format("Property %s is only configurable globally.", entry.getKey());
 
-      String expectedProperty = "sourceControlImportPoolSize";
-      String expectedValue = "9999999";
-      Map<String, Object> propertyConfiguration = Collections.singletonMap(expectedProperty, expectedValue);
-
-      assertThatThrownBy(() -> underTest.setPropertiesConfiguration(tenant.tenantSlug, propertyConfiguration))
-          .withFailMessage(errorMessage)
-          .isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> underTest.setPropertiesConfiguration(tenant.tenantSlug, propertyConfiguration))
+            .withFailMessage(errorMessage)
+            .isInstanceOf(BadRequestException.class);
+      }
     });
   }
 
   @Test
-  public void shouldNotThrowRuntimeException_setPropertiesConfiguration_whenPropertyIsGlobalOnlyAsGlobal() {
+  public void testSetPropertiesConfiguration_GlobalConfigurable_AsGlobal() {
     testAsGlobalTenant(global -> {
       when(tenantUtil.isGlobalTenant()).thenReturn(true);
 
-      String expectedProperty = "sourceControlImportPoolSize";
-      String expectedValue = "9999999";
-      Map<String, Object> propertyConfiguration = Collections.singletonMap(expectedProperty, expectedValue);
+      underTest.setPropertiesConfiguration(global.tenantSlug, EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES);
 
-      underTest.setPropertiesConfiguration(global.tenantSlug, propertyConfiguration);
-
-      verify(apiConfigurationService).setConfigurationNoAuthz(propertyConfiguration);
+      verify(apiConfigurationService).setConfigurationNoAuthz(EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES);
     });
   }
 
@@ -271,5 +289,27 @@ public class TenantConfigurationServiceTest
           .withFailMessage(errorMessage)
           .isInstanceOf(BadRequestException.class);
     });
+  }
+
+  @Test
+  public void testConfigurableProperties() {
+    assertThat(TenantConfigurationService.CONFIGURABLE_PROPERTIES).containsExactlyInAnyOrderElementsOf(
+        EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.keySet()
+    );
+  }
+
+  @Test
+  public void testGlobalConfigurableProperties() {
+    assertThat(TenantConfigurationService.GLOBAL_CONFIGURABLE_PROPERTIES).containsExactlyInAnyOrderElementsOf(
+        EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES.keySet()
+    );
+  }
+
+  @Test
+  public void testConfigurableProperties_GlobalConfigurableProperties_MutuallyExclusive() {
+    assertThat(EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES.keySet()).doesNotContainAnyElementsOf(
+        EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.keySet());
+    assertThat(EXPECTED_TENANT_CONFIGURABLE_PROPERTIES.keySet()).doesNotContainAnyElementsOf(
+        EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES.keySet());
   }
 }

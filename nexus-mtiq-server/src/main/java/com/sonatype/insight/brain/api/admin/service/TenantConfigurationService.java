@@ -26,35 +26,37 @@ import static com.sonatype.insight.brain.model.configuration.SystemConfiguration
 @Named
 public class TenantConfigurationService
 {
+  // Visible for testing
   /**
    * CONFIGURABLE_PROPERTIES may be configured for all tenants
    */
-  private static final Set<String> CONFIGURABLE_PROPERTIES = ImmutableSet.of(
+  static final Set<String> CONFIGURABLE_PROPERTIES = ImmutableSet.of(
       ADVANCED_SEARCH_CSV_EXPORT_DELIMITER,
       AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES,
       BASE_URL,
       EVENT_BUS_MAX_THREAD_POOL_SIZE,
       FRAME_ANCESTORS_ALLOWLIST,
-      HDS_URL,
       MAX_ADVANCED_SEARCH_CLAUSE_COUNT,
       POLICY_MONITORING_HOUR,
       PURGE_SCAN_FILES,
       QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS,
       SAAS_LIFECYCLE_SCM_ENABLED,
-      SAAS_PRE_REGISTER_ALL_TENANTS,
-      SESSION_TIMEOUT_MINUTES,
-      USER_AGENT_SUFFIX,
       WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED,
       WEBHOOK_SECRET_PASSPHRASE
   );
 
+  // Visible for testing
   /**
    * GLOBAL_CONFIGURABLE_PROPERTIES can only be configured globally with the global tenant
    */
-  private static final Set<String> GLOBAL_CONFIGURABLE_PROPERTIES = ImmutableSet.of(
+  static final Set<String> GLOBAL_CONFIGURABLE_PROPERTIES = ImmutableSet.of(
+      HDS_URL,
       SAAS_POLICY_MONITOR_POOL_SIZE,
+      SAAS_PRE_REGISTER_ALL_TENANTS,
+      SESSION_TIMEOUT_MINUTES,
       SOURCE_CONTROL_IMPORT_POOL_SIZE,
-      SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE
+      SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE,
+      USER_AGENT_SUFFIX
   );
 
   private static final String NO_CONFIG_SPECIFIED = "No configuration was specified.";

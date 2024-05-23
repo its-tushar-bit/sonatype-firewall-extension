@@ -5,29 +5,34 @@
  */
 import React from 'react';
 import moment from 'moment';
-import { axiosMockAdapter, render, waitFor } from 'TestRoot/SpecUtil';
-import BillOfMaterials from 'MainRoot/sbomManager/features/billOfMaterials/BillOfMaterials';
-import { screen } from '@testing-library/dom';
+
+import { axiosMockAdapter, screen, render, waitFor } from 'TestRoot/SpecUtil';
+
 import {
   getApplicationSummaryUrl,
   getAllApplicationSbomVersions,
   getSbomMetadataUrl,
   getSbomSummaryUrl,
+  getBillOfMaterialsComponentsUrl,
 } from 'MainRoot/util/CLMLocation';
-
-import { initialState as billOfMaterialsComponentsTileInitialState } from 'MainRoot/sbomManager/features/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
+import BillOfMaterials from 'MainRoot/sbomManager/features/billOfMaterials/BillOfMaterials';
+import {
+  initialState as billOfMaterialsComponentsTileInitialState,
+  COMPONENTS_PER_PAGE,
+  SORT_BY_FIELDS,
+} from 'MainRoot/sbomManager/features/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
 import {
   cleanUpComponentsFilterDrawerPortalContainer,
   setupComponentsFilterDrawerPortalContainer,
 } from '../billOfMaterialsComponentsTile/componentsFilterDrawer/ComponentsFilterDrawer.jestspec';
 
-xdescribe('BillOfMaterials page', () => {
-  let renderPage;
+describe('BillOfMaterials Page', () => {
+  let axiosMock, renderPage;
 
-  const applicationPublicId = 'application-public-id';
-  const internalAppId = 'internal-app-id';
-
-  const axiosMock = axiosMockAdapter();
+  const JEST_TIMER = 1000;
+  const APPLICATION_PUBLIC_ID = 'APPLICATION-PUBLIC-ID';
+  const APPLICATION_INTERNAL_ID = 'APPLICATION-INTERNAL-ID';
+  const SBOM_VERSION = 'SBOM-VERSION';
 
   const sbomMetadataInitialState = Object.freeze({
     author: [],
@@ -56,7 +61,18 @@ xdescribe('BillOfMaterials page', () => {
 
   const createdAt = moment(new Date('2024-01-12T20:11:22.000+00:00')).format('YYYY-MM-DD HH:mm:ss');
 
-  const sbomMetadataResponsePayload = {
+  const getApplicationSummaryResponsePayload = Object.freeze({
+    id: APPLICATION_INTERNAL_ID,
+    name: 'Alice',
+  });
+
+  const getAllApplicationSbomVersionsResponsePayload = Object.freeze([
+    SBOM_VERSION,
+    'another-sbom-version-1',
+    'another-sbom-version-2',
+  ]);
+
+  const getSbomMetadataResponsePayload = Object.freeze({
     author: ['Alice', 'Bob'],
     manufacturer: ['Orange'],
     supplier: ['Apple'],
@@ -67,9 +83,9 @@ xdescribe('BillOfMaterials page', () => {
     fileFormat: 'json',
     createdAt: createdAt,
     scanId: 'scan-id',
-  };
+  });
 
-  const sbomSummaryResponsePayload = Object.freeze({
+  const getSbomSummaryResponsePayload = Object.freeze({
     applicationVersion: '123',
     none: 123,
     low: 1000,
@@ -84,7 +100,7 @@ xdescribe('BillOfMaterials page', () => {
     annotatedPercentage: 75,
   });
 
-  const sbomSummaryNoVulnerabilitiesResponsePayload = Object.freeze({
+  const getSbomSummaryNoVulnerabilitiesResponsePayload = Object.freeze({
     applicationVersion: '123',
     none: 0,
     low: 0,
@@ -99,7 +115,7 @@ xdescribe('BillOfMaterials page', () => {
     annotatedPercentage: null,
   });
 
-  const sbomSummaryNoComponentsResponsePayload = Object.freeze({
+  const getSbomSummaryNoComponentsResponsePayload = Object.freeze({
     applicationVersion: '123',
     none: null,
     low: null,
@@ -110,7 +126,24 @@ xdescribe('BillOfMaterials page', () => {
     annotatedPercentage: null,
   });
 
+  const getBillOfMaterialsComponentsResponsePayload = Object.freeze({
+    totalResultsCount: 0,
+    results: [],
+  });
+
+  const getBillOfMaterialsComponentsParams = Object.freeze([
+    APPLICATION_INTERNAL_ID,
+    SBOM_VERSION,
+    1,
+    COMPONENTS_PER_PAGE,
+    SORT_BY_FIELDS.vulnerabilities,
+    false,
+  ]);
+
   beforeEach(() => {
+    setupComponentsFilterDrawerPortalContainer();
+    axiosMock = axiosMockAdapter();
+
     const preloadedState = {
       productFeatures: {
         productFeatures: {
@@ -121,8 +154,9 @@ xdescribe('BillOfMaterials page', () => {
       router: {
         currentState: { name: 'sbomManager.management.view.bom' },
         currentParams: {
-          applicationPublicId: applicationPublicId,
-          versionId: '1.0-SNAPSHOT',
+          applicationPublicId: APPLICATION_PUBLIC_ID,
+          internalAppId: APPLICATION_INTERNAL_ID,
+          versionId: SBOM_VERSION,
         },
       },
       billOfMaterialsPage: {
@@ -153,13 +187,11 @@ xdescribe('BillOfMaterials page', () => {
       },
       billOfMaterialsComponentsTile: {
         ...billOfMaterialsComponentsTileInitialState,
-        loadingComponents: false,
       },
     };
-    renderPage = (additionalPreloadedState = {}) => {
-      setupComponentsFilterDrawerPortalContainer();
+
+    renderPage = (additionalPreloadedState = {}) =>
       render(<BillOfMaterials />, { preloadedState: { ...preloadedState, ...additionalPreloadedState } });
-    };
   });
 
   afterEach(() => {
@@ -167,16 +199,24 @@ xdescribe('BillOfMaterials page', () => {
   });
 
   it('renders page content', async () => {
-    axiosMock.onGet(getApplicationSummaryUrl(applicationPublicId)).reply(200, {
-      id: internalAppId,
-      name: 'Alice',
-    });
+    jest.useFakeTimers();
+
+    axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_PUBLIC_ID)).reply(200, getApplicationSummaryResponsePayload);
     axiosMock
-      .onGet(getAllApplicationSbomVersions(internalAppId))
-      .reply(200, ['1.0-SNAPSHOT', '1.1-SNAPSHOT', '1.2-SNAPSHOT']);
-    axiosMock.onGet(getSbomMetadataUrl(internalAppId, '1.0-SNAPSHOT')).reply(200, sbomMetadataResponsePayload);
-    axiosMock.onGet(getSbomSummaryUrl(internalAppId, '1.0-SNAPSHOT')).reply(200, sbomSummaryResponsePayload);
+      .onGet(getAllApplicationSbomVersions(APPLICATION_INTERNAL_ID))
+      .reply(200, getAllApplicationSbomVersionsResponsePayload);
+    axiosMock
+      .onGet(getSbomMetadataUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+      .reply(200, getSbomMetadataResponsePayload);
+    axiosMock.onGet(getSbomSummaryUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION)).reply(200, getSbomSummaryResponsePayload);
+    axiosMock
+      .onGet(getBillOfMaterialsComponentsUrl(...getBillOfMaterialsComponentsParams))
+      .reply(200, getBillOfMaterialsComponentsResponsePayload);
+
     renderPage();
+
+    jest.advanceTimersByTime(JEST_TIMER);
+    jest.useRealTimers();
 
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
@@ -189,21 +229,28 @@ xdescribe('BillOfMaterials page', () => {
     expect(screen.getByText('Components')).toBeVisible();
 
     const field = await screen.findByRole('button', { name: /Viewing:/i });
-    expect(field).toHaveTextContent('Viewing: 1.0-SNAPSHOT');
+    expect(field).toHaveTextContent(`Viewing: ${SBOM_VERSION}`);
   });
 
-  it('renders Bill of Material Summary Tile values correctly', async () => {
-    axiosMock.onGet(getApplicationSummaryUrl(applicationPublicId)).reply(200, {
-      id: internalAppId,
-      name: 'Alice',
-    });
+  it('renders SummaryTile values correctly', async () => {
+    jest.useFakeTimers();
+
+    axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_PUBLIC_ID)).reply(200, getApplicationSummaryResponsePayload);
     axiosMock
-      .onGet(getAllApplicationSbomVersions(internalAppId))
-      .reply(200, ['1.0-SNAPSHOT', '1.1-SNAPSHOT', '1.2-SNAPSHOT']);
-    axiosMock.onGet(getSbomMetadataUrl(internalAppId, '1.0-SNAPSHOT')).reply(200, sbomMetadataResponsePayload);
-    axiosMock.onGet(getSbomSummaryUrl(internalAppId, '1.0-SNAPSHOT')).reply(200, sbomSummaryResponsePayload);
+      .onGet(getAllApplicationSbomVersions(APPLICATION_INTERNAL_ID))
+      .reply(200, getAllApplicationSbomVersionsResponsePayload);
+    axiosMock
+      .onGet(getSbomMetadataUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+      .reply(200, getSbomMetadataResponsePayload);
+    axiosMock.onGet(getSbomSummaryUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION)).reply(200, getSbomSummaryResponsePayload);
+    axiosMock
+      .onGet(getBillOfMaterialsComponentsUrl(...getBillOfMaterialsComponentsParams))
+      .reply(200, getBillOfMaterialsComponentsResponsePayload);
 
     renderPage();
+
+    jest.advanceTimersByTime(JEST_TIMER);
+    jest.useRealTimers();
 
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
@@ -224,20 +271,27 @@ xdescribe('BillOfMaterials page', () => {
     expect(description).toHaveTextContent('75% of vulnerabilities annotated with exploitability information');
   });
 
-  it('renders Bill of Material Summary Tile values correctly when there are no vulnerabilities', async () => {
-    axiosMock.onGet(getApplicationSummaryUrl(applicationPublicId)).reply(200, {
-      id: internalAppId,
-      name: 'Alice',
-    });
+  it('renders SummaryTile values correctly when there are no vulnerabilities', async () => {
+    jest.useFakeTimers();
+
+    axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_PUBLIC_ID)).reply(200, getApplicationSummaryResponsePayload);
     axiosMock
-      .onGet(getAllApplicationSbomVersions(internalAppId))
-      .reply(200, ['1.0-SNAPSHOT', '1.1-SNAPSHOT', '1.2-SNAPSHOT']);
-    axiosMock.onGet(getSbomMetadataUrl(internalAppId, '1.0-SNAPSHOT')).reply(200, sbomMetadataResponsePayload);
+      .onGet(getAllApplicationSbomVersions(APPLICATION_INTERNAL_ID))
+      .reply(200, getAllApplicationSbomVersionsResponsePayload);
     axiosMock
-      .onGet(getSbomSummaryUrl(internalAppId, '1.0-SNAPSHOT'))
-      .reply(200, sbomSummaryNoVulnerabilitiesResponsePayload);
+      .onGet(getSbomMetadataUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+      .reply(200, getSbomMetadataResponsePayload);
+    axiosMock
+      .onGet(getSbomSummaryUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+      .reply(200, getSbomSummaryNoVulnerabilitiesResponsePayload);
+    axiosMock
+      .onGet(getBillOfMaterialsComponentsUrl(...getBillOfMaterialsComponentsParams))
+      .reply(200, getBillOfMaterialsComponentsResponsePayload);
 
     renderPage();
+
+    jest.advanceTimersByTime(JEST_TIMER);
+    jest.useRealTimers();
 
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
@@ -258,20 +312,28 @@ xdescribe('BillOfMaterials page', () => {
     expect(description).toHaveTextContent('No vulnerabilities to annotate');
   });
 
-  it('renders Bill of Material Summary Tile values correctly when there are no components', async () => {
-    axiosMock.onGet(getApplicationSummaryUrl(applicationPublicId)).reply(200, {
-      id: internalAppId,
-      name: 'Alice',
-    });
+  it('renders SummaryTile values correctly when there are no components', async () => {
+    jest.useFakeTimers();
+
+    axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_PUBLIC_ID)).reply(200, getApplicationSummaryResponsePayload);
     axiosMock
-      .onGet(getAllApplicationSbomVersions(internalAppId))
-      .reply(200, ['1.0-SNAPSHOT', '1.1-SNAPSHOT', '1.2-SNAPSHOT']);
-    axiosMock.onGet(getSbomMetadataUrl(internalAppId, '1.0-SNAPSHOT')).reply(200, sbomMetadataResponsePayload);
+      .onGet(getAllApplicationSbomVersions(APPLICATION_INTERNAL_ID))
+      .reply(200, getAllApplicationSbomVersionsResponsePayload);
     axiosMock
-      .onGet(getSbomSummaryUrl(internalAppId, '1.0-SNAPSHOT'))
-      .reply(200, sbomSummaryNoComponentsResponsePayload);
+      .onGet(getSbomMetadataUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+      .reply(200, getSbomMetadataResponsePayload);
+    axiosMock.onGet(getSbomSummaryUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION)).reply(200, getSbomSummaryResponsePayload);
+    axiosMock
+      .onGet(getSbomSummaryUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+      .reply(200, getSbomSummaryNoComponentsResponsePayload);
+    axiosMock
+      .onGet(getBillOfMaterialsComponentsUrl(...getBillOfMaterialsComponentsParams))
+      .reply(200, getBillOfMaterialsComponentsResponsePayload);
 
     renderPage();
+
+    jest.advanceTimersByTime(JEST_TIMER);
+    jest.useRealTimers();
 
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
@@ -293,6 +355,8 @@ xdescribe('BillOfMaterials page', () => {
   });
 
   it('shows error when the SBOM Manager license is disabled', async () => {
+    jest.useFakeTimers();
+
     renderPage({
       productFeatures: {
         productFeatures: {
@@ -301,47 +365,62 @@ xdescribe('BillOfMaterials page', () => {
       },
     });
 
+    jest.advanceTimersByTime(JEST_TIMER);
+    jest.useRealTimers();
+
     const errorMessage = await screen.findByText(
       'An error occurred loading data. The SBOM Manager license feature is not enabled.'
     );
+
     expect(errorMessage).toBeVisible();
   });
 
-  it('shows error when Application SBOM versions fail to load.', async () => {
-    axiosMock.onGet(getApplicationSummaryUrl(applicationPublicId)).reply(200, {
-      id: internalAppId,
-    });
-    axiosMock.onGet(getAllApplicationSbomVersions(internalAppId)).reply(() =>
+  it('shows an error when Application SBOM versions fail to load.', async () => {
+    jest.useFakeTimers();
+
+    axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_PUBLIC_ID)).reply(200, getApplicationSummaryResponsePayload);
+    axiosMock.onGet(getAllApplicationSbomVersions(APPLICATION_INTERNAL_ID)).reply(() =>
       Promise.reject({
         response: {
-          data: 'Error',
+          data: 'Error Message From Server',
         },
       })
     );
+
     renderPage();
 
-    const errorMessage = await screen.findByText('An error occurred loading data. Error');
+    jest.advanceTimersByTime(JEST_TIMER);
+    jest.useRealTimers();
+
+    const errorMessage = await screen.findByText('An error occurred loading data. Error Message From Server');
     expect(errorMessage).toBeVisible();
   });
 
-  it('shows error when SBOM Metadata fail to load.', async () => {
-    axiosMock.onGet(getApplicationSummaryUrl(applicationPublicId)).reply(200, {
-      id: internalAppId,
-      name: 'Alice',
-    });
+  it('shows an error when SBOM Metadata failed to load.', async () => {
+    jest.useFakeTimers();
+
+    axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_PUBLIC_ID)).reply(200, getApplicationSummaryResponsePayload);
     axiosMock
-      .onGet(getAllApplicationSbomVersions(internalAppId))
-      .reply(200, ['1.0-SNAPSHOT', '1.1-SNAPSHOT', '1.2-SNAPSHOT']);
-    axiosMock.onGet(getSbomMetadataUrl(internalAppId, '1.0-SNAPSHOT')).reply(() =>
+      .onGet(getAllApplicationSbomVersions(APPLICATION_INTERNAL_ID))
+      .reply(200, getAllApplicationSbomVersionsResponsePayload);
+    axiosMock
+      .onGet(getSbomMetadataUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+      .reply(200, getSbomMetadataResponsePayload);
+    axiosMock.onGet(getSbomSummaryUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION)).reply(200, getSbomSummaryResponsePayload);
+    axiosMock.onGet(getSbomMetadataUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION)).reply(() =>
       Promise.reject({
         response: {
-          data: 'Error',
+          data: 'Error Message From Server',
         },
       })
     );
+
     renderPage();
 
-    const errorMessage = await screen.findByText('An error occurred loading data. Error');
+    jest.advanceTimersByTime(JEST_TIMER);
+    jest.useRealTimers();
+
+    const errorMessage = await screen.findByText('An error occurred loading data. Error Message From Server');
     expect(errorMessage).toBeVisible();
   });
 });

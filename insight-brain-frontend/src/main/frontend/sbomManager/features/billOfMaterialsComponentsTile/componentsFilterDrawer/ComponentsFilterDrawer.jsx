@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import * as PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { NxDrawer, NxCollapsibleItems, NxCheckbox, NxThreatIndicator } from '@sonatype/react-shared-components';
@@ -106,7 +107,7 @@ export default function ComponentsFilterDrawer({ internalAppId, sbomVersion }) {
     </span>
   );
 
-  return (
+  return createPortal(
     <NxDrawer
       id="components-filter-drawer"
       className="sbom-manager-components-filter-drawer__collapsible-items sbom-manager-components-filter-drawer"
@@ -143,7 +144,8 @@ export default function ComponentsFilterDrawer({ internalAppId, sbomVersion }) {
           {dependencyTypeCollapsibleItems}
         </NxCollapsibleItems>
       </NxDrawer.Content>
-    </NxDrawer>
+    </NxDrawer>,
+    document.querySelector(`.${COMPONENTS_FILTER_DRAWER_PORTAL_TARGET_CLASSNAME}`)
   );
 }
 

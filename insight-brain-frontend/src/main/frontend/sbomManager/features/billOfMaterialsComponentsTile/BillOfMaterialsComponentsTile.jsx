@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect, useCallback } from 'react';
-import { createPortal } from 'react-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import * as PropTypes from 'prop-types';
 import {
@@ -49,9 +48,7 @@ import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelector
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { formatNumberLocale } from 'MainRoot/util/formatUtils';
 
-import ComponentsFilterDrawer, {
-  COMPONENTS_FILTER_DRAWER_PORTAL_TARGET_CLASSNAME,
-} from './componentsFilterDrawer/ComponentsFilterDrawer';
+import ComponentsFilterDrawer from './componentsFilterDrawer/ComponentsFilterDrawer';
 import { selectBillOfMaterialsComponentsTile } from './billOfMaterialsComponentsTileSelectors.js';
 import { actions, COMPONENTS_PER_PAGE, SORT_BY_FIELDS, SORT_DIRECTION } from './billOfMaterialsComponentsTileSlice';
 
@@ -221,12 +218,10 @@ export default function BillOfMaterialsComponentsTile({ internalAppId }) {
     ...(loadingComponentsErrorMessage && { error: loadingComponentsErrorMessage }),
     ...(isEmpty && { emptyMessage: 'No components found' }),
   };
+
   return (
     <>
-      {createPortal(
-        <ComponentsFilterDrawer internalAppId={internalAppId} sbomVersion={sbomVersion} />,
-        document.querySelector(`.${COMPONENTS_FILTER_DRAWER_PORTAL_TARGET_CLASSNAME}`)
-      )}
+      <ComponentsFilterDrawer internalAppId={internalAppId} sbomVersion={sbomVersion} />
       <NxTile className="sbom-manager-bill-of-materials-components-tile">
         <NxTile.Header>
           <NxTile.HeaderTitle>

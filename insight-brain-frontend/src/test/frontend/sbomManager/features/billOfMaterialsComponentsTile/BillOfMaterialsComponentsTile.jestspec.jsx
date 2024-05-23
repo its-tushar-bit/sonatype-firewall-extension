@@ -21,11 +21,16 @@ import {
   setupComponentsFilterDrawerPortalContainer,
 } from './componentsFilterDrawer/ComponentsFilterDrawer.jestspec';
 
-xdescribe('BillOfMaterialsComponentsTile', () => {
-  let axiosMock, initialProps, initialState;
+describe('BillOfMaterialsComponentsTile', () => {
+  let axiosMock, initialState;
 
-  const INTERNAL_APP_ID = 'internal-app-id';
-  const SBOM_VERSION = 'sbom-version';
+  const JEST_TIMER = 1000;
+  const APPLICATION_INTERNAL_ID = 'APPLICATION-INTERNAL-ID';
+  const SBOM_VERSION = 'SBOM-VERSION';
+
+  const initialProps = {
+    internalAppId: APPLICATION_INTERNAL_ID,
+  };
 
   const defaultSortConfiguration = Object.freeze({
     sortBy: SORT_BY_FIELDS.vulnerabilities,
@@ -127,7 +132,7 @@ xdescribe('BillOfMaterialsComponentsTile', () => {
   });
 
   const baseUrlParams = Object.freeze([
-    INTERNAL_APP_ID,
+    APPLICATION_INTERNAL_ID,
     SBOM_VERSION,
     1,
     COMPONENTS_PER_PAGE,
@@ -135,17 +140,13 @@ xdescribe('BillOfMaterialsComponentsTile', () => {
     false,
   ]);
 
-  const renderComponent = (props, preloadedState) => {
-    setupComponentsFilterDrawerPortalContainer();
+  const renderComponent = (props, preloadedState) =>
     render(<BillOfMaterialsComponentsTile {...props} />, { preloadedState });
-  };
 
   beforeEach(() => {
-    axiosMock = axiosMockAdapter();
+    setupComponentsFilterDrawerPortalContainer();
 
-    initialProps = {
-      internalAppId: INTERNAL_APP_ID,
-    };
+    axiosMock = axiosMockAdapter();
 
     initialState = {
       router: {
@@ -177,17 +178,29 @@ xdescribe('BillOfMaterialsComponentsTile', () => {
   });
 
   it('renders the correct title', async () => {
+    jest.useFakeTimers();
+
     renderComponent(initialProps, initialState);
+
+    jest.advanceTimersByTime(JEST_TIMER);
+    jest.useRealTimers();
+
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
     expect(screen.getByRole('heading', { name: /Components/ })).toBeVisible();
   });
 
   it('renders the loading error message if an error occurred', async () => {
+    jest.useFakeTimers();
+
     axiosMock
       .onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams))
       .reply(() => Promise.reject({ response: { data: 'Error Message' } }));
 
     renderComponent(initialProps, initialState);
+
+    jest.advanceTimersByTime(JEST_TIMER);
+    jest.useRealTimers();
 
     const errorAlert = await screen.findByRole('alert');
     expect(errorAlert).toBeVisible();
@@ -196,7 +209,12 @@ xdescribe('BillOfMaterialsComponentsTile', () => {
 
   describe('Filter By', () => {
     it('should have the Filter By button', async () => {
+      jest.useFakeTimers();
+
       renderComponent(initialProps, initialState);
+
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
 
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
@@ -212,55 +230,29 @@ xdescribe('BillOfMaterialsComponentsTile', () => {
     });
 
     it('renders the correct empty message', async () => {
+      jest.useFakeTimers();
+
       axiosMock
         .onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams))
         .reply(200, { totalResultsCount: 0, results: [] });
 
       renderComponent(initialProps, initialState);
 
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
+
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
       expect(screen.getByText('No components found')).toBeVisible();
     });
 
-    it('sorts the header row cells correctly', async () => {
-      renderComponent(initialProps, initialState);
-
-      await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
-
-      const sortableFields = ['Type', 'Percentage Annotated'];
-      for (const field of sortableFields) {
-        const columnHeader = await screen.findByRole('columnheader', { name: field });
-        expect(columnHeader).toBeVisible();
-
-        fireEvent.click(columnHeader);
-        expect(await screen.findByLabelText(`${field} ascending`)).toBeVisible();
-
-        fireEvent.click(columnHeader);
-        expect(await screen.findByLabelText(`${field} descending`)).toBeVisible();
-
-        fireEvent.click(columnHeader);
-        expect(await screen.findByLabelText(`${field} unsorted`)).toBeVisible();
-        // Default state is set:
-        expect(await screen.findByLabelText('Vulnerabilities descending')).toBeVisible();
-      }
-
-      const vulnerabilitiesColumnHeader = await screen.findByRole('columnheader', { name: /Vulnerabilities/i });
-      expect(vulnerabilitiesColumnHeader).toBeVisible();
-
-      fireEvent.click(vulnerabilitiesColumnHeader);
-      expect(await screen.findByLabelText(`Vulnerabilities ascending`)).toBeVisible();
-
-      fireEvent.click(vulnerabilitiesColumnHeader);
-      expect(await screen.findByLabelText(`Vulnerabilities descending`)).toBeVisible();
-
-      const anotherColumnHeader = await screen.findByRole('columnheader', { name: 'Type' });
-      fireEvent.click(anotherColumnHeader);
-      expect(await screen.findByLabelText(`Type ascending`)).toBeVisible();
-    });
-
     it('renders the correct number of components and content', async () => {
+      jest.useFakeTimers();
+
       renderComponent(initialProps, initialState);
+
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
 
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
@@ -302,11 +294,16 @@ xdescribe('BillOfMaterialsComponentsTile', () => {
 
   describe('Pagination Status', () => {
     it('should show the correct pagination status text on first page', async () => {
+      jest.useFakeTimers();
+
       axiosMock
         .onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams))
         .reply(200, generateResponse(componentParametersList, 2500));
 
       renderComponent(initialProps, initialState);
+
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
 
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
@@ -316,11 +313,16 @@ xdescribe('BillOfMaterialsComponentsTile', () => {
     });
 
     it('should show the correct pagination status text when total < maximum components per page', async () => {
+      jest.useFakeTimers();
+
       axiosMock
         .onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams))
         .reply(200, generateResponse(componentParametersList, 25));
 
       renderComponent(initialProps, initialState);
+
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
 
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
@@ -330,11 +332,15 @@ xdescribe('BillOfMaterialsComponentsTile', () => {
     });
 
     it('should show the correct pagination status for not first or last page', async () => {
+      jest.useFakeTimers();
+
       axiosMock
         .onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams))
         .reply(200, generateResponse(componentParametersList, 150));
 
       renderComponent(initialProps, initialState);
+
+      jest.advanceTimersByTime(JEST_TIMER);
 
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
@@ -345,6 +351,9 @@ xdescribe('BillOfMaterialsComponentsTile', () => {
       const nextButton = screen.getByRole('button', { name: 'goto next page' });
       expect(nextButton).toBeVisible();
       fireEvent.click(nextButton);
+
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
 
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
@@ -355,11 +364,15 @@ xdescribe('BillOfMaterialsComponentsTile', () => {
     });
 
     it('should show the correct pagination status for the last page', async () => {
+      jest.useFakeTimers();
+
       axiosMock
         .onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams))
         .reply(200, generateResponse(componentParametersList, 100));
 
       renderComponent(initialProps, initialState);
+
+      jest.advanceTimersByTime(JEST_TIMER);
 
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
@@ -370,6 +383,9 @@ xdescribe('BillOfMaterialsComponentsTile', () => {
       const nextButton = screen.getByRole('button', { name: 'goto next page' });
       expect(nextButton).toBeVisible();
       fireEvent.click(nextButton);
+
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
 
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 

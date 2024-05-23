@@ -38,11 +38,11 @@ export const setupComponentsFilterDrawerPortalContainer = () => {
   document.body.appendChild(container);
 };
 
-xdescribe('ComponentsFilterDrawer', () => {
-  let axiosMock, initialProps, initialState;
+describe('ComponentsFilterDrawer', () => {
+  let axiosMock, initialState;
 
-  const INTERNAL_APP_ID = 'internal-app-id';
-  const SBOM_VERSION = 'sbom-version';
+  const APPLICATION_INTERNAL_ID = 'APPLICATION-INTERNAL-ID';
+  const SBOM_VERSION = 'SBOM-VERSION';
 
   const filterDrawerInitialState = Object.freeze({
     showDrawer: false,
@@ -52,15 +52,26 @@ xdescribe('ComponentsFilterDrawer', () => {
     },
   });
 
+  const initialProps = Object.freeze({
+    internalAppId: APPLICATION_INTERNAL_ID,
+    sbomVersion: SBOM_VERSION,
+  });
+
+  const baseUrlParams = [
+    APPLICATION_INTERNAL_ID,
+    SBOM_VERSION,
+    1,
+    COMPONENTS_PER_PAGE,
+    SORT_BY_FIELDS.vulnerabilities,
+    false,
+  ];
+
   const renderComponent = (props, preloadedState) => render(<ComponentsFilterDrawer {...props} />, { preloadedState });
 
   beforeEach(() => {
-    axiosMock = axiosMockAdapter();
+    setupComponentsFilterDrawerPortalContainer();
 
-    initialProps = {
-      internalAppId: INTERNAL_APP_ID,
-      sbomVersion: SBOM_VERSION,
-    };
+    axiosMock = axiosMockAdapter();
 
     initialState = {
       router: {
@@ -86,18 +97,13 @@ xdescribe('ComponentsFilterDrawer', () => {
       },
     };
 
-    const baseUrlParams = [
-      INTERNAL_APP_ID,
-      SBOM_VERSION,
-      1,
-      COMPONENTS_PER_PAGE,
-      SORT_BY_FIELDS.vulnerabilities,
-      false,
-    ];
-
     axiosMock
       .onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams))
       .reply(200, { totalResultsCount: 0, results: [] });
+  });
+
+  afterEach(() => {
+    cleanUpComponentsFilterDrawerPortalContainer();
   });
 
   it('renders the correct initial content', async () => {

@@ -124,7 +124,7 @@ export default function BillOfMaterials() {
           componentSummary={componentSummary}
           vulnerabilitiesSummary={vulnerabilitiesSummary}
         />
-        <BillOfMaterialsComponentsTile internalAppId={internalAppId} sbomVersion={currentSbomVersion} />
+        <BillOfMaterialsComponentsTile internalAppId={internalAppId} />
       </LoadWrapper>
     </div>
   );

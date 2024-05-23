@@ -208,6 +208,7 @@ public class SbomComponentsService
 
           VulnerabilityDetailsDTO vulnerabilityDetailsDTO =
               new VulnerabilityDetailsDTO(vulnerability.getSeverity(), vulnerability.getRefId(),
+                  vulnerability.getDescription(),
                   vulnerability.getIdentificationSources().contains(IdentificationSource.SBOM.getName()) &&
                       vulnerability.getIdentificationSources().contains(IdentificationSource.SONATYPE.getName()));
           if (vex != null) {

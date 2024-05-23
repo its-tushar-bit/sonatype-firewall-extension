@@ -216,6 +216,7 @@ public class SbomComponentsServiceTest
   {
     assertThat(actual.getCvssScore()).isEqualTo(vulnerability.getSeverity());
     assertThat(actual.getIssue()).isEqualTo(vulnerability.getRefId());
+    assertThat(actual.getDescription()).isEqualTo(vulnerability.getDescription());
     assertThat(actual.getAnalysisStatus()).isEqualTo(vexState);
     assertThat(actual.getJustification()).isEqualTo(vexJustification);
     assertThat(actual.getResponse()).isEqualTo(vexResponse);

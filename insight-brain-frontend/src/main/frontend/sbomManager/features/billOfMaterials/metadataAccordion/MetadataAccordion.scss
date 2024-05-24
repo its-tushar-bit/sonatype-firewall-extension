@@ -1,0 +1,40 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+.sbom-manager-bill-of-materials-summary-metadata-accordion {
+  .nx-accordion__summary-wrapper {
+    padding: var(--nx-spacing-4x) 0;
+  }
+
+  .nx-accordion__content {
+    margin-left: 0;
+  }
+
+  &__property-list {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  &__property-list-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nx-spacing-4x);
+
+    dd,
+    dt {
+      font-size: var(--nx-font-size-s);
+      line-height: initial;
+    }
+
+    dd {
+      margin-left: 0;
+    }
+
+    dt {
+      font-weight: 600;
+    }
+  }
+}

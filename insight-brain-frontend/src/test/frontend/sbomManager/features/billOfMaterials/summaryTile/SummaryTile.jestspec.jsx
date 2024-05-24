@@ -23,13 +23,27 @@ describe('SummaryTile', () => {
     unspecified: 78,
   });
 
+  const initialState = {
+    billOfMaterialsPage: {
+      sbomMetadata: {
+        author: [],
+        manufacturer: [],
+        supplier: [],
+        specification: 'CycloneDx',
+        specVersion: '2.3',
+        fileFormat: 'json',
+      },
+    },
+  };
+
   it('renders the correct tile content', async () => {
     render(
       <SummaryTile
         componentSummary={componentSummaryProp}
         vulnerabilitiesSummary={vulnerabilitiesSummaryProp}
         annotatedVulnerabilitesPercentage={75}
-      />
+      />,
+      { preloadedState: { ...initialState } }
     );
 
     expect(screen.getByRole('heading', { name: /Bill of Material/ })).toBeVisible();
@@ -59,7 +73,8 @@ describe('SummaryTile', () => {
         componentSummary={componentSummaryProp}
         vulnerabilitiesSummary={vulnerabilitiesSummaryProp}
         annotatedVulnerabilitesPercentage={null}
-      />
+      />,
+      { preloadedState: { ...initialState } }
     );
 
     const description = screen.getByTestId('annotated-vulnerabilities-summary-description');

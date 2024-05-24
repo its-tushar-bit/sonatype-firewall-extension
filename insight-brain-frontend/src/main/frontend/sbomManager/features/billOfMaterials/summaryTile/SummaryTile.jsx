@@ -10,6 +10,7 @@ import { omit, sum } from 'ramda';
 import { ResponsivePie } from '@nivo/pie';
 import { NxH2, NxH3, NxP, NxProgressBar, NxTile } from '@sonatype/react-shared-components';
 import classNames from 'classnames';
+import MetadataAccordion from 'MainRoot/sbomManager/features/billOfMaterials/metadataAccordion/MetadataAccordion';
 
 import { capitalize } from 'MainRoot/util/jsUtil';
 import { formatNumberLocale } from 'MainRoot/util/formatUtils';
@@ -186,6 +187,7 @@ export default function BillOfMaterialSummaryTile(props) {
           </div>
         </div>
       </NxTile.Content>
+      <MetadataAccordion />
     </NxTile>
   );
 }

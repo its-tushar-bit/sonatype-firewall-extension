@@ -25,6 +25,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class ThirdPartySbomMetadataDAO
     extends AbstractThirdPartyScansSqlDAO<ThirdPartySbomMetadata>
 {
+  private static final String ACTIVE_STATUS = "ACTIVE";
+
   @Inject
   public ThirdPartySbomMetadataDAO(ThirdPartyScansDataStore thirdPartyScansDataStore) {
     super(thirdPartyScansDataStore);
@@ -65,6 +67,13 @@ public class ThirdPartySbomMetadataDAO
     return getList(sQuery, applicationId);
   }
 
+  public List<ThirdPartySbomMetadata> getActiveByApplicationId(String applicationId) {
+    String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity " + //
+        " WHERE entity.applicationId=?1" + //
+        " AND entity.status=?2";
+    return getList(sQuery, applicationId, ACTIVE_STATUS);
+  }
+
   public ThirdPartySbomMetadata getByApplicationIdAndSbomVersion(String applicationId, String sbomVersion) {
     String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity " + //
         " WHERE entity.applicationId = ?1 AND entity.sbomVersion=?2";
@@ -100,8 +109,8 @@ public class ThirdPartySbomMetadataDAO
 
   public long getActiveSbomCount() {
     String sQuery = "SELECT COUNT(entity) FROM ThirdPartySbomMetadata entity " //
-        + "WHERE entity.status='ACTIVE'";
-    return getSingle(Long.class, sQuery);
+        + "WHERE entity.status=?1";
+    return getSingle(Long.class, sQuery, ACTIVE_STATUS);
   }
 
   /**
@@ -138,7 +147,7 @@ public class ThirdPartySbomMetadataDAO
     LocalDate lastYear = now.minusYears(1);
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = createNativeQuery(tx, sQuery, lastYear, lastMonth, lastWeek, "ACTIVE");
+      javax.persistence.Query query = createNativeQuery(tx, sQuery, lastYear, lastMonth, lastWeek, ACTIVE_STATUS);
       Object[] result = (Object[]) query.getSingleResult();
       return new ApiSbomApplicationsHistoryMetricDTO(result);
     }

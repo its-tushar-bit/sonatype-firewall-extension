@@ -110,33 +110,27 @@ public class ThirdPartyCoordinateSecurityDAO
         "       COUNT(CASE WHEN (cs.severity BETWEEN ?7 AND ?8) THEN 1 END) AS critical, " + //
         "       COUNT(CASE WHEN (cs.severity BETWEEN ?7 AND ?8" + //
         "                  AND ve.vulnerability_exploitability_id IS NOT NULL)" + //
-        "             THEN 1 END) AS critical_annotated ";
+        "             THEN 1 END) AS critical_annotated " + //
+        " FROM " + databaseSchema + ".sbom_metadata sm" + //
+        "   JOIN " + databaseSchema + ".file_coordinate fc" + //
+        "     ON fc.third_party_file_id = sm.third_party_file_id" + //
+        "   JOIN " + databaseSchema + ".coordinate_security cs" + //
+        "     ON cs.file_coordinate_id = fc.file_coordinate_id" + //
+        "   LEFT JOIN " + databaseSchema + ".vulnerability_exploitability ve" + //
+        "     ON cs.coordinate_security_id = ve.coordinate_security_id" + //
+        " WHERE sm.status = ?9";
 
     if (isNotEmpty(applicationIds)) {
-      sQuery += "" + //
-          " FROM " + databaseSchema + ".sbom_metadata sm" + //
-          "   JOIN " + databaseSchema + ".file_coordinate fc" + //
-          "     ON fc.third_party_file_id = sm.third_party_file_id" + //
-          "   JOIN " + databaseSchema + ".coordinate_security cs" + //
-          "     ON cs.file_coordinate_id = fc.file_coordinate_id" + //
-          "   LEFT JOIN " + databaseSchema + ".vulnerability_exploitability ve" + //
-          "     ON cs.coordinate_security_id = ve.coordinate_security_id" + //
-          " WHERE sm.application_id = ANY(array[?9])";
-    }
-    else {
-      sQuery += "" + //
-          " FROM " + databaseSchema + ".coordinate_security cs" + //
-          "   LEFT JOIN " + databaseSchema + ".vulnerability_exploitability ve" + //
-          "     ON cs.coordinate_security_id = ve.coordinate_security_id";
+      sQuery += " AND sm.application_id = ANY(array[?10])";
     }
 
     try (TransactionContext tx = createTransactionContext()) {
       javax.persistence.Query query = createNativeQuery(tx, sQuery, LOW.getStartScoreRange(), LOW.getEndScoreRange(),
           MEDIUM.getStartScoreRange(), MEDIUM.getEndScoreRange(), HIGH.getStartScoreRange(), HIGH.getEndScoreRange(),
-          CRITICAL.getStartScoreRange(), CRITICAL.getEndScoreRange());
+          CRITICAL.getStartScoreRange(), CRITICAL.getEndScoreRange(), "ACTIVE");
 
       if (isNotEmpty(applicationIds)) {
-        query.setParameter(9, createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
+        query.setParameter(10, createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
       }
 
       Object[] result = (Object[]) query.getSingleResult();

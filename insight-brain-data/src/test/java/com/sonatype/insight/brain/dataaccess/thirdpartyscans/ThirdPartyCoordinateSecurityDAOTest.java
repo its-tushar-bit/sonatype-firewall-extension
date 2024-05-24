@@ -358,6 +358,41 @@ public class ThirdPartyCoordinateSecurityDAOTest
         .isEqualTo(result);
   }
 
+  @Test
+  @PostgresTest
+  public void testGetVulnerabilitiesByThreatLevel_OnlyActiveSboms() {
+    CvssV3Severity severity = CvssV3Severity.LOW;
+
+    ThirdPartySbomMetadata sbomMetadataActive = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .build();
+
+    ThirdPartyFileCoordinate coordinate1 = tempEntity
+        .newThirdPartyFileCoordinate(sbomMetadataActive.getThirdPartyFileId(), "s1", "f1", "n1", "v1", "", "");
+    tempEntity.newThirdPartyCoordinateSecurity(coordinate1, "r1", "d1", "l1", severity.getStartScoreRange(),
+        severity.getDisplayName(), "f1");
+
+    ThirdPartySbomMetadata sbomMetadataPending = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .withStatus("PENDING")
+        .build();
+
+    ThirdPartyFileCoordinate coordinate2 = tempEntity
+        .newThirdPartyFileCoordinate(sbomMetadataPending.getThirdPartyFileId(), "s2", "f2", "n2", "v2", "", "");
+    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "r2", "d2", "l2", severity.getStartScoreRange(),
+        severity.getDisplayName(), "f2");
+
+    VulnerabilitiesThreadLevelMetricDTO result = dao.getVulnerabilitiesByThreatLevel(null);
+    assertThat(result).isNotNull();
+
+    assertThat(result.getLow()).isOne();
+    assertThat(result.getLowAnnotated()).isZero();
+    assertThat(result.getLowUnannotated()).isOne();
+    assertThat(result.getTotalVulnerabilities()).isOne();
+    assertThat(result.getTotalVulnerabilitiesAnnotated()).isZero();
+    assertThat(result.getTotalVulnerabilitiesUnannotated()).isOne();
+  }
+
   private void assertThirdPartyCoordinateSecurity(
       final String refId,
       final String description,

@@ -148,6 +148,22 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   @Test
+  public void testGetActiveByApplicationId() {
+    ThirdPartySbomMetadata activeSbom = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .build();
+    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .withStatus("PENDING")
+        .build();
+
+    List<ThirdPartySbomMetadata> sbomMetadata = dao.getActiveByApplicationId(application.getId());
+
+    assertThat(sbomMetadata).hasSize(1);
+    assertThirdPartySbomMetadata(sbomMetadata.get(0), activeSbom);
+  }
+
+  @Test
   public void testGetByApplicationIdAndSbomVersion() {
     Application app = tempEntity.newApplicationWithParent();
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)

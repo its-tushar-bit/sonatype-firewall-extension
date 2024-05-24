@@ -579,23 +579,28 @@ public class ApiSbomServiceTest
   }
 
   @Test
-  public void testGetSbomVersionListByApplication_Successful() {
+  public void testGetActiveSbomVersionListByApplication_Successful() {
     Application app = tempEntity.newApplicationWithParent();
     SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(app.getId())
         .withSbomVersion("1.5")
         .build();
+    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withSbomVersion("1.6")
+        .withStatus(SbomStatus.PENDING.name())
+        .build();
 
-    List<String> applicationVersionsSbomDTOS = service.getSbomVersionListByApplication(app.getId());
+    List<String> applicationVersionsSbomDTOS = service.getActiveSbomVersionListByApplication(app.getId());
     assertThat(applicationVersionsSbomDTOS.size()).isEqualTo(1);
     assertThat(applicationVersionsSbomDTOS.get(0)).isEqualTo("1.5");
   }
 
   @Test
-  public void testGetSbomVersionListByApplication_SuccessfulEmpty() {
+  public void testGetActiveSbomVersionListByApplication_SuccessfulEmpty() {
     Application app = tempEntity.newApplicationWithParent();
 
-    List<String> applicationVersionsSbomDTOS = service.getSbomVersionListByApplication(app.getId());
+    List<String> applicationVersionsSbomDTOS = service.getActiveSbomVersionListByApplication(app.getId());
     assertThat(applicationVersionsSbomDTOS).isEmpty();
   }
 

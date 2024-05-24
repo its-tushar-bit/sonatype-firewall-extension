@@ -229,12 +229,12 @@ public class ApiSbomResource
         asc, pageSize, page);
   }
 
-  @Operation(summary = "Gets a list of sbom versions by application id",
+  @Operation(summary = "Gets a list of active sbom versions by application id",
       tags = {"sbom"},
-      description = "Gets a list of sbom versions by application id",
+      description = "Gets a list of active sbom versions by application id",
       responses = {
           @ApiResponse(responseCode = "200",
-              description = "list of the sbom versions by application id",
+              description = "list of the active sbom versions by application id",
               content = @Content(mediaType = "application/json"))
       })
 
@@ -242,12 +242,12 @@ public class ApiSbomResource
   @Path(SBOM_VERSIONS_PATH)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
   @Produces({MediaType.APPLICATION_JSON})
-  public List<String> getSbomVersionListByApplication(
+  public List<String> getActiveSbomVersionListByApplication(
       @Parameter(description = "The internal id of the application", required = true)
       @PathParam("applicationId") String applicationId
   )
   {
-    return apiSbomService.getSbomVersionListByApplication(applicationId);
+    return apiSbomService.getActiveSbomVersionListByApplication(applicationId);
   }
 
   @Operation(summary = "Import a new sbom version",

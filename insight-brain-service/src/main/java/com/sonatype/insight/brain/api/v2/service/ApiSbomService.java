@@ -378,12 +378,10 @@ public class ApiSbomService
   }
 
   @Authorize(permission = Permission.READ)
-  public List<String> getSbomVersionListByApplication(
+  public List<String> getActiveSbomVersionListByApplication(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId)
   {
-    List<ThirdPartySbomMetadata> sbomMetadata = dao.getByApplicationId(applicationId);
-
-    return sbomMetadata.stream()
+    return dao.getActiveByApplicationId(applicationId).stream()
         .map(ThirdPartySbomMetadata::getSbomVersion)
         .collect(Collectors.toList());
   }

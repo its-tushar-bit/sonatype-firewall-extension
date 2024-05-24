@@ -153,30 +153,30 @@ public class ApiSbomServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetSbomVersionListByApplication_Unauthenticated() {
-    apiSbomService.getSbomVersionListByApplication("test-app-id");
+  public void tetActiveSbomVersionListByApplication_Unauthenticated() {
+    apiSbomService.getActiveSbomVersionListByApplication("test-app-id");
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetSbomVersionListByApplication_Unauthorized() {
+  public void testGetActiveSbomVersionListByApplication_Unauthorized() {
     login();
-    apiSbomService.getSbomVersionListByApplication(app.getId());
+    apiSbomService.getActiveSbomVersionListByApplication(app.getId());
   }
 
   @Test
-  public void testGetSbomVersionListByApplication_Authorized() {
+  public void testGetActiveSbomVersionListByApplication_Authorized() {
     grantReadPermission(app.getId());
     SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(app.getId())
         .withSbomVersion("1.5")
         .build();
-    apiSbomService.getSbomVersionListByApplication(app.getId());
+    apiSbomService.getActiveSbomVersionListByApplication(app.getId());
   }
 
   @Test(expected = NotFoundException.class)
-  public void testGetSbomVersionListByApplication_Authorized_NotFound() {
+  public void testGetActiveSbomVersionListByApplication_Authorized_NotFound() {
     grantReadPermission("test");
-    apiSbomService.getSbomVersionListByApplication("test");
+    apiSbomService.getActiveSbomVersionListByApplication("test");
   }
 
   @Test(expected = UnauthenticatedException.class)

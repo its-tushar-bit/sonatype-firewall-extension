@@ -74,7 +74,7 @@ public class DevelopmentPrioritiesReportServiceTest
 
   @Test
   public void testGetDependencyInformation_shouldThrowNotFoundExceptionGivenIOException() throws IOException {
-    when(apiReportDataServiceV2.getRawData(anyString(), anyString())).thenThrow(new IOException());
+    when(apiReportDataServiceV2.getDataNoAuthWithDependencyData(anyString(), anyString())).thenThrow(new IOException());
 
     final String expectedErrorMessage = "Could not find the requested report for prioritization.";
     assertThatThrownBy(() ->
@@ -82,7 +82,7 @@ public class DevelopmentPrioritiesReportServiceTest
         .withFailMessage(expectedErrorMessage)
         .isInstanceOf(NotFoundException.class);
 
-    verify(apiReportDataServiceV2).getRawData(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID);
+    verify(apiReportDataServiceV2).getDataNoAuthWithDependencyData(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID);
   }
 
   @Test

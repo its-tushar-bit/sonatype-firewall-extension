@@ -201,7 +201,7 @@ public class ApiReportDataServiceV2
   }
 
   private List<ApiDependencyTreeNodeDTO> correlateDependencyTreeWithComponentIndex(
-      ApiDependencyTreeNodeDTO root, 
+      ApiDependencyTreeNodeDTO root,
       Map<String,BillOfMaterialsRowDTO> componentsIndex
   )
   {
@@ -235,7 +235,7 @@ public class ApiReportDataServiceV2
     if (aaDataNode == null || aaDataNode.isNull() || aaDataNode.isEmpty()) {
       return components;
     }
-    
+
     final ArrayNode bomJsonArray = (ArrayNode) aaDataNode;
     for (JsonNode componentJson : bomJsonArray) {
       BillOfMaterialsRowDTO component = JsonUtils.asPojo(componentJson, BillOfMaterialsRowDTO.class);
@@ -389,10 +389,27 @@ public class ApiReportDataServiceV2
     return getDataNoAuth(applicationPublicId, scanId, false);
   }
 
+  public ApiReportRawDataDTOV2 getDataNoAuthWithDependencyData(
+      final String applicationPublicId,
+      final String scanId) throws IOException
+  {
+    return getDataNoAuth(applicationPublicId, scanId, false, true);
+  }
+
   public ApiReportRawDataDTOV2 getDataNoAuth(
-      String applicationPublicId,
-      String scanId,
-      boolean useLicensesJsonOverriddenLicenses) throws IOException
+      final String applicationPublicId,
+      final String scanId,
+      final boolean useLicensesJsonOverriddenLicenses) throws IOException
+  {
+    final boolean doAddDependencyData = isDependencyDataInRestApiSupported();
+    return getDataNoAuth(applicationPublicId, scanId, useLicensesJsonOverriddenLicenses, doAddDependencyData);
+  }
+
+  public ApiReportRawDataDTOV2 getDataNoAuth(
+      final String applicationPublicId,
+      final String scanId,
+      final boolean useLicensesJsonOverriddenLicenses,
+      final boolean doAddDependencyData) throws IOException
   {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     File reportFile = reportService.getReport(app.getId(), scanId);
@@ -437,7 +454,7 @@ public class ApiReportDataServiceV2
         component.licenseData = licenseDataAdapter.convertToDTOV2(comp);
       }
 
-      if (isDependencyDataInRestApiSupported()) {
+      if (doAddDependencyData) {
         populateDependencyData(comp, component);
       }
 

@@ -15,10 +15,13 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -50,10 +53,13 @@ public class DevelopmentPrioritiesReportService
     this.apiReportDataServiceV2 = apiReportDataServiceV2;
   }
 
-  public ApiReportRawDataDTOV2 getDependencyInformation(final String applicationPublicId, final String scanId) {
+  @Authorize(permission = Permission.READ)
+  public ApiReportRawDataDTOV2 getDependencyInformation(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
+      final String scanId)
+  {
     try {
-      // getRawData performs authentication
-      return this.apiReportDataServiceV2.getRawData(applicationPublicId, scanId);
+      return this.apiReportDataServiceV2.getDataNoAuthWithDependencyData(applicationPublicId, scanId);
     }
     catch (final IOException ioException) {
       log.warn("IOException fetching bom information from report files (" +

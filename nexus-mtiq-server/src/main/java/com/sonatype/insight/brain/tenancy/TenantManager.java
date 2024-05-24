@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -21,6 +22,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.TenantLifecycle;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -30,6 +32,7 @@ import io.opentracing.util.GlobalTracer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 
 import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.invalidateTenant;
 import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runAs;
@@ -40,9 +43,14 @@ import static java.util.stream.Collectors.toList;
  * Exposes setTenant methods to be called by tenant "entry-points" so that a tenant can be correctly provisioned.
  * <p>
  * This class is currently responsible for Tenant onboarding which will eventually be moved to some external process.
+ * <p>
+ * This class is ordered before MultiTenantTaskScheduler since tenant registration should happen before starting the
+ * task schedulers.
  */
 @Named
 @Singleton
+@Priority(TaskScheduler.TASK_SCHEDULER_BEAN_PRIORITY - 1)
+@Order(Integer.MAX_VALUE - TaskScheduler.TASK_SCHEDULER_BEAN_PRIORITY - 1)
 public class TenantManager
     implements Managed
 {

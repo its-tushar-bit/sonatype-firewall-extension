@@ -95,7 +95,8 @@ public class DefaultApplicationLifecycle
 
     dataMigrator.migrate();
 
-    taskScheduler.start();
+    // Create the schedulers so that tasks can be scheduled but do not start them before tenant registration
+    taskScheduler.initialize();
     loadIqLicense();
 
     LicenseDataUpdater.setUpdater(licenseDataUpdater);

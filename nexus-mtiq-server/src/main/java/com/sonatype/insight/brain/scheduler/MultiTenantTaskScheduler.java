@@ -6,12 +6,13 @@
 package com.sonatype.insight.brain.scheduler;
 
 import java.util.List;
-
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.cluster.ClusterConfigReader;
+import com.sonatype.insight.brain.cluster.ClusterState;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.InsightJob;
@@ -31,6 +32,8 @@ import org.quartz.Trigger;
 import org.quartz.TriggerKey;
 import org.quartz.simpl.SimpleThreadPool;
 import org.quartz.spi.JobFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 
 @Named
@@ -40,6 +43,8 @@ import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 public class MultiTenantTaskScheduler
     extends TaskScheduler
 {
+  private static final Logger log = LoggerFactory.getLogger(MultiTenantTaskScheduler.class);
+
   //Visible for test
   static final String TASK_SCHEDULER_THREAD_POOL_SIZE = "TASK_SCHEDULER_THREAD_POOL_SIZE";
 
@@ -53,6 +58,8 @@ public class MultiTenantTaskScheduler
 
   private final QuartzJobStoreTX mtiqBatchJobStoreTX;
 
+  private final ClusterConfigReader clusterConfigReader;
+
   @Inject
   public MultiTenantTaskScheduler(
       MultiTenantQuartzJobStoreTX quartzJobStoreTX,
@@ -64,7 +71,8 @@ public class MultiTenantTaskScheduler
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       TenantManager tenantManager,
       TenantUtil tenantUtil,
-      ShutdownHandler shutdownHandler)
+      ShutdownHandler shutdownHandler,
+      ClusterConfigReader clusterConfigReader)
   {
     super(quartzJobStoreTX, jobFactory, schedulerName, quartzTriggerListener, shutdownHandler);
 
@@ -73,10 +81,52 @@ public class MultiTenantTaskScheduler
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.tenantManager = tenantManager;
     this.tenantUtil = tenantUtil;
+    this.clusterConfigReader = clusterConfigReader;
+  }
+
+  @Override
+  public void initialize() {
+    createScheduler(schedulerName, quartzJobStoreTX);
+
+    if (tenantUtil.isMtiqBatchMode()) {
+      createScheduler(getMtiqBatchSchedulerName(), mtiqBatchJobStoreTX);
+    }
   }
 
   @Override
   public void start() throws Exception {
+    startOrStandbyTaskSchedulers();
+  }
+
+  public void startOrStandbyTaskSchedulers() throws Exception {
+    if (shouldStartTaskSchedulers()) {
+      doStart();
+    }
+    else {
+      standby();
+    }
+  }
+
+  private boolean shouldStartTaskSchedulers() {
+    ClusterState clusterState = clusterConfigReader.getClusterConfig().getState();
+    switch (clusterState) {
+      case UNKNOWN:
+      case ACTIVE:
+      case FILLING: {
+        log.trace("Starting the task schedulers if needed due to the cluster state {}.", clusterState);
+        return true;
+      }
+      case DRAINING:
+      case INACTIVE: {
+        log.trace("Standby the task schedulers if needed due to the cluster state {}.", clusterState);
+        return false;
+      }
+      default:
+        throw new IllegalArgumentException(String.format("Unrecognized cluster state %s.", clusterState));
+    }
+  }
+
+  private void doStart() throws Exception {
     /*
      * When running in "mtiq batch mode" all quartz jobs that implement AllTenantsJob are scheduled via a
      * separate Quartz scheduler however those nodes still need to be able to handle the clustering events.
@@ -99,15 +149,16 @@ public class MultiTenantTaskScheduler
     }
   }
 
+  // Visible for testing
   @NotNull
-  private String getMtiqBatchSchedulerName() {
+  String getMtiqBatchSchedulerName() {
     return "MtiqMtiqBatch" + schedulerName;
   }
 
   @Override
   public Scheduler createScheduler(String schedulerName, QuartzJobStoreTX jobStoreTX) {
     try {
-      Scheduler scheduler = superCreateScheduler(schedulerName, jobStoreTX);
+      Scheduler scheduler = super.createScheduler(schedulerName, jobStoreTX);
       scheduler.getListenerManager().addJobListener(tenantContextJobListener);
       return scheduler;
     }
@@ -116,15 +167,10 @@ public class MultiTenantTaskScheduler
     }
   }
 
-  // This is a separate method so that it can be overriden during testing
-  protected Scheduler superCreateScheduler(String schedulerName, QuartzJobStoreTX jobStoreTX) {
-    return super.createScheduler(schedulerName, jobStoreTX);
-  }
-
   @Override
   SimpleThreadPool createThreadPool() {
     SystemConfigurationProperty configuration =
-            systemConfigurationPropertyDAO.getByName(TASK_SCHEDULER_THREAD_POOL_SIZE);
+        systemConfigurationPropertyDAO.getByName(TASK_SCHEDULER_THREAD_POOL_SIZE);
     int threadPoolSize = configuration != null ? Integer.parseInt(configuration.getValue()) : 10;
 
     SimpleThreadPool threadPool = super.createThreadPool();

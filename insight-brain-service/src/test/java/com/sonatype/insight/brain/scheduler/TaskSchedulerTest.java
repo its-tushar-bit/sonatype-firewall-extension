@@ -52,6 +52,7 @@ import org.quartz.simpl.SimpleThreadPool;
 import org.quartz.utils.DBConnectionManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -506,6 +507,36 @@ public class TaskSchedulerTest
       Date now = new Date();
       assertThat(simpleTrigger.getStartTime()).isBeforeOrEqualTo(now).isCloseTo(now, 10000);
     });
+  }
+
+  @Test
+  public void testInitialize() throws Exception {
+    assertThat(taskScheduler.getScheduler()).isNull();
+
+    taskScheduler.initialize();
+
+    assertThat(taskScheduler.getScheduler()).isNotNull();
+    assertThat(taskScheduler.getScheduler().getSchedulerName()).isEqualTo(taskScheduler.schedulerName);
+    assertThat(taskScheduler.getScheduler().isStarted()).isFalse();
+    assertThat(taskScheduler.getScheduler().isInStandbyMode()).isTrue();
+  }
+
+  @Test
+  public void testStartStandby() throws Exception {
+    assertThatNoException().isThrownBy(() -> taskScheduler.startScheduler(null));
+    assertThatNoException().isThrownBy(() -> taskScheduler.standbyScheduler(null));
+
+    taskScheduler.start();
+
+    assertThat(taskScheduler.getScheduler().isInStandbyMode()).isFalse();
+
+    taskScheduler.standby();
+
+    assertThat(taskScheduler.getScheduler().isInStandbyMode()).isTrue();
+
+    taskScheduler.start();
+
+    assertThat(taskScheduler.getScheduler().isInStandbyMode()).isFalse();
   }
 
   private JobDetail createJobDetail() {

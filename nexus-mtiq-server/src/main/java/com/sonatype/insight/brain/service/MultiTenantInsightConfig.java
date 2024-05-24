@@ -52,6 +52,19 @@ public class MultiTenantInsightConfig
   @JsonProperty
   private StatsdMetricsConfig statsdMetricsConfig;
 
+  @Nullable
+  @JsonProperty
+  private String clusterConfigFilePath;
+
+  @Nullable
+  public String getClusterConfigFilePath() {
+    return clusterConfigFilePath;
+  }
+
+  public void setClusterConfigFilePath(@Nullable final String clusterConfigFilePath) {
+    this.clusterConfigFilePath = clusterConfigFilePath;
+  }
+
   @Override
   public File getSonatypeWork() {
     return new File(sonatypeWork, TenantThreadLocal.getTenant().tenantSlug);

@@ -5,24 +5,31 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
+import java.io.File;
+import java.util.Locale;
+
+import com.sonatype.insight.brain.cluster.ClusterConfigReader;
+import com.sonatype.insight.brain.cluster.ClusterState;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantContextJobListener;
 import com.sonatype.insight.brain.tenancy.TenantManager;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.quartz.ListenerManager;
-import org.quartz.Scheduler;
 import org.quartz.TriggerKey;
 import org.quartz.simpl.SimpleThreadPool;
 import org.quartz.spi.JobFactory;
@@ -30,7 +37,11 @@ import org.quartz.spi.JobFactory;
 import static com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler.TASK_SCHEDULER_THREAD_POOL_SIZE;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -40,77 +51,87 @@ public class MultiTenantTaskSchedulerTest
   @Rule
   public TestName testName = new TestName();
 
-  @Mock
-  private MultiTenantQuartzJobStoreTX quartzJobStoreTX;
+  @Rule
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Mock
-  private MultiTenantBatchModeJobStoreTX multiTenantBatchModeJobStoreTX;
+  private MultiTenantQuartzJobStoreTX mockMultiTenantQuartzJobStoreTX;
 
   @Mock
-  private JobFactory jobFactory;
+  private MultiTenantBatchModeJobStoreTX mockMultiTenantBatchModeJobStoreTX;
 
   @Mock
-  private QuartzTriggerListener quartzTriggerListener;
+  private JobFactory mockJobFactory;
 
   @Mock
-  private TenantContextJobListener tenantContextJobListener;
+  private QuartzTriggerListener mockQuartzTriggerListener;
 
   @Mock
-  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+  private TenantContextJobListener mockTenantContextJobListener;
 
   @Mock
-  private TenantManager tenantManager;
+  private SystemConfigurationPropertyDAO mockSystemConfigurationPropertyDAO;
 
   @Mock
-  private TenantUtil tenantUtil;
+  private TenantManager mockTenantManager;
 
   @Mock
-  private Scheduler scheduler;
-
-  @Mock
-  private ListenerManager listenerManager;
+  private TenantUtil mockTenantUtil;
 
   @Mock
   private ShutdownHandler mockShutdownHandler;
 
-  private MultiTenantTaskScheduler underTest;
+  @Mock
+  private MultiTenantInsightConfig mockMultiTenantInsightConfig;
+
+  private ClusterConfigReader clusterConfigReader;
+
+  private MultiTenantTaskScheduler spyUnderTest;
 
   @Before
   public void setup() {
-    try {
-      underTest = new TestMultiTenantTaskScheduler(quartzJobStoreTX, multiTenantBatchModeJobStoreTX,
-          jobFactory, testName.getMethodName(), quartzTriggerListener, tenantContextJobListener,
-          systemConfigurationPropertyDAO, tenantManager, scheduler, tenantUtil, mockShutdownHandler);
-
-      when(scheduler.getListenerManager()).thenReturn(listenerManager);
-    }
-    catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    when(mockQuartzTriggerListener.getName()).thenReturn("mockQuartzTriggerListener");
+    when(mockTenantContextJobListener.getName()).thenReturn("mockTenantContextJobListener");
+    clusterConfigReader = new ClusterConfigReader(mockMultiTenantInsightConfig, new ObjectMapper());
+    spyUnderTest = spy(new MultiTenantTaskScheduler(
+            mockMultiTenantQuartzJobStoreTX,
+            mockMultiTenantBatchModeJobStoreTX,
+            mockJobFactory,
+            testName.getMethodName(),
+            mockQuartzTriggerListener,
+            mockTenantContextJobListener,
+            mockSystemConfigurationPropertyDAO,
+            mockTenantManager,
+            mockTenantUtil,
+            mockShutdownHandler,
+            clusterConfigReader
+        )
+    );
   }
 
   @Test
-  public void shouldAddJobListener_whenSchedulerCreated() {
-    underTest.createScheduler();
+  public void shouldAddJobListener_whenSchedulerCreated() throws Exception {
+    spyUnderTest.createScheduler();
 
-    verify(listenerManager).addJobListener(tenantContextJobListener);
+    assertThat(spyUnderTest.getScheduler().getListenerManager().getJobListeners())
+        .containsExactly(mockTenantContextJobListener);
   }
 
   @Test
   public void shouldLoadPoolSizeFromConfig() {
     int poolSize = 300;
 
-    when(systemConfigurationPropertyDAO.getByName(TASK_SCHEDULER_THREAD_POOL_SIZE)).thenReturn(
+    when(mockSystemConfigurationPropertyDAO.getByName(TASK_SCHEDULER_THREAD_POOL_SIZE)).thenReturn(
         new SystemConfigurationProperty(TASK_SCHEDULER_THREAD_POOL_SIZE, String.valueOf(poolSize)));
 
-    SimpleThreadPool threadPool = underTest.createThreadPool();
+    SimpleThreadPool threadPool = spyUnderTest.createThreadPool();
 
     assertThat(threadPool.getPoolSize()).isEqualTo(poolSize);
   }
 
   @Test
   public void shouldDefaultPoolSize_whenNoConfigExists() {
-    SimpleThreadPool threadPool = underTest.createThreadPool();
+    SimpleThreadPool threadPool = spyUnderTest.createThreadPool();
 
     assertThat(threadPool.getPoolSize()).isEqualTo(10);
   }
@@ -119,78 +140,162 @@ public class MultiTenantTaskSchedulerTest
   public void shouldUnscheduleJobForAllTenants_whenGlobalTenant() throws Exception {
     ImmutableList<String> tenants = ImmutableList.of("tenant1", "tenant2");
 
-    when(tenantUtil.isGlobalTenant()).thenReturn(true);
-    when(quartzJobStoreTX.getJobGroupNames()).thenReturn(tenants);
+    when(mockTenantUtil.isGlobalTenant()).thenReturn(true);
+    when(mockMultiTenantQuartzJobStoreTX.getJobGroupNames()).thenReturn(tenants);
     InsightJob mockInsightJob = mock(InsightJob.class);
     when(mockInsightJob.getJobName()).thenReturn(testName.getMethodName());
+    doReturn(true).when(spyUnderTest).unscheduleTask(any(), any(InsightJob.class));
 
-    underTest.unscheduleTask(mockInsightJob);
+    spyUnderTest.unscheduleTask(mockInsightJob);
 
     for (String tenant : tenants) {
-      verify(scheduler).deleteJob(underTest.toJobKey(mockInsightJob, tenant));
+      verify(spyUnderTest).unscheduleTask(spyUnderTest.toJobKey(mockInsightJob, tenant), mockInsightJob);
     }
   }
 
   @Test
   public void shouldUnscheduleJobForSingleTenant_whenNotGlobal() throws Exception {
     testAsNewTenant(testName, t -> {
-      when(tenantManager.getTenant()).thenReturn(t);
+      when(mockTenantManager.getTenant()).thenReturn(t);
 
-      when(tenantUtil.isGlobalTenant()).thenReturn(false);
+      when(mockTenantUtil.isGlobalTenant()).thenReturn(false);
       InsightJob mockInsightJob = mock(InsightJob.class);
       when(mockInsightJob.getJobName()).thenReturn(testName.getMethodName());
+      doReturn(true).when(spyUnderTest).unscheduleTask(any(), any(InsightJob.class));
 
-      underTest.unscheduleTask(mockInsightJob);
+      spyUnderTest.unscheduleTask(mockInsightJob);
 
-      verify(scheduler).deleteJob(underTest.toJobKey(mockInsightJob, t.tenantSlug));
+      verify(spyUnderTest).unscheduleTask(spyUnderTest.toJobKey(mockInsightJob, t.tenantSlug), mockInsightJob);
     });
   }
 
   @Test
   public void shouldIncludeTenantName_whenGetTriggerKey() {
     testAsNewTenant(testName, t -> {
-      when(tenantManager.getTenant()).thenReturn(t);
+      when(mockTenantManager.getTenant()).thenReturn(t);
       InsightJob mockInsightJob = mock(InsightJob.class);
       when(mockInsightJob.getJobName()).thenReturn(testName.getMethodName());
 
-      TriggerKey triggerKey = underTest.toTriggerKey(mockInsightJob);
+      TriggerKey triggerKey = spyUnderTest.toTriggerKey(mockInsightJob);
 
       assertThat(triggerKey.getGroup()).isEqualTo(t.tenantSlug);
     });
   }
 
-  private static class TestMultiTenantTaskScheduler
-      extends MultiTenantTaskScheduler
+  @Test
+  public void testInitialize_NotBatch() {
+    String mtiqBatchSchedulerName = spyUnderTest.getMtiqBatchSchedulerName();
+    when(mockTenantUtil.isMtiqBatchMode()).thenReturn(false);
+
+    spyUnderTest.initialize();
+
+    assertThat(spyUnderTest.getScheduler()).isNotNull();
+    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName)).isNull();
+  }
+
+  @Test
+  public void testInitialize_Batch() {
+    String mtiqBatchSchedulerName = spyUnderTest.getMtiqBatchSchedulerName();
+    when(mockTenantUtil.isMtiqBatchMode()).thenReturn(true);
+
+    spyUnderTest.initialize();
+
+    assertThat(spyUnderTest.getScheduler()).isNotNull();
+    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName)).isNotNull();
+  }
+
+  @Test
+  public void testStart_Unknown() throws Exception {
+    String mtiqBatchSchedulerName = spyUnderTest.getMtiqBatchSchedulerName();
+    when(mockTenantUtil.isMtiqBatchMode()).thenReturn(true);
+
+    spyUnderTest.start();
+
+    assertThat(spyUnderTest.getScheduler().isStarted()).isTrue();
+    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isStarted()).isTrue();
+    assertThat(spyUnderTest.getScheduler().isInStandbyMode()).isFalse();
+    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isInStandbyMode()).isFalse();
+  }
+
+  @Test
+  public void testStart_Active() throws Exception {
+    String mtiqBatchSchedulerName = spyUnderTest.getMtiqBatchSchedulerName();
+    when(mockMultiTenantInsightConfig.getClusterConfigFilePath()).thenReturn(
+        createClusterConfigFile(ClusterState.ACTIVE).getAbsolutePath());
+    when(mockTenantUtil.isMtiqBatchMode()).thenReturn(true);
+
+    spyUnderTest.start();
+
+    assertThat(spyUnderTest.getScheduler().isStarted()).isTrue();
+    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isStarted()).isTrue();
+    assertThat(spyUnderTest.getScheduler().isInStandbyMode()).isFalse();
+    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isInStandbyMode()).isFalse();
+  }
+
+  @Test
+  public void testStart_Filling() throws Exception {
+    String mtiqBatchSchedulerName = spyUnderTest.getMtiqBatchSchedulerName();
+    when(mockMultiTenantInsightConfig.getClusterConfigFilePath()).thenReturn(
+        createClusterConfigFile(ClusterState.FILLING).getAbsolutePath());
+    when(mockTenantUtil.isMtiqBatchMode()).thenReturn(true);
+
+    spyUnderTest.start();
+
+    assertThat(spyUnderTest.getScheduler().isStarted()).isTrue();
+    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isStarted()).isTrue();
+    assertThat(spyUnderTest.getScheduler().isInStandbyMode()).isFalse();
+    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isInStandbyMode()).isFalse();
+  }
+
+  @Test
+  public void testStart_Draining() throws Exception {
+    String mtiqBatchSchedulerName = spyUnderTest.getMtiqBatchSchedulerName();
+    when(mockMultiTenantInsightConfig.getClusterConfigFilePath()).thenReturn(
+        createClusterConfigFile(ClusterState.DRAINING).getAbsolutePath());
+    lenient().when(mockTenantUtil.isMtiqBatchMode()).thenReturn(true);
+    spyUnderTest.initialize();
+
+    spyUnderTest.start();
+
+    assertThat(spyUnderTest.getScheduler().isStarted()).isFalse();
+    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isStarted()).isFalse();
+    assertThat(spyUnderTest.getScheduler().isInStandbyMode()).isTrue();
+    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isInStandbyMode()).isTrue();
+  }
+
+  @Test
+  public void testStart_Inactive() throws Exception {
+    String mtiqBatchSchedulerName = spyUnderTest.getMtiqBatchSchedulerName();
+    when(mockMultiTenantInsightConfig.getClusterConfigFilePath()).thenReturn(
+        createClusterConfigFile(ClusterState.INACTIVE).getAbsolutePath());
+    lenient().when(mockTenantUtil.isMtiqBatchMode()).thenReturn(true);
+    spyUnderTest.initialize();
+
+    spyUnderTest.start();
+
+    assertThat(spyUnderTest.getScheduler().isStarted()).isFalse();
+    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isStarted()).isFalse();
+    assertThat(spyUnderTest.getScheduler().isInStandbyMode()).isTrue();
+    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isInStandbyMode()).isTrue();
+  }
+
+  private File createClusterConfigFile(final ClusterState clusterState) throws Exception {
+    File clusterConfigFile = temporaryFolder.newFile();
+    writeClusterConfigToFile(clusterState, clusterConfigFile);
+    return clusterConfigFile;
+  }
+
+  private void writeClusterConfigToFile(final ClusterState clusterState, final File clusterConfigFile)
+      throws Exception
   {
-    private final Scheduler scheduler;
+    new ObjectMapper().writeValue(clusterConfigFile, createClusterConfig(clusterState));
+  }
 
-    public TestMultiTenantTaskScheduler(
-        MultiTenantQuartzJobStoreTX quartzJobStoreTX,
-        MultiTenantBatchModeJobStoreTX multiTenantBatchModeJobStoreTX,
-        JobFactory jobFactory,
-        String schedulerName,
-        QuartzTriggerListener quartzTriggerListener,
-        TenantContextJobListener tenantContextJobListener,
-        SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
-        TenantManager tenantManager,
-        Scheduler scheduler,
-        TenantUtil tenantUtil,
-        ShutdownHandler shutdownHandler)
-    {
-      super(quartzJobStoreTX, multiTenantBatchModeJobStoreTX, jobFactory, schedulerName,
-          quartzTriggerListener,
-          tenantContextJobListener, systemConfigurationPropertyDAO, tenantManager, tenantUtil, shutdownHandler);
-      this.scheduler = scheduler;
-    }
-
-    @Override
-    protected Scheduler superCreateScheduler(String schedulerName, QuartzJobStoreTX jobStoreTX) {
-      return scheduler;
-    }
-
-    @Override
-    public Scheduler getScheduler() {
-      return scheduler;
-    }
+  private ObjectNode createClusterConfig(final ClusterState clusterState) {
+    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectNode objectNode = objectMapper.createObjectNode();
+    objectNode.put("state", clusterState.name().toLowerCase(Locale.ROOT));
+    objectNode.put("other", "value");
+    return objectNode;
   }
 }

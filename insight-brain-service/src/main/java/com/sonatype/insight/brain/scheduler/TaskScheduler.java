@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -127,6 +126,10 @@ public class TaskScheduler
     }
   }
 
+  public void initialize() {
+    createScheduler(schedulerName, quartzJobStoreTX);
+  }
+
   @Override
   public void start() throws Exception {
     startScheduler(schedulerName, quartzJobStoreTX);
@@ -140,9 +143,13 @@ public class TaskScheduler
     if (disableForTesting) {
       return;
     }
-    if (!scheduler.isStarted() || scheduler.isInStandbyMode()) {
+    startScheduler(scheduler);
+  }
+
+  public void startScheduler(Scheduler scheduler) throws SchedulerException {
+    if (scheduler != null && (!scheduler.isStarted() || scheduler.isInStandbyMode())) {
       scheduler.start();
-      log.info("Started task scheduler");
+      log.info("Started task scheduler {}", scheduler.getSchedulerName());
     }
   }
 
@@ -383,7 +390,7 @@ public class TaskScheduler
   protected void shutdownScheduler(Scheduler scheduler) throws SchedulerException {
     if (scheduler != null && !scheduler.isShutdown()) {
       scheduler.shutdown();
-      log.info("Stopped task scheduler");
+      log.info("Stopped task scheduler {}", scheduler.getSchedulerName());
     }
   }
 
@@ -434,8 +441,9 @@ public class TaskScheduler
   }
 
   protected void standbyScheduler(Scheduler scheduler) throws SchedulerException {
-    if (scheduler != null) {
+    if (scheduler != null && !scheduler.isInStandbyMode()) {
       scheduler.standby();
+      log.info("Standby task scheduler {}", scheduler.getSchedulerName());
     }
   }
 

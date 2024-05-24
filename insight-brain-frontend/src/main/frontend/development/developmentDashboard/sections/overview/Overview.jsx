@@ -43,7 +43,7 @@ export default function Overview() {
           </NxTile>
         ) : null}
         <div className="nx-page-title nx-page-title__actions">
-          <NxH2>Applications Configuration Summary</NxH2>
+          <NxH2>Applications Configuration Build Stage Summary</NxH2>
           <div className="nx-btn-bar">
             <NxButton id="filter-toggle" variant="tertiary" className="btn" onClick={toggleFilterSideBar}>
               <NxFontAwesomeIcon icon={faFilter} />

@@ -1232,6 +1232,32 @@ public class PolicyEvaluationDAOTest
     assertThat(hasCIIntegrationEvaluationApp4).isFalse();
   }
 
+  @Test
+  public void testGetLastByApplicationIdAndStageIdNoMonitoringNoReeval() {
+    final long currentTime = System.currentTimeMillis();
+    // Is continuous monitoring and build stage - incorrect configuration
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-build-1",
+        false, true, false, new Date(currentTime - 300), "hash-1", ScanTriggerType.CLI);
+    // Is reevaluation and build stage - incorrect configuration
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-build-2",
+        true, false, false, new Date(currentTime - 300), "hash-2", ScanTriggerType.CLI);
+    // Is both reevaluation and continuous monitoring, build stage, 2nd latest - incorrect configuration
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-build-3",
+        true, true, false, new Date(currentTime - 100), "hash-3", ScanTriggerType.CLI);
+    // Is neither reevaluation nor continuous monitoring, not build stage, but latest - incorrect configuration
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_SOURCE, "scan-build-4",
+        false, false, false, new Date(currentTime), "hash-4", ScanTriggerType.CLI);
+    // Is neither reevaluation nor continuous monitoring, build stage, 3rd latest - correct configuration
+    final PolicyEvaluation expectedPolicyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-build-5", false,
+            false, false, new Date(currentTime - 200), "hash-5", ScanTriggerType.CLI);
+
+    final PolicyEvaluation latestPolicyEvaluation =
+        dao.getLastByApplicationIdAndStageIdNoMonitoringNoReeval(application.getId(), Stage.ID_BUILD);
+    assertThat(latestPolicyEvaluation.getId())
+        .isEqualTo(expectedPolicyEvaluation.getId());
+  }
+
   @FunctionalInterface
   interface PolicyEvaluationChooser
   {

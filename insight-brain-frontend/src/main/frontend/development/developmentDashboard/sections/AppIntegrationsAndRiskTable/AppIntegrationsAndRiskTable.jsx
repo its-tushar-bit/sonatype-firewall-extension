@@ -137,6 +137,8 @@ export default function AppIntegrationsAndRiskTable() {
                 return { hasSastReport, lastSastReportId, lastSastReportTime, applicationPublicId };
               }
 
+              const totalRiskScoreValue = totalRiskScore === -1 ? 'N/A' : totalRiskScore;
+
               return (
                 <NxTable.Row key={applicationName.concat(totalRiskScore)}>
                   <NxTable.Cell className="iq-integrations-applications-table__name-cell">
@@ -191,7 +193,18 @@ export default function AppIntegrationsAndRiskTable() {
                   </NxTable.Cell>
                   <NxTable.Cell>{formatTimestampToDate(lastCommitTimestamp)}</NxTable.Cell>
                   <NxTable.Cell>{formatTimestampToDate(lastEvaluationTimestamp)}</NxTable.Cell>
-                  <NxTable.Cell>{totalRiskScore}</NxTable.Cell>
+                  <NxTable.Cell>
+                    <NxTooltip
+                      title={
+                        totalRiskScore === -1
+                          ? 'Evaluate this application at the build stage to see its risk score'
+                          : ''
+                      }
+                      placement="top-middle"
+                    >
+                      <span>{totalRiskScoreValue}</span>
+                    </NxTooltip>
+                  </NxTable.Cell>
                   <NxTable.Cell>
                     <SastReportCell {...getSastReportCellProps()} />
                   </NxTable.Cell>

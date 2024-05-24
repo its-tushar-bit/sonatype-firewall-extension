@@ -6,17 +6,19 @@
 
 package com.sonatype.insight.brain.developer.integrationdashboard;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
+import com.sonatype.insight.brain.dashboard.StageRiskScoreDTO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.IntegrationStatusDTO;
@@ -29,6 +31,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultB
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -105,10 +108,10 @@ public class IntegrationService
             .collect(Collectors.toList()) : apps;
 
     final List<IntegrationStatusDTO> minimalSummaries = filteredApps.stream()
-        // Set application and total risk
+        // Set application and total risk (build stage)
         .map(riskScoreDTO -> new IntegrationStatusDTO().setApplicationName(riskScoreDTO.applicationName)
             .setApplicationId(riskScoreDTO.id).setApplicationPublicId(riskScoreDTO.applicationId)
-            .setTotalRiskScore(riskScoreDTO.totalApplicationRisk.totalRisk)
+            .setTotalRiskScore(getBuildStageTotalRisk(riskScoreDTO))
             .setOrganizationId(riskScoreDTO.organizationId))
         // Set last commit time
         .map(statusDTO -> {
@@ -117,11 +120,19 @@ public class IntegrationService
           return statusDTO.setLastCommitTimestamp(
               commitHistory != null ? commitHistory.getCommitTime().getTime() : 0L);
         })
-        // Set last policy evaluation time
+        // Set last policy evaluation time (build stage)
         .map(statusDTO -> {
-          final List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getLastByApplicationIds(
-              Collections.singleton(statusDTO.getApplicationId()));
-          return statusDTO.setLastEvaluationTimestamp(getLatestEvaluation(policyEvaluations));
+          final PolicyEvaluation latestBuildStageEvaluation =
+              policyEvaluationDAO.getLastByApplicationIdAndStageIdNoMonitoringNoReeval(statusDTO.getApplicationId(),
+                  Stage.ID_BUILD);
+          final long latestBuildStageEvaluationTimestamp =
+              Objects.nonNull(latestBuildStageEvaluation) ? latestBuildStageEvaluation.getTime().getTime() : 0L;
+          // Update the risk score if there is no latest build stage evaluation so that we can differentiate
+          // between apps with 0 risk and apps with no risk data
+          if (Objects.isNull(latestBuildStageEvaluation)) {
+            statusDTO.setTotalRiskScore(-1);
+          }
+          return statusDTO.setLastEvaluationTimestamp(latestBuildStageEvaluationTimestamp);
         })
         // Set CI/CD Integration status
         .map(statusDTO -> statusDTO.setCiIntegrationEnabled(
@@ -200,14 +211,9 @@ public class IntegrationService
     return applicationName.toLowerCase(Locale.ROOT).matches(String.format(".*%s.*", filter.toLowerCase(Locale.ROOT)));
   }
 
-  private long getLatestEvaluation(final List<PolicyEvaluation> evaluations) {
-    if (!evaluations.isEmpty()) {
-      return evaluations.stream()
-          .max(Comparator.comparing(eval -> eval.getTime().getTime()))
-          .map(policyEvaluation -> policyEvaluation.getTime().getTime())
-          .orElse(0L);
-    }
-    return 0L;
+  private int getBuildStageTotalRisk(final ApplicationRiskScoreDTO riskScoreDTO) {
+    final StageRiskScoreDTO stageRiskScoreDTO = riskScoreDTO.getStageRiskScore(BuildStageType.ID);
+    return Objects.nonNull(stageRiskScoreDTO) ? stageRiskScoreDTO.risk.totalRisk : 0;
   }
 
   private static IntegrationStatusFilter getIntegrationStatusFilter(

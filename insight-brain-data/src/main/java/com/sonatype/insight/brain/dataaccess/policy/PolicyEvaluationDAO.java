@@ -182,6 +182,23 @@ public class PolicyEvaluationDAO
     }
   }
 
+  /**
+   * Returns the most recent policy evaluation for the most recent scan for the given application and stage, excluding
+   * continuous monitoring and reevaluations.
+   */
+  public PolicyEvaluation getLastByApplicationIdAndStageIdNoMonitoringNoReeval(
+      final String appId,
+      final String stageTypeId)
+  {
+    String sQuery = "SELECT pe FROM PolicyEvaluation pe" +
+        " WHERE pe.applicationId = ?1" +
+        " AND pe.stageTypeId = ?2" +
+        " AND pe.isForMonitoring = false" +
+        " AND pe.isReevaluation = false" +
+        " ORDER BY pe.time DESC";
+    return createQuery(sQuery, appId, stageTypeId).forceSingleResult().get();
+  }
+
   @Override
   public void insert(TransactionContext tx, PolicyEvaluation policyEvaluation) {
     validate(policyEvaluation);

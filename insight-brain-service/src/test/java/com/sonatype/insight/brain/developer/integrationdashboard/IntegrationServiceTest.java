@@ -80,7 +80,7 @@ public class IntegrationServiceTest
 
   @Test
   public void testGetIntegrationSummaries_Pagination_h2() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
     // PAGE ONE
     int page = 1;
@@ -145,7 +145,7 @@ public class IntegrationServiceTest
   @Test
   @PostgresTest
   public void testGetIntegrationSummaries_Pagination_postgres() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
     // PAGE ONE
     int page = 1;
@@ -209,7 +209,7 @@ public class IntegrationServiceTest
 
   @Test
   public void testGetIntegrationSummaries_Pagination_PageSizeGreaterThanResult_h2() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
     int page = 1;
     final int pageSize = 100;
@@ -253,7 +253,7 @@ public class IntegrationServiceTest
   @Test
   @PostgresTest
   public void testGetIntegrationSummaries_Pagination_PageSizeGreaterThanResult_postgres() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
     int page = 1;
     final int pageSize = 100;
@@ -296,7 +296,7 @@ public class IntegrationServiceTest
 
   @Test
   public void testGetIntegrationSummaries_Pagination_PageNumGreaterThanResult_h2() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
     int page = 100;
     final int pageSize = 100;
@@ -321,7 +321,7 @@ public class IntegrationServiceTest
   @Test
   @PostgresTest
   public void testGetIntegrationSummaries_Pagination_PageNumGreaterThanResult_postgres() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
     int page = 100;
     final int pageSize = 100;
@@ -345,7 +345,7 @@ public class IntegrationServiceTest
 
   @Test
   public void testGetIntegrationSummaries_OrderByName_h2() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
     final ApiPageResult<IntegrationStatusDTO> result =
         integrationService.getIntegrationStatuses(1, 100, "-NAME", null, null, null);
@@ -373,7 +373,7 @@ public class IntegrationServiceTest
   @Test
   @PostgresTest
   public void testGetIntegrationSummaries_OrderByName_postgres() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
     final ApiPageResult<IntegrationStatusDTO> result =
         integrationService.getIntegrationStatuses(1, 100, "-NAME", null, null, null);
@@ -400,7 +400,7 @@ public class IntegrationServiceTest
 
   @Test
   public void testGetIntegrationSummaries_OrderByLastCommit_h2() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
     final Date commitTime = new Date();
     final Date latestCommitTime1 = new Date(commitTime.getTime() + 5000);
@@ -448,7 +448,7 @@ public class IntegrationServiceTest
   @Test
   @PostgresTest
   public void testGetIntegrationSummaries_OrderByLastCommit_postgres() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
     final Date commitTime = new Date();
     final Date latestCommitTime1 = new Date(commitTime.getTime() + 5000);
@@ -495,21 +495,21 @@ public class IntegrationServiceTest
 
   @Test
   public void testGetIntegrationSummaries_OrderByLastEvaluation_h2() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
     final Date evalTime = new Date();
     final Date latestEvalTime1 = new Date(evalTime.getTime() + 6000);
     final Date latestEvalTime2 = new Date(evalTime.getTime() + 12_000);
 
     // App 3
-    tempEntity.newPolicyEvaluation(app3.getId(), ReleaseStageType.ID, "scanId1", evalTime);
-    tempEntity.newPolicyEvaluation(app3.getId(), ReleaseStageType.ID, "scanId2", latestEvalTime1);
+    tempEntity.newPolicyEvaluation(app3.getId(), BuildStageType.ID, "scanId1", evalTime);
+    tempEntity.newPolicyEvaluation(app3.getId(), BuildStageType.ID, "scanId2", latestEvalTime1);
 
     // App 2
-    tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "scanId1", evalTime);
-    tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "scanId2", latestEvalTime2);
+    tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId1", evalTime);
+    tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId2", latestEvalTime2);
 
-    // ASC
+    // ASC (oldest -> newest)
     final ApiPageResult<IntegrationStatusDTO> ascResult =
         integrationService.getIntegrationStatuses(1, 100, "EVALUATION", null, null, null);
     final List<IntegrationStatusDTO> ascAppSummaries = ascResult.getResults();
@@ -524,7 +524,7 @@ public class IntegrationServiceTest
     assertThat(ascAppSummaries.get(3).getApplicationId())
         .isEqualTo(app2.getId());
 
-    // DESC
+    // DESC (newest -> oldest)
     final ApiPageResult<IntegrationStatusDTO> descResult =
         integrationService.getIntegrationStatuses(1, 100, "-EVALUATION", null, null, null);
     final List<IntegrationStatusDTO> descAppSummaries = descResult.getResults();
@@ -543,21 +543,21 @@ public class IntegrationServiceTest
   @Test
   @PostgresTest
   public void testGetIntegrationSummaries_OrderByLastEvaluation_postgres() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
     final Date evalTime = new Date();
     final Date latestEvalTime1 = new Date(evalTime.getTime() + 6000);
     final Date latestEvalTime2 = new Date(evalTime.getTime() + 12_000);
 
     // App 3
-    tempEntity.newPolicyEvaluation(app3.getId(), ReleaseStageType.ID, "scanId1", evalTime);
-    tempEntity.newPolicyEvaluation(app3.getId(), ReleaseStageType.ID, "scanId2", latestEvalTime1);
+    tempEntity.newPolicyEvaluation(app3.getId(), BuildStageType.ID, "scanId1", evalTime);
+    tempEntity.newPolicyEvaluation(app3.getId(), BuildStageType.ID, "scanId2", latestEvalTime1);
 
     // App 2
-    tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "scanId1", evalTime);
-    tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "scanId2", latestEvalTime2);
+    tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId1", evalTime);
+    tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId2", latestEvalTime2);
 
-    // ASC
+    // ASC (oldest -> newest)
     final ApiPageResult<IntegrationStatusDTO> ascResult =
         integrationService.getIntegrationStatuses(1, 100, "EVALUATION", null, null, null);
     final List<IntegrationStatusDTO> ascAppSummaries = ascResult.getResults();
@@ -572,7 +572,7 @@ public class IntegrationServiceTest
     assertThat(ascAppSummaries.get(3).getApplicationId())
         .isEqualTo(app2.getId());
 
-    // DESC
+    // DESC (newest -> oldest)
     final ApiPageResult<IntegrationStatusDTO> descResult =
         integrationService.getIntegrationStatuses(1, 100, "-EVALUATION", null, null, null);
     final List<IntegrationStatusDTO> descAppSummaries = descResult.getResults();
@@ -590,7 +590,7 @@ public class IntegrationServiceTest
 
   @Test
   public void testGetIntegrationSummaries_OrderByTotalRisk_h2() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
     // App 1 = 8 total risk
     // App 2 = 3 total risk
@@ -633,7 +633,7 @@ public class IntegrationServiceTest
   @Test
   @PostgresTest
   public void testGetIntegrationSummaries_OrderByTotalRisk_postgres() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
     // App 1 = 8 total risk
     // App 2 = 3 total risk
@@ -703,7 +703,7 @@ public class IntegrationServiceTest
 
   @Test
   public void testGetIntegrationSummaries_FilterOnScmAndCiIntegrationStatuses() throws Exception {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
     final String repoUrl = "https://example.com/organization/project";
     tempEntity.newSourceControl(
         ROOT_ORGANIZATION_ID,
@@ -853,7 +853,7 @@ public class IntegrationServiceTest
 
   @Test
   public void testGetIntegrationSummaries_FilterOnScmIntegrationStatus_h2()  throws Exception {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
     final String repoUrl = "https://example.com/organization/project";
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, new DefaultPlexusCipher().encrypt("root-token", "CMMDwoV"),
         SourceControlProvider.GITHUB);
@@ -892,7 +892,7 @@ public class IntegrationServiceTest
   @Test
   @PostgresTest
   public void testGetIntegrationSummaries_FilterOnScmIntegrationStatus_postgres()  throws Exception {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
     final String repoUrl = "https://example.com/organization/project";
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, new DefaultPlexusCipher().encrypt("root-token", "CMMDwoV"),
         SourceControlProvider.GITHUB);
@@ -930,7 +930,7 @@ public class IntegrationServiceTest
 
   @Test
   public void testGetIntegrationSummaries_FilterOnCiIntegrationStatus_h2() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
     tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scan-id-3",
         false, false, false, new Date(), "hash-1", ScanTriggerType.CONTINUOUS_INTEGRATION);
 
@@ -955,7 +955,7 @@ public class IntegrationServiceTest
   @Test
   @PostgresTest
   public void testGetIntegrationSummaries_FilterOnCiIntegrationStatus_postgres() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
     tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scan-id-3",
         false, false, false, new Date(), "hash-1", ScanTriggerType.CONTINUOUS_INTEGRATION);
 
@@ -979,7 +979,7 @@ public class IntegrationServiceTest
 
   @Test
   public void testGetIntegrationSummaries_SetCICDStatus_h2() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
     tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scan-id-3",
         false, false, false, new Date(), "hash-1", ScanTriggerType.CONTINUOUS_INTEGRATION);
     tempEntity.newPolicyEvaluation(app4.getId(), Stage.ID_BUILD, "scan-id4",
@@ -1016,7 +1016,7 @@ public class IntegrationServiceTest
   @Test
   @PostgresTest
   public void testGetIntegrationSummaries_SetCICDStatus_postgres() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
     tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scan-id-3",
         false, false, false, new Date(), "hash-1", ScanTriggerType.CONTINUOUS_INTEGRATION);
     tempEntity.newPolicyEvaluation(app4.getId(), Stage.ID_BUILD, "scan-id4",
@@ -1052,7 +1052,7 @@ public class IntegrationServiceTest
 
   @Test
   public void testGetIntegrationSummaries_SetAutoSourceControlFeedbackStatus_h2() throws Exception {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
     final String repoUrl = "https://example.com/organization/project";
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, new DefaultPlexusCipher().encrypt("root-token", "CMMDwoV"),
@@ -1107,7 +1107,7 @@ public class IntegrationServiceTest
   @Test
   @PostgresTest
   public void testGetIntegrationSummaries_SetAutoSourceControlFeedbackStatus_postgres() throws Exception {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
     final String repoUrl = "https://example.com/organization/project";
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, new DefaultPlexusCipher().encrypt("root-token", "CMMDwoV"),
@@ -1161,7 +1161,7 @@ public class IntegrationServiceTest
 
   @Test
   public void testGetIntegrationSummaries_SetLastCommit_h2() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
     final Date commitTime = new Date();
     final Date latestCommitTime1 = new Date(commitTime.getTime() + 5000);
@@ -1217,7 +1217,7 @@ public class IntegrationServiceTest
   @Test
   @PostgresTest
   public void testGetIntegrationSummaries_SetLastCommit_postgres() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
     final Date commitTime = new Date();
     final Date latestCommitTime1 = new Date(commitTime.getTime() + 5000);
@@ -1272,19 +1272,19 @@ public class IntegrationServiceTest
 
   @Test
   public void testGetIntegrationSummaries_SetLastEvaluation_h2() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
     final Date evalTime = new Date();
     final Date latestEvalTime1 = new Date(evalTime.getTime() + 6000);
     final Date latestEvalTime2 = new Date(evalTime.getTime() + 12_000);
 
     // App 1
-    tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scanId1", evalTime);
-    tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scanId2", latestEvalTime1);
+    tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1", evalTime);
+    tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId2", latestEvalTime1);
 
     // App 2
-    tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "scanId1", evalTime);
-    tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "scanId2", latestEvalTime2);
+    tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId1", evalTime);
+    tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId2", latestEvalTime2);
 
     final ApiPageResult<IntegrationStatusDTO> result =
         integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
@@ -1328,19 +1328,19 @@ public class IntegrationServiceTest
   @Test
   @PostgresTest
   public void testGetIntegrationSummaries_SetLastEvaluation_postgres() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
     final Date evalTime = new Date();
     final Date latestEvalTime1 = new Date(evalTime.getTime() + 6000);
     final Date latestEvalTime2 = new Date(evalTime.getTime() + 12_000);
 
     // App 1
-    tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scanId1", evalTime);
-    tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scanId2", latestEvalTime1);
+    tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1", evalTime);
+    tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId2", latestEvalTime1);
 
     // App 2
-    tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "scanId1", evalTime);
-    tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "scanId2", latestEvalTime2);
+    tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId1", evalTime);
+    tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId2", latestEvalTime2);
 
     final ApiPageResult<IntegrationStatusDTO> result =
         integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
@@ -1383,18 +1383,35 @@ public class IntegrationServiceTest
 
   @Test
   public void testGetIntegrationSummaries_SetTotalRisk_h2() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
-    // App 1 = 8 total risk
-    // App 2 = 3 total risk
-    // App 3 = 0 total risk
-    // App 4 = 0 total risk
+    // Add non-build stage risk
+    final Application app5 = tempEntity.newApplication("app5", "app5", org3.getId());
+    final Policy app5Policy = tempEntity.newPolicy(app5.getId(), "app5 owned policy", 5);
+    final PolicyEvaluation app5PolicyEvaluation1 =
+        tempEntity.newPolicyEvaluation(app5.getId(), ReleaseStageType.ID, "scan-id-1", new Date(0L));
+    tempEntity.newPolicyViolation(app5PolicyEvaluation1, app5Policy);
+
+    // Add risk of 0
+    final Application app6 = tempEntity.newApplication("app6", "app6", org3.getId());
+    final Policy app6Policy = tempEntity.newPolicy(app5.getId(), "app6 owned policy", 5);
+    final PolicyEvaluation app6PolicyEvaluation =
+        tempEntity.newPolicyEvaluation(app6.getId(), BuildStageType.ID, "scan-id-2", new Date(0L));
+    tempEntity.newPolicyViolation(app6PolicyEvaluation, app6Policy, 0, app6Policy.getThreatCategory(), "Group1",
+        "Artifact1", "Version1");
+
+    // App 1 = 8 total build stage risk
+    // App 2 = 3 total build stage risk
+    // App 3 = -1 total build stage risk (no app evals)
+    // App 4 = -1 total build stage risk (no app evals)
+    // App 5 = -1 total build stage risk (only non-build stage risk)
+    // App 6 = 0 total build stage risk (no risk found in app eval)
 
     final ApiPageResult<IntegrationStatusDTO> result =
         integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
     final List<IntegrationStatusDTO> appSummaries = result.getResults();
     assertThat(appSummaries)
-        .hasSize(4);
+        .hasSize(6);
 
     final IntegrationStatusDTO app1Dto = appSummaries.get(0);
     assertThat(app1Dto.getApplicationId())
@@ -1418,7 +1435,7 @@ public class IntegrationServiceTest
     assertThat(app3Dto.getOrganizationId())
         .isEqualTo(org2.getId());
     assertThat(app3Dto.getTotalRiskScore())
-        .isZero();
+        .isEqualTo(-1);
 
     final IntegrationStatusDTO app4Dto = appSummaries.get(3);
     assertThat(app4Dto.getApplicationId())
@@ -1426,24 +1443,57 @@ public class IntegrationServiceTest
     assertThat(app4Dto.getOrganizationId())
         .isEqualTo(org3.getId());
     assertThat(app4Dto.getTotalRiskScore())
+        .isEqualTo(-1);
+
+    final IntegrationStatusDTO app5Dto = appSummaries.get(4);
+    assertThat(app5Dto.getApplicationId())
+        .isEqualTo(app5.getId());
+    assertThat(app5Dto.getOrganizationId())
+        .isEqualTo(org3.getId());
+    assertThat(app5Dto.getTotalRiskScore())
+        .isEqualTo(-1);
+
+    final IntegrationStatusDTO app6Dto = appSummaries.get(5);
+    assertThat(app6Dto.getApplicationId())
+        .isEqualTo(app6.getId());
+    assertThat(app6Dto.getOrganizationId())
+        .isEqualTo(org3.getId());
+    assertThat(app6Dto.getTotalRiskScore())
         .isZero();
   }
 
   @Test
   @PostgresTest
   public void testGetIntegrationSummaries_SetTotalRisk_postgres() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
 
-    // App 1 = 8 total risk
-    // App 2 = 3 total risk
-    // App 3 = 0 total risk
-    // App 4 = 0 total risk
+    // Add non-build stage risk
+    final Application app5 = tempEntity.newApplication("app5", "app5", org3.getId());
+    final Policy app5Policy = tempEntity.newPolicy(app5.getId(), "app5 owned policy", 5);
+    final PolicyEvaluation app5PolicyEvaluation1 =
+        tempEntity.newPolicyEvaluation(app5.getId(), ReleaseStageType.ID, "scan-id-1", new Date(0L));
+    tempEntity.newPolicyViolation(app5PolicyEvaluation1, app5Policy);
+
+    // Add risk of 0
+    final Application app6 = tempEntity.newApplication("app6", "app6", org3.getId());
+    final Policy app6Policy = tempEntity.newPolicy(app5.getId(), "app6 owned policy", 5);
+    final PolicyEvaluation app6PolicyEvaluation =
+        tempEntity.newPolicyEvaluation(app6.getId(), BuildStageType.ID, "scan-id-2", new Date(0L));
+    tempEntity.newPolicyViolation(app6PolicyEvaluation, app6Policy, 0, app6Policy.getThreatCategory(), "Group1",
+        "Artifact1", "Version1");
+
+    // App 1 = 8 total build stage risk
+    // App 2 = 3 total build stage risk
+    // App 3 = -1 total build stage risk (no app evals)
+    // App 4 = -1 total build stage risk (no app evals)
+    // App 5 = -1 total build stage risk (only non-build stage risk)
+    // App 6 = 0 total build stage risk (no risk found in app eval)
 
     final ApiPageResult<IntegrationStatusDTO> result =
         integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
     final List<IntegrationStatusDTO> appSummaries = result.getResults();
     assertThat(appSummaries)
-        .hasSize(4);
+        .hasSize(6);
 
     final IntegrationStatusDTO app1Dto = appSummaries.get(0);
     assertThat(app1Dto.getApplicationId())
@@ -1467,7 +1517,7 @@ public class IntegrationServiceTest
     assertThat(app3Dto.getOrganizationId())
         .isEqualTo(org2.getId());
     assertThat(app3Dto.getTotalRiskScore())
-        .isZero();
+        .isEqualTo(-1);
 
     final IntegrationStatusDTO app4Dto = appSummaries.get(3);
     assertThat(app4Dto.getApplicationId())
@@ -1475,12 +1525,28 @@ public class IntegrationServiceTest
     assertThat(app4Dto.getOrganizationId())
         .isEqualTo(org3.getId());
     assertThat(app4Dto.getTotalRiskScore())
+        .isEqualTo(-1);
+
+    final IntegrationStatusDTO app5Dto = appSummaries.get(4);
+    assertThat(app5Dto.getApplicationId())
+        .isEqualTo(app5.getId());
+    assertThat(app5Dto.getOrganizationId())
+        .isEqualTo(org3.getId());
+    assertThat(app5Dto.getTotalRiskScore())
+        .isEqualTo(-1);
+
+    final IntegrationStatusDTO app6Dto = appSummaries.get(5);
+    assertThat(app6Dto.getApplicationId())
+        .isEqualTo(app6.getId());
+    assertThat(app6Dto.getOrganizationId())
+        .isEqualTo(org3.getId());
+    assertThat(app6Dto.getTotalRiskScore())
         .isZero();
   }
 
   @Test
   public void testGetIntegrationSummaries_SetSastScan_NoScmContext_h2() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
     // 3 Scans of the same app. We should find the last one.
     tempEntity.newSastScanWithCustomTimestamp(app1.getId(),
         Date.from(LocalDate.parse("2023-12-01").atStartOfDay(ZoneId.systemDefault()).toInstant()));
@@ -1514,7 +1580,7 @@ public class IntegrationServiceTest
   @Test
   @PostgresTest
   public void testGetIntegrationSummaries_SetSastScan_NoScmContext_postgres() {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
     // 3 Scans of the same app. We should find the last one.
     tempEntity.newSastScanWithCustomTimestamp(app1.getId(),
         Date.from(LocalDate.parse("2023-12-01").atStartOfDay(ZoneId.systemDefault()).toInstant()));
@@ -1549,7 +1615,7 @@ public class IntegrationServiceTest
   public void testGetIntegrationSummaries_SetSastScan_WithScmContext_OverrideBaseBranch_BranchScanExists_H2()
       throws Exception
   {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
     final String baseBranch = "TEST_BRANCH";
     tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     final SourceControl sourceControl = new SourceControl();
@@ -1594,7 +1660,7 @@ public class IntegrationServiceTest
   public void testGetIntegrationSummaries_SetSastScan_WithScmContext_OverrideBaseBranch_BranchScanExists_Postgres()
       throws Exception
   {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
     final String baseBranch = "TEST_BRANCH";
     tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     final SourceControl sourceControl = new SourceControl();
@@ -1638,7 +1704,7 @@ public class IntegrationServiceTest
   public void testGetIntegrationSummaries_SetSastScan_WithScmContext_InheritRootBaseBranch_BranchScanExists_H2()
       throws Exception
   {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
     final String baseBranch = "TEST_BRANCH";
     tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB, null, null,
         baseBranch);
@@ -1683,7 +1749,7 @@ public class IntegrationServiceTest
   public void testGetIntegrationSummaries_SetSastScan_WithScmContext_InheritRootBaseBranch_BranchScanExists_Postgres()
       throws Exception
   {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
     final String baseBranch = "TEST_BRANCH";
     tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB, null, null,
         baseBranch);
@@ -1727,7 +1793,7 @@ public class IntegrationServiceTest
   public void testGetIntegrationSummaries_SetSastScan_WithScmContext_InheritOrgBaseBranch_BranchScanExists_H2()
       throws Exception
   {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
     final String baseBranch = "TEST_BRANCH";
     tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     final Application appWithOrgParent = tempEntity.newApplication(org3.getId());
@@ -1780,7 +1846,7 @@ public class IntegrationServiceTest
   public void testGetIntegrationSummaries_SetSastScan_WithScmContext_InheritOrgBaseBranch_BranchScanExists_Postgres()
       throws Exception
   {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
     final String baseBranch = "TEST_BRANCH";
     tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     final Application appWithOrgParent = tempEntity.newApplication(org3.getId());
@@ -1830,7 +1896,7 @@ public class IntegrationServiceTest
 
   @Test
   public void testGetIntegrationSummaries_SetSastScan_WithScmContext_NoBranchScanExists_H2() throws Exception {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
     tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     final SourceControl sourceControl = new SourceControl();
     sourceControl.setBaseBranch("TEST_BRANCH");
@@ -1872,7 +1938,7 @@ public class IntegrationServiceTest
   @Test
   @PostgresTest
   public void testGetIntegrationSummaries_SetSastScan_WithScmContext_NoBranchScanExists_Postgres() throws Exception {
-    setUpAppsWithRisk();
+    setUpAppsWithBuildStageRisk();
     tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     final SourceControl sourceControl = new SourceControl();
     sourceControl.setBaseBranch("TEST_BRANCH");
@@ -1911,7 +1977,7 @@ public class IntegrationServiceTest
         .isFalse();
   }
 
-  private void setUpAppsWithRisk() {
+  private void setUpAppsWithBuildStageRisk() {
     org1 = tempEntity.newOrganization();
     org2 = tempEntity.newOrganization();
     org3 = tempEntity.newOrganization();
@@ -1925,9 +1991,8 @@ public class IntegrationServiceTest
     final Policy orgPolicy = tempEntity.newPolicy(org1.getId(), "org owned policy", 3);
     final Policy app1Policy = tempEntity.newPolicy(app1.getId(), "app1 owned policy", 5);
 
-    final PolicyEvaluation
-        app1PolicyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scan-id-1",
-        new Date(0L));
+    final PolicyEvaluation app1PolicyEvaluation =
+        tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scan-id-1", new Date(0L));
     final PolicyEvaluation app2PolicyEvaluation =
         tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scan-id-2", new Date(0L));
 

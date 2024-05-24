@@ -137,6 +137,51 @@ describe('AppIntegrationsAndRisk Table', () => {
       expect(cells[4]).toHaveTextContent('January 1, 2023');
       expect(cells[5]).toHaveTextContent('404');
     });
+
+    it('renders total risk tooltip correctly', async () => {
+      const date = new Date('January 1, 2023');
+      const timestamp = date.getTime();
+
+      const results = [
+        {
+          applicationName: `App1`,
+          applicationId: `AppId1`,
+          applicationPublicId: `App1`,
+          lastCommitTimestamp: timestamp,
+          lastEvaluationTimestamp: timestamp,
+          totalRiskScore: -1,
+          ciIntegrationEnabled: true,
+          automatedSourceControlFeedbackEnabled: true,
+          hasSastReport: true,
+          lastSastReportId: 'lastSastReportId',
+          lastSastReportTime: timestamp,
+        },
+      ];
+      axiosMock.onGet(getAppIntegrationsAndRisk()).reply(200, {
+        results: results,
+        total: 1,
+        page: 1,
+        pageSize: 10,
+        pageCount: 1,
+      });
+
+      render(<AppIntegrationsAndRiskTable />);
+
+      expect(await screen.findByRole('table')).toBeInTheDocument();
+
+      const rows = await screen.findAllByRole('row');
+      expect(rows.length).toBe(3);
+
+      const cells = within(rows[2]).getAllByRole('cell');
+      expect(cells[5]).toHaveTextContent('N/A');
+
+      fireEvent.mouseOver(screen.getByText('N/A'));
+      const tooltip = await screen.findByRole('tooltip');
+
+      expect(
+        within(tooltip).getByText('Evaluate this application at the build stage to see its risk score')
+      ).toBeInTheDocument();
+    });
   });
 
   describe('pagination buttons', () => {

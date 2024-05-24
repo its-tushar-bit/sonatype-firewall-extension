@@ -97,6 +97,8 @@ public class ThirdPartyDataService
 
   public static final String FIELD_REFERENCE = "reference";
 
+  public static final String FIELD_MATCH_STATE = "matchState";
+
   public static final String FIELD_LICENSE_NAME = "name";
 
   public static final String FIELD_LICENSE_URL = "url";
@@ -573,26 +575,32 @@ public class ThirdPartyDataService
     List<String> sonatypeVulns = sonatypeSecResults.get(bomComponentIdentifier);
     if (CollectionUtils.isNotEmpty(sonatypeVulns)) {
       for (String sonatypeVuln : sonatypeVulns) {
-        ThirdPartyCoordinateSecurity sbomVulnerability =
-            thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(sbomComponent.getId(), sonatypeVuln);
-        SecurityVulnerabilityData sonatypeVulnerabilityData =
-            securityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(sonatypeVuln,
-                bomComponentIdentifier, true);
-        if (sbomVulnerability != null) {
-          //matching sbom vulnerability found, update record
-          if (sonatypeVulnerabilityData != null && sonatypeVulnerabilityData.mainSeverity != null &&
-              sonatypeVulnerabilityData.mainSeverity.score > 0) {
-            populateMissingThirdPartyCoordinateSecurityWithSonatypeData(sbomVulnerability, sonatypeVulnerabilityData);
-            thirdPartyCoordinateSecurityDAO.update(sbomVulnerability);
+        try {
+          ThirdPartyCoordinateSecurity sbomVulnerability =
+              thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(sbomComponent.getId(), sonatypeVuln);
+          SecurityVulnerabilityData sonatypeVulnerabilityData =
+              securityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(sonatypeVuln,
+                  bomComponentIdentifier, true);
+          if (sbomVulnerability != null) {
+            //matching sbom vulnerability found, update record
+            if (sonatypeVulnerabilityData != null && sonatypeVulnerabilityData.mainSeverity != null &&
+                sonatypeVulnerabilityData.mainSeverity.score > 0) {
+              populateMissingThirdPartyCoordinateSecurityWithSonatypeData(sbomVulnerability, sonatypeVulnerabilityData);
+              thirdPartyCoordinateSecurityDAO.update(sbomVulnerability);
+            }
+          }
+          else {
+            //no matching sbom vulnerability, insert sonatype data
+            ThirdPartyCoordinateSecurity newThirdPartySecurity = new ThirdPartyCoordinateSecurity();
+            newThirdPartySecurity.setFileCoordinateId(sbomComponent.getId());
+            newThirdPartySecurity.setRefId(sonatypeVuln);
+            populateMissingThirdPartyCoordinateSecurityWithSonatypeData(newThirdPartySecurity,
+                sonatypeVulnerabilityData);
+            thirdPartyCoordinateSecurityDAO.insert(newThirdPartySecurity);
           }
         }
-        else {
-          //no matching sbom vulnerability, insert sonatype data
-          ThirdPartyCoordinateSecurity newThirdPartySecurity = new ThirdPartyCoordinateSecurity();
-          newThirdPartySecurity.setFileCoordinateId(sbomComponent.getId());
-          newThirdPartySecurity.setRefId(sonatypeVuln);
-          populateMissingThirdPartyCoordinateSecurityWithSonatypeData(newThirdPartySecurity, sonatypeVulnerabilityData);
-          thirdPartyCoordinateSecurityDAO.insert(newThirdPartySecurity);
+        catch (NotFoundException exception) {
+          log.warn("Vulnerability {} not found", sonatypeVuln);
         }
       }
     }
@@ -653,8 +661,10 @@ public class ThirdPartyDataService
     for (JsonNode securityJsonNode : securityJsonArray) {
       ComponentIdentifier securityComponentIdentifier =
           ComponentIdentifierAdapter.getComponentIdentifier(securityJsonNode);
-      String refId = JsonUtils.getNullableString(securityJsonNode.get(FIELD_REFERENCE));
-      secResults.computeIfAbsent(securityComponentIdentifier, componentIdentifier -> new ArrayList<>()).add(refId);
+      if (JsonUtils.getNullableString(securityJsonNode.get(FIELD_MATCH_STATE)) != null) {
+        String refId = JsonUtils.getNullableString(securityJsonNode.get(FIELD_REFERENCE));
+        secResults.computeIfAbsent(securityComponentIdentifier, componentIdentifier -> new ArrayList<>()).add(refId);
+      }
     }
     return secResults;
   }

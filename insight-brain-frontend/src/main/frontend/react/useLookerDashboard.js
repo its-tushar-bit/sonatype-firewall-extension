@@ -23,6 +23,7 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard') {
   const baseUrl = useSelector(selectBaseUrl);
   const selectedDashboard = useSelector(selectSelectedDashboard);
   const [iframeError, setIframeError] = useState(false);
+  const [loadingDashboard, setLoadingDashboard] = useState(true);
 
   const tokens = useRef({});
 
@@ -49,12 +50,15 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard') {
   const embedDashboard = async () => {
     try {
       setIframeError(false);
+      setLoadingDashboard(true);
       await LookerEmbedSDK.createDashboardWithId(selectedDashboard.dashboardPath)
         .appendTo(iframeContainerId)
         .build()
         .connect();
     } catch (error) {
       setIframeError(true);
+    } finally {
+      setLoadingDashboard(false);
     }
   };
 
@@ -65,5 +69,5 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard') {
     }
   }, [baseUrl, selectedDashboard]);
 
-  return { iframeError };
+  return { loadingDashboard, iframeError };
 }

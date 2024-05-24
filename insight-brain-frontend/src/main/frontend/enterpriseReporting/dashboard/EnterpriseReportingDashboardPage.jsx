@@ -23,12 +23,13 @@ export default function EnterpriseReportingDashboardPage() {
   const dispatch = useDispatch();
   const loading = useSelector(selectLoading);
   const loadingFeatures = useSelector(selectLoadingFeatures);
-  const isLoading = loading || loadingFeatures;
   const apiError = useSelector(selectError);
   const licenseError = useSelector(selectDataInsightsLicenseError);
   const load = () => dispatch(actions.load());
 
-  const { iframeError } = useLookerDashboard();
+  const { loadingDashboard, iframeError } = useLookerDashboard();
+
+  const isLoading = loading || loadingFeatures || loadingDashboard;
 
   useEffect(() => {
     load();
@@ -42,13 +43,15 @@ export default function EnterpriseReportingDashboardPage() {
         loading={isLoading}
         retryHandler={() => dispatch(stateGo('enterpriseReporting'))}
         error={combinedError}
-      >
+      ></NxLoadWrapper>
+      {/* The dashboard container should be outside of the load wrapper or the looker sdk wont be able to embed the iframe */}
+      {!iframeError && (
         <div
           className="enterprise-reporting-dashboard-container"
           id="dashboard"
           role="enterprise-reporting-dashboard"
         />
-      </NxLoadWrapper>
+      )}
     </NxPageMain>
   );
 }

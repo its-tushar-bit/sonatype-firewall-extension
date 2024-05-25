@@ -31,3 +31,35 @@ export const selectLoadVulnerabilityDetailsError = createSelector(
   prop('loadVulnerabilityDetailError')
 );
 export const internalAppId = createSelector(selectComponentMetadata, prop('applicationName'));
+
+export const selectSubmitMaskStateForVexAnnotationForm = createSelector(
+  selectSbomComponentDetails,
+  prop('submitMaskStateForVexAnnotationForm')
+);
+export const selectLoadSaveVexAnnotationFormError = createSelector(
+  selectSbomComponentDetails,
+  prop('loadSaveVexAnnotationFormError')
+);
+
+export const selectVulnerabilityAnalysisReferenceData = createSelector(
+  selectSbomComponentDetails,
+  prop('vulnerabilityAnalysisReferenceData')
+);
+
+export const selectJustificationsReferenceData = createSelector(
+  selectVulnerabilityAnalysisReferenceData,
+  prop('justifications')
+);
+
+export const selectResponsesReferenceData = createSelector(selectVulnerabilityAnalysisReferenceData, prop('responses'));
+
+export const selectStatesReferenceData = createSelector(selectVulnerabilityAnalysisReferenceData, prop('states'));
+export const selectLoadVulnerabilityAnalysisReferenceDataError = createSelector(
+  selectSbomComponentDetails,
+  prop('loadVulnerabilityAnalysisReferenceDataError')
+);
+
+export const selectLoadingVulnerabilityAnalysisReferenceData = createSelector(
+  selectSbomComponentDetails,
+  prop('loadingVulnerabilityAnalysisReferenceData')
+);

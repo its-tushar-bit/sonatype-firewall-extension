@@ -7,8 +7,13 @@ import React from 'react';
 import { axiosMockAdapter, render, waitFor } from 'TestRoot/SpecUtil';
 import ComponentDetailsPage from 'MainRoot/sbomManager/features/componentDetails/ComponentDetailsPage';
 import { screen } from '@testing-library/dom';
-import { getApplicationSummaryUrl, getSbomComponentDetailsUrl } from 'MainRoot/util/CLMLocation';
-import { fireEvent } from '@testing-library/react';
+import {
+  getApplicationSummaryUrl,
+  getSbomComponentDetailsUrl,
+  getSbomVulnerabibilityAnalysisReferenceData,
+  saveSbomVulnerabilityAnnotationUrl,
+} from 'MainRoot/util/CLMLocation';
+import { fireEvent, getByText, queryByText } from '@testing-library/react';
 
 describe('ComponentDetailsPage', () => {
   let renderPage;
@@ -17,6 +22,107 @@ describe('ComponentDetailsPage', () => {
   const sbomVersion = '1.0-SNAPSHOT_TEST';
   const componentHash = 'componentHash';
   const axiosMock = axiosMockAdapter();
+
+  const availableResponses = [
+    {
+      key: 'can_not_fix',
+      value: 'Can not fix',
+    },
+    {
+      key: 'rollback',
+      value: 'Rollback',
+    },
+    {
+      key: 'update',
+      value: 'Update',
+    },
+    {
+      key: 'will_not_fix',
+      value: 'Will not fix',
+    },
+    {
+      key: 'workaround_available',
+      value: 'Workaround available',
+    },
+  ];
+
+  const availableAnalysisStatuses = [
+    {
+      key: 'resolved',
+      value: 'Resolved',
+    },
+
+    {
+      key: 'resolved_with_pedigree',
+      value: 'Resolved with pedigree',
+    },
+
+    {
+      key: 'exploitable',
+      value: 'Exploitable',
+    },
+
+    {
+      key: 'in_triage',
+      value: 'In triage',
+    },
+
+    {
+      key: 'false_positive',
+      value: 'False positive',
+    },
+
+    {
+      key: 'not_affected',
+      value: 'Not affected',
+    },
+  ];
+
+  const availableJustifications = [
+    {
+      key: 'code_not_present',
+      value: 'Code not present',
+    },
+    {
+      key: 'code_not_reachable',
+      value: 'Code not reachable',
+    },
+    {
+      key: 'protected_at_perimeter',
+      value: 'Protected at perimeter',
+    },
+    {
+      key: 'protected_at_runtime',
+      value: 'Protected at runtime',
+    },
+    {
+      key: 'protected_by_compiler',
+      value: 'Protected by compiler',
+    },
+    {
+      key: 'protected_by_mitigating_control',
+      value: 'Protected by mitigating control',
+    },
+    {
+      key: 'requires_configuration',
+      value: 'Requires configuration',
+    },
+    {
+      key: 'requires_dependency',
+      value: 'Requires dependency',
+    },
+    {
+      key: 'requires_environment',
+      value: 'Requires environment',
+    },
+  ];
+
+  const vulnerabilityAnalysisReferenceData = {
+    states: availableAnalysisStatuses,
+    justifications: availableJustifications,
+    responses: availableResponses,
+  };
+
   const mockComponentDetails = {
     name: 'jackson-databind',
     hash: 'f07c773f7b3a03c3801d',
@@ -47,6 +153,7 @@ describe('ComponentDetailsPage', () => {
       {
         cvssScore: 9,
         issue: 'sonatype-2018-0863',
+        description: 'short description',
         analysisStatus: 'resolved',
         justification: 'code_not_present',
         details: 'Unreachable code',
@@ -84,6 +191,8 @@ describe('ComponentDetailsPage', () => {
         loadError: null,
         publicAppId: null,
         componentDetails: null,
+
+        vulnerabilityAnalysisReferenceData,
       },
     };
     renderPage = (additionalPreloadedState = {}) =>
@@ -144,23 +253,117 @@ describe('ComponentDetailsPage', () => {
     expect(screen.getByText('Dependency tree not available')).toBeVisible();
   });
 
-  it('should close drawer when close button is clicked', async () => {
+  it('should close Vulnerability details drawer when close button is clicked', async () => {
     axiosMock
       .onGet(getApplicationSummaryUrl(applicationPublicId))
       .reply(200, { id: applicationInternalId, name: 'test-app' });
     axiosMock
       .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
       .reply(200, mockComponentDetails);
-    renderPage();
+    const { container } = renderPage();
 
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
     const link = screen.getByText('sonatype-2018-0863');
     fireEvent.click(link);
+
+    const vulnerabilityDetailsPopover = container.querySelector('aside');
     expect(screen.queryByRole('complementary')).toBeInTheDocument();
-    const closeButton = screen.queryByRole('button');
+    const closeButton = vulnerabilityDetailsPopover.querySelector('button');
     expect(closeButton).toBeInTheDocument();
     fireEvent.click(closeButton);
     expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+  });
+
+  it('should close Vex Annotation drawer when its close button is clicked', async () => {
+    axiosMock
+      .onGet(getApplicationSummaryUrl(applicationPublicId))
+      .reply(200, { id: applicationInternalId, name: 'test-app' });
+    axiosMock
+      .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
+      .reply(200, mockComponentDetails);
+
+    axiosMock.onGet(getSbomVulnerabibilityAnalysisReferenceData()).reply(200, vulnerabilityAnalysisReferenceData);
+
+    const { container } = renderPage();
+
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+    const vulnerabilityRows = screen.getAllByRole('row');
+
+    const buttonFirstDataRow = vulnerabilityRows[1].querySelector('button');
+    expect(getByText(buttonFirstDataRow, 'Edit')).toBeInTheDocument();
+    fireEvent.click(buttonFirstDataRow);
+
+    const vexAnnotationPopover = container.querySelector('aside');
+    expect(screen.queryByRole('complementary')).toBeInTheDocument();
+    expect(queryByText(vexAnnotationPopover, 'Annotate sonatype-2018-0863')).toBeInTheDocument();
+    expect(
+      queryByText(vexAnnotationPopover.querySelector('.vex-annotation-drawer__form__details'), 'Unreachable code')
+    ).toBeInTheDocument();
+    const closeButton = vexAnnotationPopover.querySelector('button');
+    expect(closeButton).toBeInTheDocument();
+    fireEvent.click(closeButton);
+    expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+  });
+
+  it('should open Vex annotation drawer and save form successfully', async () => {
+    axiosMock
+      .onGet(getApplicationSummaryUrl(applicationPublicId))
+      .reply(200, { id: applicationInternalId, name: 'test-app' });
+    axiosMock
+      .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
+      .reply(200, mockComponentDetails);
+
+    axiosMock.onGet(getSbomVulnerabibilityAnalysisReferenceData()).reply(200, vulnerabilityAnalysisReferenceData);
+    axiosMock
+      .onPut(saveSbomVulnerabilityAnnotationUrl(applicationInternalId, sbomVersion, 'sonatype-2018-0863'))
+      .reply(200, {});
+
+    const { container } = renderPage();
+
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+    const vulnerabilityRows = screen.getAllByRole('row');
+
+    const buttonFirstDataRow = vulnerabilityRows[1].querySelector('button');
+    expect(getByText(buttonFirstDataRow, 'Edit')).toBeInTheDocument();
+    fireEvent.click(buttonFirstDataRow);
+
+    const vexAnnotationPopover = container.querySelector('aside');
+    expect(screen.queryByRole('complementary')).toBeInTheDocument();
+    expect(queryByText(vexAnnotationPopover, 'Annotate sonatype-2018-0863')).toBeInTheDocument();
+    const saveButton = screen.getByRole('button', { name: 'Update' });
+    expect(saveButton).toBeInTheDocument();
+    fireEvent.click(saveButton);
+    await waitFor(() => expect(screen.getByText(/Success/)).toBeInTheDocument());
+  });
+
+  it('should open Vex Annotation drawer and display error message when failed loading analysis reference data', async () => {
+    axiosMock
+      .onGet(getApplicationSummaryUrl(applicationPublicId))
+      .reply(200, { id: applicationInternalId, name: 'test-app' });
+    axiosMock
+      .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
+      .reply(200, mockComponentDetails);
+
+    const { container } = renderPage();
+
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+    const vulnerabilityRows = screen.getAllByRole('row');
+
+    const buttonFirstDataRow = vulnerabilityRows[1].querySelector('button');
+    expect(getByText(buttonFirstDataRow, 'Add')).toBeInTheDocument();
+    fireEvent.click(buttonFirstDataRow);
+
+    const vexAnnotationPopover = container.querySelector('aside');
+    expect(screen.queryByRole('complementary')).toBeInTheDocument();
+    expect(queryByText(vexAnnotationPopover, 'Annotate sonatype-2018-0863')).toBeInTheDocument();
+    expect(queryByText(vexAnnotationPopover, /An error occurred loading data./)).toBeInTheDocument();
+    expect(queryByText(vexAnnotationPopover, /Please retry./)).toBeInTheDocument();
+    const retryButton = screen.getByRole('button', { name: 'Retry' });
+    expect(retryButton).toBeInTheDocument();
   });
 
   it('shows error when the SBOM Manager license is disabled', async () => {

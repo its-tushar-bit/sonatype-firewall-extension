@@ -1468,6 +1468,9 @@ export const getSbomComponentDependencyTreeUrl = (componentHash) =>
 export const getAllApplicationSbomVersions = (applicationId) =>
   uriTemplate`/api/v2/sbom/applications/${applicationId}/versions`;
 
+export const saveSbomVulnerabilityAnnotationUrl = (applicationId, version, refId) =>
+  uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${version}/vulnerability/${refId}/analysis`;
+
 export const getSbomMetadataUrl = (applicationId, version) =>
   uriTemplate`/rest/sbom/applications/${applicationId}/versions/${version}/sbomMetadata`;
 
@@ -1481,6 +1484,8 @@ export const getTotalSbomsAnalyzedUrl = () => uriTemplate`/api/v2/sbom/dashboard
 
 export const getSbomsHistoryUrl = () => uriTemplate`/api/v2/sbom/dashboard/sbomsHistoryMetrics`;
 
+export const getSbomVulnerabibilityAnalysisReferenceData = () =>
+  uriTemplate`/rest/sbom/vulnerabilityAnalysis/referenceData`;
 export const getVulnerabilitesByThreatLevelUrl = () => uriTemplate`/api/v2/sbom/dashboard/vulnerabilitiesByThreatLevel`;
 
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [

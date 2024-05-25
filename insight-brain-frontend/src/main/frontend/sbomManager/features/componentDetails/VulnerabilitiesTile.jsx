@@ -7,6 +7,7 @@
 import React from 'react';
 import {
   allThreatLevelNumbers,
+  NxButton,
   NxErrorStatusIndicator,
   NxFontAwesomeIcon,
   NxH2,
@@ -24,7 +25,13 @@ import './VulnerabilitiesTile.scss';
 import * as PropTypes from 'prop-types';
 
 export default function VulnerabilitiesTile(props) {
-  const { isDisclosedVulnerabilities = true, vulnerabilities, openVulnerabilityDetailsModal } = props;
+  const {
+    isDisclosedVulnerabilities = true,
+    vulnerabilities,
+    openVulnerabilityDetailsModal,
+    openVexAnnotationModal,
+    analysisStatusesOptions,
+  } = props;
 
   const determineTableTitle = () => {
     let title;
@@ -98,6 +105,8 @@ export default function VulnerabilitiesTile(props) {
     return statusIndicator;
   };
 
+  const isRowAnnotated = (vulnRow, states) => isVulnerabilityAnnotated(vulnRow, states);
+
   const translateJustification = (justification) => {
     return justification ? justification.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase()) : '';
   };
@@ -130,7 +139,18 @@ export default function VulnerabilitiesTile(props) {
               <NxTable.Cell>
                 <span>{translateJustification(vulnerability.justification)}</span>
               </NxTable.Cell>
-              <NxTable.Cell></NxTable.Cell>
+              <NxTable.Cell>
+                <NxButton
+                  onClick={() =>
+                    openVexAnnotationModal({
+                      ...vulnerability,
+                      isRowAnnotated: isRowAnnotated(vulnerability, analysisStatusesOptions),
+                    })
+                  }
+                >
+                  {isRowAnnotated(vulnerability, analysisStatusesOptions) ? 'Edit' : 'Add'}
+                </NxButton>
+              </NxTable.Cell>
             </NxTable.Row>
           ))}
         </>
@@ -170,4 +190,9 @@ VulnerabilitiesTile.propTypes = {
   isDisclosedVulnerabilities: PropTypes.bool,
   vulnerabilities: PropTypes.array,
   openVulnerabilityDetailsModal: PropTypes.func,
+  openVexAnnotationModal: PropTypes.func,
+  analysisStatusesOptions: PropTypes.array.isRequired,
 };
+
+export const isVulnerabilityAnnotated = (vulnerabilityRow, vulnerabilityValidAnalysisStates) =>
+  vulnerabilityValidAnalysisStates.map((entry) => entry.key).indexOf(vulnerabilityRow?.analysisStatus) > -1;

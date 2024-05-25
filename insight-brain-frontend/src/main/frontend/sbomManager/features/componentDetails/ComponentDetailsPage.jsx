@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NxFontAwesomeIcon, NxLoadWrapper, NxPageMain, NxTag } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -20,7 +20,12 @@ import { faCopy } from '@fortawesome/pro-regular-svg-icons';
 import {
   selectComponentDetails,
   selectIsLoading,
+  selectJustificationsReferenceData,
   selectLoadError,
+  selectLoadingVulnerabilityAnalysisReferenceData,
+  selectLoadVulnerabilityAnalysisReferenceDataError,
+  selectResponsesReferenceData,
+  selectStatesReferenceData,
 } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSelector';
 import { actions } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
 import { actions as billOfMaterialsActions } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
@@ -31,6 +36,8 @@ import ComponentDetailsSbomInfo from 'MainRoot/sbomManager/features/componentDet
 import VulnerabilitiesSummary from 'MainRoot/sbomManager/features/componentDetails/VulnerabilitiesSummary';
 import SbomVulnerabilityDetailsPopover from 'MainRoot/sbomManager/features/componentDetails/vulnerabilitiesDrawer/SbomVulnerabilityDetailsPopover';
 
+import VexAnnotationDrawerPopover from 'MainRoot/sbomManager/features/componentDetails/vexAnnotationsDrawer/VexAnnotationDrawerPopover';
+
 export default function ComponentDetailsPage() {
   const dispatch = useDispatch();
   const isProductFeaturesLoading = useSelector(selectLoadingFeatures);
@@ -40,6 +47,11 @@ export default function ComponentDetailsPage() {
   const noSbomManagerEnabledError = useSelector(selectNoSbomManagerEnabledError);
   const componentDetails = useSelector(selectComponentDetails);
   const routerParams = useSelector(selectRouterCurrentParams);
+  const justificationsOptions = useSelector(selectJustificationsReferenceData);
+  const responsesOptions = useSelector(selectResponsesReferenceData);
+  const analysisStatusesOptions = useSelector(selectStatesReferenceData);
+  const isVulnerabilityReferenceDataLoading = useSelector(selectLoadingVulnerabilityAnalysisReferenceData);
+  const errorLoadingAnalysisReferenceData = useSelector(selectLoadVulnerabilityAnalysisReferenceDataError);
 
   const uiRouterState = useRouterState();
   const { applicationPublicId, sbomVersion, componentHash } = routerParams;
@@ -50,6 +62,8 @@ export default function ComponentDetailsPage() {
   });
   const internalAppId = useSelector(selectInternalAppId);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [isVexAnnotationPopoverOpen, setIsVexAnnotationPopoverOpen] = useState(false);
+
   const vulnerability = {};
   const [selectedVulnerability, setSelectedVulnerability] = useState(vulnerability);
   const load = () => dispatch(actions.loadComponentDetails({ internalAppId, sbomVersion, componentHash }));
@@ -67,8 +81,19 @@ export default function ComponentDetailsPage() {
       })
     );
 
+  const loadVexReferenceData = () => {
+    dispatch(actions.getVulnerabilityAnalysisReferenceData());
+  };
+
+  const loadInternalAppId = () => dispatch(billOfMaterialsActions.loadInternalAppId(applicationPublicId));
+
+  const initialize = () => {
+    loadInternalAppId();
+    loadVexReferenceData();
+  };
+
   useEffect(() => {
-    dispatch(billOfMaterialsActions.loadInternalAppId(applicationPublicId));
+    initialize();
   }, []);
 
   useEffect(() => {
@@ -88,7 +113,16 @@ export default function ComponentDetailsPage() {
   const openVulnerabilityDetailsModal = (vulnerability) => {
     setSelectedVulnerability(vulnerability);
     setIsPopoverOpen(true);
+    setIsVexAnnotationPopoverOpen(false);
     loadSbomComponentVulnerabilities(vulnerability);
+  };
+
+  const closeVexAnnotationModal = () => setIsVexAnnotationPopoverOpen(false);
+
+  const openVexAnnotationModal = (vulnerabilityRow) => {
+    setSelectedVulnerability(vulnerabilityRow);
+    setIsVexAnnotationPopoverOpen(true);
+    setIsPopoverOpen(false);
   };
 
   return (
@@ -130,11 +164,15 @@ export default function ComponentDetailsPage() {
             <VulnerabilitiesTile
               vulnerabilities={componentDetails?.disclosedVulnerabilities}
               openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
+              openVexAnnotationModal={openVexAnnotationModal}
+              analysisStatusesOptions={analysisStatusesOptions}
             ></VulnerabilitiesTile>
             <VulnerabilitiesTile
               vulnerabilities={componentDetails?.sonatypeIdentifiedVulnerabilities}
               isDisclosedVulnerabilities={false}
               openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
+              openVexAnnotationModal={openVexAnnotationModal}
+              analysisStatusesOptions={analysisStatusesOptions}
             ></VulnerabilitiesTile>
             <ComponentDetailsDependencyTreeTile
               componentDetails={componentDetails}
@@ -149,6 +187,23 @@ export default function ComponentDetailsPage() {
         reloadFunction={() => loadSbomComponentVulnerabilities(selectedVulnerability)}
         componentName={componentDetails?.packageUrl}
       ></SbomVulnerabilityDetailsPopover>
+      <VexAnnotationDrawerPopover
+        showVexAnnotationFormPopover={isVexAnnotationPopoverOpen}
+        vulnerabilityRowObject={selectedVulnerability}
+        onClose={closeVexAnnotationModal}
+        componentPurl={componentDetails?.packageUrl}
+        componentHash={componentDetails?.hash}
+        internalAppId={internalAppId}
+        sbomVersion={sbomVersion}
+        responsesOptions={responsesOptions}
+        analysisStatusesOptions={analysisStatusesOptions}
+        justificationsOptions={justificationsOptions}
+        isVulnerabilityReferenceDataLoading={isVulnerabilityReferenceDataLoading}
+        loadVexReferenceData={loadVexReferenceData}
+        errorLoadingAnalysisReferenceData={errorLoadingAnalysisReferenceData}
+        reloadComponentDetails={load}
+        openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
+      ></VexAnnotationDrawerPopover>
     </NxPageMain>
   );
 }

@@ -10,6 +10,39 @@ import VulnerabilitiesTile from 'MainRoot/sbomManager/features/componentDetails/
 
 describe('Vulnerabilities Tile', () => {
   let renderPage;
+
+  const analysisStatusesOptions = [
+    {
+      key: 'resolved',
+      value: 'Resolved',
+    },
+
+    {
+      key: 'resolved_with_pedigree',
+      value: 'Resolved with pedigree',
+    },
+
+    {
+      key: 'exploitable',
+      value: 'Exploitable',
+    },
+
+    {
+      key: 'in_triage',
+      value: 'In triage',
+    },
+
+    {
+      key: 'false_positive',
+      value: 'False positive',
+    },
+
+    {
+      key: 'not_affected',
+      value: 'Not affected',
+    },
+  ];
+
   const disclosedVulnerabilities = [
     {
       cvssScore: 4,
@@ -63,6 +96,7 @@ describe('Vulnerabilities Tile', () => {
         <VulnerabilitiesTile
           isDisclosedVulnerabilities={isDisclosedVulnerabilities}
           vulnerabilities={vulnerabilities}
+          analysisStatusesOptions={analysisStatusesOptions}
         />
       );
   });
@@ -91,6 +125,7 @@ describe('Vulnerabilities Tile', () => {
     expect(rowCells[2]).toHaveTextContent('Sonatype Verified');
     expect(rowCells[3]).toHaveTextContent('Unannotated');
     expect(rowCells[4]).toHaveTextContent('');
+    expect(within(rowCells[5]).getByRole('button', { name: 'Add' })).toBeInTheDocument();
 
     const secondRow = tableRows[2];
     rowCells = within(secondRow).getAllByRole('cell');
@@ -99,6 +134,7 @@ describe('Vulnerabilities Tile', () => {
     expect(rowCells[2]).toHaveTextContent('Unverified');
     expect(rowCells[3]).toHaveTextContent('Resolved');
     expect(rowCells[4]).toHaveTextContent('Protected by mitigating control');
+    expect(within(rowCells[5]).getByRole('button', { name: 'Edit' })).toBeInTheDocument();
 
     const thirdRow = tableRows[3];
     rowCells = within(thirdRow).getAllByRole('cell');
@@ -107,6 +143,7 @@ describe('Vulnerabilities Tile', () => {
     expect(rowCells[2]).toHaveTextContent('Sonatype Verified');
     expect(rowCells[3]).toHaveTextContent('Resolved with Pedigree');
     expect(rowCells[4]).toHaveTextContent('Requires dependency');
+    expect(within(rowCells[5]).getByRole('button', { name: 'Edit' })).toBeInTheDocument();
   });
 
   it('Renders Additional Sonatype Identified Vulnerabilities table', async () => {
@@ -133,6 +170,7 @@ describe('Vulnerabilities Tile', () => {
     expect(rowCells[1]).toHaveTextContent('CVE-2021-41182');
     expect(rowCells[2]).toHaveTextContent('Unannotated');
     expect(rowCells[3]).toHaveTextContent('');
+    expect(within(rowCells[4]).getByRole('button', { name: 'Add' })).toBeInTheDocument();
 
     const secondRow = tableRows[2];
     rowCells = within(secondRow).getAllByRole('cell');
@@ -140,6 +178,7 @@ describe('Vulnerabilities Tile', () => {
     expect(rowCells[1]).toHaveTextContent('CVE-2021-41183');
     expect(rowCells[2]).toHaveTextContent('Unannotated');
     expect(rowCells[3]).toHaveTextContent('');
+    expect(within(rowCells[4]).getByRole('button', { name: 'Add' })).toBeInTheDocument();
   });
 
   it('Renders Additional Sonatype Identified Vulnerabilities table empty with empty message displayed', async () => {

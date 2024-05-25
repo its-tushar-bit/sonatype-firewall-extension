@@ -9,8 +9,10 @@ import {
   getApplicationSummaryUrl,
   getSbomComponentDependencyTreeUrl,
   getSbomComponentDetailsUrl,
+  getSbomVulnerabibilityAnalysisReferenceData,
   getVulnerabilityJsonDetailUrl,
   getVulnerabilityOverrideUrl,
+  saveSbomVulnerabilityAnnotationUrl,
 } from 'MainRoot/util/CLMLocation';
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
@@ -25,10 +27,19 @@ export const initialState = {
   loadDependencyTreeError: null,
   loadingVulnerabilityDetail: false,
   loadVulnerabilityDetailError: null,
+  submitMaskStateForVexAnnotationForm: null,
+  loadSaveVexAnnotationFormError: null,
+  loadingVulnerabilityAnalysisReferenceData: false,
+  loadVulnerabilityAnalysisReferenceDataError: null,
   publicAppId: null,
   componentDetails: null,
   dependencyTreeSubset: null,
   vulnerabilityDetails: null,
+  vulnerabilityAnalysisReferenceData: {
+    responses: [],
+    justifications: [],
+    states: [],
+  },
 };
 
 const loadComponentDependencyTreeDataRequested = (state) => {
@@ -80,6 +91,37 @@ const loadVulnerabilityDetailsRejected = (state, { payload }) => {
   state.loadingVulnerabilityDetail = false;
   state.loadVulnerabilityDetailError = payload.response.data;
   state.vulnerabilityDetails = null;
+};
+
+const saveVexAnnotationRequested = function (state) {
+  state.submitMaskStateForVexAnnotationForm = false;
+  state.loadSaveVexAnnotationFormError = null;
+};
+
+const saveVexAnnotationFulfilled = function (state) {
+  state.submitMaskStateForVexAnnotationForm = true;
+  state.loadSaveVexAnnotationFormError = null;
+};
+
+const saveVexAnnotationRejected = function (state, { payload }) {
+  state.submitMaskStateForVexAnnotationForm = null;
+  state.loadSaveVexAnnotationFormError = payload.message;
+};
+
+const getVulnerabilityAnalysisReferenceDataRequested = function (state) {
+  state.loadingVulnerabilityAnalysisReferenceData = true;
+  state.loadVulnerabilityAnalysisReferenceDataError = null;
+  state.vulnerabilityAnalysisReferenceData = { responses: [], justifications: [], states: [] };
+};
+const getVulnerabilityAnalysisReferenceDataFulfilled = function (state, { payload }) {
+  state.loadingVulnerabilityAnalysisReferenceData = false;
+  state.loadVulnerabilityAnalysisReferenceDataError = null;
+  state.vulnerabilityAnalysisReferenceData = { ...payload };
+};
+
+const getVulnerabilityAnalysisReferenceDataRejected = function (state, { payload }) {
+  state.loadingVulnerabilityAnalysisReferenceData = false;
+  state.loadVulnerabilityAnalysisReferenceDataError = payload.response.data;
 };
 
 const loadComponentDetails = createAsyncThunk(
@@ -152,10 +194,39 @@ const loadVulnerabilityDetails = createAsyncThunk(
   }
 );
 
+const saveVexAnnotation = createAsyncThunk(
+  `${REDUCER_NAME}/saveVexAnnotation`,
+  async ({ internalAppId, sbomVersion, vulnerabilityRefId, vexAnnotationFormData }, { rejectWithValue }) => {
+    const urlSaveUpdate = saveSbomVulnerabilityAnnotationUrl(internalAppId, sbomVersion, vulnerabilityRefId);
+    try {
+      const response = await axios.put(urlSaveUpdate, vexAnnotationFormData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+const getVulnerabilityAnalysisReferenceData = createAsyncThunk(
+  `${REDUCER_NAME}/loadVulnerabilityAnalysisReferenceData`,
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(getSbomVulnerabibilityAnalysisReferenceData());
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
 const sbomComponentDetailsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
-  reducers: {},
+  reducers: {
+    clearFormSubmitMask: function (state) {
+      state.submitMaskStateForVexAnnotationForm = null;
+    },
+  },
   extraReducers: {
     [loadComponentDetails.pending]: loadComponentDetailsRequested,
     [loadComponentDetails.fulfilled]: loadComponentDetailsFulfilled,
@@ -166,6 +237,12 @@ const sbomComponentDetailsSlice = createSlice({
     [loadVulnerabilityDetails.pending]: loadVulnerabilityDetailsRequested,
     [loadVulnerabilityDetails.fulfilled]: loadVulnerabilityDetailsFulfilled,
     [loadVulnerabilityDetails.rejected]: loadVulnerabilityDetailsRejected,
+    [saveVexAnnotation.pending]: saveVexAnnotationRequested,
+    [saveVexAnnotation.fulfilled]: saveVexAnnotationFulfilled,
+    [saveVexAnnotation.rejected]: saveVexAnnotationRejected,
+    [getVulnerabilityAnalysisReferenceData.pending]: getVulnerabilityAnalysisReferenceDataRequested,
+    [getVulnerabilityAnalysisReferenceData.fulfilled]: getVulnerabilityAnalysisReferenceDataFulfilled,
+    [getVulnerabilityAnalysisReferenceData.rejected]: getVulnerabilityAnalysisReferenceDataRejected,
     [UI_ROUTER_ON_FINISH]: always(initialState),
   },
 });
@@ -175,6 +252,8 @@ export const actions = {
   loadComponentDetails,
   loadComponentDependencyTreeData,
   loadVulnerabilityDetails,
+  getVulnerabilityAnalysisReferenceData,
+  saveVexAnnotation,
 };
 
 export default sbomComponentDetailsSlice.reducer;

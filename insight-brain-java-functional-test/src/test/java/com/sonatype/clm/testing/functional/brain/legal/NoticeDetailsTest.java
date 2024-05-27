@@ -34,6 +34,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 
 public class NoticeDetailsTest
     extends AbstractFunctionalTest
@@ -193,6 +194,7 @@ public class NoticeDetailsTest
 
     final String noticeText = "text of added notice";
     final NoticeFileEditor editorModal = ComponentNoticeDetailsPage.noticeFileEditor();
+    editorModal.noticeText(1).shouldBe(visible);
     editorModal.noticeText(1).setValue(noticeText);
     editorModal.saveButton().click();
 

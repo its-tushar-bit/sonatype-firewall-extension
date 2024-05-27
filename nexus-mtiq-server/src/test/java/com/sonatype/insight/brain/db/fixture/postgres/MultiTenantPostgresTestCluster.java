@@ -75,7 +75,7 @@ public class MultiTenantPostgresTestCluster
     databaseProvisioner.migrateDatabase();
 
     // now create a tenant to use as a template
-    TenantTestHelper.testAsNewTenant(TEMPLATE_TENANT_NAME, x -> {
+    TenantTestHelper.testAs(TEMPLATE_TENANT_NAME, x -> {
       operationalDataStore.initialize();
       aggregationDataStore.initialize();
       dataMartDataStore.initialize();

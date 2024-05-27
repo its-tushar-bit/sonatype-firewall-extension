@@ -142,7 +142,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     sastReportViewLink(9).shouldBe(visible).shouldHave(text("View"));
     sastReport(9).shouldHave(text("a few seconds ago"));
 
-    Selenide.sleep(500);
+    Selenide.sleep(1000);
     eyesWatcher.eyesCheck();
 
     sastReportViewLink(9).click();

@@ -14,7 +14,9 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.inject.Inject;
 
@@ -24,6 +26,8 @@ import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokensRes
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -36,6 +40,7 @@ import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.scan.util.HashUtils;
 
 import com.google.inject.Binder;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -604,6 +609,41 @@ public class EnterpriseReportingServiceTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
             enterpriseReportingService.generateEmbedTokens(tokenRequestDtoNoSessionRef, "Mozilla/:::::"))
         .withMessage("Session reference token is null or empty");
+  }
+
+  @Test
+  public void testCreateSSOEmbedUrlRequest() {
+    final Organization organization = tempEntity.newOrganization("Test Org");
+    final Application application = tempEntity.newApplication("Some App", "SOME_APP", organization.getId());
+    final Application application2 = tempEntity.newApplication("Some App 2", "SOME_APP2", organization.getId());
+    final Application application3 = tempEntity.newApplication("Some App 3", "SOME_APP3", organization.getId());
+    final Application application4 = tempEntity.newApplication("Some App 4", "SOME_APP4", organization.getId());
+
+    UserPrincipal userPrincipal = new UserPrincipal("username", "displayName", InternalRealm.ID);
+    User user = new User(userPrincipal.getUsername(), "password", "firstName", "lastName", "email");
+    String dashboardId = "dashboardId";
+    String embedDomain = "http://sonatype.sonatype.sonatype.com";
+
+    when(mockCurrentUser.getUserPrincipal()).thenReturn(userPrincipal);
+    when(mockUserDAO.getByUsernameNotNull("username")).thenReturn(user);
+
+    SSOEmbedUrlRequest ssoEmbedUrlRequest = enterpriseReportingService
+        .createEmbedRequest(dashboardId, embedDomain);
+
+    Set<String> obfuscatedApplicationIds = new HashSet<>();
+    obfuscatedApplicationIds.add(HashUtils.hash(application.getId(), HashUtils.SHA1));
+    obfuscatedApplicationIds.add(HashUtils.hash(application2.getId(), HashUtils.SHA1));
+    obfuscatedApplicationIds.add(HashUtils.hash(application3.getId(), HashUtils.SHA1));
+    obfuscatedApplicationIds.add(HashUtils.hash(application4.getId(), HashUtils.SHA1));
+
+    assertThat(ssoEmbedUrlRequest.userFirstName).isEqualTo(user.getFirstName());
+    assertThat(ssoEmbedUrlRequest.userLastName).isEqualTo(user.getLastName());
+    assertThat(ssoEmbedUrlRequest.embedDomain).isEqualTo(embedDomain);
+    assertThat(ssoEmbedUrlRequest.dashboardKey).isEqualTo(dashboardId);
+    assertThat(ssoEmbedUrlRequest.usernameAndRealm).isEqualTo("username@Internal");
+    assertThat(ssoEmbedUrlRequest.userPermissions).isEmpty();
+    assertThat(ssoEmbedUrlRequest.applicationIds)
+        .containsExactlyInAnyOrder(obfuscatedApplicationIds.toArray(new String[] {}));
   }
 
   private void verifyScheduledTaskVersionCache(Integer latestVersion) {

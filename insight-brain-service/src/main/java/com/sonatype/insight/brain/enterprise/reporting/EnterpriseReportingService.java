@@ -21,6 +21,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import javax.inject.Inject;
@@ -34,9 +35,11 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.InternalRealm;
@@ -52,7 +55,9 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.jaxrs.JsonUtils;
+import com.sonatype.insight.scan.util.HashUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -118,6 +123,8 @@ public class EnterpriseReportingService
 
   private final MembershipMappingService membershipMappingService;
 
+  private final ApplicationService applicationService;
+
   private final SamlUserDAO samlUserDAO;
 
   private final InsightWork insightWork;
@@ -139,6 +146,7 @@ public class EnterpriseReportingService
       final UserDAO userDAO,
       final SamlUserDAO samlUserDAO,
       final MembershipMappingService membershipMappingService,
+      final ApplicationService applicationService,
       final InsightWork insightWork,
       final TaskScheduler taskScheduler,
       final Configuration configuration)
@@ -148,6 +156,7 @@ public class EnterpriseReportingService
     this.userDAO = userDAO;
     this.samlUserDAO = samlUserDAO;
     this.membershipMappingService = membershipMappingService;
+    this.applicationService = applicationService;
     this.insightWork = insightWork;
     this.taskScheduler = taskScheduler;
     this.configuration = configuration;
@@ -184,7 +193,7 @@ public class EnterpriseReportingService
     HttpEntity entity;
     try {
       entity = new StringEntity(
-          JsonUtils.toJson(createSSOEmbedUrlRequest(dashboardId, hostWithProtocol)), ContentType.APPLICATION_JSON);
+          JsonUtils.toJson(createEmbedRequest(dashboardId, hostWithProtocol)), ContentType.APPLICATION_JSON);
     }
     catch (IOException e) {
       throw new BadRequestException(e);
@@ -245,7 +254,8 @@ public class EnterpriseReportingService
     return iconGetter.apply(currentDashboardsVersionSupplier.get()).apply(iconName).get();
   }
 
-  private SSOEmbedUrlRequest createSSOEmbedUrlRequest(final String lookerDashboard, final String embedDomain) {
+  @VisibleForTesting
+  SSOEmbedUrlRequest createEmbedRequest(final String lookerDashboard, final String embedDomain) {
     UserPrincipal userPrincipal = currentUser.getUserPrincipal();
     if (userPrincipal == null) {
       // At a minimum the user needs to be logged into access looker. see CLM-27812
@@ -260,7 +270,8 @@ public class EnterpriseReportingService
     String userFirstName = userFirstAndLastNames.getLeft();
     String userLastName = userFirstAndLastNames.getRight();
     Set<String> userPermissions = membershipMappingService.getPermissionsForUserPrincipal(username, membership);
-    Set<String> applicationIds = membershipMappingService.getApplicationIdsForUser(username, membership);
+    Set<String> applicationIds = obfuscateApplicationIds(applicationService.getApplications().stream()
+        .map(Application::getId).collect(Collectors.toSet()));
 
     return new SSOEmbedUrlRequest(
         requestId,
@@ -383,6 +394,11 @@ public class EnterpriseReportingService
 
   private InputStream getEnterpriseReportingDashboardIconsInputStreamFromHds() {
     return hdsClient.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH);
+  }
+
+  private Set<String> obfuscateApplicationIds(Set<String> applicationIds) {
+    return applicationIds.stream()
+        .map(applicationId -> HashUtils.hash(applicationId, HashUtils.SHA1)).collect(Collectors.toSet());
   }
 
   @Override

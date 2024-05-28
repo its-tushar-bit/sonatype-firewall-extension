@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -45,7 +44,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,9 +53,6 @@ import org.slf4j.LoggerFactory;
 @Named
 public class MembershipMappingService
 {
-  private static final Set<OwnerType> INTERESTED_OWNER_TYPES = ImmutableSet
-      .of(OwnerType.APPLICATION, OwnerType.ORGANIZATION);
-
   private static final Logger log = LoggerFactory.getLogger(MembershipMappingService.class);
 
   private final ApplicationDAO appDAO;
@@ -298,17 +293,6 @@ public class MembershipMappingService
         .filter(Objects::nonNull)
         .flatMap(Collection::stream)
         .map(Permission::getDisplayName)
-        .collect(Collectors.toSet());
-  }
-
-  public Set<String> getApplicationIdsForUser(String username, Set<String> userMembership) {
-    return membershipMappingDAO.getByUserAndGroups(username, userMembership).stream()
-        .map(m -> ownerDAO.getById(m.getContextId()))
-        .filter(Objects::nonNull)
-        .filter(o -> INTERESTED_OWNER_TYPES.contains(o.getType()))
-        .map(ownerDAO::getDescendantOrSelfApplications)
-        .flatMap(Collection::stream)
-        .map(Application::getId)
         .collect(Collectors.toSet());
   }
 

@@ -1416,8 +1416,11 @@ export const getUsageOverTimeChartVisibility = () =>
 export const getSbomsByApplicationUrl = (applicationId, pageSize, page, sortDir) =>
   uriTemplate`/api/v2/sbom/applications/${applicationId}?sortByDate=${sortDir}&pageSize=${pageSize}&page=${page}`;
 
-export const getDownloadSbomFileUrl = (applicationId, applicationVersion) =>
-  uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${applicationVersion}/?state=original`;
+export const getDownloadSbomFileUrl = (applicationId, applicationVersion, state = 'original', specification) => {
+  const params = compose(toURIParams, reject(isNil))({ state, specification });
+  const query = params ? '/?' + params : '';
+  return uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${applicationVersion}` + query;
+};
 
 export const getDeleteSbomByApplicationIdAndVersionUrl = (applicationId, applicationVersion) =>
   uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${applicationVersion}`;

@@ -16,6 +16,7 @@ import {
   getBillOfMaterialsComponentsUrl,
 } from 'MainRoot/util/CLMLocation';
 import BillOfMaterials from 'MainRoot/sbomManager/features/billOfMaterials/BillOfMaterials';
+import { initialState as billOfMaterialsPageInitialState } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
 import {
   initialState as billOfMaterialsComponentsTileInitialState,
   COMPONENTS_PER_PAGE,
@@ -33,31 +34,6 @@ describe('BillOfMaterials Page', () => {
   const APPLICATION_PUBLIC_ID = 'APPLICATION-PUBLIC-ID';
   const APPLICATION_INTERNAL_ID = 'APPLICATION-INTERNAL-ID';
   const SBOM_VERSION = 'SBOM-VERSION';
-
-  const sbomMetadataInitialState = Object.freeze({
-    author: [],
-    manufacturer: [],
-    supplier: [],
-    person: [],
-    organization: [],
-    specification: null,
-    specVersion: null,
-    fileFormat: null,
-    createdAt: null,
-  });
-
-  const vulnerabilitiesSummaryInitialState = Object.freeze({
-    critical: null,
-    high: null,
-    medium: null,
-    low: null,
-  });
-
-  const componentSummaryInitialState = Object.freeze({
-    direct: null,
-    transitive: null,
-    unspecified: null,
-  });
 
   const createdAt = moment(new Date('2024-01-12T20:11:22.000+00:00')).format('YYYY-MM-DD HH:mm:ss');
 
@@ -160,30 +136,7 @@ describe('BillOfMaterials Page', () => {
         },
       },
       billOfMaterialsPage: {
-        publicAppId: null,
-
-        // internal-application-id
-        loadingInternalAppId: true,
-        errorInternalAppId: null,
-        internalAppId: null,
-
-        // sbom-versions
-        loadingSbomVersions: true,
-        errorSbomVersions: null,
-        sbomVersions: null,
-
-        // sbom-metadata
-        loadingSbomMetadata: true,
-        errorSbomMetadata: null,
-        sbomMetadata: { ...sbomMetadataInitialState },
-        scanId: null,
-
-        // sbom-summary
-        loadingSbomSummary: true,
-        errorSbomSummary: null,
-        componentSummary: { ...componentSummaryInitialState },
-        vulnerabilitiesSummary: { ...vulnerabilitiesSummaryInitialState },
-        annotatedVulnerabilitesPercentage: null,
+        ...billOfMaterialsPageInitialState,
       },
       billOfMaterialsComponentsTile: {
         ...billOfMaterialsComponentsTileInitialState,
@@ -225,7 +178,7 @@ describe('BillOfMaterials Page', () => {
     const sbomImportedDate = screen.getByTestId('bill-of-materials-page-sbom-imported-date');
     expect(sbomImportedDate).toHaveTextContent(`Imported:${createdAt}`);
 
-    expect(screen.getByRole('button', { name: 'Download' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Export' })).toBeVisible();
     expect(screen.getByText('Components')).toBeVisible();
 
     const field = await screen.findByRole('button', { name: /Viewing:/i });

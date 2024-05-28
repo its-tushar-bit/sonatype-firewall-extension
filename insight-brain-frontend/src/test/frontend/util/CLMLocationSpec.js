@@ -1454,12 +1454,21 @@ describe('CLMLocation.js', function () {
   });
 
   describe('getDownloadSbomFileUrl', () => {
-    it('should return the correct URL with the given parameters', () => {
-      const applicationId = 'abc123';
-      const applicationVersion = 'v1';
-      const expectedURL = `/api/v2/sbom/applications/${applicationId}/versions/${applicationVersion}/?state=original`;
+    const applicationId = 'application-id';
+    const applicationVersion = 'application-version';
 
+    it('should return the correct URL with minimal parameters', () => {
+      const expectedURL = `/api/v2/sbom/applications/${applicationId}/versions/${applicationVersion}/?state=original`;
       expect(clmLocation.getDownloadSbomFileUrl(applicationId, applicationVersion)).toBe(expectedURL);
+    });
+
+    it('should return the correct URL with state and specification', () => {
+      const baseURL = `/api/v2/sbom/applications/${applicationId}/versions/${applicationVersion}/`;
+      const queryParams = `?state=current&specification=cyclonedx1.5`;
+      const expectedURL = baseURL + queryParams;
+      expect(clmLocation.getDownloadSbomFileUrl(applicationId, applicationVersion, 'current', 'cyclonedx1.5')).toBe(
+        expectedURL
+      );
     });
   });
 

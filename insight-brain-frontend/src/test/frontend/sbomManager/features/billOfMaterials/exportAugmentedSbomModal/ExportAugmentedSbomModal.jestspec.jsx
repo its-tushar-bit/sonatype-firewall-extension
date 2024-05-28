@@ -1,0 +1,108 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import React from 'react';
+import { assocPath } from 'ramda';
+
+import { fireEvent, render, screen } from 'TestRoot/SpecUtil';
+
+import ExportAugmentedSbomModal from 'MainRoot/sbomManager/features/billOfMaterials/exportAugmentedSbomModal/ExportAugmentedSbomModal';
+import {
+  EXPORT_SBOM_SPECIFICATION,
+  EXPORT_SBOM_FILE_FORMAT,
+  exportAndDownloadSbomSubmitMaskInitialState,
+  exportAugmentedSbomModalInitialState,
+} from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
+
+describe('ExportAugmentedSbomModal', () => {
+  const APPLICATION_PUBLIC_ID = 'APPLICATION-PUBLIC-ID';
+  const SBOM_VERSION = 'SBOM-VERSION';
+
+  const initialState = Object.freeze({
+    router: {
+      currentParams: {
+        applicationPublicId: APPLICATION_PUBLIC_ID,
+        versionId: SBOM_VERSION,
+      },
+    },
+    billOfMaterialsPage: {
+      exportAugmentedSbomModal: {
+        ...exportAugmentedSbomModalInitialState,
+        showModal: true,
+      },
+      exportAndDownloadSbomSubmitMask: { ...exportAndDownloadSbomSubmitMaskInitialState },
+    },
+  });
+
+  const renderComponent = (state) => render(<ExportAugmentedSbomModal />, { preloadedState: { ...state } });
+
+  it('should render the correct content', () => {
+    renderComponent(initialState);
+
+    expect(screen.getByText(/Export Augmented SBOM/)).toBeVisible();
+
+    expect(screen.getByText(/SBOM Specification/)).toBeVisible();
+    expect(screen.getByLabelText(/Cyclone DX/)).toBeVisible();
+    expect(screen.getByLabelText(/Cyclone DX/)).toBeChecked();
+    expect(screen.getByLabelText(/SPDX/)).toBeVisible();
+
+    expect(screen.getByText(/SBOM Format/)).toBeVisible();
+    expect(screen.getByLabelText(/Json/)).toBeVisible();
+    expect(screen.getByLabelText(/Json/)).toBeChecked();
+    expect(screen.getByLabelText(/XML/)).toBeVisible();
+
+    expect(screen.getByRole('button', { name: /Cancel/ })).toBeVisible();
+    expect(screen.getByRole('button', { name: /Export/ })).toBeVisible();
+  });
+
+  it('render the correct radios state', () => {
+    const preloadedState = assocPath(
+      ['billOfMaterialsPage', 'exportAugmentedSbomModal'],
+      {
+        showModal: true,
+        sbomSpecification: EXPORT_SBOM_SPECIFICATION.spdx,
+        sbomFileFormat: EXPORT_SBOM_FILE_FORMAT.xml,
+      },
+      initialState
+    );
+
+    renderComponent(preloadedState);
+
+    expect(screen.getByLabelText(/SPDX/)).toBeChecked();
+    expect(screen.getByLabelText(/XML/)).toBeChecked();
+  });
+
+  it('should render the correct content', () => {
+    renderComponent(initialState);
+
+    expect(screen.getByLabelText(/Cyclone DX/)).toBeChecked();
+    expect(screen.getByLabelText(/Json/)).toBeChecked();
+
+    const spdxRadio = screen.getByLabelText(/SPDX/);
+    const xmlRadio = screen.getByLabelText(/XML/);
+
+    fireEvent.click(spdxRadio);
+
+    expect(spdxRadio).toBeChecked();
+    expect(screen.getByLabelText(/Cyclone DX/)).not.toBeChecked();
+
+    fireEvent.click(xmlRadio);
+
+    expect(xmlRadio).toBeChecked();
+    expect(screen.getByLabelText(/Json/)).not.toBeChecked();
+  });
+
+  it('should close the modal when you click "Cancel"', async () => {
+    renderComponent(initialState);
+
+    expect(screen.getByText(/Export Augmented SBOM/)).toBeVisible();
+
+    const cancelButton = screen.getByRole('button', { name: /Cancel/ });
+
+    fireEvent.click(cancelButton);
+
+    expect(await screen.queryByText(/Export Augmented SBOM/)).not.toBeInTheDocument();
+  });
+});

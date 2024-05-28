@@ -55,7 +55,7 @@ public class TenantCacheResourceTest
     long initialCount2 = getCacheStatistics(tenantSlug2).totalHitCount;
 
     // Use a DAO for an entity that is not cached (Role) and verify that the cache hits does not increase
-    TenantTestHelper.testAs(tenant1, tenant -> roleDAO.getAll());
+    TenantTestHelper.testAsTenant(tenant1, tenant -> roleDAO.getAll());
 
     TestCacheStatistics stats1 = getCacheStatistics(tenant1.tenantSlug);
     TestCacheStatistics stats2 = getCacheStatistics(tenantSlug2);
@@ -71,7 +71,7 @@ public class TenantCacheResourceTest
     String tenantSlug2 = generateTestTenantName();
     provisionTenant(tenantSlug2);
 
-    TenantTestHelper.testAs(tenant1, tenant -> organizationDAO.getAll());
+    TenantTestHelper.testAsTenant(tenant1, tenant -> organizationDAO.getAll());
 
     TestCacheStatistics stats1 = getCacheStatistics(tenant1.tenantSlug);
     TestCacheStatistics stats2 = getCacheStatistics(tenantSlug2);
@@ -79,7 +79,7 @@ public class TenantCacheResourceTest
     // We stats1 should have cached the get org call so should be one ahead
     assertThat(stats2.totalHitCount + 1).isEqualTo(stats1.totalHitCount);
 
-    TenantTestHelper.testAs(tenant1, tenant -> organizationDAO.getAll());
+    TenantTestHelper.testAsTenant(tenant1, tenant -> organizationDAO.getAll());
 
     stats1 = getCacheStatistics(tenant1.tenantSlug);
     assertThat(stats2.totalHitCount + 2).isEqualTo(stats1.totalHitCount);

@@ -230,7 +230,7 @@ public abstract class AbstractMtiqFunctionalTest
     @Override
     public void after() {
       Runnable superAfter = super::after;
-      TenantTestHelper.testAs(Tenant.GLOBAL_TENANT, tenant -> {
+      TenantTestHelper.testAsTenant(Tenant.GLOBAL_TENANT, tenant -> {
         superAfter.run();
         afterDatabaseReset();
       });
@@ -293,7 +293,7 @@ public abstract class AbstractMtiqFunctionalTest
     TenantProvisioningService service = testCLMServer.getCLMServer().getInstance(TenantProvisioningService.class);
     service.provisionTenant(tenantSlug);
 
-    TenantTestHelper.testAs(tenantSlug, tenant -> {
+    TenantTestHelper.testAsTenantAndInvalidate(tenantSlug, tenant -> {
       (new TestProductLicenseRule(multiTenantDatabaseContainerRule)).insertLicenseIfNeeded();
     });
   }
@@ -423,7 +423,7 @@ public abstract class AbstractMtiqFunctionalTest
     TenantTestHelper.setGlobalTenant();
     testCLMServer.getHdsServer().reset();
 
-    TenantTestHelper.testAs(testRestTenantUtil.getTenantSlug(), tenant -> {
+    TenantTestHelper.testAsTenantAndInvalidate(testRestTenantUtil.getTenantSlug(), tenant -> {
       if (testProductLicenseManager.wasChanged()) {
         testProductLicenseManager.reset();
         installLicense();

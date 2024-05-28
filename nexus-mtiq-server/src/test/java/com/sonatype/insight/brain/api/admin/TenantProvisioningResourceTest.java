@@ -13,7 +13,6 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_PROVISIONING_PATH;
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TenantProvisioningResourceTest
@@ -59,7 +58,7 @@ public class TenantProvisioningResourceTest
     assertResponseStatus(204, deleteResponse);
 
     //Deletion records should be stored globally and not per-tenant
-    testAs(GLOBAL_TENANT, t -> assertThat(deletedTenantDAO.getTenantBySlug(tenantName)).isNotNull());
+    testAsGlobal(t -> assertThat(deletedTenantDAO.getTenantBySlug(tenantName)).isNotNull());
   }
 
   @Test

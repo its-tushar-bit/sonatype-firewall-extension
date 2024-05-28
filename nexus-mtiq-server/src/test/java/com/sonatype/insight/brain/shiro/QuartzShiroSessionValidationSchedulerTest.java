@@ -19,7 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.assertTenantSet;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -61,7 +61,7 @@ public class QuartzShiroSessionValidationSchedulerTest
       assertThat(underTest.isEnabled()).isTrue();
     });
 
-    testAs(tenant1, t1 -> assertThat(underTest.isEnabled()).isFalse());
+    testAsTenant(tenant1, t1 -> assertThat(underTest.isEnabled()).isFalse());
   }
 
   @Test

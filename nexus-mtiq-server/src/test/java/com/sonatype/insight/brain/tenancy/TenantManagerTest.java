@@ -28,7 +28,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.TenantManager.TENANT_PARAMETER_CANNOT_BE_NULL;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.assertTenantSet;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static com.sonatype.insight.brain.tenancy.TenantUtil.TENANT_DOES_NOT_EXIST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -86,7 +86,7 @@ public class TenantManagerTest
 
   @Test
   public void shouldSetGlobalTenant_andMultiTenantMode() {
-    testAs(new Tenant(TENANT_NAME), tenant -> {
+    testAsTenant(new Tenant(TENANT_NAME), tenant -> {
       TenantThreadLocal.setGlobalTenant();
 
       assertThat(TenantThreadLocal.getTenantWithoutValidation()).isEqualTo(GLOBAL_TENANT);

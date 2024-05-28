@@ -105,8 +105,8 @@ public class CanonicalSchemaValidationTest
    */
   @Test
   public void testNewTenants_shouldHaveTheSameSQLDump() {
-    Tenant tenant1 = provisionNewTenant();
-    Tenant tenant2 = provisionNewTenant();
+    Tenant tenant1 = provisionTestTenant();
+    Tenant tenant2 = provisionTestTenant();
 
     assertTenantsSchemasAreTheExpected(tenant1, tenant2, (schema1, schema2) -> {
       assertThat(schema1).isEqualTo(schema2);
@@ -122,7 +122,7 @@ public class CanonicalSchemaValidationTest
    */
   @Test
   public void testMigratedTenantAndNewTenant_shouldHaveTheSameSQLDump() {
-    Tenant newTenant = provisionNewTenant();
+    Tenant newTenant = provisionTestTenant();
 
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       loadSQLDumpIntoSchema("canonical-schema-from-commit-3098e6.sql", tenant.databaseSchema);
@@ -143,7 +143,7 @@ public class CanonicalSchemaValidationTest
    */
   @Test
   public void testMigratedTenantWithDriftBaseSchemaAndNewTenant_shouldHaveDifferentSQLDumps() {
-    Tenant newTenant = provisionNewTenant();
+    Tenant newTenant = provisionTestTenant();
 
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       loadSQLDumpIntoSchema("modified-base-schema-with-differences.sql", tenant.databaseSchema);

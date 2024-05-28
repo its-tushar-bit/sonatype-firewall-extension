@@ -85,7 +85,7 @@ public class MigrateTenantsCommandTest
     multiTenantGlobalSchemaProtection.createWriteProtection();
 
     // Provision at least one new tenant
-    provisionNewTenant();
+    provisionTestTenant();
 
     // Reset the counts after provisioning
     Mockito.reset(spyDatabaseProvisioner);

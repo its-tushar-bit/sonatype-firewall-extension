@@ -23,7 +23,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -99,11 +99,11 @@ public class SourceControlEventOrchestratorMtiqTest
     verify(underTest, times(2)).startEventProcessingExecutorService();
     verify(underTest, never()).notifyExecutorShutdown();
 
-    testAs(tenant1, t -> underTest.deregister());
+    testAsTenant(tenant1, t -> underTest.deregister());
 
     verify(underTest, times(1)).notifyExecutorShutdown();
 
-    testAs(tenant2, t -> underTest.deregister());
+    testAsTenant(tenant2, t -> underTest.deregister());
 
     verify(underTest, times(2)).notifyExecutorShutdown();
   }

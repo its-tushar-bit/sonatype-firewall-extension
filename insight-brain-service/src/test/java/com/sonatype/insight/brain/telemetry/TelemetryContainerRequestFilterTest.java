@@ -23,7 +23,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
@@ -135,13 +135,13 @@ public class TelemetryContainerRequestFilterTest
           .filter(mockContainerRequestContext("GET", PublicApiPaths.BASE_PATH + "/something"));
     });
 
-    testAs(tenant1, t1 -> {
+    testAsTenant(tenant1, t1 -> {
       assertRestEndpointTelemetry(telemetryContainerRequestFilter.collectAllData(),
           new RestEndpointTelemetry("GET", PublicApiPaths.BASE_PATH + "/something", 1),
           new RestEndpointTelemetry("GET", UserInterfaceLinksHelper.RESOURCE_PATH + "/something", 1));
     });
 
-    testAs(tenant2, t2 -> {
+    testAsTenant(tenant2, t2 -> {
       assertRestEndpointTelemetry(telemetryContainerRequestFilter.collectAllData(),
           new RestEndpointTelemetry("GET", PublicApiPaths.BASE_PATH + "/something", 2),
           new RestEndpointTelemetry("GET", UserInterfaceLinksHelper.RESOURCE_PATH + "/something", 1));

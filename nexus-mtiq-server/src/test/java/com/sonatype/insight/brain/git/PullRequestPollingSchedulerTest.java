@@ -100,7 +100,7 @@ public class PullRequestPollingSchedulerTest
     assertThat(calledWithTenant1.get()).isEqualTo(true);
     assertThat(calledWithTenant2.get()).isEqualTo(true);
 
-    TenantTestHelper.testAs(tenant1.tenantSlug, t1 -> {
+    TenantTestHelper.testAsTenantAndInvalidate(tenant1.tenantSlug, t1 -> {
       scheduler.deregister();
     });
 
@@ -112,7 +112,7 @@ public class PullRequestPollingSchedulerTest
 
     Thread.sleep(1500);
 
-    TenantTestHelper.testAs(tenant2.tenantSlug, t1 -> {
+    TenantTestHelper.testAsTenantAndInvalidate(tenant2.tenantSlug, t1 -> {
       scheduler.deregister();
     });
   }

@@ -50,14 +50,14 @@ public class RepositoryIdentifiedComponentCacheTest
 
     Tenant tenant2 = testAsNewTenant(t2 -> testPut(hash2, componentIdentifier2));
 
-    TenantTestHelper.testAs(tenant1.tenantSlug, t1 -> {
+    TenantTestHelper.testAsTenantAndInvalidate(tenant1.tenantSlug, t1 -> {
       assertThat(repositoryIdentifiedComponentCache.get(hash1)).isNotNull();
       assertThat(repositoryIdentifiedComponentDAO.getByHash(hash1)).isNotNull();
       assertThat(repositoryIdentifiedComponentCache.get(hash2)).isNull();
       assertThat(repositoryIdentifiedComponentDAO.getByHash(hash2)).isNull();
     });
 
-    TenantTestHelper.testAs(tenant2.tenantSlug, t2 -> {
+    TenantTestHelper.testAsTenantAndInvalidate(tenant2.tenantSlug, t2 -> {
       assertThat(repositoryIdentifiedComponentCache.get(hash1)).isNull();
       assertThat(repositoryIdentifiedComponentDAO.getByHash(hash1)).isNull();
       assertThat(repositoryIdentifiedComponentCache.get(hash2)).isNotNull();

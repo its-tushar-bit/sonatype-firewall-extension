@@ -31,27 +31,43 @@ public class TenantTestHelper
     assertThat(TenantThreadLocal.getTenantWithoutValidation()).isEqualTo(tenant);
   }
 
-  public static Tenant setupNewTestTenant(TestName testName) {
-    Tenant tenant = createTenant(testName);
-    setTenantWithoutValidation(tenant);
+  public static String createTenantNameFromTest(TestName testName) {
+    String test = StringUtils.left(testName.getMethodName().toLowerCase().replace('_', '-'), 45);
+    String randomness = StringUtils.left(UUID.randomUUID().toString(), 10);
 
+    return test + "-" + randomness;
+  }
+
+  public static Tenant setupNewTestTenant(TestName testName) {
+    Tenant tenant = new Tenant(createTenantNameFromTest(testName));
+    setTenantWithoutValidation(tenant);
     return tenant;
   }
 
+  /**
+   * Run the given test closure as a <B>NEW</B> {@link Tenant} with the tenant name generated using
+   * {@link #createTenantNameFromTest(TestName)}. Restores any current tenant after completion.
+   */
   public static Tenant testAsNewTenant(TestName testName, ConsumerWithException<Tenant> test) {
     String tenantName = createTenantNameFromTest(testName);
     return testAsNewTenant(tenantName, test);
   }
 
+  /**
+   * Run the given test closure as a <B>NEW</B> {@link Tenant}. Restores any current tenant after completion.
+   */
   public static Tenant testAsNewTenant(String tenantName, ConsumerWithException<Tenant> test) {
-    Tenant tenant = createTenant(tenantName);
+    Tenant tenant = new Tenant(tenantName);
 
-    testAs(tenant, test);
+    testAsTenant(tenant, test);
 
     return tenant;
   }
 
-  public static void testAs(Tenant tenant, ConsumerWithException<Tenant> test) {
+  /**
+   * Run the given test closure as the provided {@link Tenant}. Restores any current tenant after completion.
+   */
+  public static void testAsTenant(Tenant tenant, ConsumerWithException<Tenant> test) {
     Tenant currentTenant = TenantThreadLocal.getTenantWithoutValidation();
     try {
       setTenantWithoutValidation(tenant);
@@ -66,19 +82,19 @@ public class TenantTestHelper
     }
   }
 
-  static Tenant createTenant(final String tenantName) {
-    return new Tenant(tenantName);
-  }
-
-  static Tenant createTenant(TestName testName) {
-    return new Tenant(createTenantNameFromTest(testName));
-  }
-
-  public static String createTenantNameFromTest(TestName testName) {
-    String test = StringUtils.left(testName.getMethodName().toLowerCase().replace('_', '-'), 45);
-    String randomness = StringUtils.left(UUID.randomUUID().toString(), 10);
-
-    return test + "-" + randomness;
+  /**
+   * Run the given test closure as a <B>NEW</B> {@link Tenant}. Restores any current tenant after completion and
+   * additionally invalidate the tenant after completion.
+   * <BR>
+   * In most situations use one of the other `testAs*` methods that do not invalidate the tenant. In general tenant
+   * invalidation would always be done as part of the regular tenancy code (see the multi-tenancy.md devdoc) and using
+   * this might obfuscate a real tenancy issue. Only use this method when the test code itself needs to perform tenant
+   * actions.
+   */
+  public static void testAsTenantAndInvalidate(String tenantName, ConsumerWithException<Tenant> test) {
+    Tenant tenant = new Tenant(tenantName);
+    testAsTenant(tenant, test);
+    tenant.invalidate();
   }
 
   public static void setSingleTenant() {
@@ -91,12 +107,6 @@ public class TenantTestHelper
 
   public static void resetAfterTest() {
     TenantTestHelper.setSingleTenant();
-  }
-
-  public static void testAs(String tenantName, ConsumerWithException<Tenant> test) {
-    Tenant tenant = new Tenant(tenantName);
-    testAs(tenant, test);
-    tenant.invalidate();
   }
 
   @FunctionalInterface

@@ -21,7 +21,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.assertTenantSet;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -60,7 +60,7 @@ public class MultiTenantExecutorThreadPoolsTest
   public void submitCallableShouldRunWithinTenant() throws Exception {
     doAnswer(invocationOnMock -> assertCorrectTenantSet()).when(mockCallable).call();
 
-    testAs(tenant, t -> pool.submit(mockCallable));
+    testAsTenant(tenant, t -> pool.submit(mockCallable));
     verify(mockCallable, timeout(VERIFICATION_TIMEOUT)).call();
     assertTenantSet(GLOBAL_TENANT);
   }
@@ -69,7 +69,7 @@ public class MultiTenantExecutorThreadPoolsTest
   public void submitRunnableShouldRunWithinTenant() throws Exception {
     doAnswer(invocationOnMock -> assertCorrectTenantSet()).when(mockRunnable).run();
 
-    testAs(tenant, t -> pool.submit(mockRunnable));
+    testAsTenant(tenant, t -> pool.submit(mockRunnable));
     verify(mockRunnable, timeout(VERIFICATION_TIMEOUT)).run();
     assertTenantSet(GLOBAL_TENANT);
   }
@@ -78,7 +78,7 @@ public class MultiTenantExecutorThreadPoolsTest
   public void submitRunnableWithResultShouldRunWithinTenant() throws Exception {
     doAnswer(invocationOnMock -> assertCorrectTenantSet()).when(mockRunnable).run();
 
-    testAs(tenant, t -> pool.submit(mockRunnable, null));
+    testAsTenant(tenant, t -> pool.submit(mockRunnable, null));
     verify(mockRunnable, timeout(VERIFICATION_TIMEOUT)).run();
     assertTenantSet(GLOBAL_TENANT);
   }
@@ -87,7 +87,7 @@ public class MultiTenantExecutorThreadPoolsTest
   public void executeRunnableShouldRunWithinTenant() throws Exception {
     doAnswer(invocationOnMock -> assertCorrectTenantSet()).when(mockRunnable).run();
 
-    testAs(tenant, t -> pool.execute(mockRunnable));
+    testAsTenant(tenant, t -> pool.execute(mockRunnable));
     verify(mockRunnable, timeout(VERIFICATION_TIMEOUT)).run();
     assertTenantSet(GLOBAL_TENANT);
   }

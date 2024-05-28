@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.tenancy.Tenant;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -81,7 +81,7 @@ public class AdvancedSearchTelemetryMetricsTest
       mockRunnable.run();
     });
 
-    testAs(tenant1, t1 -> {
+    testAsTenant(tenant1, t1 -> {
       metrics.addSearch(new HashSet<>(Collections.singletonList("newItemType")));
 
       assertStatCounts(4, 3L);
@@ -89,7 +89,7 @@ public class AdvancedSearchTelemetryMetricsTest
       mockRunnable.run();
     });
 
-    testAs(tenant2, t2 -> {
+    testAsTenant(tenant2, t2 -> {
       assertStatCounts(1, 1L);
 
       mockRunnable.run();

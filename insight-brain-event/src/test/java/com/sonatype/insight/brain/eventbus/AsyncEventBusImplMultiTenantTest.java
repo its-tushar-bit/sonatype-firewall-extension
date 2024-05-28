@@ -22,7 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenantNameFromTest;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenantAndInvalidate;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AsyncEventBusImplMultiTenantTest
@@ -61,13 +61,13 @@ public class AsyncEventBusImplMultiTenantTest
     new Thread(() -> {
       for (int i = 0; i < eventsPerTenant; i++) {
         int finalI = i;
-        testAs(tenant1Name, t -> asyncEventBus.post("t1e" + finalI));
+        testAsTenantAndInvalidate(tenant1Name, t -> asyncEventBus.post("t1e" + finalI));
       }
     }).start();
     new Thread(() -> {
       for (int i = 0; i < eventsPerTenant; i++) {
         int finalI = i;
-        testAs(tenant2Name, t -> asyncEventBus.post("t2e" + finalI));
+        testAsTenantAndInvalidate(tenant2Name, t -> asyncEventBus.post("t2e" + finalI));
       }
     }).start();
 

@@ -22,7 +22,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.assertTenantSet;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -70,7 +70,7 @@ public class TenantUrlFilterTest
 
   @Test
   public void shouldInvalidateTenantWhenRequestFinished() throws Exception {
-    testAs(new Tenant(TENANT_NAME), t -> {
+    testAsTenant(new Tenant(TENANT_NAME), t -> {
       underTestDoFilter();
 
       assertThat(TenantThreadLocal.getTenantWithoutValidation().isInvalid()).isTrue();
@@ -81,7 +81,7 @@ public class TenantUrlFilterTest
   public void shouldSetGlobalTenant_whenApplicationHealthCheck() throws Exception {
     when(request.getServerName()).thenReturn("192.168.0.1");
 
-    testAs(new Tenant(TENANT_NAME), t -> {
+    testAsTenant(new Tenant(TENANT_NAME), t -> {
       underTestDoFilter();
 
       assertTenantSet(GLOBAL_TENANT);
@@ -93,7 +93,7 @@ public class TenantUrlFilterTest
     when(request.getRequestURI()).thenReturn("/api/admin/tenants");
     when(request.getPathInfo()).thenReturn("/admin/tenants");
 
-    testAs(new Tenant(TENANT_NAME), t -> {
+    testAsTenant(new Tenant(TENANT_NAME), t -> {
       underTestDoFilter();
 
       assertTenantSet(GLOBAL_TENANT);

@@ -238,7 +238,7 @@ public class ScanServiceTest
       });
 
       // Check scans from tenant 1 are still blocked, unblock them, and check that they complete
-      TenantTestHelper.testAs(tenant1.tenantSlug, t -> {
+      TenantTestHelper.testAsTenantAndInvalidate(tenant1.tenantSlug, t -> {
         for (String t1TicketId : t1TicketIds) {
           assertThat(persistedScanTicketDAO.getById(t1TicketId)).isNotNull().extracting(PersistedScanTicket::getStateId)
               .isEqualTo(State.UPLOADING_SCAN.name());

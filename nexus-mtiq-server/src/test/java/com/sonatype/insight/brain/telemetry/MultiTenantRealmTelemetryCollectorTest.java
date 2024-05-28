@@ -21,7 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.telemetry.RealmTelemetryCollector.SAML_CONFIGURED;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantRealmTelemetryCollectorTest
@@ -57,7 +57,7 @@ public class MultiTenantRealmTelemetryCollectorTest
       assertThat(telemetryData.getAttributes()).containsEntry(SAML_CONFIGURED, "true");
     });
 
-    testAs(tenant1, t1 -> {
+    testAsTenant(tenant1, t1 -> {
       TelemetryData telemetryData = telemetryCollector.collectData();
       assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REALM);
       assertThat(telemetryData.getAttributes()).containsEntry(SAML_CONFIGURED, "false");

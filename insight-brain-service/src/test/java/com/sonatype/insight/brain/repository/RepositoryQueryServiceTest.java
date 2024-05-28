@@ -38,7 +38,7 @@ import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.repository.RepositoryQueryService.INNERSOURCE_REPOSITORY_FORMAT_KEY;
 import static com.sonatype.insight.brain.repository.RepositoryQueryService.INNERSOURCE_REPOSITORY_QUERY_COUNT_KEY;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -532,7 +532,7 @@ public class RepositoryQueryServiceTest
       repositoryQueryService.getAllVersions(npm2, app);
     });
 
-    testAs(tenant1, t1 -> {
+    testAsTenant(tenant1, t1 -> {
       //then
       List<TelemetryData> telemetryData = repositoryQueryService.collectAllData();
       assertThat(telemetryData).hasSize(2);
@@ -544,7 +544,7 @@ public class RepositoryQueryServiceTest
           .containsEntry(INNERSOURCE_REPOSITORY_QUERY_COUNT_KEY, 1);
     });
 
-    testAs(tenant2, t2 -> {
+    testAsTenant(tenant2, t2 -> {
       //then
       List<TelemetryData> telemetryData = repositoryQueryService.collectAllData();
       assertThat(telemetryData).hasSize(1);

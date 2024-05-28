@@ -22,7 +22,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantHierarchyMetricsTelemetryCollectorTest
@@ -67,7 +67,7 @@ public class MultiTenantHierarchyMetricsTelemetryCollectorTest
           .containsEntry(HierarchyMetricsTelemetryCollector.P90_APPS_PER_ORG, "0");
     });
 
-    testAs(tenant1, t1 -> {
+    testAsTenant(tenant1, t1 -> {
       TelemetryData telemetryData = telemetryCollector.collectData();
       assertThat(telemetryData.getAttributes())
           .containsEntry(HierarchyMetricsTelemetryCollector.NUMBER_OF_ORGS, "2")

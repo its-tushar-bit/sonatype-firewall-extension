@@ -56,7 +56,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
 
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -223,7 +223,7 @@ public class ThirdPartyComponentDAOTest
       mockRunnable.run();
     });
 
-    testAs(tenant1, t1 -> {
+    testAsTenant(tenant1, t1 -> {
       assertThirdPartyComponentResult(componentDetails[0]);
       assertThat(dao.componentCache.get().getIfPresent(tenant1ScanId)).isNotNull();
       assertThat(dao.componentCache.get().getIfPresent(tenant2ScanId)).isNull();
@@ -239,7 +239,7 @@ public class ThirdPartyComponentDAOTest
       mockRunnable.run();
     });
 
-    testAs(tenant2, t2 -> {
+    testAsTenant(tenant2, t2 -> {
       assertThirdPartyComponentResult(componentDetails[0]);
       assertThat(dao.componentCache.get().getIfPresent(tenant2ScanId)).isNotNull();
       assertThat(dao.componentCache.get().getIfPresent(tenant1ScanId)).isNull();

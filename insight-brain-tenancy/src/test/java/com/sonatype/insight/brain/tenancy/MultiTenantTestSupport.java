@@ -40,10 +40,10 @@ public abstract class MultiTenantTestSupport
   }
 
   protected void testAsSingleTenant(ConsumerWithException<Tenant> test) {
-    TenantTestHelper.testAs(SINGLE_TENANT, test);
+    TenantTestHelper.testAsTenant(SINGLE_TENANT, test);
   }
 
   protected void testAsGlobalTenant(ConsumerWithException<Tenant> test) {
-    TenantTestHelper.testAs(GLOBAL_TENANT, test);
+    TenantTestHelper.testAsTenant(GLOBAL_TENANT, test);
   }
 }

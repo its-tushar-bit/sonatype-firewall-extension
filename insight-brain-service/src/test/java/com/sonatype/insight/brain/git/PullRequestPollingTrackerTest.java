@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static java.lang.System.currentTimeMillis;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -253,7 +253,7 @@ public class PullRequestPollingTrackerTest
       assertThat(cachedCutoffTime).isEqualTo(oldDate);
     });
 
-    testAs(tenant1, t -> {
+    testAsTenant(tenant1, t -> {
       // Ensure the original tenant cache is not overridden
       Date cachedCutoffTime = pollingTracker.getCachedCutoffTime("org", "repo","token", date);
       assertThat(cachedCutoffTime).isEqualTo(date);

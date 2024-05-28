@@ -54,7 +54,7 @@ import org.quartz.JobExecutionContext;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_CURRENT_VERSION_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -126,7 +126,7 @@ public class EnterpriseReportingServiceTest
           EnterpriseReportingService.ENTERPRISE_REPORTING_CONFIG_PATH))
           .thenReturn(new EnterpriseReportingConfigDTO(expectedTenant1BaseUrl));
     });
-    testAs(tenant1, t1 -> {
+    testAsTenant(tenant1, t1 -> {
       assertThat(enterpriseReportingService.getEnterpriseReportingConfigDTOBaseUrl()).isEqualTo(expectedTenant1BaseUrl);
     });
     Tenant tenant2 = testAsNewTenant(testName, t1 -> {
@@ -134,13 +134,13 @@ public class EnterpriseReportingServiceTest
           EnterpriseReportingService.ENTERPRISE_REPORTING_CONFIG_PATH))
           .thenReturn(new EnterpriseReportingConfigDTO(expectedTenant2BaseUrl));
     });
-    testAs(tenant2, t1 -> {
+    testAsTenant(tenant2, t1 -> {
       assertThat(enterpriseReportingService.getEnterpriseReportingConfigDTOBaseUrl()).isEqualTo(expectedTenant2BaseUrl);
     });
-    testAs(tenant1, t1 -> {
+    testAsTenant(tenant1, t1 -> {
       assertThat(enterpriseReportingService.getEnterpriseReportingConfigDTOBaseUrl()).isEqualTo(expectedTenant1BaseUrl);
     });
-    testAs(tenant2, t1 -> {
+    testAsTenant(tenant2, t1 -> {
       assertThat(enterpriseReportingService.getEnterpriseReportingConfigDTOBaseUrl()).isEqualTo(expectedTenant2BaseUrl);
     });
   }

@@ -30,7 +30,7 @@ import org.quartz.JobKey;
 import static com.sonatype.insight.brain.tenancy.AllTenantsJob.TENANT_LIST;
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenantNameFromTest;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
@@ -101,7 +101,7 @@ public class TenantContextJobListenerTest
   public void shouldInvalidateTenant_afterJobExecution() throws Exception {
     underTest =  new TenantContextJobListener(tenantManager, tenantService, new TenantUtil(), deletedTenantDAO);
 
-    testAs(new Tenant("tenant"), tenant -> {
+    testAsTenant(new Tenant("tenant"), tenant -> {
       underTest.jobWasExecuted(context, null);
 
       assertThat(tenant.isInvalid()).isTrue();
@@ -113,7 +113,7 @@ public class TenantContextJobListenerTest
   public void shouldInvalidateTenant_onJobVeto() throws Exception {
     underTest =  new TenantContextJobListener(tenantManager, tenantService, new TenantUtil(), deletedTenantDAO);
 
-    testAs(new Tenant("tenant"), tenant -> {
+    testAsTenant(new Tenant("tenant"), tenant -> {
       underTest.jobExecutionVetoed(context);
 
       assertThat(tenant.isInvalid()).isTrue();
@@ -136,7 +136,6 @@ public class TenantContextJobListenerTest
     when(detail.getKey()).thenReturn(new JobKey("name", tenantForJob));
 
     testAsNewTenant(tenant -> {
-
       underTest.jobToBeExecuted(context);
 
       assertThat(tenant.isInvalid()).isTrue();
@@ -156,7 +155,7 @@ public class TenantContextJobListenerTest
   public void shouldInvalidateTenant_whenExceptionThrown() throws Exception {
     underTest =  new TenantContextJobListener(tenantManager, tenantService, new TenantUtil(), deletedTenantDAO);
 
-    Tenant jobTenant = TenantTestHelper.createTenant(testName);
+    Tenant jobTenant = new Tenant(TenantTestHelper.createTenantNameFromTest(testName));
 
     when(detail.getKey()).thenAnswer(i -> {
       TenantTestHelper.setTenantWithoutValidation(jobTenant);

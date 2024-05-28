@@ -77,7 +77,7 @@ public abstract class AbstractMultiTenantDatabaseTest
     });
   }
 
-  protected Tenant provisionNewTenant() {
+  protected Tenant provisionTestTenant() {
     return super.testAsNewTenant(t -> {
       databaseRule.provisionDatabaseForTenant(t);
     });

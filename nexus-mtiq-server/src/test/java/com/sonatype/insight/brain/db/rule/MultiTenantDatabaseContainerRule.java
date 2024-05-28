@@ -100,7 +100,7 @@ public class MultiTenantDatabaseContainerRule
   }
 
   public void provisionDatabaseForTenant(Tenant tenant) {
-    TenantTestHelper.testAs(tenant, t -> {
+    TenantTestHelper.testAsTenant(tenant, t -> {
       cloneTenant(tenant.databaseSchema);
 
       DatabaseProvisioner databaseProvisioner = getDatabaseContainer().getDatabaseProvisioner();

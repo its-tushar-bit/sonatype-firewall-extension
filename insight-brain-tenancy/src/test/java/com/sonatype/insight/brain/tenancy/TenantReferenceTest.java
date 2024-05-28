@@ -45,7 +45,7 @@ public class TenantReferenceTest
     });
 
     // Value for original tenant (tenant1) should still be set
-    TenantTestHelper.testAs(tenant1, t1 -> assertThat(underTest.get()).isEqualTo(VALUE_1));
+    TenantTestHelper.testAsTenant(tenant1, t1 -> assertThat(underTest.get()).isEqualTo(VALUE_1));
   }
 
   @Test
@@ -65,6 +65,6 @@ public class TenantReferenceTest
     });
 
     // Value for original tenant (tenant1) should still be set
-    TenantTestHelper.testAs(tenant1, t1 -> assertThat(underTest.get()).isEqualTo(VALUE_1));
+    TenantTestHelper.testAsTenant(tenant1, t1 -> assertThat(underTest.get()).isEqualTo(VALUE_1));
   }
 }

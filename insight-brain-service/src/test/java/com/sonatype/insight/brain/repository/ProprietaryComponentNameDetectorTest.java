@@ -31,7 +31,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.quartz.JobExecutionContext;
 
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doAnswer;
@@ -260,12 +260,12 @@ public class ProprietaryComponentNameDetectorTest
       matcher2.set(proprietaryComponentNameDetector.getMatcher(format));
     });
 
-    testAs(tenant1, t -> {
+    testAsTenant(tenant1, t -> {
       // Ensure the original matcher created for tenant 1 is returned
       assertThat(proprietaryComponentNameDetector.getMatcher(format)).isEqualTo(matcher1.get());
     });
 
-    testAs(tenant2, t -> {
+    testAsTenant(tenant2, t -> {
       // Ensure the original matcher created for tenant 2 is returned
       assertThat(proprietaryComponentNameDetector.getMatcher(format)).isEqualTo(matcher2.get());
     });
@@ -288,7 +288,7 @@ public class ProprietaryComponentNameDetectorTest
       proprietaryComponentNameDetector.invalidateMatchers();
     });
 
-    testAs(tenant1, t -> {
+    testAsTenant(tenant1, t -> {
       // Ensure the original matcher created for tenant 1 is still returned
       assertThat(proprietaryComponentNameDetector.getMatcher(format)).isEqualTo(matcher.get());
     });

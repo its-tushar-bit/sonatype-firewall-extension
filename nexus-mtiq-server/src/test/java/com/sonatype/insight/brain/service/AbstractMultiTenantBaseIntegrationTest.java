@@ -139,7 +139,7 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
 
     jwtSetup();
 
-    setupNewTestTenant();
+    provisionTestTenant();
 
     // For MTIQ TemporaryEntity runs as the test tenant
     testAsTestTenant(test -> {
@@ -203,7 +203,10 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
     // no-op for MTIQ because the default creates LicenseThreatGroups under global which is write protected
   }
 
-  private void setupNewTestTenant() {
+  /**
+   * Provision the built-in test tenant
+   */
+  private void provisionTestTenant() {
     testTenant = TenantTestHelper.setupNewTestTenant(testName);
 
     provisionTenant(testTenant.tenantSlug);
@@ -213,6 +216,9 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
     return TenantTestHelper.createTenantNameFromTest(testName);
   }
 
+  /**
+   * Provision the given tenant name by invoking the admin provisioning endpoint
+   */
   protected HttpResponse provisionTenant(String tenantName) {
     setTenantSlug(tenantName);
 
@@ -221,7 +227,7 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
           .parameter(tenantName)
           .post();
 
-      TenantTestHelper.testAs(tenantName, tenant -> {
+      TenantTestHelper.testAsNewTenant(tenantName, tenant -> {
         testProductLicenseRule.insertLicenseIfNeeded();
       });
       return httpResponse;
@@ -300,10 +306,10 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
   }
 
   protected void testAsTestTenant(ConsumerWithException<Tenant> test) {
-    TenantTestHelper.testAs(testTenant, test);
+    TenantTestHelper.testAsTenant(testTenant, test);
   }
 
   protected void testAsGlobal(ConsumerWithException<Tenant> test) {
-    TenantTestHelper.testAs(GLOBAL_TENANT, test);
+    TenantTestHelper.testAsTenant(GLOBAL_TENANT, test);
   }
 }

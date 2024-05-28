@@ -51,8 +51,8 @@ import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.doAnswer;
@@ -2013,7 +2013,7 @@ public class CLMLicenseManagerTest
     ProductLicenseListener listener = mock(TestTenantManagedProductLicenseListener.class);
     clmLicenseManager.addListener(listener);
     try {
-      testAs(GLOBAL_TENANT, t -> {
+      testAsTenant(GLOBAL_TENANT, t -> {
         clmLicenseManager.loadLicense();
         verify(listener, never()).productLicenseChanged();
       });

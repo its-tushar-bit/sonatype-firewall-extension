@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.model.security.RolePermission;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantRolePermissionDAOTest
@@ -49,7 +49,7 @@ public class MultiTenantRolePermissionDAOTest
             .contains(tenant2RolePermission.getRoleId())
             .doesNotContain(tenant1RolePermission.getRoleId());
 
-        testAs(t1, t1Again -> {
+        testAsTenant(t1, t1Again -> {
           assertThat(permDAO.getRoleIdsByPermission(tenant1RolePermission.getPermission()))
               .contains(tenant1RolePermission.getRoleId())
               .doesNotContain(tenant2RolePermission.getRoleId());

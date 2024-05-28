@@ -27,6 +27,6 @@ public abstract class AbstractMultiTenantTest
   }
 
   protected void testAsGlobalTenant(ConsumerWithException<Tenant> test) {
-    TenantTestHelper.testAs(GLOBAL_TENANT, test);
+    TenantTestHelper.testAsTenant(GLOBAL_TENANT, test);
   }
 }

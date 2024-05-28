@@ -1,0 +1,194 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "whl",
+        "name" : "orange",
+        "qualifier" : "py2.py3-none-4",
+        "version" : "1.0.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "093080a1a4bbd2750543",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20225",
+    "reference" : "CVE-2018-20225",
+    "source" : "cve",
+    "score" : 7.8,
+    "cwe" : "348",
+    "cvssVectorString" : "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2018-20225" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "orange"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.0.1"
+      }, {
+        "value" : " (."
+      }, {
+        "field" : "Extension",
+        "value" : "whl"
+      }, {
+        "value" : ")"
+      } ],
+      "name" : "orange"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "whl",
+        "name" : "orange",
+        "qualifier" : "py2.py3-none-4",
+        "version" : "1.0.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "093080a1a4bbd2750543",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-45803",
+    "reference" : "CVE-2023-45803",
+    "source" : "cve",
+    "score" : 4.2,
+    "cwe" : "200",
+    "cvssVectorString" : "CVSS:3.1/AV:A/AC:H/PR:H/UI:N/S:U/C:H/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2023-45803" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "orange"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "24.0"
+      }, {
+        "value" : " (."
+      }, {
+        "field" : "Extension",
+        "value" : "whl"
+      }, {
+        "value" : ")"
+      } ],
+      "name" : "orange"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "whl",
+        "name" : "orange",
+        "qualifier" : "py2.py3-none-1",
+        "version" : "1.0.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "093080a1a4bbd2750543",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-3651",
+    "reference" : "CVE-2024-3651",
+    "source" : "cve",
+    "score" : 6.2,
+    "cwe" : "400",
+    "cvssVectorString" : "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2024-3651" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "orange"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.0.1"
+      }, {
+        "value" : " (."
+      }, {
+        "field" : "Extension",
+        "value" : "whl"
+      }, {
+        "value" : ")"
+      } ],
+      "name" : "orange"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "whl",
+        "name" : "orange",
+        "qualifier" : "py2.py3-none-2",
+        "version" : "1.0.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "e44313ae1e6af3c2bd3b",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20225",
+    "reference" : "CVE-2018-20225",
+    "source" : "cve",
+    "score" : 7.8,
+    "cwe" : "348",
+    "cvssVectorString" : "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2018-20225" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "orange"
+      }, {
+        "value" : " ("
+      }, {
+        "field" : "Qualifier",
+        "value" : "py3-none-any"
+      }, {
+        "value" : ")"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.0.1"
+      }, {
+        "value" : " (."
+      }, {
+        "field" : "Extension",
+        "value" : "whl"
+      }, {
+        "value" : ")"
+      } ],
+      "name" : "orange"
+    }
+  } ]
+}

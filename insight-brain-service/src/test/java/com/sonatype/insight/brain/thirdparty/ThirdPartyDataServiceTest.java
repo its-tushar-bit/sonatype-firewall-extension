@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.sbom.SbomResultsMatcherTelemetry;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -69,6 +70,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.Assertions.withinPercentage;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -493,6 +495,70 @@ public class ThirdPartyDataServiceTest
   }
 
   @Test
+  public void testMergeSonatypeDataWithSbomData_BestMatchWithSonatypeIdentifier() throws Exception {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+    tempEntity.createSbomMetadata(app.getId(), "1", file);
+
+    ThirdPartyFileCoordinate sbomComponent = null;
+    try {
+      sbomComponent =
+          new ThirdPartyFileCoordinate("093080a1a4bbd2750540", "SBOM", "pypi", "orange", "1.0.1", file.getId());
+      sbomComponent.setId("123456789"); // the same as in the bom.json results
+      sbomComponent.setPackageUrl("pkg:pypi/citrus/orange@1.0.1?extension=whl&qualifier=py2.py3-none-any");
+      sbomComponent.setIdentificationSources("SBOM");
+      thirdPartyFileCoordinateDAO.insert(sbomComponent);
+      final File reportZip =
+          Paths.get(ReportHelper.zipReport("/ThirdPartyDataServiceTest/report-with-multiple-results", tempDir).toURI())
+              .toFile();
+
+      handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
+      ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+
+      sbomComponent = thirdPartyFileCoordinateDAO.getById(sbomComponent.getId());
+      assertThat(sbomComponent.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+      //updated purl from the best match result
+      assertThat(sbomComponent.getPackageUrl()).isEqualTo(
+          "pkg:pypi/citrus/orange@1.0.1?extension=whl&qualifier=py2.py3-none-any&arch=x86_64");
+
+      ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
+      assertThat(sbomMetadata).isNotNull();
+      assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
+
+      List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList =
+          thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(sbomComponent.getId());
+      assertThat(thirdPartyCoordinateSecurityList).hasSize(2);
+
+      List<ThirdPartyCoordinateLicense> licenses =
+          thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(sbomComponent.getId());
+      assertThat(licenses).hasSize(1);
+      verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+      TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+      assertThat(telemetryData).isNotNull();
+      assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_RESULT_BEST_MATCH_METRICS);
+      assertThat(telemetryData.getAttributes()).hasSize(1).containsKey("sbom_results_matcher_stats");
+      SbomResultsMatcherTelemetry telemetry =
+          (SbomResultsMatcherTelemetry) telemetryData.getAttributes().get("sbom_results_matcher_stats");
+      assertThat(telemetry.getWinnerStat())
+          .extracting(s -> s.purlMatchScore, s -> s.hashMatchScore, s -> s.coordMatchScore)
+          .containsExactly(20.0f, 0.0f, 15.0f);
+      assertThat(telemetry.getMatchStats()).hasSize(4)
+          .extracting(s -> s.purlMatchScore, s -> s.hashMatchScore, s -> s.coordMatchScore)
+          .containsExactly(tuple(17.5f, 0.0f, 15.0f), tuple(16.25f, 0.0f, 15.0f),
+              tuple(18.75f, 0.0f, 15.0f), tuple(20.0f, 0.0f, 15.0f));
+    }
+    finally {
+      if (sbomComponent != null) {
+        thirdPartyFileCoordinateDAO.delete(sbomComponent);
+      }
+    }
+  }
+
+  @Test
   public void testMergeSonatypeDataWithSbomData_VerifySecurityVulnerabilityUpdatesAndInserts()
       throws URISyntaxException, IOException
   {
@@ -835,8 +901,8 @@ public class ThirdPartyDataServiceTest
     thirdPartyCoordinateSecurityDAO.update(tpVuln1);
 
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2, "CVE-2022-38013", "description1", "link1",
-            1.0f, "fixedBy1", "vulnSource1", "vectorString1", "high1", "cwes1", "deepdive1", "recommendations1",
-            "advisories1", "SBOM");
+        1.0f, "fixedBy1", "vulnSource1", "vectorString1", "high1", "cwes1", "deepdive1", "recommendations1",
+        "advisories1", "SBOM");
 
     tempEntity.createSbomMetadata("appId", "1", file);
 
@@ -1111,12 +1177,12 @@ public class ThirdPartyDataServiceTest
 
     assertThat(found.stream().filter(sec -> sec.reference.equals(
         expectedSecRows.getRefId())).findFirst())
-          .hasValueSatisfying(securityRow -> {
-            assertThat(securityRow.analysis.state).isEqualTo(vex.getState());
-            assertThat(securityRow.analysis.justification).isEqualTo(vex.getJustification());
-            assertThat(securityRow.analysis.response).isEqualTo(vex.getResponse());
-            assertThat(securityRow.analysis.detail).isEqualTo(vex.getDetail());
-          });
+        .hasValueSatisfying(securityRow -> {
+          assertThat(securityRow.analysis.state).isEqualTo(vex.getState());
+          assertThat(securityRow.analysis.justification).isEqualTo(vex.getJustification());
+          assertThat(securityRow.analysis.response).isEqualTo(vex.getResponse());
+          assertThat(securityRow.analysis.detail).isEqualTo(vex.getDetail());
+        });
   }
 
   private void assertLicenseNotProvided(

@@ -217,7 +217,7 @@ public class SbomComponentsService
             vulnerabilityDetailsDTO.setResponse(vex.getResponse());
             vulnerabilityDetailsDTO.setDetails(vex.getDetail());
             vulnerabilityDetailsDTO.setUpdatedAt(vex.getUpdatedAt());
-            vulnerabilityDetailsDTO.setLastUpdatedBy(vex.getLastUpdatedBy());
+            vulnerabilityDetailsDTO.setLastUpdatedBy(vex.getLastUpdatedByWithoutRealm());
           }
 
           return vulnerabilityDetailsDTO;

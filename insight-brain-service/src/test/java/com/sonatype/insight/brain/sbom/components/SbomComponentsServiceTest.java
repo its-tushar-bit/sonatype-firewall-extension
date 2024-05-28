@@ -95,9 +95,11 @@ public class SbomComponentsServiceTest
     assertComponentSummary(actualA, 9, 1, 1, 1);
     assertThat(actualA.getDisclosedVulnerabilities()).hasSize(2);
     assertVulnerabilities(actualA.getDisclosedVulnerabilities().get(0), vulnerabilityA, vexA.getState(),
-        vexA.getJustification(), vexA.getResponse(), vexA.getDetail(), vexA.getUpdatedAt(), vexA.getLastUpdatedBy());
+        vexA.getJustification(), vexA.getResponse(), vexA.getDetail(), vexA.getUpdatedAt(),
+        vexA.getLastUpdatedByWithoutRealm());
     assertVulnerabilities(actualA.getDisclosedVulnerabilities().get(1), vulnerabilityB, vexB.getState(),
-        vexB.getJustification(), vexB.getResponse(), vexB.getDetail(), vexB.getUpdatedAt(), vexB.getLastUpdatedBy());
+        vexB.getJustification(), vexB.getResponse(), vexB.getDetail(), vexB.getUpdatedAt(),
+        vexB.getLastUpdatedByWithoutRealm());
     assertThat(actualA.getSonatypeIdentifiedVulnerabilities()).hasSize(1);
     assertVulnerabilities(actualA.getSonatypeIdentifiedVulnerabilities().get(0), vulnerabilityC, null, null, null, null,
         null, null);
@@ -108,7 +110,8 @@ public class SbomComponentsServiceTest
     assertVulnerabilities(actualB.getDisclosedVulnerabilities().get(0), vulnerabilityD, null, null, null, null, null,
         null);
     assertVulnerabilities(actualB.getDisclosedVulnerabilities().get(1), vulnerabilityE, vexE.getState(),
-        vexE.getJustification(), vexE.getResponse(), vexE.getDetail(), vexE.getUpdatedAt(), vexE.getLastUpdatedBy());
+        vexE.getJustification(), vexE.getResponse(), vexE.getDetail(), vexE.getUpdatedAt(),
+        vexE.getLastUpdatedByWithoutRealm());
     assertThat(actualB.getSonatypeIdentifiedVulnerabilities()).isEmpty();
   }
 

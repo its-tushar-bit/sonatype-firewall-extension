@@ -7,8 +7,11 @@ package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
 import java.sql.JDBCType;
 import java.sql.SQLException;
+
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -16,6 +19,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.model.thirdpartyscans.RecentVulnerabilitiesDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.VulnerabilitiesThreadLevelMetricDTO;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -90,6 +94,39 @@ public class ThirdPartyCoordinateSecurityDAO
 
     // lastly delete this entity
     super.delete(tx, coordinateSecurity);
+  }
+
+  public List<RecentVulnerabilitiesDTO> getRecentHighPriorityVulnerabilities(Set<String> applicationIds) {
+    String sQuery = "" + //
+        "SELECT DISTINCT ref_id," + //
+        " cs.severity," + //
+        " CASE WHEN (cs.severity BETWEEN ?1 AND ?2) THEN 'high'" + //
+        " WHEN (cs.severity BETWEEN ?3 AND ?4) THEN 'critical' END as severityStatus," + //
+        " sm.created_at" + //
+        " FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
+        " JOIN " + getDatabaseSchema() + ".file_coordinate fc" + //
+        " ON fc.third_party_file_id = sm.third_party_file_id" + //
+        " JOIN " + getDatabaseSchema() + ".coordinate_security cs" + //
+        " ON cs.file_coordinate_id = fc.file_coordinate_id" + //
+        " WHERE cs.severity >= ?1" + //
+        " AND sm.application_id = ANY(array[?5])" + //
+        " AND sm.status = 'ACTIVE'" + //
+        " ORDER BY sm.created_at desc, cs.severity desc, ref_id desc" + //
+        " LIMIT 10";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = createNativeQuery(tx, sQuery, HIGH.getStartScoreRange(), HIGH.getEndScoreRange(),
+          CRITICAL.getStartScoreRange(), CRITICAL.getEndScoreRange(), createArrayOf(JDBCType.VARCHAR,
+              applicationIds.toArray()));
+
+      List<RecentVulnerabilitiesDTO> dtos = ((Stream<Object[]>) query.getResultStream())
+          .map(RecentVulnerabilitiesDTO::new).collect(Collectors.toList());
+
+      return dtos;
+    }
+    catch (SQLException e) {
+      throw new InternalServerException(e);
+    }
   }
 
   public VulnerabilitiesThreadLevelMetricDTO getVulnerabilitiesByThreatLevel(Set<String> applicationIds) {

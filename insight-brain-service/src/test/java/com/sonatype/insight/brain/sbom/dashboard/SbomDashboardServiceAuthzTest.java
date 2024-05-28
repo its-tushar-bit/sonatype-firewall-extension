@@ -1,0 +1,106 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.sbom.dashboard;
+
+import java.util.Date;
+import java.util.List;
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.thirdpartyscans.RecentVulnerabilitiesDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.brain.utils.CvssV3Severity;
+import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
+
+import org.apache.commons.lang3.time.DateUtils;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class SbomDashboardServiceAuthzTest extends AbstractServiceAuthzTest
+{
+  @Inject
+  private SbomDashboardService service;
+
+  private ThirdPartyFileCoordinate component;
+
+  @Before
+  public void before() {
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    component =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1");
+    ThirdPartyCoordinateSecurity vulnerability =
+        tempEntity.newThirdPartyCoordinateSecurity(component, "cve", "d1", "l1", 9,
+            "d1", "f1");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerability, "cve", "resolved",
+        "code_not_reachable", "response", "details");
+  }
+
+  @Test
+  public void testGetRecentHighPriorityVulnerabilities_Unauthenticated() {
+    List<RecentVulnerabilitiesDTO> results = service.getRecentHighPriorityVulnerabilities();
+    assertThat(results).isEmpty();
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetRecentHighPriorityVulnerabilities_Authorized() {
+    grantReadPermission(app.getId());
+
+    Date now = new Date();
+    Date oneYearAgo = DateUtils.addYears(now, -1);
+    Date sixMonthsAgo = DateUtils.addMonths(now, -6);
+
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withCreatedAt(sixMonthsAgo)
+        .build();
+
+    ThirdPartyFileCoordinate coordinate1 =
+        tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(), "s1", "f1",
+            "n1", "v1", "", "");
+
+    ThirdPartyCoordinateSecurity coordinateSecurity1 = tempEntity.newThirdPartyCoordinateSecurity(coordinate1,
+        "r1", "d1", "l1", CvssV3Severity.CRITICAL.getStartScoreRange(),
+        CvssV3Severity.CRITICAL.getDisplayName(), "f1");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity1, coordinateSecurity1.getRefId(),
+        "state", "justification", "response", "detail");
+
+    // No permission on this application yet
+    Application newApplication = tempEntity.newApplicationWithParent();
+
+    ThirdPartySbomMetadata sbomMetadata2 = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(newApplication.getId())
+        .withCreatedAt(oneYearAgo)
+        .build();
+
+    ThirdPartyFileCoordinate coordinate2 =
+        tempEntity.newThirdPartyFileCoordinate(sbomMetadata2.getThirdPartyFileId(), "s2", "f2",
+            "n2", "v2", "", "");
+
+    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "r2", "d2", "l2",
+        CvssV3Severity.HIGH.getStartScoreRange(), CvssV3Severity.HIGH.getDisplayName(), "f2");
+
+    List<RecentVulnerabilitiesDTO> results = service.getRecentHighPriorityVulnerabilities();
+
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0).getRefId()).isEqualTo("r1");
+
+    grantReadPermission(newApplication.getId());
+
+    results = service.getRecentHighPriorityVulnerabilities();
+
+    assertThat(results).hasSize(2);
+    assertThat(results.get(0).getRefId()).isEqualTo("r1");
+    assertThat(results.get(1).getRefId()).isEqualTo("r2");
+  }
+}

@@ -1,0 +1,45 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.sbom.dashboard;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.thirdpartyscans.RecentVulnerabilitiesDTO;
+import com.sonatype.insight.brain.organization.ApplicationService;
+
+@Named
+public class SbomDashboardService
+{
+  private final ApplicationService applicationService;
+
+  private final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
+
+  @Inject
+  public  SbomDashboardService(
+      final ApplicationService applicationService,
+      final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO
+  )
+  {
+    this.applicationService = applicationService;
+    this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
+  }
+
+  public List<RecentVulnerabilitiesDTO> getRecentHighPriorityVulnerabilities() {
+    List<Application> applications = applicationService.getApplications();
+    Set<String> applicationIds = applications.stream().map(Application::getId).collect(Collectors.toSet());
+    if (applicationIds.isEmpty()) {
+      return new ArrayList<>();
+    }
+    return thirdPartyCoordinateSecurityDAO.getRecentHighPriorityVulnerabilities(applicationIds);
+  }
+}

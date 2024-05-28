@@ -6,10 +6,9 @@
 package com.sonatype.insight.brain.sbom.export;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 
@@ -23,32 +22,31 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
-import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
-import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
+import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.scan.file.SbomFormat;
-import com.sonatype.insight.scan.file.ThirdPartyUtils;
 
+import org.apache.commons.io.IOUtils;
+import org.cyclonedx.model.Bom;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.spdx.library.model.SpdxDocument;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 import org.xmlunit.assertj.XmlAssert;
 
-import static com.sonatype.insight.brain.sbom.export.SpdxDocumentAssert.assertThatSpdx;
-import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
-import static org.mockito.Mockito.when;
+import static com.sonatype.insight.brain.sbom.export.CycloneDxDocumentAssert.assertThatCycloneDx;
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.CYCLONEDX_IGNORE_METADATA_COMPONENT_PATH;
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.CYCLONEDX_IGNORE_METADATA_TIMESTAMP_PATH;
 
-public class SpdxToSpdxExporterTest
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+
+public class SpdxToCycloneDxExporterTest
     extends AbstractSbomExporterTest
 {
-  private static final List<String> IGNORE_NODES = Arrays.asList("created", "name", "documentNamespace", "creators");
-
   @Inject
-  MultiLicenseDAO multiLicenseDAO;
+  private MultiLicenseDAO multiLicenseDAO;
 
   @Inject
   private ThirdPartyVulnerabilityExploitabilityExchangeDAO vulnerabilityExploitabilityExchangeDAO;
@@ -71,16 +69,15 @@ public class SpdxToSpdxExporterTest
   @Inject
   private VersionService versionService;
 
-  private SpdxToSpdxExporter spdxExporter;
+  private SpdxToCycloneDxExporter spdxToCycloneDxExporter;
 
   private Application app;
 
   @Before
   public void before() {
-    spdxExporter = new SpdxToSpdxExporter(mockInsightWork, multiLicenseDAO, thirdPartyFileCoordinateDAO,
+    spdxToCycloneDxExporter = new SpdxToCycloneDxExporter(mockInsightWork, multiLicenseDAO, thirdPartyFileCoordinateDAO,
         thirdPartyCoordinateSecurityDAO, thirdPartyCoordinateLicenseDAO, vulnerabilityExploitabilityExchangeDAO,
         baseUrl, idUtils, versionService);
-    when(baseUrl.get()).thenReturn("http://localhost:8070/");
     app = tempEntity.newApplicationWithParent();
   }
 
@@ -92,29 +89,31 @@ public class SpdxToSpdxExporterTest
             sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.JSON.toString(), "2.3");
     SbomExportParams exportParams =
         SbomExportParams.newSbomExporterParams(sbomMetadata)
-            .withExportSpecification(ExportSpecification.SPDX_23)
+            .withExportSpecification(SbomExportParams.ExportSpecification.CYCLONEDX_15)
             .withTargetFormat(SbomFormat.JSON);
-    spdxExporter.setExportParams(exportParams);
-    String export = spdxExporter.export();
-    ThirdPartyUtils.parseAndValidateSpdx(export, SbomFormat.JSON);
-    assertThatJson(export)
-        .isEqualTo(readFileToString("outputs/output_spdx-v2_3.json"));
+    spdxToCycloneDxExporter.setExportParams(exportParams);
+    String expected = IOUtils.resourceToString("/" + getClass().getSimpleName() +
+        "/outputs/" + "output_cdx-v1_5.json", Charset.defaultCharset());
+    String actual = spdxToCycloneDxExporter.export();
+    assertThatJson(actual)
+        .whenIgnoringPaths(CYCLONEDX_IGNORE_METADATA_COMPONENT_PATH, CYCLONEDX_IGNORE_METADATA_TIMESTAMP_PATH)
+        .isEqualTo(expected);
   }
 
   @Test
-  public void testExport_Xml() throws Exception {
+  public void testExport_XML() throws Exception {
     File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("spdx-v2_3.xml"));
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(tempEntity.newThirdPartyFile().getId(), app.getId(), "1.0.1", "ACTIVE",
             sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.XML.toString(), "2.3");
     SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
-        .withExportSpecification(ExportSpecification.SPDX_23)
+        .withExportSpecification(SbomExportParams.ExportSpecification.CYCLONEDX_15)
         .withTargetFormat(SbomFormat.XML);
-    spdxExporter.setExportParams(exportParams);
-    String export = spdxExporter.export();
-    ThirdPartyUtils.parseAndValidateSpdx(export, SbomFormat.XML);
-    XmlAssert.assertThat(export).and(readFileToString("outputs/output_spdx-v2_3.xml"))
-        .withNodeFilter(node -> !IGNORE_NODES.contains(node.getNodeName()))
+    spdxToCycloneDxExporter.setExportParams(exportParams);
+    String actual = spdxToCycloneDxExporter.export();
+    XmlAssert.assertThat(actual).and(readFileToString("outputs/output_cdx-v1_5.xml"))
+        .withNodeFilter(node -> node.getParentNode().getNodeName().equals("metadata") &&
+                (node.getNodeName().equals("component") || node.getNodeName().equals("timestamp")))
         .ignoreWhitespace()
         .areIdentical();
   }
@@ -136,19 +135,16 @@ public class SpdxToSpdxExporterTest
         "CVSS VectorCVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", "High", "", "", "", "", "SONATYPE");
 
     SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
-        .withExportSpecification(ExportSpecification.SPDX_23)
+        .withExportSpecification(SbomExportParams.ExportSpecification.CYCLONEDX_15)
         .withTargetFormat(SbomFormat.JSON);
-    spdxExporter.setExportParams(exportParams);
-    String export = spdxExporter.export();
-    SpdxDocument sbom = SbomSpdxUtils.parseContentNoValidation(export, SbomFormat.JSON);
-    SpdxDocumentAssert documentAssert = assertThatSpdx(sbom)
-        .isValid()
-        .hasFormat(SbomFormat.JSON)
-        .nameContains(app.getPublicId())
+    spdxToCycloneDxExporter.setExportParams(exportParams);
+    String export = spdxToCycloneDxExporter.export();
+    Bom sbom = SbomCycloneDxUtils.parseContentNoValidation(export);
+    CycloneDxDocumentAssert documentAssert = assertThatCycloneDx(sbom)
+        .hasToolCreationInformation("Sonatype SBOM Manager", versionService.getFullVersion())
+        .hasComponentDocumentDescribes(app.getPublicId())
         .creationDateCloseTo(LocalDateTime.now(ZoneOffset.UTC))
-        .creatorsContaining("Tool: Sonatype SBOM Manager")
-        .equalsSpecVersion("2.3")
-        .equalsDataLicense("CC0-1.0")
+        .equalsSpecVersion("1.5")
         .hasComponentCount(4)
         .hasPackagesWithPurls("pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.3?type=jar",
             "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar",
@@ -156,13 +152,13 @@ public class SpdxToSpdxExporterTest
             "pkg:maven/org.example/JavaApp@1.0-SNAPSHOT?type=jar")
         .hasVulnerabilityCount(3);
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.3?type=jar")
-        .hasVulnerabilityCount(1)
-        .containsVulnerabilities("sonatype-2022-6438");
+        .hasVulnerabilityCount(sbom, 1)
+        .containsVulnerabilities(sbom, "sonatype-2022-6438");
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar")
-        .hasVulnerabilityCount(2)
-        .containsVulnerabilities("CVE-2022-42003", "CVE-2022-42004");
+        .hasVulnerabilityCount(sbom, 2)
+        .containsVulnerabilities(sbom, "CVE-2022-42003", "CVE-2022-42004");
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.3?type=jar")
-        .hasVulnerabilityCount(0);
+        .hasVulnerabilityCount(sbom, 0);
   }
 
   @Test
@@ -181,19 +177,16 @@ public class SpdxToSpdxExporterTest
     tempEntity.newThirdPartyCoordinateLicense(databind, "MIT", "MIT", "", "SONATYPE");
 
     SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
-        .withExportSpecification(ExportSpecification.SPDX_23)
+        .withExportSpecification(SbomExportParams.ExportSpecification.CYCLONEDX_15)
         .withTargetFormat(SbomFormat.XML);
-    spdxExporter.setExportParams(exportParams);
-    String export = spdxExporter.export();
-    SpdxDocument sbom = SbomSpdxUtils.parseContentNoValidation(export, SbomFormat.XML);
-    SpdxDocumentAssert documentAssert = assertThatSpdx(sbom)
-        .isValid()
-        .hasFormat(SbomFormat.XML)
-        .nameContains(app.getPublicId())
+    spdxToCycloneDxExporter.setExportParams(exportParams);
+    String export = spdxToCycloneDxExporter.export();
+    Bom sbom = SbomCycloneDxUtils.parseContentNoValidation(export);
+    CycloneDxDocumentAssert documentAssert = assertThatCycloneDx(sbom)
+        .hasComponentDocumentDescribes(app.getPublicId())
+        .hasToolCreationInformation("Sonatype SBOM Manager", versionService.getFullVersion())
         .creationDateCloseTo(LocalDateTime.now(ZoneOffset.UTC))
-        .creatorsContaining("Tool: Sonatype SBOM Manager")
-        .equalsSpecVersion("2.3")
-        .equalsDataLicense("CC0-1.0")
+        .equalsSpecVersion("1.5")
         .hasComponentCount(4)
         .hasPackagesWithPurls("pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.3?type=jar",
             "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar",
@@ -201,16 +194,13 @@ public class SpdxToSpdxExporterTest
             "pkg:maven/org.example/JavaApp@1.0-SNAPSHOT?type=jar")
         .hasVulnerabilityCount(2);
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.3?type=jar")
-        .hasConcludedLicense("Apache-2.0")
-        .hasDeclaredLicense("Apache-2.0")
+        .hasLicenseCount(2)
         .containsLicenses("Apache-2.0", "BSD-3-Clause");
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar")
-        .hasConcludedLicense("Apache-2.0")
-        .hasDeclaredLicense("Apache-2.0")
+        .hasLicenseCount(2)
         .containsLicenses("Apache-2.0", "MIT");
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.3?type=jar")
-        .hasConcludedLicense("Apache-2.0")
-        .hasDeclaredLicense("Apache-2.0");
+        .hasLicenseCount(1);
   }
 
   @Test
@@ -228,27 +218,24 @@ public class SpdxToSpdxExporterTest
     tempEntity.newThirdPartyCoordinateLicense(databind, "Sonatype-Private", "Sonatype Private", "", "SONATYPE");
 
     SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
-        .withExportSpecification(ExportSpecification.SPDX_23)
+        .withExportSpecification(SbomExportParams.ExportSpecification.CYCLONEDX_15)
         .withTargetFormat(SbomFormat.XML);
-    spdxExporter.setExportParams(exportParams);
-    String export = spdxExporter.export();
-    SpdxDocument sbom = SbomSpdxUtils.parseContentNoValidation(export, SbomFormat.XML);
-    SpdxDocumentAssert documentAssert = assertThatSpdx(sbom)
-        .isValid()
-        .hasFormat(SbomFormat.XML)
-        .nameContains(app.getPublicId())
+    spdxToCycloneDxExporter.setExportParams(exportParams);
+    String export = spdxToCycloneDxExporter.export();
+    Bom sbom = SbomCycloneDxUtils.parseContentNoValidation(export);
+    CycloneDxDocumentAssert documentAssert = assertThatCycloneDx(sbom)
+        .hasComponentDocumentDescribes(app.getPublicId())
+        .hasToolCreationInformation("Sonatype SBOM Manager", versionService.getFullVersion())
         .creationDateCloseTo(LocalDateTime.now(ZoneOffset.UTC))
-        .equalsSpecVersion("2.3")
-        .equalsDataLicense("CC0-1.0")
+        .equalsSpecVersion("1.5")
         .hasComponentCount(4)
         .hasPackagesWithPurls("pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.3?type=jar",
             "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar",
             "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.3?type=jar",
             "pkg:maven/org.example/JavaApp@1.0-SNAPSHOT?type=jar");
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar")
-        .hasConcludedLicense("Apache-2.0")
-        .hasDeclaredLicense("Apache-2.0")
-        .containsLicenses("Apache-2.0", "LicenseRef-Sonatype-Private", "LicenseRef-Not-Supported");
+        .hasLicenseCount(3)
+        .containsLicenses("Apache-2.0", "Sonatype-Private", "Not-Supported");
   }
 
   private Map<String, Object> mockOriginalThirdPartyScan() {

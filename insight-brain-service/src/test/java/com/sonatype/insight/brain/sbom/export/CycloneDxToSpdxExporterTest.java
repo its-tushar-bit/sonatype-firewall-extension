@@ -10,6 +10,7 @@ import java.io.File;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -50,6 +51,9 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
   private static final String SCAN_ID = "sid1";
 
   @Inject
+  private MultiLicenseDAO multiLicenseDAO;
+
+  @Inject
   private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
   @Inject
@@ -81,6 +85,7 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
     thirdPartyFile = tempEntity.newThirdPartyFile(THIRD_PARTY_FILE);
     exporter = new CycloneDxToSpdxExporter(
         mockInsightWork,
+        multiLicenseDAO,
         thirdPartyFileCoordinateDAO,
         thirdPartyCoordinateSecurityDAO,
         thirdPartyCoordinateLicenseDAO,
@@ -145,9 +150,7 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
         .isEqualTo(readFileToString("outputs/webgoat-from-json-to-spdx.json"));
   }
 
-  private String setupExportSbomScenarioWithFileAndOutputFormat(File testBomFile, SbomFormat outputFormat)
-      throws Exception
-  {
+  private String setupExportSbomScenarioWithFileAndOutputFormat(File testBomFile, SbomFormat outputFormat) {
     defineDbTestData(thirdPartyFile, "");
     ThirdPartySbomMetadata sbomMetadata = insertTestData(testBomFile.getName(),
         thirdPartyFile);

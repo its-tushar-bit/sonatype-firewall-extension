@@ -27,15 +27,19 @@ public class SbomExporterProvider
 
   private final Provider<CycloneDxToSpdxExporter> cycloneDxToSpdxExporterProvider;
 
+  private final Provider<SpdxToCycloneDxExporter> spdxToCycloneDxExporterProvider;
+
   @Inject
   public SbomExporterProvider(
       final Provider<CycloneDxToCycloneDxExporter> cycloneDxToCycloneDxExporterProvider,
       final Provider<SpdxToSpdxExporter> spdxToSpdxExporterProvider,
+      final Provider<SpdxToCycloneDxExporter> spdxToCycloneDxExporterProvider,
       final Provider<CycloneDxToSpdxExporter> cycloneDxToSpdxExporterProvider)
   {
     this.cycloneDxToCycloneDxExporterProvider = cycloneDxToCycloneDxExporterProvider;
     this.spdxToSpdxExporterProvider = spdxToSpdxExporterProvider;
     this.cycloneDxToSpdxExporterProvider = cycloneDxToSpdxExporterProvider;
+    this.spdxToCycloneDxExporterProvider = spdxToCycloneDxExporterProvider;
   }
 
   public SbomExporter get(SbomExportParams exportParams) {
@@ -58,6 +62,10 @@ public class SbomExporterProvider
 
     if (CYCLONEDX.equals(inputSpec) && SPDX.equals(outputSpec)) {
       return cycloneDxToSpdxExporterProvider.get();
+    }
+
+    if (SPDX.equals(inputSpec) && CYCLONEDX.equals(outputSpec)) {
+      return spdxToCycloneDxExporterProvider.get();
     }
 
     throw new BadRequestException(

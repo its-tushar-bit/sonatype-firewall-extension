@@ -15,6 +15,7 @@ import java.util.NoSuchElementException;
 import java.util.zip.GZIPInputStream;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -72,6 +73,9 @@ public class CycloneDxToCycloneDxExporterTest
   private static final String SCAN_ID = "sid1";
 
   @Inject
+  private MultiLicenseDAO multiLicenseDAO;
+
+  @Inject
   private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
   @Inject
@@ -103,6 +107,7 @@ public class CycloneDxToCycloneDxExporterTest
     thirdPartyFile = tempEntity.newThirdPartyFile(THIRD_PARTY_FILE);
     exporter = new CycloneDxToCycloneDxExporter(
         mockInsightWork,
+        multiLicenseDAO,
         thirdPartyFileCoordinateDAO,
         thirdPartyCoordinateSecurityDAO,
         thirdPartyCoordinateLicenseDAO,

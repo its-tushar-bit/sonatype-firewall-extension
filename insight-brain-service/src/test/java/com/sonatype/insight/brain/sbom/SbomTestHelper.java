@@ -37,6 +37,10 @@ public class SbomTestHelper
   public static final List<String> SPDX_IGNORE_NODES =
       Arrays.asList("created", "documentNamespace", "creators");
 
+  public static final String CYCLONEDX_IGNORE_METADATA_COMPONENT_PATH = "metadata.component";
+
+  public static final String CYCLONEDX_IGNORE_METADATA_TIMESTAMP_PATH = "metadata.timestamp";
+
   public static Predicate<Node> spdxDxIgnoreNodesFilter() {
     return node -> {
       if (SPDX_IGNORE_NODES.contains(node.getNodeName())) {

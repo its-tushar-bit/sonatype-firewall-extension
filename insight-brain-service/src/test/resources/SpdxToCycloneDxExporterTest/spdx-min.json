@@ -1,0 +1,91 @@
+{
+  "SPDXID" : "SPDXRef-DOCUMENT",
+  "spdxVersion" : "SPDX-2.3",
+  "creationInfo" : {
+    "created" : "2024-04-21T01:24:31Z",
+    "creators" : [ "Tool: Sonatype IQ Server - 1.176.0-SNAPSHOT" ]
+  },
+  "name" : "pkg:maven/org.example/JavaApp@1.0-SNAPSHOT?type=jar",
+  "dataLicense" : "CC0-1.0",
+  "documentNamespace" : "http://localhost:8070/ui/links/application/JavaApp/report/c2b638150d2049fb8f956a02c4bf12ab",
+  "packages" : [ {
+    "SPDXID" : "SPDXRef-maven-com.fasterxml.jackson.core-jackson-databind-2.13.3",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar",
+      "referenceType" : "purl"
+    }, {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-42004",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-42003",
+      "referenceType" : "advisory"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "Apache-2.0",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "com.fasterxml.jackson.core:jackson-databind",
+    "versionInfo" : "2.13.3"
+  }, {
+    "SPDXID" : "SPDXRef-maven-com.fasterxml.jackson.core-jackson-annotations-2.13.3",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.3?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "Apache-2.0",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "com.fasterxml.jackson.core:jackson-annotations",
+    "versionInfo" : "2.13.3"
+  }, {
+    "SPDXID" : "SPDXRef-maven-com.fasterxml.jackson.core-jackson-core-2.13.3",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.3?type=jar",
+      "referenceType" : "purl"
+    }],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "Apache-2.0",
+    "licenseDeclared" : "Apache-2.0",
+    "name" : "com.fasterxml.jackson.core:jackson-core",
+    "versionInfo" : "2.13.3"
+  }, {
+    "SPDXID" : "SPDXRef-maven-org.example-JavaApp-1.0-SNAPSHOT",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/org.example/JavaApp@1.0-SNAPSHOT?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "org.example:JavaApp",
+    "versionInfo" : "1.0-SNAPSHOT"
+  } ],
+  "relationships" : [ {
+    "spdxElementId" : "SPDXRef-DOCUMENT",
+    "relationshipType" : "DESCRIBES",
+    "relatedSpdxElement" : "SPDXRef-maven-org.example-JavaApp-1.0-SNAPSHOT"
+  }, {
+    "spdxElementId" : "SPDXRef-maven-com.fasterxml.jackson.core-jackson-databind-2.13.3",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-maven-com.fasterxml.jackson.core-jackson-annotations-2.13.3"
+  }, {
+    "spdxElementId" : "SPDXRef-maven-com.fasterxml.jackson.core-jackson-databind-2.13.3",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-maven-com.fasterxml.jackson.core-jackson-core-2.13.3"
+  }, {
+    "spdxElementId" : "SPDXRef-maven-org.example-JavaApp-1.0-SNAPSHOT",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-maven-com.fasterxml.jackson.core-jackson-databind-2.13.3"
+  } ]
+}

@@ -9,6 +9,7 @@ package com.sonatype.insight.brain.sbom.export;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -31,6 +32,7 @@ public abstract class AbstractSpdxExporter extends AbstractCycloneDxExporter
 
   protected AbstractSpdxExporter(
       final InsightWork insightWork,
+      final MultiLicenseDAO multiLicenseDAO,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
@@ -39,8 +41,9 @@ public abstract class AbstractSpdxExporter extends AbstractCycloneDxExporter
       final IdUtils idUtils,
       final VersionService versionService)
   {
-    super(insightWork, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO, thirdPartyCoordinateLicenseDAO,
-        thirdPartyVulnerabilityExploitabilityExchangeDAO, baseUrl, idUtils, versionService);
+    super(insightWork, multiLicenseDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+        thirdPartyCoordinateLicenseDAO, thirdPartyVulnerabilityExploitabilityExchangeDAO, baseUrl, idUtils,
+        versionService);
   }
 
   protected void setMetadata(SpdxDocument newDocument) throws InvalidSPDXAnalysisException {

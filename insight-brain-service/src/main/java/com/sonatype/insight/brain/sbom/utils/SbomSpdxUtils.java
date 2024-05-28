@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,10 +24,14 @@ import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.UnsupportedSbomException;
 
+import com.github.packageurl.MalformedPackageURLException;
+import com.github.packageurl.PackageURL;
+import com.github.packageurl.PackageURLBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.cyclonedx.model.Swid;
 import org.spdx.jacksonstore.MultiFormatStore;
 import org.spdx.jacksonstore.MultiFormatStore.Format;
 import org.spdx.jacksonstore.MultiFormatStore.Verbose;
@@ -34,12 +39,16 @@ import org.spdx.library.DefaultModelStore;
 import org.spdx.library.InvalidSPDXAnalysisException;
 import org.spdx.library.Read;
 import org.spdx.library.SpdxConstants;
+import org.spdx.library.model.Checksum;
 import org.spdx.library.model.ExternalRef;
 import org.spdx.library.model.ReferenceType;
+import org.spdx.library.model.Relationship;
 import org.spdx.library.model.SpdxDocument;
 import org.spdx.library.model.SpdxElement;
 import org.spdx.library.model.SpdxPackage;
+import org.spdx.library.model.enumerations.ChecksumAlgorithm;
 import org.spdx.library.model.enumerations.ReferenceCategory;
+import org.spdx.library.model.enumerations.RelationshipType;
 import org.spdx.storage.IModelStore;
 import org.spdx.storage.simple.InMemSpdxStore;
 
@@ -69,6 +78,8 @@ public final class SbomSpdxUtils
 
   private static final Pattern DEPRECATION_PATTERN =
       Pattern.compile(".*Relationship error: [^\\s]+ is deprecated\\..*");
+
+  private static final String SWID_URI_PREFIX = "swid:";
 
   private SbomSpdxUtils() {
     //no-op
@@ -184,7 +195,7 @@ public final class SbomSpdxUtils
     return null;
   }
 
-  private static String getCpe(final SpdxPackage spdxPackage)
+  public static String getCpe(final SpdxPackage spdxPackage)
       throws InvalidSPDXAnalysisException
   {
     for (ExternalRef externalRef : spdxPackage.getExternalRefs()) {
@@ -256,7 +267,7 @@ public final class SbomSpdxUtils
     return null;
   }
 
-  public static String getSbomCreationDetailsJson(SpdxDocument document) throws InvalidSPDXAnalysisException {
+  public static SbomCreationDetails getSbomCreationDetails(SpdxDocument document) throws InvalidSPDXAnalysisException {
     if (document != null) {
       SbomCreationDetails sbomCreationDetails = new SbomCreationDetails();
       sbomCreationDetails.created = document.getCreationInfo() != null ? document.getCreationInfo().getCreated() : null;
@@ -264,9 +275,14 @@ public final class SbomSpdxUtils
       if (document.getCreationInfo() != null) {
         document.getCreationInfo().getCreators().forEach(it -> classifyAndExtractMetadata(sbomCreationDetails, it));
       }
-      return gson.toJson(sbomCreationDetails);
+      return sbomCreationDetails;
     }
     return null;
+  }
+
+  public static String getSbomCreationDetailsJson(SpdxDocument document) throws InvalidSPDXAnalysisException {
+    SbomCreationDetails sbomCreationDetails = getSbomCreationDetails(document);
+    return sbomCreationDetails != null ? gson.toJson(sbomCreationDetails) : null;
   }
 
   private static void classifyAndExtractMetadata(SbomCreationDetails sbomCreationDetails, String unfilteredData) {
@@ -324,5 +340,75 @@ public final class SbomSpdxUtils
     return spdxDocument.getDocumentUri() == null || spdxDocument.getDocumentUri().trim().isEmpty()
         ? String.format("sonatype/spdxdocs/uuid/%s", UUID.randomUUID())
         : spdxDocument.getDocumentUri();
+  }
+
+  public static Optional<Swid> getSwid(final SpdxPackage spdxPackage)
+      throws InvalidSPDXAnalysisException
+  {
+    for (ExternalRef externalRef : spdxPackage.getExternalRefs()) {
+      if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY) {
+        String referenceType = externalRef.getReferenceType().getIndividualURI();
+        String referenceLocator = externalRef.getReferenceLocator();
+        if (referenceType.endsWith("swid") ||
+            (referenceType.equals(ReferenceType.MISSING_REFERENCE_TYPE_URI) &&
+                referenceLocator.startsWith(SWID_URI_PREFIX))) {
+          Swid swid = new Swid();
+          String tagId = referenceLocator.startsWith(SWID_URI_PREFIX) ? referenceLocator.substring(
+              SWID_URI_PREFIX.length()) : referenceLocator;
+          swid.setTagId(tagId);
+          return Optional.of(swid);
+        }
+      }
+    }
+    return Optional.empty();
+  }
+
+  public static Optional<String> getChecksum(final SpdxPackage spdxPackage, ChecksumAlgorithm algorithm)
+      throws InvalidSPDXAnalysisException
+  {
+    final Collection<Checksum> checksums = spdxPackage.getChecksums();
+    for (Checksum checksum : checksums) {
+      if (checksum.getAlgorithm() == algorithm) {
+        return Optional.of(checksum.getValue());
+      }
+    }
+    return Optional.empty();
+  }
+
+  public static String getPackageUrlFromCoordinates(String name, String version) {
+    String group = null;
+    if (name.contains(":")) {
+      final String[] parts = name.split(":");
+      if (parts.length == 2) {
+        group = parts[0];
+        name = parts[1];
+      }
+    }
+    PackageURLBuilder packageURLBuilder = PackageURLBuilder.aPackageURL()
+        .withType(PackageURL.StandardTypes.GENERIC)
+        .withName(name)
+        .withVersion(version);
+    if (StringUtils.isNotBlank(group)) {
+      packageURLBuilder.withNamespace(group);
+    }
+    try {
+      return packageURLBuilder.build().toString();
+    }
+    catch (MalformedPackageURLException e) {
+      return null;
+    }
+  }
+
+  public static List<Relationship> getDependenciesBySpdxPackage(SpdxPackage spdxPackage)
+      throws InvalidSPDXAnalysisException
+  {
+    return spdxPackage.getRelationships().stream().filter(it -> {
+      try {
+        return it.getRelationshipType().equals(RelationshipType.DEPENDS_ON);
+      }
+      catch (InvalidSPDXAnalysisException e) {
+        return false;
+      }
+    }).collect(Collectors.toList());
   }
 }

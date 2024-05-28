@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLice
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.InvalidPackageURLException;
@@ -202,6 +203,7 @@ public class SpdxResultHandler
           if (StringUtils.isNotBlank(spdxPackage.getId())) {
             componentRefs.put(spdxPackage.getId(), coordinateId);
           }
+          SbomCycloneDxUtils.addSonatypeIdentifierPropertyToComponent(resolvedComponent, coordinateId);
           targetBom.addComponent(resolvedComponent.getRight());
         }
       }

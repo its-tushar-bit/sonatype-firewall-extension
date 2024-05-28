@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.thirdparty;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
 import java.nio.file.Files;
@@ -22,25 +21,30 @@ import java.util.stream.IntStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import javax.inject.Inject;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataTestUtil;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.Xpp3Util;
-import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.manifest.ClairScannerResult;
 import com.sonatype.insight.scan.manifest.ClairScannerVulnerability;
@@ -67,10 +71,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.w3c.dom.Document;
 import org.xmlunit.assertj.XmlAssert;
 
+import static com.sonatype.insight.brain.thirdparty.ThirdPartySbomUtils.getSonatypeIdentifierNodeFilter;
 import static com.sonatype.insight.scan.model.ItemContentType.IAC_FILE;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.entry;
@@ -156,7 +161,18 @@ public class ThirdPartyScanResultsProcessorTest
         tempDir.getRoot(), null, DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
     verify(thirdPartyScanResultsProcessorSpy, times(2))
         .createHandler(any(ItemContentType.class));
-    assertXml(tempScanFile, "scan-thirdparty-and-other-content-expected.xml");
+
+    URL resource = getTestResource("scan-thirdparty-and-other-content-expected.xml");
+    DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+    Document expectedScan = db.parse(new File(resource.toURI()));
+    String expectedSbom = getSbomNodeAsString(expectedScan, "/scan/item[4]/content");
+    Document actualScan = db.parse(getScanXMLFile(tempScanFile));
+    String actualSbom = getSbomNodeAsString(actualScan, "/scan/item[4]/content");
+
+    XmlAssert.assertThat(actualSbom).and(expectedSbom)
+        .withNodeFilter(getSonatypeIdentifierNodeFilter())
+        .ignoreWhitespace()
+        .areIdentical();
   }
 
   @Test
@@ -641,14 +657,23 @@ public class ThirdPartyScanResultsProcessorTest
     thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
         DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(ItemContentType.SBOM);
-    XmlAssert.assertThat(contentOf(tempScanFile))
-        .and(IOUtils.toString(getTestResource(s2), UTF_8))
+
+    URL resource = getTestResource(s2);
+    DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+    Document expectedScan = db.parse(new File(resource.toURI()));
+    String expectedSbom = getSbomNodeAsString(expectedScan, "/scan/item[1]/content");
+    Document actualScan = db.parse(getScanXMLFile(tempScanFile));
+    String actualSbom = getSbomNodeAsString(actualScan, "/scan/item[1]/content");
+
+    XmlAssert.assertThat(actualSbom).and(expectedSbom)
+        .withNodeFilter(getSonatypeIdentifierNodeFilter())
         .ignoreWhitespace()
         .areIdentical();
   }
 
-  private String contentOf(File gzippedScanFile) throws IOException {
-    return IOUtils.toString(new GZIPInputStream(Files.newInputStream(gzippedScanFile.toPath())), UTF_8);
+  public String getSbomNodeAsString(Document rootDocument, String xPathString) throws Exception {
+    XPath xPath = XPathFactory.newInstance().newXPath();
+    return (String) xPath.compile(xPathString).evaluate(rootDocument, XPathConstants.STRING);
   }
 
   private File getScanXMLFile(File scanFile) throws Exception {
@@ -657,13 +682,6 @@ public class ThirdPartyScanResultsProcessorTest
       IOUtils.copy(gis, Files.newOutputStream(output.toPath()));
     }
     return output;
-  }
-
-  private void assertXml(File scanFile, String expectedFileName) throws Exception {
-    URL resource = getTestResource(expectedFileName);
-    File expectedFile = new File(resource.toURI());
-    File actualFile = getScanXMLFile(scanFile);
-    XmlAssert.assertThat(actualFile).and(expectedFile).areIdentical().ignoreWhitespace();
   }
 
   private void assertEmptyItemElement(File scanFile) throws Exception {

@@ -41,16 +41,25 @@
       <name>genericdep</name>
       <version>1.0.0</version>
       <purl>pkg:generic/org.acme/genericdep@1.0.0?nexustype=rar</purl>
+      <properties>
+        <property name="sonatypeIdentifier">testIdentifier</property>
+      </properties>
     </component>
     <component type="library">
       <name>pydep</name>
       <version>3.1.0</version>
       <purl>pkg:pypi/pydep@3.1.0?extension=tgz&amp;qualifier=cp27_win</purl>
+      <properties>
+        <property name="sonatypeIdentifier">testIdentifier</property>
+      </properties>
     </component>
     <component type="library">
       <name>crandep</name>
       <version>3.0.0</version>
       <purl>pkg:cran/crandep@3.0.0</purl>
+      <properties>
+        <property name="sonatypeIdentifier">testIdentifier</property>
+      </properties>
     </component>
   </components>
 </bom>

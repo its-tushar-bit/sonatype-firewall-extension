@@ -15,9 +15,12 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.cyclonedx.BomParserFactory;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
@@ -25,6 +28,7 @@ import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.OrganizationalContact;
 import org.cyclonedx.model.OrganizationalEntity;
+import org.cyclonedx.model.Property;
 import org.cyclonedx.model.Service;
 import org.cyclonedx.model.Tool;
 import org.cyclonedx.parsers.Parser;
@@ -38,6 +42,8 @@ public class SbomCycloneDxUtils
   private static final Gson gson = new GsonBuilder().create();
 
   private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+  public static final String PROPERTY_SONATYPE_IDENTIFIER = "sonatypeIdentifier";
 
   private SbomCycloneDxUtils() {
     //no-op
@@ -271,5 +277,15 @@ public class SbomCycloneDxUtils
   public static Optional<Component> findComponentByPackageUrl(String packageUrl, Bom bom) {
     return bom.getComponents().stream().filter(
         bc -> bc.getPurl().equals(packageUrl) ).findFirst();
+  }
+
+  public static void addSonatypeIdentifierPropertyToComponent(
+      final Pair<ComponentIdentifier, Component> resolvedComponent,
+      final String fileCoordinateId)
+  {
+    Property prop = new Property();
+    prop.setName(PROPERTY_SONATYPE_IDENTIFIER);
+    prop.setValue(fileCoordinateId);
+    resolvedComponent.getRight().addProperty(prop);
   }
 }

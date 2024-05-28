@@ -40,11 +40,17 @@
       <name>b</name>
       <version>1.0</version>
       <purl>pkg:npm/b@1.0</purl>
+      <properties>
+        <property name="sonatypeIdentifier">testIdentifier</property>
+      </properties>
     </component>
     <component type="library" bom-ref="pkg:npm/c@1.0">
       <name>c</name>
       <version>1.0</version>
       <purl>pkg:npm/c@1.0</purl>
+      <properties>
+        <property name="sonatypeIdentifier">testIdentifier</property>
+      </properties>
     </component>
   </components>
 </bom>

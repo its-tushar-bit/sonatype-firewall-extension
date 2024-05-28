@@ -85,6 +85,16 @@ public class SbomTestHelper
     };
   }
 
+  public static Predicate<Node> ignoreSonatypeIdentifierFilter() {
+    return node -> {
+      if ("property".equals(node.getNodeName()) &&
+          node.getAttributes().getNamedItem("name").getNodeValue().equals("sonatypeIdentifier")) {
+        return false;
+      }
+      return true;
+    };
+  }
+
   public static String readFileToString(Class testClass, String fileName) throws Exception {
     URL resource = testClass.getResource("/" + testClass.getSimpleName() + "/" + fileName);
     return FileUtils.readFileToString(new File(Objects.requireNonNull(resource).toURI()), StandardCharsets.UTF_8);

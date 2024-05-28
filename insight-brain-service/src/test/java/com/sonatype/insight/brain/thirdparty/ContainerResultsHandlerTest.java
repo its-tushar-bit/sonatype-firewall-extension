@@ -30,7 +30,9 @@ import com.sonatype.insight.scan.model.ItemContentType;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.xmlunit.assertj.XmlAssert;
 
+import static com.sonatype.insight.brain.thirdparty.ThirdPartySbomUtils.getSonatypeIdentifierNodeFilter;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ContainerResultsHandlerTest
@@ -79,7 +81,11 @@ public class ContainerResultsHandlerTest
     String filteredContent = containerResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
 
     String expectedXml = loadResource("alpine-3.6-expected-bom.xml");
-    assertThat(filteredContent).isEqualTo(expectedXml);
+
+    XmlAssert.assertThat(filteredContent).and(expectedXml)
+        .withNodeFilter(getSonatypeIdentifierNodeFilter())
+        .ignoreWhitespace()
+        .areIdentical();
   }
 
   @Test

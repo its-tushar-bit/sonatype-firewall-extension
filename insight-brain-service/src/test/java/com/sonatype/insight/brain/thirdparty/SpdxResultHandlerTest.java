@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLice
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.scan.file.SbomFormat;
@@ -113,7 +114,7 @@ public class SpdxResultHandlerTest
             "pkg:library/org.apache.logging.log4j/log4j-api@2.13.2",
             null);
     assertThat(components).extracting("properties.size")
-        .containsOnly(null, null, null, 1);
+        .containsOnly(1, 1, 1, 1);
     // 1 component hash was collected
     assertThat(components.get(3).getProperties())
         .flatExtracting(Property::getValue)
@@ -143,7 +144,7 @@ public class SpdxResultHandlerTest
             "pkg:cpe/apache/log4j@2.11.2?update=rc3",
             null);
     assertThat(components).extracting("properties.size")
-        .containsOnly(null, null, null, null, 1);
+        .containsOnly(1, 1, 1, 1, 1);
     // 1 component hash was collected
     assertThat(components.get(4).getProperties())
         .flatExtracting(Property::getValue)
@@ -176,7 +177,7 @@ public class SpdxResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_invalid_Xml() throws Exception {
-    testHandleAndFilterContents_invalid(getSbomXmlFile("spdx-invalid.xml"),"spdx-invalid.xml");
+    testHandleAndFilterContents_invalid(getSbomXmlFile("spdx-invalid.xml"), "spdx-invalid.xml");
   }
 
   @Test
@@ -520,6 +521,12 @@ public class SpdxResultHandlerTest
       }
       else {
         assertThat(component.getHashes()).isNull();
+      }
+
+      if (component.getPurl() != null && !component.getProperties().isEmpty()) {
+        assertThat(component.getProperties().stream()
+            .filter(p -> p.getName().equals(SbomCycloneDxUtils.PROPERTY_SONATYPE_IDENTIFIER)).findFirst()
+            .orElse(null)).isNotNull();
       }
     }
     return bom;

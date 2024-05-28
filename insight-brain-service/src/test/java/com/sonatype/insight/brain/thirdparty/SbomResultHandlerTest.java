@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
+import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -190,7 +191,7 @@ public class SbomResultHandlerTest
         .containsExactlyInAnyOrder("pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar", null,
             "pkg:library/com.fasterxml.jackson.core/jackson-databind@2.9.9", null);
     assertThat(components).extracting("properties.size")
-        .containsOnly(null, 1, null, 1);
+        .containsOnly(2, 2, 1, 2);
     assertThat(components.get(1).getProperties())
         .flatExtracting(Property::getValue)
         .contains("e6b1000b94e835ffd37f");
@@ -222,7 +223,7 @@ public class SbomResultHandlerTest
         "pkg:cpe/apache/log4j@2.12.2?language=en&update=rc1",
         null, null);
     assertThat(components).extracting("properties.size")
-        .containsOnly(null, 1);
+        .containsOnly(2, 2, 2, 2, 1, 2);
     assertThat(components.get(1).getProperties())
         .flatExtracting(Property::getValue)
         .contains("e6b1000b94e835ffd37f");
@@ -254,7 +255,7 @@ public class SbomResultHandlerTest
             "tag_id=swidgen-242eb18a-503e-ca37-393b-cf156ef09691_2.11.2",
         null, null);
     assertThat(components).extracting("properties.size")
-        .containsOnly(null, 1);
+        .containsOnly(2, 2, 2, 1, 2);
     assertThat(components.get(1).getProperties())
         .flatExtracting(Property::getValue)
         .contains("e6b1000b94e835ffd37f");
@@ -282,7 +283,7 @@ public class SbomResultHandlerTest
     assertThat(components).extracting(Component::getPurl)
         .containsOnly(null, "pkg:library/com.fasterxml.jackson.core/jackson-databind@2.9.9");
     assertThat(components).extracting("properties.size")
-        .containsOnly(1, null);
+        .containsOnly(2, 1);
     assertThat(components.get(0).getProperties())
         .flatExtracting(Property::getValue)
         .contains("e6b1000b94e835ffd37f");
@@ -491,7 +492,7 @@ public class SbomResultHandlerTest
           coordinatesLicense.get(0));
     }
   }
-  
+
   @Test
   public void testHandleAndFilterContents_withComponentDuplicatedLicenseAndVulnerability() throws Exception {
     String sbomContent = getSbomXmlFile("sbom-duplicated-component-license-vulnerability.xml");
@@ -542,7 +543,7 @@ public class SbomResultHandlerTest
       assertThirdPartyFileCoordinate(components.get(0), thirdPartyFile, thirdPartyFileCoordinate);
     }
   }
- 
+
   @Test
   public void testHandleAndFilterContents_ignoreUnsupportedLicenseExpressions() throws Exception {
     String sbom = getSbomXmlFile("sbom-license-expression.xml");
@@ -1289,8 +1290,8 @@ public class SbomResultHandlerTest
           .extracting(com.sonatype.insight.scan.model.Dependency::getId)
           .containsExactlyInAnyOrder("pkg:npm/direct1@1.0", "pkg:npm/direct2@2.0",
               "pkg:npm/d1t1@1.1", "pkg:npm/d2t1@1.1");
-      assertParentAndChildDependency(rootDependencies,"pkg:npm/direct1@1.0", "pkg:npm/d1t1@1.1");
-      assertParentAndChildDependency(rootDependencies,"pkg:npm/direct2@2.0", "pkg:npm/d2t1@1.1");
+      assertParentAndChildDependency(rootDependencies, "pkg:npm/direct1@1.0", "pkg:npm/d1t1@1.1");
+      assertParentAndChildDependency(rootDependencies, "pkg:npm/direct2@2.0", "pkg:npm/d2t1@1.1");
     });
     assertIdentityMetadata(targetBom, metadata);
   }
@@ -1650,6 +1651,12 @@ public class SbomResultHandlerTest
       assertThat(component.getExternalReferences()).isNull();
       assertThat(component.getExtensibleTypes()).isNull();
       assertThat(component.getExtensions()).isNull();
+
+      if (component.getPurl() != null) {
+        assertThat(component.getProperties().stream()
+            .filter(p -> p.getName().equals(SbomCycloneDxUtils.PROPERTY_SONATYPE_IDENTIFIER)).findFirst()
+            .orElse(null)).isNotNull();
+      }
     }
     assertThat(bom.getCompositions()).isNull();
     assertThat(bom.getServices()).isNull();
@@ -1698,7 +1705,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent contentJson =
         new ThirdPartyScanContent("sbom-simple.json", null, null, null, getSbomJsonFile("sbom-simple.json"));
     assertThatExceptionOfType(UnsupportedSbomException.class)
-        .isThrownBy(() ->  sbomResultHandler.parseBom(contentJson))
+        .isThrownBy(() -> sbomResultHandler.parseBom(contentJson))
         .withMessage("CycloneDX JSON 1.2 version is not supported");
   }
 
@@ -1774,11 +1781,11 @@ public class SbomResultHandlerTest
     assertThat(component1.getHashes()).isNull();
     assertThat(component2.getHashes()).isNull();
     assertThat(component3.getHashes()).isNull();
-    assertThat(component1.getProperties()).isNull();
-    assertThat(component2.getProperties()).hasSize(1);
+    assertThat(component1.getProperties()).isNotNull().hasSize(1);
+    assertThat(component2.getProperties()).hasSize(2);
     assertThat(component2.getProperties().get(0).getName()).isEqualTo(SbomUtils.SONATYPE_HASH_PROPERTY_NAME);
     assertThat(component2.getProperties().get(0).getValue()).isEqualTo("e6b1000b94e835ffd37f");
-    assertThat(component3.getProperties()).hasSize(1);
+    assertThat(component3.getProperties()).hasSize(2);
     assertThat(component3.getProperties().get(0).getName()).isEqualTo(SbomUtils.SONATYPE_HASH_PROPERTY_NAME);
     assertThat(component3.getProperties().get(0).getValue()).isEqualTo("716e4909ac2db42da409");
   }

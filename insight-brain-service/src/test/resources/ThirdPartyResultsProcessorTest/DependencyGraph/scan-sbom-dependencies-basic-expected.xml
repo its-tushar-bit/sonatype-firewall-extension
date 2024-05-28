@@ -41,18 +41,27 @@
       <name>web-framework</name>
       <version>1.0.0</version>
       <purl>pkg:maven/org.acme/web-framework@1.0.0?type=jar</purl>
+      <properties>
+        <property name="sonatypeIdentifier">testIdentifier</property>
+      </properties>
     </component>
     <component type="library" bom-ref="pkg:maven/org.acme/persistence@3.1.0?type=jar">
       <group>org.acme</group>
       <name>persistence</name>
       <version>3.1.0</version>
       <purl>pkg:maven/org.acme/persistence@3.1.0?type=jar</purl>
+      <properties>
+        <property name="sonatypeIdentifier">testIdentifier</property>
+      </properties>
     </component>
     <component type="library" bom-ref="pkg:maven/org.acme/common-util@3.0.0?type=jar">
       <group>org.acme</group>
       <name>common-util</name>
       <version>3.0.0</version>
       <purl>pkg:maven/org.acme/common-util@3.0.0?type=jar</purl>
+      <properties>
+        <property name="sonatypeIdentifier">testIdentifier</property>
+      </properties>
     </component>
   </components>
 </bom>

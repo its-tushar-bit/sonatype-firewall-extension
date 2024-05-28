@@ -424,15 +424,11 @@ public class CLMLicenseManager
   }
 
   public LicenseSummary getLicenseSummary() {
-    return new LicenseSummary(getProductEdition(), productLicense.getProducts());
+    return new LicenseSummary(getProductEdition(), getProductLicenseProductsMarketingNames());
   }
 
   public LicenseInfo getLicenseInfo() {
-    String[] products = productLicense.getProducts().stream() //
-        .map(CLMLicenseManager::getProductMarketingName) //
-        .filter(Objects::nonNull) //
-        .toArray(String[]::new);
-
+    String[] products = getProductLicenseProductsMarketingNames();
     String productEdition = getProductEdition();
     ProductLicensingModel licensingModel = productLicense.getLicensingModel();
     Integer applicationLimitToDisplay = null;
@@ -495,6 +491,13 @@ public class CLMLicenseManager
         licensedUsersToDisplay, firewallUsersToDisplay, applicationLimitToDisplay, applicationCountToDisplay,
         sbomLimitToDisplay, productLicense.getContactName(), productLicense.getContactCompany(),
         productLicense.getContactEmail(), products, properties, productEdition);
+  }
+
+  private String[] getProductLicenseProductsMarketingNames() {
+    return productLicense.getProducts().stream()
+        .map(CLMLicenseManager::getProductMarketingName)
+        .filter(Objects::nonNull)
+        .toArray(String[]::new);
   }
 
   private String getProductEdition() {

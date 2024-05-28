@@ -1261,6 +1261,7 @@ public class CLMLicenseManagerTest
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
     assertThat(summary).isNotNull();
     assertThat(summary.productEdition).isEqualTo("");
+    assertThat(summary.products).isEmpty();
   }
 
   @Test
@@ -1270,6 +1271,7 @@ public class CLMLicenseManagerTest
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
     assertThat(summary).isNotNull();
     assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_AUDITOR);
+    assertThat(summary.products).contains("Sonatype " + CLMLicenseManager.PRODUCT_AUDITOR);
   }
 
   @Test
@@ -1279,6 +1281,7 @@ public class CLMLicenseManagerTest
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
     assertThat(summary).isNotNull();
     assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_PRO_PLUS);
+    assertThat(summary.products).contains("Sonatype " + CLMLicenseManager.PRODUCT_PRO_PLUS);
   }
 
   @Test
@@ -1288,6 +1291,7 @@ public class CLMLicenseManagerTest
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
     assertThat(summary).isNotNull();
     assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE);
+    assertThat(summary.products).contains("Sonatype " + CLMLicenseManager.PRODUCT_LIFECYCLE);
   }
 
   @Test
@@ -1297,6 +1301,7 @@ public class CLMLicenseManagerTest
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
     assertThat(summary).isNotNull();
     assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_CLOUD);
+    assertThat(summary.products).contains("Sonatype " + CLMLicenseManager.PRODUCT_LIFECYCLE_CLOUD);
   }
 
   @Test
@@ -1306,6 +1311,7 @@ public class CLMLicenseManagerTest
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
     assertThat(summary).isNotNull();
     assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_SAAS);
+    assertThat(summary.products).contains("Sonatype " + CLMLicenseManager.PRODUCT_LIFECYCLE_SAAS);
   }
 
   @Test
@@ -1315,6 +1321,7 @@ public class CLMLicenseManagerTest
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
     assertThat(summary).isNotNull();
     assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_FIREWALL);
+    assertThat(summary.products).contains("Sonatype " + CLMLicenseManager.PRODUCT_FIREWALL);
   }
 
   @Test
@@ -1324,6 +1331,7 @@ public class CLMLicenseManagerTest
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
     assertThat(summary).isNotNull();
     assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_FIREWALL);
+    assertThat(summary.products).contains("Sonatype " + CLMLicenseManager.PRODUCT_FIREWALL);
   }
 
   @Test
@@ -1333,6 +1341,7 @@ public class CLMLicenseManagerTest
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
     assertThat(summary).isNotNull();
     assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_FIREWALL_CLOUD);
+    assertThat(summary.products).contains("Sonatype " + CLMLicenseManager.PRODUCT_LIFECYCLE_FIREWALL_CLOUD);
   }
 
   /**
@@ -1346,6 +1355,7 @@ public class CLMLicenseManagerTest
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
     assertThat(summary).isNotNull();
     assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_FIREWALL_SAAS);
+    assertThat(summary.products).contains("Sonatype " + CLMLicenseManager.PRODUCT_LIFECYCLE_FIREWALL_SAAS);
   }
 
   @Test
@@ -1355,6 +1365,7 @@ public class CLMLicenseManagerTest
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
     assertThat(summary).isNotNull();
     assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
+    assertThat(summary.products).contains("Sonatype " + CLMLicenseManager.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
   }
 
   @Test
@@ -1364,6 +1375,7 @@ public class CLMLicenseManagerTest
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
     assertThat(summary).isNotNull();
     assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_FOUNDATION);
+    assertThat(summary.products).contains("Sonatype " + CLMLicenseManager.PRODUCT_LIFECYCLE_FOUNDATION);
   }
 
   @Test
@@ -1373,6 +1385,27 @@ public class CLMLicenseManagerTest
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
     assertThat(summary).isNotNull();
     assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_TEAMS_EDITION);
+    assertThat(summary.products).contains("Sonatype " + CLMLicenseManager.PRODUCT_TEAMS_EDITION);
+  }
+
+  @Test
+  public void testGetLicenseSummary_ProductEditionSbomManager() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+    installLicense();
+    LicenseSummary summary = clmLicenseManager.getLicenseSummary();
+    assertThat(summary).isNotNull();
+    assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_SBOM_MANAGER);
+    assertThat(summary.products).contains("Sonatype " + CLMLicenseManager.PRODUCT_SBOM_MANAGER);
+  }
+
+  @Test
+  public void testGetLicenseSummary_ProductEditionSbomManagerSaas() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+    installLicense();
+    LicenseSummary summary = clmLicenseManager.getLicenseSummary();
+    assertThat(summary).isNotNull();
+    assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_SBOM_MANAGER_SAAS);
+    assertThat(summary.products).contains("Sonatype " + CLMLicenseManager.PRODUCT_SBOM_MANAGER_SAAS);
   }
 
   @Test

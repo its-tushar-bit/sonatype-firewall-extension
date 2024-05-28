@@ -47,63 +47,63 @@ public class SbomCycloneDxUtilsTest
   @Test
   public void testGetSbomCreationDetails_ToolChoice_Xml() throws Exception {
     Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata.xml");
-    String actual = SbomCycloneDxUtils.getSbomCreationDetails(bom);
+    String actual = SbomCycloneDxUtils.getSbomCreationDetailsJson(bom);
     assertThat(actual).isEqualTo(expectedToolChoiceSbomMetadata());
   }
 
   @Test
   public void testGetSbomCreationDetails_Json_ToolChoice_Json() throws Exception {
     Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata.json");
-    String actual = SbomCycloneDxUtils.getSbomCreationDetails(bom);
+    String actual = SbomCycloneDxUtils.getSbomCreationDetailsJson(bom);
     assertThat(actual).isEqualTo(expectedToolChoiceSbomMetadata());
   }
 
   @Test
   public void testGetSbomCreationDetails_LegacyTool_Xml() throws Exception {
     Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata-legacy-tools.xml");
-    String actual = SbomCycloneDxUtils.getSbomCreationDetails(bom);
+    String actual = SbomCycloneDxUtils.getSbomCreationDetailsJson(bom);
     assertThat(actual).isEqualTo(expectedLegacyToolSbomMetadata());
   }
 
   @Test
   public void testGetSbomCreationDetails_LegacyTool_Json() throws Exception {
     Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata-legacy-tools.json");
-    String actual = SbomCycloneDxUtils.getSbomCreationDetails(bom);
+    String actual = SbomCycloneDxUtils.getSbomCreationDetailsJson(bom);
     assertThat(actual).isEqualTo(expectedLegacyToolSbomMetadata());
   }
 
   @Test
   public void testGetSbomCreationDetails_OnlyCreators() throws Exception {
     Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata-only-creators.xml");
-    String actual = SbomCycloneDxUtils.getSbomCreationDetails(bom);
+    String actual = SbomCycloneDxUtils.getSbomCreationDetailsJson(bom);
     assertThat(actual).isEqualTo(expectedOnlyCreatorsSbomMetadata());
   }
 
   @Test
   public void testGetSbomCreationDetails_OnlyTools() throws Exception {
     Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata-only-tools.xml");
-    String actual = SbomCycloneDxUtils.getSbomCreationDetails(bom);
+    String actual = SbomCycloneDxUtils.getSbomCreationDetailsJson(bom);
     assertThat(actual).isEqualTo(expectedOnlyToolsSbomMetadata());
   }
 
   @Test
   public void testGetSbomCreationDetails_OnlyServiceTools() throws Exception {
     Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata-service-tools.json");
-    String actual = SbomCycloneDxUtils.getSbomCreationDetails(bom);
+    String actual = SbomCycloneDxUtils.getSbomCreationDetailsJson(bom);
     assertThat(actual).isEqualTo(expectedOnlyServiceToolsSbomMetadata());
   }
 
   @Test
   public void testGetSbomCreationDetails_CompositeTools() throws Exception {
     Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata-composite-tools.json");
-    String actual = SbomCycloneDxUtils.getSbomCreationDetails(bom);
+    String actual = SbomCycloneDxUtils.getSbomCreationDetailsJson(bom);
     assertThat(actual).isEqualTo(expectedCompositeToolsSbomMetadata());
   }
 
   @Test
   public void testGetSbomCreationDetails_NoMetadata() throws Exception {
     Bom bom = getCycloneDxDocument("sbom-no-metadata.json");
-    String actual = SbomCycloneDxUtils.getSbomCreationDetails(bom);
+    String actual = SbomCycloneDxUtils.getSbomCreationDetailsJson(bom);
     assertThat(actual).isNullOrEmpty();
   }
 

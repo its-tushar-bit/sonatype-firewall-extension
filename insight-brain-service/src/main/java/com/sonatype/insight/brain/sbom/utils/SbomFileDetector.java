@@ -221,7 +221,7 @@ public class SbomFileDetector
     sbomResult.summary.applicationName = SbomCycloneDxUtils.getApplicationNameSafely(bom);
     sbomResult.summary.applicationVersion = SbomCycloneDxUtils.getApplicationVersionSafely(bom);
     sbomResult.summary.serialNumber = SbomCycloneDxUtils.getOrGenerateSerialNumber(bom);
-    sbomResult.summary.creationDetails = SbomCycloneDxUtils.getSbomCreationDetails(bom);
+    sbomResult.summary.creationDetails = SbomCycloneDxUtils.getSbomCreationDetailsJson(bom);
   }
 
   private boolean isPlainTextValidJson(String sbomContent) {

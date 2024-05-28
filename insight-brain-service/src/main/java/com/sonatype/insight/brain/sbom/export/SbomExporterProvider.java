@@ -25,13 +25,17 @@ public class SbomExporterProvider
 
   private final Provider<SpdxToSpdxExporter> spdxToSpdxExporterProvider;
 
+  private final Provider<CycloneDxToSpdxExporter> cycloneDxToSpdxExporterProvider;
+
   @Inject
   public SbomExporterProvider(
       final Provider<CycloneDxToCycloneDxExporter> cycloneDxToCycloneDxExporterProvider,
-      final Provider<SpdxToSpdxExporter> spdxToSpdxExporterProvider)
+      final Provider<SpdxToSpdxExporter> spdxToSpdxExporterProvider,
+      final Provider<CycloneDxToSpdxExporter> cycloneDxToSpdxExporterProvider)
   {
     this.cycloneDxToCycloneDxExporterProvider = cycloneDxToCycloneDxExporterProvider;
     this.spdxToSpdxExporterProvider = spdxToSpdxExporterProvider;
+    this.cycloneDxToSpdxExporterProvider = cycloneDxToSpdxExporterProvider;
   }
 
   public SbomExporter get(SbomExportParams exportParams) {
@@ -51,7 +55,11 @@ public class SbomExporterProvider
     if (SPDX.equals(inputSpec) && SPDX.equals(outputSpec)) {
       return spdxToSpdxExporterProvider.get();
     }
-    //TODO other providers
+
+    if (CYCLONEDX.equals(inputSpec) && SPDX.equals(outputSpec)) {
+      return cycloneDxToSpdxExporterProvider.get();
+    }
+
     throw new BadRequestException(
         String.format("Exporting from existing %s sbom to a %s specification is not supported", inputSpec, outputSpec));
   }

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.zip.GZIPInputStream;
@@ -19,6 +20,11 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
+import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.file.SbomFormat;
 
@@ -47,22 +53,40 @@ public abstract class AbstractSbomExporter
 
   protected final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
 
+  protected final BaseUrl baseUrl;
+
+  protected final IdUtils idUtils;
+
+  protected final VersionService versionService;
+
   protected final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO;
 
   protected SbomExportParams exportParams;
+
+  protected static final DateTimeFormatterBuilder DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
+      .appendPattern("yyyy-MM-dd")
+      .appendLiteral('T')
+      .appendPattern("HH:mm:ss")
+      .appendLiteral('Z');
 
   protected AbstractSbomExporter(
       final InsightWork insightWork,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
-      final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO)
+      final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO,
+      final BaseUrl baseUrl,
+      final IdUtils idUtils,
+      final VersionService versionService)
   {
     this.insightWork = insightWork;
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
     this.thirdPartyCoordinateLicenseDAO = thirdPartyCoordinateLicenseDAO;
     this.thirdPartyVulnerabilityExploitabilityExchangeDAO = thirdPartyVulnerabilityExploitabilityExchangeDAO;
+    this.baseUrl = baseUrl;
+    this.idUtils = idUtils;
+    this.versionService = versionService;
   }
 
   protected String getOriginalSbomContentAsString() {
@@ -118,5 +142,18 @@ public abstract class AbstractSbomExporter
     catch (Exception e) {
       throw new SbomExportException("Internal error generating the target SBOM", e);
     }
+  }
+
+  protected String getBillOfMaterialsPath() {
+    String iqBaseUrl = "";
+    try {
+      iqBaseUrl = this.baseUrl.get();
+    }
+    catch (IllegalStateException e) {
+      log.warn("SBOM Manager base URL is not configured", e);
+    }
+    return iqBaseUrl + UserInterfaceLinksHelper.getSBOMBillOfMaterialPath(
+        idUtils.getPublicOwnerId(OwnerType.APPLICATION, exportParams.sbomMetadata.getApplicationId()),
+        exportParams.sbomMetadata.getSbomVersion());
   }
 }

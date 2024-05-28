@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.sbom.utils;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -21,6 +23,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.io.IOUtils;
 import org.cyclonedx.BomParserFactory;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
@@ -80,7 +83,7 @@ public class SbomCycloneDxUtils
     return null;
   }
 
-  public static String getSbomCreationDetails(Bom bom) {
+  public static SbomCreationDetails getSbomCreationDetails(Bom bom) {
     if (bom == null || bom.getMetadata() == null) {
       return null;
     }
@@ -97,7 +100,12 @@ public class SbomCycloneDxUtils
     }
     buildCreators(extractedMetadata, metadataFromSbomFile);
     buildTools(extractedMetadata, metadataFromSbomFile);
-    return gson.toJson(extractedMetadata);
+    return extractedMetadata;
+  }
+
+  public static String getSbomCreationDetailsJson(Bom bom) {
+    SbomCreationDetails sbomCreationDetails = getSbomCreationDetails(bom);
+    return sbomCreationDetails != null ? gson.toJson(sbomCreationDetails) : null;
   }
 
   private static void buildCreators(SbomCreationDetails extractedMetadata, Metadata metadataFromSbomFile) {
@@ -263,15 +271,14 @@ public class SbomCycloneDxUtils
     }).collect(Collectors.toList()));
   }
 
-  public static Bom parseContentNoValidation(final String content) {
-    try {
-      byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
-      Parser parser = BomParserFactory.createParser(bytes);
-      return parser.parse(bytes);
-    }
-    catch (ParseException e) {
-      throw new RuntimeException(e);
-    }
+  public static Bom parseContentNoValidation(final String content) throws IOException, ParseException {
+    return parseContentStreamNoValidation(IOUtils.toInputStream(content, StandardCharsets.UTF_8));
+  }
+
+  public static Bom parseContentStreamNoValidation(InputStream is) throws IOException, ParseException {
+    byte[] bytes = IOUtils.toByteArray(is);
+    Parser parser = BomParserFactory.createParser(bytes);
+    return parser.parse(bytes);
   }
 
   public static Optional<Component> findComponentByPackageUrl(String packageUrl, Bom bom) {

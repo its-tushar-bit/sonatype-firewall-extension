@@ -129,8 +129,7 @@
           },
           "score" : 9.0,
           "severity" : "critical",
-          "method" : "other",
-          "vector" : ""
+          "method" : "other"
         }
       ],
       "cwes" : [

@@ -8,9 +8,6 @@ package com.sonatype.insight.brain.sbom.export;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -26,8 +23,6 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
-import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
@@ -42,11 +37,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.spdx.library.DefaultModelStore;
 import org.spdx.library.InvalidSPDXAnalysisException;
-import org.spdx.library.SpdxConstants;
 import org.spdx.library.model.ExternalRef;
 import org.spdx.library.model.ReferenceType;
 import org.spdx.library.model.Relationship;
-import org.spdx.library.model.SpdxCreatorInformation;
 import org.spdx.library.model.SpdxDocument;
 import org.spdx.library.model.SpdxPackage;
 import org.spdx.library.model.SpdxPackage.SpdxPackageBuilder;
@@ -55,19 +48,12 @@ import org.spdx.library.model.enumerations.RelationshipType;
 import org.spdx.library.model.license.AnyLicenseInfo;
 import org.spdx.library.model.license.ExtractedLicenseInfo;
 import org.spdx.library.model.license.ListedLicenses;
-import org.spdx.library.model.license.SpdxListedLicense;
 
 @Named
 public class SpdxToSpdxExporter
-    extends AbstractSbomExporter
+    extends AbstractSpdxExporter
 {
   private static final String LICENSE_REF_PREFIX = "LicenseRef-";
-
-  private final BaseUrl baseUrl;
-
-  private final IdUtils idUtils;
-
-  private final VersionService versionService;
 
   @Inject
   protected SpdxToSpdxExporter(
@@ -81,10 +67,7 @@ public class SpdxToSpdxExporter
       final VersionService versionService)
   {
     super(insightWork, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO, thirdPartyCoordinateLicenseDAO,
-        thirdPartyVulnerabilityExploitabilityExchangeDAO);
-    this.baseUrl = baseUrl;
-    this.idUtils = idUtils;
-    this.versionService = versionService;
+        thirdPartyVulnerabilityExploitabilityExchangeDAO, baseUrl, idUtils, versionService);
   }
 
   @Override
@@ -107,51 +90,29 @@ public class SpdxToSpdxExporter
   {
     DefaultModelStore.reset();
     SpdxDocument newDocument = new SpdxDocument(getBillOfMaterialsPath());
-    newDocument.setSpecVersion("SPDX-" + exportParams.exportSpecification.getVersion());
-    newDocument.setName(idUtils.getPublicOwnerId(OwnerType.APPLICATION, exportParams.sbomMetadata.getApplicationId()));
-    newDocument.setDataLicense(new SpdxListedLicense(SpdxConstants.SPDX_DATA_LICENSE_ID));
-
-    SpdxCreatorInformation creatorInfo = new SpdxCreatorInformation();
-    DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder()
-        .appendPattern("yyyy-MM-dd")
-        .appendLiteral('T')
-        .appendPattern("HH:mm:ss")
-        .appendLiteral('Z');
-    String date = LocalDateTime.now(ZoneOffset.UTC).format(builder.toFormatter());
-
-    creatorInfo.setCreated(date);
-    creatorInfo.getCreators().add("Tool: Sonatype SBOM Manager - " + versionService.getFullVersion());
-    //not adding data date (for NDE customers) until is needed.
-    newDocument.setCreationInfo(creatorInfo);
+    setMetadata(newDocument);
     SpdxPackage rootPackage = SbomSpdxUtils.getRootPackage(originalDocument);
     copyComponents(originalDocument, newDocument, rootPackage);
     newDocument.setExternalDocumentRefs(originalDocument.getExternalDocumentRefs());
     return newDocument;
   }
 
-  private String getBillOfMaterialsPath() {
-    String iqBaseUrl = "";
-    try {
-      iqBaseUrl = this.baseUrl.get();
-    }
-    catch (IllegalStateException e) {
-      log.warn("SBOM Manager base URL is not configured", e);
-    }
-    return iqBaseUrl + UserInterfaceLinksHelper.getSBOMBillOfMaterialPath(
-        idUtils.getPublicOwnerId(OwnerType.APPLICATION, exportParams.sbomMetadata.getApplicationId()),
-        exportParams.sbomMetadata.getSbomVersion());
-  }
-
   private ExternalRef newVulnerabilityRefFor(SpdxDocument document, final ThirdPartyCoordinateSecurity dbVulnerability)
       throws InvalidSPDXAnalysisException
   {
-    String source = dbVulnerability.getVulnerabilitySource();
     String comment = null;
-    if (StringUtils.isNotBlank(source)) {
-      comment = "source: " + source.toUpperCase(Locale.ROOT);
+    if (StringUtils.isNotBlank(dbVulnerability.getVulnerabilitySource())) {
+      comment = "source: " + dbVulnerability.getVulnerabilitySource().toUpperCase(Locale.ROOT);
     }
-    return document.createExternalRef(ReferenceCategory.SECURITY,
-        new ReferenceType("advisory"), dbVulnerability.getLink(), comment);
+    String locator = null;
+    if (StringUtils.isNotBlank(dbVulnerability.getVulnerabilitySource())) {
+      locator = dbVulnerability.getLink();
+    }
+    if (StringUtils.isNotEmpty(comment) && StringUtils.isNotEmpty(locator)) {
+      return document.createExternalRef(ReferenceCategory.SECURITY,
+          new ReferenceType("advisory"), locator, comment);
+    }
+    return null;
   }
 
   private void copyComponents(
@@ -261,7 +222,10 @@ public class SpdxToSpdxExporter
         continue;
       }
       //new vulnerability not in original sbom. adding it
-      pkgBuilder.addExternalRef(newVulnerabilityRefFor(document, dbVulnerability));
+      ExternalRef externalRef = newVulnerabilityRefFor(document, dbVulnerability);
+      if (externalRef != null) {
+        pkgBuilder.addExternalRef(externalRef);
+      }
     }
   }
 
@@ -282,8 +246,8 @@ public class SpdxToSpdxExporter
   {
     List<ThirdPartyCoordinateLicense> licenses =
         thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(dbComponent.getId());
-    return licenses.stream().map(license -> createLicenseObject(license.getLicenseId(), extractedLicenses))
-        .collect(Collectors.toSet());
+    return licenses.stream().map(license -> createLicenseObject(license.getLicenseId()
+        .replace(' ', '-'), extractedLicenses)).collect(Collectors.toSet());
   }
 
   private ThirdPartyFileCoordinate getMatchingDbComponent(final SpdxPackage pkg) {
@@ -298,14 +262,17 @@ public class SpdxToSpdxExporter
   }
 
   private AnyLicenseInfo createLicenseObject(
-      final String licenseId,
+      String licenseId,
       final Map<String, ExtractedLicenseInfo> extractedLicenses)
   {
     try {
       if (ListedLicenses.getListedLicenses().isSpdxListedLicenseId(licenseId)) {
         return ListedLicenses.getListedLicenses().getListedLicenseById(licenseId);
       }
-      ExtractedLicenseInfo extractedLicenseInfo = new ExtractedLicenseInfo(LICENSE_REF_PREFIX + licenseId, licenseId);
+      if (!licenseId.startsWith(LICENSE_REF_PREFIX)) {
+        licenseId = LICENSE_REF_PREFIX + licenseId;
+      }
+      ExtractedLicenseInfo extractedLicenseInfo = new ExtractedLicenseInfo(licenseId, licenseId);
       extractedLicenses.put(extractedLicenseInfo.getLicenseId(), extractedLicenseInfo);
       return extractedLicenseInfo;
     }

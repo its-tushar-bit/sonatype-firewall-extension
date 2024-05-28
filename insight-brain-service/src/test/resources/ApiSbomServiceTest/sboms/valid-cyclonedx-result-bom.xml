@@ -103,7 +103,6 @@
           <score>9.0</score>
           <severity>critical</severity>
           <method>other</method>
-          <vector></vector>
         </rating>
       </ratings>
       <cwes>

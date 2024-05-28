@@ -8,8 +8,10 @@ package com.sonatype.insight.brain.developer.integrationdashboard;
 
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -40,7 +42,10 @@ import com.sonatype.insight.brain.organization.ApplicationSourceControlService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -61,6 +66,8 @@ public class IntegrationService
 
   private final OwnerDAO ownerDAO;
 
+  private final TelemetrySender telemetrySender;
+
   @Inject
   public IntegrationService(
       final ApplicationRiskService applicationRiskService,
@@ -69,7 +76,8 @@ public class IntegrationService
       final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO,
       final SastScanDAO sastScanDAO,
       final SourceControlDAO sourceControlDAO,
-      final OwnerDAO ownerDAO)
+      final OwnerDAO ownerDAO,
+      final TelemetrySender telemetrySender)
   {
     this.applicationRiskService = applicationRiskService;
     this.applicationSourceControlService = applicationSourceControlService;
@@ -78,6 +86,7 @@ public class IntegrationService
     this.sastScanDAO = sastScanDAO;
     this.sourceControlDAO = sourceControlDAO;
     this.ownerDAO = ownerDAO;
+    this.telemetrySender = telemetrySender;
   }
 
   public ApiPageResult<IntegrationStatusDTO> getIntegrationStatuses(
@@ -96,6 +105,13 @@ public class IntegrationService
     if (filter.getPage() <= 0 || filter.getPageSize() <= 0) {
       throw new BadRequestException("Page and Page size must be greater than 0");
     }
+
+    sendAppIntegrationFilterTelemetry(
+        StringUtils.isNotEmpty(optionalFilterApplicationNamesBy),
+        Boolean.TRUE.equals(optionalFilterAppsByScmIntegration),
+        Boolean.TRUE.equals(optionalFilterAppsByCiCdIntegration),
+        optionalOrderBy
+    );
 
     final boolean paginateEarly = optionalFilterAppsByScmIntegration == null;
     final int skipCount = (filter.getPage() - 1) * filter.getPageSize();
@@ -259,5 +275,24 @@ public class IntegrationService
       }
     }
     return null;
+  }
+
+  private void sendAppIntegrationFilterTelemetry(
+      final boolean includesAppNameSearch,
+      final boolean includesScmIntegrationFilter,
+      final boolean includesCiCdIntegrationFilter,
+      final String orderBy
+  )
+  {
+    final Map<String, Object> attributes = new HashMap<>();
+
+    attributes.put("includes_app_name_search", includesAppNameSearch);
+    attributes.put("includes_scm_integration_filter", includesScmIntegrationFilter);
+    attributes.put("includes_ci_cd_integration_filter", includesCiCdIntegrationFilter);
+    attributes.put("order_by", orderBy);
+
+    final TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.DEVELOPER_INTEGRATIONS_DASHBOARD);
+    telemetryData.setAttributes(attributes);
+    telemetrySender.send(telemetryData);
   }
 }

@@ -9,7 +9,9 @@ package com.sonatype.insight.brain.developer.integrationdashboard;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -25,19 +27,35 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
+import com.google.inject.Binder;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import static org.mockito.Mockito.verify;
 
 public class IntegrationServiceTest
     extends AbstractComponentTest
 {
+  @Mock
+  private TelemetrySender telemetrySender;
+
+  @Captor
+  private ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor;
+
   @Inject
   private IntegrationService integrationService;
 
@@ -54,6 +72,12 @@ public class IntegrationServiceTest
   private Organization org2;
 
   private Organization org3;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(TelemetrySender.class).toInstance(telemetrySender);
+    super.configure(binder);
+  }
 
   @Test
   public void testGetIntegrationSummaries_InvalidPageOrPageSizeThrowsException_h2() {
@@ -1975,6 +1999,120 @@ public class IntegrationServiceTest
         .isFalse();
     assertThat(appSummaries.get(3).isHasSastReport())
         .isFalse();
+  }
+
+  @Test
+  public void testGetIntegrationStatuses_shouldSendTelemetryForFilterAndSearchUsageWhenAllFalse() {
+    tempEntity.newApplication("app1", "app1", tempEntity.newOrganization().getId());
+
+    // === everything false, order by name ===
+    integrationService.getIntegrationStatuses(
+        1,
+        10,
+        IntegrationStatusOrderByEnum.NAME.name(),
+        null,
+        null,
+        null);
+
+    assertTelemetrySentForAppIntegrationsFilters(buildAppIntegrationFilterTelemetry(
+        false,
+        false,
+        false,
+        IntegrationStatusOrderByEnum.NAME.name()
+    ));
+  }
+
+  @Test
+  public void testGetIntegrationStatuses_shouldSendTelemetryForFilterAndSearchUsageWhenSearchIncluded() {
+    tempEntity.newApplication("app1", "app1", tempEntity.newOrganization().getId());
+
+    // === search included; order by commit ===
+    integrationService.getIntegrationStatuses(
+        1,
+        10,
+        IntegrationStatusOrderByEnum.COMMIT.name(),
+        "some-search",
+        null,
+        null);
+
+    assertTelemetrySentForAppIntegrationsFilters(buildAppIntegrationFilterTelemetry(
+        true,
+        false,
+        false,
+        IntegrationStatusOrderByEnum.COMMIT.name()
+    ));
+  }
+
+  @Test
+  public void testGetIntegrationStatuses_shouldSendTelemetryForFilterAndSearchUsageWhenAppsFilteredByScm() {
+    tempEntity.newApplication("app1", "app1", tempEntity.newOrganization().getId());
+
+    // === search and scm filter included; order by total risk ===
+    integrationService.getIntegrationStatuses(
+        1,
+        10,
+        IntegrationStatusOrderByEnum.TOTAL_RISK.name(),
+        "some-search",
+        true,
+        null);
+
+    assertTelemetrySentForAppIntegrationsFilters(buildAppIntegrationFilterTelemetry(
+        true,
+        true,
+        false,
+        IntegrationStatusOrderByEnum.TOTAL_RISK.name()
+    ));
+  }
+
+  @Test
+  public void testGetIntegrationStatuses_shouldSendTelemetryForFilterAndSearchUsageWhenCiCdIncluded() {
+    tempEntity.newApplication("app1", "app1", tempEntity.newOrganization().getId());
+
+    // === search, scm filter, and cicd filter included; order by total evaluation ===
+    integrationService.getIntegrationStatuses(
+        1,
+        10,
+        IntegrationStatusOrderByEnum.EVALUATION.name(),
+        "some-search",
+        true,
+        true);
+
+    assertTelemetrySentForAppIntegrationsFilters(buildAppIntegrationFilterTelemetry(
+        true,
+        true,
+        true,
+        IntegrationStatusOrderByEnum.EVALUATION.name()
+    ));
+  }
+
+  private TelemetryData buildAppIntegrationFilterTelemetry(
+      final boolean includesAppNameSearch,
+      final boolean includesScmIntegrationFilter,
+      final boolean includesCiCdIntegrationFilter,
+      final String orderBy
+  )
+  {
+    final TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.DEVELOPER_INTEGRATIONS_DASHBOARD);
+    final Map<String , Object> attributes = new HashMap<>();
+    attributes.put("includes_app_name_search", includesAppNameSearch);
+    attributes.put("includes_scm_integration_filter", includesScmIntegrationFilter);
+    attributes.put("includes_ci_cd_integration_filter", includesCiCdIntegrationFilter);
+    attributes.put("order_by", orderBy);
+    telemetryData.setAttributes(attributes);
+
+    return telemetryData;
+  }
+
+  private void assertTelemetrySentForAppIntegrationsFilters(final TelemetryData expectedTelemetryData) {
+    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+
+    final TelemetryData actualTelemetryData = telemetryDataArgumentCaptor.getValue();
+    assertThat(expectedTelemetryData.getPurpose()).isEqualTo(actualTelemetryData.getPurpose());
+
+    final Map<String, Object> actualAttributes = actualTelemetryData.getAttributes();
+    final Map<String, Object> expectedAttributes = expectedTelemetryData.getAttributes();
+
+    assertThat(actualAttributes).isEqualTo(expectedAttributes);
   }
 
   private void setUpAppsWithBuildStageRisk() {

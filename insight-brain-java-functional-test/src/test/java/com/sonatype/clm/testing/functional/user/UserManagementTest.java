@@ -25,6 +25,7 @@ import com.sonatype.clm.testing.functional.pages.UserManagementPage.NewUserForm;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.User;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
@@ -167,12 +168,12 @@ public class UserManagementTest
     newUserForm.passwordInput().val("123abc");
     newUserForm.passwordValidateInput().val("123abc");
 
-    popoverViolationsList(newUserForm.getElement()).shouldHaveSize(0);
+    popoverViolationsList(newUserForm.getElement()).shouldHave(CollectionCondition.size(0));
 
     newUserForm.saveButton().click();
 
     newUserForm.shouldBe(hidden);
-    userManagementPage.userItems().shouldHaveSize(2);// created user and the admin
+    userManagementPage.userItems().shouldHave(CollectionCondition.size(2));// created user and the admin
 
     userManagementPage.userItems().get(0).shouldHave(text(TEST_USERNAME + " (add user)"));
   }
@@ -257,7 +258,7 @@ public class UserManagementTest
     deleteModal.submitButton().click();
     deleteModal.should(disappear);
 
-    userManagementPage.userItems().shouldHaveSize(1);
+    userManagementPage.userItems().shouldHave(CollectionCondition.size(1));
   }
 
   @Test

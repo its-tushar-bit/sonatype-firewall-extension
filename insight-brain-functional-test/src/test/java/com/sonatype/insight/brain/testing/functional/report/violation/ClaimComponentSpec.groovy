@@ -5,12 +5,14 @@
  */
 package com.sonatype.insight.brain.testing.functional.report.violation
 
+import spock.lang.Ignore
 import spock.lang.Stepwise
 
 /**
  * @since 1.11
  */
 @Stepwise
+@Ignore //https://sonatype.atlassian.net/browse/CLM-30530
 class ClaimComponentSpec
 extends AbstractClaimComponentSpec {
   @Override

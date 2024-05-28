@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
-
 import javax.imageio.ImageIO;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -72,7 +71,9 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.InsightWork;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Driver;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import org.apache.http.HttpResponse;
@@ -174,7 +175,7 @@ public class RepositoriesSummaryViewTest
     configurationTile = RepositoriesSummaryPage.configTile();
     configurationTable = configurationTile.configurationTable();
     // 1 header row, 1 row for header filters, 2 repository managers, 2 repository rows
-    configurationTable.rows().shouldHaveSize(6);
+    configurationTable.rows().shouldHave(CollectionCondition.size(6));
     configurationTile.emptyDescriptor().shouldBe(hidden);
 
     for (int i = 0; i < repositories.size(); i++) {
@@ -291,11 +292,11 @@ public class RepositoriesSummaryViewTest
 
     RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
     ConfigurationTable configurationTable = configurationTile.configurationTable();
-    configurationTable.rows().shouldHaveSize(8);
+    configurationTable.rows().shouldHave(CollectionCondition.size(8));
 
     configurationTable.repositoryPublicIdFilter().setValue("r1");
 
-    configurationTable.rows().shouldHaveSize(6);
+    configurationTable.rows().shouldHave(CollectionCondition.size(6));
     configurationTable.row(1, 2).publicId().shouldHave(text("r11"));
     configurationTable.row(2, 2).publicId().shouldHave(text("r12"));
   }
@@ -315,12 +316,12 @@ public class RepositoriesSummaryViewTest
 
     RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
     ConfigurationTable configurationTable = configurationTile.configurationTable();
-    configurationTable.rows().shouldHaveSize(10);
+    configurationTable.rows().shouldHave(CollectionCondition.size(10));
 
     configurationTable.repositoryFormatFilter().click();
     configurationTable.repositoryFormatFilter().$(".nx-radio-checkbox").click();
 
-    configurationTable.rows().shouldHaveSize(6);
+    configurationTable.rows().shouldHave(CollectionCondition.size(6));
     configurationTable.row(1, 2).publicId().shouldHave(text("r11"));
     configurationTable.row(2, 2).publicId().shouldHave(text("r22"));
   }
@@ -330,7 +331,7 @@ public class RepositoriesSummaryViewTest
     AccessTile accessTile = RepositoriesSummaryPage.accessTile();
     accessTile.nxSubHeader().shouldBe(visible).shouldHave(AccessTile.subHeaderText("Repository Managers"));
     accessTile.addRoleButton().shouldBe(enabled, visible);
-    accessTile.accessLists().shouldHaveSize(1);
+    accessTile.accessLists().shouldHave(CollectionCondition.size(1));
 
     AccessTileList localList = accessTile.accessList(0);
 
@@ -359,12 +360,12 @@ public class RepositoriesSummaryViewTest
     refresh();
 
     AccessTile accessTile = RepositoriesSummaryPage.accessTile();
-    accessTile.accessLists().shouldHaveSize(1);
+    accessTile.accessLists().shouldHave(CollectionCondition.size(1));
 
     AccessTileList localList = accessTile.accessList(0);
     localList.emptyDescriptor().shouldBe(hidden);
 
-    localList.elements().shouldHaveSize(2);
+    localList.elements().shouldHave(CollectionCondition.size(2));
     localList.ownerName().shouldBe(visible).shouldHave(text("Local"));
 
     AccessTileListElement readOnly = localList.element(0);
@@ -386,7 +387,7 @@ public class RepositoriesSummaryViewTest
     AccessTileList inheritedList = accessTile.accessList(1);
 
     inheritedList.ownerName().shouldBe(hidden);
-    inheritedList.elements().shouldHaveSize(0);
+    inheritedList.elements().shouldHave(CollectionCondition.size(0));
   }
 
   @Test
@@ -425,10 +426,10 @@ public class RepositoriesSummaryViewTest
         RepositoriesSummaryPage.namespaceConfusionProtectionTile();
     ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), true);
 
-    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(4);
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHave(CollectionCondition.size(4));
 
     namespaceConfusionProtectionTile.namespaceFilterInput().setValue("claimed");
-    namespaceConfusionProtectionTile.resultRows().shouldHaveSize(1);
+    namespaceConfusionProtectionTile.resultRows().shouldHave(CollectionCondition.size(1));
     namespaceConfusionProtectionTile.resultRow(1).shouldHave(text("No Results"));
 
     namespaceConfusionProtectionTile.namespaceFilterInput().setValue("maven-center");
@@ -458,7 +459,7 @@ public class RepositoriesSummaryViewTest
         RepositoriesSummaryPage.namespaceConfusionProtectionTile();
     ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), true);
 
-    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(3);
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHave(CollectionCondition.size(3));
 
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNameSpaces[1]));
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1).shouldHave(text(componentNameSpaces[2]));
@@ -506,7 +507,7 @@ public class RepositoriesSummaryViewTest
 
     WebDriverRunner.getWebDriver().manage().window().setSize(new Dimension(1800, 1000));
 
-    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(3);
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHave(CollectionCondition.size(3));
 
     namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(0).shouldHave(text(repositoryPublicIds[0]));
     namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(1).shouldHave(text(repositoryPublicIds[1]));
@@ -560,7 +561,7 @@ public class RepositoriesSummaryViewTest
         RepositoriesSummaryPage.namespaceConfusionProtectionTile();
     ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), true);
 
-    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(3);
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHave(CollectionCondition.size(3));
 
     namespaceConfusionProtectionTile.repositoryManagerHeaderSortBtn()
         .shouldHave(attribute("aria-label", "Repository Manager unsorted"));
@@ -611,7 +612,7 @@ public class RepositoriesSummaryViewTest
     NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
         RepositoriesSummaryPage.namespaceConfusionProtectionTile();
 
-    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(3);
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHave(CollectionCondition.size(3));
 
     namespaceConfusionProtectionTile.enabledHeaderSortBtn()
         .shouldHave(attribute("aria-label", "Enabled unsorted"));
@@ -705,7 +706,7 @@ public class RepositoriesSummaryViewTest
 
     ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), false);
 
-    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(6);
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHave(CollectionCondition.size(6));
 
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[0]));
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1).shouldHave(text(componentNamespaces[1]));
@@ -733,7 +734,7 @@ public class RepositoriesSummaryViewTest
 
     namespaceConfusionProtectionTile.nextPageBtn().click();
 
-    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(1);
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHave(CollectionCondition.size(1));
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[12]));
     namespaceConfusionProtectionTile.previousPageBtn().shouldBe(visible)
         .shouldHave(attribute("aria-label", "previous page"));
@@ -741,7 +742,7 @@ public class RepositoriesSummaryViewTest
 
     namespaceConfusionProtectionTile.previousPageBtn().click();
 
-    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(6);
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHave(CollectionCondition.size(6));
     namespaceConfusionProtectionTile.previousPageBtn().shouldBe(visible)
         .shouldHave(attribute("aria-label", "previous page"));
     namespaceConfusionProtectionTile.nextPageBtn().shouldBe(visible).shouldHave(attribute("aria-label", "next page"));
@@ -755,7 +756,7 @@ public class RepositoriesSummaryViewTest
 
     namespaceConfusionProtectionTile.previousPageBtn().click();
 
-    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(6);
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHave(CollectionCondition.size(6));
     namespaceConfusionProtectionTile.previousPageBtn().shouldNotBe(visible);
     namespaceConfusionProtectionTile.nextPageBtn().shouldBe(visible).shouldHave(attribute("aria-label", "next page"));
 
@@ -795,7 +796,7 @@ public class RepositoriesSummaryViewTest
         RepositoriesSummaryPage.namespaceConfusionProtectionTile();
     ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), true);
 
-    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(6);
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHave(CollectionCondition.size(6));
 
     namespaceConfusionProtectionTile.componentNamespaceHeaderSortBtn()
         .shouldHave(attribute("aria-label", "Component Namespace ascending"));
@@ -947,7 +948,7 @@ public class RepositoriesSummaryViewTest
     refresh();
 
     AccessTile accessTile = RepositoriesSummaryPage.accessTile();
-    accessTile.accessLists().shouldHaveSize(HIERARCHY_SIZE);
+    accessTile.accessLists().shouldHave(CollectionCondition.size(HIERARCHY_SIZE));
 
     AccessTileList localList = accessTile.accessList(0);
 
@@ -957,7 +958,7 @@ public class RepositoriesSummaryViewTest
     InheritedAccessList inheritedAccessList = accessTile.inheritedAccessList("ROOT_ORGANIZATION_ID");
 
     accessTile.accessListSubheader(0).shouldBe(visible).shouldHave(AccessTile.inheritedText("Root Organization"));
-    inheritedAccessList.elements().shouldHaveSize(2);
+    inheritedAccessList.elements().shouldHave(CollectionCondition.size(2));
 
     InheritedAccess readOnly = inheritedAccessList.element(0);
     readOnly.label().shouldBe(visible).shouldHave(text("Read Only"));
@@ -1166,7 +1167,7 @@ public class RepositoriesSummaryViewTest
     PolicyTile policyTile = RepositoriesSummaryPage.policyTile();
     policyTile.shouldBe(visible);
     policyTile.newButton().shouldBe(visible);
-    policyTile.policyLists().shouldHaveSize(0);
+    policyTile.policyLists().shouldHave(CollectionCondition.size(0));
     policyTile.localEmptyDescriptor().shouldBe(visible).shouldHave(text("No local"));
   }
 
@@ -1190,7 +1191,7 @@ public class RepositoriesSummaryViewTest
     policyTileList.ownerName().shouldHave(text("Inherited from"));
 
     // The plus one is added because the rows method selects the table header
-    policyTileList.rows().shouldHaveSize(inheritedPolicies.size() + 1);
+    policyTileList.rows().shouldHave(CollectionCondition.size(inheritedPolicies.size() + 1));
 
     // Verifying Policy 1
     policyTileList.row(1).threatLegend().shouldHave(text("10"));
@@ -1216,10 +1217,10 @@ public class RepositoriesSummaryViewTest
     policyTileList.row(2).operate().shouldHave(PolicyTile.noActionText());
 
     policyTileList.ownerName().click();
-    policyTileList.rows().shouldHaveSize(1); // no rows only collapsible row header is visible
+    policyTileList.rows().shouldHave(CollectionCondition.size(1)); // no rows only collapsible row header is visible
 
     policyTileList.ownerName().click();
-    policyTileList.rows().shouldHaveSize(3); // rows plus header row
+    policyTileList.rows().shouldHave(CollectionCondition.size(3)); // rows plus header row
 
     policyTileList.row(1).chevron().shouldBe(visible);
     policyTileList.row(1).click();
@@ -1228,7 +1229,7 @@ public class RepositoriesSummaryViewTest
     PolicyEditorPage.title().shouldHave(Condition.text("View Policy"));
 
     NxBreadcrumb breadcrumb = new NxBreadcrumb();
-    breadcrumb.links().shouldHaveSize(3);
+    breadcrumb.links().shouldHave(CollectionCondition.size(3));
     breadcrumb.links().get(1).shouldHave(Condition.text("Repository Managers"));
     breadcrumb.links().get(1).click();
 
@@ -1247,7 +1248,7 @@ public class RepositoriesSummaryViewTest
     PolicyTile policyTile = RepositoriesSummaryPage.policyTile();
     policyTile.shouldHave(visible);
     policyTile.newButton().shouldBe(visible);
-    policyTile.policyLists().shouldHaveSize(0);
+    policyTile.policyLists().shouldHave(CollectionCondition.size(0));
     policyTile.localEmptyDescriptor().shouldBe(visible).shouldHave(text("No local"));
 
     RepositoriesSummaryPage.namespaceConfusionProtectionPillButton().shouldBe(visible).click();
@@ -1289,22 +1290,22 @@ public class RepositoriesSummaryViewTest
 
     PolicyTile policyTile = RepositoriesSummaryPage.policyTile();
     policyTile.shouldBe(visible);
-    policyTile.policyLists().shouldHaveSize(3);
+    policyTile.policyLists().shouldHave(CollectionCondition.size(3));
 
     PolicyTileList policyTileLocalList = policyTile.policyList(0);
     policyTileLocalList.ownerName().shouldHave(text("Local to " + repositoryManager.getName()));
-    policyTileLocalList.rows().shouldHaveSize(localToRepositoryManagerPolicies.size() + 1);
+    policyTileLocalList.rows().shouldHave(CollectionCondition.size(localToRepositoryManagerPolicies.size() + 1));
 
     String repositoryContainerName = RepositoryContainer.SINGLETON.getName();
     PolicyTileList policyTileRepositoryContainerList = policyTile.policyList(1);
     policyTileRepositoryContainerList.ownerName().shouldHave(text("Inherited from " + repositoryContainerName));
-    policyTileRepositoryContainerList.rows().shouldHaveSize(2);
+    policyTileRepositoryContainerList.rows().shouldHave(CollectionCondition.size(2));
     policyTileRepositoryContainerList.emptyDescriptor()
         .shouldHave(text("No " + repositoryContainerName + " policies defined"));
 
     PolicyTileList policyTileInheritedList = policyTile.policyList(2);
     policyTileInheritedList.ownerName().shouldHave(text("Inherited from " + rootOrgOwner.getName()));
-    policyTileInheritedList.rows().shouldHaveSize(inheritedFromRootOrgPolicies.size() + 1);
+    policyTileInheritedList.rows().shouldHave(CollectionCondition.size(inheritedFromRootOrgPolicies.size() + 1));
 
     eyesWatcher.eyesCheck("repository manager policies tile");
 
@@ -1330,7 +1331,7 @@ public class RepositoriesSummaryViewTest
     ActionDropDown.deleteOwnerButton().shouldHave(text(repositoryManager.getInstanceId())).shouldBe(visible);
     ActionDropDown.copyOrgIdButton().shouldBe(visible);
     ActionDropDown.editOwner().shouldHave(text("Repository Manager")).shouldBe(visible);
-    ActionDropDown.actions().shouldHaveSize(3);
+    ActionDropDown.actions().shouldHave(CollectionCondition.size(3));
   }
 
   @Test
@@ -1353,7 +1354,7 @@ public class RepositoriesSummaryViewTest
     waitUntilUrl(RepositoriesSummaryPage.url());
     OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = OwnerSummaryPage.sidebar();
     NxCollapsible repoManagerList = orgsAndPoliciesSidebar.getRepoManagerList();
-    repoManagerList.children().shouldHaveSize(0);
+    repoManagerList.children().shouldHave(CollectionCondition.size(0));
 
     assertThat(repositoryManagerDAO.getById(repositoryManager.getId())).isNull();
   }
@@ -1379,7 +1380,7 @@ public class RepositoriesSummaryViewTest
     refreshOrOpen(RepositoriesSummaryPage.url());
     OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = OwnerSummaryPage.sidebar();
     NxCollapsible repoManagerList = orgsAndPoliciesSidebar.getRepoManagerList();
-    repoManagerList.children().shouldHaveSize(1);
+    repoManagerList.children().shouldHave(CollectionCondition.size(1));
   }
 
   @Test
@@ -1397,7 +1398,7 @@ public class RepositoriesSummaryViewTest
         RepositoriesSummaryPage.namespaceConfusionProtectionTile();
     ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), false);
 
-    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(1);
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHave(CollectionCondition.size(1));
 
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0)
         .shouldHave(text(namePattern.getNamespacePattern()));
@@ -1434,7 +1435,7 @@ public class RepositoriesSummaryViewTest
     OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = OwnerSummaryPage.sidebar();
     NxCollapsible repoManagerList = orgsAndPoliciesSidebar.getRepoManagerList();
     repoManagerList.click();
-    repoManagerList.children().shouldHaveSize(1);
+    repoManagerList.children().shouldHave(CollectionCondition.size(1));
     repoManagerList.children().get(0).shouldHave(text(newRepositoryManagerName));
 
     // and the name change should be reflected in the database
@@ -1465,7 +1466,7 @@ public class RepositoriesSummaryViewTest
     OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = OwnerSummaryPage.sidebar();
     NxCollapsible repoManagerList = orgsAndPoliciesSidebar.getRepoManagerList();
     repoManagerList.click();
-    repoManagerList.children().shouldHaveSize(1);
+    repoManagerList.children().shouldHave(CollectionCondition.size(1));
     repoManagerList.children().get(0).shouldHave(text(repositoryManager.getInstanceId()));
 
     // and the name should be unchanged in the database
@@ -1487,7 +1488,7 @@ public class RepositoriesSummaryViewTest
     ConfigurationTable configTable = configTile.configurationTable();
     configTile.shouldBe(visible);
     // 1 header row, 1 row for header filters, 2 repository rows
-    configTable.rows().shouldHaveSize(4);
+    configTable.rows().shouldHave(CollectionCondition.size(4));
 
     configTable.repoManagerConfigTableRow(1).repoManagerConfigTablePublicId()
         .shouldHave(text(hostedRepo.getPublicId()));
@@ -1525,7 +1526,7 @@ public class RepositoriesSummaryViewTest
     Role repoContainerWriteRole = tempEntity.newRole("RC Write Only", false, Permission.WRITE);
     Role rootOrgWriteRole = tempEntity.newRole("RO Write Only", false, Permission.WRITE);
     Role rootOrgReadRole = tempEntity.newRole("RO Read Only", false, Permission.READ);
-    
+
     tempEntity.newMembershipMapping(repositoryManager.getId(), writeRole.getId(), testUser.getUsername());
     tempEntity.newMembershipMapping(repositoryManager.getId(), readRole.getId(), "Group", MemberType.GROUP);
     tempEntity
@@ -1544,12 +1545,12 @@ public class RepositoriesSummaryViewTest
     RepositoriesSummaryPage.accessPillButton().shouldBe(visible).click();
 
     AccessTile accessTile = RepositoriesSummaryPage.accessTile();
-    accessTile.accessLists().shouldHaveSize(3);
+    accessTile.accessLists().shouldHave(CollectionCondition.size(3));
 
     AccessTileList localList = accessTile.accessList(0);
     localList.emptyDescriptor().shouldBe(hidden);
 
-    localList.elements().shouldHaveSize(2);
+    localList.elements().shouldHave(CollectionCondition.size(2));
     localList.ownerName().shouldBe(visible).shouldHave(text("Local"));
 
     AccessTileListElement readOnly = localList.element(0);
@@ -1572,7 +1573,7 @@ public class RepositoriesSummaryViewTest
         accessTile.inheritedAccessList(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
     accessTile.accessListSubheader(0).shouldBe(visible).shouldHave(AccessTile.inheritedText("Repository Managers"));
-    inheritedAccessList.elements().shouldHaveSize(2);
+    inheritedAccessList.elements().shouldHave(CollectionCondition.size(2));
 
     InheritedAccess repoContainerAccessListReadRole = inheritedAccessList.element(0);
     repoContainerAccessListReadRole.label().shouldBe(visible).shouldHave(text("RC Read Only"));
@@ -1595,7 +1596,7 @@ public class RepositoriesSummaryViewTest
     InheritedAccessList rootOrgAccessList = accessTile.inheritedAccessList("ROOT_ORGANIZATION_ID");
 
     accessTile.accessListSubheader(1).shouldBe(visible).shouldHave(AccessTile.inheritedText("Root Organization"));
-    rootOrgAccessList.elements().shouldHaveSize(2);
+    rootOrgAccessList.elements().shouldHave(CollectionCondition.size(2));
 
     InheritedAccess rootOrgAccessListReadRole = rootOrgAccessList.element(0);
     rootOrgAccessListReadRole.label().shouldBe(visible).shouldHave(text("RO Read Only"));
@@ -1630,7 +1631,7 @@ public class RepositoriesSummaryViewTest
 
     ActionDropDown.menu().shouldBe(hidden);
     ActionDropDown.actionButton().click();
-    ActionDropDown.actions().shouldHaveSize(3);
+    ActionDropDown.actions().shouldHave(CollectionCondition.size(3));
     ActionDropDown.deleteOwnerButton().shouldHave(text(repositoryManager.getInstanceId())).shouldBe(visible);
     ActionDropDown.copyOrgIdButton().shouldBe(visible);
     ActionDropDown.editOwner().shouldHave(text("Repository Manager name / icon")).shouldBe(visible);
@@ -1693,7 +1694,7 @@ public class RepositoriesSummaryViewTest
 
     ActionDropDown.menu().shouldBe(hidden);
     ActionDropDown.actionButton().click();
-    ActionDropDown.actions().shouldHaveSize(3);
+    ActionDropDown.actions().shouldHave(CollectionCondition.size(3));
     ActionDropDown.deleteOwnerButton().shouldHave(text(repositoryManager.getInstanceId())).shouldBe(visible);
     ActionDropDown.copyOrgIdButton().shouldBe(visible);
     ActionDropDown.editOwner().shouldHave(text("Repository Manager name / icon")).shouldBe(visible);
@@ -1773,7 +1774,7 @@ public class RepositoriesSummaryViewTest
     element.shouldBe(new Condition("image")
     {
       @Override
-      public boolean apply(WebElement ignored) {
+      public boolean apply(Driver driver, WebElement ignored) {
         return element.isImage();
       }
     });

@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import com.codeborne.selenide.CollectionCondition;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -160,7 +161,7 @@ public class DashboardWaiversTest
     refresh();
 
     DashboardPage.dashboardContainer().shouldBe(visible);
-    table.waivers().shouldHaveSize(9);
+    table.waivers().shouldHave(CollectionCondition.size(9));
 
     // check the tile details
     WaiverTile waiver1 = table.firstWaiver();
@@ -433,7 +434,7 @@ public class DashboardWaiversTest
 
     refreshOrOpen(DashboardPage.urlToWaivers());
     showAllWaivers();
-    table.waivers().shouldHaveSize(100);
+    table.waivers().shouldHave(CollectionCondition.size(100));
 
     // sort by threat desc
     headers.threatHeader().click();
@@ -505,7 +506,7 @@ public class DashboardWaiversTest
 
     refreshOrOpen(DashboardPage.urlToWaivers());
     showAllWaivers();
-    table.waivers().shouldHaveSize(100);
+    table.waivers().shouldHave(CollectionCondition.size(100));
 
     // sort by creation date asc
     headers.dateHeader().click();
@@ -573,7 +574,7 @@ public class DashboardWaiversTest
 
     refreshOrOpen(DashboardPage.urlToWaivers());
     showAllWaivers();
-    table.waivers().shouldHaveSize(100);
+    table.waivers().shouldHave(CollectionCondition.size(100));
 
     // sort by expiration date desc
     headers.expirationHeader().click();
@@ -633,7 +634,7 @@ public class DashboardWaiversTest
 
     refreshOrOpen(DashboardPage.urlToWaivers());
     showAllWaivers();
-    table.waivers().shouldHaveSize(100);
+    table.waivers().shouldHave(CollectionCondition.size(100));
 
     // sort by policy asc
     headers.policyHeader().click();
@@ -709,7 +710,7 @@ public class DashboardWaiversTest
 
     refreshOrOpen(DashboardPage.urlToWaivers());
     showAllWaivers();
-    table.waivers().shouldHaveSize(100);
+    table.waivers().shouldHave(CollectionCondition.size(100));
 
     // sort by scope asc
     headers.scopeHeader().click();
@@ -746,7 +747,7 @@ public class DashboardWaiversTest
     policyWaivers = createWaivers();
     refreshOrOpen(DashboardPage.urlToWaivers());
     showAllWaivers();
-    table.waivers().shouldHaveSize(7);
+    table.waivers().shouldHave(CollectionCondition.size(7));
 
     // get first waiver row in table
     table.firstWaiver().click();
@@ -1075,20 +1076,20 @@ public class DashboardWaiversTest
 
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    DashboardPage.waiversView().paginationButtons().shouldHaveSize(2);
-    table.waivers().shouldHaveSize(100);
+    DashboardPage.waiversView().paginationButtons().shouldHave(CollectionCondition.size(2));
+    table.waivers().shouldHave(CollectionCondition.size(100));
     table.firstWaiver().policy().shouldHave(text("Policy 1"));
     table.firstWaiver().threatNumber().shouldHave(text("7"));
 
     //Click next page
     changePage(1);
-    table.waivers().shouldHaveSize(50);
+    table.waivers().shouldHave(CollectionCondition.size(50));
     table.firstWaiver().policy().shouldHave(text("Policy 1"));
     table.firstWaiver().threatNumber().shouldHave(text("7"));
 
     //Click back page
     changePage(0);
-    table.waivers().shouldHaveSize(100);
+    table.waivers().shouldHave(CollectionCondition.size(100));
     table.firstWaiver().policy().shouldHave(text("Policy 1"));
     table.firstWaiver().threatNumber().shouldHave(text("7"));
   }

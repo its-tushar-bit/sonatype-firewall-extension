@@ -40,7 +40,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.Assert.fail;
 
 public class InnerSourceRepositoryBaseConfigurationsPageTest
     extends AbstractFunctionalTest
@@ -339,7 +339,7 @@ public class InnerSourceRepositoryBaseConfigurationsPageTest
   }
 
   @Test
-  public void testOverrideNotAllowed() { 
+  public void testOverrideNotAllowed() {
     testIsOverrideAllowed(rootOrg, true);
     testIsOverrideAllowed(org, true);
     testIsOverrideAllowed(app, true);

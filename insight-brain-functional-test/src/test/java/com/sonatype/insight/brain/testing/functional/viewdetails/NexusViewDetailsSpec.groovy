@@ -7,17 +7,20 @@ package com.sonatype.insight.brain.testing.functional.viewdetails
 
 import com.sonatype.clm.dto.model.SecurityVulnerability
 import com.sonatype.clm.dto.model.component.ComponentIdentifier
+import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper
 import com.sonatype.insight.brain.model.Application
 import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.policy.Policy
 import com.sonatype.insight.brain.testing.functional.utils.AbstractComponentDetailsSpec
-import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper
 
+import spock.lang.Ignore
 import spock.lang.Stepwise
+
 /**
  * @since 1.12
  */
 @Stepwise
+@Ignore //https://sonatype.atlassian.net/browse/CLM-30530
 class NexusViewDetailsSpec
     extends AbstractComponentDetailsSpec
 {

@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
@@ -109,15 +110,15 @@ public class ComponentDetailsEditLicensesTest
     editLicensesPopover.popoverTitle().shouldHave(text("Edit Licenses"));
 
     ElementsCollection declaredLicenses = editLicensesPopover.getItems(editLicensesPopover.declaredLicenses());
-    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.shouldHave(CollectionCondition.size(1));
     declaredLicenses.first().shouldHave(text("Apache-2.0"));
 
     ElementsCollection observedLicenses = editLicensesPopover.getItems(editLicensesPopover.observedLicenses());
-    observedLicenses.shouldHaveSize(1);
+    observedLicenses.shouldHave(CollectionCondition.size(1));
     observedLicenses.first().shouldHave(text("GPL-2.0"));
 
     ElementsCollection effectiveLicenses = editLicensesPopover.getItems(editLicensesPopover.effectiveLicenses());
-    effectiveLicenses.shouldHaveSize(2);
+    effectiveLicenses.shouldHave(CollectionCondition.size(2));
     effectiveLicenses.first().shouldHave(text("Apache-2.0"));
     effectiveLicenses.last().shouldHave(text("GPL-2.0"));
 
@@ -136,7 +137,7 @@ public class ComponentDetailsEditLicensesTest
     editLicensesPopover.statuses().shouldHave(
         texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
     statusSelect.getSelectedOption().shouldHave(value("Open"));
-    editLicensesPopover.selectedLicensesCheckBoxElements().shouldHaveSize(0);
+    editLicensesPopover.selectedLicensesCheckBoxElements().shouldHave(CollectionCondition.size(0));
 
     // Update to 'Acknowledged' status for ParentApplicationReportTest Organization
     thirdScope.click();
@@ -160,9 +161,9 @@ public class ComponentDetailsEditLicensesTest
     statusSelect.selectOptionContainingText("Overridden");
     NxTransferList overriddenField = editLicensesPopover.overriddenField();
     overriddenField.shouldBe(visible);
-    overriddenField.transferredItems().shouldHaveSize(0);
+    overriddenField.transferredItems().shouldHave(CollectionCondition.size(0));
     overriddenField.availableItems().first().click();
-    overriddenField.transferredItems().shouldHaveSize(1);
+    overriddenField.transferredItems().shouldHave(CollectionCondition.size(1));
     saveButton.shouldBe(enabled).click();
     NxSubmitMask.seeAndWaitForDismissal();
 
@@ -171,7 +172,7 @@ public class ComponentDetailsEditLicensesTest
     thirdScope.shouldHave(text("Organization - ParentApplicationReportTest (Overridden)"));
     statusSelect.getSelectedOption().shouldHave(value("Overridden"));
     editLicensesPopover.declaredLicenses().scrollTo();
-    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.shouldHave(CollectionCondition.size(1));
     effectiveLicenses.first().shouldHave(text("0BSD"));
 
     // Check backend for 'Overridden' override
@@ -203,9 +204,9 @@ public class ComponentDetailsEditLicensesTest
     statusSelect.selectOptionContainingText("Overridden");
     overriddenField = editLicensesPopover.overriddenField();
     overriddenField.shouldBe(visible);
-    overriddenField.transferredItems().shouldHaveSize(0);
+    overriddenField.transferredItems().shouldHave(CollectionCondition.size(0));
     overriddenField.availableItems().first().click();
-    overriddenField.transferredItems().shouldHaveSize(1);
+    overriddenField.transferredItems().shouldHave(CollectionCondition.size(1));
     saveButton.shouldBe(enabled).click();
     NxSubmitMask.seeAndWaitForDismissal();
 
@@ -214,7 +215,7 @@ public class ComponentDetailsEditLicensesTest
     secondScope.shouldHave(text("Organization - ApplicationReportTest (Overridden)"));
     statusSelect.getSelectedOption().shouldHave(value("Overridden"));
     editLicensesPopover.declaredLicenses().scrollTo();
-    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.shouldHave(CollectionCondition.size(1));
     effectiveLicenses.first().shouldHave(text("0BSD"));
 
     // Check backend for 'Overridden' override
@@ -228,7 +229,7 @@ public class ComponentDetailsEditLicensesTest
     firstScope.click();
     statusSelect.selectOptionContainingText("Selected");
     List<NxCheckbox> selectedLicensesCheckboxes = editLicensesPopover.selectedLicensesCheckbox();
-    editLicensesPopover.selectedLicensesCheckBoxElements().shouldHaveSize(2);
+    editLicensesPopover.selectedLicensesCheckBoxElements().shouldHave(CollectionCondition.size(2));
 
     NxCheckbox firstCheckbox = selectedLicensesCheckboxes.get(0);
     firstCheckbox.label().shouldBe(visible).shouldHave(text("Apache-2.0"));
@@ -248,9 +249,9 @@ public class ComponentDetailsEditLicensesTest
     firstScope.shouldBe(selected);
     firstScope.shouldHave(text("Application - ApplicationReportTest (Selected)"));
     statusSelect.getSelectedOption().shouldHave(value("Selected"));
-    editLicensesPopover.selectedLicensesCheckBoxElements().shouldHaveSize(2);
+    editLicensesPopover.selectedLicensesCheckBoxElements().shouldHave(CollectionCondition.size(2));
     firstCheckbox.shouldBe(selected);
-    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.shouldHave(CollectionCondition.size(1));
     effectiveLicenses.first().shouldHave(text("Apache-2.0"));
 
     // Check backend for Application 'SELECTED' override
@@ -292,15 +293,15 @@ public class ComponentDetailsEditLicensesTest
     licenseDetectionsTile.editLicenseButton().click();
 
     ElementsCollection declaredLicenses = editLicensesPopover.getItems(editLicensesPopover.declaredLicenses());
-    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.shouldHave(CollectionCondition.size(1));
     declaredLicenses.first().shouldHave(text("Apache-2.0"));
 
     ElementsCollection observedLicenses = editLicensesPopover.getItems(editLicensesPopover.observedLicenses());
-    observedLicenses.shouldHaveSize(1);
+    observedLicenses.shouldHave(CollectionCondition.size(1));
     observedLicenses.first().shouldHave(text("GPL-2.0"));
 
     ElementsCollection effectiveLicenses = editLicensesPopover.getItems(editLicensesPopover.effectiveLicenses());
-    effectiveLicenses.shouldHaveSize(2);
+    effectiveLicenses.shouldHave(CollectionCondition.size(2));
     effectiveLicenses.first().shouldHave(text("Apache-2.0"));
     effectiveLicenses.last().shouldHave(text("GPL-2.0"));
 
@@ -317,7 +318,7 @@ public class ComponentDetailsEditLicensesTest
     editLicensesPopover.statuses().shouldHave(
         texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
     statusSelect.getSelectedOption().shouldHave(value("Open"));
-    editLicensesPopover.selectedLicensesCheckBoxElements().shouldHaveSize(0);
+    editLicensesPopover.selectedLicensesCheckBoxElements().shouldHave(CollectionCondition.size(0));
   }
 
   @Test
@@ -337,15 +338,15 @@ public class ComponentDetailsEditLicensesTest
     editLicensesPopover.popoverTitle().shouldHave(text("Edit Licenses"));
 
     ElementsCollection declaredLicenses = editLicensesPopover.getItems(editLicensesPopover.declaredLicenses());
-    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.shouldHave(CollectionCondition.size(1));
     declaredLicenses.first().shouldHave(text("Apache-2.0"));
 
     ElementsCollection observedLicenses = editLicensesPopover.getItems(editLicensesPopover.observedLicenses());
-    observedLicenses.shouldHaveSize(1);
+    observedLicenses.shouldHave(CollectionCondition.size(1));
     observedLicenses.first().shouldHave(text("GPL-2.0"));
 
     ElementsCollection effectiveLicenses = editLicensesPopover.getItems(editLicensesPopover.effectiveLicenses());
-    effectiveLicenses.shouldHaveSize(2);
+    effectiveLicenses.shouldHave(CollectionCondition.size(2));
     effectiveLicenses.first().shouldHave(text("Apache-2.0"));
     effectiveLicenses.last().shouldHave(text("GPL-2.0"));
 
@@ -361,7 +362,7 @@ public class ComponentDetailsEditLicensesTest
     editLicensesPopover.statuses().shouldHave(
         texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
     statusSelect.getSelectedOption().shouldHave(value("Open"));
-    editLicensesPopover.selectedLicensesCheckBoxElements().shouldHaveSize(0);
+    editLicensesPopover.selectedLicensesCheckBoxElements().shouldHave(CollectionCondition.size(0));
 
     // Update to 'Acknowledged' status for ApplicationReportTest Organization
     secondScope.click();
@@ -378,16 +379,16 @@ public class ComponentDetailsEditLicensesTest
     statusSelect.selectOptionContainingText("Overridden");
     NxTransferList overriddenField = editLicensesPopover.overriddenField();
     overriddenField.shouldBe(visible);
-    overriddenField.transferredItems().shouldHaveSize(0);
+    overriddenField.transferredItems().shouldHave(CollectionCondition.size(0));
     overriddenField.availableItems().first().click();
-    overriddenField.transferredItems().shouldHaveSize(1);
+    overriddenField.transferredItems().shouldHave(CollectionCondition.size(1));
     testDefaultValuesAfterCloseWithoutSaving(licenseDetectionsTile, editLicensesPopover);
 
     // update to 'Selected' status for Application
     firstScope.click();
     statusSelect.selectOptionContainingText("Selected");
     List<NxCheckbox> selectedLicensesCheckboxes = editLicensesPopover.selectedLicensesCheckbox();
-    editLicensesPopover.selectedLicensesCheckBoxElements().shouldHaveSize(2);
+    editLicensesPopover.selectedLicensesCheckBoxElements().shouldHave(CollectionCondition.size(2));
 
     NxCheckbox firstCheckbox = selectedLicensesCheckboxes.get(0);
     firstCheckbox.label().shouldBe(visible).shouldHave(text("Apache-2.0"));

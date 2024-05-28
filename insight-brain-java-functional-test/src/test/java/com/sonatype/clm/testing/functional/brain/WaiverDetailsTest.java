@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -161,7 +162,7 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
     sidebarNav.sidebarNavTitle().shouldHave(text("WAIVERS"));
 
     ElementsCollection navItems = sidebarNav.sidebarNavItems();
-    navItems.shouldHaveSize(3);
+    navItems.shouldHave(CollectionCondition.size(3));
 
     SidebarNavListItem item1 = sidebarNav.navItem(0);
     item1.shouldHave(cssClass("selected"));
@@ -194,7 +195,7 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
     sidebarNav.sidebarNavTitle().shouldHave(text("WAIVERS"));
 
     ElementsCollection navItems = sidebarNav.sidebarNavItems();
-    navItems.shouldHaveSize(1);
+    navItems.shouldHave(CollectionCondition.size(1));
 
     SidebarNavListItem item1 = sidebarNav.navItem(0);
     item1.shouldHave(cssClass("selected"));
@@ -309,7 +310,7 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
     sidebarNav.sidebarNavTitle().shouldHave(text("Waivers"));
 
     ElementsCollection navItems = sidebarNav.sidebarNavItems();
-    navItems.shouldHaveSize(26);
+    navItems.shouldHave(CollectionCondition.size(26));
 
     WaiverDetailsPage.SidebarNavListItem selectedItem = sidebarNav.navItem(25);
     selectedItem.shouldBe(visible);

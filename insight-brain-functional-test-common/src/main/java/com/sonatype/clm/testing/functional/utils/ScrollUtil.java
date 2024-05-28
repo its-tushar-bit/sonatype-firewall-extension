@@ -5,8 +5,11 @@
  */
 package com.sonatype.clm.testing.functional.utils;
 
+import java.time.Duration;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.Driver;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
@@ -44,7 +47,7 @@ public class ScrollUtil
               .equals(Boolean.TRUE));
     }
     catch (TimeoutException e) {
-      throw UIAssertionError.wrapThrowable(e, Configuration.timeout);
+      throw (UIAssertionError) UIAssertionError.wrap(WebDriverRunner.driver(), e, Configuration.timeout);
     }
   }
 
@@ -65,7 +68,7 @@ public class ScrollUtil
     }
 
     @Override
-    public boolean apply(WebElement element) {
+    public boolean apply(Driver driver, WebElement element) {
       return (Boolean) executor
           .executeScript(JS_LOCAL_VARS + "return parent[0].scrollTop > el[0].offsetTop - parentPadding;", element);
     }
@@ -104,23 +107,25 @@ public class ScrollUtil
    * Waits for any scrolling affecting the given element to finish to ensure later clicks don't miss their target.
    */
   public static SelenideElement awaitEndOfScrolling(final SelenideElement element) {
-    return element.waitUntil(new Condition("done scrolling")
+    SelenideElement selenideElement = element.shouldBe(new Condition("done scrolling")
     {
       Point previousLocation;
 
       Point currentLocation;
 
       @Override
-      public boolean apply(WebElement element) {
+      public boolean apply(Driver driver, WebElement element) {
         previousLocation = currentLocation;
         currentLocation = element.getLocation();
         return currentLocation.equals(previousLocation);
       }
 
       @Override
-      public String actualValue(WebElement element) {
+      public String actualValue(Driver driver, WebElement element) {
         return previousLocation + " vs " + currentLocation;
       }
-    }, Configuration.timeout * 2, 100);
+    }, Duration.ofMillis(Configuration.timeout * 2));
+
+    return selenideElement;
   }
 }

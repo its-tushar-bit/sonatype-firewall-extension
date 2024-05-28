@@ -11,6 +11,7 @@ import com.sonatype.clm.testing.functional.utils.InputUtils;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,6 +65,6 @@ public class OrganizationLTGEditorTest
     LTGEditorPage.title().shouldHave(text("New"));
     LTGEditorPage.ltgName().shouldBe(visible, Condition.empty);
 
-    LTGEditorPage.picker().availableItems().shouldHaveSize(licenseDAO.getAll().size());
+    LTGEditorPage.picker().availableItems().shouldHave(CollectionCondition.size(licenseDAO.getAll().size()));
   }
 }

@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import org.apache.commons.io.FileUtils;
@@ -132,7 +133,7 @@ public class ApplicationAttributionReportTest
     reportPage.header().shouldNotBe(Condition.visible);
     reportPage.footer().shouldNotBe(Condition.visible);
     reportPage.additionalNotices().shouldNotBe(Condition.visible);
-    reportPage.componentElements().shouldHaveSize(EXPECTED_COUNT_OF_COMPONENTS);
+    reportPage.componentElements().shouldHave(CollectionCondition.size(EXPECTED_COUNT_OF_COMPONENTS));
 
     reportPage.findComponentFor(APACHE_TILES_PURL).should(Condition.text("Notice content"));
     reportPage.findComponentFor(APACHE_TILES_PURL).should(Condition.text("License content"));
@@ -171,7 +172,7 @@ public class ApplicationAttributionReportTest
     reportPage.appendix().shouldBe(Condition.visible);
     reportPage.header().shouldNotBe(Condition.visible);
     reportPage.footer().shouldNotBe(Condition.visible);
-    reportPage.componentElements().shouldHaveSize(EXPECTED_COUNT_OF_COMPONENTS);
+    reportPage.componentElements().shouldHave(CollectionCondition.size(EXPECTED_COUNT_OF_COMPONENTS));
 
     reportPage.additionalNotices().shouldBe(Condition.visible);
     reportPage.additionalNotices().shouldHave(Condition.text(firstFileContent));
@@ -202,7 +203,7 @@ public class ApplicationAttributionReportTest
     reportPage.footer().shouldBe(Condition.visible);
     reportPage.footer().should(Condition.text("My Footer"));
 
-    reportPage.componentElements().shouldHaveSize(EXPECTED_COUNT_OF_COMPONENTS);
+    reportPage.componentElements().shouldHave(CollectionCondition.size(EXPECTED_COUNT_OF_COMPONENTS));
 
     reportPage.findComponentFor(APACHE_TILES_PURL).should(Condition.text("Notice content"));
     reportPage.findComponentFor(APACHE_TILES_PURL).should(Condition.text("License content"));
@@ -228,7 +229,7 @@ public class ApplicationAttributionReportTest
     reportPage.appendix().shouldNotBe(Condition.visible);
     reportPage.header().shouldNotBe(Condition.visible);
     reportPage.footer().shouldNotBe(Condition.visible);
-    reportPage.componentElements().shouldHaveSize(EXPECTED_COUNT_OF_COMPONENTS);
+    reportPage.componentElements().shouldHave(CollectionCondition.size(EXPECTED_COUNT_OF_COMPONENTS));
 
     reportPage.findComponentFor(APACHE_TILES_PURL).should(Condition.text("Notice content"));
     reportPage.findComponentFor(APACHE_TILES_PURL).should(Condition.text("License content"));
@@ -252,7 +253,7 @@ public class ApplicationAttributionReportTest
     reportPage.appendix().shouldNotBe(Condition.visible);
     reportPage.header().shouldNotBe(Condition.visible);
     reportPage.footer().shouldNotBe(Condition.visible);
-    reportPage.componentElements().shouldHaveSize(EXPECTED_COUNT_OF_COMPONENTS);
+    reportPage.componentElements().shouldHave(CollectionCondition.size(EXPECTED_COUNT_OF_COMPONENTS));
 
     reportPage.findComponentFor(APACHE_TILES_PURL).should(Condition.text("Notice content"));
     reportPage.findComponentFor(APACHE_TILES_PURL).should(Condition.text("License content"));

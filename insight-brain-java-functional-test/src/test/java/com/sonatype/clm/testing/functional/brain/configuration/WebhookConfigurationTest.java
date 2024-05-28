@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
@@ -47,7 +48,7 @@ public class WebhookConfigurationTest
   private final WebhookEditPage webhookEditPage = new WebhookEditPage();
 
   private final WebhookConfigurationPage webhookConfigurationPage = new WebhookConfigurationPage();
-  
+
   private final List<Webhook> webhookList = new ArrayList<>();
 
   @BeforeClass
@@ -77,7 +78,7 @@ public class WebhookConfigurationTest
   public void testShowsListOfExistingWebhooks() {
     ElementsCollection webhooks = webhookConfigurationPage.webhooks();
 
-    webhooks.shouldHaveSize(3);
+    webhooks.shouldHave(CollectionCondition.size(3));
     webhooks.shouldHave(texts("http://localhost0", "http://localhost1", "http://localhost2"));
 
     // click on page title before eyesCheck to avoid random mouse-over style
@@ -159,7 +160,7 @@ public class WebhookConfigurationTest
     for (int i = 0; i < 3; i++) {
       webhookConfigurationPage.webhook(0).link().click();
       webhookEditPage.should(appear);
-      
+
       String url = webhookEditPage.url().getValue();
       webhookEditPage.remove().shouldBe(enabled).click();
 
@@ -186,7 +187,7 @@ public class WebhookConfigurationTest
 
     webhookEditPage.should(appear);
     webhookEditPage.form().shouldNot(appear);
-    
+
     webhookEditPage.errorAlert().should(appear);
     // Re-trying a bad webhook ID won't change the page.
     webhookEditPage.errorAlert().retryButton().should(appear)
@@ -210,7 +211,7 @@ public class WebhookConfigurationTest
 
     newWebhook.click();
     webhookEditPage.url().setValue("foo");
-    
+
     refreshOrOpen(WebhookConfigurationPage.url());
     unsavedChangesModal.should(appear);
     unsavedChangesModal.cancelButton().click();
@@ -233,7 +234,7 @@ public class WebhookConfigurationTest
     webhookConfigurationPage.webhook(0).link().click();
 
     String previousUrl = webhookEditPage.url().val();
-    
+
     webhookEditPage.url().val("isDirty");
     refreshOrOpen(WebhookConfigurationPage.url());
     unsavedChangesModal.should(appear);
@@ -254,13 +255,13 @@ public class WebhookConfigurationTest
   @Test
   public void testWebhooks_Foundation() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    
+
     // make sure we display an error when navigating directly to webhooks pages
     String notLicensedText = "Webhooks feature is not supported by your license.";
 
     refreshOrOpen(WebhookConfigurationPage.url());
     webhookConfigurationPage.shouldHave(text(notLicensedText));
-    
+
     refreshOrOpen(WebhookEditPage.url(webhookList.get(0).getId()));
     webhookEditPage.shouldHave(text(notLicensedText));
   }
@@ -284,7 +285,7 @@ public class WebhookConfigurationTest
 
   private void insertWebhooks() {
     for (int i = 0; i < 3; i++) {
-      Webhook newWebhook = tempEntity.newWebhookWithSecret("http://localhost" + i, 
+      Webhook newWebhook = tempEntity.newWebhookWithSecret("http://localhost" + i,
           Sets.newSet(WebhookEventType.POLICY_MANAGEMENT), "");
       webhookList.add(newWebhook);
     }

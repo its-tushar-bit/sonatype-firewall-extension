@@ -16,6 +16,7 @@ import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
@@ -39,12 +40,22 @@ public class OrgsAndPoliciesTreeViewTest
   public void init() {
     organizations = tempEntity.newRelatedOrganizationsAsList(2, 3, 3, new NameSupplierDictionary());
     refreshOrOpen(OwnerTreeViewPage.url());
+
+    // There is a delay in the organizations being available to the tree view so we need to wait for that before
+    // refreshing the tree. We can't use shouldBe() here because its the backend data we are waiting on.
+    try {
+      Thread.sleep(1000L);
+    }
+    catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    refresh();
   }
 
   @Test
   public void testOwnerTree() {
     ElementsCollection treeItems = OwnerTreeViewPage.tree().clickableTreeItems();
-    treeItems.shouldHaveSize(57);
+    treeItems.shouldHave(CollectionCondition.size(57));
 
     eyesWatcher.eyesCheck("owner tree view");
   }
@@ -90,15 +101,15 @@ public class OrgsAndPoliciesTreeViewTest
   @Test
   public void testOwnerTreeFilter() {
     ElementsCollection treeItems = OwnerTreeViewPage.tree().clickableTreeItems();
-    treeItems.shouldHaveSize(57);
+    treeItems.shouldHave(CollectionCondition.size(57));
 
     OwnerTreeViewPage.ownerFilterInput().setValue("12");
     treeItems = OwnerTreeViewPage.tree().clickableTreeItems();
-    treeItems.shouldHaveSize(10);
+    treeItems.shouldHave(CollectionCondition.size(10));
 
     OwnerTreeViewPage.ownerFilterInput().setValue("asdfg");
     treeItems = OwnerTreeViewPage.tree().clickableTreeItems();
-    treeItems.shouldHaveSize(0);
+    treeItems.shouldHave(CollectionCondition.size(0));
     OwnerTreeViewPage.emptyTreeMessage().shouldHave(text("No matching results"));
   }
 }

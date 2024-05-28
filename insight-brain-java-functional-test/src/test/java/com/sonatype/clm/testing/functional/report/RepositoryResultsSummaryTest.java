@@ -52,6 +52,7 @@ import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
@@ -181,7 +182,7 @@ public class RepositoryResultsSummaryTest
     RepositoryResultDetailPage.table().header().quarantined().shouldHave(text("QUARANTINED"));
     RepositoryResultDetailPage.table().header().component().shouldHave(text("COMPONENT"));
 
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(12));
     testRow(RepositoryResultDetailPage.table().row(0), "6", "Test Policy", "2020-06-01", "g : a : v");
     testRow(RepositoryResultDetailPage.table().row(1), "10", "Policy 2", "", "g : a : v");
 
@@ -189,18 +190,18 @@ public class RepositoryResultsSummaryTest
     SelenideElement rightPagination = page.paginationButtons().get(1);
     leftPagination.shouldNotBe(visible);
     rightPagination.shouldBe(visible).click();
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(12));
     testRow(RepositoryResultDetailPage.table().row(11), "7", "Test Policy", "", "g : a : v");
 
     leftPagination.shouldBe(visible);
     rightPagination.shouldBe(visible).click();
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(5);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(5));
     testRow(RepositoryResultDetailPage.table().row(0), "5", "Test Policy", "", "g : a : v");
     testRow(RepositoryResultDetailPage.table().row(4), "1", "Test Policy", "", "g : a : v");
 
     rightPagination.shouldNotBe(visible);
     leftPagination.shouldBe(visible).click();
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(12));
     testRow(RepositoryResultDetailPage.table().row(11), "7", "Test Policy", "", "g : a : v");
 
     leftPagination.shouldBe(visible);
@@ -212,7 +213,7 @@ public class RepositoryResultsSummaryTest
     refreshOrOpen(RepositoryResultDetailPage.url(repo.getId()));
     RepositoryResultDetailPage.aggregateToggle().click();
 
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(12));
 
     testRow(RepositoryResultDetailPage.table().row(0), "6", "Test Policy", "2020-06-01", "g : a : v");
     testRow(RepositoryResultDetailPage.table().row(1), "10", "Policy 2", "", "g : a : v");
@@ -237,7 +238,7 @@ public class RepositoryResultsSummaryTest
     leftPagination.shouldNotBe(visible);
     rightPagination.shouldNotBe(visible);
 
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(2);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(2));
 
     testRow(RepositoryResultDetailPage.table().row(0), "6", "Test Policy", "2020-06-01", "g : a : v");
     testRow(RepositoryResultDetailPage.table().row(1), "10", "Test Policy", "", "g : a : v");
@@ -249,14 +250,14 @@ public class RepositoryResultsSummaryTest
     RepositoryResultDetailPage.aggregateToggle().click();
     RepositoryResultDetailPage page = new RepositoryResultDetailPage();
 
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(12));
     testRow(RepositoryResultDetailPage.table().row(0), "6", "Test Policy", "2020-06-01", "g : a : v");
     testRow(RepositoryResultDetailPage.table().row(1), "10", "Policy 2", "", "g : a : v");
     RepositoryResultDetailPage.table().policyName().input().shouldBe(visible);
     RepositoryResultDetailPage.table().policyName().input().sendKeys("Test");
     RepositoryResultDetailPage.table().policyNameClearFilterButton().should(visible);
 
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(9);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(9));
     SelenideElement leftPagination = page.paginationButtons().get(0);
     SelenideElement rightPagination = page.paginationButtons().get(1);
     leftPagination.shouldNotBe(visible);
@@ -264,39 +265,39 @@ public class RepositoryResultsSummaryTest
 
     RepositoryResultDetailPage.table().policyNameClearFilterButton().click();
     RepositoryResultDetailPage.table().componentName().input().sendKeys("nothing");
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(1);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(1));
 
     RepositoryResultDetailPage.table().componentNameClearFilterButton().should(visible);
     RepositoryResultDetailPage.table().componentNameClearFilterButton().click();
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(12));
 
     RepositoryResultDetailPage.table().quarantineTime().input().sendKeys("2020-06-01");
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(1);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(1));
     RepositoryResultDetailPage.table().quarantineTimeClearFilterButton().should(visible);
     RepositoryResultDetailPage.table().quarantineTimeClearFilterButton().click();
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(12));
   }
 
   @Test
   public void testRepositoryResultTextFilteringAggregate() {
     refreshOrOpen(RepositoryResultDetailPage.url(repo.getId()));
 
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(2);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(2));
     testRow(RepositoryResultDetailPage.table().row(0), "6", "Test Policy", "2020-06-01", "g : a : v");
     testRow(RepositoryResultDetailPage.table().row(1), "10", "Test Policy", "", "g : a : v");
 
     RepositoryResultDetailPage.table().componentName().input().sendKeys("nothing");
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(1);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(1));
 
     RepositoryResultDetailPage.table().componentNameClearFilterButton().should(visible);
     RepositoryResultDetailPage.table().componentNameClearFilterButton().click();
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(2);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(2));
 
     RepositoryResultDetailPage.table().quarantineTime().input().sendKeys("2020-06-01");
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(1);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(1));
     RepositoryResultDetailPage.table().quarantineTimeClearFilterButton().should(visible);
     RepositoryResultDetailPage.table().quarantineTimeClearFilterButton().click();
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(2);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(2));
   }
 
   @Test
@@ -345,18 +346,18 @@ public class RepositoryResultsSummaryTest
     RepositoryResultDetailPage.aggregateToggle().click();
 
     // Sanity Check
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(12));
     RepositoryResultTable repositoryResultsTable = new RepositoryResultTable();
 
     // Filter by Policy Name
     // Doesn't filter. Filter invalid
     repositoryResultsTable.policyName().input().sendKeys("T");
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(12));
     repositoryResultsTable.policyNameClearFilterButton().click();
 
     // Filter results by policy name
     repositoryResultsTable.policyName().input().sendKeys("Test");
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(9);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(9));
     repositoryResultsTable.policyNameClearFilterButton().click();
   }
 
@@ -1301,7 +1302,7 @@ public class RepositoryResultsSummaryTest
     refreshOrOpen(RepositoryResultDetailPage.url(repo.getId()));
 
     RepositoryResultDetailPage.header().shouldBe(visible).shouldHave(text("maven-central Repository Results"));
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(1);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(1));
     RepositoryResultDetailPage.table().rows().get(0).shouldHave(text("No results"));
 
     tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT, "path1", "hash1",
@@ -1316,7 +1317,7 @@ public class RepositoryResultsSummaryTest
     refreshOrOpen(RepositoryResultDetailPage.url(repo.getId()));
 
     RepositoryResultDetailPage.header().shouldBe(visible).shouldHave(text("maven-central Repository Results"));
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(2);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(2));
     testRow(RepositoryResultDetailPage.table().row(0), "10", "policy1", "2024-01-01", "g1 : a1 : v1");
     testRow(RepositoryResultDetailPage.table().row(1), "5", "policy2", "", "g2 : a2 : v2");
 
@@ -1340,7 +1341,7 @@ public class RepositoryResultsSummaryTest
 
     repositoryFilterPopover.applyButton().click();
 
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(1);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(1));
     testRow(RepositoryResultDetailPage.table().row(0), "10", "policy1", "2024-01-01", "g1 : a1 : v1");
 
     repositoryFilterPopover.clearButton().click();
@@ -1353,7 +1354,7 @@ public class RepositoryResultsSummaryTest
 
     repositoryFilterPopover.applyButton().click();
 
-    RepositoryResultDetailPage.table().rows().shouldHaveSize(2);
+    RepositoryResultDetailPage.table().rows().shouldHave(CollectionCondition.size(2));
     testRow(RepositoryResultDetailPage.table().row(0), "10", "policy1", "2024-01-01", "g1 : a1 : v1");
     testRow(RepositoryResultDetailPage.table().row(1), "5", "policy2", "", "g2 : a2 : v2");
   }
@@ -1626,9 +1627,9 @@ public class RepositoryResultsSummaryTest
                        String quarantined,
                        String component)
   {
-    row.threat().shouldHave(text(threat));
-    row.policy().shouldHave(text(policy));
-    row.quarantined().shouldHave(text(quarantined));
-    row.component().shouldHave(text(component));
+    row.threat().shouldHave(threat.isEmpty() ? Condition.empty : text(threat));
+    row.policy().shouldHave(policy.isEmpty() ? Condition.empty : text(policy));
+    row.quarantined().shouldHave(quarantined.isEmpty() ? Condition.empty : text(quarantined));
+    row.component().shouldHave(component.isEmpty() ? Condition.empty : text(component));
   }
 }

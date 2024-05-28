@@ -10,11 +10,12 @@ import com.sonatype.clm.testing.functional.elements.MainHeaderNavigationButton;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportScopeDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Selenide;
 import org.junit.After;
 import org.junit.Test;
@@ -48,7 +49,7 @@ public class SuccessMetricsChartsNavigationTest
     labsNavigationButton.shouldBe(visible).shouldNotHave(CLASS_ACTIVE).click();
     successMetricsPage.should(appear);
     labsNavigationButton.shouldBe(visible).shouldHave(CLASS_ACTIVE);
-    successMetricsPage.reports().shouldHaveSize(1);
+    successMetricsPage.reports().shouldHave(CollectionCondition.size(1));
     successMetricsPage.report(0).link().click();
     successMetricsChartsPage.should(appear);
     successMetricsChartsPage.noDataInfoPane().shouldBe(visible).shouldHave(NO_DATA_INFO_TEXT_MONTHLY);

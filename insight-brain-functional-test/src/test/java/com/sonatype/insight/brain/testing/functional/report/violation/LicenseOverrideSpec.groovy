@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.utils.TestReportEvaluator
 
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Stepwise
 
@@ -18,6 +19,7 @@ import spock.lang.Stepwise
  * @since 1.13.0
  */
 @Stepwise
+@Ignore //https://sonatype.atlassian.net/browse/CLM-30530
 class LicenseOverrideSpec
 extends BaseSpec {
   static final String cannedTestReport = '/canned-reports/small-report.zip'

@@ -15,7 +15,6 @@ import com.sonatype.clm.testing.functional.pages.ArtifactoryRepositoryBaseConfig
 import com.sonatype.clm.testing.functional.pages.ArtifactoryRepositoryConfigurationModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -23,6 +22,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.junit.Before;
@@ -39,7 +39,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.Assert.fail;
 
 public class ArtifactoryRepositoryBaseConfigurationsPageTest
     extends AbstractFunctionalTest
@@ -330,7 +330,7 @@ public class ArtifactoryRepositoryBaseConfigurationsPageTest
   }
 
   @Test
-  public void testOverrideNotAllowed() { 
+  public void testOverrideNotAllowed() {
     testIsOverrideAllowed(rootOrg, true);
     testIsOverrideAllowed(org, true);
     testIsOverrideAllowed(app, true);

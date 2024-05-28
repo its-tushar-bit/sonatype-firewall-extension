@@ -21,6 +21,15 @@ public class PillButton
 
   @Override
   public PillButton click() {
+    // There is a race condition with the initialization of the pill bar that can sometimes cause the scrolling to
+    // not work as expected. A short sleep here fixes it.
+    try {
+      Thread.sleep(1000L);
+    }
+    catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+
     SelenideElement currentPill = $(selector);
     currentPill.scrollIntoView("{inline: 'center'}");
     ScrollUtil.awaitEndOfScrolling(currentPill);

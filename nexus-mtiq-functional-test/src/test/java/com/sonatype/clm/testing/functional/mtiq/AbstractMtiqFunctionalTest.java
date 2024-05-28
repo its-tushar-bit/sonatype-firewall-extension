@@ -66,7 +66,6 @@ import com.sonatype.insight.brain.testing.MultiTenantTestInsightBrainServiceFact
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.reverseproxy.ReverseProxyServer;
-
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
@@ -104,7 +103,7 @@ import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TimeoutException;
-import org.openqa.selenium.UnexpectedAlertBehaviour;
+import org.openqa.selenium.UnhandledAlertException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -118,6 +117,7 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.sonatype.clm.testing.functional.utils.BaseUrl.resolveBaseUrl;
+import static com.sonatype.clm.testing.functional.utils.SeleniumChromeOptions.chromeOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -353,10 +353,9 @@ public abstract class AbstractMtiqFunctionalTest
     // since changed and without this setting an UnhandledAlertException is thrown.
     // See also https://bugs.chromium.org/p/chromedriver/issues/detail?id=3002
     if (Configuration.browser.equalsIgnoreCase("chrome")) {
-      ChromeOptions options = new ChromeOptions();
-      options.setUnhandledPromptBehaviour(UnexpectedAlertBehaviour.IGNORE);
       Configuration.browserCapabilities = new DesiredCapabilities();
-      Configuration.browserCapabilities.setCapability(ChromeOptions.CAPABILITY, options);
+      Configuration.browserCapabilities.setCapability(ChromeOptions.CAPABILITY, chromeOptions(VIEWPORT_WIDTH,
+          VIEWPORT_HEIGHT));
     }
 
     WebDriver driver = WebDriverRunner.getAndCheckWebDriver();
@@ -590,10 +589,14 @@ public abstract class AbstractMtiqFunctionalTest
         catch (StaleElementReferenceException e) {
           return true;
         }
+        catch (UnhandledAlertException e) {
+          clearAlerts();
+          return false;
+        }
       });
     }
     catch (TimeoutException e) {
-      throw UIAssertionError.wrapThrowable(e, Configuration.timeout);
+      throw (UIAssertionError) UIAssertionError.wrap(WebDriverRunner.driver(), e, Configuration.timeout);
     }
   }
 
@@ -671,14 +674,11 @@ public abstract class AbstractMtiqFunctionalTest
       });
     }
     catch (TimeoutException e) {
-      throw UIAssertionError.wrapThrowable(e, Configuration.timeout);
+      throw (UIAssertionError) UIAssertionError.wrap(WebDriverRunner.driver(), e, Configuration.timeout);
     }
   }
 
   protected static void clearAlerts() {
-    if (WebDriverRunner.isHeadless()) {
-      return;
-    }
     WebDriver driver = WebDriverRunner.getWebDriver();
     try {
       Alert alert = driver.switchTo().alert();

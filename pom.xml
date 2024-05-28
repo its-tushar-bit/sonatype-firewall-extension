@@ -72,7 +72,7 @@
     <!-- drools 8.x requires Java 11 -->
     <drools.version>7.74.1.Final</drools.version>
     <geb.version>6.0</geb.version>
-    <selenium.version>3.141.59</selenium.version>
+    <selenium.version>4.13.0</selenium.version>
     <httpcomponents.version>4.5.14</httpcomponents.version>
     <nexus-scm-client.version>1.52.1-01</nexus-scm-client.version>
     <nexus-dependency-management.version>1.23.12-01</nexus-dependency-management.version>
@@ -88,7 +88,7 @@
       and insight-brain-functional-test
     -->
     <docker.image.registry></docker.image.registry>
-    <docker.image.version>3.141.59-20210607</docker.image.version>
+    <docker.image.version>4.21.0-20240517</docker.image.version>
     <docker.image>standalone-chrome:${docker.image.version}</docker.image>
     <webdriver.chrome.driver>${project.build.directory}/chromedriver</webdriver.chrome.driver>
     <test.group>all</test.group>
@@ -1133,20 +1133,24 @@
         <version>1.4.3</version>
       </dependency>
       <dependency>
+        <groupId>com.applitools</groupId>
+        <artifactId>eyes-selenium-java5</artifactId>
+        <version>5.68.5</version>
+      </dependency>
+      <dependency>
         <groupId>com.codeborne</groupId>
         <artifactId>selenide</artifactId>
-        <version>4.14.2</version>
-      </dependency>
-      <dependency>
-        <groupId>com.applitools</groupId>
-        <artifactId>eyes-selenium-java3</artifactId>
-        <version>3.160.2</version>
-      </dependency>
-      <dependency>
-        <!-- lock down dependency that eyes-selenium-java3-jersey1x drags in with version range -->
-        <groupId>io.appium</groupId>
-        <artifactId>java-client</artifactId>
-        <version>5.0.4</version>
+        <version>6.17.0</version>
+        <exclusions>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>
@@ -1391,6 +1395,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>animal-sniffer-maven-plugin</artifactId>
+        <version>1.23</version>
         <configuration>
           <signature>
             <groupId>org.codehaus.mojo.signature</groupId>

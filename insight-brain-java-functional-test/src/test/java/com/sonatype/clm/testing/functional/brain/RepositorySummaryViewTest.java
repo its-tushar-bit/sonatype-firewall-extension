@@ -13,11 +13,21 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.*;
+import com.sonatype.clm.testing.functional.elements.AccessTile;
 import com.sonatype.clm.testing.functional.elements.AccessTile.InheritedAccess;
 import com.sonatype.clm.testing.functional.elements.AccessTile.InheritedAccessList;
+import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
+import com.sonatype.clm.testing.functional.elements.ActionDropDown;
+import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.NamespaceConfusionProtectionTile;
+import com.sonatype.clm.testing.functional.elements.NxBreadcrumb;
+import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
+import com.sonatype.clm.testing.functional.elements.PolicyTile;
+import com.sonatype.clm.testing.functional.elements.PolicyTileList;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
+import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
+import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
@@ -36,11 +46,17 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
+import com.codeborne.selenide.CollectionCondition;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -68,7 +84,7 @@ public class RepositorySummaryViewTest
     PolicyTile policyTile = RepositoriesSummaryPage.policyTile();
     policyTile.shouldBe(visible);
     policyTile.newButton().shouldBe(visible);
-    policyTile.policyLists().shouldHaveSize(0);
+    policyTile.policyLists().shouldHave(CollectionCondition.size(0));
     policyTile.localEmptyDescriptor().shouldBe(visible).shouldHave(text("No local"));
   }
 
@@ -84,7 +100,7 @@ public class RepositorySummaryViewTest
     waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(proxyRepository.getId()));
 
     NxBreadcrumb breadcrumb = new NxBreadcrumb();
-    breadcrumb.listItems().shouldHaveSize(4);
+    breadcrumb.listItems().shouldHave(CollectionCondition.size(4));
     breadcrumb.listItems().get(0).shouldHave(text("Root Organization"));
     breadcrumb.listItems().get(1).shouldHave(text("Repository Managers"));
     breadcrumb.listItems().get(2).shouldHave(text(repositoryManager.getName()));
@@ -93,7 +109,7 @@ public class RepositorySummaryViewTest
     refreshOrOpen(RepositoriesSummaryPage.repositoryUrl(hostedRepository.getId()));
     waitUntilUrl(RepositoriesSummaryPage.repositoryUrl(hostedRepository.getId()));
 
-    breadcrumb.listItems().shouldHaveSize(4);
+    breadcrumb.listItems().shouldHave(CollectionCondition.size(4));
     breadcrumb.listItems().get(0).shouldHave(text("Root Organization"));
     breadcrumb.listItems().get(1).shouldHave(text("Repository Managers"));
     breadcrumb.listItems().get(2).shouldHave(text(repositoryManager.getName()));
@@ -131,29 +147,30 @@ public class RepositorySummaryViewTest
 
     PolicyTile policyTile = RepositoriesSummaryPage.policyTile();
     policyTile.shouldBe(visible);
-    policyTile.policyLists().shouldHaveSize(4);
+    policyTile.policyLists().shouldHave(CollectionCondition.size(4));
 
     policyTile.addPolicyButton().shouldBe(visible);
     policyTile.addPolicyButton().shouldHave(text("Add a Policy"));
 
     PolicyTileList policyTileLocalList = policyTile.policyList(0);
     policyTileLocalList.ownerName().shouldHave(text("Local to " + repository.getName()));
-    policyTileLocalList.rows().shouldHaveSize(localToRepositoryPolicies.size() + 1);
+    policyTileLocalList.rows().shouldHave(CollectionCondition.size(localToRepositoryPolicies.size() + 1));
 
     PolicyTileList policyTileRepoManagerList = policyTile.policyList(1);
     policyTileRepoManagerList.ownerName().shouldHave(text("Inherited from " + repositoryManager.getName()));
-    policyTileRepoManagerList.rows().shouldHaveSize(inheritedFromRepositoryManagerPolicies.size() + 1);
+    policyTileRepoManagerList.rows()
+        .shouldHave(CollectionCondition.size(inheritedFromRepositoryManagerPolicies.size() + 1));
 
     String repositoryContainerName = RepositoryContainer.SINGLETON.getName();
     PolicyTileList policyTileRepositoryContainerList = policyTile.policyList(2);
     policyTileRepositoryContainerList.ownerName().shouldHave(text("Inherited from " + repositoryContainerName));
-    policyTileRepositoryContainerList.rows().shouldHaveSize(2);
+    policyTileRepositoryContainerList.rows().shouldHave(CollectionCondition.size(2));
     policyTileRepositoryContainerList.emptyDescriptor()
         .shouldHave(text("No " + repositoryContainerName + " policies defined"));
 
     PolicyTileList policyTileInheritedList = policyTile.policyList(3);
     policyTileInheritedList.ownerName().shouldHave(text("Inherited from " + rootOrgOwner.getName()));
-    policyTileInheritedList.rows().shouldHaveSize(inheritedFromRootOrgPolicies.size() + 1);
+    policyTileInheritedList.rows().shouldHave(CollectionCondition.size(inheritedFromRootOrgPolicies.size() + 1));
 
     eyesWatcher.eyesCheck("Repository policies tile");
 
@@ -183,13 +200,13 @@ public class RepositorySummaryViewTest
 
     // Check that the breadcrumb has the right path
     NxBreadcrumb breadcrumb = new NxBreadcrumb();
-    breadcrumb.listItems().shouldHaveSize(4);
+    breadcrumb.listItems().shouldHave(CollectionCondition.size(4));
     breadcrumb.listItems().get(0).shouldHave(text("Root Organization"));
     breadcrumb.listItems().get(1).shouldHave(text("Repository Managers"));
     breadcrumb.listItems().get(2).shouldHave(text("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE"));
     breadcrumb.listItems().get(3).shouldHave(text("npm-proxy"));
 
-    RepositoriesSummaryPage.policyTile().policyLists().shouldHaveSize(4);
+    RepositoriesSummaryPage.policyTile().policyLists().shouldHave(CollectionCondition.size(4));
     PolicyTileList policyList = RepositoriesSummaryPage.policyTile().policyList(0);
     policyList.ownerName().shouldBe(visible).shouldHave(text("Local"));
     PolicyTileListElement policyElement = policyList.row(1);
@@ -198,7 +215,7 @@ public class RepositorySummaryViewTest
     policyElement.click();
 
     waitUntilUrl(PolicyEditorPage.urlToEdit(repository.getType(), repository.getId(), policy.getId()));
-    breadcrumb.listItems().shouldHaveSize(4);
+    breadcrumb.listItems().shouldHave(CollectionCondition.size(4));
     breadcrumb.listItems().get(0).shouldHave(text("Root Organization"));
     assertThat(breadcrumb.listItems().get(1).lastChild().attr("class"))
         .isEqualTo("nx-dropdown nx-icon-dropdown");
@@ -222,7 +239,7 @@ public class RepositorySummaryViewTest
     // Validates return to create policy page
     waitUntilUrl(PolicyEditorPage.urlToCreate(repository.getType(), repository.getId()));
 
-    breadcrumb.listItems().shouldHaveSize(4);
+    breadcrumb.listItems().shouldHave(CollectionCondition.size(4));
     breadcrumb.listItems().get(0).shouldHave(text("Root Organization"));
     assertThat(breadcrumb.listItems().get(1).lastChild().attr("class"))
             .isEqualTo("nx-dropdown nx-icon-dropdown");
@@ -263,7 +280,7 @@ public class RepositorySummaryViewTest
     Role repoContainerWriteRole = tempEntity.newRole("RC Write Only", false, Permission.WRITE);
     Role rootOrgWriteRole = tempEntity.newRole("RO Write Only", false, Permission.WRITE);
     Role rootOrgReadRole = tempEntity.newRole("RO Read Only", false, Permission.READ);
-    
+
     tempEntity.newMembershipMapping(repository.getId(), writeRole.getId(), testUser.getUsername());
     tempEntity.newMembershipMapping(repository.getId(), readRole.getId(), "Group", MemberType.GROUP);
     tempEntity.newMembershipMapping(repositoryManager.getId(), repoManagerWriteRole.getId(), testUser.getUsername());
@@ -284,12 +301,12 @@ public class RepositorySummaryViewTest
     RepositoriesSummaryPage.accessPillButton().shouldBe(visible).click();
 
     AccessTile accessTile = RepositoriesSummaryPage.accessTile();
-    accessTile.accessLists().shouldHaveSize(4);
+    accessTile.accessLists().shouldHave(CollectionCondition.size(4));
 
     AccessTileList localList = accessTile.accessList(0);
     localList.emptyDescriptor().shouldBe(hidden);
 
-    localList.elements().shouldHaveSize(2);
+    localList.elements().shouldHave(CollectionCondition.size(2));
     localList.ownerName().shouldBe(visible).shouldHave(text("Local"));
 
     AccessTileListElement readOnly = localList.element(0);
@@ -312,7 +329,7 @@ public class RepositorySummaryViewTest
 
     accessTile.accessListSubheader(0).shouldBe(visible)
         .shouldHave(AccessTile.inheritedText(repositoryManager.getName()));
-    repoManagerAccessList.elements().shouldHaveSize(2);
+    repoManagerAccessList.elements().shouldHave(CollectionCondition.size(2));
 
     InheritedAccess repoManagerAccessListReadRole = repoManagerAccessList.element(0);
     repoManagerAccessListReadRole.label().shouldBe(visible).shouldHave(text("RM Read Only"));
@@ -336,7 +353,7 @@ public class RepositorySummaryViewTest
         accessTile.inheritedAccessList(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
     accessTile.accessListSubheader(1).shouldBe(visible).shouldHave(AccessTile.inheritedText("Repository Managers"));
-    repoContainerAccessList.elements().shouldHaveSize(2);
+    repoContainerAccessList.elements().shouldHave(CollectionCondition.size(2));
 
     InheritedAccess repoContainerAccessListReadRole = repoContainerAccessList.element(0);
     repoContainerAccessListReadRole.label().shouldBe(visible).shouldHave(text("RC Read Only"));
@@ -359,7 +376,7 @@ public class RepositorySummaryViewTest
     InheritedAccessList rootOrgAccessList = accessTile.inheritedAccessList("ROOT_ORGANIZATION_ID");
 
     accessTile.accessListSubheader(2).shouldBe(visible).shouldHave(AccessTile.inheritedText("Root Organization"));
-    rootOrgAccessList.elements().shouldHaveSize(2);
+    rootOrgAccessList.elements().shouldHave(CollectionCondition.size(2));
 
     InheritedAccess rootOrgAccessListReadRole = rootOrgAccessList.element(0);
     rootOrgAccessListReadRole.label().shouldBe(visible).shouldHave(text("RO Read Only"));
@@ -395,7 +412,7 @@ public class RepositorySummaryViewTest
         RepositoriesSummaryPage.namespaceConfusionProtectionTile();
     ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), false);
 
-    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(1);
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHave(CollectionCondition.size(1));
 
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0)
         .shouldHave(text(namePattern.getNamespacePattern()));
@@ -467,7 +484,7 @@ public class RepositorySummaryViewTest
     namespaceConfusionProtectionTile.namespaceFilterInput().setValue("a");
     namespaceConfusionProtectionTile.enabledHeaderSortBtn().click();
 
-    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(2);
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHave(CollectionCondition.size(2));
 
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0)
             .shouldHave(text(namePattern2.getNamespacePattern()));
@@ -568,7 +585,7 @@ public class RepositorySummaryViewTest
       List<ProprietaryComponentNamePattern> namePatterns
   )
   {
-    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(4);
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHave(CollectionCondition.size(4));
 
     namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0)
         .shouldHave(text(namePatterns.get(0).getNamespacePattern()));

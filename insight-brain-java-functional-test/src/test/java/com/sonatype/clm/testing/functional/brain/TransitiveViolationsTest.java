@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -54,6 +55,7 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.InsightWork;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
@@ -64,6 +66,7 @@ import org.junit.Test;
 import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.Condition.disappear;
+import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -135,13 +138,13 @@ public class TransitiveViolationsTest
     ComponentDetailsHeader componentDetailsHeader = transitiveViolationsPage.title();
     componentDetailsHeader.title().shouldHave(Condition.text(component.getDisplayName()));
     ElementsCollection reportInformationElements = componentDetailsHeader.reportInformationElements();
-    reportInformationElements.shouldHaveSize(3);
+    reportInformationElements.shouldHave(CollectionCondition.size(3));
     reportInformationElements.get(0).shouldHave(Condition.text(organization.getName()));
     reportInformationElements.get(1).shouldHave(Condition.text(application.getName()));
     reportInformationElements.get(2).shouldHave(Condition
         .text(policyEvaluation.getStageTypeId() + " Report " + getExpectedDateTime(policyEvaluation.getTime())));
     componentDetailsHeader.getElement().$(".component-details-header__tags").should(Condition.exist);
-    componentDetailsHeader.tags().shouldHaveSize(1);
+    componentDetailsHeader.tags().shouldHave(CollectionCondition.size(1));
     componentDetailsHeader.tags().get(0).shouldHave(Condition.text("InnerSource"));
     TransitiveViolationsTable transitiveViolationsTable = transitiveViolationsPage.transitiveViolationsTable();
     transitiveViolationsTable.threatHeader().shouldHave(Condition.attribute("aria-sort", "descending"));
@@ -251,7 +254,7 @@ public class TransitiveViolationsTest
   public void testFilterToEmpty() {
     TransitiveViolationsTable transitiveViolationsTable = visitPage().transitiveViolationsTable();
     transitiveViolationsTable.componentNameFilter().sendKeys("l");
-    transitiveViolationsTable.rows().shouldHaveSize(1);
+    transitiveViolationsTable.rows().shouldHave(CollectionCondition.size(1));
     transitiveViolationsTable.row(1).shouldHave(Condition.text("None"));
     transitiveViolationsTable.componentNameFilter().sendKeys(Keys.BACK_SPACE);
     assertRows(transitiveViolationsTable, getExpectedPolicyViolations(null, null, null));
@@ -262,7 +265,7 @@ public class TransitiveViolationsTest
     TransitiveViolationsPage transitiveViolationsPage = visitPage("hash2");
     transitiveViolationsPage.title().getElement().$(".component-details-header__tags").shouldNot(Condition.exist);
     TransitiveViolationsTable transitiveViolationsTable = transitiveViolationsPage.transitiveViolationsTable();
-    transitiveViolationsTable.rows().shouldHaveSize(1);
+    transitiveViolationsTable.rows().shouldHave(CollectionCondition.size(1));
     transitiveViolationsTable.row(1).shouldHave(Condition.text("None"));
   }
 
@@ -272,7 +275,7 @@ public class TransitiveViolationsTest
     requestWaiveTransitiveViolationsPopover.countsTitle()
         .shouldHave(Condition.text("3 total violations brought in by 3 components"));
     NxThreatCounter counts = requestWaiveTransitiveViolationsPopover.counts();
-    counts.all().shouldHaveSize(3);
+    counts.all().shouldHave(CollectionCondition.size(3));
     counts.critical().text().shouldHave(Condition.text("Critical"));
     counts.critical().count().shouldHave(Condition.text("1"));
     counts.severe().text().shouldHave(Condition.text("Severe"));
@@ -308,7 +311,7 @@ public class TransitiveViolationsTest
     waiveTransitiveViolationsPopover.countsTitle()
         .shouldHave(Condition.text("3 total violations brought in by 3 components"));
     NxThreatCounter counts = waiveTransitiveViolationsPopover.counts();
-    counts.all().shouldHaveSize(3);
+    counts.all().shouldHave(CollectionCondition.size(3));
     counts.critical().text().shouldHave(Condition.text("Critical"));
     counts.critical().count().shouldHave(Condition.text("1"));
     counts.severe().text().shouldHave(Condition.text("Severe"));
@@ -318,7 +321,7 @@ public class TransitiveViolationsTest
     waiveTransitiveViolationsPopover.scope().shouldHave(
         Condition.text(StringUtils.capitalize(application.getType().toString()) + " - " + application.getName()));
     waiveTransitiveViolationsPopover.expiryTimesSelect().getSelectedOption().shouldHave(text("Never"));
-    waiveTransitiveViolationsPopover.expiryTimesOptions().shouldHaveSize(8);
+    waiveTransitiveViolationsPopover.expiryTimesOptions().shouldHave(CollectionCondition.size(8));
     waiveTransitiveViolationsPopover.expiryTimesOptions().get(0).shouldHave(text("Never"));
     waiveTransitiveViolationsPopover.expiryTimesOptions().get(1).shouldHave(text("7 Days"));
     waiveTransitiveViolationsPopover.expiryTimesOptions().get(2).shouldHave(text("14 Days"));
@@ -327,7 +330,7 @@ public class TransitiveViolationsTest
     waiveTransitiveViolationsPopover.expiryTimesOptions().get(5).shouldHave(text("90 Days"));
     waiveTransitiveViolationsPopover.expiryTimesOptions().get(6).shouldHave(text("120 Days"));
     waiveTransitiveViolationsPopover.expiryTimesOptions().get(7).shouldHave(text("Custom"));
-    waiveTransitiveViolationsPopover.comments().shouldHave(Condition.exactText(""));
+    waiveTransitiveViolationsPopover.comments().shouldBe(empty);
     eyesWatcher.eyesCheck();
   }
 
@@ -358,7 +361,7 @@ public class TransitiveViolationsTest
     tile.threatLevel().shouldHave(text("10"));
     tile.policyOwnerLink().shouldHave(text("Test App"));
 
-    tile.stages().shouldHaveSize(5);
+    tile.stages().shouldHave(CollectionCondition.size(5));
 
     tile.stage(0).shouldHave(text("Source"));
     tile.stage(0).icon().should(exist);
@@ -387,7 +390,7 @@ public class TransitiveViolationsTest
   public void testPolicyViolationDetails_Cancel() {
     PolicyViolationDetailPopover policyViolationDetailPopover = visitPolicyViolationDetailsPopover();
     policyViolationDetailPopover.getCloseButton().click();
-    policyViolationDetailPopover.getElement().waitUntil(disappear, 500 ,50);
+    policyViolationDetailPopover.getElement().should(disappear, Duration.ofMillis(500));
   }
 
   @Test
@@ -454,7 +457,7 @@ public class TransitiveViolationsTest
   public void testViewTransitiveViolationWaivers() throws Exception {
     ComponentWaiversPopover componentWaiversPopover = visitViewWaiversPopover();
     componentWaiversPopover.title().shouldHave(Condition.text("Transitive Component Waivers"));
-    componentWaiversPopover.componentWaiversPopoverTable().getRows().shouldHaveSize(1);
+    componentWaiversPopover.componentWaiversPopoverTable().getRows().shouldHave(CollectionCondition.size(1));
     componentWaiversPopover.componentWaiversPopoverTable().emptyTableMessage().shouldBe(Condition.visible);
     componentWaiversPopover.closePopoverButton().shouldBe(Condition.visible).click();
 
@@ -472,10 +475,10 @@ public class TransitiveViolationsTest
         null, creationDate);
 
     componentWaiversPopover = visitViewWaiversPopover();
-    componentWaiversPopover.componentWaiversPopoverTable().getRows().shouldHaveSize(3);
+    componentWaiversPopover.componentWaiversPopoverTable().getRows().shouldHave(CollectionCondition.size(3));
 
     ElementsCollection appPolicyWaiverCells = componentWaiversPopover.componentWaiversPopoverTable().getRows()
-        .find(Condition.text(application.getName())).findAll("td").shouldHaveSize(7);
+        .find(Condition.text(application.getName())).findAll("td").shouldHave(CollectionCondition.size(7));
     appPolicyWaiverCells.get(0).shouldHave(Condition.text(appPolicy.getName()
         + '\n' + appPolicyWaiver.getConstraintFacts().get(0).getConstraintName()));
     appPolicyWaiverCells.get(1).shouldHave(Condition.text(simpleDateFormat.format(appPolicyWaiver.getCreateTime())));
@@ -486,7 +489,7 @@ public class TransitiveViolationsTest
     appPolicyWaiverCells.get(5).shouldHave(Condition.text(appPolicyWaiver.getComment()));
 
     ElementsCollection orgPolicyWaiverCells = componentWaiversPopover.componentWaiversPopoverTable().getRows()
-        .find(Condition.text(organization.getName())).findAll("td").shouldHaveSize(7);
+        .find(Condition.text(organization.getName())).findAll("td").shouldHave(CollectionCondition.size(7));
     orgPolicyWaiverCells.get(0).shouldHave(Condition.text(orgPolicy.getName()
         + '\n' + orgPolicyWaiver.getConstraintFacts().get(0).getConstraintName()));
     orgPolicyWaiverCells.get(1).shouldHave(Condition.text(simpleDateFormat.format(orgPolicyWaiver.getCreateTime())));
@@ -497,7 +500,7 @@ public class TransitiveViolationsTest
     orgPolicyWaiverCells.get(5).shouldHave(Condition.text("- -"));
 
     ElementsCollection rootOrgPolicyWaiverCells = componentWaiversPopover.componentWaiversPopoverTable().getRows()
-        .find(Condition.text(rootOrganization.getName())).findAll("td").shouldHaveSize(7);
+        .find(Condition.text(rootOrganization.getName())).findAll("td").shouldHave(CollectionCondition.size(7));
     rootOrgPolicyWaiverCells.get(0).shouldHave(Condition.text(rootOrgPolicy.getName()
         + '\n' + rootOrgPolicyWaiver.getConstraintFacts().get(0).getConstraintName()));
     rootOrgPolicyWaiverCells.get(1)
@@ -512,7 +515,7 @@ public class TransitiveViolationsTest
     orgPolicyWaiverCells.get(6).find(".iq-component-violations-waivers-table__delete-btn").click();
     DeleteWaiverModal deleteWaiverModal = new DeleteWaiverModal();
     deleteWaiverModal.yesButton().click();
-    componentWaiversPopover.componentWaiversPopoverTable().getRows().shouldHaveSize(2);
+    componentWaiversPopover.componentWaiversPopoverTable().getRows().shouldHave(CollectionCondition.size(2));
     componentWaiversPopover.componentWaiversPopoverTable().getRows().find(Condition.text(application.getName()))
         .shouldBe(visible);
     componentWaiversPopover.componentWaiversPopoverTable().getRows().find(Condition.text(rootOrganization.getName()))
@@ -620,7 +623,7 @@ public class TransitiveViolationsTest
   }
 
   private void assertRows(TransitiveViolationsTable transitiveViolationsTable, List<PolicyViolation> policyViolations) {
-    transitiveViolationsTable.rows().shouldHaveSize(policyViolations.size());
+    transitiveViolationsTable.rows().shouldHave(CollectionCondition.size(policyViolations.size()));
     for (int row = 0; row < transitiveViolationsTable.rows().size(); row++) {
       assertRow(transitiveViolationsTable.row(row + 1), policyViolations.get(row));
     }

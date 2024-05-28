@@ -20,6 +20,7 @@ import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Assert;
@@ -151,33 +152,33 @@ public class AttributionReportFormTest
     SelenideElement firstListItem = attrReportFormPage.getUploadedFileListItems().get(0);
     SelenideElement firstDeleteFileButtonItem = attrReportFormPage.getUploadedFilesListItemButton().get(0);
     firstListItem.has(innerText1);
-    attrReportFormPage.getFileInputs().shouldHaveSize(2);
+    attrReportFormPage.getFileInputs().shouldHave(CollectionCondition.size(2));
 
     attrReportFormPage.getFileInputs().get(1).uploadFile(file2.toFile());
     attrReportFormPage.getUploadedFileListItems().get(1).has(innerText2);
-    attrReportFormPage.getFileInputs().shouldHaveSize(3);
+    attrReportFormPage.getFileInputs().shouldHave(CollectionCondition.size(3));
 
     attrReportFormPage.getFileInputs().get(2).uploadFile(file3.toFile());
     attrReportFormPage.getUploadedFileListItems().get(2).has(innerText3);
-    attrReportFormPage.getFileInputs().shouldHaveSize(4);
+    attrReportFormPage.getFileInputs().shouldHave(CollectionCondition.size(4));
 
     if (testDelete) {
       firstDeleteFileButtonItem.click();
       deleteFileModalConfirmationButton.click();
-      attrReportFormPage.getFileInputs().shouldHaveSize(3);
-      attrReportFormPage.getUploadedFileListItems().shouldHaveSize(2);
+      attrReportFormPage.getFileInputs().shouldHave(CollectionCondition.size(3));
+      attrReportFormPage.getUploadedFileListItems().shouldHave(CollectionCondition.size(2));
       firstListItem.has(innerText2);
 
       firstDeleteFileButtonItem.click();
       deleteFileModalConfirmationButton.click();
-      attrReportFormPage.getFileInputs().shouldHaveSize(2);
-      attrReportFormPage.getUploadedFileListItems().shouldHaveSize(1);
+      attrReportFormPage.getFileInputs().shouldHave(CollectionCondition.size(2));
+      attrReportFormPage.getUploadedFileListItems().shouldHave(CollectionCondition.size(1));
       firstListItem.has(innerText3);
 
       firstDeleteFileButtonItem.click();
       deleteFileModalConfirmationButton.click();
-      attrReportFormPage.getFileInputs().shouldHaveSize(1);
-      attrReportFormPage.getUploadedFileListItems().shouldHaveSize(0);
+      attrReportFormPage.getFileInputs().shouldHave(CollectionCondition.size(1));
+      attrReportFormPage.getUploadedFileListItems().shouldHave(CollectionCondition.size(0));
     }
   }
 

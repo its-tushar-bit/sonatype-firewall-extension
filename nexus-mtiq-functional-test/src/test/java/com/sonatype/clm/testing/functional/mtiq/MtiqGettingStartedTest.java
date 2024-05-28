@@ -15,8 +15,8 @@ import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.mtiq.pages.MtiqGettingStartedPage.ProductLicenseSummaryTile;
 import static com.sonatype.clm.testing.functional.mtiq.pages.MtiqGettingStartedPage.LearningTopicsSummaryTile;
+import static com.sonatype.clm.testing.functional.mtiq.pages.MtiqGettingStartedPage.ProductLicenseSummaryTile;
 import static com.sonatype.clm.testing.functional.mtiq.pages.MtiqGettingStartedPage.SystemSetupSummaryTile;
 import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrollIntoView;
 import static com.sonatype.insight.brain.model.security.MembershipMapping.GLOBAL_CONTEXT_ID;
@@ -37,17 +37,17 @@ public class MtiqGettingStartedTest
     refreshOrOpen(MtiqGettingStartedPage.url());
 
     // non-admin user only sees the HDS connectivity warning and learning topics tile
-    mtiqGettingStartedPage.hdsConnectivityWarning().waitUntil(visible, 5000);
+    mtiqGettingStartedPage.hdsConnectivityWarning().shouldBe(visible);
     mtiqGettingStartedPage.productLicenseSummary().shouldNotBe(visible);
     mtiqGettingStartedPage.systemSetupSummary().shouldNotBe(visible);
     scrollIntoView(mtiqGettingStartedPage.learningTopicsSummary().getElement()).shouldBe(visible);
     checkMtiqNonAdminOmissions();
-    
+
     grantPermissions(getUsername(), GLOBAL_CONTEXT_ID, Permission.ADD_APPLICATION);
     refresh();
 
     // non-admin user that can add applications sees the HDS connectivity, system setup and learning topics tiles
-    mtiqGettingStartedPage.hdsConnectivityWarning().waitUntil(visible, 5000);
+    mtiqGettingStartedPage.hdsConnectivityWarning().shouldBe(visible);
     mtiqGettingStartedPage.productLicenseSummary().shouldNotBe(visible);
     mtiqGettingStartedPage.systemSetupSummary().shouldBe(visible);
     scrollIntoView(mtiqGettingStartedPage.learningTopicsSummary().getElement()).shouldBe(visible);
@@ -57,7 +57,7 @@ public class MtiqGettingStartedTest
     refresh();
 
     // non-default admin user sees all tiles
-    mtiqGettingStartedPage.hdsConnectivityWarning().waitUntil(visible, 5000);
+    mtiqGettingStartedPage.hdsConnectivityWarning().shouldBe(visible);
     mtiqGettingStartedPage.productLicenseSummary().shouldBe(visible);
     checkLicenseSummaryContent();
     mtiqGettingStartedPage.systemSetupSummary().shouldBe(visible);
@@ -82,7 +82,7 @@ public class MtiqGettingStartedTest
     // NOTE: the emdashes are added in CSS and apparently don't show up here
     licenseTile.licensedDevelopersRows().shouldHave(texts("Lifecycle50", "Firewall45"));
   }
-  
+
   private void checkMtiqNonAdminOmissions() {
     LearningTopicsSummaryTile topicsTile = new MtiqGettingStartedPage().learningTopicsSummary();
     ProductLicenseSummaryTile licenseTile = new MtiqGettingStartedPage().productLicenseSummary();

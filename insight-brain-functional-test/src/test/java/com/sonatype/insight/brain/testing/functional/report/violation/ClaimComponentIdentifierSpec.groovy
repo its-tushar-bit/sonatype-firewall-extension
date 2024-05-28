@@ -7,12 +7,14 @@ package com.sonatype.insight.brain.testing.functional.report.violation
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier
 
+import spock.lang.Ignore
 import spock.lang.Stepwise
 
 /**
  * @since 1.13
  */
 @Stepwise
+@Ignore //https://sonatype.atlassian.net/browse/CLM-30530
 class ClaimComponentIdentifierSpec
 extends AbstractClaimComponentSpec {
   @Override

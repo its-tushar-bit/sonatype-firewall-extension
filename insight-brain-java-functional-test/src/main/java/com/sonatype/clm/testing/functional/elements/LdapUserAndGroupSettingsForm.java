@@ -14,6 +14,7 @@ import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 
@@ -182,10 +183,10 @@ public class LdapUserAndGroupSettingsForm
     {
       UserRow userRow = new UserRow("tbody", "tr", SelectorUtils.nthChild(row));
 
-      userRow.username().shouldHave(text(username));
-      userRow.name().shouldHave(text(name));
-      userRow.email().shouldHave(text(email));
-      userRow.groups().shouldHave(text(groups));
+      userRow.username().shouldHave(username.isEmpty() ? empty : text(username));
+      userRow.name().shouldHave(name.isEmpty() ? empty : text(name));
+      userRow.email().shouldHave(email.isEmpty() ? empty : text(email));
+      userRow.groups().shouldHave(groups.isEmpty() ? empty : text(groups));
 
       return this;
     }

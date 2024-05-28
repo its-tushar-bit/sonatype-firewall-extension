@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -93,7 +94,7 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
 
     //take focus off of the select to prevent the select options displayed
     SidebarNavigation.productVersion().click();
-    
+
     assertInheritanceSection();
 
     // make sure toggling dropdown clears input
@@ -185,7 +186,7 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
     }
 
     ProprietaryConfigInheritedTile configTile = new ProprietaryConfigInheritedTile();
-    configTile.proprietaryConfigInheritedLists().shouldHaveSize(1);
+    configTile.proprietaryConfigInheritedLists().shouldHave(CollectionCondition.size(1));
 
     ProprietaryConfigInheritedList list = configTile.proprietaryConfigInheritedList(0);
 

@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.collections4.CollectionUtils;
@@ -126,7 +127,7 @@ public class PolicyCentricReportWaiverTest
     waiveComponent();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopes().shouldHaveSize(1);
+    addWaiverPage.availableScopes().shouldHave(CollectionCondition.size(1));
     addWaiverPage.scope(0).click();
     addWaiverPage.scope(0).shouldHave(text("Application - " + app.getName()));
   }
@@ -139,7 +140,7 @@ public class PolicyCentricReportWaiverTest
 
     waiveComponent();
     AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopes().shouldHaveSize(2);
+    addWaiverPage.availableScopes().shouldHave(CollectionCondition.size(2));
     addWaiverPage.scope(0).click();
     addWaiverPage.scope(0).shouldHave(text("Application - " + app.getName()));
     addWaiverPage.scope(1).shouldHave(text("Organization - Waiver Test Org"));
@@ -153,11 +154,11 @@ public class PolicyCentricReportWaiverTest
 
     waiveComponent();
     AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopes().shouldHaveSize(2);
+    addWaiverPage.availableScopes().shouldHave(CollectionCondition.size(2));
     addWaiverPage.scope(1).shouldHave(text("Organization - Waiver Test Org"));
     addWaiverPage.scope(1).click();
 
-    addWaiverPage.availableComponents().shouldHaveSize(3);
+    addWaiverPage.availableComponents().shouldHave(CollectionCondition.size(3));
     addWaiverPage.component(0).label().shouldHave(text("ch.qos.logback : logback-access : 0.6"));
     addWaiverPage.component(0).shouldBe(selected);
     addWaiverPage.component(1).label().shouldHave(text("ch.qos.logback : logback-access (all versions)"));
@@ -186,7 +187,7 @@ public class PolicyCentricReportWaiverTest
     waiveComponent();
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.scope(0).click();
-    addWaiverPage.availableComponents().shouldHaveSize(3);
+    addWaiverPage.availableComponents().shouldHave(CollectionCondition.size(3));
     addWaiverPage.component(2).label().shouldHave(text("All Components"));
     addWaiverPage.component(2).shouldNotBe(selected).click();
 
@@ -210,7 +211,7 @@ public class PolicyCentricReportWaiverTest
     refreshOrOpen(ApplicationReportPage.url(app, scanId));
 
     reportPage.shouldBe(visible);
-    reportPage.resultRows().shouldHaveSize(13);
+    reportPage.resultRows().shouldHave(CollectionCondition.size(13));
     reportPage.resultRow(2).click();
 
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();

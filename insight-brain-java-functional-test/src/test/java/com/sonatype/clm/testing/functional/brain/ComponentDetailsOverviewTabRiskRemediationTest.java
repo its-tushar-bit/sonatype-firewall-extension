@@ -26,11 +26,11 @@ import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -156,20 +157,20 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     ScrollUtil.scrollIntoView(recommendedVersionsSection.content());
     recommendedVersionsSection.getTitle().shouldHave(text("Recommended Versions"));
     ElementsCollection recommendedVersions = recommendedVersionsSection.contentRecommendedVersionsList();
-    recommendedVersions.shouldHaveSize(3);
+    recommendedVersions.shouldHave(CollectionCondition.size(3));
 
     RecommendationElement recommendation = recommendedVersionsSection.getRecommendation(0);
     recommendation.shouldBe(visible);
     recommendation.text().shouldHave(text("Upgrade to 31.52"));
     recommendation.subText().shouldHave(text("Next version with no policy violation"));
-    recommendation.actions().shouldHaveSize(1);
+    recommendation.actions().shouldHave(CollectionCondition.size(1));
 
     recommendation = recommendedVersionsSection.getRecommendation(1);
     recommendation.shouldBe(visible);
     recommendation.text().shouldHave(text("Upgrade to 31.52"));
     recommendation.subText().shouldHave(
         text("Next version with no policy violations for this component and its dependencies"));
-    recommendation.actions().shouldHaveSize(1);
+    recommendation.actions().shouldHave(CollectionCondition.size(1));
 
     recommendation = recommendedVersionsSection.getRecommendation(2);
     recommendation.shouldBe(visible);
@@ -193,7 +194,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     ScrollUtil.scrollIntoView(recommendedVersionsSection.content());
     recommendedVersionsSection.getTitle().shouldHave(text("Recommended Versions"));
     ElementsCollection recommendedVersions = recommendedVersionsSection.contentRecommendedVersionsList();
-    recommendedVersions.shouldHaveSize(1);
+    recommendedVersions.shouldHave(CollectionCondition.size(1));
 
     RecommendationElement recommendation = recommendedVersionsSection.getRecommendation(0);
     recommendation.shouldBe(visible);
@@ -316,7 +317,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     );
 
     ElementsCollection ancestors = recommendedRemediationSection.contentAncestorsList();
-    ancestors.shouldHaveSize(3);
+    ancestors.shouldHave(CollectionCondition.size(3));
     SelenideElement ancestor = ancestors.get(0);
     ancestor.shouldHave(text("javancss : javancss : 29.50"));
 
@@ -351,7 +352,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     );
 
     ElementsCollection ancestors = recommendedRemediationSection.contentAncestorsList();
-    ancestors.shouldHaveSize(3);
+    ancestors.shouldHave(CollectionCondition.size(3));
     SelenideElement showMore = recommendedRemediationSection.toggleListLink();
     showMore.click();
 
@@ -360,7 +361,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     recommendedRemediationSection.shouldBe(visible);
     ScrollUtil.scrollIntoView(recommendedRemediationSection.content());
     ancestors = recommendedRemediationSection.contentAncestorsList();
-    ancestors.shouldHaveSize(4);
+    ancestors.shouldHave(CollectionCondition.size(4));
     SelenideElement ancestor = ancestors.get(0);
     ancestor.find(".nx-text-link").shouldHave(text("javancss : javancss : 29.50"));
     ancestor.find(".nx-tag").shouldNot(exist);
@@ -410,7 +411,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     );
 
     ElementsCollection ancestors = recommendedRemediationSection.contentAncestorsList();
-    ancestors.shouldHaveSize(3);
+    ancestors.shouldHave(CollectionCondition.size(3));
     SelenideElement ancestor = ancestors.get(0);
     ancestor.shouldHave(text("javancss : javancss : 29.50"));
 

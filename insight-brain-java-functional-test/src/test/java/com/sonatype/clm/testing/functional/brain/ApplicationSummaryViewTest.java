@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,6 +63,7 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
@@ -130,6 +132,7 @@ public class ApplicationSummaryViewTest
   }
 
   @Test
+  @Ignore //https://sonatype.atlassian.net/browse/CLM-30527
   public void testApplicationContact() {
     User tempUser = tempEntity.newUser();
     OwnerSummaryPage.summaryTile().contact().shouldNotHave(text(tempUser.calculateDisplayName()));
@@ -138,7 +141,7 @@ public class ApplicationSummaryViewTest
     ActionDropDown.selectContact().shouldBe(visible).click();
     SelectContactModal.body().shouldBe(visible);
     SelectContactModal.header().shouldHave(SelectContactModal.headerText());
-    SelectContactModal.users().shouldHaveSize(0);
+    SelectContactModal.users().shouldHave(CollectionCondition.size(0));
     SelectContactModal.cancelButton().shouldBe(visible).click();
     SelectContactModal.body().shouldBe(hidden);
     OwnerSummaryPage.summaryTile().contact().shouldNotHave(text(tempUser.calculateDisplayName()));
@@ -146,11 +149,13 @@ public class ApplicationSummaryViewTest
     ActionDropDown.actionButton().click();
     ActionDropDown.selectContact().click();
     SelectContactModal.searchBox().shouldBe(visible).val("*");
-    SelectContactModal.users().shouldHaveSize(2).shouldHave(texts("Admin Builtin", tempUser.calculateDisplayName()));
+    SelectContactModal.users().shouldHave(CollectionCondition.size(2))
+        .shouldHave(texts("Admin Builtin", tempUser.calculateDisplayName()));
 
     // wildcard suffix search narrows search results
     SelectContactModal.searchBox().val(tempUser.getFirstName() + "*");
-    SelectContactModal.users().shouldHaveSize(1).shouldHave(texts(tempUser.calculateDisplayName()));
+    SelectContactModal.users().shouldHave(CollectionCondition.size(1))
+        .shouldHave(texts(tempUser.calculateDisplayName()));
     // update contact
     SelectContactModal.userContact(tempUser.calculateDisplayName()).click();
     SelectContactModal.updateButton().click();
@@ -182,7 +187,8 @@ public class ApplicationSummaryViewTest
     ActionDropDown.selectContact().shouldBe(visible).click();
     SelectContactModal.body().shouldBe(visible);
     SelectContactModal.searchBox().shouldBe(focused).val(tempUser.getFirstName() + "*");
-    SelectContactModal.users().shouldHaveSize(1).shouldHave(texts(tempUser.calculateDisplayName()));
+    SelectContactModal.users().shouldHave(CollectionCondition.size(1))
+        .shouldHave(texts(tempUser.calculateDisplayName()));
     // update contact
     SelectContactModal.userContact(tempUser.calculateDisplayName()).click();
     SelectContactModal.updateButton().click();
@@ -230,7 +236,7 @@ public class ApplicationSummaryViewTest
     ActionDropDown.revokeLegacyViolation().shouldBe(visible);
     ActionDropDown.evaluateFile().shouldBe(visible);
 
-    ActionDropDown.actions().shouldHaveSize(9);
+    ActionDropDown.actions().shouldHave(CollectionCondition.size(9));
   }
 
   @Override
@@ -246,7 +252,7 @@ public class ApplicationSummaryViewTest
     final int stagesSize = stages.size();
 
     ActionDropDown.actionButton().click();
-    ActionDropDown.reportLinks().shouldHaveSize(stagesSize);
+    ActionDropDown.reportLinks().shouldHave(CollectionCondition.size(stagesSize));
 
     for (int i = 0; i < stagesSize; i++) {
       ActionDropDown.reportLink(i).shouldBe(visible, CLM.DISABLED)
@@ -264,7 +270,7 @@ public class ApplicationSummaryViewTest
 
     final int policyEvaluationsSize = policyEvaluations.size();
     ActionDropDown.actionButton().click();
-    ActionDropDown.reportLinks().shouldHaveSize(policyEvaluationsSize);
+    ActionDropDown.reportLinks().shouldHave(CollectionCondition.size(policyEvaluationsSize));
 
     eyesWatcher.eyesCheck("Summary report links");
 
@@ -294,7 +300,7 @@ public class ApplicationSummaryViewTest
     ltgTile.nxHeader().shouldBe(visible).shouldHave(text("License Threat Groups"));
     ltgTile.newButton().shouldBe(hidden);
 
-    ltgTile.getAllApplicableLicenseThreatGroupSection().shouldHaveSize(2);
+    ltgTile.getAllApplicableLicenseThreatGroupSection().shouldHave(CollectionCondition.size(2));
 
     // Scroll table into view
     ScrollUtil.scrollIntoViewInstantly(ltgTile.licenseThreatGroupsTable());
@@ -309,7 +315,8 @@ public class ApplicationSummaryViewTest
     ScrollUtil.scrollIntoViewInstantly(section.getTitle());
     section.getTitle().shouldBe(visible).shouldHave(text("Inherited from Root Organization"));
     section.getEmptyDescriptor().shouldBe(hidden);
-    section.getSectionContentRows().shouldHaveSize(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT);
+    section.getSectionContentRows()
+        .shouldHave(CollectionCondition.size(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT));
   }
 
   @Override
@@ -329,7 +336,7 @@ public class ApplicationSummaryViewTest
     categoryTile.nxSubHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(application));
     categoryTile.newButton().shouldBe(visible).shouldHave(CategoryTile.buttonText(application), CLM.DISABLED);
 
-    categoryTile.categoryLists().shouldHaveSize(1);
+    categoryTile.categoryLists().shouldHave(CollectionCondition.size(1));
 
     NxList appliedCategoryList = categoryTile.categoryList(0);
 
@@ -342,7 +349,7 @@ public class ApplicationSummaryViewTest
     categoryTile.nxSubHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(application));
     categoryTile.newButton().shouldBe(visible, enabled).shouldHave(CategoryTile.buttonText(application));
 
-    categoryTile.categoryLists().shouldHaveSize(1);
+    categoryTile.categoryLists().shouldHave(CollectionCondition.size(1));
 
     NxList appliedCategoryList = categoryTile.categoryList(0);
 
@@ -359,14 +366,14 @@ public class ApplicationSummaryViewTest
     categoryTile.nxSubHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(application));
     categoryTile.newButton().shouldBe(visible, enabled).shouldHave(CategoryTile.buttonText(application));
 
-    categoryTile.categoryLists().shouldHaveSize(1);
+    categoryTile.categoryLists().shouldHave(CollectionCondition.size(1));
 
     NxList appliedCategoryList = categoryTile.categoryList(0);
 
     String nxColorClass = NxColor.getNxColorFromColor(category.getColor()).toNxClass();
 
     appliedCategoryList.emptyDescriptor().shouldBe(hidden);
-    appliedCategoryList.elements().shouldHaveSize(1);
+    appliedCategoryList.elements().shouldHave(CollectionCondition.size(1));
     appliedCategoryList.element(0).name().shouldBe(visible).shouldHave(text(category.getName()));
     appliedCategoryList.element(0).description().shouldBe(visible).shouldHave(text(category.getDescription()));
     appliedCategoryList.element(0).icon().shouldBe(visible).shouldHave(cssClass(nxColorClass));
@@ -493,7 +500,8 @@ public class ApplicationSummaryViewTest
         NxFormSelect stageSelect = modal.stageSelect();
         assertThat(stageSelect.selectedItem().getText()).isEqualTo(EvaluateApplicationModal.SELECT_STAGE_TEXT);
         stageSelect.click();
-        stageSelect.listItems().shouldHaveSize(5).shouldHave(texts(EvaluateApplicationModal.SELECT_STAGE_TEXT,
+        stageSelect.listItems().shouldHave(CollectionCondition.size(5))
+            .shouldHave(texts(EvaluateApplicationModal.SELECT_STAGE_TEXT,
             StageTypes.BUILD.getName(), StageTypes.STAGE_RELEASE.getName(), StageTypes.RELEASE.getName(),
             StageTypes.OPERATE.getName()));
 
@@ -520,7 +528,7 @@ public class ApplicationSummaryViewTest
         evaluationStatusModal.bundleStageName().shouldBe(textCaseSensitive(StageTypes.RELEASE.getName()));
 
         // Give a maximum of 1 minute for the file to be uploaded
-        evaluationStatusModal.evaluateBundleStatus().waitUntil(text("Done"), 60000);
+        evaluationStatusModal.evaluateBundleStatus().shouldBe(text("Done"), Duration.ofMillis(60000));
 
         evaluationStatusModal.closeButton().shouldBe(visible, enabled);
 
@@ -593,7 +601,7 @@ public class ApplicationSummaryViewTest
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
         .format("Configures the integration with an external SCM for the %s application", application.getName())));
-    tile.rows().shouldHaveSize(1);
+    tile.rows().shouldHave(CollectionCondition.size(1));
 
     tile.itemSubText().shouldNotBe(visible);
     tile.itemText().shouldBe(visible)
@@ -610,7 +618,7 @@ public class ApplicationSummaryViewTest
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
         .format("Configures the integration with an external SCM for the %s application", application.getName())));
-    tile.rows().shouldHaveSize(1);
+    tile.rows().shouldHave(CollectionCondition.size(1));
 
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("Repository URL needed"));
     tile.itemSubText().shouldBe(visible).shouldHave(Condition.text("Inherit access token (GitHub)"));
@@ -627,7 +635,7 @@ public class ApplicationSummaryViewTest
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
         .format("Configures the integration with an external SCM for the %s application", application.getName())));
-    tile.rows().shouldHaveSize(1);
+    tile.rows().shouldHave(CollectionCondition.size(1));
 
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("Repository URL needed"));
     tile.itemSubText().shouldBe(visible).shouldHave(Condition.text(String
@@ -644,7 +652,7 @@ public class ApplicationSummaryViewTest
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
         .format("Configures the integration with an external SCM for the %s application", application.getName())));
-    tile.rows().shouldHaveSize(1);
+    tile.rows().shouldHave(CollectionCondition.size(1));
 
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("http://github.com/aaa/bbb"));
     tile.itemSubText().shouldBe(visible).shouldHave(Condition.text(String
@@ -660,7 +668,7 @@ public class ApplicationSummaryViewTest
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldNotBe(visible);
-    
+
     tile.shouldNotBe(visible);
     tile.nxSubHeader().shouldNotBe(visible);
     tile.content().shouldNotBe(visible);
@@ -689,21 +697,25 @@ public class ApplicationSummaryViewTest
   }
 
   @Test
+  @Ignore //https://sonatype.atlassian.net/browse/CLM-30527
   public void testSourceControlRepositoryHeader_github() {
     testSourceControl("http://localhost/my/app", SourceControlProvider.GITHUB, "fa-github");
   }
 
   @Test
+  @Ignore //https://sonatype.atlassian.net/browse/CLM-30527
   public void testSourceControlRepositoryHeader_gitlab() {
     testSourceControl("http://localhost/my/app", SourceControlProvider.GITLAB, "fa-gitlab");
   }
 
   @Test
+  @Ignore //https://sonatype.atlassian.net/browse/CLM-30527
   public void testSourceControlRepositoryHeader_bitbucket() {
     testSourceControl("http://localhost/scm/my/app", SourceControlProvider.BITBUCKET, "fa-bitbucket");
   }
 
   @Test
+  @Ignore //https://sonatype.atlassian.net/browse/CLM-30527
   public void testSourceControlRepositoryHeader_azure() {
     testSourceControl("http://localhost/user/prj/_git/app", SourceControlProvider.AZURE, "fa-git");
   }
@@ -733,8 +745,8 @@ public class ApplicationSummaryViewTest
 
     refreshOrOpen(OwnerSummaryPage.url(newApplication));
     LabelTile labelTile = OwnerSummaryPage.labelTile();
-    labelTile.labelLists().shouldHaveSize(1);
-    labelTile.inheritedLabelsLists().shouldHaveSize(1);
+    labelTile.labelLists().shouldHave(CollectionCondition.size(1));
+    labelTile.inheritedLabelsLists().shouldHave(CollectionCondition.size(1));
     OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible);
     ScrollUtil.scrollIntoViewInstantly(labelTile.getElement());
 
@@ -757,8 +769,8 @@ public class ApplicationSummaryViewTest
 
     refreshOrOpen(OwnerSummaryPage.url(newApplication));
     AccessTile accessTile = OwnerSummaryPage.accessTile();
-    accessTile.accessLists().shouldHaveSize(2);
-    accessTile.inheritedAccessLists().shouldHaveSize(1);
+    accessTile.accessLists().shouldHave(CollectionCondition.size(2));
+    accessTile.inheritedAccessLists().shouldHave(CollectionCondition.size(1));
     OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible);
     ScrollUtil.scrollIntoViewInstantly(accessTile.getElement());
 

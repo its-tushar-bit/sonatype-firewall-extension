@@ -127,7 +127,7 @@ public class EditOriginalSourcesTest
     assertThat(originalSources.at(2)).isNotNull();
     assertThat(originalSources.at(2).value()).isEqualTo("link3");
 
-    assertThat(ComponentLegalOverviewPage.originalSources().all().shouldHaveSize(3));
+    assertThat(ComponentLegalOverviewPage.originalSources().all().shouldHave(CollectionCondition.size(3)));
   }
 
   @Test
@@ -167,7 +167,7 @@ public class EditOriginalSourcesTest
     assertThat(originalSources.at(2)).isNotNull();
     assertThat(originalSources.at(2).value()).isEqualTo("UPDATED ORIGINAL SOURCE");
 
-    assertThat(ComponentLegalOverviewPage.originalSources().all().shouldHaveSize(3));
+    assertThat(ComponentLegalOverviewPage.originalSources().all().shouldHave(CollectionCondition.size(3)));
   }
 
   @Test
@@ -203,7 +203,7 @@ public class EditOriginalSourcesTest
     assertThat(originalSources.at(0).value()).isEqualTo("https://link2.com");
     assertThat(originalSources.at(1).value()).isEqualTo("link3");
 
-    assertThat(ComponentLegalOverviewPage.originalSources().all().shouldHaveSize(2));
+    assertThat(ComponentLegalOverviewPage.originalSources().all().shouldHave(CollectionCondition.size(2)));
   }
 
   @Test
@@ -286,7 +286,7 @@ public class EditOriginalSourcesTest
     assertThat(originalSources.at(2)).isNotNull();
     assertThat(originalSources.at(2).value()).isEqualTo("link3");
 
-    assertThat(ComponentLegalOverviewPage.originalSources().all().shouldHaveSize(3));
+    assertThat(ComponentLegalOverviewPage.originalSources().all().shouldHave(CollectionCondition.size(3)));
   }
 
   @Test

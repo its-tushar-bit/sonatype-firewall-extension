@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -46,6 +47,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.empty;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -117,7 +119,7 @@ public class EditLicenseFilesTest
 
   private void doTestLicensesTile_InitialState() {
     LicenseFiles licenseFiles = ComponentLegalOverviewPage.licenseFiles();
-    licenseFiles.all().shouldHaveSize(2);
+    licenseFiles.all().shouldHave(CollectionCondition.size(2));
     assertLicense(licenseFiles.at(0), "META-INF/LICENSE", "\nApache ServiceComb" +
         "\nCopyright 2017-2021 The Apache Software Foundation" +
         "\n\nThis product includes software developed at" +
@@ -143,7 +145,7 @@ public class EditLicenseFilesTest
     ComponentLegalOverviewPage.editLicenseFilesButton().click();
     EditLicenseFilesModal editLicenseFilesModal = new EditLicenseFilesModal();
     editLicenseFilesModal.shouldBe(Condition.visible);
-    editLicenseFilesModal.allLicenses().shouldHaveSize(2);
+    editLicenseFilesModal.allLicenses().shouldHave(CollectionCondition.size(2));
     assertLicense(editLicenseFilesModal.licenseAt(0), "\nApache ServiceComb" +
         "\nCopyright 2017-2021 The Apache Software Foundation" +
         "\n\nThis product includes software developed at" +
@@ -151,7 +153,7 @@ public class EditLicenseFilesTest
     assertLicense(editLicenseFilesModal.licenseAt(1), "content", true);
     assertOption(editLicenseFilesModal.scopeDropdown().getSelectedOption(), rootOrg);
     ElementsCollection options = editLicenseFilesModal.scopeDropdown().$$("option");
-    options.shouldHaveSize(expectedScopeCount);
+    options.shouldHave(CollectionCondition.size(expectedScopeCount));
     if (expectedScopeCount == 1) {
       assertOption(options.get(0), rootOrg);
     }
@@ -180,7 +182,7 @@ public class EditLicenseFilesTest
     ComponentLegalOverviewPage.editLicenseFilesButton().click();
     EditLicenseFilesModal editLicenseFilesModal = new EditLicenseFilesModal();
     editLicenseFilesModal.addLicenseButton().click();
-    editLicenseFilesModal.allLicenses().shouldHaveSize(3);
+    editLicenseFilesModal.allLicenses().shouldHave(CollectionCondition.size(3));
     assertLicense(editLicenseFilesModal.licenseAt(2), "", true);
     assertButton(editLicenseFilesModal.cancel(), true, null);
     editLicenseFilesModal.licenseAt(2).textInput().setValue(content);
@@ -257,7 +259,7 @@ public class EditLicenseFilesTest
     assertButton(editLicenseFilesModal.save(), true, null);
     editLicenseFilesModal.save().click();
     editLicenseFilesModal.shouldNotBe(Condition.visible);
-    ComponentLegalOverviewPage.licenseFiles().all().shouldHaveSize(initialLicenseFiles - 1);
+    ComponentLegalOverviewPage.licenseFiles().all().shouldHave(CollectionCondition.size(initialLicenseFiles - 1));
     ComponentLegalOverviewPage.editLicenseFilesButton().click();
     license.statusCheckbox().shouldNotBe(Condition.selected);
   }
@@ -278,7 +280,7 @@ public class EditLicenseFilesTest
   private void doTestCancel() {
     ComponentLegalOverviewPage.editLicenseFilesButton().click();
     EditLicenseFilesModal editLicenseFilesModal = new EditLicenseFilesModal();
-    editLicenseFilesModal.allLicenses().shouldHaveSize(2);
+    editLicenseFilesModal.allLicenses().shouldHave(CollectionCondition.size(2));
     LicenseFile license = editLicenseFilesModal.licenseAt(0);
     assertLicense(license, "\nApache ServiceComb" +
         "\nCopyright 2017-2021 The Apache Software Foundation" +
@@ -288,11 +290,11 @@ public class EditLicenseFilesTest
     license.statusToggle().click();
     assertLicense(license, "changed", false);
     editLicenseFilesModal.addLicenseButton().click();
-    editLicenseFilesModal.allLicenses().shouldHaveSize(3);
+    editLicenseFilesModal.allLicenses().shouldHave(CollectionCondition.size(3));
     editLicenseFilesModal.cancel().click();
     editLicenseFilesModal.shouldNotBe(Condition.visible);
     ComponentLegalOverviewPage.editLicenseFilesButton().click();
-    editLicenseFilesModal.allLicenses().shouldHaveSize(2);
+    editLicenseFilesModal.allLicenses().shouldHave(CollectionCondition.size(2));
     assertLicense(license, "\nApache ServiceComb" +
         "\nCopyright 2017-2021 The Apache Software Foundation" +
         "\n\nThis product includes software developed at" +
@@ -469,7 +471,7 @@ public class EditLicenseFilesTest
 
   private void assertLicense(ComponentLegalOverviewPage.LicenseFile license, String relPath, String text) {
     if (relPath == null) {
-      license.relPath().shouldHave(Condition.exactText(""));
+      license.relPath().shouldBe(empty);
     }
     else {
       license.relPath().shouldHave(Condition.exactText(relPath));

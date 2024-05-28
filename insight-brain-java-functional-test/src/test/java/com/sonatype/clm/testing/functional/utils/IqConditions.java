@@ -9,15 +9,20 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import com.codeborne.selenide.CheckResult;
+import com.codeborne.selenide.CheckResult.Verdict;
 import com.codeborne.selenide.CollectionCondition;
+import com.codeborne.selenide.WebDriverRunner;
 import com.codeborne.selenide.ex.UIAssertionError;
-import com.codeborne.selenide.impl.WebElementsCollection;
+import com.codeborne.selenide.impl.CollectionSource;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.Color;
 
 import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.ElementsCollection.elementsToString;
 import static java.util.stream.Collectors.toList;
 
 public class IqConditions
@@ -40,25 +45,33 @@ public class IqConditions
     }
 
     @Override
-    public boolean apply(List<WebElement> input) {
-      for (WebElement element : input) {
-        if (!cssClass(className).apply(element)) {
-          return false;
+    public CheckResult check(final CollectionSource collection) {
+      for (WebElement element : collection.getElements()) {
+        if (cssClass(className).check(WebDriverRunner.driver(), element).verdict() == Verdict.REJECT) {
+          return CheckResult.rejected("className not found: " + className, null);
         }
       }
-      return true;
+      return CheckResult.accepted();
     }
 
     @Override
-    public void fail(WebElementsCollection collection,
-                     List<WebElement> elements,
-                     Exception lastError,
-                     long timeoutMs)
+    public void fail(
+        final CollectionSource collection,
+        final CheckResult lastCheckResult,
+        @Nullable final Exception lastError,
+        final long timeoutMs)
     {
+      List<WebElement> elements = collection.getElements();
+      String elementsString = elements.stream().map(WebElement::getText).collect(Collectors.joining(","));
       throw new IqAssertionError(
           "\nActual: " + getSafeValues(elements, element -> element.getAttribute("class")) + "\nExpected: " + className
-              + "\nCollection: " + collection.description() + "\nElements: " + elementsToString(elements),
+              + "\nCollection: " + collection.description() + "\nElements: " + elementsString,
           lastError, timeoutMs);
+    }
+
+    @Override
+    public boolean missingElementSatisfiesCondition() {
+      return false;
     }
   }
 
@@ -74,19 +87,23 @@ public class IqConditions
       this.values = values;
     }
 
+    @NotNull
     @Override
-    public boolean apply(List<WebElement> elements) {
+    public CheckResult check(final CollectionSource collection) {
+      List<WebElement> elements = collection.getElements();
+
       if (elements.size() != values.length) {
-        return false;
+        return CheckResult.rejected("Sizes differ", elements.size());
       }
 
       for (int i = 0; i < values.length; i++) {
-        if (!matches(values[i], elements.get(i).getCssValue(propertyName))) {
-          return false;
+        String cssValue = elements.get(i).getCssValue(propertyName);
+        if (!matches(values[i], cssValue)) {
+          return CheckResult.rejected("Values do not match", cssValue);
         }
       }
 
-      return true;
+      return CheckResult.accepted();
     }
 
     private boolean matches(String expected, String actual) {
@@ -105,14 +122,23 @@ public class IqConditions
     }
 
     @Override
-    public void fail(WebElementsCollection collection,
-                     List<WebElement> elements,
-                     Exception lastError,
-                     long timeoutMs)
+    public void fail(
+        final CollectionSource collection,
+        final CheckResult lastCheckResult,
+        @Nullable final Exception lastError,
+        final long timeoutMs)
     {
+      List<WebElement> elements = collection.getElements();
+      String elementsString = elements.stream().map(WebElement::getText).collect(Collectors.joining(", "));
+
       throw new IqAssertionError("\nActual: " + getSafeValues(elements, element -> element.getCssValue(propertyName))
           + "\nExpected: " + Arrays.toString(values) + "\nCollection: " + collection.description() + "\nElements: "
-          + elementsToString(elements), lastError, timeoutMs);
+          + elementsString, lastError, timeoutMs);
+    }
+
+    @Override
+    public boolean missingElementSatisfiesCondition() {
+      return false;
     }
 
     @Override
@@ -140,8 +166,7 @@ public class IqConditions
       extends UIAssertionError
   {
     protected IqAssertionError(String message, Throwable cause, long timeoutMs) {
-      super(message, cause);
-      this.timeoutMs = timeoutMs;
+      super(WebDriverRunner.driver(), message, cause, timeoutMs);
     }
   }
 }

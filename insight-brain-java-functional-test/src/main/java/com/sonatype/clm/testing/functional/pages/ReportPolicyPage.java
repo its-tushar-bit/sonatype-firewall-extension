@@ -5,7 +5,9 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Driver;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.openqa.selenium.WebElement;
@@ -50,7 +52,7 @@ public class ReportPolicyPage
     }
 
     public void waitForRows(int count) {
-      elements.shouldHaveSize(count);
+      elements.shouldHave(CollectionCondition.size(count));
     }
   }
 
@@ -63,7 +65,7 @@ public class ReportPolicyPage
     {
 
       @Override
-      public boolean apply(WebElement element) {
+      public boolean apply(Driver driver, WebElement element) {
         return $(element).find(".noScore").exists();
       }
     });

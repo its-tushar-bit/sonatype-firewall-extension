@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Configuration;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -81,8 +82,8 @@ public class LabelsTest
   public void testCipLabels() {
     browseToCipLabelsTab();
 
-    LabelsCIP.appliedLabels().shouldHaveSize(0);
-    LabelsCIP.availableLabels().shouldHaveSize(3);
+    LabelsCIP.appliedLabels().shouldHave(CollectionCondition.size(0));
+    LabelsCIP.availableLabels().shouldHave(CollectionCondition.size(3));
     LabelsCIP.availableLabel(1).shouldHave(text("Architecture-Blacklisted"));
     LabelsCIP.availableLabel(2).shouldHave(text("Architecture-Cleanup"));
     LabelsCIP.availableLabel(3).shouldHave(text("Architecture-Deprecated")).action().click();
@@ -90,8 +91,8 @@ public class LabelsTest
     AddLabelModal.saveButton().shouldBe(visible).click();
     AddLabelModal.root().shouldBe(hidden);
 
-    LabelsCIP.appliedLabels().shouldHaveSize(1);
-    LabelsCIP.availableLabels().shouldHaveSize(2);
+    LabelsCIP.appliedLabels().shouldHave(CollectionCondition.size(1));
+    LabelsCIP.availableLabels().shouldHave(CollectionCondition.size(2));
 
     // login with lesser privileges
     refreshOrOpen(ReportListPage.url());
@@ -101,8 +102,8 @@ public class LabelsTest
     login(user.getUsername(), user.getPassword());
     browseToCipLabelsTab();
 
-    LabelsCIP.appliedLabels().shouldHaveSize(1);
-    LabelsCIP.availableLabels().shouldHaveSize(2);
+    LabelsCIP.appliedLabels().shouldHave(CollectionCondition.size(1));
+    LabelsCIP.availableLabels().shouldHave(CollectionCondition.size(2));
 
     LabelsCIP.availableLabel(1).shouldHave(text("Architecture-Blacklisted")).action().click();
     AddLabelModal.root().should(appear);
@@ -116,8 +117,8 @@ public class LabelsTest
     RemoveLabelModal.closeButton().shouldBe(visible).click();
     RemoveLabelModal.root().should(disappear);
 
-    LabelsCIP.appliedLabels().shouldHaveSize(1);
-    LabelsCIP.availableLabels().shouldHaveSize(2);
+    LabelsCIP.appliedLabels().shouldHave(CollectionCondition.size(1));
+    LabelsCIP.availableLabels().shouldHave(CollectionCondition.size(2));
 
     // re-login as admin
     refreshOrOpen(ReportListPage.url());
@@ -128,6 +129,6 @@ public class LabelsTest
     LabelsCIP.appliedLabel(1).shouldHave(text("Architecture-Deprecated")).action().click();
     RemoveLabelModal.confirmButton().shouldBe(visible).click();
     RemoveLabelModal.root().shouldBe(hidden);
-    LabelsCIP.availableLabels().shouldHaveSize(3);
+    LabelsCIP.availableLabels().shouldHave(CollectionCondition.size(3));
   }
 }

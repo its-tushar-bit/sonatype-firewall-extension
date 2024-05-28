@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.security.PasswordHandler;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;
@@ -90,13 +91,13 @@ public class LdapConfigurationTest
     refreshOrOpen(LdapServerListPage.url());
 
     LdapServerListPage serverListPage = new LdapServerListPage();
-    serverListPage.listElements().shouldHaveSize(1);
+    serverListPage.listElements().shouldHave(CollectionCondition.size(1));
     serverListPage.addButton().click();
 
     waitUntilUrl(LdapConfigurationPage.urlToCreate());
 
     LdapConfigurationPage.backButton().shouldHave(text("Back to LDAP Servers")).click();
-    serverListPage.listElements().shouldHaveSize(1);
+    serverListPage.listElements().shouldHave(CollectionCondition.size(1));
     serverListPage.addButton().click();
 
     waitUntilUrl(LdapConfigurationPage.urlToCreate());
@@ -189,7 +190,7 @@ public class LdapConfigurationTest
     refreshOrOpen(LdapServerListPage.url());
 
     LdapServerListPage serverListPage = new LdapServerListPage();
-    serverListPage.listElements().shouldHaveSize(1);
+    serverListPage.listElements().shouldHave(CollectionCondition.size(1));
 
     ListRow row = serverListPage.listRow(1);
     row.element().shouldBe(visible).click();
@@ -203,7 +204,7 @@ public class LdapConfigurationTest
 
     waitUntilUrl(LdapServerListPage.url());
 
-    serverListPage.listElements().shouldHaveSize(0);
+    serverListPage.listElements().shouldHave(CollectionCondition.size(0));
     serverListPage.emptyDescriptor().shouldBe(visible);
     assertThat(ldapServerDAO.getById(ldapServer.getId())).isNull();
   }

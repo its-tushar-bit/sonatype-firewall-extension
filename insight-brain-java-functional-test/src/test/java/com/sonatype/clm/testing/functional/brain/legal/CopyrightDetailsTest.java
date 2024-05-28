@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.textsInAnyOrder;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.text;
 
 public class CopyrightDetailsTest
@@ -124,7 +125,7 @@ public class CopyrightDetailsTest
         text("Copyright SomeDeveloper 2019-2020 All Right reserved"));
     copyrightFilePaths.pathAt(1).$("button.nx-collapsible-items__trigger").click();
     copyrightFilePaths.pathAt(1).shouldNotHave(cssClass("nx-collapsible-items--expanded"));
-    copyrightFilePaths.getCopyrightContextText(1).shouldHave(text(""));
+    copyrightFilePaths.getCopyrightContextText(1).shouldBe(empty);
   }
 
   @Test

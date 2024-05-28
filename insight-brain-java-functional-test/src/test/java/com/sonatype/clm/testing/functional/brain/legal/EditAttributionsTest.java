@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -36,6 +37,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.empty;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -105,10 +107,10 @@ public class EditAttributionsTest
     EditAttributionModal editAttributionModal = new EditAttributionModal();
     editAttributionModal.shouldBe(Condition.visible);
     editAttributionModal.header().shouldHave(Condition.text("Add Additional Attribution"));
-    editAttributionModal.attributionText().shouldHave(Condition.text(""));
+    editAttributionModal.attributionText().shouldBe(empty);
     assertOption(editAttributionModal.scopeDropdown().getSelectedOption(), rootOrg);
     ElementsCollection options = editAttributionModal.scopeDropdown().$$("option");
-    options.shouldHaveSize(3);
+    options.shouldHave(CollectionCondition.size(3));
     assertOption(options.get(0), app);
     assertOption(options.get(1), org);
     assertOption(options.get(2), rootOrg);
@@ -152,7 +154,7 @@ public class EditAttributionsTest
     editAttributionModal.attributionText().shouldHave(Condition.text(componentObligationAttribution.getContent()));
     assertOption(editAttributionModal.scopeDropdown().getSelectedOption(), app);
     ElementsCollection options = editAttributionModal.scopeDropdown().$$("option");
-    options.shouldHaveSize(3);
+    options.shouldHave(CollectionCondition.size(3));
     assertOption(options.get(0), app);
     assertOption(options.get(1), org);
     assertOption(options.get(2), rootOrg);
@@ -183,7 +185,7 @@ public class EditAttributionsTest
     editAttributionModal.attributionText().shouldHave(Condition.text(componentObligationAttribution.getContent()));
     assertOption(editAttributionModal.scopeDropdown().getSelectedOption(), app);
     ElementsCollection options = editAttributionModal.scopeDropdown().$$("option");
-    options.shouldHaveSize(3);
+    options.shouldHave(CollectionCondition.size(3));
     assertOption(options.get(0), app);
     assertOption(options.get(1), org);
     assertOption(options.get(2), rootOrg);

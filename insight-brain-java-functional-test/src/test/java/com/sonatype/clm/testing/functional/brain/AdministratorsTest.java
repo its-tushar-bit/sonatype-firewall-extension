@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingD
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;
@@ -76,7 +77,7 @@ public class AdministratorsTest
     refreshOrOpen(AdministratorsPage.url());
 
     AdministratorsMappingList mapping = AdministratorsPage.administratorsMappingList();
-    mapping.rows().shouldHaveSize(2);
+    mapping.rows().shouldHave(CollectionCondition.size(2));
 
     RoleRow firstRoleRow = mapping.row(0);
 
@@ -115,7 +116,7 @@ public class AdministratorsTest
     administratorsEditPage.roleDetails().description()
         .shouldHave(text("Manages all organizations, applications, policies, and policy violations."));
     addMembersForm.shouldBe(visible);
-    addMembersForm.addedItems().shouldHaveSize(1);
+    addMembersForm.addedItems().shouldHave(CollectionCondition.size(1));
     addMembersForm.addedItems().shouldHave(texts("Admin BuiltIn"));
     eyesWatcher.eyesCheck("Edit Administrators");
   }
@@ -130,31 +131,31 @@ public class AdministratorsTest
     AdministratorsEditPage.AddMembersForm addMembersForm = administratorsEditPage.addMembersForm();
 
     addMembersForm.searchInput().setValue("*").click();
-    addMembersForm.searchResults().shouldHaveSize(3);
+    addMembersForm.searchResults().shouldHave(CollectionCondition.size(3));
     addMembersForm.searchResults()
             .shouldHave(texts("John Doe", "Jane Doe", "Authenticated Users (Group)"));
     addMembersForm.searchResults().get(1).click();
-    addMembersForm.addedItems().shouldHaveSize(2);
+    addMembersForm.addedItems().shouldHave(CollectionCondition.size(2));
     addMembersForm.addedItems().shouldHave(texts("Admin BuiltIn", "Jane Doe"));
 
     addMembersForm.searchInput().setValue("*").click();
-    addMembersForm.searchResults().shouldHaveSize(2);
+    addMembersForm.searchResults().shouldHave(CollectionCondition.size(2));
     addMembersForm.searchResults()
             .shouldHave(texts("John Doe", "Authenticated Users (Group)"));
     addMembersForm.searchResults().get(1).click();
-    addMembersForm.addedItems().shouldHaveSize(3);
+    addMembersForm.addedItems().shouldHave(CollectionCondition.size(3));
     addMembersForm.addedItems()
             .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "Jane Doe"));
 
     addMembersForm.addedItems().get(0).click();
-    addMembersForm.addedItems().shouldHaveSize(2);
+    addMembersForm.addedItems().shouldHave(CollectionCondition.size(2));
     addMembersForm.addedItems().shouldHave(texts("Authenticated Users (Group)", "Jane Doe"));
 
     addMembersForm.removeAll().click();
-    addMembersForm.addedItems().shouldHaveSize(0);
+    addMembersForm.addedItems().shouldHave(CollectionCondition.size(0));
 
     addMembersForm.searchInput().setValue("*").click();
-    addMembersForm.searchResults().shouldHaveSize(4);
+    addMembersForm.searchResults().shouldHave(CollectionCondition.size(4));
     addMembersForm.searchResults()
             .shouldHave(texts("Admin BuiltIn", "John Doe", "Jane Doe", "Authenticated Users (Group)"));
   }
@@ -180,12 +181,12 @@ public class AdministratorsTest
 
     addMembersForm.searchInput().setValue("*").click();
     addMembersForm.searchResults().get(1).click();
-    addMembersForm.addedItems().shouldHaveSize(2);
+    addMembersForm.addedItems().shouldHave(CollectionCondition.size(2));
     addMembersForm.addedItems().shouldHave(texts("Admin BuiltIn", "Jane Doe"));
 
     addMembersForm.searchInput().setValue("*").click();
     addMembersForm.searchResults().get(1).click();
-    addMembersForm.addedItems().shouldHaveSize(3);
+    addMembersForm.addedItems().shouldHave(CollectionCondition.size(3));
     addMembersForm.addedItems()
             .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "Jane Doe"));
 
@@ -234,12 +235,12 @@ public class AdministratorsTest
 
     addMembersForm.searchInput().setValue("*").click();
     addMembersForm.searchResults().get(1).click();
-    addMembersForm.addedItems().shouldHaveSize(2);
+    addMembersForm.addedItems().shouldHave(CollectionCondition.size(2));
     addMembersForm.addedItems().shouldHave(texts("Admin BuiltIn", "Jane Doe"));
 
     addMembersForm.searchInput().setValue("*").click();
     addMembersForm.searchResults().get(1).click();
-    addMembersForm.addedItems().shouldHaveSize(3);
+    addMembersForm.addedItems().shouldHave(CollectionCondition.size(3));
     addMembersForm.addedItems()
             .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "Jane Doe"));
 
@@ -298,7 +299,7 @@ public class AdministratorsTest
     addMembersForm.addAssociateGroupBtn().shouldHave(cssClass("disabled"));
     addMembersForm.addAssociateGroupInput().setValue("test group").click();
     addMembersForm.addAssociateGroupBtn().shouldNotHave(cssClass("disabled")).click();
-    addMembersForm.addedItems().shouldHaveSize(2);
+    addMembersForm.addedItems().shouldHave(CollectionCondition.size(2));
     addMembersForm.addedItems().shouldHave(texts("Admin BuiltIn", "test group (Group)"));
     addMembersForm.addAssociateGroupInput().setValue("test group").click();
     addMembersForm.addAssociateGroupBtn().shouldHave(cssClass("disabled"));

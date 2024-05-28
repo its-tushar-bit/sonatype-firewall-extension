@@ -13,7 +13,14 @@ import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
@@ -98,7 +105,7 @@ public class ApplicationSourceControlEditorTest
   }
 
   private void validateInitialFormState() {
-    SourceControlEditorPage.repositoryUrl().shouldHave(text(""));
+    SourceControlEditorPage.repositoryUrl().shouldBe(empty);
 
     SourceControlEditorPage.providerFieldset().labels().get(0).shouldHave(text("Inherit (Not Configured)"));
     SourceControlEditorPage.providerFieldset().radioInputs().get(0).shouldBe(enabled,selected);

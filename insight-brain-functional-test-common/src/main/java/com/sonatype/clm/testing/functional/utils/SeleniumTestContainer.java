@@ -24,7 +24,7 @@ public class SeleniumTestContainer
 {
   private static final Logger log = LoggerFactory.getLogger(SeleniumTestContainer.class);
 
-  private static final String DEFAULT_IMAGE = "standalone-chrome:3.141.59-20210607";
+  private static final String DEFAULT_IMAGE = "standalone-chrome:4.21.0-20240517";
 
   // This is the port baked into the selenium docker images.
   private static final int DEFAULT_PORT = 4444;
@@ -42,7 +42,7 @@ public class SeleniumTestContainer
         new BrowserWebDriverContainer<>(dockerImage).withCapabilities(capabilities);
     container.start();
     container.followOutput(new Slf4jLogConsumer(log).withSeparateOutputStreams());
-
+    Configuration.headless = true;
     // Tell selenide how to connect to the selenium container.
     Configuration.remote = "http://127.0.0.1:" + container.getMappedPort(DEFAULT_PORT) + "/wd/hub";
 

@@ -20,6 +20,7 @@ import com.sonatype.clm.testing.functional.utils.NxColor;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.tag.Tag;
 
+import com.codeborne.selenide.CollectionCondition;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -85,7 +86,7 @@ public class ApplicationCategoryEditorTest
     ApplicationCategoryEditorPage.subtitle().text()
             .equals(ApplicationCategoryEditorPage.subtitleText(YE_OLE_APPLICATION));
     ApplicationCategoryEditorPage.associationEditor().shouldBe(visible);
-    ApplicationCategoryEditorPage.associationEditor().rows().shouldHaveSize(2);
+    ApplicationCategoryEditorPage.associationEditor().rows().shouldHave(CollectionCondition.size(2));
     ApplicationCategoryEditorPage.associationEditor().shouldNotBe(MULTI_COLUMN);
 
     IqAssociationEditor.AssociationEditorElement category1Item =
@@ -145,7 +146,7 @@ public class ApplicationCategoryEditorTest
     ApplicationCategoryEditorPage.subtitle().text()
             .equals(ApplicationCategoryEditorPage.subtitleText(YE_OLE_APPLICATION));
     ApplicationCategoryEditorPage.associationEditor().shouldBe(visible);
-    ApplicationCategoryEditorPage.associationEditor().rows().shouldHaveSize(10);
+    ApplicationCategoryEditorPage.associationEditor().rows().shouldHave(CollectionCondition.size(10));
     ApplicationCategoryEditorPage.associationEditor().shouldBe(MULTI_COLUMN);
 
     for (int i = 0; i < 10; i++) {

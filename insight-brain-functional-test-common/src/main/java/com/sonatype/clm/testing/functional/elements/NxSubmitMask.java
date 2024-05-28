@@ -19,7 +19,7 @@ public class NxSubmitMask
     SelenideElement mask = $(".nx-submit-mask");
 
     try {
-      mask.waitUntil(visible, 500);
+      mask.shouldBe(visible);
     }
     catch (AssertionError e) {
       if (e instanceof ElementNotFound || e.getCause() instanceof StaleElementReferenceException) {

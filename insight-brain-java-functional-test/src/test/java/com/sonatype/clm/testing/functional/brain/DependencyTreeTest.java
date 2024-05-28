@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -95,7 +96,7 @@ public class DependencyTreeTest
     ElementsCollection treeItems = dependencyTreePage.tree().clickableTreeItems();
     ElementsCollection threatIndicators = dependencyTreePage.tree().threatIndicators();
 
-    treeItems.shouldHaveSize(35);
+    treeItems.shouldHave(CollectionCondition.size(35));
 
     treeItems.get(0).shouldHave(text("org.apache.geronimo.framework : geronimo-security : 2.1"));
     threatIndicators.get(0).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
@@ -229,7 +230,7 @@ public class DependencyTreeTest
     dependencyTreePage.tree().shouldBe(visible);
     ElementsCollection clickableTreeItems = dependencyTreePage.tree().clickableTreeItems();
 
-    clickableTreeItems.shouldHaveSize(35);
+    clickableTreeItems.shouldHave(CollectionCondition.size(35));
 
     clickableTreeItems.get(0).shouldHave(text("org.apache.geronimo.framework : geronimo-security : 2.1"));
     clickableTreeItems.get(0).click();
@@ -263,13 +264,13 @@ public class DependencyTreeTest
   public void testDependencyTree_filterByDisplayName() {
     dependencyTreePage.tree().shouldBe(visible);
     ElementsCollection clickableTreeItems = dependencyTreePage.tree().clickableTreeItems();
-    clickableTreeItems.shouldHaveSize(35);
+    clickableTreeItems.shouldHave(CollectionCondition.size(35));
 
     final String SEARCH_TERM = "geronimo-security";
     SelenideElement filterInput = dependencyTreePage.componentNameFilterInput();
     filterInput.setValue(SEARCH_TERM);
 
-    clickableTreeItems.shouldHaveSize(1);
+    clickableTreeItems.shouldHave(CollectionCondition.size(1));
     SelenideElement highlightedTreeItemPortion =
         clickableTreeItems.first().find(By.cssSelector(".iq-dependency-tree-page__search-match"));
     highlightedTreeItemPortion.shouldHave(text(SEARCH_TERM));
@@ -280,21 +281,21 @@ public class DependencyTreeTest
     waitUntilUrl(DependencyTreePage.url(app, SCAN_ID));
 
     filterInput.shouldHave(value(SEARCH_TERM));
-    clickableTreeItems.shouldHaveSize(1);
+    clickableTreeItems.shouldHave(CollectionCondition.size(1));
 
     filterInput.setValue("non existent component");
-    clickableTreeItems.shouldHaveSize(0);
+    clickableTreeItems.shouldHave(CollectionCondition.size(0));
   }
 
   @Test
   public void testDependencyTree_persistBranchStatus() {
     dependencyTreePage.tree().shouldBe(visible);
     ElementsCollection treeItems = dependencyTreePage.tree().treeItems();
-    treeItems.shouldHaveSize(36);
+    treeItems.shouldHave(CollectionCondition.size(36));
 
     SelenideElement filterInput = dependencyTreePage.componentNameFilterInput();
     filterInput.setValue("geronimo");
-    treeItems.shouldHaveSize(9);
+    treeItems.shouldHave(CollectionCondition.size(9));
 
     treeItems.forEach(item -> item.shouldHave(attribute("aria-expanded", "true")));
 
@@ -310,14 +311,14 @@ public class DependencyTreeTest
   public void testDependencyTree_expandAllNodesInFilteredTree() {
     dependencyTreePage.tree().shouldBe(visible);
     ElementsCollection treeItems = dependencyTreePage.tree().treeItems();
-    treeItems.shouldHaveSize(36);
+    treeItems.shouldHave(CollectionCondition.size(36));
 
     LinkedList<SelenideElement> collapseIcons = new LinkedList<>(dependencyTreePage.tree().collapseIcons());
     collapseIcons.descendingIterator().forEachRemaining(SelenideElement::click);
 
     SelenideElement filterInput = dependencyTreePage.componentNameFilterInput();
     filterInput.setValue("geronimo");
-    treeItems.shouldHaveSize(9);
+    treeItems.shouldHave(CollectionCondition.size(9));
 
     treeItems.forEach(item -> item.shouldHave(attribute("aria-expanded", "true")));
   }

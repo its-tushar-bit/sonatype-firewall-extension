@@ -23,9 +23,9 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
-
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
@@ -122,7 +122,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     appIntegrationsAndRiskTable().shouldBe(visible);
 
     scrollIntoView(appIntegrationsAndRiskTable());
-    appIntegrationsAndRiskTableDataRows().shouldHaveSize(TOTAL_APPS_PER_PAGE);
+    appIntegrationsAndRiskTableDataRows().shouldHave(CollectionCondition.size(TOTAL_APPS_PER_PAGE));
 
     applicationName(0).shouldHave(text("appName10"));
     appIntegrationsCicdConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
@@ -213,16 +213,16 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     lastCommitDate(0).shouldBe(visible).shouldHave(text("February 7, 2023"));
     lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 10, 2023"));
     totalRisk(0).shouldHave(text("5"));
-    appIntegrationsAndRiskTableDataRows().shouldHaveSize(1);
+    appIntegrationsAndRiskTableDataRows().shouldHave(CollectionCondition.size(1));
 
     // Showing all rows
     applicationFilterInput().clear();
     applicationFilterInput().sendKeys("a");
-    appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
+    appIntegrationsAndRiskTableDataRows().shouldHave(CollectionCondition.size(10));
 
     // Going to the second page
     appIntegrationPageButton(2).click();
-    appIntegrationsAndRiskTableDataRows().shouldHaveSize(10);
+    appIntegrationsAndRiskTableDataRows().shouldHave(CollectionCondition.size(10));
 
     applicationName(0).shouldHave(text("appName10"));
     appIntegrationsCicdConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
@@ -241,7 +241,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     // Testing name filter working on different page than first
     applicationFilterInput().clear();
     applicationFilterInput().sendKeys("appName0");
-    appIntegrationsAndRiskTableDataRows().shouldHaveSize(1);
+    appIntegrationsAndRiskTableDataRows().shouldHave(CollectionCondition.size(1));
 
     applicationName(0).shouldHave(text("appName0"));
     cicdEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));

@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.pages.AdministratorsPage.Administrato
 import com.sonatype.clm.testing.functional.pages.AdministratorsPage.AdministratorsMappingList.RoleRow;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;
@@ -64,7 +65,7 @@ public class MultiTenantAdministratorsTest
     refreshOrOpen(AdministratorsPage.url());
 
     AdministratorsMappingList mapping = AdministratorsPage.administratorsMappingList();
-    mapping.rows().shouldHaveSize(2);
+    mapping.rows().shouldHave(CollectionCondition.size(2));
 
     RoleRow firstRoleRow = mapping.row(0);
 
@@ -101,16 +102,16 @@ public class MultiTenantAdministratorsTest
     AdministratorsEditPage.AddMembersForm addMembersForm = administratorsEditPage.addMembersForm();
 
     addMembersForm.searchInput().setValue("*").click();
-    addMembersForm.searchResults().shouldHaveSize(3);
+    addMembersForm.searchResults().shouldHave(CollectionCondition.size(3));
     addMembersForm.searchResults().get(1).click();
 
     // TODO Adjust here and below in CLM-26430
-    addMembersForm.addedItems().shouldHaveSize(2);
+    addMembersForm.addedItems().shouldHave(CollectionCondition.size(2));
     addMembersForm.addedItems().shouldHave(texts("Admin BuiltIn", "Jane Doe"));
 
     addMembersForm.searchInput().setValue("*").click();
     addMembersForm.searchResults().get(1).click();
-    addMembersForm.addedItems().shouldHaveSize(3);
+    addMembersForm.addedItems().shouldHave(CollectionCondition.size(3));
     addMembersForm.addedItems()
         .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "Jane Doe"));
 
@@ -157,7 +158,7 @@ public class MultiTenantAdministratorsTest
     eyesWatcher.eyesCheck("with external group text box");
 
     addMembersForm.addAssociateGroupBtn().click();
-    addMembersForm.addedItems().shouldHaveSize(2);
+    addMembersForm.addedItems().shouldHave(CollectionCondition.size(2));
     addMembersForm.addedItems().shouldHave(texts("Admin BuiltIn", "test group (Group)")); // TODO CLM-26430
     addMembersForm.addAssociateGroupInput().setValue("test group");
     addMembersForm.addAssociateGroupBtn().shouldHave(cssClass("disabled"));

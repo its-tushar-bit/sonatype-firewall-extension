@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.policy.LegacyViolationService;
 import com.sonatype.insight.brain.policy.LegacyViolationService.LegacyViolationStatusDTO;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import org.junit.After;
 import org.junit.Before;
@@ -95,13 +96,13 @@ public abstract class AbstractLegacyViolationsEditorTest
     LegacyViolationsEditorPage.disabledMessage().shouldNotBe(visible);
 
     if (Organization.ROOT_ORGANIZATION_ID.equals(currentOwner.getId())) {
-      LegacyViolationsEditorPage.policyRadioButttons().shouldHaveSize(2);
+      LegacyViolationsEditorPage.policyRadioButttons().shouldHave(CollectionCondition.size(2));
       LegacyViolationsEditorPage.policyRadioButttons().get(0).shouldHave(text("Enabled"));
       LegacyViolationsEditorPage.policyRadioButttons().get(1).shouldHave(text("Disabled"));
       LegacyViolationsEditorPage.legacyViolationDisabled().shouldBe(NX_RADIO_SELECTED);
     }
     else {
-      LegacyViolationsEditorPage.policyRadioButttons().shouldHaveSize(3);
+      LegacyViolationsEditorPage.policyRadioButttons().shouldHave(CollectionCondition.size(3));
       LegacyViolationsEditorPage.policyRadioButttons().get(0)
               .shouldHave(text("Inherit from parent (Disabled)"));
       LegacyViolationsEditorPage.policyRadioButttons().get(1).shouldHave(text("Enabled"));
@@ -148,7 +149,7 @@ public abstract class AbstractLegacyViolationsEditorTest
     OwnerSummaryPage.legacyViolations().shouldHave(text(summaryText)).click();
 
     if (Organization.ROOT_ORGANIZATION_ID.equals(currentOwner.getId())) {
-      LegacyViolationsEditorPage.policyRadioButttons().shouldHaveSize(2);
+      LegacyViolationsEditorPage.policyRadioButttons().shouldHave(CollectionCondition.size(2));
       LegacyViolationsEditorPage.policyRadioButttons().get(0).shouldHave(text("Enabled"));
       LegacyViolationsEditorPage.policyRadioButttons().get(1).shouldHave(text("Disabled"));
       LegacyViolationsEditorPage.legacyViolationDisabled().shouldBe(NX_RADIO_SELECTED);
@@ -157,7 +158,7 @@ public abstract class AbstractLegacyViolationsEditorTest
       LegacyViolationsEditorPage.disabledMessage().shouldNotBe(visible);
     }
     else {
-      LegacyViolationsEditorPage.policyRadioButttons().shouldHaveSize(3);
+      LegacyViolationsEditorPage.policyRadioButttons().shouldHave(CollectionCondition.size(3));
       LegacyViolationsEditorPage.policyRadioButttons()
               .get(0).shouldHave(text("Inherit from parent (Disabled)"));
       LegacyViolationsEditorPage.policyRadioButttons().get(1).shouldHave(text("Enabled"));

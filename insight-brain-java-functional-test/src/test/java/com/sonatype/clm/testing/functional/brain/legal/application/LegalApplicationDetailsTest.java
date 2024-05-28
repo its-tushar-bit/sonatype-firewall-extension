@@ -169,7 +169,7 @@ public class LegalApplicationDetailsTest
   public void testSortByComponent() {
     final ComponentTable componentTable = LegalApplicationDetailsPage.componentTable();
 
-    componentTable.componentNames().shouldHaveSize(3);
+    componentTable.componentNames().shouldHave(CollectionCondition.size(3));
     // Avoids hover randomness over the first row
     LegalApplicationDetailsPage.title().click();
     eyesWatcher.eyesCheck();
@@ -187,7 +187,7 @@ public class LegalApplicationDetailsTest
   public void testSortByLicenses() {
     final ComponentTable componentTable = LegalApplicationDetailsPage.componentTable();
 
-    componentTable.componentNames().shouldHaveSize(3);
+    componentTable.componentNames().shouldHave(CollectionCondition.size(3));
     componentTable.sortByLicenses().click();
     componentTable.licenses().get(0).shouldHave(text("Apache-2.0"));
     componentTable.licenses().get(1).shouldHave(text("BSD-2-Clause"));
@@ -208,10 +208,10 @@ public class LegalApplicationDetailsTest
     filterContainer.shouldBe(visible);
     eyesWatcher.eyesCheck();
     final ComponentTable componentTable = LegalApplicationDetailsPage.componentTable();
-    componentTable.componentNames().shouldHaveSize(3);
+    componentTable.componentNames().shouldHave(CollectionCondition.size(3));
     LegalApplicationDetailsPage.reviewStatusFilter().twisty().click();
     LegalApplicationDetailsPage.reviewStatusFilter().checkboxItem(3).click();
-    componentTable.componentNames().shouldHaveSize(2);
+    componentTable.componentNames().shouldHave(CollectionCondition.size(2));
     componentTable.licenses().get(0).shouldHave(text("Apache-2.0"));
     componentTable.licenses().get(1).shouldHave(text("BSD-3-Clause"));
     filterButton.shouldHave(exactText("Filter*"));

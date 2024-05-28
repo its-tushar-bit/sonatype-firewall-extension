@@ -20,7 +20,15 @@ make(
     mavenOptions: "-D skip-functional-test -D build.number=${env.BUILD_NUMBER} --threads 4",
     retentionPolicy: RetentionPolicy.FOUR_WEEKS_KEEP_ARTIFACTS,
     prepare: {
-      if (currentBuild.fullProjectName.toLowerCase().contains('insight/insight-brain/master-snapshot')) {
+
+    // Store time the current branch diverged from the target branch for use by applitools
+    sshagent(credentials: [sonatypeZionCredentialsId()]) {
+        script {
+            env.GIT_TARGET_TIME=sh(returnStdout: true, script: 'HASH=\$(git merge-base HEAD remotes/origin/main) && git show -q --format=%cI \$HASH').trim()
+        }
+    }
+
+    if (currentBuild.fullProjectName.toLowerCase().contains('insight/insight-brain/master-snapshot')) {
         String fixVersion = 'brain-next'
         List<String> newFixVersions = ['saas-next']
         echo "Replacing '${fixVersion}' with [${newFixVersions.join(', ')}]"
@@ -378,7 +386,20 @@ Map<String, Closure> createFunctionalTests(
         try {
           withEnv(["APPLITOOLS_BATCH_ID=${env.GIT_COMMIT}"]) {
             copyRepo()
+
             withCredentials([string(credentialsId: 'APPLITOOLS_KEY', variable: 'applitoolsKey')]) {
+
+              def curlCommand = """curl -X POST -d '{"scmSourceBranch": "${env.GIT_BRANCH}", 
+              | "scmTargetBranch": "main", 
+              | "branchName": "sonatype/insight-brain/${env.GIT_BRANCH}", 
+              | "parentBranchName": "sonatype/insight-brain/main", 
+              | "parentBranchBaselineSavedBefore": "${env.GIT_TARGET_TIME}"}' 
+              | -H "Content-Type:application/json" 
+              | https://eyes.applitools.com/api/sessions/batches/${env.GIT_COMMIT}/bypointerid?apiKey=${applitoolsKey}
+              """.stripMargin().replaceAll("\n", "")
+
+              sh curlCommand
+
               String mavenOptions = "'-Dit.test=%regex[${regex}]'"
               mavenOptions += ' -Drun-functional-tests=docker'
               mavenOptions += " -Dbrowser=chrome"

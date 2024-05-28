@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -65,7 +66,7 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(
         Condition.text(String.format("Configures the integration with an external SCM for the %s", rootOrg.getName())));
-    tile.rows().shouldHaveSize(1);
+    tile.rows().shouldHave(CollectionCondition.size(1));
 
     tile.itemSubText().shouldNotBe(visible);
     tile.itemText().shouldBe(visible)
@@ -81,7 +82,7 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(
         Condition.text(String.format("Configures the integration with an external SCM for the %s", rootOrg.getName())));
-    tile.rows().shouldHaveSize(1);
+    tile.rows().shouldHave(CollectionCondition.size(1));
 
     //Verify valid source control record exists here
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("GitHub"));
@@ -101,7 +102,7 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(hidden);
 
     tile.shouldBe(hidden);
-    
+
     // eyesWatcher.eyesCheck("Source Control No License");
   }
 
@@ -129,7 +130,7 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     ActionDropDown.copyOrgIdButton().shouldBe(visible);
     ActionDropDown.editOwner().shouldBe(visible);
     ActionDropDown.importPoliciesButton().shouldBe(visible);
-    ActionDropDown.actions().shouldHaveSize(3);
+    ActionDropDown.actions().shouldHave(CollectionCondition.size(3));
 
     eyesWatcher.eyesCheck("root organization actions dropdown");
   }

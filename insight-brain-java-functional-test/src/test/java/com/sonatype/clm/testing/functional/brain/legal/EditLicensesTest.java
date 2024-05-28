@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.io.IOUtils;
@@ -124,7 +125,7 @@ public class EditLicensesTest
     thirdScope.shouldHave(text("Organization - Root Organization"));
     editLicensesPopover.statuses()
         .shouldHave(texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
-    editLicensesPopover.selectedLicensesCheckBoxElements().shouldHaveSize(0);
+    editLicensesPopover.selectedLicensesCheckBoxElements().shouldHave(CollectionCondition.size(0));
 
     editLicensesPopover.saveButton().click();
     FormUtils.getAlertElement(editLicensesPopover).shouldHave(text("There are no changes to update."));
@@ -158,7 +159,7 @@ public class EditLicensesTest
     fourthScope.shouldHave(text("Organization - Root Organization"));
     editLicensesPopover.statuses().shouldHave(
         texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
-    editLicensesPopover.selectedLicensesCheckBoxElements().shouldHaveSize(0);
+    editLicensesPopover.selectedLicensesCheckBoxElements().shouldHave(CollectionCondition.size(0));
 
     editLicensesPopover.saveButton().click();
     FormUtils.getAlertElement(editLicensesPopover)

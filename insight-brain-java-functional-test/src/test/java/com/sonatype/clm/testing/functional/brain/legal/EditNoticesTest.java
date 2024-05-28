@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -45,6 +46,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.empty;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -116,7 +118,7 @@ public class EditNoticesTest
 
   private void doTestNoticesTile_InitialState() {
     Notices notices = ComponentLegalOverviewPage.notices();
-    notices.all().shouldHaveSize(2);
+    notices.all().shouldHave(CollectionCondition.size(2));
     assertNotice(notices.at(0), "META-INF/NOTICE", "\nApache ServiceComb" +
             "\nCopyright 2017-2021 The Apache Software Foundation" +
             "\n\nThis product includes software developed at" +
@@ -140,7 +142,7 @@ public class EditNoticesTest
     ComponentLegalOverviewPage.editNoticesButton().click();
     EditNoticesModal editNoticesModal = new EditNoticesModal();
     editNoticesModal.shouldBe(Condition.visible);
-    editNoticesModal.allNotices().shouldHaveSize(2);
+    editNoticesModal.allNotices().shouldHave(CollectionCondition.size(2));
     assertNotice(editNoticesModal.noticeAt(0), "\nApache ServiceComb" +
             "\nCopyright 2017-2021 The Apache Software Foundation" +
             "\n\nThis product includes software developed at" +
@@ -148,7 +150,7 @@ public class EditNoticesTest
     assertNotice(editNoticesModal.noticeAt(1), "content", true);
     assertOption(editNoticesModal.scopeDropdown().getSelectedOption(), rootOrg);
     ElementsCollection options = editNoticesModal.scopeDropdown().$$("option");
-    options.shouldHaveSize(expectedScopeCount);
+    options.shouldHave(CollectionCondition.size(expectedScopeCount));
     if (expectedScopeCount == 1) {
       assertOption(options.get(0), rootOrg);
     }
@@ -177,7 +179,7 @@ public class EditNoticesTest
     ComponentLegalOverviewPage.editNoticesButton().click();
     EditNoticesModal editNoticesModal = new EditNoticesModal();
     editNoticesModal.addNoticeButton().click();
-    editNoticesModal.allNotices().shouldHaveSize(3);
+    editNoticesModal.allNotices().shouldHave(CollectionCondition.size(3));
     assertNotice(editNoticesModal.noticeAt(2), "", true);
     assertButton(editNoticesModal.cancel(), true, null);
     editNoticesModal.noticeAt(2).textInput().setValue("custom");
@@ -246,7 +248,7 @@ public class EditNoticesTest
     assertButton(editNoticesModal.save(), true, null);
     editNoticesModal.save().click();
     editNoticesModal.shouldNotBe(Condition.visible);
-    ComponentLegalOverviewPage.notices().all().shouldHaveSize(1);
+    ComponentLegalOverviewPage.notices().all().shouldHave(CollectionCondition.size(1));
     ComponentLegalOverviewPage.editNoticesButton().click();
     notice.statusCheckbox().shouldNotBe(Condition.selected);
   }
@@ -266,7 +268,7 @@ public class EditNoticesTest
   private void doTestCancel() {
     ComponentLegalOverviewPage.editNoticesButton().click();
     EditNoticesModal editNoticesModal = new EditNoticesModal();
-    editNoticesModal.allNotices().shouldHaveSize(2);
+    editNoticesModal.allNotices().shouldHave(CollectionCondition.size(2));
     Notice notice = editNoticesModal.noticeAt(0);
     assertNotice(notice, "\nApache ServiceComb" +
         "\nCopyright 2017-2021 The Apache Software Foundation" +
@@ -276,11 +278,11 @@ public class EditNoticesTest
     notice.statusToggle().click();
     assertNotice(notice, "changed", false);
     editNoticesModal.addNoticeButton().click();
-    editNoticesModal.allNotices().shouldHaveSize(3);
+    editNoticesModal.allNotices().shouldHave(CollectionCondition.size(3));
     editNoticesModal.cancel().click();
     editNoticesModal.shouldNotBe(Condition.visible);
     ComponentLegalOverviewPage.editNoticesButton().click();
-    editNoticesModal.allNotices().shouldHaveSize(2);
+    editNoticesModal.allNotices().shouldHave(CollectionCondition.size(2));
     assertNotice(notice, "\nApache ServiceComb" +
         "\nCopyright 2017-2021 The Apache Software Foundation" +
         "\n\nThis product includes software developed at" +
@@ -469,7 +471,7 @@ public class EditNoticesTest
 
   private void assertNotice(ComponentLegalOverviewPage.Notice notice, String relPath, String text) {
     if (relPath == null) {
-      notice.relPath().shouldHave(Condition.exactText(""));
+      notice.relPath().shouldBe(empty);
     }
     else {
       notice.relPath().shouldHave(Condition.exactText(relPath));

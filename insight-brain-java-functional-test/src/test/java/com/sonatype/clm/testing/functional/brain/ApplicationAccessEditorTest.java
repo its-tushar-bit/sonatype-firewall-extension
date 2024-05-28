@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.Test;
@@ -91,7 +92,7 @@ public class ApplicationAccessEditorTest
     addMembersForm.addGroupBox().shouldBe(visible).val("FooBar");
     addGroupButton.shouldBe(enabled).click();
 
-    addMembersForm.addedItems().shouldHaveSize(1);
+    addMembersForm.addedItems().shouldHave(CollectionCondition.size(1));
     addMembersForm.addedItems().shouldHave(texts("FooBar"));
 
     addMembersForm.saveButton().scrollIntoView(true).shouldNotBe(CLM.DISABLED).click();

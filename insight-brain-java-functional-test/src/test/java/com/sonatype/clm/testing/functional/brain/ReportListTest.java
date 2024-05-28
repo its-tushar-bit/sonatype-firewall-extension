@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
@@ -229,15 +230,16 @@ public class ReportListTest
 
     refresh();
 
-    ReportListPage.rows().shouldHaveSize(apps.size()).forEach(selenideElement -> selenideElement.shouldBe(visible));
+    ReportListPage.rows().shouldHave(CollectionCondition.size(apps.size()));
+    ReportListPage.rows().forEach(selenideElement -> selenideElement.shouldBe(visible));
 
     ReportListPage.filter().setValue(app1.getName());
-    ReportListPage.rows().shouldHaveSize(1);
+    ReportListPage.rows().shouldHave(CollectionCondition.size(1));
     ReportListPage.firstRow().applicationName().shouldHave(text(app1.getName()));
     ReportListPage.firstRow().organizationName().shouldHave(text(org3.getName()));
 
     ReportListPage.filter().setValue(org2.getName());
-    ReportListPage.rows().shouldHaveSize(1);
+    ReportListPage.rows().shouldHave(CollectionCondition.size(1));
     ReportListPage.firstRow().applicationName().shouldHave(text(app3.getName()));
     ReportListPage.firstRow().organizationName().shouldHave(text(org2.getName()));
 

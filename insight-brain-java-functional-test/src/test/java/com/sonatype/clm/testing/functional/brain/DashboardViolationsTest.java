@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.SelenideElement;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FileUtils;
@@ -196,9 +197,9 @@ public class DashboardViolationsTest
 
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    table.violations().shouldHaveSize(3);
+    table.violations().shouldHave(CollectionCondition.size(3));
     showLowRiskViolations();
-    table.violations().shouldHaveSize(4);
+    table.violations().shouldHave(CollectionCondition.size(4));
 
     DashboardPage.filterToggle().click();
     AgeFilter ageFilter = DashboardFilters.ageFilter();
@@ -209,14 +210,14 @@ public class DashboardViolationsTest
     eyesWatcher.eyesCheck("Violations tab with form-mask");
     ageFilter.counter().shouldHave(text("past 90 days"));
     DashboardFilters.apply();
-    table.violations().shouldHaveSize(5);
+    table.violations().shouldHave(CollectionCondition.size(5));
     ageFilter.past90days().shouldBe(selected);
     ageFilter.past30days().shouldNotBe(selected).click();
     ageFilter.past90days().shouldNotBe(selected);
     ageFilter.past30days().shouldBe(selected);
     DashboardFilters.apply();
     refreshOrOpen(DashboardPage.urlToViolations());
-    table.violations().shouldHaveSize(4);
+    table.violations().shouldHave(CollectionCondition.size(4));
 
     // check the tile details - tooltips should not show for short names
     ViolationTile firstViolation = table.firstViolation();
@@ -474,7 +475,7 @@ public class DashboardViolationsTest
     createViolations(maxNumResultsPerPage, buildEvalNow);
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    DashboardPage.violationsView().paginationButtons().shouldHaveSize(1);
+    DashboardPage.violationsView().paginationButtons().shouldHave(CollectionCondition.size(1));
   }
 
   @Test
@@ -801,7 +802,7 @@ public class DashboardViolationsTest
 
     refresh();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    DashboardPage.violationsView().paginationButtons().shouldHaveSize(2);
+    DashboardPage.violationsView().paginationButtons().shouldHave(CollectionCondition.size(2));
 
     table.firstViolation().component().shouldHave(text("group1"));
     table.firstViolation().threatNumber().shouldHave(text("5"));
@@ -838,7 +839,7 @@ public class DashboardViolationsTest
 
     // should be at first page after filtering
     DashboardPage.violationsView().paginationButtons().get(0).shouldHave(cssClass("selected"));
-    DashboardPage.violationsView().paginationButtons().shouldHaveSize(2);
+    DashboardPage.violationsView().paginationButtons().shouldHave(CollectionCondition.size(2));
 
     changePage(1);
     table.lastViolation().policy().shouldHave(text(licensePolicy3.getName()));
@@ -850,7 +851,7 @@ public class DashboardViolationsTest
     DashboardFilters.closeButton().click();
 
     DashboardPage.violationsView().paginationButtons().get(0).shouldHave(cssClass("selected"));
-    DashboardPage.violationsView().paginationButtons().shouldHaveSize(1);
+    DashboardPage.violationsView().paginationButtons().shouldHave(CollectionCondition.size(1));
   }
 
   private void assertViolationsCsv(

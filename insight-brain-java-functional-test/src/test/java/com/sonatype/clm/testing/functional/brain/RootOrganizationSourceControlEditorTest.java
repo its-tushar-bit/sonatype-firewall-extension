@@ -23,7 +23,6 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.matchesText;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
@@ -451,7 +450,7 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.subTitle().shouldHave(
         text(String.format("Configures the integration with an external SCM for %s", rootOrganization.getName())));
     SourceControlEditorPage.providerSelect().shouldBe(visible, enabled);
-    SourceControlEditorPage.providerSelect().shouldHave(matchesText("GitHub"));
+    SourceControlEditorPage.providerSelect().shouldHave(text("GitHub"));
     SourceControlEditorPage.token().shouldBe(visible, enabled);
     SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
     SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);

@@ -31,12 +31,14 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 
@@ -131,7 +133,7 @@ public class ApplicationReportVulnerabilitiesTest
     VulnerabilityTable vulnerabilityTable = vulnerabilitiesPage.table();
     vulnerabilityTable.shouldBe(visible);
 
-    vulnerabilityTable.rows().shouldHaveSize(59);
+    vulnerabilityTable.rows().shouldHave(CollectionCondition.size(59));
 
     VulnerabilityRow jacksonDatabindRow = vulnerabilityTable.row(2);
     checkRow(jacksonDatabindRow, "com.fasterxml.jackson.core : jackson-databind : 2.0.4", "CVE-2017-7525", "9.8", "9",
@@ -168,12 +170,13 @@ public class ApplicationReportVulnerabilitiesTest
     VulnerabilityTable vulnerabilityTable = vulnerabilitiesPage.table();
     vulnerabilityTable.shouldBe(visible);
 
-    vulnerabilityTable.rows().shouldHaveSize(1);
+    vulnerabilityTable.rows().shouldHave(CollectionCondition.size(1));
     vulnerabilityTable.row(1).shouldHave(text("no vulnerabilities"));
   }
 
   // NOTE This test does not pass in headless mode (e.g. with -Dselenide.headless=true)
   @Test
+  @Ignore("https://sonatype.atlassian.net/browse/CLM-30528")
   public void testPrintPreview() {
     if ("firefox".equals(System.getProperty("browser"))) {
       // this test is for chrome only

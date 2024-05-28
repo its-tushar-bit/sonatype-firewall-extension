@@ -9,13 +9,17 @@ import java.util.List;
 
 import com.sonatype.clm.testing.functional.widget.MultiSelect;
 
+import com.codeborne.selenide.CheckResult;
 import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Driver;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebDriverRunner;
 import com.codeborne.selenide.ex.UIAssertionError;
+import com.codeborne.selenide.impl.CollectionSource;
 import com.codeborne.selenide.impl.Describe;
-import com.codeborne.selenide.impl.WebElementsCollection;
+import org.jetbrains.annotations.Nullable;
 import org.openqa.selenium.WebElement;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -77,10 +81,15 @@ public class LicenseCIP
   public static CollectionCondition licenseThreats(final Integer... expectedThreats) {
     return new CollectionCondition()
     {
+      @Override
+      public boolean missingElementSatisfiesCondition() {
+        return false;
+      }
+
       private Integer missingClassIndex;
 
       @Override
-      public boolean apply(List<WebElement> elements) {
+      public boolean test(List<WebElement> elements) {
         missingClassIndex = null;
         if (elements.size() != expectedThreats.length) {
           return false;
@@ -88,7 +97,7 @@ public class LicenseCIP
 
         for (int i = 0; i < expectedThreats.length; i++) {
           WebElement element = elements.get(i);
-          if (!Condition.cssClass(convertToCssClass(expectedThreats[i])).apply(element)) {
+          if (!Condition.cssClass(convertToCssClass(expectedThreats[i])).apply(WebDriverRunner.driver(), element)) {
             missingClassIndex = i;
             return false;
           }
@@ -96,17 +105,22 @@ public class LicenseCIP
         return true;
       }
 
-      @SuppressWarnings("serial")
       @Override
-      public void fail(WebElementsCollection collection,
-                       List<WebElement> elements,
-                       Exception lastError,
-                       long timeoutMs)
+      public void fail(
+          final CollectionSource collection,
+          final CheckResult lastCheckResult,
+          @Nullable final Exception cause,
+          final long timeoutMs)
       {
         if (missingClassIndex != null) {
-          throw new UIAssertionError("Failed to locate CSS class: "
+          Driver driver = WebDriverRunner.driver();
+
+          String description = new Describe(driver, collection.getElements().get(missingClassIndex))
+              .toString();
+
+          throw new UIAssertionError(driver, "Failed to locate CSS class: "
               + convertToCssClass(expectedThreats[missingClassIndex]) + " on "
-              + Describe.describe(elements.get(missingClassIndex)))
+              + description)
           {
           };
         }

@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Driver;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.openqa.selenium.By;
@@ -121,7 +122,7 @@ public class ApplicationReportPage
   public ElementsCollection rowsWithDependencyInfo() {
     return children(ROW_SELECTOR).filter(new Condition("hasDependencyIndicator") {
       @Override
-      public boolean apply(WebElement webElement) {
+      public boolean apply(Driver driver, WebElement webElement) {
         return !webElement.findElements(By.cssSelector(DEPENDENCY_INDICATOR_SELECTOR)).isEmpty();
       }
     });

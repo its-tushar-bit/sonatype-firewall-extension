@@ -5,14 +5,13 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.awt.Graphics2D;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-
 import javax.imageio.ImageIO;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -34,7 +33,9 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.service.InsightWork;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Driver;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import org.apache.http.HttpResponse;
@@ -93,7 +94,7 @@ public class CreateOwnerTest
   @Test
   @Ignore
   public void testCreateApplication() {
-    OwnerTreeView.organizationElements().shouldHaveSize(1);
+    OwnerTreeView.organizationElements().shouldHave(CollectionCondition.size(1));
     OrganizationNode orgNode = OwnerTreeView.organization(0);
     orgNode.treeViewElement().click();
     orgNode.newApplicationButton().shouldBe(visible, enabled).click();
@@ -159,7 +160,8 @@ public class CreateOwnerTest
     assertThat(app.getOrganizationId()).isEqualTo(parentOrg.getId());
     assertThat(app.getName()).isEqualTo(NAME);
 
-    orgNode.applicationElements().shouldHaveSize(1).get(0).shouldHave(text(NAME));
+    orgNode.applicationElements().shouldHave(CollectionCondition.size(1));
+    orgNode.applicationElements().get(0).shouldHave(text(NAME));
   }
 
   @Test
@@ -565,7 +567,7 @@ public class CreateOwnerTest
     element.shouldBe(new Condition("image")
     {
       @Override
-      public boolean apply(WebElement ignored) {
+      public boolean apply(Driver driver, WebElement ignored) {
         return element.isImage();
       }
     });

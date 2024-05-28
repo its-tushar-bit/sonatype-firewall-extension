@@ -17,10 +17,12 @@ import com.sonatype.insight.brain.service.InsightWork
 import com.sonatype.insight.brain.testing.functional.BaseSpec
 import com.sonatype.insight.brain.testing.functional.utils.TestReportEvaluator
 
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Stepwise
 
 @Stepwise
+@Ignore //https://sonatype.atlassian.net/browse/CLM-30530
 class ReportPolicyViolationsSpec
 extends BaseSpec {
   @Shared

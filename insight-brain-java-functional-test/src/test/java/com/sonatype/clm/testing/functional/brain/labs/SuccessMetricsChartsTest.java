@@ -39,7 +39,9 @@ import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportScopeDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Driver;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
@@ -443,7 +445,7 @@ public class SuccessMetricsChartsTest
     eyesWatcher.eyesCheck(true);
 
     ElementsCollection points = ViolationsByCategoryTile.points();
-    points.shouldHaveSize(12 * 5); // 8 weeks times four categories plus totals
+    points.shouldHave(CollectionCondition.size(12 * 5)); // 8 weeks times four categories plus totals
 
     String[] expectedClassOrdering = { OTHER_CLASS, QUALITY_CLASS, LICENSE_CLASS, SECURITY_CLASS, TOTAL_CLASS };
 
@@ -452,14 +454,14 @@ public class SuccessMetricsChartsTest
     }
 
     ElementsCollection lines = ViolationsByCategoryTile.lines();
-    lines.shouldHaveSize(5);
+    lines.shouldHave(CollectionCondition.size(5));
 
     for (int i = 0; i < lines.size(); i++) {
       lines.get(i).shouldBe(visible).shouldHave(cssClass(expectedClassOrdering[i]));
     }
 
     ElementsCollection weeks = ViolationsByCategoryTile.xAxisLabels();
-    weeks.shouldHaveSize(12);
+    weeks.shouldHave(CollectionCondition.size(12));
 
     String[] expectedWeeks = {
         "28 May", "04 Jun", "11 Jun", "18 Jun", "25 Jun", "02 Jul", "09 Jul", "16 Jul", "23 Jul", "30 Jul", "06 Aug",
@@ -518,19 +520,19 @@ public class SuccessMetricsChartsTest
     MttrTile.chart().shouldBe(visible);
 
     ElementsCollection points = MttrTile.mttrPoints();
-    points.shouldHaveSize(4);
+    points.shouldHave(CollectionCondition.size(4));
     points.get(0).should(visible).shouldHave(cssClass(ALL_CLASS));
     points.get(1).should(visible).shouldHave(cssClass(ALL_CLASS));
     points.get(2).should(visible).shouldHave(cssClass(CRITICAL_CLASS));
     points.get(3).should(visible).shouldHave(cssClass(CRITICAL_CLASS));
 
     ElementsCollection lines = MttrTile.mttrLines();
-    lines.shouldHaveSize(2);
+    lines.shouldHave(CollectionCondition.size(2));
     lines.get(0).should(visible).shouldHave(cssClass(ALL_CLASS));
     lines.get(1).should(visible).shouldHave(cssClass(CRITICAL_CLASS));
 
     ElementsCollection months = MttrTile.mttrXAxisLabels();
-    months.shouldHaveSize(12);
+    months.shouldHave(CollectionCondition.size(12));
 
     DateTime mttrMonth = DateTime.now().minusMonths(12);
     for (int i = 0; i < 12; i++) {
@@ -551,9 +553,9 @@ public class SuccessMetricsChartsTest
     ComponentCountsTile.averages()
         .shouldHave(text("On average, there are 1 components per application."));
     ElementsCollection componentsInMostApplications = ComponentCountsTile.componentsInMostApplications();
-    componentsInMostApplications.shouldHaveSize(2);
+    componentsInMostApplications.shouldHave(CollectionCondition.size(2));
     ElementsCollection componentsWithMostViolations = ComponentCountsTile.componentsWithMostViolations();
-    componentsWithMostViolations.shouldHaveSize(2);
+    componentsWithMostViolations.shouldHave(CollectionCondition.size(2));
 
     String[] componentGroupIdsInMostApplications = {
       "long.component.name.should.cause.tooltip : artifact : 1.2.3.4", "short : name : 0.6"
@@ -614,12 +616,12 @@ public class SuccessMetricsChartsTest
   private static Condition heightAttrStartingWith(final String value) {
     return new Condition("heightAttrStartingWith") {
       @Override
-      public boolean apply(WebElement element) {
+      public boolean apply(Driver driver, WebElement element) {
         return element.getAttribute(HEIGHT_ATTR).startsWith(value);
       }
 
       @Override
-      public String actualValue(WebElement element) {
+      public String actualValue(Driver driver, WebElement element) {
         return element.getAttribute(HEIGHT_ATTR);
       }
     };

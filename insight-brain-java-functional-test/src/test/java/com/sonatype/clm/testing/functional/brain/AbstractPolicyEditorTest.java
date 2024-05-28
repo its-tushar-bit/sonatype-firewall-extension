@@ -91,6 +91,7 @@ import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverr
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
@@ -422,7 +423,8 @@ public abstract class AbstractPolicyEditorTest
     Tooltip.get().shouldBe(visible)
         .shouldHave(text("Jira notifications are not available for policy violations at Proxy stage."));
     NotificationsSection.notificationFor("Project One (Bug)").deleteButton().click();
-    NotificationsSection.notifications().shouldHaveSize(1).get(0).shouldHave(text("No notifications configured"));
+    NotificationsSection.notifications().shouldHave(CollectionCondition.size(1)).get(0)
+        .shouldHave(text("No notifications configured"));
 
     PolicyEditorPage.savePolicy();
 
@@ -568,7 +570,7 @@ public abstract class AbstractPolicyEditorTest
     List<Constraint> constraints = policy.getConstraints();
     ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
     constraintSection.addConstraintButton().shouldBe(visible, enabled);
-    constraintSection.constraintSummaries().shouldHaveSize(constraints.size());
+    constraintSection.constraintSummaries().shouldHave(CollectionCondition.size(constraints.size()));
 
     ConstraintSection.ConstraintSummary constraintSummary1 = constraintSection.constraintSummary(0);
     constraintSummary1.name().shouldHave(text(constraints.get(0).getName()));
@@ -577,12 +579,12 @@ public abstract class AbstractPolicyEditorTest
     constraintSummary1.subheader()
         .shouldHave(ConstraintSection.ConstraintSummary
             .subheaderText(conditions.size(), constraints.get(0).getOperator().toString()));
-    constraintSummary1.conditions().shouldHaveSize(conditions.size());
+    constraintSummary1.conditions().shouldHave(CollectionCondition.size(conditions.size()));
     constraintSummary1.deleteConstraintButton().shouldBe(visible, enabled);
     constraintSummary1.editConstraintButton().shouldBe(visible, enabled);
 
     constraintSummary1.condition(0).shouldHave(text("Age older than 2 Years"));
-    constraintSummary1.conditionUnsupportedMessages().shouldHaveSize(0);
+    constraintSummary1.conditionUnsupportedMessages().shouldHave(CollectionCondition.size(0));
 
     ConstraintSection.ConstraintSummary constraintSummary2 = constraintSection.constraintSummary(1);
     constraintSummary2.name().shouldHave(text(constraints.get(1).getName()));
@@ -591,13 +593,13 @@ public abstract class AbstractPolicyEditorTest
     constraintSummary2.subheader()
         .shouldHave(ConstraintSection.ConstraintSummary
             .subheaderText(conditions.size(), constraints.get(1).getOperator().toString()));
-    constraintSummary2.conditions().shouldHaveSize(conditions.size());
+    constraintSummary2.conditions().shouldHave(CollectionCondition.size(conditions.size()));
     constraintSummary2.deleteConstraintButton().shouldBe(visible, enabled);
     constraintSummary2.editConstraintButton().shouldBe(visible, enabled);
 
     constraintSummary2.condition(0).shouldHave(text("License Threat Group is my LTG"));
     constraintSummary2.condition(1).shouldHave(text("Label is my Label"));
-    constraintSummary2.conditionUnsupportedMessages().shouldHaveSize(0);
+    constraintSummary2.conditionUnsupportedMessages().shouldHave(CollectionCondition.size(0));
 
     ConstraintSection.ConstraintSummary constraintSummary3 = constraintSection.constraintSummary(2);
     constraintSummary3.name().shouldHave(text(constraints.get(2).getName()));
@@ -606,13 +608,13 @@ public abstract class AbstractPolicyEditorTest
     constraintSummary3.subheader()
         .shouldHave(ConstraintSection.ConstraintSummary
             .subheaderText(conditions.size(), constraints.get(2).getOperator().toString()));
-    constraintSummary3.conditions().shouldHaveSize(conditions.size());
+    constraintSummary3.conditions().shouldHave(CollectionCondition.size(conditions.size()));
     constraintSummary3.deleteConstraintButton().shouldBe(visible, enabled);
     constraintSummary3.editConstraintButton().shouldBe(visible, enabled);
 
     constraintSummary3.condition(0).shouldHave(text("Relative Popularity (Percentage) less than 50"));
     constraintSummary3.condition(1).shouldHave(text("Coordinates do not match maven:blah:blah:blah"));
-    constraintSummary3.conditionUnsupportedMessages().shouldHaveSize(0);
+    constraintSummary3.conditionUnsupportedMessages().shouldHave(CollectionCondition.size(0));
   }
 
   private void testEditPolicy_constraintSection_editors(Policy policy) {
@@ -621,12 +623,12 @@ public abstract class AbstractPolicyEditorTest
     List<Constraint> constraints = policy.getConstraints();
     ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
 
-    constraintSection.constraintEditors().shouldHaveSize(0);
+    constraintSection.constraintEditors().shouldHave(CollectionCondition.size(0));
     constraintSection.constraintSummary(0).editConstraintButton().shouldBe(visible, enabled).click();
-    constraintSection.constraintEditors().shouldHaveSize(1);
+    constraintSection.constraintEditors().shouldHave(CollectionCondition.size(1));
 
     ConstraintEditSection constraintEdit = constraintSection.constraintEditor(0);
-    constraintEdit.conditionUnsupportedMessages().shouldHaveSize(0);
+    constraintEdit.conditionUnsupportedMessages().shouldHave(CollectionCondition.size(0));
 
     constraintEdit.operator().shouldHave(text("all"));
     constraintEdit.name().shouldHave(value(constraints.get(0).getName())).val("New Constraint Name");
@@ -635,7 +637,7 @@ public abstract class AbstractPolicyEditorTest
     policy = policyDAO.getById(policy.getId());
     assertThat(policy.getConstraints().get(0).getName()).isEqualTo("New Constraint Name");
 
-    constraintEdit.conditions().shouldHaveSize(1);
+    constraintEdit.conditions().shouldHave(CollectionCondition.size(1));
     constraintEdit.ageCondition(0).deleteConditionButton().shouldBe(visible, disabled);
     constraintEdit.ageCondition(0).value().age().shouldHave(value("2")).val("3");
     constraintEdit.ageCondition(0).value().modifier().shouldHave(text("Years")).click();
@@ -652,7 +654,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(updatedAgeCondition.getOperator()).isEqualTo("younger than");
 
     constraintEdit.addConditionButton().shouldBe(visible, enabled).click();
-    constraintEdit.conditions().shouldHaveSize(2);
+    constraintEdit.conditions().shouldHave(CollectionCondition.size(2));
     constraintEdit.condition(1).type()
         .chooseOptionWithHidden(conditionTypesOptionMap.get(LicenseThreatGroupConditionType.class));
     constraintEdit.dropdownCondition(1).operator().shouldHave(text("is")).click();
@@ -672,7 +674,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(ltgCondition.getOperator()).isEqualTo("is not");
 
     constraintEdit.addConditionButton().shouldBe(visible, enabled).click();
-    constraintEdit.conditions().shouldHaveSize(3);
+    constraintEdit.conditions().shouldHave(CollectionCondition.size(3));
     constraintEdit.condition(2).type().shouldHave(text("Age"));
 
     CoordinatesCondition coordConditionEditor = constraintEdit.coordinatesCondition(2);
@@ -712,7 +714,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(securityVulnerabilityCondition.getValue()).isEqualTo("1");
     assertThat(securityVulnerabilityCondition.getOperator()).isEqualTo(">=");
 
-    constraintEdit.conditionUnsupportedMessages().shouldHaveSize(0);
+    constraintEdit.conditionUnsupportedMessages().shouldHave(CollectionCondition.size(0));
 
     // Check that severity can be set to 0 as well
     constraintEdit.inputCondition(2).value().val("0");
@@ -722,11 +724,11 @@ public abstract class AbstractPolicyEditorTest
     constraintEdit.condition(0).deleteConditionButton().shouldBe(visible, enabled);
     constraintEdit.condition(1).deleteConditionButton().shouldBe(visible, enabled);
     constraintEdit.condition(2).deleteConditionButton().shouldBe(visible, enabled).click();
-    constraintEdit.conditions().shouldHaveSize(2);
+    constraintEdit.conditions().shouldHave(CollectionCondition.size(2));
 
     constraintEdit.condition(1).deleteConditionButton().shouldBe(visible, enabled);
     constraintEdit.condition(0).deleteConditionButton().shouldBe(visible, enabled).click();
-    constraintEdit.conditions().shouldHaveSize(1);
+    constraintEdit.conditions().shouldHave(CollectionCondition.size(1));
 
     constraintEdit.condition(0).deleteConditionButton().shouldBe(visible, disabled);
     PolicyEditorPage.savePolicy();
@@ -814,7 +816,7 @@ public abstract class AbstractPolicyEditorTest
     List<Constraint> constraints = policy.getConstraints();
     ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
     constraintSection.addConstraintButton().shouldBe(visible, enabled);
-    constraintSection.constraintSummaries().shouldHaveSize(constraints.size());
+    constraintSection.constraintSummaries().shouldHave(CollectionCondition.size(constraints.size()));
 
     ConstraintSection.ConstraintSummary constraintSummary1 = constraintSection.constraintSummary(0);
     constraintSummary1.name().shouldHave(text(constraints.get(0).getName()));
@@ -823,11 +825,11 @@ public abstract class AbstractPolicyEditorTest
     constraintSummary1.subheader()
         .shouldHave(ConstraintSection.ConstraintSummary
             .subheaderText(conditions.size(), constraints.get(0).getOperator().toString()));
-    constraintSummary1.conditions().shouldHaveSize(conditions.size());
+    constraintSummary1.conditions().shouldHave(CollectionCondition.size(conditions.size()));
     constraintSummary1.deleteConstraintButton().shouldBe(visible, enabled);
     constraintSummary1.editConstraintButton().shouldBe(visible, enabled);
 
-    constraintSummary1.conditionUnsupportedMessages().shouldHaveSize(1);
+    constraintSummary1.conditionUnsupportedMessages().shouldHave(CollectionCondition.size(1));
     assertPolicySummary_constraintSectionDisabled(constraintSummary1, 0, expectedSummaryTexts[0],
         expectedWarningMessage);
 
@@ -838,11 +840,11 @@ public abstract class AbstractPolicyEditorTest
     constraintSummary2.subheader()
         .shouldHave(ConstraintSection.ConstraintSummary
             .subheaderText(conditions.size(), constraints.get(1).getOperator().toString()));
-    constraintSummary2.conditions().shouldHaveSize(conditions.size());
+    constraintSummary2.conditions().shouldHave(CollectionCondition.size(conditions.size()));
     constraintSummary2.deleteConstraintButton().shouldBe(visible, enabled);
     constraintSummary2.editConstraintButton().shouldBe(visible, enabled);
 
-    constraintSummary2.conditionUnsupportedMessages().shouldHaveSize(1);
+    constraintSummary2.conditionUnsupportedMessages().shouldHave(CollectionCondition.size(1));
     assertPolicySummary_constraintSectionDisabled(constraintSummary2, 0, expectedSummaryTexts[0],
         expectedWarningMessage);
     assertPolicySummary_constraintSectionDisabled(constraintSummary2, 1, expectedSummaryTexts[1],
@@ -869,9 +871,9 @@ public abstract class AbstractPolicyEditorTest
   {
     ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
 
-    constraintSection.constraintEditors().shouldHaveSize(0);
+    constraintSection.constraintEditors().shouldHave(CollectionCondition.size(0));
     constraintSection.constraintSummary(0).editConstraintButton().shouldBe(visible, enabled).click();
-    constraintSection.constraintEditors().shouldHaveSize(1);
+    constraintSection.constraintEditors().shouldHave(CollectionCondition.size(1));
 
     ConstraintEditSection constraintEdit = constraintSection.constraintEditor(0);
 
@@ -880,8 +882,8 @@ public abstract class AbstractPolicyEditorTest
     policy = policyDAO.getById(policy.getId());
     assertThat(policy.getConstraints().get(0).getName()).isEqualTo("First Constraint with One Condition");
 
-    constraintEdit.conditions().shouldHaveSize(1);
-    constraintEdit.conditionUnsupportedMessages().shouldHaveSize(1);
+    constraintEdit.conditions().shouldHave(CollectionCondition.size(1));
+    constraintEdit.conditionUnsupportedMessages().shouldHave(CollectionCondition.size(1));
     assertPolicyEditor_constraintSectionDisabled(constraintEdit, 0, expectedConditionTexts[0],
         expectedWarningText);
     constraintEdit.dropdownCondition(0).deleteConditionButton().shouldBe(visible, disabled);
@@ -890,10 +892,10 @@ public abstract class AbstractPolicyEditorTest
     constraintEdit.dropdownCondition(0).value().shouldBe(value(dropdownConditionValue));
 
     constraintSection.constraintSummary(1).editConstraintButton().shouldBe(visible, enabled).click();
-    constraintSection.constraintEditors().shouldHaveSize(2);
+    constraintSection.constraintEditors().shouldHave(CollectionCondition.size(2));
 
     constraintEdit = constraintSection.constraintEditor(1);
-    constraintEdit.conditionUnsupportedMessages().shouldHaveSize(1);
+    constraintEdit.conditionUnsupportedMessages().shouldHave(CollectionCondition.size(1));
     assertPolicyEditor_constraintSectionDisabled(constraintEdit, 0, expectedConditionTexts[0],
         expectedWarningText);
     assertPolicyEditor_constraintSectionDisabled(constraintEdit, 1, expectedConditionTexts[1],
@@ -927,7 +929,7 @@ public abstract class AbstractPolicyEditorTest
     addNotification.addButton().shouldBe(disabled);
     addNotification.email().shouldBe(empty);
     // should be last
-    NotificationsSection.notifications().shouldHaveSize(3);
+    NotificationsSection.notifications().shouldHave(CollectionCondition.size(3));
     // Uncomment when fixing CLM-18677
     //NotificationsSection.notifications().get(2).shouldHave(text("aaa@sonatype.com"));
 
@@ -958,10 +960,10 @@ public abstract class AbstractPolicyEditorTest
 
     // delete one and save
     NotificationsSection.notificationFor("test@foo.com").deleteButton().click();
-    NotificationsSection.notifications().shouldHaveSize(3);
+    NotificationsSection.notifications().shouldHave(CollectionCondition.size(3));
     PolicyEditorPage.savePolicy();
     ScrollUtil.scrollIntoView(PolicyEditorPage.notificationsSection().header());
-    NotificationsSection.notifications().shouldHaveSize(3);
+    NotificationsSection.notifications().shouldHave(CollectionCondition.size(3));
     // Uncomment when fixing CLM-18677
     // "aaa@sonatype.com" should be first after save
     //NotificationsSection.notifications().get(0).shouldHave(text("aaa@sonatype.com"));
@@ -1077,13 +1079,13 @@ public abstract class AbstractPolicyEditorTest
     ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
     constraintSection.addConstraintButton().shouldBe(visible, enabled);
 
-    constraintSection.constraintEditors().shouldHaveSize(1);
+    constraintSection.constraintEditors().shouldHave(CollectionCondition.size(1));
 
     ConstraintEditSection newConstraint = constraintSection.constraintEditor(0);
-    newConstraint.conditionUnsupportedMessages().shouldHaveSize(0);
+    newConstraint.conditionUnsupportedMessages().shouldHave(CollectionCondition.size(0));
     newConstraint.name().shouldBe(empty).val("New Constraint");
     newConstraint.operator().shouldHave(text("any"));
-    newConstraint.conditions().shouldHaveSize(1);
+    newConstraint.conditions().shouldHave(CollectionCondition.size(1));
 
     AgeConditionEditSection ageCondition = newConstraint.ageCondition(0);
     ageCondition.deleteConditionButton().shouldBe(visible, disabled);
@@ -1439,7 +1441,7 @@ public abstract class AbstractPolicyEditorTest
     dependencyInnerSourceType.value().listItem(2).shouldHave(text("InnerSource")).click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
-    newConstraint.conditionUnsupportedMessages().shouldHaveSize(0);
+    newConstraint.conditionUnsupportedMessages().shouldHave(CollectionCondition.size(0));
   }
 
   private void toggleAndCheckSave(final SelenideElement element) {
@@ -1573,7 +1575,7 @@ public abstract class AbstractPolicyEditorTest
 
   private void assertNewPolicyStateIsCorrect_notificationsSection() {
     ElementsCollection notifications = NotificationsSection.notifications();
-    notifications.shouldHaveSize(1);
+    notifications.shouldHave(CollectionCondition.size(1));
     notifications.get(0).shouldHave(text("No notifications Configured"));
 
     AddNotificationItem addNotification = NotificationsSection.addNotification();
@@ -1583,7 +1585,7 @@ public abstract class AbstractPolicyEditorTest
 
     addNotification.notificationType().chooseOption("Role");
     addNotification.email().shouldNot(exist);
-    addNotification.role().listItems().shouldHaveSize(6);
+    addNotification.role().listItems().shouldHave(CollectionCondition.size(6));
   }
 
   private void assertNewPolicyStateIsCorrect_actionsSection() {
@@ -1711,7 +1713,8 @@ public abstract class AbstractPolicyEditorTest
     com.codeborne.selenide.Condition disabledOrEnabled = isReadOnly || notificationsReadOnly ? disabled : enabled;
 
     // Uncomment when fixing CLM-18677
-    //NotificationsSection.notifications().shouldHaveSize(2).shouldHave(texts("Developer", "test@foo.com"));
+    //NotificationsSection.notifications().shouldHave(CollectionCondition.size(2)
+    // .shouldHave(texts("Developer", "test@foo.com"));
     NotificationsSection.notificationFor("Developer").build().input().shouldBe(selected, disabledOrEnabled);
     NotificationsSection.notificationFor("test@foo.com").build().input().shouldBe(selected, disabledOrEnabled);
     NotificationsSection.notificationFor("test@foo.com").continuousMonitoring().input()
@@ -1753,7 +1756,8 @@ public abstract class AbstractPolicyEditorTest
       ThreatDropdownSelector.dropdownButton().shouldBe(visible, enabled).click();
       ThreatDropdownSelector.threatLevelList().shouldBe(visible);
 
-      ThreatDropdownSelector.threatLevelListItems().shouldHaveSize(ThreatDropdownSelector.IQ_NUM_THREAT_LEVELS);
+      ThreatDropdownSelector.threatLevelListItems()
+          .shouldHave(CollectionCondition.size(ThreatDropdownSelector.IQ_NUM_THREAT_LEVELS));
 
       for (int i = 0; i < ThreatDropdownSelector.IQ_NUM_THREAT_LEVELS; i++) {
         ThreatDropdownSelector.threatLevelListItem(i).shouldBe(visible).shouldHave(text(Integer.toString(10 - i)));

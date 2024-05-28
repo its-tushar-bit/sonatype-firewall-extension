@@ -14,6 +14,7 @@ import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 
+import com.codeborne.selenide.CollectionCondition;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -56,7 +57,7 @@ public class LdapServerListTest
     LdapServerListPage ldapServerListPage = new LdapServerListPage();
     ldapServerListPage.shouldBe(visible);
 
-    ldapServerListPage.listElements().shouldHaveSize(0);
+    ldapServerListPage.listElements().shouldHave(CollectionCondition.size(0));
     ldapServerListPage.emptyDescriptor().shouldBe(visible);
 
     tempEntity.newLdapServer("IQ Ldap Server");
@@ -65,7 +66,7 @@ public class LdapServerListTest
     refresh();
 
     ldapServerListPage.emptyDescriptor().shouldBe(hidden);
-    ldapServerListPage.listElements().shouldHaveSize(2);
+    ldapServerListPage.listElements().shouldHave(CollectionCondition.size(2));
 
     ListRow row = ldapServerListPage.listRow(1);
     row.chevron().shouldBe(visible);

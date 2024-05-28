@@ -147,7 +147,7 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.credentialsFieldset().radioInputs().get(0).shouldBe(disabled);
     SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldBe(selected, enabled);
     SourceControlEditorPage.tokenWarning().shouldBe(visible);
-    SourceControlEditorPage.repositoryUrl().shouldHave(text(""));
+    SourceControlEditorPage.repositoryUrl().shouldBe(empty);
   }
 
   @Test
@@ -176,7 +176,7 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.credentialsFieldset().radioInputs().forEach(input -> input.shouldBe(enabled));
     SourceControlEditorPage.credentialsFieldset().radioInputs().get(0).shouldBe(selected);
     SourceControlEditorPage.tokenWarning().shouldNotBe(visible);
-    SourceControlEditorPage.repositoryUrl().shouldHave(text(""));
+    SourceControlEditorPage.repositoryUrl().shouldBe(empty);
   }
 
   @Test
@@ -210,7 +210,7 @@ public class ApplicationSourceControlEditorTest
             CollectionCondition.texts(String.format("Inherit from %s", rootOrganization.getName()), "Override"));
     SourceControlEditorPage.credentialsFieldset().radioInputs().forEach(input -> input.shouldBe(enabled));
     SourceControlEditorPage.credentialsFieldset().radioInputs().get(0).shouldBe(selected);
-    SourceControlEditorPage.repositoryUrl().shouldHave(text(""));
+    SourceControlEditorPage.repositoryUrl().shouldBe(empty);
   }
 
   @Test
@@ -239,7 +239,7 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.credentialsFieldset().radioInputs().forEach(input -> input.shouldBe(enabled));
     SourceControlEditorPage.credentialsFieldset().radioInputs().get(0).shouldBe(selected);
     SourceControlEditorPage.tokenWarning().shouldNotBe(visible);
-    SourceControlEditorPage.repositoryUrl().shouldHave(text(""));
+    SourceControlEditorPage.repositoryUrl().shouldBe(empty);
   }
 
   @Test
@@ -275,7 +275,7 @@ public class ApplicationSourceControlEditorTest
             CollectionCondition.texts(String.format("Inherit from %s", organization.getName()), "Override"));
     SourceControlEditorPage.credentialsFieldset().radioInputs().forEach(input -> input.shouldBe(enabled));
     SourceControlEditorPage.credentialsFieldset().radioInputs().get(0).shouldBe(selected);
-    SourceControlEditorPage.repositoryUrl().shouldHave(text(""));
+    SourceControlEditorPage.repositoryUrl().shouldBe(empty);
 
     eyesWatcher.eyesCheck("Source Control Editor Default State With Bitbucket and Inherited Credentials");
   }
@@ -994,7 +994,7 @@ public class ApplicationSourceControlEditorTest
         .shouldHave(CollectionCondition.texts("Inherit (Not Configured)", "Override"));
     SourceControlEditorPage.tokenWarning().shouldBe(visible);
 
-    SourceControlEditorPage.repositoryUrl().shouldHave(text(""));
+    SourceControlEditorPage.repositoryUrl().shouldBe(empty);
     SourceControlEditorPage.repositoryUrl().shouldBe(visible, enabled);
 
     SourceControlEditorPage.sshEnabledFieldset().toggle().shouldNotBe(visible);

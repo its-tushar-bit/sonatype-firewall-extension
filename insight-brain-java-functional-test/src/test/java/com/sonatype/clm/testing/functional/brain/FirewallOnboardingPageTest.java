@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
@@ -689,7 +690,7 @@ public class FirewallOnboardingPageTest
         + "You can enable protection by going back to the previous step."));
 
     ElementsCollection repositoriesLists = page.repositoriesList();
-    repositoriesLists.shouldHaveSize(4);
+    repositoriesLists.shouldHave(CollectionCondition.size(4));
     repositoriesLists.get(0).shouldHave(text("maven2\n" + "3 of 5"));
     repositoriesLists.get(1).shouldHave(text("pypi\n" + "2 of 4"));
     repositoriesLists.get(2).shouldHave(text("npm\n" + "2 of 3"));
@@ -742,7 +743,7 @@ public class FirewallOnboardingPageTest
     page.shouldHave(text("Protect your internal components from namespace attacks"));
 
     ElementsCollection repositoriesLists = page.repositoriesList();
-    repositoriesLists.shouldHaveSize(4);
+    repositoriesLists.shouldHave(CollectionCondition.size(4));
     repositoriesLists.get(0).shouldHave(text("maven2\n" + "3 of 5"));
     repositoriesLists.get(1).shouldHave(text("pypi\n" + "2 of 4"));
     repositoriesLists.get(2).shouldHave(text("npm\n" + "2 of 3"));
@@ -795,7 +796,7 @@ public class FirewallOnboardingPageTest
     page.shouldHave(text("Protect your internal components from namespace attacks"));
 
     ElementsCollection repositoriesLists = page.repositoriesList();
-    repositoriesLists.shouldHaveSize(4);
+    repositoriesLists.shouldHave(CollectionCondition.size(4));
     repositoriesLists.get(0).shouldHave(text("maven2\n" + "3 of 5"));
     repositoriesLists.get(1).shouldHave(text("npm\n" + "2 of 3"));
     repositoriesLists.get(2).shouldHave(text("pypi\n" + "0 of 4"));
@@ -837,7 +838,7 @@ public class FirewallOnboardingPageTest
     page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorNoProtectionRulesTitle());
 
     ElementsCollection repositoriesLists = page.repositoriesList();
-    repositoriesLists.shouldHaveSize(1);
+    repositoriesLists.shouldHave(CollectionCondition.size(1));
     repositoriesLists.get(0).shouldHave(text("maven2\n" + "0 of 5"));
 
     eyesWatcher.eyesCheck("Firewall onboarding: select proxy repositories step with no format supported");
@@ -880,7 +881,7 @@ public class FirewallOnboardingPageTest
 
     // and I should see 3 lists of repositories
     ElementsCollection repositoriesLists = page.repositoriesList();
-    repositoriesLists.shouldHaveSize(3);
+    repositoriesLists.shouldHave(CollectionCondition.size(3));
 
     // and the supported formats are sorted before the unsupported ones even if the unsupported ones have more repos
     repositoriesLists.get(0).shouldHave(text("maven2\n" + "3 of 5"));
@@ -935,7 +936,7 @@ public class FirewallOnboardingPageTest
     eyesWatcher.eyesCheck("Firewall onboarding: select hosted repositories step with no format supported");
 
     ElementsCollection repositoriesLists = page.repositoriesList();
-    repositoriesLists.shouldHaveSize(0);
+    repositoriesLists.shouldHave(CollectionCondition.size(0));
   }
 
   @Test
@@ -974,7 +975,7 @@ public class FirewallOnboardingPageTest
     page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorNoProtectionRulesTitle());
 
     ElementsCollection repositoriesLists = page.repositoriesList();
-    repositoriesLists.shouldHaveSize(4);
+    repositoriesLists.shouldHave(CollectionCondition.size(4));
     repositoriesLists.get(0).shouldHave(text("maven2\n" + "3 of 5"));
     repositoriesLists.get(1).shouldHave(text("pypi\n" + "2 of 4"));
     repositoriesLists.get(2).shouldHave(text("npm\n" + "2 of 3"));
@@ -1062,7 +1063,7 @@ public class FirewallOnboardingPageTest
     page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorNoProtectionRulesTitle());
 
     ElementsCollection repositoriesLists = page.repositoriesList();
-    repositoriesLists.shouldHaveSize(4);
+    repositoriesLists.shouldHave(CollectionCondition.size(4));
     repositoriesLists.get(0).shouldHave(text("maven2\n" + "2 of 4"));
     repositoriesLists.get(1).shouldHave(text("npm\n" + "2 of 4"));
     repositoriesLists.get(2).shouldHave(text("pypi\n" + "2 of 4"));
@@ -1073,7 +1074,7 @@ public class FirewallOnboardingPageTest
     page.shouldHave(text("Protect your internal components from namespace attacks"));
 
     ElementsCollection hostedRepositoriesLists = page.repositoriesList();
-    hostedRepositoriesLists.shouldHaveSize(4);
+    hostedRepositoriesLists.shouldHave(CollectionCondition.size(4));
     hostedRepositoriesLists.get(0).shouldHave(text("maven2\n" + "2 of 4"));
     hostedRepositoriesLists.get(1).shouldHave(text("npm\n" + "2 of 4"));
     hostedRepositoriesLists.get(2).shouldHave(text("pypi\n" + "2 of 4"));

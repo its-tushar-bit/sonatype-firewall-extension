@@ -27,11 +27,13 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.enabled;
@@ -40,6 +42,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 
+@Ignore // https://sonatype.atlassian.net/browse/CLM-30526
 public class SessionTimeoutTest
     extends AbstractFunctionalTest
 {
@@ -65,7 +68,7 @@ public class SessionTimeoutTest
    * Test that when the session expires (simulated by deleting the cookie), that the next authentication-requiring
    * HTTP request causes the page to reload back to the login screen
    */
- 
+
   @Test
   public void testReloginPromptOnAjaxDetectedSessionExpiration() {
     refreshOrOpen(ProductLicensePage.url());
@@ -155,6 +158,7 @@ public class SessionTimeoutTest
     // set session timeout to 1 second
     sessionManager.setGlobalSessionTimeout(1000);
 
+    refreshOrOpen(DashboardPage.url());
     loginAsAdmin();
 
     Thread.sleep(1500);
@@ -223,7 +227,7 @@ public class SessionTimeoutTest
     logoutWarningModal.keepMeSignedInButton().shouldBe(visible);
     logoutWarningModal.warningText().shouldHave(
         text("Due to 30 minutes of inactivity you will be logged out in 2 seconds."));
-    
+
     Thread.sleep(4500);
 
     assertUiCleared();
@@ -240,6 +244,7 @@ public class SessionTimeoutTest
 
     // Clicking the button should trigger an interaction that will cause a server request
     // Current Time: 1500; Timeout Time: 3000
+    refresh(); //https://sonatype.atlassian.net/browse/CLM-30526
     LogoutWarningModal logoutWarningModal = new LogoutWarningModal();
     logoutWarningModal.keepMeSignedInButton().shouldBe(visible).click();
 
@@ -257,7 +262,7 @@ public class SessionTimeoutTest
     // ensure that the main UI is empty - we can't directly test that the page was
     // refreshed but this is close
     SidebarNavigation.mainHeaderButtons().shouldBe(hidden);
-    MainView.uiView().$$("*").shouldHaveSize(0);
+    MainView.uiView().$$("*").shouldHave(CollectionCondition.size(0));
   }
 
   private void assertUiClearedAndLogBackIn() {

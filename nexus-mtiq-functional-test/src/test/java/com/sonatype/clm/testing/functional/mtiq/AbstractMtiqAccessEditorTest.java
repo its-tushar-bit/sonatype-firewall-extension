@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.SamlUser;
 
+import com.codeborne.selenide.CollectionCondition;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -96,7 +97,7 @@ public abstract class AbstractMtiqAccessEditorTest
 
     addMembersForm.addGroupInput().click();
     addMembersForm.addGroupButton().shouldNotHave(cssClass("disabled")).click();
-    addMembersForm.addedItems().shouldHaveSize(1);
+    addMembersForm.addedItems().shouldHave(CollectionCondition.size(1));
     addMembersForm.addedItems().shouldHave(texts("test group (Group)")); // TODO CLM-26430
     addMembersForm.addGroupInput().setValue("test group");
     addMembersForm.addGroupButton().shouldHave(cssClass("disabled"));

@@ -28,6 +28,7 @@ import org.openqa.selenium.Keys;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
@@ -59,7 +60,7 @@ public class SamlConfigurationPageTest
     SamlConfigurationPage samlConfigurationPage = new SamlConfigurationPage();
     eyesWatcher.eyesCheck("saml configuration editor top");
     samlConfigurationPage.identityProviderName().shouldBe(value("identity provider"));
-    samlConfigurationPage.identityProviderMetadataXmlTextArea().shouldBe(text(""));
+    samlConfigurationPage.identityProviderMetadataXmlTextArea().shouldBe(empty);
 
     samlConfigurationPage.validateResponseSignatureDropdown().shouldBe(text("Default"));
     samlConfigurationPage.validateAssertionSignatureDropdown().shouldBe(text("Default"));
@@ -179,7 +180,7 @@ public class SamlConfigurationPageTest
     samlConfigurationPage.lastNameAttribute().shouldBe(value("lastName"));
     samlConfigurationPage.emailAttribute().shouldBe(value("email"));
     samlConfigurationPage.groupsAttribute().shouldBe(value("groups"));
-    samlConfigurationPage.identityProviderMetadataXmlTextArea().shouldBe(text(""));
+    samlConfigurationPage.identityProviderMetadataXmlTextArea().shouldBe(empty);
   }
 
   @Test

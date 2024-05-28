@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain.configuration;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
@@ -172,7 +173,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.loadError().shouldBe(hidden);
 
     // and page titles are visible
-    scmOnboardingPage.getPageTitleElements().shouldHaveSize(1);
+    scmOnboardingPage.getPageTitleElements().shouldHave(CollectionCondition.size(1));
   }
 
   @Test
@@ -577,7 +578,7 @@ public class ScmOnboardingTest
     loginAsAdmin();
 
     // then the table is empty
-    scmOnboardingPage.repositoryCount().waitUntil(text("0"), 2000);
+    scmOnboardingPage.repositoryCount().shouldBe(text("0"), Duration.ofMillis(2000));
 
     // the statistics are shown and indicate no available repositories (and none already imported)
     scmOnboardingPage.donutChartPercentImported().shouldHave(attribute("aria-label", "0% imported"));
@@ -999,7 +1000,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.selectionCheckboxById(getIdSelector(REPOSITORY_VGO_GIT)).shouldBe(selected);
 
     // and other repositories remain deselected
-    scmOnboardingPage.selectionCheckboxById(CI_PROJECT_1_GIT).shouldNotBe(selected);
+    scmOnboardingPage.selectionCheckboxById(getIdSelector(CI_PROJECT_1_GIT)).shouldNotBe(selected);
 
     // and the selected count is unchanged
     scmOnboardingPage.selectedToImportCount().shouldBe(text("4 of 14 repositories"));
@@ -1147,10 +1148,10 @@ public class ScmOnboardingTest
 
     // then the repos list loads and has the max page size
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(15);
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(15));
 
     // and pagination buttons are present
-    scmOnboardingPage.paginationButtons().shouldHaveSize(2);
+    scmOnboardingPage.paginationButtons().shouldHave(CollectionCondition.size(2));
 
     // and move viewport and perform visual test
     Actions actions = new Actions(WebDriverRunner.getWebDriver());
@@ -1165,7 +1166,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.paginationButtons().get(1).click();
 
     // then the second page of results appears
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(5);
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(5));
     scmOnboardingPage.paginationButtons().get(1).shouldHave(cssClass("selected"));
   }
 
@@ -1195,7 +1196,7 @@ public class ScmOnboardingTest
 
     // then the page is reset to the first one
     scmOnboardingPage.paginationButtons().get(0).shouldHave(cssClass("selected"));
-    scmOnboardingPage.paginationButtons().shouldHaveSize(1);
+    scmOnboardingPage.paginationButtons().shouldHave(CollectionCondition.size(1));
   }
 
   @Test
@@ -1256,7 +1257,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.orgDropdownItems().find(exactText("Test Org")).click();
 
     // then it triggers a reload, repo list is unchanged
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(14);
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(14));
   }
 
   @Test
@@ -1307,7 +1308,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Select"));
 
     // and the repo list is empty with no errors
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(0);
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(0));
     scmOnboardingPage.resultsTableBody().shouldHave(text("No matching repositories."));
 
     // when we pull down the list
@@ -1344,7 +1345,7 @@ public class ScmOnboardingTest
     // then the repository list gets populated
     scmOnboardingPage.modalDialog().shouldNotBe(visible);
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(14);
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(14));
 
     // when we reset the git service responses to have 0 entries, letting us test if a requery happens
     mockRepoForPage(gitService, 0, EMPTY_JSON_ARRAY);
@@ -1354,7 +1355,7 @@ public class ScmOnboardingTest
     menuButtons.find(exactText("Test Org 2")).click();
 
     // then it doesn't trigger a reload, repo list is unchanged
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(14);
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(14));
 
     // when select org with a custom token and no SC entries
     scmOnboardingPage.organizationsDropdown().click();
@@ -1401,14 +1402,14 @@ public class ScmOnboardingTest
     // then the repository list gets populated
     scmOnboardingPage.modalDialog().shouldNotBe(visible);
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(14);
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(14));
 
     // when we select the custom host org
     scmOnboardingPage.organizationsDropdown().click();
     menuButtons.find(exactText("Custom Host")).click();
 
     // then it loads the page immediately with our secondary git service results
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(1);
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(1));
   }
 
   @Test
@@ -1441,7 +1442,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.orgDropdownItems().shouldHave(texts("A-b", "A-c", "a-Bb"));
     clearOrgFilter(scmOnboardingPage);
     scmOnboardingPage.orgDropdownFilter().setValue("foo");
-    scmOnboardingPage.orgDropdownItems().shouldHaveSize(0);
+    scmOnboardingPage.orgDropdownItems().shouldHave(CollectionCondition.size(0));
     clearOrgFilter(scmOnboardingPage);
     scmOnboardingPage.orgDropdownFilter().setValue("A-b");
     scmOnboardingPage.orgDropdownItems().shouldHave(texts("A-b", "a-Bb"));
@@ -1506,7 +1507,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.orgDropdownItems().shouldHave(texts("Test Org"));
     clearOrgFilter(scmOnboardingPage);
     scmOnboardingPage.orgDropdownFilter().setValue("foo");
-    scmOnboardingPage.orgDropdownItems().shouldHaveSize(0);
+    scmOnboardingPage.orgDropdownItems().shouldHave(CollectionCondition.size(0));
     clearOrgFilter(scmOnboardingPage);
     scmOnboardingPage.orgDropdownFilter().setValue("st or");
     scmOnboardingPage.orgDropdownItems().shouldBe(texts("Test Org"));
@@ -1764,7 +1765,7 @@ public class ScmOnboardingTest
     // then the org dropdown is shown
     scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Custom Host"));
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(1);
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(1));
 
     // when creating a new organization
     scmOnboardingPage.newOrgButton().click();
@@ -1775,7 +1776,7 @@ public class ScmOnboardingTest
     // Then the new organization is created and selected
     scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Foo Organization"));
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
-    scmOnboardingPage.resultsTableProject().shouldHaveSize(14);
+    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(14));
   }
 
   @Test

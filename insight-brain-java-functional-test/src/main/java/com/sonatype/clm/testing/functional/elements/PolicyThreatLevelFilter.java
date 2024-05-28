@@ -12,7 +12,7 @@ public class PolicyThreatLevelFilter
     super(selector);
   }
 
-  public ThreatLevelSlider slider() {
-    return new ThreatLevelSlider(childSelector(".nx-policy-threat-slider"));
+  public NxThreatLevelSlider slider() {
+    return new NxThreatLevelSlider(childSelector(".nx-policy-threat-slider"));
   }
 }

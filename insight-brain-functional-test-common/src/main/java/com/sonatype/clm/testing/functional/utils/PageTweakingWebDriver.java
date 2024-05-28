@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.utils;
 
 import java.net.URL;
+import java.time.Duration;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.events.EventFiringWebDriver;
@@ -49,7 +50,7 @@ public class PageTweakingWebDriver
   }
 
   public void waitForJQueryToLoad() {
-    new WebDriverWait(getWrappedDriver(), 10)
+    new WebDriverWait(getWrappedDriver(), Duration.ofSeconds(10L))
         .until(d -> executeScript("return !!window.jQuery && jQuery.active === 0"));
   }
 

@@ -21,17 +21,18 @@ import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportScopeDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.codeborne.selenide.CollectionCondition;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Condition.enabled;
 import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 
 public class SuccessMetricsConfigurationTest
@@ -106,7 +107,7 @@ public class SuccessMetricsConfigurationTest
     // ... the success metrics list page,
     refreshOrOpen(SuccessMetricsReportListPage.url());
     waitUntilUrl(SuccessMetricsReportListPage.url());
-    successMetricsPage.reports().shouldHaveSize(0);
+    successMetricsPage.reports().shouldHave(CollectionCondition.size(0));
     successMetricsPage.errorBox().shouldBe(visible).shouldHave(text(SUCCESS_METRICS_DISABLED_TEXT));
     successMetricsPage.addSuccessMetricsBtn().shouldBe(hidden);
 
@@ -132,7 +133,7 @@ public class SuccessMetricsConfigurationTest
 
     // ... the success metrics list page,
     successMetricsPage.errorBox().shouldBe(hidden);
-    successMetricsPage.reports().shouldHaveSize(1);
+    successMetricsPage.reports().shouldHave(CollectionCondition.size(1));
     successMetricsPage.report(0).link().click();
 
     // ... and the success metrics details page for root org

@@ -52,6 +52,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
@@ -59,6 +60,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
@@ -77,7 +79,7 @@ public class ViolationDetailsTest
   private PolicyViolation deletedPolicyViolation;
 
   private PolicyViolation nonSecurityPolicyViolation;
-  
+
   private PolicyDAO policyDAO;
 
   private PolicyViolationDAO policyViolationDAO;
@@ -164,7 +166,7 @@ public class ViolationDetailsTest
 
     tile.headerTitle().shouldHave(text("Violation of Policy 1"));
     ElementsCollection elements = tile.headerSubtitle().findAll(".iq-violation-details__subtitle-part");
-    elements.shouldHaveSize(3);
+    elements.shouldHave(CollectionCondition.size(3));
     elements.get(0).shouldHave(text("Org 1"));
     elements.get(1).shouldHave(text("App 1"));
     elements.get(2).shouldHave(text("Group1 : Artifact1 : Version1"));
@@ -175,7 +177,7 @@ public class ViolationDetailsTest
     tile.threatLevel().shouldHave(text("7"));
     tile.policyOwnerLink().shouldHave(text("Root Organization"));
 
-    tile.stages().shouldHaveSize(5);
+    tile.stages().shouldHave(CollectionCondition.size(5));
 
     tile.stage(0).shouldHave(text("Source"));
     tile.stage(0).icon().should(exist);
@@ -250,7 +252,7 @@ public class ViolationDetailsTest
     constraintInfo.headerTitle().shouldBe(visible).shouldHave(exactText("Policy Constraint"));
     constraintInfo.subheaderTitle().shouldBe(visible)
         .shouldHave(exactText("Test Constraint is in violation for the following reason(s):"));
-    constraintInfo.reasons().shouldHaveSize(1);
+    constraintInfo.reasons().shouldHave(CollectionCondition.size(1));
     constraintInfo.reason(0).shouldHave(exactText("sonatype-2017-0507"));
 
     securityDetailsInfoTile.vulnerabilityDetailsHeader().shouldBe(visible)
@@ -295,7 +297,7 @@ public class ViolationDetailsTest
     applicableWaiversInfoTile.waiverListHeader().shouldBe(visible)
       .shouldHave(exactText("Active and expired waivers applicable to this violation of " + policyName));
     applicableWaiversInfoTile.getApplicableWaiversTable().shouldBe(visible);
-    
+
     // Switch tabs again
     vulnerabilityTab.click();
     securityDetailsInfoTile.shouldBe(visible);
@@ -343,7 +345,7 @@ public class ViolationDetailsTest
     constraintInfo.headerTitle().shouldBe(visible).shouldHave(exactText("Policy Constraint"));
     constraintInfo.subheaderTitle().shouldBe(visible)
         .shouldHave(exactText("Test Constraint is in violation for the following reason(s):"));
-    constraintInfo.reasons().shouldHaveSize(1);
+    constraintInfo.reasons().shouldHave(CollectionCondition.size(1));
     constraintInfo.reason(0).shouldHave(exactText("reason"));
 
     securityDetailsInfoTile.vulnerabilityDetailsHeader().shouldNotBe(visible);
@@ -367,7 +369,7 @@ public class ViolationDetailsTest
     sidebarNav.sidebarNavTitle().shouldHave(text("VIOLATIONS"));
 
     ElementsCollection navItems = sidebarNav.sidebarNavItems();
-    navItems.shouldHaveSize(3);
+    navItems.shouldHave(CollectionCondition.size(3));
 
     SidebarNavListItem item1 = sidebarNav.navItem(0);
     item1.shouldHave(cssClass("selected"));
@@ -394,7 +396,7 @@ public class ViolationDetailsTest
     sidebarNav.sidebarNavTitle().shouldHave(text("VIOLATIONS"));
 
     ElementsCollection navItems = sidebarNav.sidebarNavItems();
-    navItems.shouldHaveSize(1);
+    navItems.shouldHave(CollectionCondition.size(1));
 
     SidebarNavListItem item1 = sidebarNav.navItem(0);
     item1.shouldHave(cssClass("selected"));
@@ -411,7 +413,7 @@ public class ViolationDetailsTest
     sidebarNav.sidebarNavTitle().shouldHave(text("VIOLATIONS"));
 
     ElementsCollection navItems = sidebarNav.sidebarNavItems();
-    navItems.shouldHaveSize(3);
+    navItems.shouldHave(CollectionCondition.size(3));
 
     SidebarNavListItem item2 = sidebarNav.navItem(1);
     item2.shouldNotHave(cssClass("selected"));
@@ -450,7 +452,7 @@ public class ViolationDetailsTest
     sidebarNav.sidebarNavTitle().shouldHave(text("VIOLATIONS"));
 
     ElementsCollection navItems = sidebarNav.sidebarNavItems();
-    navItems.shouldHaveSize(33);
+    navItems.shouldHave(CollectionCondition.size(33));
 
     SidebarNavListItem selectedItem = sidebarNav.navItem(32);
     selectedItem.shouldBe(visible);
@@ -481,7 +483,7 @@ public class ViolationDetailsTest
     NxTreeViewMultiSelect appFilter = DashboardFilters.applicationFilter();
     DashboardPage.filterToggle().click();
     appFilter.twisty().click();
-    appFilter.multiSelectList().shouldHaveSize(3);
+    appFilter.multiSelectList().shouldHave(CollectionCondition.size(3));
     appFilter.checkboxItem(3).click();
     AgeFilter ageFilter = DashboardFilters.ageFilter();
     ageFilter.twisty().click();
@@ -490,19 +492,19 @@ public class ViolationDetailsTest
     DashboardFilters.closeButton().click();
 
     DashboardPage.violationsView().headers().threatHeader().click();
-    DashboardPage.violationsView().results().violations().shouldHaveSize(51);
+    DashboardPage.violationsView().results().violations().shouldHave(CollectionCondition.size(51));
 
     refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(selectedPolicyViolation.getId(), "violation", "filter"));
     ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
     SidebarNav sidebarNav = violationDetailsPage.sidebarNav();
     ElementsCollection navItems = sidebarNav.sidebarNavItems();
-    navItems.shouldHaveSize(51);
+    navItems.shouldHave(CollectionCondition.size(51));
     SidebarNavListItem selectedItem = sidebarNav.navItem(0);
     selectedItem.should(visible);
     violationDetailsPage.backButton().click();
 
     waitUntilUrl(DashboardPage.urlToViolations());
-    DashboardPage.violationsView().results().violations().shouldHaveSize(51);
+    DashboardPage.violationsView().results().violations().shouldHave(CollectionCondition.size(51));
 
     NxPolicyThreatLevelFilter threatLevelFilter = DashboardFilters.policyThreatLevelFilter();
     DashboardPage.filterToggle().click();
@@ -510,10 +512,10 @@ public class ViolationDetailsTest
     threatLevelFilter.slider().setValues(8, 10);
     DashboardFilters.apply();
     DashboardFilters.closeButton().click();
-    DashboardPage.violationsView().results().violations().shouldHaveSize(1);
+    DashboardPage.violationsView().results().violations().shouldHave(CollectionCondition.size(1));
 
     refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(selectedPolicyViolation.getId(), "violation", "filter"));
-    navItems.shouldHaveSize(1);
+    navItems.shouldHave(CollectionCondition.size(1));
 
     refreshOrOpen(DashboardPage.urlToViolations());
     ManageFiltersDropdown manage = new ManageFiltersDropdown();
@@ -610,7 +612,7 @@ public class ViolationDetailsTest
     requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Test Constraint"));
     requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("sonatype-2017-0507"));
     requestWaiverPage.requestWaiverPolicyViolationId().shouldHave(text(securityPolicyViolation.getId()));
-    requestWaiverPage.comments().shouldHave(text(""));
+    requestWaiverPage.comments().shouldBe(empty);
     requestWaiverPage.saveButton().shouldBe(visible);
     requestWaiverPage.cancelButton().shouldBe(visible);
   }
@@ -662,7 +664,7 @@ public class ViolationDetailsTest
     violationDetailsPage.applicableWaiversTab().click();
     applicableWaiversTable = violationDetailsPage.applicableWaiversInfoTile().getApplicableWaiversTable();
     applicableWaiversTable.noWaiversMessage().shouldNotBe(visible);
-    applicableWaiversTable.rows().shouldHaveSize(1);
+    applicableWaiversTable.rows().shouldHave(CollectionCondition.size(1));
     applicableWaiversTable.row(1).comments().shouldHave(text(expectedComment));
 
     eyesWatcher.eyesCheck("Applicable waivers in Violation details");
@@ -686,7 +688,7 @@ public class ViolationDetailsTest
     waitUntilUrl(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
     violationDetailsPage.applicableWaiversTab().click();
     applicableWaiversTable.noWaiversMessage().shouldNotBe(visible);
-    applicableWaiversTable.rows().shouldHaveSize(1);
+    applicableWaiversTable.rows().shouldHave(CollectionCondition.size(1));
 
     applicableWaiversTable.row(1).deleteButton().click();
     DeleteWaiverModal modal = new DeleteWaiverModal();

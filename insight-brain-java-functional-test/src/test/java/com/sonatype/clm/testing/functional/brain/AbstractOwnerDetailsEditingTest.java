@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.Tag;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;
@@ -138,7 +139,7 @@ public abstract class AbstractOwnerDetailsEditingTest
     detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--expanded"));
 
     if (currentOwner.getType().equals(OwnerType.ORGANIZATION)) {
-      detailGroup.items().shouldHaveSize(2);
+      detailGroup.items().shouldHave(CollectionCondition.size(2));
       detailGroup.item(0).shouldBe(visible).click();
       detailGroup.item(0).shouldBe(CLM.SELECTED);
       waitUntilUrl(CategoryEditorPage.urlToCreate(currentOwner.getPublicId()));
@@ -154,7 +155,7 @@ public abstract class AbstractOwnerDetailsEditingTest
       back();
     }
     else {
-      detailGroup.items().shouldHaveSize(1);
+      detailGroup.items().shouldHave(CollectionCondition.size(1));
       detailGroup.item(0).shouldBe(visible).shouldHave(CLM.DISABLED).click();
 
       // Click should not redirect
@@ -166,7 +167,7 @@ public abstract class AbstractOwnerDetailsEditingTest
       detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--collapsed"));
       detailGroup.title().click();
       detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--expanded"));
-      detailGroup.items().shouldHaveSize(1);
+      detailGroup.items().shouldHave(CollectionCondition.size(1));
       detailGroup.item(0).shouldBe(visible).shouldNotHave(CLM.DISABLED).click();
 
       waitUntilUrl(ApplicationCategoryEditorPage.urlToEdit(currentOwner));
@@ -184,7 +185,7 @@ public abstract class AbstractOwnerDetailsEditingTest
     detailGroup.title().click();
     detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--expanded"));
     if (currentOwner.getType().equals(OwnerType.ORGANIZATION)) {
-      detailGroup.items().shouldHaveSize(3);
+      detailGroup.items().shouldHave(CollectionCondition.size(3));
       detailGroup.item(0).shouldBe(visible).click();
       detailGroup.item(0).shouldBe(CLM.SELECTED);
       waitUntilUrl(PolicyEditorPage.urlToCreate(currentOwner));
@@ -231,7 +232,7 @@ public abstract class AbstractOwnerDetailsEditingTest
     detailGroup.title().click();
     detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--expanded"));
 
-    detailGroup.items().shouldHaveSize(2);
+    detailGroup.items().shouldHave(CollectionCondition.size(2));
     detailGroup.item(0).shouldBe(visible).click();
     detailGroup.item(0).shouldBe(CLM.SELECTED);
     waitUntilUrl(LabelEditorPage.urlToCreate(currentOwner));
@@ -261,7 +262,7 @@ public abstract class AbstractOwnerDetailsEditingTest
       detailGroup.title().click();
       detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--expanded"));
 
-      detailGroup.items().shouldHaveSize(3);
+      detailGroup.items().shouldHave(CollectionCondition.size(3));
       detailGroup.item(0).shouldBe(visible).click();
       detailGroup.item(0).shouldBe(CLM.SELECTED);
       waitUntilUrl(LTGEditorPage.urlToCreate(currentOwner));
@@ -296,7 +297,7 @@ public abstract class AbstractOwnerDetailsEditingTest
     detailGroup.title().click();
     detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--expanded"));
 
-    detailGroup.items().shouldHaveSize(2);
+    detailGroup.items().shouldHave(CollectionCondition.size(2));
     detailGroup.item(0).shouldBe(visible).click();
     detailGroup.item(0).shouldBe(CLM.SELECTED);
     waitUntilUrl(AccessEditorPage.urlToCreate(currentOwner));

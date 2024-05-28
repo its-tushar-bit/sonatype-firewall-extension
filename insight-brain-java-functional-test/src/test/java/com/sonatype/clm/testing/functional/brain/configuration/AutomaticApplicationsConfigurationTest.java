@@ -14,6 +14,7 @@ import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.model.Organization;
 
+import com.codeborne.selenide.CollectionCondition;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -57,7 +58,7 @@ public class AutomaticApplicationsConfigurationTest
         .shouldNotHave(text("which is configured to use"));
 
     // check initial state
-    automaticApplicationsConfigurationPage.organization().listItems().shouldHaveSize(0);
+    automaticApplicationsConfigurationPage.organization().listItems().shouldHave(CollectionCondition.size(0));
     automaticApplicationsConfigurationPage.toggle().shouldBe(visible, enabled).shouldNotBe(checked);
 
     // check user cannot update when organizations are not present
@@ -70,7 +71,6 @@ public class AutomaticApplicationsConfigurationTest
 
     // check that configuration settings can be saved
     Organization org1 = tempEntity.newOrganization("Test Organization 1");
-    Organization org2 = tempEntity.newOrganization("Test Organization 2");
     refresh();
     automaticApplicationsConfigurationPage.organization().shouldNotBe(empty);
     automaticApplicationsConfigurationPage.toggle().click();
@@ -89,7 +89,7 @@ public class AutomaticApplicationsConfigurationTest
 
     // check that local changes to configuration settings can be cancelled
     automaticApplicationsConfigurationPage.toggle().click();
-    automaticApplicationsConfigurationPage.organization().chooseOption(new Option(1, org2.getName()));
+    automaticApplicationsConfigurationPage.organization().shouldBe(disabled);
     automaticApplicationsConfigurationPage.update().shouldNotBe(CLM.DISABLED);
     automaticApplicationsConfigurationPage.toggle().input().shouldNotBe(checked);
     automaticApplicationsConfigurationPage.cancel().shouldNotBe(disabled).click();

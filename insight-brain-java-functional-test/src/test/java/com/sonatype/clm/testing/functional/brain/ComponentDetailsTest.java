@@ -82,6 +82,7 @@ import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.Securi
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilityWeakness;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilityWeakness.CweId;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -95,16 +96,7 @@ import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.disappear;
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.exist;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.matchText;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 
 public class ComponentDetailsTest
@@ -188,7 +180,7 @@ public class ComponentDetailsTest
       waitUntilUrl(ComponentDetailsPage.url(app, SCAN_ID, HASH));
       ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
       componentDetailsPage.header().title().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
-      componentDetailsPage.tabs().shouldHaveSize(6);
+      componentDetailsPage.tabs().shouldHave(CollectionCondition.size(6));
 
       SelenideElement backButton = MainHeader.backButton();
       backButton.shouldBe(visible);
@@ -314,7 +306,7 @@ public class ComponentDetailsTest
     addProprietaryComponentMatchersPopover.alerts().first()
         .shouldHave(text("The following matchers will be added to the ApplicationReportTest Configuration (duplicates"
             + " will be ignored). The new matchers will be in effect for the next application analysis."));
-    addProprietaryComponentMatchersPopover.matchers().shouldHaveSize(1);
+    addProprietaryComponentMatchersPopover.matchers().shouldHave(CollectionCondition.size(1));
     FormUtils.getAlertElement(addProprietaryComponentMatchersPopover).shouldNotBe(visible);
     addProprietaryComponentMatchersPopover.matchers().get(0)
         .shouldHave(text("full.jar/WebGoat-6.0.1/WEB-INF/classes/org/owasp/webgoat/lessons/instr"));
@@ -414,7 +406,7 @@ public class ComponentDetailsTest
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
     reportPage.headers().componentNameFilterInput().setValue("claimed");
-    reportPage.resultRows().shouldHaveSize(1);
+    reportPage.resultRows().shouldHave(CollectionCondition.size(1));
     reportPage.resultRow(1).shouldHave(text("No Results"));
 
     reportPage.headers().componentNameFilterInput().setValue("regexmatch.dll");
@@ -536,9 +528,9 @@ public class ComponentDetailsTest
 
     PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
     policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHaveSize(1);
+    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(1));
     ElementsCollection rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
-    rowCells.shouldHaveSize(1);
+    rowCells.shouldHave(CollectionCondition.size(1));
     rowCells.get(0).shouldHave(text("No policy violations"));
 
     waiveFirstReportRow();
@@ -548,9 +540,9 @@ public class ComponentDetailsTest
     navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
     policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
     policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHaveSize(1);
+    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(1));
     rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
-    rowCells.shouldHaveSize(6);
+    rowCells.shouldHave(CollectionCondition.size(6));
 
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
         "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "Unapplied Waiver", ""));
@@ -574,9 +566,9 @@ public class ComponentDetailsTest
 
     policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
     policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHaveSize(1);
+    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(1));
     rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
-    rowCells.shouldHaveSize(6);
+    rowCells.shouldHave(CollectionCondition.size(6));
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
         "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "1 Active Waiver", ""));
     testLegacyViolationIndicator(componentDetailsPage);
@@ -630,7 +622,7 @@ public class ComponentDetailsTest
 
     PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
     policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHaveSize(1);
+    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(1));
     SelenideElement row = policyViolationsTable.getRows().first();
     row.click();
     PolicyViolationDetailPopover violationDetailPopover = new PolicyViolationDetailPopover();
@@ -647,7 +639,7 @@ public class ComponentDetailsTest
     tile.threatLevel().shouldHave(text("10"));
     tile.policyOwnerLink().shouldHave(text("Test Organization"));
 
-    tile.stages().shouldHaveSize(5);
+    tile.stages().shouldHave(CollectionCondition.size(5));
 
     tile.stage(0).shouldHave(text("Source"));
     tile.stage(0).icon().should(exist);
@@ -678,7 +670,7 @@ public class ComponentDetailsTest
     violationDetailPopover.applicableWaiversTab().shouldBe(visible).click();
     ListWaiversTable applicableWaiversTable =
         violationDetailPopover.applicableWaiversInfoTile().getApplicableWaiversTable();
-    applicableWaiversTable.rows().shouldHaveSize(1);
+    applicableWaiversTable.rows().shouldHave(CollectionCondition.size(1));
     ListWaiversTableRow waiversTableRow = applicableWaiversTable.row(1);
     waiversTableRow.components().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
   }
@@ -693,7 +685,7 @@ public class ComponentDetailsTest
 
     PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
     policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHaveSize(1);
+    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(1));
     SelenideElement row = policyViolationsTable.getRows().first();
     row.click();
     PolicyViolationDetailPopover violationDetailPopover = new PolicyViolationDetailPopover();
@@ -713,7 +705,7 @@ public class ComponentDetailsTest
     requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("License not approved in any situation"));
     requestWaiverPage.requestWaiverReadOnlyData()
         .shouldHave(text("Found licenses in the 'Banned' license threat group ('AGPL-3.0')"));
-    requestWaiverPage.comments().shouldHave(text(""));
+    requestWaiverPage.comments().shouldBe(empty);
     requestWaiverPage.saveButton().shouldBe(visible);
     requestWaiverPage.cancelButton().shouldBe(visible);
   }
@@ -773,7 +765,7 @@ public class ComponentDetailsTest
     componentDetailsPage.violationsTabContent().componentWaiversButton().click();
     ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
     componentWaiversTable.shouldBe(visible);
-    componentWaiversTable.getRows().shouldHaveSize(1);
+    componentWaiversTable.getRows().shouldHave(CollectionCondition.size(1));
 
     SelenideElement row1 = componentWaiversTable.getRow(1);
     ElementsCollection row1Cells = row1.findAll(".nx-cell");
@@ -824,9 +816,9 @@ public class ComponentDetailsTest
 
     PolicyViolationsTable policyViolationsTable = componentDetailsPage.securityTabContent().policyViolationsTable();
     policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHaveSize(3);
+    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(3));
     ElementsCollection rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
-    rowCells.shouldHaveSize(6);
+    rowCells.shouldHave(CollectionCondition.size(6));
     rowCells.shouldHave(exactTexts("9", "Security-High", "High risk CVSS score",
         "Found security vulnerability CVE-2016-9879 with severity >= 7 (severity = 7.5) "
             + "Found security vulnerability CVE-2016-9879 with severity < 10 (severity = 7.5) "
@@ -841,9 +833,9 @@ public class ComponentDetailsTest
 
     policyViolationsTable = componentDetailsPage.securityTabContent().policyViolationsTable();
     policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHaveSize(3);
+    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(3));
     rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
-    rowCells.shouldHaveSize(6);
+    rowCells.shouldHave(CollectionCondition.size(6));
     rowCells.shouldHave(exactTexts("9", "Security-High", "High risk CVSS score",
         "Found security vulnerability CVE-2016-9879 with severity >= 7 (severity = 7.5) "
             + "Found security vulnerability CVE-2016-9879 with severity < 10 (severity = 7.5) "
@@ -868,9 +860,9 @@ public class ComponentDetailsTest
 
     policyViolationsTable = componentDetailsPage.securityTabContent().policyViolationsTable();
     policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHaveSize(3);
+    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(3));
     rowCells = policyViolationsTable.getRows().last().findAll(By.tagName("td"));
-    rowCells.shouldHaveSize(6);
+    rowCells.shouldHave(CollectionCondition.size(6));
     rowCells.shouldHave(exactTexts("9", "Security-High", "High risk CVSS score",
         "Found security vulnerability CVE-2016-9879 with severity >= 7 (severity = 7.5) "
             + "Found security vulnerability CVE-2016-9879 with severity < 10 (severity = 7.5) "
@@ -894,9 +886,9 @@ public class ComponentDetailsTest
     vulnerabilitiesTable.getHeaderRow().findAll(By.tagName("th"))
         .shouldHave(exactTexts("CVSS", "ISSUES", "STATUS", ""));
 
-    vulnerabilitiesTable.getRows().shouldHaveSize(3);
+    vulnerabilitiesTable.getRows().shouldHave(CollectionCondition.size(3));
     ElementsCollection rowCells = vulnerabilitiesTable.getRows().first().findAll(By.tagName("td"));
-    rowCells.shouldHaveSize(4);
+    rowCells.shouldHave(CollectionCondition.size(4));
     rowCells.shouldHave(exactTexts("9", "CVE-1234-56789", "Open", ""));
     rowCells = vulnerabilitiesTable.getRow(2).findAll(By.tagName("td"));
     rowCells.shouldHave(exactTexts("4", "OSVDB-1234", "Open", ""));
@@ -1020,10 +1012,10 @@ public class ComponentDetailsTest
 
     PolicyViolationsTable policyViolationsTable = componentDetailsPage.legalTabContent().policyViolationsTable();
     policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHaveSize(1);
+    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(1));
 
     ElementsCollection rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
-    rowCells.shouldHaveSize(6);
+    rowCells.shouldHave(CollectionCondition.size(6));
 
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
         "Found licenses in the 'Banned' license threat group ('AGPL-3.0')",
@@ -1039,9 +1031,9 @@ public class ComponentDetailsTest
 
     policyViolationsTable = componentDetailsPage.legalTabContent().policyViolationsTable();
     policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHaveSize(1);
+    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(1));
     rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
-    rowCells.shouldHaveSize(6);
+    rowCells.shouldHave(CollectionCondition.size(6));
 
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
         "Found licenses in the 'Banned' license threat group ('AGPL-3.0')",
@@ -1065,9 +1057,9 @@ public class ComponentDetailsTest
 
     policyViolationsTable = componentDetailsPage.legalTabContent().policyViolationsTable();
     policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHaveSize(1);
+    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(1));
     rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
-    rowCells.shouldHaveSize(6);
+    rowCells.shouldHave(CollectionCondition.size(6));
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
         "Found licenses in the 'Banned' license threat group ('AGPL-3.0')",
         "1 Active Waiver", ""));
@@ -1083,15 +1075,15 @@ public class ComponentDetailsTest
     licenseDetectionsTile.shouldBe(visible);
 
     ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
-    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.shouldHave(CollectionCondition.size(1));
     declaredLicenses.first().shouldHave(text("Not Provided"));
 
     ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
-    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.shouldHave(CollectionCondition.size(1));
     effectiveLicenses.first().shouldHave(text("Not Provided"));
 
     ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
-    observedLicenses.shouldHaveSize(1);
+    observedLicenses.shouldHave(CollectionCondition.size(1));
     observedLicenses.first().shouldHave(text("Not Provided"));
 
     licenseDetectionsTile.status().shouldHave(text("Status: Open"));
@@ -1239,7 +1231,7 @@ public class ComponentDetailsTest
     navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
 
     PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
-    policyViolationsTable.getRows().shouldHaveSize(1);
+    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(1));
     SelenideElement indicatorsCell = policyViolationsTable.getRows().first().findAll(By.tagName("td")).get(4);
     indicatorsCell.shouldHave(text("Legacy"));
   }
@@ -1350,16 +1342,16 @@ public class ComponentDetailsTest
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
     ManageLabelsContentTab manageLabels = componentDetailsPage.labelsContent();
     manageLabels.shouldBe(visible);
-    manageLabels.appliedLabels().shouldHaveSize(1);
-    manageLabels.applicableLabels().shouldHaveSize(6);
+    manageLabels.appliedLabels().shouldHave(CollectionCondition.size(1));
+    manageLabels.applicableLabels().shouldHave(CollectionCondition.size(6));
 
     // Remove applied app level label
     manageLabels.appliedLabels().get(0).should(exist).click();
     manageLabels.removeLabelModal().should(exist);
     // Confirm removal and verify labels count
     manageLabels.removeLabelModal().confirmRemoveButton().should(exist).click();
-    manageLabels.appliedLabels().shouldHaveSize(0);
-    manageLabels.applicableLabels().shouldHaveSize(7);
+    manageLabels.appliedLabels().shouldHave(CollectionCondition.size(0));
+    manageLabels.applicableLabels().shouldHave(CollectionCondition.size(7));
 
     // Adding first label
     manageLabels.applicableLabelText(0).shouldHave(text("Architecture-Blacklisted"));
@@ -1383,7 +1375,7 @@ public class ComponentDetailsTest
     manageLabels.appliedLabelText(0).shouldHave(text("app level label"));
 
     // Confirm additions
-    manageLabels.appliedLabels().shouldHaveSize(2);
+    manageLabels.appliedLabels().shouldHave(CollectionCondition.size(2));
     eyesWatcher.eyesCheck("Labels Tab");
 
     // Checking n-level inheritance
@@ -1392,7 +1384,7 @@ public class ComponentDetailsTest
     manageLabels.addLabelModal().should(exist);
     // Add and confirm
     manageLabels.addLabelModal().labelsScope(0).should(exist);
-    manageLabels.addLabelModal().labelsScopesDropdown().listItems().shouldHaveSize(5);
+    manageLabels.addLabelModal().labelsScopesDropdown().listItems().shouldHave(CollectionCondition.size(5));
     manageLabels.addLabelModal().labelsScope(1).shouldHave(text("Organization - Root Organization"));
     manageLabels.addLabelModal().labelsScope(2).shouldHave(text("Organization - Parent Organization"));
     manageLabels.addLabelModal().labelsScope(3).shouldHave(text("Organization - Test Organization"));
@@ -1574,15 +1566,15 @@ public class ComponentDetailsTest
     licenseDetectionsTile.shouldBe(visible);
 
     ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
-    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.shouldHave(CollectionCondition.size(1));
     declaredLicenses.first().shouldHave(text("Not Provided (Claimed Component)"));
 
     ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
-    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.shouldHave(CollectionCondition.size(1));
     effectiveLicenses.first().shouldHave(text("Not Provided"));
 
     ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
-    observedLicenses.shouldHaveSize(1);
+    observedLicenses.shouldHave(CollectionCondition.size(1));
     observedLicenses.first().shouldHave(text("Not Provided (Claimed Component)"));
   }
 

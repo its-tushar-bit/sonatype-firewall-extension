@@ -47,6 +47,7 @@ import org.junit.Test;
 import org.mockito.internal.util.collections.Sets;
 
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
@@ -117,7 +118,7 @@ public class RequestWaiverTest
     requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Test Constraint"));
     requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("sonatype-2017-0507"));
     requestWaiverPage.requestWaiverPolicyViolationId().shouldHave(text(policyViolation.getId()));
-    requestWaiverPage.comments().shouldHave(text(""));
+    requestWaiverPage.comments().shouldBe(empty);
     requestWaiverPage.saveButton().shouldBe(visible);
     requestWaiverPage.cancelButton().shouldBe(visible);
 

@@ -133,12 +133,22 @@ public class ThirdPartySbomMetadataDAO
   }
 
   public ApiSbomApplicationsHistoryMetricDTO getSbomsHistoryMetrics() {
+    String databaseSchema = getDatabaseSchema();
     String sQuery = "" + //
-        "SELECT COUNT(1) AS total," + //
-        "       COUNT(CASE WHEN (sm.created_at >= ?1) THEN 1 END) AS last_year," + //
-        "       COUNT(CASE WHEN (sm.created_at >= ?2) THEN 1 END) AS last_month," + //
-        "       COUNT(CASE WHEN (sm.created_at >= ?3) THEN 1 END) AS last_week" + //
-        "  FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
+        "SELECT COUNT(DISTINCT sm.application_id) AS total," + //
+        "       COUNT(DISTINCT CASE WHEN (sm.created_at >= ?1 OR ve.created_at >= ?1 OR ve.updated_at >= ?1)" +
+        " THEN sm.application_id END) AS last_year," + //
+        "       COUNT(DISTINCT CASE WHEN (sm.created_at >= ?2 OR ve.created_at >= ?2 OR ve.updated_at >= ?2)" +
+        " THEN sm.application_id END) AS last_month," + //
+        "       COUNT(DISTINCT CASE WHEN (sm.created_at >= ?3 OR ve.created_at >= ?3 OR ve.updated_at >= ?3)" +
+        " THEN sm.application_id END) AS last_week" + //
+        " FROM " + databaseSchema + ".sbom_metadata sm" + //
+        "   LEFT JOIN " + databaseSchema + ".file_coordinate fc" + //
+        "     ON fc.third_party_file_id = sm.third_party_file_id" + //
+        "   LEFT JOIN " + databaseSchema + ".coordinate_security cs" + //
+        "     ON cs.file_coordinate_id = fc.file_coordinate_id" + //
+        "   LEFT JOIN " + databaseSchema + ".vulnerability_exploitability ve" + //
+        "     ON cs.coordinate_security_id = ve.coordinate_security_id" + //
         " WHERE sm.status = ?4";
 
     LocalDate now = LocalDate.now();

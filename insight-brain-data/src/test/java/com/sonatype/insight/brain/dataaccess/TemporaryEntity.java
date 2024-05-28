@@ -3950,7 +3950,26 @@ public class TemporaryEntity
     vexData.setLastUpdatedBy("user");
 
     thirdPartyVulnerabilityExploitabilityExchangeDAO.insert(vexData);
+    return vexData;
+  }
 
+  public ThirdPartyVulnerabilityExploitabilityExchange newThirdPartyVulnerabilityExploitabilityExchange(
+      ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity,
+      String refId,
+      String state,
+      String justification,
+      String response,
+      String detail,
+      Date createdAt,
+      Date updatedAt)
+  {
+    ThirdPartyVulnerabilityExploitabilityExchange vexData =
+        new ThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity.getId(), refId, state,
+            justification, response, detail);
+    vexData.setLastUpdatedBy("user");
+    vexData.setCreatedAt(createdAt);
+    vexData.setUpdatedAt(updatedAt);
+    thirdPartyVulnerabilityExploitabilityExchangeDAO.insert(vexData);
     return vexData;
   }
 

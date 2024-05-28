@@ -13,8 +13,11 @@ import java.util.stream.IntStream;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.thirdpartyscans.ApiSbomApplicationsHistoryMetricDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -22,6 +25,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.utils.SbomMetadataBuilder.newSbomMetadataBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
@@ -258,7 +262,7 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   @Test
-  public void testGetSbomsHistoryMetrics() {
+  public void testGetSbomsHistoryMetrics_DistinctApplications() {
     String activeState = "ACTIVE";
     Date now = new Date();
     Date oneYearAgo = DateUtils.addYears(now, -1);
@@ -268,14 +272,14 @@ public class ThirdPartySbomMetadataDAOTest
     Date oneWeekAgo = DateUtils.addWeeks(now, -1);
     Date yesterday = DateUtils.addDays(now, -1);
 
-    createSbomMetadata(true, activeState, now);
-    createSbomMetadata(true, activeState, oneYearAgo);
-    createSbomMetadata(true, activeState, sixMonthsAgo);
-    createSbomMetadata(true, activeState, twoMonthsAgo);
-    createSbomMetadata(true, activeState, oneMonthAgo);
-    createSbomMetadata(true, activeState, oneWeekAgo);
-    createSbomMetadata(true, activeState, yesterday);
-    createSbomMetadata(true, "PENDING", yesterday);
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(now).withStatus(activeState).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneYearAgo).withStatus(activeState).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(sixMonthsAgo).withStatus(activeState).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(twoMonthsAgo).withStatus(activeState).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneMonthAgo).withStatus(activeState).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneWeekAgo).withStatus(activeState).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus(activeState).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus("PENDING").build();
 
     ApiSbomApplicationsHistoryMetricDTO result = dao.getSbomsHistoryMetrics();
     assertThat(result).isNotNull();
@@ -286,6 +290,95 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   @Test
+  public void testGetSbomsHistoryMetrics_ValidateSameApplicationsId() {
+    Application application = tempEntity.newApplicationWithParent();
+    String activeState = "ACTIVE";
+    Date now = new Date();
+    Date oneYearAgo = DateUtils.addYears(now, -1);
+    Date sixMonthsAgo = DateUtils.addMonths(now, -6);
+    Date twoMonthsAgo = DateUtils.addMonths(now, -2);
+    Date oneMonthAgo = DateUtils.addMonths(now, -1);
+    Date oneWeekAgo = DateUtils.addWeeks(now, -1);
+    Date yesterday = DateUtils.addDays(now, -1);
+
+    //count just one time
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(now).withStatus(activeState)
+        .withApplicationId(application.getId()).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneYearAgo).withStatus(activeState)
+        .withApplicationId(application.getId()).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneWeekAgo).withStatus(activeState)
+        .withApplicationId(application.getId()).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneMonthAgo).withStatus(activeState)
+        .withApplicationId(application.getId()).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(sixMonthsAgo).withStatus(activeState)
+        .withApplicationId(application.getId()).build();
+
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(sixMonthsAgo).withStatus(activeState).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(twoMonthsAgo).withStatus(activeState).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneWeekAgo).withStatus(activeState).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus(activeState).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday)
+        .withStatus("PENDING").build();
+
+    ApiSbomApplicationsHistoryMetricDTO result = dao.getSbomsHistoryMetrics();
+    assertThat(result).isNotNull();
+    assertThat(result.totalScannedApplications).isEqualTo(5);
+    assertThat(result.applicationsUpdatedLastMonth).isEqualTo(3);
+    assertThat(result.applicationsUpdatedLastWeek).isEqualTo(3);
+    assertThat(result.applicationsUpdatedLastYear).isEqualTo(5);
+  }
+
+  @Test
+  public void testGetSbomsHistoryMetrics_UpdatedVEX() {
+    String activeState = "ACTIVE";
+    Date now = new Date();
+    Date oneYearAgo = DateUtils.addYears(now, -1);
+    Date twoYearAgo = DateUtils.addYears(now, -1);
+    Date sixMonthsAgo = DateUtils.addMonths(now, -6);
+    Date twoMonthsAgo = DateUtils.addMonths(now, -2);
+    Date oneMonthAgo = DateUtils.addMonths(now, -1);
+    Date oneWeekAgo = DateUtils.addWeeks(now, -1);
+    Date yesterday = DateUtils.addDays(now, -1);
+
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneYearAgo).withStatus(activeState).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(sixMonthsAgo).withStatus(activeState).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(twoMonthsAgo).withStatus(activeState).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneMonthAgo).withStatus(activeState).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneWeekAgo).withStatus(activeState).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus(activeState).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus("PENDING").build();
+
+    ThirdPartySbomMetadata sbomMetadata = newSbomMetadataBuilder(daoFactory).withCreatedAt(twoYearAgo)
+        .withStatus(activeState).build();
+    ThirdPartyFileCoordinate coordinate = tempEntity.newThirdPartyFileCoordinate(
+        sbomMetadata.getThirdPartyFileId(), "s4", "f4", "n4", "v4", "", "");
+
+    ThirdPartyCoordinateSecurity coordinateSecurity = tempEntity.newThirdPartyCoordinateSecurity(coordinate,
+        "r14", "d14", "l14", CvssV3Severity.LOW.getStartScoreRange(),
+        CvssV3Severity.LOW.getDisplayName(), "f14");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity, coordinateSecurity.getRefId(),
+        "state", "justification", "response", "detail",now,now);
+
+    ThirdPartySbomMetadata sbomMetadata2 = newSbomMetadataBuilder(daoFactory).withCreatedAt(twoYearAgo)
+        .withStatus(activeState).build();
+    ThirdPartyFileCoordinate coordinate2 = tempEntity.newThirdPartyFileCoordinate(
+        sbomMetadata2.getThirdPartyFileId(), "s4", "f4", "n4", "v4", "", "");
+
+    ThirdPartyCoordinateSecurity coordinateSecurity2 = tempEntity.newThirdPartyCoordinateSecurity(coordinate2,
+        "r14", "d14", "l14", CvssV3Severity.LOW.getStartScoreRange(),
+        CvssV3Severity.LOW.getDisplayName(), "f14");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity2, coordinateSecurity2.getRefId(),
+        "state", "justification", "response", "detail",null,oneWeekAgo);
+
+    ApiSbomApplicationsHistoryMetricDTO result = dao.getSbomsHistoryMetrics();
+    assertThat(result).isNotNull();
+    assertThat(result.totalScannedApplications).isEqualTo(8);
+    assertThat(result.applicationsUpdatedLastMonth).isEqualTo(5);
+    assertThat(result.applicationsUpdatedLastWeek).isEqualTo(4);
+    assertThat(result.applicationsUpdatedLastYear).isEqualTo(8);
+  }
+
+  @Test
   public void testGetSbomsHistoryMetrics_EmptyResults() {
     ApiSbomApplicationsHistoryMetricDTO result = dao.getSbomsHistoryMetrics();
     assertThat(result).isNotNull();
@@ -293,20 +386,5 @@ public class ThirdPartySbomMetadataDAOTest
     assertThat(result.applicationsUpdatedLastMonth).isZero();
     assertThat(result.applicationsUpdatedLastWeek).isZero();
     assertThat(result.applicationsUpdatedLastYear).isZero();
-  }
-
-  private void createSbomMetadata(boolean save, String status, Date createdAt) {
-    Application application = tempEntity.newApplicationWithParent();
-    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    tempEntity.newThirdPartyScan(thirdPartyFile);
-    ThirdPartySbomMetadata metadata =
-        ThirdPartySbomMetadataTestUtil.createSbomMetadata(status, application.getId(), thirdPartyFile.getId());
-    if (createdAt != null) {
-      metadata.setCreatedAt(createdAt);
-    }
-
-    if (save) {
-      dao.insert(metadata);
-    }
   }
 }

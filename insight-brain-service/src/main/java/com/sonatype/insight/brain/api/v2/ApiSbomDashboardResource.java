@@ -62,6 +62,15 @@ public class ApiSbomDashboardResource
     return service.getSbomsAnalyzedMetrics();
   }
 
+  @Operation(summary = "Gets application history metrics",
+      tags = {"sbom dashboard"},
+      description = "Queries how many SBOMs applications have been analyzed",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "Total of SBOMs applications analyzed",
+              content = @Content(mediaType = "application/json"))
+      })
+
   @GET
   @Path(SBOMS_HISTORY_METRICS_PATH)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)

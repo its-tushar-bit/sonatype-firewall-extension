@@ -27,6 +27,8 @@ import org.spdx.library.model.license.SpdxListedLicense;
 
 public abstract class AbstractSpdxExporter extends AbstractCycloneDxExporter
 {
+  protected static final String INVALID_REF_REGEX = "[^0-9a-zA-Z\\.\\-\\+]";
+
   protected AbstractSpdxExporter(
       final InsightWork insightWork,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,

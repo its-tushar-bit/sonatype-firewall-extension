@@ -105,8 +105,6 @@ public class CycloneDxToSpdxExporter
 
   private static final String REFERENCE_SITE_BOWER = "http://bower.io/";
 
-  private static final String INVALID_REF_REGEX = "[^0-9a-zA-Z\\.\\-\\+]";
-
   private static final String NULL_SHA1_VALUE = "0000000000000000000000000000000000000000";
 
   private static Map<String, ChecksumAlgorithm> CDX_ALGORITHM_TO_SPDX_ALGORITHM;

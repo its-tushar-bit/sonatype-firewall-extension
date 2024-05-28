@@ -10,14 +10,10 @@
   "documentNamespace" : "${json-unit.ignore}",
   "packages" : [ {
     "SPDXID" : "SPDXRef-maven-apache-axis-1.0",
+    "attributionTexts" : [ "Evidence license text for: (Apache-2.0 AND MIT)" ],
     "copyrightText" : "",
     "downloadLocation" : "NOASSERTION",
     "externalRefs" : [ {
-      "comment" : "source: SONATYPE",
-      "referenceCategory" : "SECURITY",
-      "referenceLocator" : "http://link.to/vuln/Sonatype-2024-123",
-      "referenceType" : "advisory"
-    }, {
       "referenceCategory" : "PACKAGE-MANAGER",
       "referenceLocator" : "pkg:maven/apache/axis@1.0?type=jar",
       "referenceType" : "purl"
@@ -26,11 +22,15 @@
       "referenceCategory" : "SECURITY",
       "referenceLocator" : "https://nvd.nist.gov/vuln/detail/CVE-2007-2353",
       "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://link.to/vuln/Sonatype-2024-123",
+      "referenceType" : "advisory"
     } ],
-    "filesAnalyzed" : true,
+    "filesAnalyzed" : false,
     "licenseConcluded" : "Apache-2.0",
     "licenseDeclared" : "Apache-2.0",
-    "licenseInfoFromFiles" : [ "Apache-2.0", "MIT" ],
     "name" : "apache:axis",
     "versionInfo" : "1.0"
   }, {
@@ -42,7 +42,7 @@
       "referenceLocator" : "pkg:generic/sonatype/iq_application_SBOMTests@4daddd64a281411cb9ba2e6eabe12fa1",
       "referenceType" : "purl"
     } ],
-    "filesAnalyzed" : true,
+    "filesAnalyzed" : false,
     "licenseConcluded" : "NOASSERTION",
     "licenseDeclared" : "NOASSERTION",
     "name" : "sonatype:iq_application_SBOMTests",

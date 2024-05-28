@@ -3,22 +3,17 @@
   <SPDXID>SPDXRef-DOCUMENT</SPDXID>
   <spdxVersion>SPDX-2.3</spdxVersion>
   <creationInfo>
-    <created>2024-05-10T02:59:07Z</created>
-    <creators>Tool: Sonatype SBOM Manager - 1.176.0-SNAPSHOT</creators>
+    <created>2024-05-27T17:55:14Z</created>
+    <creators>Tool: Sonatype SBOM Manager - 1.177.0-SNAPSHOT</creators>
   </creationInfo>
-  <name>DUMMY-PUBLIC-ID-4acb7485870f4f2eaa3a151c17082923</name>
+  <name>DUMMY-PUBLIC-ID-a7f90f2f778e4ea492b2d657e6437728</name>
   <dataLicense>CC0-1.0</dataLicense>
-  <documentNamespace>http://localhost:8070/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-4acb7485870f4f2eaa3a151c17082923/bom/GSBZ00p8Mv</documentNamespace>
+  <documentNamespace>http://localhost:8070/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-a7f90f2f778e4ea492b2d657e6437728/bom/0b7c213a4a93401186d9</documentNamespace>
   <packages>
     <SPDXID>SPDXRef-maven-apache-axis-1.0</SPDXID>
+    <attributionTexts>Evidence license text for: (Apache-2.0 AND MIT)</attributionTexts>
     <copyrightText></copyrightText>
     <downloadLocation>NOASSERTION</downloadLocation>
-    <externalRefs>
-      <comment>source: SONATYPE</comment>
-      <referenceCategory>SECURITY</referenceCategory>
-      <referenceLocator>http://link.to/vuln/Sonatype-2024-123</referenceLocator>
-      <referenceType>advisory</referenceType>
-    </externalRefs>
     <externalRefs>
       <referenceCategory>PACKAGE-MANAGER</referenceCategory>
       <referenceLocator>pkg:maven/apache/axis@1.0?type=jar</referenceLocator>
@@ -30,11 +25,15 @@
       <referenceLocator>https://nvd.nist.gov/vuln/detail/CVE-2007-2353</referenceLocator>
       <referenceType>advisory</referenceType>
     </externalRefs>
-    <filesAnalyzed>true</filesAnalyzed>
+    <externalRefs>
+      <comment>source: SONATYPE</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://link.to/vuln/Sonatype-2024-123</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <filesAnalyzed>false</filesAnalyzed>
     <licenseConcluded>Apache-2.0</licenseConcluded>
     <licenseDeclared>Apache-2.0</licenseDeclared>
-    <licenseInfoFromFiles>Apache-2.0</licenseInfoFromFiles>
-    <licenseInfoFromFiles>MIT</licenseInfoFromFiles>
     <name>apache:axis</name>
     <versionInfo>1.0</versionInfo>
   </packages>
@@ -47,7 +46,7 @@
       <referenceLocator>pkg:generic/sonatype/iq_application_SBOMTests@4daddd64a281411cb9ba2e6eabe12fa1</referenceLocator>
       <referenceType>purl</referenceType>
     </externalRefs>
-    <filesAnalyzed>true</filesAnalyzed>
+    <filesAnalyzed>false</filesAnalyzed>
     <licenseConcluded>NOASSERTION</licenseConcluded>
     <licenseDeclared>NOASSERTION</licenseDeclared>
     <name>sonatype:iq_application_SBOMTests</name>

@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import javax.inject.Inject;
@@ -37,6 +38,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.spdx.library.DefaultModelStore;
 import org.spdx.library.InvalidSPDXAnalysisException;
+import org.spdx.library.SpdxConstants;
 import org.spdx.library.model.ExternalRef;
 import org.spdx.library.model.ReferenceType;
 import org.spdx.library.model.Relationship;
@@ -124,7 +126,9 @@ public class SpdxToSpdxExporter
     SpdxPackage newRootPkg = null;
     List<SpdxPackage> potentialDirects = new ArrayList<>();
     List<String> transitives = new ArrayList<>();
-    Map<String, ExtractedLicenseInfo> extractedLicenses = new HashMap<>();
+    Map<String, ExtractedLicenseInfo> extractedLicenses = originalDocument.getExtractedLicenseInfos()
+        .stream().collect(Collectors.toMap(l -> StringUtils.lowerCase(l.getLicenseId()), l -> l));
+
     for (SpdxPackage pkg : SbomSpdxUtils.getAllPackages(originalDocument)) {
       // a valid existing package will always have a name. It is unlikely to have this "unknown package" to get called
       String pkgName = pkg.getName().orElse("UNKNOWN PACKAGE");
@@ -132,14 +136,15 @@ public class SpdxToSpdxExporter
       SpdxPackageBuilder pkgBuilder = newDocument
           .createPackage(pkg.getId(), pkgName, pkg.getLicenseConcluded(), pkg.getCopyrightText(),
               pkg.getLicenseDeclared())
-          //files needs to be analyzed in order for any license information to be added
-          .setFilesAnalyzed(true);
+          .setFilesAnalyzed(false);
       pkg.getDownloadLocation().ifPresent(pkgBuilder::setDownloadLocation);
 
       ThirdPartyFileCoordinate matchingDbComponent = getMatchingDbComponent(pkg);
       Collection<ExternalRef> externalRefs = pkg.getExternalRefs();
+
+      Collection<AnyLicenseInfo> licenseInfoFromDb = null;
       if (matchingDbComponent != null) {
-        pkgBuilder.setLicenseInfosFromFile(getAllLicenseInfoFromDb(matchingDbComponent, extractedLicenses));
+        licenseInfoFromDb = getAllLicenseInfoFromDb(matchingDbComponent, extractedLicenses);
         addVulnerabilityDiffsFromDatabase(newDocument, pkgBuilder, externalRefs, matchingDbComponent);
       }
       externalRefs.forEach(pkgBuilder::addExternalRef);
@@ -160,9 +165,16 @@ public class SpdxToSpdxExporter
       pkg.getFiles().forEach(pkgBuilder::addFile);
       pkg.getAnnotations().forEach(pkgBuilder::addAnnotation);
 
+      SpdxPackage newPkg = buildPackage(pkgBuilder);
+      if (CollectionUtils.isNotEmpty(licenseInfoFromDb)) {
+        AnyLicenseInfo spdxLicenseEvidence = newPkg.createConjunctiveLicenseSet(licenseInfoFromDb);
+        if (Objects.nonNull(spdxLicenseEvidence)) {
+          newPkg.getAttributionText().add("Evidence license text for: " + spdxLicenseEvidence);
+        }
+      }
       //pre-process relationships
       if (StringUtils.equals(originalRootPkg.getId(), pkg.getId())) {
-        newRootPkg = buildPackage(pkgBuilder);
+        newRootPkg = newPkg;
       }
       else {
         Collection<Relationship> relationships = pkg.getRelationships();
@@ -170,10 +182,10 @@ public class SpdxToSpdxExporter
           for (Relationship relationship : relationships) {
             pkgBuilder.addRelationship(relationship);
           }
-          potentialDirects.add(buildPackage(pkgBuilder));
+          potentialDirects.add(newPkg);
         }
         else {
-          transitives.add(buildPackage(pkgBuilder).getId());
+          transitives.add(newPkg.getId());
         }
       }
     }
@@ -246,8 +258,12 @@ public class SpdxToSpdxExporter
   {
     List<ThirdPartyCoordinateLicense> licenses =
         thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(dbComponent.getId());
-    return licenses.stream().map(license -> createLicenseObject(license.getLicenseId()
-        .replace(' ', '-'), extractedLicenses)).collect(Collectors.toSet());
+    Map<String, AnyLicenseInfo> collect = new HashMap<>();
+    for (ThirdPartyCoordinateLicense license : licenses) {
+      AnyLicenseInfo licenseObject = createLicenseObject(license.getLicenseId(), extractedLicenses);
+      collect.put(StringUtils.lowerCase(licenseObject.getId()), licenseObject);
+    }
+    return collect.values();
   }
 
   private ThirdPartyFileCoordinate getMatchingDbComponent(final SpdxPackage pkg) {
@@ -270,11 +286,16 @@ public class SpdxToSpdxExporter
         return ListedLicenses.getListedLicenses().getListedLicenseById(licenseId);
       }
       if (!licenseId.startsWith(LICENSE_REF_PREFIX)) {
-        licenseId = LICENSE_REF_PREFIX + licenseId;
+        licenseId = SpdxConstants.NON_STD_LICENSE_ID_PRENUM + licenseId.replaceAll(INVALID_REF_REGEX, "-");
       }
-      ExtractedLicenseInfo extractedLicenseInfo = new ExtractedLicenseInfo(licenseId, licenseId);
-      extractedLicenses.put(extractedLicenseInfo.getLicenseId(), extractedLicenseInfo);
-      return extractedLicenseInfo;
+      if (extractedLicenses.containsKey(StringUtils.lowerCase(licenseId))) {
+        return extractedLicenses.get(StringUtils.lowerCase(licenseId));
+      }
+      else {
+        ExtractedLicenseInfo extractedLicenseInfo = new ExtractedLicenseInfo(licenseId, licenseId);
+        extractedLicenses.put(StringUtils.lowerCase(extractedLicenseInfo.getLicenseId()), extractedLicenseInfo);
+        return extractedLicenseInfo;
+      }
     }
     catch (InvalidSPDXAnalysisException e) {
       throw new SbomExportException("Internal error extracting license information for " + licenseId, e);

@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.file.ThirdPartyUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -90,6 +91,7 @@ public class SpdxToSpdxExporterTest
             .withTargetFormat(SbomFormat.JSON);
     spdxExporter.setExportParams(exportParams);
     String export = spdxExporter.export();
+    ThirdPartyUtils.parseAndValidateSpdx(export, SbomFormat.JSON);
     assertThatJson(export)
         .isEqualTo(readFileToString("outputs/output_spdx-v2_3.json"));
   }
@@ -105,6 +107,7 @@ public class SpdxToSpdxExporterTest
         .withTargetFormat(SbomFormat.XML);
     spdxExporter.setExportParams(exportParams);
     String export = spdxExporter.export();
+    ThirdPartyUtils.parseAndValidateSpdx(export, SbomFormat.XML);
     XmlAssert.assertThat(export).and(readFileToString("outputs/output_spdx-v2_3.xml"))
         .withNodeFilter(node -> !IGNORE_NODES.contains(node.getNodeName()))
         .ignoreWhitespace()
@@ -195,17 +198,14 @@ public class SpdxToSpdxExporterTest
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.3?type=jar")
         .hasConcludedLicense("Apache-2.0")
         .hasDeclaredLicense("Apache-2.0")
-        .hasAllLicensesCount(2)
         .containsLicenses("Apache-2.0", "BSD-3-Clause");
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar")
         .hasConcludedLicense("Apache-2.0")
         .hasDeclaredLicense("Apache-2.0")
-        .hasAllLicensesCount(2)
         .containsLicenses("Apache-2.0", "MIT");
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.3?type=jar")
         .hasConcludedLicense("Apache-2.0")
-        .hasDeclaredLicense("Apache-2.0")
-        .hasAllLicensesCount(1);
+        .hasDeclaredLicense("Apache-2.0");
   }
 
   @Test
@@ -243,7 +243,6 @@ public class SpdxToSpdxExporterTest
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar")
         .hasConcludedLicense("Apache-2.0")
         .hasDeclaredLicense("Apache-2.0")
-        .hasAllLicensesCount(3)
         .containsLicenses("Apache-2.0", "LicenseRef-Sonatype-Private", "LicenseRef-Not-Supported");
   }
 

@@ -42,6 +42,7 @@ import {
   selectIsLicenseThreatGroup,
   selectIsSourceControl,
   selectIsAccess,
+  selectIsSbomManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectIsLegacyViolationSupported,
@@ -101,6 +102,7 @@ export default function OwnerDetailSidebar() {
   const policiesSiblings = useSelector(selectPolicySiblings);
   const licenseThreatGroupSiblings = useSelector(selectLicenseThreatGroupSiblings);
   const areAnyCategoriesDefined = useSelector(selectAreAnyCategoriesDefined);
+  const isSbomManager = useSelector(selectIsSbomManager);
 
   const uiRouterState = useRouterState();
 
@@ -122,7 +124,17 @@ export default function OwnerDetailSidebar() {
     }
   };
 
+  const getSBOMLinkMainHref = (isApp, owner) => {
+    if (isApp) {
+      return uiRouterState.href('sbomManager.management.edit.application', { applicationPublicId: owner.publicId });
+    }
+    return uiRouterState.href('sbomManager.management.edit.organization', { organizationId: owner.id });
+  };
+
+  /* Refactor linkMainHref to use isSbomManager once all the SBOM Manager edit pages are finalized.
+    Also remove accessLinkMainHref */
   const linkMainHref = getLinkMainHref(isApp, isRepositoriesRelated, owner);
+  const accessLinkMainHref = isSbomManager ? getSBOMLinkMainHref(isApp, owner) : linkMainHref;
 
   const doLoad = () => dispatch(actions.loadSidebar());
 
@@ -389,7 +401,7 @@ export default function OwnerDetailSidebar() {
           <NxCollapsibleItems.Child role="menuitem">
             <NxTextLink
               className={isAccess && !currentRoleId ? 'selected' : ''}
-              href={`${linkMainHref}/access`}
+              href={`${accessLinkMainHref}/access`}
               disabled={!doesRolesWithoutLocalMembersExist}
             >
               <NxFontAwesomeIcon icon={faPlus} />
@@ -403,7 +415,7 @@ export default function OwnerDetailSidebar() {
             <NxCollapsibleItems.Child role="menuitem">
               <NxTextLink
                 className={roleId === currentRoleId ? 'selected' : ''}
-                href={`${linkMainHref}/access/${roleId}`}
+                href={`${accessLinkMainHref}/access/${roleId}`}
               >
                 <NxFontAwesomeIcon icon={faUser} />
                 {roleName}

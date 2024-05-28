@@ -7,6 +7,7 @@
 import SbomManagerDashboard from 'MainRoot/sbomManager/features/dashboard/SbomManagerDashboard';
 import BillOfMaterials from 'MainRoot/sbomManager/features/billOfMaterials/BillOfMaterials';
 import viewTemplate from 'MainRoot/owner.manager/state/owner.manager.view.html';
+import editTemplate from 'MainRoot/owner.manager/state/owner.manager.edit.html';
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import advancedSearchModule from 'MainRoot/advancedSearch/module';
 import ComponentDetailsPage from 'MainRoot/sbomManager/features/componentDetails/ComponentDetailsPage';
@@ -75,6 +76,9 @@ function routes($stateProvider) {
       },
       component: 'ownersTreePage',
     })
+    .state('sbomManager.management.edit', {
+      abstract: true,
+    })
     .state('sbomManager.management.view.bom', {
       url: '/application/{applicationPublicId}/bom/{versionId}',
       component: 'billOfMaterials',
@@ -94,15 +98,38 @@ function routes($stateProvider) {
     });
 
   ownerTypesForSbomManager.forEach(function (ownerType) {
-    $stateProvider.state('sbomManager.management.view.' + ownerType.type, {
-      url: '/' + ownerType.type + '/{' + ownerType.id + '}',
-      data: {
-        title: ownerType.name + ' Management',
-        viewportSized: true,
-      },
-      component: ownerType.component,
-    });
+    $stateProvider
+      .state('sbomManager.management.view.' + ownerType.type, {
+        url: '/' + ownerType.type + '/{' + ownerType.id + '}',
+        data: {
+          title: ownerType.name + ' Management',
+          viewportSized: true,
+        },
+        component: ownerType.component,
+      })
+      .state('sbomManager.management.edit.' + ownerType.type, {
+        url: '/edit/' + ownerType.type + '/{' + ownerType.id + '}',
+        data: {
+          title: ownerType.name + ' Management',
+        },
+        template: editTemplate,
+      })
+      .state('sbomManager.management.edit.' + ownerType.type + '.add-access', {
+        url: '/access',
+        data: {
+          title: ownerType.name + ' Access',
+          isDirty: ['orgsAndPolicies', 'access', 'isDirty'],
+        },
+        component: 'accessPage',
+      })
+      .state('sbomManager.management.edit.' + ownerType.type + '.edit-access', {
+        url: '/access/{roleId}',
+        data: {
+          title: ownerType.name + ' Access',
+          isDirty: ['orgsAndPolicies', 'access', 'isDirty'],
+        },
+        component: 'accessPage',
+      });
   });
 }
-
 routes.$inject = ['$stateProvider'];

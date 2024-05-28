@@ -39,6 +39,10 @@ function deriveRouteFromStateParams(ownerState, routerState, to, params = {}) {
     includes('repository_manager', currentState.name);
   const isRepository =
     includes('management.view.repository', currentState.name) || includes('repository', currentState.name);
+  const isSbomManager =
+    includes('sbomManager', currentState.name) &&
+    // Remove line below once all OwnerSummary tiles except for "SBOMs" and "Access" are hidden for SBOM Manager.
+    includes('access', to);
 
   const type = isRepositoryContainer
     ? 'repository_container'
@@ -68,7 +72,7 @@ function deriveRouteFromStateParams(ownerState, routerState, to, params = {}) {
   }
 
   return {
-    to: `management.${ownerState}.${type}${to ? '.' + to : ''}`,
+    to: `${isSbomManager ? 'sbomManager.' : ''}management.${ownerState}.${type}${to ? '.' + to : ''}`,
     params,
   };
 }

@@ -1260,3 +1260,357 @@ export const applicableLabelsData = {
     },
   ],
 };
+
+export const firewallTestData = {
+  componentDetailsPage: {
+    isLoadingPolicyViolations: false,
+    policyViolationsError: null,
+    policyExistingWaivers: {
+      waiversByOwner: [
+        {
+          ownerId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
+          ownerName: 'maven-central',
+          ownerType: 'repository',
+          waivers: [
+            {
+              id: '468e1552699445d48e448bf22740ad8b',
+              hash: '7a3c2521ae0c6f53e044',
+              policyId: '6f085a73545f443ab92ce7a109c83935',
+              ownerId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
+              comment: '',
+              createTime: 1661928739954,
+              expiryTime: null,
+              creatorId: 'admin',
+              creatorName: 'Admin BuiltIn',
+              constraintFactsJson:
+                '[{"constraintId":"d17bd2a78ada49d6b40df2dd596d8e19","constraintName":"older than one day","operatorName":"AND","conditionFacts":[{"conditionTypeId":"License","conditionIndex":0,"summary":"License is \'Apache-1.1\'","reason":"Found \'Apache-1.1\' license","reference":null,"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"id\\":\\"Apache-1.1\\"}}"}]}]',
+              constraintFacts: [
+                {
+                  constraintId: 'd17bd2a78ada49d6b40df2dd596d8e19',
+                  constraintName: 'older than one day',
+                  operatorName: 'AND',
+                  conditionFacts: [
+                    {
+                      conditionTypeId: 'License',
+                      conditionIndex: 0,
+                      summary: "License is 'Apache-1.1'",
+                      reason: "Found 'Apache-1.1' license",
+                      reference: null,
+                      triggerJson: '{"conditionIndex":0,"trigger":{"id":"Apache-1.1"}}',
+                    },
+                  ],
+                },
+              ],
+              associatedPackageUrl: null,
+              componentMatchStrategy: 'EXACT_COMPONENT',
+              componentIdentifier: null,
+              policyName: 'test-policy',
+            },
+          ],
+        },
+      ],
+    },
+    waivers: [
+      {
+        id: '468e1552699445d48e448bf22740ad8b',
+        hash: '7a3c2521ae0c6f53e044',
+        policyId: '6f085a73545f443ab92ce7a109c83935',
+        ownerId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
+        comment: '',
+        createTime: 1661928739954,
+        expiryTime: null,
+        creatorId: 'admin',
+        creatorName: 'Admin BuiltIn',
+        constraintFactsJson:
+          '[{"constraintId":"d17bd2a78ada49d6b40df2dd596d8e19","constraintName":"older than one day","operatorName":"AND","conditionFacts":[{"conditionTypeId":"License","conditionIndex":0,"summary":"License is \'Apache-1.1\'","reason":"Found \'Apache-1.1\' license","reference":null,"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"id\\":\\"Apache-1.1\\"}}"}]}]',
+        constraintFacts: [
+          {
+            constraintId: 'd17bd2a78ada49d6b40df2dd596d8e19',
+            constraintName: 'older than one day',
+            operatorName: 'AND',
+            conditionFacts: [
+              {
+                conditionTypeId: 'License',
+                conditionIndex: 0,
+                summary: "License is 'Apache-1.1'",
+                reason: "Found 'Apache-1.1' license",
+                reference: null,
+                triggerJson: '{"conditionIndex":0,"trigger":{"id":"Apache-1.1"}}',
+              },
+            ],
+          },
+        ],
+        associatedPackageUrl: null,
+        componentMatchStrategy: 'EXACT_COMPONENT',
+        componentIdentifier: null,
+        policyName: 'test-policy',
+        policyWaiverId: '468e1552699445d48e448bf22740ad8b',
+        scopeOwnerId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
+        scopeOwnerType: 'repository',
+        scopeOwnerName: 'maven-central',
+      },
+    ],
+    componentDetails: {
+      displayName: {
+        parts: [
+          {
+            field: 'Group',
+            value: 'ant',
+          },
+          {
+            value: ' : ',
+          },
+          {
+            field: 'Artifact',
+            value: 'ant',
+          },
+          {
+            value: ' : ',
+          },
+          {
+            field: 'Version',
+            value: '1.6',
+          },
+        ],
+        name: 'ant',
+      },
+    },
+  },
+};
+
+export const firewallViolationsTestData = [
+  {
+    policyViolationId: '8ada310270ae4eae996921c5fa0aa97e',
+    componentIdentifier: {
+      format: 'maven',
+      coordinates: {
+        artifactId: 'ant',
+        classifier: '',
+        extension: 'jar',
+        groupId: 'ant',
+        version: '1.6.1',
+      },
+    },
+    componentDisplayName: {
+      parts: [
+        {
+          field: 'Group',
+          value: 'ant',
+        },
+        {
+          value: ' : ',
+        },
+        {
+          field: 'Artifact',
+          value: 'ant',
+        },
+        {
+          value: ' : ',
+        },
+        {
+          field: 'Version',
+          value: '1.6.1',
+        },
+      ],
+      name: 'ant',
+    },
+    hash: '684aeca90db2a55234f5',
+    policyId: '2bf5384868f048ffa6c600ae20898561',
+    policyName: 'Security-Medium very very very very very very very long name',
+    policyOwner: {
+      ownerId: 'ROOT_ORGANIZATION_ID',
+      ownerName: 'Root Organization',
+      ownerType: 'organization',
+    },
+    policyThreatLevel: 7,
+    policyThreatCategory: 'SECURITY',
+    constraints: [
+      {
+        constraintId: '79159e3489e9437a901a57a4fc449dd1',
+        constraintName: 'Medium risk CVSS score',
+        constraintOperator: 'AND',
+        conditions: [
+          {
+            conditionType: 'SecurityVulnerabilitySeverity',
+            conditionSummary: 'Security Vulnerability Severity >= 4',
+            conditionReason: 'Found security vulnerability CVE-2021-36374 with severity >= 4 (severity = 5.5)',
+            conditionTriggerReference: {
+              value: 'CVE-2021-36374',
+              type: 'SECURITY_VULNERABILITY_REFID',
+            },
+          },
+          {
+            conditionType: 'SecurityVulnerabilitySeverity',
+            conditionSummary: 'Security Vulnerability Severity < 7',
+            conditionReason: 'Found security vulnerability CVE-2021-36374 with severity < 7 (severity = 5.5)',
+            conditionTriggerReference: {
+              value: 'CVE-2021-36374',
+              type: 'SECURITY_VULNERABILITY_REFID',
+            },
+          },
+        ],
+      },
+    ],
+    constraintFactsJson:
+      '[{"constraintId":"79159e3489e9437a901a57a4fc449dd1","constraintName":"Medium risk CVSS score","operatorName":"AND","conditionFacts":[{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":0,"summary":"Security Vulnerability Severity >= 4","reason":"Found security vulnerability CVE-2021-36374 with severity >= 4 (severity = 5.5)","reference":{"value":"CVE-2021-36374","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"refId\\":\\"CVE-2021-36374\\",\\"severity\\":5.5}}"},{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":1,"summary":"Security Vulnerability Severity < 7","reason":"Found security vulnerability CVE-2021-36374 with severity < 7 (severity = 5.5)","reference":{"value":"CVE-2021-36374","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":1,\\"trigger\\":{\\"refId\\":\\"CVE-2021-36374\\",\\"severity\\":5.5}}"}]}]',
+    waived: false,
+    policyActionTypeId: 'fail',
+    lastReported: '2024-05-06T10:12:12.593-04:00',
+  },
+  {
+    policyViolationId: 'e0ec27d700ad4cb1a6f3c6bdfd6e1066',
+    componentIdentifier: {
+      format: 'maven',
+      coordinates: {
+        artifactId: 'ant',
+        classifier: '',
+        extension: 'jar',
+        groupId: 'ant',
+        version: '1.6.1',
+      },
+    },
+    componentDisplayName: {
+      parts: [
+        {
+          field: 'Group',
+          value: 'ant',
+        },
+        {
+          value: ' : ',
+        },
+        {
+          field: 'Artifact',
+          value: 'ant',
+        },
+        {
+          value: ' : ',
+        },
+        {
+          field: 'Version',
+          value: '1.6.1',
+        },
+      ],
+      name: 'ant',
+    },
+    hash: '684aeca90db2a55234f5',
+    policyId: '2bf5384868f048ffa6c600ae20898561',
+    policyName: 'Security-Medium very very very very very very very long name',
+    policyOwner: {
+      ownerId: 'ROOT_ORGANIZATION_ID',
+      ownerName: 'Root Organization',
+      ownerType: 'organization',
+    },
+    policyThreatLevel: 7,
+    policyThreatCategory: 'SECURITY',
+    constraints: [
+      {
+        constraintId: '79159e3489e9437a901a57a4fc449dd1',
+        constraintName: 'Medium risk CVSS score',
+        constraintOperator: 'AND',
+        conditions: [
+          {
+            conditionType: 'SecurityVulnerabilitySeverity',
+            conditionSummary: 'Security Vulnerability Severity >= 4',
+            conditionReason: 'Found security vulnerability sonatype-2018-0330 with severity >= 4 (severity = 6.5)',
+            conditionTriggerReference: {
+              value: 'sonatype-2018-0330',
+              type: 'SECURITY_VULNERABILITY_REFID',
+            },
+          },
+          {
+            conditionType: 'SecurityVulnerabilitySeverity',
+            conditionSummary: 'Security Vulnerability Severity < 7',
+            conditionReason: 'Found security vulnerability sonatype-2018-0330 with severity < 7 (severity = 6.5)',
+            conditionTriggerReference: {
+              value: 'sonatype-2018-0330',
+              type: 'SECURITY_VULNERABILITY_REFID',
+            },
+          },
+        ],
+      },
+    ],
+    constraintFactsJson:
+      '[{"constraintId":"79159e3489e9437a901a57a4fc449dd1","constraintName":"Medium risk CVSS score","operatorName":"AND","conditionFacts":[{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":0,"summary":"Security Vulnerability Severity >= 4","reason":"Found security vulnerability sonatype-2018-0330 with severity >= 4 (severity = 6.5)","reference":{"value":"sonatype-2018-0330","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"refId\\":\\"sonatype-2018-0330\\",\\"severity\\":6.5}}"},{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":1,"summary":"Security Vulnerability Severity < 7","reason":"Found security vulnerability sonatype-2018-0330 with severity < 7 (severity = 6.5)","reference":{"value":"sonatype-2018-0330","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":1,\\"trigger\\":{\\"refId\\":\\"sonatype-2018-0330\\",\\"severity\\":6.5}}"}]}]',
+    waived: false,
+    policyActionTypeId: 'fail',
+    lastReported: '2024-05-06T10:12:12.593-04:00',
+  },
+  {
+    policyViolationId: 'ee61c6a2c1464a4e8b65784f587b8303',
+    componentIdentifier: {
+      format: 'maven',
+      coordinates: {
+        artifactId: 'ant',
+        classifier: '',
+        extension: 'jar',
+        groupId: 'ant',
+        version: '1.6.1',
+      },
+    },
+    componentDisplayName: {
+      parts: [
+        {
+          field: 'Group',
+          value: 'ant',
+        },
+        {
+          value: ' : ',
+        },
+        {
+          field: 'Artifact',
+          value: 'ant',
+        },
+        {
+          value: ' : ',
+        },
+        {
+          field: 'Version',
+          value: '1.6.1',
+        },
+      ],
+      name: 'ant',
+    },
+    hash: '684aeca90db2a55234f5',
+    policyId: '2bf5384868f048ffa6c600ae20898561',
+    policyName: 'Security-Medium very very very very very very very long name',
+    policyOwner: {
+      ownerId: 'ROOT_ORGANIZATION_ID',
+      ownerName: 'Root Organization',
+      ownerType: 'organization',
+    },
+    policyThreatLevel: 7,
+    policyThreatCategory: 'SECURITY',
+    constraints: [
+      {
+        constraintId: '79159e3489e9437a901a57a4fc449dd1',
+        constraintName: 'Medium risk CVSS score',
+        constraintOperator: 'AND',
+        conditions: [
+          {
+            conditionType: 'SecurityVulnerabilitySeverity',
+            conditionSummary: 'Security Vulnerability Severity >= 4',
+            conditionReason: 'Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)',
+            conditionTriggerReference: {
+              value: 'CVE-2012-2098',
+              type: 'SECURITY_VULNERABILITY_REFID',
+            },
+          },
+          {
+            conditionType: 'SecurityVulnerabilitySeverity',
+            conditionSummary: 'Security Vulnerability Severity < 7',
+            conditionReason: 'Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)',
+            conditionTriggerReference: {
+              value: 'CVE-2012-2098',
+              type: 'SECURITY_VULNERABILITY_REFID',
+            },
+          },
+        ],
+      },
+    ],
+    constraintFactsJson:
+      '[{"constraintId":"79159e3489e9437a901a57a4fc449dd1","constraintName":"Medium risk CVSS score","operatorName":"AND","conditionFacts":[{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":0,"summary":"Security Vulnerability Severity >= 4","reason":"Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"},{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":1,"summary":"Security Vulnerability Severity < 7","reason":"Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":1,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"}]}]',
+    waived: false,
+    policyActionTypeId: 'fail',
+    lastReported: '2024-05-06T10:12:12.593-04:00',
+  },
+];

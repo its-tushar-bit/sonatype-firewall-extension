@@ -81,6 +81,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AGPL-3.0+-Apache-2.0-CERN-OHL-S-2.0+-GPL-2.0+','AGPL-3.0+ or Apache-2.0 or CERN-OHL-S-2.0+ or GPL-2.0+','Quadruple License Consisting of GNU Affero General Public License v3 or later, Apache 2.0, CERN Open Hardware Licence Version 2 - Strongly Reciprocal or later and GPL 2.0 or later');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AGPL-3.0+-BSD-3-Clause','AGPL-3.0+ or BSD-3-Clause','Dual License Consisting of GNU Affero General Public License v3 or later and New BSD License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AGPL-3.0+-BSD-UNSPECIFIED','AGPL-3.0+ or BSD','Dual License Consisting of GNU Affero General Public License v3 or later and BSD-Style License Not Identifiable by Sonatype');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AGPL-3.0+-Business-Source-License-1.1','AGPL-3.0+ or Business-Source-License-1.1','Dual License Consisting of GNU Affero General Public License v3 or later and Business Source License 1.1');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AGPL-3.0+-CERN-OHL-S-2.0+-GPL-2.0+','AGPL-3.0+ or CERN-OHL-S-2.0+ or GPL-2.0+','Triple License Consisting of GNU Affero General Public License v3 or later, CERN Open Hardware Licence Version 2 - Strongly Reciprocal or later and GPL 2.0 or later');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AGPL-3.0+-COMMERCIAL','AGPL-3.0+ or COMMERCIAL','Dual License Consisting of GNU Affero General Public License v3 or later and Commercial Software License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AGPL-3.0+-EUPL-1.1+','AGPL-3.0+ or EUPL-1.1+','Dual License Consisting of GNU Affero General Public License v3 or later and European Union Public License 1.1 or later');
@@ -715,6 +716,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-2.0-Canada','CC-BY-2.0-Canada','Creative Commons Attribution 2.0 Canada');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-2.5','CC-BY-2.5','Creative Commons Attribution 2.5');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-2.5-AU','CC-BY-2.5-AU','Creative Commons Attribution 2.5 Australia');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-2.5-Canada','CC-BY-2.5-Canada','Creative Commons Attribution 2.5 Canada');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-3.0','CC-BY-3.0','Creative Commons Attribution 3.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-3.0-AU','CC-BY-3.0-AU','Creative Commons Attribution 3.0 Australia');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-3.0-IGO','CC-BY-3.0-IGO','Creative Commons Attribution 3.0 IGO');
@@ -723,6 +725,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-3.0-MIT-OFL-1.1','CC-BY-3.0 or MIT or OFL-1.1','Triple License Consisting of Creative Commons Attribution 3.0, MIT License and SIL Open Font License 1.1');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-3.0-US','CC-BY-3.0-US','Creative Commons Attribution 3.0 United States');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-4.0','CC-BY-4.0','Creative Commons Attribution 4.0');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-4.0-CC-BY-NC-4.0','CC-BY-4.0 or CC-BY-NC-4.0','Dual License Consisting of Creative Commons Attribution 4.0 and Creative Commons Attribution Non Commercial 4.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-4.0-ISC','CC-BY-4.0 or ISC','Dual License Consisting of Creative Commons Attribution 4.0 and ISC License (Bind, DHCP Server)');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-4.0-MIT-OFL-1.1','CC-BY-4.0 or MIT or OFL-1.1','Triple License Consisting of Creative Commons Attribution 4.0, MIT and SIL Open Font License 1.1');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-NC-1.0','CC-BY-NC-1.0','Creative Commons Attribution Non Commercial 1.0');
@@ -873,6 +876,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Cisco-UCT-EULA','Cisco-UCT-EULA','Cisco Unified Communication Tools End-User License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CITE-RBSPL-1.0','CITE-RBSPL-1.0','CITE Reusable Binary Software Public License 1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Citrix-LA','Citrix-LA','Citrix License Agreement');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Citrix-Ready-Partner-DM-RLA','Citrix-Ready-Partner-DM-RLA','Cloud Software Group Citrix Ready Partner Developer Materials Redistribution License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Cityscapes-Dataset-LA','Cityscapes-Dataset-LA','The Cityscapes Dataset License agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CKFinder-LA-4.0','CKFinder-LA-4.0','CKFinder License Agreement 4.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Cl-Eye-Platform-EULA','Cl-Eye-Platform-EULA','Cl-Eye Platform End User License Agreement');
@@ -1068,6 +1072,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('DeployGate-TOU','DeployGate-TOU','DeployGate Terms of Use - Release Date February 28, 2015');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Design-Barn-IconScout-SL','Design-Barn-IconScout-SL','Design Barn Inc. IconScout Simple License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Dev-Tools-EULA','Dev-Tools-EULA','Dev Tools End User License Agreement');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Devart-dotConnect-Provider-LA','Devart-dotConnect-Provider-LA','Devart dotConnect Provider License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Devart-LinqConnect-EULA','Devart-LinqConnect-EULA','Devart LinqConnect End User License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('devDept-Software-products-LA-1.15','devDept-Software-products-LA-1.15','License Agreement for devDept Software products version 1.15');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('devDept-Software-products-LA-1.17','devDept-Software-products-LA-1.17','License Agreement for devDept Software products Version 1.17');
@@ -1172,7 +1177,9 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Eneter-.Messaging-.Framework-NC-8.0','Eneter-.Messaging-.Framework-NC-8.0','Eneter.Messaging.Framework Non-Commercial License Version 8.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Eneter-Free-License','Eneter-Free-License','Eneter Free License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Eneter-License-Commercial','Eneter-License-Commercial','Eneter License - Commercial');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('EnHelix-Aptinium-SDK-SLA','EnHelix-Aptinium-SDK-SLA','EnHelix Aptinium SDK Software License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Enkadia-Synexsis-SDK-EULA','Enkadia-Synexsis-SDK-EULA','Enkadia Synexsis Software Development Kit End-User License Agreement');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Enreach-Swyx-EULA-112021','Enreach-Swyx-EULA-112021','Enreach GmbH Swyx End User License Agreement and Terms of Use - Date 11-2021');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Ensighten-License','Ensighten-License','Ensighten License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Enterprise-Distributed-Technologies-LA','Enterprise-Distributed-Technologies-LA','Enterprise Distributed Technologies License Agreement - ftpnetpro');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Entessa','Entessa','Entessa Public License v1.0');
@@ -1221,6 +1228,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('ESA-PL-SC-2.4','ESA-PL-SC-2.4','European Space Agency Public License Strong Copyleft Version 2.4');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('ESCL-Type-1-1.1','ESCL-Type-1-1.1','ESA Software Community License Type 1 v1.1');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('ESL-2.0','ESL-2.0','Egothor Software License v2.00');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('eSplice-LearnCube-Standard-TOS','eSplice-LearnCube-Standard-TOS','eSplice Ltd LearnCube Standard Terms of Service');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Esri-E204CW-MA-RD01062021','Esri-E204CW-MA-RD01062021','Environmental Systems Research Institute E204CW Master Agreement - Release Date 01-06-2021');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Essential-Objects-Pdf-EULA','Essential-Objects-Pdf-EULA','End User License Agreement - EO.Pdf');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Essential-Objects-Web-EULA','Essential-Objects-Web-EULA','End User License Agreement - EO.Web');
@@ -1244,6 +1252,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Eurosym','Eurosym','Eurosym License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Event-Store-BSD-3-Clause-License','Event-Store-BSD-3-Clause-License','Event Store BSD-3-Clause License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Evergage-TOS','Evergage-TOS','Evergage Terms of Service');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Evernode-SLA','Evernode-SLA','Evernode Software License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Evinced-EULA-UD04182023','Evinced-EULA-UD04182023','Evinced, Inc End User License Agreement - Updated Date 04-18-2023');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('EVO-PDF-SLA','EVO-PDF-SLA','EVO PDF Software License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Evoleap-elm-Client-API-for-.NET-EULA','Evoleap-elm-Client-API-for-.NET-EULA','Evoleap elm Client API for .NET End User License Agreement');
@@ -1286,6 +1295,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('FlexRule-EULA','FlexRule-EULA','FlexRule End User License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Flora-License-1.1','Flora-License-1.1','Flora License 1.1');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Flourish-Component-License-1.0','Flourish-Component-License-1.0','Flourish Component License v1.0');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('FlowPlater-SL','FlowPlater-SL','FlowPlater Standard License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Flowplayer-Commercial-License-0.4','Flowplayer-Commercial-License-0.4','Flowplayer Commercial License v0.4');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('FLTK-LA-RD-12112001','FLTK-LA-RD-12112001','FLTK License Agreement - Release Date December 11 2001');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Flurry-Analytics-TOS','Flurry-Analytics-TOS','Flurry Analytics Terms of Service - Release Date 04-20-2014');
@@ -1506,6 +1516,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0+-LGPL-UNSPECIFIED','GPL-3.0+ or LGPL','Dual License Consisting of GPL 3.0 or later and LGPL-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0+-MIT','GPL-3.0+ or MIT','Dual License Consisting of GPL-3.0 or later and MIT License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0+-MPL-1.1','GPL-3.0+ or MPL-1.1','Dual License Consisting of GPL 3.0 or later and Mozilla Public License 1.1');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0+-MPL-2.0','GPL-3.0+ or MPL-2.0','Dual License Consisting of GPL 3.0 or later and Mozilla Public License 2.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0+-MPL-2.0+','GPL-3.0+ or MPL-2.0+','Dual License Consisting of GPL 3.0 or later and Mozilla Public License 2.0 or later');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0+-NPL-1.1','GPL-3.0+ or NPL-1.1','Dual License Consisting of GPL 3.0 or later and Netscape Public License v1.1');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0+-NPOSL-3.0','GPL-3.0+ or NPOSL-3.0','Dual License Consisting of GPL 3.0 or later and Non-Profit Open Software License 3.0');
@@ -1600,6 +1611,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('HCL-MLA-v8-13-19','HCL-MLA-v8-13-19','HCL Master License Agreement - v. 8-13-19');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('hdparm','hdparm','hdparm License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('HEBI-Robotics-C-CPP-Python-APIs-License','HEBI-Robotics-C-CPP-Python-APIs-License','HEBI Robotics C, CPP, and Python APIs Software License');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('HeerlijkeHeer-Cringelord-EULA','HeerlijkeHeer-Cringelord-EULA','HeerlijkeHeer Cringelord End User License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Henooh-NC-LA','Henooh-NC-LA','Henooh Non-Commercial License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Herbalife-TOU-RD-02022017','Herbalife-TOU-RD-02022017','Herbalife Terms of Use - Release Date February 2 2017');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('HESS-LA','HESS-LA','Hacktivismo Enhanced-Source Software License Agreement');
@@ -1647,6 +1659,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('HPND-UC','HPND-UC','Historical Permission Notice and Disclaimer - University of California variant');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('HTMLTIDY','HTMLTIDY','HTML Tidy License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Hugware-License','Hugware-License','The Hugware License');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Hydraulic-Conveyor-EULA-1.0','Hydraulic-Conveyor-EULA-1.0','Hydraulic Conveyor End User License Agreement version 1');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Hyland-TOU','Hyland-TOU','Hyland Terms of Use');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Hyperon-EULA','Hyperon-EULA','Hyperon End User License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('HyprMX-MA-RD03252020','HyprMX-MA-RD03252020','HyprMX Mobile LLC Monetization Agreement - Release Date 03-25-2020');
@@ -1747,6 +1760,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Ionic-Resources-LA-RD04232018','Ionic-Resources-LA-RD04232018','Ionic Resources License Agreement - Release Date 04-23-2018');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Ionic-Resources-LA-UNSPECIFIED','Ionic-Resources-LA','Ionic-Resources-LA-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('IoT-Gateway-License','IoT-Gateway-License','IoT Gateway Waher Data AB License');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Iovation-SL','Iovation-SL','Iovation Software License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('IPA','IPA','IPA Font License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('IPL-1.0','IPL-1.0','IBM Public License v1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('IPL-UNSPECIFIED','IPL-UNSPECIFIED','IBM Public License');
@@ -1842,6 +1856,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Kindred-STAC-UD05192023','Kindred-STAC-UD05192023','Kindred Standard Terms and Conditions for Licensing Technology - Updated Date 05-19-2023');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Kindred-STAC-UNSPECIFIED','Kindred-STAC','Kindred-STAC-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('KKBOX-Developer-TOU-RD10272017','KKBOX-Developer-TOU-RD10272017','KKBOX Developer Terms of Use - Release Date 10-27-2017');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('KLO128-D3ORM-EULA','KLO128-D3ORM-EULA','KLO128 Solutions D3ORM Software End User License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Knopflerfish-License','Knopflerfish-License','Knopflerfish License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Knorba-Free-PLA-1.0','Knorba-Free-PLA-1.0','Knorba Free Public License Agreement Version 1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Knuth-CTAN','Knuth-CTAN','Knuth CTAN License');
@@ -2035,6 +2050,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MHV-License','MHV-License','Mohsen Hajivalie License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Microblink-TOU-1.0','Microblink-TOU-1.0','Microblink Terms of Use Version 1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Microblink-TOU-1.1','Microblink-TOU-1.1','Microblink Terms of Use Version 1.1');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Microblink-TOU-1.2','Microblink-TOU-1.2','Microblink Terms of Use Version 1.2');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Microblink-TOU-UNSPECIFIED','Microblink-TOU','Microblink-TOU-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Microsoft-Services-Agreement','Microsoft-Services-Agreement','Microsoft Services Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Microstar-AElfred-License','Microstar-AElfred-License','Microstar AElfred License');
@@ -2081,6 +2097,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-Anti-996-License-UNSPECIFIED','MIT-with-Anti-996-License','MIT-with-Anti-996-License-Style Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-Commons-Clause-1.0','MIT-with-Commons-Clause-1.0','MIT with Commons-Clause-1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-Commons-Clause-UNSPECIFIED','MIT-with-Commons-Clause','MIT with Commons-Clause-Style License Not Identifiable by Sonatype');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-No-Resale-Clause','MIT-with-No-Resale-Clause','MIT License with No Resale Clause');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-WTFPL','MIT or WTFPL','Dual License Consisting of MIT License and Do What The F*ck You Want To Public License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-Wu','MIT-Wu','MIT Tom Wu Variant');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-Yandex-UNSPECIFIED','MIT or Yandex','Dual License Consisting of MIT and Yandex-Style License Not Identifiable by Sonatype');
@@ -2163,6 +2180,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Async-Targeting-Pack','MS-Async-Targeting-Pack','Microsoft Async Targeting Pack');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Azure-ACS-Pre-Release','MS-Azure-ACS-Pre-Release','Microsoft Azure App Configuration Software - Pre-Release Software License Terms');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Azure-Batch-Client-Library','MS-Azure-Batch-Client-Library','Microsoft Azure Batch Client Library');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Azure-CS-VSDK-Preview','MS-Azure-CS-VSDK-Preview','Microsoft Azure Cognitive Services Vision SDK Preview');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Azure-CSV-VCC-Library','MS-Azure-CSV-VCC-Library','Microsoft Azure Communication Services Voice and Video Calling Client Library');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Azure-DocumentDB-SDK-.NET','MS-Azure-DocumentDB-SDK-.NET','Microsoft Azure DocumentDB Software Development Kit for .NET');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Azure-IoT-Suite-IC-Pre-Release','MS-Azure-IoT-Suite-IC-Pre-Release','Microsoft Azure IoT Suite Infrastructure Connectivity Pre-Release');
@@ -2209,6 +2227,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-OpenDebugAD7-Extension-VS-Code-Pre-Release','MS-OpenDebugAD7-Extension-VS-Code-Pre-Release','Microsoft Opendebugad7 Extension for Visual Studio Code (Pre-Release)');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-OpenXML-SDK-License','MS-OpenXML-SDK-License','Microsoft OpenXML SDK License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-PL','MS-PL','Microsoft Public License');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Power-Apps-Dynamics-365-SDK-UD042021','MS-Power-Apps-Dynamics-365-SDK-UD042021','Microsoft Power Apps and Dynamics 365 Software Development Kit License - Updated Date 04-2021');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Pre-Release-Software-License-Terms','MS-Pre-Release-Software-License-Terms','MICROSOFT PRE-RELEASE SOFTWARE LICENSE TERMS');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Project-System-Extensibility-Preview','MS-Project-System-Extensibility-Preview','Microsoft Project System Extensibility Preview');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Quantum-Development-Kit-License','MS-Quantum-Development-Kit-License','Microsoft Quantum Development Kit License');
@@ -2261,6 +2280,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-VS-Test-Platform-License','MS-VS-Test-Platform-License','Microsoft Visual Studio Test Platform License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-VS-Threading-Library-EULA','MS-VS-Threading-Library-EULA','Microsoft Visual Studio Threading Library End User License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Web-Deploy-3.5-for-MS-Windows-Server','MS-Web-Deploy-3.5-for-MS-Windows-Server','Microsoft Web Deploy 3.5 for Microsoft Windows Server');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Web-Deploy-3.6-Beta-Pre-Release','MS-Web-Deploy-3.6-Beta-Pre-Release','Microsoft Web Deploy 3.6 Beta - Pre-Release');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Web-Developer-Tools-1.0','MS-Web-Developer-Tools-1.0','Microsoft Web Developer Tools 1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Web-XDT','MS-Web-XDT','Microsoft Web XML Transform');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Webdriver','MS-Webdriver','Microsoft Webdriver');
@@ -2272,6 +2292,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Windows-Azure-Mobile-SDK-License','MS-Windows-Azure-Mobile-SDK-License','Microsoft Windows Azure Mobile Software Development Kit Software License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Windows-Azure-SDK','MS-Windows-Azure-SDK','Microsoft Windows Azure Software Development Kit');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Windows-Azure-SDK-for-.NET','MS-Windows-Azure-SDK-for-.NET','Microsoft Windows Azure Software Development Kit, and for Microsoft Windows Azure Libraries For .NET');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Windows-ET-TP','MS-Windows-ET-TP','Microsoft.Windows.Eventtracing.Traceprocessing');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-Windows-ET-TP-Pre-Release','MS-Windows-ET-TP-Pre-Release','Microsoft.Windows.Eventtracing.Traceprocessing Pre-Release');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-WOS-Update1-Entity-Framework-4.1','MS-WOS-Update1-Entity-Framework-4.1','Entity Framework 4.1 for Microsoft Windows Operating System - Update 1');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MS-WSDK-Windows-10-License','MS-WSDK-Windows-10-License','Microsoft Windows Software Development Kit for Windows 10 License Terms');
@@ -2611,6 +2632,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Pixelnetica-TOU','Pixelnetica-TOU','Pixelnetica Terms of Use');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PixelPin-TOU','PixelPin-TOU','PixelPin Terms of Use - Release Date 03-01-2013');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Pizzaware','Pizzaware','Pizzaware License');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Play-Integrity-API-TOS','Play-Integrity-API-TOS','Play Integrity API Terms of Service');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Playwire-TOS-UD12262023','Playwire-TOS-UD12262023','Playwire LLC Terms of Service - Updated Date 12-26-2023');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PLE-Software-EULA','PLE-Software-EULA','PLE Software Group, LLC End-User License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Plexus','Plexus','Plexus Classworlds License');
@@ -2619,6 +2641,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Polar-SDK-License','Polar-SDK-License','Polar SDK License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PolyForm-Internal-Use-License-1.0.0','PolyForm-Internal-Use-License-1.0.0','PolyForm Internal Use License 1.0.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PolyForm-Noncommercial-1.0.0','PolyForm-Noncommercial-1.0.0','PolyForm Noncommercial License 1.0.0');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PolyForm-Noncommercial-UNSPECIFIED','PolyForm-Noncommercial','PolyForm-Noncommercial-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PolyForm-Perimeter-License-1.0.0','PolyForm-Perimeter-License-1.0.0','PolyForm Perimeter License 1.0.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PolyForm-Shield-License-1.0.0','PolyForm-Shield-License-1.0.0','PolyForm Shield License Version 1.0.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PolyForm-Shield-License-UNSPECIFIED','PolyForm-Shield-License','PolyForm-Shield-License-Style License Not Identifiable by Sonatype');
@@ -2630,6 +2653,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PPL-1.0','PPL-1.0','Plaxis Public License 1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PQINA-Pintura-IE-LA','PQINA-Pintura-IE-LA','PQINA Pintura Image Editor License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Pragma-License','Pragma-License','Pragma-License v2.94');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PRE-MIND-EULA-UD12062018','PRE-MIND-EULA-UD12062018','PRE:MIND Pte Ltd End User License Agreement - Updated Date 12-06-2018');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Prism39-EULA','Prism39-EULA','Prism39 End User License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Private-Open-License-1.0','Private-Open-License-1.0','Private-Open License version 1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PROGMOD-FDD-SL','PROGMOD-FDD-SL','PROGMOD Flow Driven Domain Software License');
@@ -2700,6 +2724,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('R2B2-Android-SDK-PL-RD09082022','R2B2-Android-SDK-PL-RD09082022','R2B2 Android SDK Proprietary License - Release Date 09-08-2022');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('RadaeePDF-SDK-EULA','RadaeePDF-SDK-EULA','RadaeePDF Software Development Kit End User License Agreement Version 1.6.5');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Radar-Soft-LLC-License','Radar-Soft-LLC-License','Radar-Soft LLC License - Release Date 09-22-2015');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Radius-Networks-Flybuy-SDK-License','Radius-Networks-Flybuy-SDK-License','Radius Networks, Inc. Flybuy SDK License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Radix-1.0','Radix-1.0','Radix License Version 1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Radix-UNSPECIFIED','Radix','Radix-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('radvd','radvd','radvd License');
@@ -2734,6 +2759,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Reveal-Pro-TOS','Reveal-Pro-TOS','Reveal Pro Terms of Service');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('ReVerb-SLA','ReVerb-SLA','ReVerb Software License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Revolut-Pay-SDK-LA','Revolut-Pay-SDK-LA','Revolut Pay Software Development Kit License Agreement');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('RFPX-Proprietary-SLA','RFPX-Proprietary-SLA','RFPX Proprietary Software License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('RHeCos-1.1','RHeCos-1.1','Red Hat eCos Public License v1.1');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Rhyous-License','Rhyous-License','Rhyous License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Ribbon-SDK-LA-1.0','Ribbon-SDK-LA-1.0','Ribbon SDK License Agreement Version 1.0');
@@ -2747,6 +2773,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Rocicorp-TOS-UD04262022','Rocicorp-TOS-UD04262022','Rocicorp LLC Terms of Service and License Terms - Updated Date 04-26-2022');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Rock-Solid-Knowledge-SAML2P-EULA','Rock-Solid-Knowledge-SAML2P-EULA','Rock Solid Knowledge SAML2P End User License Agreement - Release Date 10-09-2017');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('RockSolid-Knowledge-Ltd-License','RockSolid-Knowledge-Ltd-License','RockSolid Knowledge Ltd - AdminUI Product for IdentityServer License');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Rohde-Schwarz-TAC-RFP-032012','Rohde-Schwarz-TAC-RFP-032012','Rohde and Schwarz GmbH and Co. KG Terms and Conditions for Royalty-Free Products - Date 03-2012');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Rokt-SDK-TOU-1.0','Rokt-SDK-TOU-1.0','Rokt Software Development Kit Terms of Use Version 1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Rokt-SDK-TOU-2.0','Rokt-SDK-TOU-2.0','Rokt Software Development Kit Terms of Use Version 2.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Romantic-WTFPL-3.0','Romantic-WTFPL-3.0','The Romantic WTF Public License Version 3.0');
@@ -3051,6 +3078,12 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Twitter-Bootstrap-MVC-7.0','Twitter-Bootstrap-MVC-7.0','License agreement for TwitterBootstrapMVC Version 7');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Twitter-DAP-RD03102020','Twitter-DAP-RD03102020','Twitter Developer Agreement and Policy - Release Date 03-10-2020');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Tyrex-License','Tyrex-License','Tyrex License');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('UAParser-.js-PRO-Business-1.0','UAParser-.js-PRO-Business-1.0','UAParser.js PRO Business License version 1.0');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('UAParser-.js-PRO-Business-UNSPECIFIED','UAParser-.js-PRO-Business','UAParser-.js-PRO-Business-Style License Not Identifiable by Sonatype');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('UAParser-.js-PRO-Enterprise-1.0','UAParser-.js-PRO-Enterprise-1.0','UAParser.js PRO Enterprise License version 1.0');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('UAParser-.js-PRO-Enterprise-UNSPECIFIED','UAParser-.js-PRO-Enterprise','UAParser-.js-PRO-Enterprise-Style License Not Identifiable by Sonatype');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('UAParser-.js-PRO-Personal-1.0','UAParser-.js-PRO-Personal-1.0','UAParser.js PRO Personal License version 1.0');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('UAParser-.js-PRO-Personal-UNSPECIFIED','UAParser-.js-PRO-Personal','UAParser-.js-PRO-Personal-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Ubiquiti-Inc-EULA-RD07172017','Ubiquiti-Inc-EULA-RD07172017','Ubiquiti Inc End User License Agreement Release Date July 17 2017');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Ubiquiti-Inc-EULA-RD08072020','Ubiquiti-Inc-EULA-RD08072020','Ubiquiti Inc End User License Agreement - Release Date 08-07-2020');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('UChicago-Argonne-LLC-OSL','UChicago-Argonne-LLC-OSL','UChicago Argonne LLC Open Source License');
@@ -3231,6 +3264,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('YPL-1.0','YPL-1.0','Yahoo! Public License v1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('YPL-1.1','YPL-1.1','Yahoo! Public License v1.1');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('yWorks-yFiles-Graphs-JFL-1.1','yWorks-yFiles-Graphs-JFL-1.1','yWorks GmbH - yFiles Graphs for Jupyter Free License Version 1.1');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('ZanobiJS-Usage-License','ZanobiJS-Usage-License','John Edison Cortes Rivera [Devdroide] ZanobiJS Usage License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Zation-EULA-RD09192019','Zation-EULA-RD09192019','Zation End User License Agreement - Release Date 09-19-2019');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Zebra-SDK-EULA','Zebra-SDK-EULA','Zebra SDK End User License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Zed','Zed','Zed License');

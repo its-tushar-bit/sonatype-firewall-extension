@@ -58,13 +58,13 @@ describe('HighPriorityVulnerabilitiesTile', () => {
     expect(severities[0]).toHaveTextContent('10');
     expect(severities[1]).toHaveTextContent('9');
 
-    expect(screen.getByRole('link', { name: 'CVE-1234-12345' })).toBeVisible();
-    expect(screen.getByRole('link', { name: 'CVE-5678-56789' })).toBeVisible();
+    expect(screen.getByText(/CVE-1234-12345/i)).toBeVisible();
+    expect(screen.getByText(/CVE-5678-56789/i)).toBeVisible();
   });
 
   it('renders correct message when response is empty', async () => {
     const axiosMock = axiosMockAdapter();
-    axiosMock.onGet(getSbomsHighPriorityVulnerabilitiesUrl()).reply(200, response);
+    axiosMock.onGet(getSbomsHighPriorityVulnerabilitiesUrl()).reply(200, []);
 
     renderTile();
 

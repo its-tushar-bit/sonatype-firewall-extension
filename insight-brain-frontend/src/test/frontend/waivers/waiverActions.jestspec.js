@@ -69,7 +69,10 @@ import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { SET_SIDEBAR_NAV_LIST_DATA } from 'MainRoot/sidebarNav/sidebarNavListActions';
 import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
-import { FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED } from 'MainRoot/firewall/firewallActions';
+import {
+  FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED,
+  FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED,
+} from 'MainRoot/firewall/firewallActions';
 
 describe('waiverActions', function () {
   let store, mockAxiosCalls, mock;
@@ -109,6 +112,10 @@ describe('waiverActions', function () {
     store = SpecUtil.mockReduxStore(state);
     mock = axiosMockAdapter();
     mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   describe('saveWaiverAndRedirect', function () {
@@ -1142,7 +1149,7 @@ describe('waiverActions', function () {
     });
 
     describe('after a successful DELETE', function () {
-      it('dispatches WAIVERS_DELETE_WAIVER_FULFILLED and reloads existing waivers if on the component details page', function (done) {
+      it('dispatches WAIVERS_DELETE_WAIVER_FULFILLED and reloads existing waivers if on the component details page and reloadComponentWaivers is false', function (done) {
         const waiversData = [{ id: 'waiver1' }];
         state = {
           ...state,
@@ -1170,9 +1177,69 @@ describe('waiverActions', function () {
 
           expect(store.getActions().length).toBe(5);
           expect(store.getActions()[1].type).toBe(WAIVERS_DELETE_WAIVER_FULFILLED);
-          expect(store.getActions()[2].type).toEqual(FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED);
-          expect(store.getActions()[3].type).toEqual(WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED);
-          expect(store.getActions()[4].type).toEqual(WAIVERS_DELETE_MASK_TIMER_DONE);
+          expect(store.getActions()[2].type).toBe(FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED);
+          expect(store.getActions()[3].type).toBe(WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED);
+          expect(store.getActions()[4].type).toBe(WAIVERS_DELETE_MASK_TIMER_DONE);
+          done();
+        });
+
+        expect(store.getActions().length).toBe(1);
+        expect(store.getActions()[0].type).toBe(WAIVERS_DELETE_WAIVER_REQUESTED);
+      });
+
+      it('dispatches WAIVERS_DELETE_WAIVER_FULFILLED and reloads existing waivers if on the component details page and reloadComponentWaivers is true', function (done) {
+        const permissionContextTestUrl = getPermissionContextTestUrl('application', 'app');
+
+        state = {
+          ...state,
+          router: {
+            currentState: { name: 'firewall.componentDetailsPage.violations' },
+            currentParams: {
+              repositoryId: 'ownerId',
+              componentHash: 'hash',
+              ownerId: 'ownerId',
+              scanId: 'scanId',
+              hash: 'hash',
+            },
+          },
+          componentDetailsPolicyViolations: {
+            reloadComponentWaivers: true,
+          },
+          applicationReport: { metadata: { application: { id: 'ownerId' } } },
+        };
+        store = SpecUtil.mockReduxStore(state);
+
+        const requestUrl = deleteWaiverUrl('repository', 'ownerId', 'waiverId');
+
+        mockAxiosCalls({
+          get: {
+            [getReportPolicyThreatsUrl('publicId', 'scanId')]: Promise.resolve({ data: 'reportPolicyThreats' }),
+            [getComponentWaivers('repository', 'ownerId', 'hash')]: Promise.resolve({ data: 'componentWaivers' }),
+            [getComponentWaivers('application', 'publicId', 'a-hash')]: Promise.resolve({ data: 'componentWaivers' }),
+            [getProductFeaturesUrl()]: Promise.resolve({ data: [] }),
+          },
+          del: {
+            [requestUrl]: Promise.resolve(),
+          },
+          put: {
+            [permissionContextTestUrl]: Promise.resolve({
+              data: ['WAIVE_POLICY_VIOLATIONS'],
+            }),
+          },
+        });
+
+        jest.useFakeTimers();
+
+        store.dispatch(deleteWaiver('repository', 'ownerId', 'waiverId')).then(() => {
+          jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+          const actions = store.getActions();
+          expect(actions.length).toBe(6);
+          expect(actions[1].type).toBe(WAIVERS_DELETE_WAIVER_FULFILLED);
+          expect(actions[2].type).toBe(FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED);
+          expect(actions[3].type).toBe('componentDetailsPolicyViolations/load/pending');
+          expect(actions[4].type).toBe(FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED);
+          expect(actions[5].type).toBe(WAIVERS_DELETE_MASK_TIMER_DONE);
           done();
         });
 
@@ -1213,8 +1280,8 @@ describe('waiverActions', function () {
           expect(axios.delete).toHaveBeenCalledWith(requestUrl);
           expect(store.getActions().length).toBe(5);
           expect(store.getActions()[1].type).toBe(WAIVERS_DELETE_WAIVER_FULFILLED);
-          expect(store.getActions()[2].type).toEqual(TRANSITIVE_VIOLATION_WAIVERS_LOAD_REQUESTED);
-          expect(store.getActions()[3].type).toEqual(TRANSITIVE_VIOLATION_WAIVERS_LOAD_FULFILLED);
+          expect(store.getActions()[2].type).toBe(TRANSITIVE_VIOLATION_WAIVERS_LOAD_REQUESTED);
+          expect(store.getActions()[3].type).toBe(TRANSITIVE_VIOLATION_WAIVERS_LOAD_FULFILLED);
           expect(store.getActions()[3].payload).toBe('transitiveComponentWaivers');
           expect(store.getActions()[4].type).toBe(WAIVERS_DELETE_MASK_TIMER_DONE);
           done();

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { compose, path } from 'ramda';
+import { compose } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { capitalize, getISODateFromDateInput } from '../util/jsUtil';
@@ -37,7 +37,7 @@ import {
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { gotoWaiver, setSidebarNavListData } from 'MainRoot/sidebarNav/sidebarNavListActions';
 import { loadExistingWaiversData } from 'MainRoot/firewall/firewallActions';
-import { selectSelectedPolicyViolation } from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
+import { selectComponentDetailsViolationsSlice } from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED';
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED';
@@ -299,45 +299,34 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
   return (dispatch, getState) => {
     dispatch(deleteWaiverRequested());
 
-    let policyViolationId;
     const state = getState();
-    const { violation, componentDetailsPolicyViolations, router, sidebarNavList } = state;
-    const { reloadComponentWaivers } = componentDetailsPolicyViolations;
+    const { sidebarNavList } = state;
+    const { reloadComponentWaivers } = selectComponentDetailsViolationsSlice(state);
 
-    if (selectIsFirewallOrRepository(state)) {
-      policyViolationId = selectSelectedPolicyViolation(state)?.policyViolationId;
-    } else {
-      policyViolationId = path(['violationDetails', 'policyViolationId'], violation);
-    }
+    const policyViolationId = selectIsFirewallOrRepository(state)
+      ? state.componentDetailsPolicyViolations.selectedPolicyViolation?.policyViolationId
+      : state.violation.violationDetails?.policyViolationId;
+
     const endpointUrl = deleteWaiverUrl(ownerType, ownerId, waiverId);
 
     return axios
       .delete(endpointUrl)
       .then(() => {
         dispatch(deleteWaiverFulfilled());
-        const currentState = router.currentState;
-        if (currentState.name === 'waiver.details') {
+        const routerName = selectCurrentRouteName(state);
+        if (routerName === 'waiver.details') {
           dispatch(filterDataByIdAndRedirectToNextWaiverOrDashboard(sidebarNavList.data, waiverId));
-        } else if (currentState.name === 'transitiveViolations') {
-          const ownerId = router.currentParams.ownerId;
-          const scanId = router.currentParams.scanId;
-          const hash = router.currentParams.hash;
+        } else if (routerName === 'transitiveViolations') {
+          const currentParams = selectRouterCurrentParams(state);
+          const { ownerId = '', scanId = '', hash = '' } = currentParams;
           dispatch(loadTransitiveViolationWaivers(ownerId, scanId, hash));
-        } else if (currentState.name.match(/componentDetailsPage\.(?:security|violations|legal)/)) {
-          const hash = selectHash(getState());
-          const ownerId = selectRepositoryId(getState());
+        } else if (routerName.match(/componentDetailsPage\.(?:security|violations|legal)/)) {
+          const hash = selectHash(state);
+          const ownerId = selectRepositoryId(state);
           dispatch(loadExistingWaiversData('repository', ownerId, hash));
-          if (!reloadComponentWaivers) {
-            dispatch(loadApplicableWaivers(policyViolationId));
-          } else {
-            dispatch(policyViolationsActions.load());
-          }
+          dispatch(reloadComponentWaivers ? policyViolationsActions.load() : loadApplicableWaivers(policyViolationId));
         } else {
-          if (!reloadComponentWaivers) {
-            dispatch(loadApplicableWaivers(policyViolationId));
-          } else {
-            dispatch(policyViolationsActions.load());
-          }
+          dispatch(reloadComponentWaivers ? policyViolationsActions.load() : loadApplicableWaivers(policyViolationId));
         }
         setTimeout(() => {
           dispatch(deleteWaiverMaskTimerDone());

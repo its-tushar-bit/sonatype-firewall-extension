@@ -71,6 +71,8 @@ export const selectSelectedPolicyViolation = createSelector(
   prop('selectedPolicyViolation')
 );
 
+export const selectSelectedPolicyViolationId = createSelector(selectSelectedPolicyViolation, prop('policyViolationId'));
+
 export const selectIsViolationsDetailPopoverOpen = createSelector(
   selectShowViolationsDetailPopover,
   selectViolationsDetailRowClicked,

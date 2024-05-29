@@ -75,7 +75,6 @@ import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
@@ -494,7 +493,7 @@ public class QuarantineComponentReportTest
     ScrollUtil.scrollIntoView(recommendedVersionsSection.content());
     recommendedVersionsSection.getTitle().shouldHave(text("Recommended Versions"));
     ElementsCollection recommendedVersions = recommendedVersionsSection.contentRecommendedVersionsList();
-    recommendedVersions.shouldHave(CollectionCondition.size(1));
+    recommendedVersions.shouldHave(size(1));
 
     RiskRemediationTile.RecommendationElement recommendation = recommendedVersionsSection.getRecommendation(0);
     recommendation.shouldBe(visible);
@@ -601,9 +600,9 @@ public class QuarantineComponentReportTest
 
     PolicyViolationsTable policyViolationsTable = quarantineReportPage.getViolationsTable();
     policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(1));
+    policyViolationsTable.getRows().shouldHave(size(1));
     ElementsCollection rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
-    rowCells.shouldHave(CollectionCondition.size(1));
+    rowCells.shouldHave(size(1));
     rowCells.get(0).shouldHave(text("No policy violations"));
   }
 
@@ -615,12 +614,12 @@ public class QuarantineComponentReportTest
 
     PolicyViolationsTable policyViolationsTable = quarantineReportPage.getViolationsTable();
     policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(6));
+    policyViolationsTable.getRows().shouldHave(size(6));
 
-    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(6));
+    policyViolationsTable.getRows().shouldHave(size(6));
 
     ElementsCollection securityViolationCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
-    securityViolationCells.shouldHave(CollectionCondition.size(4));
+    securityViolationCells.shouldHave(size(4));
     securityViolationCells.get(0).shouldHave(text("10"));
     securityViolationCells.get(1).shouldHave(text("SecurityPolicy"));
     securityViolationCells.get(2).shouldHave(text("Security constraint"));
@@ -658,7 +657,7 @@ public class QuarantineComponentReportTest
     waitUntilSpinnersGone();
 
     OtherVersionsTable otherVersionsTable = quarantineReportPage.getOtherVersionsTable();
-    otherVersionsTable.getRows().shouldHave(CollectionCondition.size(1));
+    otherVersionsTable.getRows().shouldHave(size(1));
     otherVersionsTable.getRow(1).findAll(By.tagName("td")).get(0).shouldHave(text("No data found."));
   }
 
@@ -669,7 +668,7 @@ public class QuarantineComponentReportTest
     waitUntilSpinnersGone();
 
     OtherVersionsTable otherVersionsTable = quarantineReportPage.getOtherVersionsTable();
-    otherVersionsTable.getRows().shouldHave(CollectionCondition.size(1));
+    otherVersionsTable.getRows().shouldHave(size(1));
     otherVersionsTable.getRow(1).findAll(By.tagName("td")).get(0)
         .shouldHave(text("com.lingocoder : abi.cli : 0.5.3"));
   }
@@ -696,7 +695,7 @@ public class QuarantineComponentReportTest
     waitUntilSpinnersGone();
 
     OtherVersionsTable otherVersionsTable = quarantineReportPage.getOtherVersionsTable();
-    otherVersionsTable.getRows().shouldHave(CollectionCondition.size(3));
+    otherVersionsTable.getRows().shouldHave(size(3));
     otherVersionsTable.getRow(1).findAll(By.tagName("td")).get(0)
         .shouldHave(text("com.lingocoder : abi.cli : 0.5.5"));
     otherVersionsTable.getRow(2).findAll(By.tagName("td")).get(0)

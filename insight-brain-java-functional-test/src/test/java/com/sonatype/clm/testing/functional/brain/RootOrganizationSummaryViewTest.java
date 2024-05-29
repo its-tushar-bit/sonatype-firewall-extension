@@ -18,12 +18,12 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
@@ -66,7 +66,7 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(
         Condition.text(String.format("Configures the integration with an external SCM for the %s", rootOrg.getName())));
-    tile.rows().shouldHave(CollectionCondition.size(1));
+    tile.rows().shouldHave(size(1));
 
     tile.itemSubText().shouldNotBe(visible);
     tile.itemText().shouldBe(visible)
@@ -82,7 +82,7 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(
         Condition.text(String.format("Configures the integration with an external SCM for the %s", rootOrg.getName())));
-    tile.rows().shouldHave(CollectionCondition.size(1));
+    tile.rows().shouldHave(size(1));
 
     //Verify valid source control record exists here
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("GitHub"));
@@ -130,7 +130,7 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     ActionDropDown.copyOrgIdButton().shouldBe(visible);
     ActionDropDown.editOwner().shouldBe(visible);
     ActionDropDown.importPoliciesButton().shouldBe(visible);
-    ActionDropDown.actions().shouldHave(CollectionCondition.size(3));
+    ActionDropDown.actions().shouldHave(size(3));
 
     eyesWatcher.eyesCheck("root organization actions dropdown");
   }

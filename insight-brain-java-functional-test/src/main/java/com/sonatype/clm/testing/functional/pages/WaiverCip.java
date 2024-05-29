@@ -8,10 +8,10 @@ package com.sonatype.clm.testing.functional.pages;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.ReportCip;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
@@ -177,8 +177,8 @@ public class WaiverCip
                          String[] expectedConditions)
     {
       policyName().shouldHave(text(policyName));
-      constraints().shouldHave(CollectionCondition.texts(expectedConstraints));
-      conditions().shouldHave(CollectionCondition.texts(expectedConditions));
+      constraints().shouldHave(texts(expectedConstraints));
+      conditions().shouldHave(texts(expectedConditions));
       policyName().shouldHave(cssClass(cssClass));
     }
   }

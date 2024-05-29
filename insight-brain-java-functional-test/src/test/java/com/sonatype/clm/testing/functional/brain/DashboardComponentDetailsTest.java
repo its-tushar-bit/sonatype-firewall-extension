@@ -25,13 +25,13 @@ import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 
-import com.codeborne.selenide.CollectionCondition;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
@@ -98,7 +98,7 @@ public class DashboardComponentDetailsTest
     DashboardPage.dashboardContainer().shouldBe(visible);
     ComponentsResults table = DashboardPage.componentsView().results();
 
-    table.components().shouldHave(CollectionCondition.size(1)).shouldHave(texts("Group : Artifact : Version"));
+    table.components().shouldHave(size(1)).shouldHave(texts("Group : Artifact : Version"));
 
     table.firstComponent().name().click();
     DashboardComponentDetailsPage dashboardComponentDetailsPage = new DashboardComponentDetailsPage();

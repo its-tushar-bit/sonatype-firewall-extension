@@ -21,11 +21,11 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 
-import com.codeborne.selenide.CollectionCondition;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
@@ -74,7 +74,7 @@ public class SuccessMetricsIncludeLatestDataTest
         .shouldHave(AddSuccessMetricsModal.ON_LOAD_WARNING_TEXT);
     addSuccessMetricsModal.createBtn().click();
 
-    successMetricsReportListPage.reports().shouldHave(CollectionCondition.size(1));
+    successMetricsReportListPage.reports().shouldHave(size(1));
     successMetricsReportListPage.report(0).shouldHave(text("Test Latest Data")).link()
         .click();
 

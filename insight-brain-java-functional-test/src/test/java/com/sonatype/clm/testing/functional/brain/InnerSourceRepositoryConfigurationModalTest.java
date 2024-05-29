@@ -27,6 +27,9 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.visible;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -82,11 +85,11 @@ public class InnerSourceRepositoryConfigurationModalTest
     page.add().click();
     InnerSourceRepositoryConfigurationModal modal = new InnerSourceRepositoryConfigurationModal();
     modal.format().getElement().getSelectedOption().shouldHave(Condition.value("generic"));
-    modal.baseUrl().input().shouldBe(Condition.empty);
-    modal.allowAnonymousAccess().shouldBe(Condition.selected);
-    modal.test().shouldHave(Condition.cssClass("disabled"));
-    modal.save().shouldBe(Condition.visible);
-    modal.authentication().shouldNotBe(Condition.visible);
+    modal.baseUrl().input().shouldBe(empty);
+    modal.allowAnonymousAccess().shouldBe(selected);
+    modal.test().shouldHave(cssClass("disabled"));
+    modal.save().shouldBe(visible);
+    modal.authentication().shouldNotBe(visible);
   }
 
   @Test
@@ -97,15 +100,15 @@ public class InnerSourceRepositoryConfigurationModalTest
     InnerSourceRepositoryBaseConfigurationsPage page = visitPage();
 
     RepositoryConnectionRow repositoryConnectionRow = page.row(repositoryConnection.getId()).shouldBe(visible);
-    
+
     repositoryConnectionRow.edit().click();
     InnerSourceRepositoryConfigurationModal modal = new InnerSourceRepositoryConfigurationModal();
     modal.format().getElement().getSelectedOption().shouldHave(Condition.value("generic"));
     modal.baseUrl().input().shouldHave(Condition.value(repositoryConnection.getBaseUrl()));
-    modal.allowAnonymousAccess().shouldBe(Condition.selected);
-    modal.test().shouldNotHave(Condition.cssClass("disabled"));
-    modal.save().shouldBe(Condition.visible);
-    modal.authentication().shouldNotBe(Condition.visible);
+    modal.allowAnonymousAccess().shouldBe(selected);
+    modal.test().shouldNotHave(cssClass("disabled"));
+    modal.save().shouldBe(visible);
+    modal.authentication().shouldNotBe(visible);
   }
 
   @Test
@@ -126,12 +129,12 @@ public class InnerSourceRepositoryConfigurationModalTest
 
     modal.format().getElement().getSelectedOption().shouldHave(Condition.value("generic"));
     modal.baseUrl().input().shouldHave(Condition.value(repositoryConnection.getBaseUrl()));
-    modal.enterUsernameAndPassword().shouldBe(Condition.selected);
-    modal.test().shouldNotHave(Condition.cssClass("disabled"));
-    modal.save().shouldBe(Condition.visible);
-    modal.authentication().shouldBe(Condition.visible);
+    modal.enterUsernameAndPassword().shouldBe(selected);
+    modal.test().shouldNotHave(cssClass("disabled"));
+    modal.save().shouldBe(visible);
+    modal.authentication().shouldBe(visible);
     modal.username().input().shouldHave(Condition.value(repositoryConnection.getUsername()));
-    modal.password().input().shouldNotBe(Condition.empty);
+    modal.password().input().shouldNotBe(empty);
     modal.password().input().shouldNotBe(Condition.value("password"));
 
     eyesWatcher.eyesCheck();
@@ -261,7 +264,7 @@ public class InnerSourceRepositoryConfigurationModalTest
 
     modal.save().shouldBe(Condition.enabled).click();
 
-    modal.getElement().find(".nx-alert--error").shouldBe(Condition.visible)
+    modal.getElement().find(".nx-alert--error").shouldBe(visible)
         .shouldHave(Condition.text("An error occurred saving data."));
   }
 
@@ -281,7 +284,7 @@ public class InnerSourceRepositoryConfigurationModalTest
 
     modal.test().click();
 
-    modal.getElement().find(".nx-alert--success").shouldBe(Condition.visible)
+    modal.getElement().find(".nx-alert--success").shouldBe(visible)
         .shouldHave(Condition.text("Repository configuration test successful."));
   }
 
@@ -300,7 +303,7 @@ public class InnerSourceRepositoryConfigurationModalTest
 
     modal.test().click();
 
-    modal.getElement().find(".nx-alert--error").shouldBe(Condition.visible)
+    modal.getElement().find(".nx-alert--error").shouldBe(visible)
         .shouldHave(Condition.text("Unable to connect to the configured repository. 404 Not Found"));
   }
 
@@ -326,7 +329,7 @@ public class InnerSourceRepositoryConfigurationModalTest
             NXRM_VERSION_HEADER_MOCK_VALUE).withStatus(200)));
     modal.test().click();
 
-    modal.getElement().find(".nx-alert--success").shouldBe(Condition.visible)
+    modal.getElement().find(".nx-alert--success").shouldBe(visible)
         .shouldHave(Condition.text("Repository configuration test successful."));
   }
 
@@ -353,7 +356,7 @@ public class InnerSourceRepositoryConfigurationModalTest
 
     modal.test().click();
 
-    modal.getElement().find(".nx-alert--error").shouldBe(Condition.visible)
+    modal.getElement().find(".nx-alert--error").shouldBe(visible)
         .shouldHave(Condition.text("Unable to connect to the configured repository. 404 Not Found"));
   }
 
@@ -383,7 +386,7 @@ public class InnerSourceRepositoryConfigurationModalTest
 
     modal.getElement()
         .find(".nx-alert--success")
-        .shouldBe(Condition.visible)
+        .shouldBe(visible)
         .shouldHave(Condition.text("Repository configuration test successful."));
   }
 
@@ -413,7 +416,7 @@ public class InnerSourceRepositoryConfigurationModalTest
 
     modal.getElement()
         .find(".nx-alert--error")
-        .shouldBe(Condition.visible)
+        .shouldBe(visible)
         .shouldHave(Condition.text("Unable to connect to the configured repository. 404 Not Found"));
   }
 }

@@ -16,12 +16,12 @@ import com.sonatype.insight.brain.model.sast.SastFindingConfidence;
 import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrollIntoView;
@@ -59,7 +59,7 @@ public class SastScanPageTest
     SastScanPage.findingsTable().shouldBe(visible);
 
     //test sast finding table
-    SastScanPage.sastFindingTableDataRows().shouldHave(CollectionCondition.size(4));
+    SastScanPage.sastFindingTableDataRows().shouldHave(size(4));
     SastScanPage.sastFindingTableDataRows().get(0).shouldHave(text("CWE"));
     SastScanPage.sastFindingTableDataRows().get(0).shouldHave(text("someDescription"));
     SastScanPage.sastFindingTableDataRows().get(0).shouldHave(text("someRuleName"));
@@ -69,17 +69,17 @@ public class SastScanPageTest
     //test sast finding table filter
     SastScanPage.filterBySeverityDropdown().click();
     ElementsCollection filterOptions = SastScanPage.filterBySeverityDropdown().findAll(".nx-checkbox");
-    filterOptions.shouldHave(CollectionCondition.size(4));
+    filterOptions.shouldHave(size(4));
     filterOptions.get(0).shouldHave(text("CRITICAL"));
     filterOptions.get(1).shouldHave(text("HIGH"));
     filterOptions.get(2).shouldHave(text("MEDIUM"));
     filterOptions.get(3).shouldHave(text("LOW"));
 
     filterOptions.get(0).click();
-    SastScanPage.sastFindingTableDataRows().shouldHave(CollectionCondition.size(1));
+    SastScanPage.sastFindingTableDataRows().shouldHave(size(1));
 
     filterOptions.get(0).click();
-    SastScanPage.sastFindingTableDataRows().shouldHave(CollectionCondition.size(4));
+    SastScanPage.sastFindingTableDataRows().shouldHave(size(4));
 
     SastScanPage.filterBySeverityDropdown().click();
 

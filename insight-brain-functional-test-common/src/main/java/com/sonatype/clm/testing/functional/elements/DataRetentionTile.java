@@ -9,6 +9,8 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.exactText;
+
 public class DataRetentionTile
     extends OwnerTile
 {
@@ -44,7 +46,7 @@ public class DataRetentionTile
 
   private int column(String contextId) {
     ElementsCollection rowHeaders = rowHeaders();
-    return rowHeaders.indexOf(rowHeaders.find(Condition.exactText(contextId)));
+    return rowHeaders.indexOf(rowHeaders.find(exactText(contextId)));
   }
 
   public ElementsCollection maxAges() {

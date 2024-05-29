@@ -20,11 +20,11 @@ import com.sonatype.insight.brain.model.security.PermissionCategory;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
-import com.codeborne.selenide.CollectionCondition;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.checked;
@@ -66,7 +66,7 @@ public class RoleManagementTest
   public void testPageLoadHasTheRightRoles() {
     RoleManagementPage roleManagementPage = new RoleManagementPage();
     roleManagementPage.componentTitle().shouldBe(visible).shouldHave(text("Configure Roles"));
-    roleManagementPage.builtinRoles().shouldHave(CollectionCondition.size(7));
+    roleManagementPage.builtinRoles().shouldHave(size(7));
 
     // verify that the roles are sorted in the right order
     for (int i = 0; i < BUILTIN_ROLES.length; i++) {
@@ -90,7 +90,7 @@ public class RoleManagementTest
     roleEditorPage.pageTitle().shouldBe(visible).shouldHave(text("Edit a Role"));
 
     // verify there are three permission categories
-    roleEditorPage.permissionCategories().shouldHave(CollectionCondition.size(3));
+    roleEditorPage.permissionCategories().shouldHave(size(3));
 
     // Administrator permission category
     String adminDisplayName = PermissionCategory.ADMINISTRATOR.getDisplayName();
@@ -99,7 +99,7 @@ public class RoleManagementTest
 
     // verify permissions under Administrator category, and that they are in right
     // order
-    roleEditorPage.permissions(adminDisplayName).shouldHave(CollectionCondition.size(4));
+    roleEditorPage.permissions(adminDisplayName).shouldHave(size(4));
 
     assertPermission(roleEditorPage.permission(adminDisplayName, 0, FIRST_COLUMN), !ON, !ENABLED,
         Permission.CONFIGURE_SYSTEM);
@@ -116,7 +116,7 @@ public class RoleManagementTest
     iqPermissionCategory.shouldBe(visible).shouldHave(text(iqDisplayName));
 
     // verify permissions under IQ category, and that they are in right order
-    roleEditorPage.permissions(iqDisplayName).shouldHave(CollectionCondition.size(10));
+    roleEditorPage.permissions(iqDisplayName).shouldHave(size(10));
 
     assertPermission(roleEditorPage.permission(iqDisplayName, 0, FIRST_COLUMN), !ON, !ENABLED,
         Permission.MANAGE_PROPRIETARY);
@@ -145,7 +145,7 @@ public class RoleManagementTest
 
     // verify permissions under Remediation category, and that they are in the right
     // order
-    roleEditorPage.permissions(remediationDisplayName).shouldHave(CollectionCondition.size(4));
+    roleEditorPage.permissions(remediationDisplayName).shouldHave(size(4));
 
     assertPermission(roleEditorPage.permission(remediationDisplayName, 0, FIRST_COLUMN), !ON, !ENABLED,
         Permission.WAIVE_POLICY_VIOLATIONS);
@@ -194,7 +194,7 @@ public class RoleManagementTest
     roleEditorPage.save().scrollIntoView(true).click();
     roleEditorPage.save().shouldBe(visible);
 
-    roleManagementPage.customRoles().shouldHave(CollectionCondition.size(1));
+    roleManagementPage.customRoles().shouldHave(size(1));
     roleManagementPage.customRole(0).name().shouldHave(text(newRoleName));
     roleManagementPage.customRole(0).description().shouldHave(text(newRoleDescription));
     roleHasPermission(newRoleName, permissionDescription);
@@ -210,7 +210,7 @@ public class RoleManagementTest
     roleEditorPage.save().scrollIntoView(true).click();
 
     // verify update is saved
-    roleManagementPage.customRoles().shouldHave(CollectionCondition.size(1));
+    roleManagementPage.customRoles().shouldHave(size(1));
     roleManagementPage.customRole(0).name().shouldHave(text(newRoleName + updateSuffix));
     roleManagementPage.customRole(0).description().shouldHave(text(newRoleDescription + updateSuffix));
     roleHasPermission(newRoleName, permissionDescription);

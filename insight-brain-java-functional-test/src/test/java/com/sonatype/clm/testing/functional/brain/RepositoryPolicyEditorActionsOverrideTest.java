@@ -13,11 +13,11 @@ import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
-import com.codeborne.selenide.CollectionCondition;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
@@ -49,7 +49,7 @@ public class RepositoryPolicyEditorActionsOverrideTest
     PolicyEditorPage.savePolicy();
 
     PolicyEditorPage.inheritanceSection().shouldNotBe(visible);
-    OwnerDetailSidebar.policyGroup().entryItems().shouldHave(CollectionCondition.size(1));
+    OwnerDetailSidebar.policyGroup().entryItems().shouldHave(size(1));
     OwnerDetailSidebar.policyGroup().entryItems().get(0).click();
 
     PolicyEditorPage.title().shouldHave(text("Edit Policy"));
@@ -71,7 +71,7 @@ public class RepositoryPolicyEditorActionsOverrideTest
             .shouldHave(text("Allow action overrides at repository level"));
     PolicyEditorPage.inheritanceSection().allChildrenInheritRadio().shouldNotBe(visible);
     PolicyEditorPage.inheritanceSection().specifiedChildrenInheritRadio().shouldNotBe(visible);
-    OwnerDetailSidebar.policyGroup().entryItems().shouldHave(CollectionCondition.size(1));
+    OwnerDetailSidebar.policyGroup().entryItems().shouldHave(size(1));
     OwnerDetailSidebar.policyGroup().entryItems().get(0).click();
 
     PolicyEditorPage.title().shouldHave(text("Edit Policy"));
@@ -91,7 +91,7 @@ public class RepositoryPolicyEditorActionsOverrideTest
         .shouldHave(text("Allow action overrides at repository manager and repository levels"));
     PolicyEditorPage.inheritanceSection().allChildrenInheritRadio().shouldNotBe(visible);
     PolicyEditorPage.inheritanceSection().specifiedChildrenInheritRadio().shouldNotBe(visible);
-    OwnerDetailSidebar.policyGroup().entryItems().shouldHave(CollectionCondition.size(1));
+    OwnerDetailSidebar.policyGroup().entryItems().shouldHave(size(1));
     OwnerDetailSidebar.policyGroup().entryItems().get(0).click();
 
     PolicyEditorPage.title().shouldHave(text("Edit Policy"));

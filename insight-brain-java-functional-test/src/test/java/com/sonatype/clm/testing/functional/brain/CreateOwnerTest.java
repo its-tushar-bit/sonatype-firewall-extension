@@ -33,7 +33,6 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.service.InsightWork;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Driver;
 import com.codeborne.selenide.Selenide;
@@ -48,6 +47,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.WebElement;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.*;
 import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -94,7 +94,7 @@ public class CreateOwnerTest
   @Test
   @Ignore
   public void testCreateApplication() {
-    OwnerTreeView.organizationElements().shouldHave(CollectionCondition.size(1));
+    OwnerTreeView.organizationElements().shouldHave(size(1));
     OrganizationNode orgNode = OwnerTreeView.organization(0);
     orgNode.treeViewElement().click();
     orgNode.newApplicationButton().shouldBe(visible, enabled).click();
@@ -160,7 +160,7 @@ public class CreateOwnerTest
     assertThat(app.getOrganizationId()).isEqualTo(parentOrg.getId());
     assertThat(app.getName()).isEqualTo(NAME);
 
-    orgNode.applicationElements().shouldHave(CollectionCondition.size(1));
+    orgNode.applicationElements().shouldHave(size(1));
     orgNode.applicationElements().get(0).shouldHave(text(NAME));
   }
 

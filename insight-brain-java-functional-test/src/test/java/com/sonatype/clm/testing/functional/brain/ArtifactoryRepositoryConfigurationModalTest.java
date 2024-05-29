@@ -12,7 +12,6 @@ import com.sonatype.clm.testing.functional.pages.ArtifactoryRepositoryBaseConfig
 import com.sonatype.clm.testing.functional.pages.ArtifactoryRepositoryBaseConfigurationsPage.ArtifactoryConnectionRow;
 import com.sonatype.clm.testing.functional.pages.ArtifactoryRepositoryConfigurationModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.artifactory.ArtifactoryClient;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryQueryLanguageUtils;
 import com.sonatype.insight.brain.artifactory.client.ChecksumType;
@@ -20,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.artifactory.ArtifactoryConnectionDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.security.PasswordHandler;
 
 import com.codeborne.selenide.Condition;
@@ -30,6 +30,9 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -37,10 +40,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.sonatype.insight.brain.artifactory.ArtifactoryMockServerRule.ARTIFACTORY_ID_HEADER_MOCK_VALUE;
 import static com.sonatype.insight.brain.artifactory.ArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME;
 import static com.sonatype.insight.brain.artifactory.ArtifactoryClient.CHECKSUM_SEARCH_PATH;
 import static com.sonatype.insight.brain.artifactory.ArtifactoryClient.TEST_SHA256;
+import static com.sonatype.insight.brain.artifactory.ArtifactoryMockServerRule.ARTIFACTORY_ID_HEADER_MOCK_VALUE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ArtifactoryRepositoryConfigurationModalTest
@@ -94,10 +97,10 @@ public class ArtifactoryRepositoryConfigurationModalTest
     ArtifactoryRepositoryBaseConfigurationsPage page = visitPage();
     page.add().click();
     ArtifactoryRepositoryConfigurationModal modal = new ArtifactoryRepositoryConfigurationModal();
-    modal.baseUrl().input().shouldBe(Condition.empty);
-    modal.allowAnonymousAccess().shouldBe(Condition.selected);
+    modal.baseUrl().input().shouldBe(empty);
+    modal.allowAnonymousAccess().shouldBe(selected);
     modal.test().shouldHave(Condition.cssClass("disabled"));
-    modal.authentication().shouldNotBe(Condition.visible);
+    modal.authentication().shouldNotBe(visible);
   }
 
   @Test
@@ -111,10 +114,10 @@ public class ArtifactoryRepositoryConfigurationModalTest
 
     artifactoryConnectionRow.edit().click();
     ArtifactoryRepositoryConfigurationModal modal = new ArtifactoryRepositoryConfigurationModal();
-    modal.baseUrl().input().shouldHave(Condition.value(artifactoryConnection.getBaseUrl()));
-    modal.allowAnonymousAccess().shouldBe(Condition.selected);
+    modal.baseUrl().input().shouldHave(value(artifactoryConnection.getBaseUrl()));
+    modal.allowAnonymousAccess().shouldBe(selected);
     modal.test().shouldNotHave(Condition.cssClass("disabled"));
-    modal.authentication().shouldNotBe(Condition.visible);
+    modal.authentication().shouldNotBe(visible);
   }
 
   @Test
@@ -133,13 +136,13 @@ public class ArtifactoryRepositoryConfigurationModalTest
 
     ArtifactoryRepositoryConfigurationModal modal = new ArtifactoryRepositoryConfigurationModal();
 
-    modal.baseUrl().input().shouldHave(Condition.value(artifactoryConnection.getBaseUrl()));
-    modal.enterUsernameAndPassword().shouldBe(Condition.selected);
+    modal.baseUrl().input().shouldHave(value(artifactoryConnection.getBaseUrl()));
+    modal.enterUsernameAndPassword().shouldBe(selected);
     modal.test().shouldNotHave(Condition.cssClass("disabled"));
-    modal.authentication().shouldBe(Condition.visible);
-    modal.username().input().shouldHave(Condition.value(artifactoryConnection.getUsername()));
-    modal.password().input().shouldNotBe(Condition.empty);
-    modal.password().input().shouldNotBe(Condition.value("password"));
+    modal.authentication().shouldBe(visible);
+    modal.username().input().shouldHave(value(artifactoryConnection.getUsername()));
+    modal.password().input().shouldNotBe(empty);
+    modal.password().input().shouldNotBe(value("password"));
 
     eyesWatcher.eyesCheck();
   }
@@ -223,7 +226,7 @@ public class ArtifactoryRepositoryConfigurationModalTest
 
     modal.save().shouldBe(Condition.enabled).click();
 
-    modal.getElement().find(".nx-alert--error").shouldBe(Condition.visible)
+    modal.getElement().find(".nx-alert--error").shouldBe(visible)
         .shouldHave(Condition.text("An error occurred saving data."));
   }
 
@@ -245,7 +248,7 @@ public class ArtifactoryRepositoryConfigurationModalTest
 
     modal.test().click();
 
-    modal.getElement().find(".nx-alert--success").shouldBe(Condition.visible)
+    modal.getElement().find(".nx-alert--success").shouldBe(visible)
         .shouldHave(Condition.text("Repository configuration test successful."));
   }
 
@@ -265,7 +268,7 @@ public class ArtifactoryRepositoryConfigurationModalTest
 
     modal.test().click();
 
-    modal.getElement().find(".nx-alert--error").shouldBe(Condition.visible)
+    modal.getElement().find(".nx-alert--error").shouldBe(visible)
         .shouldHave(Condition.text("Unable to connect to the configured repository. 404 Not Found"));
   }
 
@@ -301,7 +304,7 @@ public class ArtifactoryRepositoryConfigurationModalTest
 
     modal.test().click();
 
-    modal.getElement().find(".nx-alert--success").shouldBe(Condition.visible)
+    modal.getElement().find(".nx-alert--success").shouldBe(visible)
         .shouldHave(Condition.text("Repository configuration test successful."));
   }
 
@@ -337,7 +340,7 @@ public class ArtifactoryRepositoryConfigurationModalTest
 
     modal.test().click();
 
-    modal.getElement().find(".nx-alert--error").shouldBe(Condition.visible)
+    modal.getElement().find(".nx-alert--error").shouldBe(visible)
         .shouldHave(Condition.text("Unable to connect to the configured repository. 404 Not Found"));
   }
 
@@ -375,7 +378,7 @@ public class ArtifactoryRepositoryConfigurationModalTest
 
     modal.getElement()
         .find(".nx-alert--success")
-        .shouldBe(Condition.visible)
+        .shouldBe(visible)
         .shouldHave(Condition.text("Repository configuration test successful."));
   }
 
@@ -404,8 +407,8 @@ public class ArtifactoryRepositoryConfigurationModalTest
                     Collections.singleton(ArtifactoryClient.TEST_SHA256),
                     Collections.emptySet())))
         .willReturn(
-        aResponse().withHeader(ARTIFACTORY_ID_HEADER_NAME, ARTIFACTORY_ID_HEADER_MOCK_VALUE)
-            .withStatus(404)));
+            aResponse().withHeader(ARTIFACTORY_ID_HEADER_NAME, ARTIFACTORY_ID_HEADER_MOCK_VALUE)
+                .withStatus(404)));
 
     ArtifactoryRepositoryConfigurationModal modal = new ArtifactoryRepositoryConfigurationModal();
 
@@ -413,7 +416,7 @@ public class ArtifactoryRepositoryConfigurationModalTest
 
     modal.getElement()
         .find(".nx-alert--error")
-        .shouldBe(Condition.visible)
+        .shouldBe(visible)
         .shouldHave(Condition.text("Unable to connect to the configured repository. 404 Not Found"));
   }
 }

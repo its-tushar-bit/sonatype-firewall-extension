@@ -18,13 +18,15 @@ import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
+import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.CollectionCondition.textsInAnyOrder;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -99,13 +101,13 @@ public class LegalApplicationDetailsTest
   @Test
   public void testComponentsTablePresent() {
     final ComponentTable componentTable = LegalApplicationDetailsPage.componentTable();
-    componentTable.rows().shouldHave(CollectionCondition.size(3));
+    componentTable.rows().shouldHave(size(3));
 
-    componentTable.componentNames().shouldHave(CollectionCondition.textsInAnyOrder(
+    componentTable.componentNames().shouldHave(textsInAnyOrder(
         "org.package : component1 : 1.0", "org.package : component2 : 2.0",
         "com.package : component1 : 3.0"));
 
-    componentTable.licenses().shouldHave(CollectionCondition.textsInAnyOrder(
+    componentTable.licenses().shouldHave(textsInAnyOrder(
         "Apache-2.0", "BSD-3-Clause", "BSD-2-Clause"));
   }
 
@@ -114,22 +116,22 @@ public class LegalApplicationDetailsTest
     final ComponentTable componentTable = LegalApplicationDetailsPage.componentTable();
 
     componentTable.componentNameFilter().setValue("org.");
-    componentTable.componentNames().shouldHave(CollectionCondition.textsInAnyOrder(
+    componentTable.componentNames().shouldHave(textsInAnyOrder(
         "org.package : component1 : 1.0", "org.package : component2 : 2.0"));
-    componentTable.licenses().shouldHave(CollectionCondition.textsInAnyOrder("Apache-2.0", "BSD-3-Clause"));
+    componentTable.licenses().shouldHave(textsInAnyOrder("Apache-2.0", "BSD-3-Clause"));
 
     componentTable.componentNameFilter().setValue("component1");
-    componentTable.componentNames().shouldHave(CollectionCondition.textsInAnyOrder(
+    componentTable.componentNames().shouldHave(textsInAnyOrder(
         "org.package : component1 : 1.0", "com.package : component1 : 3.0"));
-    componentTable.licenses().shouldHave(CollectionCondition.textsInAnyOrder("Apache-2.0", "BSD-2-Clause"));
+    componentTable.licenses().shouldHave(textsInAnyOrder("Apache-2.0", "BSD-2-Clause"));
 
     // setting value to empty doesn't trigger onChange event, so sending a wall of backspaces instead
     componentTable.componentNameFilter().sendKeys("\b\b\b\b\b\b\b\b\b");
-    componentTable.componentNames().shouldHave(CollectionCondition.textsInAnyOrder(
+    componentTable.componentNames().shouldHave(textsInAnyOrder(
         "org.package : component1 : 1.0", "org.package : component2 : 2.0",
         "com.package : component1 : 3.0"));
 
-    componentTable.licenses().shouldHave(CollectionCondition.textsInAnyOrder(
+    componentTable.licenses().shouldHave(textsInAnyOrder(
         "Apache-2.0", "BSD-3-Clause", "BSD-2-Clause"));
   }
 
@@ -138,20 +140,20 @@ public class LegalApplicationDetailsTest
     final ComponentTable componentTable = LegalApplicationDetailsPage.componentTable();
 
     componentTable.licenseFilter().setValue("Apa");
-    componentTable.componentNames().shouldHave(CollectionCondition.texts("org.package : component1 : 1.0"));
-    componentTable.licenses().shouldHave(CollectionCondition.textsInAnyOrder("Apache-2.0"));
+    componentTable.componentNames().shouldHave(texts("org.package : component1 : 1.0"));
+    componentTable.licenses().shouldHave(textsInAnyOrder("Apache-2.0"));
 
     componentTable.licenseFilter().setValue("BSD");
-    componentTable.componentNames().shouldHave(CollectionCondition.textsInAnyOrder(
+    componentTable.componentNames().shouldHave(textsInAnyOrder(
         "com.package : component1 : 3.0", "org.package : component2 : 2.0"));
-    componentTable.licenses().shouldHave(CollectionCondition.textsInAnyOrder("BSD-2-Clause", "BSD-3-Clause"));
+    componentTable.licenses().shouldHave(textsInAnyOrder("BSD-2-Clause", "BSD-3-Clause"));
 
     componentTable.licenseFilter().sendKeys("\b\b\b\b");
-    componentTable.componentNames().shouldHave(CollectionCondition.textsInAnyOrder(
+    componentTable.componentNames().shouldHave(textsInAnyOrder(
         "org.package : component1 : 1.0", "org.package : component2 : 2.0",
         "com.package : component1 : 3.0"));
 
-    componentTable.licenses().shouldHave(CollectionCondition.textsInAnyOrder(
+    componentTable.licenses().shouldHave(textsInAnyOrder(
         "Apache-2.0", "BSD-3-Clause", "BSD-2-Clause"));
   }
 
@@ -161,15 +163,15 @@ public class LegalApplicationDetailsTest
 
     componentTable.componentNameFilter().setValue("org.package");
     componentTable.licenseFilter().setValue("BSD");
-    componentTable.componentNames().shouldHave(CollectionCondition.texts("org.package : component2 : 2.0"));
-    componentTable.licenses().shouldHave(CollectionCondition.textsInAnyOrder("BSD-3-Clause"));
+    componentTable.componentNames().shouldHave(texts("org.package : component2 : 2.0"));
+    componentTable.licenses().shouldHave(textsInAnyOrder("BSD-3-Clause"));
   }
 
   @Test
   public void testSortByComponent() {
     final ComponentTable componentTable = LegalApplicationDetailsPage.componentTable();
 
-    componentTable.componentNames().shouldHave(CollectionCondition.size(3));
+    componentTable.componentNames().shouldHave(size(3));
     // Avoids hover randomness over the first row
     LegalApplicationDetailsPage.title().click();
     eyesWatcher.eyesCheck();
@@ -187,7 +189,7 @@ public class LegalApplicationDetailsTest
   public void testSortByLicenses() {
     final ComponentTable componentTable = LegalApplicationDetailsPage.componentTable();
 
-    componentTable.componentNames().shouldHave(CollectionCondition.size(3));
+    componentTable.componentNames().shouldHave(size(3));
     componentTable.sortByLicenses().click();
     componentTable.licenses().get(0).shouldHave(text("Apache-2.0"));
     componentTable.licenses().get(1).shouldHave(text("BSD-2-Clause"));
@@ -208,10 +210,10 @@ public class LegalApplicationDetailsTest
     filterContainer.shouldBe(visible);
     eyesWatcher.eyesCheck();
     final ComponentTable componentTable = LegalApplicationDetailsPage.componentTable();
-    componentTable.componentNames().shouldHave(CollectionCondition.size(3));
+    componentTable.componentNames().shouldHave(size(3));
     LegalApplicationDetailsPage.reviewStatusFilter().twisty().click();
     LegalApplicationDetailsPage.reviewStatusFilter().checkboxItem(3).click();
-    componentTable.componentNames().shouldHave(CollectionCondition.size(2));
+    componentTable.componentNames().shouldHave(size(2));
     componentTable.licenses().get(0).shouldHave(text("Apache-2.0"));
     componentTable.licenses().get(1).shouldHave(text("BSD-3-Clause"));
     filterButton.shouldHave(exactText("Filter*"));

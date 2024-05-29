@@ -16,13 +16,13 @@ import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.text;
 
 public class OrgsAndPoliciesTreeViewTest
@@ -55,7 +55,7 @@ public class OrgsAndPoliciesTreeViewTest
   @Test
   public void testOwnerTree() {
     ElementsCollection treeItems = OwnerTreeViewPage.tree().clickableTreeItems();
-    treeItems.shouldHave(CollectionCondition.size(57));
+    treeItems.shouldHave(size(57));
 
     eyesWatcher.eyesCheck("owner tree view");
   }
@@ -101,15 +101,15 @@ public class OrgsAndPoliciesTreeViewTest
   @Test
   public void testOwnerTreeFilter() {
     ElementsCollection treeItems = OwnerTreeViewPage.tree().clickableTreeItems();
-    treeItems.shouldHave(CollectionCondition.size(57));
+    treeItems.shouldHave(size(57));
 
     OwnerTreeViewPage.ownerFilterInput().setValue("12");
     treeItems = OwnerTreeViewPage.tree().clickableTreeItems();
-    treeItems.shouldHave(CollectionCondition.size(10));
+    treeItems.shouldHave(size(10));
 
     OwnerTreeViewPage.ownerFilterInput().setValue("asdfg");
     treeItems = OwnerTreeViewPage.tree().clickableTreeItems();
-    treeItems.shouldHave(CollectionCondition.size(0));
+    treeItems.shouldHave(size(0));
     OwnerTreeViewPage.emptyTreeMessage().shouldHave(text("No matching results"));
   }
 }

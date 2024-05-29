@@ -26,14 +26,15 @@ import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.text;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -231,11 +232,11 @@ public class EditCopyrightsTest
     EditCopyrightsModal modal = new EditCopyrightsModal();
     modal.should(Condition.appear);
 
-    modal.copyrightInputs().shouldHave(CollectionCondition.size(3));
+    modal.copyrightInputs().shouldHave(size(3));
 
     modal.addCopyrightButton().click();
 
-    modal.copyrightInputs().shouldHave(CollectionCondition.size(4));
+    modal.copyrightInputs().shouldHave(size(4));
 
     modal.copyrightInputAt(3).shouldHave(Condition.value("")).setValue("NEW COPYRIGHT");
     modal.save().shouldNotHave(Condition.cssClass("disabled")).click();
@@ -273,10 +274,10 @@ public class EditCopyrightsTest
     EditCopyrightsModal modal = new EditCopyrightsModal();
     modal.should(Condition.appear);
 
-    modal.copyrightInputs().shouldHave(CollectionCondition.size(3));
+    modal.copyrightInputs().shouldHave(size(3));
     modal.copyrightInputAt(1).setValue("UPDATED COPYRIGHT");
     modal.addCopyrightButton().click();
-    modal.copyrightInputs().shouldHave(CollectionCondition.size(4));
+    modal.copyrightInputs().shouldHave(size(4));
     modal.copyrightInputAt(3).shouldHave(Condition.value("")).setValue("NEW COPYRIGHT");
     modal.cancel().shouldNotHave(Condition.cssClass("disabled")).click();
 
@@ -328,7 +329,7 @@ public class EditCopyrightsTest
     assertThat(String.join(",", menu.options().texts())).isEqualTo("Fulfilled,Flagged,Not Applicable");
 
     // Changing the status
-    modal.statusDropdownItems().find(Condition.exactText("Flagged")).click();
+    modal.statusDropdownItems().find(exactText("Flagged")).click();
 
     // should enable the save button
     modal.save().shouldNotHave(Condition.cssClass("disabled")).click();

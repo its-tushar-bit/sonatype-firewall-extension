@@ -20,13 +20,13 @@ import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportScopeDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Selenide;
 import org.joda.time.LocalDate;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
@@ -86,7 +86,7 @@ public class SuccessMetricsReportListTest
     SuccessMetricsReportListPage successMetricsReportListPage = new SuccessMetricsReportListPage();
     successMetricsReportListPage.shouldBe(visible);
 
-    successMetricsReportListPage.reports().shouldHave(CollectionCondition.size(0));
+    successMetricsReportListPage.reports().shouldHave(size(0));
     successMetricsReportListPage.emptyDescriptor().shouldBe(visible)
         .shouldHave(SuccessMetricsReportListPage.EMPTY_TEXT);
 
@@ -96,7 +96,7 @@ public class SuccessMetricsReportListTest
     refresh();
 
     successMetricsReportListPage.emptyDescriptor().shouldBe(hidden);
-    successMetricsReportListPage.reports().shouldHave(CollectionCondition.size(1));
+    successMetricsReportListPage.reports().shouldHave(size(1));
     eyesWatcher.eyesCheck();
 
     SuccessMetricsListItem row = successMetricsReportListPage.report(0);
@@ -118,7 +118,7 @@ public class SuccessMetricsReportListTest
     modal.cancelBtn().shouldBe(enabled).click();
     modal.shouldBe(hidden);
     refresh();
-    page.reports().shouldHave(CollectionCondition.size(0));
+    page.reports().shouldHave(size(0));
 
     page.addSuccessMetricsBtn().shouldBe(visible).click();
 
@@ -130,7 +130,7 @@ public class SuccessMetricsReportListTest
     modal.customRadioBtn().shouldHave(text("custom")).shouldNotBe(selected);
     modal.createBtn().shouldHave(text("Submit")).click();
 
-    page.reports().shouldHave(CollectionCondition.size(1));
+    page.reports().shouldHave(size(1));
     page.report(0).shouldHave(text("Root Org Chart")).link().click();
 
     SuccessMetricsReportPage chartPage = new SuccessMetricsReportPage();
@@ -163,7 +163,7 @@ public class SuccessMetricsReportListTest
 
     modal.createBtn().click();
 
-    page.reports().shouldHave(CollectionCondition.size(2));
+    page.reports().shouldHave(size(2));
     page.report(1).shouldHave(text("Organization Chart")).link().click();
 
     chartPage = new SuccessMetricsReportPage();
@@ -191,7 +191,7 @@ public class SuccessMetricsReportListTest
     modal.nthOrg(4).shouldHave(text(organization2.getName())).shouldNotBe(selected);
     modal.createBtn().click();
 
-    page.reports().shouldHave(CollectionCondition.size(3));
+    page.reports().shouldHave(size(3));
     page.report(2).shouldHave(text("Application Chart")).link().click();
 
     chartPage = new SuccessMetricsReportPage();
@@ -207,7 +207,7 @@ public class SuccessMetricsReportListTest
     deleteModal.submitButton().click();
     FormMask.seeAndWaitForDismissal();
     deleteModal.alertContent().shouldBe(hidden);
-    page.reports().shouldHave(CollectionCondition.size(2));
+    page.reports().shouldHave(size(2));
 
     // Then add and test a SuccessMetricsReport with only an empty Organization selected.
     page.addSuccessMetricsBtn().click();
@@ -220,7 +220,7 @@ public class SuccessMetricsReportListTest
     modal.orgPickerCounter().shouldHave(text("3"));
     modal.createBtn().click();
 
-    page.reports().shouldHave(CollectionCondition.size(3));
+    page.reports().shouldHave(size(3));
     page.report(2).shouldHave(text("Empty Org Chart")).link().click();
 
     chartPage = new SuccessMetricsReportPage();
@@ -232,6 +232,6 @@ public class SuccessMetricsReportListTest
     deleteModal.submitButton().click();
     FormMask.seeAndWaitForDismissal();
     deleteModal.alertContent().shouldBe(hidden);
-    page.reports().shouldHave(CollectionCondition.size(2));
+    page.reports().shouldHave(size(2));
   }
 }

@@ -33,7 +33,6 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.security.PasswordHandler;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;
@@ -42,6 +41,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.*;
 import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -91,13 +91,13 @@ public class LdapConfigurationTest
     refreshOrOpen(LdapServerListPage.url());
 
     LdapServerListPage serverListPage = new LdapServerListPage();
-    serverListPage.listElements().shouldHave(CollectionCondition.size(1));
+    serverListPage.listElements().shouldHave(size(1));
     serverListPage.addButton().click();
 
     waitUntilUrl(LdapConfigurationPage.urlToCreate());
 
     LdapConfigurationPage.backButton().shouldHave(text("Back to LDAP Servers")).click();
-    serverListPage.listElements().shouldHave(CollectionCondition.size(1));
+    serverListPage.listElements().shouldHave(size(1));
     serverListPage.addButton().click();
 
     waitUntilUrl(LdapConfigurationPage.urlToCreate());
@@ -190,7 +190,7 @@ public class LdapConfigurationTest
     refreshOrOpen(LdapServerListPage.url());
 
     LdapServerListPage serverListPage = new LdapServerListPage();
-    serverListPage.listElements().shouldHave(CollectionCondition.size(1));
+    serverListPage.listElements().shouldHave(size(1));
 
     ListRow row = serverListPage.listRow(1);
     row.element().shouldBe(visible).click();
@@ -204,7 +204,7 @@ public class LdapConfigurationTest
 
     waitUntilUrl(LdapServerListPage.url());
 
-    serverListPage.listElements().shouldHave(CollectionCondition.size(0));
+    serverListPage.listElements().shouldHave(size(0));
     serverListPage.emptyDescriptor().shouldBe(visible);
     assertThat(ldapServerDAO.getById(ldapServer.getId())).isNull();
   }

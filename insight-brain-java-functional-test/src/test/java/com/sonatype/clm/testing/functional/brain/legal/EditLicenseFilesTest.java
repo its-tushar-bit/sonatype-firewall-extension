@@ -35,7 +35,6 @@ import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -47,7 +46,10 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.selected;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -119,7 +121,7 @@ public class EditLicenseFilesTest
 
   private void doTestLicensesTile_InitialState() {
     LicenseFiles licenseFiles = ComponentLegalOverviewPage.licenseFiles();
-    licenseFiles.all().shouldHave(CollectionCondition.size(2));
+    licenseFiles.all().shouldHave(size(2));
     assertLicense(licenseFiles.at(0), "META-INF/LICENSE", "\nApache ServiceComb" +
         "\nCopyright 2017-2021 The Apache Software Foundation" +
         "\n\nThis product includes software developed at" +
@@ -145,7 +147,7 @@ public class EditLicenseFilesTest
     ComponentLegalOverviewPage.editLicenseFilesButton().click();
     EditLicenseFilesModal editLicenseFilesModal = new EditLicenseFilesModal();
     editLicenseFilesModal.shouldBe(Condition.visible);
-    editLicenseFilesModal.allLicenses().shouldHave(CollectionCondition.size(2));
+    editLicenseFilesModal.allLicenses().shouldHave(size(2));
     assertLicense(editLicenseFilesModal.licenseAt(0), "\nApache ServiceComb" +
         "\nCopyright 2017-2021 The Apache Software Foundation" +
         "\n\nThis product includes software developed at" +
@@ -153,7 +155,7 @@ public class EditLicenseFilesTest
     assertLicense(editLicenseFilesModal.licenseAt(1), "content", true);
     assertOption(editLicenseFilesModal.scopeDropdown().getSelectedOption(), rootOrg);
     ElementsCollection options = editLicenseFilesModal.scopeDropdown().$$("option");
-    options.shouldHave(CollectionCondition.size(expectedScopeCount));
+    options.shouldHave(size(expectedScopeCount));
     if (expectedScopeCount == 1) {
       assertOption(options.get(0), rootOrg);
     }
@@ -182,7 +184,7 @@ public class EditLicenseFilesTest
     ComponentLegalOverviewPage.editLicenseFilesButton().click();
     EditLicenseFilesModal editLicenseFilesModal = new EditLicenseFilesModal();
     editLicenseFilesModal.addLicenseButton().click();
-    editLicenseFilesModal.allLicenses().shouldHave(CollectionCondition.size(3));
+    editLicenseFilesModal.allLicenses().shouldHave(size(3));
     assertLicense(editLicenseFilesModal.licenseAt(2), "", true);
     assertButton(editLicenseFilesModal.cancel(), true, null);
     editLicenseFilesModal.licenseAt(2).textInput().setValue(content);
@@ -244,24 +246,24 @@ public class EditLicenseFilesTest
     ComponentLegalOverviewPage.editLicenseFilesButton().click();
     EditLicenseFilesModal editLicenseFilesModal = new EditLicenseFilesModal();
     LicenseFile license = editLicenseFilesModal.licenseAt(0);
-    license.statusCheckbox().shouldBe(Condition.selected);
+    license.statusCheckbox().shouldBe(selected);
     license.textInput().shouldBe(Condition.enabled);
     license.statusToggle().click();
-    license.statusCheckbox().shouldNotBe(Condition.selected);
+    license.statusCheckbox().shouldNotBe(selected);
     license.textInput().shouldBe(Condition.disabled);
     assertButton(editLicenseFilesModal.save(), true, null);
     license.statusToggle().click();
-    license.statusCheckbox().shouldBe(Condition.selected);
+    license.statusCheckbox().shouldBe(selected);
     license.textInput().shouldBe(Condition.enabled);
     license.statusToggle().click();
-    license.statusCheckbox().shouldNotBe(Condition.selected);
+    license.statusCheckbox().shouldNotBe(selected);
     license.textInput().shouldBe(Condition.disabled);
     assertButton(editLicenseFilesModal.save(), true, null);
     editLicenseFilesModal.save().click();
     editLicenseFilesModal.shouldNotBe(Condition.visible);
-    ComponentLegalOverviewPage.licenseFiles().all().shouldHave(CollectionCondition.size(initialLicenseFiles - 1));
+    ComponentLegalOverviewPage.licenseFiles().all().shouldHave(size(initialLicenseFiles - 1));
     ComponentLegalOverviewPage.editLicenseFilesButton().click();
-    license.statusCheckbox().shouldNotBe(Condition.selected);
+    license.statusCheckbox().shouldNotBe(selected);
   }
 
   @Test
@@ -280,7 +282,7 @@ public class EditLicenseFilesTest
   private void doTestCancel() {
     ComponentLegalOverviewPage.editLicenseFilesButton().click();
     EditLicenseFilesModal editLicenseFilesModal = new EditLicenseFilesModal();
-    editLicenseFilesModal.allLicenses().shouldHave(CollectionCondition.size(2));
+    editLicenseFilesModal.allLicenses().shouldHave(size(2));
     LicenseFile license = editLicenseFilesModal.licenseAt(0);
     assertLicense(license, "\nApache ServiceComb" +
         "\nCopyright 2017-2021 The Apache Software Foundation" +
@@ -290,11 +292,11 @@ public class EditLicenseFilesTest
     license.statusToggle().click();
     assertLicense(license, "changed", false);
     editLicenseFilesModal.addLicenseButton().click();
-    editLicenseFilesModal.allLicenses().shouldHave(CollectionCondition.size(3));
+    editLicenseFilesModal.allLicenses().shouldHave(size(3));
     editLicenseFilesModal.cancel().click();
     editLicenseFilesModal.shouldNotBe(Condition.visible);
     ComponentLegalOverviewPage.editLicenseFilesButton().click();
-    editLicenseFilesModal.allLicenses().shouldHave(CollectionCondition.size(2));
+    editLicenseFilesModal.allLicenses().shouldHave(size(2));
     assertLicense(license, "\nApache ServiceComb" +
         "\nCopyright 2017-2021 The Apache Software Foundation" +
         "\n\nThis product includes software developed at" +
@@ -474,9 +476,9 @@ public class EditLicenseFilesTest
       license.relPath().shouldBe(empty);
     }
     else {
-      license.relPath().shouldHave(Condition.exactText(relPath));
+      license.relPath().shouldHave(exactText(relPath));
     }
-    license.text().shouldHave(Condition.exactText(text));
+    license.text().shouldHave(exactText(text));
   }
 
   private void assertLicense(LicenseFile license, LegalFileOverride legalFileOverride) {
@@ -485,20 +487,20 @@ public class EditLicenseFilesTest
   }
 
   private void assertLicense(LicenseFile license, String text, boolean enabled) {
-    license.textInput().shouldHave(Condition.exactText(text));
+    license.textInput().shouldHave(exactText(text));
     if (enabled) {
-      license.statusToggle().shouldHave(Condition.exactText("Included"));
-      license.statusCheckbox().shouldBe(Condition.selected);
+      license.statusToggle().shouldHave(exactText("Included"));
+      license.statusCheckbox().shouldBe(selected);
     }
     else {
-      license.statusToggle().shouldHave(Condition.exactText("Excluded"));
-      license.statusCheckbox().shouldNotBe(Condition.selected);
+      license.statusToggle().shouldHave(exactText("Excluded"));
+      license.statusCheckbox().shouldNotBe(selected);
     }
   }
 
   private void assertOption(SelenideElement option, Owner owner) {
     option.shouldHave(Condition.value(owner.getId()));
-    option.shouldHave(Condition.exactText(getOptionText(owner)));
+    option.shouldHave(exactText(getOptionText(owner)));
   }
 
   private String getOptionText(Owner owner) {
@@ -514,7 +516,7 @@ public class EditLicenseFilesTest
     }
     button.hover();
     if (tooltip != null) {
-      Tooltip.get().shouldBe(Condition.visible).shouldBe(Condition.exactText(tooltip));
+      Tooltip.get().shouldBe(Condition.visible).shouldBe(exactText(tooltip));
     }
     else {
       Tooltip.get().shouldNotBe(Condition.visible);

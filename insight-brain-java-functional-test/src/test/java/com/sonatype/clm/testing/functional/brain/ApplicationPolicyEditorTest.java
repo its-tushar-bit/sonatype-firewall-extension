@@ -22,11 +22,11 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
 
-import com.codeborne.selenide.CollectionCondition;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
@@ -98,7 +98,7 @@ public class ApplicationPolicyEditorTest
       refresh(); // because the page has already loaded the store the policy doesn't exist
 
       IqAssociationEditor categoryEditor = PolicyEditorPage.inheritanceSection().associationEditor();
-      categoryEditor.rows().shouldHave(CollectionCondition.size(2));
+      categoryEditor.rows().shouldHave(size(2));
       assertCategory(categoryEditor.item(0), "Checked Tag", true);
       assertCategory(categoryEditor.item(1), "Unchecked Tag", false);
 

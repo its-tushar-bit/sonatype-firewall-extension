@@ -41,7 +41,6 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
@@ -51,6 +50,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.disabled;
@@ -539,13 +539,13 @@ public class FirewallOnboardingPageTest
     page.shouldHave(Condition.text("Select a core set of policies that enable a default set of protection rules. "
         + "You can modify these protection rules again later."));
 
-    page.supplyChainAttacksProtectionRuleCheckbox().shouldNotBe(Condition.selected);
+    page.supplyChainAttacksProtectionRuleCheckbox().shouldNotBe(selected);
     page.supplyChainAttacksProtectionRuleCheckbox().click();
-    page.supplyChainAttacksProtectionRuleCheckbox().shouldBe(Condition.selected);
+    page.supplyChainAttacksProtectionRuleCheckbox().shouldBe(selected);
 
-    page.namespaceConfusionProtectionRuleCheckbox().shouldNotBe(Condition.selected);
+    page.namespaceConfusionProtectionRuleCheckbox().shouldNotBe(selected);
     page.namespaceConfusionProtectionRuleCheckbox().click();
-    page.namespaceConfusionProtectionRuleCheckbox().shouldBe(Condition.selected);
+    page.namespaceConfusionProtectionRuleCheckbox().shouldBe(selected);
 
     eyesWatcher.eyesCheck("Firewall onboarding: select protection rules step");
 
@@ -568,13 +568,13 @@ public class FirewallOnboardingPageTest
 
     page.shouldHave(FirewallOnboardingPage.protectionRulesSelectorTitle());
 
-    page.supplyChainAttacksProtectionRuleCheckbox().shouldNotBe(Condition.selected);
+    page.supplyChainAttacksProtectionRuleCheckbox().shouldNotBe(selected);
     page.supplyChainAttacksProtectionRuleCheckbox().click();
-    page.supplyChainAttacksProtectionRuleCheckbox().shouldBe(Condition.selected);
+    page.supplyChainAttacksProtectionRuleCheckbox().shouldBe(selected);
 
-    page.namespaceConfusionProtectionRuleCheckbox().shouldNotBe(Condition.selected);
+    page.namespaceConfusionProtectionRuleCheckbox().shouldNotBe(selected);
     page.namespaceConfusionProtectionRuleCheckbox().click();
-    page.namespaceConfusionProtectionRuleCheckbox().shouldBe(Condition.selected);
+    page.namespaceConfusionProtectionRuleCheckbox().shouldBe(selected);
 
     page.continueButton().click();
     page.shouldHave(Condition.text("Enable protection from malicious components"));
@@ -593,8 +593,8 @@ public class FirewallOnboardingPageTest
     page.previousButton().click();
 
     page.supplyChainAttacksProtectionRuleCheckbox().click();
-    page.supplyChainAttacksProtectionRuleCheckbox().shouldNotBe(Condition.selected);
-    page.namespaceConfusionProtectionRuleCheckbox().shouldBe(Condition.selected);
+    page.supplyChainAttacksProtectionRuleCheckbox().shouldNotBe(selected);
+    page.namespaceConfusionProtectionRuleCheckbox().shouldBe(selected);
 
     page.continueButton().click();
     page.shouldHave(Condition.text("You have not enabled recommended protection"));
@@ -614,8 +614,8 @@ public class FirewallOnboardingPageTest
 
     page.supplyChainAttacksProtectionRuleCheckbox().click();
     page.namespaceConfusionProtectionRuleCheckbox().click();
-    page.supplyChainAttacksProtectionRuleCheckbox().shouldBe(Condition.selected);
-    page.namespaceConfusionProtectionRuleCheckbox().shouldNotBe(Condition.selected);
+    page.supplyChainAttacksProtectionRuleCheckbox().shouldBe(selected);
+    page.namespaceConfusionProtectionRuleCheckbox().shouldNotBe(selected);
 
     page.continueButton().click();
     page.shouldHave(Condition.text("Enable protection from malicious components"));
@@ -636,8 +636,8 @@ public class FirewallOnboardingPageTest
     page.previousButton().click();
 
     page.supplyChainAttacksProtectionRuleCheckbox().click();
-    page.supplyChainAttacksProtectionRuleCheckbox().shouldNotBe(Condition.selected);
-    page.namespaceConfusionProtectionRuleCheckbox().shouldNotBe(Condition.selected);
+    page.supplyChainAttacksProtectionRuleCheckbox().shouldNotBe(selected);
+    page.namespaceConfusionProtectionRuleCheckbox().shouldNotBe(selected);
 
     page.continueButton().click();
     page.shouldHave(Condition.text("You have not enabled recommended protection"));
@@ -690,7 +690,7 @@ public class FirewallOnboardingPageTest
         + "You can enable protection by going back to the previous step."));
 
     ElementsCollection repositoriesLists = page.repositoriesList();
-    repositoriesLists.shouldHave(CollectionCondition.size(4));
+    repositoriesLists.shouldHave(size(4));
     repositoriesLists.get(0).shouldHave(text("maven2\n" + "3 of 5"));
     repositoriesLists.get(1).shouldHave(text("pypi\n" + "2 of 4"));
     repositoriesLists.get(2).shouldHave(text("npm\n" + "2 of 3"));
@@ -743,7 +743,7 @@ public class FirewallOnboardingPageTest
     page.shouldHave(text("Protect your internal components from namespace attacks"));
 
     ElementsCollection repositoriesLists = page.repositoriesList();
-    repositoriesLists.shouldHave(CollectionCondition.size(4));
+    repositoriesLists.shouldHave(size(4));
     repositoriesLists.get(0).shouldHave(text("maven2\n" + "3 of 5"));
     repositoriesLists.get(1).shouldHave(text("pypi\n" + "2 of 4"));
     repositoriesLists.get(2).shouldHave(text("npm\n" + "2 of 3"));
@@ -796,7 +796,7 @@ public class FirewallOnboardingPageTest
     page.shouldHave(text("Protect your internal components from namespace attacks"));
 
     ElementsCollection repositoriesLists = page.repositoriesList();
-    repositoriesLists.shouldHave(CollectionCondition.size(4));
+    repositoriesLists.shouldHave(size(4));
     repositoriesLists.get(0).shouldHave(text("maven2\n" + "3 of 5"));
     repositoriesLists.get(1).shouldHave(text("npm\n" + "2 of 3"));
     repositoriesLists.get(2).shouldHave(text("pypi\n" + "0 of 4"));
@@ -838,7 +838,7 @@ public class FirewallOnboardingPageTest
     page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorNoProtectionRulesTitle());
 
     ElementsCollection repositoriesLists = page.repositoriesList();
-    repositoriesLists.shouldHave(CollectionCondition.size(1));
+    repositoriesLists.shouldHave(size(1));
     repositoriesLists.get(0).shouldHave(text("maven2\n" + "0 of 5"));
 
     eyesWatcher.eyesCheck("Firewall onboarding: select proxy repositories step with no format supported");
@@ -881,7 +881,7 @@ public class FirewallOnboardingPageTest
 
     // and I should see 3 lists of repositories
     ElementsCollection repositoriesLists = page.repositoriesList();
-    repositoriesLists.shouldHave(CollectionCondition.size(3));
+    repositoriesLists.shouldHave(size(3));
 
     // and the supported formats are sorted before the unsupported ones even if the unsupported ones have more repos
     repositoriesLists.get(0).shouldHave(text("maven2\n" + "3 of 5"));
@@ -936,7 +936,7 @@ public class FirewallOnboardingPageTest
     eyesWatcher.eyesCheck("Firewall onboarding: select hosted repositories step with no format supported");
 
     ElementsCollection repositoriesLists = page.repositoriesList();
-    repositoriesLists.shouldHave(CollectionCondition.size(0));
+    repositoriesLists.shouldHave(size(0));
   }
 
   @Test
@@ -975,7 +975,7 @@ public class FirewallOnboardingPageTest
     page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorNoProtectionRulesTitle());
 
     ElementsCollection repositoriesLists = page.repositoriesList();
-    repositoriesLists.shouldHave(CollectionCondition.size(4));
+    repositoriesLists.shouldHave(size(4));
     repositoriesLists.get(0).shouldHave(text("maven2\n" + "3 of 5"));
     repositoriesLists.get(1).shouldHave(text("pypi\n" + "2 of 4"));
     repositoriesLists.get(2).shouldHave(text("npm\n" + "2 of 3"));
@@ -1063,7 +1063,7 @@ public class FirewallOnboardingPageTest
     page.shouldHave(FirewallOnboardingPage.proxyRepositoriesSelectorNoProtectionRulesTitle());
 
     ElementsCollection repositoriesLists = page.repositoriesList();
-    repositoriesLists.shouldHave(CollectionCondition.size(4));
+    repositoriesLists.shouldHave(size(4));
     repositoriesLists.get(0).shouldHave(text("maven2\n" + "2 of 4"));
     repositoriesLists.get(1).shouldHave(text("npm\n" + "2 of 4"));
     repositoriesLists.get(2).shouldHave(text("pypi\n" + "2 of 4"));
@@ -1074,7 +1074,7 @@ public class FirewallOnboardingPageTest
     page.shouldHave(text("Protect your internal components from namespace attacks"));
 
     ElementsCollection hostedRepositoriesLists = page.repositoriesList();
-    hostedRepositoriesLists.shouldHave(CollectionCondition.size(4));
+    hostedRepositoriesLists.shouldHave(size(4));
     hostedRepositoriesLists.get(0).shouldHave(text("maven2\n" + "2 of 4"));
     hostedRepositoriesLists.get(1).shouldHave(text("npm\n" + "2 of 4"));
     hostedRepositoriesLists.get(2).shouldHave(text("pypi\n" + "2 of 4"));

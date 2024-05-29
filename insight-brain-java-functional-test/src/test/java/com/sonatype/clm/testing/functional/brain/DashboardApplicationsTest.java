@@ -32,7 +32,6 @@ import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.InternalRealm;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.WebDriverRunner;
 import org.junit.After;
@@ -44,6 +43,7 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
@@ -128,7 +128,7 @@ public class DashboardApplicationsTest
     DashboardPage.dashboardContainer().shouldBe(visible);
 
     // applications should be sorted by total risk
-    table.applications().shouldHave(CollectionCondition.size(5));
+    table.applications().shouldHave(size(5));
     table.applications().shouldHave(texts(
         "App5", //
         "App4", //
@@ -138,11 +138,11 @@ public class DashboardApplicationsTest
     ));
 
     // check rows per application
-    table.application(0).getRows().shouldHave(CollectionCondition.size(5));
-    table.application(1).getRows().shouldHave(CollectionCondition.size(2));
-    table.application(2).getRows().shouldHave(CollectionCondition.size(2));
-    table.application(3).getRows().shouldHave(CollectionCondition.size(2));
-    table.application(4).getRows().shouldHave(CollectionCondition.size(2));
+    table.application(0).getRows().shouldHave(size(5));
+    table.application(1).getRows().shouldHave(size(2));
+    table.application(2).getRows().shouldHave(size(2));
+    table.application(3).getRows().shouldHave(size(2));
+    table.application(4).getRows().shouldHave(size(2));
 
     // check app totals and report links
     ApplicationElement app5 = table.application(0);
@@ -161,7 +161,7 @@ public class DashboardApplicationsTest
     app5.getTotalsInStageRow(1).shouldHave(texts("0", "0", "0", "0", "0"));
     app5.getTotalsInStageRow(2).shouldHave(texts("4", "0", "4", "0", "0"));
     app5.getTotalsInStageRow(3).shouldHave(texts("2", "0", "0", "2", "0"));
-    app5.getStages().shouldHave(CollectionCondition.size(4));
+    app5.getStages().shouldHave(size(4));
     app5.getStages().shouldHave(texts(
         "Build",          //
         "Stage Release",  //
@@ -475,7 +475,7 @@ public class DashboardApplicationsTest
 
     showLowRiskViolations();
     DashboardPage.dashboardContainer().shouldBe(visible);
-    DashboardPage.applicationsView().paginationButtons().shouldHave(CollectionCondition.size(2));
+    DashboardPage.applicationsView().paginationButtons().shouldHave(size(2));
     table.firstApplication().totalRisk().shouldBe(text("10"));
     table.lastApplication().totalRisk().shouldBe(text("3"));
     eyesWatcher.eyesCheck("Dashboard applications tab with multiple pages");
@@ -500,7 +500,7 @@ public class DashboardApplicationsTest
     DashboardFilters.closeButton().click();
     // should be at first page after filtering
     DashboardPage.applicationsView().paginationButtons().get(0).shouldHave(cssClass("selected"));
-    DashboardPage.applicationsView().paginationButtons().shouldHave(CollectionCondition.size(1));
+    DashboardPage.applicationsView().paginationButtons().shouldHave(size(1));
     table.firstApplication().totalRisk().shouldBe(text("7"));
     table.lastApplication().totalRisk().shouldBe(text("3"));
   }

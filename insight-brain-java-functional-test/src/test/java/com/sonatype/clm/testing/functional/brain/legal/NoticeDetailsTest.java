@@ -88,7 +88,7 @@ public class NoticeDetailsTest
 
   private void loadByComponentIdentifier() throws UnsupportedEncodingException {
     refreshOrOpen(
-            ComponentNoticeDetailsPage.urlToApplicationScopeByComponentIdentifier(app.getPublicId(), componentId, 0));
+        ComponentNoticeDetailsPage.urlToApplicationScopeByComponentIdentifier(app.getPublicId(), componentId, 0));
   }
 
   private void doTestNoticeOverview() {

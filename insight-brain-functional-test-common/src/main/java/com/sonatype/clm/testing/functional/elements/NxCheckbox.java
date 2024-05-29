@@ -10,6 +10,7 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.selected;
 
 /**
  * nx-checkbox Widget. Uses a pseudo element for the checkbox therefore clicks cannot be processed by the
@@ -48,7 +49,7 @@ public class NxCheckbox
    */
   public NxCheckbox shouldBe(Condition... conditions) {
     for (Condition condition : conditions) {
-      if (Condition.selected.equals(condition)) {
+      if (selected.equals(condition)) {
         input().shouldBe(condition);
       }
       else {
@@ -69,7 +70,7 @@ public class NxCheckbox
    */
   public NxCheckbox shouldNotBe(Condition... conditions) {
     for (Condition condition : conditions) {
-      if (Condition.selected.equals(condition)) {
+      if (selected.equals(condition)) {
         input().shouldNotBe(condition);
       }
       else {

@@ -27,12 +27,12 @@ import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
@@ -80,7 +80,7 @@ public abstract class AbstractLTGEditorTest
     refresh();
 
     OwnerSummaryPage.licenseThreatGroupSummaryTile().getLocalLTGSection().getSectionContentRows()
-        .shouldHave(CollectionCondition.size(1));
+        .shouldHave(size(1));
     OwnerSummaryPage.licenseThreatGroupSummaryTile().getLocalLTGSection().getLTG(ltg.getName()).click();
 
     waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner, ltg.getId()));
@@ -93,7 +93,7 @@ public abstract class AbstractLTGEditorTest
     NxTransferList picker = LTGEditorPage.picker();
 
     picker.shouldBe(visible);
-    picker.availableItems().shouldHave(CollectionCondition.size(licenseDAO.getAll().size()));
+    picker.availableItems().shouldHave(size(licenseDAO.getAll().size()));
 
     LTGEditorPage.ltgName().val("updated name");
 
@@ -107,7 +107,7 @@ public abstract class AbstractLTGEditorTest
     LTGEditorPage.title().shouldHave(text("Edit"));
     LTGEditorPage.ltgName().shouldBe(visible).shouldHave(value("updated name"));
     NxThreatLevelDropdown.selectedThreatLevel().shouldBe(text("6"));
-    picker.transferredItems().shouldHave(CollectionCondition.size(3));
+    picker.transferredItems().shouldHave(size(3));
 
     refresh();
     List<LicenseThreatGroupLicense> includedLicenses = ltgLicenseDAO.getByLicenseThreatGroupId(ltg.getId());
@@ -140,7 +140,7 @@ public abstract class AbstractLTGEditorTest
     refresh();
 
     OwnerSummaryPage.licenseThreatGroupSummaryTile().getLocalLTGSection().getSectionContentRows()
-        .shouldHave(CollectionCondition.size(1));
+        .shouldHave(size(1));
     OwnerSummaryPage.licenseThreatGroupSummaryTile().getLocalLTGSection().getLTG(ltg.getName()).click();
 
     waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner, ltg.getId()));
@@ -191,7 +191,7 @@ public abstract class AbstractLTGEditorTest
     NxThreatLevelDropdown.caretButton().shouldBe(visible, enabled).click();
     NxThreatLevelDropdown.threatLevelList().shouldBe(visible);
     NxThreatLevelDropdown.threatLevelListItems()
-        .shouldHave(CollectionCondition.size(NxThreatLevelDropdown.NUM_THREAT_LEVELS));
+        .shouldHave(size(NxThreatLevelDropdown.NUM_THREAT_LEVELS));
 
     for (int i = 0; i < NxThreatLevelDropdown.NUM_THREAT_LEVELS; i++) {
       NxThreatLevelDropdown.threatLevelListItem(i).shouldBe(visible).shouldHave(text(String.valueOf(10 - i)));
@@ -216,8 +216,8 @@ public abstract class AbstractLTGEditorTest
       item.shouldBe(visible).click();
     }
 
-    picker.availableItems().shouldHave(CollectionCondition.size(initialSize - 3));
-    picker.transferredItems().shouldHave(CollectionCondition.size(3));
+    picker.availableItems().shouldHave(size(initialSize - 3));
+    picker.transferredItems().shouldHave(size(3));
 
     for (int i = 0; i < 3; i++) {
       picker.transferredItem(i).shouldHave(text(pickedLicenseNames.get(i)));
@@ -229,7 +229,7 @@ public abstract class AbstractLTGEditorTest
 
     String filterText = "Adobe";
     picker.filter().val(filterText);
-    picker.availableItems().shouldHave(CollectionCondition.size(10));
+    picker.availableItems().shouldHave(size(10));
 
     for (int i = 0; i < 9; i++) {
       SelenideElement item = picker.availableItem(i);
@@ -238,7 +238,7 @@ public abstract class AbstractLTGEditorTest
 
     // reset filter
     InputUtils.clearInput(picker.filter());
-    picker.availableItems().shouldHave(CollectionCondition.size(initialSize));
+    picker.availableItems().shouldHave(size(initialSize));
   }
 
   protected abstract void assertNewLTGStateIsCorrect();

@@ -23,12 +23,12 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.empty;
@@ -186,7 +186,7 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
     }
 
     ProprietaryConfigInheritedTile configTile = new ProprietaryConfigInheritedTile();
-    configTile.proprietaryConfigInheritedLists().shouldHave(CollectionCondition.size(1));
+    configTile.proprietaryConfigInheritedLists().shouldHave(size(1));
 
     ProprietaryConfigInheritedList list = configTile.proprietaryConfigInheritedList(0);
 

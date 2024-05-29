@@ -50,7 +50,6 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -60,6 +59,7 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exactTextCaseSensitive;
@@ -108,7 +108,7 @@ public class OrganizationSummaryViewTest
     ActionDropDown.importPoliciesButton().shouldBe(visible);
     ActionDropDown.moveOwner().shouldBe(visible);
     ActionDropDown.deleteOwnerButton().shouldBe(visible);
-    ActionDropDown.actions().shouldHave(CollectionCondition.size(5));
+    ActionDropDown.actions().shouldHave(size(5));
 
     eyesWatcher.eyesCheck("organization actions dropdown");
   }
@@ -131,7 +131,7 @@ public class OrganizationSummaryViewTest
     ltgTile.nxHeader().shouldBe(visible).shouldHave(text("License Threat Groups"));
     ltgTile.addLTGButton().shouldBe(visible, enabled);
 
-    ltgTile.getAllApplicableLicenseThreatGroupSection().shouldHave(CollectionCondition.size(hierarchySize));
+    ltgTile.getAllApplicableLicenseThreatGroupSection().shouldHave(size(hierarchySize));
 
     for (int i = 0; i < hierarchySize; i++) {
       ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(i);
@@ -145,7 +145,7 @@ public class OrganizationSummaryViewTest
         section.getTitle().shouldBe(visible);
         section.getEmptyDescriptor().shouldBe(hidden);
         section.getSectionContentRows()
-            .shouldHave(CollectionCondition.size(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT));
+            .shouldHave(size(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT));
       }
     }
   }
@@ -240,7 +240,7 @@ public class OrganizationSummaryViewTest
     labelTile.labelList(0);
     NxList list = labelTile.labelList(0);
     labelTile.labelListSubheader(0).shouldBe(visible).shouldHave(text("Local to " + organization.getName()));
-    list.elements().shouldHave(CollectionCondition.size(1));
+    list.elements().shouldHave(size(1));
     NxList.NxListItem actualLabel = list.element(0);
     actualLabel.name().shouldBe(visible).shouldHave(text("Test Label"));
 
@@ -251,7 +251,7 @@ public class OrganizationSummaryViewTest
     ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(0);
     section.getEmptyDescriptor().shouldNot(exist);
     section.getLTG(0).shouldHave(text("Test LTG"));
-    section.getSectionContentRows().shouldHave(CollectionCondition.size(1));
+    section.getSectionContentRows().shouldHave(size(1));
 
     eyesWatcher.eyesCheck("license threat group tile after policy import");
 
@@ -260,7 +260,7 @@ public class OrganizationSummaryViewTest
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
     ScrollUtil.scrollIntoViewInstantly(policyTile.getElement());
 
-    policyTile.policyLists().shouldHave(CollectionCondition.size(2)); // 2 tbody for each owner policy
+    policyTile.policyLists().shouldHave(size(2)); // 2 tbody for each owner policy
 
     // get local policies
     PolicyTileList ownerPolicyList = policyTile.policyList(0);
@@ -293,7 +293,7 @@ public class OrganizationSummaryViewTest
     categoryTile.nxSubHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(organization));
     categoryTile.newButton().shouldBe(visible, enabled).shouldHave(CategoryTile.buttonText(organization));
 
-    categoryTile.categoryLists().shouldHave(CollectionCondition.size(1));
+    categoryTile.categoryLists().shouldHave(size(1));
 
     NxList list = categoryTile.categoryList(0);
     SelenideElement subsectionHeader = categoryTile.categoryListSubheader(0);
@@ -344,7 +344,7 @@ public class OrganizationSummaryViewTest
       Organization organization)
   {
     NxList list = categoryTile.categoryList(i);
-    list.elements().shouldHave(CollectionCondition.size(ownerTags.get(i).size()));
+    list.elements().shouldHave(size(ownerTags.get(i).size()));
     categoryTile.categoryListSubheader(i).shouldBe(visible).shouldHave(text("Local to " + organization.getName()));
     for (int j = 0; j < ownerTags.get(i).size(); j++) {
       NxList.NxListItem actualCategory = list.element(j);
@@ -372,9 +372,9 @@ public class OrganizationSummaryViewTest
     categoriesList.should(exist).shouldBe(visible);
 
     int expectedCategoriesCount = ownerTags.get(i).size();
-    categoriesList.elements().shouldHave(CollectionCondition.size(expectedCategoriesCount));
-    categoryTile.categoryLists().shouldHave(CollectionCondition.size(i));
-    categoryTile.inheritedCategoriesLists().shouldHave(CollectionCondition.size(i));
+    categoriesList.elements().shouldHave(size(expectedCategoriesCount));
+    categoryTile.categoryLists().shouldHave(size(i));
+    categoryTile.inheritedCategoriesLists().shouldHave(size(i));
     for (int j = 0; j < ownerTags.get(i).size(); j++) {
       InheritedCategory actualCategory = categoriesList.element(j);
       Tag expectedCategory = ownerTags.get(i).get(j);
@@ -408,16 +408,16 @@ public class OrganizationSummaryViewTest
         Stage.ID_OPERATE,
         DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING);
 
-    tile.rows().shouldHave(CollectionCondition.size(3));
+    tile.rows().shouldHave(size(3));
     ElementsCollection rowHeaders = tile.rowHeaders();
-    rowHeaders.shouldHave(CollectionCondition.size(contextIds.size() + 1));
+    rowHeaders.shouldHave(size(contextIds.size() + 1));
     rowHeaders.last(rowHeaders.size() - 1).shouldHave(exactTexts(contextIds));
 
     ElementsCollection maxAges = tile.maxAges();
-    maxAges.shouldHave(CollectionCondition.size(contextIds.size() + 1));
+    maxAges.shouldHave(size(contextIds.size() + 1));
     maxAges.get(0).shouldHave(exactTextCaseSensitive(DataRetentionTile.MAX_AGE_HEADER));
     ElementsCollection maxReports = tile.maxReports();
-    maxReports.shouldHave(CollectionCondition.size(contextIds.size() + 1));
+    maxReports.shouldHave(size(contextIds.size() + 1));
     maxReports.get(0).shouldHave(exactTextCaseSensitive(DataRetentionTile.MAX_REPORTS_HEADER));
 
     tile.successMetrics().shouldBe(visible).shouldHave(exactTextCaseSensitive("Max Age: 1 year"));
@@ -520,9 +520,9 @@ public class OrganizationSummaryViewTest
     ScrollUtil.scrollIntoViewInstantly(tile.getElement());
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(tile.subHeaderText(currentOwner.getName()));
-    tile.rows().shouldHave(CollectionCondition.size(3));
+    tile.rows().shouldHave(size(3));
     ElementsCollection rowHeaders = tile.rowHeaders();
-    rowHeaders.shouldHave(CollectionCondition.size(2));
+    rowHeaders.shouldHave(size(2));
     rowHeaders.last(rowHeaders.size() - 1).shouldHave(exactTexts(Stage.ID_RELEASE));
   }
 
@@ -536,7 +536,7 @@ public class OrganizationSummaryViewTest
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
         .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
-    tile.rows().shouldHave(CollectionCondition.size(1));
+    tile.rows().shouldHave(size(1));
 
     tile.itemSubText().shouldNotBe(visible);
     tile.itemText().shouldBe(visible)
@@ -554,7 +554,7 @@ public class OrganizationSummaryViewTest
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
         .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
-    tile.rows().shouldHave(CollectionCondition.size(1));
+    tile.rows().shouldHave(size(1));
 
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("GitHub"));
     tile.itemSubText().shouldBe(visible).shouldHave(Condition.text("Inherit access token"));
@@ -571,7 +571,7 @@ public class OrganizationSummaryViewTest
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
         .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
-    tile.rows().shouldHave(CollectionCondition.size(1));
+    tile.rows().shouldHave(size(1));
 
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("GitHub"));
     tile.itemSubText().shouldBe(visible).shouldHave(Condition.text(String
@@ -588,7 +588,7 @@ public class OrganizationSummaryViewTest
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
         .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
-    tile.rows().shouldHave(CollectionCondition.size(1));
+    tile.rows().shouldHave(size(1));
 
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("GitHub"));
     tile.itemSubText().shouldBe(visible).shouldHave(Condition.text(String

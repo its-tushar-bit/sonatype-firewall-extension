@@ -31,7 +31,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
@@ -42,6 +41,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.exactText;
@@ -133,7 +133,7 @@ public class ApplicationReportVulnerabilitiesTest
     VulnerabilityTable vulnerabilityTable = vulnerabilitiesPage.table();
     vulnerabilityTable.shouldBe(visible);
 
-    vulnerabilityTable.rows().shouldHave(CollectionCondition.size(59));
+    vulnerabilityTable.rows().shouldHave(size(59));
 
     VulnerabilityRow jacksonDatabindRow = vulnerabilityTable.row(2);
     checkRow(jacksonDatabindRow, "com.fasterxml.jackson.core : jackson-databind : 2.0.4", "CVE-2017-7525", "9.8", "9",
@@ -170,7 +170,7 @@ public class ApplicationReportVulnerabilitiesTest
     VulnerabilityTable vulnerabilityTable = vulnerabilitiesPage.table();
     vulnerabilityTable.shouldBe(visible);
 
-    vulnerabilityTable.rows().shouldHave(CollectionCondition.size(1));
+    vulnerabilityTable.rows().shouldHave(size(1));
     vulnerabilityTable.row(1).shouldHave(text("no vulnerabilities"));
   }
 

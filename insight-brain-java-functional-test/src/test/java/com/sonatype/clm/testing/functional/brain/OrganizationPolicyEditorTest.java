@@ -14,10 +14,10 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.tag.Tag;
 
-import com.codeborne.selenide.CollectionCondition;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
@@ -108,7 +108,7 @@ public class OrganizationPolicyEditorTest
         .shouldHave(specifiedRadioText(isReadOnly ? "Root Organization" : organization.getName()));
     inheritance.associationEditor().shouldBe(visible);
 
-    inheritance.associationEditor().rows().shouldHave(CollectionCondition.size(2));
+    inheritance.associationEditor().rows().shouldHave(size(2));
     inheritance.associationEditor().shouldNotBe(MULTI_COLUMN);
     inheritance.policyActionsOverrideCheckbox().shouldBe(visible).shouldNotBe(selected);
     AssociationEditorElement category1Item = inheritance.associationEditor().item(0);

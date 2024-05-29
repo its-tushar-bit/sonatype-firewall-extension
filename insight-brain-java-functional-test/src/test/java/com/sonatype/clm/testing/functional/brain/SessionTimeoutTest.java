@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
@@ -36,6 +35,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
@@ -68,7 +68,6 @@ public class SessionTimeoutTest
    * Test that when the session expires (simulated by deleting the cookie), that the next authentication-requiring
    * HTTP request causes the page to reload back to the login screen
    */
-
   @Test
   public void testReloginPromptOnAjaxDetectedSessionExpiration() {
     refreshOrOpen(ProductLicensePage.url());
@@ -262,7 +261,7 @@ public class SessionTimeoutTest
     // ensure that the main UI is empty - we can't directly test that the page was
     // refreshed but this is close
     SidebarNavigation.mainHeaderButtons().shouldBe(hidden);
-    MainView.uiView().$$("*").shouldHave(CollectionCondition.size(0));
+    MainView.uiView().$$("*").shouldHave(size(0));
   }
 
   private void assertUiClearedAndLogBackIn() {

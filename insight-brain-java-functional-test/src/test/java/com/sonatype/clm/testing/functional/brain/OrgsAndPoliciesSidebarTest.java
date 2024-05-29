@@ -34,12 +34,12 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.empty;
@@ -126,7 +126,7 @@ public class OrgsAndPoliciesSidebarTest
     OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = OwnerSummaryPage.sidebar();
     orgsAndPoliciesSidebar.repositories().click();
     NxCollapsible repoManagerList = orgsAndPoliciesSidebar.getRepoManagerList();
-    repoManagerList.children().shouldHave(CollectionCondition.size(6));
+    repoManagerList.children().shouldHave(size(6));
     repoManagerList.children().get(0).shouldNotBe(visible);
     repoManagerList.click();
     repoManagerList.shouldHave(text(namedRepositoryManager.getName()));
@@ -136,7 +136,7 @@ public class OrgsAndPoliciesSidebarTest
     orgsAndPoliciesSidebar.getRepositoryManagerLink(0).click();
     waitUntilUrl(OwnerSummaryPage.url(firstRepositoryManagerInSortedList));
     NxCollapsible repositoryList = orgsAndPoliciesSidebar.getRepositoryList();
-    repositoryList.children().shouldHave(CollectionCondition.size(3));
+    repositoryList.children().shouldHave(size(3));
 
     eyesWatcher.eyesCheck("Orgs and policies sidebar at Repository Manager level");
 
@@ -307,7 +307,7 @@ public class OrgsAndPoliciesSidebarTest
         childApps.sort(Comparator.comparing(application -> application.getName().toUpperCase()));
 
         NxCollapsible childApplications = orgsAndPoliciesSidebar.getApplicationList();
-        childApplications.children().shouldHave(CollectionCondition.size(childApps.size()));
+        childApplications.children().shouldHave(size(childApps.size()));
         for (int i = 0; i < childApps.size(); i++) {
           SelenideElement childApp = childApplications.children().get(i);
           childApp.shouldHave(text(childApps.get(i).getName()));
@@ -320,7 +320,7 @@ public class OrgsAndPoliciesSidebarTest
     if (!childOrgs.isEmpty()) {
       childOrgs.sort(Comparator.comparing(organization -> organization.getName().toUpperCase()));
       NxCollapsible childOrganizations = orgsAndPoliciesSidebar.getOrganizationList();
-      childOrganizations.children().shouldHave(CollectionCondition.size(childOrgs.size()));
+      childOrganizations.children().shouldHave(size(childOrgs.size()));
 
       for (int i = 0; i < childOrgs.size(); i++) {
         OrgsAndPoliciesSidebar.OwnerItem childOrg = orgsAndPoliciesSidebar.getOrganizationLink(i);

@@ -7,8 +7,7 @@ package com.sonatype.clm.testing.functional.utils;
 
 import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker;
 
-import com.codeborne.selenide.CollectionCondition;
-
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.selected;
@@ -41,8 +40,8 @@ public class DoubleColumnPickerTestHelper
     picker.availableItemList().shouldBe(visible);
     picker.pickedItemList().shouldBe(visible);
 
-    picker.pickedItems().shouldHave(CollectionCondition.size(numPickedItems));
-    picker.availableItems().shouldHave(CollectionCondition.size(numAvailableItems));
+    picker.pickedItems().shouldHave(size(numPickedItems));
+    picker.availableItems().shouldHave(size(numAvailableItems));
   }
 
   public static void assertDoubleColumnPickerDefaultState(DoubleColumnPicker picker,

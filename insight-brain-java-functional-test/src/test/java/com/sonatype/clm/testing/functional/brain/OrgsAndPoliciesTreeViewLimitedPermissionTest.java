@@ -22,13 +22,13 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.text;
 
 public class OrgsAndPoliciesTreeViewLimitedPermissionTest
@@ -81,7 +81,7 @@ public class OrgsAndPoliciesTreeViewLimitedPermissionTest
 
     ElementsCollection treeItems = OwnerTreeViewPage.tree().clickableTreeItems();
     // only applications are clickable
-    treeItems.shouldHave(CollectionCondition.size(6));
+    treeItems.shouldHave(size(6));
 
     SelenideElement itemToClick = treeItems.get(0);
     String applicationName = itemToClick.text();

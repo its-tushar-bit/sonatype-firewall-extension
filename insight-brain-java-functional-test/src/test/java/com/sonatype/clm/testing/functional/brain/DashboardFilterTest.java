@@ -67,7 +67,6 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.security.InternalRealm;
 
 import com.codeborne.selenide.CollectionCondition;
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import org.apache.commons.collections4.CollectionUtils;
 import org.joda.time.DateTime;
@@ -77,7 +76,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
-import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.*;
@@ -269,7 +267,7 @@ public class DashboardFilterTest
     refreshOrOpen(DashboardPage.urlToViolations());
     ageFilter.shouldBe(visible).shouldHave(text("past 30 days"));
     ageFilter.twisty().click();
-    ageFilter.singleSelectList().shouldHave(CollectionCondition.size(6)).shouldHave(
+    ageFilter.singleSelectList().shouldHave(size(6)).shouldHave(
         texts("past 24 hours", "past 7 days", "past 30 days", "past 90 days", "past 12 months", "all time"));
     ageFilter.past30days().shouldBe(selected);
     ageFilter.past90days().shouldNotBe(selected).click();
@@ -280,7 +278,7 @@ public class DashboardFilterTest
     componentsTab().counter().shouldBe(visible).shouldHave(text("1"));
     applicationsTab().counter().shouldBe(visible).shouldHave(text("2"));
     DashboardFilters.apply();
-    ageFilter.singleSelectList().shouldHave(CollectionCondition.size(6));
+    ageFilter.singleSelectList().shouldHave(size(6));
 
     refreshOrOpen(DashboardPage.urlToViolations());
     DashboardPage.filterToggle().shouldBe(visible).click();
@@ -406,7 +404,7 @@ public class DashboardFilterTest
     refreshOrOpen(DashboardPage.urlToWaivers());
     expirationDateFilter.shouldBe(visible).shouldHave(text("all"));
     expirationDateFilter.twisty().click();
-    expirationDateFilter.singleSelectList().shouldHave(CollectionCondition.size(7)).shouldHave(
+    expirationDateFilter.singleSelectList().shouldHave(size(7)).shouldHave(
         texts("all", "in 24 hours", "in 7 days", "in 30 days", "in 90 days", "in over 90 days", "never"));
     expirationDateFilter.all().shouldBe(selected);
     expirationDateFilter.in24hours().shouldNotBe(selected).click();
@@ -483,7 +481,7 @@ public class DashboardFilterTest
     assertAgeFilterDefaultState();
 
     // assert no filtering is done
-    DashboardPage.violationsView().results().violations().shouldHave(CollectionCondition.size(3));
+    DashboardPage.violationsView().results().violations().shouldHave(size(3));
     DashboardPage.violationsTab().counter().shouldHave(text("3"));
     DashboardPage.componentsTab().counter().shouldNot(exist);
     DashboardPage.applicationsTab().counter().shouldNot(exist);
@@ -570,7 +568,7 @@ public class DashboardFilterTest
             "}");
 
     // assert applied filters
-    DashboardPage.violationsView().results().violations().shouldHave(CollectionCondition.size(1));
+    DashboardPage.violationsView().results().violations().shouldHave(size(1));
     DashboardPage.violationsTab().counter().shouldHave(text("1"));
     ViolationTile violation = DashboardPage.violationsView().results().firstViolation();
     violation.threatNumber().shouldHave(text("2"));
@@ -606,7 +604,7 @@ public class DashboardFilterTest
     DashboardFilters.applicationCategoryFilter().twisty().click();
     DashboardFilters.apply();
 
-    DashboardPage.violationsView().results().violations().shouldHave(CollectionCondition.size(1));
+    DashboardPage.violationsView().results().violations().shouldHave(size(1));
     DashboardPage.violationsTab().counter().shouldHave(text("1"));
     ViolationTile firstViolation = DashboardPage.violationsView().results().firstViolation();
     firstViolation.threatNumber().shouldHave(text("10"));
@@ -616,18 +614,18 @@ public class DashboardFilterTest
 
     // check component tab
     DashboardPage.componentsTab().click();
-    DashboardPage.componentsView().results().components().shouldHave(CollectionCondition.size(1));
+    DashboardPage.componentsView().results().components().shouldHave(size(1));
     DashboardPage.componentsTab().counter().shouldHave(text("1"));
 
     // check application tab
     DashboardPage.applicationsTab().counter().shouldNot(exist);
     DashboardPage.applicationsTab().click();
-    DashboardPage.applicationsView().results().applications().shouldHave(CollectionCondition.size(1));
+    DashboardPage.applicationsView().results().applications().shouldHave(size(1));
     DashboardPage.applicationsTab().counter().shouldHave(text("1"));
 
     // check waivers tab
     DashboardPage.waiversTab().click();
-    DashboardPage.waiversView().results().waivers().shouldHave(CollectionCondition.size(4));
+    DashboardPage.waiversView().results().waivers().shouldHave(size(4));
   }
 
   @Test
@@ -664,17 +662,17 @@ public class DashboardFilterTest
     DashboardPage.waiversTab().counter().shouldNot(exist);
 
     DashboardPage.violationsTab().click();
-    DashboardPage.violationsView().results().violations().shouldHave(CollectionCondition.size(1));
+    DashboardPage.violationsView().results().violations().shouldHave(size(1));
     DashboardPage.violationsView().results().firstViolation().component()
         .shouldHave(text("Group1 : Artifact1 : Version1"));
 
     DashboardPage.componentsTab().click();
-    DashboardPage.componentsView().results().components().shouldHave(CollectionCondition.size(1));
+    DashboardPage.componentsView().results().components().shouldHave(size(1));
     DashboardPage.violationsTab().counter().shouldHave(text("1"));
     DashboardPage.componentsTab().counter().shouldHave(text("1"));
 
     DashboardPage.applicationsTab().click();
-    DashboardPage.applicationsView().results().applications().shouldHave(CollectionCondition.size(1));
+    DashboardPage.applicationsView().results().applications().shouldHave(size(1));
     DashboardPage.violationsTab().counter().shouldHave(text("1"));
     DashboardPage.componentsTab().counter().shouldHave(text("1"));
     DashboardPage.applicationsTab().counter().shouldHave(text("1"));
@@ -706,18 +704,18 @@ public class DashboardFilterTest
 
     // components tab should have only waived component
     DashboardPage.componentsTab().click();
-    DashboardPage.componentsView().results().components().shouldHave(CollectionCondition.size(1));
+    DashboardPage.componentsView().results().components().shouldHave(size(1));
     DashboardPage.componentsView().results().firstComponent().shouldHave(text("Artifact2"));
 
     // violations tab should have only waived violation
     DashboardPage.violationsTab().click();
-    DashboardPage.violationsView().results().violations().shouldHave(CollectionCondition.size(1));
+    DashboardPage.violationsView().results().violations().shouldHave(size(1));
     ViolationTile waivedViolation = DashboardPage.violationsView().results().firstViolation();
     waivedViolation.component().shouldHave(text("Artifact2"));
 
     // applications tab should have only waived violation app
     DashboardPage.applicationsTab().click();
-    DashboardPage.applicationsView().results().applications().shouldHave(CollectionCondition.size(1));
+    DashboardPage.applicationsView().results().applications().shouldHave(size(1));
     DashboardPage.applicationsView().results().firstApplication().shouldHave(text("DashboardTestAppTwo"));
   }
 
@@ -739,18 +737,18 @@ public class DashboardFilterTest
     DashboardPage.componentsView().resultsMask().shouldBe(hidden);
 
     // components tab should have only legacy component
-    DashboardPage.componentsView().results().components().shouldHave(CollectionCondition.size(1));
+    DashboardPage.componentsView().results().components().shouldHave(size(1));
     DashboardPage.componentsView().results().firstComponent().shouldHave(text("ArtifactLegacyViolation"));
 
     // violations tab should have only legacy violation
     DashboardPage.violationsTab().click();
-    DashboardPage.violationsView().results().violations().shouldHave(CollectionCondition.size(1));
+    DashboardPage.violationsView().results().violations().shouldHave(size(1));
     ViolationTile legacyViolation = DashboardPage.violationsView().results().firstViolation();
     legacyViolation.component().shouldHave(text("ArtifactLegacyViolation"));
 
     // applications tab should have only legacy violation app
     DashboardPage.applicationsTab().click();
-    DashboardPage.applicationsView().results().applications().shouldHave(CollectionCondition.size(1));
+    DashboardPage.applicationsView().results().applications().shouldHave(size(1));
     DashboardPage.applicationsView().results().firstApplication().shouldHave(text("DashboardTestAppTwo"));
   }
 
@@ -767,7 +765,7 @@ public class DashboardFilterTest
 
     DashboardFilters.apply();
     DashboardPage.applicationsTab().click();
-    DashboardPage.applicationsView().results().applications().shouldHave(CollectionCondition.size(1));
+    DashboardPage.applicationsView().results().applications().shouldHave(size(1));
   }
 
   @Test
@@ -783,7 +781,7 @@ public class DashboardFilterTest
     // verify policy filter counter
     DashboardFilters.policyTypeFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 4"));
     // verify no violations row shown
-    DashboardPage.violationsView().results().violations().shouldHave(CollectionCondition.size(0));
+    DashboardPage.violationsView().results().violations().shouldHave(size(0));
     DashboardPage.violationsTab().counter().shouldHave(text("0"));
     DashboardPage.componentsTab().counter().shouldNot(exist);
     DashboardPage.applicationsTab().counter().shouldNot(exist);
@@ -819,7 +817,7 @@ public class DashboardFilterTest
     ManageFiltersDropdown manage = DashboardFilters.manageFiltersDropdown();
     manage.openMenuButton().click();
     manage.dropdownMenu().shouldBe(visible);
-    manage.dropdownMenu().options().shouldHave(CollectionCondition.size(1));
+    manage.dropdownMenu().options().shouldHave(size(1));
     manage.dropdownMenu().defaultFilterOption().shouldHave(text("Default"));
     manage.dropdownMenu().emptyListMessage().shouldBe(visible).shouldHave(text("No saved filters"));
 
@@ -834,7 +832,7 @@ public class DashboardFilterTest
     saveFilter("Initial", null, false, true);
 
     manage.openMenuButton().click();
-    manage.dropdownMenu().options().shouldHave(CollectionCondition.size(2));
+    manage.dropdownMenu().options().shouldHave(size(2));
     manage.dropdownMenu().option(1).shouldHave(text("Initial"));
 
     eyesWatcher.eyesCheck("Initial filter saved");
@@ -889,7 +887,7 @@ public class DashboardFilterTest
     manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
 
     manage.openMenuButton().click();
-    manage.dropdownMenu().options().shouldHave(CollectionCondition.size(3));
+    manage.dropdownMenu().options().shouldHave(size(3));
     manage.dropdownMenu().option(2).shouldHave(text("New Filter"));
 
     DashboardFilters.closeButton().click();
@@ -898,7 +896,7 @@ public class DashboardFilterTest
 
     // load other filter
     ViolationsResults table = DashboardPage.violationsView().results();
-    table.violations().shouldHave(CollectionCondition.size(1));
+    table.violations().shouldHave(size(1));
     DashboardPage.filterToggle().shouldBe(visible).click();
     manage.openMenuButton().click();
     manage.dropdownMenu().option(1).selectFilterButton().click();
@@ -907,7 +905,7 @@ public class DashboardFilterTest
     manage.selectedFilterLabel().shouldHave(exactText("Initial"));
     manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
     assertDefaultFilterState();
-    table.violations().shouldHave(CollectionCondition.size(3));
+    table.violations().shouldHave(size(3));
     DashboardFilters.closeButton().click();
     DashboardPage.filterToggle().shouldBe(visible).shouldHave(text("Initial"));
     DashboardPage.filterToggleDirtyAsterisk().shouldBe(hidden);
@@ -919,7 +917,7 @@ public class DashboardFilterTest
     manage.selectedFilterLabel().shouldHave(exactText("Initial"));
     manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
     assertDefaultFilterState();
-    table.violations().shouldHave(CollectionCondition.size(3));
+    table.violations().shouldHave(size(3));
 
     // go back to New Filter
     manage.openMenuButton().click();
@@ -929,7 +927,7 @@ public class DashboardFilterTest
     saveFilter("Initial", "New Filter", true, true);
     manage.selectedFilterLabel().shouldHave(exactText("Initial"));
     manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
-    table.violations().shouldHave(CollectionCondition.size(1));
+    table.violations().shouldHave(size(1));
 
     // save as Default filter name should be disallowed
     DashboardFilters.saveButton().shouldNotBe(disabled).click();
@@ -964,7 +962,7 @@ public class DashboardFilterTest
     DashboardPage.filterToggle().shouldBe(visible).click();
     manage.openMenuButton().click();
     manage.dropdownMenu().shouldBe(visible);
-    manage.dropdownMenu().options().shouldHave(CollectionCondition.size(3));
+    manage.dropdownMenu().options().shouldHave(size(3));
     manage.dropdownMenu().option(2).shouldHave(text("Do not delete")).shouldBe(SELECTED_SAVED_FILTER_OPTION);
     manage.dropdownMenu().option(1).shouldHave(text("Delete")).deleteFilterButton().click();
     // delete filter button shouldn't close the filters dropdown
@@ -989,7 +987,7 @@ public class DashboardFilterTest
     manage.dropdownMenu().shouldBe(visible);
 
     // verify delete
-    manage.dropdownMenu().options().shouldHave(CollectionCondition.size(2));
+    manage.dropdownMenu().options().shouldHave(size(2));
     manage.dropdownMenu().option(1).shouldHave(text("Do not delete"));
 
     DashboardFilterDAO dashboardFilterDAO = this.dashboardFilterDAO;
@@ -1049,17 +1047,17 @@ public class DashboardFilterTest
     manage.selectedFilterLabel().shouldHave(exactText("Default"));
     DashboardPage.needsAcknowledgementMessage().shouldBe(visible)
         .shouldHave(text(DashboardPage.NEEDS_ACKNOWLEDGEMENT_MESSAGE));
-    DashboardPage.violationsView().results().violations().shouldHave(CollectionCondition.size(0));
+    DashboardPage.violationsView().results().violations().shouldHave(size(0));
 
     DashboardPage.componentsTab().click();
     DashboardPage.needsAcknowledgementMessage().shouldBe(visible)
         .shouldHave(text(DashboardPage.NEEDS_ACKNOWLEDGEMENT_MESSAGE));
-    DashboardPage.componentsView().results().components().shouldHave(CollectionCondition.size(0));
+    DashboardPage.componentsView().results().components().shouldHave(size(0));
 
     DashboardPage.applicationsTab().click();
     DashboardPage.needsAcknowledgementMessage().shouldBe(visible)
         .shouldHave(text(DashboardPage.NEEDS_ACKNOWLEDGEMENT_MESSAGE));
-    DashboardPage.applicationsView().results().applications().shouldHave(CollectionCondition.size(0));
+    DashboardPage.applicationsView().results().applications().shouldHave(size(0));
 
     DashboardPage.violationsTab().click();
 
@@ -1111,7 +1109,7 @@ public class DashboardFilterTest
     DashboardFilters.apply();
 
     ApplicationsResults results = DashboardPage.applicationsView().results();
-    results.applications().shouldHave(CollectionCondition.size(2));
+    results.applications().shouldHave(size(2));
 
     // add new App to same Org
     Application thirdApp = tempEntity.newApplication("DashboardTestAppThree", "DashboardTestAppThree", org.getId());
@@ -1122,12 +1120,12 @@ public class DashboardFilterTest
 
     // new App should be included in results
     refreshOrOpen(DashboardPage.urlToApplications());
-    results.applications().shouldHave(CollectionCondition.size(3));
+    results.applications().shouldHave(size(3));
     eyesWatcher.eyesCheck();
 
     applicationDAO.delete(thirdApp);
     refreshOrOpen(DashboardPage.urlToApplications());
-    results.applications().shouldHave(CollectionCondition.size(2));
+    results.applications().shouldHave(size(2));
   }
 
   @Test
@@ -1137,11 +1135,11 @@ public class DashboardFilterTest
 
     // select a specific application to filter
     DashboardFilters.applicationFilter().twisty().click();
-    DashboardFilters.applicationFilter().multiSelectList().shouldHave(CollectionCondition.size(8));
+    DashboardFilters.applicationFilter().multiSelectList().shouldHave(size(8));
     DashboardFilters.applicationFilter().checkboxItem(2).click();
     DashboardFilters.apply();
 
-    DashboardPage.waiversView().results().waivers().shouldHave(CollectionCondition.size(3));
+    DashboardPage.waiversView().results().waivers().shouldHave(size(3));
     List<WaiverTile> allWaivers = DashboardPage.waiversView().results().allWaivers();
 
     assertThat(
@@ -1445,17 +1443,17 @@ public class DashboardFilterTest
     DashboardFilters.apply();
 
     ViolationsResults violationsResults = DashboardPage.violationsView().results();
-    violationsResults.violations().shouldHave(CollectionCondition.size(0));
+    violationsResults.violations().shouldHave(size(0));
     violationsResults.noDataMessage().shouldBe(visible);
 
     refreshOrOpen(DashboardPage.urlToApplications());
     ApplicationsResults applicationsResults = DashboardPage.applicationsView().results();
-    applicationsResults.applications().shouldHave(CollectionCondition.size(0));
+    applicationsResults.applications().shouldHave(size(0));
     applicationsResults.noDataMessage().shouldBe(visible);
 
     refreshOrOpen(DashboardPage.urlToComponents());
     ComponentsResults componentsResults = DashboardPage.componentsView().results();
-    componentsResults.components().shouldHave(CollectionCondition.size(0));
+    componentsResults.components().shouldHave(size(0));
     componentsResults.noDataMessage().shouldBe(visible);
   }
 
@@ -1632,7 +1630,7 @@ public class DashboardFilterTest
       manage.selectedFilterLabel().shouldHave(exactText("Default"));
     }
     DashboardPage.needsAcknowledgementMessage().shouldBe(hidden);
-    DashboardPage.violationsView().results().violations().shouldHave(CollectionCondition.size(3));
+    DashboardPage.violationsView().results().violations().shouldHave(size(3));
     ViolationTile violation = DashboardPage.violationsView().results().firstViolation();
     violation.threatNumber().shouldHave(text("10"));
     violation.policy().shouldHave(text("DashboardTestPolicy"));
@@ -1640,12 +1638,12 @@ public class DashboardFilterTest
 
     DashboardPage.componentsTab().click();
     DashboardPage.needsAcknowledgementMessage().shouldBe(hidden);
-    DashboardPage.componentsView().results().components().shouldHave(CollectionCondition.size(1));
+    DashboardPage.componentsView().results().components().shouldHave(size(1));
     DashboardPage.componentsView().results().firstComponent().shouldHave(text("Artifact1"));
 
     DashboardPage.applicationsTab().click();
     DashboardPage.needsAcknowledgementMessage().shouldBe(hidden);
-    DashboardPage.applicationsView().results().applications().shouldHave(CollectionCondition.size(2));
+    DashboardPage.applicationsView().results().applications().shouldHave(size(2));
     DashboardPage.applicationsView().results().firstApplication().shouldHave(text("DashboardTestAppTwo"));
 
     // go back to violations so refreshOrOpen calls work properly
@@ -1690,7 +1688,7 @@ public class DashboardFilterTest
     saveDialog.saveButton().shouldHave(text("Save"));
     saveDialog.overwriteRadio().shouldNotBe(selected);
     saveDialog.saveAsRadio().shouldBe(selected);
-    saveDialog.nameInput().shouldBe(Condition.empty).shouldBe(visible);
+    saveDialog.nameInput().shouldBe(empty).shouldBe(visible);
 
     saveDialog.nameInput().val(filterName);
     saveDialog.saveButton().shouldNotHave(disabled).click();
@@ -1789,7 +1787,7 @@ public class DashboardFilterTest
     NxTreeViewMultiSelect appFilter = DashboardFilters.applicationFilter();
 
     appFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("7"));
-    appFilter.multiSelectList().filter(visible).shouldBe(empty);
+    appFilter.multiSelectList().filter(visible).shouldBe(CollectionCondition.empty);
     appFilter.twisty().shouldBe(visible).click();
     appFilter.multiSelectList().filter(visible).shouldHave(size(8));
     appFilter.checkboxItem(1).shouldNotBe(selected).label().shouldHave(text("all/none"));
@@ -1829,7 +1827,7 @@ public class DashboardFilterTest
     ageFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("past 30 days"));
     ageFilter.singleSelectList().forEach(selenideElement -> selenideElement.shouldBe(hidden));
     ageFilter.twisty().click();
-    ageFilter.singleSelectList().shouldHave(CollectionCondition.size(6));
+    ageFilter.singleSelectList().shouldHave(size(6));
     ageFilter.past30days().shouldBe(selected).label().shouldHave(text("past 30 days"));
     ageFilter.twisty().click();
   }
@@ -1901,9 +1899,9 @@ public class DashboardFilterTest
     filter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("0"));
 
     filter.shouldHave(cssClass("nx-collapsible-items--disabled"));
-    filter.multiSelectList().filter(visible).shouldBe(empty);
+    filter.multiSelectList().filter(visible).shouldBe(CollectionCondition.empty);
     filter.twisty().shouldBe(visible).hover();
-    filter.multiSelectList().filter(visible).shouldBe(empty);
+    filter.multiSelectList().filter(visible).shouldBe(CollectionCondition.empty);
 
     Tooltip.get().shouldBe(visible).shouldHave(text("There are no " + filterType + " to filter"));
   }

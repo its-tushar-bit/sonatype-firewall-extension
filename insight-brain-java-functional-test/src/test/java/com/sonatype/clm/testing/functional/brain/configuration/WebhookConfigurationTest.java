@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
@@ -78,7 +77,7 @@ public class WebhookConfigurationTest
   public void testShowsListOfExistingWebhooks() {
     ElementsCollection webhooks = webhookConfigurationPage.webhooks();
 
-    webhooks.shouldHave(CollectionCondition.size(3));
+    webhooks.shouldHave(size(3));
     webhooks.shouldHave(texts("http://localhost0", "http://localhost1", "http://localhost2"));
 
     // click on page title before eyesCheck to avoid random mouse-over style

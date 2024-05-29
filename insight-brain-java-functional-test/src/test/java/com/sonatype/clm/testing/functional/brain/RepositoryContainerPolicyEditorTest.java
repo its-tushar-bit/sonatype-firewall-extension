@@ -46,11 +46,11 @@ import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.User;
 
-import com.codeborne.selenide.CollectionCondition;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
@@ -183,7 +183,7 @@ public class RepositoryContainerPolicyEditorTest
     Policy policy = createPolicy();
     refresh();
 
-    RepositoriesSummaryPage.policyTile().policyLists().shouldHave(CollectionCondition.size(2));
+    RepositoriesSummaryPage.policyTile().policyLists().shouldHave(size(2));
     PolicyTileList policyList = RepositoriesSummaryPage.policyTile().policyList(0);
     policyList.emptyDescriptor().shouldBe(hidden);
     policyList.ownerName().shouldBe(visible).shouldHave(text("Local"));
@@ -215,7 +215,7 @@ public class RepositoryContainerPolicyEditorTest
     refresh();
 
     RepositoriesSummaryPage.policyTile().policyLists()
-        .shouldHave(CollectionCondition.size(2)); // include inherited policies
+        .shouldHave(size(2)); // include inherited policies
     PolicyTileList policyList = RepositoriesSummaryPage.policyTile().policyList(0);
     policyList.row(1).click();
 
@@ -294,7 +294,7 @@ public class RepositoryContainerPolicyEditorTest
     addNotification.addButton().shouldBe(disabled);
     addNotification.email().shouldBe(empty);
 
-    NotificationsSection.notifications().shouldHave(CollectionCondition.size(1));
+    NotificationsSection.notifications().shouldHave(size(1));
     NotificationsSection.notifications().get(0).shouldHave(text("aaa@sonatype.com"));
 
     PolicyEditorPage.savePolicy();
@@ -413,7 +413,7 @@ public class RepositoryContainerPolicyEditorTest
     refresh();
 
     PolicyTileList policyTileList = RepositoriesSummaryPage.policyTile().policyList(1);
-    policyTileList.rows().shouldHave(CollectionCondition.size(inheritedPolicies.size() + 1));
+    policyTileList.rows().shouldHave(size(inheritedPolicies.size() + 1));
     policyTileList.row(1).click();
     waitUntilUrl(PolicyEditorPage.urlToEdit(OwnerType.REPOSITORY_CONTAINER,
         RepositoryContainer.REPOSITORY_CONTAINER_ID, inheritedPolicies.get(0).getId()));

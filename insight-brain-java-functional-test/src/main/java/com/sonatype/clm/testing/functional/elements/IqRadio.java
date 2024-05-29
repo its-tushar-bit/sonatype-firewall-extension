@@ -8,6 +8,8 @@ package com.sonatype.clm.testing.functional.elements;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.selected;
+
 /**
  * CLM Radio Widget. Uses a pseudo element for the radio therefore clicks cannot be processed by the
  * Chrome Webdriver on {@link #input()}
@@ -33,7 +35,7 @@ public class IqRadio
   }
 
   private SelenideElement elementFor(Condition condition) {
-    if (Condition.selected.equals(condition) ||
+    if (selected.equals(condition) ||
         Condition.enabled.equals(condition) ||
         Condition.disabled.equals(condition)) {
       return input();

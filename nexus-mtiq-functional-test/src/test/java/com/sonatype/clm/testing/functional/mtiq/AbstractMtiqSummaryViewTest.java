@@ -10,10 +10,10 @@ import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.model.Owner;
 
-import com.codeborne.selenide.CollectionCondition;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -41,7 +41,7 @@ public abstract class AbstractMtiqSummaryViewTest
   public void testNavigationPills() {
     NavPills navPills = OwnerSummaryPage.navigationPills();
 
-    navPills.pills().shouldHave(CollectionCondition.size(10));
+    navPills.pills().shouldHave(size(10));
 
     navPills.appCategory().click();
     OwnerSummaryPage.categoryTile().shouldBe(visible);

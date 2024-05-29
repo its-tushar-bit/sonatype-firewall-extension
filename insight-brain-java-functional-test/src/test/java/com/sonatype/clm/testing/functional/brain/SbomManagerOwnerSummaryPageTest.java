@@ -17,11 +17,11 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import com.codeborne.selenide.CollectionCondition;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -93,7 +93,7 @@ public class SbomManagerOwnerSummaryPageTest
     ownerSummaryTile.shouldBe(visible);
     ownerSummaryTile.name().shouldHave(text(ownerEntity.getName()));
     isSbomManagerPage();
-    orgsAndPoliciesSidebar.getApplicationList().children().shouldHave(CollectionCondition.size(applicationAmount));
-    orgsAndPoliciesSidebar.getOrganizationList().children().shouldHave(CollectionCondition.size(organizationAmount));
+    orgsAndPoliciesSidebar.getApplicationList().children().shouldHave(size(applicationAmount));
+    orgsAndPoliciesSidebar.getOrganizationList().children().shouldHave(size(organizationAmount));
   }
 }

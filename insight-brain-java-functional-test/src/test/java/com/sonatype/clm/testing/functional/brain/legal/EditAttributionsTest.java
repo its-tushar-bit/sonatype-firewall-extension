@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -37,7 +36,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.exactText;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -110,7 +111,7 @@ public class EditAttributionsTest
     editAttributionModal.attributionText().shouldBe(empty);
     assertOption(editAttributionModal.scopeDropdown().getSelectedOption(), rootOrg);
     ElementsCollection options = editAttributionModal.scopeDropdown().$$("option");
-    options.shouldHave(CollectionCondition.size(3));
+    options.shouldHave(size(3));
     assertOption(options.get(0), app);
     assertOption(options.get(1), org);
     assertOption(options.get(2), rootOrg);
@@ -154,7 +155,7 @@ public class EditAttributionsTest
     editAttributionModal.attributionText().shouldHave(Condition.text(componentObligationAttribution.getContent()));
     assertOption(editAttributionModal.scopeDropdown().getSelectedOption(), app);
     ElementsCollection options = editAttributionModal.scopeDropdown().$$("option");
-    options.shouldHave(CollectionCondition.size(3));
+    options.shouldHave(size(3));
     assertOption(options.get(0), app);
     assertOption(options.get(1), org);
     assertOption(options.get(2), rootOrg);
@@ -185,7 +186,7 @@ public class EditAttributionsTest
     editAttributionModal.attributionText().shouldHave(Condition.text(componentObligationAttribution.getContent()));
     assertOption(editAttributionModal.scopeDropdown().getSelectedOption(), app);
     ElementsCollection options = editAttributionModal.scopeDropdown().$$("option");
-    options.shouldHave(CollectionCondition.size(3));
+    options.shouldHave(size(3));
     assertOption(options.get(0), app);
     assertOption(options.get(1), org);
     assertOption(options.get(2), rootOrg);
@@ -276,7 +277,7 @@ public class EditAttributionsTest
 
   private void assertOption(SelenideElement option, Owner owner) {
     option.shouldHave(Condition.value(owner.getId()));
-    option.shouldHave(Condition.exactText(getOptionText(owner)));
+    option.shouldHave(exactText(getOptionText(owner)));
   }
 
   private String getOptionText(Owner owner) {
@@ -292,7 +293,7 @@ public class EditAttributionsTest
     }
     button.hover();
     if (tooltip != null) {
-      Tooltip.get().shouldBe(Condition.visible).shouldBe(Condition.exactText(tooltip));
+      Tooltip.get().shouldBe(Condition.visible).shouldBe(exactText(tooltip));
     }
     else {
       Tooltip.get().shouldNotBe(Condition.visible);

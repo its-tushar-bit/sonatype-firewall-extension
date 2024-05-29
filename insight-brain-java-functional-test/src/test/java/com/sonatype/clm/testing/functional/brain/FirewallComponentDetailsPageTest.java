@@ -99,7 +99,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
@@ -114,6 +113,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
@@ -731,10 +731,10 @@ public class FirewallComponentDetailsPageTest
       tabs.get(4).shouldHave(cssClass("active"));
       assertThat(getWebDriver().getCurrentUrl()).contains("/labels?");
 
-      tabs.shouldHave(CollectionCondition.size(5));
+      tabs.shouldHave(size(5));
     }
     else {
-      tabs.shouldHave(CollectionCondition.size(2));
+      tabs.shouldHave(size(2));
     }
 
     tabs.get(0).click();
@@ -781,7 +781,7 @@ public class FirewallComponentDetailsPageTest
     ScrollUtil.scrollIntoView(recommendedVersionsSection.content());
     recommendedVersionsSection.getTitle().shouldHave(text("Recommended Versions"));
     ElementsCollection recommendedVersions = recommendedVersionsSection.contentRecommendedVersionsList();
-    recommendedVersions.shouldHave(CollectionCondition.size(1));
+    recommendedVersions.shouldHave(size(1));
 
     RiskRemediationTile.RecommendationElement recommendation = recommendedVersionsSection.getRecommendation(0);
     recommendation.shouldBe(visible);
@@ -1059,7 +1059,7 @@ public class FirewallComponentDetailsPageTest
     refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
     waitUntilSpinnersGone();
     ElementsCollection tabs = firewallComponentDetailsPage.tabs();
-    tabs.shouldHave(CollectionCondition.size(5));
+    tabs.shouldHave(size(5));
     tabs.get(1).click();
     tabs.get(1).shouldHave(cssClass("active"));
     assertThat(getWebDriver().getCurrentUrl()).contains("/violations?");
@@ -1098,10 +1098,10 @@ public class FirewallComponentDetailsPageTest
     FirewallPolicyViolationsTable policyViolationsTable =
         FirewallComponentDetailsPage.getFirewallPolicyViolationsTable();
     policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(1));
+    policyViolationsTable.getRows().shouldHave(size(1));
 
     ElementsCollection violationCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
-    violationCells.shouldHave(CollectionCondition.size(6));
+    violationCells.shouldHave(size(6));
     violationCells.get(0).shouldHave(text("2"));
     violationCells.get(1).shouldHave(text("Component-Unknown"));
     violationCells.get(2).shouldHave(text("Unknown 3rd party component"));
@@ -1134,10 +1134,10 @@ public class FirewallComponentDetailsPageTest
     FirewallPolicyViolationsTable policyViolationsTable =
         FirewallComponentDetailsPage.getFirewallPolicyViolationsTable();
     policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(6));
+    policyViolationsTable.getRows().shouldHave(size(6));
 
     ElementsCollection securityViolationCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
-    securityViolationCells.shouldHave(CollectionCondition.size(6));
+    securityViolationCells.shouldHave(size(6));
     securityViolationCells.get(0).shouldHave(text("10"));
     securityViolationCells.get(1).shouldHave(text("Security-High Proxy Failing"));
     securityViolationCells.get(2).shouldHave(text("Security constraint"));
@@ -1278,18 +1278,18 @@ public class FirewallComponentDetailsPageTest
     PolicyViolationsTable policyViolationsTable =
         PolicyViolationsTable.getPolicyViolationsTableForParent(FirewallComponentDetailsPage.ROOT);
     policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(2));
+    policyViolationsTable.getRows().shouldHave(size(2));
 
     ElementsCollection policyViolationsRow1 = policyViolationsTable.getCellsByNthRow(1);
     ElementsCollection policyViolationsRow2 = policyViolationsTable.getCellsByNthRow(2);
 
-    policyViolationsRow1.shouldHave(CollectionCondition.size(6));
+    policyViolationsRow1.shouldHave(size(6));
     policyViolationsRow1.get(0).shouldHave(text("10"));
     policyViolationsRow1.get(1).shouldHave(text("Security-High Proxy Failing"));
     policyViolationsRow1.get(2).shouldHave(text("Security constraint"));
     policyViolationsRow1.get(3).shouldHave(text("security vulnerability severity >= 9.1"));
 
-    policyViolationsRow2.shouldHave(CollectionCondition.size(6));
+    policyViolationsRow2.shouldHave(size(6));
     policyViolationsRow2.get(0).shouldHave(text("6"));
     policyViolationsRow2.get(1).shouldHave(text("Security-Low Proxy Warning"));
     policyViolationsRow2.get(2).shouldHave(text("Security-low constraint"));
@@ -1307,13 +1307,13 @@ public class FirewallComponentDetailsPageTest
     ElementsCollection vulnerabilityRow1Cells = vulnerabilitiesTable.getCellsByNthRow(1);
     ElementsCollection vulnerabilityRow2Cells = vulnerabilitiesTable.getCellsByNthRow(2);
 
-    vulnerabilityRow1Cells.shouldHave(CollectionCondition.size(4));
+    vulnerabilityRow1Cells.shouldHave(size(4));
     vulnerabilityRow1Cells.get(0).shouldHave(text("9"));
     vulnerabilityRow1Cells.get(1).shouldHave(text("sonatype-2017-0507"));
     vulnerabilityRow1Cells.get(2).shouldHave(text("Open"));
     vulnerabilityRow1Cells.get(3).shouldBe(empty);
 
-    vulnerabilityRow2Cells.shouldHave(CollectionCondition.size(4));
+    vulnerabilityRow2Cells.shouldHave(size(4));
     vulnerabilityRow2Cells.get(0).shouldHave(text("4"));
     vulnerabilityRow2Cells.get(1).shouldHave(text("CVE-1234-56789"));
     vulnerabilityRow2Cells.get(2).shouldHave(text("Open"));
@@ -1438,11 +1438,11 @@ public class FirewallComponentDetailsPageTest
     componentWaiversPopover.shouldBe(visible);
     componentWaiversPopover.title().shouldHave(text("Component Waivers"));
     componentWaiversTable.shouldBe(visible);
-    componentWaiversTable.getRows().shouldHave(CollectionCondition.size(1));
+    componentWaiversTable.getRows().shouldHave(size(1));
 
     ElementsCollection waiversTableCells = componentWaiversTable.getCellsByNthRow(1);
 
-    waiversTableCells.shouldHave(CollectionCondition.size(7));
+    waiversTableCells.shouldHave(size(7));
     waiversTableCells.get(0).shouldHave(text("Component-Unknown Unknown 3rd party component"));
     waiversTableCells.get(1).shouldHave(text(waiverCreateDateString));
     waiversTableCells.get(2).shouldHave(text("Organization - Root Organization"));
@@ -1467,11 +1467,11 @@ public class FirewallComponentDetailsPageTest
     componentWaiversPopover.shouldBe(visible);
     componentWaiversPopover.title().shouldHave(text("Component Waivers"));
     componentWaiversTable.shouldBe(visible);
-    componentWaiversTable.getRows().shouldHave(CollectionCondition.size(1));
+    componentWaiversTable.getRows().shouldHave(size(1));
 
     ElementsCollection waiversTableCells = componentWaiversTable.getCellsByNthRow(1);
 
-    waiversTableCells.shouldHave(CollectionCondition.size(7));
+    waiversTableCells.shouldHave(size(7));
     waiversTableCells.get(0).shouldHave(text("Security-Low Security-low constraint"));
     waiversTableCells.get(1).shouldHave(text(waiverCreateDateString));
     waiversTableCells.get(2).shouldHave(text("Organization - Root Organization"));
@@ -1484,11 +1484,11 @@ public class FirewallComponentDetailsPageTest
     PolicyViolationsTable policyViolationsTable =
         PolicyViolationsTable.getPolicyViolationsTableForParent(FirewallComponentDetailsPage.ROOT);
     policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(1));
+    policyViolationsTable.getRows().shouldHave(size(1));
 
     ElementsCollection policyViolationsRow1 = policyViolationsTable.getCellsByNthRow(1);
 
-    policyViolationsRow1.shouldHave(CollectionCondition.size(6));
+    policyViolationsRow1.shouldHave(size(6));
     policyViolationsRow1.get(0).shouldHave(text("5"));
     policyViolationsRow1.get(1).shouldHave(text("LicensePolicy Proxy Warning"));
     policyViolationsRow1.get(2).shouldHave(text("LicensePolicy constraint"));
@@ -1511,15 +1511,15 @@ public class FirewallComponentDetailsPageTest
     licenseDetectionsTile.shouldBe(visible);
 
     ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
-    declaredLicenses.shouldHave(CollectionCondition.size(1));
+    declaredLicenses.shouldHave(size(1));
     declaredLicenses.first().shouldHave(text("Apache-2.0"));
 
     ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
-    effectiveLicenses.shouldHave(CollectionCondition.size(1));
+    effectiveLicenses.shouldHave(size(1));
     effectiveLicenses.first().shouldHave(text("Apache-2.0"));
 
     ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
-    observedLicenses.shouldHave(CollectionCondition.size(1));
+    observedLicenses.shouldHave(size(1));
     observedLicenses.first().shouldHave(text("Apache-2.0"));
 
     licenseDetectionsTile.status().shouldHave(text("Open"));
@@ -1540,16 +1540,16 @@ public class FirewallComponentDetailsPageTest
     licenseDetectionsTile.shouldBe(visible);
 
     ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
-    declaredLicenses.shouldHave(CollectionCondition.size(1));
+    declaredLicenses.shouldHave(size(1));
     declaredLicenses.first().shouldHave(text("Apache-2.0"));
 
     ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
-    effectiveLicenses.shouldHave(CollectionCondition.size(2));
+    effectiveLicenses.shouldHave(size(2));
     effectiveLicenses.first().shouldHave(text("Apache-2.0"));
     effectiveLicenses.get(1).shouldHave(text("EPL-1.0"));
 
     ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
-    observedLicenses.shouldHave(CollectionCondition.size(1));
+    observedLicenses.shouldHave(size(1));
     observedLicenses.first().shouldHave(text("EPL-1.0"));
 
     licenseDetectionsTile.status().shouldHave(text("Open"));
@@ -1570,15 +1570,15 @@ public class FirewallComponentDetailsPageTest
     licenseDetectionsTile.shouldBe(visible);
 
     ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
-    declaredLicenses.shouldHave(CollectionCondition.size(1));
+    declaredLicenses.shouldHave(size(1));
     declaredLicenses.first().shouldHave(text("Not Provided"));
 
     ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
-    effectiveLicenses.shouldHave(CollectionCondition.size(1));
+    effectiveLicenses.shouldHave(size(1));
     effectiveLicenses.first().shouldHave(text("Not Provided"));
 
     ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
-    observedLicenses.shouldHave(CollectionCondition.size(1));
+    observedLicenses.shouldHave(size(1));
     observedLicenses.first().shouldHave(text("Not Provided"));
 
     licenseDetectionsTile.status().shouldHave(text("Open"));
@@ -1599,15 +1599,15 @@ public class FirewallComponentDetailsPageTest
     licenseDetectionsTile.shouldBe(visible);
 
     ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
-    declaredLicenses.shouldHave(CollectionCondition.size(1));
+    declaredLicenses.shouldHave(size(1));
     declaredLicenses.first().shouldHave(text("Apache-2.0"));
 
     ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
-    effectiveLicenses.shouldHave(CollectionCondition.size(1));
+    effectiveLicenses.shouldHave(size(1));
     effectiveLicenses.first().shouldHave(text("GPL-1.0"));
 
     ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
-    observedLicenses.shouldHave(CollectionCondition.size(1));
+    observedLicenses.shouldHave(size(1));
     observedLicenses.first().shouldHave(text("Apache-2.0"));
 
     licenseDetectionsTile.status().shouldHave(text("Overridden"));
@@ -1726,10 +1726,10 @@ public class FirewallComponentDetailsPageTest
     editPopover.statuses().get(EditLicensesPopover.LicensesStatuses.OVERRIDDEN.ordinal()).click();
     waitUntilSpinnersGone();
     editPopover.availableLicensesTransferListItems().shouldBe(sizeGreaterThan(1));
-    editPopover.selectedLicensesTransferListItems().shouldHave(CollectionCondition.size(0));
+    editPopover.selectedLicensesTransferListItems().shouldHave(size(0));
     editPopover.availableLicensesTransferListItems().get(0).click();
     editPopover.availableLicensesTransferListItems().get(0).click();
-    editPopover.selectedLicensesTransferListItems().shouldHave(CollectionCondition.size(2));
+    editPopover.selectedLicensesTransferListItems().shouldHave(size(2));
 
     editPopover.comment().setValue(comment);
     editPopover.saveButton().click();
@@ -1754,15 +1754,15 @@ public class FirewallComponentDetailsPageTest
     licenseDetectionsTile.shouldBe(visible);
 
     ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
-    declaredLicenses.shouldHave(CollectionCondition.size(1));
+    declaredLicenses.shouldHave(size(1));
     declaredLicenses.first().shouldHave(text("Apache-2.0"));
 
     ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
-    effectiveLicenses.shouldHave(CollectionCondition.size(1));
+    effectiveLicenses.shouldHave(size(1));
     effectiveLicenses.first().shouldHave(text("GPL-1.0"));
 
     ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
-    observedLicenses.shouldHave(CollectionCondition.size(1));
+    observedLicenses.shouldHave(size(1));
     observedLicenses.first().shouldHave(text("Apache-2.0"));
 
     licenseDetectionsTile.status().shouldHave(text("Overridden"));
@@ -1776,10 +1776,10 @@ public class FirewallComponentDetailsPageTest
     editPopover.getCloseButton().click();
 
     licenseDetectionsTile.editLicenseButton().click();
-    editPopover.selectedLicensesTransferListItems().shouldHave(CollectionCondition.size(2));
+    editPopover.selectedLicensesTransferListItems().shouldHave(size(2));
     editPopover.comment().shouldHave(text(testComment));
 
-    effectiveLicenses.shouldHave(CollectionCondition.size(2));
+    effectiveLicenses.shouldHave(size(2));
     effectiveLicenses.first().shouldHave(text("0BSD"));
     effectiveLicenses.get(1).shouldHave(text("10tec-Company-License-Agreement"));
 
@@ -1799,15 +1799,15 @@ public class FirewallComponentDetailsPageTest
     licenseDetectionsTile.shouldBe(visible);
 
     ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
-    declaredLicenses.shouldHave(CollectionCondition.size(1));
+    declaredLicenses.shouldHave(size(1));
     declaredLicenses.first().shouldHave(text("Apache-2.0"));
 
     ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
-    effectiveLicenses.shouldHave(CollectionCondition.size(1));
+    effectiveLicenses.shouldHave(size(1));
     effectiveLicenses.first().shouldHave(text("GPL-1.0"));
 
     ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
-    observedLicenses.shouldHave(CollectionCondition.size(1));
+    observedLicenses.shouldHave(size(1));
     observedLicenses.first().shouldHave(text("Apache-2.0"));
 
     licenseDetectionsTile.status().shouldHave(text("Overridden"));
@@ -1834,7 +1834,7 @@ public class FirewallComponentDetailsPageTest
       licenseDetectionsTile.status().shouldHave(text(scope));
     }
 
-    effectiveLicenses.shouldHave(CollectionCondition.size(1));
+    effectiveLicenses.shouldHave(size(1));
     effectiveLicenses.first().shouldHave(text("GPL-1.0"));
   }
 
@@ -1851,15 +1851,15 @@ public class FirewallComponentDetailsPageTest
     licenseDetectionsTile.shouldBe(visible);
 
     ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
-    declaredLicenses.shouldHave(CollectionCondition.size(1));
+    declaredLicenses.shouldHave(size(1));
     declaredLicenses.first().shouldHave(text("Apache-2.0"));
 
     ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
-    effectiveLicenses.shouldHave(CollectionCondition.size(1));
+    effectiveLicenses.shouldHave(size(1));
     effectiveLicenses.first().shouldHave(text("GPL-1.0"));
 
     ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
-    observedLicenses.shouldHave(CollectionCondition.size(1));
+    observedLicenses.shouldHave(size(1));
     observedLicenses.first().shouldHave(text("Apache-2.0"));
 
     licenseDetectionsTile.status().shouldHave(text("Overridden"));
@@ -1875,7 +1875,7 @@ public class FirewallComponentDetailsPageTest
     NxSubmitMask.seeAndWaitForDismissal();
 
     waitUntilSpinnersGone();
-    effectiveLicenses.shouldHave(CollectionCondition.size(1));
+    effectiveLicenses.shouldHave(size(1));
     effectiveLicenses.first().shouldHave(text("Apache-2.0"));
     licenseDetectionsTile.status().shouldHave(text("Selected"));
   }
@@ -1893,15 +1893,15 @@ public class FirewallComponentDetailsPageTest
     licenseDetectionsTile.shouldBe(visible);
 
     ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
-    declaredLicenses.shouldHave(CollectionCondition.size(1));
+    declaredLicenses.shouldHave(size(1));
     declaredLicenses.first().shouldHave(text("Apache-2.0"));
 
     ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
-    effectiveLicenses.shouldHave(CollectionCondition.size(1));
+    effectiveLicenses.shouldHave(size(1));
     effectiveLicenses.first().shouldHave(text("GPL-1.0"));
 
     ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
-    observedLicenses.shouldHave(CollectionCondition.size(1));
+    observedLicenses.shouldHave(size(1));
     observedLicenses.first().shouldHave(text("Apache-2.0"));
 
     licenseDetectionsTile.status().shouldHave(text("Overridden"));
@@ -1928,7 +1928,7 @@ public class FirewallComponentDetailsPageTest
     NxSubmitMask.seeAndWaitForDismissal();
     licenseDetectionsTile.status().shouldHave(text("Confirmed"));
 
-    effectiveLicenses.shouldHave(CollectionCondition.size(1));
+    effectiveLicenses.shouldHave(size(1));
     effectiveLicenses.first().shouldHave(text("Apache-2.0"));
   }
 
@@ -1951,7 +1951,7 @@ public class FirewallComponentDetailsPageTest
     // Sanity check
     PolicyViolationsTable policyViolationsTable =
         PolicyViolationsTable.getPolicyViolationsTableForParent(FirewallComponentDetailsPage.ROOT);
-    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(6));
+    policyViolationsTable.getRows().shouldHave(size(6));
 
     // Mock HDS response for firewall component policy evaluation
     ComponentDetails componentDetails = componentDetailsArrayList.get(0);
@@ -1971,7 +1971,7 @@ public class FirewallComponentDetailsPageTest
     // One policy was deleted, so we expect one policy violation less than before
     PolicyViolationsTable policyViolationsTableReevaluation =
         PolicyViolationsTable.getPolicyViolationsTableForParent(FirewallComponentDetailsPage.ROOT);
-    policyViolationsTableReevaluation.getRows().shouldHave(CollectionCondition.size(5));
+    policyViolationsTableReevaluation.getRows().shouldHave(size(5));
 
     refreshOrOpen(FirewallComponentDetailsPage.overviewTab(component));
 
@@ -2016,7 +2016,7 @@ public class FirewallComponentDetailsPageTest
     // Sanity Check
     ComponentWaiversPopover componentWaiversPopover = new ComponentWaiversPopover();
     ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
-    componentWaiversTable.getRows().shouldHave(CollectionCondition.size(1));
+    componentWaiversTable.getRows().shouldHave(size(1));
 
     firewallComponentDetailsPage.getDeleteWaiverButton().click();
 
@@ -2055,14 +2055,14 @@ public class FirewallComponentDetailsPageTest
     addWaiverPage.componentName().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
     addWaiverPage.policyName().shouldHave(text("Security-High"));
     addWaiverPage.constraintName().shouldHave(text("Security Constraint"));
-    addWaiverPage.conditions().shouldHave(CollectionCondition.size(1));
+    addWaiverPage.conditions().shouldHave(size(1));
     addWaiverPage.condition(1).shouldHave(text("security vulnerability severity >= 9.1"));
-    addWaiverPage.availableScopes().shouldHave(CollectionCondition.size(4));
+    addWaiverPage.availableScopes().shouldHave(size(4));
     addWaiverPage.scope(0).shouldHave(text("Repository - repositoryPublicId"));
     addWaiverPage.scope(1).shouldHave(text("Repository Manager - " + repositoryManager.getName()));
     addWaiverPage.scope(2).shouldHave(text("Repository Managers"));
     addWaiverPage.scope(3).shouldHave(text("Organization - Root Organization"));
-    addWaiverPage.availableComponents().shouldHave(CollectionCondition.size(3));
+    addWaiverPage.availableComponents().shouldHave(size(3));
     addWaiverPage.component(0).label().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
     addWaiverPage.component(1).label().shouldHave(text("com.lingocoder : abi.cli"));
     addWaiverPage.component(2).label().shouldHave(text("All Components"));
@@ -2103,14 +2103,14 @@ public class FirewallComponentDetailsPageTest
     addWaiverPage.componentName().shouldHave(text("unknownComponent (unknownComponent)"));
     addWaiverPage.policyName().shouldHave(text("Component-Unknown"));
     addWaiverPage.constraintName().shouldHave(text("Unknown 3rd party component"));
-    addWaiverPage.conditions().shouldHave(CollectionCondition.size(1));
+    addWaiverPage.conditions().shouldHave(size(1));
     addWaiverPage.condition(1).shouldHave(text("Match State is unknown"));
-    addWaiverPage.availableScopes().shouldHave(CollectionCondition.size(4));
+    addWaiverPage.availableScopes().shouldHave(size(4));
     addWaiverPage.scope(0).shouldHave(text("Repository - repositoryPublicId"));
     addWaiverPage.scope(1).shouldHave(text("Repository Manager - " + repositoryManager.getName()));
     addWaiverPage.scope(2).shouldHave(text("Repository Managers"));
     addWaiverPage.scope(3).shouldHave(text("Organization - Root Organization"));
-    addWaiverPage.availableComponents().shouldHave(CollectionCondition.size(3));
+    addWaiverPage.availableComponents().shouldHave(size(3));
     addWaiverPage.component(0).label().shouldHave(text("unknownComponent (unknownComponent)"));
     addWaiverPage.component(1).label().shouldHave(text("All Versions"));
     addWaiverPage.component(2).label().shouldHave(text("All Components"));
@@ -2139,7 +2139,7 @@ public class FirewallComponentDetailsPageTest
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.comments().shouldHave(exactText(""));
-    addWaiverPage.expiryTimesOptions().shouldHave(CollectionCondition.size(8));
+    addWaiverPage.expiryTimesOptions().shouldHave(size(8));
     addWaiverPage.expiryTimesOptions().get(0).shouldHave(text("Never"));
     addWaiverPage.expiryTimesOptions().get(1).shouldHave(text("7 Days"));
     addWaiverPage.expiryTimesOptions().get(2).shouldHave(text("14 Days"));
@@ -2172,7 +2172,7 @@ public class FirewallComponentDetailsPageTest
     policyViolationDetailPopover.getAddWaiversButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopes().shouldHave(CollectionCondition.size(4));
+    addWaiverPage.availableScopes().shouldHave(size(4));
     addWaiverPage.cancelButton().click();
     NxSubmitMask.seeAndWaitForDismissal();
   }
@@ -2206,10 +2206,10 @@ public class FirewallComponentDetailsPageTest
     policyViolationDetailPopover.getAddWaiversButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopes().shouldHave(CollectionCondition.size(4));
+    addWaiverPage.availableScopes().shouldHave(size(4));
     addWaiverPage.availableScopesDropdown().chooseOption(new Option(0, "Repository - repositoryPublicId"));
 
-    addWaiverPage.availableComponents().shouldHave(CollectionCondition.size(3));
+    addWaiverPage.availableComponents().shouldHave(size(3));
     NxRadio chosenComponent = addWaiverPage.component(2);
     chosenComponent.label().shouldHave(text("All Components"));
     chosenComponent.click();
@@ -2223,7 +2223,7 @@ public class FirewallComponentDetailsPageTest
     policyViolationDetailPopover.applicableWaiversTab().click();
     ListWaiversTable applicableWaiversTableAfterSubmit =
         policyViolationDetailPopover.applicableWaiversInfoTile().getApplicableWaiversTable();
-    applicableWaiversTableAfterSubmit.rows().shouldHave(CollectionCondition.size(1));
+    applicableWaiversTableAfterSubmit.rows().shouldHave(size(1));
     applicableWaiversTableAfterSubmit.noWaiversMessage().shouldNotBe(visible);
 
     ListWaiversTableRow waiversTableRow = applicableWaiversTableAfterSubmit.row(1);
@@ -2258,10 +2258,10 @@ public class FirewallComponentDetailsPageTest
     policyViolationDetailPopover.getAddWaiversButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopes().shouldHave(CollectionCondition.size(4));
+    addWaiverPage.availableScopes().shouldHave(size(4));
     addWaiverPage.availableScopesDropdown().chooseOption(new Option(0, "Repository - repositoryPublicId"));
 
-    addWaiverPage.availableComponents().shouldHave(CollectionCondition.size(3));
+    addWaiverPage.availableComponents().shouldHave(size(3));
     NxRadio chosenComponent = addWaiverPage.component(2);
     chosenComponent.label().shouldHave(text("All Components"));
     chosenComponent.click();
@@ -2289,7 +2289,7 @@ public class FirewallComponentDetailsPageTest
     // Sanity Check
     ComponentWaiversPopover componentWaiversPopover = new ComponentWaiversPopover();
     ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
-    componentWaiversTable.getRows().shouldHave(CollectionCondition.size(1));
+    componentWaiversTable.getRows().shouldHave(size(1));
 
     firewallComponentDetailsPage.getDeleteWaiverButton().click();
 
@@ -2336,7 +2336,7 @@ public class FirewallComponentDetailsPageTest
     ManageLabelsContentTab manageLabels = firewallComponentDetailsPage.labelsContent();
     manageLabels.shouldBe(visible);
 
-    manageLabels.applicableLabels().shouldHave(CollectionCondition.size(4));
+    manageLabels.applicableLabels().shouldHave(size(4));
     manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[0]));
     assertThat(manageLabels.applicableLabels().get(0).getAttribute("className")).contains("nx-selectable-color--blue");
     manageLabels.applicableLabelText(1).shouldHave(text(expectedLabelsTexts[1]));
@@ -2345,14 +2345,14 @@ public class FirewallComponentDetailsPageTest
     assertThat(manageLabels.applicableLabels().get(2).getAttribute("className")).contains("nx-selectable-color--green");
     manageLabels.applicableLabelText(3).shouldHave(text(expectedLabelsTexts[3]));
     assertThat(manageLabels.applicableLabels().get(3).getAttribute("className")).contains("nx-selectable-color--green");
-    manageLabels.appliedLabels().shouldHave(CollectionCondition.size(0));
+    manageLabels.appliedLabels().shouldHave(size(0));
   }
 
   private void testLabelsTab_displayAppliedLabels() {
     ManageLabelsContentTab manageLabels = firewallComponentDetailsPage.labelsContent();
     manageLabels.shouldBe(visible);
-    manageLabels.applicableLabels().shouldHave(CollectionCondition.size(0));
-    manageLabels.appliedLabels().shouldHave(CollectionCondition.size(4));
+    manageLabels.applicableLabels().shouldHave(size(0));
+    manageLabels.appliedLabels().shouldHave(size(4));
     manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[3]));
     assertThat(manageLabels.appliedLabels().get(0).getAttribute("className")).contains("nx-selectable-color--green");
     manageLabels.appliedLabelText(1).shouldHave(text(expectedLabelsTexts[2]));
@@ -2404,8 +2404,8 @@ public class FirewallComponentDetailsPageTest
         ManageLabelsContentTab.RepositoryComponentLabelsScopes.REPOSITORY.ordinal());
     manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[3]));
 
-    manageLabels.applicableLabels().shouldHave(CollectionCondition.size(0));
-    manageLabels.appliedLabels().shouldHave(CollectionCondition.size(4));
+    manageLabels.applicableLabels().shouldHave(size(0));
+    manageLabels.appliedLabels().shouldHave(size(4));
 
     manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[3]));
     manageLabels.appliedLabelText(1).shouldHave(text(expectedLabelsTexts[2]));
@@ -2469,8 +2469,8 @@ public class FirewallComponentDetailsPageTest
 
     removeAppliedLabel(manageLabels, 0);
 
-    manageLabels.applicableLabels().shouldHave(CollectionCondition.size(4));
-    manageLabels.appliedLabels().shouldHave(CollectionCondition.size(0));
+    manageLabels.applicableLabels().shouldHave(size(4));
+    manageLabels.appliedLabels().shouldHave(size(0));
   }
 
   @Test
@@ -2501,7 +2501,7 @@ public class FirewallComponentDetailsPageTest
     FirewallPolicyViolationsTable policyViolationsTable =
         FirewallComponentDetailsPage.getFirewallPolicyViolationsTable();
     policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(6));
+    policyViolationsTable.getRows().shouldHave(size(6));
 
     ElementsCollection policyViolationCells = policyViolationsTable.getRows().get(1).findAll(By.tagName("td"));
     policyViolationCells.get(0).shouldHave(text("6"));
@@ -2579,10 +2579,10 @@ public class FirewallComponentDetailsPageTest
     policyViolationDetailPopover.getAddWaiversButton().shouldBe(visible, enabled).click();
 
     AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.availableScopes().shouldHave(CollectionCondition.size(4));
+    addWaiverPage.availableScopes().shouldHave(size(4));
     addWaiverPage.availableScopesDropdown().chooseOption(new Option(0, "Repository - repositoryPublicId"));
 
-    addWaiverPage.availableComponents().shouldHave(CollectionCondition.size(3));
+    addWaiverPage.availableComponents().shouldHave(size(3));
     NxRadio chosenComponent = addWaiverPage.component(2);
     chosenComponent.label().shouldHave(text("All Components"));
     chosenComponent.click();
@@ -2595,10 +2595,10 @@ public class FirewallComponentDetailsPageTest
     waitUntilSpinnersGone();
 
     policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(6));
+    policyViolationsTable.getRows().shouldHave(size(6));
 
     ElementsCollection securityViolationCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
-    securityViolationCells.shouldHave(CollectionCondition.size(6));
+    securityViolationCells.shouldHave(size(6));
     securityViolationCells.get(0).shouldHave(text("10"));
     securityViolationCells.get(1).shouldHave(text("Security-High"));
     securityViolationCells.get(2).shouldHave(text("Security constraint"));
@@ -2669,7 +2669,7 @@ public class FirewallComponentDetailsPageTest
     policyViolationDetailPopover.applicableWaiversTab().click();
     ListWaiversTable applicableWaiversTableAfterSubmit =
         policyViolationDetailPopover.applicableWaiversInfoTile().getApplicableWaiversTable();
-    applicableWaiversTableAfterSubmit.rows().shouldHave(CollectionCondition.size(1));
+    applicableWaiversTableAfterSubmit.rows().shouldHave(size(1));
     applicableWaiversTableAfterSubmit.noWaiversMessage().shouldNotBe(visible);
 
     ListWaiversTableRow waiversTableRow = applicableWaiversTableAfterSubmit.row(1);
@@ -2735,7 +2735,7 @@ public class FirewallComponentDetailsPageTest
     firewallComponentDetailsPage.getDeleteWaiverModal().shouldBe(visible);
     firewallComponentDetailsPage.getDeleteWaiverModalButton().click();
 
-    componentWaiversTable.getRows().shouldHave(CollectionCondition.size(2));
+    componentWaiversTable.getRows().shouldHave(size(2));
   }
 
   @Test
@@ -2773,7 +2773,7 @@ public class FirewallComponentDetailsPageTest
     policyViolationDetailPopover.applicableWaiversTab().click();
     ListWaiversTable applicableWaiversTableAfterSubmit =
         policyViolationDetailPopover.applicableWaiversInfoTile().getApplicableWaiversTable();
-    applicableWaiversTableAfterSubmit.rows().shouldHave(CollectionCondition.size(1));
+    applicableWaiversTableAfterSubmit.rows().shouldHave(size(1));
     applicableWaiversTableAfterSubmit.noWaiversMessage().shouldNotBe(visible);
 
     ListWaiversTableRow waiversTableRow = applicableWaiversTableAfterSubmit.row(1);
@@ -2838,7 +2838,7 @@ public class FirewallComponentDetailsPageTest
     firewallComponentDetailsPage.getDeleteWaiverModal().shouldBe(visible);
     firewallComponentDetailsPage.getDeleteWaiverModalButton().click();
 
-    componentWaiversTable.getRows().shouldHave(CollectionCondition.size(2));
+    componentWaiversTable.getRows().shouldHave(size(2));
   }
 
   @Test
@@ -2954,7 +2954,7 @@ public class FirewallComponentDetailsPageTest
     String policyName = "Security-High";
 
     firewallComponentDetailsPage.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(6));
+    policyViolationsTable.getRows().shouldHave(size(6));
     ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
     violationRow1Cells.get(1).shouldHave(text(policyName));
     violationRow1Cells.get(3).click();
@@ -2975,7 +2975,7 @@ public class FirewallComponentDetailsPageTest
 
     waitUntilSpinnersGone();
     firewallComponentDetailsPage.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHave(CollectionCondition.size(6));
+    policyViolationsTable.getRows().shouldHave(size(6));
     violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
     violationRow1Cells.get(1).shouldHave(text(policyName));
   }
@@ -3134,7 +3134,7 @@ public class FirewallComponentDetailsPageTest
     policyViolationDetailPopover.shouldBe(visible).applicableWaiversTab().click();
     ListWaiversTable applicableWaiversTableAfterSubmit =
         policyViolationDetailPopover.applicableWaiversInfoTile().getApplicableWaiversTable();
-    applicableWaiversTableAfterSubmit.rows().shouldHave(CollectionCondition.size(1));
+    applicableWaiversTableAfterSubmit.rows().shouldHave(size(1));
     applicableWaiversTableAfterSubmit.noWaiversMessage().shouldBe(visible);
   }
 
@@ -3164,7 +3164,7 @@ public class FirewallComponentDetailsPageTest
 
     vulnerabilitiesTable.getRow(1).click();
     ElementsCollection vulnerabilityRow1Cells = vulnerabilitiesTable.getCellsByNthRow(1);
-    vulnerabilityRow1Cells.shouldHave(CollectionCondition.size(4));
+    vulnerabilityRow1Cells.shouldHave(size(4));
     vulnerabilityRow1Cells.get(0).shouldHave(text("9"));
     vulnerabilityRow1Cells.get(1).shouldHave(text(vulnerabilityId));
     vulnerabilityRow1Cells.get(2).shouldHave(text("Open"));

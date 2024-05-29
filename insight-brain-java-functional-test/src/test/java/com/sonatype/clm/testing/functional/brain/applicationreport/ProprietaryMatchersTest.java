@@ -24,13 +24,13 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
@@ -79,7 +79,7 @@ public class ProprietaryMatchersTest
   @Test
   public void testAddProprietaryMatchersDialog() {
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
-    reportPage.resultRows().shouldHave(CollectionCondition.size(3));
+    reportPage.resultRows().shouldHave(size(3));
     reportPage.resultRow(3).click();
 
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
@@ -112,7 +112,7 @@ public class ProprietaryMatchersTest
     componentDetailsPage.addProprietarypComponentMatchersBtn().shouldBe(visible).click();
     proprietaryComponentMatchersPopover.shouldBe(visible);
     proprietaryComponentMatchersPopover.regexInput().shouldHave(value(""));
-    proprietaryComponentMatchersPopover.matchers().shouldHave(CollectionCondition.size(2));
+    proprietaryComponentMatchersPopover.matchers().shouldHave(size(2));
     proprietaryComponentMatchersPopover.matchers().first().shouldBe(NX_RADIO_SELECTED);
     proprietaryComponentMatchersPopover.matchers().last().shouldBe(NX_RADIO_SELECTED);
 

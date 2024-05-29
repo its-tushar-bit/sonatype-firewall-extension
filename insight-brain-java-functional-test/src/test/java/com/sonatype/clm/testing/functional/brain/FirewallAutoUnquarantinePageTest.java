@@ -21,11 +21,11 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import com.codeborne.selenide.CollectionCondition;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.checked;
@@ -171,7 +171,7 @@ public class FirewallAutoUnquarantinePageTest
     refreshOrOpen(FirewallAutoUnquarantinePage.url());
 
     page.shouldBe(visible);
-    page.firewallUnquarantineTable().tableBodyRows().shouldHave(CollectionCondition.size(2));
+    page.firewallUnquarantineTable().tableBodyRows().shouldHave(size(2));
     page.firewallUnquarantineTable().tableBodyRows().shouldHave(texts("g : a : v", "g : a : v"));
   }
 

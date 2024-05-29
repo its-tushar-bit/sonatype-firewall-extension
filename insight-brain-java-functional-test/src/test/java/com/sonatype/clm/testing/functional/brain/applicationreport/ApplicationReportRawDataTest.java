@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.SelenideElement;
 import org.joda.time.format.DateTimeFormat;
@@ -38,6 +37,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exactText;
@@ -110,7 +110,7 @@ public class ApplicationReportRawDataTest
   public void testResults() {
     ResultTable resultTable = rawDataPage.resultTable();
     resultTable.shouldBe(visible);
-    resultTable.resultRows().shouldHave(CollectionCondition.size(EXPECTED_ROWS_COUNT));
+    resultTable.resultRows().shouldHave(size(EXPECTED_ROWS_COUNT));
 
     ResultRow springSecurity = resultTable.resultRow(95);
     ScrollUtil.scrollIntoView(springSecurity.getElement());
@@ -169,7 +169,7 @@ public class ApplicationReportRawDataTest
   @Test
   public void testSorting() {
     ResultTable resultTable = rawDataPage.resultTable();
-    resultTable.resultRows().shouldHave(CollectionCondition.size(EXPECTED_ROWS_COUNT));
+    resultTable.resultRows().shouldHave(size(EXPECTED_ROWS_COUNT));
 
     // starts off sorting by component name ascending
     ResultRow firstRow = resultTable.resultRow(1);
@@ -239,11 +239,11 @@ public class ApplicationReportRawDataTest
   @Test
   public void testFiltering() {
     ResultTable resultTable = rawDataPage.resultTable();
-    resultTable.resultRows().shouldHave(CollectionCondition.size(EXPECTED_ROWS_COUNT));
+    resultTable.resultRows().shouldHave(size(EXPECTED_ROWS_COUNT));
 
     // filter component name
     rawDataPage.headers().componentFilterInput().setValue("java");
-    resultTable.resultRows().shouldHave(CollectionCondition.size(6));
+    resultTable.resultRows().shouldHave(size(6));
     ResultRow firstRow = resultTable.resultRow(1);
     ResultRow lastRow = resultTable.resultRow(6);
     checkRawDataRow(firstRow, "java2html : j2h : 1.3.1", "Not Declared", "No Sources", "", "");
@@ -253,7 +253,7 @@ public class ApplicationReportRawDataTest
 
     // filter license
     rawDataPage.headers().licenseFilterInput().setValue("declared");
-    resultTable.resultRows().shouldHave(CollectionCondition.size(11));
+    resultTable.resultRows().shouldHave(size(11));
     firstRow = resultTable.resultRow(1);
     lastRow = resultTable.resultRow(11);
     checkRawDataRow(firstRow, "apache-collections : commons-collections : 3.1", "Not Declared", "No Sources",
@@ -263,7 +263,7 @@ public class ApplicationReportRawDataTest
 
     // filter security issue
     rawDataPage.headers().securityCodeFilterInput().setValue("005");
-    resultTable.resultRows().shouldHave(CollectionCondition.size(6));
+    resultTable.resultRows().shouldHave(size(6));
     firstRow = resultTable.resultRow(1);
     lastRow = resultTable.resultRow(6);
     checkRawDataRow(firstRow, "angular 1.2.17", "MIT", "Not Supported", "sonatype-2014-0058", "3.6");
@@ -272,7 +272,7 @@ public class ApplicationReportRawDataTest
 
     // intersection of multiple filters
     rawDataPage.headers().licenseFilterInput().setValue("Apache");
-    resultTable.resultRows().shouldHave(CollectionCondition.size(2));
+    resultTable.resultRows().shouldHave(size(2));
     firstRow = resultTable.resultRow(1);
     lastRow = resultTable.resultRow(2);
     checkRawDataRow(firstRow, "commons-fileupload : commons-fileupload : 1.2.2", "Apache-2.0", null, "CVE-2014-0050",
@@ -316,7 +316,7 @@ public class ApplicationReportRawDataTest
     rawDataPage.headers().cvssMinFilterInput().setValue("9");
     rawDataPage.headers().cvssMaxFilterInput().setValue("9.5");
 
-    resultTable.resultRows().shouldHave(CollectionCondition.size(2));
+    resultTable.resultRows().shouldHave(size(2));
     firstRow = resultTable.resultRow(1);
     lastRow = resultTable.resultRow(2);
     checkRawDataRow(firstRow, "apache-collections : commons-collections : 3.1", "Not Declared", "No Sources",
@@ -326,7 +326,7 @@ public class ApplicationReportRawDataTest
 
     // make sure no results row shows up if all results are filtered out
     rawDataPage.headers().licenseFilterInput().setValue("Garbage");
-    resultTable.resultRows().shouldHave(CollectionCondition.size(1));
+    resultTable.resultRows().shouldHave(size(1));
     rawDataPage.noResultsRow().shouldHave(exactText("No Data Available"));
   }
 

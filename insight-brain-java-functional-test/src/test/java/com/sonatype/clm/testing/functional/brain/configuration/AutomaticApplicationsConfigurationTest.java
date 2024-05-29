@@ -14,11 +14,11 @@ import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.model.Organization;
 
-import com.codeborne.selenide.CollectionCondition;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
@@ -58,7 +58,7 @@ public class AutomaticApplicationsConfigurationTest
         .shouldNotHave(text("which is configured to use"));
 
     // check initial state
-    automaticApplicationsConfigurationPage.organization().listItems().shouldHave(CollectionCondition.size(0));
+    automaticApplicationsConfigurationPage.organization().listItems().shouldHave(size(0));
     automaticApplicationsConfigurationPage.toggle().shouldBe(visible, enabled).shouldNotBe(checked);
 
     // check user cannot update when organizations are not present

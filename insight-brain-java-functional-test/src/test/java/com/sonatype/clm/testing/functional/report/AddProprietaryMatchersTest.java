@@ -25,13 +25,13 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.hidden;
@@ -81,7 +81,7 @@ public class AddProprietaryMatchersTest
 
     refreshOrOpen(ReportPage.url(app, SCAN_ID));
     ReportPage.policyTabButton().shouldBe(visible).click();
-    ReportPolicyPage.rows().shouldHave(CollectionCondition.size(3));
+    ReportPolicyPage.rows().shouldHave(size(3));
 
     // test AddProprietaryButton is not visible if all pathNames are maven coordinates
     ReportPolicyPage.row(2).openCip();
@@ -111,7 +111,7 @@ public class AddProprietaryMatchersTest
     // test init state
     VersionsCIP.addProprietaryMatchersButton().shouldBe(visible).click();
     modal.regexInput().shouldHave(value(""));
-    modal.pathMatcherCheckboxes().shouldHave(CollectionCondition.size(2));
+    modal.pathMatcherCheckboxes().shouldHave(size(2));
     modal.pathMatcherCheckboxes().first().shouldBe(selected);
     modal.pathMatcherCheckboxes().last().shouldBe(selected);
 

@@ -14,11 +14,11 @@ import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 
-import com.codeborne.selenide.CollectionCondition;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.text;
@@ -49,7 +49,7 @@ public class RepositoryPolicyEditorNotificationsOverrideTest
     PolicyEditorPage.savePolicy();
 
     PolicyEditorPage.inheritanceSection().shouldNotBe(visible);
-    OwnerDetailSidebar.policyGroup().entryItems().shouldHave(CollectionCondition.size(1));
+    OwnerDetailSidebar.policyGroup().entryItems().shouldHave(size(1));
     OwnerDetailSidebar.policyGroup().entryItems().get(0).click();
 
     PolicyEditorPage.title().shouldHave(text("Edit Policy"));
@@ -67,7 +67,7 @@ public class RepositoryPolicyEditorNotificationsOverrideTest
             .shouldHave(text("Allow notification overrides at repository level"));
     PolicyEditorPage.inheritanceSection().allChildrenInheritRadio().shouldNotBe(visible);
     PolicyEditorPage.inheritanceSection().specifiedChildrenInheritRadio().shouldNotBe(visible);
-    OwnerDetailSidebar.policyGroup().entryItems().shouldHave(CollectionCondition.size(1));
+    OwnerDetailSidebar.policyGroup().entryItems().shouldHave(size(1));
     OwnerDetailSidebar.policyGroup().entryItems().get(0).click();
 
     PolicyEditorPage.title().shouldHave(text("Edit Policy"));
@@ -87,7 +87,7 @@ public class RepositoryPolicyEditorNotificationsOverrideTest
         .shouldHave(text("Allow notification overrides at repository manager and repository levels"));
     PolicyEditorPage.inheritanceSection().allChildrenInheritRadio().shouldNotBe(visible);
     PolicyEditorPage.inheritanceSection().specifiedChildrenInheritRadio().shouldNotBe(visible);
-    OwnerDetailSidebar.policyGroup().entryItems().shouldHave(CollectionCondition.size(1));
+    OwnerDetailSidebar.policyGroup().entryItems().shouldHave(size(1));
     OwnerDetailSidebar.policyGroup().entryItems().get(0).click();
 
     PolicyEditorPage.title().shouldHave(text("Edit Policy"));
@@ -146,7 +146,7 @@ public class RepositoryPolicyEditorNotificationsOverrideTest
       NotificationsSection.notificationFor("parent@example.com").proxy().shouldNotBe(disabled);
       createEmailNotification("user@example.com");
       PolicyEditorPage.savePolicy();
-      NotificationsSection.notifications().shouldHave(CollectionCondition.size(2));
+      NotificationsSection.notifications().shouldHave(size(2));
       NotificationsSection.notificationFor("user@example.com").proxy().input().shouldBe(checked);
       NotificationsSection.notificationFor("user@example.com").proxy().shouldNotBe(disabled);
     }

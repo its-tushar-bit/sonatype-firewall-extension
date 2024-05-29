@@ -35,7 +35,6 @@ import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -46,7 +45,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.selected;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -118,7 +120,7 @@ public class EditNoticesTest
 
   private void doTestNoticesTile_InitialState() {
     Notices notices = ComponentLegalOverviewPage.notices();
-    notices.all().shouldHave(CollectionCondition.size(2));
+    notices.all().shouldHave(size(2));
     assertNotice(notices.at(0), "META-INF/NOTICE", "\nApache ServiceComb" +
             "\nCopyright 2017-2021 The Apache Software Foundation" +
             "\n\nThis product includes software developed at" +
@@ -142,7 +144,7 @@ public class EditNoticesTest
     ComponentLegalOverviewPage.editNoticesButton().click();
     EditNoticesModal editNoticesModal = new EditNoticesModal();
     editNoticesModal.shouldBe(Condition.visible);
-    editNoticesModal.allNotices().shouldHave(CollectionCondition.size(2));
+    editNoticesModal.allNotices().shouldHave(size(2));
     assertNotice(editNoticesModal.noticeAt(0), "\nApache ServiceComb" +
             "\nCopyright 2017-2021 The Apache Software Foundation" +
             "\n\nThis product includes software developed at" +
@@ -150,7 +152,7 @@ public class EditNoticesTest
     assertNotice(editNoticesModal.noticeAt(1), "content", true);
     assertOption(editNoticesModal.scopeDropdown().getSelectedOption(), rootOrg);
     ElementsCollection options = editNoticesModal.scopeDropdown().$$("option");
-    options.shouldHave(CollectionCondition.size(expectedScopeCount));
+    options.shouldHave(size(expectedScopeCount));
     if (expectedScopeCount == 1) {
       assertOption(options.get(0), rootOrg);
     }
@@ -179,7 +181,7 @@ public class EditNoticesTest
     ComponentLegalOverviewPage.editNoticesButton().click();
     EditNoticesModal editNoticesModal = new EditNoticesModal();
     editNoticesModal.addNoticeButton().click();
-    editNoticesModal.allNotices().shouldHave(CollectionCondition.size(3));
+    editNoticesModal.allNotices().shouldHave(size(3));
     assertNotice(editNoticesModal.noticeAt(2), "", true);
     assertButton(editNoticesModal.cancel(), true, null);
     editNoticesModal.noticeAt(2).textInput().setValue("custom");
@@ -233,24 +235,24 @@ public class EditNoticesTest
     ComponentLegalOverviewPage.editNoticesButton().click();
     EditNoticesModal editNoticesModal = new EditNoticesModal();
     Notice notice = editNoticesModal.noticeAt(0);
-    notice.statusCheckbox().shouldBe(Condition.selected);
+    notice.statusCheckbox().shouldBe(selected);
     notice.textInput().shouldBe(Condition.enabled);
     notice.statusToggle().click();
-    notice.statusCheckbox().shouldNotBe(Condition.selected);
+    notice.statusCheckbox().shouldNotBe(selected);
     notice.textInput().shouldBe(Condition.disabled);
     assertButton(editNoticesModal.save(), true, null);
     notice.statusToggle().click();
-    notice.statusCheckbox().shouldBe(Condition.selected);
+    notice.statusCheckbox().shouldBe(selected);
     notice.textInput().shouldBe(Condition.enabled);
     notice.statusToggle().click();
-    notice.statusCheckbox().shouldNotBe(Condition.selected);
+    notice.statusCheckbox().shouldNotBe(selected);
     notice.textInput().shouldBe(Condition.disabled);
     assertButton(editNoticesModal.save(), true, null);
     editNoticesModal.save().click();
     editNoticesModal.shouldNotBe(Condition.visible);
-    ComponentLegalOverviewPage.notices().all().shouldHave(CollectionCondition.size(1));
+    ComponentLegalOverviewPage.notices().all().shouldHave(size(1));
     ComponentLegalOverviewPage.editNoticesButton().click();
-    notice.statusCheckbox().shouldNotBe(Condition.selected);
+    notice.statusCheckbox().shouldNotBe(selected);
   }
 
   @Test
@@ -268,7 +270,7 @@ public class EditNoticesTest
   private void doTestCancel() {
     ComponentLegalOverviewPage.editNoticesButton().click();
     EditNoticesModal editNoticesModal = new EditNoticesModal();
-    editNoticesModal.allNotices().shouldHave(CollectionCondition.size(2));
+    editNoticesModal.allNotices().shouldHave(size(2));
     Notice notice = editNoticesModal.noticeAt(0);
     assertNotice(notice, "\nApache ServiceComb" +
         "\nCopyright 2017-2021 The Apache Software Foundation" +
@@ -278,11 +280,11 @@ public class EditNoticesTest
     notice.statusToggle().click();
     assertNotice(notice, "changed", false);
     editNoticesModal.addNoticeButton().click();
-    editNoticesModal.allNotices().shouldHave(CollectionCondition.size(3));
+    editNoticesModal.allNotices().shouldHave(size(3));
     editNoticesModal.cancel().click();
     editNoticesModal.shouldNotBe(Condition.visible);
     ComponentLegalOverviewPage.editNoticesButton().click();
-    editNoticesModal.allNotices().shouldHave(CollectionCondition.size(2));
+    editNoticesModal.allNotices().shouldHave(size(2));
     assertNotice(notice, "\nApache ServiceComb" +
         "\nCopyright 2017-2021 The Apache Software Foundation" +
         "\n\nThis product includes software developed at" +
@@ -474,9 +476,9 @@ public class EditNoticesTest
       notice.relPath().shouldBe(empty);
     }
     else {
-      notice.relPath().shouldHave(Condition.exactText(relPath));
+      notice.relPath().shouldHave(exactText(relPath));
     }
-    notice.text().shouldHave(Condition.exactText(text));
+    notice.text().shouldHave(exactText(text));
   }
 
   private void assertNotice(Notice notice, LegalFileOverride legalFileOverride) {
@@ -485,20 +487,20 @@ public class EditNoticesTest
   }
 
   private void assertNotice(Notice notice, String text, boolean enabled) {
-    notice.textInput().shouldHave(Condition.exactText(text));
+    notice.textInput().shouldHave(exactText(text));
     if (enabled) {
-      notice.statusToggle().shouldHave(Condition.exactText("Included"));
-      notice.statusCheckbox().shouldBe(Condition.selected);
+      notice.statusToggle().shouldHave(exactText("Included"));
+      notice.statusCheckbox().shouldBe(selected);
     }
     else {
-      notice.statusToggle().shouldHave(Condition.exactText("Excluded"));
-      notice.statusCheckbox().shouldNotBe(Condition.selected);
+      notice.statusToggle().shouldHave(exactText("Excluded"));
+      notice.statusCheckbox().shouldNotBe(selected);
     }
   }
 
   private void assertOption(SelenideElement option, Owner owner) {
     option.shouldHave(Condition.value(owner.getId()));
-    option.shouldHave(Condition.exactText(getOptionText(owner)));
+    option.shouldHave(exactText(getOptionText(owner)));
   }
 
   private String getOptionText(Owner owner) {
@@ -514,7 +516,7 @@ public class EditNoticesTest
     }
     button.hover();
     if (tooltip != null) {
-      Tooltip.get().shouldBe(Condition.visible).shouldBe(Condition.exactText(tooltip));
+      Tooltip.get().shouldBe(Condition.visible).shouldBe(exactText(tooltip));
     }
     else {
       Tooltip.get().shouldNotBe(Condition.visible);

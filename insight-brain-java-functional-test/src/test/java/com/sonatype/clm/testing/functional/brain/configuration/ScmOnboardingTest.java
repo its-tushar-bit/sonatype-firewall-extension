@@ -28,7 +28,6 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
@@ -49,8 +48,10 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.interactions.Actions;
 
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.CollectionCondition.textsInAnyOrder;
 import static com.codeborne.selenide.Condition.*;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -173,7 +174,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.loadError().shouldBe(hidden);
 
     // and page titles are visible
-    scmOnboardingPage.getPageTitleElements().shouldHave(CollectionCondition.size(1));
+    scmOnboardingPage.getPageTitleElements().shouldHave(size(1));
   }
 
   @Test
@@ -787,7 +788,7 @@ public class ScmOnboardingTest
 
     // then selected count is updated with the number of filtered repositories
     scmOnboardingPage.selectedToImportCount().shouldBe(text("3  of 14 repositories"));
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts("ci-project-1",
+    scmOnboardingPage.resultsTableProject().shouldHave(texts("ci-project-1",
         "ci-project-16", "this-is-a-repository-with-a-really-long-name-ci-project-1"));
 
     // when we import the selected repos
@@ -813,7 +814,7 @@ public class ScmOnboardingTest
 
     // and the initially selected elements are no longer visible
     scmOnboardingPage.selectedToImportCount().shouldBe(text("0  of 11 repositories"));
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(0));
+    scmOnboardingPage.resultsTableProject().shouldHave(size(0));
 
     // and they are not there when the filter is updated
     scmOnboardingPage.projectFilter().sendKeys(IntStream.range(0, 3)
@@ -821,7 +822,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableSelectAll().parent().click();
     scmOnboardingPage.repositoryCount().shouldBe(text("11"));
     scmOnboardingPage.selectedToImportCount().shouldBe(text("11 of 11 repositories"));
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.textsInAnyOrder(
+    scmOnboardingPage.resultsTableProject().shouldHave(textsInAnyOrder(
         "create-react-app", "nexus-repository-p2", "nexus-repository-puppet",
         "nexus-repository-terraform", "nexus-repository-vgo", "nexus-scripting-examples",
         "nexus-webhook-example-collection", "null-description", "missing-description", "oysteR",
@@ -851,7 +852,7 @@ public class ScmOnboardingTest
 
     // then selected count is updated with the number of filtered repositories
     scmOnboardingPage.selectedToImportCount().shouldBe(text("2 of 3 repositories"));
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.textsInAnyOrder("broken-url-1",
+    scmOnboardingPage.resultsTableProject().shouldHave(textsInAnyOrder("broken-url-1",
         "broken-url-2"));
 
     // when we import the selected repos
@@ -869,7 +870,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.alreadyImportedCount().shouldBe(text("0"));
 
     // and the initially selected elements are still visible
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts("broken-url-1",
+    scmOnboardingPage.resultsTableProject().shouldHave(texts("broken-url-1",
         "broken-url-2"));
 
     // and the select all checkbox is unchecked
@@ -917,7 +918,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.alreadyImportedCount().shouldBe(text("1"));
 
     // and the broken elements are still visible
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts("broken-url-1",
+    scmOnboardingPage.resultsTableProject().shouldHave(texts("broken-url-1",
         "broken-url-2"));
 
     // and the select all checkbox is unchecked
@@ -946,7 +947,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableSelectAll().parent().click(); // uncheck box
     scmOnboardingPage.resultsTableSelectAll().parent().click(); // check box
     scmOnboardingPage.selectedToImportCount().shouldBe(text("7 of 14 repositories"));
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts(
+    scmOnboardingPage.resultsTableProject().shouldHave(texts(
         "nexus-repository-p2", "nexus-repository-puppet", "nexus-repository-terraform",
         "nexus-repository-vgo", "nexus-scripting-examples", "nexus-webhook-example-collection",
         "prime-nexus-proxy-repos"));
@@ -968,7 +969,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.projectFilter().setValue("nexus");
     scmOnboardingPage.resultsTableSelectAll().parent().click();
     scmOnboardingPage.selectedToImportCount().shouldBe(text("7 of 14 repositories"));
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts(
+    scmOnboardingPage.resultsTableProject().shouldHave(texts(
         "nexus-repository-p2", "nexus-repository-puppet", "nexus-repository-terraform",
         "nexus-repository-vgo", "nexus-scripting-examples", "nexus-webhook-example-collection",
         "prime-nexus-proxy-repos"));
@@ -980,7 +981,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.selectedToImportCount().shouldBe(text("4 of 14 repositories"));
 
     // and the result table contains exactly 4 projects
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.texts(
+    scmOnboardingPage.resultsTableProject().shouldHave(texts(
         "nexus-repository-p2", "nexus-repository-puppet", "nexus-repository-terraform",
         "nexus-repository-vgo"));
 
@@ -1148,10 +1149,10 @@ public class ScmOnboardingTest
 
     // then the repos list loads and has the max page size
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(15));
+    scmOnboardingPage.resultsTableProject().shouldHave(size(15));
 
     // and pagination buttons are present
-    scmOnboardingPage.paginationButtons().shouldHave(CollectionCondition.size(2));
+    scmOnboardingPage.paginationButtons().shouldHave(size(2));
 
     // and move viewport and perform visual test
     Actions actions = new Actions(WebDriverRunner.getWebDriver());
@@ -1166,7 +1167,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.paginationButtons().get(1).click();
 
     // then the second page of results appears
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(5));
+    scmOnboardingPage.resultsTableProject().shouldHave(size(5));
     scmOnboardingPage.paginationButtons().get(1).shouldHave(cssClass("selected"));
   }
 
@@ -1196,7 +1197,7 @@ public class ScmOnboardingTest
 
     // then the page is reset to the first one
     scmOnboardingPage.paginationButtons().get(0).shouldHave(cssClass("selected"));
-    scmOnboardingPage.paginationButtons().shouldHave(CollectionCondition.size(1));
+    scmOnboardingPage.paginationButtons().shouldHave(size(1));
   }
 
   @Test
@@ -1257,7 +1258,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.orgDropdownItems().find(exactText("Test Org")).click();
 
     // then it triggers a reload, repo list is unchanged
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(14));
+    scmOnboardingPage.resultsTableProject().shouldHave(size(14));
   }
 
   @Test
@@ -1308,7 +1309,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Select"));
 
     // and the repo list is empty with no errors
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(0));
+    scmOnboardingPage.resultsTableProject().shouldHave(size(0));
     scmOnboardingPage.resultsTableBody().shouldHave(text("No matching repositories."));
 
     // when we pull down the list
@@ -1345,7 +1346,7 @@ public class ScmOnboardingTest
     // then the repository list gets populated
     scmOnboardingPage.modalDialog().shouldNotBe(visible);
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(14));
+    scmOnboardingPage.resultsTableProject().shouldHave(size(14));
 
     // when we reset the git service responses to have 0 entries, letting us test if a requery happens
     mockRepoForPage(gitService, 0, EMPTY_JSON_ARRAY);
@@ -1355,7 +1356,7 @@ public class ScmOnboardingTest
     menuButtons.find(exactText("Test Org 2")).click();
 
     // then it doesn't trigger a reload, repo list is unchanged
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(14));
+    scmOnboardingPage.resultsTableProject().shouldHave(size(14));
 
     // when select org with a custom token and no SC entries
     scmOnboardingPage.organizationsDropdown().click();
@@ -1402,14 +1403,14 @@ public class ScmOnboardingTest
     // then the repository list gets populated
     scmOnboardingPage.modalDialog().shouldNotBe(visible);
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(14));
+    scmOnboardingPage.resultsTableProject().shouldHave(size(14));
 
     // when we select the custom host org
     scmOnboardingPage.organizationsDropdown().click();
     menuButtons.find(exactText("Custom Host")).click();
 
     // then it loads the page immediately with our secondary git service results
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(1));
+    scmOnboardingPage.resultsTableProject().shouldHave(size(1));
   }
 
   @Test
@@ -1442,7 +1443,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.orgDropdownItems().shouldHave(texts("A-b", "A-c", "a-Bb"));
     clearOrgFilter(scmOnboardingPage);
     scmOnboardingPage.orgDropdownFilter().setValue("foo");
-    scmOnboardingPage.orgDropdownItems().shouldHave(CollectionCondition.size(0));
+    scmOnboardingPage.orgDropdownItems().shouldHave(size(0));
     clearOrgFilter(scmOnboardingPage);
     scmOnboardingPage.orgDropdownFilter().setValue("A-b");
     scmOnboardingPage.orgDropdownItems().shouldHave(texts("A-b", "a-Bb"));
@@ -1507,7 +1508,7 @@ public class ScmOnboardingTest
     scmOnboardingPage.orgDropdownItems().shouldHave(texts("Test Org"));
     clearOrgFilter(scmOnboardingPage);
     scmOnboardingPage.orgDropdownFilter().setValue("foo");
-    scmOnboardingPage.orgDropdownItems().shouldHave(CollectionCondition.size(0));
+    scmOnboardingPage.orgDropdownItems().shouldHave(size(0));
     clearOrgFilter(scmOnboardingPage);
     scmOnboardingPage.orgDropdownFilter().setValue("st or");
     scmOnboardingPage.orgDropdownItems().shouldBe(texts("Test Org"));
@@ -1765,7 +1766,7 @@ public class ScmOnboardingTest
     // then the org dropdown is shown
     scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Custom Host"));
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(1));
+    scmOnboardingPage.resultsTableProject().shouldHave(size(1));
 
     // when creating a new organization
     scmOnboardingPage.newOrgButton().click();
@@ -1776,7 +1777,7 @@ public class ScmOnboardingTest
     // Then the new organization is created and selected
     scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Foo Organization"));
     scmOnboardingPage.loadingSpinner().shouldNotBe(visible);
-    scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.size(14));
+    scmOnboardingPage.resultsTableProject().shouldHave(size(14));
   }
 
   @Test

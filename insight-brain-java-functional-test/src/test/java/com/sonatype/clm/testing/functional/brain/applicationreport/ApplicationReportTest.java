@@ -53,8 +53,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.model.HasStringId;
 
-import com.codeborne.selenide.CollectionCondition;
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -67,16 +65,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.cssValue;
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.exactText;
-import static com.codeborne.selenide.Condition.exist;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.selected;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.DIRECT_DEPENDENCY_CLASS;
 import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.INNER_SOURCE_DEPENDENCY_CLASS;
@@ -304,7 +295,7 @@ public class ApplicationReportTest
     NxDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.shouldBe(visible).menu().shouldNotBe(visible);
     optionsDropdown.button().shouldHave(text("Options")).click();
-    optionsDropdown.menu().shouldBe(visible).entries().shouldHave(CollectionCondition.size(6));
+    optionsDropdown.menu().shouldBe(visible).entries().shouldHave(size(6));
 
     eyesWatcher.eyesCheck();
   }
@@ -385,7 +376,7 @@ public class ApplicationReportTest
   public void testTextIndicators() throws Exception {
     Policy licenseBanned = policyDAO.getByName("License-Banned").get(0);
     reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
-    reportPage.resultRows().shouldHave(CollectionCondition.size(2));
+    reportPage.resultRows().shouldHave(size(2));
     reportPage.resultRow(1).waiverIndicator().shouldBe(hidden);
     reportPage.resultRow(2).waiverIndicator().shouldBe(hidden);
 
@@ -396,12 +387,12 @@ public class ApplicationReportTest
     // test that indicators are shown when aggregating
     InputUtils.clearInput(reportPage.headers().policyNameFilterInput());
     reportPage.headers().componentNameFilterInput().setValue("mycila");
-    reportPage.resultRows().shouldHave(CollectionCondition.size(1));
+    reportPage.resultRows().shouldHave(size(1));
     reportPage.resultRow(1).waiverIndicator().shouldBe(visible);
     reportPage.resultRow(1).waiverIndicator().shouldHave(text("1 Waived Violation"));
     reportPage.resultRow(1).legacyViolationIndicator().shouldNotBe(visible);
     reportPage.headers().componentNameFilterInput().setValue("vaadin");
-    reportPage.resultRows().shouldHave(CollectionCondition.size(1));
+    reportPage.resultRows().shouldHave(size(1));
     reportPage.resultRow(1).waiverIndicator().shouldBe(visible);
     reportPage.resultRow(1).waiverIndicator().shouldHave(text("1 Waived Violation"));
     reportPage.resultRow(1).legacyViolationIndicator().shouldNotBe(visible);
@@ -411,7 +402,7 @@ public class ApplicationReportTest
     InputUtils.clearInput(reportPage.headers().componentNameFilterInput());
     reportPage.aggregateByComponentToggle().shouldBeOn().click();
     reportPage.aggregateByComponentToggle().shouldBeOff();
-    reportPage.resultRows().shouldHave(CollectionCondition.size(2));
+    reportPage.resultRows().shouldHave(size(2));
     reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
     reportPage.resultRow(2).waivedIndicator().shouldBe(visible);
     reportPage.resultRow(1).legacyViolationIndicator().shouldNotBe(visible);
@@ -421,13 +412,13 @@ public class ApplicationReportTest
 
     // now the legacy violation indicator should appear
     reportPage.headers().componentNameFilterInput().setValue("mycila");
-    reportPage.resultRows().shouldHave(CollectionCondition.size(1));
+    reportPage.resultRows().shouldHave(size(1));
     reportPage.resultRow(1).waiverIndicator().shouldBe(visible);
     reportPage.resultRow(1).waiverIndicator().shouldHave(text("1 Waived Violation"));
     reportPage.resultRow(1).legacyViolationIndicator().shouldBe(visible);
 
     reportPage.headers().componentNameFilterInput().setValue("vaadin");
-    reportPage.resultRows().shouldHave(CollectionCondition.size(1));
+    reportPage.resultRows().shouldHave(size(1));
     reportPage.resultRow(1).waiverIndicator().shouldBe(visible);
     reportPage.resultRow(1).waiverIndicator().shouldHave(text("1 Waived Violation"));
     reportPage.resultRow(1).legacyViolationIndicator().shouldBe(visible);
@@ -436,7 +427,7 @@ public class ApplicationReportTest
     reportPage.aggregateByComponentToggle().shouldBeOff();
     reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
     InputUtils.clearInput(reportPage.headers().componentNameFilterInput());
-    reportPage.resultRows().shouldHave(CollectionCondition.size(2));
+    reportPage.resultRows().shouldHave(size(2));
     reportPage.resultRow(1).waivedIndicator().shouldBe(visible);
     reportPage.resultRow(1).legacyViolationIndicator().shouldBe(visible);
 
@@ -445,12 +436,12 @@ public class ApplicationReportTest
     // a test to catch CLM-12064. When aggregating, the policy name for these rows should change back to None
     reportPage.headers().componentNameFilterInput().setValue("vaadin");
     InputUtils.clearInput(reportPage.headers().policyNameFilterInput());
-    reportPage.resultRows().shouldHave(CollectionCondition.size(1));
+    reportPage.resultRows().shouldHave(size(1));
     reportPage.resultRow(1).policyName().shouldHave(text(licenseBanned.getName()));
     reportPage.resultRow(1).threatNumber().shouldHave(text("10"));
     reportPage.aggregateByComponentToggle().shouldBeOff().click();
     reportPage.aggregateByComponentToggle().shouldBeOn();
-    reportPage.resultRows().shouldHave(CollectionCondition.size(1));
+    reportPage.resultRows().shouldHave(size(1));
     reportPage.resultRow(1).policyName().shouldHave(text("None"));
     reportPage.resultRow(1).threatNumber().shouldHave(text("0"));
 
@@ -459,12 +450,12 @@ public class ApplicationReportTest
     refresh();
 
     reportPage.headers().componentNameFilterInput().setValue("mycila");
-    reportPage.resultRows().shouldHave(CollectionCondition.size(1));
+    reportPage.resultRows().shouldHave(size(1));
     reportPage.resultRow(1).waivedIndicator().shouldNotBe(visible);
     reportPage.resultRow(1).legacyViolationIndicator().shouldBe(visible);
 
     reportPage.headers().componentNameFilterInput().setValue("vaadin");
-    reportPage.resultRows().shouldHave(CollectionCondition.size(1));
+    reportPage.resultRows().shouldHave(size(1));
     reportPage.resultRow(1).waivedIndicator().shouldNotBe(visible);
     reportPage.resultRow(1).legacyViolationIndicator().shouldBe(visible);
 
@@ -472,7 +463,7 @@ public class ApplicationReportTest
     reportPage.aggregateByComponentToggle().shouldBeOff();
     reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
     InputUtils.clearInput(reportPage.headers().componentNameFilterInput());
-    reportPage.resultRows().shouldHave(CollectionCondition.size(2));
+    reportPage.resultRows().shouldHave(size(2));
     reportPage.resultRow(1).waivedIndicator().shouldNotBe(visible);
     reportPage.resultRow(1).legacyViolationIndicator().shouldBe(visible);
   }
@@ -509,21 +500,21 @@ public class ApplicationReportTest
   public void testInnerSourceTransitiveViolationsCount() {
     reportPage.aggregateByComponentToggle().shouldBeOn();
     reportPage.resultRow(16).shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
-        .transitiveViolationsCount().shouldHave(CollectionCondition.size(1))
+        .transitiveViolationsCount().shouldHave(size(1))
         .get(0).shouldHave(text("2 transitive violations"));
     reportPage.aggregateByComponentToggle().click();
     reportPage.aggregateByComponentToggle().shouldBeOff();
     reportPage.resultRow(21).shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
-        .transitiveViolationsCount().shouldHave(CollectionCondition.size(0));
+        .transitiveViolationsCount().shouldHave(size(0));
   }
 
   @Test
   public void testDependencyIndicators() {
-    reportPage.rowsWithDependencyInfo().shouldHave(CollectionCondition.size(6));
+    reportPage.rowsWithDependencyInfo().shouldHave(size(6));
     reportPage.resultRow(5).shouldHave(text("apache-httpclient : commons-httpclient : 3.1"))
-        .dependencyIndicators().shouldHave(CollectionCondition.size(1)).get(0).shouldHave(DIRECT_DEPENDENCY_CLASS);
+        .dependencyIndicators().shouldHave(size(1)).get(0).shouldHave(DIRECT_DEPENDENCY_CLASS);
     ResultRow resultRow = reportPage.resultRow(6).shouldHave(text("apache-taglibs : standard : 1.1.2"));
-    ElementsCollection dependencyIndicators = resultRow.dependencyIndicators().shouldHave(CollectionCondition.size(2));
+    ElementsCollection dependencyIndicators = resultRow.dependencyIndicators().shouldHave(size(2));
     dependencyIndicators.get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS).shouldHave(text("T"));
     dependencyIndicators.get(1).shouldHave(INNER_SOURCE_DEPENDENCY_CLASS).shouldHave(text("IS")).hover();
     Tooltip.get().shouldBe(visible)
@@ -531,17 +522,17 @@ public class ApplicationReportTest
         .shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"));
     dependencyIndicators = reportPage.resultRow(16)
         .shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
-        .dependencyIndicators().shouldHave(CollectionCondition.size(2));
+        .dependencyIndicators().shouldHave(size(2));
     dependencyIndicators.get(0).shouldHave(DIRECT_DEPENDENCY_CLASS).shouldHave(text("D")).hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("Direct Dependency"));
     dependencyIndicators.get(1).shouldHave(INNER_SOURCE_DEPENDENCY_CLASS).shouldHave(text("IS")).hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("InnerSource"));
     reportPage.resultRow(26).shouldHave(text("org.springframework : spring-core : 3.2.8.RELEASE"))
-        .dependencyIndicators().shouldHave(CollectionCondition.size(1)).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
+        .dependencyIndicators().shouldHave(size(1)).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
     reportPage.resultRow(58).shouldHave(text("org.springframework : spring-aop : 3.2.8.RELEASE"))
-        .dependencyIndicators().shouldHave(CollectionCondition.size(1)).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
+        .dependencyIndicators().shouldHave(size(1)).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
     reportPage.resultRow(59).shouldHave(text("org.springframework : spring-beans : 3.2.4.RELEASE"))
-        .dependencyIndicators().shouldHave(CollectionCondition.size(1)).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
+        .dependencyIndicators().shouldHave(size(1)).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
   }
 
   @Test
@@ -558,31 +549,31 @@ public class ApplicationReportTest
 
     // By default the "Aggregate by Component" toggle should be ON
     reportPage.aggregateByComponentToggle().shouldBeOn();
-    reportPage.resultRows().shouldHave(CollectionCondition.size(EXPECTED_VIOLATIONS_COUNT));
-    reportPage.getThreatBars("critical").shouldHave(CollectionCondition.size(17));
-    reportPage.getThreatBars("severe").shouldHave(CollectionCondition.size(9));
-    reportPage.getThreatBars("moderate").shouldHave(CollectionCondition.size(1));
-    reportPage.getThreatBars("low").shouldHave(CollectionCondition.size(1));
-    reportPage.getThreatBars("none").shouldHave(CollectionCondition.size(expectedNoneThreatLevelResults));
+    reportPage.resultRows().shouldHave(size(EXPECTED_VIOLATIONS_COUNT));
+    reportPage.getThreatBars("critical").shouldHave(size(17));
+    reportPage.getThreatBars("severe").shouldHave(size(9));
+    reportPage.getThreatBars("moderate").shouldHave(size(1));
+    reportPage.getThreatBars("low").shouldHave(size(1));
+    reportPage.getThreatBars("none").shouldHave(size(expectedNoneThreatLevelResults));
     reportPage.headers().componentNameFilterInput().setValue("commons-fileupload");
-    reportPage.resultRows().shouldHave(CollectionCondition.size(1));
-    reportPage.getThreatBars("critical").shouldHave(CollectionCondition.size(1));
+    reportPage.resultRows().shouldHave(size(1));
+    reportPage.getThreatBars("critical").shouldHave(size(1));
 
     reportPage.aggregateByComponentToggle().shouldBeOn().click();
     reportPage.aggregateByComponentToggle().shouldBeOff();
 
-    reportPage.resultRows().shouldHave(CollectionCondition.size(6));
-    reportPage.getThreatBars("critical").shouldHave(CollectionCondition.size(4));
-    reportPage.getThreatBars("severe").shouldHave(CollectionCondition.size(1));
-    reportPage.getThreatBars("moderate").shouldHave(CollectionCondition.size(1));
+    reportPage.resultRows().shouldHave(size(6));
+    reportPage.getThreatBars("critical").shouldHave(size(4));
+    reportPage.getThreatBars("severe").shouldHave(size(1));
+    reportPage.getThreatBars("moderate").shouldHave(size(1));
 
     InputUtils.clearInput(reportPage.headers().componentNameFilterInput());
-    reportPage.resultRows().shouldHave(CollectionCondition.size(EXPECTED_TOTAL_ROWS_COUNT));
-    reportPage.getThreatBars("critical").shouldHave(CollectionCondition.size(22));
-    reportPage.getThreatBars("severe").shouldHave(CollectionCondition.size(39));
-    reportPage.getThreatBars("moderate").shouldHave(CollectionCondition.size(4));
-    reportPage.getThreatBars("low").shouldHave(CollectionCondition.size(1));
-    reportPage.getThreatBars("none").shouldHave(CollectionCondition.size(expectedNoneThreatLevelResults));
+    reportPage.resultRows().shouldHave(size(EXPECTED_TOTAL_ROWS_COUNT));
+    reportPage.getThreatBars("critical").shouldHave(size(22));
+    reportPage.getThreatBars("severe").shouldHave(size(39));
+    reportPage.getThreatBars("moderate").shouldHave(size(4));
+    reportPage.getThreatBars("low").shouldHave(size(1));
+    reportPage.getThreatBars("none").shouldHave(size(expectedNoneThreatLevelResults));
   }
 
   @Test
@@ -590,7 +581,7 @@ public class ApplicationReportTest
     // By default the "Aggregate by Component" toggle should be ON
     reportPage.aggregateByComponentToggle().shouldBeOn();
     reportPage.headers().componentNameFilterInput().setValue("commons-fileupload");
-    reportPage.resultRows().shouldHave(CollectionCondition.size(1));
+    reportPage.resultRows().shouldHave(size(1));
     reportPage.resultRow(1).waiverIndicator().shouldBe(hidden);
     Policy securityHigh = policyDAO.getByName("Security-High").get(0);
     //
@@ -600,7 +591,7 @@ public class ApplicationReportTest
     FormMask.seeAndWaitForDismissal();
 
     reportPage.headers().componentNameFilterInput().shouldHave(value("commons-fileupload"));
-    reportPage.resultRows().shouldHave(CollectionCondition.size(1));
+    reportPage.resultRows().shouldHave(size(1));
     reportPage.resultRow(1).waiverIndicator().shouldBe(visible);
     reportPage.resultRow(1).waiverIndicator().shouldHave(text("4 Waived Violations"));
     eyesWatcher.eyesCheck("Multiple waived violations in aggregated view");
@@ -612,7 +603,7 @@ public class ApplicationReportTest
     ElementsCollection violations = reportPage.resultRows();
     // reduce the result set so we don't need to scroll around
     headers.componentNameFilterInput().setValue("com.");
-    violations.shouldHave(CollectionCondition.size(8));
+    violations.shouldHave(size(8));
 
     // by threat level
     headers.threatHeader().sortArrows().shouldBeDown();
@@ -666,26 +657,26 @@ public class ApplicationReportTest
     ElementsCollection violations = reportPage.resultRows();
 
     headers.policyNameFilterInput().setValue("unk");
-    violations.shouldHave(CollectionCondition.size(1));
+    violations.shouldHave(size(1));
     violations.shouldHave(texts("Component-Unknown"));
     violations.shouldHave(texts("RegexMatch.dll"));
 
     SidebarNavigation.reportingNavigationButton().click();
     ReportListPage.firstRow().buildReportLink().click();
 
-    headers.policyNameFilterInput().shouldBe(Condition.empty);
-    violations.shouldHave(CollectionCondition.size(EXPECTED_VIOLATIONS_COUNT));
+    headers.policyNameFilterInput().shouldBe(empty);
+    violations.shouldHave(size(EXPECTED_VIOLATIONS_COUNT));
 
     headers.componentNameFilterInput().setValue("Reg");
-    violations.shouldHave(CollectionCondition.size(1));
+    violations.shouldHave(size(1));
     violations.shouldHave(texts("Component-Unknown"));
     violations.shouldHave(texts("RegexMatch.dll"));
 
     SidebarNavigation.reportingNavigationButton().click();
     ReportListPage.firstRow().buildReportLink().click();
 
-    headers.componentNameFilterInput().shouldBe(Condition.empty);
-    violations.shouldHave(CollectionCondition.size(EXPECTED_VIOLATIONS_COUNT));
+    headers.componentNameFilterInput().shouldBe(empty);
+    violations.shouldHave(size(EXPECTED_VIOLATIONS_COUNT));
   }
 
   @Test
@@ -709,7 +700,7 @@ public class ApplicationReportTest
     reportPage.filterToggle().click();
 
     ViolationStateFilter violationStateFilter = reportPage.filterPanel().violationStateFilter();
-    violationStateFilter.multiSelectList().shouldHave(CollectionCondition.size(5));
+    violationStateFilter.multiSelectList().shouldHave(size(5));
     violationStateFilter.counter().shouldHave(exactText("4"));
     violationStateFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));
     violationStateFilter.twisty().click();
@@ -718,7 +709,7 @@ public class ApplicationReportTest
     violationStateFilter.open().click();
     violationStateFilter.open().shouldBe(selected);
     violationStateFilter.counter().shouldHave(exactText("1 of 4"));
-    violations.shouldHave(CollectionCondition.size(28));
+    violations.shouldHave(size(28));
     violations.first().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
 
     WaiverApplierForReport.waiveReportRow(reportPage, 0);
@@ -726,27 +717,27 @@ public class ApplicationReportTest
     reportPage.shouldBe(visible);
     reportPage.reevaluateButton().click();
     FormMask.seeAndWaitForDismissal();
-    violations.shouldHave(CollectionCondition.size(EXPECTED_VIOLATIONS_COUNT));
+    violations.shouldHave(size(EXPECTED_VIOLATIONS_COUNT));
 
     reportPage.filterToggle().click();
     violationStateFilter = reportPage.filterPanel().violationStateFilter();
-    violationStateFilter.multiSelectList().shouldHave(CollectionCondition.size(5));
+    violationStateFilter.multiSelectList().shouldHave(size(5));
     violationStateFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));
     violationStateFilter.twisty().click();
-    violationStateFilter.multiSelectList().shouldHave(CollectionCondition.size(5));
+    violationStateFilter.multiSelectList().shouldHave(size(5));
     violationStateFilter.multiSelectList().forEach(child -> child.shouldBe(visible));
 
     violationStateFilter.open().click();
     violationStateFilter.open().shouldBe(selected);
     violationStateFilter.counter().shouldHave(exactText("1 of 4"));
     // waived violation filtered out
-    violations.shouldHave(CollectionCondition.size(27));
+    violations.shouldHave(size(27));
 
     // now add waived violations
     violationStateFilter.waived().click();
     violationStateFilter.waived().shouldBe(selected);
     violationStateFilter.counter().shouldHave(exactText("2 of 4"));
-    violations.shouldHave(CollectionCondition.size(28));
+    violations.shouldHave(size(28));
 
     // at this point, the mycila violation is visible but is way down at the "None" part of the list because we are
     // in the aggregated view
@@ -757,7 +748,7 @@ public class ApplicationReportTest
     reportPage.filterPanel().closeButton().click();
     reportPage.aggregateByComponentToggle().shouldBeOn().click();
     reportPage.aggregateByComponentToggle().shouldBeOff();
-    violations.shouldHave(CollectionCondition.size(66));
+    violations.shouldHave(size(66));
     violations.first().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
 
     activateLegacyViolations();
@@ -771,27 +762,27 @@ public class ApplicationReportTest
     violationStateFilter.waived().click();
 
     // legacy violations not visible
-    violations.shouldHave(CollectionCondition.size(21));
+    violations.shouldHave(size(21));
 
     // legacy violations now visible
     violationStateFilter.legacyViolations().click();
     violationStateFilter.legacyViolations().shouldBe(selected);
     violationStateFilter.counter().shouldHave(exactText("3 of 4"));
-    violations.shouldHave(CollectionCondition.size(66));
+    violations.shouldHave(size(66));
 
     // the waived violation also has legacy violation status, so no difference.
     violationStateFilter.waived().click();
-    violations.shouldHave(CollectionCondition.size(66));
+    violations.shouldHave(size(66));
 
     violationStateFilter.notViolating().click();
     violationStateFilter.notViolating().shouldBe(selected);
     violationStateFilter.counter().shouldHave(exactText("3 of 4"));
-    violations.shouldHave(CollectionCondition.size(EXPECTED_TOTAL_ROWS_COUNT));
+    violations.shouldHave(size(EXPECTED_TOTAL_ROWS_COUNT));
 
     // all boxes checked - again no difference in count because the waived violation also has legacy violation status
     violationStateFilter.waived().click();
     violationStateFilter.counter().shouldHave(exactText("4 of 4"));
-    violations.shouldHave(CollectionCondition.size(EXPECTED_TOTAL_ROWS_COUNT));
+    violations.shouldHave(size(EXPECTED_TOTAL_ROWS_COUNT));
 
     // no boxes checked
     violationStateFilter.allItems().shouldBe(selected).click();
@@ -801,7 +792,7 @@ public class ApplicationReportTest
     violationStateFilter.waived().shouldNotBe(selected);
     violationStateFilter.legacyViolations().shouldNotBe(selected);
     violationStateFilter.counter().shouldHave(exactText("4"));
-    violations.shouldHave(CollectionCondition.size(EXPECTED_TOTAL_ROWS_COUNT));
+    violations.shouldHave(size(EXPECTED_TOTAL_ROWS_COUNT));
 
     reportPage.filterPanel().closeButton().click();
   }
@@ -812,14 +803,14 @@ public class ApplicationReportTest
     tempEntity.newWaiver(licenseBanned.getId(), app.getId());
 
     reportPage.headers().componentNameFilterInput().setValue("mycila");
-    reportPage.resultRows().shouldHave(CollectionCondition.size(1));
+    reportPage.resultRows().shouldHave(size(1));
     reportPage.resultRow(1).waiverIndicator().shouldNotBe(visible);
 
     reportPage.reevaluateButton().click();
     FormMask.seeAndWaitForDismissal();
 
     reportPage.headers().componentNameFilterInput().shouldHave(value("mycila"));
-    reportPage.resultRows().shouldHave(CollectionCondition.size(1));
+    reportPage.resultRows().shouldHave(size(1));
     reportPage.resultRow(1).waiverIndicator().shouldBe(visible);
     reportPage.resultRow(1).waiverIndicator().shouldHave(text("1 Waived Violation"));
   }
@@ -857,7 +848,7 @@ public class ApplicationReportTest
 
     // test that the header is not present but that the data and sidebar are
     MainHeader.get().shouldNot(exist);
-    reportPage.resultRows().shouldHave(CollectionCondition.size(EXPECTED_VIOLATIONS_COUNT));
+    reportPage.resultRows().shouldHave(size(EXPECTED_VIOLATIONS_COUNT));
     reportPage.aggregateByComponentToggle().shouldBeOn();
   }
 
@@ -881,10 +872,10 @@ public class ApplicationReportTest
     reportPage.policyTypeFilterWarning().shouldBe(visible);
     policyTypeFilter.counter().shouldHave(exactText("4"));
     policyTypeFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));
-    violations.shouldHave(CollectionCondition.size(63));
+    violations.shouldHave(size(63));
     policyTypeFilter.hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("Reevaluate the report in order to enable Policy Types filter"));
-    policyTypeFilter.multiSelectList().shouldHave(CollectionCondition.size(5));
+    policyTypeFilter.multiSelectList().shouldHave(size(5));
     policyTypeFilter.allItems().shouldBe(disabled);
     policyTypeFilter.security().shouldBe(disabled);
     policyTypeFilter.quality().shouldBe(disabled);
@@ -898,7 +889,7 @@ public class ApplicationReportTest
     policyTypeFilter.quality().shouldBe(disabled);
     policyTypeFilter.license().shouldBe(disabled);
     policyTypeFilter.other().shouldBe(disabled);
-    violations.shouldHave(CollectionCondition.size(63));
+    violations.shouldHave(size(63));
 
     reportPage.filterPanel().closeButton().click();
   }

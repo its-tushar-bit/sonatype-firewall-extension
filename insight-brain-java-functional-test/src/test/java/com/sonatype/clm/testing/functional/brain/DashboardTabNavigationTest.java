@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
@@ -31,6 +30,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.ACTIVE;
 
 public class DashboardTabNavigationTest
@@ -223,7 +223,7 @@ public class DashboardTabNavigationTest
     refreshOrOpen(DashboardPage.urlToWaivers());
 
     ElementsCollection tabs = new DashboardPage().tabs();
-    tabs.shouldHave(CollectionCondition.size(1));
+    tabs.shouldHave(size(1));
     tabs.get(0).shouldHave(Condition.text("Waivers"));
   }
 

@@ -26,14 +26,15 @@ import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.text;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -127,7 +128,7 @@ public class EditOriginalSourcesTest
     assertThat(originalSources.at(2)).isNotNull();
     assertThat(originalSources.at(2).value()).isEqualTo("link3");
 
-    assertThat(ComponentLegalOverviewPage.originalSources().all().shouldHave(CollectionCondition.size(3)));
+    assertThat(ComponentLegalOverviewPage.originalSources().all().shouldHave(size(3)));
   }
 
   @Test
@@ -167,7 +168,7 @@ public class EditOriginalSourcesTest
     assertThat(originalSources.at(2)).isNotNull();
     assertThat(originalSources.at(2).value()).isEqualTo("UPDATED ORIGINAL SOURCE");
 
-    assertThat(ComponentLegalOverviewPage.originalSources().all().shouldHave(CollectionCondition.size(3)));
+    assertThat(ComponentLegalOverviewPage.originalSources().all().shouldHave(size(3)));
   }
 
   @Test
@@ -203,7 +204,7 @@ public class EditOriginalSourcesTest
     assertThat(originalSources.at(0).value()).isEqualTo("https://link2.com");
     assertThat(originalSources.at(1).value()).isEqualTo("link3");
 
-    assertThat(ComponentLegalOverviewPage.originalSources().all().shouldHave(CollectionCondition.size(2)));
+    assertThat(ComponentLegalOverviewPage.originalSources().all().shouldHave(size(2)));
   }
 
   @Test
@@ -227,11 +228,11 @@ public class EditOriginalSourcesTest
     EditOriginalSourcesModal modal = new EditOriginalSourcesModal();
     modal.should(Condition.appear);
 
-    modal.originalSourceInputs().shouldHave(CollectionCondition.size(3));
+    modal.originalSourceInputs().shouldHave(size(3));
 
     modal.addSourceButton().click();
 
-    modal.originalSourceInputs().shouldHave(CollectionCondition.size(4));
+    modal.originalSourceInputs().shouldHave(size(4));
 
     modal.originalSourceInputAt(3).shouldHave(Condition.value("")).setValue("NEW SOURCE");
     modal.save().shouldNotHave(Condition.cssClass("disabled")).click();
@@ -269,10 +270,10 @@ public class EditOriginalSourcesTest
     EditOriginalSourcesModal modal = new EditOriginalSourcesModal();
     modal.should(Condition.appear);
 
-    modal.originalSourceInputs().shouldHave(CollectionCondition.size(3));
+    modal.originalSourceInputs().shouldHave(size(3));
     modal.originalSourceInputAt(1).setValue("UPDATED SOURCE");
     modal.addSourceButton().click();
-    modal.originalSourceInputs().shouldHave(CollectionCondition.size(4));
+    modal.originalSourceInputs().shouldHave(size(4));
     modal.originalSourceInputAt(3).shouldHave(Condition.value("")).setValue("NEW SOURCE");
     modal.cancel().shouldNotHave(Condition.cssClass("disabled")).click();
 
@@ -286,7 +287,7 @@ public class EditOriginalSourcesTest
     assertThat(originalSources.at(2)).isNotNull();
     assertThat(originalSources.at(2).value()).isEqualTo("link3");
 
-    assertThat(ComponentLegalOverviewPage.originalSources().all().shouldHave(CollectionCondition.size(3)));
+    assertThat(ComponentLegalOverviewPage.originalSources().all().shouldHave(size(3)));
   }
 
   @Test
@@ -326,7 +327,7 @@ public class EditOriginalSourcesTest
     assertThat(String.join(",", menu.options().texts())).isEqualTo("Fulfilled,Flagged,Not Applicable");
 
     // Changing the status
-    modal.statusDropdownItems().find(Condition.exactText("Flagged")).click();
+    modal.statusDropdownItems().find(exactText("Flagged")).click();
 
     // should enable the save button
     modal.save().shouldNotHave(Condition.cssClass("disabled")).click();

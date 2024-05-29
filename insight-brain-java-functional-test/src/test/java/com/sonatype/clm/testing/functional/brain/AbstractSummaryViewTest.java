@@ -68,7 +68,6 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.CollectionCondition;
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
@@ -76,8 +75,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.codeborne.selenide.CollectionCondition.empty;
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
@@ -171,10 +171,10 @@ public abstract class AbstractSummaryViewTest
     NavPills navPills = OwnerSummaryPage.navigationPills();
 
     if (OwnerType.APPLICATION.equals(currentOwner.getType())) {
-      navPills.pills().shouldHave(CollectionCondition.size(10));
+      navPills.pills().shouldHave(size(10));
     }
     else if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
-      navPills.pills().shouldHave(CollectionCondition.size(11));
+      navPills.pills().shouldHave(size(11));
     }
 
     navPills.appCategory().click();
@@ -241,7 +241,7 @@ public abstract class AbstractSummaryViewTest
     ScrollUtil.scrollIntoViewInstantly(innerSourceRepositoryTile.getElement());
     innerSourceRepositoryTile.listTitle().should(exist);
     ElementsCollection rows = innerSourceRepositoryTile.rows();
-    rows.shouldHave(CollectionCondition.size(1));
+    rows.shouldHave(size(1));
     rows.get(0).shouldBe(text("No InnerSource repository connections are configured"));
     innerSourceRepositoryTile.editButton().shouldHave(text("Edit"));
   }
@@ -257,7 +257,7 @@ public abstract class AbstractSummaryViewTest
 
     innerSourceRepositoryTile.listTitle().should(exist);
     ElementsCollection rows = innerSourceRepositoryTile.rows();
-    rows.shouldHave(CollectionCondition.size(1));
+    rows.shouldHave(size(1));
     rows.get(0).shouldBe(text("InnerSource repository connections are disabled"));
     innerSourceRepositoryTile.editButton().shouldHave(text("Edit"));
   }
@@ -280,7 +280,7 @@ public abstract class AbstractSummaryViewTest
 
       innerSourceRepositoryTile.listTitle().shouldHave(text("Local"));
       ElementsCollection rows = innerSourceRepositoryTile.rows();
-      rows.shouldHave(CollectionCondition.size(2));
+      rows.shouldHave(size(2));
       rows.get(0).shouldBe(text(repositoryConnection1.getBaseUrl() + "\n" + repositoryConnection1.getFormat()));
       rows.get(1).shouldBe(text(repositoryConnection2.getBaseUrl() + "\n" + repositoryConnection2.getFormat()));
       innerSourceRepositoryTile.editButton().shouldHave(text("Edit"));
@@ -324,7 +324,7 @@ public abstract class AbstractSummaryViewTest
 
       innerSourceRepositoryTile.listTitle().shouldHave(text("Inherited from " + parentOwner.getName()));
       ElementsCollection rows = innerSourceRepositoryTile.rows();
-      rows.shouldHave(CollectionCondition.size(2));
+      rows.shouldHave(size(2));
       rows.get(0).shouldBe(text(repositoryConnection1.getBaseUrl() + "\n" + repositoryConnection1.getFormat()));
       rows.get(1).shouldBe(text(repositoryConnection2.getBaseUrl() + "\n" + repositoryConnection2.getFormat()));
       innerSourceRepositoryTile.editButton().shouldHave(text("Edit"));
@@ -357,7 +357,7 @@ public abstract class AbstractSummaryViewTest
     ScrollUtil.scrollIntoViewInstantly(artifactoryRepositoryTile.getElement());
     artifactoryRepositoryTile.listTitle().should(exist);
     ElementsCollection rows = artifactoryRepositoryTile.rows();
-    rows.shouldHave(CollectionCondition.size(1));
+    rows.shouldHave(size(1));
     rows.get(0).shouldBe(text("No Artifactory repository connection is configured"));
     artifactoryRepositoryTile.editButton().shouldHave(text("Edit"));
   }
@@ -373,7 +373,7 @@ public abstract class AbstractSummaryViewTest
     ScrollUtil.scrollIntoViewInstantly(artifactoryRepositoryTile.getElement());
     artifactoryRepositoryTile.listTitle().should(exist);
     ElementsCollection rows = artifactoryRepositoryTile.rows();
-    rows.shouldHave(CollectionCondition.size(1));
+    rows.shouldHave(size(1));
     rows.get(0).shouldBe(text("Artifactory repository connection is disabled"));
     artifactoryRepositoryTile.editButton().shouldHave(text("Edit"));
   }
@@ -395,7 +395,7 @@ public abstract class AbstractSummaryViewTest
 
       artifactoryRepositoryTile.listTitle().shouldHave(text("Local"));
       ElementsCollection rows = artifactoryRepositoryTile.rows();
-      rows.shouldHave(CollectionCondition.size(1));
+      rows.shouldHave(size(1));
       rows.get(0).shouldBe(text(artifactoryConnection.getBaseUrl()));
       artifactoryRepositoryTile.editButton().shouldHave(text("Edit"));
     }
@@ -437,7 +437,7 @@ public abstract class AbstractSummaryViewTest
 
       artifactoryRepositoryTile.listTitle().shouldHave(text("Inherited from " + parentOwner.getName()));
       ElementsCollection rows = artifactoryRepositoryTile.rows();
-      rows.shouldHave(CollectionCondition.size(1));
+      rows.shouldHave(size(1));
       rows.get(0).shouldBe(text(artifactoryConnection.getBaseUrl()));
       artifactoryRepositoryTile.editButton().shouldHave(text("Edit"));
     }
@@ -462,7 +462,7 @@ public abstract class AbstractSummaryViewTest
     labelTile.subHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(currentOwner.getName()));
     labelTile.newButton().shouldBe(visible, enabled);
 
-    labelTile.labelLists().shouldHave(CollectionCondition.size(1));
+    labelTile.labelLists().shouldHave(size(1));
 
     // scroll to the labels tile
     SidebarNavigation.closeNavigationSidebar();
@@ -478,7 +478,7 @@ public abstract class AbstractSummaryViewTest
     AccessTile accessTile = OwnerSummaryPage.accessTile();
     accessTile.subHeader().shouldBe(visible).shouldHave(AccessTile.subHeaderText(currentOwner.getName()));
     accessTile.addRoleButton().shouldBe(visible, enabled);
-    accessTile.accessLists().shouldHave(CollectionCondition.size(1));
+    accessTile.accessLists().shouldHave(size(1));
 
     // scroll to the access tile
     OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible);
@@ -505,7 +505,7 @@ public abstract class AbstractSummaryViewTest
     policyTile.localEmptyDescriptor().shouldBe(visible);
     policyTile.localEmptyDescriptor().shouldHave(text("No local policies defined"));
 
-    policyTile.policyLists().shouldHave(CollectionCondition.size(0));
+    policyTile.policyLists().shouldHave(size(0));
   }
 
   @Test
@@ -543,7 +543,7 @@ public abstract class AbstractSummaryViewTest
 
   private void testLabelTile_Local(List<Label> localLabels) {
     LabelTile labelTile = OwnerSummaryPage.labelTile();
-    labelTile.labelLists().shouldHave(CollectionCondition.size(1));
+    labelTile.labelLists().shouldHave(size(1));
 
     // scroll to the labels tile
     OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible);
@@ -552,7 +552,7 @@ public abstract class AbstractSummaryViewTest
     NxList list = labelTile.labelList(0);
     labelTile.labelListSubheader(0).shouldBe(visible).shouldHave(text("Local"));
     list.emptyDescriptor().shouldNot(exist);
-    list.elements().shouldHave(CollectionCondition.size(localLabels.size()));
+    list.elements().shouldHave(size(localLabels.size()));
 
     for (int i = 0; i < localLabels.size(); i++) {
       NxList.NxListItem actualLabel = list.element(i);
@@ -576,7 +576,7 @@ public abstract class AbstractSummaryViewTest
 
   private void testLTGTile_Local(List<LicenseThreatGroup> localLTGs) {
     LicenseThreatGroupSummaryTile ltgTile = OwnerSummaryPage.licenseThreatGroupSummaryTile();
-    ltgTile.getAllApplicableLicenseThreatGroupSection().shouldHave(CollectionCondition.size(2));
+    ltgTile.getAllApplicableLicenseThreatGroupSection().shouldHave(size(2));
 
     ScrollUtil.scrollIntoViewInstantly(ltgTile.licenseThreatGroupsTable());
 
@@ -598,7 +598,7 @@ public abstract class AbstractSummaryViewTest
     section.getTitle().shouldBe(visible).shouldHave(text("Local to " + currentOwner.getName()));
     section.getCollapsibleIcon().shouldNot(exist);
     section.getEmptyDescriptor().shouldNot(exist);
-    section.getSectionContentRows().shouldHave(CollectionCondition.size(localLTGs.size()));
+    section.getSectionContentRows().shouldHave(size(localLTGs.size()));
 
     for (int j = 0; j < localLTGs.size(); j++) {
       LicenseThreatGroupElement actualLTG = section.getLicenseThreatGroupElement(section.getLTG(j));
@@ -619,14 +619,14 @@ public abstract class AbstractSummaryViewTest
     section.getTitle().shouldBe(visible).shouldHave(text("Inherited from Root Organization"));
     section.getEmptyDescriptor().shouldBe(hidden);
     section.getSectionContentRows()
-        .shouldHave(CollectionCondition.size(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT));
+        .shouldHave(size(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT));
   }
 
   private void testAccessTile_Local(User testUser) {
 
     int hierarchySize = getHierarchySize(currentOwner);
     AccessTile accessTile = OwnerSummaryPage.accessTile();
-    accessTile.accessLists().shouldHave(CollectionCondition.size(1));
+    accessTile.accessLists().shouldHave(size(1));
 
     // scroll to the access tile
     OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible);
@@ -637,7 +637,7 @@ public abstract class AbstractSummaryViewTest
       list.emptyDescriptor().shouldBe(hidden);
 
       if (i == 0) {
-        list.elements().shouldHave(CollectionCondition.size(2));
+        list.elements().shouldHave(size(2));
         list.ownerName().shouldBe(visible).shouldHave(text("Local to " + currentOwner.getName()));
 
         AccessTileListElement readOnly = list.element(0);
@@ -654,7 +654,7 @@ public abstract class AbstractSummaryViewTest
       }
       else {
         list.ownerName().shouldBe(hidden);
-        list.elements().shouldHave(CollectionCondition.size(0));
+        list.elements().shouldHave(size(0));
       }
     }
   }
@@ -668,18 +668,18 @@ public abstract class AbstractSummaryViewTest
 
     if (policyTile.policyLists().size() == 3) { // for application test
       PolicyTileList inheritedPolicieslist = policyTile.policyList(1);
-      inheritedPolicieslist.rows().shouldHave(CollectionCondition.size(2)); // +1 for header
+      inheritedPolicieslist.rows().shouldHave(size(2)); // +1 for header
       inheritedPolicieslist.ownerName().shouldHave(text("Inherited from"));
       inheritedPolicieslist.emptyDescriptor().shouldBe(visible).shouldHave(text("No Ye Ole "));
 
       PolicyTileList inheritedPolicieslist2 = policyTile.policyList(2);
-      inheritedPolicieslist2.rows().shouldHave(CollectionCondition.size(2)); // +1 for header
+      inheritedPolicieslist2.rows().shouldHave(size(2)); // +1 for header
       inheritedPolicieslist2.ownerName().shouldHave(text("Inherited from"));
       inheritedPolicieslist2.emptyDescriptor().shouldBe(visible).shouldHave(text("No Root"));
     }
     else { // for org test
       PolicyTileList inheritedPolicieslist = policyTile.policyList(1);
-      inheritedPolicieslist.rows().shouldHave(CollectionCondition.size(2)); // +1 for header
+      inheritedPolicieslist.rows().shouldHave(size(2)); // +1 for header
       inheritedPolicieslist.ownerName().shouldHave(text("Inherited from"));
       inheritedPolicieslist.emptyDescriptor().shouldBe(visible).shouldHave(text("No Root"));
     }
@@ -688,7 +688,7 @@ public abstract class AbstractSummaryViewTest
     PolicyTileList localPolicieslist = policyTile.localPolicyList();
     localPolicieslist.emptyDescriptor().shouldBe(hidden);
 
-    localPolicieslist.rows().shouldHave(CollectionCondition.size(4)); // 3 rows plus header
+    localPolicieslist.rows().shouldHave(size(4)); // 3 rows plus header
     localPolicieslist.ownerName().shouldBe(visible).shouldHave(text("Local"));
 
     PolicyTileListElement policyElement1 = localPolicieslist.row(1);
@@ -779,8 +779,8 @@ public abstract class AbstractSummaryViewTest
   private void testLabelTile_Inherited(List<List<Label>> inheritedLabels, List<Owner> parentOwners) {
     LabelTile labelTile = OwnerSummaryPage.labelTile();
     assertThat(inheritedLabels).hasSameSizeAs(parentOwners);
-    labelTile.labelLists().shouldHave(CollectionCondition.size(1));
-    labelTile.inheritedLabelsLists().shouldHave(CollectionCondition.size(parentOwners.size()));
+    labelTile.labelLists().shouldHave(size(1));
+    labelTile.inheritedLabelsLists().shouldHave(size(parentOwners.size()));
 
     // scroll to the labels tile
     OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible);
@@ -789,7 +789,7 @@ public abstract class AbstractSummaryViewTest
     NxList list = labelTile.labelList(0);
     labelTile.labelListSubheader(0).shouldBe(visible).shouldHave(text("Local to " + currentOwner.getName()));
     list.emptyDescriptor().shouldBe(visible);
-    list.elements().shouldBe(empty);
+    list.elements().shouldBe(CollectionCondition.empty);
 
     for (int i = 0; i < parentOwners.size(); i++) {
       String ownerId = parentOwners.get(i).getId();
@@ -802,14 +802,14 @@ public abstract class AbstractSummaryViewTest
       labelTile.labelListSubheader(i + 1).shouldBe(visible).click();
       inheritedLabelList.should(exist).shouldBe(visible);
       int expectedLabelCount = inheritedLabels.get(i).size();
-      inheritedLabelList.elements().shouldHave(CollectionCondition.size(expectedLabelCount));
+      inheritedLabelList.elements().shouldHave(size(expectedLabelCount));
 
       for (int j = 0; j < expectedLabelCount; j++) {
         InheritedLabel actualLabel = inheritedLabelList.element(j);
         Label expectedLabel = inheritedLabels.get(i).get(j);
 
         if (expectedLabel.getDescription() == null) {
-          actualLabel.description().shouldBe(Condition.empty).shouldBe(visible);
+          actualLabel.description().shouldBe(empty).shouldBe(visible);
         }
         else {
           actualLabel.description().shouldBe(visible).shouldHave(text(expectedLabel.getDescription()));
@@ -905,7 +905,7 @@ public abstract class AbstractSummaryViewTest
           SelenideElement emptyDescriptor = section.getEmptyDescriptor();
           if (section.getEmptyDescriptor() != null ) {
             emptyDescriptor.should(exist).shouldBe(visible);
-            section.getEmptyRows().shouldHave(CollectionCondition.size(1));
+            section.getEmptyRows().shouldHave(size(1));
           }
         }
       }
@@ -915,7 +915,7 @@ public abstract class AbstractSummaryViewTest
         int expectedTestLTGSize = Organization.ROOT_ORGANIZATION_ID.equals(parentOwners.get(element).getId())
             ? LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT : 0;
         int expectedLTGCount = inheritedLTGs.get(element).size() + expectedTestLTGSize;
-        section.getSectionContentRows().shouldHave(CollectionCondition.size(expectedLTGCount));
+        section.getSectionContentRows().shouldHave(size(expectedLTGCount));
         section.getTitle().shouldBe(visible)
             .shouldHave(LicenseThreatGroupSummaryTile.inheritedText(parentOwners.get(element).getName()));
         section.getCollapsibleIcon().shouldBe(visible);
@@ -946,8 +946,8 @@ public abstract class AbstractSummaryViewTest
   private void testAccessTile_Inherited(User testUser, List<Owner> parentOwners) {
     AccessTile accessTile = OwnerSummaryPage.accessTile();
     int hierarchySize = getHierarchySize(currentOwner);
-    accessTile.accessLists().shouldHave(CollectionCondition.size(hierarchySize));
-    accessTile.inheritedAccessLists().shouldHave(CollectionCondition.size(parentOwners.size()));
+    accessTile.accessLists().shouldHave(size(hierarchySize));
+    accessTile.inheritedAccessLists().shouldHave(size(parentOwners.size()));
 
     // scroll to the access tile
     OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible);
@@ -971,7 +971,7 @@ public abstract class AbstractSummaryViewTest
       //Expanded again
       accessTile.accessListSubheader(i).shouldBe(visible).click();
 
-      inheritedAccessList.elements().shouldHave(CollectionCondition.size(2));
+      inheritedAccessList.elements().shouldHave(size(2));
 
       InheritedAccess readOnly = inheritedAccessList.element(0);
       readOnly.label().shouldBe(visible).shouldHave(text("Read Only"));
@@ -996,7 +996,7 @@ public abstract class AbstractSummaryViewTest
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
     PolicyTileList policyTable = policyTile.policyTileTable();
     assertThat(policyTile.inheritedPolicyLists()).hasSameSizeAs(inheritedPolicies);
-    policyTile.policyLists().shouldHave(CollectionCondition.size(hierarchySize));
+    policyTile.policyLists().shouldHave(size(hierarchySize));
 
     // scroll to the policy tile
     OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible);
@@ -1011,7 +1011,7 @@ public abstract class AbstractSummaryViewTest
       else {
         list.emptyDescriptor().shouldBe(hidden);
         list.ownerName().shouldBe(visible).shouldHave(PolicyTile.inheritedText(parentOwners.get(i - 1).getName()));
-        list.rows().shouldHave(CollectionCondition.size(3)); // 2 rows plus header
+        list.rows().shouldHave(size(3)); // 2 rows plus header
 
         PolicyTileListElement policyElement1 = list.row(1);
         Policy actualPolicy1 = inheritedPolicies.get(i - 1).get(0);

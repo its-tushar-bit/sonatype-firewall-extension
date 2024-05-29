@@ -24,13 +24,13 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
@@ -94,7 +94,7 @@ public class ComponentDetailsOverviewTabDependencyTreeTest
     ElementsCollection threatIndicators = nxTree.threatIndicators();
 
     nxTree.treeItems().get(0).shouldHave(text("ApplicationReportTest"));
-    clickableTreeItems.shouldHave(CollectionCondition.size(4));
+    clickableTreeItems.shouldHave(size(4));
     scrollIntoView(clickableTreeItems.get(0), true);
 
     clickableTreeItems.get(0).shouldHave(text("ch.qos.logback : logback-access : 0.6"));
@@ -109,7 +109,7 @@ public class ComponentDetailsOverviewTabDependencyTreeTest
     clickableTreeItems.get(3).shouldHave(text("org.apache.avro : avro-ipc : 1.5.0"));
     threatIndicators.get(3).shouldHave(cssClass(THREAT_NONE_CLASS));
 
-    nonClickableTreeItems.shouldHave(CollectionCondition.size(2));
+    nonClickableTreeItems.shouldHave(size(2));
 
     nonClickableTreeItems.get(0).shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
     threatIndicators.get(1).shouldHave(cssClass(THREAT_CRITICAL_CLASS));
@@ -160,7 +160,7 @@ public class ComponentDetailsOverviewTabDependencyTreeTest
     ElementsCollection clickableIcons = nxTree.collapseIcons();
 
     nxTree.treeItems().get(0).shouldHave(text("ApplicationReportTest"));
-    clickableTreeItems.shouldHave(CollectionCondition.size(4));
+    clickableTreeItems.shouldHave(size(4));
     scrollIntoView(clickableTreeItems.get(0), true);
 
     clickableTreeItems.get(0).shouldHave(text("org.apache.flume : flume-ng-node : 1.0.0-incubating"));
@@ -172,7 +172,7 @@ public class ComponentDetailsOverviewTabDependencyTreeTest
     clickableTreeItems.get(2).shouldNotBe(visible);
     clickableTreeItems.get(3).shouldNotBe(visible);
 
-    nonClickableTreeItems.shouldHave(CollectionCondition.size(1));
+    nonClickableTreeItems.shouldHave(size(1));
 
     nonClickableTreeItems.get(0).shouldHave(text("org.apache.avro : avro-ipc : 1.5.0"));
 
@@ -204,7 +204,7 @@ public class ComponentDetailsOverviewTabDependencyTreeTest
     ElementsCollection nonClickableTreeItems = nxTree.nonClickableTreeItems();
 
     nxTree.treeItems().get(0).shouldHave(text("ApplicationReportTest"));
-    clickableTreeItems.shouldHave(CollectionCondition.size(10));
+    clickableTreeItems.shouldHave(size(10));
     scrollIntoView(clickableTreeItems.get(0), true);
 
     clickableTreeItems.get(0).shouldBe(visible);
@@ -217,6 +217,6 @@ public class ComponentDetailsOverviewTabDependencyTreeTest
     clickableTreeItems.get(8).shouldBe(visible);
     clickableTreeItems.get(9).shouldBe(visible);
 
-    nonClickableTreeItems.shouldHave(CollectionCondition.size(1));
+    nonClickableTreeItems.shouldHave(size(1));
   }
 }

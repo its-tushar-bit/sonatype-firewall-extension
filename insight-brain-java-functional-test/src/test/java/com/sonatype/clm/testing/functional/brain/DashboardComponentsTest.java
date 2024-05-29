@@ -27,13 +27,13 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.InternalRealm;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Selenide;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.hidden;
@@ -93,14 +93,14 @@ public class DashboardComponentsTest
     ComponentResultsPaginator paginator = DashboardPage.componentsView().paginator();
 
     paginator.buttonBar().shouldBe(visible);
-    paginator.paginatorButtons().shouldHave(CollectionCondition.size(1));
+    paginator.paginatorButtons().shouldHave(size(1));
 
     // 101 results
     addComponentWithViolation(101, 5);
     refreshOrOpen(DashboardPage.urlToComponents());
     DashboardPage.dashboardContainer().shouldBe(visible);
     paginator.buttonBar().shouldBe(visible);
-    paginator.paginatorButtons().shouldHave(CollectionCondition.size(3));
+    paginator.paginatorButtons().shouldHave(size(3));
 
     //Click next page
     paginator.paginatorButtons().get(2).click();
@@ -126,7 +126,7 @@ public class DashboardComponentsTest
     ComponentsResults table = DashboardPage.componentsView().results();
 
     // components should be sorted by risk
-    table.components().shouldHave(CollectionCondition.size(4));
+    table.components().shouldHave(size(4));
     table.components().shouldHave(texts(
         "Group4 : Artifact4 : Version4",   //
         "Group3 : Artifact3 : Version3",  //

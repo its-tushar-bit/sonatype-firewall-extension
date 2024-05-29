@@ -32,13 +32,13 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.disappear;
@@ -130,7 +130,7 @@ public class WaiverTest
 
     WaiverCip.viewWaivers().click();
 
-    ViewWaiversDialog.rows().shouldHave(CollectionCondition.size(1));
+    ViewWaiversDialog.rows().shouldHave(size(1));
 
     assertWaiver(ViewWaiversDialog.row(0), "TEST COMMENT");
     eyesWatcher.eyesCheck("Waivers list");
@@ -138,7 +138,7 @@ public class WaiverTest
     ViewWaiversDialog.row(0).removeButton().click();
     ConfirmRemoveWaiverDialog.removeButton().should(visible).click();
 
-    ViewWaiversDialog.rows().shouldHave(CollectionCondition.size(0));
+    ViewWaiversDialog.rows().shouldHave(size(0));
     ViewWaiversDialog.emptyText().shouldBe(visible);
     ViewWaiversDialog.closeButton().click();
 
@@ -153,14 +153,14 @@ public class WaiverTest
 
     WaiverCip.viewWaivers().shouldBe(visible).click();
 
-    ViewWaiversDialog.rows().shouldHave(CollectionCondition.size(1));
+    ViewWaiversDialog.rows().shouldHave(size(1));
     ViewWaiversDialog.row(0).comment().shouldHave(text(truncatedLongComment));
 
     ViewWaiversDialog.row(0).removeButton().click();
     ConfirmRemoveWaiverDialog.cancelButton().shouldBe(visible).click();
     ConfirmRemoveWaiverDialog.cancelButton().shouldBe(hidden);
 
-    ViewWaiversDialog.rows().shouldHave(CollectionCondition.size(1));
+    ViewWaiversDialog.rows().shouldHave(size(1));
     assertWaiver(ViewWaiversDialog.row(0), truncatedLongComment);
 
     ViewWaiversDialog.closeButton().click();
@@ -179,7 +179,7 @@ public class WaiverTest
     AddWaiverDialog.scopeContainer().shouldBe(visible);
 
     AddWaiverDialog.waiverOwner().shouldHave(text("Application - " + app.getName()));
-    AddWaiverDialog.waiverOwnerOptions().shouldHave(CollectionCondition.size(1));
+    AddWaiverDialog.waiverOwnerOptions().shouldHave(size(1));
 
   }
 
@@ -193,7 +193,7 @@ public class WaiverTest
     AddWaiverDialog.scopedWaiver().click();
     AddWaiverDialog.scopeContainer().shouldBe(visible);
 
-    AddWaiverDialog.waiverOwnerOptions().shouldHave(CollectionCondition.size(2));
+    AddWaiverDialog.waiverOwnerOptions().shouldHave(size(2));
     AddWaiverDialog.waiverOwnerOptions()
         .shouldHave(texts(new String[]{"Application - " + app.getName(), "Organization - Waiver Test Org"}));
   }
@@ -220,8 +220,8 @@ public class WaiverTest
     refreshOrOpen(ReportPage.url(app, scanId));
     ReportPage.policyTabButton().click();
 
-    ReportPolicyPage.rows().shouldHave(CollectionCondition.size(numberOfComponents));
-    ReportPolicyPage.resultsWithNoScore().shouldHave(CollectionCondition.size(2));
+    ReportPolicyPage.rows().shouldHave(size(numberOfComponents));
+    ReportPolicyPage.resultsWithNoScore().shouldHave(size(2));
   }
 
   @Test
@@ -243,8 +243,8 @@ public class WaiverTest
     refreshOrOpen(ReportPage.url(app, scanId));
     ReportPage.policyTabButton().click();
 
-    ReportPolicyPage.rows().shouldHave(CollectionCondition.size(numberOfComponents));
-    ReportPolicyPage.resultsWithNoScore().shouldHave(CollectionCondition.size(numberOfComponents));
+    ReportPolicyPage.rows().shouldHave(size(numberOfComponents));
+    ReportPolicyPage.resultsWithNoScore().shouldHave(size(numberOfComponents));
   }
 
   private void assertWaiver(ExistingWaiver waiver, String comment) {
@@ -258,7 +258,7 @@ public class WaiverTest
     refreshOrOpen(ReportPage.url(app, scanId));
     ReportPage.policyTabButton().shouldBe(visible).click();
 
-    ReportPolicyPage.rows().shouldHave(CollectionCondition.size(numberOfComponents));
+    ReportPolicyPage.rows().shouldHave(size(numberOfComponents));
     ReportPolicyPage.row(1).openCip();
     ReportCip.policyTab().should(appear).click();
     WaiverCip.row(0).waiveButton().shouldBe(visible).click();

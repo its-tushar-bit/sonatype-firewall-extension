@@ -15,11 +15,11 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import com.codeborne.selenide.CollectionCondition;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
@@ -182,7 +182,7 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.token().shouldBe(visible, disabled);
     SourceControlEditorPage.credentialsFieldset().shouldBe(visible);
     SourceControlEditorPage.credentialsFieldset().labels()
-        .shouldHave(CollectionCondition.texts("Inherit from Root Organization", "Override"));
+        .shouldHave(texts("Inherit from Root Organization", "Override"));
     SourceControlEditorPage.credentialsFieldset().radioInputs().forEach(input -> input.shouldBe(enabled));
     SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldNotBe(selected);
 
@@ -223,7 +223,7 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.token().shouldBe(visible, disabled);
     SourceControlEditorPage.credentialsFieldset().shouldBe(visible);
     SourceControlEditorPage.credentialsFieldset().labels()
-        .shouldHave(CollectionCondition.texts("Inherit from Root Organization", "Override"));
+        .shouldHave(texts("Inherit from Root Organization", "Override"));
     SourceControlEditorPage.credentialsFieldset().radioInputs().forEach(input -> input.shouldBe(enabled));
     SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldNotBe(selected);
     SourceControlEditorPage.credentialsFieldset().labels().get(1).click();
@@ -345,7 +345,7 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.baseBranchFieldset().radioInputs().forEach(input -> input.shouldBe(disabled));
     SourceControlEditorPage.baseBranchFieldset().radioInputs().get(0).shouldBe(selected);
     SourceControlEditorPage.baseBranchFieldset().labels()
-        .shouldHave(CollectionCondition.texts("Inherit (Not Configured)", "Override"));
+        .shouldHave(texts("Inherit (Not Configured)", "Override"));
     SourceControlEditorPage.baseBranchInput().shouldHave(value(""));
     SourceControlEditorPage.baseBranchInput().shouldBe(disabled);
 
@@ -355,8 +355,7 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.baseBranchFieldset().radioInputs().forEach(input -> input.shouldBe(enabled));
     SourceControlEditorPage.baseBranchFieldset().radioInputs().get(0).shouldBe(selected);
     SourceControlEditorPage.baseBranchFieldset().labels()
-        .shouldHave(
-            CollectionCondition.texts(String.format("Inherit from %s", rootOrganization.getName()), "Override"));
+        .shouldHave(texts(String.format("Inherit from %s", rootOrganization.getName()), "Override"));
     SourceControlEditorPage.baseBranchInput().shouldHave(value(""));
     SourceControlEditorPage.baseBranchInput().shouldBe(disabled);
 
@@ -565,7 +564,7 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.sshEnabledFieldset().radioInputs().forEach(input -> input.shouldBe(disabled));
     SourceControlEditorPage.sshEnabledFieldset().radioInputs().get(0).shouldBe(selected);
     SourceControlEditorPage.sshEnabledFieldset().labels()
-        .shouldHave(CollectionCondition.texts("Inherit (Not Configured)", "Enabled", "Disabled"));
+        .shouldHave(texts("Inherit (Not Configured)", "Enabled", "Disabled"));
 
     SourceControlEditorPage.remediationPullRequestsFieldset().toggle().shouldNotBe(visible);
     SourceControlEditorPage.remediationPullRequestsFieldset().shouldBe(visible);
@@ -573,7 +572,7 @@ public class OrganizationSourceControlEditorTest
         .forEach(input -> input.shouldBe(disabled));
 
     SourceControlEditorPage.remediationPullRequestsFieldset().labels()
-        .shouldHave(CollectionCondition.texts("Inherit (Not Configured)", "Enabled", "Disabled"));
+        .shouldHave(texts("Inherit (Not Configured)", "Enabled", "Disabled"));
     //SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
 
     SourceControlEditorPage.pullRequestCommentingFieldset().toggle().shouldNotBe(visible);
@@ -582,7 +581,7 @@ public class OrganizationSourceControlEditorTest
         .forEach(input -> input.shouldBe(disabled));
     SourceControlEditorPage.pullRequestCommentingFieldset().radioInputs().get(1).shouldBe(selected);
     SourceControlEditorPage.pullRequestCommentingFieldset().labels()
-        .shouldHave(CollectionCondition.texts("Inherit (Not Configured)", "Enabled", "Disabled"));
+        .shouldHave(texts("Inherit (Not Configured)", "Enabled", "Disabled"));
     //SourceControlEditorPage.pullRequestCommentingNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
 
     SourceControlEditorPage.sourceControlEvaluationsFieldset().toggle().shouldNotBe(visible);
@@ -591,7 +590,7 @@ public class OrganizationSourceControlEditorTest
         .forEach(input -> input.shouldBe(disabled));
     SourceControlEditorPage.sourceControlEvaluationsFieldset().radioInputs().get(1).shouldBe(selected);
     SourceControlEditorPage.sourceControlEvaluationsFieldset().labels()
-        .shouldHave(CollectionCondition.texts("Inherit (Not Configured)", "Enabled", "Disabled"));
+        .shouldHave(texts("Inherit (Not Configured)", "Enabled", "Disabled"));
     //SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
 
     SourceControlEditorPage.automatedCommitFeedbackFieldset().toggle().shouldNotBe(visible);
@@ -600,7 +599,7 @@ public class OrganizationSourceControlEditorTest
         .forEach(input -> input.shouldBe(disabled));
     SourceControlEditorPage.automatedCommitFeedbackFieldset().radioInputs().get(1).shouldBe(selected);
     SourceControlEditorPage.automatedCommitFeedbackFieldset().labels()
-        .shouldHave(CollectionCondition.texts("Inherit (Not Configured)", "Enabled", "Disabled"));
+        .shouldHave(texts("Inherit (Not Configured)", "Enabled", "Disabled"));
     //SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
 
     SourceControlEditorPage.baseBranchFieldset().shouldBe(visible);
@@ -608,7 +607,7 @@ public class OrganizationSourceControlEditorTest
         .forEach(input -> input.shouldBe(disabled));
     SourceControlEditorPage.baseBranchFieldset().radioInputs().get(0).shouldBe(selected);
     SourceControlEditorPage.baseBranchFieldset().labels()
-        .shouldHave(CollectionCondition.texts("Inherit (Not Configured)", "Override"));
+        .shouldHave(texts("Inherit (Not Configured)", "Override"));
     SourceControlEditorPage.baseBranchInput().shouldBe(visible, disabled);
     SourceControlEditorPage.baseBranchInput().shouldHave(value(""));
     //SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277

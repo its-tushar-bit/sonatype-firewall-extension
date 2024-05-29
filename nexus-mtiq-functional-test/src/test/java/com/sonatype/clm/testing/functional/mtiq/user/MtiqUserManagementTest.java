@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.keycloak.KeycloakServerRule;
 import com.sonatype.insight.keycloak.KeycloakServerUtil;
 
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
@@ -170,7 +169,7 @@ public class MtiqUserManagementTest
     deleteModal.submitButton().click();
     deleteModal.should(disappear);
 
-    page.userItems().shouldHave(CollectionCondition.size(1));
+    page.userItems().shouldHave(size(1));
 
     // verify that the API call to delete the use from Auth0 was made as well
     Mockito.verify(auth0ManagementAPI).deleteUserByEmailFromConnection(KEYCLOAK_USER_EMAIL_2, "connectionId");
@@ -261,7 +260,7 @@ public class MtiqUserManagementTest
     newUserForm.saveButton().click();
     newUserForm.shouldBe(hidden);
 
-    page.userItems().shouldHave(CollectionCondition.size(3));
+    page.userItems().shouldHave(size(3));
 
     page.userItems().get(2).shouldHave(text("User Three"));
     page.userItems().get(2).shouldHave(text("user3@example.com"));

@@ -27,11 +27,11 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
-import com.codeborne.selenide.CollectionCondition;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssClass;
@@ -117,7 +117,7 @@ public abstract class AbstractAccessEditorTest
   @Test
   public void testAddRole() {
     goFromSummaryToAddRole();
-    OwnerDetailSidebar.accessGroup().items().shouldHave(CollectionCondition.size(3));
+    OwnerDetailSidebar.accessGroup().items().shouldHave(size(3));
 
     AccessEditorPage accessEditorPage = new AccessEditorPage();
     AccessEditorPage.AddMembersForm addMembersForm = accessEditorPage.addMembersForm();
@@ -131,34 +131,34 @@ public abstract class AbstractAccessEditorTest
     roleDropdown.listItem(2).click();
     addMembersForm.searchBox().setValue("*").click();
 
-    addMembersForm.searchResults().shouldHave(CollectionCondition.size(4));
+    addMembersForm.searchResults().shouldHave(size(4));
     addMembersForm.searchResults()
             .shouldHave(texts("Admin BuiltIn", "John Doe", "John Doe", "Authenticated Users (Group)"));
 
     addMembersForm.searchResults().get(0).shouldHave(text("Admin BuiltIn"));
     addMembersForm.searchResults().get(0).click();
-    addMembersForm.addedItems().shouldHave(CollectionCondition.size(1));
+    addMembersForm.addedItems().shouldHave(size(1));
 
     addMembersForm.searchBox().setValue("*").click();
     addMembersForm.searchResults().get(0).click();
-    addMembersForm.addedItems().shouldHave(CollectionCondition.size(2));
+    addMembersForm.addedItems().shouldHave(size(2));
 
     addMembersForm.searchBox().setValue("*").click();
     addMembersForm.searchResults().get(0).click();
-    addMembersForm.addedItems().shouldHave(CollectionCondition.size(3));
+    addMembersForm.addedItems().shouldHave(size(3));
 
     addMembersForm.searchBox().setValue("*").click();
     addMembersForm.searchResults().get(0).shouldHave(text("Authenticated Users (Group)"));
     addMembersForm.searchResults().get(0).click();
 
-    addMembersForm.addedItems().shouldHave(CollectionCondition.size(4));
+    addMembersForm.addedItems().shouldHave(size(4));
     addMembersForm.addedItems()
             .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "John Doe", "John Doe"));
 
     addMembersForm.saveButton().shouldNotHave(cssClass("disabled")).click();
     FormMask.seeAndWaitForDismissal();
 
-    OwnerDetailSidebar.accessGroup().items().shouldHave(CollectionCondition.size(4));
+    OwnerDetailSidebar.accessGroup().items().shouldHave(size(4));
     OwnerDetailSidebar.accessGroup().item(3).shouldHave(text(roleName));
     assertAddRoleInitialStateIsCorrect(applicationRoles.size() - 2, accessEditorPage);
     assertThatRoleNotAvailableInDropdown(roleName, addMembersForm);
@@ -179,18 +179,18 @@ public abstract class AbstractAccessEditorTest
     assertCommonInitialStateIsCorrect(accessEditorPage);
 
     addMembersForm.searchBox().setValue("*").click();
-    addMembersForm.searchResults().shouldHave(CollectionCondition.size(2));
+    addMembersForm.searchResults().shouldHave(size(2));
 
     addMembersForm.searchResults().get(0).shouldHave(text("Admin BuiltIn"));
     addMembersForm.searchResults().get(1).shouldHave(text("Authenticated Users (Group)"));
 
     addMembersForm.searchResults().get(0).click();
-    addMembersForm.addedItems().shouldHave(CollectionCondition.size(3));
+    addMembersForm.addedItems().shouldHave(size(3));
 
     addMembersForm.searchBox().setValue("*").click();
     addMembersForm.searchResults().get(0).click();
 
-    addMembersForm.addedItems().shouldHave(CollectionCondition.size(4));
+    addMembersForm.addedItems().shouldHave(size(4));
     addMembersForm.addedItems()
             .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "John Doe", "John Doe"));
 
@@ -207,7 +207,7 @@ public abstract class AbstractAccessEditorTest
 
     AccessEditorPage accessEditorPage = new AccessEditorPage();
     AccessEditorPage.AddMembersForm addMembersForm = accessEditorPage.addMembersForm();
-    addMembersForm.addedItems().shouldHave(CollectionCondition.size(1));
+    addMembersForm.addedItems().shouldHave(size(1));
 
     OwnerDetailSidebar.accessGroup().entryItems().shouldHave(sizeGreaterThan(0));
     int initialNumAddedRoles = OwnerDetailSidebar.accessGroup().entryItems().size();
@@ -221,7 +221,7 @@ public abstract class AbstractAccessEditorTest
     deleteModal.submitButton().click();
     FormMask.seeAndWaitForDismissal();
     deleteModal.shouldBe(hidden);
-    OwnerDetailSidebar.accessGroup().entryItems().shouldHave(CollectionCondition.size(initialNumAddedRoles - 1));
+    OwnerDetailSidebar.accessGroup().entryItems().shouldHave(size(initialNumAddedRoles - 1));
     assertAddRoleInitialStateIsCorrect(applicationRoles.size() - initialNumAddedRoles + 2, accessEditorPage);
     assertThat(getMembershipMappings(currentOwner.getId(), role.getName())).isEmpty();
   }
@@ -247,7 +247,7 @@ public abstract class AbstractAccessEditorTest
     deleteModal.submitButton().click();
     FormMask.seeAndWaitForDismissal();
     deleteModal.shouldBe(hidden);
-    OwnerDetailSidebar.accessGroup().entryItems().shouldHave(CollectionCondition.size(initialNumAddedRoles - 1));
+    OwnerDetailSidebar.accessGroup().entryItems().shouldHave(size(initialNumAddedRoles - 1));
     assertAddRoleInitialStateIsCorrect(applicationRoles.size() - initialNumAddedRoles + 2, accessEditorPage);
     assertThat(getMembershipMappings(currentOwner.getId(), role.getName())).isEmpty();
   }
@@ -310,14 +310,14 @@ public abstract class AbstractAccessEditorTest
   {
     OwnerDetailSidebar.accessGroup().item(0).shouldBe(CLM.SELECTED);
     accessEditorPage.title().shouldHave(AccessEditorPage.NEW_TITLE_TEXT);
-    accessEditorPage.addMembersForm().roleSelect().listItems().shouldHave(CollectionCondition.size(numAvailableRoles));
+    accessEditorPage.addMembersForm().roleSelect().listItems().shouldHave(size(numAvailableRoles));
     accessEditorPage.addMembersForm().deleteRoleButton().shouldBe(hidden);
     assertCommonInitialStateIsCorrect(accessEditorPage);
   }
 
   private void assertCommonInitialStateIsCorrect(AccessEditorPage accessEditorPage) {
     accessEditorPage.addMembersForm().searchBox().shouldHave(value(""));
-    accessEditorPage.addMembersForm().searchResults().shouldHave(CollectionCondition.size(0));
+    accessEditorPage.addMembersForm().searchResults().shouldHave(size(0));
   }
 
   protected List<MembershipMapping> getMembershipMappings(final String ownerId, final String roleName) {

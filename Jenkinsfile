@@ -18,7 +18,7 @@ make(
     mavenVersion: 'Maven 3.9.x',
     mavenSettingsFile: 'private-settings-build-cache',
     mavenOptions: "-D skip-functional-test -D build.number=${env.BUILD_NUMBER} --threads 4",
-    retentionPolicy: RetentionPolicy.FOUR_WEEKS_KEEP_ARTIFACTS,
+    retentionPolicy: currentBuild.fullProjectName.contains('master-snapshot') ? RetentionPolicy.DEFAULT : RetentionPolicy.SHORT_TERM,
     prepare: {
 
     // Store time the current branch diverged from the target branch for use by applitools

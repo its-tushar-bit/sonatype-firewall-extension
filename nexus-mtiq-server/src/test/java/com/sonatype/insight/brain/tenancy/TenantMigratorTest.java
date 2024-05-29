@@ -12,7 +12,6 @@ import javax.sql.DataSource;
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.DatabaseUtil;
-import com.sonatype.insight.brain.db.MultiTenantGlobalSchemaProtection;
 import com.sonatype.insight.test.LogOutput;
 
 import org.junit.After;
@@ -28,7 +27,6 @@ import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -42,18 +40,12 @@ public class TenantMigratorTest
 
   private DatabaseProvisioner spyDatabaseProvisioner;
 
-  private MultiTenantGlobalSchemaProtection spyMultiTenantGlobalSchemaProtection;
-
   @Before
   @Override
   public void setup() {
     super.setup();
     spyDatabaseProvisioner = databaseRule.getDatabaseContainer().getDatabaseProvisioner();
-    spyMultiTenantGlobalSchemaProtection =
-        spy(new MultiTenantGlobalSchemaProtection(databaseRule.getOperationalDataStore()));
-    underTest = new TenantMigrator(spyDatabaseProvisioner, spyMultiTenantGlobalSchemaProtection);
-
-    spyMultiTenantGlobalSchemaProtection.createWriteProtection();
+    underTest = new TenantMigrator(spyDatabaseProvisioner);
   }
 
   @After
@@ -66,8 +58,6 @@ public class TenantMigratorTest
   public void shouldRunMigrationsForGlobalSchema() {
     underTest.migrateGlobalSchema();
 
-    verify(spyMultiTenantGlobalSchemaProtection).disableWriteProtection();
-    verify(spyMultiTenantGlobalSchemaProtection).enableWriteProtection();
     verify(spyDatabaseProvisioner).initializeDatabaseWithMigration();
   }
 
@@ -78,26 +68,6 @@ public class TenantMigratorTest
 
     assertThatThrownBy(underTest::migrateGlobalSchema).isInstanceOf(
         RuntimeException.class).hasMessage("Error trying to migrate the database for Global Schema.");
-
-    verify(spyMultiTenantGlobalSchemaProtection).enableWriteProtection();
-  }
-
-  @Test
-  public void shouldThrowError_whenMultiTenantGlobalSchemaProtection_disableWriteProtection_Throws() {
-    doThrow(new RuntimeException("Error trying to disable write protection for MultiTenant Global schema."))
-        .when(spyMultiTenantGlobalSchemaProtection).disableWriteProtection();
-
-    assertThatThrownBy(underTest::migrateGlobalSchema).isInstanceOf(
-        RuntimeException.class).hasMessage("Error trying to disable write protection for MultiTenant Global schema.");
-  }
-
-  @Test
-  public void shouldThrowError_whenMultiTenantGlobalSchemaProtection_enableWriteProtection_Throws() {
-    doThrow(new RuntimeException("Error trying to enable write protection for MultiTenant Global schema."))
-        .when(spyMultiTenantGlobalSchemaProtection).enableWriteProtection();
-
-    assertThatThrownBy(underTest::migrateGlobalSchema).isInstanceOf(
-        RuntimeException.class).hasMessage("Error trying to enable write protection for MultiTenant Global schema.");
   }
 
   @Test

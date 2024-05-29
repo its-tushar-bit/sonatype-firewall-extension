@@ -9,7 +9,6 @@ import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseContainerSupport;
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.MultiTenantDatabaseContainer;
-import com.sonatype.insight.brain.db.MultiTenantGlobalSchemaProtection;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantMigrator;
@@ -52,11 +51,7 @@ public class MigrateTenantsCommand
     DatabaseProvisioner databaseProvisioner = databaseContainer.getDatabaseProvisioner();
     databaseProvisioner.initializeDatabaseWithoutMigration();
 
-    MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection =
-        new MultiTenantGlobalSchemaProtection(databaseContainer.getOperationalDataStore());
-
-    TenantMigrator tenantMigrator =
-        new TenantMigrator(databaseContainer.getDatabaseProvisioner(), multiTenantGlobalSchemaProtection);
+    TenantMigrator tenantMigrator = new TenantMigrator(databaseContainer.getDatabaseProvisioner());
 
     tenantMigrator.migrateGlobalSchema();
     log.info("DB migrations for Global schema finished.");

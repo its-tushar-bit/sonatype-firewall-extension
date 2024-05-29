@@ -10,7 +10,6 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.ws.rs.Path;
@@ -334,7 +333,7 @@ public class MultiTenantInsightBrainService
 
         bind(DatabaseProvisioner.class).toInstance(databaseContainer.getDatabaseProvisioner());
 
-        bind(ApplicationLifecycle.class).to(MultiTenantApplicationLifecycle.class);
+        bind(ApplicationLifecycle.class).to(DefaultApplicationLifecycle.class);
 
         bind(QuartzJobStoreTX.class).to(MultiTenantQuartzJobStoreTX.class);
         bind(TaskScheduler.class).to(MultiTenantTaskScheduler.class);

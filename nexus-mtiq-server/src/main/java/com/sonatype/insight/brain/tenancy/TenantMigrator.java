@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.DatabaseUtil;
-import com.sonatype.insight.brain.db.MultiTenantGlobalSchemaProtection;
 import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
 
 import org.slf4j.Logger;
@@ -25,31 +24,18 @@ public class TenantMigrator
 
   private final DatabaseProvisioner databaseProvisioner;
 
-  private final MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection;
-
-  public TenantMigrator(
-      final DatabaseProvisioner databaseProvisioner,
-      final MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection)
-  {
+  public TenantMigrator(final DatabaseProvisioner databaseProvisioner) {
     this.databaseProvisioner = databaseProvisioner;
-    this.multiTenantGlobalSchemaProtection = multiTenantGlobalSchemaProtection;
   }
 
   public void migrateGlobalSchema() {
     runAsGlobal(() -> {
-      log.debug("Disabling Global Schema write protection");
-      multiTenantGlobalSchemaProtection.disableWriteProtection();
-
       try {
         log.info("Running database migrations for Global Schema");
         migrateSchema();
       }
       catch (Exception e) {
         throw new IllegalStateException("Error trying to migrate the database for Global Schema.", e);
-      }
-      finally {
-        log.debug("Restoring Global Schema write protection");
-        multiTenantGlobalSchemaProtection.enableWriteProtection();
       }
 
       return null;

@@ -30,8 +30,8 @@ import com.sonatype.insight.brain.migration.ScanFileCleaner;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.organization.ApplicationCountHistoryKeeper;
-import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PersistedPolicyEvaluationPollingResultCleaner;
+import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.product.license.FirewallReleaseIntegrityLicenseListener;
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
@@ -43,8 +43,8 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.PasswordService;
-import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.security.TestMultiTenantEncryptionKeyStore;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsPurger;
 import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -287,7 +287,7 @@ public class TestMultiTenantInsightBrainService
 
     disableForTesting();
 
-    getInstance(MultiTenantApplicationLifecycle.class).boot();
+    getInstance(DefaultApplicationLifecycle.class).boot();
   }
 
   @Override

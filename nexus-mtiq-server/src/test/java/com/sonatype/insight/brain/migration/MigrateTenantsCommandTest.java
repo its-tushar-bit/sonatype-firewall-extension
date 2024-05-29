@@ -10,7 +10,6 @@ import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.MultiTenantDatabaseContainer;
-import com.sonatype.insight.brain.db.MultiTenantGlobalSchemaProtection;
 import com.sonatype.insight.brain.db.datasource.MultiTenantPostgresDataSourceProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
@@ -39,8 +38,6 @@ public class MigrateTenantsCommandTest
 
   private TenantService tenantService;
 
-  private MultiTenantGlobalSchemaProtection multiTenantGlobalSchemaProtection;
-
   @Before
   @Override
   public void setup() {
@@ -61,8 +58,6 @@ public class MigrateTenantsCommandTest
             databaseRule.getDataMartDataStore(), databaseRule.getThirdPartyScansDataStore());
       }
     });
-
-    multiTenantGlobalSchemaProtection = new MultiTenantGlobalSchemaProtection(databaseRule.getOperationalDataStore());
   }
 
   @Test
@@ -82,8 +77,6 @@ public class MigrateTenantsCommandTest
 
   @Test
   public void testRunMigration() {
-    multiTenantGlobalSchemaProtection.createWriteProtection();
-
     // Provision at least one new tenant
     provisionTestTenant();
 

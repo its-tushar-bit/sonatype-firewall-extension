@@ -14,8 +14,10 @@ import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 
 import com.auth0.client.auth.Auth0AuthAPI;
 import com.auth0.client.mgmt.Auth0ManagementAPI;
+import com.auth0.client.mgmt.filter.ConnectionFilter;
 import com.auth0.exception.Auth0Exception;
 import com.auth0.json.auth.TokenHolder;
+import com.auth0.json.mgmt.Connection;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,8 +40,9 @@ public class MultiTenantAuth0ManagementService
   private Auth0ManagementAPI auth0ManagementAPI;
 
   @Inject
-  public MultiTenantAuth0ManagementService(final MultiTenantInsightConfig multiTenantInsightConfig,
-                                           final MultiTenantAuth0ApiSupplier auth0ApiSupplier)
+  public MultiTenantAuth0ManagementService(
+      final MultiTenantInsightConfig multiTenantInsightConfig,
+      final MultiTenantAuth0ApiSupplier auth0ApiSupplier)
   {
     this.auth0Config = multiTenantInsightConfig.getAuth0Config();
     this.auth0ApiSupplier = auth0ApiSupplier;
@@ -50,12 +53,13 @@ public class MultiTenantAuth0ManagementService
     //no-op
   }
 
-  public void createOrUpdateUser(final String email,
-                                 final String firstName,
-                                 final String lastName,
-                                 final String connectionName,
-                                 final String applicationId,
-                                 final String connectionId)
+  public void createOrUpdateUser(
+      final String email,
+      final String firstName,
+      final String lastName,
+      final String connectionName,
+      final String applicationId,
+      final String connectionId)
   {
     refreshManagementApiToken();
 
@@ -78,8 +82,9 @@ public class MultiTenantAuth0ManagementService
     }
   }
 
-  private void sendResetPassword(final String email, final String connectionName,
-                                 final String connectionId, final String applicationId)
+  private void sendResetPassword(
+      final String email, final String connectionName,
+      final String connectionId, final String applicationId)
   {
     try {
       getAuthApiLazily(auth0Config).resetPassword(email, connectionName, applicationId);
@@ -94,10 +99,10 @@ public class MultiTenantAuth0ManagementService
 
   private void refreshManagementApiToken() {
     if (!isApiTokenValid()) {
-      log.debug("Refreshing api token");
+      log.debug("Refreshing Auth0 API token");
       this.apiToken = requestApiToken();
       if (this.apiToken != null) {
-        log.debug("Updating management api with the new api token");
+        log.debug("Updating Auth0 management API with the new API token");
         auth0ManagementAPI =
             auth0ApiSupplier.getManagementApi(auth0Config.getDomain(), this.apiToken.getAccessToken());
       }
@@ -115,11 +120,18 @@ public class MultiTenantAuth0ManagementService
   public boolean deleteTenant(final String applicationId, final String connectionId) {
     refreshManagementApiToken();
 
-    log.debug("Deleting auth0 client");
+    log.debug("Deleting Auth0 client with ID: {}", applicationId);
     try {
       auth0ManagementAPI.clients().delete(applicationId).execute();
 
-      if (!CONNECTION_CREATION_SKIPPED.equals(connectionId)) {
+      //Only retrieving strategy field for the connection
+      ConnectionFilter connectionFilter = new ConnectionFilter().withFields("strategy", true);
+      Connection connection = auth0ManagementAPI.connections().get(connectionId, connectionFilter).execute();
+
+      //Only removing DB Auth0 connections
+      if (!CONNECTION_CREATION_SKIPPED.equals(connectionId) &&
+          connection.getStrategy().equals(Auth0ManagementAPI.AUTH0_CONNECTION_STRATEGY)) {
+        log.debug("Deleting Auth0 connection with ID: {}", connectionId);
         auth0ManagementAPI.connections().delete(connectionId).execute();
       }
     }

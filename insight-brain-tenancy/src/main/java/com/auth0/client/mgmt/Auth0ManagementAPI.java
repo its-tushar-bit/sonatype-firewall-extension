@@ -45,6 +45,8 @@ public class Auth0ManagementAPI
 
   public static final String AUTH0_CONNECTION_STRATEGY = "auth0";
 
+  public static final String GOOGLE_APPS_CONNECTION_STRATEGY = "google-apps";
+
   public static final int TTL_SECONDS = 432000;
 
   public static final String IS_INVITED_FLAG = "isInvited";

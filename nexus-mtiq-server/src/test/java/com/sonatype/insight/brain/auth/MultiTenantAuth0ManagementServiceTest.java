@@ -12,8 +12,10 @@ import com.auth0.client.auth.Auth0AuthAPI;
 import com.auth0.client.mgmt.Auth0ManagementAPI;
 import com.auth0.client.mgmt.ClientsEntity;
 import com.auth0.client.mgmt.ConnectionsEntity;
+import com.auth0.client.mgmt.filter.ConnectionFilter;
 import com.auth0.exception.Auth0Exception;
 import com.auth0.json.auth.TokenHolder;
+import com.auth0.json.mgmt.Connection;
 import com.auth0.net.Request;
 import com.auth0.net.TokenRequest;
 import org.junit.Before;
@@ -143,7 +145,7 @@ public class MultiTenantAuth0ManagementServiceTest
   }
 
   @Test
-  public void test_deleteTenantFailWhenExceptionThrown() throws Exception {
+  public void test_deleteTenantFail_WhenExceptionThrown() throws Exception {
     ClientsEntity clientsEntity = Mockito.mock(ClientsEntity.class);
     Request<Void> request = Mockito.mock(Request.class);
 
@@ -159,17 +161,21 @@ public class MultiTenantAuth0ManagementServiceTest
   }
 
   @Test
-  public void test_deleteTenant() throws Exception {
-    ClientsEntity clientsEntity = Mockito.mock(ClientsEntity.class);
+  public void test_deleteTenant_WhenStrategyIsAuth0() throws Exception {
     ConnectionsEntity connectionsEntity = Mockito.mock(ConnectionsEntity.class);
-    Request<Void> request = Mockito.mock(Request.class);
+    Connection connection = new Connection("connectionToDelete", Auth0ManagementAPI.AUTH0_CONNECTION_STRATEGY);
+    Request<Connection> connectionRequest = Mockito.mock(Request.class);
+    ClientsEntity clientsEntity = Mockito.mock(ClientsEntity.class);
+    Request<Void> deletionRequest = Mockito.mock(Request.class);
 
+    when(connectionsEntity.get(any(String.class), any(ConnectionFilter.class))).thenReturn(connectionRequest);
+    when(connectionRequest.execute()).thenReturn(connection);
+    when(clientsEntity.delete(APPLICATION_ID)).thenReturn(deletionRequest);
     when(tokenRequest.execute()).thenReturn(tokenHolder);
     when(authApi.requestToken(any())).thenReturn(tokenRequest);
     when(managementApi.clients()).thenReturn(clientsEntity);
-    when(clientsEntity.delete(APPLICATION_ID)).thenReturn(request);
     when(managementApi.connections()).thenReturn(connectionsEntity);
-    when(connectionsEntity.delete(CONNECTION_ID)).thenReturn(request);
+    when(connectionsEntity.delete(CONNECTION_ID)).thenReturn(deletionRequest);
 
     assertThat(underTest.deleteTenant(APPLICATION_ID, CONNECTION_ID)).isTrue();
     verify(managementApi.clients()).delete(APPLICATION_ID);
@@ -177,19 +183,45 @@ public class MultiTenantAuth0ManagementServiceTest
   }
 
   @Test
-  public void test_deleteTenant_whenConnectionCreationIsSkipped() throws Exception {
+  public void test_deleteTenant_WhenConnectionCreationIsSkipped() throws Exception {
+    Connection connection = new Connection("connectionToDelete", Auth0ManagementAPI.GOOGLE_APPS_CONNECTION_STRATEGY);
+    Request<Connection> connectionRequest = Mockito.mock(Request.class);
     ClientsEntity clientsEntity = Mockito.mock(ClientsEntity.class);
     ConnectionsEntity connectionsEntity = Mockito.mock(ConnectionsEntity.class);
-    Request<Void> request = Mockito.mock(Request.class);
+    Request<Void> deletionRequest = Mockito.mock(Request.class);
 
+    when(connectionsEntity.get(any(String.class), any(ConnectionFilter.class))).thenReturn(connectionRequest);
+    when(connectionRequest.execute()).thenReturn(connection);
+    when(clientsEntity.delete(APPLICATION_ID)).thenReturn(deletionRequest);
     when(tokenRequest.execute()).thenReturn(tokenHolder);
     when(authApi.requestToken(any())).thenReturn(tokenRequest);
     when(managementApi.clients()).thenReturn(clientsEntity);
-    when(clientsEntity.delete(APPLICATION_ID)).thenReturn(request);
+    when(clientsEntity.delete(APPLICATION_ID)).thenReturn(deletionRequest);
     when(managementApi.connections()).thenReturn(connectionsEntity);
 
     assertThat(underTest.deleteTenant(APPLICATION_ID, CONNECTION_CREATION_SKIPPED)).isTrue();
     verify(managementApi.clients()).delete(APPLICATION_ID);
     verify(managementApi.connections(), never()).delete(CONNECTION_CREATION_SKIPPED);
+  }
+
+  @Test
+  public void test_deleteTenant_WhenConnectionStrategyNotDB() throws Exception {
+    ConnectionsEntity connectionsEntity = Mockito.mock(ConnectionsEntity.class);
+    Connection connection = new Connection("connectionToDelete", Auth0ManagementAPI.GOOGLE_APPS_CONNECTION_STRATEGY);
+    Request<Connection> connectionRequest = Mockito.mock(Request.class);
+    ClientsEntity clientsEntity = Mockito.mock(ClientsEntity.class);
+    Request<Void> deletionRequest = Mockito.mock(Request.class);
+
+    when(connectionsEntity.get(any(String.class), any(ConnectionFilter.class))).thenReturn(connectionRequest);
+    when(connectionRequest.execute()).thenReturn(connection);
+    when(clientsEntity.delete(APPLICATION_ID)).thenReturn(deletionRequest);
+    when(tokenRequest.execute()).thenReturn(tokenHolder);
+    when(authApi.requestToken(any())).thenReturn(tokenRequest);
+    when(managementApi.clients()).thenReturn(clientsEntity);
+    when(managementApi.connections()).thenReturn(connectionsEntity);
+
+    assertThat(underTest.deleteTenant(APPLICATION_ID, CONNECTION_ID)).isTrue();
+    verify(managementApi.clients()).delete(APPLICATION_ID);
+    verify(managementApi.connections(), never()).delete(CONNECTION_ID);
   }
 }

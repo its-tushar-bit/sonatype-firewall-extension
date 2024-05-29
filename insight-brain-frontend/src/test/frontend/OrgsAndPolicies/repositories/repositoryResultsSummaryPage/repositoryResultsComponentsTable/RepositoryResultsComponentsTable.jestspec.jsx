@@ -93,38 +93,30 @@ describe('RepositoryResultsComponentsTable', () => {
   });
 
   beforeEach(() => {
-    selectLoadingRepositoryComponentsSpy = spyOn(
+    selectLoadingRepositoryComponentsSpy = jest.spyOn(
       repositoryComponentsSelectors,
       'selectLoadingRepositoryComponents'
-    ).and.callThrough();
-    selectErrorComponentsTableSpy = spyOn(
-      repositoryComponentsSelectors,
-      'selectErrorComponentsTable'
-    ).and.callThrough();
-    selectRepositoryComponentsSpy = spyOn(
-      repositoryComponentsSelectors,
-      'selectRepositoryComponents'
-    ).and.callThrough();
-    selectHasMoreResultsSpy = spyOn(repositoryComponentsSelectors, 'selectHasMoreResults').and.callThrough();
-    selectCurrentPageSpy = spyOn(repositoryComponentsSelectors, 'selectCurrentPage').and.callThrough();
+    );
+    selectErrorComponentsTableSpy = jest.spyOn(repositoryComponentsSelectors, 'selectErrorComponentsTable');
+    selectRepositoryComponentsSpy = jest.spyOn(repositoryComponentsSelectors, 'selectRepositoryComponents');
+    selectHasMoreResultsSpy = jest.spyOn(repositoryComponentsSelectors, 'selectHasMoreResults');
+    selectCurrentPageSpy = jest.spyOn(repositoryComponentsSelectors, 'selectCurrentPage');
 
-    getRepositoryComponentsSpy = spyOn(repositoryComponentsActions, 'getRepositoryComponents').and.callThrough();
-    searchComponentsSpy = spyOn(repositoryComponentsActions, 'searchComponents').and.callThrough();
-    sortComponentsSpy = spyOn(repositoryComponentsActions, 'sortComponents').and.callThrough();
+    getRepositoryComponentsSpy = jest.spyOn(repositoryComponentsActions, 'getRepositoryComponents');
+    searchComponentsSpy = jest.spyOn(repositoryComponentsActions, 'searchComponents');
+    sortComponentsSpy = jest.spyOn(repositoryComponentsActions, 'sortComponents');
 
-    goToRepositoryComponentDetailsPageSpy = spyOn(
-      firewallActions,
-      'goToRepositoryComponentDetailsPage'
-    ).and.callThrough();
+    goToRepositoryComponentDetailsPageSpy = jest.spyOn(firewallActions, 'goToRepositoryComponentDetailsPage');
 
+    selectRepositoryComponentsSpy.mockReturnValue([]);
     mock.onPost(getRepositoryComponentsUrl('repository', repoId)).reply(200, {});
 
-    renderComponent = () => render(<RepositoryResultsComponentsTable repoId={repoId} />);
+    renderComponent = () => render(<RepositoryResultsComponentsTable repositoryId={repoId} />);
   });
 
   describe('when data are being loaded', () => {
     beforeEach(() => {
-      selectLoadingRepositoryComponentsSpy.and.returnValue(true);
+      selectLoadingRepositoryComponentsSpy.mockReturnValue(true);
     });
 
     it('renders loading spinner', () => {
@@ -136,8 +128,8 @@ describe('RepositoryResultsComponentsTable', () => {
 
   describe('when the page has a loading error', () => {
     beforeEach(() => {
-      selectLoadingRepositoryComponentsSpy.and.returnValue(false);
-      selectErrorComponentsTableSpy.and.returnValue('Test loading error');
+      selectLoadingRepositoryComponentsSpy.mockReturnValue(false);
+      selectErrorComponentsTableSpy.mockReturnValue('Test loading error');
     });
 
     it('renders error section', () => {
@@ -152,8 +144,8 @@ describe('RepositoryResultsComponentsTable', () => {
 
   describe('when there are no components ', () => {
     beforeEach(() => {
-      selectLoadingRepositoryComponentsSpy.and.returnValue(false);
-      selectRepositoryComponentsSpy.and.returnValue([]);
+      selectLoadingRepositoryComponentsSpy.mockReturnValue(false);
+      selectRepositoryComponentsSpy.mockReturnValue([]);
     });
 
     it('renders default empty message', () => {
@@ -166,8 +158,8 @@ describe('RepositoryResultsComponentsTable', () => {
 
   describe('when components exist', () => {
     beforeEach(() => {
-      selectRepositoryComponentsSpy.and.returnValue(repositoryComponentsDetails.repositoryComponents);
-      selectLoadingRepositoryComponentsSpy.and.returnValue(false);
+      selectRepositoryComponentsSpy.mockReturnValue(repositoryComponentsDetails.repositoryComponents);
+      selectLoadingRepositoryComponentsSpy.mockReturnValue(false);
     });
 
     it('renders table with all components', () => {
@@ -207,7 +199,7 @@ describe('RepositoryResultsComponentsTable', () => {
 
       fireEvent.change(searchByNameInput, { target: { value: 'component 1' } });
       fireEvent.change(searchByPolicyInput, { target: { value: 'High' } });
-      fireEvent.change(searchByQuarantineTime, { target: { value: '2023-10-19' } });
+      fireEvent.change(searchByQuarantineTime, { target: { value: '2023-10-19 14:34:13' } });
 
       expect(searchComponentsSpy).toHaveBeenCalledWith({
         filterValue: 'component 1',
@@ -218,7 +210,7 @@ describe('RepositoryResultsComponentsTable', () => {
         filterName: 'POLICY_NAME',
       });
       expect(searchComponentsSpy).toHaveBeenCalledWith({
-        filterValue: '2023-10-19',
+        filterValue: '2023-10-19 14:34:13',
         filterName: 'QUARANTINE_TIME',
       });
     });
@@ -228,7 +220,7 @@ describe('RepositoryResultsComponentsTable', () => {
 
       const sortByThreatButton = screen.getByRole('button', { name: /threat unsorted/i });
       const sortByPolicyButton = screen.getByRole('button', { name: /policy unsorted/i });
-      const sortByQuarantinedButton = screen.getByRole('button', { name: /quarantined descending/i });
+      const sortByQuarantinedButton = screen.getByRole('button', { name: /quarantine time descending/i });
       const sortByComponentButton = screen.getByRole('button', { name: /component unsorted/i });
 
       fireEvent.click(sortByThreatButton);
@@ -241,7 +233,7 @@ describe('RepositoryResultsComponentsTable', () => {
 
       fireEvent.click(sortByQuarantinedButton);
       expect(sortComponentsSpy).toHaveBeenCalledWith('QUARANTINE_TIME');
-      expect(screen.getByRole('button', { name: /quarantined ascending/i })).toBeVisible();
+      expect(screen.getByRole('button', { name: /quarantine time ascending/i })).toBeVisible();
 
       fireEvent.click(sortByComponentButton);
       expect(sortComponentsSpy).toHaveBeenCalledWith('COMPONENT_COORDINATES');
@@ -261,8 +253,8 @@ describe('RepositoryResultsComponentsTable', () => {
     });
 
     it('renders indeterminate pagination if there is more than one page of results', () => {
-      selectCurrentPageSpy.and.returnValue(1);
-      selectHasMoreResultsSpy.and.returnValue(true);
+      selectCurrentPageSpy.mockReturnValue(1);
+      selectHasMoreResultsSpy.mockReturnValue(true);
       renderComponent();
 
       const pagination = screen.getByTestId('components-table-pagination');
@@ -271,8 +263,8 @@ describe('RepositoryResultsComponentsTable', () => {
     });
 
     it('does not render indeterminate pagination if there is only one page of results', () => {
-      selectCurrentPageSpy.and.returnValue(1);
-      selectHasMoreResultsSpy.and.returnValue(false);
+      selectCurrentPageSpy.mockReturnValue(1);
+      selectHasMoreResultsSpy.mockReturnValue(false);
       renderComponent();
 
       const pagination = screen.queryByTestId('components-table-pagination');
@@ -288,7 +280,7 @@ describe('RepositoryResultsComponentsTable', () => {
           threatLevel: null,
         },
       ];
-      selectRepositoryComponentsSpy.and.returnValue(repositoryComponentsDetails.repositoryComponents);
+      selectRepositoryComponentsSpy.mockReturnValue(repositoryComponentsDetails.repositoryComponents);
 
       renderComponent();
 

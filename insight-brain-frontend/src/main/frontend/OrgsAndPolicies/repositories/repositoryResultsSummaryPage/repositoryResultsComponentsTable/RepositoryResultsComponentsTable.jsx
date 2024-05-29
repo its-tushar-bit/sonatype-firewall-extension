@@ -21,7 +21,7 @@ import {
 import { faCheck, faFilter } from '@fortawesome/pro-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import * as PropTypes from 'prop-types';
-import { formatDate } from 'MainRoot/util/dateUtils';
+import { formatDate, FIREWALL_DATE_TIME_FORMAT } from 'MainRoot/util/dateUtils';
 import {
   selectAggregate,
   selectCurrentPage,
@@ -54,7 +54,7 @@ const RepositoryResultsComponentsTable = ({ repositoryId }) => {
   const loadNextPage = () => dispatch(actions.loadNextPage());
   const openFilterPopover = () => dispatch(actions.setShowFilterPopover(true));
 
-  const quarantineTime = (date) => formatDate(date, 'YYYY-MM-DD');
+  const quarantineTime = (date) => formatDate(date, FIREWALL_DATE_TIME_FORMAT);
   const formatThreatLevel = (row) => (row.threatLevel === null ? 0 : row.threatLevel);
   const toggleAggregateAndGetRepositoryComponents = () => dispatch(actions.toggleAggregateAndGetRepositoryComponents());
 
@@ -160,7 +160,7 @@ const RepositoryResultsComponentsTable = ({ repositoryId }) => {
                   onClick={() => sortComponents('QUARANTINE_TIME')}
                   className="iq-repository-column--quarantine-date"
                 >
-                  QUARANTINED
+                  QUARANTINE TIME
                 </NxTable.Cell>
                 <NxTable.Cell
                   isSortable

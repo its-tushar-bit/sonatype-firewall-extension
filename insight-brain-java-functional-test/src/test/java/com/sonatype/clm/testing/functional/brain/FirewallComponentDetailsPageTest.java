@@ -3020,7 +3020,7 @@ public class FirewallComponentDetailsPageTest
 
     RepositoryResultDetailPage.table().policyName().input().shouldHave(attribute("value", "Security"));
     RepositoryResultDetailPage.table().quarantinedHeaderSortButton().shouldHave(
-        attribute("aria-label", "QUARANTINED ascending"));
+        attribute("aria-label", "QUARANTINE TIME ascending"));
 
     RepositoryResultDetailPage.table().row(1).component().click();
     waitUntilSpinnersGone();
@@ -3034,7 +3034,7 @@ public class FirewallComponentDetailsPageTest
     RepositoryResultDetailPage.page().shouldBe(visible);
     RepositoryResultDetailPage.table().policyName().input().shouldHave(attribute("value", "Security"));
     RepositoryResultDetailPage.table().quarantinedHeaderSortButton().shouldHave(
-        attribute("aria-label", "QUARANTINED ascending"));
+        attribute("aria-label", "QUARANTINE TIME ascending"));
 
     String repositoryResultsViewCDPUrl = FirewallComponentDetailsPage.defaultUrlFromRepositoryResultsView(component);
 

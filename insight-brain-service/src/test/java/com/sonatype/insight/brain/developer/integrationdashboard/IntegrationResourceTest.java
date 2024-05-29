@@ -13,7 +13,6 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiIntegrationsCiCdStatIncrementDto;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.IntegrationStatusDTO;
-import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiChartVisibilityDto;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiUsageIncrementDto;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -32,9 +31,6 @@ public class IntegrationResourceTest
     extends AbstractAuditTest
 {
   static final String GET_CI_CD_USAGE_PATH = IntegrationResource.RESOURCE_PATH + "/stats/cicd/usage-over-time";
-
-  static final String GET_CHART_VISIBILITY_PATH = IntegrationResource.RESOURCE_PATH +
-      "/stats/usage-over-time/charts/visibility";
 
   static final String GET_APPLICATION_COUNT_HISTORY_OVER_TIME_PATH = IntegrationResource.RESOURCE_PATH +
       "/stats/usage-over-time";
@@ -162,33 +158,6 @@ public class IntegrationResourceTest
             .query("numberOfIncrements", 53)
             .get();
     assertResponseStatus(400, givenQueryAsksForTooManyIncrements);
-  }
-
-  @Test
-  public void testGetUsageOverTimeChartVisibility_WhenUserProfileIndicatesChartsVisible() throws Exception {
-    final HttpResponse httpResponse =
-        restRequest().path(GET_CHART_VISIBILITY_PATH).get();
-    assertResponseStatus(200, httpResponse);
-
-    final ApiChartVisibilityDto response = getBodyByTypeReference(httpResponse.getBodyBytes(),
-        new TypeReference<ApiChartVisibilityDto>() { });
-
-    assertThat(response).isEqualTo(new ApiChartVisibilityDto(true));
-  }
-
-  @Test
-  public void testGetUsageOverTimeChartVisibility_WhenUserProfileIndicatesChartsNotVisible() throws Exception {
-    final HttpResponse httpResponse =
-        restRequest()
-            .with(unauthorizedUser())
-            .path(GET_CHART_VISIBILITY_PATH).get();
-
-    assertResponseStatus(200, httpResponse);
-
-    final ApiChartVisibilityDto response = getBodyByTypeReference(httpResponse.getBodyBytes(),
-        new TypeReference<ApiChartVisibilityDto>() { });
-
-    assertThat(response).isEqualTo(new ApiChartVisibilityDto(false));
   }
 
   @Test

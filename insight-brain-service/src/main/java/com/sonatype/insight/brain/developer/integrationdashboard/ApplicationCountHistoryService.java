@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiUsageIncrementDto;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationCountHistory;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationSourceControlService;
@@ -95,8 +94,6 @@ public class ApplicationCountHistoryService
       final int numberOfIncrements
   )
   {
-    checkReadPermission(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID);
-
     final List<ApiUsageIncrementDto> usageOverTime = new ArrayList<>();
 
     final long now = dateTimeService.getCurrentTimeMs();

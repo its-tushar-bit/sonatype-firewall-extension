@@ -5,59 +5,16 @@
  */
 
 import React from 'react';
-import { axiosMockAdapter, render, screen, waitForElementToBeRemoved, fireEvent } from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, render, screen, fireEvent } from 'TestRoot/SpecUtil';
 import Overview from 'MainRoot/development/developmentDashboard/sections/overview/Overview';
-import { getUsageOverTimeChartVisibility, getAppIntegrationsAndRisk } from 'MainRoot/util/CLMLocation';
+import { getAppIntegrationsAndRisk } from 'MainRoot/util/CLMLocation';
 import { map, range } from 'ramda';
 
 describe('Overview', () => {
-  const ADOPTION_GRAPH_TEXT = 'Adoption Graph Placeholder';
-  const MTTR_GRAPH_TEXT = 'MTTR Graph Graph Placeholder';
-  const RISK_AND_REMEDIATION_GRAPH_TEXT = 'Risk And Remediation Graph Placeholder';
-  const LOADING = 'Loading…';
-
   let axiosMock;
 
   beforeEach(() => {
     axiosMock = axiosMockAdapter();
-  });
-
-  it('should render charts given backend indicates they are visible for the user profile', async () => {
-    givenChartsShownForUser();
-
-    renderComponent();
-
-    await waitForChartVisibilityRequestToLoad();
-
-    expect(screen.queryByText(ADOPTION_GRAPH_TEXT)).toBeInTheDocument();
-    expect(screen.queryByText(MTTR_GRAPH_TEXT)).toBeInTheDocument();
-    expect(screen.queryByText(RISK_AND_REMEDIATION_GRAPH_TEXT)).toBeInTheDocument();
-  });
-
-  it('should not render charts given backend indicates they are not visible for the user profile', async () => {
-    givenChartsNotShownForUser();
-
-    renderComponent();
-
-    await waitForChartVisibilityRequestToLoad();
-
-    expect(screen.queryByText(ADOPTION_GRAPH_TEXT)).not.toBeInTheDocument();
-    expect(screen.queryByText(MTTR_GRAPH_TEXT)).not.toBeInTheDocument();
-    expect(screen.queryByText(RISK_AND_REMEDIATION_GRAPH_TEXT)).not.toBeInTheDocument();
-  });
-
-  it('should show an error message given visiblity info for the user could not be fetched', async () => {
-    givenChartVisiblityRequestFails();
-
-    renderComponent();
-
-    await waitForChartVisibilityRequestToLoad();
-
-    expect(screen.queryByText(ADOPTION_GRAPH_TEXT)).not.toBeInTheDocument();
-
-    const errorAlert = await screen.findByRole('alert');
-    expect(errorAlert).toBeInTheDocument();
-    expect(errorAlert).toHaveTextContent('Error');
   });
 
   describe('Overview component contains filtering button for Application Configuration Summary table', () => {
@@ -78,10 +35,8 @@ describe('Overview', () => {
     });
 
     it('should render it a filter button for the table', async () => {
-      givenChartsShownForUser();
       renderComponent();
 
-      await waitForChartVisibilityRequestToLoad();
       const button = await screen.findByRole('button', {
         name: /Filter/i,
       });
@@ -89,9 +44,7 @@ describe('Overview', () => {
     });
 
     it('should render the filtering sidebar when the Filter button is clicked', async () => {
-      givenChartsShownForUser();
       renderComponent();
-      await waitForChartVisibilityRequestToLoad();
       expect(screen.queryByText('Filter')).toBeInTheDocument();
       const button = await screen.findByRole('button', {
         name: /Filter/i,
@@ -104,9 +57,7 @@ describe('Overview', () => {
     });
 
     it('should render correct number of rows when SCM filter is true', async () => {
-      givenChartsShownForUser();
       renderComponent();
-      await waitForChartVisibilityRequestToLoad();
       const button = await screen.findByRole('button', {
         name: /Filter/i,
       });
@@ -129,9 +80,7 @@ describe('Overview', () => {
     });
 
     it('should render correct number of rows when SCM filter is false', async () => {
-      givenChartsShownForUser();
       renderComponent();
-      await waitForChartVisibilityRequestToLoad();
       const button = await screen.findByRole('button', {
         name: /Filter/i,
       });
@@ -152,9 +101,7 @@ describe('Overview', () => {
     });
 
     it('should render correct number of rows when CI filter is true', async () => {
-      givenChartsShownForUser();
       renderComponent();
-      await waitForChartVisibilityRequestToLoad();
       const button = await screen.findByRole('button', {
         name: /Filter/i,
       });
@@ -174,9 +121,7 @@ describe('Overview', () => {
     });
 
     it('should render correct number of rows when CI filter is false', async () => {
-      givenChartsShownForUser();
       renderComponent();
-      await waitForChartVisibilityRequestToLoad();
       const button = await screen.findByRole('button', {
         name: /Filter/i,
       });
@@ -197,9 +142,7 @@ describe('Overview', () => {
     });
 
     it('should render the correct number of rows when CI and SCM filters are not applied', async () => {
-      givenChartsShownForUser();
       renderComponent();
-      await waitForChartVisibilityRequestToLoad();
       const button = await screen.findByRole('button', {
         name: /Filter/i,
       });
@@ -216,23 +159,6 @@ describe('Overview', () => {
       expect(configuredRows.length).toBe(17); // 15 data rows, 1 filter row and 1 header
     });
   });
-
-  function givenChartsShownForUser() {
-    axiosMock.onGet(getUsageOverTimeChartVisibility()).reply(200, { usageOverTimeChartsShown: true });
-  }
-
-  function givenChartsNotShownForUser() {
-    axiosMock.onGet(getUsageOverTimeChartVisibility()).reply(200, { usageOverTimeChartsShown: false });
-  }
-
-  function givenChartVisiblityRequestFails() {
-    axiosMock.onGet(getUsageOverTimeChartVisibility()).reply(500, 'Error');
-  }
-
-  async function waitForChartVisibilityRequestToLoad() {
-    expect(screen.getByText('Loading…')).toBeInTheDocument();
-    await waitForElementToBeRemoved(() => screen.queryByText(LOADING));
-  }
 
   function renderComponent() {
     return render(<Overview />);

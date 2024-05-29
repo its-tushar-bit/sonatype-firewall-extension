@@ -1410,9 +1410,6 @@ export const getAddWaiverUiLink = (violationId, comments) => {
 
 export const getDeveloperDashboardGraphsData = () => uriTemplate`/rest/integrations/stats/usage-over-time`;
 
-export const getUsageOverTimeChartVisibility = () =>
-  uriTemplate`/rest/integrations/stats/usage-over-time/charts/visibility`;
-
 export const getSbomsByApplicationUrl = (applicationId, pageSize, page, sortDir) =>
   uriTemplate`/api/v2/sbom/applications/${applicationId}?sortByDate=${sortDir}&pageSize=${pageSize}&page=${page}`;
 

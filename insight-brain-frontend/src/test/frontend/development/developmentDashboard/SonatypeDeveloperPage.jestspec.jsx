@@ -39,13 +39,13 @@ describe('SonatypeDeveloperPage', () => {
     const alertContainer = infoIcon.parentElement;
     expect(infoIcon).toBeInTheDocument();
     expect(alertContainer).toHaveTextContent(
-      'Sonatype Development is available for free in the Product Preview Program (PPP). Innovate with us by submitting your feedback to sonatype-developer@sonatype.com.'
+      'Sonatype Developer is available for free in the Product Preview Program (PPP). Innovate with us by submitting your feedback to sonatype-developer@sonatype.com.'
     );
   });
 
   it('renders a heading "Sonatype Developer"', () => {
     renderComponent();
-    expect(screen.getByRole('heading', { name: 'Sonatype Development' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Sonatype Developer' })).toBeInTheDocument();
   });
 
   it('renders an alert in place of content given the feature is not enabled for the license', async () => {

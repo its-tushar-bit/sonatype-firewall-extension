@@ -338,7 +338,7 @@ public class DevelopmentPrioritiesService
 
   private void throwErrorIfDevelopmentNotEnabledByLicense() {
     if (!isDevelopmentFeatureEnabled()) {
-      throw new NotAuthorizedException("This server is not licensed for Sonatype Development.");
+      throw new NotAuthorizedException("This server is not licensed for Sonatype Developer.");
     }
   }
 

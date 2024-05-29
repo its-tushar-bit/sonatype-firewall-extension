@@ -89,7 +89,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThatThrownBy(() ->
         developmentPrioritiesService
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10))
-        .withFailMessage("This server is not licensed for Sonatype Development.")
+        .withFailMessage("This server is not licensed for Sonatype Developer.")
         .isInstanceOf(NotAuthorizedException.class);
   }
 

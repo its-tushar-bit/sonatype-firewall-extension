@@ -96,8 +96,8 @@ function SonatypeDeveloperPageContents() {
   return (
     <>
       <NxInfoAlert className="iq-integrations-page-top-level-alert">
-        Sonatype Development is available for free in the <strong>Product Preview Program (PPP)</strong>. Innovate with
-        us by submitting your feedback to{' '}
+        Sonatype Developer is available for free in the <strong>Product Preview Program (PPP)</strong>. Innovate with us
+        by submitting your feedback to{' '}
         <NxTextLink
           external
           href="mailto:sonatype-developer@sonatype.com"
@@ -108,11 +108,11 @@ function SonatypeDeveloperPageContents() {
         .
       </NxInfoAlert>
       <NxPageTitle>
-        <NxH1>Sonatype Development</NxH1>
+        <NxH1>Sonatype Developer</NxH1>
       </NxPageTitle>
       <div className="iq-integrations-content">
         <NxP className="iq-integrations__full-width-text">
-          <strong>Integrate Sonatype Development</strong> in your development pipeline to automate open-source risk
+          <strong>Integrate Sonatype Developer</strong> in your development pipeline to automate open-source risk
           management, with real-time feedback, early in your development process. Sonatype integrations help you take
           immediate action to avoid surprise compliance issues when changes are pushed to production.
         </NxP>

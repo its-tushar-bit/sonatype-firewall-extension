@@ -37,7 +37,7 @@ export default function SastScanPage() {
       {/*TODO: Temporarily pointing to the Development page. This needs to be adjusted to the correct all sast scans page.*/}
       <MenuBarBackButton
         data-analytics-id="sonatype-developer-sast-back-button"
-        text="Back to Development"
+        text="Back to Developer Dashboard"
         stateName={'integrations'}
       />
       <SastScanTitle title={getTitle()} description={getDescription()} />

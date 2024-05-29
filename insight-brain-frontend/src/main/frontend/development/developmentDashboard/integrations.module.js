@@ -27,7 +27,7 @@ function routes($stateProvider) {
       component: 'sonatypeDeveloperPage',
       redirectTo: `integrations.${SECTIONS.OVERVIEW}`,
       data: {
-        title: 'Sonatype Development',
+        title: 'Sonatype Developer',
       },
     })
     .state(`integrations.${SECTIONS.OVERVIEW}`, {

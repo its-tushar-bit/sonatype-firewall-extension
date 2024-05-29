@@ -71,7 +71,7 @@ public class DevelopmentPrioritiesRestResourceTest
         .get();
 
     assertResponseStatus(403, response);
-    assertThat(response.getBodyText()).isEqualTo("This server is not licensed for Sonatype Development.");
+    assertThat(response.getBodyText()).isEqualTo("This server is not licensed for Sonatype Developer.");
   }
 
   @Test

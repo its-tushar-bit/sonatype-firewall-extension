@@ -7,7 +7,7 @@
 import { NxErrorAlert, NxH1, NxPageMain, NxPageTitle } from '@sonatype/react-shared-components';
 import React from 'react';
 
-export const DEVELOPER_FEATURE_DISABLED_MESSAGE = 'Sonatype Development Product Preview is not enabled.';
+export const DEVELOPER_FEATURE_DISABLED_MESSAGE = 'Sonatype Developer Product Preview is not enabled.';
 
 export default function LicenseLockScreen() {
   return (

@@ -29,6 +29,8 @@ export default function AdvancedSearch(props) {
     queryError,
     isSbomManager,
     noSbomManagerEnabledError,
+    setCurrentQuery,
+    routerCurrentParams,
   } = props;
 
   // configurationState
@@ -46,7 +48,14 @@ export default function AdvancedSearch(props) {
 
   const loadError = isEnabled ? loadErrorProp || noSbomManagerEnabledError : 'Advanced Search is not turned on!';
 
-  useEffect(load, []);
+  useEffect(() => {
+    load();
+
+    if (routerCurrentParams?.search) {
+      setCurrentQuery(routerCurrentParams.search);
+      searchFormSubmit();
+    }
+  }, []);
 
   return (
     <main id="advanced-search-page" className="nx-page-main nx-page-main--advanced-search">

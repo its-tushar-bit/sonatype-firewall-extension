@@ -49,7 +49,7 @@ function routes($stateProvider) {
       },
     })
     .state('sbomManager.advancedSearch', {
-      url: '/advancedSearch',
+      url: '/advancedSearch?search',
       component: 'advancedSearch',
       data: {
         title: 'SBOM Manager - Advanced Search',

@@ -49,8 +49,8 @@ describe('ExportAugmentedSbomModal', () => {
     expect(screen.getByLabelText(/SPDX/)).toBeVisible();
 
     expect(screen.getByText(/SBOM Format/)).toBeVisible();
-    expect(screen.getByLabelText(/Json/)).toBeVisible();
-    expect(screen.getByLabelText(/Json/)).toBeChecked();
+    expect(screen.getByLabelText(/JSON/)).toBeVisible();
+    expect(screen.getByLabelText(/JSON/)).toBeChecked();
     expect(screen.getByLabelText(/XML/)).toBeVisible();
 
     expect(screen.getByRole('button', { name: /Cancel/ })).toBeVisible();
@@ -78,7 +78,7 @@ describe('ExportAugmentedSbomModal', () => {
     renderComponent(initialState);
 
     expect(screen.getByLabelText(/Cyclone DX/)).toBeChecked();
-    expect(screen.getByLabelText(/Json/)).toBeChecked();
+    expect(screen.getByLabelText(/JSON/)).toBeChecked();
 
     const spdxRadio = screen.getByLabelText(/SPDX/);
     const xmlRadio = screen.getByLabelText(/XML/);
@@ -91,7 +91,7 @@ describe('ExportAugmentedSbomModal', () => {
     fireEvent.click(xmlRadio);
 
     expect(xmlRadio).toBeChecked();
-    expect(screen.getByLabelText(/Json/)).not.toBeChecked();
+    expect(screen.getByLabelText(/JSON/)).not.toBeChecked();
   });
 
   it('should close the modal when you click "Cancel"', async () => {

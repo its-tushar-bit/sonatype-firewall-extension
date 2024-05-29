@@ -62,7 +62,7 @@ export default function ExportAugmentedSbomModal() {
               <NxRadio {...createSbomSpecificationRadioHandler(EXPORT_SBOM_SPECIFICATION.spdx)}>SPDX</NxRadio>
             </NxFieldset>
             <NxFieldset label="SBOM Format">
-              <NxRadio {...createSbomFileFormatRadioHandler(EXPORT_SBOM_FILE_FORMAT.json)}>Json</NxRadio>
+              <NxRadio {...createSbomFileFormatRadioHandler(EXPORT_SBOM_FILE_FORMAT.json)}>JSON</NxRadio>
               <NxRadio {...createSbomFileFormatRadioHandler(EXPORT_SBOM_FILE_FORMAT.xml)}>XML</NxRadio>
             </NxFieldset>
           </NxModal.Content>

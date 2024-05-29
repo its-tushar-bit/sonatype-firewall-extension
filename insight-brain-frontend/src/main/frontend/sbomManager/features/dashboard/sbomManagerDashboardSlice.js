@@ -7,10 +7,12 @@ import { combineReducers } from 'redux';
 
 import totalSbomsStoredTileSlice from './totalSbomsStoredTile/totalSbomsStoredTileSlice';
 import applicationsHistoryTileSlice from './applicationsHistoryTile/applicationsHistoryTileSlice';
+import highPriorityVulnerabilitiesTileSlice from './highPriorityVulnerabilitiesTile/highPriorityVulnerabilitiesTileSlice';
 import vulnerabilitiesByThreatLevelTileSlice from './vulnerabilitiesByThreatLevelTile/vulnerabilitiesByThreatLevelTileSlice';
 
 export default combineReducers({
   totalSbomsStoredTile: totalSbomsStoredTileSlice,
   applicationsHistoryTile: applicationsHistoryTileSlice,
+  highPriorityVulnerabilitiesTile: highPriorityVulnerabilitiesTileSlice,
   vulnerabilitiesByThreatLevelTile: vulnerabilitiesByThreatLevelTileSlice,
 });

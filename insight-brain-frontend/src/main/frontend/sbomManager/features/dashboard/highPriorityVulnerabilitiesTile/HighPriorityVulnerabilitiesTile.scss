@@ -45,6 +45,14 @@
     }
   }
 
+  &__severity {
+    $-threat-indicator-size: 14px;
+
+    display: flex;
+    align-items: center;
+    min-width: calc(#{$-threat-indicator-size} + var(--nx-spacing-2x) + 1.5em);
+  }
+
   &__date {
     font-size: var(--nx-font-size-xs);
   }

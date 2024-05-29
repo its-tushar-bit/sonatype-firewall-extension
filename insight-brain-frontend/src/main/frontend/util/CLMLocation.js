@@ -1487,8 +1487,12 @@ export const getTotalSbomsAnalyzedUrl = () => uriTemplate`/api/v2/sbom/dashboard
 
 export const getSbomsHistoryUrl = () => uriTemplate`/api/v2/sbom/dashboard/sbomsHistoryMetrics`;
 
+export const getSbomsHighPriorityVulnerabilitiesUrl = () =>
+  uriTemplate`/rest/sbom/dashboard/highPriorityVulnerabilities`;
+
 export const getSbomVulnerabibilityAnalysisReferenceData = () =>
   uriTemplate`/rest/sbom/vulnerabilityAnalysis/referenceData`;
+
 export const getVulnerabilitesByThreatLevelUrl = () => uriTemplate`/api/v2/sbom/dashboard/vulnerabilitiesByThreatLevel`;
 
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [

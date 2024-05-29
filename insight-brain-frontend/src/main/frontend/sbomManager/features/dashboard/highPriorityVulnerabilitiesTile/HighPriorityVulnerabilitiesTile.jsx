@@ -3,7 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import {
   NxFontAwesomeIcon,
   NxH2,
@@ -13,82 +15,77 @@ import {
   NxTooltip,
 } from '@sonatype/react-shared-components';
 import { faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
+import { map } from 'ramda';
 import moment from 'moment';
 
+import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import LoadWrapper from 'MainRoot/react/LoadWrapper';
+import { selectHighPriorityVulnerabilitiesTile } from './highPriorityVulnerabilitiesTileSelectors';
+import { actions } from './highPriorityVulnerabilitiesTileSlice';
 
 import './HighPriorityVulnerabilitiesTile.scss';
 
+const ADVANCED_SEARCH_STATE = 'sbomManager.advancedSearch';
+
+const THREAT_INDICATOR_MAP = {
+  critical: 'critical',
+  high: 'severe',
+};
+
 export default function HighPriorityVulnerabilitiesTile() {
-  const doLoad = () => {};
+  const dispatch = useDispatch();
+  const uiRouterState = useRouterState();
+  const getAdvancedSearchHref = (search) => uiRouterState.href(ADVANCED_SEARCH_STATE, { search });
+  const doLoad = () => dispatch(actions.loadHighPriorityVulnerabilities());
 
-  const vulnerabilities = [
-    {
-      threatLevel: 10,
-      CVE: 'CVE-202104103',
-      importDate: '2024-01-20',
-    },
-    {
-      threatLevel: 10,
-      CVE: 'CVE-202104103',
-      importDate: '2024-01-20',
-    },
-    {
-      threatLevel: 10,
-      CVE: 'CVE-202104103',
-      importDate: '2024-01-20',
-    },
-    {
-      threatLevel: 10,
-      CVE: 'CVE-202104103',
-      importDate: '2024-01-20',
-    },
-    {
-      threatLevel: 10,
-      CVE: 'CVE-202104103',
-      importDate: '2024-01-20',
-    },
-    {
-      threatLevel: 10,
-      CVE: 'CVE-202104103',
-      importDate: '2024-01-20',
-    },
-    {
-      threatLevel: 10,
-      CVE: 'CVE-202104103',
-      importDate: '2024-01-20',
-    },
-    {
-      threatLevel: 10,
-      CVE: 'CVE-202104103',
-      importDate: '2024-01-20',
-    },
-    {
-      threatLevel: 10,
-      CVE: 'CVE-202104103',
-      importDate: '2024-01-20',
-    },
-    {
-      threatLevel: 10,
-      CVE: 'CVE-202104103',
-      importDate: '2024-01-20',
-    },
-  ];
+  const { loading, loadError, vulnerabilities } = useSelector(selectHighPriorityVulnerabilitiesTile);
+  const hasVulnerabilites = !isNilOrEmpty(vulnerabilities);
 
-  const vulnerabilityItems = vulnerabilities.map((vulnerability, index) => (
-    <li key={index} className="sbom-manager-high-priority-vulnerabilities-tile-list-item">
-      <div className="sbom-manager-high-priority-vulnerabilities-tile-list-item__score">
-        <span>
-          <NxThreatIndicator policyThreatLevel={vulnerability.threatLevel} />
-          {vulnerability.threatLevel}
-        </span>
-        <NxTextLink href="#@placeholder">{vulnerability.CVE}</NxTextLink>
-      </div>
-      <div className="sbom-manager-high-priority-vulnerabilities-tile-list-item__date">
-        {moment(vulnerability.importDate).fromNow()}
-      </div>
-    </li>
-  ));
+  useEffect(() => {
+    doLoad();
+
+    moment.defineLocale('custom', {
+      relativeTime: {
+        d: '%dD',
+        dd: '%dD',
+        M: '%dM',
+        MM: '%dM',
+        y: '%dY',
+        yy: '%dY',
+      },
+    });
+
+    moment.locale('custom');
+
+    return () => moment.locale('en-us');
+  }, []);
+
+  const vulnerabilitiesContent = hasVulnerabilites ? (
+    <ol className="sbom-manager-high-priority-vulnerabilities-tile-list">
+      {map(
+        (vulnerability) => (
+          <li key={vulnerability.refId} className="sbom-manager-high-priority-vulnerabilities-tile-list-item">
+            <div className="sbom-manager-high-priority-vulnerabilities-tile-list-item__score">
+              <span
+                className="sbom-manager-high-priority-vulnerabilities-tile-list-item__severity"
+                data-testid="high-priority-vulnerabilities-severity"
+              >
+                <NxThreatIndicator threatLevelCategory={THREAT_INDICATOR_MAP[vulnerability.severityStatus]} />
+                {vulnerability.severity}
+              </span>
+              <NxTextLink href={getAdvancedSearchHref(vulnerability.refId)}>{vulnerability.refId}</NxTextLink>
+            </div>
+            <div className="sbom-manager-high-priority-vulnerabilities-tile-list-item__date">
+              {moment(vulnerability.createdAt).fromNow()}
+            </div>
+          </li>
+        ),
+        vulnerabilities
+      )}
+    </ol>
+  ) : (
+    <span>No Critical/High Vulnerabilities Found</span>
+  );
 
   return (
     <NxTile id="high-priority-vulnerabilities-tile" className="sbom-manager-high-priority-vulnerabilities-tile">
@@ -104,8 +101,8 @@ export default function HighPriorityVulnerabilitiesTile() {
         </NxTile.HeaderTitle>
       </NxTile.Header>
       <NxTile.Content>
-        <LoadWrapper retryHandler={doLoad} error={null}>
-          <ol className="sbom-manager-high-priority-vulnerabilities-tile-list">{vulnerabilityItems}</ol>
+        <LoadWrapper retryHandler={() => doLoad()} loading={loading} error={loadError}>
+          {vulnerabilitiesContent}
         </LoadWrapper>
       </NxTile.Content>
     </NxTile>

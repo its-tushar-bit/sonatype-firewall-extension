@@ -782,6 +782,14 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  describe('getSbomsHighPriorityVulnerabilitiesUrl', function () {
+    it('should return the url for dashboard SBOM high priority vulnerabilities', function () {
+      expect(CLMLocation.getSbomsHighPriorityVulnerabilitiesUrl()).toBe(
+        '/rest/sbom/dashboard/highPriorityVulnerabilities'
+      );
+    });
+  });
+
   describe('getVulnerabilitesByThreatLevelUrl', function () {
     it('should return the url for getting vulnerabilities by threat level', function () {
       expect(CLMLocation.getVulnerabilitesByThreatLevelUrl()).toBe(

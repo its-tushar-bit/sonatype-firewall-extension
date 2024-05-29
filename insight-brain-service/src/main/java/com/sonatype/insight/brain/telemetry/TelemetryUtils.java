@@ -15,6 +15,7 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.brain.telemetry.ClientUserAgentUtil.UserAgent;
 import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -79,13 +80,7 @@ public final class TelemetryUtils
 
     ClientUserAgentUtil.UserAgent userAgent = ClientUserAgentUtil.parse(clientUserAgent);
     if (userAgent != null) {
-      attributes.put("client_id", userAgent.client);
-      attributes.put("client_version", userAgent.clientVersion);
-      attributes.put("client_runtime", userAgent.runtime);
-      attributes.put("client_runtime_version", userAgent.runtimeVersion);
-      attributes.put("client_os_name", userAgent.os);
-      attributes.put("client_os_version", userAgent.osVersion);
-      attributes.put("client_other", userAgent.other);
+      addUserAgentDataToAttributes(attributes, userAgent);
     }
     if (StringUtils.isNotBlank(clientInstanceId)) {
       attributes.put("client_instance_id", clientInstanceId);
@@ -135,5 +130,15 @@ public final class TelemetryUtils
     }
     return componentCounts.values().stream().map(Number::longValue).reduce(Long::sum)
         .orElse(0L);
+  }
+
+  public static void addUserAgentDataToAttributes(Map<String, Object> attributes, UserAgent userAgent) {
+    attributes.put("client_id", userAgent.client);
+    attributes.put("client_version", userAgent.clientVersion);
+    attributes.put("client_runtime", userAgent.runtime);
+    attributes.put("client_runtime_version", userAgent.runtimeVersion);
+    attributes.put("client_os_name", userAgent.os);
+    attributes.put("client_os_version", userAgent.osVersion);
+    attributes.put("client_other", userAgent.other);
   }
 }

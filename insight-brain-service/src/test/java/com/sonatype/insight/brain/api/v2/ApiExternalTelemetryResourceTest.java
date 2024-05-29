@@ -23,15 +23,14 @@ public class ApiExternalTelemetryResourceTest
 {
   @Test
   public void testPostExternalTelemetry() throws Exception {
-    Map<String, String> telemetryValues = new HashMap<>();
-    telemetryValues.put("telemetry_purpose", "SSC_INTEGRATION_METRICS");
-    telemetryValues.put("ssc_integration_service_version", "1");
-    telemetryValues.put("application_id", "1234-foo");
-    telemetryValues.put("overwrite", "true");
-    telemetryValues.put("force_upload", "false");
+    Map<String, Object> telemetryValues = new HashMap<>();
+    telemetryValues.put("telemetry_purpose", "SYNC_SERVICE_METRICS");
+    telemetryValues.put("violation_count", 1);
+    telemetryValues.put("waiver_count", 12);
 
     HttpResponse httpResponse = restRequest()
-        .header("user-agent", "my-user-agent")
+        .header("user-agent", "SSC_Sync_Service/5.0.2 (Java 1.8.0_352; Mac OS X 10.16)")
+        .header("X-CLM-Client-Instance-Id", "bf1809f09dad40ec86f1e13daf96fe8c")
         .body(telemetryValues)
         .post();
 

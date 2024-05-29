@@ -9,10 +9,12 @@ import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -38,8 +40,9 @@ public class ApiExternalTelemetryResource
   @Consumes(MediaType.APPLICATION_JSON)
   public void postExternalTelemetry(
       @HeaderParam("user-agent") String userAgent,
-      Map<String, String> telemetryValues)
+      Map<String, Object> telemetryValues,
+      @Context HttpServletRequest req)
   {
-    externalTelemetryService.sendTelemetry(userAgent, telemetryValues);
+    externalTelemetryService.sendTelemetry(telemetryValues, req);
   }
 }

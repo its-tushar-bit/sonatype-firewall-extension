@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -171,8 +172,8 @@ public class ApiSbomService
     if (requestedSbomState.equals(SBOM_STATE_ORIGINAL)) {
       return getOriginalSbom(applicationId, version);
     }
-    targetSpecification = StringUtils.lowerCase(targetSpecification);
-    acceptType = StringUtils.lowerCase(acceptType);
+    targetSpecification = StringUtils.lowerCase(targetSpecification, Locale.ROOT);
+    acceptType = StringUtils.lowerCase(acceptType, Locale.ROOT);
     validateRequestParams(targetSpecification, acceptType);
     return buildCurrentSbom(applicationId, version, targetSpecification, acceptType);
   }

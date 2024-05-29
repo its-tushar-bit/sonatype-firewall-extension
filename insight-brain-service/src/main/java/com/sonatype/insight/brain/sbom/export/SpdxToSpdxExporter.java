@@ -130,7 +130,7 @@ public class SpdxToSpdxExporter
     List<SpdxPackage> potentialDirects = new ArrayList<>();
     List<String> transitives = new ArrayList<>();
     Map<String, ExtractedLicenseInfo> extractedLicenses = originalDocument.getExtractedLicenseInfos()
-        .stream().collect(Collectors.toMap(l -> StringUtils.lowerCase(l.getLicenseId()), l -> l));
+        .stream().collect(Collectors.toMap(l -> StringUtils.lowerCase(l.getLicenseId(), Locale.ROOT), l -> l));
 
     for (SpdxPackage pkg : SbomSpdxUtils.getAllPackages(originalDocument)) {
       // a valid existing package will always have a name. It is unlikely to have this "unknown package" to get called
@@ -264,7 +264,7 @@ public class SpdxToSpdxExporter
     Map<String, AnyLicenseInfo> collect = new HashMap<>();
     for (ThirdPartyCoordinateLicense license : licenses) {
       AnyLicenseInfo licenseObject = createLicenseObject(license.getLicenseId(), extractedLicenses);
-      collect.put(StringUtils.lowerCase(licenseObject.getId()), licenseObject);
+      collect.put(StringUtils.lowerCase(licenseObject.getId(), Locale.ROOT), licenseObject);
     }
     return collect.values();
   }
@@ -291,12 +291,14 @@ public class SpdxToSpdxExporter
       if (!licenseId.startsWith(LICENSE_REF_PREFIX)) {
         licenseId = SpdxConstants.NON_STD_LICENSE_ID_PRENUM + licenseId.replaceAll(INVALID_REF_REGEX, "-");
       }
-      if (extractedLicenses.containsKey(StringUtils.lowerCase(licenseId))) {
-        return extractedLicenses.get(StringUtils.lowerCase(licenseId));
+      String lowerLicenseId = StringUtils.lowerCase(licenseId, Locale.ROOT);
+      if (extractedLicenses.containsKey(lowerLicenseId)) {
+        return extractedLicenses.get(lowerLicenseId);
       }
       else {
         ExtractedLicenseInfo extractedLicenseInfo = new ExtractedLicenseInfo(licenseId, licenseId);
-        extractedLicenses.put(StringUtils.lowerCase(extractedLicenseInfo.getLicenseId()), extractedLicenseInfo);
+        extractedLicenses.put(StringUtils.lowerCase(extractedLicenseInfo.getLicenseId(), Locale.ROOT),
+            extractedLicenseInfo);
         return extractedLicenseInfo;
       }
     }

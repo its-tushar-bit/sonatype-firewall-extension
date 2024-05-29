@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import javax.inject.Named;
@@ -196,7 +197,7 @@ public class SbomFileDetector
     sbomResult.summary.serialNumber = SbomSpdxUtils.getOrGenerateSpdxSerialNumber(document);
     sbomResult.summary.specification = SbomSpecification.SPDX.toString();
     sbomResult.summary.version = StringUtils.replace(document.getSpecVersion(), SPDX_VERSION_PREFIX, "");
-    sbomResult.summary.format = StringUtils.lowerCase(sbomFormat.toString());
+    sbomResult.summary.format = StringUtils.lowerCase(sbomFormat.toString(), Locale.ROOT);
     sbomResult.summary.componentCount = CollectionUtils.size(SbomSpdxUtils.getAllPackages(document));
     sbomResult.summary.vulnerabilityCount = CollectionUtils.size(SbomSpdxUtils.getAllVulnerabilities(document));
     SpdxPackage rootPackage = SbomSpdxUtils.getRootPackage(document);

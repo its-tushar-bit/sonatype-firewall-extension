@@ -54,15 +54,15 @@ public class MultiTenantInsightConfig
 
   @Nullable
   @JsonProperty
-  private String clusterConfigFilePath;
+  private String cloudyClusterConfigFilePath;
 
   @Nullable
-  public String getClusterConfigFilePath() {
-    return clusterConfigFilePath;
+  public String getCloudyClusterConfigFilePath() {
+    return cloudyClusterConfigFilePath;
   }
 
-  public void setClusterConfigFilePath(@Nullable final String clusterConfigFilePath) {
-    this.clusterConfigFilePath = clusterConfigFilePath;
+  public void setCloudyClusterConfigFilePath(@Nullable final String cloudyClusterConfigFilePath) {
+    this.cloudyClusterConfigFilePath = cloudyClusterConfigFilePath;
   }
 
   @Override

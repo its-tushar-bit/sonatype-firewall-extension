@@ -15,13 +15,14 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class is meant to read a Cloudy cluster configuration json file.
+ * This class is meant to read a Cloudy cluster configuration yaml file.
  * <p>
- * In particular, the json file should contain a cluster 'state' String field, which can be one of the following
+ * In particular, the yaml file should contain a cluster 'state' String field, which can be one of the following
  * values:
  * <ul>
  *   <li>ACTIVE: The cluster is active and serving traffic.</li>
@@ -33,18 +34,23 @@ import org.slf4j.LoggerFactory;
  */
 @Named
 @Singleton
-public class ClusterConfigReader
+public class CloudyClusterConfigReader
 {
-  private static final Logger log = LoggerFactory.getLogger(ClusterConfigReader.class);
+  private static final Logger log = LoggerFactory.getLogger(CloudyClusterConfigReader.class);
 
   private final MultiTenantInsightConfig multiTenantInsightConfig;
 
   private final ObjectMapper objectMapper;
 
-  private volatile ClusterConfig clusterConfig = new ClusterConfig();
+  private volatile CloudyClusterConfig cloudyClusterConfig = new CloudyClusterConfig();
 
   @Inject
-  public ClusterConfigReader(
+  public CloudyClusterConfigReader(final MultiTenantInsightConfig multiTenantInsightConfig) {
+    this(multiTenantInsightConfig, createObjectMapper());
+  }
+
+  // Visible for testing
+  public CloudyClusterConfigReader(
       final MultiTenantInsightConfig multiTenantInsightConfig,
       final ObjectMapper objectMapper)
   {
@@ -52,13 +58,13 @@ public class ClusterConfigReader
     this.objectMapper = objectMapper;
   }
 
-  public ClusterConfig getClusterConfig() {
+  public CloudyClusterConfig getClusterConfig() {
     readClusterConfig();
-    return new ClusterConfig(clusterConfig);
+    return new CloudyClusterConfig(cloudyClusterConfig);
   }
 
   private void readClusterConfig() {
-    String clusterConfigFilePath = multiTenantInsightConfig.getClusterConfigFilePath();
+    String clusterConfigFilePath = multiTenantInsightConfig.getCloudyClusterConfigFilePath();
 
     if (!isValid(clusterConfigFilePath)) {
       return;
@@ -67,25 +73,25 @@ public class ClusterConfigReader
     File clusterConfigFile = newFile(clusterConfigFilePath);
 
     Long lastModified = clusterConfigFile.lastModified();
-    if (Objects.equals(lastModified, clusterConfig.getLastModified())) {
+    if (Objects.equals(lastModified, this.cloudyClusterConfig.getLastModified())) {
       log.trace("The cluster configuration file {} has no changes.", clusterConfigFile);
       return;
     }
 
-    ClusterConfig clusterConfig = new ClusterConfig();
+    CloudyClusterConfig cloudyClusterConfig = new CloudyClusterConfig();
     try {
       log.debug("Reading the cluster configuration from {}.", clusterConfigFile);
-      clusterConfig = objectMapper.readValue(clusterConfigFile, ClusterConfig.class);
+      cloudyClusterConfig = objectMapper.readValue(clusterConfigFile, CloudyClusterConfig.class);
     }
     catch (IOException e) {
       log.error("Failed to read the cluster configuration from {}.", clusterConfigFilePath, e);
     }
     finally {
-      clusterConfig.setLastModified(lastModified);
-      this.clusterConfig = clusterConfig;
+      cloudyClusterConfig.setLastModified(lastModified);
+      this.cloudyClusterConfig = cloudyClusterConfig;
     }
 
-    log.debug("The cluster configuration is {}.", clusterConfig);
+    log.debug("The cluster configuration is {}.", cloudyClusterConfig);
   }
 
   private boolean isValid(final String clusterConfigFilePath) {
@@ -108,5 +114,10 @@ public class ClusterConfigReader
   // Visible for testing
   File newFile(final String pathname) {
     return new File(pathname);
+  }
+
+  // Visible for testing
+  public static ObjectMapper createObjectMapper() {
+    return new ObjectMapper(new YAMLFactory());
   }
 }

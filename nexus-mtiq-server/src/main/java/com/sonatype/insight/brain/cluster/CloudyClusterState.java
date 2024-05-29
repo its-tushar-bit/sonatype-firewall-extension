@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.cluster;
 
-public enum ClusterState
+public enum CloudyClusterState
 {
   ACTIVE,
   FILLING,

@@ -11,8 +11,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.cluster.ClusterConfigReader;
-import com.sonatype.insight.brain.cluster.ClusterState;
+import com.sonatype.insight.brain.cluster.CloudyClusterConfigReader;
+import com.sonatype.insight.brain.cluster.CloudyClusterState;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.InsightJob;
@@ -58,7 +58,7 @@ public class MultiTenantTaskScheduler
 
   private final QuartzJobStoreTX mtiqBatchJobStoreTX;
 
-  private final ClusterConfigReader clusterConfigReader;
+  private final CloudyClusterConfigReader cloudyClusterConfigReader;
 
   @Inject
   public MultiTenantTaskScheduler(
@@ -72,7 +72,7 @@ public class MultiTenantTaskScheduler
       TenantManager tenantManager,
       TenantUtil tenantUtil,
       ShutdownHandler shutdownHandler,
-      ClusterConfigReader clusterConfigReader)
+      CloudyClusterConfigReader cloudyClusterConfigReader)
   {
     super(quartzJobStoreTX, jobFactory, schedulerName, quartzTriggerListener, shutdownHandler);
 
@@ -81,7 +81,7 @@ public class MultiTenantTaskScheduler
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.tenantManager = tenantManager;
     this.tenantUtil = tenantUtil;
-    this.clusterConfigReader = clusterConfigReader;
+    this.cloudyClusterConfigReader = cloudyClusterConfigReader;
   }
 
   @Override
@@ -108,21 +108,21 @@ public class MultiTenantTaskScheduler
   }
 
   private boolean shouldStartTaskSchedulers() {
-    ClusterState clusterState = clusterConfigReader.getClusterConfig().getState();
-    switch (clusterState) {
+    CloudyClusterState cloudyClusterState = cloudyClusterConfigReader.getClusterConfig().getState();
+    switch (cloudyClusterState) {
       case UNKNOWN:
       case ACTIVE:
       case FILLING: {
-        log.trace("Starting the task schedulers if needed due to the cluster state {}.", clusterState);
+        log.trace("Starting the task schedulers if needed due to the cluster state {}.", cloudyClusterState);
         return true;
       }
       case DRAINING:
       case INACTIVE: {
-        log.trace("Standby the task schedulers if needed due to the cluster state {}.", clusterState);
+        log.trace("Standby the task schedulers if needed due to the cluster state {}.", cloudyClusterState);
         return false;
       }
       default:
-        throw new IllegalArgumentException(String.format("Unrecognized cluster state %s.", clusterState));
+        throw new IllegalArgumentException(String.format("Unrecognized cluster state %s.", cloudyClusterState));
     }
   }
 

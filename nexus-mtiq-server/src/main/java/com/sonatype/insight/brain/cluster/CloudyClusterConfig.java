@@ -9,20 +9,20 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ClusterConfig
+public class CloudyClusterConfig
 {
   private Long lastModified;
 
   @JsonFormat(with = JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
-  private ClusterState state = ClusterState.UNKNOWN;
+  private CloudyClusterState state = CloudyClusterState.UNKNOWN;
 
-  public ClusterConfig() {
+  public CloudyClusterConfig() {
     // for jackson
   }
 
-  public ClusterConfig(final ClusterConfig clusterConfig) {
-    this.lastModified = clusterConfig.getLastModified();
-    this.state = clusterConfig.getState();
+  public CloudyClusterConfig(final CloudyClusterConfig cloudyClusterConfig) {
+    this.lastModified = cloudyClusterConfig.getLastModified();
+    this.state = cloudyClusterConfig.getState();
   }
 
   public Long getLastModified() {
@@ -33,11 +33,11 @@ public class ClusterConfig
     this.lastModified = lastModified;
   }
 
-  public ClusterState getState() {
+  public CloudyClusterState getState() {
     return state;
   }
 
-  public void setState(final ClusterState state) {
+  public void setState(final CloudyClusterState state) {
     this.state = state;
   }
 

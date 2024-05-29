@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.scheduler;
 import java.io.File;
 import java.util.Locale;
 
-import com.sonatype.insight.brain.cluster.ClusterConfigReader;
-import com.sonatype.insight.brain.cluster.ClusterState;
+import com.sonatype.insight.brain.cluster.CloudyClusterConfigReader;
+import com.sonatype.insight.brain.cluster.CloudyClusterState;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.InsightJob;
@@ -84,7 +84,9 @@ public class MultiTenantTaskSchedulerTest
   @Mock
   private MultiTenantInsightConfig mockMultiTenantInsightConfig;
 
-  private ClusterConfigReader clusterConfigReader;
+  private ObjectMapper objectMapper;
+
+  private CloudyClusterConfigReader cloudyClusterConfigReader;
 
   private MultiTenantTaskScheduler spyUnderTest;
 
@@ -92,7 +94,8 @@ public class MultiTenantTaskSchedulerTest
   public void setup() {
     when(mockQuartzTriggerListener.getName()).thenReturn("mockQuartzTriggerListener");
     when(mockTenantContextJobListener.getName()).thenReturn("mockTenantContextJobListener");
-    clusterConfigReader = new ClusterConfigReader(mockMultiTenantInsightConfig, new ObjectMapper());
+    objectMapper = CloudyClusterConfigReader.createObjectMapper();
+    cloudyClusterConfigReader = new CloudyClusterConfigReader(mockMultiTenantInsightConfig, objectMapper);
     spyUnderTest = spy(new MultiTenantTaskScheduler(
             mockMultiTenantQuartzJobStoreTX,
             mockMultiTenantBatchModeJobStoreTX,
@@ -104,7 +107,7 @@ public class MultiTenantTaskSchedulerTest
             mockTenantManager,
             mockTenantUtil,
             mockShutdownHandler,
-            clusterConfigReader
+        cloudyClusterConfigReader
         )
     );
   }
@@ -220,8 +223,8 @@ public class MultiTenantTaskSchedulerTest
   @Test
   public void testStart_Active() throws Exception {
     String mtiqBatchSchedulerName = spyUnderTest.getMtiqBatchSchedulerName();
-    when(mockMultiTenantInsightConfig.getClusterConfigFilePath()).thenReturn(
-        createClusterConfigFile(ClusterState.ACTIVE).getAbsolutePath());
+    when(mockMultiTenantInsightConfig.getCloudyClusterConfigFilePath()).thenReturn(
+        createClusterConfigFile(CloudyClusterState.ACTIVE).getAbsolutePath());
     when(mockTenantUtil.isMtiqBatchMode()).thenReturn(true);
 
     spyUnderTest.start();
@@ -235,8 +238,8 @@ public class MultiTenantTaskSchedulerTest
   @Test
   public void testStart_Filling() throws Exception {
     String mtiqBatchSchedulerName = spyUnderTest.getMtiqBatchSchedulerName();
-    when(mockMultiTenantInsightConfig.getClusterConfigFilePath()).thenReturn(
-        createClusterConfigFile(ClusterState.FILLING).getAbsolutePath());
+    when(mockMultiTenantInsightConfig.getCloudyClusterConfigFilePath()).thenReturn(
+        createClusterConfigFile(CloudyClusterState.FILLING).getAbsolutePath());
     when(mockTenantUtil.isMtiqBatchMode()).thenReturn(true);
 
     spyUnderTest.start();
@@ -250,8 +253,8 @@ public class MultiTenantTaskSchedulerTest
   @Test
   public void testStart_Draining() throws Exception {
     String mtiqBatchSchedulerName = spyUnderTest.getMtiqBatchSchedulerName();
-    when(mockMultiTenantInsightConfig.getClusterConfigFilePath()).thenReturn(
-        createClusterConfigFile(ClusterState.DRAINING).getAbsolutePath());
+    when(mockMultiTenantInsightConfig.getCloudyClusterConfigFilePath()).thenReturn(
+        createClusterConfigFile(CloudyClusterState.DRAINING).getAbsolutePath());
     lenient().when(mockTenantUtil.isMtiqBatchMode()).thenReturn(true);
     spyUnderTest.initialize();
 
@@ -266,8 +269,8 @@ public class MultiTenantTaskSchedulerTest
   @Test
   public void testStart_Inactive() throws Exception {
     String mtiqBatchSchedulerName = spyUnderTest.getMtiqBatchSchedulerName();
-    when(mockMultiTenantInsightConfig.getClusterConfigFilePath()).thenReturn(
-        createClusterConfigFile(ClusterState.INACTIVE).getAbsolutePath());
+    when(mockMultiTenantInsightConfig.getCloudyClusterConfigFilePath()).thenReturn(
+        createClusterConfigFile(CloudyClusterState.INACTIVE).getAbsolutePath());
     lenient().when(mockTenantUtil.isMtiqBatchMode()).thenReturn(true);
     spyUnderTest.initialize();
 
@@ -279,22 +282,21 @@ public class MultiTenantTaskSchedulerTest
     assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isInStandbyMode()).isTrue();
   }
 
-  private File createClusterConfigFile(final ClusterState clusterState) throws Exception {
+  private File createClusterConfigFile(final CloudyClusterState cloudyClusterState) throws Exception {
     File clusterConfigFile = temporaryFolder.newFile();
-    writeClusterConfigToFile(clusterState, clusterConfigFile);
+    writeClusterConfigToFile(cloudyClusterState, clusterConfigFile);
     return clusterConfigFile;
   }
 
-  private void writeClusterConfigToFile(final ClusterState clusterState, final File clusterConfigFile)
+  private void writeClusterConfigToFile(final CloudyClusterState cloudyClusterState, final File clusterConfigFile)
       throws Exception
   {
-    new ObjectMapper().writeValue(clusterConfigFile, createClusterConfig(clusterState));
+    objectMapper.writeValue(clusterConfigFile, createClusterConfig(cloudyClusterState));
   }
 
-  private ObjectNode createClusterConfig(final ClusterState clusterState) {
-    ObjectMapper objectMapper = new ObjectMapper();
+  private ObjectNode createClusterConfig(final CloudyClusterState cloudyClusterState) {
     ObjectNode objectNode = objectMapper.createObjectNode();
-    objectNode.put("state", clusterState.name().toLowerCase(Locale.ROOT));
+    objectNode.put("state", cloudyClusterState.name().toLowerCase(Locale.ROOT));
     objectNode.put("other", "value");
     return objectNode;
   }

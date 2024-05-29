@@ -273,18 +273,6 @@ public class PolicyEvaluationDAO
     delete(tx, policyEvaluation, true /* updateLastPolicyEvaluation */);
   }
 
-  public int getBoundedCountOfApplicationsWithCiCdTriggeredEvaluations(final Date upperBoundDate) {
-    String sQuery = "SELECT COUNT(DISTINCT entity.applicationId)" +
-        " FROM PolicyEvaluation entity" +
-        " WHERE entity.scanTriggerType = ?1" +
-        " AND entity.isReevaluation = false" +
-        " AND entity.isForMonitoring = false" +
-        " AND entity.isForObsoleteScan = false" +
-        " AND entity.time <= ?2";
-    return getSingle(Number.class, sQuery, ScanTriggerType.CONTINUOUS_INTEGRATION, upperBoundDate)
-        .intValue();
-  }
-
   private void delete(final TransactionContext tx,
                       PolicyEvaluation policyEvaluation,
                       boolean updateLastPolicyEvaluation)
@@ -491,28 +479,41 @@ public class PolicyEvaluationDAO
     return createQuery(sQuery, commitHash, applicationId, ScanTriggerType.internalScanTypes).forceSingleResult().get();
   }
 
-  /**
-   * @since 1.162
-   */
-  public int getCountOfApplicationsWithCITriggeredEvaluations(final Date sinceUtcDate) {
+  public int getBoundedCountOfApplicationsWithCiCdTriggeredEvaluations(
+      final Date lowerBound, final Date upperBoundDate
+  )
+  {
+    // we do not allow new entries to be created with isForObsolete scan to be true unless isReevaluation is
+    // also true, so in most cases entity.isForObsoleteScan = false should be redundant
+    // This only enforced in the dao. it's unknown if this has always been enforced, so I am leaving
+    // the extra check out of caution
     String sQuery = "SELECT COUNT(DISTINCT entity.applicationId)" +
         " FROM PolicyEvaluation entity" +
-        " WHERE entity.scanTriggerType = ?1" +
+        " WHERE entity.stageTypeId = ?1" +
         " AND entity.isReevaluation = false" +
         " AND entity.isForMonitoring = false" +
         " AND entity.isForObsoleteScan = false" +
-        " AND entity.time >= ?2";
-    return getSingle(Number.class, sQuery, ScanTriggerType.CONTINUOUS_INTEGRATION, sinceUtcDate).intValue();
+        " AND entity.time >= ?2" +
+        " AND entity.time <= ?3";
+    return getSingle(Number.class, sQuery, Stage.ID_BUILD, lowerBound, upperBoundDate)
+        .intValue();
   }
 
-  public boolean hasCIIntegrationEvaluation(final String applicationId) {
+  // The point of a cut off here is so that one off anomalous scans such as local iq-cli runs are filtered out over
+  // time. The exact cutoff can be determined by application logic in the service layer
+  public boolean hasCIIntegrationEvaluation(final String applicationId, final Date cutOffDate) {
+    // we do not allow new entries to be created with isForObsolete scan to be true unless isReevaluation is
+    // also true, so in most cases entity.isForObsoleteScan = false should be redundant
+    // This only enforced in the dao. it's unknown if this has always been enforced, so I am leaving
+    // the extra check out of caution
     String sQuery = "SELECT COUNT(entity.applicationId)" +
         " FROM PolicyEvaluation entity" +
         " WHERE entity.applicationId = ?1" +
-        " AND entity.scanTriggerType = ?2" +
+        " AND entity.stageTypeId = ?2" +
         " AND entity.isReevaluation = false" +
         " AND entity.isForMonitoring = false" +
-        " AND entity.isForObsoleteScan = false";
-    return getSingle(Long.class, sQuery, applicationId, ScanTriggerType.CONTINUOUS_INTEGRATION) > 0;
+        " AND entity.isForObsoleteScan = false" +
+        " AND entity.time >= ?3";
+    return getSingle(Long.class, sQuery, applicationId, Stage.ID_BUILD, cutOffDate) > 0;
   }
 }

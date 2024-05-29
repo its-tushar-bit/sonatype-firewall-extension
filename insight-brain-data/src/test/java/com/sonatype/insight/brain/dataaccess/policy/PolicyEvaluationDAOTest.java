@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -1141,95 +1142,231 @@ public class PolicyEvaluationDAOTest
   }
 
   @Test
-  public void testGetCountOfApplicationsWithCITriggeredEvaluations() {
-    Application application2 = tempEntity.newApplication(organization.getId());
-    Application application3 = tempEntity.newApplication(organization.getId());
-    Application application4 = tempEntity.newApplication(organization.getId());
-
-    // Add 2 policy evaluations with a scan trigger type of CI, 1 with a scan trigger type not CI, and 1 before the cut
-    // off time
-    Calendar now = Calendar.getInstance();
-    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-build-1",
-        false, false, false, now.getTime(), "hash-1", ScanTriggerType.CONTINUOUS_INTEGRATION);
-    now.add(Calendar.MINUTE, 10);
-
-    tempEntity.newPolicyEvaluation(application2.getId(), Stage.ID_BUILD, "scan-build-2",
-        false, false, false, now.getTime(), "hash-2", ScanTriggerType.CONTINUOUS_INTEGRATION);
-    now.add(Calendar.MINUTE, 10);
-
-    tempEntity.newPolicyEvaluation(application3.getId(), Stage.ID_BUILD, "scan-build-3",
-        false, false, false, now.getTime(), "hash-3", ScanTriggerType.CLI);
-
-    // 05/17/2020
-    Date preCutOffDate = new Date(1589684400000L);
-    tempEntity.newPolicyEvaluation(application4.getId(), Stage.ID_BUILD, "scan-build-4",
-        false, false, false, preCutOffDate, "hash-4", ScanTriggerType.CONTINUOUS_INTEGRATION);
-
-    // 05/17/2021
-    Date cutOffDate = new Date(1621220400000L);
-
-    int numAppsResult = dao.getCountOfApplicationsWithCITriggeredEvaluations(cutOffDate);
-    assertThat(numAppsResult).isEqualTo(2);
-  }
-
-  @Test
-  public void testGetCountOfApplicationsWithCITriggeredEvaluations_WhenNoCITriggeredEvaluationsExist() {
-    Application application2 = tempEntity.newApplication(organization.getId());
-    Application application3 = tempEntity.newApplication(organization.getId());
-    Application application4 = tempEntity.newApplication(organization.getId());
-
-    // Add policy evaluations not matching the criteria for a CI/CD plugin evaluation
-    Calendar now = Calendar.getInstance();
-    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-build-1",
-        true, false, false, now.getTime(), "hash-1", ScanTriggerType.IDE);
-    now.add(Calendar.MINUTE, 10);
-
-    tempEntity.newPolicyEvaluation(application2.getId(), Stage.ID_BUILD, "scan-build-2",
-        false, true, false, now.getTime(), "hash-2", ScanTriggerType.WEB_UI);
-    now.add(Calendar.MINUTE, 10);
-
-    tempEntity.newPolicyEvaluation(application3.getId(), Stage.ID_BUILD, "scan-build-3",
-        true, false, true, now.getTime(), "hash-3", ScanTriggerType.CLI);
-    now.add(Calendar.MINUTE, 10);
-
-    tempEntity.newPolicyEvaluation(application4.getId(), Stage.ID_BUILD, "scan-build-4",
-        true, false, true, now.getTime(), "hash-4", ScanTriggerType.CONTINUOUS_INTEGRATION);
-
-    // 05/17/2021
-    Date sinceUtcDate = new Date(1621220400000L);
-
-    int numAppsResult = dao.getCountOfApplicationsWithCITriggeredEvaluations(sinceUtcDate);
-    assertThat(numAppsResult).isZero();
-  }
-
-  @Test
   public void testHasCIIntegrationEvaluation() {
+    final long cutOffFiveSecondsAgo = 5000;
+    final Date evalTime = new Date();
+    final Date cutOffWindow = new Date(evalTime.getTime() - cutOffFiveSecondsAgo);
+
+    // App 1 - checks all the boxes
+    final Application application1 = tempEntity.newApplication(organization.getId());
+    tempEntity.newPolicyEvaluation(application1.getId(), Stage.ID_BUILD, "scan-build-1",
+        false, false, false, evalTime, "hash-1", ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    // App 2 check all the boxes,
     final Application application2 = tempEntity.newApplication(organization.getId());
+    tempEntity.newPolicyEvaluation(application2.getId(), Stage.ID_BUILD, "scan-build-2",
+        false, false, false, evalTime, "hash-2", ScanTriggerType.CLI);
+
+    // App 3 was not a BUILD stage evaluation, so it does not check all the boxes
     final Application application3 = tempEntity.newApplication(organization.getId());
+    tempEntity.newPolicyEvaluation(application3.getId(), Stage.ID_DEVELOP, "scan-build-3",
+        false, false, false, evalTime, "hash-3", ScanTriggerType.CLI);
+
+    // App 4 has no evaluations, should return false
     final Application application4 = tempEntity.newApplication(organization.getId());
 
-    // App 1 has CI eval
-    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-build-1",
-        false, false, false, new Date(), "hash-1", ScanTriggerType.CONTINUOUS_INTEGRATION);
-    // App 2 has CI eval
-    tempEntity.newPolicyEvaluation(application2.getId(), Stage.ID_BUILD, "scan-build-2",
-        false, false, false, new Date(), "hash-2", ScanTriggerType.CONTINUOUS_INTEGRATION);
-    // App 3 has no CI evals
-    tempEntity.newPolicyEvaluation(application3.getId(), Stage.ID_BUILD, "scan-build-3",
-        false, false, false, new Date(), "hash-3", ScanTriggerType.CLI);
-    // App 4 has no evals
+    // App 5 would qualify but is outside the cut off window
+    final Application application5 = tempEntity.newApplication(organization.getId());
+    tempEntity.newPolicyEvaluation(application5.getId(), Stage.ID_BUILD, "scan-build-5",
+        false, false, false, new Date(evalTime.getTime() - 6000), "hash-5", ScanTriggerType.CLI);
 
-    boolean hasCIIntegrationEvaluationApp1 = dao.hasCIIntegrationEvaluation(application.getId());
+    // App 6 is a reevaluation, so it does not check all the boxes
+    final Application application6 = tempEntity.newApplication(organization.getId());
+    tempEntity.newPolicyEvaluation(application6.getId(), Stage.ID_BUILD, "scan-build-6",
+        true, false, false, evalTime, "hash-6", ScanTriggerType.CLI);
+
+    // App 7 is for monitoring, so it does not check all the boxes
+    final Application application7 = tempEntity.newApplication(organization.getId());
+    tempEntity.newPolicyEvaluation(application7.getId(), Stage.ID_BUILD, "scan-build-7",
+        false, true, false, evalTime, "hash-7", ScanTriggerType.CLI);
+
+    final boolean hasCIIntegrationEvaluationApp1 = dao.hasCIIntegrationEvaluation(application1.getId(), cutOffWindow);
     assertThat(hasCIIntegrationEvaluationApp1).isTrue();
 
-    boolean hasCIIntegrationEvaluationApp2 = dao.hasCIIntegrationEvaluation(application2.getId());
+    final boolean hasCIIntegrationEvaluationApp2 = dao.hasCIIntegrationEvaluation(application2.getId(), cutOffWindow);
     assertThat(hasCIIntegrationEvaluationApp2).isTrue();
 
-    boolean hasCIIntegrationEvaluationApp3 = dao.hasCIIntegrationEvaluation(application3.getId());
+    final boolean hasCIIntegrationEvaluationApp3 = dao.hasCIIntegrationEvaluation(application3.getId(), cutOffWindow);
     assertThat(hasCIIntegrationEvaluationApp3).isFalse();
 
-    boolean hasCIIntegrationEvaluationApp4 = dao.hasCIIntegrationEvaluation(application4.getId());
+    final boolean hasCIIntegrationEvaluationApp4 = dao.hasCIIntegrationEvaluation(application4.getId(), cutOffWindow);
     assertThat(hasCIIntegrationEvaluationApp4).isFalse();
+
+    final boolean hasCIIntegrationEvaluationApp5 = dao.hasCIIntegrationEvaluation(application5.getId(), cutOffWindow);
+    assertThat(hasCIIntegrationEvaluationApp5).isFalse();
+
+    final boolean hasCIIntegrationEvaluationApp6 = dao.hasCIIntegrationEvaluation(application6.getId(), cutOffWindow);
+    assertThat(hasCIIntegrationEvaluationApp6).isFalse();
+
+    final boolean hasCIIntegrationEvaluationApp7 = dao.hasCIIntegrationEvaluation(application7.getId(), cutOffWindow);
+    assertThat(hasCIIntegrationEvaluationApp7).isFalse();
+  }
+
+  @Test
+  public void testGetBoundedCountOfApplicationsWithCiCdTriggeredEvaluations_shouldRespectUpperAndLowerBounds() {
+    final Date now = new Date();
+    final long oneWeekMS = 604800000L;
+    final Organization organization = tempEntity.newOrganization();
+
+    // app 1- evaluated 1 weeks ago
+    final Application application1 = tempEntity.newApplication(organization.getId());
+    final Date oneWeekAgo = new Date(now.getTime() - oneWeekMS);
+    tempEntity.newPolicyEvaluation(
+        application1.getId(),
+        Stage.ID_BUILD,
+        "scan-build-1",
+        false,
+        false,
+        false,
+        oneWeekAgo,
+        "hash-1",
+        ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    // app 2- evaluated 2 weeks ago
+    final Application application2 = tempEntity.newApplication(organization.getId());
+    final Date twoWeeksAgo = new Date(now.getTime() - oneWeekMS * 2);
+    tempEntity.newPolicyEvaluation(
+        application2.getId(),
+        Stage.ID_BUILD,
+        "scan-build-2",
+        false,
+        false,
+        false,
+        twoWeeksAgo,
+        "hash-2",
+        ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    // app 3 - evaluated 3 weeks ago
+    final Application application3 = tempEntity.newApplication(organization.getId());
+    final Date threeWeeksAgo = new Date(now.getTime() - oneWeekMS * 3);
+    tempEntity.newPolicyEvaluation(
+        application3.getId(),
+        Stage.ID_BUILD,
+        "scan-build-3",
+        false,
+        false,
+        false,
+        threeWeeksAgo,
+        "hash-3",
+        ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    // should pick up all the apps
+    int results = dao.getBoundedCountOfApplicationsWithCiCdTriggeredEvaluations(
+        threeWeeksAgo,
+        now
+    );
+    assertThat(results).isEqualTo(3);
+
+    // should cut off app3 because the eval is too old
+    results = dao.getBoundedCountOfApplicationsWithCiCdTriggeredEvaluations(
+        new Date(threeWeeksAgo.getTime() + 1),
+        now
+    );
+    assertThat(results).isEqualTo(2);
+
+    // should cut off app2 and 3 because the evals are too old
+    results = dao.getBoundedCountOfApplicationsWithCiCdTriggeredEvaluations(
+        new Date(twoWeeksAgo.getTime() + 1),
+        now
+    );
+    assertThat(results).isEqualTo(1);
+
+    // should pick up all the apps
+    results = dao.getBoundedCountOfApplicationsWithCiCdTriggeredEvaluations(
+        threeWeeksAgo,
+        oneWeekAgo
+    );
+    assertThat(results).isEqualTo(3);
+
+    // should cut off app3 because the eval is too new
+    results = dao.getBoundedCountOfApplicationsWithCiCdTriggeredEvaluations(
+        threeWeeksAgo,
+        new Date(oneWeekAgo.getTime() - 1)
+    );
+    assertThat(results).isEqualTo(2);
+  }
+
+  @Test
+  public void testGetBoundedCountOfApplicationsWithCiCdTriggeredEvaluations_shouldFilterOutReevals() {
+    final Date now = new Date();
+    final long oneWeekMS = 604800000L;
+    final Organization organization = tempEntity.newOrganization();
+
+    // app 1- will be counted
+    final Application application1 = tempEntity.newApplication(organization.getId());
+    final Date oneWeekAgo = new Date(now.getTime() - oneWeekMS);
+    tempEntity.newPolicyEvaluation(
+        application1.getId(),
+        Stage.ID_BUILD,
+        "scan-build-1",
+        false,
+        false,
+        false,
+        oneWeekAgo,
+        "hash-1",
+        ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    // app 2- will not be counted it's a reeval
+    final Application application2 = tempEntity.newApplication(organization.getId());
+    tempEntity.newPolicyEvaluation(
+        application2.getId(),
+        Stage.ID_BUILD,
+        "scan-build-2",
+        true,
+        false,
+        false,
+        oneWeekAgo,
+        "hash-2",
+        ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    int results = dao.getBoundedCountOfApplicationsWithCiCdTriggeredEvaluations(
+        oneWeekAgo,
+        now
+    );
+    assertThat(results).isEqualTo(1);
+  }
+
+  // There is a third parameter we filter on, isForObsolete scan. That is not tested here because the dao will not
+  // let you create new evaluation where isReevaluation is false and isForObsolete scan is true. Since we also
+  // filter on isReevaluation we can't test this interdependently
+  @Test
+  public void testGetBoundedCountOfApplicationsWithCiCdTriggeredEvaluations_shouldFilterOutContinuousMonitoring() {
+    final Date now = new Date();
+    final long oneWeekMS = 604800000L;
+    final Organization organization = tempEntity.newOrganization();
+
+    // app 1- will be counted
+    final Application application1 = tempEntity.newApplication(organization.getId());
+    final Date oneWeekAgo = new Date(now.getTime() - oneWeekMS);
+    tempEntity.newPolicyEvaluation(
+        application1.getId(),
+        Stage.ID_BUILD,
+        "scan-build-1",
+        false,
+        false,
+        false,
+        oneWeekAgo,
+        "hash-1",
+        ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    // app 2- will not be counted it's from continuous monitoring
+    final Application application2 = tempEntity.newApplication(organization.getId());
+    tempEntity.newPolicyEvaluation(
+        application2.getId(),
+        Stage.ID_BUILD,
+        "scan-build-2",
+        false,
+        true,
+        false,
+        oneWeekAgo,
+        "hash-2",
+        ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    int results = dao.getBoundedCountOfApplicationsWithCiCdTriggeredEvaluations(
+        oneWeekAgo,
+        now
+    );
+    assertThat(results).isEqualTo(1);
   }
 
   @Test

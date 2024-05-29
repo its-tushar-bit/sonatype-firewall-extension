@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
+import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
@@ -115,7 +116,109 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
   }
 
   @Test
-  public void testAppIntegrationsAndRiskTable() throws Exception {
+  public void testAppIntegrationsAndRiskTable_shouldCorrectlyShowCiCdAsConfiguredWhenThereIsAQualifyingEval() {
+    final Date anyDateInThePastButLessThan3Months = new Date(System.currentTimeMillis() - 1000);
+
+    final Application appWithQualifyingEval = tempEntity.newApplicationWithParent("app1", "app1");
+    tempEntity.newPolicyEvaluation(
+        appWithQualifyingEval.getId(),
+        Stage.ID_BUILD,
+        "scan-id-1",
+        false,
+        false,
+        false,
+        anyDateInThePastButLessThan3Months,
+        "hash-1",
+        ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    refreshOrOpen(IntegrationsPage.urlOverview());
+
+    appIntegrationsAndRiskTable().shouldBe(visible);
+    scrollIntoView(appIntegrationsAndRiskTable());
+
+    applicationName(0).shouldHave(text("app1"));
+    cicdEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    appIntegrationsCicdConfigureButton(0).shouldNotBe(visible);
+  }
+
+  @Test
+  public void testAppIntegrationsAndRiskTable_shouldCorrectlyShowCiCdAsNotConfiguredWhenThereIsNoQualifyingEval() {
+    // there have not been any evals so this is not configured for cicd
+    tempEntity.newApplicationWithParent("app1", "app1");
+
+    refreshOrOpen(IntegrationsPage.urlOverview());
+
+    appIntegrationsAndRiskTable().shouldBe(visible);
+    scrollIntoView(appIntegrationsAndRiskTable());
+
+    applicationName(0).shouldHave(text("app1"));
+    appIntegrationsCicdConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
+  }
+
+  @Test
+  public  void testAppIntegrationsAndRiskTable_shouldCorrectlyShowScmAsConfiguredWhenConfiguredFully()
+      throws PlexusCipherException
+  {
+    final Application applicationWithScmConfigured = tempEntity.newApplicationWithParent("app1", "app1");
+
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null,
+        (new DefaultPlexusCipher()).encrypt(ROOT_TOKEN, ENC),
+        SourceControlProvider.GITHUB);
+
+    tempEntity.newSourceControlDefaultBranchCommitHistory(applicationWithScmConfigured.getId(),
+        "commit1", new Date(), null);
+    tempEntity.newSourceControl(
+        applicationWithScmConfigured.getId(),
+        REPO_URL,
+        null,
+        null,
+        null,
+        null,
+        false,
+          null,
+        null,
+        null,
+        true,
+          true,
+        "/target/*",
+        true,
+        true
+    );
+
+    refreshOrOpen(IntegrationsPage.urlOverview());
+
+    appIntegrationsAndRiskTable().shouldBe(visible);
+    scrollIntoView(appIntegrationsAndRiskTable());
+
+    applicationName(0).shouldHave(text("app1"));
+    scmFeedbackEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    appIntegrationsScmConfigureButton(0).shouldNotBe(visible);
+  }
+
+  @Test
+  public  void testAppIntegrationsAndRiskTable_shouldCorrectlyShowScmAsNotConfiguredWhenNotConfiguredFully()
+      throws PlexusCipherException
+  {
+    final Application applicationWithScmConfigured = tempEntity.newApplicationWithParent("app1", "app1");
+
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null,
+        (new DefaultPlexusCipher()).encrypt(ROOT_TOKEN, ENC),
+        SourceControlProvider.GITHUB);
+
+    tempEntity.newSourceControlDefaultBranchCommitHistory(applicationWithScmConfigured.getId(),
+        "commit1", new Date(), null);
+
+    refreshOrOpen(IntegrationsPage.urlOverview());
+
+    appIntegrationsAndRiskTable().shouldBe(visible);
+    scrollIntoView(appIntegrationsAndRiskTable());
+
+    applicationName(0).shouldHave(text("app1"));
+    appIntegrationsScmConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
+  }
+
+  @Test
+  public void testAppIntegrationsAndRiskTable_shouldSortCorrectly() throws Exception {
     setUpAppsForIntegrationAndRisks();
     refreshOrOpen(IntegrationsPage.urlOverview());
 
@@ -133,8 +236,6 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     sastReport(0).shouldHave(text("Not Available"));
 
     applicationName(9).shouldHave(text("appName1"));
-    cicdEnabledIcon(9).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
-    scmFeedbackEnabledIcon(9).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
     lastCommitDate(9).shouldBe(visible).shouldHave(text("February 11, 2023"));
     lastEvaluationDate(9).shouldBe(visible).shouldHave(text("March 14, 2023"));
     totalRisk(9).shouldHave(text("1"));
@@ -168,8 +269,6 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     // Sorting by total risk
     totalRiskColumnHeader().click();
     applicationName(0).shouldHave(text("appName0"));
-    cicdEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
-    scmFeedbackEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
     lastCommitDate(0).shouldBe(visible).shouldHave(text("February 12, 2023"));
     lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 15, 2023"));
     totalRisk(0).shouldHave(text("0"));
@@ -188,8 +287,6 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     // Sorting by last commit
     lastCommitColumnHeader().click();
     applicationName(0).shouldHave(text("appName0"));
-    cicdEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
-    scmFeedbackEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
     lastCommitDate(0).shouldBe(visible).shouldHave(text("February 12, 2023"));
     lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 15, 2023"));
     totalRisk(0).shouldHave(text("0"));
@@ -199,8 +296,6 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     // Sorting by last evaluation
     lastEvaluationColumnHeader().click();
     applicationName(0).shouldHave(text("appName0"));
-    cicdEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
-    scmFeedbackEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
     lastCommitDate(0).shouldBe(visible).shouldHave(text("February 12, 2023"));
     lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 15, 2023"));
     totalRisk(0).shouldHave(text("0"));
@@ -244,8 +339,6 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     appIntegrationsAndRiskTableDataRows().shouldHave(size(1));
 
     applicationName(0).shouldHave(text("appName0"));
-    cicdEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
-    scmFeedbackEnabledIcon(0).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
     lastCommitDate(0).shouldBe(visible).shouldHave(text("February 12, 2023"));
     lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 15, 2023"));
     totalRisk(0).shouldHave(text("0"));
@@ -344,14 +437,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
                       "commit1", calendarForLastCommit.getTime(), null);
 
               if (i == 0 || i == 1) {
-                tempEntity.newSourceControl(application.getId(), REPO_URL, null, null, null, null, false,
-                        null, null, null, true,
-                        true, "/target/*", true, true);
-                tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-id-1",
-                        false, false, false,
-                        calendarForLastEval.getTime(), "hash-1", ScanTriggerType.CONTINUOUS_INTEGRATION);
                 tempEntity.newSastScan(application.getId());
-
               }
 
               calendarForLastEval.add(Calendar.DATE, -1);

@@ -16,7 +16,6 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationCountHistoryDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiUsageIncrementDto;
 import com.sonatype.insight.brain.model.Application;
@@ -41,24 +40,24 @@ public class ApplicationCountHistoryService
 
   private final PolicyViolationDAO policyViolationDAO;
 
-  private final PolicyEvaluationDAO policyEvaluationDAO;
+  private final CIEvaluationStatService ciEvaluationStatService;
 
   @Inject
   public ApplicationCountHistoryService(
       final ApplicationCountHistoryDAO applicationCountHistoryDAO,
       final ApplicationSourceControlService applicationSourceControlService,
-      final ApplicationDAO applicationDao,
+      final ApplicationDAO applicationDAO,
       final DateTimeService dateTimeService,
       final PolicyViolationDAO policyViolationDAO,
-      final PolicyEvaluationDAO policyEvaluationDAO
+      final CIEvaluationStatService ciEvaluationStatService
   )
   {
     this.applicationCountHistoryDAO = applicationCountHistoryDAO;
     this.applicationSourceControlService = applicationSourceControlService;
-    this.applicationDAO = applicationDao;
+    this.applicationDAO = applicationDAO;
     this.dateTimeService = dateTimeService;
     this.policyViolationDAO = policyViolationDAO;
-    this.policyEvaluationDAO = policyEvaluationDAO;
+    this.ciEvaluationStatService = ciEvaluationStatService;
   }
 
   public void recordApplicationCount() {
@@ -104,7 +103,7 @@ public class ApplicationCountHistoryService
       final Date timeOfIncrement = new Date(currentUpperBound);
 
       final int totalNumberOfAppsUsingCiCDAtTime =
-          policyEvaluationDAO.getBoundedCountOfApplicationsWithCiCdTriggeredEvaluations(timeOfIncrement);
+          ciEvaluationStatService.getBoundedCountOfApplicationsWithCiCdTriggeredEvaluationsNoAuth(timeOfIncrement);
 
       usageOverTime.add(
           ApiUsageIncrementDto.fromApplicationHistoryCount(

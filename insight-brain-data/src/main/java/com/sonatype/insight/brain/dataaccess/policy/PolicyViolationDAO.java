@@ -497,7 +497,7 @@ public class PolicyViolationDAO
     return getList(sQuery);
   }
 
-  public long getMeanTimeToRemediate(final int lookBackWindowMs) {
+  public long getMeanTimeToRemediate(final int lookBackWindowDays) {
     final String sQuery;
 
     if (isDatabasePostgresql()) {
@@ -523,7 +523,7 @@ public class PolicyViolationDAO
     try (TransactionContext tx = createTransactionContext()) {
       javax.persistence.Query query = tx.createNativeQuery(sQuery, Double.class);
 
-      query.setParameter(1, lookBackWindowMs);
+      query.setParameter(1, lookBackWindowDays);
       Double result = (Double)query.getSingleResult();
 
       if (result == null) {

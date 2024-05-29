@@ -151,10 +151,17 @@ public class IntegrationService
           return statusDTO.setLastEvaluationTimestamp(latestBuildStageEvaluationTimestamp);
         })
         // Set CI/CD Integration status
-        .map(statusDTO -> statusDTO.setCiIntegrationEnabled(
-            policyEvaluationDAO.hasCIIntegrationEvaluation(statusDTO.getApplicationId())))
-        // Optionally filter on CI/CD Integration status
+        .map(statusDTO -> {
+          // 84 days is meant to approximate 3 months and is a value used for several related metrics in
+          // Sonatype Developer
+          final long lookBackWindowMs = 7257600000L; // 84 Days * 24 hours * 60 Minutes * 60 Seconds * 1000 Ms
+          final Date sinceUtcDate = new Date(System.currentTimeMillis() - lookBackWindowMs);
+
+          return statusDTO.setCiIntegrationEnabled(
+            policyEvaluationDAO.hasCIIntegrationEvaluation(statusDTO.getApplicationId(), sinceUtcDate));
+        })
         .filter(statusDTO ->
+            // Optionally filter on CI/CD Integration status
             optionalFilterAppsByCiCdIntegration == null ||
                 statusDTO.isCiIntegrationEnabled() == optionalFilterAppsByCiCdIntegration)
         .collect(Collectors.toList());

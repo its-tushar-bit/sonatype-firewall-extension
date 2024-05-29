@@ -23,27 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class CIEvaluationStatServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
-  private static final long CUT_OFF_DATE_MILLIS = 1621220400000L;
-
   @Inject
   private CIEvaluationStatService ciEvaluationStatService;
-
-  @Test(expected = UnauthenticatedException.class)
-  public void testGetPercentageOfAppsWithCITriggeredEvaluations__Unauthenticated() {
-    ciEvaluationStatService.getDataForAppsWithoutCITriggeredEvaluations(CUT_OFF_DATE_MILLIS);
-  }
-
-  @Test(expected = UnauthorizedException.class)
-  public void testGetPercentageOfAppsWithCITriggeredEvaluations_Unauthorized() {
-    login();
-    ciEvaluationStatService.getDataForAppsWithoutCITriggeredEvaluations(CUT_OFF_DATE_MILLIS);
-  }
-
-  @Test
-  public void testGetPercentageOfAppsWithCITriggeredEvaluations_Authorized() {
-    grantReadPermission(Organization.ROOT_ORGANIZATION_ID);
-    ciEvaluationStatService.getDataForAppsWithoutCITriggeredEvaluations(CUT_OFF_DATE_MILLIS);
-  }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetCiCdUsageStatsOverTime__Unauthenticated() {

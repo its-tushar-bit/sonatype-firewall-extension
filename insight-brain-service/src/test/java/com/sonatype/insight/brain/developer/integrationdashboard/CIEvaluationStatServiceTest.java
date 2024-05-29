@@ -17,7 +17,6 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiIntegrationsCiCdStatIncrementDto;
-import com.sonatype.insight.brain.developer.integrationdashboard.api.CIEvaluationStatDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
@@ -29,6 +28,7 @@ import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.developer.integrationdashboard.CIEvaluationStatService.CICD_TRIGGERED_EVALUATION_CUT_OFF_MS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.drools.core.util.StringUtils.uuid;
 import static org.mockito.Mockito.when;
@@ -50,48 +50,6 @@ public class CIEvaluationStatServiceTest
   public void configure(Binder binder) {
     binder.bind(DateTimeService.class).toInstance(dateTimeService);
     super.configure(binder);
-  }
-
-  @Test
-  public void testGetDataForAppsWithoutCITriggeredEvaluations() {
-    // Set up an org with some applications - 2 with evaluations, 1 of which has CI and not CI, configurable total
-    int numTotalApps = 9;
-    setUpApplications(numTotalApps, true);
-
-    // 05/17/2021
-    long sinceUtcTimestamp = 1621220400000L;
-    CIEvaluationStatDTO ciEvaluationStatDTO =
-        ciEvaluationStatService.getDataForAppsWithoutCITriggeredEvaluations(sinceUtcTimestamp);
-
-    int expectedNumAppsWithoutCI = numTotalApps - 1;
-    assertThat(ciEvaluationStatDTO.numAppsWithoutCITriggeredEvals).isEqualTo(expectedNumAppsWithoutCI);
-    assertThat(ciEvaluationStatDTO.numTotalApps).isEqualTo(numTotalApps);
-  }
-
-  @Test
-  public void testGetDataForAppsWithoutCITriggeredEvaluations_WhenNoAppsHaveEvaluations() {
-    // Set up an org with some applications, but no evaluations
-    int numTotalApps = 3;
-    setUpApplications(numTotalApps, false);
-
-    // 05/17/2021
-    long sinceUtcTimestamp = 1621220400000L;
-    CIEvaluationStatDTO ciEvaluationStatDTO =
-        ciEvaluationStatService.getDataForAppsWithoutCITriggeredEvaluations(sinceUtcTimestamp);
-
-    assertThat(ciEvaluationStatDTO.numAppsWithoutCITriggeredEvals).isEqualTo(numTotalApps);
-    assertThat(ciEvaluationStatDTO.numTotalApps).isEqualTo(numTotalApps);
-  }
-
-  @Test
-  public void testGetPercentageOfAppsWithCITriggeredEvaluations_WhenNoAppsExist() {
-    // 05/17/2021
-    long sinceUtcTimestamp = 1621220400000L;
-    CIEvaluationStatDTO ciEvaluationStatDTO =
-        ciEvaluationStatService.getDataForAppsWithoutCITriggeredEvaluations(sinceUtcTimestamp);
-
-    assertThat(ciEvaluationStatDTO.numAppsWithoutCITriggeredEvals).isZero();
-    assertThat(ciEvaluationStatDTO.numTotalApps).isZero();
   }
 
   @Test
@@ -209,6 +167,132 @@ public class CIEvaluationStatServiceTest
                 22
             ),
             new ApiIntegrationsCiCdStatIncrementDto(nowMs, 123, 23)));
+  }
+
+  @Test
+  public void testGetBoundedCountOfApplicationsWithCiCdTriggeredEvaluationsNoAuth_shouldCorrectlyApplyBounds() {
+    // === Given ===
+    final Date now = new Date();
+    final long oneWeekMS = 604800000L;
+    final Organization organization = tempEntity.newOrganization();
+
+    // app 1- evaluated 3 weeks ago
+    final Application application1 = tempEntity.newApplication(organization.getId());
+    final Date evalTime1 = new Date(now.getTime() - 3 * oneWeekMS);
+    tempEntity.newPolicyEvaluation(
+        application1.getId(),
+        Stage.ID_BUILD,
+        "scan-build-1",
+        false,
+        false,
+        false,
+        evalTime1,
+        "hash-1",
+        ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    // app 2 - evaluated 3 weeks ago
+    final Application application2 = tempEntity.newApplication(organization.getId());
+    tempEntity.newPolicyEvaluation(
+        application2.getId(),
+        Stage.ID_BUILD,
+        "scan-build-2",
+        false,
+        false,
+        false,
+        evalTime1,
+        "hash-2",
+        ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    // app 3 - evaluated 4 weeks ago
+    final Application application3 = tempEntity.newApplication(organization.getId());
+    final Date evalTime3 = new Date(now.getTime() - 4 * oneWeekMS);
+    tempEntity.newPolicyEvaluation(
+        application3.getId(),
+        Stage.ID_BUILD,
+        "scan-build-3",
+        false,
+        false,
+        false,
+        evalTime3,
+        "hash-3",
+        ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    // app 4 - evaluated 4 weeks and over ~3 months ago
+    final Application application4 = tempEntity.newApplication(organization.getId());
+    final Date evalTime4 = new Date(now.getTime() - 4 * oneWeekMS - CICD_TRIGGERED_EVALUATION_CUT_OFF_MS - 2);
+    tempEntity.newPolicyEvaluation(
+        application4.getId(),
+        Stage.ID_BUILD,
+        "scan-build-4",
+        false,
+        false,
+        false,
+        evalTime4,
+        "hash-4",
+        ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    // app 5 - evaluated 2 weeks ago
+    final Application application5 = tempEntity.newApplication(organization.getId());
+    final Date evalTime5 = new Date(now.getTime() - 2 * oneWeekMS);
+    tempEntity.newPolicyEvaluation(
+        application5.getId(),
+        Stage.ID_BUILD,
+        "scan-build-5",
+        false,
+        false,
+        false,
+        evalTime5,
+        "hash-5",
+        ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    // app 6 - evaluated 1 weeks ago
+    final Application application6 = tempEntity.newApplication(organization.getId());
+    final Date evalTime6 = new Date(now.getTime() - oneWeekMS);
+    tempEntity.newPolicyEvaluation(
+        application6.getId(),
+        Stage.ID_BUILD,
+        "scan-build-6",
+        false,
+        false,
+        false,
+        evalTime6,
+        "hash-6",
+        ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    // === Then ===
+    // should count all but app4 which is outside the 3 month cut off
+    int result = ciEvaluationStatService.getBoundedCountOfApplicationsWithCiCdTriggeredEvaluationsNoAuth(now);
+    assertThat(result).isEqualTo(5);
+
+    // should now also exclude app 6
+    result = ciEvaluationStatService
+        .getBoundedCountOfApplicationsWithCiCdTriggeredEvaluationsNoAuth(new Date(evalTime6.getTime() - 1));
+    assertThat(result).isEqualTo(4);
+
+    // should now also exclude app 6 and 5
+    result = ciEvaluationStatService
+        .getBoundedCountOfApplicationsWithCiCdTriggeredEvaluationsNoAuth(new Date(evalTime5.getTime() - 1));
+    assertThat(result).isEqualTo(3);
+
+    // should now also exclude app 6 and 5
+    result = ciEvaluationStatService
+        .getBoundedCountOfApplicationsWithCiCdTriggeredEvaluationsNoAuth(new Date(evalTime5.getTime() - 1));
+    assertThat(result).isEqualTo(3);
+
+    // should now exclude apps 6, 5, 1, and 2 as well as 4 (still outside the cutoff). 3 will still be included
+    result = ciEvaluationStatService
+        .getBoundedCountOfApplicationsWithCiCdTriggeredEvaluationsNoAuth(new Date(evalTime1.getTime() - 1));
+    assertThat(result).isEqualTo(1);
+
+    // should now exclude all apps
+    result = ciEvaluationStatService
+        .getBoundedCountOfApplicationsWithCiCdTriggeredEvaluationsNoAuth(new Date(evalTime3.getTime() - 1));
+    assertThat(result).isEqualTo(0);
+
+    // will now exclude all but app 4, no longer past the cut off window
+    result = ciEvaluationStatService
+        .getBoundedCountOfApplicationsWithCiCdTriggeredEvaluationsNoAuth(new Date(evalTime3.getTime() - 2));
+    assertThat(result).isEqualTo(1);
   }
 
   private void setUpApplications(final int maxApplications, final boolean includeEvaluations) {

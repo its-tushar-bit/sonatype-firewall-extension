@@ -17,7 +17,6 @@ import java.util.UUID;
 import java.util.stream.IntStream;
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiUsageIncrementDto;
@@ -60,7 +59,8 @@ public class ApplicationCountHistoryServiceTest
 
   private PolicyViolationDAO policyViolationDAO;
 
-  private PolicyEvaluationDAO policyEvaluationDAO;
+  @Mock
+  private CIEvaluationStatService ciEvaluationStatService;
 
   @Inject
   private PlexusCipher plexusCipher;
@@ -80,10 +80,11 @@ public class ApplicationCountHistoryServiceTest
   @Override
   public void configure(Binder binder) {
     policyViolationDAO = spy(daoFactory.createPolicyViolationDAO());
-    policyEvaluationDAO = spy(daoFactory.createPolicyEvaluationDAO());
+
     binder.bind(DateTimeService.class).toInstance(dateTimeService);
     binder.bind(PolicyViolationDAO.class).toInstance(policyViolationDAO);
-    binder.bind(PolicyEvaluationDAO.class).toInstance(policyEvaluationDAO);
+    binder.bind(CIEvaluationStatService.class).toInstance(ciEvaluationStatService);
+
     super.configure(binder);
   }
 
@@ -698,7 +699,8 @@ public class ApplicationCountHistoryServiceTest
   @SafeVarargs
   private final void mockApplicationWithCiCdCalls(Pair<Date, Integer>... timeToCounts) {
     Arrays.stream(timeToCounts).forEach(timeToCount -> {
-      when(policyEvaluationDAO.getBoundedCountOfApplicationsWithCiCdTriggeredEvaluations(timeToCount.getLeft()))
+      final Date upperBound = timeToCount.getLeft();
+      when(ciEvaluationStatService.getBoundedCountOfApplicationsWithCiCdTriggeredEvaluationsNoAuth(upperBound))
           .thenReturn(timeToCount.getRight());
     });
   }

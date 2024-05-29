@@ -70,8 +70,9 @@ public class TelemetryService
   private Set<String> getObfuscatedUserRoles() {
     UserPrincipal userPrincipal = currentUser.getUserPrincipal();
 
-    Collection<MembershipMapping> memberships = membershipMappingDAO.getByUserAndGroups(userPrincipal.getUsername(),
-        userPrincipal.getMembership());
+    Collection<MembershipMapping> memberships =
+        membershipMappingDAO.getByUserCaseInsensitiveAndGroups(userPrincipal.getUsername(),
+            userPrincipal.getMembership());
 
     Set<String> retval = new HashSet<>();
 

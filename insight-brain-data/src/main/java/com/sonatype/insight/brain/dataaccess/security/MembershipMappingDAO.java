@@ -64,10 +64,15 @@ public class MembershipMappingDAO
     return getList(tx, sQuery, username, MemberType.USER);
   }
 
-  public List<MembershipMapping> getByUserAndGroups(String username, Set<String> groupNames) {
-    String sQuery = "SELECT entity FROM MembershipMapping entity" + //
-        " WHERE (entity.memberName=?1 and entity.memberType=?2)" + //
-        " OR (entity.memberName IN ?3 and entity.memberType=?4)" + //
+  public List<MembershipMapping> getByUserCaseInsensitiveAndGroups(String username, Set<String> groupNames) {
+    String sQuery = "SELECT entity FROM MembershipMapping entity" +
+        " WHERE (" +
+        "(entity.memberName=?1" +
+        " OR LOWER(entity.memberName)=LOWER(?1)" +
+        " OR UPPER(entity.memberName)=UPPER(?1))" +
+        " AND entity.memberType=?2" +
+        ")" +
+        " OR (entity.memberName IN ?3 AND entity.memberType=?4)" +
         " ORDER BY entity.contextId, entity.roleId";
 
     return getList(sQuery, username, MemberType.USER, groupNames, MemberType.GROUP);

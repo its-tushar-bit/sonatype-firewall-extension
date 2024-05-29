@@ -160,8 +160,8 @@ public class MembershipMappingDAOTest
   }
 
   @Test
-  public void testGetByUserAndGroups() {
-    String username = "username";
+  public void testGetByUserCaseInsensitiveAndGroups() {
+    String username = "uSeRnAmEiıIİ";
     String groupName = "group";
 
     Role userRole = tempEntity.newRole(true, Permission.CONFIGURE_SYSTEM);
@@ -174,11 +174,17 @@ public class MembershipMappingDAOTest
         userRole.getId(), username);
     MembershipMapping membership2 = tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID,
         groupRole.getId(), groupName, MemberType.GROUP);
+    MembershipMapping membership3 =
+        tempEntity.newMembershipMapping(application.getId(), userRole.getId(), "USERNAMEIIIİ");
+    MembershipMapping membership4 =
+        tempEntity.newMembershipMapping(organization.getId(), userRole.getId(), "usernameiıii̇");
 
-    List<MembershipMapping> memberships = membershipDAO.getByUserAndGroups(username, Collections.singleton(groupName));
+    List<MembershipMapping> memberships =
+        membershipDAO.getByUserCaseInsensitiveAndGroups(username, Collections.singleton(groupName));
     List<String> membershipIds = memberships.stream().map(MembershipMapping::getId).collect(Collectors.toList());
 
-    assertThat(membershipIds).containsExactlyInAnyOrder(membership1.getId(), membership2.getId());
+    assertThat(membershipIds).containsExactlyInAnyOrder(membership1.getId(), membership2.getId(), membership3.getId(),
+        membership4.getId());
   }
 
   @Test

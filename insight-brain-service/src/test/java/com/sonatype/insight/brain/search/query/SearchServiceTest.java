@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.search.index.VulnerabilityDescriptionFetcher;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
+import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector;
@@ -70,6 +71,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 public class SearchServiceTest
     extends AbstractComponentTest
@@ -222,25 +224,31 @@ public class SearchServiceTest
 
   @Test
   public void testSearchIndex_AllPermittedApplicationsReturned() throws IOException {
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal("uSeRnAmEiıIİ", "Test User", InternalRealm.ID));
     Role nonGlobalReadRole = tempEntity.newRole(false, Permission.READ);
 
-    Application application = tempEntity.newApplicationWithParent();
-    Application anotherApplication = tempEntity.newApplicationWithParent();
+    Application application1 = tempEntity.newApplicationWithParent();
+    Application application2 = tempEntity.newApplicationWithParent();
+    Application application3 = tempEntity.newApplicationWithParent();
+    Application application4 = tempEntity.newApplicationWithParent();
 
     UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
-    tempEntity.newMembershipMapping(application.getId(), nonGlobalReadRole.getId(), userPrincipal.getUsername());
-    tempEntity.newMembershipMapping(anotherApplication.getId(), nonGlobalReadRole.getId(), userPrincipal.getUsername());
+    tempEntity.newMembershipMapping(application1.getId(), nonGlobalReadRole.getId(), userPrincipal.getUsername());
+    tempEntity.newMembershipMapping(application2.getId(), nonGlobalReadRole.getId(), userPrincipal.getUsername());
+    tempEntity.newMembershipMapping(application3.getId(), nonGlobalReadRole.getId(), "USERNAMEIIIİ");
+    tempEntity.newMembershipMapping(application4.getId(), nonGlobalReadRole.getId(), "usernameiıii̇");
 
     indexService.createSearchIndex();
     SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:APPLICATION", 20, 0, false, null);
 
-    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(2);
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(4);
 
     List<String> applicationIds = searchResultDTO.groupingByDTOS.stream()
         .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
         .map(searchResultItemDTO -> searchResultItemDTO.applicationId)
         .collect(toList());
-    assertThat(applicationIds).containsOnly(application.getId(), anotherApplication.getId());
+    assertThat(applicationIds).containsOnly(application1.getId(), application2.getId(), application3.getId(),
+        application4.getId());
   }
 
   @Test
@@ -282,15 +290,50 @@ public class SearchServiceTest
 
   @Test
   public void testSearchIndex_ApplicationsReturnedForGlobalContextPermission() throws IOException {
-    testSearchIndex_ShouldReturnAll(tempEntity.newRole(true, Permission.READ), MembershipMapping.GLOBAL_CONTEXT_ID);
+    testSearchIndex_ShouldReturnAll(tempEntity.newRole(true, Permission.READ), MembershipMapping.GLOBAL_CONTEXT_ID,
+        "uSeRnAmEiıIİ");
+  }
+
+  @Test
+  public void testSearchIndex_MemberNameLowercase_ApplicationsReturnedForGlobalContextPermission() throws IOException {
+    testSearchIndex_ShouldReturnAll(tempEntity.newRole(true, Permission.READ), MembershipMapping.GLOBAL_CONTEXT_ID,
+        "USERNAMEIIIİ");
+  }
+
+  @Test
+  public void testSearchIndex_MemberNameUppercase_ApplicationsReturnedForGlobalContextPermission() throws IOException {
+    testSearchIndex_ShouldReturnAll(tempEntity.newRole(true, Permission.READ), MembershipMapping.GLOBAL_CONTEXT_ID,
+        "usernameiıii̇");
   }
 
   @Test
   public void testSearchIndex_ApplicationsReturnedForRootOrganizationContextPermission() throws IOException {
-    testSearchIndex_ShouldReturnAll(tempEntity.newRole(false, Permission.READ), Organization.ROOT_ORGANIZATION_ID);
+    testSearchIndex_ShouldReturnAll(tempEntity.newRole(false, Permission.READ), Organization.ROOT_ORGANIZATION_ID,
+        "uSeRnAmEiıIİ");
   }
 
-  private void testSearchIndex_ShouldReturnAll(Role role, String contextId) throws IOException {
+  @Test
+  public void testSearchIndex_MemberNameLowercase_ApplicationsReturnedForRootOrganizationContextPermission()
+      throws IOException
+  {
+    testSearchIndex_ShouldReturnAll(tempEntity.newRole(false, Permission.READ), Organization.ROOT_ORGANIZATION_ID,
+        "USERNAMEIIIİ");
+  }
+
+  @Test
+  public void testSearchIndex_MemberNameUppercase_ApplicationsReturnedForRootOrganizationContextPermission()
+      throws IOException
+  {
+    testSearchIndex_ShouldReturnAll(tempEntity.newRole(false, Permission.READ), Organization.ROOT_ORGANIZATION_ID,
+        "usernameiıii̇");
+  }
+
+  private void testSearchIndex_ShouldReturnAll(
+      Role role,
+      String contextId,
+      String memberName) throws IOException
+  {
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal("uSeRnAmEiıIİ", "Test User", InternalRealm.ID));
     Organization org1 = tempEntity.newOrganization();
     Organization org2 = tempEntity.newOrganization();
 
@@ -300,9 +343,7 @@ public class SearchServiceTest
     tempEntity.newApplication(org2.getId());
     tempEntity.newApplication(org2.getId());
 
-    UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
-
-    tempEntity.newMembershipMapping(contextId, role.getId(), userPrincipal.getUsername());
+    tempEntity.newMembershipMapping(contextId, role.getId(), memberName);
 
     indexService.createSearchIndex();
 

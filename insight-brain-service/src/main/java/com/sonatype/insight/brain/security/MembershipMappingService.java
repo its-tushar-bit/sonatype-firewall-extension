@@ -288,7 +288,7 @@ public class MembershipMappingService
   }
 
   public Set<String> getPermissionsForUserPrincipal(String username, Set<String> userMembership) {
-    return membershipMappingDAO.getByUserAndGroups(username, userMembership).stream()
+    return membershipMappingDAO.getByUserCaseInsensitiveAndGroups(username, userMembership).stream()
         .map(it -> rolePermissionDAO.getPermissionsForRole(it.getRoleId()))
         .filter(Objects::nonNull)
         .flatMap(Collection::stream)

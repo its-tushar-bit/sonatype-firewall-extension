@@ -124,8 +124,9 @@ public class PermissionService
   }
 
   public Set<String> getContextIdsForUserWithPermission(UserPrincipal userPrincipal, Permission permission) {
-    Collection<MembershipMapping> membershipMappings
-        = membershipMappingDAO.getByUserAndGroups(userPrincipal.getUsername(), userPrincipal.getMembership());
+    Collection<MembershipMapping> membershipMappings =
+        membershipMappingDAO.getByUserCaseInsensitiveAndGroups(userPrincipal.getUsername(),
+            userPrincipal.getMembership());
 
     Set<String> contextIds = new HashSet<>();
 

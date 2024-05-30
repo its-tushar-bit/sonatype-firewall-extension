@@ -38,6 +38,8 @@ import {
   selectDependencyTreeIsAvailable,
   selectDependencyTreeUnavailableMessage,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
+import { selectRouterCurrentParams, selectIsPrioritiesPageContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { stateGo } from '../reduxUiRouter/routerActions';
 
 const policyThreatLevelSettings = {
   key: 'policyThreatLevel',
@@ -69,7 +71,6 @@ export default function ReportContent() {
     dispatch(setSortingParameters(key, sortingOrder, direction));
   const setSortingOrder = (order, entries) => dispatch(setSorting(order, entries));
   const setFieldFilter = (colName, filter) => dispatch(setStringFieldFilter(colName, filter));
-  const goToCDPPage = (hash) => dispatch(goToComponentDetailsPage(hash));
   const setSelectedComponent = (idx) => dispatch(selectComponent(idx));
   const toggleShowFilter = () => dispatch(toggleShowFilterPopover());
   const goToDependencyTree = () => dispatch(goToDependencyTreePage());
@@ -119,7 +120,7 @@ export default function ReportContent() {
 
       const onRowClick = () => {
         setSelectedComponent(index);
-        goToCDPPage(hash);
+        dispatch(goToComponentDetailsPage(hash));
       };
 
       return <ReportTableRow key={policyViolationId || hash} component={component} onClick={onRowClick} />;

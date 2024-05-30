@@ -6,7 +6,7 @@
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 
-import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
+import BackButton from 'MainRoot/applicationReport/BackButton';
 import LoadWrapper from '../../react/LoadWrapper';
 import ApplicationReportVulnerabilitiesHeader, { metadataPropType } from './ApplicationReportVulnerabilitiesHeader';
 import ApplicationReportVulnerabilitiesTable, {
@@ -35,7 +35,7 @@ const ApplicationReportVulnerabilitiesPage = ({
 
   return (
     <div id="application-report-vulnerabilities" className="nx-page-main nx-viewport-sized">
-      <MenuBarBackButton stateName="applicationReport.policy" />
+      <BackButton />
       <LoadWrapper loading={!metadata || loading} error={error} retryHandler={loadReportAllData}>
         {() => (
           <div className="nx-tile nx-viewport-sized__container">

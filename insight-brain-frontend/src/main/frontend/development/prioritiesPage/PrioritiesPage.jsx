@@ -45,7 +45,7 @@ function PrioritiesPageContents() {
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
   const { loadingMetadata, loadErrorMetadata, metadata } = useSelector(selectPrioritiesPageSlice);
 
-  const goToFullReport = () => dispatch(stateGo('applicationReport.policy', { scanId, publicId: publicAppId }));
+  const goToFullReport = () => dispatch(stateGo('prioritiesPageContainer.policy', { scanId, publicId: publicAppId }));
 
   const doLoad = () => {
     dispatch(actions.loadMetadata());

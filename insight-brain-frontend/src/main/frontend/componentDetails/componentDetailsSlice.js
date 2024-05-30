@@ -24,7 +24,11 @@ import { Messages } from '../utilAngular/CommonServices';
 import { toggleBooleanProp } from '../util/reduxUtil';
 import { processOwnerHierarchy } from 'MainRoot/util/hierarchyUtil';
 import { pathSet, pathSetConst, propSet } from 'MainRoot/util/reduxToolkitUtil';
-import { selectRouterCurrentParams, selectIsFirewallOrRepository } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectRouterCurrentParams,
+  selectIsFirewallOrRepository,
+  selectIsPrioritiesPageContainer,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 import {
   selectComponentDetails,
@@ -32,6 +36,7 @@ import {
   selectIsLabelsLoading,
 } from './componentDetailsSelectors';
 import { getDependencyTreeSubset } from 'MainRoot/DependencyTree/dependencyTreeUtil';
+import { selectCurrentRouteName } from '../reduxUiRouter/routerSelectors';
 
 const HTTP_CLIENT_CLOSED_REQUEST = 499;
 
@@ -94,6 +99,15 @@ const flattenLabelsToSingleArray = (labelsByOwner) => {
 const onTabChange = (tabId) => {
   return (dispatch, getState) => {
     const { hash } = selectRouterCurrentParams(getState());
+    const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(getState());
+    const currentRouteName = selectCurrentRouteName(getState());
+
+    if (isPrioritiesPageContainer) {
+      if (currentRouteName.includes('componentDetailsFromReport')) {
+        return dispatch(stateGo(`prioritiesPageContainer.componentDetailsFromReport.${tabId}`, { hash }));
+      }
+      return dispatch(stateGo(`prioritiesPageContainer.componentDetails.${tabId}`, { hash }));
+    }
     return dispatch(stateGo(`applicationReport.componentDetails.${tabId}`, { hash }));
   };
 };

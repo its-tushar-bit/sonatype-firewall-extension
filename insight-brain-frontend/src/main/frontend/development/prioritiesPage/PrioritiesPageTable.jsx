@@ -119,8 +119,8 @@ function DataRows({ dataset }) {
   const dispatch = useDispatch();
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
   const setSelectedComponent = (idx) => dispatch(selectComponent(idx));
-  const goToCDPPage = (hash) =>
-    dispatch(stateGo('applicationReport.componentDetails.overview', { hash, publicId: publicAppId, scanId }));
+  const dispatchComponentDetailsPage = (hash) =>
+    dispatch(stateGo('prioritiesPageContainer.componentDetails.overview', { hash, publicId: publicAppId, scanId }));
   if (!dataset) return [];
 
   return dataset.map((component, index) => {
@@ -128,7 +128,7 @@ function DataRows({ dataset }) {
 
     const onRowClick = () => {
       setSelectedComponent(index);
-      goToCDPPage(componentHash);
+      dispatchComponentDetailsPage(componentHash);
     };
 
     return <PrioritiesPageRow key={component.displayName} component={component} onClick={onRowClick} />;

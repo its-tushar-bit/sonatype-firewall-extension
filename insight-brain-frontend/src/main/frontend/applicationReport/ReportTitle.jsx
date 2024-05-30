@@ -18,7 +18,7 @@ import {
 } from '@sonatype/react-shared-components';
 
 import { selectApplicationReportMetaData, selectSelectedReport } from './applicationReportSelectors';
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectRouterCurrentParams, selectIsPrioritiesPageContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { reevaluateReport as reevaluateR } from './applicationReportActions';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
@@ -46,13 +46,20 @@ export default function ReportTitle() {
   const selectedReport = useSelector(selectSelectedReport);
   const uiRouterState = useRouterState();
   const reevaluateReport = (...args) => dispatch(reevaluateR(...args));
+  const isPrioritiesPageContainer = useSelector(selectIsPrioritiesPageContainer);
 
   const pdfUrl = getDownloadPdfUrl(publicId, scanId);
   const sbomUrl = getExportCycloneDxUrl(metadataDetails.application.id, scanId);
   const spdxUrl = getExportSpdxUrl(metadataDetails.application.id, scanId);
-  const rawDataUrl = uiRouterState.href('applicationReport.rawData', { publicId, scanId });
+  const rawDataUrl = uiRouterState.href(
+    isPrioritiesPageContainer ? 'prioritiesPageContainer.rawData' : 'applicationReport.rawData',
+    { publicId, scanId }
+  );
   const legacyReportUrl = uiRouterState.href('report', { publicId, scanId });
-  const vulnerabilitiesUrl = uiRouterState.href('applicationReport.vulnerabilities', { publicId, scanId });
+  const vulnerabilitiesUrl = uiRouterState.href(
+    isPrioritiesPageContainer ? 'prioritiesPageContainer.vulnerabilities' : 'applicationReport.vulnerabilities',
+    { publicId, scanId }
+  );
   const vulnerabilitiesPageDisable = selectedReport && selectedReport.reportVersion < 5 ? true : false;
   const viewVulnerabilitiesLinkClasses = classnames('nx-dropdown-link', { disabled: vulnerabilitiesPageDisable });
 

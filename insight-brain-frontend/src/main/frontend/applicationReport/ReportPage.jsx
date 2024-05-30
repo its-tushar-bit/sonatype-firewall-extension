@@ -27,12 +27,13 @@ import {
   selectHasUnscannedComponents,
   selectIsPolicyTypeFilterEnabled,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectRouterCurrentParams, selectIsPrioritiesPageContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsDeveloperDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as applicationReportActions from './applicationReportActions';
 import { selectSelectedReport } from './applicationReportSelectors';
 import { NxStatefulErrorAlert } from '@sonatype/react-shared-components';
 import { isNilOrEmpty } from '../util/jsUtil';
+import { useRouterState } from '../react/RouterStateContext';
 
 export default function ReportPage() {
   const applicationReport = useSelector(selectApplicationReportSlice);
@@ -83,7 +84,7 @@ export default function ReportPage() {
     <Fragment>
       {reevaluateMaskState !== null && <NxStatefulSubmitMask success={reevaluateMaskState} message="Re-Evaluating" />}
       <main id="app-report" className="nx-page-main nx-viewport-sized iq-app-report">
-        <MenuBarBackButton text="All Reports" stateName={'violations'} />
+        <BackButton />
         <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadReport}>
           <ReportFilterPopover />
           {hasUnscannedComponents && (
@@ -138,4 +139,18 @@ export default function ReportPage() {
       </main>
     </Fragment>
   );
+}
+
+function BackButton() {
+  const uiRouterState = useRouterState();
+  const isPrioritiesPageContainer = useSelector(selectIsPrioritiesPageContainer);
+  const { publicId, scanId } = useSelector(selectRouterCurrentParams);
+  if (isPrioritiesPageContainer) {
+    const prioritiesPageHref = uiRouterState.href('prioritiesPage', {
+      scanId: scanId,
+      publicAppId: publicId,
+    });
+    return <MenuBarBackButton href={prioritiesPageHref} text="Back to Priorities" />;
+  }
+  return <MenuBarBackButton text="All Reports" stateName={'violations'} />;
 }

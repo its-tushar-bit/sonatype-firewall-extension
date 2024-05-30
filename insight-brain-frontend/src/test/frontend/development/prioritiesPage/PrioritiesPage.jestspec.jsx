@@ -80,7 +80,7 @@ describe('PrioritiesPage', () => {
 
     fireEvent.click(viewFullReportBtn);
 
-    expect(stateGoSpy).toHaveBeenCalledWith('applicationReport.policy', {
+    expect(stateGoSpy).toHaveBeenCalledWith('prioritiesPageContainer.policy', {
       publicId: publicAppId,
       scanId,
     });

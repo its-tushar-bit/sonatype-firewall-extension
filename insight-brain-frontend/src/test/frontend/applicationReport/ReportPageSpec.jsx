@@ -174,6 +174,16 @@ describe('Report Page component', () => {
     expect(backToAllReports).toBeVisible();
   });
 
+  it('renders a "Back to Priorities" back button if navigated from Priorities Page', () => {
+    applicationReportSelectors.selectDisplayedComponentList.and.returnValue([]);
+    spyOn(routerSelectors, 'selectIsPrioritiesPageContainer').and.returnValue(true);
+
+    renderComponent();
+
+    const backToPriorities = screen.getByRole('link', { name: 'Back to Priorities' });
+    expect(backToPriorities).toBeVisible();
+  });
+
   it('renders a ReportTitle', async () => {
     applicationReportSelectors.selectDisplayedComponentList.and.returnValue([]);
     SpecUtil.requestIdleCallbackInvokeImmediate();

@@ -6,7 +6,7 @@
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxInfoAlert } from '@sonatype/react-shared-components';
-import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
+import BackButton from 'MainRoot/applicationReport/BackButton';
 import VulnerabilityDetailsModal from '../../vulnerabilityDetails/VulnerabilityDetailsModalContainer';
 import ApplicationReportRawDataTable, { tablePropTypes } from './ApplicationReportRawDataTable';
 import ApplicationReportRawDataHeader, { metadataPropType } from './ApplicationReportRawDataHeader';
@@ -34,7 +34,7 @@ export default function ApplicationReportRawData(props) {
 
   return (
     <main id="application-report-raw-data" className="nx-page-main nx-viewport-sized">
-      <MenuBarBackButton stateName="applicationReport.policy" />
+      <BackButton />
       {metadata && <ApplicationReportRawDataHeader metadata={metadata} />}
       <NxInfoAlert>
         Please note that the data appearing on this page is the raw data and not the result of policy evaluation

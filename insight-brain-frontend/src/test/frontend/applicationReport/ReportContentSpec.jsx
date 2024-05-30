@@ -9,16 +9,23 @@ import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import ReportContent from 'MainRoot/applicationReport/ReportContent';
 import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
+import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const displayedEntries = [
-  { filename: 'Component 1', policyThreatLevel: 10, policyName: 'Security-High' },
-  { filename: 'Component 2', policyThreatLevel: 9, policyName: 'Security-High' },
-  { filename: 'Component 3', policyThreatLevel: 8, policyName: 'Security-Medium' },
-  { filename: 'Component 4', policyThreatLevel: 7, policyName: 'Security-Medium' },
+  { filename: 'Component 1', policyThreatLevel: 10, policyName: 'Security-High', hash: 'hash1' },
+  { filename: 'Component 2', policyThreatLevel: 9, policyName: 'Security-High', hash: 'hash2' },
+  { filename: 'Component 3', policyThreatLevel: 8, policyName: 'Security-Medium', hash: 'hash3' },
+  { filename: 'Component 4', policyThreatLevel: 7, policyName: 'Security-Medium', hash: 'hash4' },
 ];
 
+const routerCurrentParams = {
+  publicId: 'publicId',
+  scanId: 'scanId',
+};
+
 describe('ReportContent component', function () {
-  let renderComponent;
+  let renderComponent, stateGoSpy;
 
   beforeEach(function () {
     spyOn(applicationReportActions, 'goToDependencyTreePage').and.returnValue({ type: 'type' });
@@ -26,6 +33,9 @@ describe('ReportContent component', function () {
     spyOn(applicationReportSelectors, 'selectDisplayedComponentList').and.returnValue(displayedEntries);
     spyOn(applicationReportSelectors, 'selectDependencyTreeUnavailableMessage').and.returnValue('');
     spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(true);
+    spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue(routerCurrentParams);
+
+    stateGoSpy = spyOn(RouterActions, 'stateGo').and.callThrough();
 
     renderComponent = (additionalProps = {}) => render(<ReportContent {...additionalProps} />);
   });
@@ -165,5 +175,38 @@ describe('ReportContent component', function () {
     expect(applicationReportActions.goToDependencyTreePage).toHaveBeenCalledTimes(0);
     fireEvent.mouseOver(button);
     expect(await screen.findByText(tooltipText)).toBeInTheDocument();
+  });
+
+  describe('row clicks', () => {
+    describe('when page is not navigated from the priorities page', () => {
+      it('navigates with the applicationReport state', () => {
+        renderComponent();
+
+        const firstComponentRow = screen.getAllByRole('row')[2];
+        fireEvent.click(firstComponentRow);
+
+        expect(stateGoSpy).toHaveBeenCalledWith('applicationReport.componentDetails', {
+          publicId: routerCurrentParams.publicId,
+          scanId: routerCurrentParams.scanId,
+          hash: 'hash1',
+        });
+      });
+    });
+
+    describe('when page is navigated from the priorities page', () => {
+      it('navigates with the prioritiesPageContainer state', () => {
+        spyOn(routerSelectors, 'selectIsPrioritiesPageContainer').and.returnValue(true);
+        renderComponent();
+
+        const firstComponentRow = screen.getAllByRole('row')[2];
+        fireEvent.click(firstComponentRow);
+
+        expect(stateGoSpy).toHaveBeenCalledWith('prioritiesPageContainer.componentDetailsFromReport.overview', {
+          publicId: routerCurrentParams.publicId,
+          scanId: routerCurrentParams.scanId,
+          hash: 'hash1',
+        });
+      });
+    });
   });
 });

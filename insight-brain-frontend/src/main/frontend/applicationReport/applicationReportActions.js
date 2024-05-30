@@ -25,7 +25,7 @@ import {
   getReportSecurityUrl,
   getReportUnknownJsUrl,
 } from '../util/CLMLocation';
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectRouterCurrentParams, selectIsPrioritiesPageContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectSelectedReport, selectReportParameters } from './applicationReportSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 
@@ -393,15 +393,26 @@ export const collapseAllDependencyTreeNodes = noPayloadActionCreator(COLLAPSE_AL
 export const goToDependencyTreePage = (hash) => {
   return (dispatch, getState) => {
     const { publicId, scanId } = selectRouterCurrentParams(getState());
-    dispatch(stateGo('applicationReport.dependencyTree', { hash, publicId, scanId }));
+    const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(getState());
+
+    if (isPrioritiesPageContainer) {
+      dispatch(stateGo('prioritiesPageContainer.dependencyTree', { hash, publicId, scanId }));
+    } else {
+      dispatch(stateGo('applicationReport.dependencyTree', { hash, publicId, scanId }));
+    }
   };
 };
 
 export const goToComponentDetailsPage = (hash) => {
   return (dispatch, getState) => {
     const { publicId, scanId } = selectRouterCurrentParams(getState());
+    const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(getState());
 
-    dispatch(stateGo('applicationReport.componentDetails', { hash, publicId, scanId }));
+    if (isPrioritiesPageContainer) {
+      dispatch(stateGo('prioritiesPageContainer.componentDetailsFromReport.overview', { hash, publicId, scanId }));
+    } else {
+      dispatch(stateGo('applicationReport.componentDetails', { hash, publicId, scanId }));
+    }
   };
 };
 

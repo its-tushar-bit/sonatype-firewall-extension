@@ -352,14 +352,14 @@ describe('PrioritiesPageTable', () => {
     const secondComponentHash = mockResponsePage1.topPriorities[1].componentHash;
 
     fireEvent.click(firstComponentRow);
-    expect(stateGoSpy).toHaveBeenCalledWith('applicationReport.componentDetails.overview', {
+    expect(stateGoSpy).toHaveBeenCalledWith('prioritiesPageContainer.componentDetails.overview', {
       hash: firstComponentHash,
       publicId: publicAppId,
       scanId,
     });
 
     fireEvent.click(secondComponentRow);
-    expect(stateGoSpy).toHaveBeenCalledWith('applicationReport.componentDetails.overview', {
+    expect(stateGoSpy).toHaveBeenCalledWith('prioritiesPageContainer.componentDetails.overview', {
       hash: secondComponentHash,
       publicId: publicAppId,
       scanId,

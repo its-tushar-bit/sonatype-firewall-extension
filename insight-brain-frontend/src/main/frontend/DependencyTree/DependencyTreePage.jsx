@@ -16,7 +16,7 @@ import {
 } from '@sonatype/react-shared-components';
 import { debounce } from 'debounce';
 
-import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import BackButton from 'MainRoot/applicationReport/BackButton';
 import ComponentDetailsReportInfo from 'MainRoot/componentDetails/ComponentDetailsHeader/ComponentDetailsReportInfo';
 import DependencyTree from './DependencyTree';
 import { isFlatDependencyTree } from './dependencyTreeUtil';
@@ -68,7 +68,7 @@ export default function DependencyTreePage() {
 
   return (
     <NxPageMain className="iq-dependency-tree-page">
-      <MenuBarBackButton stateName="applicationReport.policy" />
+      <BackButton />
       <header className="nx-page-title">
         <h1 className="nx-h1 iq-dependency-tree__title">Dependency Tree</h1>
         <ComponentDetailsReportInfo className="nx-page-title__description" {...(metadata || {})} />

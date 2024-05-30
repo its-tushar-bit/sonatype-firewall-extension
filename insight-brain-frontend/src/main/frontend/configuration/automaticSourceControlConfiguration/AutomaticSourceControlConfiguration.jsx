@@ -4,7 +4,15 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { NxStatefulForm, NxButton, NxToggle, NxTextLink } from '@sonatype/react-shared-components';
+import {
+  NxButton,
+  NxH1,
+  NxP,
+  NxPageTitle,
+  NxStatefulForm,
+  NxTextLink,
+  NxToggle,
+} from '@sonatype/react-shared-components';
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { displayName } from '../scmOnboarding/utils/providers';
@@ -36,11 +44,23 @@ export default function AutomaticSourceControlConfiguration({
     </NxButton>
   );
 
+  const linkToDocs = (
+    <NxTextLink href="https://links.sonatype.com/products/nxiq/doc/scm" external>
+      See Nexus IQ for SCM
+    </NxTextLink>
+  );
+
   return (
     <main className="nx-page-main" id="automatic-source-control-configuration-container">
-      <div className="nx-page-title">
-        <h1 className="nx-h1">Automatic Source Control</h1>
-      </div>
+      <NxPageTitle>
+        <NxH1>Automatic Source Control</NxH1>
+        <NxPageTitle.Description>
+          <NxP>
+            All your scanned applications that contain git repository, will be automatically integrated with the SCM
+            system in IQ Server/Lifecycle. {linkToDocs}.
+          </NxP>
+        </NxPageTitle.Description>
+      </NxPageTitle>
       <section className="nx-tile" id="automatic-source-control-configuration">
         <NxStatefulForm
           onSubmit={update}

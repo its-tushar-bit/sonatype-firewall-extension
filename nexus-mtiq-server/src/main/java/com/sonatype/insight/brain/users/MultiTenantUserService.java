@@ -11,7 +11,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService;
-import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.SamlUser;
@@ -19,6 +18,8 @@ import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.security.AbstractUserService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.security.MultiTenantSsoUserService;
+import com.sonatype.insight.brain.security.SsoUser;
 
 import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
@@ -36,24 +37,28 @@ public class MultiTenantUserService
 
   private final MultiTenantAuth0ManagementService multiTenantAuth0ManagementService;
 
+  private final MultiTenantSsoUserService multiTenantSsoUserService;
+
   @Inject
-  public MultiTenantUserService(final DefaultWebSessionManager webSessionManager,
-                                final SessionDAO sessionDAO,
-                                final SamlUserDAO samlUserDAO,
-                                final TenantMetadataDAO tenantMetadataDAO,
-                                final MultiTenantAuth0ManagementService multiTenantAuth0ManagementService,
-                                final CurrentUser currentUser)
+  public MultiTenantUserService(
+      final DefaultWebSessionManager webSessionManager,
+      final SessionDAO sessionDAO,
+      final MultiTenantSsoUserService ssoUserService,
+      final TenantMetadataDAO tenantMetadataDAO,
+      final MultiTenantAuth0ManagementService multiTenantAuth0ManagementService,
+      final CurrentUser currentUser)
   {
-    super(sessionDAO, webSessionManager, currentUser, samlUserDAO);
+    super(sessionDAO, webSessionManager, currentUser, ssoUserService);
     this.tenantMetadataDAO = tenantMetadataDAO;
     this.multiTenantAuth0ManagementService = multiTenantAuth0ManagementService;
+    this.multiTenantSsoUserService = ssoUserService;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   @Override
   public List<MtiqUserDTO> getAllUsers() {
-    return samlUserDAO.getAll().stream()
-        .map(MtiqUserDTO::samlUserToMtiqUser)
+    return ssoUserService.getAll().stream()
+        .map(MtiqUserDTO::ssoUserToMtiqUser)
         .collect(Collectors.toList());
   }
 
@@ -68,7 +73,7 @@ public class MultiTenantUserService
           tenantMetadata.getConnectionId());
       log.debug("user created on Auth0 successfully");
 
-      samlUserDAO.upsertByUsername(MtiqUserDTO.samlUserFromMtiqUser(user));
+      multiTenantSsoUserService.upsertByUsername(user);
       log.info("user created successfully");
     }
     catch (Exception e) {
@@ -90,9 +95,9 @@ public class MultiTenantUserService
       multiTenantAuth0ManagementService.deleteUser(username, tenantMetadata.getConnectionId());
       log.debug("user deleted on Auth0 successfully");
 
-      SamlUser samlUser = samlUserDAO.getByUsername(username);
-      if (samlUser != null) {
-        deleteUser(samlUser);
+      SsoUser ssoUser = multiTenantSsoUserService.getByUsername(username);
+      if (ssoUser != null) {
+        deleteUser(ssoUser);
       }
       log.info("user deleted successfully");
     }

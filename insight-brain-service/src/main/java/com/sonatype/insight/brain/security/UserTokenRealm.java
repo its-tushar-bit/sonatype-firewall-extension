@@ -17,11 +17,9 @@ import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.LdapUser;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
-import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
-import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
@@ -64,7 +62,7 @@ public class UserTokenRealm
 
   private final UserDAO userDAO;
 
-  private final SamlUserDAO samlUserDAO;
+  private final SsoUserService ssoUserService;
 
   @Inject
   public UserTokenRealm(
@@ -75,12 +73,12 @@ public class UserTokenRealm
       LdapServerDAO ldapServerDAO,
       UserTokenDAO userTokenDAO,
       UserDAO userDAO,
-      SamlUserDAO samlUserDAO)
+      SsoUserService ssoUserService)
   {
     this.ldapServerDAO = ldapServerDAO;
     this.userTokenDAO = userTokenDAO;
     this.userDAO = userDAO;
-    this.samlUserDAO = samlUserDAO;
+    this.ssoUserService = ssoUserService;
     setName("UserTokenRealm");
 
     this.ldapService = ldapService;
@@ -112,8 +110,8 @@ public class UserTokenRealm
     if (userToken.isInternalUser()) {
       return doGetInternalRealmAuthenticationInfo(userToken);
     }
-    else if (userToken.isSamlUser()) {
-      return doGetSamlRealmAuthenticationInfo(userToken);
+    else if (userToken.isSsoUser()) {
+      return doGetSsoRealmAuthenticationInfo(userToken);
     }
     else if (CrowdRealm.ID.equals(userToken.getRealmId())) {
       return doGetCrowdRealmAuthenticationInfo(userToken);
@@ -131,10 +129,10 @@ public class UserTokenRealm
         getName());
   }
 
-  private SimpleAuthenticationInfo doGetSamlRealmAuthenticationInfo(UserToken userToken) {
-    SamlUser samlUser = samlUserDAO.getByUsername(userToken.getUsername());
+  private SimpleAuthenticationInfo doGetSsoRealmAuthenticationInfo(UserToken userToken) {
+    SsoUser ssoUser = ssoUserService.getByUsername(userToken.getUsername());
     return new SimpleAuthenticationInfo( //
-        new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), ID, samlUser.getGroups()), //
+        new UserPrincipal(ssoUser.getUsername(), ssoUser.calculateDisplayName(), ID, ssoUser.getGroups()), //
         userToken.getPassCode(), //
         getName());
   }
@@ -183,7 +181,7 @@ public class UserTokenRealm
     catch (NameNotFoundException e) {
       // The LDAP user was deleted.
       try (AuditSession auditSession =
-          AuditData.get().recordSystemEvent(AuditEvent.DELETE_USER_TOKEN, true /* independent */)) {
+               AuditData.get().recordSystemEvent(AuditEvent.DELETE_USER_TOKEN, true /* independent */)) {
         userTokenService.deleteAndAuditUserToken(userToken);
       }
 

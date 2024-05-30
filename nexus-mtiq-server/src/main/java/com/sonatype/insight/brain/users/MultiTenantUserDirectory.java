@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.security.CrowdClientFactory;
-import com.sonatype.insight.brain.security.SamlUserGroupHelper;
+import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.security.UserDirectory;
 
 @Named
@@ -26,11 +26,11 @@ public class MultiTenantUserDirectory
   public MultiTenantUserDirectory(
       UserDAO userDao,
       LdapServerDAO ldapServerDAO,
-      SamlUserGroupHelper samlUserGroupHelper,
+      SsoUserService ssoUserService,
       LdapService ldapService,
       CrowdClientFactory crowdClientFactory)
   {
-    super(userDao, ldapServerDAO, samlUserGroupHelper, ldapService, crowdClientFactory);
+    super(userDao, ldapServerDAO, ssoUserService, ldapService, crowdClientFactory);
   }
 
   /**

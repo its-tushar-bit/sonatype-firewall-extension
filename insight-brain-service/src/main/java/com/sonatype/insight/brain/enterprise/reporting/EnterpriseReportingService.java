@@ -32,11 +32,9 @@ import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionAcquire;
 import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokens;
 import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokensResponse;
 import com.sonatype.insight.brain.audit.AuditData;
-import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.organization.ApplicationService;
@@ -44,7 +42,8 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.security.MembershipMappingService;
-import com.sonatype.insight.brain.security.SamlRealm;
+import com.sonatype.insight.brain.security.SsoUser;
+import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -125,7 +124,7 @@ public class EnterpriseReportingService
 
   private final ApplicationService applicationService;
 
-  private final SamlUserDAO samlUserDAO;
+  private final SsoUserService ssoUserService;
 
   private final InsightWork insightWork;
 
@@ -144,7 +143,7 @@ public class EnterpriseReportingService
       final HdsClient hdsClient,
       final CurrentUser currentUser,
       final UserDAO userDAO,
-      final SamlUserDAO samlUserDAO,
+      final SsoUserService ssoUserService,
       final MembershipMappingService membershipMappingService,
       final ApplicationService applicationService,
       final InsightWork insightWork,
@@ -154,7 +153,7 @@ public class EnterpriseReportingService
     this.hdsClient = hdsClient;
     this.currentUser = currentUser;
     this.userDAO = userDAO;
-    this.samlUserDAO = samlUserDAO;
+    this.ssoUserService = ssoUserService;
     this.membershipMappingService = membershipMappingService;
     this.applicationService = applicationService;
     this.insightWork = insightWork;
@@ -290,24 +289,27 @@ public class EnterpriseReportingService
   }
 
   private Pair<String, String> getUserFirstAndLastNames(final UserPrincipal userPrincipal) {
-    switch (userPrincipal.getRealmId()) {
-      case InternalRealm.ID:
-        User user = getInternalUser(userPrincipal.getUsername());
-        return Pair.of(user.getFirstName(), user.getLastName());
-      case SamlRealm.ID:
-        SamlUser samlUser = getSamlUser(userPrincipal.getUsername());
-        return Pair.of(samlUser.getFirstName(), samlUser.getLastName());
-      default:
-        return Pair.of(userPrincipal.getDisplayName(), "");
+    String realmId = userPrincipal.getRealmId();
+
+    if (InternalRealm.ID.equals(realmId)) {
+      User user = getInternalUser(userPrincipal.getUsername());
+      return Pair.of(user.getFirstName(), user.getLastName());
     }
+
+    if (ssoUserService.isSsoRealm(realmId)) {
+      SsoUser ssoUser = getSsoUser(userPrincipal.getUsername());
+      return Pair.of(ssoUser.getFirstName(), ssoUser.getLastName());
+    }
+
+    return Pair.of(userPrincipal.getDisplayName(), "");
   }
 
   private User getInternalUser(final String username) {
     return userDAO.getByUsernameNotNull(username);
   }
 
-  private SamlUser getSamlUser(final String username) {
-    return samlUserDAO.getByUsernameNotNull(username);
+  private SsoUser getSsoUser(final String username) {
+    return ssoUserService.getByUsernameNotNull(username);
   }
 
   public String getEnterpriseReportingConfigDTOBaseUrl() {

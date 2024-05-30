@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.users;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -22,6 +21,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.security.SsoUser;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationResourceTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
@@ -51,7 +51,8 @@ public class MtiqUserResourceTest
   @Override
   protected List<Module> getBrainModules() {
     List<Module> modules = new ArrayList<>(super.getBrainModules());
-    modules.add(new AbstractModule() {
+    modules.add(new AbstractModule()
+    {
       @Override
       protected void configure() {
         bind(MultiTenantAuth0ManagementService.class).to(TestMultiTenantAuth0ManagementService.class);
@@ -78,7 +79,8 @@ public class MtiqUserResourceTest
 
     List<MtiqUserDTO> data = JsonUtils.parse(response.getBodyText(), new TypeReference<List<MtiqUserDTO>>() { });
     assertThat(data).hasSize(1);
-    assertThat(MtiqUserDTO.samlUserToMtiqUser(samlUser)).usingRecursiveComparison().isEqualTo(data.get(0));
+    assertThat(MtiqUserDTO.ssoUserToMtiqUser(SsoUser.fromSamlUser(samlUser))).usingRecursiveComparison()
+        .isEqualTo(data.get(0));
   }
 
   @Test
@@ -148,7 +150,8 @@ public class MtiqUserResourceTest
     }
   }
 
-  private static class TestMultiTenantAuth0ManagementService extends MultiTenantAuth0ManagementService
+  private static class TestMultiTenantAuth0ManagementService
+      extends MultiTenantAuth0ManagementService
   {
     @Override
     public void createOrUpdateUser(
@@ -168,7 +171,8 @@ public class MtiqUserResourceTest
     }
   }
 
-  private static class TestMtiqFeatureService extends MTIQFeatureService
+  private static class TestMtiqFeatureService
+      extends MTIQFeatureService
   {
     public static boolean isFeatureEnabledDuringTest = true;
 

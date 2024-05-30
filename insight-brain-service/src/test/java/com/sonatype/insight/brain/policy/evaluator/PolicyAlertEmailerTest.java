@@ -63,7 +63,7 @@ import com.sonatype.insight.brain.security.CrowdClient;
 import com.sonatype.insight.brain.security.CrowdClientFactory;
 import com.sonatype.insight.brain.security.CrowdRealm;
 import com.sonatype.insight.brain.security.Member;
-import com.sonatype.insight.brain.security.SamlUserGroupHelper;
+import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -114,7 +114,7 @@ public class PolicyAlertEmailerTest
   private UserDirectory userDirectory;
 
   @Inject
-  private SamlUserGroupHelper samlUserGroupHelper;
+  private SsoUserService ssoUserService;
 
   @Mock
   private InsightMail mailer;
@@ -516,12 +516,12 @@ public class PolicyAlertEmailerTest
         .getUsersByGroup(argThat(new SameId(ldapServers.get(0))), any(String.class));
 
     UserDirectory userDirectory =
-        new UserDirectory(userDAO, ldapServerDAO, samlUserGroupHelper, ldapServiceSpy, mockCrowdClientFactory);
+        new UserDirectory(userDAO, ldapServerDAO, ssoUserService, ldapServiceSpy, mockCrowdClientFactory);
     PolicyAlertEmailResolver policyAlertEmailResolver = new PolicyAlertEmailResolver(
         userDirectory,
         ldapServiceSpy,
         ownerDAO,
-        samlUserGroupHelper,
+        ssoUserService,
         membershipMappingDAO,
         ldapServerDAO,
         mockCrowdClientFactory

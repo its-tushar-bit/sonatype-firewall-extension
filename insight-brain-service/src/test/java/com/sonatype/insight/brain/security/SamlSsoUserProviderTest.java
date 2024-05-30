@@ -24,19 +24,21 @@ import com.sonatype.insight.brain.model.security.SamlGroup;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.SamlUserGroup;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-public class SamlUserGroupHelperTest
+public class SamlSsoUserProviderTest
     extends AbstractComponentTest
 {
   @Inject
-  private SamlUserGroupHelper samlUserGroupHelper;
+  private SamlSsoUserProvider samlSsoUserProvider;
 
   @Inject
   private SamlConfigurationDAO samlConfigurationDAO;
@@ -64,17 +66,32 @@ public class SamlUserGroupHelperTest
   }
 
   @Test
+  public void testGetSsoRealm() {
+    assertThat(samlSsoUserProvider.getSsoRealm()).isEqualTo(SamlRealm.ID);
+  }
+
+  @Test
+  public void testIsSsoRealm_False() {
+    assertThat(samlSsoUserProvider.isSsoRealm(InternalRealm.ID)).isFalse();
+  }
+
+  @Test
+  public void testIsSsoRealm_True() {
+    assertThat(samlSsoUserProvider.isSsoRealm(SamlRealm.ID)).isTrue();
+  }
+
+  @Test
   public void testIsSamlConfigured_False() {
     samlConfigurationDAO.delete();
 
-    assertThat(samlUserGroupHelper.isSamlConfigured()).isFalse();
+    assertThat(samlSsoUserProvider.isSsoConfigured()).isFalse();
   }
 
   @Test
   public void testIsSamlConfigured_True() {
     tempEntity.newSamlConfiguration();
 
-    assertThat(samlUserGroupHelper.isSamlConfigured()).isTrue();
+    assertThat(samlSsoUserProvider.isSsoConfigured()).isTrue();
   }
 
   @Test
@@ -82,7 +99,7 @@ public class SamlUserGroupHelperTest
     Set<String> groups = new LinkedHashSet<>(Arrays.asList("group1", "group2"));
     SamlUser samlUser = new SamlUser("username", "firstName", "lastName", "email@domain", groups);
 
-    samlUserGroupHelper.updateSamlUserAndGroups(samlUser, groups);
+    samlSsoUserProvider.updateSsoUserAndGroups(SsoUser.fromSamlUser(samlUser), groups);
 
     assertSamlUserGroups(samlUser, groups, Collections.singleton("id"));
   }
@@ -94,7 +111,7 @@ public class SamlUserGroupHelperTest
     Set<String> groups = new LinkedHashSet<>(Arrays.asList("group1", "group2"));
     samlUser.setGroups(groups);
 
-    samlUserGroupHelper.updateSamlUserAndGroups(samlUser, groups);
+    samlSsoUserProvider.updateSsoUserAndGroups(SsoUser.fromSamlUser(samlUser), groups);
 
     assertSamlUserGroups(samlUser, groups, Collections.singleton("id"));
   }
@@ -106,7 +123,7 @@ public class SamlUserGroupHelperTest
     Set<String> groups = new LinkedHashSet<>(Arrays.asList(samlGroup1.getName(), samlGroup2.getName()));
     SamlUser samlUser = new SamlUser("username", "firstName", "lastName", "email@domain", groups);
 
-    samlUserGroupHelper.updateSamlUserAndGroups(samlUser, groups);
+    samlSsoUserProvider.updateSsoUserAndGroups(SsoUser.fromSamlUser(samlUser), groups);
 
     assertSamlUserGroups(samlUser, groups, Collections.singleton("id"));
   }
@@ -120,7 +137,7 @@ public class SamlUserGroupHelperTest
     tempEntity.newSamlUserGroup(samlUser.getId(), samlGroup1.getId());
     tempEntity.newSamlUserGroup(samlUser.getId(), samlGroup2.getId());
 
-    samlUserGroupHelper.updateSamlUserAndGroups(samlUser, groups);
+    samlSsoUserProvider.updateSsoUserAndGroups(SsoUser.fromSamlUser(samlUser), groups);
 
     assertSamlUserGroups(samlUser, groups, Collections.singleton("id"));
   }
@@ -136,7 +153,7 @@ public class SamlUserGroupHelperTest
     groups.add("group3");
     samlUser.setGroups(groups);
 
-    samlUserGroupHelper.updateSamlUserAndGroups(samlUser, groups);
+    samlSsoUserProvider.updateSsoUserAndGroups(SsoUser.fromSamlUser(samlUser), groups);
 
     assertSamlUserGroups(samlUser, groups, Collections.singleton("id"));
   }
@@ -148,7 +165,7 @@ public class SamlUserGroupHelperTest
     Set<String> groups = new LinkedHashSet<>(Arrays.asList(samlGroup1.getName(), samlGroup2.getName(), "group3"));
     SamlUser samlUser = new SamlUser("username", "firstName", "lastName", "email@domain", groups);
 
-    samlUserGroupHelper.updateSamlUserAndGroups(samlUser, groups);
+    samlSsoUserProvider.updateSsoUserAndGroups(SsoUser.fromSamlUser(samlUser), groups);
 
     assertSamlUserGroups(samlUser, groups, Collections.singleton("id"));
   }
@@ -169,7 +186,7 @@ public class SamlUserGroupHelperTest
     SamlUserGroup samlUserGroup23 = tempEntity.newSamlUserGroup(samlUser2.getId(), samlGroup3.getId());
     samlUser1.setGroups(Collections.emptySet());
 
-    samlUserGroupHelper.updateSamlUserAndGroups(samlUser1, Collections.emptySet());
+    samlSsoUserProvider.updateSsoUserAndGroups(SsoUser.fromSamlUser(samlUser1), Collections.emptySet());
 
     assertThat(samlUserDAO.getAll())
         .usingRecursiveFieldByFieldElementComparatorIgnoringFields(JPA.IGNORE_FIELDS)
@@ -184,14 +201,14 @@ public class SamlUserGroupHelperTest
 
   @Test
   public void testGetSamlUsersByGroupName_GroupDoesNotExist() {
-    assertThat(samlUserGroupHelper.getSamlUsersByGroupName("doesNotExist")).isEmpty();
+    assertThat(samlSsoUserProvider.getSsoUsersByGroupName("doesNotExist")).isEmpty();
   }
 
   @Test
   public void testGetSamlUsersByGroupName_GroupExists_NoUsers() {
     SamlGroup samlGroup = tempEntity.newSamlGroup();
 
-    assertThat(samlUserGroupHelper.getSamlUsersByGroupName(samlGroup.getName())).isEmpty();
+    assertThat(samlSsoUserProvider.getSsoUsersByGroupName(samlGroup.getName())).isEmpty();
   }
 
   @Test
@@ -208,14 +225,14 @@ public class SamlUserGroupHelperTest
     tempEntity.newSamlUserGroup(samlUser2.getId(), samlGroup.getId());
     tempEntity.newSamlUserGroup(otherSamlUser.getId(), otherSamlGroup.getId());
 
-    assertThat(samlUserGroupHelper.getSamlUsersByGroupName(samlGroup.getName()))
+    assertThat(samlSsoUserProvider.getSsoUsersByGroupName(samlGroup.getName()))
         .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(samlUser1, samlUser2);
+        .containsExactly(SsoUser.fromSamlUser(samlUser1), SsoUser.fromSamlUser(samlUser2));
   }
 
   @Test
   public void testFilterExistingSamlGroupNames_Empty() {
-    assertThat(samlUserGroupHelper.filterExistingSamlGroupNames(Collections.emptySet())).isEmpty();
+    assertThat(samlSsoUserProvider.filterExistingSsoGroupNames(Collections.emptySet())).isEmpty();
   }
 
   @Test
@@ -225,7 +242,7 @@ public class SamlUserGroupHelperTest
     Set<String> groupNames =
         new LinkedHashSet<>(Arrays.asList("doesNotExist", samlGroup1.getName(), samlGroup2.getName()));
 
-    assertThat(samlUserGroupHelper.filterExistingSamlGroupNames(groupNames)).containsExactly(samlGroup1.getName(),
+    assertThat(samlSsoUserProvider.filterExistingSsoGroupNames(groupNames)).containsExactly(samlGroup1.getName(),
         samlGroup2.getName());
   }
 
@@ -233,7 +250,7 @@ public class SamlUserGroupHelperTest
   public void testGetSamlUsersByUsernames() {
     Set<String> usernames = new HashSet<>(Arrays.asList("username1", "username2"));
 
-    samlUserGroupHelper.getSamlUsersByUsernames(usernames);
+    samlSsoUserProvider.getSsoByUsernames(usernames);
 
     verify(spySamlUserDAO).getByUsernames(usernames);
   }
@@ -242,7 +259,7 @@ public class SamlUserGroupHelperTest
   public void testFindSamlUsersByNameQuery() {
     String nameQuery = "nameQuery";
 
-    samlUserGroupHelper.findSamlUsersByNameOrUsernameQuery(nameQuery);
+    samlSsoUserProvider.findSsoUsersByNameOrUsernameQuery(nameQuery);
 
     verify(spySamlUserDAO).findUsersByNameOrUsernameQuery(nameQuery);
   }
@@ -251,9 +268,86 @@ public class SamlUserGroupHelperTest
   public void testFindSamlGroupsByNameQuery() {
     String nameQuery = "nameQuery";
 
-    samlUserGroupHelper.findSamlGroupsByNameQuery(nameQuery);
+    samlSsoUserProvider.findSsoGroupsByNameQuery(nameQuery);
 
     verify(samlGroupDAO).findGroupsByNameQuery(nameQuery);
+  }
+
+  @Test
+  public void testDeleteUser() {
+    SamlUser samlUser = tempEntity.newSamlUser();
+
+    samlSsoUserProvider.deleteSsoUser(SsoUser.fromSamlUser(samlUser));
+
+    assertThat(samlUserDAO.getByUsername(samlUser.getUsername())).isNull();
+  }
+
+  @Test
+  public void testGetByUsername() {
+    SamlUser samlUser = tempEntity.newSamlUser();
+    tempEntity.newSamlUser();
+
+    assertThat(samlSsoUserProvider.getByUsername(samlUser.getUsername())).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(SsoUser.fromSamlUser(samlUser));
+  }
+
+  @Test
+  public void testUpsertByUsername_Insert() {
+    SamlUser samlUser = tempEntity.newSamlUser();
+
+    samlSsoUserProvider.upsertByUsername(SsoUser.fromSamlUser(samlUser));
+
+    assertThat(samlUserDAO.getByUsername(samlUser.getUsername())).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(samlUser);
+  }
+
+  @Test
+  public void testUpsertByUsername_Update() {
+    SamlUser samlUser = tempEntity.newSamlUser();
+    samlUser.setFirstName(samlUser.getFirstName() + "2");
+    samlUser.setLastName(samlUser.getLastName() + "2");
+    samlUser.setEmail(samlUser.getEmail() + "2");
+    samlUser.setGroups(new LinkedHashSet<>(Arrays.asList("someGroup3", "someGroup4")));
+
+    samlSsoUserProvider.upsertByUsername(SsoUser.fromSamlUser(samlUser));
+
+    assertThat(samlUserDAO.getByUsername(samlUser.getUsername())).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(samlUser);
+  }
+
+  @Test
+  public void testGetByUsernameNotNull_Exists() {
+    SamlUser samlUser = tempEntity.newSamlUser();
+
+    assertThat(samlSsoUserProvider.getByUsernameNotNull(samlUser.getUsername())).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(SsoUser.fromSamlUser(samlUser));
+  }
+
+  @Test
+  public void testGetByUsernameNotNull_DoesNotExist() {
+    String username = "doesNotExist";
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> samlSsoUserProvider.getByUsernameNotNull(username))
+        .withMessageContaining("Cannot find a SAML user with username " + username + ".");
+  }
+
+  @Test
+  public void testGetAll() {
+    SamlUser samlUser1 = tempEntity.newSamlUser();
+    SamlUser samlUser2 = tempEntity.newSamlUser();
+
+    List<SsoUser> users = samlSsoUserProvider.getAll();
+    assertThat(users).hasSize(2);
+    assertSamlUser(samlUser1, users);
+    assertSamlUser(samlUser2, users);
+  }
+
+  private void assertSamlUser(SamlUser expectedSamlUser, List<SsoUser> users) {
+    SsoUser foundUser = users.stream()
+        .filter(samlUser -> expectedSamlUser.getUsername().equals(samlUser.getUsername())).findFirst().orElse(null);
+    assertThat(foundUser).isNotNull().usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .isEqualTo(SsoUser.fromSamlUser(expectedSamlUser));
   }
 
   private void assertSamlUserGroups(
@@ -261,9 +355,10 @@ public class SamlUserGroupHelperTest
       Set<String> expectedGroupNames,
       Set<String> extraIgnoreFields)
   {
-    assertThat(expectedSamlUser.getId()).isNotNull();
-    assertThat(samlUserDAO.getById(expectedSamlUser.getId())).usingRecursiveComparison()
+    SamlUser samlUser = samlUserDAO.getByUsername(expectedSamlUser.getUsername());
+    assertThat(samlUser).usingRecursiveComparison()
         .ignoringFields(JPA.IGNORE_FIELDS)
+        .ignoringFields("id")
         .isEqualTo(expectedSamlUser);
     List<String> ignoreFields = new ArrayList<>(Arrays.asList(JPA.IGNORE_FIELDS));
     ignoreFields.addAll(extraIgnoreFields);
@@ -274,6 +369,6 @@ public class SamlUserGroupHelperTest
     assertThat(samlUserGroupDAO.getAll())
         .usingRecursiveFieldByFieldElementComparatorIgnoringFields(ignoreFields.toArray(new String[0]))
         .containsExactlyInAnyOrderElementsOf(samlGroups.stream().map(samlGroup ->
-            new SamlUserGroup(expectedSamlUser.getId(), samlGroup.getId())).collect(Collectors.toList()));
+            new SamlUserGroup(samlUser.getId(), samlGroup.getId())).collect(Collectors.toList()));
   }
 }

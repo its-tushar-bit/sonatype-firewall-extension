@@ -24,12 +24,10 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
-import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
@@ -53,7 +51,7 @@ public class UserTokenService
 
   private final UserTokenDAO userTokenDAO;
 
-  private final SamlUserDAO samlUserDAO;
+  private final SsoUserService ssoUserService;
 
   private final PasswordService passwordService;
 
@@ -66,14 +64,14 @@ public class UserTokenService
   @Inject
   public UserTokenService(
       UserTokenDAO userTokenDAO,
-      SamlUserDAO samlUserDAO,
+      SsoUserService ssoUserService,
       LdapServerDAO ldapServerDAO,
       PasswordService passwordService,
       LdapService ldapService,
       CurrentUser currentUser)
   {
     this.userTokenDAO = userTokenDAO;
-    this.samlUserDAO = samlUserDAO;
+    this.ssoUserService = ssoUserService;
     this.ldapServerDAO = ldapServerDAO;
     this.passwordService = passwordService;
     this.ldapService = ldapService;
@@ -99,12 +97,13 @@ public class UserTokenService
           "The login method that has been utilized for authentication does not support the creation of user tokens");
     }
 
+    if (ssoUserService.isSsoRealm(realmId) && ssoUserService.getByUsername(username) == null) {
+      throw new BadRequestException(
+          "Unable to get user session details, you must relogin before generating a user token.");
+    }
+
     try (TransactionContext tx = userTokenDAO.createTransactionContext()) {
       tx.begin();
-      if (SamlRealm.ID.equals(realmId) && samlUserDAO.getByUsername(tx, username) == null) {
-        throw new BadRequestException(
-            "Unable to get user session details, you must relogin before generating a user token.");
-      }
 
       String userCode;
       // We should also ensure that the userCode generated is unique.
@@ -149,7 +148,7 @@ public class UserTokenService
     if (InternalRealm.ID.equals(realmId)) {
       return true;
     }
-    if (SamlRealm.ID.equals(realmId)) {
+    if (ssoUserService.isSsoRealm(realmId)) {
       return true;
     }
     if (CrowdRealm.ID.equals(realmId) && hasCrowdUserTokenSupport()) {
@@ -190,8 +189,8 @@ public class UserTokenService
   }
 
   private String normalizeRealmId(String realmId) {
-    if (SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
-      return SamlUser.SAML_REALM_ID;
+    if (ssoUserService.isSsoRealm(realmId)) {
+      return ssoUserService.normalizeRealmId(realmId);
     }
     if (hasCrowdUserTokenSupport() && CrowdRealm.ID.equalsIgnoreCase(realmId)) {
       return CrowdRealm.ID;

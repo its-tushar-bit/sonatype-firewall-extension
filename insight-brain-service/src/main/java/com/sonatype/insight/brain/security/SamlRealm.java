@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -42,17 +41,17 @@ public class SamlRealm
 
   public static final String ID = SamlUser.SAML_REALM_ID;
 
-  private final SamlUserGroupHelper samlUserGroupHelper;
+  private final SsoUserService ssoUserService;
 
   private final SamlConfigurationDAO samlConfigurationDAO;
 
   @Inject
-  public SamlRealm(SamlUserGroupHelper samlUserGroupHelper, SamlConfigurationDAO samlConfigurationDAO) {
+  public SamlRealm(SsoUserService ssoUserService, SamlConfigurationDAO samlConfigurationDAO) {
     super(new AllowAllCredentialsMatcher());
     this.samlConfigurationDAO = samlConfigurationDAO;
     setName("SAML");
     setAuthenticationTokenClass(SamlAuthenticationToken.class);
-    this.samlUserGroupHelper = samlUserGroupHelper;
+    this.ssoUserService = ssoUserService;
   }
 
   @Override
@@ -76,12 +75,12 @@ public class SamlRealm
     Set<String> groups =
         new LinkedHashSet<>(getAllAttributes(samlPrincipal, samlConfiguration.getGroupsAttributeName()));
     groups.removeIf(StringUtils::isBlank);
-    SamlUser samlUser = new SamlUser(username, firstName, lastName, email, groups);
+    SsoUser ssoUser = new SsoUser(username, firstName, lastName, email, ID, groups);
 
-    samlUserGroupHelper.updateSamlUserAndGroups(samlUser, groups);
+    ssoUserService.updateSsoUserAndGroups(ssoUser, groups);
 
     return new SimpleAuthenticationInfo(
-        new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), ID, samlUser.getGroups()), null,
+        new UserPrincipal(ssoUser.getUsername(), ssoUser.calculateDisplayName(), ID, ssoUser.getGroups()), null,
         getName());
   }
 

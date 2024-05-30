@@ -54,8 +54,10 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.EncryptionKeyStore;
 import com.sonatype.insight.brain.security.MultiTenantEncryptionKeyStore;
+import com.sonatype.insight.brain.security.MultiTenantSsoUserService;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
+import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.banning.BannedImplementationService;
 import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
@@ -356,6 +358,8 @@ public class MultiTenantInsightBrainService
         bind(ActiveRequestCounterFilter.class).to(MultiTenantActiveRequestCounterFilter.class);
 
         bind(MeterRegistry.class).toProvider(MultiTenantMeterRegistryProvider.class);
+
+        bind(SsoUserService.class).to(MultiTenantSsoUserService.class);
 
         List<Class<?>> extraToBan = new ArrayList<>();
         if (((MultiTenantInsightConfig) configuration()).isUsingDefaultEncryptionKeyStore()) {

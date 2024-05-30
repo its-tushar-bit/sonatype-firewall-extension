@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.users;
 
 import java.util.Objects;
 
-import com.sonatype.insight.brain.model.security.SamlUser;
+import com.sonatype.insight.brain.security.SsoUser;
 
 public class MtiqUserDTO
 {
@@ -69,21 +69,12 @@ public class MtiqUserDTO
     return Objects.hash(firstName, lastName, email);
   }
 
-  static MtiqUserDTO samlUserToMtiqUser(final SamlUser user) {
+  static MtiqUserDTO ssoUserToMtiqUser(final SsoUser user) {
     MtiqUserDTO mtiqUser = new MtiqUserDTO();
     mtiqUser.setUsername(user.getUsername());
     mtiqUser.setFirstName(user.getFirstName());
     mtiqUser.setLastName(user.getLastName());
     mtiqUser.setEmail(user.getEmail());
     return mtiqUser;
-  }
-
-  static SamlUser samlUserFromMtiqUser(final MtiqUserDTO user) {
-    SamlUser samlUser = new SamlUser();
-    samlUser.setUsername(user.getUsername());
-    samlUser.setFirstName(user.getFirstName());
-    samlUser.setLastName(user.getLastName());
-    samlUser.setEmail(user.getEmail());
-    return samlUser;
   }
 }

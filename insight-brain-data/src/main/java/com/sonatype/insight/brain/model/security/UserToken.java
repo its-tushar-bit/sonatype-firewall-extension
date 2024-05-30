@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.model.security;
 
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -68,7 +67,7 @@ public class UserToken
     return User.INTERNAL_REALM_ID.equals(realmId);
   }
 
-  public boolean isSamlUser() {
+  public boolean isSsoUser() {
     return SamlUser.SAML_REALM_ID.equals(realmId);
   }
 

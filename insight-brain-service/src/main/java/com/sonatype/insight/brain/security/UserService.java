@@ -15,13 +15,11 @@ import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserListDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -69,14 +67,14 @@ public class UserService
       PasswordService passwordService,
       SessionDAO sessionDAO,
       UserDAO userDAO,
-      SamlUserDAO samlUserDAO,
+      SsoUserService ssoUserService,
       ApplicationDAO applicationDAO,
       UserDirectory userDirectory,
       Configuration configuration,
       CurrentUser currentUser,
       DefaultWebSessionManager defaultWebSessionManager)
   {
-    super(sessionDAO, defaultWebSessionManager, currentUser, samlUserDAO);
+    super(sessionDAO, defaultWebSessionManager, currentUser, ssoUserService);
     this.clmRealm = clmRealm;
     this.passwordService = passwordService;
     this.userDAO = userDAO;
@@ -205,9 +203,9 @@ public class UserService
     logoutUser(User.INTERNAL_REALM_ID, user.getUsername());
   }
 
-  private void deleteSamlUser(SamlUser samlUser) {
-    validateUserToDeleteIsNotCurrentlyLoggedIn(SamlUser.SAML_REALM_ID, samlUser.getUsername());
-    deleteUser(samlUser);
+  private void deleteSsoUser(SsoUser ssoUser) {
+    validateUserToDeleteIsNotCurrentlyLoggedIn(ssoUser.getRealmId(), ssoUser.getUsername());
+    deleteUser(ssoUser);
   }
 
   private void auditUser(User user) {
@@ -327,8 +325,8 @@ public class UserService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public ApiUserListDTO getAllApiUserDTOs(String realmId) {
     ApiUserListDTO apiUserListDTO = new ApiUserListDTO();
-    if (SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
-      apiUserListDTO.users = samlUserDAO.getAll().stream().map(this::convert).collect(Collectors.toList());
+    if (ssoUserService.isSsoRealm(realmId)) {
+      apiUserListDTO.users = ssoUserService.getAll().stream().map(this::convert).collect(Collectors.toList());
     }
     else {
       apiUserListDTO.users = userDAO.getAll().stream()
@@ -340,8 +338,8 @@ public class UserService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public ApiUserDTO getApiUserDTOByUsernameAndRealmId(String username, String realmId) {
-    if (SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
-      return convert(samlUserDAO.getByUsernameNotNull(username));
+    if (ssoUserService.isSsoRealm(realmId)) {
+      return convert(ssoUserService.getByUsernameNotNull(username));
     }
     else {
       return convert(userDAO.getByUsernameNotNull(username));
@@ -382,21 +380,21 @@ public class UserService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void deleteUserByRealmIdAndUsername(String realmId, String username) {
-    if (SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
-      deleteSamlUser(samlUserDAO.getByUsernameNotNull(username));
+    if (ssoUserService.isSsoRealm(realmId)) {
+      deleteSsoUser(ssoUserService.getByUsernameNotNull(username));
     }
     else {
       deleteInternalUser(userDAO.getByUsernameNotNull(username));
     }
   }
 
-  private ApiUserDTO convert(SamlUser user) {
+  private ApiUserDTO convert(SsoUser user) {
     ApiUserDTO userDTO = new ApiUserDTO();
     userDTO.username = user.getUsername();
     userDTO.firstName = user.getFirstName();
     userDTO.lastName = user.getLastName();
     userDTO.email = user.getEmail();
-    userDTO.realm = SamlUser.SAML_REALM_ID;
+    userDTO.realm = user.getRealmId();
     return userDTO;
   }
 

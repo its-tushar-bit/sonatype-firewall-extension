@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.audit.AuditData;
-import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
-import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.shiro.session.Session;
@@ -25,28 +23,28 @@ public class AbstractUserService
 
   protected final CurrentUser currentUser;
 
-  protected final SamlUserDAO samlUserDAO;
+  protected final SsoUserService ssoUserService;
 
   public AbstractUserService(
       final SessionDAO sessionDAO,
       final DefaultWebSessionManager defaultWebSessionManager,
       final CurrentUser currentUser,
-      final SamlUserDAO samlUserDAO)
+      final SsoUserService ssoUserService)
   {
     this.sessionDAO = sessionDAO;
     this.defaultWebSessionManager = defaultWebSessionManager;
     this.currentUser = currentUser;
-    this.samlUserDAO = samlUserDAO;
+    this.ssoUserService = ssoUserService;
   }
 
-  protected void deleteUser(SamlUser samlUser) {
-    samlUserDAO.delete(samlUser);
-    auditUser(samlUser);
-    logoutUser(SamlUser.SAML_REALM_ID, samlUser.getUsername());
+  protected void deleteUser(SsoUser ssoUser) {
+    ssoUserService.deleteSsoUser(ssoUser);
+    auditUser(ssoUser);
+    logoutUser(ssoUser.getRealmId(), ssoUser.getUsername());
   }
 
   protected boolean areUsernamesEqual(String realmId, String username1, String username2) {
-    if (SamlUser.SAML_REALM_ID.equals(realmId)) {
+    if (ssoUserService.isSsoRealm(realmId)) {
       return username1.equals(username2);
     }
     return username1.equalsIgnoreCase(username2);
@@ -73,8 +71,8 @@ public class AbstractUserService
     }
   }
 
-  void auditUser(SamlUser user) {
-    auditUser(SamlUser.SAML_REALM_ID, user.getUsername(), user.getFirstName(), user.getLastName(), user.getEmail());
+  void auditUser(SsoUser user) {
+    auditUser(user.getRealmId(), user.getUsername(), user.getFirstName(), user.getLastName(), user.getEmail());
   }
 
   protected void auditUser(String realmId, String username, String firstName, String lastName, String email) {

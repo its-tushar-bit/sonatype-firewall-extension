@@ -8,11 +8,11 @@ package com.sonatype.insight.brain.users;
 import java.util.List;
 
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService;
-import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
-import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.security.MultiTenantSsoUserService;
+import com.sonatype.insight.brain.security.SsoUser;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationResourceTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 public class MultiTenantUserServiceTest
     extends AbstractMultiTenantBaseIntegrationResourceTest
 {
-  private SamlUserDAO samlUserDAO;
+  private MultiTenantSsoUserService ssoUserService;
 
   private TenantMetadataDAO tenantMetadataDAO;
 
@@ -48,11 +48,11 @@ public class MultiTenantUserServiceTest
   private MtiqUserService underTest;
 
   @Before
-  public void setUp() throws Exception {
-    samlUserDAO = getCLMServer().getInstance(SamlUserDAO.class);
-    tenantMetadataDAO = getCLMServer().getInstance(TenantMetadataDAO.class);
+  public void setUp() {
+    ssoUserService = lookup(MultiTenantSsoUserService.class);
+    tenantMetadataDAO = lookup(TenantMetadataDAO.class);
 
-    underTest = new MultiTenantUserService(webSessionManager, sessionDAO, samlUserDAO, tenantMetadataDAO,
+    underTest = new MultiTenantUserService(webSessionManager, sessionDAO, ssoUserService, tenantMetadataDAO,
         auth0ManagementService, currentUser);
   }
 
@@ -61,8 +61,8 @@ public class MultiTenantUserServiceTest
     MtiqUserDTO user1 = createMtiqUser("foo1");
     MtiqUserDTO user2 = createMtiqUser("foo2");
 
-    samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user1));
-    samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user2));
+    ssoUserService.upsertByUsername(user1);
+    ssoUserService.upsertByUsername(user2);
 
     assertThat(underTest.getAllUsers()).hasSize(2);
   }
@@ -74,10 +74,10 @@ public class MultiTenantUserServiceTest
     MtiqUserDTO user3 = createMtiqUser("monkey");
     MtiqUserDTO user4 = createMtiqUser("horse");
 
-    samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user1));
-    samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user2));
-    samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user3));
-    samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user4));
+    ssoUserService.upsertByUsername(user1);
+    ssoUserService.upsertByUsername(user2);
+    ssoUserService.upsertByUsername(user3);
+    ssoUserService.upsertByUsername(user4);
 
     List<MtiqUserDTO> allUsers = underTest.getAllUsers();
     assertThat(allUsers).containsSequence(user2, user4, user3, user1);
@@ -91,16 +91,16 @@ public class MultiTenantUserServiceTest
       provisionTenant(tenant.tenantSlug);
       createTenantMetadata(tenant);
 
-      assertThat(samlUserDAO.getAll()).hasSize(0);
+      assertThat(ssoUserService.getAll()).hasSize(0);
 
       underTest.inviteUser(user);
 
-      List<SamlUser> allUsers = samlUserDAO.getAll();
+      List<SsoUser> allUsers = ssoUserService.getAll();
       assertThat(allUsers).hasSize(1);
-      assertThat(MtiqUserDTO.samlUserToMtiqUser(allUsers.get(0))).usingRecursiveComparison().isEqualTo(user);
+      assertThat(MtiqUserDTO.ssoUserToMtiqUser(allUsers.get(0))).usingRecursiveComparison().isEqualTo(user);
     });
 
-    List<SamlUser> allUsers = samlUserDAO.getAll();
+    List<SsoUser> allUsers = ssoUserService.getAll();
     assertThat(allUsers).hasSize(0);
   }
 
@@ -117,7 +117,7 @@ public class MultiTenantUserServiceTest
       underTest.inviteUser(user1);
       underTest.inviteUser(user2);
 
-      List<SamlUser> allUsers = samlUserDAO.getAll();
+      List<SsoUser> allUsers = ssoUserService.getAll();
       assertThat(allUsers).hasSize(2);
     });
 
@@ -127,11 +127,11 @@ public class MultiTenantUserServiceTest
 
       underTest.inviteUser(user3);
 
-      List<SamlUser> allUsers = samlUserDAO.getAll();
+      List<SsoUser> allUsers = ssoUserService.getAll();
       assertThat(allUsers).hasSize(1);
-      assertThat(MtiqUserDTO.samlUserToMtiqUser(allUsers.get(0))).usingRecursiveComparison().isNotEqualTo(user1);
-      assertThat(MtiqUserDTO.samlUserToMtiqUser(allUsers.get(0))).usingRecursiveComparison().isNotEqualTo(user2);
-      assertThat(MtiqUserDTO.samlUserToMtiqUser(allUsers.get(0))).usingRecursiveComparison().isEqualTo(user3);
+      assertThat(MtiqUserDTO.ssoUserToMtiqUser(allUsers.get(0))).usingRecursiveComparison().isNotEqualTo(user1);
+      assertThat(MtiqUserDTO.ssoUserToMtiqUser(allUsers.get(0))).usingRecursiveComparison().isNotEqualTo(user2);
+      assertThat(MtiqUserDTO.ssoUserToMtiqUser(allUsers.get(0))).usingRecursiveComparison().isEqualTo(user3);
     });
   }
 
@@ -145,7 +145,7 @@ public class MultiTenantUserServiceTest
       assertThatThrownBy(() -> underTest.inviteUser(user)).isInstanceOf(RuntimeException.class)
           .hasMessageContaining("Tenant metadata not found");
 
-      List<SamlUser> allUsers = samlUserDAO.getAll();
+      List<SsoUser> allUsers = ssoUserService.getAll();
       assertThat(allUsers).hasSize(0);
     });
   }
@@ -160,13 +160,13 @@ public class MultiTenantUserServiceTest
       TenantMetadata tenantMetadata = createTenantMetadata(tenant);
 
       when(currentUser.getUsername()).thenReturn("random@email.com");
-      samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user1));
-      samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user2));
+      ssoUserService.upsertByUsername(user1);
+      ssoUserService.upsertByUsername(user2);
 
       underTest.deleteByUsername(user2.getEmail());
 
       verify(auth0ManagementService).deleteUser(user2.getEmail(), tenantMetadata.getConnectionId());
-      assertThat(samlUserDAO.getByUsername(user2.getEmail())).isNull();
+      assertThat(ssoUserService.getByUsername(user2.getEmail())).isNull();
     });
   }
 
@@ -180,13 +180,13 @@ public class MultiTenantUserServiceTest
       TenantMetadata tenantMetadata = createTenantMetadata(tenant);
 
       when(currentUser.getUsername()).thenReturn("admin@email.com");
-      samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user1));
-      samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user2));
+      ssoUserService.upsertByUsername(user1);
+      ssoUserService.upsertByUsername(user2);
 
       underTest.deleteByUsername("random@email.com");
 
       verify(auth0ManagementService).deleteUser("random@email.com", tenantMetadata.getConnectionId());
-      assertThat(samlUserDAO.getByUsername("random@email.com")).isNull();
+      assertThat(ssoUserService.getByUsername("random@email.com")).isNull();
     });
   }
 
@@ -197,8 +197,8 @@ public class MultiTenantUserServiceTest
 
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       provisionTenant(tenant.tenantSlug);
-      samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user1));
-      samlUserDAO.insert(MtiqUserDTO.samlUserFromMtiqUser(user2));
+      ssoUserService.upsertByUsername(user1);
+      ssoUserService.upsertByUsername(user2);
 
       assertThatThrownBy(() -> underTest.deleteByUsername("random@email.com"))
           .isInstanceOf(RuntimeException.class);

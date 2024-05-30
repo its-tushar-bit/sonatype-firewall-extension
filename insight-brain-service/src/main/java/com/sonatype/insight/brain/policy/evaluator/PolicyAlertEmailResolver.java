@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -28,14 +27,13 @@ import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
-import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.security.CrowdClient;
 import com.sonatype.insight.brain.security.CrowdClientFactory;
 import com.sonatype.insight.brain.security.CrowdRealm;
 import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.MemberAttributeResolver;
-import com.sonatype.insight.brain.security.SamlRealm;
-import com.sonatype.insight.brain.security.SamlUserGroupHelper;
+import com.sonatype.insight.brain.security.SsoUser;
+import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.security.UserDirectory;
 
 import org.apache.commons.lang3.StringUtils;
@@ -55,7 +53,7 @@ public class PolicyAlertEmailResolver
 
   private final OwnerDAO ownerDAO;
 
-  private final SamlUserGroupHelper samlUserGroupHelper;
+  private final SsoUserService ssoUserService;
 
   private final CrowdClientFactory crowdClientFactory;
 
@@ -66,7 +64,7 @@ public class PolicyAlertEmailResolver
       final UserDirectory userDirectory,
       final LdapService ldapService,
       final OwnerDAO ownerDAO,
-      final SamlUserGroupHelper samlUserGroupHelper,
+      final SsoUserService ssoUserService,
       final MembershipMappingDAO membershipMappingDAO,
       final LdapServerDAO ldapServerDAO,
       final CrowdClientFactory crowdClientFactory)
@@ -74,7 +72,7 @@ public class PolicyAlertEmailResolver
     this.userDirectory = userDirectory;
     this.ldapService = ldapService;
     this.ownerDAO = ownerDAO;
-    this.samlUserGroupHelper = samlUserGroupHelper;
+    this.ssoUserService = ssoUserService;
     this.membershipMappingDAO = membershipMappingDAO;
     this.ldapServerDAO = ldapServerDAO;
     this.crowdClientFactory = crowdClientFactory;
@@ -138,8 +136,8 @@ public class PolicyAlertEmailResolver
         if (CrowdRealm.ID.equals(member.getRealm())) {
           addEmailAddressesForCrowdGroupMembers(emailAddresses, member);
         }
-        else if (SamlRealm.ID.equals(member.getRealm())) {
-          addEmailAddressesForSamlGroupMembers(emailAddresses, member);
+        else if (ssoUserService.isSsoRealm(member.getRealm())) {
+          addEmailAddressesForSsoGroupMembers(emailAddresses, member);
         }
         else {
           addEmailAddressesForLDAPGroupMembers(emailAddresses, member);
@@ -166,12 +164,11 @@ public class PolicyAlertEmailResolver
     }
   }
 
-  private void addEmailAddressesForSamlGroupMembers(Set<String> emailAddresses, Member group) {
-    if (samlUserGroupHelper.isSamlConfigured()) {
-      List<SamlUser> samlUsers = samlUserGroupHelper.getSamlUsersByGroupName(group.getInternalName());
-      for (SamlUser samlUser : samlUsers) {
-        if (StringUtils.isNotBlank(samlUser.getEmail())) {
-          emailAddresses.add(samlUser.getEmail());
+  private void addEmailAddressesForSsoGroupMembers(Set<String> emailAddresses, Member group) {
+    if (ssoUserService.isSsoConfigured()) {
+      for (SsoUser ssoUser : ssoUserService.getSsoUsersByGroupName(group.getInternalName())) {
+        if (StringUtils.isNotBlank(ssoUser.getEmail())) {
+          emailAddresses.add(ssoUser.getEmail());
         }
       }
     }

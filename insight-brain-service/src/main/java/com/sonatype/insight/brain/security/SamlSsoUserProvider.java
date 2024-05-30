@@ -10,7 +10,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -26,7 +25,8 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.google.common.collect.Sets;
 
 @Named
-public class SamlUserGroupHelper
+public class SamlSsoUserProvider
+    implements SsoUserProvider
 {
   private final SamlConfigurationDAO samlConfigurationDAO;
 
@@ -37,7 +37,7 @@ public class SamlUserGroupHelper
   private final SamlUserGroupDAO samlUserGroupDAO;
 
   @Inject
-  public SamlUserGroupHelper(
+  public SamlSsoUserProvider(
       SamlConfigurationDAO samlConfigurationDAO,
       SamlUserDAO samlUserDAO,
       SamlGroupDAO samlGroupDAO,
@@ -49,19 +49,32 @@ public class SamlUserGroupHelper
     this.samlUserGroupDAO = samlUserGroupDAO;
   }
 
-  public boolean isSamlConfigured() {
+  @Override
+  public String getSsoRealm() {
+    return SamlRealm.ID;
+  }
+
+  @Override
+  public boolean isSsoRealm(String realmId) {
+    return SamlRealm.ID.equalsIgnoreCase(realmId);
+  }
+
+  @Override
+  public boolean isSsoConfigured() {
     return samlConfigurationDAO.get() != null;
   }
 
-  public void updateSamlUserAndGroups(SamlUser samlUser, Set<String> newSamlGroupNames) {
+  @Override
+  public void updateSsoUserAndGroups(SsoUser ssoUser, Set<String> newSamlGroupNames) {
     try (TransactionContext tx = samlUserDAO.createTransactionContext()) {
       tx.begin();
 
       // Create/update user
-      samlUserDAO.upsertByUsername(tx, samlUser);
+      SamlUser user = SsoUser.toSamlUser(ssoUser);
+      samlUserDAO.upsertByUsername(tx, user);
 
       // Get user-group mappings if any
-      List<SamlUserGroup> samlUserGroups = samlUserGroupDAO.getBySamlUserId(tx, samlUser.getId());
+      List<SamlUserGroup> samlUserGroups = samlUserGroupDAO.getBySamlUserId(tx, user.getId());
       // Get groups if any
       List<SamlGroup> samlGroups =
           samlGroupDAO.getByIds(tx,
@@ -74,7 +87,7 @@ public class SamlUserGroupHelper
           .filter(samlGroup -> samlGroupNamesRemoved.contains(samlGroup.getName()))
           .map(SamlGroup::getId)
           .collect(Collectors.toSet());
-      samlUserGroupDAO.deleteBySamlUserIdAndGroupIds(tx, samlUser.getId(), samlGroupIdsRemoved);
+      samlUserGroupDAO.deleteBySamlUserIdAndGroupIds(tx, user.getId(), samlGroupIdsRemoved);
 
       // Remove groups if they no longer have any members
       Set<SamlGroup> samlGroupsRemoved = samlGroups.stream()
@@ -93,7 +106,7 @@ public class SamlUserGroupHelper
 
       // Add new user-group mappings
       Set<SamlUserGroup> samlUserGroupsAdded = samlGroupsAdded.stream()
-          .map(samlGroupAdded -> new SamlUserGroup(samlUser.getId(), samlGroupAdded.getId()))
+          .map(samlGroupAdded -> new SamlUserGroup(user.getId(), samlGroupAdded.getId()))
           .collect(Collectors.toSet());
       samlUserGroupsAdded.forEach(
           samlUserGroupAdded -> samlUserGroupDAO.upsertBySamlUserIdAndSamlGroupId(tx, samlUserGroupAdded));
@@ -102,33 +115,72 @@ public class SamlUserGroupHelper
     }
   }
 
-  public List<SamlUser> getSamlUsersByGroupName(String groupName) {
+  @Override
+  public List<SsoUser> getSsoUsersByGroupName(String groupName) {
     try (TransactionContext tx = samlUserDAO.createTransactionContext()) {
       SamlGroup samlGroup = samlGroupDAO.getByName(tx, groupName);
       if (samlGroup == null) {
         return Collections.emptyList();
       }
       List<SamlUserGroup> samlUserGroups = samlUserGroupDAO.getBySamlGroupId(tx, samlGroup.getId());
-      return samlUserDAO.getByIds(tx,
+
+      List<SamlUser> users = samlUserDAO.getByIds(tx,
           samlUserGroups.stream().map(SamlUserGroup::getSamlUserId)
               .collect(Collectors.toCollection(LinkedHashSet::new)));
+
+      return users.stream().map(SsoUser::fromSamlUser).collect(Collectors.toList());
     }
   }
 
-  public Set<String> filterExistingSamlGroupNames(Set<String> groupNames) {
+  @Override
+  public Set<String> filterExistingSsoGroupNames(Set<String> groupNames) {
     return samlGroupDAO.getByNames(groupNames).stream().map(SamlGroup::getName).collect(Collectors.toCollection(
         LinkedHashSet::new));
   }
 
-  public List<SamlUser> getSamlUsersByUsernames(Set<String> usernames) {
-    return samlUserDAO.getByUsernames(usernames);
+  @Override
+  public List<SsoUser> getSsoByUsernames(Set<String> usernames) {
+    List<SamlUser> users = samlUserDAO.getByUsernames(usernames);
+    return users.stream().map(SsoUser::fromSamlUser).collect(Collectors.toList());
   }
 
-  public List<SamlUser> findSamlUsersByNameOrUsernameQuery(String nameQuery) {
-    return samlUserDAO.findUsersByNameOrUsernameQuery(nameQuery);
+  @Override
+  public List<SsoUser> findSsoUsersByNameOrUsernameQuery(String nameQuery) {
+    List<SamlUser> users = samlUserDAO.findUsersByNameOrUsernameQuery(nameQuery);
+    return users.stream().map(SsoUser::fromSamlUser).collect(Collectors.toList());
   }
 
-  public List<SamlGroup> findSamlGroupsByNameQuery(String nameQuery) {
-    return samlGroupDAO.findGroupsByNameQuery(nameQuery);
+  @Override
+  public List<SsoGroup> findSsoGroupsByNameQuery(String nameQuery) {
+    List<SamlGroup> groups = samlGroupDAO.findGroupsByNameQuery(nameQuery);
+    return groups.stream().map(SsoGroup::fromSamlGroup).collect(Collectors.toList());
+  }
+
+  @Override
+  public void deleteSsoUser(final SsoUser ssoUser) {
+    samlUserDAO.delete(SsoUser.toSamlUser(ssoUser));
+  }
+
+  @Override
+  public void upsertByUsername(final SsoUser ssoUser) {
+    samlUserDAO.upsertByUsername(SsoUser.toSamlUser(ssoUser));
+  }
+
+  @Override
+  public List<SsoUser> getAll() {
+    List<SamlUser> users = samlUserDAO.getAll();
+    return users.stream().map(SsoUser::fromSamlUser).collect(Collectors.toList());
+  }
+
+  @Override
+  public SsoUser getByUsername(final String username) {
+    SamlUser user = samlUserDAO.getByUsername(username);
+    return SsoUser.fromSamlUser(user);
+  }
+
+  @Override
+  public SsoUser getByUsernameNotNull(final String username) {
+    SamlUser user = samlUserDAO.getByUsernameNotNull(username);
+    return SsoUser.fromSamlUser(user);
   }
 }

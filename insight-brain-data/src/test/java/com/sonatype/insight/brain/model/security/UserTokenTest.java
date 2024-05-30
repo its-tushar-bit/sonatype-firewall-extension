@@ -12,12 +12,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class UserTokenTest
 {
   @Test
-  public void testIsSamlUser() {
+  public void testIsSsoUser_Saml() {
     UserToken samlUserToken = createUserToken(SamlUser.SAML_REALM_ID);
     UserToken otherUserToken = createUserToken("other");
 
-    assertThat(samlUserToken.isSamlUser()).isTrue();
-    assertThat(otherUserToken.isSamlUser()).isFalse();
+    assertThat(samlUserToken.isSsoUser()).isTrue();
+    assertThat(otherUserToken.isSsoUser()).isFalse();
   }
 
   @Test

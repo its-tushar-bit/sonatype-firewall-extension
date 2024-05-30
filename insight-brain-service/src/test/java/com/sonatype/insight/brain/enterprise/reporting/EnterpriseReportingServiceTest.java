@@ -23,7 +23,6 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionAcquire;
 import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokens;
 import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokensResponse;
-import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
@@ -34,6 +33,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.security.MembershipMappingService;
+import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.tenancy.Tenant;
@@ -86,7 +86,7 @@ public class EnterpriseReportingServiceTest
   private UserDAO mockUserDAO;
 
   @Mock
-  private SamlUserDAO mockSamlUserDAO;
+  private SsoUserService mockSsoUserService;
 
   @Mock
   private TaskScheduler mockTaskScheduler;
@@ -102,7 +102,7 @@ public class EnterpriseReportingServiceTest
     binder.bind(HdsClient.class).toInstance(mockHdsClient);
     binder.bind(CurrentUser.class).toInstance(mockCurrentUser);
     binder.bind(UserDAO.class).toInstance(mockUserDAO);
-    binder.bind(SamlUserDAO.class).toInstance(mockSamlUserDAO);
+    binder.bind(SsoUserService.class).toInstance(mockSsoUserService);
     binder.bind(MembershipMappingService.class).toInstance(mockMembershipMappingService);
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
     super.configure(binder);

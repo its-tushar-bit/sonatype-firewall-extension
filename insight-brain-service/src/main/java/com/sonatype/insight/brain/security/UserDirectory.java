@@ -36,8 +36,6 @@ import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.MemberType;
-import com.sonatype.insight.brain.model.security.SamlGroup;
-import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 
 import org.apache.commons.lang3.StringUtils;
@@ -100,7 +98,7 @@ public class UserDirectory
 
   private final UserDAO userDao;
 
-  private final SamlUserGroupHelper samlUserGroupHelper;
+  private final SsoUserService ssoUserService;
 
   private final LdapService ldapService;
 
@@ -110,13 +108,13 @@ public class UserDirectory
   public UserDirectory(
       UserDAO userDao,
       LdapServerDAO ldapServerDAO,
-      SamlUserGroupHelper samlUserGroupHelper,
+      SsoUserService ssoUserService,
       LdapService ldapService,
       CrowdClientFactory crowdClientFactory)
   {
     this.userDao = userDao;
     this.ldapServerDAO = ldapServerDAO;
-    this.samlUserGroupHelper = samlUserGroupHelper;
+    this.ssoUserService = ssoUserService;
     this.ldapService = ldapService;
     this.crowdClientFactory = crowdClientFactory;
   }
@@ -179,13 +177,12 @@ public class UserDirectory
       }
     }
 
-    if (!groupNames.isEmpty() && samlUserGroupHelper.isSamlConfigured()) {
-      Set<String> existingSamlGroupNames = samlUserGroupHelper.filterExistingSamlGroupNames(groupNames);
-      List<Member> samlGroupMembers = existingSamlGroupNames.stream()
-          .map(group -> new Member(MemberType.GROUP, group, group, null, SamlRealm.ID))
-          .collect(Collectors.toList());
-      result.get().addAll(samlGroupMembers);
-      groupNames.removeAll(existingSamlGroupNames);
+    if (!groupNames.isEmpty() && ssoUserService.isSsoConfigured()) {
+      List<Member> ssoGroupMembers = ssoUserService.getSsoGroupMembers(groupNames);
+      Set<String> existingSsoGroupNames =
+          ssoGroupMembers.stream().map(Member::getInternalName).collect(Collectors.toSet());
+      result.get().addAll(ssoGroupMembers);
+      groupNames.removeAll(existingSsoGroupNames);
     }
 
     if (!groupNames.isEmpty()) {
@@ -269,13 +266,12 @@ public class UserDirectory
       }
     }
 
-    if (!sortedUserNames.isEmpty() && samlUserGroupHelper.isSamlConfigured()) {
-      List<SamlUser> samlUsers = samlUserGroupHelper.getSamlUsersByUsernames(sortedUserNames);
-      for (SamlUser samlUser : samlUsers) {
-        Member member = new Member(MemberType.USER, samlUser.getUsername(), samlUser.calculateDisplayName(),
-            samlUser.getEmail(), SamlUser.SAML_REALM_ID);
+    if (!sortedUserNames.isEmpty() && ssoUserService.isSsoConfigured()) {
+      for (SsoUser ssoUser : ssoUserService.getSsoByUsernames(sortedUserNames)) {
+        Member member = new Member(MemberType.USER, ssoUser.getUsername(), ssoUser.calculateDisplayName(),
+            ssoUser.getEmail(), ssoUser.getRealmId());
         members.add(member);
-        sortedUserNames.remove(samlUser.getUsername());
+        sortedUserNames.remove(ssoUser.getUsername());
       }
     }
 
@@ -328,12 +324,12 @@ public class UserDirectory
       CrowdClient crowdClient = crowdClientFactory.createCrowdClient();
       // searching for users
       addLDAPUsersByQuery(users, ldapServers, query, namingExceptions, otherExceptions);
-      addSamlUsersByQuery(users, query);
+      addSsoUsersByQuery(users, query);
       addCrowdUsersByQuery(users, crowdClient, query, otherExceptions);
       // searching for groups
       if (groupsEnabled) {
         addLDAPGroupsByQuery(groups, ldapServers, query, namingExceptions, otherExceptions);
-        addSamlGroupsByQuery(groups, query);
+        addSsoGroupsByQuery(groups, query);
         addCrowdGroupsByQuery(groups, crowdClient, query, otherExceptions);
       }
     }
@@ -388,15 +384,15 @@ public class UserDirectory
     }
   }
 
-  private void addSamlUsersByQuery(
+  private void addSsoUsersByQuery(
       Map<String, Member> users,
       String query)
   {
-    if (samlUserGroupHelper.isSamlConfigured()) {
+    if (ssoUserService.isSsoConfigured()) {
       String nameQuery = query.replace(QUERY_WILDCARD, SQL_QUERY_WILDCARD);
-      for (SamlUser samlUser : samlUserGroupHelper.findSamlUsersByNameOrUsernameQuery(nameQuery)) {
-        Member member = new Member(MemberType.USER, samlUser.getUsername(), samlUser.calculateDisplayName(),
-            samlUser.getEmail(), SamlRealm.ID);
+      for (SsoUser ssoUser : ssoUserService.findSsoUsersByNameOrUsernameQuery(nameQuery)) {
+        Member member = new Member(MemberType.USER, ssoUser.getUsername(), ssoUser.calculateDisplayName(),
+            ssoUser.getEmail(), ssoUser.getRealmId());
         users.put(member.getInternalNameLowerCase(), member);
       }
     }
@@ -461,24 +457,21 @@ public class UserDirectory
     }
   }
 
-  private void addSamlGroupsByQuery(
+  private void addSsoGroupsByQuery(
       Map<String, Member> groups,
       String query)
   {
-    if (samlUserGroupHelper.isSamlConfigured()) {
+    if (ssoUserService.isSsoConfigured()) {
       String nameQuery = query.replace(QUERY_WILDCARD, SQL_QUERY_WILDCARD);
-      List<SamlGroup> samlMatchedGroups = samlUserGroupHelper.findSamlGroupsByNameQuery(nameQuery);
-      List<Member> samlGroupMembers = samlMatchedGroups.stream()
-          .map(group -> new Member(MemberType.GROUP, group.getName(), group.getName(), null, SamlRealm.ID))
-          .collect(Collectors.toList());
-      for (Member samlGroupMember : samlGroupMembers) {
-        String key = samlGroupMember.getInternalNameLowerCase();
+      List<Member> ssoGroupMembers = ssoUserService.getSsoGroupMembersByNameQuery(nameQuery);
+      for (Member ssoGroupMember : ssoGroupMembers) {
+        String key = ssoGroupMember.getInternalNameLowerCase();
         // Ignore any group that was already discovered in the other realms.
         if (!groups.containsKey(key)) {
-          groups.put(key, samlGroupMember);
+          groups.put(key, ssoGroupMember);
         }
         else {
-          log.debug(IGNORING_MEMBER_MESSAGE, "group", key, samlGroupMember.getRealm(), groups.get(key).getRealm());
+          log.debug(IGNORING_MEMBER_MESSAGE, "group", key, ssoGroupMember.getRealm(), groups.get(key).getRealm());
         }
       }
     }

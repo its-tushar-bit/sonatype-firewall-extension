@@ -129,8 +129,8 @@ make(
 void postBuild() {
   if (!isFastBuild()) {
     pushDockerImageIfDeployBranch()
-    pushMTIQDockerImage()
   }
+  pushMTIQDockerImage()
 }
 
 void configureBranchJob() {
@@ -220,7 +220,9 @@ void pushDockerImageIfDeployBranch() {
 
 void pushMTIQDockerImage() {
     // MTIQ image push rules:
-    // - any snapshot build on the `main` branch (iq on-prem release builds should not be processed)
+    // - any snapshot build on the `main` branch
+    //   - Note IQ on-prem release builds should not be processed
+    //   - Note fast builds never run on `main`
     // - any branch ending with `_mtiq`
     // - any branch run manually with the parameter to push selected
     // Note: there is a cleanup policy on RSC to purge old MTIQ feature branches images.

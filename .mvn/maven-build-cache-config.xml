@@ -40,6 +40,7 @@
         <runAlways>
             <plugins>
                 <plugin groupId="org.apache.openjpa" artifactId="openjpa-maven-plugin"/>
+                <plugin groupId="org.apache.maven.plugins" artifactId="maven-dependency-plugin"/>
             </plugins>
         </runAlways>
         <reconcile>

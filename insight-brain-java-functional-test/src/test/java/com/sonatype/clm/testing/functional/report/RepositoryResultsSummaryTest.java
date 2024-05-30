@@ -178,7 +178,7 @@ public class RepositoryResultsSummaryTest
     RepositoryResultDetailPage.aggregateToggle().click();
     RepositoryResultDetailPage.table().header().threat().shouldHave(text("THREAT"));
     RepositoryResultDetailPage.table().header().policy().shouldHave(text("POLICY"));
-    RepositoryResultDetailPage.table().header().quarantined().shouldHave(text("QUARANTINED"));
+    RepositoryResultDetailPage.table().header().quarantined().shouldHave(text("QUARANTINE TIME"));
     RepositoryResultDetailPage.table().header().component().shouldHave(text("COMPONENT"));
 
     RepositoryResultDetailPage.table().rows().shouldHave(size(12));

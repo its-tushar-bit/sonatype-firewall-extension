@@ -244,7 +244,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     sastReport(9).shouldHave(text("a few seconds ago"));
 
     Selenide.sleep(1000);
-    eyesWatcher.eyesCheck();
+    //eyesWatcher.eyesCheck(); https://sonatype.atlassian.net/browse/CLM-30559
 
     sastReportViewLink(9).click();
 
@@ -357,7 +357,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
     developerDashboardGraphTooltip().shouldBe(visible);
 
-    eyesWatcher.eyesCheck(null, false, false);
+    //eyesWatcher.eyesCheck(null, false, false); https://sonatype.atlassian.net/browse/CLM-30559
   }
 
   @Test

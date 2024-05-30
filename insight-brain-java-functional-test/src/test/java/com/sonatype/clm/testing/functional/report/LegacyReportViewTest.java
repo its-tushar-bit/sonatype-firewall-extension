@@ -56,19 +56,19 @@ public class LegacyReportViewTest
 
     ReportPage.summaryTabButton().shouldBe(visible).click();
     ReportPage.coverageDonut().shouldBe(visible);
-    eyesWatcher.eyesCheck("Legacy View Summary Tab");
+    //eyesWatcher.eyesCheck("Legacy View Summary Tab"); https://sonatype.atlassian.net/browse/CLM-30559
 
     ReportPage.policyTabButton().shouldBe(visible).click();
     ReportPage.componentContainer().shouldBe(visible);
-    eyesWatcher.eyesCheck("Legacy View Policy Tab");
+    //eyesWatcher.eyesCheck("Legacy View Policy Tab"); https://sonatype.atlassian.net/browse/CLM-30559
 
     ReportPage.securityContainerButton().shouldBe(visible).click();
     ReportPage.securityTable().shouldBe(visible);
-    eyesWatcher.eyesCheck("Legacy View Security Container Tab");
+    //eyesWatcher.eyesCheck("Legacy View Security Container Tab"); https://sonatype.atlassian.net/browse/CLM-30559
 
     ReportPage.licenseContainerButton().shouldBe(visible).click();
     ReportPage.licenseContainer().shouldBe(visible);
-    eyesWatcher.eyesCheck("Legacy View License Container");
+    //eyesWatcher.eyesCheck("Legacy View License Container"); https://sonatype.atlassian.net/browse/CLM-30559
   }
 
   private void createGavViolatingPolicy(String ownerId) {

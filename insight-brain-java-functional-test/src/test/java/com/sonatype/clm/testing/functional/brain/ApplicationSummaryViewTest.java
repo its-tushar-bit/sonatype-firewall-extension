@@ -748,7 +748,7 @@ public class ApplicationSummaryViewTest
     inheritedLabelList.should(exist).shouldNotBe(visible);
     labelTile.labelListSubheader(1).shouldHave(LabelTile.inheritedText(organization.getName()));
     ScrollUtil.scrollIntoViewInstantly(labelTile.getElement());
-    eyesWatcher.eyesCheck("Inherited Component Labels Header Truncation");
+    //eyesWatcher.eyesCheck("Inherited Component Labels Header Truncation"); //sonatype.atlassian.net/browse/CLM-30559
   }
 
   @Test

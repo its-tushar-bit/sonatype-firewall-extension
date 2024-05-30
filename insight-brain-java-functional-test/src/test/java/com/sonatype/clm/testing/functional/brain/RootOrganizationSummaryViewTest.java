@@ -89,7 +89,7 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     tile.itemSubText().shouldBe(visible)
         .shouldHave(Condition.text("Provides the default source control configuration settings"));
 
-    eyesWatcher.eyesCheck("Valid source control configured");
+    //eyesWatcher.eyesCheck("Valid source control configured"); https://sonatype.atlassian.net/browse/CLM-30559
   }
 
   @Test

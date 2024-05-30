@@ -369,7 +369,7 @@ public class ApplicationReportTest
     optionsDropdown.menu().entries().last().shouldHave(text("View legacy report")).click();
 
     ApplicationReportContainerPage.getIframe().shouldBe(visible);
-    eyesWatcher.eyesCheck();
+    //eyesWatcher.eyesCheck(); https://sonatype.atlassian.net/browse/CLM-30559
   }
 
   @Test

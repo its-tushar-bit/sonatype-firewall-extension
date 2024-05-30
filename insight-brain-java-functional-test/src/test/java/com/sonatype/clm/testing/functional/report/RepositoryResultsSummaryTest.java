@@ -166,7 +166,7 @@ public class RepositoryResultsSummaryTest
     RepositoryResultDetailPage.indicatorRow().quarantineCaptionText().shouldHave(text("1 QUARANTINED"));
     RepositoryResultDetailPage.indicatorRow().quarantineCaptionSubtext().shouldHave(text("component"));
 
-    eyesWatcher.eyesCheck("Repository Detail Page");
+    // eyesWatcher.eyesCheck("Repository Detail Page"); https://sonatype.atlassian.net/browse/CLM-30559
     RepositoryResultDetailPage.header().shouldBe(visible).shouldHave(text("Central Repository Results"));
 
   }

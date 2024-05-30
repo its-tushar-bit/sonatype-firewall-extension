@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
@@ -361,7 +362,7 @@ public class ApiComponentsWithWaiversReportingService
     else {
       // Walking the hierarchy to determine if the policy waiver scope is still visible to the current owner's location.
       // This can occur if an app is moved to a different org than the original policy waiver was defined for.
-      Owner waiverOwner = StreamSupport.stream(ownerDAO.walkHierarchy(ownerId).spliterator(), false)
+      Owner waiverOwner = StreamSupport.stream(ownerDAO.walkHierarchy(ownerId).spliterator(), false /* parallel */)
           .filter(owner -> owner.getId().equals(policyWaiver.getOwnerId())).findFirst().orElse(null);
       if (waiverOwner != null) {
         policyWaiverDTO = ApiPolicyWaiverDTO.toDto(policyWaiver, waiverOwner);

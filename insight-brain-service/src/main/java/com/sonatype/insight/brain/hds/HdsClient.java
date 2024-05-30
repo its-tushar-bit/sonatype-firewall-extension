@@ -609,7 +609,8 @@ public class HdsClient
     if (retryCount > 0) {
       wrapper.setURI(UriBuilder.fromUri(request.getURI()).queryParam("retryCount", retryCount).build());
     }
-    log.debug("Starting request: {} {}", wrapper.getMethod(), wrapper.getURI());
+    log.debug("Starting request: {} {}, {}", wrapper.getMethod(), wrapper.getURI(),
+        request.getFirstHeader("X-CLM-Token"));
     long start = System.currentTimeMillis();
     StatusLine statusLine = null;
     String requestId = null;

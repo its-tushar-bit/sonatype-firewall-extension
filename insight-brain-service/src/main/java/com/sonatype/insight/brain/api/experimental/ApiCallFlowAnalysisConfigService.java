@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -98,7 +99,7 @@ public class ApiCallFlowAnalysisConfigService
 
   private ApiCallFlowAnalysisConfigDTO getCallFlowAnalysisConfig(String ownerId) throws NotFoundException {
     Iterable<Owner> ownersParents = ownerDAO.walkHierarchy(ownerId);
-    Stream<Owner> ownerStream = StreamSupport.stream(ownersParents.spliterator(), false);
+    Stream<Owner> ownerStream = StreamSupport.stream(ownersParents.spliterator(), false /* parallel */);
     Optional<ApiCallFlowAnalysisConfigDTO> optionalConfigDTO = ownerStream
         .map(owner -> callFlowAnalysisConfigDAO.getByOwnerId(owner.getId()))
         .filter(Objects::nonNull)

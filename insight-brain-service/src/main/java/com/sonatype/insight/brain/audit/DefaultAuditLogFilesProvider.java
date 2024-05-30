@@ -94,7 +94,7 @@ public class DefaultAuditLogFilesProvider
     DefaultLoggingFactory loggingFactory = (DefaultLoggingFactory) config.getLoggingFactory();
     Map<String, JsonNode> loggers = loggingFactory.getLoggers();
     JsonNode loggerNode = loggers.getOrDefault(AuditRecorder.BASE_LOGGER_NAME, MissingNode.getInstance());
-    String currentLogFilename = StreamSupport.stream(loggerNode.path("appenders").spliterator(), false)
+    String currentLogFilename = StreamSupport.stream(loggerNode.path("appenders").spliterator(), false /* parallel */)
         .map(appender -> appender.path("currentLogFilename")).filter(JsonNode::isTextual)
         .map(JsonNode::asText).findFirst().orElse(null);
 

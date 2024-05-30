@@ -798,6 +798,11 @@ public class ApiLicenseLegalService
   {
     checkLicense();
 
+    log.debug(
+        "Getting LicenseLegalComponentReport for owner type={} with ID={} for"
+            + " componentIdentifier={}, packageUrl={}, hash={}.",
+        ownerType, ownerId, componentIdentifier, packageUrl, hash);
+
     Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentIdentifier compIdentifier = getComponentIdentifier(componentIdentifier, packageUrl, hash);
     // We get the component by coordinates from HDS

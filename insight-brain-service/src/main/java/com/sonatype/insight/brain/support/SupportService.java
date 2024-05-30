@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -197,7 +198,7 @@ public class SupportService
     DefaultLoggingFactory loggingFactory = (DefaultLoggingFactory) config.getLoggingFactory();
     Map<String, JsonNode> loggers = loggingFactory.getLoggers();
     JsonNode loggerNode = loggers.getOrDefault(loggerName, MissingNode.getInstance());
-    return StreamSupport.stream(loggerNode.path("appenders").spliterator(), false)
+    return StreamSupport.stream(loggerNode.path("appenders").spliterator(), false /* parallel */)
         .map(appender -> appender.path("currentLogFilename")).filter(JsonNode::isTextual)
         .map(nameNode -> new File(nameNode.asText())).findFirst().orElse(null);
   }

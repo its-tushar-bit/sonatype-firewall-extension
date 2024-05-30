@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -47,6 +46,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.sbom.export.SbomExporterProvider;
@@ -69,14 +69,17 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.scan.application.ScannerDriver;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.cyclonedx.exception.ParseException;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spdx.library.InvalidSPDXAnalysisException;
 
 @Named
 @Singleton
@@ -185,16 +188,39 @@ public class ApiSbomService
       final String acceptType)
   {
     final ThirdPartySbomMetadata thirdPartySbomMetadata = findSbomMetadataRecord(applicationId, version);
+    ExportSpecification exportSpec = ExportSpecification.getSpecificationForRequest(targetSpecification);
+    SbomFormat sbomFormat = SbomFormat.forMimeType(acceptType);
     SbomExportParams params = SbomExportParams.newSbomExporterParams(thirdPartySbomMetadata)
-        .withExportSpecification(ExportSpecification.getSpecificationForRequest(targetSpecification))
-        .withTargetFormat(SbomFormat.forMimeType(acceptType));
+        .withExportSpecification(exportSpec)
+        .withTargetFormat(sbomFormat);
 
     String content = sbomExporterProvider.get(params).export();
+    validateAndLogAnyErrors(content, applicationId, version, exportSpec, sbomFormat);
     content = content != null ? content : "";
-    String fileName = getExportFileName(applicationId, version, SbomFormat.forMimeType(acceptType).toString());
+    String fileName = getExportFileName(applicationId, version, sbomFormat.toString());
     return Response.ok(content.getBytes(StandardCharsets.UTF_8), acceptType)
         .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(fileName))
         .build();
+  }
+
+  private void validateAndLogAnyErrors(
+      String content,
+      final String applicationId,
+      final String version,
+      ExportSpecification exportSpec, SbomFormat sbomFormat)
+  {
+    try {
+      if (SbomSpecification.CYCLONEDX.equals(exportSpec.getSpecification())) {
+        ThirdPartyUtils.parseAndValidateCycloneDx(content, sbomFormat);
+      }
+      else if (SbomSpecification.SPDX.equals(exportSpec.getSpecification())) {
+        ThirdPartyUtils.parseAndValidateSpdx(content, sbomFormat);
+      }
+    }
+    catch (ParseException | IOException | InvalidSPDXAnalysisException e) {
+      log.debug("Invalid SBOM generated for application {}, version {}, spec {}, format {}", applicationId, version,
+          exportSpec.getSpecification(), sbomFormat, e);
+    }
   }
 
   private void validateRequestParams(final String targetSpecification, final String acceptMediaType) {

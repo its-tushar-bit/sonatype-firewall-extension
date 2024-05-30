@@ -727,13 +727,13 @@ public class ThirdPartyDataServiceTest
         tempEntity.newThirdPartyFileCoordinate(file, "tp", "maven", "commons-httpclient", "3.1",
             "964cd74171f427720480", "pkg:maven/apache-httpclient/commons-httpclient@3.1?type=jar");
 
-    tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "Apache-2.0", "Apache-2.0", "link1");
+    //purposely using a different license id so that the looks up should fallback to name
+    tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "Apache", "Apache-2.0", "link1");
 
     tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "AGPL-2.0", "AGPL-2.0", "link2");
 
     ThirdPartyCoordinateLicense thirdPartyCoordinateLicense1 =
         tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "AGPL-3.0", "AGPL-3.0", "link3");
-    thirdPartyCoordinateLicense1.setIdentificationSources("SBOM");
     thirdPartyCoordinateLicenseDAO.update(thirdPartyCoordinateLicense1);
 
     tempEntity.createSbomMetadata("appId", "1", file);
@@ -773,8 +773,8 @@ public class ThirdPartyDataServiceTest
     assertThat(thirdPartyCoordinateLicense.getIdentificationSources()).isEqualTo("Sonatype");
 
     thirdPartyCoordinateLicense = thirdPartyCoordinateLicenseDAO
-        .getByFileCoordinateIdAndLicenseId(thirdPartyFileCoordinate.getId(), "Apache-2.0");
-    assertThat(thirdPartyCoordinateLicense.getLicenseId()).isEqualTo("Apache-2.0");
+        .getByFileCoordinateIdAndLicenseId(thirdPartyFileCoordinate.getId(), "Apache");
+    assertThat(thirdPartyCoordinateLicense.getLicenseId()).isEqualTo("Apache");
     assertThat(thirdPartyCoordinateLicense.getName()).isEqualTo("Apache-2.0");
     assertThat(thirdPartyCoordinateLicense.getUrl()).isEqualTo("link1");
     assertThat(thirdPartyCoordinateLicense.getIdentificationSources()).isEqualTo("SBOM,Sonatype");

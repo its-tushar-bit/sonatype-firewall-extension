@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -100,6 +101,8 @@ public class ThirdPartyDataService
   private static final Logger log = LoggerFactory.getLogger(ThirdPartyDataService.class);
 
   public static final String FIELD_EFFECTIVE_LICENSES = "effectiveLicenses";
+
+  public static final Set<String> UNSUPPORTED_LICENSE_IDS = ImmutableSet.of("Not Provided", "Non-Standard");
 
   public static final String FIELD_REFERENCE = "reference";
 
@@ -733,10 +736,23 @@ public class ThirdPartyDataService
   {
     Map<String, JsonNode> sonatypeLicenses = sonatypeLicenseResults.get(bomComponentIdentifier);
     if (MapUtils.isNotEmpty(sonatypeLicenses)) {
+      List<ThirdPartyCoordinateLicense> sbomComponentLicenses =
+          thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(sbomComponent.getId());
+      Map<String, ThirdPartyCoordinateLicense> byLicenseIds =
+          sbomComponentLicenses.stream().collect(Collectors.toMap(ThirdPartyCoordinateLicense::getLicenseId, cl -> cl));
+      Map<String, ThirdPartyCoordinateLicense> byLicenseNames = sbomComponentLicenses.stream().collect(
+          Collectors.toMap(ThirdPartyCoordinateLicense::getName, Function.identity(), (first, second) -> first));
       for (Entry<String, JsonNode> sonatypeLicenseEntry : sonatypeLicenses.entrySet()) {
-        ThirdPartyCoordinateLicense sbomLicense =
-            thirdPartyCoordinateLicenseDAO.getByFileCoordinateIdAndLicenseId(sbomComponent.getId(),
-                sonatypeLicenseEntry.getKey());
+        String resultEntryLicense = sonatypeLicenseEntry.getKey();
+        if (UNSUPPORTED_LICENSE_IDS.contains(resultEntryLicense)) {
+          //there is no valid license identified by sonatype, so no point storing it in database
+          continue;
+        }
+        ThirdPartyCoordinateLicense sbomLicense = byLicenseIds.get(resultEntryLicense);
+        if (sbomLicense == null) {
+          sbomLicense = byLicenseNames.get(resultEntryLicense);
+        }
+
         if (sbomLicense != null) {
           //matching sbom license found, update record
           populateMissingThirdPartyCoordinateLicenseWithSonatypeData(sbomLicense, sonatypeLicenseEntry.getValue());
@@ -746,7 +762,7 @@ public class ThirdPartyDataService
           //no matching sbom license, insert sonatype data
           ThirdPartyCoordinateLicense newThirdPartyLicense = new ThirdPartyCoordinateLicense();
           newThirdPartyLicense.setFileCoordinateId(sbomComponent.getId());
-          newThirdPartyLicense.setLicenseId(sonatypeLicenseEntry.getKey());
+          newThirdPartyLicense.setLicenseId(resultEntryLicense);
           populateMissingThirdPartyCoordinateLicenseWithSonatypeData(newThirdPartyLicense,
               sonatypeLicenseEntry.getValue());
           thirdPartyCoordinateLicenseDAO.insert(newThirdPartyLicense);

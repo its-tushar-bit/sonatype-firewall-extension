@@ -161,13 +161,16 @@ public abstract class AbstractCycloneDxExporter
       LicenseChoice bomLicenseChoice)
   {
     for (ThirdPartyCoordinateLicense sonatypeComponentLicense : sonatypeComponentLicenses) {
-      if (bomLicenseChoice.getLicenses() != null) {
+      if (CollectionUtils.isNotEmpty(bomLicenseChoice.getLicenses())) {
         Optional<License> licenseFromBom = bomLicenseChoice.getLicenses().stream()
             .filter(it -> doLicensesMatch(sonatypeComponentLicense, it)).findFirst();
         if (licenseFromBom.isPresent()) {
           updateBomComponentLicenseWithSonatypeData(licenseFromBom.get(), sonatypeComponentLicense);
           continue;
         }
+      }
+      else {
+        bomLicenseChoice.setLicenses(new ArrayList<>());
       }
       bomLicenseChoice.addLicense(createNewBomComponentLicenseWithSonatypeData(sonatypeComponentLicense));
     }

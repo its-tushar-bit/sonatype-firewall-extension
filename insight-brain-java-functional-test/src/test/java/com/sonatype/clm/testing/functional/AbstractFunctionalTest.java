@@ -316,15 +316,12 @@ public abstract class AbstractFunctionalTest
   }
 
   protected static void setupWebDriver() {
-    // in between tests we navigate to the 'about' page. If the page we are navigating away from was dirty then
-    // we get an alert. Prior to version 75 the chrome driver ignored these alerts by default. That behavior has
-    // since changed and without this setting an UnhandledAlertException is thrown.
-    // See also https://bugs.chromium.org/p/chromedriver/issues/detail?id=3002
     if (Configuration.browser.equalsIgnoreCase("chrome")) {
 
       Configuration.browserCapabilities = new DesiredCapabilities();
       Configuration.browserCapabilities
-          .setCapability(ChromeOptions.CAPABILITY, chromeOptions(VIEWPORT_WIDTH, VIEWPORT_HEIGHT));
+          .setCapability(ChromeOptions.CAPABILITY,
+              chromeOptions(VIEWPORT_WIDTH, VIEWPORT_HEIGHT, Configuration.headless));
     }
 
     WebDriver driver = WebDriverRunner.getAndCheckWebDriver();

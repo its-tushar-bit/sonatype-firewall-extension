@@ -21,12 +21,13 @@ make(
     retentionPolicy: currentBuild.fullProjectName.contains('master-snapshot') ? RetentionPolicy.DEFAULT : RetentionPolicy.SHORT_TERM,
     prepare: {
 
-    // Store time the current branch diverged from the target branch for use by applitools
-    sshagent(credentials: [sonatypeZionCredentialsId()]) {
+      // Store time the current branch diverged from the target branch for use by applitools
+      sshagent(credentials: [sonatypeZionCredentialsId()]) {
         script {
-            env.GIT_TARGET_TIME=sh(returnStdout: true, script: 'HASH=\$(git merge-base HEAD remotes/origin/main) && git show -q --format=%cI \$HASH').trim()
+          env.GIT_TARGET_TIME = sh(returnStdout: true,
+              script: 'HASH=\$(git merge-base HEAD remotes/origin/main) && git show -q --format=%cI \$HASH').trim()
         }
-    }
+      }
 
     if (currentBuild.fullProjectName.toLowerCase().contains('insight/insight-brain/master-snapshot')) {
         String fixVersion = 'brain-next'
@@ -389,6 +390,8 @@ Map<String, Closure> createFunctionalTests(
 
             withCredentials([string(credentialsId: 'APPLITOOLS_KEY', variable: 'applitoolsKey')]) {
 
+              // Force applitools to use the merge-base with main for all baselines not directly present on this branch
+              // https://applitools.com/docs/topics/sdk/branch_baselines.html
               def curlCommand = """curl -X POST -d '{"scmSourceBranch": "${env.GIT_BRANCH}", 
               | "scmTargetBranch": "main", 
               | "branchName": "sonatype/insight-brain/${env.GIT_BRANCH}", 

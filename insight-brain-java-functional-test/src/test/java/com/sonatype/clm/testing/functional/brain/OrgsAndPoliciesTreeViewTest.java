@@ -41,14 +41,6 @@ public class OrgsAndPoliciesTreeViewTest
     organizations = tempEntity.newRelatedOrganizationsAsList(2, 3, 3, new NameSupplierDictionary());
     refreshOrOpen(OwnerTreeViewPage.url());
 
-    // There is a delay in the organizations being available to the tree view so we need to wait for that before
-    // refreshing the tree. We can't use shouldBe() here because its the backend data we are waiting on.
-    try {
-      Thread.sleep(1000L);
-    }
-    catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
     refresh();
   }
 

@@ -13,20 +13,29 @@ import org.openqa.selenium.chrome.ChromeOptions;
 
 public class SeleniumChromeOptions
 {
-  public static ChromeOptions chromeOptions(final int viewportWidth, final int viewportHeight) {
+  public static ChromeOptions chromeOptions(final int viewportWidth, final int viewportHeight, boolean headless) {
     ChromeOptions options = new ChromeOptions();
+
+    // in between tests we navigate to the 'about' page. If the page we are navigating away from was dirty then
+    // we get an alert. Prior to version 75 the chrome driver ignored these alerts by default. That behavior has
+    // since changed and without this setting an UnhandledAlertException is thrown.
+    // See also https://bugs.chromium.org/p/chromedriver/issues/detail?id=3002
     options.setUnhandledPromptBehaviour(UnexpectedAlertBehaviour.IGNORE);
 
     options.addArguments("enable-automation"); // https://stackoverflow.com/a/43840128/1689770
 
-    options.addArguments("--headless=new");
+    if (headless) {
+      // This makes chrome headless work a lot closer to how the normal chrome browser works
+      // see: https://developer.chrome.com/docs/chromium/new-headless
+      options.addArguments("--headless=new");
+    }
+
     options.addArguments("--no-sandbox"); //https://stackoverflow.com/a/50725918/1689770
     options.addArguments("--disable-dev-shm-usage"); //https://stackoverflow.com/a/50725918/1689770
     options.addArguments("--disable-browser-side-navigation"); //https://stackoverflow.com/a/49123152/1689770
     options.addArguments("--window-size=" + viewportWidth + "," + viewportHeight);
 
     options.addArguments("test-type");
-    options.addArguments("--disable-gpu");
 
     // latest version of chrome will pop-up warnings about passwords from data breaches
     options.addArguments("--disable-extensions");

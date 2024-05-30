@@ -59,7 +59,7 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>selenium</artifactId>
-      <version>1.19.8</version>
+      <version>${testcontainers.version}</version>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>

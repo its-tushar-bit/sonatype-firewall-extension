@@ -5,7 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.awt.*;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

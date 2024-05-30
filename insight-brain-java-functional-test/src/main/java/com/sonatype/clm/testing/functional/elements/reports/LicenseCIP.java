@@ -19,7 +19,6 @@ import com.codeborne.selenide.WebDriverRunner;
 import com.codeborne.selenide.ex.UIAssertionError;
 import com.codeborne.selenide.impl.CollectionSource;
 import com.codeborne.selenide.impl.Describe;
-import org.jetbrains.annotations.Nullable;
 import org.openqa.selenium.WebElement;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -109,7 +108,7 @@ public class LicenseCIP
       public void fail(
           final CollectionSource collection,
           final CheckResult lastCheckResult,
-          @Nullable final Exception cause,
+          final Exception cause,
           final long timeoutMs)
       {
         if (missingClassIndex != null) {

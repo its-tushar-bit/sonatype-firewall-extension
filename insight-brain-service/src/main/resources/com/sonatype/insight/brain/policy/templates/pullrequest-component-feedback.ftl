@@ -57,12 +57,16 @@ There are no breaking changes. This version upgrade requires minimal effort.
 
 <#macro issueComponent data>
     <#compress>
-<#if data.severityInfo?hasContent>[${data.severityInfo.refId}]</#if> <#if data.description?hasContent>${data.description}</#if>
+<#if data.severityInfo?hasContent>[${data.severityInfo.refId}]<#else>None</#if> <#if data.description?hasContent>${data.description}</#if>
     </#compress>
 </#macro>
 # <@threatLevelIndicatorComponent/> <@dependencyIndicatorComponent/>  Sonatype IQ found critical issues introduced by ${componentDisplayName}<#if provider == "github" || provider == "gitlab"><br /><@imageComponent mdImage=previewImage imgWidth=70 imgHeight=20/></#if>
+<details>
+<br/>
+
 Threat Level: <strong>${threatLevelDisplay.image.alt} (${threatLevelDisplay.value})</strong> \| [View Component Details in Sonatype Lifecycle](${componentDetailLink})
 
+<#if (hasSecurityIssues)>
 ## :shield: Recommendation
 <#if suggestedVersion?hasContent>
   **Bumping to version ${suggestedVersion}** will resolve all policy violations for this component<#if ( hasRemediationForDependencies )> and its dependencies</#if> (as of _${formattedDate}_)<#lt>
@@ -84,7 +88,8 @@ Threat Level: <strong>${threatLevelDisplay.image.alt} (${threatLevelDisplay.valu
 <#list securityIssues as securityIssue>
 | <@severityComponent data=securityIssue/> | <@issueComponent data=securityIssue/> | [View Details](${securityIssue.policyViolationDetailsLink}) <br /><img src="https://cdn.sonatype.com/iq-for-scm/1.0/Filler.svg" width="600" height="0" display="hidden">|
 </#list>
-
+</details>
+</#if>
 </details>
 
 <#if codeSuggestion?hasContent>

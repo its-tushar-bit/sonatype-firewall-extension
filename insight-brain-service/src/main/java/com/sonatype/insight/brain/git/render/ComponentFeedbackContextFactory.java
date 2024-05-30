@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.git.render;
 
 import java.util.List;
 import java.util.Optional;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -57,6 +56,8 @@ public class ComponentFeedbackContextFactory
             .orElse(null);
     final List<SecurityIssue> securityIssues =
             securityIssueService.getSecurityIssuesFromViolations(iqBaseUrl, violations, provider);
+    boolean hasSecurityIssues = hasSecurityIssuesWithSeverityInfo(securityIssues);
+
     return new ComponentFeedbackContext(
             true, // Only HTML supported SCM providers are supported
             ThreatLevelDisplay.fromValue(threatLevelValue),
@@ -71,7 +72,13 @@ public class ComponentFeedbackContextFactory
             // there is no line number in the PR diff for the transitive dependency
             DIRECT_DEP_LOGO,
             SONATYPE_PREVIEW_TAG,
-            codeSuggestion.orElse(null));
+            codeSuggestion.orElse(null),
+        hasSecurityIssues);
+  }
+
+  private boolean hasSecurityIssuesWithSeverityInfo(final List<SecurityIssue> securityIssues) {
+    return securityIssues.stream()
+        .anyMatch(securityIssue -> securityIssue.getSeverityInfo() != null);
   }
 
   private static String resolveSuggestedVersion(final RemediationVersionDTO remediationVersionDTO) {

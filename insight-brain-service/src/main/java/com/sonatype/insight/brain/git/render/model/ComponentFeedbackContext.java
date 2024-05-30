@@ -45,6 +45,8 @@ public class ComponentFeedbackContext
 
   private final String codeSuggestion;
 
+  private final boolean hasSecurityIssues;
+
   public ComponentFeedbackContext(final boolean htmlSupported,
                                   final ThreatLevelDisplay threatLevelDisplay,
                                   final String componentDetailLink,
@@ -56,7 +58,8 @@ public class ComponentFeedbackContext
                                   final List<SecurityIssue> securityIssues,
                                   final MDImages dependencyImage,
                                   final MDImages previewImage,
-                                  final String codeSuggestion)
+                                  final String codeSuggestion,
+                                  final boolean hasSecurityIssues)
   {
     this.htmlSupported = htmlSupported;
     this.threatLevelDisplay = requireNonNull(threatLevelDisplay);
@@ -70,6 +73,7 @@ public class ComponentFeedbackContext
     this.dependencyImage = dependencyImage;
     this.previewImage = previewImage;
     this.codeSuggestion = codeSuggestion;
+    this.hasSecurityIssues = hasSecurityIssues;
   }
 
   public String getCodeSuggestion() {
@@ -123,5 +127,9 @@ public class ComponentFeedbackContext
 
   public MDImages getPreviewImage() {
     return previewImage;
+  }
+
+  public boolean isHasSecurityIssues() {
+    return hasSecurityIssues;
   }
 }

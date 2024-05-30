@@ -219,6 +219,11 @@ public class ComponentFeedbackContextFactoryTest
     runTest(NO_UTM_SOURCE, BITBUCKET);
   }
 
+  @Test
+  public void testBuild_criticalThreatLevelAndNonVuln_github() {
+    runTest(CRITICAL_THREAT_LEVEL_AND_NON_VULN, GITHUB);
+  }
+
   private void setupTestCases(final SourceControlProvider provider) {
     testCases.put(NO_SUGGESTION, buildSingleNoSuggestionTestData(provider));
     testCases.put(WITH_SUGGESTION, buildWithSuggestionTestData(provider));
@@ -234,6 +239,8 @@ public class ComponentFeedbackContextFactoryTest
     testCases.put(NO_VULN, buildNoVulnTestData(provider));
     testCases.put(HAS_UTM_SOURCE, buildHasUtmSourceTestData(provider));
     testCases.put(NO_UTM_SOURCE, buildNoUtmSourceTestData(provider));
+    testCases.put(CRITICAL_THREAT_LEVEL_AND_NON_VULN,
+        buildThreatLevelTestDataAndNonVuln(provider, CRITICAL_THREAT_LEVEL_DISPLAY));
   }
 
   private void setupAllVulnerabilities(final PolicyViolation pv) {
@@ -354,6 +361,24 @@ public class ComponentFeedbackContextFactoryTest
         expectedSecurityIssues), factoryInput);
   }
 
+  private static TestData buildThreatLevelTestDataAndNonVuln(
+      final SourceControlProvider provider,
+      final ThreatLevelDisplay expectedThreatLevelDisplay)
+  {
+    final FactoryInput factoryInput = initFactoryInput(provider);
+    final PolicyViolation pv = generatePolicyViolation("pv3", expectedThreatLevelDisplay.getValue());
+    final PolicyViolation pv2 = generatePolicyViolationUnknownVuln("pv2", 7);
+
+    factoryInput.violations = ImmutableList.of(pv, pv2);
+    final List<SecurityIssue> expectedSecurityIssues = ImmutableList.of(
+        buildSecurityIssueWithUtmSource(pv, VULN_2, SONATYPE_DEEP_DIVE_TAG, provider),
+        buildSecurityIssueWithUtmSource(pv, VULN_1, SONATYPE_FAST_TRACK_TAG, provider),
+        buildSecurityIssueWitUnknownVuln(pv2, provider)
+    );
+    return new TestData(buildThreatLevelContext(provider, expectedThreatLevelDisplay,
+        expectedSecurityIssues), factoryInput);
+  }
+
   private static TestData buildNoVulnTestData(final SourceControlProvider provider) {
     final PolicyViolation pv =  generatePolicyViolationUnknownVuln("pv2", 7);
     final FactoryInput factoryInput = initFactoryInput(provider);
@@ -417,7 +442,29 @@ public class ComponentFeedbackContextFactoryTest
             expectedSecurityIssues,
             DIRECT_DEP_LOGO,
             SONATYPE_PREVIEW_TAG,
-            NO_CODE_SUGGESTION);
+            NO_CODE_SUGGESTION,
+        true);
+  }
+
+  private static ComponentFeedbackContext buildThreatLevelAndNonVulnContext(
+      final SourceControlProvider provider,
+      final ThreatLevelDisplay threatLevelDisplay,
+      final List<SecurityIssue> expectedSecurityIssues)
+  {
+    return new ComponentFeedbackContext(
+        true,
+        threatLevelDisplay,
+        resolveExpectedComponentDetailsLink(true, provider),
+        COMPONENT_DISPLAY_NAME,
+        provider,
+        BreakingChangeType.NOT_APPLICABLE.getNumBreakingChanges(),
+        "",
+        false,
+        expectedSecurityIssues,
+        DIRECT_DEP_LOGO,
+        SONATYPE_PREVIEW_TAG,
+        NO_CODE_SUGGESTION,
+        true);
   }
 
   private static ComponentFeedbackContext buildNoVulnContext(
@@ -437,7 +484,8 @@ public class ComponentFeedbackContextFactoryTest
             securityIssues,
             DIRECT_DEP_LOGO,
             SONATYPE_PREVIEW_TAG,
-            NO_CODE_SUGGESTION);
+            NO_CODE_SUGGESTION,
+        false);
   }
 
   private ComponentFeedbackContext buildHasUtmSourceContext(final SourceControlProvider provider) {
@@ -479,7 +527,8 @@ public class ComponentFeedbackContextFactoryTest
             securityIssues,
             DIRECT_DEP_LOGO,
             SONATYPE_PREVIEW_TAG,
-            codeSuggestion);
+            codeSuggestion,
+        true);
   }
 
   private static SecurityVulnerabilityData generateVulnData(
@@ -573,7 +622,8 @@ public class ComponentFeedbackContextFactoryTest
     LOW_THREAT_LEVEL,
     NO_VULN,
     HAS_UTM_SOURCE,
-    NO_UTM_SOURCE
+    NO_UTM_SOURCE,
+    CRITICAL_THREAT_LEVEL_AND_NON_VULN
     ;
 
   }

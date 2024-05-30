@@ -55,11 +55,12 @@ public class ComponentFeedbackMDRendererTest
                         null, "https://example.com/policyViolations/4"),
 
                     new SecurityIssue(8, null,
-                        "some desc5", "https://example.com/policyViolations/5")
+                        null, "https://example.com/policyViolations/5")
             ),
             DIRECT_DEP_LOGO,
             SONATYPE_PREVIEW_TAG,
-            "        <version>2.15.0</version>"
+            "        <version>2.15.0</version>",
+        true
     );
     runTest(componentFeedbackContext, "testRender_sanity.md");
   }

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Map;
@@ -118,7 +119,8 @@ public class MultiTenantTelemetrySenderLicenseFingerprintTest
               Arrays.asList(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, ProductLicenseDetails.PRODUCT_FIREWALL,
                   ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY,
                   ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD)),
-          EnumSet.allOf(LicensedFeature.class), new HashSet<>(StageTypes.getAll()), ProductLicensingModel.LEGACY,
+          EnumSet.allOf(LicensedFeature.class), new HashSet<>(StageTypes.getAll()),
+          Collections.singleton(ProductLicensingModel.LEGACY),
           100, 50, 45, 50);
 
       // send some fake telemetry

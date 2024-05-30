@@ -20,6 +20,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -430,55 +431,57 @@ public class CLMLicenseManager
   public LicenseInfo getLicenseInfo() {
     String[] products = getProductLicenseProductsMarketingNames();
     String productEdition = getProductEdition();
-    ProductLicensingModel licensingModel = productLicense.getLicensingModel();
+    Set<ProductLicensingModel> licensingModels = productLicense.getLicensingModels();
     Integer applicationLimitToDisplay = null;
     Integer applicationCountToDisplay = null;
     Integer licensedUsersToDisplay = null;
     Integer firewallUsersToDisplay = null;
     Integer sbomLimitToDisplay = null;
 
-    switch (licensingModel) {
-      case LEGACY:
-        switch (productEdition) {
-          case PRODUCT_AUDITOR:
-          case PRODUCT_AUDITOR_SAAS:
-            applicationLimitToDisplay = productLicense.getMaxApplications();
-            break;
-          case PRODUCT_PRO_PLUS:
-            licensedUsersToDisplay = productLicense.getMaxUsers();
-            break;
-          case PRODUCT_LIFECYCLE:
-          case PRODUCT_LIFECYCLE_CLOUD:
-          case PRODUCT_LIFECYCLE_SAAS:
-          case PRODUCT_LIFECYCLE_FOUNDATION:
-          case PRODUCT_LIFECYCLE_FOUNDATION_SAAS:
-            licensedUsersToDisplay = productLicense.getMaxUsers();
-            //$FALL-THROUGH$ fallthrough
-          case PRODUCT_FIREWALL:
-          case PRODUCT_LIFECYCLE_FIREWALL_CLOUD:
-          case PRODUCT_LIFECYCLE_FIREWALL_SAAS:
-            firewallUsersToDisplay = productLicense.getMaxFirewallUsers();
-            break;
-          case PRODUCT_SBOM_MANAGER:
-          case PRODUCT_SBOM_MANAGER_SAAS:
-            sbomLimitToDisplay = productLicense.getMaxSboms();
-            break;
-          default:
-            // no limits to display
-        }
-        break;
-      case APP_BASED:
-        applicationLimitToDisplay = productLicense.getMaxApplications();
-        break;
-      case SBOM_BASED:
-        sbomLimitToDisplay = productLicense.getMaxSboms();
-        break;
-      case USER_BASED:
-        licensedUsersToDisplay = productLicense.getMaxUsers();
-        firewallUsersToDisplay = productLicense.getMaxFirewallUsers();
-        break;
-      default:
-        throw new IllegalStateException("Unknown licensing model: " + licensingModel);
+    for (ProductLicensingModel model : licensingModels) {
+      switch (model) {
+        case LEGACY:
+          switch (productEdition) {
+            case PRODUCT_AUDITOR:
+            case PRODUCT_AUDITOR_SAAS:
+              applicationLimitToDisplay = productLicense.getMaxApplications();
+              break;
+            case PRODUCT_PRO_PLUS:
+              licensedUsersToDisplay = productLicense.getMaxUsers();
+              break;
+            case PRODUCT_LIFECYCLE:
+            case PRODUCT_LIFECYCLE_CLOUD:
+            case PRODUCT_LIFECYCLE_SAAS:
+            case PRODUCT_LIFECYCLE_FOUNDATION:
+            case PRODUCT_LIFECYCLE_FOUNDATION_SAAS:
+              licensedUsersToDisplay = productLicense.getMaxUsers();
+              //$FALL-THROUGH$ fallthrough
+            case PRODUCT_FIREWALL:
+            case PRODUCT_LIFECYCLE_FIREWALL_CLOUD:
+            case PRODUCT_LIFECYCLE_FIREWALL_SAAS:
+              firewallUsersToDisplay = productLicense.getMaxFirewallUsers();
+              break;
+            case PRODUCT_SBOM_MANAGER:
+            case PRODUCT_SBOM_MANAGER_SAAS:
+              sbomLimitToDisplay = productLicense.getMaxSboms();
+              break;
+            default:
+              // no limits to display
+          }
+          break;
+        case APP_BASED:
+          applicationLimitToDisplay = productLicense.getMaxApplications();
+          break;
+        case SBOM_BASED:
+          sbomLimitToDisplay = productLicense.getMaxSboms();
+          break;
+        case USER_BASED:
+          licensedUsersToDisplay = productLicense.getMaxUsers();
+          firewallUsersToDisplay = productLicense.getMaxFirewallUsers();
+          break;
+        default:
+          throw new IllegalStateException("Unknown licensing model: " + model);
+      }
     }
 
     if (applicationLimitToDisplay != null) {
@@ -590,7 +593,7 @@ public class CLMLicenseManager
       throw new LicensingException("Invalid license version: " + version);
     }
 
-    ProductLicensingModel licensingModel = getLicensingModel(key);
+    Set<ProductLicensingModel> licensingModels = getLicensingModels(key);
     Integer applicationCount = licenseDetails.maxApplications;
     Integer maxFirewallUsers = getMaxFirewallUsers(key);
     Integer maxUsers = getMaxUsers(key);
@@ -762,7 +765,7 @@ public class CLMLicenseManager
     if (triggerOnOtherNodes) {
       loadProductLicenseOnAllOtherClusterNodes();
     }
-    productLicense.set(key, licenseFingerprint, products, features, stageTypes, licensingModel, applicationCount,
+    productLicense.set(key, licenseFingerprint, products, features, stageTypes, licensingModels, applicationCount,
         maxUsers, maxFirewallUsers, maxSboms);
     notifyListeners();
   }
@@ -820,21 +823,31 @@ public class CLMLicenseManager
     return products;
   }
 
-  private ProductLicensingModel getLicensingModel(ProductLicenseKey key) {
+  private Set<ProductLicensingModel> getLicensingModels(ProductLicenseKey key) {
     String prop = getProperty(key, ProductLicenseDetails.PROPERTY_LICENSING_MODEL);
-    if (ProductLicenseDetails.LICENSING_APP_BASED.equals(prop)) {
-      return ProductLicensingModel.APP_BASED;
+    Set<ProductLicensingModel> models = new HashSet<>();
+    if (prop == null) {
+      models.add(ProductLicensingModel.LEGACY);
     }
-    else if (ProductLicenseDetails.LICENSING_USER_BASED.equals(prop)) {
-      return ProductLicensingModel.USER_BASED;
+    else {
+      String[] props = prop.split(",");
+      for (String p : props) {
+        switch (p) {
+          case ProductLicenseDetails.LICENSING_APP_BASED:
+            models.add(ProductLicensingModel.APP_BASED);
+            break;
+          case ProductLicenseDetails.LICENSING_USER_BASED:
+            models.add(ProductLicensingModel.USER_BASED);
+            break;
+          case ProductLicenseDetails.LICENSING_SBOM_BASED:
+            models.add(ProductLicensingModel.SBOM_BASED);
+            break;
+          default:
+            throw new LicensingException("Invalid licensing model: " + p);
+        }
+      }
     }
-    else if (ProductLicenseDetails.LICENSING_SBOM_BASED.equals(prop)) {
-      return ProductLicensingModel.SBOM_BASED;
-    }
-    else if (prop == null) {
-      return ProductLicensingModel.LEGACY;
-    }
-    throw new LicensingException("Invalid licensing model: " + prop);
+    return models;
   }
 
   private Integer getMaxUsers(ProductLicenseKey key) {

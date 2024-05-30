@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.function.Consumer;
@@ -1794,6 +1795,31 @@ public class CLMLicenseManagerTest
     assertThat(info.applicationCountToDisplay).isNull();
     assertThat(info.licensedUsersToDisplay).isNull();
     assertThat(info.firewallUsersToDisplay).isNull();
+    assertThat(info.sbomLimitToDisplay).isEqualTo(50);
+  }
+
+  @Test
+  public void testGetLicenseInfo_LimitsToDisplay_MultipleLicensing() throws Exception {
+    List<String> licensingModels = Arrays.asList(
+        ProductLicenseDetails.LICENSING_SBOM_BASED,
+        ProductLicenseDetails.LICENSING_APP_BASED,
+        ProductLicenseDetails.LICENSING_USER_BASED
+    );
+
+    String licensingModelsString = String.join(",", licensingModels);
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_LICENSING_MODEL, licensingModelsString);
+    licenseManager.setApplicationLimit(100);
+    licenseManager.setMaxUsers(8765);
+    licenseManager.setMaxFirewallUsers(4321);
+    licenseManager.setMaxSboms(50);
+    installLicense();
+
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.applicationLimitToDisplay).isEqualTo(100);
+    assertThat(info.applicationCountToDisplay).isEqualTo(0);
+    assertThat(info.licensedUsersToDisplay).isNotNull();
+    assertThat(info.firewallUsersToDisplay).isEqualTo(4321);
+    assertThat(info.properties.getProperty("licensingModel")).isEqualTo("sbom-based,app-based,user-based");
     assertThat(info.sbomLimitToDisplay).isEqualTo(50);
   }
 

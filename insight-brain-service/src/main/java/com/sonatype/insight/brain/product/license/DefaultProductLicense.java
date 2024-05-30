@@ -41,7 +41,7 @@ public class DefaultProductLicense
 
     private final Set<StageType> stageTypes;
 
-    private final ProductLicensingModel licensingModel;
+    private final Set<ProductLicensingModel> licensingModels;
 
     private final Integer maxApplications;
 
@@ -60,7 +60,7 @@ public class DefaultProductLicense
         Set<String> products,
         Set<LicensedFeature> features,
         Set<StageType> stageTypes,
-        ProductLicensingModel licensingModel,
+        Set<ProductLicensingModel> licensingModels,
         Integer maxApplications,
         Integer maxUsers,
         Integer maxFirewallUsers,
@@ -74,7 +74,7 @@ public class DefaultProductLicense
       this.products = products;
       this.features = features;
       this.stageTypes = stageTypes;
-      this.licensingModel = licensingModel;
+      this.licensingModels = licensingModels;
       this.maxApplications = maxApplications;
       this.maxUsers = maxUsers;
       this.maxFirewallUsers = maxFirewallUsers;
@@ -96,7 +96,7 @@ public class DefaultProductLicense
       Set<String> products,
       Set<LicensedFeature> features,
       Set<StageType> stageTypes,
-      ProductLicensingModel licensingModel,
+      Set<ProductLicensingModel> licensingModels,
       Integer maxApplications,
       Integer maxUsers,
       Integer maxFirewallUsers,
@@ -105,8 +105,8 @@ public class DefaultProductLicense
     productLicenseData = new ProductLicenseData(fingerprint, productLicenseKey.getExpirationDate().getTime(),
         productLicenseKey.getContactName(), productLicenseKey.getContactCompany(),
         productLicenseKey.getContactEmailAddress(), Collections.unmodifiableSet(products),
-        Collections.unmodifiableSet(features), Collections.unmodifiableSet(stageTypes), licensingModel, maxApplications,
-        maxUsers, maxFirewallUsers, maxSboms);
+        Collections.unmodifiableSet(features), Collections.unmodifiableSet(stageTypes), licensingModels,
+        maxApplications, maxUsers, maxFirewallUsers, maxSboms);
   }
 
   /**
@@ -202,8 +202,8 @@ public class DefaultProductLicense
   }
 
   @Override
-  public ProductLicensingModel getLicensingModel() {
-    return getProductLicenseData().licensingModel;
+  public Set<ProductLicensingModel> getLicensingModels() {
+    return getProductLicenseData().licensingModels;
   }
 
   /**
@@ -235,7 +235,7 @@ public class DefaultProductLicense
 
   @NotNull
   static ProductLicenseData initialProductLicenseData() {
-    return new ProductLicenseData(null, 0, null, null, null, Collections.emptySet(),
-        Collections.emptySet(), Collections.emptySet(), ProductLicensingModel.APP_BASED, 0, 0, 0, 0);
+    return new ProductLicenseData(null, 0, null, null, null, Collections.emptySet(), Collections.emptySet(),
+        Collections.emptySet(), Collections.singleton(ProductLicensingModel.APP_BASED), 0, 0, 0, 0);
   }
 }

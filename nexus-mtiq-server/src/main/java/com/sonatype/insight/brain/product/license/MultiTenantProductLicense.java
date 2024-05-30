@@ -42,7 +42,7 @@ public class MultiTenantProductLicense
       Set<String> products,
       Set<LicensedFeature> features,
       Set<StageType> stageTypes,
-      ProductLicensingModel licensingModel,
+      Set<ProductLicensingModel> licensingModels,
       Integer maxApplications,
       Integer maxUsers,
       Integer maxFirewallUsers,
@@ -51,8 +51,8 @@ public class MultiTenantProductLicense
     productLicenseData.set(new ProductLicenseData(fingerprint, productLicenseKey.getExpirationDate().getTime(),
         productLicenseKey.getContactName(), productLicenseKey.getContactCompany(),
         productLicenseKey.getContactEmailAddress(), Collections.unmodifiableSet(products),
-        Collections.unmodifiableSet(features), Collections.unmodifiableSet(stageTypes), licensingModel, maxApplications,
-        maxUsers, maxFirewallUsers, maxSboms));
+        Collections.unmodifiableSet(features), Collections.unmodifiableSet(stageTypes), licensingModels,
+        maxApplications, maxUsers, maxFirewallUsers, maxSboms));
   }
 
   @Override

@@ -21,7 +21,7 @@ public interface ProductLicense
       Set<String> products,
       Set<LicensedFeature> features,
       Set<StageType> stageTypes,
-      ProductLicensingModel licensingModel,
+      Set<ProductLicensingModel> licensingModels,
       Integer maxApplications,
       Integer maxUsers,
       Integer maxFirewallUsers,
@@ -64,7 +64,7 @@ public interface ProductLicense
 
   Set<StageType> getStageTypes();
 
-  ProductLicensingModel getLicensingModel();
+  Set<ProductLicensingModel> getLicensingModels();
 
   /**
    * Get the application limit (if any) in the license or 0 if there is no license.

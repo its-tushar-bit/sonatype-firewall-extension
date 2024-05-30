@@ -83,6 +83,9 @@ public class ExternalTelemetryService
       case JIRA_PLUGIN_USAGE_METRICS:
         sendJiraPluginUsageTelemetry(telemetryValues);
         break;
+      case IDE_USER_INTERACTION_METRICS:
+        sendIdeUserInteractionMetrics(telemetryValues);
+        break;
       default:
         log.info("External telemetry endpoint called with an unsupported `telemetry_purpose`.");
         throw new BadRequestException("Telemetry purpose not supported.");
@@ -91,12 +94,7 @@ public class ExternalTelemetryService
 
   private void sendSyncServiceMetricsTelemetry(Map<String, Object> telemetryValues) {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SYNC_SERVICE_METRICS);
-    for (Entry<String, Object> entry : telemetryValues.entrySet()) {
-      if ("telemetry_purpose".equals(entry.getKey())) {
-        continue;
-      }
-      telemetryData.put(entry.getKey(), entry.getValue());
-    }
+    populateTelemetryData(telemetryValues, telemetryData);
     telemetrySender.send(telemetryData);
   }
 
@@ -130,5 +128,20 @@ public class ExternalTelemetryService
     }
 
     telemetrySender.send(telemetryData);
+  }
+
+  private void sendIdeUserInteractionMetrics(Map<String, Object> telemetryValues) {
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.IDE_USER_INTERACTION_METRICS);
+    populateTelemetryData(telemetryValues, telemetryData);
+    telemetrySender.send(telemetryData);
+  }
+
+  private void populateTelemetryData(Map<String, Object> telemetryValues, TelemetryData telemetryData) {
+    for (Entry<String, Object> entry : telemetryValues.entrySet()) {
+      if ("telemetry_purpose".equals(entry.getKey())) {
+        continue;
+      }
+      telemetryData.put(entry.getKey(), entry.getValue());
+    }
   }
 }

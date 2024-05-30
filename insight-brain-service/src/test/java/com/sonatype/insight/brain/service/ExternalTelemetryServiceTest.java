@@ -114,6 +114,42 @@ public class ExternalTelemetryServiceTest
   }
 
   @Test
+  public void testSendTelemetry_IdeUserInteractionMetrics() {
+    Mockito.when(httpServletRequest.getHeader("X-CLM-Client-User-Agent"))
+        .thenReturn("IQ_VS_Code_Plugin/1.0.5 (Node 18.18.2; Darwin 23.5.0; VS Code 1.89.1)");
+    Mockito.when(httpServletRequest.getHeader("X-CLM-Client-Instance-Id"))
+        .thenReturn("bf1809f09dad40ec86f1e13daf96fe8c");
+
+    Map<String, Object> telemetryValues = new HashMap<>();
+    telemetryValues.put("telemetry_purpose", "IDE_USER_INTERACTION_METRICS");
+    telemetryValues.put("recommended_version_clicks", 1);
+    telemetryValues.put("version_graph_clicks", 1);
+
+    externalTelemetryService.sendTelemetry(telemetryValues, httpServletRequest);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
+
+    Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("client_id", "IQ_VS_Code_Plugin");
+    expectedAttributes.put("client_version", "1.0.5");
+    expectedAttributes.put("client_runtime", "Node");
+    expectedAttributes.put("client_runtime_version", "18.18.2");
+    expectedAttributes.put("client_os_name", "Darwin");
+    expectedAttributes.put("client_os_version", "23.5.0");
+    expectedAttributes.put("client_other", "VS Code 1.89.1");
+    expectedAttributes.put("client_instance_id", "bf1809f09dad40ec86f1e13daf96fe8c");
+    expectedAttributes.put("recommended_version_clicks", 1);
+    expectedAttributes.put("version_graph_clicks", 1);
+
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.IDE_USER_INTERACTION_METRICS);
+    assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
+  }
+
+  @Test
   public void testSendTelemetry_JiraPluginConfigurationTelemetry() {
     Map<String, Object> telemetryValues = new HashMap<>();
     telemetryValues.put("telemetry_purpose", "JIRA_PLUGIN_CONFIGURATION_METRICS");

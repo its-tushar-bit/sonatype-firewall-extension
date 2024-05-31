@@ -109,15 +109,14 @@ public class SpdxToSpdxExporter
     if (StringUtils.isNotBlank(dbVulnerability.getVulnerabilitySource())) {
       comment = "source: " + dbVulnerability.getVulnerabilitySource().toUpperCase(Locale.ROOT);
     }
-    String locator = null;
-    if (StringUtils.isNotBlank(dbVulnerability.getVulnerabilitySource())) {
+    String locator = "";
+    if (StringUtils.isNotBlank(dbVulnerability.getLink())) {
       locator = dbVulnerability.getLink();
     }
-    if (StringUtils.isNotEmpty(comment) && StringUtils.isNotEmpty(locator)) {
-      return document.createExternalRef(ReferenceCategory.SECURITY,
-          new ReferenceType("advisory"), locator, comment);
+    else {
+      locator = dbVulnerability.getRefId();
     }
-    return null;
+    return document.createExternalRef(ReferenceCategory.SECURITY, new ReferenceType("advisory"), locator, comment);
   }
 
   private void copyComponents(

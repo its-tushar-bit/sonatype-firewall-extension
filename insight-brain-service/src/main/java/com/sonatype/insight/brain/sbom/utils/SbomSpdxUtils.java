@@ -245,7 +245,7 @@ public final class SbomSpdxUtils
 
   public static String getRefIdForVulnerability(final ExternalRef externalRef) throws InvalidSPDXAnalysisException {
     String link = externalRef.getReferenceLocator();
-    if (StringUtils.isBlank(link)) {
+    if (StringUtils.isEmpty(link) && StringUtils.isBlank(link)) {
       return null;
     }
     Matcher matcher = CVE_LINK_PATTERN.matcher(link);
@@ -264,7 +264,7 @@ public final class SbomSpdxUtils
     if (matcher.matches()) {
       return matcher.group(1);
     }
-    return null;
+    return link;
   }
 
   public static SbomCreationDetails getSbomCreationDetails(SpdxDocument document) throws InvalidSPDXAnalysisException {

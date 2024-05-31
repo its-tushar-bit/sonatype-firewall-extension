@@ -251,6 +251,98 @@ public class SpdxToSpdxExporterTest
         .containsLicenses("Apache-2.0", "LicenseRef-Sonatype-Private", "LicenseRef-Not-Supported");
   }
 
+  @Test
+  public void testExport_VulnerabilityMissingSource() throws Exception {
+    Map<String, Object> mockData = mockOriginalThirdPartyScan();
+    ThirdPartyFile tpFile = (ThirdPartyFile) mockData.get("tpFile");
+    ThirdPartyFileCoordinate core = (ThirdPartyFileCoordinate) mockData.get("core");
+
+    File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("spdx-min.json"));
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), "1.0-SNAPSHOT", "ACTIVE",
+            sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.JSON.toString(), "2.3");
+    //mock sonatype vulnerability
+    tempEntity.newThirdPartyCoordinateSecurity(core, "sonatype-2022-6438",
+        "Sonatype: The jackson-core package is vulnerable to a Denial of Service (DoS) attack.",
+        "http://localhost:8070/ui/links/vln/sonatype-2022-6438", 8.0, "High", null,
+        "CVSS VectorCVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", "High", "", "", "", "", "SONATYPE");
+
+    SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
+        .withExportSpecification(ExportSpecification.SPDX_23)
+        .withTargetFormat(SbomFormat.JSON);
+    spdxExporter.setExportParams(exportParams);
+    String export = spdxExporter.export();
+    SpdxDocument sbom = SbomSpdxUtils.parseContentNoValidation(export, SbomFormat.JSON);
+    SpdxDocumentAssert documentAssert = assertThatSpdx(sbom)
+        .isValid()
+        .hasFormat(SbomFormat.JSON)
+        .nameContains(app.getPublicId())
+        .creationDateCloseTo(LocalDateTime.now(ZoneOffset.UTC))
+        .creatorsContaining("Tool: Sonatype SBOM Manager")
+        .equalsSpecVersion("2.3")
+        .equalsDataLicense("CC0-1.0")
+        .hasComponentCount(4)
+        .hasPackagesWithPurls("pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.3?type=jar",
+            "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar",
+            "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.3?type=jar",
+            "pkg:maven/org.example/JavaApp@1.0-SNAPSHOT?type=jar")
+        .hasVulnerabilityCount(3);
+    documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.3?type=jar")
+        .hasVulnerabilityCount(1)
+        .containsVulnerabilities("sonatype-2022-6438");
+    documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar")
+        .hasVulnerabilityCount(2)
+        .containsVulnerabilities("CVE-2022-42003", "CVE-2022-42004");
+    documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.3?type=jar")
+        .hasVulnerabilityCount(0);
+  }
+
+  @Test
+  public void testExport_VulnerabilityMissingSourceAndLink() throws Exception {
+    Map<String, Object> mockData = mockOriginalThirdPartyScan();
+    ThirdPartyFile tpFile = (ThirdPartyFile) mockData.get("tpFile");
+    ThirdPartyFileCoordinate core = (ThirdPartyFileCoordinate) mockData.get("core");
+
+    File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("spdx-min.json"));
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), "1.0-SNAPSHOT", "ACTIVE",
+            sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.JSON.toString(), "2.3");
+    //mock sonatype vulnerability
+    tempEntity.newThirdPartyCoordinateSecurity(core, "sonatype-2022-6438",
+        "Sonatype: The jackson-core package is vulnerable to a Denial of Service (DoS) attack.",
+        null , 8.0, "High", null,
+        "CVSS VectorCVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", "High", "", "", "", "", "SONATYPE");
+
+    SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
+        .withExportSpecification(ExportSpecification.SPDX_23)
+        .withTargetFormat(SbomFormat.JSON);
+    spdxExporter.setExportParams(exportParams);
+    String export = spdxExporter.export();
+    SpdxDocument sbom = SbomSpdxUtils.parseContentNoValidation(export, SbomFormat.JSON);
+    SpdxDocumentAssert documentAssert = assertThatSpdx(sbom)
+        .isValid()
+        .hasFormat(SbomFormat.JSON)
+        .nameContains(app.getPublicId())
+        .creationDateCloseTo(LocalDateTime.now(ZoneOffset.UTC))
+        .creatorsContaining("Tool: Sonatype SBOM Manager")
+        .equalsSpecVersion("2.3")
+        .equalsDataLicense("CC0-1.0")
+        .hasComponentCount(4)
+        .hasPackagesWithPurls("pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.3?type=jar",
+            "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar",
+            "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.3?type=jar",
+            "pkg:maven/org.example/JavaApp@1.0-SNAPSHOT?type=jar")
+        .hasVulnerabilityCount(3);
+    documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.3?type=jar")
+        .hasVulnerabilityCount(1)
+        .containsVulnerabilities("sonatype-2022-6438");
+    documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar")
+        .hasVulnerabilityCount(2)
+        .containsVulnerabilities("CVE-2022-42003", "CVE-2022-42004");
+    documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.3?type=jar")
+        .hasVulnerabilityCount(0);
+  }
+
   private Map<String, Object> mockOriginalThirdPartyScan() {
     //scan
     ThirdPartyFile tpFile = tempEntity.newThirdPartyFile();

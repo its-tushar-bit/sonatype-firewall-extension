@@ -6,8 +6,6 @@
 
 package com.sonatype.insight.brain.developer.integrationdashboard;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +23,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -1569,15 +1566,13 @@ public class IntegrationServiceTest
   }
 
   @Test
-  public void testGetIntegrationSummaries_SetSastScan_NoScmContext_h2() {
+  public void testGetIntegrationSummaries_SetPrioritiesReportStatusAndScanId_H2() {
     setUpAppsWithBuildStageRisk();
-    // 3 Scans of the same app. We should find the last one.
-    tempEntity.newSastScanWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2023-12-01").atStartOfDay(ZoneId.systemDefault()).toInstant()));
-    tempEntity.newSastScanWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2023-12-02").atStartOfDay(ZoneId.systemDefault()).toInstant()));
-    tempEntity.newSastScanWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2023-12-03").atStartOfDay(ZoneId.systemDefault()).toInstant()));
+    final long now = System.currentTimeMillis();
+    final PolicyEvaluation latestPolicyEvaluationApp1 =
+        tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scan-id-1", new Date(now));
+    final PolicyEvaluation latestPolicyEvaluationApp2 =
+        tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scan-id-2", new Date(now));
 
     final ApiPageResult<IntegrationStatusDTO> result =
         integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
@@ -1586,32 +1581,33 @@ public class IntegrationServiceTest
         .hasSize(4);
 
     final IntegrationStatusDTO app1Dto = appSummaries.get(0);
-    assertThat(app1Dto.isHasSastReport())
+    assertThat(app1Dto.isHasPrioritiesReport())
         .isTrue();
-    assertThat(app1Dto.getLastSastReportId())
-        .isNotEmpty();
-    assertThat(app1Dto.getLastSastReportTime())
-        .isEqualTo(LocalDate.parse("2023-12-03").atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli());
+    assertThat(app1Dto.getLastScanId())
+        .isEqualTo(latestPolicyEvaluationApp1.getScanId());
 
-    assertThat(appSummaries.get(1).isHasSastReport())
+    final IntegrationStatusDTO app2Dto = appSummaries.get(1);
+    assertThat(app2Dto.isHasPrioritiesReport())
+        .isTrue();
+    assertThat(app2Dto.getLastScanId())
+        .isEqualTo(latestPolicyEvaluationApp2.getScanId());
+
+    // App3 and app4 have no build stage evaluations, so no priorities report either
+    assertThat(appSummaries.get(2).isHasPrioritiesReport())
         .isFalse();
-    assertThat(appSummaries.get(2).isHasSastReport())
-        .isFalse();
-    assertThat(appSummaries.get(3).isHasSastReport())
+    assertThat(appSummaries.get(3).isHasPrioritiesReport())
         .isFalse();
   }
 
   @Test
   @PostgresTest
-  public void testGetIntegrationSummaries_SetSastScan_NoScmContext_postgres() {
+  public void testGetIntegrationSummaries_SetPrioritiesReportStatusAndScanId_Postgres() {
     setUpAppsWithBuildStageRisk();
-    // 3 Scans of the same app. We should find the last one.
-    tempEntity.newSastScanWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2023-12-01").atStartOfDay(ZoneId.systemDefault()).toInstant()));
-    tempEntity.newSastScanWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2023-12-02").atStartOfDay(ZoneId.systemDefault()).toInstant()));
-    tempEntity.newSastScanWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2023-12-03").atStartOfDay(ZoneId.systemDefault()).toInstant()));
+    final long now = System.currentTimeMillis();
+    final PolicyEvaluation latestPolicyEvaluationApp1 =
+        tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scan-id-1", new Date(now));
+    final PolicyEvaluation latestPolicyEvaluationApp2 =
+        tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scan-id-2", new Date(now));
 
     final ApiPageResult<IntegrationStatusDTO> result =
         integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
@@ -1620,385 +1616,29 @@ public class IntegrationServiceTest
         .hasSize(4);
 
     final IntegrationStatusDTO app1Dto = appSummaries.get(0);
-    assertThat(app1Dto.isHasSastReport())
+    assertThat(app1Dto.isHasPrioritiesReport())
         .isTrue();
-    assertThat(app1Dto.getLastSastReportId())
-        .isNotEmpty();
-    assertThat(app1Dto.getLastSastReportTime())
-        .isEqualTo(LocalDate.parse("2023-12-03").atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli());
+    assertThat(app1Dto.getLastScanId())
+        .isEqualTo(latestPolicyEvaluationApp1.getScanId());
 
-    assertThat(appSummaries.get(1).isHasSastReport())
-        .isFalse();
-    assertThat(appSummaries.get(2).isHasSastReport())
-        .isFalse();
-    assertThat(appSummaries.get(3).isHasSastReport())
-        .isFalse();
-  }
-
-  @Test
-  public void testGetIntegrationSummaries_SetSastScan_WithScmContext_OverrideBaseBranch_BranchScanExists_H2()
-      throws Exception
-  {
-    setUpAppsWithBuildStageRisk();
-    final String baseBranch = "TEST_BRANCH";
-    tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
-    final SourceControl sourceControl = new SourceControl();
-    sourceControl.setBaseBranch(baseBranch);
-    sourceControl.setOwnerId(app1.getId());
-    sourceControl.setRepositoryUrl("https://github.com/org/proj");
-    sourceControl.setToken(new DefaultPlexusCipher().encrypt("root-token", "CMMDwoV"));
-    tempEntity.newSourceControl(sourceControl);
-
-    // 3 scans of the same app, but the latest is not of the base branch
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2024-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant()), baseBranch);
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2024-01-02").atStartOfDay(ZoneId.systemDefault()).toInstant()), baseBranch);
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2024-01-03").atStartOfDay(ZoneId.systemDefault()).toInstant()), "branch");
-
-    final ApiPageResult<IntegrationStatusDTO> result =
-        integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
-    final List<IntegrationStatusDTO> appSummaries = result.getResults();
-    assertThat(appSummaries)
-        .hasSize(4);
-
-    final IntegrationStatusDTO app1Dto = appSummaries.get(0);
-    assertThat(app1Dto.isHasSastReport())
+    final IntegrationStatusDTO app2Dto = appSummaries.get(1);
+    assertThat(app2Dto.isHasPrioritiesReport())
         .isTrue();
-    assertThat(app1Dto.getLastSastReportId())
-        .isNotEmpty();
-    assertThat(app1Dto.getLastSastReportTime())
-        .isEqualTo(LocalDate.parse("2024-01-02").atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli());
+    assertThat(app2Dto.getLastScanId())
+        .isEqualTo(latestPolicyEvaluationApp2.getScanId());
 
-    assertThat(appSummaries.get(1).isHasSastReport())
+    // App3 and app4 have no build stage evaluations, so no priorities report either
+    final IntegrationStatusDTO app3Dto = appSummaries.get(2);
+    assertThat(app3Dto.isHasPrioritiesReport())
         .isFalse();
-    assertThat(appSummaries.get(2).isHasSastReport())
+    assertThat(app3Dto.getLastScanId())
+        .isNull();
+
+    final IntegrationStatusDTO app4Dto = appSummaries.get(3);
+    assertThat(app4Dto.isHasPrioritiesReport())
         .isFalse();
-    assertThat(appSummaries.get(3).isHasSastReport())
-        .isFalse();
-  }
-
-  @Test
-  @PostgresTest
-  public void testGetIntegrationSummaries_SetSastScan_WithScmContext_OverrideBaseBranch_BranchScanExists_Postgres()
-      throws Exception
-  {
-    setUpAppsWithBuildStageRisk();
-    final String baseBranch = "TEST_BRANCH";
-    tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
-    final SourceControl sourceControl = new SourceControl();
-    sourceControl.setBaseBranch(baseBranch);
-    sourceControl.setOwnerId(app1.getId());
-    sourceControl.setRepositoryUrl("https://github.com/org/proj");
-    sourceControl.setToken(new DefaultPlexusCipher().encrypt("root-token", "CMMDwoV"));
-    tempEntity.newSourceControl(sourceControl);
-
-    // 3 scans of the same app, but the latest is not of the base branch
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2024-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant()), baseBranch);
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2024-01-02").atStartOfDay(ZoneId.systemDefault()).toInstant()), baseBranch);
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2024-01-03").atStartOfDay(ZoneId.systemDefault()).toInstant()), "branch");
-
-    final ApiPageResult<IntegrationStatusDTO> result =
-        integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
-    final List<IntegrationStatusDTO> appSummaries = result.getResults();
-    assertThat(appSummaries)
-        .hasSize(4);
-
-    final IntegrationStatusDTO app1Dto = appSummaries.get(0);
-    assertThat(app1Dto.isHasSastReport())
-        .isTrue();
-    assertThat(app1Dto.getLastSastReportId())
-        .isNotEmpty();
-    assertThat(app1Dto.getLastSastReportTime())
-        .isEqualTo(LocalDate.parse("2024-01-02").atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli());
-
-    assertThat(appSummaries.get(1).isHasSastReport())
-        .isFalse();
-    assertThat(appSummaries.get(2).isHasSastReport())
-        .isFalse();
-    assertThat(appSummaries.get(3).isHasSastReport())
-        .isFalse();
-  }
-
-  @Test
-  public void testGetIntegrationSummaries_SetSastScan_WithScmContext_InheritRootBaseBranch_BranchScanExists_H2()
-      throws Exception
-  {
-    setUpAppsWithBuildStageRisk();
-    final String baseBranch = "TEST_BRANCH";
-    tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB, null, null,
-        baseBranch);
-    final SourceControl sourceControl = new SourceControl();
-    sourceControl.setOwnerId(app1.getId());
-    sourceControl.setRepositoryUrl("https://github.com/org/proj");
-    sourceControl.setToken(new DefaultPlexusCipher().encrypt("root-token", "CMMDwoV"));
-    tempEntity.newSourceControl(sourceControl);
-
-    // 3 scans of the same app, but the latest is not of the base branch
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2024-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant()), baseBranch);
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2024-01-02").atStartOfDay(ZoneId.systemDefault()).toInstant()), baseBranch);
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2024-01-03").atStartOfDay(ZoneId.systemDefault()).toInstant()), "branch");
-
-    final ApiPageResult<IntegrationStatusDTO> result =
-        integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
-    final List<IntegrationStatusDTO> appSummaries = result.getResults();
-    assertThat(appSummaries)
-        .hasSize(4);
-
-    final IntegrationStatusDTO app1Dto = appSummaries.get(0);
-    assertThat(app1Dto.isHasSastReport())
-        .isTrue();
-    assertThat(app1Dto.getLastSastReportId())
-        .isNotEmpty();
-    assertThat(app1Dto.getLastSastReportTime())
-        .isEqualTo(LocalDate.parse("2024-01-02").atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli());
-
-    assertThat(appSummaries.get(1).isHasSastReport())
-        .isFalse();
-    assertThat(appSummaries.get(2).isHasSastReport())
-        .isFalse();
-    assertThat(appSummaries.get(3).isHasSastReport())
-        .isFalse();
-  }
-
-  @Test
-  @PostgresTest
-  public void testGetIntegrationSummaries_SetSastScan_WithScmContext_InheritRootBaseBranch_BranchScanExists_Postgres()
-      throws Exception
-  {
-    setUpAppsWithBuildStageRisk();
-    final String baseBranch = "TEST_BRANCH";
-    tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB, null, null,
-        baseBranch);
-    final SourceControl sourceControl = new SourceControl();
-    sourceControl.setOwnerId(app1.getId());
-    sourceControl.setRepositoryUrl("https://github.com/org/proj");
-    sourceControl.setToken(new DefaultPlexusCipher().encrypt("root-token", "CMMDwoV"));
-    tempEntity.newSourceControl(sourceControl);
-
-    // 3 scans of the same app, but the latest is not of the base branch
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2024-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant()), baseBranch);
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2024-01-02").atStartOfDay(ZoneId.systemDefault()).toInstant()), baseBranch);
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2024-01-03").atStartOfDay(ZoneId.systemDefault()).toInstant()), "branch");
-
-    final ApiPageResult<IntegrationStatusDTO> result =
-        integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
-    final List<IntegrationStatusDTO> appSummaries = result.getResults();
-    assertThat(appSummaries)
-        .hasSize(4);
-
-    final IntegrationStatusDTO app1Dto = appSummaries.get(0);
-    assertThat(app1Dto.isHasSastReport())
-        .isTrue();
-    assertThat(app1Dto.getLastSastReportId())
-        .isNotEmpty();
-    assertThat(app1Dto.getLastSastReportTime())
-        .isEqualTo(LocalDate.parse("2024-01-02").atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli());
-
-    assertThat(appSummaries.get(1).isHasSastReport())
-        .isFalse();
-    assertThat(appSummaries.get(2).isHasSastReport())
-        .isFalse();
-    assertThat(appSummaries.get(3).isHasSastReport())
-        .isFalse();
-  }
-
-  @Test
-  public void testGetIntegrationSummaries_SetSastScan_WithScmContext_InheritOrgBaseBranch_BranchScanExists_H2()
-      throws Exception
-  {
-    setUpAppsWithBuildStageRisk();
-    final String baseBranch = "TEST_BRANCH";
-    tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
-    final Application appWithOrgParent = tempEntity.newApplication(org3.getId());
-
-    final SourceControl sourceControlOrg = new SourceControl();
-    sourceControlOrg.setOwnerId(org3.getId());
-    sourceControlOrg.setBaseBranch(baseBranch);
-    tempEntity.newSourceControl(sourceControlOrg);
-
-    final SourceControl sourceControlAppWithOrgParent = new SourceControl();
-    sourceControlAppWithOrgParent.setOwnerId(appWithOrgParent.getId());
-    sourceControlAppWithOrgParent.setRepositoryUrl("https://github.com/org/proj");
-    sourceControlAppWithOrgParent.setToken(new DefaultPlexusCipher().encrypt("root-token", "CMMDwoV"));
-    tempEntity.newSourceControl(sourceControlAppWithOrgParent);
-
-    // 3 scans of the same app, but the latest is not of the base branch
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(appWithOrgParent.getId(),
-        Date.from(LocalDate.parse("2024-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant()), baseBranch);
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(appWithOrgParent.getId(),
-        Date.from(LocalDate.parse("2024-01-02").atStartOfDay(ZoneId.systemDefault()).toInstant()), baseBranch);
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(appWithOrgParent.getId(),
-        Date.from(LocalDate.parse("2024-01-03").atStartOfDay(ZoneId.systemDefault()).toInstant()), "branch");
-
-    final ApiPageResult<IntegrationStatusDTO> result =
-        integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
-    final List<IntegrationStatusDTO> appSummaries = result.getResults();
-    assertThat(appSummaries)
-        .hasSize(5);
-
-    final IntegrationStatusDTO app1Dto = appSummaries.get(4);
-    assertThat(app1Dto.isHasSastReport())
-        .isTrue();
-    assertThat(app1Dto.getLastSastReportId())
-        .isNotEmpty();
-    assertThat(app1Dto.getLastSastReportTime())
-        .isEqualTo(LocalDate.parse("2024-01-02").atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli());
-
-    assertThat(appSummaries.get(0).isHasSastReport())
-        .isFalse();
-    assertThat(appSummaries.get(1).isHasSastReport())
-        .isFalse();
-    assertThat(appSummaries.get(2).isHasSastReport())
-        .isFalse();
-    assertThat(appSummaries.get(3).isHasSastReport())
-        .isFalse();
-  }
-
-  @Test
-  @PostgresTest
-  public void testGetIntegrationSummaries_SetSastScan_WithScmContext_InheritOrgBaseBranch_BranchScanExists_Postgres()
-      throws Exception
-  {
-    setUpAppsWithBuildStageRisk();
-    final String baseBranch = "TEST_BRANCH";
-    tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
-    final Application appWithOrgParent = tempEntity.newApplication(org3.getId());
-
-    final SourceControl sourceControlOrg = new SourceControl();
-    sourceControlOrg.setOwnerId(org3.getId());
-    sourceControlOrg.setBaseBranch(baseBranch);
-    tempEntity.newSourceControl(sourceControlOrg);
-
-    final SourceControl sourceControlAppWithOrgParent = new SourceControl();
-    sourceControlAppWithOrgParent.setOwnerId(appWithOrgParent.getId());
-    sourceControlAppWithOrgParent.setRepositoryUrl("https://github.com/org/proj");
-    sourceControlAppWithOrgParent.setToken(new DefaultPlexusCipher().encrypt("root-token", "CMMDwoV"));
-    tempEntity.newSourceControl(sourceControlAppWithOrgParent);
-
-    // 3 scans of the same app, but the latest is not of the base branch
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(appWithOrgParent.getId(),
-        Date.from(LocalDate.parse("2024-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant()), baseBranch);
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(appWithOrgParent.getId(),
-        Date.from(LocalDate.parse("2024-01-02").atStartOfDay(ZoneId.systemDefault()).toInstant()), baseBranch);
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(appWithOrgParent.getId(),
-        Date.from(LocalDate.parse("2024-01-03").atStartOfDay(ZoneId.systemDefault()).toInstant()), "branch");
-
-    final ApiPageResult<IntegrationStatusDTO> result =
-        integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
-    final List<IntegrationStatusDTO> appSummaries = result.getResults();
-    assertThat(appSummaries)
-        .hasSize(5);
-
-    final IntegrationStatusDTO app1Dto = appSummaries.get(4);
-    assertThat(app1Dto.isHasSastReport())
-        .isTrue();
-    assertThat(app1Dto.getLastSastReportId())
-        .isNotEmpty();
-    assertThat(app1Dto.getLastSastReportTime())
-        .isEqualTo(LocalDate.parse("2024-01-02").atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli());
-
-    assertThat(appSummaries.get(0).isHasSastReport())
-        .isFalse();
-    assertThat(appSummaries.get(1).isHasSastReport())
-        .isFalse();
-    assertThat(appSummaries.get(2).isHasSastReport())
-        .isFalse();
-    assertThat(appSummaries.get(3).isHasSastReport())
-        .isFalse();
-  }
-
-  @Test
-  public void testGetIntegrationSummaries_SetSastScan_WithScmContext_NoBranchScanExists_H2() throws Exception {
-    setUpAppsWithBuildStageRisk();
-    tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
-    final SourceControl sourceControl = new SourceControl();
-    sourceControl.setBaseBranch("TEST_BRANCH");
-    sourceControl.setOwnerId(app1.getId());
-    sourceControl.setRepositoryUrl("https://github.com/org/proj");
-    sourceControl.setToken(new DefaultPlexusCipher().encrypt("root-token", "CMMDwoV"));
-    tempEntity.newSourceControl(sourceControl);
-
-    // 3 scans of the same app, but none of the base branch - default to latest
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2024-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant()), "branch1");
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2024-01-02").atStartOfDay(ZoneId.systemDefault()).toInstant()), "branch2");
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2024-01-03").atStartOfDay(ZoneId.systemDefault()).toInstant()), "branch3");
-
-    final ApiPageResult<IntegrationStatusDTO> result =
-        integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
-    final List<IntegrationStatusDTO> appSummaries = result.getResults();
-    assertThat(appSummaries)
-        .hasSize(4);
-
-    final IntegrationStatusDTO app1Dto = appSummaries.get(0);
-    assertThat(app1Dto.isHasSastReport())
-        .isTrue();
-    assertThat(app1Dto.getLastSastReportId())
-        .isNotEmpty();
-    assertThat(app1Dto.getLastSastReportTime())
-        .isEqualTo(LocalDate.parse("2024-01-03").atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli());
-
-    assertThat(appSummaries.get(1).isHasSastReport())
-        .isFalse();
-    assertThat(appSummaries.get(2).isHasSastReport())
-        .isFalse();
-    assertThat(appSummaries.get(3).isHasSastReport())
-        .isFalse();
-  }
-
-  @Test
-  @PostgresTest
-  public void testGetIntegrationSummaries_SetSastScan_WithScmContext_NoBranchScanExists_Postgres() throws Exception {
-    setUpAppsWithBuildStageRisk();
-    tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
-    final SourceControl sourceControl = new SourceControl();
-    sourceControl.setBaseBranch("TEST_BRANCH");
-    sourceControl.setOwnerId(app1.getId());
-    sourceControl.setRepositoryUrl("https://github.com/org/proj");
-    sourceControl.setToken(new DefaultPlexusCipher().encrypt("root-token", "CMMDwoV"));
-    tempEntity.newSourceControl(sourceControl);
-
-    // 3 scans of the same app, but none of the base branch - default to latest
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2024-01-01").atStartOfDay(ZoneId.systemDefault()).toInstant()), "branch1");
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2024-01-02").atStartOfDay(ZoneId.systemDefault()).toInstant()), "branch2");
-    tempEntity.newSastScanWithScmContextWithCustomTimestamp(app1.getId(),
-        Date.from(LocalDate.parse("2024-01-03").atStartOfDay(ZoneId.systemDefault()).toInstant()), "branch3");
-
-    final ApiPageResult<IntegrationStatusDTO> result =
-        integrationService.getIntegrationStatuses(1, 100, null, null, null, null);
-    final List<IntegrationStatusDTO> appSummaries = result.getResults();
-    assertThat(appSummaries)
-        .hasSize(4);
-
-    final IntegrationStatusDTO app1Dto = appSummaries.get(0);
-    assertThat(app1Dto.isHasSastReport())
-        .isTrue();
-    assertThat(app1Dto.getLastSastReportId())
-        .isNotEmpty();
-    assertThat(app1Dto.getLastSastReportTime())
-        .isEqualTo(LocalDate.parse("2024-01-03").atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli());
-
-    assertThat(appSummaries.get(1).isHasSastReport())
-        .isFalse();
-    assertThat(appSummaries.get(2).isHasSastReport())
-        .isFalse();
-    assertThat(appSummaries.get(3).isHasSastReport())
-        .isFalse();
+    assertThat(app4Dto.getLastScanId())
+        .isNull();
   }
 
   @Test

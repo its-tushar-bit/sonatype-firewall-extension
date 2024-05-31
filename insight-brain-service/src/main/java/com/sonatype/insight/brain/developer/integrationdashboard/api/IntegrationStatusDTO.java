@@ -26,42 +26,9 @@ public class IntegrationStatusDTO
 
   private int totalRiskScore;
 
-  private boolean hasSastReport;
+  private boolean hasPrioritiesReport;
 
-  private String lastSastReportId;
-
-  private Long lastSastReportTime;
-
-  public IntegrationStatusDTO() {
-  }
-
-  public IntegrationStatusDTO(
-      final String applicationName,
-      final String applicationId,
-      final String applicationPublicId,
-      final boolean isCiIntegrationEnabled,
-      final boolean isAutomatedSourceControlFeedbackEnabled,
-      final long lastCommitTimestamp,
-      final long lastEvaluationTimestamp,
-      final String organizationId,
-      final int totalRiskScore,
-      final boolean hasSastReport,
-      final String lastSastReportId,
-      final Long lastReportTime)
-  {
-    this.applicationName = applicationName;
-    this.applicationId = applicationId;
-    this.applicationPublicId = applicationPublicId;
-    this.isCiIntegrationEnabled = isCiIntegrationEnabled;
-    this.isAutomatedSourceControlFeedbackEnabled = isAutomatedSourceControlFeedbackEnabled;
-    this.lastCommitTimestamp = lastCommitTimestamp;
-    this.lastEvaluationTimestamp = lastEvaluationTimestamp;
-    this.organizationId = organizationId;
-    this.totalRiskScore = totalRiskScore;
-    this.hasSastReport = hasSastReport;
-    this.lastSastReportId = lastSastReportId;
-    this.lastSastReportTime = lastReportTime;
-  }
+  private String lastScanId;
 
   public String getApplicationName() {
     return applicationName;
@@ -99,16 +66,12 @@ public class IntegrationStatusDTO
     return totalRiskScore;
   }
 
-  public boolean isHasSastReport() {
-    return hasSastReport;
+  public boolean isHasPrioritiesReport() {
+    return hasPrioritiesReport;
   }
 
-  public String getLastSastReportId() {
-    return lastSastReportId;
-  }
-
-  public Long getLastSastReportTime() {
-    return lastSastReportTime;
+  public String getLastScanId() {
+    return lastScanId;
   }
 
   public IntegrationStatusDTO setApplicationName(final String applicationName) {
@@ -158,18 +121,13 @@ public class IntegrationStatusDTO
     return this;
   }
 
-  public IntegrationStatusDTO setHasSastReport(final boolean hasSastReport) {
-    this.hasSastReport = hasSastReport;
+  public IntegrationStatusDTO setHasPrioritiesReport(final boolean hasPrioritiesReport) {
+    this.hasPrioritiesReport = hasPrioritiesReport;
     return this;
   }
 
-  public IntegrationStatusDTO setLastSastReportId(final String lastSastReportId) {
-    this.lastSastReportId = lastSastReportId;
-    return this;
-  }
-
-  public IntegrationStatusDTO setLastSastReportTime(final Long lastSastReportTime) {
-    this.lastSastReportTime = lastSastReportTime;
+  public IntegrationStatusDTO setLastScanId(final String lastScanId) {
+    this.lastScanId = lastScanId;
     return this;
   }
 }

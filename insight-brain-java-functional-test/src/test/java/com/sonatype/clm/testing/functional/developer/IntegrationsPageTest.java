@@ -6,6 +6,9 @@
 
 package com.sonatype.clm.testing.functional.developer;
 
+import java.io.IOException;
+import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
@@ -15,17 +18,22 @@ import java.util.stream.IntStream;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.IntegrationsPage;
-import com.sonatype.clm.testing.functional.pages.SastScanPage;
+import com.sonatype.clm.testing.functional.pages.PrioritiesPage;
+import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
+import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
@@ -116,6 +124,77 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
   }
 
   @Test
+  public void testAppIntegrationsAndRiskTable_ShouldRenderRowsCorrectly() throws Exception {
+    setUpAppsForIntegrationAndRisks();
+    // Evaluations set up in setUpAppsForIntegrationAndRisks() have the current date
+    final String lastEvaluationDateString = new SimpleDateFormat("MMMM d, yyyy").format(new Date());
+    final Calendar oldEvaluationDate = Calendar.getInstance();
+    oldEvaluationDate.add(Calendar.DATE, -100);
+    final String oldEvaluationDateString = new SimpleDateFormat("MMMM d, yyyy").format(oldEvaluationDate.getTime());
+
+    refreshOrOpen(IntegrationsPage.urlOverview());
+
+    appIntegrationsAndRiskTable().shouldBe(visible);
+
+    scrollIntoView(appIntegrationsAndRiskTable());
+    appIntegrationsAndRiskTableDataRows().shouldHave(size(TOTAL_APPS_PER_PAGE));
+
+    applicationName(0).shouldHave(text("appName10"));
+    appIntegrationsCicdConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
+    appIntegrationsScmConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
+    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 3, 2023"));
+    lastEvaluationDate(0).shouldBe(visible).shouldHave(text(oldEvaluationDateString));
+    totalRisk(0).shouldHave(text("10"));
+    prioritiesReport(9).shouldNotHave(text("N/A"));
+    prioritiesReportViewLink(9).shouldBe(visible).shouldHave(text("View"));
+
+    applicationName(9).shouldHave(text("appName1"));
+    cicdEnabledIcon(9).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    appIntegrationsScmConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
+    lastCommitDate(9).shouldBe(visible).shouldHave(text("February 12, 2023"));
+    lastEvaluationDate(9).shouldBe(visible).shouldHave(text(lastEvaluationDateString));
+    totalRisk(9).shouldHave(text("1"));
+    prioritiesReport(9).shouldNotHave(text("N/A"));
+    prioritiesReportViewLink(9).shouldBe(visible).shouldHave(text("View"));
+
+    Selenide.sleep(1000);
+    //eyesWatcher.eyesCheck(); https://sonatype.atlassian.net/browse/CLM-30559
+
+    prioritiesReportViewLink(9).click();
+
+    PrioritiesPage.title().shouldBe(visible);
+    PrioritiesPage.triggeredByDetails().shouldBe(visible);
+    PrioritiesPage.prioritiesTable().shouldBe(visible);
+    back();
+
+    // Showing all rows
+    applicationFilterInput().clear();
+    applicationFilterInput().sendKeys("a");
+    appIntegrationsAndRiskTableDataRows().shouldHave(size(10));
+
+    // Going to the second page
+    appIntegrationPageButton(2).click();
+    appIntegrationsAndRiskTableDataRows().shouldHave(size(10));
+
+    applicationName(0).shouldHave(text("appName11"));
+    appIntegrationsCicdConfigureButton(0).shouldNotBe(visible);
+    appIntegrationsScmConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
+    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 2, 2023"));
+    lastEvaluationDate(0).shouldBe(visible).shouldHave(text(lastEvaluationDateString));
+    totalRisk(0).shouldHave(text("0"));
+    prioritiesReport(0).shouldNotHave(text("N/A"));
+    prioritiesReportViewLink(0).shouldBe(visible).shouldHave(text("View"));
+
+    applicationName(9).shouldHave(text("appName0"));
+    appIntegrationsCicdConfigureButton(9).shouldHave(visible).shouldHave(text("Configure"));
+    appIntegrationsScmConfigureButton(9).shouldHave(visible).shouldHave(text("Configure"));
+    lastCommitDate(9).shouldBe(visible).shouldHave(text("N/A"));
+    lastEvaluationDate(9).shouldBe(visible).shouldHave(text("N/A"));
+    totalRisk(9).shouldHave(text("N/A"));
+    prioritiesReport(9).shouldHave(text("N/A"));
+  }
+
+  @Test
   public void testAppIntegrationsAndRiskTable_shouldCorrectlyShowCiCdAsConfiguredWhenThereIsAQualifyingEval() {
     final Date anyDateInThePastButLessThan3Months = new Date(System.currentTimeMillis() - 1000);
 
@@ -153,6 +232,12 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
     applicationName(0).shouldHave(text("app1"));
     appIntegrationsCicdConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
+
+    // Click cicd configure button
+    appIntegrationsCicdConfigureButton(0).click();
+    appIntegrationsConfigurationModal().shouldBe(visible);
+    appIntegrationsConfigurationModalCloseButton().shouldBe(visible).shouldBe(enabled).click();
+    appIntegrationsConfigurationModal().shouldBe(hidden);
   }
 
   @Test
@@ -175,11 +260,11 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
         null,
         null,
         false,
-          null,
+        null,
         null,
         null,
         true,
-          true,
+        true,
         "/target/*",
         true,
         true
@@ -196,7 +281,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
   }
 
   @Test
-  public  void testAppIntegrationsAndRiskTable_shouldCorrectlyShowScmAsNotConfiguredWhenNotConfiguredFully()
+  public void testAppIntegrationsAndRiskTable_shouldCorrectlyShowScmAsNotConfiguredWhenNotConfiguredFully()
       throws PlexusCipherException
   {
     final Application applicationWithScmConfigured = tempEntity.newApplicationWithParent("app1", "app1");
@@ -215,133 +300,50 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
     applicationName(0).shouldHave(text("app1"));
     appIntegrationsScmConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
-  }
-
-  @Test
-  public void testAppIntegrationsAndRiskTable_shouldSortCorrectly() throws Exception {
-    setUpAppsForIntegrationAndRisks();
-    refreshOrOpen(IntegrationsPage.urlOverview());
-
-    appIntegrationsAndRiskTable().shouldBe(visible);
-
-    scrollIntoView(appIntegrationsAndRiskTable());
-    appIntegrationsAndRiskTableDataRows().shouldHave(size(TOTAL_APPS_PER_PAGE));
-
-    applicationName(0).shouldHave(text("appName10"));
-    appIntegrationsCicdConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
-    appIntegrationsScmConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
-    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 2, 2023"));
-    lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 5, 2023"));
-    totalRisk(0).shouldHave(text("10"));
-    sastReport(0).shouldHave(text("Not Available"));
-
-    applicationName(9).shouldHave(text("appName1"));
-    lastCommitDate(9).shouldBe(visible).shouldHave(text("February 11, 2023"));
-    lastEvaluationDate(9).shouldBe(visible).shouldHave(text("March 14, 2023"));
-    totalRisk(9).shouldHave(text("1"));
-    sastReport(9).shouldNotHave(text("Not Available"));
-    sastReportViewLink(9).shouldBe(visible).shouldHave(text("View"));
-    sastReport(9).shouldHave(text("a few seconds ago"));
-
-    Selenide.sleep(1000);
-    //eyesWatcher.eyesCheck(); https://sonatype.atlassian.net/browse/CLM-30559
-
-    sastReportViewLink(9).click();
-
-    SastScanPage.title().shouldBe(visible);
-    SastScanPage.triggeredOnDate().shouldBe(visible);
-    SastScanPage.filterBySeverityDropdown().shouldBe(visible);
-    SastScanPage.findingsTable().shouldBe(visible);
-    back();
-
-    // Click cicd configure button
-    appIntegrationsCicdConfigureButton(0).click();
-    appIntegrationsConfigurationModal().shouldBe(visible);
-    appIntegrationsConfigurationModalCloseButton().shouldBe(visible).shouldBe(enabled).click();
-    appIntegrationsConfigurationModal().shouldBe(hidden);
 
     // Click scm configure button
     appIntegrationsScmConfigureButton(0).click();
     appIntegrationsConfigurationModal().shouldBe(visible);
     appIntegrationsConfigurationModalCloseButton().shouldBe(visible).shouldBe(enabled).click();
     appIntegrationsConfigurationModal().shouldBe(hidden);
+  }
+
+  @Test
+  public void testAppIntegrationsAndRiskTable_shouldSortFilterAndSearchCorrectly() {
+    setUpAppsForSorting();
+    refreshOrOpen(IntegrationsPage.urlOverview());
+    scrollIntoView(appIntegrationsAndRiskTable());
 
     // Sorting by total risk
     totalRiskColumnHeader().click();
-    applicationName(0).shouldHave(text("appName0"));
-    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 12, 2023"));
-    lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 15, 2023"));
     totalRisk(0).shouldHave(text("0"));
 
     // Sorting by app name
     applicationColumnHeader().click();
     applicationName(0).shouldHave(text("appName9"));
-    appIntegrationsCicdConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
-    appIntegrationsScmConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
-    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 3, 2023"));
-    lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 6, 2023"));
-    totalRisk(0).shouldHave(text("9"));
 
     totalRiskColumnHeader().click();
 
     // Sorting by last commit
     lastCommitColumnHeader().click();
-    applicationName(0).shouldHave(text("appName0"));
     lastCommitDate(0).shouldBe(visible).shouldHave(text("February 12, 2023"));
-    lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 15, 2023"));
-    totalRisk(0).shouldHave(text("0"));
 
     totalRiskColumnHeader().click();
 
     // Sorting by last evaluation
     lastEvaluationColumnHeader().click();
-    applicationName(0).shouldHave(text("appName0"));
-    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 12, 2023"));
     lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 15, 2023"));
-    totalRisk(0).shouldHave(text("0"));
 
     // Searching for application
     applicationFilterInput().sendKeys("appName5");
     applicationName(0).shouldHave(text("appName5"));
-    appIntegrationsCicdConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
-    appIntegrationsScmConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
-    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 7, 2023"));
-    lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 10, 2023"));
-    totalRisk(0).shouldHave(text("5"));
     appIntegrationsAndRiskTableDataRows().shouldHave(size(1));
-
-    // Showing all rows
-    applicationFilterInput().clear();
-    applicationFilterInput().sendKeys("a");
-    appIntegrationsAndRiskTableDataRows().shouldHave(size(10));
-
-    // Going to the second page
-    appIntegrationPageButton(2).click();
-    appIntegrationsAndRiskTableDataRows().shouldHave(size(10));
-
-    applicationName(0).shouldHave(text("appName10"));
-    appIntegrationsCicdConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
-    appIntegrationsScmConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
-    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 2, 2023"));
-    lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 5, 2023"));
-    totalRisk(0).shouldHave(text("10"));
-
-    applicationName(9).shouldHave(text("appName19"));
-    appIntegrationsCicdConfigureButton(9).shouldHave(visible).shouldHave(text("Configure"));
-    appIntegrationsScmConfigureButton(9).shouldHave(visible).shouldHave(text("Configure"));
-    lastCommitDate(9).shouldBe(visible).shouldHave(text("January 24, 2023"));
-    lastEvaluationDate(9).shouldBe(visible).shouldHave(text("February 24, 2023"));
-    totalRisk(9).shouldHave(text("0"));
 
     // Testing name filter working on different page than first
     applicationFilterInput().clear();
     applicationFilterInput().sendKeys("appName0");
     appIntegrationsAndRiskTableDataRows().shouldHave(size(1));
-
     applicationName(0).shouldHave(text("appName0"));
-    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 12, 2023"));
-    lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 15, 2023"));
-    totalRisk(0).shouldHave(text("0"));
   }
 
   @Test
@@ -412,11 +414,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     assertDisabled();
   }
 
-  private void setUpAppsForIntegrationAndRisks() throws Exception {
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null,
-            (new DefaultPlexusCipher()).encrypt(ROOT_TOKEN, ENC),
-            SourceControlProvider.GITHUB);
-
+  private void setUpAppsForSorting() {
     Calendar calendarForLastEval = Calendar.getInstance();
     calendarForLastEval.set(2023, Calendar.MARCH, 15);
 
@@ -424,25 +422,71 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     calendarForLastCommit.set(2023, Calendar.FEBRUARY, 12);
 
     IntStream.range(0, TOTAL_APPS_FOR_INTEGRATION_AND_RISKS)
-            .forEach(i -> {
-              final Application application = tempEntity.newApplicationWithParent("appId" + i, "appName" + i);
-              final Policy policy = tempEntity.newPolicy(application);
-              policy.setThreatLevel(i);
-              final PolicyEvaluation policyEvaluation =
-                      tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-" + i,
-                              calendarForLastEval.getTime());
-              tempEntity.newPolicyViolation(policyEvaluation, policy);
+        .forEach(i -> {
+          final Application application = tempEntity.newApplicationWithParent("appId" + i, "appName" + i);
+          final Policy policy = tempEntity.newPolicy(application);
+          policy.setThreatLevel(i);
+          final PolicyEvaluation policyEvaluation =
+              tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-" + i,
+                  calendarForLastEval.getTime());
+          tempEntity.newPolicyViolation(policyEvaluation, policy);
 
-              tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(),
-                      "commit1", calendarForLastCommit.getTime(), null);
+          tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(),
+              "commit1", calendarForLastCommit.getTime(), null);
 
-              if (i == 0 || i == 1) {
-                tempEntity.newSastScan(application.getId());
-              }
+          calendarForLastEval.add(Calendar.DATE, -1);
+          calendarForLastCommit.add(Calendar.DATE, -1);
+        });
+  }
 
-              calendarForLastEval.add(Calendar.DATE, -1);
-              calendarForLastCommit.add(Calendar.DATE, -1);
-            });
+  private void setUpAppsForIntegrationAndRisks() throws PlexusCipherException {
+    Calendar calendarForLastCommit = Calendar.getInstance();
+    calendarForLastCommit.set(2023, Calendar.FEBRUARY, 12);
+
+    // Set the date for an eval older than 3 months to spawn the CI/CD configure button
+    Calendar calendarForOldEval = Calendar.getInstance();
+    calendarForOldEval.add(Calendar.DATE, -100);
+
+    for (int i = 0; i < TOTAL_APPS_FOR_INTEGRATION_AND_RISKS; i++) {
+      final Application application = tempEntity.newApplicationWithParent("appId" + i, "appName" + i);
+
+      // Skip evaluation of the first app
+      if (i == 0) {
+        continue;
+      }
+
+      // Evaluate all but app10 at the build stage
+      final String stageId = i == 10 ? DevelopStageType.ID : BuildStageType.ID;
+
+      // Evaluate an app and create a report zip for the priorities page to use
+      evaluate(application, i, stageId);
+
+      // Set total risk at the build stage
+      final PolicyEvaluation policyEvaluation =
+          tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-" + i,
+              calendarForOldEval.getTime());
+      final Policy policy = tempEntity.newPolicy(application);
+      policy.setThreatLevel(i);
+      tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+      // Create commit
+      tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(),
+          "commit1", calendarForLastCommit.getTime(), null);
+      calendarForLastCommit.add(Calendar.DATE, -1);
+    }
+  }
+
+  private void evaluate(final Application application, final int scanNum, final String stageId) {
+    final URL zippedReport = ReportHelper.zipReport("/canned-reports/small-report", tempDir);
+    final InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    final TestReportEvaluator evaluator =
+        new TestReportEvaluator(application, "scan-" + scanNum, zippedReport, Configuration.baseUrl, work, stageId);
+    try {
+      evaluator.evaluatePolicy();
+    }
+    catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private void setUpAppsForAdoptionGraph() {
@@ -457,23 +501,23 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     tempEntity.newApplicationCountHistoryEntry(now, 100, 100, 0, 0, 0);
 
     IntStream.range(0, 100)
-            .forEach(i -> {
-              final Application application = tempEntity.newApplicationWithParent("appId" + i, "appName" + i);
-              final Policy policy = tempEntity.newPolicy(application);
-              policy.setThreatLevel(i);
-              final PolicyEvaluation policyEvaluation =
-                      tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-" + i,
-                              calendarForLastEval.getTime());
-              tempEntity.newPolicyViolation(policyEvaluation, policy);
+        .forEach(i -> {
+          final Application application = tempEntity.newApplicationWithParent("appId" + i, "appName" + i);
+          final Policy policy = tempEntity.newPolicy(application);
+          policy.setThreatLevel(i);
+          final PolicyEvaluation policyEvaluation =
+              tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-" + i,
+                  calendarForLastEval.getTime());
+          tempEntity.newPolicyViolation(policyEvaluation, policy);
 
-              if (i % 2 == 0) {
-                tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-id-1",
-                        false, false, false,
-                        calendarForLastEval.getTime(), "hash-1", ScanTriggerType.CONTINUOUS_INTEGRATION);
-              }
+          if (i % 2 == 0) {
+            tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "scan-id-1",
+                false, false, false,
+                calendarForLastEval.getTime(), "hash-1", ScanTriggerType.CONTINUOUS_INTEGRATION);
+          }
 
-              calendarForLastEval.add(Calendar.DATE, -1);
-            });
+          calendarForLastEval.add(Calendar.DATE, -1);
+        });
   }
 
   private void setUpAppsForRiskRemediationGraph() {
@@ -596,12 +640,12 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     return appIntegrationsAndRiskTableDataRows().get(rowNum).$(".nx-cell:nth-child(6)");
   }
 
-  private SelenideElement sastReport(int rowNum) {
+  private SelenideElement prioritiesReport(int rowNum) {
     return appIntegrationsAndRiskTableDataRows().get(rowNum).$(".nx-cell:nth-child(7)");
   }
 
-  private SelenideElement sastReportViewLink(int rowNum) {
-    return sastReport(rowNum).$(".nx-text-link");
+  private SelenideElement prioritiesReportViewLink(int rowNum) {
+    return prioritiesReport(rowNum).$(".nx-text-link");
   }
 
   private SelenideElement applicationFilterInput() {

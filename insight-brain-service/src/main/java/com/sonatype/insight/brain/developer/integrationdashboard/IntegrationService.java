@@ -136,19 +136,20 @@ public class IntegrationService
           return statusDTO.setLastCommitTimestamp(
               commitHistory != null ? commitHistory.getCommitTime().getTime() : 0L);
         })
-        // Set last policy evaluation time (build stage)
+        // Set last policy evaluation time (build stage), priorities report status and scan ID
         .map(statusDTO -> {
           final PolicyEvaluation latestBuildStageEvaluation =
               policyEvaluationDAO.getLastByApplicationIdAndStageIdNoMonitoringNoReeval(statusDTO.getApplicationId(),
                   Stage.ID_BUILD);
-          final long latestBuildStageEvaluationTimestamp =
-              Objects.nonNull(latestBuildStageEvaluation) ? latestBuildStageEvaluation.getTime().getTime() : 0L;
           // Update the risk score if there is no latest build stage evaluation so that we can differentiate
           // between apps with 0 risk and apps with no risk data
           if (Objects.isNull(latestBuildStageEvaluation)) {
-            statusDTO.setTotalRiskScore(-1);
+            return statusDTO.setTotalRiskScore(-1)
+                .setHasPrioritiesReport(false);
           }
-          return statusDTO.setLastEvaluationTimestamp(latestBuildStageEvaluationTimestamp);
+          return statusDTO.setLastEvaluationTimestamp(latestBuildStageEvaluation.getTime().getTime())
+              .setHasPrioritiesReport(true)
+              .setLastScanId(latestBuildStageEvaluation.getScanId());
         })
         // Set CI/CD Integration status
         .map(statusDTO -> {
@@ -182,8 +183,6 @@ public class IntegrationService
         .filter(statusDTO ->
             optionalFilterAppsByScmIntegration == null ||
                 statusDTO.isAutomatedSourceControlFeedbackEnabled() == optionalFilterAppsByScmIntegration)
-        // Enrich after filtering to save some round trips to the sast_scan table
-        .map(this::addSastScanData)
         .collect(Collectors.toList());
 
     final List<IntegrationStatusDTO> completeSummaries = paginateEarly ? enrichedSummaries :
@@ -195,31 +194,6 @@ public class IntegrationService
 
     final int totalSize = paginateEarly ? minimalSummaries.size() : enrichedSummaries.size();
     return new ApiPageResult<>(totalSize, filter.getPage(), filter.getPageSize(), completeSummaries);
-  }
-
-  private IntegrationStatusDTO addSastScanData(final IntegrationStatusDTO integrationStatusDTO) {
-    Optional<SastScan> lastSastScan = getLatestSastScan(integrationStatusDTO.getApplicationId());
-    return new IntegrationStatusDTO(
-        integrationStatusDTO.getApplicationName(),
-        integrationStatusDTO.getApplicationId(),
-        integrationStatusDTO.getApplicationPublicId(),
-        integrationStatusDTO.isCiIntegrationEnabled(),
-        integrationStatusDTO.isAutomatedSourceControlFeedbackEnabled(),
-        integrationStatusDTO.getLastCommitTimestamp(),
-        integrationStatusDTO.getLastEvaluationTimestamp(),
-        integrationStatusDTO.getOrganizationId(),
-        integrationStatusDTO.getTotalRiskScore(),
-        lastSastScan.isPresent(),
-        lastSastScan.map(SastScan::getId).orElse(null),
-        getCreatedAt(lastSastScan)
-    );
-  }
-
-  private Long getCreatedAt(Optional<SastScan> sastScan) {
-    // Handling the case that SastScan contains a null value of `createdAt` field
-    return sastScan.flatMap(scan -> Optional.ofNullable(scan.getCreatedAt()))
-        .map(Date::getTime)
-        .orElse(null);
   }
 
   @Authorize(permission = Permission.READ)

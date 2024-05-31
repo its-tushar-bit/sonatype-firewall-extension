@@ -9,10 +9,9 @@ import { getAppIntegrationsAndRisk } from 'MainRoot/util/CLMLocation';
 import AppIntegrationsAndRiskTable from 'MainRoot/development/developmentDashboard/sections/AppIntegrationsAndRiskTable/AppIntegrationsAndRiskTable';
 import { map, range } from 'ramda';
 import { NX_STANDARD_DEBOUNCE_TIME, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
-import moment from 'moment';
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 
-describe('AppIntegrationsAndRisk Table', () => {
+describe('AppIntegrationsAndRiskTable', () => {
   let axiosMock;
 
   beforeEach(() => {
@@ -108,9 +107,8 @@ describe('AppIntegrationsAndRisk Table', () => {
           totalRiskScore: 404,
           ciIntegrationEnabled: true,
           automatedSourceControlFeedbackEnabled: true,
-          hasSastReport: true,
-          lastSastReportId: 'lastSastReportId',
-          lastSastReportTime: timestamp,
+          hasPrioritiesReport: true,
+          lastScanId: 'lastScanId',
         },
       ];
       axiosMock.onGet(getAppIntegrationsAndRisk()).reply(200, {
@@ -152,9 +150,8 @@ describe('AppIntegrationsAndRisk Table', () => {
           totalRiskScore: -1,
           ciIntegrationEnabled: true,
           automatedSourceControlFeedbackEnabled: true,
-          hasSastReport: true,
-          lastSastReportId: 'lastSastReportId',
-          lastSastReportTime: timestamp,
+          hasPrioritiesReport: true,
+          lastScanId: 'lastScanId',
         },
       ];
       axiosMock.onGet(getAppIntegrationsAndRisk()).reply(200, {
@@ -417,6 +414,7 @@ describe('AppIntegrationsAndRisk Table', () => {
         expect(within(rows[i + 2]).getAllByRole('cell')[0]).toHaveTextContent(`App${i.toString()}`);
       }
     });
+
     it('LAST COMMIT is sortable and unsorted by default', async () => {
       const totalDataRows = 10;
       axiosMock.onGet(getAppIntegrationsAndRisk()).reply(200, {
@@ -653,8 +651,8 @@ describe('AppIntegrationsAndRisk Table', () => {
     }
   });
 
-  describe('SAST Report column', () => {
-    it('renders "Not Available" when hasSastReport is false', async () => {
+  describe('Priorities Report column', () => {
+    it('renders "N/A" when hasPrioritiesReport is false', async () => {
       const totalDataRows = 10;
       axiosMock.onGet(getAppIntegrationsAndRisk()).reply(200, {
         results: createAppArrayWithLength(totalDataRows, 0, true, true, false).reverse(),
@@ -669,19 +667,18 @@ describe('AppIntegrationsAndRisk Table', () => {
 
       let rows = await screen.findAllByRole('row');
       for (let i = 0; i < totalDataRows; i++) {
-        const sastReportCell = within(rows[i + 2]).queryAllByRole('cell')[6];
-        expect(sastReportCell).toBeInTheDocument();
-        expect(sastReportCell).toHaveTextContent('Not Available');
+        const prioritiesReportCell = within(rows[i + 2]).queryAllByRole('cell')[6];
+        expect(prioritiesReportCell).toBeInTheDocument();
+        expect(prioritiesReportCell).toHaveTextContent('N/A');
 
-        expect(within(sastReportCell).queryByRole('link')).not.toBeInTheDocument();
-        expect(within(sastReportCell).queryByText('a few seconds ago')).not.toBeInTheDocument();
+        expect(within(prioritiesReportCell).queryByRole('link')).not.toBeInTheDocument();
       }
     });
 
-    it('renders a link "View" when hasSastReport is true', async () => {
+    it('renders a link "View" when hasPrioritiesReport is true', async () => {
       const hrefSpy = jest
         .fn('href')
-        .mockImplementation((_, params) => `#/application/${params.applicationPublicId}/sastScan/${params.sastScanId}`);
+        .mockImplementation((_, params) => `#/development/priorities/${params.publicAppId}/${params.scanId}`);
       const routerContextMock = { href: hrefSpy };
       jest.spyOn(routerStateContext, 'useRouterState').mockReturnValue(routerContextMock);
 
@@ -701,39 +698,15 @@ describe('AppIntegrationsAndRisk Table', () => {
 
       let rows = await screen.findAllByRole('row');
       for (let i = 0; i < totalDataRows; i++) {
-        const sastReportCell = within(rows[i + 2]).queryAllByRole('cell')[6];
-        expect(sastReportCell).toBeInTheDocument();
+        const prioritiesReportCell = within(rows[i + 2]).queryAllByRole('cell')[6];
+        expect(prioritiesReportCell).toBeInTheDocument();
 
-        const sastReportLink = within(sastReportCell).getByRole('link', { name: /view/i });
-        expect(sastReportLink).toBeInTheDocument();
-        expect(sastReportLink).toHaveAttribute(
+        const prioritiesReportLink = within(prioritiesReportCell).getByRole('link', { name: /view/i });
+        expect(prioritiesReportLink).toBeInTheDocument();
+        expect(prioritiesReportLink).toHaveAttribute(
           'href',
-          `#/application/${results[i].applicationPublicId}/sastScan/${results[i].lastSastReportId}`
+          `#/development/priorities/${results[i].applicationPublicId}/${results[i].lastScanId}`
         );
-      }
-    });
-
-    it('renders a "x time ago" when hasSastReport is true', async () => {
-      const totalDataRows = 10;
-      const results = createAppArrayWithLength(totalDataRows, 0, true, true, true).reverse();
-      axiosMock.onGet(getAppIntegrationsAndRisk()).reply(200, {
-        results,
-        numResults: 10,
-        total: 10,
-        page: 1,
-        pageSize: 10,
-        pageCount: 1,
-      });
-      render(<AppIntegrationsAndRiskTable />);
-      expect(await screen.findByRole('table')).toBeInTheDocument();
-
-      let rows = await screen.findAllByRole('row');
-      for (let i = 0; i < totalDataRows; i++) {
-        const sastReportCell = within(rows[i + 2]).queryAllByRole('cell')[6];
-        expect(sastReportCell).toBeInTheDocument();
-
-        const expectedXTimeAgoText = moment(results[i].lastSastReportTime).fromNow();
-        expect(within(sastReportCell).queryByText(expectedXTimeAgoText)).toBeInTheDocument();
       }
     });
   });
@@ -743,7 +716,7 @@ describe('AppIntegrationsAndRisk Table', () => {
     startIndex = 0,
     cicdEnabled = false,
     scmEnabled = false,
-    hasSastReport = false
+    hasPrioritiesReport = false
   ) {
     // Create a date object for January 1, 2023
     const date = new Date('January 1, 2023');
@@ -764,9 +737,8 @@ describe('AppIntegrationsAndRisk Table', () => {
         ciIntegrationEnabled: cicdEnabled,
         automatedSourceControlFeedbackEnabled: scmEnabled,
         organizationId: `OrgId${i}`,
-        hasSastReport: hasSastReport,
-        lastSastReportId: hasSastReport ? `lastSastReportId${i}` : null,
-        lastSastReportTime: hasSastReport ? timestamp + i * oneDayMilliseconds : null,
+        hasPrioritiesReport: hasPrioritiesReport,
+        lastScanId: hasPrioritiesReport ? `lastScanId${i}` : null,
       }),
       range(startIndex, startIndex + length)
     );
@@ -792,8 +764,8 @@ describe('AppIntegrationsAndRisk Table', () => {
     const totalRiskHeader = screen.getByRole('columnheader', {
       name: /total risk/i,
     });
-    const sastReportHeader = screen.getByRole('columnheader', {
-      name: /sast report/i,
+    const prioritiesHeader = screen.getByRole('columnheader', {
+      name: /priorities/i,
     });
     expect(allHeaders.length).toBe(7);
     expect(applicationsHeader).toBeInTheDocument();
@@ -802,6 +774,6 @@ describe('AppIntegrationsAndRisk Table', () => {
     expect(lastCommitHeader).toBeInTheDocument();
     expect(lastEvaluationHeader).toBeInTheDocument();
     expect(totalRiskHeader).toBeInTheDocument();
-    expect(sastReportHeader).toBeInTheDocument();
+    expect(prioritiesHeader).toBeInTheDocument();
   }
 });

@@ -26,7 +26,6 @@ import {
   createScmTabs,
 } from 'MainRoot/development/developmentDashboard/sections/DeveloperConfigurationModal/DeveloperConfiguratgionModalUtils';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
-import moment from 'moment';
 import PropTypes from 'prop-types';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
@@ -90,8 +89,8 @@ export default function AppIntegrationsAndRiskTable() {
               TOTAL RISK
             </NxTable.Cell>
             <NxTable.Cell>
-              <span>SAST Report</span>
-              <NxTooltip title="Static Application Security Testing (SAST) identifies sources of vulnerabilities in your code">
+              <span>Priorities</span>
+              <NxTooltip title="Priorities view identifies and prioritizes actionable vulnerabilities in your applications">
                 <NxFontAwesomeIcon icon={faInfoCircle} className="iq-developer-dashboard-info-tooltip" />
               </NxTooltip>
             </NxTable.Cell>
@@ -129,12 +128,11 @@ export default function AppIntegrationsAndRiskTable() {
               lastCommitTimestamp,
               lastEvaluationTimestamp,
               totalRiskScore,
-              hasSastReport,
-              lastSastReportId,
-              lastSastReportTime,
+              hasPrioritiesReport,
+              lastScanId,
             }) => {
-              function getSastReportCellProps() {
-                return { hasSastReport, lastSastReportId, lastSastReportTime, applicationPublicId };
+              function getPrioritiesReportCellProps() {
+                return { applicationPublicId, hasPrioritiesReport, lastScanId };
               }
 
               const totalRiskScoreValue = totalRiskScore === -1 ? 'N/A' : totalRiskScore;
@@ -206,7 +204,7 @@ export default function AppIntegrationsAndRiskTable() {
                     </NxTooltip>
                   </NxTable.Cell>
                   <NxTable.Cell>
-                    <SastReportCell {...getSastReportCellProps()} />
+                    <PrioritiesReportCell {...getPrioritiesReportCellProps()} />
                   </NxTable.Cell>
                 </NxTable.Row>
               );
@@ -268,34 +266,32 @@ function formatTimestampToDate(timestamp) {
   });
 }
 
-function SastReportCell(props) {
+function PrioritiesReportCell(props) {
   const uiRouterState = useRouterState();
-  const { applicationPublicId, hasSastReport, lastSastReportId, lastSastReportTime } = props;
-  const sastScanReportHref = uiRouterState.href('sastScan', {
-    applicationPublicId,
-    sastScanId: lastSastReportId,
-  });
-
-  if (!hasSastReport) {
-    return <span>Not Available</span>;
+  const { applicationPublicId, hasPrioritiesReport, lastScanId } = props;
+  if (!hasPrioritiesReport) {
+    return <span>N/A</span>;
   }
 
+  const prioritiesHref = uiRouterState.href('prioritiesPage', {
+    publicAppId: applicationPublicId,
+    scanId: lastScanId,
+  });
+
   return (
-    <div className="iq-developer-dashboard-sast-cell-container">
+    <div className="iq-developer-dashboard-priorities-cell-container">
       <NxTextLink
         data-analytics-id="sonatype-development-app-integration-dashboard-view-link-clicked"
-        href={sastScanReportHref}
+        href={prioritiesHref}
       >
         View
       </NxTextLink>
-      <span>{moment(lastSastReportTime).fromNow()}</span>
     </div>
   );
 }
 
-SastReportCell.propTypes = {
+PrioritiesReportCell.propTypes = {
   applicationPublicId: PropTypes.string,
-  hasSastReport: PropTypes.bool,
-  lastSastReportId: PropTypes.string,
-  lastSastReportTime: PropTypes.number,
+  hasPrioritiesReport: PropTypes.bool,
+  lastScanId: PropTypes.string,
 };

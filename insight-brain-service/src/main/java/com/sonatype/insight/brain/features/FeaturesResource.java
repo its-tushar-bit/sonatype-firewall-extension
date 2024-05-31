@@ -32,6 +32,8 @@ public class FeaturesResource
 
   public static final String ENABLE_SSO_ONLY = "/enableSsoOnly";
 
+  public static final String OAUTH2_ENABLED = "/oauth2Enabled";
+
   private final FeaturesService featuresService;
 
   @Inject
@@ -73,6 +75,15 @@ public class FeaturesResource
   public Set<Feature> getEnableSsoOnly() {
     Set<Feature> features = featuresService.getFeatures();
     features.removeIf(feature -> feature != SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY);
+    return features;
+  }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path(OAUTH2_ENABLED)
+  public Set<Feature> getOAuth2Enabled() {
+    Set<Feature> features = featuresService.getFeatures();
+    features.removeIf(feature -> feature != SystemConfigurationPropertyFeature.OAUTH2_ENABLED);
     return features;
   }
 }

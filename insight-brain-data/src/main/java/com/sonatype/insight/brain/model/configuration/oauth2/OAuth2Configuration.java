@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.model.configuration.oauth2;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.persistence.Column;
@@ -18,7 +16,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @since 1.177
@@ -155,21 +152,14 @@ public class OAuth2Configuration
     this.exactMatchClaimsJson = exactMatchClaimsJson;
   }
 
-  public Map<String, String> getExactMatchClaims() {
-    if (StringUtils.isBlank(exactMatchClaimsJson)) {
-      return new HashMap<>();
-    }
-
-    try {
-      return JsonUtils.parse(exactMatchClaimsJson, new TypeReference<Map<String, String>>() { });
-    }
-    catch (IOException e) {
-
-      throw new UncheckedIOException("Failed to parse exact match claims: " + e.getMessage(), e);
-    }
-  }
-
   public void setExactMatchClaims(final Map<String, String> exactMatchClaims) {
     this.exactMatchClaimsJson = JsonUtils.format(exactMatchClaims);
+  }
+
+  public Map<String, String> getExactMatchClaims() {
+    if (exactMatchClaimsJson == null) {
+      return new HashMap<>();
+    }
+    return JsonUtils.asType(exactMatchClaimsJson, new TypeReference<Map<String, String>>() { });
   }
 }

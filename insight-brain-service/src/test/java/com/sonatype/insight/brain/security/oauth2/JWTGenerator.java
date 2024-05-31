@@ -137,6 +137,23 @@ public class JWTGenerator
     return claims;
   }
 
+  public Map<String, Object> getStandardCustomClaims(
+      final String username,
+      final String firstName,
+      final String lastName,
+      final String email,
+      final List<String> groups)
+  {
+    Map<String, Object> claims = new HashMap<>();
+    claims.put(JwtRealm.GIVEN_NAME_CLAIM, firstName);
+    claims.put(JwtRealm.FAMILY_NAME_CLAIM, lastName);
+    claims.put(JwtRealm.NICKNAME_CLAIM, username);
+    claims.put(JwtRealm.EMAIL_CLAIM, email);
+    claims.put(JwtRealm.GROUPS_CLAIM, groups);
+
+    return claims;
+  }
+
   private String generateJWT(JWTClaimsSet claimsSet) {
     try {
 

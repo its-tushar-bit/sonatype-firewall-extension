@@ -47,15 +47,15 @@ public class UserSessionResource
 
   private final Configuration configuration;
 
-  private final SamlIdPLogoutUrlBuilder samlIdPLogoutUrlBuilder;
+  private final IdPLogoutUrlBuilder idPLogoutUrlBuilder;
 
   @Inject
   public UserSessionResource(
       Configuration configuration,
-      SamlIdPLogoutUrlBuilder samlIdPLogoutUrlBuilder)
+      IdPLogoutUrlBuilder idPLogoutUrlBuilder)
   {
     this.configuration = configuration;
-    this.samlIdPLogoutUrlBuilder = samlIdPLogoutUrlBuilder;
+    this.idPLogoutUrlBuilder = idPLogoutUrlBuilder;
   }
 
   /**
@@ -86,7 +86,7 @@ public class UserSessionResource
           .location(URI.create(reverseProxyAuthenticationConfiguration.getLogoutUrl())).build();
     }
 
-    URI idpLogoutURI = samlIdPLogoutUrlBuilder.buildIdPLogoutUrl();
+    URI idpLogoutURI = idPLogoutUrlBuilder.buildIdPLogoutUrl();
 
     if (idpLogoutURI != null) {
       return Response.status(Status.NO_CONTENT).location(idpLogoutURI).build();

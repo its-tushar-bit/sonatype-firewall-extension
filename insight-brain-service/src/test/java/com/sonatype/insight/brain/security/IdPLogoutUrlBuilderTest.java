@@ -9,9 +9,9 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 
@@ -23,7 +23,7 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.LOGOUT_AUTH0_ON_LOGOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SamlIdPLogoutUrlBuilderTest
+public class IdPLogoutUrlBuilderTest
     extends AbstractComponentTest
 {
   @Inject
@@ -33,7 +33,7 @@ public class SamlIdPLogoutUrlBuilderTest
   private BaseUrl baseUrl;
 
   @Inject
-  public SamlIdPLogoutUrlBuilder samlIdPLogoutUrlBuilder;
+  public IdPLogoutUrlBuilder idPLogoutUrlBuilder;
 
   @Before
   public void before() {
@@ -46,25 +46,59 @@ public class SamlIdPLogoutUrlBuilderTest
   }
 
   @Test
-  public void testBuildIdPLogoutUrl_shouldReturnProperLogoutURLForAuth0() {
+  public void testBuildIdPLogoutUrl_shouldReturnAuth0LogoutFromSamlConfiguration() {
     tempEntity.newSamlConfiguration(auth0IdpXml(), null);
     samlDeploymentManager.updateFromConfiguration();
 
     tempEntity.newSystemConfigurationProperty(LOGOUT_AUTH0_ON_LOGOUT, "true");
 
-    URI logoutURI = samlIdPLogoutUrlBuilder.buildIdPLogoutUrl();
-    assertThat(logoutURI.toString()).isEqualTo(
+    URI logoutURI = idPLogoutUrlBuilder.buildIdPLogoutUrl();
+    assertThat(logoutURI).hasToString(
         "https://idp-entity-id/v2/logout?client_id=rfCvE9qbgAu0ASBCCwe8QZugsAJzf1TK&returnTo=http://localhost:8070/");
   }
 
   @Test
-  public void testBuildIdPLogoutUrl_shouldReturnNullIfSAMLConfigurationIsNotSet() {
+  public void testBuildIdPLogoutUrl_shouldReturnAuth0LogoutFromOidcConfiguration() {
+    String clientId = "client-id";
+    String issuer = "https://an-idp.com";
+    tempEntity.newOidcConfiguration(issuer, clientId, "client-secret", "https://an-idp.com/authorize",
+        "https://an-idp.com/tokens");
+
+    tempEntity.newSystemConfigurationProperty(LOGOUT_AUTH0_ON_LOGOUT, "true");
+    SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(true);
+
+    URI logoutURI = idPLogoutUrlBuilder.buildIdPLogoutUrl();
+    assertThat(logoutURI).hasToString(
+        String.format("%s/v2/logout?client_id=%s&returnTo=http://localhost:8070/", issuer, clientId));
+  }
+
+  @Test
+  public void testBuildIdPLogoutUrl_shouldReturnAuth0LogoutFromSamlConfigIfOAuth2NotEnabled() {
+    // Oidc configuration
+    String clientId = "client-id";
+    String issuer = "https://an-idp.com";
+    tempEntity.newOidcConfiguration(issuer, clientId, "client-secret", "https://an-idp.com/authorize",
+        "https://an-idp.com/tokens");
+
+    // Saml configuration
+    tempEntity.newSamlConfiguration(auth0IdpXml(), null);
+    samlDeploymentManager.updateFromConfiguration();
+
+    tempEntity.newSystemConfigurationProperty(LOGOUT_AUTH0_ON_LOGOUT, "true");
+
+    URI logoutURI = idPLogoutUrlBuilder.buildIdPLogoutUrl();
+    assertThat(logoutURI).hasToString(
+        "https://idp-entity-id/v2/logout?client_id=rfCvE9qbgAu0ASBCCwe8QZugsAJzf1TK&returnTo=http://localhost:8070/");
+  }
+
+  @Test
+  public void testBuildIdPLogoutUrl_shouldReturnNullIfOssConfigurationIsNotSet() {
     // Ensure the config is re-read
     samlDeploymentManager.register();
 
     tempEntity.newSystemConfigurationProperty(LOGOUT_AUTH0_ON_LOGOUT, "true");
 
-    URI logoutURI = samlIdPLogoutUrlBuilder.buildIdPLogoutUrl();
+    URI logoutURI = idPLogoutUrlBuilder.buildIdPLogoutUrl();
     assertThat(logoutURI).isNull();
   }
 
@@ -75,14 +109,14 @@ public class SamlIdPLogoutUrlBuilderTest
 
     tempEntity.newSystemConfigurationProperty(LOGOUT_AUTH0_ON_LOGOUT, "false");
 
-    URI logoutURI = samlIdPLogoutUrlBuilder.buildIdPLogoutUrl();
+    URI logoutURI = idPLogoutUrlBuilder.buildIdPLogoutUrl();
     assertThat(logoutURI).isNull();
   }
 
   protected String auth0IdpXml() {
     try {
       return IOUtils.toString(
-          getClass().getResourceAsStream("/SamlIdPLogoutUrlBuilderTest/identity-provider-metadata.xml"),
+          getClass().getResourceAsStream("/IdPLogoutUrlBuilderTest/identity-provider-metadata.xml"),
           StandardCharsets.UTF_8);
     }
     catch (IOException e) {

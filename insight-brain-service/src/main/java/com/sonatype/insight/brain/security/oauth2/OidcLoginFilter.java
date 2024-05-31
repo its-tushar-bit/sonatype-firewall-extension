@@ -1,0 +1,258 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.security.oauth2;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.Map;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpFilter;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
+import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
+import com.sonatype.insight.brain.security.LoginErrorResponseHandler;
+import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.jaxrs.error.ErrorResponse;
+
+import com.nimbusds.oauth2.sdk.AuthorizationCode;
+import com.nimbusds.oauth2.sdk.AuthorizationCodeGrant;
+import com.nimbusds.oauth2.sdk.AuthorizationGrant;
+import com.nimbusds.oauth2.sdk.ResponseType;
+import com.nimbusds.oauth2.sdk.Scope;
+import com.nimbusds.oauth2.sdk.TokenRequest;
+import com.nimbusds.oauth2.sdk.TokenResponse;
+import com.nimbusds.oauth2.sdk.auth.ClientAuthentication;
+import com.nimbusds.oauth2.sdk.auth.ClientSecretBasic;
+import com.nimbusds.oauth2.sdk.auth.Secret;
+import com.nimbusds.oauth2.sdk.id.ClientID;
+import com.nimbusds.oauth2.sdk.id.State;
+import com.nimbusds.openid.connect.sdk.AuthenticationRequest;
+import com.nimbusds.openid.connect.sdk.AuthenticationRequest.Builder;
+import com.nimbusds.openid.connect.sdk.Nonce;
+import com.nimbusds.openid.connect.sdk.OIDCTokenResponse;
+import com.nimbusds.openid.connect.sdk.OIDCTokenResponseParser;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.session.Session;
+import org.eclipse.jetty.server.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@Named
+@Singleton
+public class OidcLoginFilter
+    extends HttpFilter
+{
+  private static final Logger log = LoggerFactory.getLogger(OidcLoginFilter.class.getName());
+
+  public static final String OAUTH_CALLBACK = "oidc/callback";
+
+  public static final String OAUTH_LOGIN = "oidc/login";
+
+  public static final String INDEX_HTML = "assets/index.html";
+
+  public static final String OIDC_CONFIGURATION_INVALID =
+      "There is no OIDC configuration to trigger the login";
+
+  public static final String ERROR_BUILDING_AUTHORIZATION_REQUEST = "Error building the authorization request";
+
+  public static final String ERROR_GETTING_TOKENS = "Error getting the OIDC tokens from IDP";
+
+  public static final String ERROR_BUILDING_TOKEN_REQUEST = "Error building the token request";
+
+  public static final String[] OIDC_SCOPES = {"openid", "profile", "email"};
+
+  public static final String ERROR_AUTHORIZING_REQUEST = "Error authorizing request: %s";
+
+  private final OidcConfigurationDAO oidcConfigurationDAO;
+
+  private final BaseUrl baseUrl;
+
+  @Inject
+  public OidcLoginFilter(BaseUrl baseUrl, OidcConfigurationDAO oidcConfigurationDAO) {
+    this.oidcConfigurationDAO = oidcConfigurationDAO;
+    this.baseUrl = baseUrl;
+  }
+
+  @Override
+  protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
+      throws IOException, ServletException
+  {
+    String path = req.getPathInfo();
+
+    log.info("Calling OAuth endpoint {}", path);
+
+    try {
+      OidcConfiguration oidcConfiguration = oidcConfigurationDAO.get();
+
+      if (oidcConfiguration == null) {
+        throw new AuthenticationException(OIDC_CONFIGURATION_INVALID);
+      }
+
+      // Handles the login request by sending an authentication request
+      if (path.contains(OAUTH_LOGIN)) {
+        sendAuthorizationRequest(res, oidcConfiguration);
+      }
+
+      // Handles the callback request from the IDP to get the Access and ID tokens
+      if (path.contains(OAUTH_CALLBACK)) {
+        handleCallbackAndSetTokensOnSession(req, res, oidcConfiguration);
+      }
+    }
+    catch (AuthenticationException e) {
+      ErrorResponse errorResponse = new ErrorResponse(Response.SC_UNAUTHORIZED, e.getMessage());
+      LoginErrorResponseHandler.sendError(res, errorResponse);
+    }
+  }
+
+  private void sendAuthorizationRequest(final HttpServletResponse res, final OidcConfiguration oidcConfiguration)
+      throws IOException
+  {
+    String callbackUri = baseUrl.get() + OAUTH_CALLBACK;
+
+    AuthenticationRequest authorizeUrlRequest = buildAuthenticationRequest(oidcConfiguration, callbackUri);
+
+    String authorizeUrl = authorizeUrlRequest.toURI().toString();
+
+    res.sendRedirect(authorizeUrl);
+  }
+
+  private AuthenticationRequest buildAuthenticationRequest(
+      OidcConfiguration oidcConfiguration,
+      String callbackUrl)
+  {
+    String clientId = oidcConfiguration.getClientId();
+    String authorizationUrl = oidcConfiguration.getIdpAuthorizationUrl();
+    Map<String, String> authorizationRequestParameters = oidcConfiguration.getAuthorizationCustomParams();
+
+    try {
+      // The client ID provisioned by the OpenID provider when
+      // the client was registered
+      ClientID clientID = new ClientID(clientId);
+
+      // The client callback URL
+      URI callback = new URI(callbackUrl);
+
+      // Generate random state string to securely pair the callback to this request
+      State state = new State();
+
+      // Generate nonce for the ID token
+      Nonce nonce = new Nonce();
+
+      // Compose the OpenID authentication request (for the code flow)
+      AuthenticationRequest.Builder builder = new Builder(
+          new ResponseType("code"),
+          new Scope(OIDC_SCOPES),
+          clientID,
+          callback)
+          .endpointURI(new URI(authorizationUrl))
+          .state(state)
+          .nonce(nonce);
+
+      // Add custom parameters to the request
+      authorizationRequestParameters.forEach(builder::customParameter);
+
+      // Build the request
+      return builder.build();
+    }
+    catch (Exception exception) {
+      log.error(ERROR_BUILDING_AUTHORIZATION_REQUEST, exception);
+      throw new AuthenticationException(ERROR_BUILDING_AUTHORIZATION_REQUEST, exception);
+    }
+  }
+
+  private void handleCallbackAndSetTokensOnSession(
+      final HttpServletRequest req,
+      final HttpServletResponse res,
+      final OidcConfiguration oidcConfiguration)
+  {
+    String codeParameter = req.getParameter("code");
+
+    if (StringUtils.isBlank(codeParameter)) {
+      String authErrorDescription = req.getParameter("error_description");
+      throw new AuthenticationException(String.format(ERROR_AUTHORIZING_REQUEST, authErrorDescription));
+    }
+
+    // Parse the request
+    String redirectUri = baseUrl.get() + INDEX_HTML;
+
+    TokenRequest tokenRequest = buildTokenRequest(oidcConfiguration, redirectUri, codeParameter);
+
+    try {
+      TokenResponse tokenResponse = OIDCTokenResponseParser.parse(tokenRequest.toHTTPRequest().send());
+
+      if (!tokenResponse.indicatesSuccess()) {
+        // We got an error response...
+        String error = tokenResponse.toErrorResponse().getErrorObject().getDescription();
+        throw new AuthenticationException(error);
+      }
+
+      OIDCTokenResponse successResponse = (OIDCTokenResponse) tokenResponse.toSuccessResponse();
+      addTokenToSession(JwtAuthenticationFilter.ID_TOKEN_PARAM, successResponse.getOIDCTokens().getIDTokenString());
+      addTokenToSession(JwtAuthenticationFilter.ACCESS_TOKEN_PARAM,
+          successResponse.getOIDCTokens().getAccessToken().getValue());
+
+      res.sendRedirect(redirectUri);
+    }
+    catch (Exception e) {
+      log.error(ERROR_GETTING_TOKENS, e);
+      throw new AuthenticationException(ERROR_GETTING_TOKENS, e);
+    }
+  }
+
+  private Session getSession() {
+    return SecurityUtils.getSubject().getSession();
+  }
+
+  private TokenRequest buildTokenRequest(
+      OidcConfiguration oidcConfiguration,
+      String redirectUri,
+      String codeParameter)
+  {
+    String clientId = oidcConfiguration.getClientId();
+    String clientSecret = oidcConfiguration.getClientSecret();
+    String oauthRequestTokensUrl = oidcConfiguration.getIdpTokenUrl();
+
+    try {
+      AuthorizationCode code = new AuthorizationCode(codeParameter);
+
+      URI callback = new URI(redirectUri);
+      AuthorizationGrant codeGrant = new AuthorizationCodeGrant(code, callback);
+
+      // The credentials to authenticate the client at the token endpoint
+      ClientID clientID = new ClientID(clientId);
+      Secret secret = new Secret(clientSecret);
+      ClientAuthentication clientAuth = new ClientSecretBasic(clientID, secret);
+
+      // The token endpoint
+      URI tokenEndpoint = new URI(oauthRequestTokensUrl);
+
+      // Make the token request
+      return new TokenRequest(tokenEndpoint, clientAuth, codeGrant);
+    }
+    catch (Exception exception) {
+      log.error(ERROR_BUILDING_TOKEN_REQUEST, exception);
+      throw new AuthenticationException(ERROR_BUILDING_TOKEN_REQUEST, exception);
+    }
+  }
+
+  private void addTokenToSession(String id, String token) {
+    Session session = getSession();
+
+    if (session == null) {
+      return;
+    }
+
+    session.setAttribute(id, token);
+  }
+}

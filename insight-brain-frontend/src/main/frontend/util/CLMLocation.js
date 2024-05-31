@@ -411,6 +411,10 @@ export function getSamlSsoLoginUrl(hash) {
   return hash ? uriTemplate`/saml/login?hash=${hash}` : uriTemplate`/saml/login`;
 }
 
+export function getOidcLoginUrl(hash) {
+  return hash ? uriTemplate`/oidc/login?hash=${hash}` : uriTemplate`/oidc/login`;
+}
+
 export function getAutomaticApplicationsConfigurationUrl() {
   return uriTemplate`/rest/config/automaticApplications`;
 }
@@ -496,6 +500,10 @@ export function getEnableUnauthenticatedPages() {
 
 export function getEnableSsoOnly() {
   return uriTemplate`/rest/product/features/enableSsoOnly`;
+}
+
+export function getOAuth2Enabled() {
+  return uriTemplate`/rest/product/features/oauth2Enabled`;
 }
 
 export function getQuarantinedComponentViewAnonymousAccessEnabledState() {

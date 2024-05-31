@@ -4,10 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { actions } from 'MainRoot/user/LoginModal/userLoginSlice';
-import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
-import { getSamlSsoLoginUrl } from 'MainRoot/util/CLMLocation';
+import { getOidcLoginUrl, getSamlSsoLoginUrl } from 'MainRoot/util/CLMLocation';
 import { assign } from 'MainRoot/util/CLMLocation';
+import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { unwrapResult } from '@reduxjs/toolkit';
 
 export default function LoginModalService(rootScope, ngRedux) {
@@ -33,23 +33,24 @@ export default function LoginModalService(rootScope, ngRedux) {
     });
   };
 
-  const onClickSSO = () => {
-    let destination = getSamlSsoLoginUrl(window.location.hash);
-    redirect(destination);
+  const onClickSSO = async () => {
+    const isOAuth2Enabled = await loadOAuth2Enabled();
+    await redirectToIdP(isOAuth2Enabled);
   };
 
-  const loadIsSsoOnlyEnabled = () => {
-    return ngRedux.dispatch(productFeaturesActions.loadIsSsoOnlyEnabled()).then(unwrapResult);
+  const loadOAuth2Enabled = () => {
+    return ngRedux.dispatch(productFeaturesActions.loadIsOauth2Enabled()).then(unwrapResult);
   };
+
+  async function redirectToIdP(isOAuth2Enabled) {
+    let destination = isOAuth2Enabled
+      ? getOidcLoginUrl(window.location.hash)
+      : getSamlSsoLoginUrl(window.location.hash);
+
+    redirect(destination);
+  }
 
   async function open(showSamlSso) {
-    const isSsoOnlyEnabled = await loadIsSsoOnlyEnabled();
-
-    if (showSamlSso && isSsoOnlyEnabled) {
-      onClickSSO();
-      return;
-    }
-
     if (modalPromise) {
       return modalPromise;
     }
@@ -80,7 +81,7 @@ export default function LoginModalService(rootScope, ngRedux) {
     }
   }
 
-  return { onClickSSO, onSubmit, dismiss, open };
+  return { onClickSSO, onSubmit, dismiss, open, redirectToIdP };
 }
 
 LoginModalService.$inject = ['$rootScope', '$ngRedux'];

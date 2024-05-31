@@ -19,17 +19,17 @@ import org.apache.shiro.authc.AuthenticationException;
 /**
  * @since 1.20.0
  */
-class LoginErrorResponseHandler
+public class LoginErrorResponseHandler
 {
   private static final ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator();
 
   private LoginErrorResponseHandler() {}
 
-  static void sendError(final HttpServletResponse httpResponse, final AuthenticationException e) {
+  public static void sendError(final HttpServletResponse httpResponse, final AuthenticationException e) {
     sendError(httpResponse, errorResponseGenerator.mapExceptionAndLog(e));
   }
 
-  static void sendError(final HttpServletResponse httpResponse, final ErrorResponse errorResponse) {
+  public static void sendError(final HttpServletResponse httpResponse, final ErrorResponse errorResponse) {
     // Note: In cases where a committed response.statusCode == 401, we knowingly deviate from this spec:
     // https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2, and do not include the "WWW-Authenticate"
     // header. See: org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter.sendChallenge() for such a header.

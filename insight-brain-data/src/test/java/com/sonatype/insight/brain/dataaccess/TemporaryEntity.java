@@ -70,6 +70,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDA
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2ConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
@@ -194,6 +195,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration;
+import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
@@ -582,6 +584,8 @@ public class TemporaryEntity
 
   private OAuth2ConfigurationDAO oAuth2ConfigurationDAO;
 
+  private OidcConfigurationDAO oidcConfigurationDAO;
+
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -876,6 +880,7 @@ public class TemporaryEntity
           .filter(applicationCountHistory -> !applicationCountHistory.getId().equals("initialization"))
           .forEach(applicationCountHistoryDAO::delete);
       delete(oAuth2ConfigurationDAO.getAll(), oAuth2ConfigurationDAO);
+      delete(oidcConfigurationDAO.getAll(), oidcConfigurationDAO);
 
       detectEntityLeaks(testEntityLeaksDetectionData);
     }
@@ -4885,6 +4890,20 @@ public class TemporaryEntity
     return oAuth2Configuration;
   }
 
+  public OidcConfiguration newOidcConfiguration(
+      String issuer,
+      String clientId,
+      String clientSecret,
+      String authorizationUrl,
+      String tokenUrl)
+  {
+    OidcConfiguration oidcConfiguration =
+        new OidcConfiguration(issuer, clientId, clientSecret, authorizationUrl, tokenUrl);
+
+    oidcConfigurationDAO.insert(oidcConfiguration);
+    return oidcConfiguration;
+  }
+
   private void initializeDAOs() {
     initializeOperationalDataStoreDAOs();
     initializeDataMartDataStoreDAOs();
@@ -4998,6 +5017,7 @@ public class TemporaryEntity
     sastScmScanContextDAO = daoFactory.createSastScmScanContextDAO();
     sastPullRequestCommentDAO = daoFactory.createSastPullRequestCommentDAO();
     oAuth2ConfigurationDAO = daoFactory.createOAuth2ConfigurationDAO();
+    oidcConfigurationDAO = daoFactory.createOidcConfigurationDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {

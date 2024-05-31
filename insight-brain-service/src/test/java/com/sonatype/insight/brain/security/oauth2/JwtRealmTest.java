@@ -56,6 +56,26 @@ public class JwtRealmTest
   }
 
   @Test
+  public void testDoGetAuthenticationInfo_WithDefaultOidcClaims() {
+    final String sub = "bob";
+    final String issuer = "https://an-idp.com";
+    final String username = "bob-the-ruler";
+    final String firstName = "Bob";
+    final String lastName = "Sanders";
+    final String email = "bob@company.com";
+    final List<String> groups = Arrays.asList("admin", "dev", "other");
+
+    tempEntity.newOAuth2Configuration(issuer, jwtGenerator.getJwsAlgorithm(), null, jwtGenerator.getJWKSetString());
+    Map<String, Object> claims = jwtGenerator.getStandardCustomClaims(username, firstName, lastName, email, groups);
+    String token = jwtGenerator.generateJWT(sub, issuer, claims);
+    ShiroJsonWebToken shiroJsonWebToken = new ShiroJsonWebToken(token);
+
+    AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(shiroJsonWebToken);
+
+    assertAuthenticationInfoIsTheExpected(username, "Bob Sanders", groups, shiroJsonWebToken, authenticationInfo);
+  }
+
+  @Test
   public void testDoGetAuthenticationInfo_DisplayNameIsUsername() {
     final String sub = "bob";
     final String issuer = "https://an-idp.com";

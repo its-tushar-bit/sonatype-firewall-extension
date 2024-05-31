@@ -34,6 +34,16 @@ public class JwtRealm
 
   public static final String ID = "JWT";
 
+  public static final String NICKNAME_CLAIM = "nickname";
+
+  public static final String GIVEN_NAME_CLAIM = "given_name";
+
+  public static final String FAMILY_NAME_CLAIM = "family_name";
+
+  public static final String EMAIL_CLAIM = "email";
+
+  public static final String GROUPS_CLAIM = "groups";
+
   private final OAuth2ConfigurationDAO oAuth2ConfigurationDAO;
 
   @Inject
@@ -76,15 +86,17 @@ public class JwtRealm
       return new UserPrincipal(sub, sub, ID, null);
     }
 
-    String username = jwtToken.getClaimValue(configuration.getUsernameClaim());
-    String firstName = jwtToken.getClaimValue(configuration.getFirstNameClaim());
-    String lastName = jwtToken.getClaimValue(configuration.getLastNameClaim());
-    String email = jwtToken.getClaimValue(configuration.getEmailClaim());
+    String username = jwtToken.getValueFromClaimOrDefaultClaim(configuration.getUsernameClaim(), NICKNAME_CLAIM);
+    String firstName = jwtToken.getValueFromClaimOrDefaultClaim(configuration.getFirstNameClaim(), GIVEN_NAME_CLAIM);
+    String lastName = jwtToken.getValueFromClaimOrDefaultClaim(configuration.getLastNameClaim(), FAMILY_NAME_CLAIM);
+    String email = jwtToken.getValueFromClaimOrDefaultClaim(configuration.getEmailClaim(), EMAIL_CLAIM);
 
     // Calculate the final username, name and groups
     String principalUsername = calculatePrincipalUserName(username, email, sub);
     String name = calculateDisplayName(firstName, lastName, principalUsername);
-    Set<String> groups = new LinkedHashSet<>(jwtToken.getClaimValueAsList(configuration.getGroupsClaim()));
+    Set<String> groups =
+        new LinkedHashSet<>(jwtToken.getValueAsListFromClaimOrDefaultClaim(configuration.getGroupsClaim(),
+            GROUPS_CLAIM));
 
     return new UserPrincipal(principalUsername, name, ID, groups);
   }

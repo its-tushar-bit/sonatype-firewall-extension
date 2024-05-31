@@ -187,6 +187,15 @@ public final class JsonUtils
     return data != null ? data.objectNode() : JsonNodeFactory.instance.objectNode();
   }
 
+  public static <T> T asType(final String json, final TypeReference<T> type) {
+    try {
+      return parse(json, type);
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(String.format("Failed to parse JSON: %s", e.getMessage()), e);
+    }
+  }
+
   public static ObjectNode aaDataNode(final Iterable<JsonNode> data) {
     final ArrayNode aaData = JsonNodeFactory.instance.arrayNode();
     for (final JsonNode d : data) {

@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -181,6 +182,20 @@ public class JsonUtilsTest
         "\"details\":{\"city\":\"New York\",\"toRemove\":\"[another_value1, another_value2]\"}}";
     assertThatExceptionOfType(UncheckedIOException.class)
         .isThrownBy(() -> JsonUtils.setFieldToEmptyArray(jsonInputWrongFormatted.getBytes(), "toRemove"));
+  }
+
+  @Test
+  public void testAsType() {
+    String jsonInput = "{\"name\":\"John\"}";
+    Map<String, String> type = JsonUtils.asType(jsonInput, new TypeReference<Map<String, String>>() { });
+    assertThat(type.get("name")).isEqualTo("John");
+  }
+
+  @Test
+  public void testAsType_MalformedJson() {
+    String jsonInput = "{\"name\":\"John";
+    assertThatExceptionOfType(UncheckedIOException.class)
+        .isThrownBy(() -> JsonUtils.asType(jsonInput, new TypeReference<Map<String, String>>() { }));
   }
 
   private static class Pair

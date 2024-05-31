@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAcce
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.security.oauth2.JwtAuthenticationFilter;
 import com.sonatype.insight.brain.security.oauth2.JwtRealm;
+import com.sonatype.insight.brain.security.oauth2.OidcLoginFilter;
 
 import com.google.inject.TypeLiteral;
 import com.google.inject.binder.AnnotatedBindingBuilder;
@@ -93,6 +94,7 @@ public class SecurityModule
     // endpoint used to decide whether we have unauthenticated pages or not
     manager.createChain("/rest/product/features/enableUnauthenticatedPages", anonFilters);
     manager.createChain("/rest/product/features/enableSsoOnly", anonFilters);
+    manager.createChain("/rest/product/features/oauth2Enabled", anonFilters);
     manager.createChain("/rest/version", anonFilters); // product version info
     manager.createChain("/tasks/**", anonFilters); // DW tasks exposed on admin port
     manager.createChain("/ui/links/**", anonFilters); // only redirects
@@ -139,6 +141,9 @@ public class SecurityModule
 
     // SAML callbacks
     manager.createChain("/saml/**", "clientIPAddressFilter, secureCookies, saml");
+
+    // OAuth callbacks
+    manager.createChain("/oidc/**", "clientIPAddressFilter, secureCookies, oidcLogin");
 
     // internal REST API
     manager.createChain("/**/*",
@@ -245,6 +250,7 @@ public class SecurityModule
         SamlFilter samlFilter,
         InvalidRequestFilter invalidRequestFilter,
         JwtAuthenticationFilter jwtAuthenticationFilter,
+        OidcLoginFilter oidcLoginFilter,
         QuarantinedComponentAccessDAO quarantinedComponentAccessDAO)
     {
       filterChainManager.addFilter("antiCsrf", antiCsrfFilter);
@@ -258,6 +264,7 @@ public class SecurityModule
       filterChainManager.addFilter("sessionExpirationCookie", sessionExpirationCookieFilter);
       filterChainManager.addFilter("sonatypeInvalidRequest", invalidRequestFilter);
       filterChainManager.addFilter("authcJWT", jwtAuthenticationFilter);
+      filterChainManager.addFilter("oidcLogin", oidcLoginFilter);
       filterChainManager.setGlobalFilters(Collections.singletonList("sonatypeInvalidRequest"));
 
       configureFilterChains(filterChainManager, quarantinedComponentAccessDAO.isAnonymousAccessEnabled());

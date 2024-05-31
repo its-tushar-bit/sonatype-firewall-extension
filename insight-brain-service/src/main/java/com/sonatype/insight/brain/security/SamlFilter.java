@@ -60,7 +60,7 @@ class SamlFilter
 
   private final SamlSessionIdMapper samlSessionIdMapper;
 
-  private final SamlIdPLogoutUrlBuilder samlIdPLogoutUrlBuilder;
+  private final IdPLogoutUrlBuilder idPLogoutUrlBuilder;
 
   private final Configuration configuration;
 
@@ -71,14 +71,14 @@ class SamlFilter
       SamlDeploymentManager samlDeploymentManager,
       LandingService landingService,
       SamlSessionIdMapper samlSessionIdMapper,
-      SamlIdPLogoutUrlBuilder samlIdPLogoutUrlBuilder,
+      IdPLogoutUrlBuilder idPLogoutUrlBuilder,
       Configuration configuration,
       SamlConfigurationDAO samlConfigurationDAO)
   {
     this.samlDeploymentManager = samlDeploymentManager;
     this.landingService = landingService;
     this.samlSessionIdMapper = samlSessionIdMapper;
-    this.samlIdPLogoutUrlBuilder = samlIdPLogoutUrlBuilder;
+    this.idPLogoutUrlBuilder = idPLogoutUrlBuilder;
     this.configuration = configuration;
     this.samlConfigurationDAO = samlConfigurationDAO;
   }
@@ -132,7 +132,7 @@ class SamlFilter
       return false;
     }
     if (outcome == AuthOutcome.FAILED) {
-      URI idpLogoutURI = samlIdPLogoutUrlBuilder.buildIdPLogoutUrl();
+      URI idpLogoutURI = idPLogoutUrlBuilder.buildIdPLogoutUrl();
 
       if (idpLogoutURI != null) {
         ((HttpServletResponse) response).sendRedirect(idpLogoutURI.toString());

@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDA
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2ConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationInternalDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
@@ -968,6 +969,11 @@ public class TestDAOFactory
   @Override
   public OAuth2ConfigurationDAO createOAuth2ConfigurationDAO() {
     return new OAuth2ConfigurationDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public OidcConfigurationDAO createOidcConfigurationDAO() {
+    return new OidcConfigurationDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   // DataMartDataStore DAOs

@@ -7,13 +7,13 @@ import axios from 'axios';
 import loginModalModule from 'MainRoot/user/LoginModal/module';
 import { actions } from 'MainRoot/user/LoginModal/userLoginSlice';
 import * as Locations from 'MainRoot/util/CLMLocation';
-import { getEnableSsoOnly, getSessionUrl } from 'MainRoot/util/CLMLocation';
+import { getOAuth2Enabled, getSessionUrl } from 'MainRoot/util/CLMLocation';
 
 describe('LoginModalService', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
 
   let LoginModalService, $ngRedux, $rootScope;
-  let loadIsSsoOnlyEnabledPromise, loadIsSsoOnlyEnabledWithValue;
+  let loadOAuth2Enabled, loadOAuth2EnabledWithValue;
 
   beforeEach(
     angular.mock.module(loginModalModule.name, ($provide) => {
@@ -29,13 +29,13 @@ describe('LoginModalService', function () {
 
     $rootScope.licensed = true;
 
-    loadIsSsoOnlyEnabledPromise = new Promise((resolve) => {
-      loadIsSsoOnlyEnabledWithValue = resolve;
+    loadOAuth2Enabled = new Promise((resolve) => {
+      loadOAuth2EnabledWithValue = resolve;
     });
 
     mockAxiosCalls({
       get: {
-        [getEnableSsoOnly()]: loadIsSsoOnlyEnabledPromise,
+        [getOAuth2Enabled()]: loadOAuth2Enabled,
       },
       post: {
         [getSessionUrl()]: Promise.resolve('success'),
@@ -52,37 +52,7 @@ describe('LoginModalService', function () {
     openLoginModalAndAssertItIsOpen(false, done);
   });
 
-  it('does not open the login modal when open() is called with showSamlSso and isSsoOnlyEnabled', (done) => {
-    spyOn(Locations, 'assign').and.stub();
-
-    // Open the modal
-    const modalPromise = LoginModalService.open(true);
-    expect(modalPromise).toBeDefined();
-
-    // When the isSsoOnlyEnabled flag is loaded
-    loadIsSsoOnlyEnabledWithValue({
-      data: ['enable-sso-only'],
-    });
-
-    // The action to get the isSsoOnlyEnabled flag is dispatched
-    expect($ngRedux.actions.length).toBe(1);
-    expect($ngRedux.actions).toHaveActionTypesInOrder(['productFeatures/loadIsSsoOnlyEnabled/pending']);
-    expect(Locations.assign).toHaveBeenCalledTimes(0);
-
-    // Adding timeout to wait until all the promises for the open modal are completed
-    setTimeout(() => {
-      expect($ngRedux.actions.length).toBe(2);
-      expect($ngRedux.actions).toHaveActionTypesInOrder(['productFeatures/loadIsSsoOnlyEnabled/fulfilled']);
-      expect(Locations.assign).toHaveBeenCalledTimes(1);
-      expect($ngRedux.dispatch).not.toHaveBeenCalledWith(actions.setIsLicensed($rootScope.licensed));
-      expect($ngRedux.dispatch).not.toHaveBeenCalledWith(actions.setShowLoginModal(true));
-      expect($ngRedux.dispatch).not.toHaveBeenCalledWith(actions.setShowSamlSso(true));
-
-      done();
-    }, 0);
-  });
-
-  it('does open the login modal when open() is called with showSamlSso and not isSsoOnlyEnabled', (done) => {
+  it('does open the login modal when open() is called with showSamlSso', (done) => {
     openLoginModalAndAssertItIsOpen(true, done);
   });
 
@@ -93,26 +63,10 @@ describe('LoginModalService', function () {
     expect(promise1).toBeDefined();
     expect(promise2).toBeDefined();
 
-    // The isSsoOnlyEnabled feature is not enabled
-    loadIsSsoOnlyEnabledWithValue({
-      data: [],
-    });
-
-    // The action to load the isSsoOnlyEnabled is sent
-    expect($ngRedux.actions.length).toBe(2);
-    expect($ngRedux.actions).toHaveActionTypesInOrder([
-      'productFeatures/loadIsSsoOnlyEnabled/pending',
-      'productFeatures/loadIsSsoOnlyEnabled/pending',
-    ]);
-
     // Adding timeout to wait until all the promises for the open modal are completed
     setTimeout(() => {
-      expect($ngRedux.actions.length).toBe(7);
+      expect($ngRedux.actions.length).toBe(3);
       expect($ngRedux.actions).toHaveActionTypesInOrder([
-        'productFeatures/loadIsSsoOnlyEnabled/pending',
-        'productFeatures/loadIsSsoOnlyEnabled/pending',
-        'productFeatures/loadIsSsoOnlyEnabled/fulfilled',
-        'productFeatures/loadIsSsoOnlyEnabled/fulfilled',
         'userLogin/setIsLicensed',
         'userLogin/setShowLoginModal',
         'userLogin/setShowSamlSso',
@@ -131,26 +85,31 @@ describe('LoginModalService', function () {
     done();
   });
 
+  it('redirects to SAML SSO URL', (done) => {
+    assertUserIsRedirectedToSSOUrl('/saml/login', false, done);
+  });
+
+  it('redirects to OAuth2 SSO URL', (done) => {
+    assertUserIsRedirectedToSSOUrl('/oidc/login', true, done);
+  });
+
+  it('redirects to SAML SSO URL when click on SSO button', (done) => {
+    assertUserIsRedirectedToSSOUrlWhenSSOButtonIsClicked('/saml/login', [], done);
+  });
+
+  it('redirects to OAuth2 SSO URL when click on SSO button', (done) => {
+    assertUserIsRedirectedToSSOUrlWhenSSOButtonIsClicked('/oidc/login', ['oauth2-enabled'], done);
+  });
+
   function openLoginModalAndAssertItIsOpen(showSamlSso, done) {
     // Open the modal
     const modalPromise = LoginModalService.open(showSamlSso);
     expect(modalPromise).toBeDefined();
 
-    // The isSsoOnlyEnabled feature is not enabled
-    loadIsSsoOnlyEnabledWithValue({
-      data: [],
-    });
-
-    // The action to load the isSsoOnlyEnabled is sent
-    expect($ngRedux.actions.length).toBe(1);
-    expect($ngRedux.actions).toHaveActionTypesInOrder(['productFeatures/loadIsSsoOnlyEnabled/pending']);
-
     // Adding timeout to wait until all the promises for the open modal are completed
     setTimeout(() => {
-      expect($ngRedux.actions.length).toBe(5);
+      expect($ngRedux.actions.length).toBe(3);
       expect($ngRedux.actions).toHaveActionTypesInOrder([
-        'productFeatures/loadIsSsoOnlyEnabled/pending',
-        'productFeatures/loadIsSsoOnlyEnabled/fulfilled',
         'userLogin/setIsLicensed',
         'userLogin/setShowLoginModal',
         'userLogin/setShowSamlSso',
@@ -158,6 +117,48 @@ describe('LoginModalService', function () {
       expect($ngRedux.dispatch).toHaveBeenCalledWith(actions.setIsLicensed($rootScope.licensed));
       expect($ngRedux.dispatch).toHaveBeenCalledWith(actions.setShowLoginModal(true));
       expect($ngRedux.dispatch).toHaveBeenCalledWith(actions.setShowSamlSso(showSamlSso));
+
+      done();
+    }, 0);
+  }
+
+  function assertUserIsRedirectedToSSOUrl(expectedUrl, isOAuth2Enabled, done) {
+    spyOn(Locations, 'assign').and.stub();
+
+    // Open the modal
+    const modalPromise = LoginModalService.redirectToIdP(isOAuth2Enabled);
+    expect(modalPromise).toBeDefined();
+
+    // Adding timeout to wait until all the promises to redirect to the SSO is completed
+    setTimeout(() => {
+      expect(Locations.assign).toHaveBeenCalledWith(expectedUrl);
+
+      done();
+    }, 0);
+  }
+
+  function assertUserIsRedirectedToSSOUrlWhenSSOButtonIsClicked(expectedUrl, isOAuth2EnabledData, done) {
+    spyOn(Locations, 'assign').and.stub();
+
+    // Open the modal
+    const modalPromise = LoginModalService.onClickSSO();
+    expect(modalPromise).toBeDefined();
+
+    // The OAUTH2_ENABLED feature is not enabled
+    loadOAuth2EnabledWithValue({
+      data: isOAuth2EnabledData,
+    });
+
+    // The action to get the OAUTH2_ENABLED flag is dispatched
+    expect($ngRedux.actions.length).toBe(1);
+    expect($ngRedux.actions).toHaveActionTypesInOrder(['productFeatures/loadIsOauth2Enabled/pending']);
+    expect(Locations.assign).toHaveBeenCalledTimes(0);
+
+    // Adding timeout to wait until all the promises for the open modal are completed
+    setTimeout(() => {
+      expect($ngRedux.actions.length).toBe(2);
+      expect($ngRedux.actions).toHaveActionTypesInOrder(['productFeatures/loadIsOauth2Enabled/fulfilled']);
+      expect(Locations.assign).toHaveBeenCalledWith(expectedUrl);
 
       done();
     }, 0);

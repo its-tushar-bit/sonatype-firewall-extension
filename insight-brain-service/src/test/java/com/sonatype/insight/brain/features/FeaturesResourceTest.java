@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.features.FeaturesResource.ENABLE_SSO_ONLY;
 import static com.sonatype.insight.brain.features.FeaturesResource.ENABLE_UNAUTHENTICATED_PAGES;
+import static com.sonatype.insight.brain.features.FeaturesResource.OAUTH2_ENABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class FeaturesResourceTest
@@ -58,5 +59,14 @@ public class FeaturesResourceTest
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
     assertThat(features).hasSize(1).containsOnly("enable-sso-only");
+  }
+
+  @Test
+  public void testGetOAuth2Enabled() throws Exception {
+    SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(true);
+    HttpResponse response = restRequest().path(OAUTH2_ENABLED).anon().get();
+    assertResponseStatus(200, response);
+    String[] features = response.getBody(String[].class);
+    assertThat(features).hasSize(1).containsOnly("oauth2-enabled");
   }
 }

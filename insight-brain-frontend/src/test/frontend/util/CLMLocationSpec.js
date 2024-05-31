@@ -409,6 +409,16 @@ describe('CLMLocation.js', function () {
     );
   });
 
+  it('should return the oidc sso login url', function () {
+    expect(CLMLocation.getOidcLoginUrl('http://localhost:8080/hola/mundo')).toBe(
+      '/oidc/login?hash=http%3A%2F%2Flocalhost%3A8080%2Fhola%2Fmundo'
+    );
+  });
+
+  it('should return the oidc sso login url without hash', function () {
+    expect(CLMLocation.getOidcLoginUrl()).toBe('/oidc/login');
+  });
+
   it('should return the save component obligation attribution url', function () {
     expect(CLMLocation.getSaveComponentObligationAttributionUrl('ownerType', 'ownerId')).toBe(
       '/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/obligation/attribution'
@@ -1053,6 +1063,18 @@ describe('CLMLocation.js', function () {
   describe('getEnableUnauthenticatedPages', () => {
     it('returns url to get getEnableUnauthenticatedPages feature configuration', () => {
       expect(clmLocation.getEnableUnauthenticatedPages()).toEqual('/rest/product/features/enableUnauthenticatedPages');
+    });
+  });
+
+  describe('getEnableSsoOnly', () => {
+    it('returns url to get ENABLE_SSO_ONLY flag', () => {
+      expect(clmLocation.getEnableSsoOnly()).toEqual('/rest/product/features/enableSsoOnly');
+    });
+  });
+
+  describe('getOAuth2Enabled', () => {
+    it('returns url to get OAUTH2_ENABLED flag', () => {
+      expect(clmLocation.getOAuth2Enabled()).toEqual('/rest/product/features/oauth2Enabled');
     });
   });
 

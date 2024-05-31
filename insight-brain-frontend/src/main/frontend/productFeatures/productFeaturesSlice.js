@@ -11,6 +11,7 @@ import {
   getEnableUnauthenticatedPages,
   getEnableSsoOnly,
   getQuarantinedComponentViewAnonymousAccessEnabledState,
+  getOAuth2Enabled,
 } from 'MainRoot/util/CLMLocation';
 import { selectProductFeatures } from './productFeaturesSelectors';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
@@ -88,6 +89,13 @@ const loadIsSsoOnlyEnabled = createAsyncThunk(`${REDUCER_NAME}/loadIsSsoOnlyEnab
   axios.get(getEnableSsoOnly()).then(pipe(prop('data'), includes('enable-sso-only')))
 );
 
+/**
+ * Separate REST call because it must be accessible before login
+ */
+const loadIsOauth2Enabled = createAsyncThunk(`${REDUCER_NAME}/loadIsOauth2Enabled`, () =>
+  axios.get(getOAuth2Enabled()).then(pipe(prop('data'), includes('oauth2-enabled')))
+);
+
 const productFeaturesSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -105,4 +113,5 @@ export const actions = {
   loadIsQuarantinedComponentViewAnonymousAccessEnabled,
   loadIsUnauthenticatedPagesEnabled,
   loadIsSsoOnlyEnabled,
+  loadIsOauth2Enabled,
 };

@@ -14,6 +14,7 @@ import java.util.Optional;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
+import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.git.dto.PullRequestLineCommentCreationResult;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -369,6 +370,9 @@ public class PullRequestCommentCreatorTest
     private PullRequestLocationDiscoveryService mockLocationDiscoveryService;
 
     @Mock
+    private FeaturesService featuresService;
+
+    @Mock
     private PullRequestCommentingEligibilityValidator mockPullRequestCommentingEligibilityValidator;
 
     @Mock
@@ -390,7 +394,7 @@ public class PullRequestCommentCreatorTest
           .doLocationDiscovery(anyList(), any(), anyString(), anyString());
 
       doReturn(markup).when(mockFeedbackMarkupService)
-          .createMarkup(any(), any(), any(), any(), anyInt(), any(), any(), any(), any(), anyBoolean());
+          .createMarkup(any(), any(), any(), any(), anyInt(), any(), any(), any(), any(), anyBoolean(), any());
 
       doReturn(result).when(mockLineCommentingService)
           .createPullRequestLineComments(any(), any(), any(), anyInt(), any(), any(), any(), any(), any(), any());
@@ -407,6 +411,7 @@ public class PullRequestCommentCreatorTest
           mockLineCommentingService,
           postCommentActionList,
           mockLocationDiscoveryService,
+          featuresService,
           mockPullRequestCommentingEligibilityValidator,
           mockComponentLoader,
           mockProductLicense,

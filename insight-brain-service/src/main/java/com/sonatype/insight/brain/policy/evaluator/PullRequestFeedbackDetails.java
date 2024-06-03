@@ -11,21 +11,27 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.git.PullRequestLineCommentDTO;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.utils.TemplateUtils;
+import com.sonatype.insight.client.utils.UrlUtils;
+import com.sonatype.insight.license.model.Feature;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.dto.BaseProjectUri;
 import com.sonatype.nexus.scm.bitbucket.dto.BitbucketServerProjectUri;
@@ -102,6 +108,8 @@ public class PullRequestFeedbackDetails
 
   private final boolean scmImprovementsEnabled;
 
+  private final FeaturesService featuresService;
+
   static {
     try {
       policyViolationDiffMDEmbeddedHtmlTemplate =
@@ -126,7 +134,8 @@ public class PullRequestFeedbackDetails
       final Application app,
       final String iqBaseUrl,
       final boolean scmImprovementsEnabled,
-      final OrganizationDAO organizationDAO)
+      final OrganizationDAO organizationDAO,
+      final FeaturesService featuresService)
   {
     super(organizationDAO);
     Preconditions
@@ -149,6 +158,7 @@ public class PullRequestFeedbackDetails
     this.pullRequestNumber = pullRequestNumber;
     this.iqBaseUrl = iqBaseUrl;
     this.scmImprovementsEnabled = scmImprovementsEnabled;
+    this.featuresService = featuresService;
     Preconditions.checkNotNull(gitRepositoryInfo.provider, "provider is required and cannot be null");
   }
 
@@ -400,6 +410,9 @@ public class PullRequestFeedbackDetails
         .put("detailedBaseBranchReportUrl", baseUrl +
             UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), baseBranchEvaluation.getScanId()) +
             "?source=pr-commenting")
+        .put("featureBranchPrioritiesUrl", UrlUtils.appendUrlPaths(baseUrl,
+            UserInterfaceLinksHelper.getPrioritiesUrl(app.getPublicId(), featureBranchEvaluation.getScanId())))
+        .put("shouldIncludePrioritiesReport", shouldIncludePrioritiesReport())
         .put("baseIqUrl", baseUrl)
         .put("policiesViolatedCount",
             newComponentFeedbackList.stream().mapToInt(item -> ((List<?>) item.get("policiesViolated")).size()).sum()
@@ -440,5 +453,15 @@ public class PullRequestFeedbackDetails
 
   private static Optional<String> extractFirstComponentHash(final List<PolicyViolation> violations) {
     return violations.stream().map(AbstractPolicyViolation::getHash).findFirst();
+  }
+
+  private boolean shouldIncludePrioritiesReport() {
+    Set<Feature> features = featuresService.getFeatures();
+    final boolean isPrioritizedFindingsEnabled = features
+        .contains(SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT);
+    final boolean isDeveloperDashboardEnabled = features
+        .contains(LicensedFeature.DEVELOPER_DASHBOARD);
+
+    return isPrioritizedFindingsEnabled && isDeveloperDashboardEnabled;
   }
 }

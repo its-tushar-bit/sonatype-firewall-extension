@@ -7,16 +7,21 @@ package com.sonatype.insight.brain.git;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Set;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.license.model.Feature;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient.StateType;
@@ -27,6 +32,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import com.google.common.collect.Sets;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.doReturn;
@@ -41,6 +47,9 @@ public class ScmStatusHelperTest
 
   private static final String DEFAULT_GITHUB_TARGET_URL =
       "http://localhost:8070/ui/links/application/appPublicId/report/scanId?source=github";
+
+  private static final String PRIORITIES_TARGET_URL =
+          "http://localhost:8070/ui/links/development/priorities/appPublicId/scanId";
 
   private static final String SUCCESS_DESCRIPTION = "Components: Critical: 0, Severe: 0, Moderate: 0";
 
@@ -62,6 +71,9 @@ public class ScmStatusHelperTest
 
   @Mock
   private ApplicationDAO mockApplicationDAO;
+
+  @Mock
+  private FeaturesService mockFeaturesService;
 
   @InjectMocks
   private ScmStatusHelper scmStatusHelper;
@@ -132,6 +144,25 @@ public class ScmStatusHelperTest
   }
 
   @Test
+  public void testCreateStatusRequestFromPolicyEvaluation_withPrioritiesUrl() {
+    Set<Feature> features = Sets.newHashSet(SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT,
+        LicensedFeature.DEVELOPER_DASHBOARD);
+    doReturn(features).when(mockFeaturesService).getFeatures();
+
+    // given: a policy evaluation and a policy evaluation result
+    PolicyEvaluation policyEvaluation = buildPolicyEvaluation(APP_ID, SCAN_ID);
+    PolicyEvaluationResult policyEvaluationResult = buildPolicyEvaluationResult(0, 0, 0);
+    addActionToPolicyResult(policyEvaluationResult, Action.newWarnAction());
+
+    // when: creating a new status request
+    scmStatusHelper.createStatusRequestFromPolicyEvaluation(policyEvaluation,
+        policyEvaluationResult, mockGitApiClient, SourceControlProvider.GITHUB);
+
+    // then: the proper status request is created
+    verifyStatusRequest(SUCCESS_STATE, SUCCESS_DESCRIPTION, PRIORITIES_TARGET_URL);
+  }
+
+  @Test
   public void testCreateStatusRequestFromSourceControlEvent_withSuccessState() {
     // given: a source control event
     SourceControlEvent sourceControlEvent = buildSourceControlEvent(0, 0, 0,
@@ -157,6 +188,24 @@ public class ScmStatusHelperTest
 
     // then: the proper status request is created
     verifyStatusRequest(FAILURE_STATE, FAILURE_DESCRIPTION, DEFAULT_GITHUB_TARGET_URL);
+  }
+
+  @Test
+  public void testCreateStatusRequestFromSourceControlEvent_withPrioritiesUrl() {
+    Set<Feature> features = Sets.newHashSet(SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT,
+        LicensedFeature.DEVELOPER_DASHBOARD);
+    doReturn(features).when(mockFeaturesService).getFeatures();
+
+    // given: a source control event
+    SourceControlEvent sourceControlEvent = buildSourceControlEvent(0, 0, 0,
+        ScmStatusHelper.DEFAULT_OUTCOME, APP_ID, SCAN_ID);
+
+    // when: creating a new status request
+    scmStatusHelper.createStatusRequestFromSourceControlEvent(sourceControlEvent,
+        mockGitApiClient, SourceControlProvider.GITHUB);
+
+    // then: the proper status request is created
+    verifyStatusRequest(SUCCESS_STATE, SUCCESS_DESCRIPTION, PRIORITIES_TARGET_URL);
   }
 
   private void verifyStatusRequest(

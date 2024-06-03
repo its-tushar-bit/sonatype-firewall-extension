@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.landing;
 
 import javax.ws.rs.core.UriBuilder;
 
-import com.sonatype.insight.brain.service.InsightBrainService;
-
 public class UserInterfaceLinksHelper
 {
   public static final String RESOURCE_PATH = "ui/links";
@@ -146,9 +144,6 @@ public class UserInterfaceLinksHelper
    * @since 1.176
    */
   public static String getPrioritiesUrl(String applicationPublicId, String scanId) {
-    return UriBuilder.fromPath(InsightBrainService.BRAIN_ASSET_PATH)
-        .fragment(PRIORITIES_PATH)
-        .build(applicationPublicId, scanId)
-        .toString();
+    return buildStableUrl(PRIORITIES_PATH, applicationPublicId, scanId);
   }
 }

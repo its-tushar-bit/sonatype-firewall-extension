@@ -70,6 +70,9 @@
 **Date**: ${date}<#lt>
 
 **Source Branch**: ${featureBranchStage} Stage - [Full Report](${detailedFeatureBranchReportUrl})   <#lt>
-**Target Branch**: ${baseBranchStage} Stage - [Full Report](${detailedBaseBranchReportUrl})<#lt>
+**Target Branch**: ${baseBranchStage} Stage - [Full Report](${detailedBaseBranchReportUrl})<#if shouldIncludePrioritiesReport>   </#if><#lt>
+<#if shouldIncludePrioritiesReport>
+**Application Priorities** - [View](${featureBranchPrioritiesUrl})<#lt>
+</#if>
 
 [Give feedback](https://community.sonatype.com/t/user-feedback-github-pr-reviews/3811)<#t>

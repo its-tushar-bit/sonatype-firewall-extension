@@ -87,6 +87,9 @@ ${policy.threatLevel} | ${policy.name} | <#list policy.constraints as constraint
 **Organization**: ${organizationName}<#if provider.name() == "GITLAB">\</#if>
 **Date**: ${date}<#if provider.name() == "GITLAB">\</#if>
 **<#if provider.name() == "GITLAB">Source<#else>PR</#if> Branch**: ${featureBranchStage} Stage - [Full Report](${detailedFeatureBranchReportUrl})<#if provider.name() == "GITLAB">\</#if>
-**<#if provider.name() == "GITLAB">Target<#else>Base</#if> Branch**: ${baseBranchStage} Stage - [Full Report](${detailedBaseBranchReportUrl})
+**<#if provider.name() == "GITLAB">Target<#else>Base</#if> Branch**: ${baseBranchStage} Stage - [Full Report](${detailedBaseBranchReportUrl})<#if shouldIncludePrioritiesReport && provider.name() == "GITLAB">\</#if>
+<#if shouldIncludePrioritiesReport>
+**Application Priorities** - [View](${featureBranchPrioritiesUrl})
+</#if>
 
 [Give feedback](https://community.sonatype.com/t/user-feedback-github-pr-reviews/3811)

@@ -21,6 +21,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails.ComponentInfo;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -78,6 +79,9 @@ public class PullRequestFeedbackMarkupServiceTest
 
   @Inject
   private PullRequestFeedbackMarkupService pullRequestFeedbackMarkupService;
+
+  @Inject
+  private FeaturesService featuresService;
 
   @Inject
   private InsightWork insightWork;
@@ -232,7 +236,8 @@ public class PullRequestFeedbackMarkupServiceTest
         defaultBranchPolicyEvaluation,
         componentDetails,
         commentTelemetry,
-        enableUxImprovement
+        enableUxImprovement,
+        featuresService
     );
 
     // then: markup is created and telemetry information updated

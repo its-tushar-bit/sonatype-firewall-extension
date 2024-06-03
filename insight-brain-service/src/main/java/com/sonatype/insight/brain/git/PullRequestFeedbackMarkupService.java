@@ -16,6 +16,7 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.git.render.ComponentFeedbackContextFactory;
 import com.sonatype.insight.brain.git.render.ComponentFeedbackMDRenderer;
 import com.sonatype.insight.brain.git.render.model.ComponentFeedbackContext;
@@ -62,22 +63,23 @@ public class PullRequestFeedbackMarkupService
    * Creates the PR overall comment markup text based on the supplied diff and policy evaluations
    */
   public Optional<String> createMarkup(
-      PolicyViolationDiff<PolicyViolation> policyViolationDiff,
-      Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
-      List<PullRequestLineCommentDTO> pullRequestLineComments,
-      GitRepositoryInfo gitRepositoryInfo,
-      int pullRequestNumber,
-      PolicyEvaluation sourceCommitPolicyEvaluation,
-      PolicyEvaluation baseBranchPolicyEvaluation,
-      SourceControlComponentDetails componentDetails,
-      PullRequestCommentTelemetry telemetry,
-      final boolean scmImprovementsEnabled) throws IOException
+      final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
+      final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
+      final List<PullRequestLineCommentDTO> pullRequestLineComments,
+      final GitRepositoryInfo gitRepositoryInfo,
+      final int pullRequestNumber,
+      final PolicyEvaluation sourceCommitPolicyEvaluation,
+      final PolicyEvaluation baseBranchPolicyEvaluation,
+      final SourceControlComponentDetails componentDetails,
+      final PullRequestCommentTelemetry telemetry,
+      final boolean scmImprovementsEnabled,
+      final FeaturesService featuresService) throws IOException
   {
     Application application = applicationDAO.getById(sourceCommitPolicyEvaluation.getApplicationId());
     PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(componentDetails, sourceCommitPolicyEvaluation, baseBranchPolicyEvaluation,
             policyViolationDiff, remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber,
-            application, iqBaseUrl.getConfigured(), scmImprovementsEnabled, organizationDAO);
+            application, iqBaseUrl.getConfigured(), scmImprovementsEnabled, organizationDAO, featuresService);
 
     Optional<String> optionalString = details.renderTemplateAndGetContents();
     telemetry.newViolationsComponentCount = details.getNewViolationsComponentCount();

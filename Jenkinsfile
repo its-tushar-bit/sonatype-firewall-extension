@@ -37,6 +37,7 @@ make(
         issues.addAll(getIssuesByFixVersion('SDEV', fixVersion))
         issues.addAll(getIssuesByFixVersion('INT', fixVersion))
         issues.addAll(getIssuesByFixVersion('NEXUS', fixVersion))
+        issues.addAll(getIssuesByFixVersion('SBOM', fixVersion))
         replaceFixVersionForIssues(issues, fixVersion, newFixVersions)
       }
     },

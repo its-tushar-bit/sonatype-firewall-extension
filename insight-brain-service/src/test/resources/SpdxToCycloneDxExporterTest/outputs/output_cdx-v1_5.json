@@ -8,7 +8,7 @@
       "components" : [
         {
           "name" : "Sonatype SBOM Manager",
-          "version" : "1.177.0-SNAPSHOT",
+          "version" : "${json-unit.ignore}",
           "type" : "application"
         }
       ]

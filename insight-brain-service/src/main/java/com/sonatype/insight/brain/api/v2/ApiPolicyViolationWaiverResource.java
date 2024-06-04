@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
 
 /**
  * @since 1.70
@@ -46,6 +47,7 @@ public class ApiPolicyViolationWaiverResource
   @Consumes(MediaType.TEXT_PLAIN)
   @Audited(AuditEvent.CREATE_WAIVER)
   @Deprecated
+  @Operation(hidden = true)
   public void addPolicyWaiver(@PathParam("policyViolationId") String policyViolationId,
                               @PathParam("ownerType") OwnerType ownerType,
                               String comment)

@@ -31,6 +31,8 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 const EnabledIcon = () => <NxFontAwesomeIcon icon={faCheckCircle} className="iq-integrations-and-risk-enabled" />;
 export default function AppIntegrationsAndRiskTable() {
+  const uiRouterState = useRouterState();
+
   const appIntegrationsAndRiskSlice = useSelector(selectAppIntegrationsAndRiskSlice);
   const { tableData, loading, loadError, currentPage, pageCount, sort, nameFilter } = appIntegrationsAndRiskSlice;
   const dispatch = useDispatch();
@@ -136,11 +138,19 @@ export default function AppIntegrationsAndRiskTable() {
               }
 
               const totalRiskScoreValue = totalRiskScore === -1 ? 'N/A' : totalRiskScore;
+              const appManagementHref = uiRouterState.href('management.view.application', {
+                applicationPublicId,
+              });
 
               return (
                 <NxTable.Row key={applicationName.concat(totalRiskScore)}>
                   <NxTable.Cell className="iq-integrations-applications-table__name-cell">
-                    {applicationName}
+                    <NxTextLink
+                      href={appManagementHref}
+                      data-analytics-id="sonatype-developer-dashboard-app-management"
+                    >
+                      {applicationName}
+                    </NxTextLink>
                   </NxTable.Cell>
                   <NxTable.Cell className="iq-developer-app-integrations-header">
                     {ciIntegrationEnabled ? (

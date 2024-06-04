@@ -711,6 +711,58 @@ describe('AppIntegrationsAndRiskTable', () => {
     });
   });
 
+  it('renders app name as a link that has an href to the orgs and policies app management page', async () => {
+    const hrefSpy = jest
+      .fn('href')
+      .mockImplementation((_, params) => `#/management/view/application/${params.applicationPublicId}`);
+    const routerContextMock = { href: hrefSpy };
+    jest.spyOn(routerStateContext, 'useRouterState').mockReturnValue(routerContextMock);
+
+    const date = new Date('January 1, 2023');
+    const timestamp = date.getTime();
+
+    const applicationId = 'AppId1';
+    const applicationPublicId = 'AppPublicId1';
+
+    const results = [
+      {
+        applicationName: `App1`,
+        applicationId,
+        applicationPublicId,
+        lastCommitTimestamp: timestamp,
+        lastEvaluationTimestamp: timestamp,
+        totalRiskScore: 404,
+        ciIntegrationEnabled: true,
+        automatedSourceControlFeedbackEnabled: true,
+        hasPrioritiesReport: true,
+        lastScanId: 'lastScanId',
+      },
+    ];
+    axiosMock.onGet(getAppIntegrationsAndRisk()).reply(200, {
+      results: results,
+      total: 1,
+      page: 1,
+      pageSize: 10,
+      pageCount: 1,
+    });
+
+    render(<AppIntegrationsAndRiskTable />);
+
+    expect(await screen.findByRole('table')).toBeInTheDocument();
+
+    const rows = await screen.findAllByRole('row');
+    const appNameCell = within(rows[2]).getAllByRole('cell')[0];
+
+    expect(within(appNameCell).getByRole('link')).toHaveAttribute(
+      'href',
+      `#/management/view/application/${applicationPublicId}`
+    );
+    expect(within(appNameCell).getByRole('link')).toHaveAttribute(
+      'data-analytics-id',
+      'sonatype-developer-dashboard-app-management'
+    );
+  });
+
   function createAppArrayWithLength(
     length,
     startIndex = 0,

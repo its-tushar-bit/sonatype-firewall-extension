@@ -21,14 +21,6 @@ make(
     retentionPolicy: currentBuild.fullProjectName.contains('master-snapshot') ? RetentionPolicy.DEFAULT : RetentionPolicy.SHORT_TERM,
     prepare: {
 
-      // Store time the current branch diverged from the target branch for use by applitools
-      sshagent(credentials: [sonatypeZionCredentialsId()]) {
-        script {
-          env.GIT_TARGET_TIME = sh(returnStdout: true,
-              script: 'HASH=\$(git merge-base HEAD remotes/origin/main) && git show -q --format=%cI \$HASH').trim()
-        }
-      }
-
     if (currentBuild.fullProjectName.toLowerCase().contains('insight/insight-brain/master-snapshot')) {
         String fixVersion = 'brain-next'
         List<String> newFixVersions = ['saas-next']
@@ -388,39 +380,18 @@ Map<String, Closure> createFunctionalTests(
     node('iq-large') {
       stage(stageName) {
         try {
-          withEnv(["APPLITOOLS_BATCH_ID=${env.GIT_COMMIT}"]) {
-            copyRepo()
-
-            withCredentials([string(credentialsId: 'APPLITOOLS_KEY', variable: 'applitoolsKey')]) {
-
-              // Force applitools to use the merge-base with main for all baselines not directly present on this branch
-              // https://applitools.com/docs/topics/sdk/branch_baselines.html
-              def curlCommand = """curl -X POST -d '{"scmSourceBranch": "${env.GIT_BRANCH}", 
-              | "scmTargetBranch": "main", 
-              | "branchName": "sonatype/insight-brain/${env.GIT_BRANCH}", 
-              | "parentBranchName": "sonatype/insight-brain/main", 
-              | "parentBranchBaselineSavedBefore": "${env.GIT_TARGET_TIME}"}' 
-              | -H "Content-Type:application/json" 
-              | https://eyes.applitools.com/api/sessions/batches/${env.GIT_COMMIT}/bypointerid?apiKey=${applitoolsKey}
-              """.stripMargin().replaceAll("\n", "")
-
-              sh curlCommand
-
-              String mavenOptions = "'-Dit.test=%regex[${regex}]'"
-              mavenOptions += ' -Drun-functional-tests=docker'
-              mavenOptions += " -Dbrowser=chrome"
-              mavenOptions += " -DapplitoolsKey=${applitoolsKey}"
-              mavenOptions += " -DapplitoolsEnabled=true"
-              mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
-              mavenOptions += " -DdetectTestEntityLeaks"
-              mavenOptions += " -Dfailsafe.rerunFailingTestsCount=2"
-              mavenOptions += " -Dfailsafe.failOnFlakeCount=5"
-              mavenOptions += " --threads 4"
-              Map<String, ?> testConfig = testConfig(mavenOptions, "${mavenModule}/pom.xml")
-              // We just want to execute tests so directly invoke goals.
-              mvn testConfig, 'failsafe:integration-test failsafe:verify'
-            }
-          }
+          copyRepo()
+          String mavenOptions = "'-Dit.test=%regex[${regex}]'"
+          mavenOptions += ' -Drun-functional-tests=docker'
+          mavenOptions += " -Dbrowser=chrome"
+          mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
+          mavenOptions += " -DdetectTestEntityLeaks"
+          mavenOptions += " -Dfailsafe.rerunFailingTestsCount=2"
+          mavenOptions += " -Dfailsafe.failOnFlakeCount=5"
+          mavenOptions += " --threads 4"
+          Map<String, ?> testConfig = testConfig(mavenOptions, "${mavenModule}/pom.xml")
+          // We just want to execute tests so directly invoke goals.
+          mvn testConfig, 'failsafe:integration-test failsafe:verify'
         }
         finally {
           captureResultsAndCleanup()

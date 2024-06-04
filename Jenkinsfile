@@ -327,7 +327,6 @@ private String addBuildCacheOptions(String mavenOptions) {
 
 Map<String, Closure> getParallelTests() {
   Map<String, Closure> testStages = [:]
-  testStages << createGebTests()
   testStages << createFunctionalTests('Java Functional Tests A', '.*/[A-B].*Test.class')
   testStages << createFunctionalTests('Java Functional Tests B', '.*/[C-E].*Test.class')
   testStages << createFunctionalTests('Java Functional Tests C', '.*/[F-M].*Test.class')
@@ -338,6 +337,7 @@ Map<String, Closure> getParallelTests() {
   testStages << createFrontendTests('Frontend Tests - Jasmine/Jest')
 
   if (isDeployBranch(env, 'main')) {
+    testStages << createGebTests()
     testStages << createUnitTests('Unit and Integration Tests - Java 8 A', 'Java 8', '.*/[A-C].*Test.class')
     testStages << createUnitTests('Unit and Integration Tests - Java 8 B', 'Java 8', '.*/[D-K].*Test.class')
     testStages << createUnitTests('Unit and Integration Tests - Java 8 C', 'Java 8', '.*/[L-P].*Test.class')

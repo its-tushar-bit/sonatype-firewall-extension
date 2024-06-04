@@ -61,8 +61,6 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
-import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetryCreator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -109,7 +107,7 @@ public class ApplicationCloneService
 
   private final SourceControlDAO sourceControlDAO;
 
-  private final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator;
+  private final ApplicationHelper applicationHelper;
 
   @Inject
   public ApplicationCloneService(
@@ -129,7 +127,7 @@ public class ApplicationCloneService
       final ProprietaryConfigDAO proprietaryConfigDAO,
       final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO,
       final SourceControlDAO sourceControlDAO,
-      final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator)
+      final ApplicationHelper applicationHelper)
   {
     this.orgDAO = orgDAO;
     this.appDAO = appDAO;
@@ -147,7 +145,7 @@ public class ApplicationCloneService
     this.proprietaryConfigDAO = proprietaryConfigDAO;
     this.securityVulnerabilityOverrideDAO = securityVulnerabilityOverrideDAO;
     this.sourceControlDAO = sourceControlDAO;
-    this.ownerMaintenanceTelemetryCreator = ownerMaintenanceTelemetryCreator;
+    this.applicationHelper = applicationHelper;
   }
 
   public ApiApplicationDTO cloneApplication(String sourceAppId, String clonedAppName, String clonedAppPublicId) {
@@ -230,9 +228,7 @@ public class ApplicationCloneService
     // when the first policy evaluation
     // happens.
     clonedApp.setLegacyViolationEnabled(false);
-    appDAO.insert(tx, clonedApp);
-    ownerMaintenanceTelemetryCreator.sendOwnerMaintenanceTelemetry(clonedApp,
-        OwnerMaintenanceTelemetry.TYPE_ADD);
+    applicationHelper.addApplication(tx, clonedApp, false);
 
     AuditData.get().setApplicationWithDetails(clonedApp);
 

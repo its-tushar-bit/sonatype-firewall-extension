@@ -87,13 +87,25 @@ public class ApplicationHelper
     return applicationDAO.getByIdNotNull(applicationId);
   }
 
-  public Application addApplication(final TransactionContext tx, final Application application) {
+  public Application addApplication(
+      final TransactionContext tx,
+      final Application application,
+      final boolean setOwner)
+  {
     validateNewApplication(application);
     applicationDAO.insert(tx, application);
-    addUserToApplicationOwnerRole(tx, application);
+
+    if (setOwner) {
+      addUserToApplicationOwnerRole(tx, application);
+    }
+
     ownerMaintenanceTelemetryCreator.sendOwnerMaintenanceTelemetry(application,
         OwnerMaintenanceTelemetry.TYPE_ADD);
     return application;
+  }
+
+  public Application addApplication(final TransactionContext tx, final Application application) {
+    return addApplication(tx, application, true);
   }
 
   public Application addApplication(final Application application) {

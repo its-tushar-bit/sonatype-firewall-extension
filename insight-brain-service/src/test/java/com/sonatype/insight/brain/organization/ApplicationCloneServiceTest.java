@@ -69,11 +69,13 @@ import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -144,6 +146,9 @@ public class ApplicationCloneServiceTest
   @Inject
   private ApplicationCloneService appCloneService;
 
+  @Inject
+  private TestProductLicense testProductLicense;
+
   @Mock
   private TelemetrySender telemetrySenderMock;
 
@@ -172,7 +177,10 @@ public class ApplicationCloneServiceTest
     String clonedAppName = "clonedAppName";
     String clonedAppPublicId = "clonedAppPublicId";
     String contactUsername = "testuser";
+
+    tempEntity.newUser(contactUsername);
     sourceApp.setContactInternalName(contactUsername);
+
     // The application cloning is supposed to disable legacy violation for the cloned app.
     // So we set it to true in the source application in order to verify
     // that is not copied to the cloned application.
@@ -954,5 +962,18 @@ public class ApplicationCloneServiceTest
 
     // Assert the source objects were cloned, not moved.
     assertThat(policyWaiverDAO.getById(sourcePolicyWaiver.getId())).isNotNull();
+  }
+
+  @Test
+  public void testCloneApplication_ApplicationLicenseLimit() {
+    testProductLicense.setMaxApplications(2);
+
+    appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName1", "clonedAppPublicId1");
+    assertThatExceptionOfType(PaymentRequiredException.class).isThrownBy(() ->
+        appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName2", "clonedAppPublicId2")
+    );
+
+    assertThat(applicationDAO.getByPublicId("clonedAppPublicId1")).isNotNull();
+    assertThat(applicationDAO.getByPublicId("clonedAppPublicId2")).isNull();
   }
 }

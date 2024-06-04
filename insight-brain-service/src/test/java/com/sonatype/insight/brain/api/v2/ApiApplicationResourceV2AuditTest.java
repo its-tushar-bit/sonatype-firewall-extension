@@ -46,6 +46,7 @@ public class ApiApplicationResourceV2AuditTest
   public void before() {
     applicationDAO = lookup(ApplicationDAO.class);
 
+    tempEntity.newUser("appContactName");
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication("appName", "appPubId", organization.getId(), "appContactName");
     targetOrganization = tempEntity.newOrganization();

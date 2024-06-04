@@ -1,0 +1,151 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.development.prioritization;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.development.prioritization.dto.PrioritizationRemediationVersionDTO;
+import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
+import com.sonatype.insight.brain.hds.ComponentInfoService;
+import com.sonatype.insight.brain.hds.ComponentRemediationService;
+import com.sonatype.insight.brain.model.Application;
+
+import com.google.common.collect.Maps;
+import com.google.common.annotations.VisibleForTesting;
+
+import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NON_FAILING;
+import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES;
+import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS;
+import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES;
+import static com.sonatype.insight.brain.git.PullRequestCommentingRemediationService.VERSION_KEY;
+
+@Named
+@Singleton
+public class DevelopmentPrioritizationRemediationService
+{
+  private final ApplicationDAO applicationDAO;
+
+  private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
+
+  private final ComponentInfoService componentInfoService;
+
+  private final ComponentRemediationService componentRemediationService;
+
+  @Inject
+  public DevelopmentPrioritizationRemediationService(
+      final ApplicationDAO applicationDAO,
+      final ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
+      final ComponentInfoService componentInfoService,
+      final ComponentRemediationService componentRemediationService)
+  {
+    this.applicationDAO = applicationDAO;
+    this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
+    this.componentInfoService = componentInfoService;
+    this.componentRemediationService = componentRemediationService;
+  }
+
+  public Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> getRemediationVersions(
+      List<ComponentIdentifier> componentIdentifiers,
+      String appInternalId,
+      String stage,
+      String scanId)
+  {
+    Application app = applicationDAO.getByIdNotNull(appInternalId);
+    ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(app);
+
+    Map<ComponentIdentifier, List<ComponentDetailsDTO>> componentDetailsForAllVersionsNoAuthBulk =
+        componentInfoService.getComponentDetailsForAllVersionsNoAuthBulk(app,
+            componentIdentifiers, stage, scanId, componentDetailsLoader);
+
+    return componentDetailsForAllVersionsNoAuthBulk
+        .entrySet()
+        .stream()
+        .map(componentDetailsVersionsEntry -> {
+          ComponentIdentifier componentIdentifier = componentDetailsVersionsEntry.getKey();
+          List<ComponentDetailsDTO> componentDetailsDTOs = componentDetailsVersionsEntry.getValue();
+
+          ApiComponentRemediationValueDTO remediationValueDto =
+              componentRemediationService.getSuggestedRemediation(componentIdentifier, componentDetailsDTOs,
+                  app, stage, componentDetailsLoader);
+
+          if (remediationValueDto != null) {
+            Optional<ApiVersionChangeOptionDTO> versionChangeDTO =
+                getRecommendedVersionChange(remediationValueDto.versionChanges);
+
+            final PrioritizationRemediationVersionDTO prioritizationRemediationVersionDTO =
+                getPrioritizationRemediationVersionDTO(versionChangeDTO);
+
+            return Maps.immutableEntry(componentIdentifier, prioritizationRemediationVersionDTO);
+          }
+          return Maps.immutableEntry(componentIdentifier, (PrioritizationRemediationVersionDTO) null);
+        })
+        .filter(entrySet -> Objects.nonNull(entrySet.getValue()))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  private PrioritizationRemediationVersionDTO getPrioritizationRemediationVersionDTO(
+      Optional<ApiVersionChangeOptionDTO> versionChangeDTO)
+  {
+    if (!versionChangeDTO.isPresent()) {
+      return null;
+    }
+
+    ApiComponentIdentifierDTOV2 identifierDTOV2 = versionChangeDTO.get()
+        .getData()
+        .getComponent()
+        .componentIdentifier;
+
+    ComponentIdentifier remediationComponentIdentifier =
+        new ComponentIdentifier(identifierDTOV2.getFormat(), identifierDTOV2.getCoordinates());
+
+    return new PrioritizationRemediationVersionDTO(remediationComponentIdentifier.getCoordinates().get(VERSION_KEY),
+        versionChangeDTO.get().getType());
+  }
+
+  @VisibleForTesting
+  Optional<ApiVersionChangeOptionDTO> getRecommendedVersionChange(
+      List<ApiVersionChangeOptionDTO> versionChanges)
+  {
+    if (versionChanges.isEmpty()) {
+      return Optional.empty();
+    }
+
+    return first(Arrays.asList(getVersionChangeOptional(versionChanges, NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES),
+        getVersionChangeOptional(versionChanges, NEXT_NO_VIOLATIONS),
+        getVersionChangeOptional(versionChanges, NEXT_NON_FAILING_WITH_DEPENDENCIES),
+        getVersionChangeOptional(versionChanges, NEXT_NON_FAILING)));
+  }
+
+  private static Optional<ApiVersionChangeOptionDTO> getVersionChangeOptional(
+      List<ApiVersionChangeOptionDTO> versionChanges,
+      ApiVersionChangeOptionType versionChangeOptionType)
+  {
+    return versionChanges.stream().filter(vChange -> vChange.getType() == versionChangeOptionType).findFirst();
+  }
+
+  private static Optional<ApiVersionChangeOptionDTO> first(List<Optional<ApiVersionChangeOptionDTO>> optionals) {
+    return optionals.stream()
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .findFirst();
+  }
+}

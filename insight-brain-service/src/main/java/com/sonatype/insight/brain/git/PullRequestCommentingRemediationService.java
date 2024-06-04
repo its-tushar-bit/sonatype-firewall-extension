@@ -37,7 +37,7 @@ import com.sonatype.insight.license.model.LicensedFeature;
 @Singleton
 public class PullRequestCommentingRemediationService
 {
-  private static final String VERSION_KEY = "version";
+  public static final String VERSION_KEY = "version";
 
   private final ApplicationDAO applicationDAO;
 
@@ -162,8 +162,7 @@ public class PullRequestCommentingRemediationService
       return Optional.empty();
     }
 
-    Optional<ApiVersionChangeOptionDTO> versionChange = Optional.empty();
-    versionChange = versionChanges.stream().filter(
+    Optional<ApiVersionChangeOptionDTO> versionChange = versionChanges.stream().filter(
         vChange -> vChange.getType() ==
             ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES).findFirst();
 

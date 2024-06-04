@@ -66,6 +66,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.LegalSourceLinkDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalFilterDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalResultsOrder;
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalReviewStatus;
+import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
@@ -245,6 +246,9 @@ public class ApiLicenseLegalServiceTest
   @Mock
   private ThirdPartyComponentDAO mockThirdPartyComponentDAO;
 
+  @Mock
+  private ApiComponentDetailsServiceV2 apiComponentDetailsServiceV2;
+
   @Inject
   private LegalReportBuilder legalReportBuilder;
 
@@ -331,8 +335,8 @@ public class ApiLicenseLegalServiceTest
         new ComponentInfoService(null, null,
             new ComponentDetailsLoaderFactory(null, configurationMock, licenseDAO, componentLoaderFactory),
             null,
-            mockThirdPartyComponentDAO, repositoryQueryService, multiLicenseDAO, applicationDAO, licenseDAO,
-            componentCategoryDAO, licenseThreatGroupDAO, ownerDAO, policyDAO, idUtils);
+            mockThirdPartyComponentDAO, repositoryQueryService, apiComponentDetailsServiceV2, multiLicenseDAO,
+            applicationDAO, licenseDAO, componentCategoryDAO, licenseThreatGroupDAO, ownerDAO, policyDAO, idUtils);
     return componentInfoService;
   }
 

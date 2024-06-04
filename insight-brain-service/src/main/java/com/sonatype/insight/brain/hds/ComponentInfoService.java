@@ -20,6 +20,7 @@ import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -30,6 +31,7 @@ import com.sonatype.clm.dto.model.component.ComponentCategory;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
@@ -38,6 +40,7 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
@@ -77,8 +80,10 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.lqa.LqaFormat;
 import com.sonatype.insight.scan.util.HashUtils;
 
+import com.google.common.collect.Maps;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -91,6 +96,10 @@ import static com.sonatype.insight.IdentificationSource.isThirdPartyIdentificati
 public class ComponentInfoService
 {
   private static final Logger log = LoggerFactory.getLogger(ComponentInfoService.class);
+
+  private static final String COMPONENT_DETAILS_PURPOSE = "integration";
+
+  private static final String VERSIONS_BY_COMPONENT_ENDPOINT_URL = "rest/component/versions/list";
 
   private License unspecifiedLicense;
 
@@ -120,6 +129,8 @@ public class ComponentInfoService
 
   private final RepositoryQueryService repositoryQueryService;
 
+  private final ApiComponentDetailsServiceV2 apiComponentDetailsServiceV2;
+
   private final MultiLicenseDAO multiLicenseDAO;
 
   private final IdUtils idUtils;
@@ -136,6 +147,7 @@ public class ComponentInfoService
       ComponentRemediationService componentRemediationService,
       ThirdPartyComponentDAO thirdPartyComponentDAO,
       RepositoryQueryService repositoryQueryService,
+      ApiComponentDetailsServiceV2 apiComponentDetailsServiceV2,
       MultiLicenseDAO multiLicenseDAO,
       ApplicationDAO applicationDAO,
       LicenseDAO licenseDAO,
@@ -151,6 +163,7 @@ public class ComponentInfoService
     this.componentRemediationService = componentRemediationService;
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
     this.repositoryQueryService = repositoryQueryService;
+    this.apiComponentDetailsServiceV2 = apiComponentDetailsServiceV2;
     this.multiLicenseDAO = multiLicenseDAO;
     this.applicationDAO = applicationDAO;
     this.licenseDAO = licenseDAO;
@@ -498,6 +511,150 @@ public class ComponentInfoService
     return new ComponentVersionInfoDTO(componentDetailsDTOs, remediationDto, result.getRight());
   }
 
+  public Map<ComponentIdentifier, List<ComponentDetailsDTO>> getComponentDetailsForAllVersionsNoAuthBulk(
+      Owner owner,
+      List<ComponentIdentifier> componentIdentifiers,
+      String stageId,
+      String scanId,
+      ComponentDetailsLoader componentDetailsLoader)
+  {
+    Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsByComponentIdentifier =
+        getComponentDetailsListBulk(componentIdentifiers, owner, scanId);
+
+    return componentDetailsByComponentIdentifier
+        .entrySet()
+        .stream()
+        .map(componentIdentifierAndDetails -> {
+          ComponentIdentifier componentIdentifier = componentIdentifierAndDetails
+              .getKey();
+
+          List<ComponentDetails> componentDetailsList = componentIdentifierAndDetails
+              .getValue();
+
+          // Fix match state to exact as there's no point propagating it to other versions.
+          List<Component> components = componentDetailsLoader.augmentComponentDetails(
+              componentDetailsList,
+              MatchState.EXACT.getId(),
+              null
+          );
+
+          // Evaluate the policies and get the PolicyAlerts
+          List<ComponentDetailsDTO> componentDetailsDTOs
+              = evaluatePoliciesAndGetComponentDetails(owner, stageId, components, componentDetailsList);
+
+          return Maps.immutableEntry(componentIdentifier, componentDetailsDTOs);
+        }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  Map<ComponentIdentifier, List<ComponentDetails>> getComponentDetailsListBulk(
+      List<ComponentIdentifier> componentIdentifiers,
+      Owner owner,
+      String scanId)
+  {
+    long start = System.currentTimeMillis();
+
+    if (CollectionUtils.isEmpty(componentIdentifiers)) {
+      log.warn("There are no componentIdentifiers to expand");
+      return Collections.emptyMap();
+    }
+
+    List<ComponentIdentifier> componentsWithKnownFormats = new ArrayList<>();
+    List<ComponentIdentifier> componentsWithUnknownFormats = new ArrayList<>();
+
+    for (ComponentIdentifier componentIdentifier : componentIdentifiers) {
+      if (isKnownSupportedFormat(componentIdentifier)) {
+        componentsWithKnownFormats.add(componentIdentifier);
+      }
+      else {
+        componentsWithUnknownFormats.add(componentIdentifier);
+      }
+    }
+
+    // Terraform components
+    Map<ComponentIdentifier, List<ComponentDetails>> terraformDetails = componentsWithKnownFormats
+        .stream()
+        .filter(ComponentIdentifier::isTerraform)
+        .map(componentIdentifier -> {
+          //Terraform information is not stored in HDS
+          ComponentDetailsList allVersions
+              = thirdPartyComponentDAO.getAllVersions(owner.getId(), componentIdentifier, scanId);
+          return Maps.immutableEntry(componentIdentifier, allVersions.getList());
+        })
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    // Non-terraform components
+    List<ComponentIdentifier> nonTerraformComponents = componentsWithKnownFormats.stream()
+        .filter(componentIdentifier -> !componentIdentifier.isTerraform())
+        .collect(Collectors.toList());
+
+    Map<ComponentIdentifier, List<ComponentDetails>> nonTerraformDetails
+        = getInformationVersionsHdsBulk(nonTerraformComponents);
+
+    // Unknown formats - Generic components
+    Map<ComponentIdentifier, List<ComponentDetails>> unknownComponentDetails =
+        createComponentDetailsForUnknownFormats(owner.getId(), scanId, componentsWithUnknownFormats);
+
+    Map<ComponentIdentifier, List<ComponentDetails>> allComponentDetails =
+        Stream.of(terraformDetails.entrySet(), nonTerraformDetails.entrySet(), unknownComponentDetails.entrySet())
+            .flatMap(Set::stream)
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    if (MapUtils.isNotEmpty(allComponentDetails)) {
+      log.debug("Loaded component details list(s) for {} component identifiers in {} ms.",
+          componentIdentifiers.size(), System.currentTimeMillis() - start);
+    }
+    else {
+      log.debug("No component details loaded for {} component identifiers in {} ms.",
+          componentIdentifiers.size(), System.currentTimeMillis() - start);
+    }
+
+    return allComponentDetails;
+  }
+
+  private Map<ComponentIdentifier, List<ComponentDetails>> createComponentDetailsForUnknownFormats(
+      String appId,
+      String scanId,
+      List<ComponentIdentifier> componentsWithUnknownFormats)
+  {
+    return componentsWithUnknownFormats
+        .stream()
+        .map(componentIdentifier -> {
+          ComponentDetailsList componentDetailsListForGenericIdentifier = null;
+          final ComponentDetails componentDetails =
+              thirdPartyComponentDAO.resolveComponentDetails(appId, componentIdentifier, scanId);
+
+          if (Objects.nonNull(componentDetails) &&
+              isThirdPartyIdentificationSource(componentDetails.getIdentificationSource())
+          ) {
+            componentDetailsListForGenericIdentifier =
+                thirdPartyComponentDAO.getAllVersions(appId, componentIdentifier, scanId);
+          }
+          else if (componentIdentifier.isGeneric()) {
+            // allow generic component identifier which are components that do not
+            // currently have broad support in the lifecycle ecosystem
+            componentDetailsListForGenericIdentifier =
+                createComponentDetailsListForGenericIdentifier(componentIdentifier);
+          }
+          else {
+            log.warn("Could not create ComponentDetailsList for component {}. Invalid format {}",
+                componentIdentifier,
+                componentIdentifier.getFormat());
+          }
+
+          final Map.Entry<ComponentIdentifier, List<ComponentDetails>> maps;
+          if (componentDetailsListForGenericIdentifier == null) {
+            maps =  Maps.immutableEntry(componentIdentifier, Collections.emptyList());
+          }
+          else {
+            maps = Maps.immutableEntry(componentIdentifier, componentDetailsListForGenericIdentifier.getList());
+          }
+
+          return maps;
+        })
+        .filter(componentIdentifierListEntry -> CollectionUtils.isNotEmpty(componentIdentifierListEntry.getValue()))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
   public Pair<List<ComponentDetailsDTO>, RepositorySourceResponseDTO> getComponentDetailsForAllVersionsNoAuth(
       Owner owner,
       ComponentIdentifier componentIdentifier,
@@ -516,6 +673,18 @@ public class ComponentInfoService
         componentDetailsLoader.augmentComponentDetails(componentDetailsList, MatchState.EXACT.getId(), dependencyType);
 
     // Evaluate the policies and get the PolicyAlerts
+    List<ComponentDetailsDTO> componentDetailsDTOs
+            = evaluatePoliciesAndGetComponentDetails(owner, stageId, components, componentDetailsList);
+
+    return Pair.of(componentDetailsDTOs, componentDetailsListAndSource.getRight());
+  }
+
+  private List<ComponentDetailsDTO> evaluatePoliciesAndGetComponentDetails(
+      Owner owner,
+      String stageId,
+      List<Component> components,
+      List<ComponentDetails> componentDetailsList)
+  {
     List<PolicyAlert> allPolicyAlerts = componentPolicyEvaluator
         .evaluate(owner.getId(), new Stage(stageId != null ? stageId : BuildStageType.ID), components);
 
@@ -566,8 +735,7 @@ public class ComponentInfoService
 
       componentDetailsDTOs.add(dto);
     }
-
-    return Pair.of(componentDetailsDTOs, componentDetailsListAndSource.getRight());
+    return componentDetailsDTOs;
   }
 
   protected Map<String, Policy> getPoliciesById(Owner owner) {
@@ -825,6 +993,122 @@ public class ComponentInfoService
   private boolean isKnownFormat(ComponentIdentifier identifier) {
     return ComponentIdentifier.getSupportedFormats().contains(identifier.getFormat()) ||
         LqaFormat.isLqaFormat(identifier.getFormat());
+  }
+
+  private boolean isKnownSupportedFormat(ComponentIdentifier identifier) {
+    // SDEV-1097 Bulk request would not include deprecated format "deb"
+    return ComponentIdentifier.getSupportedFormats().contains(identifier.getFormat());
+  }
+
+  private Map<ComponentIdentifier, List<ComponentDetails>> getInformationVersionsHdsBulk(
+      List<ComponentIdentifier> componentIdentifiers)
+  {
+    if (CollectionUtils.isEmpty(componentIdentifiers)) {
+      log.warn("No component identifiers provided, unable to fetch versions from HDS");
+      return Collections.emptyMap();
+    }
+
+    Map<String, List<String>> versionsByComponent
+        = hdsClient.post(Map.class, VERSIONS_BY_COMPONENT_ENDPOINT_URL, componentIdentifiers);
+
+    log.debug("Fetched versions for {} components from HDS.", versionsByComponent.size());
+
+    List<ComponentIdentifier> expandedComponentIdentifiers = expandVersionsByComponent(versionsByComponent);
+
+    if (CollectionUtils.isEmpty(expandedComponentIdentifiers)) {
+      log.warn("There are no expanded componentIdentifiers to get details from in HDS");
+      return Collections.emptyMap();
+    }
+
+    List<ComponentEvaluationDataList.ComponentEvaluationData> componentEvaluationData =
+        apiComponentDetailsServiceV2.getComponentDetailsListFromHds(
+            expandedComponentIdentifiers,
+            COMPONENT_DETAILS_PURPOSE
+        );
+
+    Map<ComponentIdentifier, List<ComponentEvaluationDataList.ComponentEvaluationData>> groupedComponentIdentifiers =
+        groupComponentIdentifiers(componentEvaluationData);
+
+    Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
+        mapComponentEvaluationDataToComponentDetails(groupedComponentIdentifiers);
+
+    log.debug("{} componentDetails mapped", componentDetailsMap.size());
+
+    return componentDetailsMap;
+  }
+
+  public Map<ComponentIdentifier, List<ComponentEvaluationDataList.ComponentEvaluationData>> groupComponentIdentifiers(
+      List<ComponentEvaluationDataList.ComponentEvaluationData> componentEvaluationData)
+  {
+    Map<ComponentIdentifier, List<ComponentEvaluationDataList.ComponentEvaluationData>> groupedComponentIdentifiers
+        = new HashMap<>();
+
+    componentEvaluationData.forEach(currentComponentEvaluationData -> {
+      ComponentIdentifier componentIdentifier = currentComponentEvaluationData.componentIdentifier;
+      List<ComponentEvaluationDataList.ComponentEvaluationData> currentComponentEvaluationList
+          = groupedComponentIdentifiers.get(componentIdentifier);
+      if (currentComponentEvaluationList != null) {
+        currentComponentEvaluationList.add(currentComponentEvaluationData);
+      }
+      else {
+        List<ComponentEvaluationDataList.ComponentEvaluationData> componentEvaluationList = new ArrayList<>();
+        componentEvaluationList.add(currentComponentEvaluationData);
+        groupedComponentIdentifiers.put(componentIdentifier, componentEvaluationList);
+      }
+    });
+
+    return groupedComponentIdentifiers;
+  }
+
+  public Map<ComponentIdentifier, List<ComponentDetails>> mapComponentEvaluationDataToComponentDetails(
+      Map<ComponentIdentifier, List<ComponentEvaluationDataList.ComponentEvaluationData>> groupedComponentIdentifiers)
+  {
+    return groupedComponentIdentifiers
+        .entrySet()
+        .stream()
+        .map((Map.Entry<ComponentIdentifier, List<ComponentEvaluationDataList.ComponentEvaluationData>> entry) -> {
+          ComponentIdentifier key = entry.getKey();
+          List<ComponentDetails> mappedComponentDetailsList = entry.getValue()
+              .stream()
+              .map(componentEvaluationData -> {
+                ComponentDetails componentDetails = new ComponentDetails();
+                componentDetails.setHash(componentEvaluationData.hash);
+                componentDetails.setComponentIdentifier(componentEvaluationData.componentIdentifier);
+                componentDetails.setMatchState(componentEvaluationData.matchState);
+                componentDetails.setDeclaredLicenses(componentEvaluationData.declaredLicenses);
+                componentDetails.setObservedLicenses(componentEvaluationData.observedLicenses);
+                componentDetails.setCatalogDate(componentEvaluationData.catalogDate);
+                componentDetails.setRelativePopularity(componentEvaluationData.relativePopularity);
+                componentDetails.setSecurityVulnerabilities(componentEvaluationData.securityVulnerabilities);
+                componentDetails.setAnalyzerFeatures(componentEvaluationData.analyzerFeatures);
+                componentDetails.setComponentCategories(componentEvaluationData.componentCategories);
+                componentDetails.setHygieneRating(componentEvaluationData.hygieneRating);
+                componentDetails.setIntegrityRating(componentEvaluationData.integrityRating);
+                return componentDetails;
+              })
+              .collect(Collectors.toList());
+          return Maps.immutableEntry(key, mappedComponentDetailsList);
+        }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  public List<ComponentIdentifier> expandVersionsByComponent(Map<String, List<String>> versionsByComponent) {
+    return versionsByComponent
+        .entrySet()
+        .stream()
+        .map(versionsByPackageUrl -> {
+          String componentPackageUrl = versionsByPackageUrl.getKey(); // sample format -> pkg:a-name/jquery
+          List<String> availableVersions = versionsByPackageUrl.getValue();
+
+          return availableVersions.stream()
+              .map(version -> {
+                return ComponentIdentifierAdapter
+                    .toComponentIdentifier(componentPackageUrl)
+                    .createAlternativeVersion(version);
+              })
+              .collect(Collectors.toList());
+        })
+        .flatMap(Collection::stream)
+        .collect(Collectors.toList());
   }
 
   /**

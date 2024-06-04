@@ -15,6 +15,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
@@ -26,6 +27,7 @@ import com.sonatype.clm.dto.model.component.ComponentCategory;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.ide.LicenseStatus;
@@ -35,6 +37,7 @@ import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -95,6 +98,7 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.util.MetadataRecorderUtils;
 
+import com.google.common.collect.Sets;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
 import org.apache.commons.lang3.tuple.Pair;
@@ -118,6 +122,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -165,6 +170,9 @@ public class ComponentInfoServiceTest
   private HdsClient hdsClientMock;
 
   @Mock
+  private ApiComponentDetailsServiceV2 apiComponentDetailsServiceV2Mock;
+
+  @Mock
   private HttpServletRequest httpRequestMock;
 
   @Mock
@@ -186,6 +194,7 @@ public class ComponentInfoServiceTest
   public void configure(Binder binder) {
     binder.bind(ProductLicense.class).toInstance(productLicenseMock);
     binder.bind(HdsClient.class).toInstance(hdsClientMock);
+    binder.bind(ApiComponentDetailsServiceV2.class).toInstance(apiComponentDetailsServiceV2Mock);
     binder.bind(ThirdPartyComponentDAO.class).toInstance(thirdPartyComponentDAO);
     binder.bind(RepositoryQueryService.class).toInstance(repositoryQueryService);
     super.configure(binder);
@@ -234,6 +243,20 @@ public class ComponentInfoServiceTest
   private void mockHdsGetComponentDetailsException(NamedComponentDetails hdsComponentDetails) throws IOException {
     when(hdsClientMock.relay(httpRequestMock, NamedComponentDetails.class, "rest/" + TOOL_NAME + "/componentDetails",
         newCoordinatesQueryParam(hdsComponentDetails))).thenThrow(NotFoundException.class);
+  }
+
+  private void mockHdsGetComponentDetailsListBulk(
+      List<ComponentEvaluationDataList.ComponentEvaluationData> componentEvaluationDataList,
+      List<ComponentIdentifier> componentIdentifiers)
+  {
+    Map<String, List<String>> stringListMap =
+        Collections.singletonMap("pkg:a-name/jquery", Collections.singletonList("1.0.0"));
+
+    when(hdsClientMock.post(Map.class, "rest/component/versions/list", componentIdentifiers))
+        .thenReturn(stringListMap);
+
+    when(apiComponentDetailsServiceV2Mock.getComponentDetailsListFromHds(anyList(), any(String.class)))
+        .thenReturn(componentEvaluationDataList);
   }
 
   private void mockHdsGetComponentDetailsList(
@@ -1011,6 +1034,370 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.getEffectiveLicenses().iterator().next().getLicenseName()).isEqualTo("Not Provided");
     assertThat(componentDetails.getEffectiveLicenses().iterator().next().getLicenseId()).isEqualTo(UNSPECIFIED_ID);
     assertThat(componentDetails.getEffectiveLicenseStatus()).isNull();
+  }
+
+  @Test
+  public void testGetComponentDetailsListBulk_noComponents() {
+    Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
+        componentInfoService.getComponentDetailsListBulk(Collections.emptyList(), null, null);
+
+    assertThat(componentDetailsMap).isEmpty();
+  }
+
+  @Test
+  public void testGetComponentDetailsListBulk_nonTerraformComponents() {
+    Organization organization = tempEntity.newOrganization("testGetComponentDetailsList");
+    String applicationPublicId = "testGetComponentDetailsList";
+    Application application = tempEntity.newApplication(applicationPublicId, applicationPublicId, organization.getId());
+    // Create the mocked hds response
+    ComponentEvaluationDataList.ComponentEvaluationData componentEvaluationData1 =
+        new ComponentEvaluationDataList.ComponentEvaluationData();
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "1.0.0");
+    componentEvaluationData1.componentIdentifier = componentIdentifier1;
+    componentEvaluationData1.declaredLicenses = Sets.newHashSet(new License("Apache-2.0", "Apache-2.0"));
+
+    ComponentEvaluationDataList.ComponentEvaluationData componentEvaluationData2 =
+        new ComponentEvaluationDataList.ComponentEvaluationData();
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "2.0.0");
+    componentEvaluationData2.componentIdentifier = componentIdentifier2;
+    componentEvaluationData2.declaredLicenses = Sets.newHashSet(new License("GPL-2.0", "GPL-2.0"));
+
+    ComponentEvaluationDataList.ComponentEvaluationData componentEvaluationData3 =
+        new ComponentEvaluationDataList.ComponentEvaluationData();
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "3.0.0");
+    componentEvaluationData3.componentIdentifier = componentIdentifier3;
+    componentEvaluationData3.declaredLicenses = Sets.newHashSet(new License("OSL-1.0", "OSL-1.0"));
+
+    // mock hdsComponentDetailsList
+    List<ComponentIdentifier> componentIdentifiers =
+        asList(componentIdentifier1, componentIdentifier2, componentIdentifier3);
+
+    mockHdsGetComponentDetailsListBulk(
+        asList(componentEvaluationData1, componentEvaluationData2, componentEvaluationData3),
+        asList(componentIdentifier1, componentIdentifier2, componentIdentifier3));
+
+    Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null);
+
+    assertThat(componentDetailsMap).hasSize(3);
+    ComponentDetails componentDetails = componentDetailsMap.get(componentIdentifier1).get(0);
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier1);
+
+    assertThat(componentDetails.getDeclaredLicenses()).hasSize(1);
+    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseName()).isEqualTo("Apache-2.0");
+    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseId()).isEqualTo("Apache-2.0");
+    assertThat(componentDetails.getObservedLicenses()).isNull();
+    assertThat(componentDetails.getEffectiveLicenseStatus()).isNull();
+
+    componentDetails = componentDetailsMap.get(componentIdentifier2).get(0);
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier2);
+    assertThat(componentDetails.getDeclaredLicenses()).hasSize(1);
+    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseName()).isEqualTo("GPL-2.0");
+    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseId()).isEqualTo("GPL-2.0");
+    assertThat(componentDetails.getObservedLicenses()).isNull();
+    assertThat(componentDetails.getEffectiveLicenseStatus()).isNull();
+
+    // Test match against default LGT Copyleft from the root organization
+    componentDetails = componentDetailsMap.get(componentIdentifier3).get(0);
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier3);
+    assertThat(componentDetails.getDeclaredLicenses()).hasSize(1);
+    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseName()).isEqualTo("OSL-1.0");
+    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseId()).isEqualTo("OSL-1.0");
+    assertThat(componentDetails.getObservedLicenses()).isNull();
+    assertThat(componentDetails.getEffectiveLicenseStatus()).isNull();
+  }
+
+  @Test
+  public void testGetComponentDetailsListBulk_terraformComponents() {
+    // Create an application without LTGs
+    Organization organization = tempEntity.newOrganization("testGetComponentDetailsList");
+    String applicationPublicId = "testGetComponentDetailsList";
+    Application application = tempEntity.newApplication(applicationPublicId, applicationPublicId, organization.getId());
+
+    ComponentIdentifier componentIdentifier1 = new ComponentIdentifier("terraform", new TreeMap<String, String>() {{
+        this.put("plan", "a1");
+        this.put("name", "g1");
+        this.put("version", "1.0.0");
+      }});
+
+    //Mock
+    List<ComponentIdentifier> componentIdentifiers = Collections.singletonList(componentIdentifier1);
+
+    ComponentDetails componentDetails1 = new ComponentDetails();
+    componentDetails1.setComponentIdentifier(componentIdentifier1);
+    componentDetails1.setDeclaredLicenses(Sets.newHashSet(new License("Apache-2.0", "Apache-2.0")));
+
+    ComponentDetailsList componentDetailsList = new ComponentDetailsList();
+    componentDetailsList.setList(Collections.singletonList(componentDetails1));
+
+    when(thirdPartyComponentDAO.getAllVersions(eq(application.getId()), eq(componentIdentifier1), eq(null)))
+        .thenReturn(componentDetailsList);
+
+    Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null);
+
+    assertThat(componentDetailsMap).hasSize(1);
+    ComponentDetails componentDetails = componentDetailsMap.get(componentIdentifier1).get(0);
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier1);
+
+    assertThat(componentDetails.getDeclaredLicenses()).hasSize(1);
+    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseName()).isEqualTo("Apache-2.0");
+    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseId()).isEqualTo("Apache-2.0");
+    assertThat(componentDetails.getObservedLicenses()).isEmpty();
+    assertThat(componentDetails.getEffectiveLicenseStatus()).isNull();
+  }
+
+  @Test
+  public void testGetComponentDetailsListBulk_genericComponents() {
+    // Create an application without LTGs
+    Organization organization = tempEntity.newOrganization("testGetComponentDetailsList");
+    String applicationPublicId = "testGetComponentDetailsList";
+    Application application = tempEntity.newApplication(applicationPublicId, applicationPublicId, organization.getId());
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createGenericCoordinates("a1", "1.0", null);
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createGenericCoordinates("a1", "2.0", null);
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createGenericCoordinates("a1", "3.0", null);
+    ComponentIdentifier componentIdentifier4 = new ComponentIdentifier("apt", new TreeMap<String, String>() {{
+        this.put("plan", "a1");
+        this.put("name", "g1");
+        this.put("version", "1.0.0");
+      }});
+
+    List<ComponentIdentifier> componentIdentifiers =
+        asList(componentIdentifier1, componentIdentifier2, componentIdentifier3, componentIdentifier4);
+
+    Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null);
+
+    assertThat(componentDetailsMap).hasSize(3);
+    assertGenericComponentDetails(componentDetailsMap.get(componentIdentifier1).get(0), componentIdentifier1);
+    assertGenericComponentDetails(componentDetailsMap.get(componentIdentifier2).get(0), componentIdentifier2);
+    assertGenericComponentDetails(componentDetailsMap.get(componentIdentifier3).get(0), componentIdentifier3);
+  }
+
+  @Test
+  public void testGetComponentDetailsListBulk_genericComponents_identificationSourceAsThirdParty() {
+    // Create an application without LTGs
+    Organization organization = tempEntity.newOrganization("testGetComponentDetailsList");
+    String applicationPublicId = "testGetComponentDetailsList";
+    Application application = tempEntity.newApplication(applicationPublicId, applicationPublicId, organization.getId());
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createGenericCoordinates("a1", "1.0", null);
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createGenericCoordinates("a1", "2.0", null);
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createGenericCoordinates("a1", "3.0", null);
+
+    List<ComponentIdentifier> componentIdentifiers =
+        asList(componentIdentifier1, componentIdentifier2, componentIdentifier3);
+
+    mockComponentResolution(componentIdentifier1, application.getId());
+    mockComponentResolution(componentIdentifier2, application.getId());
+    mockComponentResolution(componentIdentifier3, application.getId());
+
+    Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, "myScanId");
+
+    assertThat(componentDetailsMap).hasSize(3);
+
+    ComponentDetails componentDetails = componentDetailsMap.get(componentIdentifier1).get(0);
+    assertThat(componentDetails.getIdentificationSource()).isEqualTo("randomIdentificationSource");
+    assertThat(componentDetails.getComponentIdentifier())
+        .isEqualTo(componentIdentifier1);
+
+    componentDetails = componentDetailsMap.get(componentIdentifier2).get(0);
+    assertThat(componentDetails.getIdentificationSource()).isEqualTo("randomIdentificationSource");
+    assertThat(componentDetails.getComponentIdentifier())
+        .isEqualTo(componentIdentifier2);
+
+    componentDetails = componentDetailsMap.get(componentIdentifier3).get(0);
+    assertThat(componentDetails.getIdentificationSource()).isEqualTo("randomIdentificationSource");
+    assertThat(componentDetails.getComponentIdentifier())
+        .isEqualTo(componentIdentifier3);
+  }
+
+  private void mockComponentResolution(ComponentIdentifier componentIdentifier, String publicId) {
+    ComponentDetails componentDetails = new ComponentDetails(componentIdentifier);
+    componentDetails.setIdentificationSource("randomIdentificationSource");
+    when(thirdPartyComponentDAO.resolveComponentDetails(eq(publicId), eq(componentIdentifier), eq("myScanId")))
+        .thenReturn(componentDetails);
+
+    ComponentDetailsList componentDetailsList = new ComponentDetailsList();
+    componentDetailsList.setList(Collections.singletonList(componentDetails));
+    when(thirdPartyComponentDAO.getAllVersions(eq(publicId), eq(componentIdentifier), eq("myScanId")))
+        .thenReturn(componentDetailsList);
+  }
+
+  @Test
+  public void testGetComponentDetailsListBulk_allComponentTypes() {
+    // Create an application without LTGs
+    Organization organization = tempEntity.newOrganization("testGetComponentDetailsList");
+    String applicationPublicId = "testGetComponentDetailsList";
+    Application application = tempEntity.newApplication(applicationPublicId, applicationPublicId, organization.getId());
+
+    // nonTerraform
+    ComponentEvaluationDataList.ComponentEvaluationData componentEvaluationData1 =
+        new ComponentEvaluationDataList.ComponentEvaluationData();
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "1.0.0");
+    componentEvaluationData1.componentIdentifier = componentIdentifier1;
+    componentEvaluationData1.declaredLicenses = Sets.newHashSet(new License("Apache-2.0", "Apache-2.0"));
+
+    mockHdsGetComponentDetailsListBulk(
+        Collections.singletonList(componentEvaluationData1),
+        Collections.singletonList(componentIdentifier1));
+
+    //terraform
+    ComponentIdentifier componentIdentifier2 = new ComponentIdentifier("terraform", new TreeMap<String, String>() {{
+        this.put("plan", "a1");
+        this.put("name", "g1");
+        this.put("version", "1.0.0");
+      }});
+
+    ComponentDetails componentDetails1 = new ComponentDetails();
+    componentDetails1.setComponentIdentifier(componentIdentifier2);
+    componentDetails1.setDeclaredLicenses(Sets.newHashSet(new License("Apache-2.0", "Apache-2.0")));
+
+    ComponentDetailsList componentDetailsList = new ComponentDetailsList();
+    componentDetailsList.setList(Collections.singletonList(componentDetails1));
+
+    when(thirdPartyComponentDAO.getAllVersions(eq(application.getId()), eq(componentIdentifier2), eq("myScanId")))
+        .thenReturn(componentDetailsList);
+
+    //generic
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createGenericCoordinates("a1", "1.0", null);
+    when(thirdPartyComponentDAO.resolveComponentDetails(
+        eq(application.getId()), eq(componentIdentifier3), eq("myScanId")))
+        .thenReturn(null);
+
+    //generic third party component
+    ComponentIdentifier componentIdentifier4 = ComponentIdentifier.createGenericCoordinates("b1", "2.0", null);
+
+    mockComponentResolution(componentIdentifier4, application.getId());
+
+    // unidentified component (discarded)
+    ComponentIdentifier componentIdentifier5 = new ComponentIdentifier("apt", new TreeMap<String, String>() {{
+        this.put("plan", "a1");
+        this.put("name", "g1");
+        this.put("version", "1.0.0");
+      }});
+
+    List<ComponentIdentifier> componentIdentifiers =
+        asList(componentIdentifier1,
+            componentIdentifier2,
+            componentIdentifier3,
+            componentIdentifier4,
+            componentIdentifier5);
+
+    Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, "myScanId");
+
+    assertThat(componentDetailsMap).hasSize(4);
+
+    // nonTerraform assertion
+    ComponentDetails componentDetails = componentDetailsMap.get(componentIdentifier1).get(0);
+    assertThat(componentDetails.getDeclaredLicenses()).hasSize(1);
+    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseName()).isEqualTo("Apache-2.0");
+    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseId()).isEqualTo("Apache-2.0");
+    assertThat(componentDetails.getObservedLicenses()).isNull();
+    assertThat(componentDetails.getEffectiveLicenseStatus()).isNull();
+
+    //terraform assertion
+    componentDetails = componentDetailsMap.get(componentIdentifier2).get(0);
+    assertThat(componentDetails.getDeclaredLicenses()).hasSize(1);
+    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseName()).isEqualTo("Apache-2.0");
+    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseId()).isEqualTo("Apache-2.0");
+    assertThat(componentDetails.getObservedLicenses()).isEmpty();
+    assertThat(componentDetails.getEffectiveLicenseStatus()).isNull();
+
+    //generic assertion
+    assertGenericComponentDetails(componentDetailsMap.get(componentIdentifier3).get(0), componentIdentifier3);
+
+    //generic third party assertion
+    componentDetails = componentDetailsMap.get(componentIdentifier4).get(0);
+    assertThat(componentDetails.getIdentificationSource()).isEqualTo("randomIdentificationSource");
+    assertThat(componentDetails.getComponentIdentifier())
+        .isEqualTo(componentIdentifier4);
+  }
+
+  @Test
+  public void testGetComponentDetailsListBulk_shouldFilterOutDeprecatedDebianFormat() {
+    Organization organization = tempEntity.newOrganization("testGetComponentDetailsList");
+    String applicationPublicId = "testGetComponentDetailsList";
+    Application application = tempEntity.newApplication(applicationPublicId, applicationPublicId, organization.getId());
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createGenericCoordinates("a1", "1.0", null);
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createGenericCoordinates("a1", "2.0", null);
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createGenericCoordinates("a1", "3.0", null);
+    ComponentIdentifier componentIdentifier4 = new ComponentIdentifier("apt", new TreeMap<String, String>() {{
+        this.put("plan", "a1");
+        this.put("name", "g1");
+        this.put("version", "1.0.0");
+      }});
+
+    List<ComponentIdentifier> componentIdentifiers =
+        asList(componentIdentifier1, componentIdentifier2, componentIdentifier3, componentIdentifier4);
+
+    Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null);
+
+    assertThat(componentDetailsMap).hasSize(3);
+    assertGenericComponentDetails(componentDetailsMap.get(componentIdentifier1).get(0), componentIdentifier1);
+    assertGenericComponentDetails(componentDetailsMap.get(componentIdentifier2).get(0), componentIdentifier2);
+    assertGenericComponentDetails(componentDetailsMap.get(componentIdentifier3).get(0), componentIdentifier3);
+  }
+
+  @Test
+  public void testGetComponentDetailsListBulk_debianFormatShouldBeFilteredOut() {
+    Organization organization = tempEntity.newOrganization("testGetComponentDetailsList");
+    String applicationPublicId = "testGetComponentDetailsList";
+    Application application = tempEntity.newApplication(applicationPublicId, applicationPublicId, organization.getId());
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createGenericCoordinates("a1", "1.0", null);
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createGenericCoordinates("a1", "2.0", null);
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createGenericCoordinates("a1", "3.0", null);
+    ComponentIdentifier componentIdentifier4deb = new ComponentIdentifier("deb", new TreeMap<String, String>() {{
+        this.put("plan", "a1");
+        this.put("name", "g1");
+        this.put("version", "1.0.0");
+      }});
+
+    List<ComponentIdentifier> componentIdentifiers =
+        asList(componentIdentifier1, componentIdentifier2, componentIdentifier3, componentIdentifier4deb);
+
+    Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null);
+
+    assertThat(componentDetailsMap).hasSize(3);
+    assertGenericComponentDetails(componentDetailsMap.get(componentIdentifier1).get(0), componentIdentifier1);
+    assertGenericComponentDetails(componentDetailsMap.get(componentIdentifier2).get(0), componentIdentifier2);
+    assertGenericComponentDetails(componentDetailsMap.get(componentIdentifier3).get(0), componentIdentifier3);
+  }
+
+  @Test
+  public void testGetComponentDetailsListBulk_allDebianFormatShouldBeFilteredOut() {
+    Organization organization = tempEntity.newOrganization("testGetComponentDetailsList");
+    String applicationPublicId = "testGetComponentDetailsList";
+    Application application = tempEntity.newApplication(applicationPublicId, applicationPublicId, organization.getId());
+
+    ComponentIdentifier componentIdentifier1deb = new ComponentIdentifier("deb", new TreeMap<String, String>() {{
+        this.put("plan", "a1");
+        this.put("name", "g1");
+        this.put("version", "1.0.0");
+      }});
+    ComponentIdentifier componentIdentifier2deb = new ComponentIdentifier("deb", new TreeMap<String, String>() {{
+        this.put("plan", "a1");
+        this.put("name", "g1");
+        this.put("version", "1.0.0");
+      }});
+
+    List<ComponentIdentifier> componentIdentifiers =
+        asList(componentIdentifier1deb, componentIdentifier2deb);
+
+    Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null);
+
+    assertThat(componentDetailsMap).isEmpty();
+
+    verify(hdsClientMock, times(0))
+        .post(Map.class, "rest/component/versions/list", componentIdentifiers);
   }
 
   @Test
@@ -2728,6 +3115,22 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.getComponentCategories())
         .extracting(ComponentCategory::getComponentCategoryId, ComponentCategory::getPath)
         .containsExactly(Tuple.tuple(113, "Other"));
+  }
+
+  private void assertGenericComponentDetails(
+          ComponentDetails componentDetails,
+          ComponentIdentifier componentIdentifier1)
+  {
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier1);
+
+    assertThat(componentDetails.getDeclaredLicenses()).isNotEmpty();
+    assertThat(componentDetails.getDeclaredLicenses()).hasSize(1);
+    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseName()).isEqualTo("Not Provided");
+    assertThat(componentDetails.getDeclaredLicenses().iterator().next().getLicenseId()).isEqualTo(UNSPECIFIED_ID);
+    assertThat(componentDetails.getObservedLicenses()).hasSize(1);
+    assertThat(componentDetails.getObservedLicenses().iterator().next().getLicenseName()).isEqualTo("Not Provided");
+    assertThat(componentDetails.getObservedLicenses().iterator().next().getLicenseId()).isEqualTo(UNSPECIFIED_ID);
+    assertThat(componentDetails.getEffectiveLicenseStatus()).isNull();
   }
 
   @Test

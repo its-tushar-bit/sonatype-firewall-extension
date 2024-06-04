@@ -9,12 +9,12 @@ CREATE TABLE organization (
   parent_organization_id varchar(50) NULL,
   name varchar(200) NOT NULL,
   name_lowercase_no_whitespace varchar(200) NOT NULL,
+  legacy_violation_enabled        boolean,
+  allow_legacy_violation_override boolean DEFAULT true NOT NULL, -- Whether policy legacy status can be overridden by children (orgs and apps).
   repository_connection_enabled boolean,
   allow_repository_connection_override boolean DEFAULT true NOT NULL,
   artifactory_connection_enabled boolean,
   allow_artifactory_connection_override boolean DEFAULT true NOT NULL,
-  legacy_violation_enabled boolean,
-  allow_legacy_violation_override boolean DEFAULT true NOT NULL, -- Whether policy legacy status can be overridden by children (orgs and apps).
   CONSTRAINT organization_pk PRIMARY KEY (organization_id),
   CONSTRAINT organization_name_uk UNIQUE (name_lowercase_no_whitespace),
   CONSTRAINT organization_parent_organization_fk FOREIGN KEY (parent_organization_id) REFERENCES organization(organization_id)
@@ -30,9 +30,9 @@ CREATE TABLE application (
   name_lowercase_no_whitespace varchar(200) NOT NULL,
   organization_id varchar(50) NOT NULL,
   contact_internal_name varchar(60) NULL, -- The internal name of the contact User (CLM User or LDAP user)
+  legacy_violation_enabled boolean,
   repository_connection_enabled boolean,
   artifactory_connection_enabled boolean,
-  legacy_violation_enabled boolean,
   CONSTRAINT application_pk PRIMARY KEY (application_id),
   CONSTRAINT application_uk UNIQUE (public_id_lowercase),
   CONSTRAINT application_name_uk UNIQUE (name_lowercase_no_whitespace),
@@ -101,9 +101,9 @@ CREATE TABLE policy (
   name varchar(60) NOT NULL,
   name_lowercase_no_whitespace varchar(60) NOT NULL,
   threat_level smallint NOT NULL,
+  legacy_violation_allowed boolean NOT NULL,
   content text NOT NULL,
   drools_code text NOT NULL,
-  legacy_violation_allowed boolean NOT NULL,
   CONSTRAINT policy_pk PRIMARY KEY (policy_id),
   CONSTRAINT policy_name_uk UNIQUE (owner_id, name_lowercase_no_whitespace)
 );
@@ -410,6 +410,7 @@ CREATE TABLE policy_violation (
   -- timestamps recording the state and transitions thereof for the violation
   open_time timestamp NOT NULL,    -- when the violation first occurred
   waive_time timestamp NULL,       -- when the violation was waived
+  legacy_violation_time timestamp NULL, -- when there is a legacy policy violation
   fix_time timestamp NULL,         -- when the violation disappeared entirely
 
   -- details of the waiver that suppressed this violation
@@ -422,7 +423,6 @@ CREATE TABLE policy_violation (
   seen_by_monitoring_evaluation bool NOT NULL,
 
   -- whether the legacy violation was applied by a new evaluation or a re-evaluation of a report
-  legacy_violation_time timestamp NULL, -- when there is a legacy policy violation
   legacy_violation_applied bool NOT NULL DEFAULT false,
 
   CONSTRAINT policy_violation_pk PRIMARY KEY (policy_violation_id),

@@ -16,7 +16,7 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSele
 
 public class NxThreatLevelDropdown
 {
-  private static final String ROOT = ".nx-dropdown";
+  private static final String ROOT = ".iq-threat-dropdown-selector";
 
   public static final int NUM_THREAT_LEVELS = 11;
 

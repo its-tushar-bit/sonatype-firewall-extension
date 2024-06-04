@@ -73,7 +73,7 @@ public class EditCopyrightsModal
     }
 
     public SelenideElement openMenuButton() {
-      return $(".nx-dropdown__toggle");
+      return child(".nx-dropdown__toggle");
     }
 
     public StatusDropdownMenu dropdownMenu() {

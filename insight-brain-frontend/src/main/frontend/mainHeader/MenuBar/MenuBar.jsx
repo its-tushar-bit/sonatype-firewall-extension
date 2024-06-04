@@ -7,6 +7,7 @@ import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import HelpMenu from './HelpMenu/HelpMenu';
 import SystemPreferencesMenu from './SystemPreferencesMenu/SystemPreferencesMenu';
+import SolutionSwitcherContainer from './SolutionSwitcherContainer/SolutionSwitcherContainer';
 import UserMenu from './UserMenu/UserMenuContainer';
 import LoginButton from './LoginButton/LoginButton';
 import NotificationsMenuContainer from './NotificationsMenu/NotificationsMenuContainer';
@@ -87,6 +88,7 @@ export const MenuBar = ({
             isSbomManagerOnlyLicense={isSbomManagerOnlyLicense}
           />
         )}
+        <SolutionSwitcherContainer />
         <UserMenu userActions={userActions} />
       </div>
     </Fragment>

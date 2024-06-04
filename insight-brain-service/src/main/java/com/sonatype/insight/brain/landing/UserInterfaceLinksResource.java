@@ -56,6 +56,8 @@ import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.*;
 @UnlicensedPath
 public class UserInterfaceLinksResource
 {
+  public static final String ASSET_INDEX_PATH = InsightBrainService.BRAIN_ASSET_PATH + "index.html";
+
   private final BaseUrl baseUrl;
 
   private final TelemetrySender telemetrySender;
@@ -92,10 +94,46 @@ public class UserInterfaceLinksResource
   }
 
   @GET
+  @Path(DEVELOPER_HOME_PATH)
+  public Response linkToDeveloperHome() {
+    UriBuilder uriBuilder = baseUrl.redirect()
+        .path(ASSET_INDEX_PATH)
+        .fragment("/integrations/overview");
+    return redirect(uriBuilder);
+  }
+
+  @GET
+  @Path(FIREWALL_HOME_PATH)
+  public Response linkToFirewallHome() {
+    UriBuilder uriBuilder = baseUrl.redirect()
+        .path(ASSET_INDEX_PATH)
+        .fragment("/firewall");
+    return redirect(uriBuilder);
+  }
+
+  @GET
+  @Path(LIFECYCLE_HOME_PATH)
+  public Response linkToLifecycleHome() {
+    UriBuilder uriBuilder = baseUrl.redirect()
+        .path(ASSET_INDEX_PATH)
+        .fragment("/dashboard/violations");
+    return redirect(uriBuilder);
+  }
+
+  @GET
+  @Path(SBOM_MANAGER_HOME_PATH)
+  public Response linkToSbomManagerHome() {
+    UriBuilder uriBuilder = baseUrl.redirect()
+        .path(ASSET_INDEX_PATH)
+        .fragment("/sbomManager/dashboard");
+    return redirect(uriBuilder);
+  }
+
+  @GET
   @Path(MANAGEMENT_PATH)
   public Response linkToManagement(@PathParam("ownerType") OwnerType ownerType, @PathParam("ownerId") String ownerId) {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html")
+    uriBuilder.path(ASSET_INDEX_PATH)
         .fragment("/management/view/{ownerType}/{ownerId}");
     return redirect(uriBuilder, ownerType, ownerId);
   }
@@ -107,7 +145,7 @@ public class UserInterfaceLinksResource
       @PathParam("ownerId") String ownerId)
   {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html")
+    uriBuilder.path(ASSET_INDEX_PATH)
         .fragment("/sbomManager/management/view/{ownerType}/{ownerId}");
     return redirect(uriBuilder, ownerType, ownerId);
   }
@@ -121,7 +159,7 @@ public class UserInterfaceLinksResource
       @PathParam("itemId") String itemId)
   {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html")
+    uriBuilder.path(ASSET_INDEX_PATH)
         .fragment("/management/edit/{ownerType: application|organization}/" +
             "{ownerId}/{itemType: category|label|policy}/{itemId}");
     return redirect(uriBuilder, ownerType, ownerId, itemType, itemId);
@@ -166,7 +204,7 @@ public class UserInterfaceLinksResource
     String fragmentTemplate =
         "/applicationReport/{applicationPublicId}/{scanId}/componentDetails/{componentScanHash}/overview";
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment(fragmentTemplate);
+    uriBuilder.path(ASSET_INDEX_PATH).fragment(fragmentTemplate);
     return redirect(uriBuilder, applicationPublicId, scanId, componentScanHash);
   }
 
@@ -178,7 +216,7 @@ public class UserInterfaceLinksResource
   {
     final String fragmentTemplate = "/violation/{policyViolationId}?type=violation&sidebarReference=filter";
     final UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment(fragmentTemplate);
+    uriBuilder.path(ASSET_INDEX_PATH).fragment(fragmentTemplate);
     return redirect(uriBuilder, policyViolationId, utmSource);
   }
 
@@ -198,7 +236,7 @@ public class UserInterfaceLinksResource
     String fragmentTemplate = "/applicationReport/{applicationPublicId}/{scanId}/policy" +
         (embeddable ? "?embeddable" : "");
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment(fragmentTemplate);
+    uriBuilder.path(ASSET_INDEX_PATH).fragment(fragmentTemplate);
 
     return redirect(uriBuilder, applicationPublicId, scanId);
   }
@@ -221,7 +259,7 @@ public class UserInterfaceLinksResource
   @Path(REPO_RESULT_PATH)
   public Response linkToRepositoryReport(@PathParam("repositoryId") String repositoryId) {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment("/" + REPO_RESULT_PATH);
+    uriBuilder.path(ASSET_INDEX_PATH).fragment("/" + REPO_RESULT_PATH);
     return redirect(uriBuilder, repositoryId);
   }
 
@@ -229,7 +267,7 @@ public class UserInterfaceLinksResource
   @Path(VULNERABILITY_DETAILS_PATH)
   public Response linkToVulnerabilityDetails(@PathParam("vulnerabilityId") String vulnerabilityId) {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment("/vulnerabilities/{vulnerabilityId}");
+    uriBuilder.path(ASSET_INDEX_PATH).fragment("/vulnerabilities/{vulnerabilityId}");
     return redirect(uriBuilder, vulnerabilityId);
   }
 
@@ -237,7 +275,7 @@ public class UserInterfaceLinksResource
   @Path(POLICY_VIOLATION_DETAILS_PATH)
   public Response linkToPolicyViolationDetails(@PathParam("violationId") String violationId) {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment("/violation/{violationId}");
+    uriBuilder.path(ASSET_INDEX_PATH).fragment("/violation/{violationId}");
     return redirect(uriBuilder, violationId);
   }
 
@@ -251,7 +289,7 @@ public class UserInterfaceLinksResource
     uriBuilder.replaceQueryParam("comments");
     String fragment = "/addWaiver/{violationId}";
     fragment += comments != null ? "?comments={comments}" : "";
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment(fragment);
+    uriBuilder.path(ASSET_INDEX_PATH).fragment(fragment);
     return redirect(uriBuilder, violationId, comments);
   }
 
@@ -278,7 +316,7 @@ public class UserInterfaceLinksResource
   @Path(QUARANTINED_COMPONENT_REPORT_PATH)
   public Response linkToQuarantinedComponentReport(@PathParam("token") String token) {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment("/" +
+    uriBuilder.path(ASSET_INDEX_PATH).fragment("/" +
         QUARANTINED_COMPONENT_REPORT_PATH);
     return redirect(uriBuilder, token);
   }
@@ -294,7 +332,7 @@ public class UserInterfaceLinksResource
 
   private Response linkToPrioritiesReportRedirect(final String applicationPublicId, final String scanId) {
     final UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment(PRIORITIES_PATH);
+    uriBuilder.path(ASSET_INDEX_PATH).fragment(PRIORITIES_PATH);
 
     return redirect(uriBuilder, applicationPublicId, scanId);
   }

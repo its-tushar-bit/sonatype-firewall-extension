@@ -3,5 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-// allow jest to pass over png and other file asset imports without getting upset
-module.exports = 'test-image-stub';
+package com.sonatype.insight.brain.solution;
+
+public enum Solution
+{
+  DEVELOPER, FIREWALL, LIFECYCLE, REPO_MANAGER, SBOM_MANAGER
+}

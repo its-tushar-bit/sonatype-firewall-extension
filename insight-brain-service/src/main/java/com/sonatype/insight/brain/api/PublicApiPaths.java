@@ -160,4 +160,6 @@ public class PublicApiPaths
       EXPERIMENTAL_PATH + "callFlowAnalysis/configuration/{ownerType: application|organization}/{ownerId}";
 
   public static final String AUDIT_LOGS_RESOURCE_PATH = API_VERSION_PATH_V2 + "auditLogs";
+
+  public static final String LICENSED_SOLUTIONS_RESOURCE_PATH = API_VERSION_PATH_V2 + "solutions/licensed";
 }

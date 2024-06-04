@@ -33,6 +33,7 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.COMPONENT_SCAN_REPORT_PATH;
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.POLICY_VIOLATION_REPORT_PATH;
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.PRIORITIES_PATH;
+import static com.sonatype.insight.brain.landing.UserInterfaceLinksResource.ASSET_INDEX_PATH;
 import static java.util.stream.Collectors.groupingBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -40,6 +41,8 @@ import static org.awaitility.Awaitility.await;
 public class UserInterfaceLinksResourceTest
     extends AbstractResourceTest
 {
+  private static final String ASSET_INDEX_PATH_NO_SLASH = ASSET_INDEX_PATH.substring(1);
+
   private void assertRedirect(HttpResponse response, String expected) {
     assertResponseStatus(307, response);
     assertThat(response.getHeader("Location")).isEqualTo(getRestBaseUrl() + expected);
@@ -47,6 +50,30 @@ public class UserInterfaceLinksResourceTest
 
   private HttpResponse get(String path, Object... params) throws Exception {
     return restRequest().path(UserInterfaceLinksHelper.RESOURCE_PATH, path).parameter(params).anon().get();
+  }
+
+  @Test
+  public void testLinkToDeveloperHome() throws Exception {
+    HttpResponse response = get(UserInterfaceLinksHelper.DEVELOPER_HOME_PATH);
+    assertRedirect(response, ASSET_INDEX_PATH_NO_SLASH + "#/integrations/overview");
+  }
+
+  @Test
+  public void testLinkToFirewallHome() throws Exception {
+    HttpResponse response = get(UserInterfaceLinksHelper.FIREWALL_HOME_PATH);
+    assertRedirect(response, ASSET_INDEX_PATH_NO_SLASH + "#/firewall");
+  }
+
+  @Test
+  public void testLinkToLifecycleHome() throws Exception {
+    HttpResponse response = get(UserInterfaceLinksHelper.LIFECYCLE_HOME_PATH);
+    assertRedirect(response, ASSET_INDEX_PATH_NO_SLASH + "#/dashboard/violations");
+  }
+
+  @Test
+  public void testLinkToSbomManagerHome() throws Exception {
+    HttpResponse response = get(UserInterfaceLinksHelper.SBOM_MANAGER_HOME_PATH);
+    assertRedirect(response, ASSET_INDEX_PATH_NO_SLASH + "#/sbomManager/dashboard");
   }
 
   @Test

@@ -11,6 +11,14 @@ public class UserInterfaceLinksHelper
 {
   public static final String RESOURCE_PATH = "ui/links";
 
+  public static final String DEVELOPER_HOME_PATH = "developer/dashboard";
+
+  public static final String FIREWALL_HOME_PATH = "firewall/dashboard";
+
+  public static final String LIFECYCLE_HOME_PATH = "lifecycle/dashboard";
+
+  public static final String SBOM_MANAGER_HOME_PATH = "sbomManager/dashboard";
+
   public static final String MANAGEMENT_PATH = "{ownerType: application|organization}/{ownerId}/management";
 
   public static final String SBOM_MANAGEMENT_PATH =
@@ -51,8 +59,28 @@ public class UserInterfaceLinksHelper
   public static final String SBOM_BOM_VIEW_PATH =
       "sbomManager/management/view/application/{applicationPublicId}/bom/{version}";
 
+  private static String buildStableUrl(String path) {
+    return UriBuilder.fromPath(RESOURCE_PATH).path(path).build().toString();
+  }
+
   private static String buildStableUrl(String path, Object... parameters) {
     return UriBuilder.fromPath(RESOURCE_PATH).path(path).build(parameters).toString();
+  }
+
+  public static String getDeveloperHomePath() {
+    return buildStableUrl(DEVELOPER_HOME_PATH);
+  }
+
+  public static String getFirewallHomePath() {
+    return buildStableUrl(FIREWALL_HOME_PATH);
+  }
+
+  public static String getLifecycleHomePath() {
+    return buildStableUrl(LIFECYCLE_HOME_PATH);
+  }
+
+  public static String getSbomManagerHomePath() {
+    return buildStableUrl(SBOM_MANAGER_HOME_PATH);
   }
 
   public static String getVulnerabilityDetailsUrl(String vulnerabilityId) {

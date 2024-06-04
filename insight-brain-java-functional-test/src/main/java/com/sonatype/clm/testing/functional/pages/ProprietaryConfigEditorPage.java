@@ -48,7 +48,7 @@ public class ProprietaryConfigEditorPage
   }
 
   public static SelenideElement addButton() {
-    return $(".nx-btn.nx-btn--tertiary");
+    return $(".nx-btn-bar .nx-btn.nx-btn--tertiary");
   }
 
   public static SelenideElement updateButton() {

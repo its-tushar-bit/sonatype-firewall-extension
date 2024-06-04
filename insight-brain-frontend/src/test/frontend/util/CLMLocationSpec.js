@@ -1638,4 +1638,12 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getSbomSummaryUrl(applicationId, version)).toBe(expectedURL);
     });
   });
+
+  describe('getLicensedSolutionsUrl', () => {
+    it('returns the url for the licensed solutions', () => {
+      const expectedUrl = '/api/v2/solutions/licensed?allowRelativeUrls=true';
+
+      expect(clmLocation.getLicensedSolutionsUrl()).toEqual(expectedUrl);
+    });
+  });
 });

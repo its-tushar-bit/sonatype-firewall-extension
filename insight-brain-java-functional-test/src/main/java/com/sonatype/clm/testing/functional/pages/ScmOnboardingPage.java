@@ -299,7 +299,7 @@ public class ScmOnboardingPage
     }
 
     public SelenideElement openMenuButton() {
-      return $(".nx-dropdown__toggle");
+      return child(".nx-dropdown__toggle");
     }
 
     public OrganizationsDropdownMenu dropdownMenu() {

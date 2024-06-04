@@ -1500,6 +1500,8 @@ export const getSbomVulnerabibilityAnalysisReferenceData = () =>
 
 export const getVulnerabilitesByThreatLevelUrl = () => uriTemplate`/api/v2/sbom/dashboard/vulnerabilitiesByThreatLevel`;
 
+export const getLicensedSolutionsUrl = () => uriTemplate`/api/v2/solutions/licensed?allowRelativeUrls=true`;
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

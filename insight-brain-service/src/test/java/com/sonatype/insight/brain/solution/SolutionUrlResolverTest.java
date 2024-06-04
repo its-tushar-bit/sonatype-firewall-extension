@@ -1,0 +1,124 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.solution;
+
+import com.sonatype.insight.brain.service.BaseUrlConfiguration;
+import com.sonatype.insight.brain.service.Configuration;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
+public class SolutionUrlResolverTest
+{
+  private static final String BASE_URL = "https://locahost:8070";
+
+  @Before
+  public void setup() {
+    MockitoAnnotations.openMocks(this);
+  }
+
+  @Test
+  public void testFullUrlsWithTrailingSlashInBaseUrl() {
+    // given: no base url set in config
+    BaseUrlConfiguration baseUrlConfig = new BaseUrlConfiguration(BASE_URL + '/', false);
+    Configuration mockConfiguration = Mockito.mock(Configuration.class);
+    when(mockConfiguration.getBaseUrlConfiguration()).thenReturn(baseUrlConfig);
+    SolutionUrlResolver urlResolver = new SolutionUrlResolver(mockConfiguration);
+
+    // when: get the URLs for the solutions
+    String developerUrl = urlResolver.getUrlForSolution(Solution.DEVELOPER, false);
+    String firewallUrl = urlResolver.getUrlForSolution(Solution.FIREWALL, false);
+    String lifecycleUrl = urlResolver.getUrlForSolution(Solution.LIFECYCLE, false);
+    String repoManagerUrl = urlResolver.getUrlForSolution(Solution.REPO_MANAGER, false);
+    String sbomManagerUrl = urlResolver.getUrlForSolution(Solution.SBOM_MANAGER, false);
+
+    // then:
+    assertThat(developerUrl).isEqualTo("https://locahost:8070/ui/links/developer/dashboard");
+    assertThat(firewallUrl).isEqualTo("https://locahost:8070/ui/links/firewall/dashboard");
+    assertThat(lifecycleUrl).isEqualTo("https://locahost:8070/ui/links/lifecycle/dashboard");
+    assertThat(repoManagerUrl).isBlank();
+    assertThat(sbomManagerUrl).isEqualTo("https://locahost:8070/ui/links/sbomManager/dashboard");
+  }
+
+  @Test
+  public void testFullUrlsWithoutTrailingSlashInBaseUrl() {
+    // given: no base url set in config
+    BaseUrlConfiguration baseUrlConfig = new BaseUrlConfiguration(BASE_URL, false);
+    Configuration mockConfiguration = Mockito.mock(Configuration.class);
+    when(mockConfiguration.getBaseUrlConfiguration()).thenReturn(baseUrlConfig);
+    SolutionUrlResolver urlResolver = new SolutionUrlResolver(mockConfiguration);
+
+    // when: get the URLs for the solutions
+    String developerUrl = urlResolver.getUrlForSolution(Solution.DEVELOPER, false);
+    String firewallUrl = urlResolver.getUrlForSolution(Solution.FIREWALL, false);
+    String lifecycleUrl = urlResolver.getUrlForSolution(Solution.LIFECYCLE, false);
+    String repoManagerUrl = urlResolver.getUrlForSolution(Solution.REPO_MANAGER, false);
+    String sbomManagerUrl = urlResolver.getUrlForSolution(Solution.SBOM_MANAGER, false);
+
+    // then:
+    assertThat(developerUrl).isEqualTo("https://locahost:8070/ui/links/developer/dashboard");
+    assertThat(firewallUrl).isEqualTo("https://locahost:8070/ui/links/firewall/dashboard");
+    assertThat(lifecycleUrl).isEqualTo("https://locahost:8070/ui/links/lifecycle/dashboard");
+    assertThat(repoManagerUrl).isBlank();
+    assertThat(sbomManagerUrl).isEqualTo("https://locahost:8070/ui/links/sbomManager/dashboard");
+  }
+
+  @Test
+  public void testWithoutBaseUrlAndRelativePathsAllowed() {
+    // given: no base url set in config
+    final String baseUrl = null;
+    final boolean allowRelativePaths = true;
+
+    BaseUrlConfiguration baseUrlConfig = new BaseUrlConfiguration(baseUrl, false);
+    Configuration mockConfiguration = Mockito.mock(Configuration.class);
+    when(mockConfiguration.getBaseUrlConfiguration()).thenReturn(baseUrlConfig);
+    SolutionUrlResolver urlResolver = new SolutionUrlResolver(mockConfiguration);
+
+    // when:
+    String developerUrl = urlResolver.getUrlForSolution(Solution.DEVELOPER, allowRelativePaths);
+    String firewallUrl = urlResolver.getUrlForSolution(Solution.FIREWALL, allowRelativePaths);
+    String lifecycleUrl = urlResolver.getUrlForSolution(Solution.LIFECYCLE, allowRelativePaths);
+    String repoManagerUrl = urlResolver.getUrlForSolution(Solution.REPO_MANAGER, allowRelativePaths);
+    String sbomManagerUrl = urlResolver.getUrlForSolution(Solution.SBOM_MANAGER, allowRelativePaths);
+
+    // then:
+    assertThat(developerUrl).isEqualTo("/ui/links/developer/dashboard");
+    assertThat(firewallUrl).isEqualTo("/ui/links/firewall/dashboard");
+    assertThat(lifecycleUrl).isEqualTo("/ui/links/lifecycle/dashboard");
+    assertThat(repoManagerUrl).isBlank();
+    assertThat(sbomManagerUrl).isEqualTo("/ui/links/sbomManager/dashboard");
+  }
+
+  @Test
+  public void testWitoutBaseUrlAndRelativePathsNotAllowed() {
+    // given: no base url set in config
+    final boolean relativePathsNotAllowed = false;
+
+    BaseUrlConfiguration baseUrlConfig = new BaseUrlConfiguration(null, false);
+    Configuration mockConfiguration = Mockito.mock(Configuration.class);
+    when(mockConfiguration.getBaseUrlConfiguration()).thenReturn(baseUrlConfig);
+    SolutionUrlResolver urlResolver = new SolutionUrlResolver(mockConfiguration);
+
+    // when:
+    String developerUrl = urlResolver.getUrlForSolution(Solution.DEVELOPER, relativePathsNotAllowed);
+    String firewallUrl = urlResolver.getUrlForSolution(Solution.FIREWALL, relativePathsNotAllowed);
+    String lifecycleUrl = urlResolver.getUrlForSolution(Solution.LIFECYCLE, relativePathsNotAllowed);
+    String repoManagerUrl = urlResolver.getUrlForSolution(Solution.REPO_MANAGER, relativePathsNotAllowed);
+    String sbomManagerUrl = urlResolver.getUrlForSolution(Solution.SBOM_MANAGER, relativePathsNotAllowed);
+
+    // then:
+    assertThat(developerUrl).isBlank();
+    assertThat(firewallUrl).isBlank();
+    assertThat(lifecycleUrl).isBlank();
+    assertThat(repoManagerUrl).isBlank();
+    assertThat(sbomManagerUrl).isBlank();
+  }
+}

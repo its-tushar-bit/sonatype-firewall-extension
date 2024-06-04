@@ -101,6 +101,7 @@ import billsOfMaterialsPageSlice from 'MainRoot/sbomManager/features/billOfMater
 import sbomComponenDetailsSlice from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
 import prioritiesPageSlice from 'MainRoot/development/prioritiesPage/slices/prioritiesPageSlice';
 import sbomManagerDashboardSlice from 'MainRoot/sbomManager/features/dashboard/sbomManagerDashboardSlice';
+import solutionSwitcherSlice from 'MainRoot/mainHeader/MenuBar/SolutionSwitcherContainer/solutionSwitcherSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -200,4 +201,5 @@ export default combineReducers({
   sbomComponentDetailsPage: sbomComponenDetailsSlice,
   prioritiesPage: prioritiesPageSlice,
   sbomManagerDashboard: sbomManagerDashboardSlice,
+  solutionSwitcher: solutionSwitcherSlice,
 });

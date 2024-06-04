@@ -9,11 +9,10 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
-import com.google.common.annotations.VisibleForTesting;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
@@ -43,10 +42,6 @@ public class TenantThreadLocal
 
   public static void setDefaultTenantToGlobal() {
     defaultTenant = GLOBAL_TENANT;
-  }
-
-  static {
-    tenantThreadLocal.set(new TenantState(SINGLE_TENANT));
   }
 
   /**

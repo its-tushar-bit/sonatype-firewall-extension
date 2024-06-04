@@ -10,6 +10,7 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.ws.rs.Path;
@@ -118,8 +119,19 @@ public class MultiTenantInsightBrainService
    */
   private final AdminResourceBundle adminResourceBundle = new AdminResourceBundle(ADMIN_BASE_PATH);
 
+  private static void assertRunningAsGlobalTenant() {
+    if (!new TenantUtil().isGlobalTenant()) {
+      System.err.println(
+          "Fatal error: Expecting to run as GLOBAL tenant, but found tenant: " + TenantThreadLocal.getTenant());
+      System.exit(10);
+    }
+  }
+
   public static void main(final String[] args) {
+    // WARNING: No code that uses tenancy should be added before this line. Even if it doesn't touch tenancy, it's still
+    // better to avoid adding code before this line.
     TenantThreadLocal.setDefaultTenantToGlobal();
+    assertRunningAsGlobalTenant();
 
     datadog.trace.api.GlobalTracer.get().addTraceInterceptor(new DatadogInterceptor());
 

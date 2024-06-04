@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.UUID;
+
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.validation.Validator;
@@ -61,6 +62,8 @@ import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.shutdown.ActiveRequestCounterFilter;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.utils.DefaultExecutorThreadPools;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.brain.validation.DefaultSourceControlSshValidator;
@@ -139,7 +142,17 @@ public class InsightBrainService
   // DatabaseContainer for the main 'ServerCommand' application (NOT for other commands like DbMigrationCommand)
   protected DatabaseContainer databaseContainer;
 
+  private static void assertRunningAsSingleTenant() {
+    if (!new TenantUtil().isSingleTenant()) {
+      System.err.println(
+          "Fatal error: Expecting to run as SINGLE tenant, but found tenant: " + TenantThreadLocal.getTenant());
+      System.exit(10);
+    }
+  }
+
   public static void main(final String[] args) {
+    assertRunningAsSingleTenant();
+
     try {
       InsightBrainService insightBrainService = new InsightBrainService();
 

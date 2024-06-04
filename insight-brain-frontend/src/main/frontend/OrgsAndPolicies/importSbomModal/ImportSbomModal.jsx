@@ -15,7 +15,7 @@ import {
   NxStatefulForm,
   NxTextInput,
 } from '@sonatype/react-shared-components';
-import { equals, cond, always } from 'ramda';
+import { always, cond, equals } from 'ramda';
 import classNames from 'classnames';
 
 import { actions } from './importSbomModalSlice';
@@ -105,6 +105,7 @@ export default function ImportSbomModal() {
         submitMaskState={submitMaskState}
         submitMaskMessage={submitMaskMessage}
         submitError={submitError}
+        submitErrorTitleMessage={'An error occurred while importing the SBOM file.'}
         validationErrors={undefined}
       >
         <NxModal.Header>

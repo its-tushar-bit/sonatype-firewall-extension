@@ -9,7 +9,7 @@ import { nxFileUploadStateHelpers } from '@sonatype/react-shared-components';
 import ImportSbomModal from 'MainRoot/OrgsAndPolicies/importSbomModal/ImportSbomModal';
 import { getCommitImportedSbomUrl, getImportSbomUrl } from 'MainRoot/util/CLMLocation';
 
-import { render, screen, axiosMockAdapter, fireEvent, waitFor } from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, fireEvent, render, screen, waitFor } from 'TestRoot/SpecUtil';
 
 const { initialState: rscInitialFileUploadState } = nxFileUploadStateHelpers;
 
@@ -217,7 +217,27 @@ describe('ImportSbomModal', () => {
       expect(await screen.findByRole('alert')).toBeVisible();
       expect(await screen.findByRole('button', { name: 'Retry' })).toBeVisible();
 
-      expect(await screen.findByText('An error occurred saving data. Error Message')).toBeVisible();
+      expect(await screen.findByText('An error occurred while importing the SBOM file. Error Message')).toBeVisible();
+
+      const submitButton = await screen.findByRole('button', { name: 'Finish Import' });
+      expect(submitButton).toHaveClass('disabled');
+    });
+
+    it('shows error alert when max sboms limit reached', async () => {
+      axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply(402, {});
+      renderComponent();
+      const fileUpload = await screen.findByTestId('import-sbom-modal-file-upload');
+      setFileUploadValue(fileUpload, file);
+      expect(screen.getByText('testFile.json')).toBeInTheDocument();
+
+      expect(await screen.findByRole('alert')).toBeVisible();
+      expect(await screen.findByRole('button', { name: 'Retry' })).toBeVisible();
+
+      expect(
+        await screen.findByText(
+          'An error occurred while importing the SBOM file. You have reached the maximum limit of SBOM imports allowed. Please delete existing SBOMs or contact support to increase your limit.'
+        )
+      ).toBeVisible();
 
       const submitButton = await screen.findByRole('button', { name: 'Finish Import' });
       expect(submitButton).toHaveClass('disabled');
@@ -261,9 +281,25 @@ describe('ImportSbomModal', () => {
 
       fireEvent.click(await screen.findByRole('button', { name: 'Finish Import' }));
 
+      const alert = await screen.findByRole('alert');
+      expect(alert).toBeVisible();
+      expect(alert.textContent).toContain('An error occurred while importing the SBOM file.');
+      expect(await screen.findByRole('button', { name: 'Retry' })).toBeVisible();
+    });
+
+    it('shows error alert when max sboms limit reached', async () => {
+      axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', 'requestIdTest')).reply(402, '');
+      renderComponent();
+
+      fireEvent.click(await screen.findByRole('button', { name: 'Finish Import' }));
+
       expect(await screen.findByRole('alert')).toBeVisible();
       expect(await screen.findByRole('button', { name: 'Retry' })).toBeVisible();
-      expect(await screen.findByText('An error occurred saving data. Test error')).toBeVisible();
+      expect(
+        await screen.findByText(
+          'An error occurred while importing the SBOM file. You have reached the maximum limit of SBOM imports allowed. Please delete existing SBOMs or contact support to increase your limit.'
+        )
+      ).toBeVisible();
     });
   });
 });

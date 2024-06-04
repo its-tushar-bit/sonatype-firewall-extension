@@ -10,7 +10,7 @@ import { always } from 'ramda';
 
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { getImportSbomUrl, getCommitImportedSbomUrl } from 'MainRoot/util/CLMLocation';
+import { getCommitImportedSbomUrl, getImportSbomUrl } from 'MainRoot/util/CLMLocation';
 
 import { selectImportSbomModalSlice } from './importSbomModalSelectors';
 import { selectSelectedOwnerId } from '../orgsAndPoliciesSelectors';
@@ -110,7 +110,8 @@ const uploadFileFulfilled = (state, { payload }) => {
 const uploadFileFailed = (state, { payload }) => {
   if (state.uploadState !== null) {
     state.uploadState = -1;
-    state.submitError = payload instanceof Error ? payload.message : Messages.getHttpErrorMessage(payload);
+
+    handleError(state, payload);
   }
 };
 
@@ -140,8 +141,20 @@ const submitImportFulfilled = (state) => {
 
 const submitImportFailed = (state, { payload }) => {
   state.submitMaskState = null;
-  state.submitError = Messages.getHttpErrorMessage(payload);
+
+  handleError(state, payload);
 };
+
+function handleError(state, payload) {
+  if (payload.response && payload.response.status === 402) {
+    state.submitError =
+      'You have reached the maximum limit of SBOM imports allowed. Please delete existing SBOMs or contact support to increase your limit.';
+  } else if (payload instanceof Error) {
+    state.submitError = payload.message;
+  } else {
+    state.submitError = Messages.getHttpErrorMessage(payload);
+  }
+}
 
 function startSubmitMaskSuccessTimer(callback) {
   setTimeout(callback, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);

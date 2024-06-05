@@ -9,12 +9,12 @@ import { update } from 'ramda';
 import { axiosMockAdapter, fireEvent, render, screen, waitFor, within } from 'TestRoot/SpecUtil';
 
 import { getBillOfMaterialsComponentsUrl } from 'MainRoot/util/CLMLocation';
-import BillOfMaterialsComponentsTile from 'MainRoot/sbomManager/features/billOfMaterialsComponentsTile/BillOfMaterialsComponentsTile';
+import BillOfMaterialsComponentsTile from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/BillOfMaterialsComponentsTile';
 import {
   COMPONENTS_PER_PAGE,
   SORT_BY_FIELDS,
   SORT_DIRECTION,
-} from 'MainRoot/sbomManager/features/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
+} from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
 
 import {
   cleanUpComponentsFilterDrawerPortalContainer,

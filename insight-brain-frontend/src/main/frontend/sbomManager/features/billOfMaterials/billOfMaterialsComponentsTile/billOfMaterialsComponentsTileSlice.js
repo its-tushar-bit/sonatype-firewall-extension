@@ -70,7 +70,7 @@ const filterDrawerInitialState = Object.freeze({
   },
 });
 
-const paginationInitialState = Object.freeze({
+export const paginationInitialState = Object.freeze({
   pageCount: 1,
   currentPage: 0,
 });

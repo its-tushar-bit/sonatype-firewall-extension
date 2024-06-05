@@ -20,7 +20,7 @@ import { toLower } from 'ramda';
 import LoadWrapper from 'MainRoot/react/LoadWrapper';
 import SbomVersionDropdown from 'MainRoot/sbomManager/features/sbomVersionDropdown/SbomVersionDropdown';
 import SummaryTile from 'MainRoot/sbomManager/features/billOfMaterials/summaryTile/SummaryTile';
-import BillOfMaterialsComponentsTile from 'MainRoot/sbomManager/features/billOfMaterialsComponentsTile/BillOfMaterialsComponentsTile';
+import BillOfMaterialsComponentsTile from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/BillOfMaterialsComponentsTile';
 import ExportAugmentedSbomModal from './exportAugmentedSbomModal/ExportAugmentedSbomModal';
 
 import { getDownloadSbomFileUrl } from 'MainRoot/util/CLMLocation';

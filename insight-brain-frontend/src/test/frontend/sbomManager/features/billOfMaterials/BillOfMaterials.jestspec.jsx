@@ -21,11 +21,11 @@ import {
   initialState as billOfMaterialsComponentsTileInitialState,
   COMPONENTS_PER_PAGE,
   SORT_BY_FIELDS,
-} from 'MainRoot/sbomManager/features/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
+} from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
 import {
   cleanUpComponentsFilterDrawerPortalContainer,
   setupComponentsFilterDrawerPortalContainer,
-} from '../billOfMaterialsComponentsTile/componentsFilterDrawer/ComponentsFilterDrawer.jestspec';
+} from './billOfMaterialsComponentsTile/componentsFilterDrawer/ComponentsFilterDrawer.jestspec';
 
 describe('BillOfMaterials Page', () => {
   let axiosMock, renderPage;

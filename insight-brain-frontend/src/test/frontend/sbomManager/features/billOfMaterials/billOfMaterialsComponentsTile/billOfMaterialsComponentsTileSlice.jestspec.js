@@ -6,7 +6,7 @@
 import reducer, {
   SORT_BY_FIELDS,
   SORT_DIRECTION,
-} from 'MainRoot/sbomManager/features/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
+} from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
 
 const componentTemplate = ({ hash, name, dependencyType }) =>
   Object.freeze({

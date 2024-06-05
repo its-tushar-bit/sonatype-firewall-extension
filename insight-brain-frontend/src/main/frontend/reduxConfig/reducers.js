@@ -96,7 +96,7 @@ import integrationsSlice from 'MainRoot/development/developmentDashboard/slices/
 import enterpriseReportingDashboardSlice from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 import enterpriseReportingLandingPageSlice from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSlice';
 import sastReportSlice from 'MainRoot/sastScan/sastScanSlice';
-import billOfMaterialsComponentsTileSlice from 'MainRoot/sbomManager/features/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
+import billOfMaterialsComponentsTileSlice from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
 import billsOfMaterialsPageSlice from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
 import sbomComponenDetailsSlice from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
 import prioritiesPageSlice from 'MainRoot/development/prioritiesPage/slices/prioritiesPageSlice';

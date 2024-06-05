@@ -11,7 +11,7 @@ import { axiosMockAdapter, fireEvent, render, screen, waitFor } from 'TestRoot/S
 import { getBillOfMaterialsComponentsUrl } from 'MainRoot/util/CLMLocation';
 import ComponentsFilterDrawer, {
   COMPONENTS_FILTER_DRAWER_PORTAL_TARGET_CLASSNAME,
-} from 'MainRoot/sbomManager/features/billOfMaterialsComponentsTile/componentsFilterDrawer/ComponentsFilterDrawer';
+} from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/componentsFilterDrawer/ComponentsFilterDrawer';
 
 import {
   COMPONENTS_PER_PAGE,
@@ -19,7 +19,7 @@ import {
   defaultSortConfiguration,
   defaultFilterConfiguration,
   paginationInitialState,
-} from 'MainRoot/sbomManager/features/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
+} from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
 
 export const cleanUpComponentsFilterDrawerPortalContainer = () => {
   const existingContainer = document.querySelector(`.${COMPONENTS_FILTER_DRAWER_PORTAL_TARGET_CLASSNAME}`);

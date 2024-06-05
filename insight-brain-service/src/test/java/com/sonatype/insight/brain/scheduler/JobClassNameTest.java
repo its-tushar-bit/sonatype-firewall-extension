@@ -110,6 +110,9 @@ public class JobClassNameTest
     insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService",
         "UpdateEnterpriseDashboardLocalCache");
+    insightJobClassNameToExpectedJobName.put(
+        "com.sonatype.insight.brain.sbom.PendingSbomMetadataCleaner",
+        "PendingSbomMetadataCleanerJob");
   }
 
   @Inject

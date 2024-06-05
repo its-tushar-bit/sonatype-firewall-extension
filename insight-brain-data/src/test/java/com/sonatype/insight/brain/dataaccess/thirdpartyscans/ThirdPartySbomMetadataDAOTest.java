@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -247,7 +248,7 @@ public class ThirdPartySbomMetadataDAOTest
     assertThat(actual.getStatus()).isEqualTo(expected.getStatus());
     assertThat(actual.getMetadataJson()).isEqualTo(expected.getMetadataJson());
   }
-  
+
   ThirdPartySbomMetadata createSbomMetadata(boolean save, String status) {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -386,5 +387,72 @@ public class ThirdPartySbomMetadataDAOTest
     assertThat(result.applicationsUpdatedLastMonth).isZero();
     assertThat(result.applicationsUpdatedLastWeek).isZero();
     assertThat(result.applicationsUpdatedLastYear).isZero();
+  }
+
+  @Test
+  public void testGetPendingSbomsOlderThanDuration_pendingSboms() {
+    Date now = new Date();
+    Date twoDaysAgo = DateUtils.addDays(now, -2);
+    Date twentyFourHoursAgo = DateUtils.addDays(now, -1);
+    Date twoMonthsAgo = DateUtils.addMonths(now, -2);
+    Date threeHoursAgo = DateUtils.addHours(now, -3);
+
+    ThirdPartySbomMetadata twoDaysAgoPendingMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withStatus("PENDING")
+        .withCreatedAt(twoDaysAgo).build();
+    assertThat(twoDaysAgoPendingMetadata.getId()).isNotNull();
+
+    ThirdPartySbomMetadata twentyFourHoursAgoPendingMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withStatus("PENDING")
+        .withCreatedAt(twentyFourHoursAgo).build();
+    assertThat(twentyFourHoursAgoPendingMetadata.getId()).isNotNull();
+
+    ThirdPartySbomMetadata twoMonthsAgoActiveMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withStatus("ACTIVE")
+        .withCreatedAt(twoMonthsAgo).build();
+    assertThat(twoMonthsAgoActiveMetadata.getId()).isNotNull();
+
+    ThirdPartySbomMetadata threeHoursAgoPendingMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withStatus("PENDING")
+        .withCreatedAt(threeHoursAgo).build();
+    assertThat(threeHoursAgoPendingMetadata.getId()).isNotNull();
+
+    assertThat(dao.getAll()).isNotNull()
+        .hasSize(4);
+
+    List<ThirdPartySbomMetadata> sbomMetadataList = dao.getPendingSbomsOlderThanDuration(Duration.ofHours(24));
+
+    assertThat(sbomMetadataList).hasSize(2);
+    assertThat(sbomMetadataList).extracting(ThirdPartySbomMetadata::getId)
+        .containsExactlyInAnyOrder(twoDaysAgoPendingMetadata.getId(), twentyFourHoursAgoPendingMetadata.getId());
+  }
+
+  @Test
+  public void testGetPendingSbomsOlderThanDuration_noPendingSboms() {
+    Date now = new Date();
+    Date twoDaysAgo = DateUtils.addDays(now, -2);
+    Date twoMonthsAgo = DateUtils.addMonths(now, -2);
+    Date threeHoursAgo = DateUtils.addHours(now, -3);
+    ThirdPartySbomMetadata twoDaysAgoActiveMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withStatus("ACTIVE")
+        .withCreatedAt(twoDaysAgo).build();
+    assertThat(twoDaysAgoActiveMetadata.getId()).isNotNull();
+
+    ThirdPartySbomMetadata twoMonthsAgoActiveMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withStatus("ACTIVE")
+        .withCreatedAt(twoMonthsAgo).build();
+    assertThat(twoMonthsAgoActiveMetadata.getId()).isNotNull();
+
+    ThirdPartySbomMetadata threeHoursAgoActiveMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withStatus("ACTIVE")
+        .withCreatedAt(threeHoursAgo).build();
+    assertThat(threeHoursAgoActiveMetadata.getId()).isNotNull();
+
+    assertThat(dao.getAll()).isNotNull()
+        .hasSize(3);
+
+    List<ThirdPartySbomMetadata> sbomMetadataList = dao.getPendingSbomsOlderThanDuration(Duration.ofHours(24));
+
+    assertThat(sbomMetadataList).hasSize(0);
   }
 }

@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.product.license.FirewallReleaseIntegrityLicens
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.report.ReportPurger;
 import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
+import com.sonatype.insight.brain.sbom.PendingSbomMetadataCleaner;
 import com.sonatype.insight.brain.scan.PersistedScanTicketCleaner;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.index.IndexService;
@@ -335,6 +336,7 @@ public class DefaultTestInsightBrainService
     getInstance(FirewallMetricsComponentQuarantinedConsolidatorCronJob.class).disableForTesting = true;
     getInstance(DeleteOldFirewallMetricsForSafeComponentsAutoSelectedCronJob.class).disableForTesting = true;
     getInstance(SourceControlLoadBalancer.class).disableForTesting = true;
+    getInstance(PendingSbomMetadataCleaner.class).disableForTesting = true;
   }
 
   @Override

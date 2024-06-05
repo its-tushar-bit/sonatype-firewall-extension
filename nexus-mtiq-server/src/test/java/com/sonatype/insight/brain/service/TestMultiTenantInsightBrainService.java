@@ -18,6 +18,7 @@ import javax.servlet.ServletResponse;
 import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkProvider;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.sbom.PendingSbomMetadataCleaner;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.git.DefaultBranchMonitor;
@@ -335,6 +336,7 @@ public class TestMultiTenantInsightBrainService
     getInstance(AutomaticQuarantineReleaseScheduler.class).disableForTesting = true;
     getInstance(ApplicationCountHistoryKeeper.class).disableForTesting = true;
     getInstance(SourceControlLoadBalancer.class).disableForTesting = true;
+    getInstance(PendingSbomMetadataCleaner.class).disableForTesting = true;
   }
 
   @Override

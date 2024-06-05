@@ -5,9 +5,12 @@
  */
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
+import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -113,6 +116,13 @@ public class ThirdPartySbomMetadataDAO
     return getSingle(Long.class, sQuery, ACTIVE_STATUS);
   }
 
+  public List<ThirdPartySbomMetadata> getPendingSbomsOlderThanDuration(Duration pendingTimeLimit) {
+    Date limitDate = Timestamp.valueOf(LocalDateTime.now().minus(pendingTimeLimit));
+    String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity " //
+        + "WHERE entity.status='PENDING' AND entity.createdAt <= ?1";
+    return getList(sQuery, limitDate);
+  }
+
   /**
    * This allows service-layer code to create a SearchIndexChanges for insert or update at the appropriate times. It
    * also implements the search index change for deletions.
@@ -124,8 +134,8 @@ public class ThirdPartySbomMetadataDAO
   }
 
   /**
-   * Search indexing for these records should not occur automatically, as child records need to be in place
-   * before the indexing is done, and those records are outside the scope of this DAO
+   * Search indexing for these records should not occur automatically, as child records need to be in place before the
+   * indexing is done, and those records are outside the scope of this DAO
    */
   @Override
   protected SearchIndexChange newSearchIndexChangeForInsert(ThirdPartySbomMetadata sbomMetadata) {

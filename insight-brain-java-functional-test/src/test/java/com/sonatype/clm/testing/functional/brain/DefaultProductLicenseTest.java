@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Date;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -74,6 +75,7 @@ public class DefaultProductLicenseTest
     ProductLicensePage.contactEmail().shouldBe(visible).shouldHave(text("billy@example.com"));
     ProductLicensePage.licensedDevelopers().shouldBe(visible);
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
+    ProductLicensePage.licensedSboms().shouldNotBe(visible);
 
     ProductLicensePage.licensedDevelopersRows()
         .shouldHave(texts("Lifecycle — 50", "Lifecycle Cloud — 50", "Firewall — 45"));
@@ -93,6 +95,7 @@ public class DefaultProductLicenseTest
 
     ProductLicensePage.licensedDevelopers().shouldNotBe(visible);
     ProductLicensePage.licensedApplications().shouldBe(visible).shouldHave(text("100 (0 in use)"));
+    ProductLicensePage.licensedSboms().shouldNotBe(visible);
     ProductLicensePage.products().shouldHave(texts("Sonatype Auditor"));
 
     SidebarNavigation.openNavigationSidebar();
@@ -108,6 +111,7 @@ public class DefaultProductLicenseTest
 
     ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("45"));
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
+    ProductLicensePage.licensedSboms().shouldNotBe(visible);
     ProductLicensePage.products().shouldHave(texts("Sonatype Repository Firewall"));
 
     SidebarNavigation.openNavigationSidebar();
@@ -124,6 +128,7 @@ public class DefaultProductLicenseTest
 
     ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("50"));
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
+    ProductLicensePage.licensedSboms().shouldNotBe(visible);
     ProductLicensePage.products().shouldHave(texts("Sonatype Lifecycle"));
 
     SidebarNavigation.openNavigationSidebar();
@@ -140,6 +145,7 @@ public class DefaultProductLicenseTest
 
     ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("50"));
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
+    ProductLicensePage.licensedSboms().shouldNotBe(visible);
     ProductLicensePage.products().shouldHave(texts("Sonatype Lifecycle Cloud"));
 
     SidebarNavigation.openNavigationSidebar();
@@ -155,10 +161,56 @@ public class DefaultProductLicenseTest
 
     ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("50"));
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
+    ProductLicensePage.licensedSboms().shouldNotBe(visible);
     ProductLicensePage.products().shouldHave(texts("Sonatype Lifecycle Foundation"));
 
     SidebarNavigation.openNavigationSidebar();
     SidebarNavigation.productLogo().shouldHave(attribute("alt", "Lifecycle Foundation"));
+  }
+
+  @Test
+  public void testLicenseInformation_SbomManagerSaas() {
+    productLicenseManager.setMaxSboms(99);
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+
+    refreshOrOpen(ProductLicensePage.url());
+
+    ProductLicensePage.licensedDevelopers().shouldNotBe(visible);
+    ProductLicensePage.licensedApplications().shouldNotBe(visible);
+    ProductLicensePage.licensedSboms().shouldBe(visible).shouldHave(text("99"));
+    ProductLicensePage.products().shouldHave(texts("Sonatype Sbom Manager"));
+
+    SidebarNavigation.openNavigationSidebar();
+    SidebarNavigation.productLogo().shouldHave(attribute("alt", "sonatype sbom manager"));
+    eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testLicenseInformation_MultiModelLicense() {
+    String licensingModelsString = String.join(",", Arrays.asList(
+        ProductLicenseDetails.LICENSING_SBOM_BASED,
+        ProductLicenseDetails.LICENSING_APP_BASED,
+        ProductLicenseDetails.LICENSING_USER_BASED
+    ));
+    productLicenseManager.setProperty(ProductLicenseDetails.PROPERTY_LICENSING_MODEL, licensingModelsString);
+    productLicenseManager.setApplicationLimit(100);
+    productLicenseManager.setMaxUsers(8765);
+    productLicenseManager.setMaxFirewallUsers(4321);
+    productLicenseManager.setMaxSboms(50);
+    productLicenseManager.setMaxSboms(99);
+    installLicense();
+    refreshOrOpen(ProductLicensePage.url());
+
+    ProductLicensePage.licensedDevelopersRows()
+        .shouldHave(texts("Lifecycle — 8765", "Lifecycle Cloud — 8765", "Firewall — 4321"));
+    ProductLicensePage.licensedApplications().shouldBe(visible).shouldHave(text("100"));
+    ProductLicensePage.licensedSboms().shouldBe(visible).shouldHave(text("99"));
+    ProductLicensePage.products().shouldHave(texts("Sonatype Lifecycle Cloud", "Sonatype Lifecycle",
+        "Sonatype Repository Firewall"));
+
+    SidebarNavigation.openNavigationSidebar();
+    SidebarNavigation.productLogo().shouldHave(attribute("alt", "Lifecycle"));
+    eyesWatcher.eyesCheck();
   }
 
   @Test
@@ -170,6 +222,7 @@ public class DefaultProductLicenseTest
 
     ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("50"));
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
+    ProductLicensePage.licensedSboms().shouldNotBe(visible);
     ProductLicensePage.products().shouldHave(texts("Sonatype Nexus Pro+"));
   }
 

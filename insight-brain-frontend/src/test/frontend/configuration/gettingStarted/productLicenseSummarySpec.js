@@ -20,6 +20,8 @@ describe('productLicenseSummary', function () {
         licensedUsersToDisplay: null,
         applicationLimitToDisplay: null,
         applicationCountToDisplay: null,
+        sbomLimitToDisplay: null,
+        sbomCountToDisplay: null,
         firewallUsersToDisplay: null,
         contactName: 'Nick Cook',
         contactCompany: 'Sonatype Inc',
@@ -242,13 +244,11 @@ describe('productLicenseSummary', function () {
 
     describe('license application limit', function () {
       it('is showed with proper text', function () {
-        const appLimit = 404;
-        const appCount = 101;
         const newProps = {
           license: {
             ...initialProps.license,
-            applicationLimitToDisplay: appLimit,
-            applicationCountToDisplay: appCount,
+            applicationLimitToDisplay: 404,
+            applicationCountToDisplay: 101,
           },
         };
 
@@ -256,7 +256,25 @@ describe('productLicenseSummary', function () {
         const licenseLimit = shallowComponent.find('#license-application-limit');
 
         expect(licenseLimit).toExist();
-        expect(licenseLimit.text()).toEqual(`${appLimit} (${appCount} in use)`);
+        expect(licenseLimit.text()).toEqual(`404 (101 in use)`);
+      });
+    });
+
+    describe('license sbom limit', function () {
+      it('is showed with proper text', function () {
+        const newProps = {
+          license: {
+            ...initialProps.license,
+            sbomLimitToDisplay: 404,
+            sbomCountToDisplay: 101,
+          },
+        };
+
+        const shallowComponent = getShallow(newProps);
+        const licenseLimit = shallowComponent.find('#license-sbom-limit');
+
+        expect(licenseLimit).toExist();
+        expect(licenseLimit.text()).toEqual(`404 (101 in use)`);
       });
     });
   });

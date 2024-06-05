@@ -22,6 +22,7 @@ export default function ProductLicenseInfo({ license }) {
 
   const displayUserLimits = userLimits.length > 0;
   const displayApplicationLimit = license.applicationLimitToDisplay !== null;
+  const displaySbomLimit = license.sbomLimitToDisplay !== null;
 
   return (
     <div className="nx-grid-row">
@@ -84,6 +85,12 @@ export default function ProductLicenseInfo({ license }) {
               </Fragment>
             )}
           </div>
+          <div className="nx-read-only__item iq-product-license__fingerprint">
+            <dt className="nx-read-only__label">Fingerprint</dt>
+            <dd className="nx-read-only__data" id="license-fingerprint">
+              {license.fingerprint}
+            </dd>
+          </div>
           {displayApplicationLimit && (
             <div className="nx-read-only__item iq-product-license__licensed-applications">
               <dt className="nx-read-only__label">Licensed Applications</dt>
@@ -92,12 +99,15 @@ export default function ProductLicenseInfo({ license }) {
               </dd>
             </div>
           )}
-          <div className="nx-read-only__item iq-product-license__fingerprint">
-            <dt className="nx-read-only__label">Fingerprint</dt>
-            <dd className="nx-read-only__data" id="license-fingerprint">
-              {license.fingerprint}
-            </dd>
-          </div>
+          {displaySbomLimit && (
+            <div className="nx-read-only__item iq-product-license__licensed-sboms">
+              <dt className="nx-read-only__label">Licensed SBOMs</dt>
+              <dd className="nx-read-only__data" id="license-sbom-limit">
+                {license.sbomLimitToDisplay}{' '}
+                {license.sbomCountToDisplay ? `(${license.sbomCountToDisplay} in use)` : ''}
+              </dd>
+            </div>
+          )}
         </dl>
       </div>
     </div>
@@ -106,8 +116,8 @@ export default function ProductLicenseInfo({ license }) {
 
 ProductLicenseInfo.propTypes = {
   license: PropTypes.shape({
-    applicationCountToDisplay: PropTypes.object,
-    applicationLimitToDisplay: PropTypes.object,
+    applicationCountToDisplay: PropTypes.number,
+    applicationLimitToDisplay: PropTypes.number,
     contactCompany: PropTypes.string.isRequired,
     contactEmail: PropTypes.string.isRequired,
     contactName: PropTypes.string.isRequired,
@@ -118,5 +128,7 @@ ProductLicenseInfo.propTypes = {
     licensedUsersToDisplay: PropTypes.number.isRequired,
     productEdition: PropTypes.string.isRequired,
     products: PropTypes.array,
+    sbomCountToDisplay: PropTypes.number,
+    sbomLimitToDisplay: PropTypes.number,
   }),
 };

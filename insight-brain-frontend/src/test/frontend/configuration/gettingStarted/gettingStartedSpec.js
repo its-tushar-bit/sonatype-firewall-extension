@@ -65,6 +65,8 @@ describe('gettingStarted', function () {
           'Nexus Firewall for Artifactory',
           'Nexus Advanced Development Pack',
         ],
+        sbomCountToDisplay: null,
+        sbomLimitToDisplay: null,
       },
     };
 

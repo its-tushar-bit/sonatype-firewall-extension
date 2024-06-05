@@ -11,6 +11,7 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class GettingStartedPage
@@ -73,6 +74,10 @@ public class GettingStartedPage
 
     public ElementsCollection products() {
       return children("#license-products .nx-read-only__data");
+    }
+
+    public SelenideElement licensedSboms() {
+      return $("#license-sbom-limit");
     }
 
     public ElementsCollection licensedDevelopersRows() {

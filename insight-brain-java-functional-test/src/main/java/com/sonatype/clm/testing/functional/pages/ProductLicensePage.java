@@ -56,6 +56,10 @@ public class ProductLicensePage
     return $$("#license-licensed-developers > dd");
   }
 
+  public static SelenideElement licensedSboms() {
+    return $("#license-sbom-limit");
+  }
+
   public static SelenideElement installLicenseBtn() {
     return $("#install-license-btn");
   }

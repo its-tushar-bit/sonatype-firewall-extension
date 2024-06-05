@@ -81,6 +81,16 @@ export default function ProductLicenceSummary({ license, tenantMode }) {
               </>
             )}
 
+            {license.sbomLimitToDisplay !== null && (
+              <>
+                <dt className="nx-read-only__label">Licensed SBOMs</dt>
+                <dd className="nx-read-only__data" id="license-sbom-limit">
+                  {license.sbomLimitToDisplay}
+                  {license.sbomCountToDisplay ? ` (${license.sbomCountToDisplay} in use)` : ''}
+                </dd>
+              </>
+            )}
+
             {isSingleTenant && (
               <>
                 <dt className="nx-read-only__label">Fingerprint</dt>
@@ -111,6 +121,14 @@ export default function ProductLicenceSummary({ license, tenantMode }) {
 }
 
 ProductLicenceSummary.propTypes = {
-  license: PropTypes.object,
+  license: PropTypes.shape({
+    applicationCountToDisplay: PropTypes.number,
+    applicationLimitToDisplay: PropTypes.number,
+    expiryTimestamp: PropTypes.number.isRequired,
+    fingerprint: PropTypes.string.isRequired,
+    products: PropTypes.array,
+    sbomCountToDisplay: PropTypes.number,
+    sbomLimitToDisplay: PropTypes.number,
+  }),
   tenantMode: PropTypes.string,
 };

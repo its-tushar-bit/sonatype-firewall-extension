@@ -20,6 +20,8 @@ public class SupportZipLicenseInfo
 
   public Set<String> stageIds;
 
+  public Set<String> licensingModels;
+
   public Integer applicationCountLimit;
 
   public SupportZipLicenseInfo() {
@@ -29,11 +31,14 @@ public class SupportZipLicenseInfo
       LicenseInfo licenseInfo,
       Set<String> features,
       Set<String> stageIds,
-      Integer applicationCountLimit)
+      Set<String> licensingModels,
+      Integer applicationCountLimit
+  )
   {
     this.licenseInfo = licenseInfo;
     this.features = features;
     this.stageIds = stageIds;
+    this.licensingModels = licensingModels;
     this.applicationCountLimit = applicationCountLimit;
   }
 }

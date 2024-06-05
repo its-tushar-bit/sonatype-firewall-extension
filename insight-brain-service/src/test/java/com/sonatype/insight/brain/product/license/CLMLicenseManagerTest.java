@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Date;
@@ -101,8 +102,10 @@ public class CLMLicenseManagerTest
 
   @Before
   public void before() throws Exception {
-    Files.copy(getClass().getResourceAsStream("/productlicense/licensing-keystore-hds.p12"),
-        new File(tempDir.getRoot(), "hds.p12").toPath());
+    try (InputStream in = getClass().getResourceAsStream("/productlicense/licensing-keystore-hds.p12")) {
+      assert in != null;
+      Files.copy(in, new File(tempDir.getRoot(), "hds.p12").toPath());
+    }
     hdsMockServer.reset();
     setHdsUrl(hdsMockServer.getHttpUrl());
   }

@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.product.license.ProductLicensingModel;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -428,6 +429,7 @@ class SystemInfo
         new SupportZipLicenseInfo(clmLicenseManager.getLicenseInfo(),
             productLicense.getFeatures().stream().map(Feature::getId).collect(Collectors.toSet()),
             productLicense.getStageTypes().stream().map(StageType::getId).collect(Collectors.toSet()),
+            productLicense.getLicensingModels().stream().map(ProductLicensingModel::name).collect(Collectors.toSet()),
             productLicense.getMaxApplications());
     return JsonUtils.format(supportZipLicenseInfo);
   }

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.support;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -28,6 +30,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
@@ -36,26 +39,36 @@ import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.support.SystemInfo.NetworkInterfaceWrapper;
 import com.sonatype.insight.brain.support.SystemInfo.SamlInfo;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.insight.productlicense.ProductLicenseConfig;
+import org.sonatype.licensing.LicensingException;
 
 import ch.qos.logback.access.spi.IAccessEvent;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.inject.Binder;
 import io.dropwizard.logging.DefaultLoggingFactory;
 import io.dropwizard.logging.FileAppenderFactory;
 import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
 import io.dropwizard.server.DefaultServerFactory;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
@@ -70,15 +83,11 @@ import static org.mockito.Mockito.when;
 public class SystemInfoTest
     extends AbstractComponentTest
 {
-  private final String lineSeparator = System.lineSeparator();
+  @ClassRule
+  public static HdsMockServerRule hdsMockServer = new HdsMockServerRule();
 
-  private static final String SERVER_LOG_FILENAME = "myServerLogFilename";
-
-  private static final String REQUEST_LOG_FILENAME = "myRequestLogFilename";
-
-  private static final String AUDIT_LOG_FILENAME = "myAuditLogFilename";
-
-  private static final String POLICY_VIOLATION_LOG_FILENAME = "myPolicyViolationLogFilename";
+  @Inject
+  private CLMLicenseManager clmLicenseManager;
 
   @Inject
   private SamlConfigurationDAO samlConfigurationDAO;
@@ -97,6 +106,43 @@ public class SystemInfoTest
 
   @Inject
   private PasswordHandler passwordHandler;
+
+  @Inject
+  private TestProductLicenseManager licenseManager;
+
+  @Mock
+  private TaskScheduler taskSchedulerMock;
+
+  private final String lineSeparator = System.lineSeparator();
+
+  private static final String SERVER_LOG_FILENAME = "myServerLogFilename";
+
+  private static final String REQUEST_LOG_FILENAME = "myRequestLogFilename";
+
+  private static final String AUDIT_LOG_FILENAME = "myAuditLogFilename";
+
+  private static final String POLICY_VIOLATION_LOG_FILENAME = "myPolicyViolationLogFilename";
+
+  @Before
+  public void before() throws Exception {
+    try (InputStream in = getClass().getResourceAsStream("/productlicense/licensing-keystore-hds.p12")) {
+      assert in != null;
+      Files.copy(in, new File(tempDir.getRoot(), "hds.p12").toPath());
+    }
+
+    hdsMockServer.reset();
+    setHdsUrl(hdsMockServer.getHttpUrl());
+  }
+
+  @Override
+  public void configure(Binder binder) {
+    ProductLicenseConfig productLicenseConfig = new ProductLicenseConfig();
+    productLicenseConfig.setKeyStorePath(new File(tempDir.getRoot(), "hds.p12").getAbsolutePath());
+    productLicenseConfig.setKeyStoreAliasGroup("licensing-key-test");
+    binder.bind(ProductLicenseConfig.class).toInstance(productLicenseConfig);
+    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
+    super.configure(binder);
+  }
 
   @Inject
   @Override
@@ -511,6 +557,7 @@ public class SystemInfoTest
     assertThat(supportZipLicenseInfo.licenseInfo.fingerprint).isEqualTo("1234");
     assertThat(supportZipLicenseInfo.licenseInfo.licensedUsersToDisplay).isEqualTo(50);
     assertThat(supportZipLicenseInfo.licenseInfo.applicationLimitToDisplay).isNull();
+    assertThat(supportZipLicenseInfo.licenseInfo.sbomLimitToDisplay).isNull();
     assertThat(supportZipLicenseInfo.licenseInfo.firewallUsersToDisplay).isEqualTo(45);
     assertThat(supportZipLicenseInfo.licenseInfo.contactName).isEqualTo("Billy");
     assertThat(supportZipLicenseInfo.licenseInfo.contactCompany).isEqualTo("Acme");
@@ -526,6 +573,54 @@ public class SystemInfoTest
     assertThat(supportZipLicenseInfo.applicationCountLimit).isEqualTo(100);
     assertThat(supportZipLicenseInfo.stageIds).containsExactlyInAnyOrder("proxy", "operate", "build", "release",
         "develop", "source", "stage-release");
+    assertThat(supportZipLicenseInfo.licensingModels).containsExactlyInAnyOrder("LEGACY");
+  }
+
+  @Test
+  public void testGetProductLicense_multipleLicenseModels() throws IOException {
+
+    List<String> licensingModels = Arrays.asList(
+        ProductLicenseDetails.LICENSING_SBOM_BASED,
+        ProductLicenseDetails.LICENSING_APP_BASED,
+        ProductLicenseDetails.LICENSING_USER_BASED
+    );
+
+    String licensingModelsString = String.join(",", licensingModels);
+    licenseManager.setProperty(ProductLicenseDetails.PROPERTY_LICENSING_MODEL, licensingModelsString);
+    licenseManager.setApplicationLimit(100);
+    licenseManager.setMaxUsers(8765);
+    licenseManager.setMaxFirewallUsers(4321);
+    licenseManager.setMaxSboms(50);
+
+    installLicense();
+
+    final String json = systemInfo.getProductLicense();
+    ObjectMapper objectMapper = new ObjectMapper();
+    SupportZipLicenseInfo supportZipLicenseInfo = objectMapper.readValue(json, SupportZipLicenseInfo.class);
+
+    assertThat(supportZipLicenseInfo.licenseInfo.productEdition).isEqualTo("Lifecycle");
+    assertThat(supportZipLicenseInfo.licenseInfo.fingerprint).isEqualTo("1234");
+    assertThat(supportZipLicenseInfo.licenseInfo.licensedUsersToDisplay).isEqualTo(8765);
+    assertThat(supportZipLicenseInfo.licenseInfo.applicationLimitToDisplay).isEqualTo(100);
+    assertThat(supportZipLicenseInfo.licenseInfo.sbomLimitToDisplay).isEqualTo(50);
+    assertThat(supportZipLicenseInfo.licenseInfo.firewallUsersToDisplay).isEqualTo(4321);
+    assertThat(supportZipLicenseInfo.licenseInfo.contactName).isEqualTo("Billy");
+    assertThat(supportZipLicenseInfo.licenseInfo.contactCompany).isEqualTo("Acme");
+    assertThat(supportZipLicenseInfo.licenseInfo.contactEmail).isEqualTo("billy@example.com");
+    assertThat(supportZipLicenseInfo.licenseInfo.products).containsExactlyInAnyOrder("Sonatype Lifecycle",
+        "Sonatype Repository Firewall", "Sonatype Firewall for Artifactory", "Sonatype Lifecycle Cloud",
+        "Sonatype Lifecycle Firewall Cloud", "Sonatype Lifecycle SaaS", "Sonatype Lifecycle Firewall SaaS",
+        "Sonatype Lifecycle Foundation SaaS", "Sonatype Auditor SaaS");
+    assertThat(supportZipLicenseInfo.licenseInfo.expiryTimestamp).isPositive();
+
+    Collection<String> features = supportZipLicenseInfo.features;
+    assertThat(features).hasSizeGreaterThan(15).contains(LicensedFeature.CI_INTEGRATION.getId());
+    assertThat(supportZipLicenseInfo.applicationCountLimit).isEqualTo(100);
+    assertThat(supportZipLicenseInfo.stageIds).containsExactlyInAnyOrder("proxy", "operate", "build", "release",
+        "develop", "source", "stage-release");
+
+    assertThat(supportZipLicenseInfo.licensingModels).containsExactlyInAnyOrder("USER_BASED", "APP_BASED",
+        "SBOM_BASED");
   }
 
   @Test
@@ -744,5 +839,9 @@ public class SystemInfoTest
     assertThat(proxyServerConfiguration.getUsername()).isEqualTo("testUsername");
     assertThat(proxyServerConfiguration.getPassword()).isEqualTo(SystemInfo.MASK.toCharArray());
     assertThat(proxyServerConfiguration.getExcludeHosts()).isNull();
+  }
+
+  private void installLicense() throws IOException, LicensingException {
+    clmLicenseManager.installLicense(new ByteArrayInputStream(new byte[1]));
   }
 }

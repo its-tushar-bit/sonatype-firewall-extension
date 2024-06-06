@@ -188,8 +188,8 @@ void pushDockerImageIfDeployBranch() {
             sh "docker buildx build --platform=linux/amd64,linux/arm64 --build-arg " +
                 "SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg " +
                 "IQ_SERVER_VERSION=${iqVersion} " +
-                " --push "
-                " --tag ${latest} ." +
+                " --push " +
+                " --tag ${latest} " +
                 " --tag ${fullImage} ."
         }
     }

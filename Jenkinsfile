@@ -183,14 +183,14 @@ void pushDockerImageIfDeployBranch() {
 
     dir("nexus-iq-server") {
         withSonatypeDockerRegistry() {
-            sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg " +
-                "IQ_SERVER_VERSION=${iqVersion} --tag ${imageName}:${imageVersion} ."
             String latest = "${sonatypeDockerRegistryId()}/${imageName}:latest"
-            runSafely "docker tag ${imageName}:${imageVersion} ${fullImage}"
-            runSafely "docker push ${fullImage}"
-            // Also tag as latest
-            runSafely "docker tag ${imageName}:${imageVersion} ${latest}"
-            runSafely "docker push ${latest}"
+            sh "docker buildx create --use"
+            sh "docker buildx build --platform=linux/amd64,linux/arm64 --build-arg " +
+                "SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg " +
+                "IQ_SERVER_VERSION=${iqVersion} " +
+                " --push "
+                " --tag ${latest} ." +
+                " --tag ${fullImage} ."
         }
     }
 
@@ -252,21 +252,21 @@ void pushMTIQDockerImage() {
 
     dir("nexus-mtiq-server") {
       withSonatypeDockerRegistry() {
-        String imageName = 'mtiq/server'
-        String fullImage = "${sonatypeDockerRegistryId()}/${imageName}:${imageVersion}"
-
-        sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --tag " +
-            "${imageName}:${imageVersion} ."
-        runSafely "docker tag ${imageName}:${imageVersion} ${fullImage}"
-
         // Push for all `main` builds as well as any enabled branches by name or build parameter
         def pushMtiqImage = params.mtiqImagePushEnabled == null
-          ? (isMainBuild || projName.endsWith('_mtiq')) : params.mtiqImagePushEnabled
+            ? (isMainBuild || projName.endsWith('_mtiq')) : params.mtiqImagePushEnabled
         echo "pushMtiqImage: $pushMtiqImage"
-
+        def pushOption = ""
         if (pushMtiqImage) {
-          runSafely "docker push ${fullImage}"
+          pushOption = " --push "
         }
+
+        String fullImage = "${sonatypeDockerRegistryId()}/mtiq/server:${imageVersion}"
+        sh "docker buildx create --use"
+        sh "docker buildx build --platform=linux/amd64,linux/arm64 " +
+            " --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} " +
+            pushOption +
+            " --tag ${fullImage} ."
       }
     }
 

@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.dataaccess;
 import java.sql.Array;
 import java.sql.JDBCType;
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
 
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -33,5 +36,9 @@ public abstract class AbstractThirdPartyScansSqlDAO<T extends HasStringId>
 
   protected Array createArrayOf(JDBCType jdbcType, Object[] elements) throws SQLException {
     return thirdPartyScansDataStore.getDataSource().getConnection().createArrayOf(jdbcType.name(), elements);
+  }
+
+  protected <E> List<T> getListWithSqlInClause(List<E> inClauseValues, Function<Collection<E>, List<T>> getter) {
+    return super.getListWithSqlInClause(inClauseValues, getter, thirdPartyScansDataStore);
   }
 }

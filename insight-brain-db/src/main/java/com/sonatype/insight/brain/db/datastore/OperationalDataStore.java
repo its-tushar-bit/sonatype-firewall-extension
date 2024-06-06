@@ -44,9 +44,4 @@ public interface OperationalDataStore
    * Return the special {@link DataSource} that is used for the locking mechanism
    */
   DataSource getDataSourceForLocks();
-
-  /**
-   * Does this data store use an embedded database (i.e. H2)?
-   */
-  boolean isDatabaseEmbedded();
 }

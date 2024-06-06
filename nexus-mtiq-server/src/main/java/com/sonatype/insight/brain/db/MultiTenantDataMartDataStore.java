@@ -31,4 +31,10 @@ public class MultiTenantDataMartDataStore
     // The DataMart resides in the global schema in MTIQ
     return Tenant.GLOBAL_TENANT.databaseSchema;
   }
+
+  @Override
+  public boolean isDatabaseEmbedded() {
+    // multi-tenant is not compatible with H2
+    return false;
+  }
 }

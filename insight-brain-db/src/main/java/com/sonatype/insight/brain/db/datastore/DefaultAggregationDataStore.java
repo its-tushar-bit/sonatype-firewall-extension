@@ -30,6 +30,8 @@ public class DefaultAggregationDataStore
 
   private volatile boolean isInitialized = false;
 
+  private Boolean isDatabaseEmbedded;
+
   public DefaultAggregationDataStore(final DataSourceProvider dataSourceProvider, final DatabaseConfig databaseConfig) {
     super(dataSourceProvider, databaseConfig);
   }
@@ -45,6 +47,9 @@ public class DefaultAggregationDataStore
 
     dataSource = dataSourceProvider.getDataSource(databaseConfig, getID());
     isDataStoreNew = !DatabaseUtil.schemaExists(dataSource, getDatabaseSchema());
+
+    isDatabaseEmbedded = DatabaseUtil.isDatabaseEmbedded(databaseConfig);
+
     Map<String, Object> props = new LinkedHashMap<>();
     props.put("openjpa.ConnectionFactory", dataSource);
     entityManagerFactory = Persistence.createEntityManagerFactory("InsightBrainAggregation", props);
@@ -66,5 +71,10 @@ public class DefaultAggregationDataStore
   @Override
   public EntityManagerFactory getJPAEntityManagerFactory() {
     return entityManagerFactory;
+  }
+
+  @Override
+  public boolean isDatabaseEmbedded() {
+    return isDatabaseEmbedded;
   }
 }

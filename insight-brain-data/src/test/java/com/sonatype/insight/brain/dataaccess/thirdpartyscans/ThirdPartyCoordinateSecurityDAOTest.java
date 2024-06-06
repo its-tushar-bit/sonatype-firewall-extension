@@ -33,9 +33,12 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 
 import static com.sonatype.insight.brain.utils.SbomMetadataBuilder.newSbomMetadataBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 public class ThirdPartyCoordinateSecurityDAOTest
     extends AbstractDbDAOTest
@@ -114,6 +117,20 @@ public class ThirdPartyCoordinateSecurityDAOTest
     List<String> listId =
         coordinateSecurityList.stream().map(ThirdPartyCoordinateSecurity::getFileCoordinateId)
             .collect(Collectors.toList());
+    List<ThirdPartyCoordinateSecurity> results = dao.getByFileCoordinateIds(listId);
+
+    assertThat(results).usingElementComparator(THIRD_PARTY_COORDINATE_SECURITY_COMPARATOR)
+        .containsExactlyInAnyOrderElementsOf(coordinateSecurityList);
+  }
+
+  @Test
+  public void testGetByFileCoordinateIdList_Batched() {
+    List<ThirdPartyCoordinateSecurity> coordinateSecurityList = newThirdPartyCoordinateSecurityList();
+    List<String> listId =
+        coordinateSecurityList.stream().map(ThirdPartyCoordinateSecurity::getFileCoordinateId)
+            .collect(Collectors.toList());
+    dao = spy(dao);
+    doReturn(2).when(dao).getInOperatorThreshold(ArgumentMatchers.any());
     List<ThirdPartyCoordinateSecurity> results = dao.getByFileCoordinateIds(listId);
 
     assertThat(results).usingElementComparator(THIRD_PARTY_COORDINATE_SECURITY_COMPARATOR)

@@ -5,18 +5,31 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
+
 import com.sonatype.insight.brain.dataaccess.search.EmptySearchIndexManager;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.db.IdUtil;
+import com.sonatype.insight.brain.db.datastore.DataStore;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
 
+import com.google.common.collect.Lists;
+
+import static java.util.stream.Collectors.toList;
+
 public abstract class AbstractSqlDAO<T extends HasStringId>
     extends AbstractDAO<T>
 {
   private final SearchIndexManager searchIndexManager;
+
+  public static final int H2_IN_OPERATOR_THRESHOLD = 2000;
+
+  public static final int POSTGRES_IN_OPERATOR_THRESHOLD = Short.MAX_VALUE;
 
   /**
    * Constructor for DAOs that require the search index. These DAOs must override one of the methods:
@@ -87,5 +100,37 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
   protected SearchIndexChange newSearchIndexChange(T entity) {
     // by default, no contribution to the search index
     return null;
+  }
+
+  public boolean isDatabaseEmbedded(DataStore datastore) {
+    return datastore.isDatabaseEmbedded();
+  }
+
+  public int getInOperatorThreshold(DataStore dataStore) {
+    return isDatabaseEmbedded(dataStore) ? H2_IN_OPERATOR_THRESHOLD : POSTGRES_IN_OPERATOR_THRESHOLD;
+  }
+
+  /**
+   * This method should be used for queries that use an "IN" clause.
+   * H2 and Postgres limit the number of elements in "IN" clauses. This method breaks the list of values into
+   * partitions, runs the given query on each partition and merges the results from all partitions.
+   *
+   * @param <E> The type of the values in the list to be used in the "IN" clause.
+   * @param inClauseValues List of values to be used in the "IN" clause.
+   * @param getter Function to be used to query the values.
+   * @param dataStore A related set of data/tables
+   */
+  protected <E> List<T> getListWithSqlInClause(List<E> inClauseValues, Function<Collection<E>, List<T>> getter,
+                                               DataStore dataStore)
+  {
+    int inOperatorThreshold = getInOperatorThreshold(dataStore);
+    if (inClauseValues.size() >= inOperatorThreshold) {
+      List<List<E>> inClauseValuesPartitions = Lists.partition(inClauseValues, inOperatorThreshold);
+
+      return inClauseValuesPartitions.stream().map(getter).flatMap(Collection::stream).collect(toList());
+    }
+    else {
+      return getter.apply(inClauseValues);
+    }
   }
 }

@@ -114,4 +114,9 @@ public interface DataStore
    * Is this a brand new data store (i.e. never been populated nor migrated)
    */
   boolean isDataStoreNew();
+
+  /**
+   * Does this data store use an embedded database (i.e. H2)?
+   */
+  boolean isDatabaseEmbedded();
 }

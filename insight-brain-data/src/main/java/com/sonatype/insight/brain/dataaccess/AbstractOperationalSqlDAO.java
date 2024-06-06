@@ -20,20 +20,11 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.model.HasStringId;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-
-import static java.util.stream.Collectors.toList;
 
 public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     extends AbstractSqlDAO<T>
 {
-  //visible for testing
-  public static final int H2_IN_OPERATOR_THRESHOLD = 2000;
-
-  //visible for testing
-  public static final int POSTGRES_IN_OPERATOR_THRESHOLD = Short.MAX_VALUE;
-
   public static Map<String, TestEntityLeakDetectionData> testEntityLeaksDetectionData = new LinkedHashMap<>();
 
   private String entityName;
@@ -77,17 +68,9 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     return new TransactionContext(operationalDataStore.getJPAEntityManagerFactory().createEntityManager());
   }
 
-  public boolean isDatabaseEmbedded() {
-    return operationalDataStore.isDatabaseEmbedded();
-  }
-
   protected boolean isDatabasePostgresql() {
     return !operationalDataStore.isDatabaseInMemory() && org.postgresql.Driver.class.getName()
         .equals(operationalDataStore.getDatabaseConfig().getDriverClassName());
-  }
-
-  public int getInOperatorThreshold() {
-    return isDatabaseEmbedded() ? H2_IN_OPERATOR_THRESHOLD : POSTGRES_IN_OPERATOR_THRESHOLD;
   }
 
   @Override
@@ -186,25 +169,16 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     return getSingle(Long.class, sQuery);
   }
 
-  /**
-   * This method should be used for queries that use an "IN" clause.
-   * H2 and Postgres limit the number of elements in "IN" clauses. This method breaks the list of values into
-   * partitions, runs the given query on each partition and merges the results from all partitions.
-   * 
-   * @param <E> The type of the values in the list to be used in the "IN" clause.
-   * @param inClauseValues List of values to be used in the "IN" clause.
-   * @param getter Function to be used to query the values.
-   */
-  protected <E> List<T> getListWithSqlInClause(List<E> inClauseValues, Function<Collection<E>, List<T>> getter) {
-    int inOperatorThreshold = getInOperatorThreshold();
-    if (inClauseValues.size() >= inOperatorThreshold) {
-      List<List<E>> inClauseValuesPartitions = Lists.partition(inClauseValues, inOperatorThreshold);
+  public boolean isDatabaseEmbedded() {
+    return super.isDatabaseEmbedded(operationalDataStore);
+  }
 
-      return inClauseValuesPartitions.stream().map(getter).flatMap(Collection::stream).collect(toList());
-    }
-    else {
-      return getter.apply(inClauseValues);
-    }
+  public int getInOperatorThreshold() {
+    return super.getInOperatorThreshold(operationalDataStore);
+  }
+
+  protected <E> List<T> getListWithSqlInClause(List<E> inClauseValues, Function<Collection<E>, List<T>> getter) {
+    return super.getListWithSqlInClause(inClauseValues, getter, operationalDataStore);
   }
 
   public String getEntityName() {

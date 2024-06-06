@@ -312,6 +312,11 @@ public class LegacyDataStoreMigratorTest
     public boolean isDataStoreNew() {
       return false;
     }
+
+    @Override
+    public boolean isDatabaseEmbedded() {
+      return true;
+    }
   }
 
   static class PostIncrementalMigratorVersionMinus1

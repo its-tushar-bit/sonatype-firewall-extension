@@ -67,7 +67,8 @@ public class ThirdPartyCoordinateSecurityDAO
   public List<ThirdPartyCoordinateSecurity> getByFileCoordinateIds(List<String> fileCoordinateIdList) {
     String sQuery = "SELECT entity FROM ThirdPartyCoordinateSecurity entity" + //
         " WHERE entity.fileCoordinateId IN ?1";
-    return getList(sQuery, fileCoordinateIdList);
+    return getListWithSqlInClause(fileCoordinateIdList,
+        inClauseValuesPartition -> getList(sQuery, inClauseValuesPartition));
   }
 
   public List<ThirdPartyCoordinateSecurity> getByFileCoordinateId(TransactionContext tx, String coordinateFileId) {

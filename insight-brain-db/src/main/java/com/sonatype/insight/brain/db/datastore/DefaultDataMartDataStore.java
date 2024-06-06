@@ -27,6 +27,8 @@ public class DefaultDataMartDataStore
 
   private volatile boolean isInitialized = false;
 
+  private Boolean isDatabaseEmbedded;
+
   public DefaultDataMartDataStore(final DataSourceProvider dataSourceProvider, final DatabaseConfig databaseConfig) {
     super(dataSourceProvider, databaseConfig);
   }
@@ -42,6 +44,9 @@ public class DefaultDataMartDataStore
 
     dataSource = dataSourceProvider.getDataSource(databaseConfig, getID());
     isDataStoreNew = !DatabaseUtil.schemaExists(dataSource, getDatabaseSchema());
+
+    isDatabaseEmbedded = DatabaseUtil.isDatabaseEmbedded(databaseConfig);
+
     Map<String, Object> props = new LinkedHashMap<>();
     props.put("openjpa.ConnectionFactory", dataSource);
     entityManagerFactory = Persistence.createEntityManagerFactory("InsightBrainDM", props);
@@ -63,5 +68,10 @@ public class DefaultDataMartDataStore
   @Override
   public EntityManagerFactory getJPAEntityManagerFactory() {
     return entityManagerFactory;
+  }
+
+  @Override
+  public boolean isDatabaseEmbedded() {
+    return isDatabaseEmbedded;
   }
 }

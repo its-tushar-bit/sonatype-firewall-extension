@@ -22,8 +22,6 @@ import {
   selectIsLoading,
   selectJustificationsReferenceData,
   selectLoadError,
-  selectLoadingVulnerabilityAnalysisReferenceData,
-  selectLoadVulnerabilityAnalysisReferenceDataError,
   selectResponsesReferenceData,
   selectStatesReferenceData,
 } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSelector';
@@ -36,7 +34,8 @@ import ComponentDetailsSbomInfo from 'MainRoot/sbomManager/features/componentDet
 import VulnerabilitiesSummary from 'MainRoot/sbomManager/features/componentDetails/VulnerabilitiesSummary';
 import SbomVulnerabilityDetailsPopover from 'MainRoot/sbomManager/features/componentDetails/vulnerabilitiesDrawer/SbomVulnerabilityDetailsPopover';
 
-import VexAnnotationDrawerPopover from 'MainRoot/sbomManager/features/componentDetails/vexAnnotationsDrawer/VexAnnotationDrawerPopover';
+import VexAnnotationDrawer from 'MainRoot/sbomManager/features/componentDetails/vexAnnotationsDrawer/VexAnnotationDrawer';
+import { isNil } from 'ramda';
 
 export default function ComponentDetailsPage() {
   const dispatch = useDispatch();
@@ -50,8 +49,6 @@ export default function ComponentDetailsPage() {
   const justificationsOptions = useSelector(selectJustificationsReferenceData);
   const responsesOptions = useSelector(selectResponsesReferenceData);
   const analysisStatusesOptions = useSelector(selectStatesReferenceData);
-  const isVulnerabilityReferenceDataLoading = useSelector(selectLoadingVulnerabilityAnalysisReferenceData);
-  const errorLoadingAnalysisReferenceData = useSelector(selectLoadVulnerabilityAnalysisReferenceDataError);
 
   const uiRouterState = useRouterState();
   const { applicationPublicId, sbomVersion, componentHash } = routerParams;
@@ -125,85 +122,107 @@ export default function ComponentDetailsPage() {
     setIsPopoverOpen(false);
   };
 
+  const preSaveMaskActions = () => {
+    load();
+  };
+
+  const postSaveMaskActions = () => {
+    closeVexAnnotationModal();
+  };
+
+  const onLearnMoreClick = () => {
+    closeVexAnnotationModal();
+    openVulnerabilityDetailsModal({
+      issue: selectedVulnerability?.issue,
+    });
+  };
+
   return (
-    <NxPageMain id="sbom-manager-component-details">
-      <MenuBarBackButton text={`${applicationPublicId}:${sbomVersion}`} href={billOfMaterialsHref}></MenuBarBackButton>
-      <NxLoadWrapper
-        retryHandler={load}
-        loading={isProductFeaturesLoading || isLoading}
-        error={errorLoadingProductFeatures || noSbomManagerEnabledError || loadError}
-      >
-        {componentDetails && (
-          <div className="sbom-component-details">
-            <ComponentDetailsHeader>
-              <Title id="component-details-title">{componentDetails.displayName}</Title>
-              <ComponentDetailsSbomInfo {...componentDetails.metadata} />
-              <ComponentDetailsTags
-                dependencyType={componentDetails.dependencyType.toLowerCase()}
-                format={componentDetails.componentIdentifier?.format}
-                isInnerSource={componentDetails.isInnerSource}
-                labels={componentDetails.labels}
-              />
-              {componentDetails.packageUrl && (
-                <NxTag className="nx-tag sbom-nx-tag" color="sky">
-                  {componentDetails.packageUrl}
-                  {'  '}
-                  <NxFontAwesomeIcon
-                    className={'sbom-copy-icon'}
-                    icon={faCopy}
-                    onClick={() => copyToClipboard(componentDetails.packageUrl)}
-                  />
-                </NxTag>
+    <>
+      {!isNil(selectedVulnerability) && (
+        <VexAnnotationDrawer
+          isDrawerOpen={isVexAnnotationPopoverOpen}
+          {...selectedVulnerability}
+          onClose={closeVexAnnotationModal}
+          componentPurl={componentDetails?.packageUrl}
+          componentHash={componentDetails?.hash}
+          internalAppId={internalAppId}
+          sbomVersion={sbomVersion}
+          responsesOptions={responsesOptions}
+          analysisStatusesOptions={analysisStatusesOptions}
+          justificationsOptions={justificationsOptions}
+          loadVexReferenceData={loadVexReferenceData}
+          openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
+          preSaveMaskActions={preSaveMaskActions}
+          postSaveMaskActions={postSaveMaskActions}
+          onLearnMoreClick={onLearnMoreClick}
+        />
+      )}
+      <NxPageMain id="sbom-manager-component-details">
+        <MenuBarBackButton
+          text={`${applicationPublicId}:${sbomVersion}`}
+          href={billOfMaterialsHref}
+        ></MenuBarBackButton>
+        <NxLoadWrapper
+          retryHandler={load}
+          loading={isProductFeaturesLoading || isLoading}
+          error={errorLoadingProductFeatures || noSbomManagerEnabledError || loadError}
+        >
+          {componentDetails && (
+            <div className="sbom-component-details">
+              <ComponentDetailsHeader>
+                <Title id="component-details-title">{componentDetails.displayName}</Title>
+                <ComponentDetailsSbomInfo {...componentDetails.metadata} />
+                <ComponentDetailsTags
+                  dependencyType={componentDetails.dependencyType.toLowerCase()}
+                  format={componentDetails.componentIdentifier?.format}
+                  isInnerSource={componentDetails.isInnerSource}
+                  labels={componentDetails.labels}
+                />
+                {componentDetails.packageUrl && (
+                  <NxTag className="nx-tag sbom-nx-tag" color="sky">
+                    {componentDetails.packageUrl}
+                    {'  '}
+                    <NxFontAwesomeIcon
+                      className={'sbom-copy-icon'}
+                      icon={faCopy}
+                      onClick={() => copyToClipboard(componentDetails.packageUrl)}
+                    />
+                  </NxTag>
+                )}
+              </ComponentDetailsHeader>
+              {componentDetails.vulnerabilitySummary && (
+                <VulnerabilitiesSummary
+                  vulnerabilitySummary={componentDetails.vulnerabilitySummary}
+                ></VulnerabilitiesSummary>
               )}
-            </ComponentDetailsHeader>
-            {componentDetails.vulnerabilitySummary && (
-              <VulnerabilitiesSummary
-                vulnerabilitySummary={componentDetails.vulnerabilitySummary}
-              ></VulnerabilitiesSummary>
-            )}
-            <VulnerabilitiesTile
-              vulnerabilities={componentDetails?.disclosedVulnerabilities}
-              openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
-              openVexAnnotationModal={openVexAnnotationModal}
-              analysisStatusesOptions={analysisStatusesOptions}
-            ></VulnerabilitiesTile>
-            <VulnerabilitiesTile
-              vulnerabilities={componentDetails?.sonatypeIdentifiedVulnerabilities}
-              isDisclosedVulnerabilities={false}
-              openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
-              openVexAnnotationModal={openVexAnnotationModal}
-              analysisStatusesOptions={analysisStatusesOptions}
-            ></VulnerabilitiesTile>
-            <ComponentDetailsDependencyTreeTile
-              componentDetails={componentDetails}
-            ></ComponentDetailsDependencyTreeTile>
-          </div>
-        )}
-      </NxLoadWrapper>
-      <SbomVulnerabilityDetailsPopover
-        toggleVulnerabilityPopoverWithEffects={closeVulnerabilityDetailsModal}
-        showVulnerabilityDetailPopover={isPopoverOpen}
-        vulnerabilityRefId={selectedVulnerability.issue}
-        reloadFunction={() => loadSbomComponentVulnerabilities(selectedVulnerability)}
-        componentName={componentDetails?.packageUrl}
-      ></SbomVulnerabilityDetailsPopover>
-      <VexAnnotationDrawerPopover
-        showVexAnnotationFormPopover={isVexAnnotationPopoverOpen}
-        vulnerabilityRowObject={selectedVulnerability}
-        onClose={closeVexAnnotationModal}
-        componentPurl={componentDetails?.packageUrl}
-        componentHash={componentDetails?.hash}
-        internalAppId={internalAppId}
-        sbomVersion={sbomVersion}
-        responsesOptions={responsesOptions}
-        analysisStatusesOptions={analysisStatusesOptions}
-        justificationsOptions={justificationsOptions}
-        isVulnerabilityReferenceDataLoading={isVulnerabilityReferenceDataLoading}
-        loadVexReferenceData={loadVexReferenceData}
-        errorLoadingAnalysisReferenceData={errorLoadingAnalysisReferenceData}
-        reloadComponentDetails={load}
-        openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
-      ></VexAnnotationDrawerPopover>
-    </NxPageMain>
+              <VulnerabilitiesTile
+                vulnerabilities={componentDetails?.disclosedVulnerabilities}
+                openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
+                openVexAnnotationModal={openVexAnnotationModal}
+                analysisStatusesOptions={analysisStatusesOptions}
+              ></VulnerabilitiesTile>
+              <VulnerabilitiesTile
+                vulnerabilities={componentDetails?.sonatypeIdentifiedVulnerabilities}
+                isDisclosedVulnerabilities={false}
+                openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
+                openVexAnnotationModal={openVexAnnotationModal}
+                analysisStatusesOptions={analysisStatusesOptions}
+              ></VulnerabilitiesTile>
+              <ComponentDetailsDependencyTreeTile
+                componentDetails={componentDetails}
+              ></ComponentDetailsDependencyTreeTile>
+            </div>
+          )}
+        </NxLoadWrapper>
+        <SbomVulnerabilityDetailsPopover
+          toggleVulnerabilityPopoverWithEffects={closeVulnerabilityDetailsModal}
+          showVulnerabilityDetailPopover={isPopoverOpen}
+          vulnerabilityRefId={selectedVulnerability.issue}
+          reloadFunction={() => loadSbomComponentVulnerabilities(selectedVulnerability)}
+          componentName={componentDetails?.packageUrl}
+        ></SbomVulnerabilityDetailsPopover>
+      </NxPageMain>
+    </>
   );
 }

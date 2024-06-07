@@ -169,6 +169,9 @@ describe('ComponentDetailsPage', () => {
     additionalVulnerabilities: [],
   };
 
+  const getVexDrawerSubmitButton = (container) =>
+    container.querySelector('.vex-annotation-drawer__form__submit-button');
+
   beforeEach(() => {
     const preloadedState = {
       productFeatures: {
@@ -295,13 +298,11 @@ describe('ComponentDetailsPage', () => {
     expect(getByText(buttonFirstDataRow, 'Edit')).toBeInTheDocument();
     fireEvent.click(buttonFirstDataRow);
 
-    const vexAnnotationPopover = container.querySelector('aside');
-    expect(screen.queryByRole('complementary')).toBeInTheDocument();
-    expect(queryByText(vexAnnotationPopover, 'Annotate sonatype-2018-0863')).toBeInTheDocument();
+    expect(queryByText(container, 'Annotate sonatype-2018-0863')).toBeInTheDocument();
     expect(
-      queryByText(vexAnnotationPopover.querySelector('.vex-annotation-drawer__form__details'), 'Unreachable code')
+      queryByText(container.querySelector('.vex-annotation-drawer__form__details'), 'Unreachable code')
     ).toBeInTheDocument();
-    const closeButton = vexAnnotationPopover.querySelector('button');
+    const closeButton = container.querySelector('header .nx-icon--close');
     expect(closeButton).toBeInTheDocument();
     fireEvent.click(closeButton);
     expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
@@ -330,10 +331,8 @@ describe('ComponentDetailsPage', () => {
     expect(getByText(buttonFirstDataRow, 'Edit')).toBeInTheDocument();
     fireEvent.click(buttonFirstDataRow);
 
-    const vexAnnotationPopover = container.querySelector('aside');
-    expect(screen.queryByRole('complementary')).toBeInTheDocument();
-    expect(queryByText(vexAnnotationPopover, 'Annotate sonatype-2018-0863')).toBeInTheDocument();
-    const saveButton = screen.getByRole('button', { name: 'Update' });
+    expect(queryByText(container, 'Annotate sonatype-2018-0863')).toBeInTheDocument();
+    const saveButton = getVexDrawerSubmitButton(container);
     expect(saveButton).toBeInTheDocument();
     fireEvent.click(saveButton);
     await waitFor(() => expect(screen.getByText(/Success/)).toBeInTheDocument());
@@ -357,12 +356,10 @@ describe('ComponentDetailsPage', () => {
     expect(getByText(buttonFirstDataRow, 'Add')).toBeInTheDocument();
     fireEvent.click(buttonFirstDataRow);
 
-    const vexAnnotationPopover = container.querySelector('aside');
-    expect(screen.queryByRole('complementary')).toBeInTheDocument();
-    expect(queryByText(vexAnnotationPopover, 'Annotate sonatype-2018-0863')).toBeInTheDocument();
-    expect(queryByText(vexAnnotationPopover, /An error occurred loading data./)).toBeInTheDocument();
-    expect(queryByText(vexAnnotationPopover, /Please retry./)).toBeInTheDocument();
-    const retryButton = screen.getByRole('button', { name: 'Retry' });
+    expect(queryByText(container, 'Annotate sonatype-2018-0863')).toBeInTheDocument();
+    expect(queryByText(container, /An error occurred loading data./)).toBeInTheDocument();
+    expect(queryByText(container, /Please retry./)).toBeInTheDocument();
+    const retryButton = queryByText(container.querySelector('.nx-drawer-content'), 'Retry');
     expect(retryButton).toBeInTheDocument();
   });
 

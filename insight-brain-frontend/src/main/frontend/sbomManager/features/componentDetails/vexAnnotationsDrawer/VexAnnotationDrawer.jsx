@@ -9,12 +9,17 @@ import {
   allThreatLevelNumbers,
   combineValidationErrors,
   hasValidationErrors,
+  NxButton,
   NxDivider,
+  NxDrawer,
+  NxErrorAlert,
   NxFieldset,
   NxFontAwesomeIcon,
+  NxFooter,
+  NxForm,
   NxFormSelect,
   nxFormSelectStateHelpers,
-  NxStatefulForm,
+  NxLoadWrapper,
   NxTextInput,
   NxTextLink,
   NxThreatIndicator,
@@ -29,14 +34,19 @@ import { isNil } from 'ramda';
 import { actions } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  selectLoadingVulnerabilityAnalysisReferenceData,
   selectLoadSaveVexAnnotationFormError,
+  selectLoadVulnerabilityAnalysisReferenceDataError,
   selectSubmitMaskStateForVexAnnotationForm,
 } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSelector';
 import cx from 'classnames';
 import { formatDate } from 'MainRoot/util/dateUtils';
+import VexAnnotationDrawerHeader from 'MainRoot/sbomManager/features/componentDetails/vexAnnotationsDrawer/VexAnnotationDrawerHeader';
 
 export default function VexAnnotationDrawer(props) {
   const {
+    isDrawerOpen,
+
     issue,
     description,
     cvssScore,
@@ -53,18 +63,41 @@ export default function VexAnnotationDrawer(props) {
 
     isRowAnnotated,
 
-    // responsesOptions,
-    // analysisStatusesOptions,
-    // justificationsOptions,
-
     responsesOptions,
     analysisStatusesOptions,
     justificationsOptions,
 
     preSaveMaskActions,
     postSaveMaskActions,
-    onLearnMoreClick,
+
+    // popover header and parent file
+    loadVexReferenceData,
+    onClose,
+
+    componentPurl,
+
+    openVulnerabilityDetailsModal,
   } = props;
+
+  // This isVexAnnotationPopoverOpen validation is necessary here to force destruction and regeneration of the Drawer
+  // when is closed
+  if (!isDrawerOpen) {
+    return null;
+  }
+
+  const analysisStatusDropdownIsRequiredErrorMessage =
+    'Analysis status field is required. Please select a value from the dropdown list';
+
+  const isVulnerabilityReferenceDataLoading = useSelector(selectLoadingVulnerabilityAnalysisReferenceData);
+  const errorLoadingAnalysisReferenceData = useSelector(selectLoadVulnerabilityAnalysisReferenceDataError);
+
+  const isDropdownsReferenceDataReady =
+    !isNilOrEmpty(responsesOptions) && !isNilOrEmpty(justificationsOptions) && !isNilOrEmpty(analysisStatusesOptions);
+
+  const errorDropdownsContentEmpty = isDropdownsReferenceDataReady ? null : 'Please retry.';
+  const popOverContentError = !isNil(errorLoadingAnalysisReferenceData)
+    ? errorLoadingAnalysisReferenceData
+    : errorDropdownsContentEmpty;
 
   const DESCRIPTION_MAX_LENGTH = 150;
   const DROPDOWN_SELECT_OPTION = 'SELECT';
@@ -79,18 +112,21 @@ export default function VexAnnotationDrawer(props) {
   const textTruncate = (t) =>
     t.length > DESCRIPTION_MAX_LENGTH ? t.substring(0, DESCRIPTION_MAX_LENGTH) + ' ... ' : t;
 
+  const [showSaveFormError, setShowSaveFormError] = useState(false);
   const [showValidationErrors, setShowValidationErrors] = useState(false);
+  const [validationErrors, setValidationErrors] = useState([]);
   const [vexAnnotationDetailsControl, setVexAnnotationDetailsControl] = useState(
-    initialState(isRowAnnotated ? (isNil(details) ? '' : details) : '')
+    initialState(isRowAnnotated ? (isNilOrEmpty(details) ? '' : details) : '')
   );
 
-  const getDefaultStateForDropdown = (initialValue, options) =>
+  const getDefaultStateForDropdown = (initialValue, options, validator) =>
     nxFormSelectStateHelpers.useNxFormSelectState(
       isRowAnnotated
         ? isNil(initialValue)
           ? options[0]?.key
           : filterCommaSeparatedValues(initialValue)
-        : DROPDOWN_SELECT_OPTION
+        : DROPDOWN_SELECT_OPTION,
+      validator
     );
 
   const filterCommaSeparatedValues = (commaSeparatedValue) =>
@@ -108,17 +144,23 @@ export default function VexAnnotationDrawer(props) {
 
   const [responseControlState, setResponseControlState] = getDefaultStateForDropdown(response, responsesOptions);
 
-  // Define validator for controls here
+  // Define validators for controls here
+
+  // Validation conditions for form
   const isNoValueSelectedInDropdown = (dropdownState) =>
     isRowAnnotated
       ? isNilOrEmpty(dropdownState.value)
       : strIsSelectOption(dropdownState.value) || isNilOrEmpty(dropdownState.value);
 
-  const analysisStatusIsRequiredValidator = isNoValueSelectedInDropdown(analysisStatusControlState)
-    ? 'Analysis status field is required. Please select a value from the dropdown list'
-    : null;
-  // Then combine then
-  const validationErrors = combineValidationErrors(analysisStatusIsRequiredValidator);
+  // Validators
+  const analysisStatusIsRequiredValidator = (analysisStatusDropdownState) =>
+    isNoValueSelectedInDropdown(analysisStatusDropdownState) ? analysisStatusDropdownIsRequiredErrorMessage : null;
+
+  // Combine validators here if more than one
+  const validateForm = () => {
+    // All form validations to check here
+    return combineValidationErrors(analysisStatusIsRequiredValidator(analysisStatusControlState));
+  };
 
   const dispatch = useDispatch();
   const formIsSaving = useSelector(selectSubmitMaskStateForVexAnnotationForm);
@@ -151,24 +193,47 @@ export default function VexAnnotationDrawer(props) {
 
   const onChangeAnalysisStatus = (evt) => {
     setAnalysisStatusControlState(evt.currentTarget.value);
+
+    const dropdownError = analysisStatusIsRequiredValidator({
+      ...analysisStatusControlState,
+      value: evt.currentTarget.value,
+    });
+
+    if (!isNil(dropdownError)) {
+      setShowValidationErrors(true);
+      setValidationErrors(combineValidationErrors(dropdownError));
+    } else {
+      setShowValidationErrors(false);
+      setValidationErrors([]);
+    }
   };
 
   const onChangeResponse = (evt) => {
     setResponseControlState(evt.currentTarget.value);
   };
 
+  const onLearnMoreClick = () => {
+    onClose();
+    openVulnerabilityDetailsModal({
+      issue,
+    });
+  };
+
   //Save form handler
   const handleOnSubmit = () => {
     // Evaluate validators here before saving
-    // Turn on validation errors to be displayed
-    setShowValidationErrors(true);
+    const updatedValidationErrors = validateForm();
 
-    if (hasValidationErrors(validationErrors)) {
+    if (hasValidationErrors(updatedValidationErrors)) {
+      // Turn on validation errors to be displayed
+      setShowValidationErrors(true);
+      setValidationErrors(updatedValidationErrors);
       return;
     }
 
     // Turn off validation messages after everything passes.
     setShowValidationErrors(false);
+    setValidationErrors([]);
 
     // Validate if dropdown control values are invalid, if so, pick the
     // first one from their respective valid list to avoid errors
@@ -197,27 +262,43 @@ export default function VexAnnotationDrawer(props) {
       },
       vulnerabilityAnalysis: payloadVulnerabilityAnalysisData,
     };
+
     const savePayload = {
       internalAppId,
       sbomVersion,
       vulnerabilityRefId: issue,
       vexAnnotationFormData: saveRequestObject,
     };
-    dispatch(actions.saveVexAnnotation(savePayload)).then(() => {
-      //Execute actions after saving the form and before SUCCESS mask disappears
-      if (!isNil(preSaveMaskActions)) {
-        preSaveMaskActions();
-      }
 
-      //Clear success modal after some time
-      setTimeout(() => {
-        dispatch(actions.clearFormSubmitMask());
-        // Actions after the modal success disappears will execute here
-        if (!isNil(postSaveMaskActions)) {
-          postSaveMaskActions();
+    dispatch(actions.saveVexAnnotation(savePayload))
+      .then((result) => {
+        if (result.error) {
+          setShowSaveFormError(true);
+          return;
         }
-      }, 3000);
-    });
+
+        setShowSaveFormError(false);
+
+        //Execute actions after saving the form and before SUCCESS mask disappears
+        if (!isNil(preSaveMaskActions)) {
+          preSaveMaskActions();
+        }
+
+        //Clear success modal after some time
+        setTimeout(() => {
+          dispatch(actions.clearFormSubmitMask());
+
+          // Actions after the modal success disappears will execute here
+          if (!isNil(postSaveMaskActions)) {
+            postSaveMaskActions();
+          }
+        }, 3000);
+      })
+      .catch(() => {
+        dispatch(actions.clearFormSubmitMask());
+        dispatch(actions.setFormErrorSaveMessage('An error occurred when trying to save the form. Please retry'));
+        setShowSaveFormError(true);
+      });
   };
 
   const vulnerabilityScore = function () {
@@ -366,27 +447,81 @@ export default function VexAnnotationDrawer(props) {
   };
 
   return (
-    <>
-      {vulnerabilityInformationHeaderFragment()}
-      <NxDivider />
-      <NxStatefulForm
-        id="vex-annotation-drawer__form"
-        onSubmit={handleOnSubmit}
-        submitBtnText={isRowAnnotated === true ? 'Update' : 'Save'}
-        submitError={formError}
-        submitMaskState={formIsSaving}
-        submitMaskMessage="Saving..."
-        validationErrors={validationErrors}
-        showValidationErrors={showValidationErrors}
-      >
-        {vexAnnotationFormFragment()}
-        {updatedInfoFragment()}
-      </NxStatefulForm>
-    </>
+    <NxDrawer size="medium" id="vex-annotation-popover" onClose={onClose} open={isDrawerOpen}>
+      <NxDrawer.Header>
+        <VexAnnotationDrawerHeader
+          headerTitle={`Annotate ${issue}`}
+          headerSize={'h2'}
+          onClose={onClose}
+          className={'vex-annotation-popover__header'}
+          componentPurl={componentPurl}
+        ></VexAnnotationDrawerHeader>
+      </NxDrawer.Header>
+      <NxDrawer.Content>
+        <NxLoadWrapper
+          retryHandler={loadVexReferenceData}
+          loading={isVulnerabilityReferenceDataLoading}
+          error={popOverContentError}
+        >
+          {vulnerabilityInformationHeaderFragment()}
+          <NxDivider />
+
+          <NxForm
+            id="vex-annotation-drawer__form"
+            showValidationErrors={false}
+            submitMaskState={formIsSaving}
+            submitMaskMessage="Saving..."
+            onSubmit={() => null}
+          >
+            {vexAnnotationFormFragment()}
+            {updatedInfoFragment()}
+          </NxForm>
+        </NxLoadWrapper>
+      </NxDrawer.Content>
+
+      <NxFooter className="vex-annotation-popover__footer-nx-drawer">
+        <NxErrorAlert
+          className={cx(
+            'vex-annotation-popover__form-validation-errors',
+            showValidationErrors && hasValidationErrors(validationErrors) ? '' : 'vex-annotation-popover__footer-hidden'
+          )}
+        >
+          {validationErrors[0]}
+        </NxErrorAlert>
+
+        <NxErrorAlert
+          className={cx(
+            'vex-annotation-popover__form-save-errors',
+            showSaveFormError ? '' : 'vex-annotation-popover__footer-hidden'
+          )}
+        >
+          <span className={'vex-annotation-popover__form-save-error-message'}>{formError}</span>
+          <NxButton variant="error" onClick={() => handleOnSubmit()}>
+            Retry
+          </NxButton>
+        </NxErrorAlert>
+
+        <div className="vex-annotation-popover__footer-button-bar">
+          <NxButton
+            className={cx(
+              'vex-annotation-drawer__form__submit-button',
+              !hasValidationErrors(validationErrors) ? '' : 'vex-annotation-popover__footer-hidden',
+              showSaveFormError ? 'vex-annotation-popover__footer-hidden' : ''
+            )}
+            onClick={() => handleOnSubmit()}
+            variant="primary"
+          >
+            {isRowAnnotated === true ? 'Update' : 'Save'}
+          </NxButton>
+        </div>
+      </NxFooter>
+    </NxDrawer>
   );
 }
 
 VexAnnotationDrawer.propTypes = {
+  isDrawerOpen: PropTypes.bool,
+
   responsesOptions: PropTypes.array.isRequired,
   analysisStatusesOptions: PropTypes.array.isRequired,
   justificationsOptions: PropTypes.array.isRequired,
@@ -409,4 +544,10 @@ VexAnnotationDrawer.propTypes = {
   preSaveMaskActions: PropTypes.func,
   postSaveMaskActions: PropTypes.func,
   onLearnMoreClick: PropTypes.func,
+
+  loadVexReferenceData: PropTypes.func,
+  openVulnerabilityDetailsModal: PropTypes.func,
+  onClose: PropTypes.func,
+
+  componentPurl: PropTypes.string,
 };

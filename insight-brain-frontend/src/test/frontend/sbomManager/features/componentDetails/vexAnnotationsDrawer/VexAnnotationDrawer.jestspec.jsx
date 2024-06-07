@@ -4,22 +4,18 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { render } from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, render, waitFor } from 'TestRoot/SpecUtil';
 import { screen } from '@testing-library/dom';
 import React from 'react';
 import { cleanup, fireEvent, getByText, queryByText } from '@testing-library/react';
 import VexAnnotationDrawer from 'MainRoot/sbomManager/features/componentDetails/vexAnnotationsDrawer/VexAnnotationDrawer';
 import { formatDate } from 'MainRoot/util/dateUtils';
+import { saveSbomVulnerabilityAnnotationUrl } from 'MainRoot/util/CLMLocation';
 
 describe('VexAnnotationDrawer', () => {
   let renderDefaultComponent;
 
-  const longTestDescription =
-    'Included in Log4j 1.2 is a SocketServer class that is ' +
-    'vulnerable to deserialization of untrusted data which can be exploited to ' +
-    'remotely execute arbitrary code when combined with a deserialization gadget ' +
-    'when listening to untrusted network traffic for log data. ' +
-    'This affects Log4j versions up to 1.2 up to 1.2.17.';
+  const axiosMock = axiosMockAdapter();
 
   const responsesOptions = [
     {
@@ -115,14 +111,22 @@ describe('VexAnnotationDrawer', () => {
     },
   ];
 
+  const longTestDescription =
+    'Included in Log4j 1.2 is a SocketServer class that is ' +
+    'vulnerable to deserialization of untrusted data which can be exploited to ' +
+    'remotely execute arbitrary code when combined with a deserialization gadget ' +
+    'when listening to untrusted network traffic for log data. ' +
+    'This affects Log4j versions up to 1.2 up to 1.2.17.';
+
   const mockVexAnnotationDrawer = {
+    isDrawerOpen: true,
     issue: 'CVE-123',
     cvssScore: 4.7,
     verified: true,
     description: 'short description',
     details: 'Lorem ipsum test',
     justification: 'protected_by_mitigating_control',
-    analysisStatus: 'in-triage',
+    analysisStatus: 'in_triage',
     componentPurl: 'pkg:a/b/c',
     componentHash: 'abc123',
     internalAppkey: 'testInternalAppId',
@@ -131,17 +135,21 @@ describe('VexAnnotationDrawer', () => {
     updatedAt: 1716427819000,
     lastUpdatedBy: 'testAuthor',
 
+    isRowAnnotated: false,
+
     responsesOptions,
     analysisStatusesOptions,
     justificationsOptions,
 
     preSaveMaskActions: null,
     postSaveMaskActions: null,
+    onClose: () => cleanup(),
+    loadVexReferenceData: () => null,
   };
   const defaultExpectedTimestamp = formatDate(mockVexAnnotationDrawer.updatedAt, 'YYYY-MM-DD HH:mm:ss');
 
   const renderComponentWithMockData = (mockData) => render(<VexAnnotationDrawer {...mockData} />);
-  const renderWithOverridenData = (overridenProps) => renderComponentWithMockData(overridenProps);
+  const renderWithOverriddenData = (overriddenProps) => renderComponentWithMockData(overriddenProps);
 
   beforeEach(() => {
     renderDefaultComponent = () => renderComponentWithMockData(mockVexAnnotationDrawer);
@@ -165,6 +173,36 @@ describe('VexAnnotationDrawer', () => {
   const assertDropdownDidNotRenderedSelectOption = (nodeContainer) =>
     expect(queryByText(nodeContainer, 'SELECT')).not.toBeInTheDocument();
 
+  const assertErrorLoadingDropdownsData = (container) => {
+    expect(queryByText(container, /An error occurred loading data./)).toBeInTheDocument();
+    expect(queryByText(container, /Please retry./)).toBeInTheDocument();
+    expect(queryByText(container, /Retry/)).toBeInTheDocument();
+  };
+
+  const assertFormDoesNotHaveErrors = (container) => {
+    expect(queryByText(container, /There were validation errors./)).not.toBeInTheDocument();
+  };
+
+  const getSubmitButton = (container) => container.querySelector('.vex-annotation-drawer__form__submit-button');
+
+  const getButtonBar = (container) => container.querySelector('.vex-annotation-popover__footer-button-bar');
+
+  it('renders nothing when isDrawerOpen is empty/null/false', async () => {
+    const { container } = renderWithOverriddenData({
+      ...mockVexAnnotationDrawer,
+      isDrawerOpen: undefined,
+    });
+    const popover = container.querySelector('#vex-annotation-popover');
+    expect(popover).not.toBeInTheDocument();
+  });
+
+  it('clicks close button and triggers function specified by onClose prop', async () => {
+    const { container } = renderDefaultComponent();
+    const closeButton = container.querySelector('header .nx-icon--close');
+    fireEvent.click(closeButton);
+    expect(closeButton).not.toBeInTheDocument();
+  });
+
   describe('Form when isRowAnnotated prop is false/null/undef', () => {
     describe('Summary section', () => {
       it('renders sonatype verified data', () => {
@@ -181,7 +219,7 @@ describe('VexAnnotationDrawer', () => {
       });
 
       it('renders unverified data', () => {
-        const { container } = renderWithOverridenData({
+        const { container } = renderWithOverriddenData({
           ...mockVexAnnotationDrawer,
           verified: false,
           cvssScore: 1.5,
@@ -209,7 +247,7 @@ describe('VexAnnotationDrawer', () => {
       });
 
       it('renders correct data (long description)', () => {
-        const { container } = renderWithOverridenData({
+        const { container } = renderWithOverriddenData({
           ...mockVexAnnotationDrawer,
           description: longTestDescription,
         });
@@ -221,7 +259,7 @@ describe('VexAnnotationDrawer', () => {
       });
 
       it('skips rendering description section when description prop is null', () => {
-        const { container } = renderWithOverridenData({
+        const { container } = renderWithOverriddenData({
           ...mockVexAnnotationDrawer,
           description: null,
         });
@@ -244,15 +282,13 @@ describe('VexAnnotationDrawer', () => {
       });
 
       it('renders empty Analysis Status dropdown', () => {
-        const { container } = renderWithOverridenData({ ...mockVexAnnotationDrawer, analysisStatusesOptions: [] });
+        const { container } = renderWithOverriddenData({ ...mockVexAnnotationDrawer, analysisStatusesOptions: [] });
 
         const formContainer = getFormContainer(container);
-
-        expect(getByText(formContainer, 'Analysis status')).toBeInTheDocument();
-        assertDropdownsOptionsNotRendered(analysisStatusesOptions, formContainer);
-        assertDropdownRenderedSelectOption(
-          formContainer.querySelector('#vex-annotation-drawer__form__analysis-status-select')
-        );
+        expect(formContainer).not.toBeInTheDocument();
+        const alertElement = container.querySelector('.nx-alert__content-wrap');
+        assertDropdownsOptionsNotRendered(justificationsOptions, container);
+        assertErrorLoadingDropdownsData(alertElement);
       });
 
       it('renders Justification dropdown', () => {
@@ -268,14 +304,13 @@ describe('VexAnnotationDrawer', () => {
       });
 
       it('renders empty Justification dropdown', () => {
-        const { container } = renderWithOverridenData({ ...mockVexAnnotationDrawer, justificationsOptions: [] });
+        const { container } = renderWithOverriddenData({ ...mockVexAnnotationDrawer, justificationsOptions: [] });
 
         const formContainer = getFormContainer(container);
-        expect(getByText(formContainer, 'Justification')).toBeInTheDocument();
-        assertDropdownsOptionsNotRendered(justificationsOptions, formContainer);
-        assertDropdownRenderedSelectOption(
-          formContainer.querySelector('#vex-annotation-drawer__form__justification-select')
-        );
+        expect(formContainer).not.toBeInTheDocument();
+        const alertElement = container.querySelector('.nx-alert__content-wrap');
+        assertDropdownsOptionsNotRendered(justificationsOptions, container);
+        assertErrorLoadingDropdownsData(alertElement);
       });
 
       it('renders Response dropdown', () => {
@@ -291,79 +326,104 @@ describe('VexAnnotationDrawer', () => {
       });
 
       it('renders empty Response dropdown', () => {
-        const { container } = renderWithOverridenData({ ...mockVexAnnotationDrawer, responsesOptions: [] });
+        const { container } = renderWithOverriddenData({ ...mockVexAnnotationDrawer, responsesOptions: [] });
 
         const formContainer = getFormContainer(container);
-        expect(getByText(formContainer, 'Response')).toBeInTheDocument();
-        assertDropdownsOptionsNotRendered(responsesOptions, formContainer);
-        assertDropdownRenderedSelectOption(
-          formContainer.querySelector('#vex-annotation-drawer__form__response-select')
-        );
+        expect(formContainer).not.toBeInTheDocument();
+        const alertElement = container.querySelector('.nx-alert__content-wrap');
+        assertDropdownsOptionsNotRendered(responsesOptions, container);
+        assertErrorLoadingDropdownsData(alertElement);
       });
 
       it('renders Save button', () => {
-        renderDefaultComponent();
-        expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
+        const { container } = renderWithOverriddenData({
+          ...mockVexAnnotationDrawer,
+        });
+
+        const dropdown = container.querySelector('#vex-annotation-drawer__form__analysis-status-select');
+
+        fireEvent.change(dropdown, {
+          target: { value: analysisStatusesOptions[0].key },
+        });
+
+        const buttonBar = container.querySelector('.vex-annotation-popover__footer-button-bar');
+        const saveButton = buttonBar.querySelector('.vex-annotation-drawer__form__submit-button');
+        expect(saveButton).toBeInTheDocument();
+        expect(getByText(saveButton, 'Save')).toBeInTheDocument();
       });
     });
 
     describe('Render form validation errors', () => {
       it('renders error message because no Analysis Status was selected in dropdown before saving', () => {
-        const { container } = renderWithOverridenData({
+        const { container } = renderWithOverriddenData({
           ...mockVexAnnotationDrawer,
           analysisStatus: undefined,
         });
 
-        const footerContainer = container.querySelector('footer');
-        const saveButton = screen.getByRole('button', { name: 'Save' });
+        const footerContainer = container.querySelector('.vex-annotation-popover__footer-nx-drawer');
+        const saveButton = container.querySelector('.vex-annotation-drawer__form__submit-button');
         expect(saveButton).toBeInTheDocument();
-        fireEvent.click(saveButton);
+        expect(saveButton.getAttribute('class')).not.toContain('vex-annotation-popover__footer-hidden');
 
-        expect(getByText(footerContainer, /There were validation errors./)).toBeInTheDocument();
+        fireEvent.click(saveButton);
+        expect(saveButton.getAttribute('class')).toContain('vex-annotation-popover__footer-hidden');
+
         expect(
           getByText(footerContainer, /Analysis status field is required. Please select a value from the dropdown list/)
         ).toBeInTheDocument();
       });
 
       it('hides save button when required analysis status field error triggers and show back button when is valid', () => {
-        const { container } = renderWithOverridenData({
+        const { container } = renderWithOverriddenData({
           ...mockVexAnnotationDrawer,
           analysisStatus: 'SELECT',
         });
 
         const dropdown = container.querySelector('#vex-annotation-drawer__form__analysis-status-select');
-        const validationErrorsMatcher = /There were validation errors./;
-        const requiredValidationErrorMatcher = /Analysis status field is required. Please select a value from the dropdown list/;
+        const requiredValidationErrorMatcher = /Analysis status field is required./;
+        const requiredValidationErrorMatcher2ndLine = /Please select a value from the dropdown list/;
 
-        const footerContainer = container.querySelector('footer');
-        const saveButton = screen.getByRole('button', { name: 'Save' });
+        const footerContainer = container.querySelector('.vex-annotation-popover__footer-nx-drawer');
+        const saveButton = container.querySelector('.vex-annotation-drawer__form__submit-button');
         expect(saveButton).toBeInTheDocument();
-        fireEvent.click(saveButton);
 
-        expect(getByText(footerContainer, validationErrorsMatcher)).toBeInTheDocument();
+        expect(saveButton.getAttribute('class')).not.toContain('vex-annotation-popover__footer-hidden');
+
+        fireEvent.click(saveButton);
+        expect(saveButton.getAttribute('class')).toContain('vex-annotation-popover__footer-hidden');
+
         expect(getByText(footerContainer, requiredValidationErrorMatcher)).toBeInTheDocument();
+        expect(getByText(footerContainer, requiredValidationErrorMatcher2ndLine)).toBeInTheDocument();
 
         fireEvent.change(dropdown, {
           target: { value: analysisStatusesOptions[0].key },
         });
 
-        expect(queryByText(footerContainer, validationErrorsMatcher)).not.toBeInTheDocument();
         expect(queryByText(footerContainer, requiredValidationErrorMatcher)).not.toBeInTheDocument();
+
+        const saveButtonAfterErrorsCleared = container.querySelector('.vex-annotation-drawer__form__submit-button');
+        expect(saveButtonAfterErrorsCleared).toBeInTheDocument();
+        expect(saveButtonAfterErrorsCleared.getAttribute('class')).not.toContain(
+          'vex-annotation-popover__footer-hidden'
+        );
       });
     });
   });
 
   describe('Form when isRowAnnotated prop is true', () => {
     const renderAnnotatedForm = (extraParams) =>
-      renderWithOverridenData({
+      renderWithOverriddenData({
         ...mockVexAnnotationDrawer,
         isRowAnnotated: true,
         ...extraParams,
       });
 
     it('renders update button', () => {
-      renderAnnotatedForm();
-      expect(screen.getByRole('button', { name: 'Update' })).toBeInTheDocument();
+      const { container } = renderAnnotatedForm();
+      const buttonBar = container.querySelector('.vex-annotation-popover__footer-button-bar');
+      const updateButton = buttonBar.querySelector('.vex-annotation-drawer__form__submit-button');
+      expect(updateButton).toBeInTheDocument();
+      expect(getByText(updateButton, 'Update')).toBeInTheDocument();
     });
 
     it('will not render SELECT text in dropdown controls', () => {
@@ -423,9 +483,8 @@ describe('VexAnnotationDrawer', () => {
     });
 
     it('renders empty annotation description with placeholder when details prop is empty', () => {
-      const { container } = renderWithOverridenData({
-        ...mockVexAnnotationDrawer,
-        details: null,
+      const { container } = renderAnnotatedForm({
+        details: undefined,
       });
 
       const formContainer = getFormContainer(container);
@@ -435,4 +494,134 @@ describe('VexAnnotationDrawer', () => {
       expect(descriptionTextArea.getAttribute('placeholder')).toBe('Entry');
     });
   });
-});
+
+  describe('Save form', () => {
+    it('saves form successfully', async () => {
+      axiosMock
+        .onPut(
+          saveSbomVulnerabilityAnnotationUrl(
+            mockVexAnnotationDrawer.internalAppId,
+            mockVexAnnotationDrawer.sbomVersion,
+            mockVexAnnotationDrawer.issue
+          )
+        )
+        .reply(200, {});
+
+      const { container } = renderDefaultComponent();
+
+      expect(queryByText(container, 'Annotate ' + mockVexAnnotationDrawer.issue)).toBeInTheDocument();
+
+      // When vulnerability is not annotated at least the analysis dropdown value should be selected before saving
+      const dropdown = container.querySelector('#vex-annotation-drawer__form__analysis-status-select');
+
+      fireEvent.change(dropdown, {
+        target: { value: analysisStatusesOptions[0].key },
+      });
+      assertFormDoesNotHaveErrors(container);
+
+      const saveButton = container.querySelector('.vex-annotation-drawer__form__submit-button');
+      expect(saveButton).toBeInTheDocument();
+      fireEvent.click(saveButton);
+      await waitFor(() => expect(screen.getByText(/Success/)).toBeInTheDocument());
+    });
+
+    it('displays an error message when failing to save the form data', async () => {
+      axiosMock
+        .onPut(
+          saveSbomVulnerabilityAnnotationUrl(
+            mockVexAnnotationDrawer.internalAppId,
+            mockVexAnnotationDrawer.sbomVersion,
+            mockVexAnnotationDrawer.issue
+          )
+        )
+        .reply(404, {});
+
+      const { container } = renderDefaultComponent();
+      expect(queryByText(container, 'Annotate ' + mockVexAnnotationDrawer.issue)).toBeInTheDocument();
+
+      // When vulnerability is not annotated at least the analysis dropdown value should be selected before saving
+      const dropdown = container.querySelector('#vex-annotation-drawer__form__analysis-status-select');
+
+      fireEvent.change(dropdown, {
+        target: { value: analysisStatusesOptions[0].key },
+      });
+      assertFormDoesNotHaveErrors(container);
+      const saveButton = getSubmitButton(container);
+      expect(saveButton).toBeInTheDocument();
+      fireEvent.click(saveButton);
+      await waitFor(() => expect(screen.queryByText(/Success/)).not.toBeInTheDocument());
+      const retryButton = queryByText(container, 'Retry');
+      expect(retryButton).toBeInTheDocument();
+    });
+  });
+
+  describe('Update form', () => {
+    it('updates data successfully', async () => {
+      axiosMock
+        .onPut(
+          saveSbomVulnerabilityAnnotationUrl(
+            mockVexAnnotationDrawer.internalAppId,
+            mockVexAnnotationDrawer.sbomVersion,
+            mockVexAnnotationDrawer.issue
+          )
+        )
+        .reply(200, {});
+
+      const { container } = renderWithOverriddenData({
+        ...mockVexAnnotationDrawer,
+        isRowAnnotated: true,
+      });
+
+      expect(queryByText(container, 'Annotate ' + mockVexAnnotationDrawer.issue)).toBeInTheDocument();
+
+      // When vulnerability is not annotated at least the analysis dropdown value should be selected before saving
+      const dropdown = container.querySelector('#vex-annotation-drawer__form__analysis-status-select');
+
+      fireEvent.change(dropdown, {
+        target: { value: 'not_affected' },
+      });
+      assertFormDoesNotHaveErrors(container);
+
+      const buttonBar = getButtonBar(container);
+      expect(getByText(buttonBar, 'Update'));
+      const updateButton = getSubmitButton(buttonBar);
+      expect(updateButton).toBeInTheDocument();
+      fireEvent.click(updateButton);
+      await waitFor(() => expect(screen.getByText(/Success/)).toBeInTheDocument());
+    });
+
+    it('displays error an message when failing to update the form data', async () => {
+      axiosMock
+        .onPut(
+          saveSbomVulnerabilityAnnotationUrl(
+            mockVexAnnotationDrawer.internalAppId,
+            mockVexAnnotationDrawer.sbomVersion,
+            mockVexAnnotationDrawer.issue
+          )
+        )
+        .reply(404, {});
+
+      const { container } = renderWithOverriddenData({
+        ...mockVexAnnotationDrawer,
+        isRowAnnotated: true,
+      });
+
+      expect(queryByText(container, 'Annotate ' + mockVexAnnotationDrawer.issue)).toBeInTheDocument();
+
+      // When vulnerability is not annotated at least the analysis dropdown value should be selected before saving
+      const analysisDropdown = container.querySelector('#vex-annotation-drawer__form__analysis-status-select');
+
+      fireEvent.change(analysisDropdown, {
+        target: { value: analysisStatusesOptions[0].key },
+      });
+
+      assertFormDoesNotHaveErrors(container);
+      const saveButton = getSubmitButton(container);
+      expect(saveButton).toBeInTheDocument();
+      fireEvent.click(saveButton);
+      await waitFor(() => expect(screen.queryByText(/Success/)).not.toBeInTheDocument());
+      const retryButton = getByText(container, 'Retry');
+      expect(retryButton).toBeInTheDocument();
+    });
+  });
+}); // End test file

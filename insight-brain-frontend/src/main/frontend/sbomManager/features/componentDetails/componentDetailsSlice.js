@@ -226,6 +226,9 @@ const sbomComponentDetailsSlice = createSlice({
     clearFormSubmitMask: function (state) {
       state.submitMaskStateForVexAnnotationForm = null;
     },
+    setFormErrorSaveMessage: (state, { payload }) => {
+      state.loadSaveVexAnnotationFormError = payload;
+    },
   },
   extraReducers: {
     [loadComponentDetails.pending]: loadComponentDetailsRequested,

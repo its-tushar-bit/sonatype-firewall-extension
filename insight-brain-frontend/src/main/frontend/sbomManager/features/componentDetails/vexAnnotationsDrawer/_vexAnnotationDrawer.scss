@@ -46,3 +46,31 @@ header .vex-annotation-popover .iq-popover-header__title {
 .vex-annotation-drawer__vulnerability-description dl dd {
   margin-bottom: 0;
 }
+
+.vex-annotation-popover__footer-button-bar {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+#vex-annotation-popover .nx-form__submit-btn,
+#vex-annotation-popover form footer {
+  display: none;
+}
+
+#vex-annotation-popover .vex-annotation-popover__footer-hidden {
+  display: none;
+}
+
+.vex-annotation-popover__form-save-errors .nx-alert__content {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.vex-annotation-popover__form-save-error-message {
+  flex: 0.8;
+}
+.vex-annotation-popover__form-save-errors .nx-btn--error {
+  margin: 0;
+}

@@ -67,25 +67,25 @@ const loadVulnerabilitesByThreatLevelFulfilled = (state, { payload }) => {
   state.loadError = null;
 
   state.vulnerabilities = {
-    low: {
-      annotated: payload.lowAnnotated,
-      unannotated: payload.lowUnannotated,
-      total: payload.low,
-    },
-    medium: {
-      annotated: payload.mediumAnnotated,
-      unannotated: payload.mediumUnannotated,
-      total: payload.medium,
+    critical: {
+      annotated: payload.criticalAnnotated,
+      unannotated: payload.criticalUnannotated,
+      total: payload.critical,
     },
     high: {
       annotated: payload.highAnnotated,
       unannotated: payload.highUnannotated,
       total: payload.high,
     },
-    critical: {
-      annotated: payload.criticalAnnotated,
-      unannotated: payload.criticalUnannotated,
-      total: payload.critical,
+    medium: {
+      annotated: payload.mediumAnnotated,
+      unannotated: payload.mediumUnannotated,
+      total: payload.medium,
+    },
+    low: {
+      annotated: payload.lowAnnotated,
+      unannotated: payload.lowUnannotated,
+      total: payload.low,
     },
   };
 

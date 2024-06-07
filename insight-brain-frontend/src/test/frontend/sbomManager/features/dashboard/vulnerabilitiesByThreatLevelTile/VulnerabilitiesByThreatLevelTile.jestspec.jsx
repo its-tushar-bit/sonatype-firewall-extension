@@ -84,25 +84,25 @@ describe('VulnerabilitiesByThreatLevelTile', () => {
     expect(await screen.findByRole('heading', { name: /Vulnerabilities by Threat Level/ })).toBeVisible();
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
-    expect(screen.getByRole('cell', { name: /Low/ })).toBeVisible();
-    expect(screen.getByRole('cell', { name: /1,001/ })).toBeVisible();
-    expect(screen.getByRole('cell', { name: /2,002/ })).toBeVisible();
-    expect(screen.getByRole('cell', { name: /3,003/ })).toBeVisible();
-
-    expect(screen.getByRole('cell', { name: /Medium/ })).toBeVisible();
-    expect(screen.getByRole('cell', { name: /3,001/ })).toBeVisible();
-    expect(screen.getByRole('cell', { name: /4,002/ })).toBeVisible();
-    expect(screen.getByRole('cell', { name: /7,003/ })).toBeVisible();
+    expect(screen.getByRole('cell', { name: /Critical/ })).toBeVisible();
+    expect(screen.getByRole('cell', { name: /7,001/ })).toBeVisible();
+    expect(screen.getByRole('cell', { name: /8,002/ })).toBeVisible();
+    expect(screen.getByRole('cell', { name: /15,003/ })).toBeVisible();
 
     expect(screen.getByRole('cell', { name: /High/ })).toBeVisible();
     expect(screen.getByRole('cell', { name: /5,001/ })).toBeVisible();
     expect(screen.getByRole('cell', { name: /6,002/ })).toBeVisible();
     expect(screen.getByRole('cell', { name: /11,003/ })).toBeVisible();
 
-    expect(screen.getByRole('cell', { name: /Critical/ })).toBeVisible();
-    expect(screen.getByRole('cell', { name: /7,001/ })).toBeVisible();
-    expect(screen.getByRole('cell', { name: /8,002/ })).toBeVisible();
-    expect(screen.getByRole('cell', { name: /15,003/ })).toBeVisible();
+    expect(screen.getByRole('cell', { name: /Medium/ })).toBeVisible();
+    expect(screen.getByRole('cell', { name: /3,001/ })).toBeVisible();
+    expect(screen.getByRole('cell', { name: /4,002/ })).toBeVisible();
+    expect(screen.getByRole('cell', { name: /7,003/ })).toBeVisible();
+
+    expect(screen.getByRole('cell', { name: /Low/ })).toBeVisible();
+    expect(screen.getByRole('cell', { name: /1,001/ })).toBeVisible();
+    expect(screen.getByRole('cell', { name: /2,002/ })).toBeVisible();
+    expect(screen.getByRole('cell', { name: /3,003/ })).toBeVisible();
 
     const total = screen.getByTestId('vulnerabilities-by-threat-level-tile-total');
     expect(total).toHaveTextContent(/Total:36,012/);

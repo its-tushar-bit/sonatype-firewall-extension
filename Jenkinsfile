@@ -42,12 +42,12 @@ make(
         in a single stage.
        */
       String mavenOptions = mavenCommon.get('mavenOptions')
-      if (isFastBuild()) {
-        mavenOptions = addBuildCacheOptions(mavenOptions)
+      if (!isFastBuild()) {
+        mavenOptions = addBuildCacheOptions(mavenOptions, true)
       }
-      else {
-        mavenOptions += " -DskipTests"
-      }
+
+      mavenOptions += " -DskipTests"
+
       mavenCommon.put('mavenOptions', mavenOptions)
 
       withSonatypeDockerRegistry() {
@@ -129,7 +129,7 @@ void configureBranchJob() {
 
   List params = [
       booleanParam(defaultValue: true,
-          description: 'If checked will skip Slow Tests.',
+          description: 'If checked will skip functional and UI Tests.',
           name: 'fastBuild'),
       booleanParam(defaultValue: mtiqImagePushEnabledByDefault,
           description: 'If checked will push the MTIQ Docker image to RSC for this branch',
@@ -275,84 +275,89 @@ void pushMTIQDockerImage() {
 }
 
 void runAllTests(Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J) {
+  echo "fastBuild disabled - Running all tests"
+  buildAndTest(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
+
   if (isFastBuild()) {
-    echo "fastBuild enabled - skipping slow tests"
-    String mavenOptions = mavenCommon.get('mavenOptions')
-    mavenOptions += " -DexcludedGroups=SlowTest"
-    mavenOptions += " -Dfailsafe.rerunFailingTestsCount=2 -Dfailsafe.failOnFlakeCount=5"
-    mavenOptions += " -Dskip-functional-test"
-    mavenOptions += " -Djasmine.tests.skip=true"
-    mavenCommon.put('mavenOptions', mavenOptions)
-    buildAndTest(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
-    //If nothing has changed in the build then tests won't re-run meaning there won't be any test reports
-    try {
-      archiveArtifacts(artifacts: '**/target/*-reports/**', excludes: '**/TEST-*.xml, **/*-output.txt')
-      collectTestResults(['**/target/*-reports/*.xml'])
-    }
-    catch (Exception e) {
-      if (e.toString().contains("No artifacts found that match the file pattern")) {
-        echo "No test results found: " + e.toString()
-      }
-      else {
-        throw e
-      }
-    }
+    runSafely 'zip --symlinks -q -r m2.zip .zion/repository/*'
+    runSafely 'find . \\( -type d \\( -name "test-classes" -o -name "classes" \\) -o -type f -name "pom.xml" -o -path "*/src/*" \\) ! -path "./insight-brain-frontend/target/*" ! -path "./insight-brain-functional-test-common/target/*" -print | zip -q -r iq-tests.zip -@'
+
+    archiveArtifacts(artifacts: 'm2.zip, iq-tests.zip', fingerprint: false)
   }
   else {
-    echo "fastBuild disabled - Running all tests"
-    buildAndTest(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
-    // archive things for the parallel blocks which will copy
-    // these artifacts to different agents for each parallel block
-    runSafely 'zip --symlinks -q -r workspace.zip .'
+    runSafely 'zip --symlinks -q -r workspace.zip . '
     archiveArtifacts(artifacts: 'workspace.zip', fingerprint: false)
-    parallel(getParallelTests())
   }
+
+  parallel(getParallelTests())
 }
 
-private String addBuildCacheOptions(String mavenOptions) {
-  mavenOptions += ' -Dmaven.build.cache.remote.enabled=true'
+private String addBuildCacheOptions(String mavenOptions, boolean enabled) {
+  mavenOptions += " -Dmaven.build.cache.remote.enabled=${enabled}"
   mavenOptions += ' -Dmaven.build.cache.remote.url=https://repo.sonatype.com/repository/insight-brain-build-cache'
   mavenOptions += ' -Dmaven.build.cache.remote.server.id=insight-brain-build-cache'
-  mavenOptions += " -Dmaven.build.cache.remote.save.enabled=true"
+  mavenOptions += " -Dmaven.build.cache.remote.save.enabled=${enabled}"
 
   return mavenOptions
 }
 
 Map<String, Closure> getParallelTests() {
   Map<String, Closure> testStages = [:]
-  testStages << createFunctionalTests('Java Functional Tests A', '.*/[A-B].*Test.class')
-  testStages << createFunctionalTests('Java Functional Tests B', '.*/[C-E].*Test.class')
-  testStages << createFunctionalTests('Java Functional Tests C', '.*/[F-M].*Test.class')
-  testStages << createFunctionalTests('Java Functional Tests D', '.*/[N-O].*Test.class')
-  testStages << createFunctionalTests('Java Functional Tests E', '.*/[P-R].*Test.class')
-  testStages << createFunctionalTests('Java Functional Tests F', '.*/[S-Z].*Test.class')
-  testStages << createFunctionalTests('MTIQ Functional Tests', '.*/.*Test.class', 'nexus-mtiq-functional-test')
-  testStages << createFrontendTests('Frontend Tests - Jasmine/Jest')
+
+  String[] zips = ['workspace.zip']
+  if (isFastBuild()) {
+    zips = ['m2.zip', 'iq-tests.zip']
+  }
 
   if (isDeployBranch(env, 'main')) {
     testStages << createGebTests()
-    testStages << createUnitTests('Unit and Integration Tests - Java 8 A', 'Java 8', '.*/[A-C].*Test.class')
-    testStages << createUnitTests('Unit and Integration Tests - Java 8 B', 'Java 8', '.*/[D-K].*Test.class')
-    testStages << createUnitTests('Unit and Integration Tests - Java 8 C', 'Java 8', '.*/[L-P].*Test.class')
-    testStages << createUnitTests('Unit and Integration Tests - Java 8 D', 'Java 8', '.*/[R-Z].*Test.class')
+    testStages << createUnitTests('Unit and Integration Tests - Java 8 A', 'Java 8', '.*/[A-C].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - Java 8 B', 'Java 8', '.*/[D-K].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - Java 8 C', 'Java 8', '.*/[L-P].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - Java 8 D', 'Java 8', '.*/[R-Z].*Test.class', zips)
   }
 
-  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 A', 'OpenJDK 17', '.*/[A-C].*Test.class')
-  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 B', 'OpenJDK 17', '.*/[D-K].*Test.class')
-  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 C', 'OpenJDK 17', '.*/[L-P].*Test.class')
-  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 D', 'OpenJDK 17', '.*/[R-Z].*Test.class')
-  testStages << createMtiqUnitTests('MTIQ Unit and Integration Tests - OpenJDK 17', 'OpenJDK 17')
+  if (!isFastBuild()) {
+    testStages << createFunctionalTests('Java Functional Tests A', '.*/[A-B].*Test.class', zips)
+    testStages << createFunctionalTests('Java Functional Tests B', '.*/[C-E].*Test.class', zips)
+    testStages << createFunctionalTests('Java Functional Tests C', '.*/[F-M].*Test.class', zips)
+    testStages << createFunctionalTests('Java Functional Tests D', '.*/[N-O].*Test.class', zips)
+    testStages << createFunctionalTests('Java Functional Tests E', '.*/[P-R].*Test.class', zips)
+    testStages << createFunctionalTests('Java Functional Tests F', '.*/[S-Z].*Test.class', zips)
+    testStages << createFunctionalTests('MTIQ Functional Tests', '.*/.*Test.class', 'nexus-mtiq-functional-test', zips)
+    testStages << createFrontendTests('Frontend Tests - Jasmine/Jest', zips)
+
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 A', 'OpenJDK 17', '.*/[A-C].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 B', 'OpenJDK 17', '.*/[D-K].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 C', 'OpenJDK 17', '.*/[L-P].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 D', 'OpenJDK 17', '.*/[R-Z].*Test.class', zips)
+    testStages << createMtiqUnitTests('MTIQ Unit and Integration Tests - OpenJDK 17', 'OpenJDK 17', zips)
+  }
+  else {
+    // These tests make use of iq-tests.zip which does not include insight-brain-frontend (1.2GB)
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 A', 'OpenJDK 17', '.*/[A].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 B', 'OpenJDK 17', '.*/[B].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 D-G', 'OpenJDK 17', '.*/[D-G].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 H-J', 'OpenJDK 17', '.*/[H-K].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 L-N', 'OpenJDK 17', '.*/[L-N].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 O-P', 'OpenJDK 17', '.*/[O-P].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 R + T', 'OpenJDK 17', '.*/[RT].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 S', 'OpenJDK 17', '.*/[S].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 C + U-Z', 'OpenJDK 17', '.*/[CU-Z].*Test.class', zips)
+    testStages << createMtiqUnitTests('MTIQ Unit and Integration Tests - OpenJDK 17', 'OpenJDK 17', zips) //5:35
+  }
+
 
   return testStages
 }
 
-Map<String, Closure> createGebTests() {
+Map<String, Closure> createGebTests(String... zipFiles) {
   return ['Geb Tests': {
     // 2024-05-03: We are using c6i.2xlarge EC2 instances. I tried c6i.4xlarge and there was no difference.
     node(InsightConstants.AGENT_LABEL) {
       stage('Geb Tests') {
         try {
-          copyRepo()
+          copyRepo(zipFiles)
           String mavenOptions = "-Dgeb.env=ci -Drun-functional-tests=docker -Ddocker." +
               "registry=${sonatypeDockerRegistryId()} " +
               "-Dfailsafe.rerunFailingTestsCount=2 -Dfailsafe.failOnFlakeCount=5 --threads 4"
@@ -371,13 +376,14 @@ Map<String, Closure> createGebTests() {
 Map<String, Closure> createFunctionalTests(
   String stageName,
   String regex,
-  String mavenModule = 'insight-brain-java-functional-test'
+  String... zipFiles
 ) {
+  String mavenModule = 'insight-brain-java-functional-test'
   return ["${stageName}": {
     node('iq-large') {
       stage(stageName) {
         try {
-          copyRepo()
+          copyRepo(zipFiles)
           String mavenOptions = "'-Dit.test=%regex[${regex}]'"
           mavenOptions += ' -Drun-functional-tests=docker'
           mavenOptions += " -Dbrowser=chrome"
@@ -398,14 +404,14 @@ Map<String, Closure> createFunctionalTests(
   }]
 }
 
-Map<String, Closure> createFrontendTests(String stageName) {
+Map<String, Closure> createFrontendTests(String stageName, String... zipFiles) {
   return ["${stageName}": {
     // 2024-05-03: We are using c6i.2xlarge EC2 instances. I tried c6i.4xlarge, there was a small difference (~2 mins),
     // but this stage is still faster then other parallel stages without using larger EC2 instances.
     node(InsightConstants.AGENT_LABEL){
       stage(stageName) {
         try {
-          copyRepo()
+          copyRepo(zipFiles)
           Map<String, ?> testConfig = testConfig(
               "-pl 'com.sonatype.insight.brain:insight-brain-frontend' " +
                   "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage --threads 4",
@@ -421,19 +427,19 @@ Map<String, Closure> createFrontendTests(String stageName) {
   }]
 }
 
-Map<String, Closure> createUnitTests(String stageName, String jdk, String regex) {
+Map<String, Closure> createUnitTests(String stageName, String jdk, String regex, String... zipFiles) {
   return ["${stageName}": {
     node('iq-large'){
       stage(stageName) {
         try {
-          copyRepo()
+          copyRepo(zipFiles)
             Map<String, ?> testConfig = testConfig(
                 // Note MTIQ & Frontend modules are excluded here as they run in their own stages
-                "-pl '!nexus-mtiq-server' -pl '!insight-brain-frontend' " +
+                addBuildCacheOptions("-pl '!nexus-mtiq-server' -pl '!insight-brain-frontend' " +
                 "-Dtest=%regex[${regex}] -Dit.test=%regex[${regex}] " +
                 "-Dskip-functional-test -DdetectTestEntityLeaks " +
                 "-Dfailsafe.rerunFailingTestsCount=2 -Dfailsafe.failOnFlakeCount=5 " +
-                "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage --threads 4",
+                "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage --threads 4", false),
                 null, jdk)
           mvn testConfig, 'surefire:test failsafe:integration-test failsafe:verify'
         }
@@ -445,16 +451,16 @@ Map<String, Closure> createUnitTests(String stageName, String jdk, String regex)
   }]
 }
 
-Map<String, Closure> createMtiqUnitTests(String stageName, String jdk) {
+Map<String, Closure> createMtiqUnitTests(String stageName, String jdk, String... zipFiles) {
   return ["${stageName}": {
     node('iq-large'){
       stage(stageName) {
         try {
-          copyRepo()
+          copyRepo(zipFiles)
           Map<String, ?> testConfig = testConfig(
-                "-pl com.sonatype.insight.brain:nexus-mtiq-server -Dskip-functional-test -DdetectTestEntityLeaks " +
+              addBuildCacheOptions("-pl com.sonatype.insight.brain:nexus-mtiq-server -Dskip-functional-test -DdetectTestEntityLeaks " +
                     "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage " +
-                    "-Dfailsafe.rerunFailingTestsCount=2 -Dfailsafe.failOnFlakeCount=5 --threads 4",
+                    "-Dfailsafe.rerunFailingTestsCount=2 -Dfailsafe.failOnFlakeCount=5 --threads 4", false),
                 null, jdk)
           mvn testConfig, 'surefire:test failsafe:integration-test failsafe:verify'
         }
@@ -464,17 +470,19 @@ Map<String, Closure> createMtiqUnitTests(String stageName, String jdk) {
       }
     }
   }]
+}
+
+void copyRepo(String... zipFiles) {
+  for (String zipFile : zipFiles) {
+    copyArtifacts(projectName: currentBuild.fullProjectName, filter: zipFile, selector: specific(currentBuild.id),
+        flatten: false)
+    runSafely "unzip -q -o ${zipFile}"
+  }
 }
 
 Map<String, ?> testConfig(String mavenOptions, String pomFile = null, String javaVersion = 'OpenJDK 17') {
   return mavenCommon(javaVersion: javaVersion, mavenVersion: 'Maven 3.9.x', useEventSpy: false,
       pomFile: pomFile, mavenOptions: mavenOptions)
-}
-
-void copyRepo() {
-  copyArtifacts(projectName: currentBuild.fullProjectName, filter: 'workspace.zip', selector: specific(currentBuild.id),
-      flatten: false)
-  runSafely 'unzip -q -o workspace.zip'
 }
 
 void captureResultsAndCleanup() {

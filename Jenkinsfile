@@ -331,7 +331,7 @@ Map<String, Closure> getParallelTests() {
     testStages << createFunctionalTests('Java Functional Tests D', '.*/[N-O].*Test.class', zips)
     testStages << createFunctionalTests('Java Functional Tests E', '.*/[P-R].*Test.class', zips)
     testStages << createFunctionalTests('Java Functional Tests F', '.*/[S-Z].*Test.class', zips)
-    testStages << createFunctionalTests('MTIQ Functional Tests', '.*/.*Test.class', 'nexus-mtiq-functional-test', zips)
+    testStages << createMtiqFunctionalTests('MTIQ Functional Tests', '.*/.*Test.class', zips)
     testStages << createFrontendTests('Frontend Tests - Jasmine/Jest', zips)
 
     testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 A', 'OpenJDK 17', '.*/[A-C].*Test.class', zips)
@@ -381,11 +381,32 @@ Map<String, Closure> createGebTests(String... zipFiles) {
 }
 
 Map<String, Closure> createFunctionalTests(
+    String stageName,
+    String regex,
+    String... zipFiles
+) {
+  return createFunctionalTests(stageName, regex, false, zipFiles)
+}
+
+Map<String, Closure> createMtiqFunctionalTests(
+    String stageName,
+    String regex,
+    String... zipFiles
+) {
+  return createFunctionalTests(stageName, regex, true, zipFiles)
+}
+
+Map<String, Closure> createFunctionalTests(
   String stageName,
   String regex,
+  boolean mtiq,
   String... zipFiles
 ) {
   String mavenModule = 'insight-brain-java-functional-test'
+  if (mtiq) {
+    mavenModule = 'nexus-mtiq-functional-test'
+  }
+
   return ["${stageName}": {
     node('iq-large') {
       stage(stageName) {

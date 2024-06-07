@@ -76,6 +76,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import org.joda.time.DateTime;
@@ -85,6 +86,7 @@ import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
@@ -891,5 +893,69 @@ public class QuarantineComponentReportTest
     refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
     loginModal.shouldNotBe(visible);
     MainHeader.loginButton().shouldBe(visible);
+  }
+
+  @Test
+  public void testQuarantineReportComponent_closeLoginModalWithCancelButton() {
+    createAllTypePolicies();
+    encodedToken = setupAllTestData(VALID_TOKEN_CONDITION);
+    refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
+    waitUntilSpinnersGone();
+
+    // open login modal by clicking "view component details" button
+    quarantineReportPage.getQuarantineReportComponentOverviewTile().shouldBe(visible);
+    quarantineReportPage.getQuarantineReportComponentOverviewTileViewComponentDetails().shouldBe(visible).click();
+
+    LoginModal loginModal = new LoginModal();
+    loginModal.shouldBe(visible);
+    loginModal.cancelButton().shouldBe(visible).click();
+
+    loginModal.shouldNotBe(visible);
+
+    // open login modal by clicking "view component details" button
+    MainHeader.loginButton().shouldBe(visible);
+    MainHeader.loginButton().click();
+
+    loginModal.shouldBe(visible);
+    loginModal.cancelButton().shouldBe(visible).click();
+
+    loginModal.shouldNotBe(visible);
+  }
+
+  @Test
+  public void testQuarantineReportComponent_closeLoginModalWithESC() {
+    createAllTypePolicies();
+    encodedToken = setupAllTestData(VALID_TOKEN_CONDITION);
+    refreshOrOpen(QuarantineComponentReportPage.url(encodedToken));
+    waitUntilSpinnersGone();
+
+    // open login modal by clicking "view component details" button
+    quarantineReportPage.getQuarantineReportComponentOverviewTile().shouldBe(visible);
+    quarantineReportPage.getQuarantineReportComponentOverviewTileViewComponentDetails().shouldBe(visible).click();
+
+    LoginModal loginModal = new LoginModal();
+    loginModal.shouldBe(visible);
+
+    // Simulate pressing ESC key to close the modal
+    pressEscape();
+
+    // login modal closed
+    loginModal.shouldNotBe(visible);
+
+    // open login modal by clicking "view component details" button
+    MainHeader.loginButton().shouldBe(visible);
+    MainHeader.loginButton().click();
+
+    loginModal.shouldBe(visible);
+
+    // Simulate pressing ESC key to close the modal
+    pressEscape();
+
+    // login modal closed
+    loginModal.shouldNotBe(visible);
+  }
+
+  private void pressEscape() {
+    Selenide.actions().sendKeys(Keys.ESCAPE).perform();
   }
 }

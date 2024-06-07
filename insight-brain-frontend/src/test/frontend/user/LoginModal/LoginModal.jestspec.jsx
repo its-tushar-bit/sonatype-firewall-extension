@@ -28,15 +28,16 @@ describe('LoginModal', () => {
     useSelectorLoginStateSpy,
     useSelectorLoginSubmitStateSpy,
     mockRouteStateNameIncludesVulnerabilitySearch,
+    mockRouteStateNameIncludesQuaratineComponent,
     loginState,
     loginSubmitState;
 
   beforeEach(() => {
-    onSubmitSpy = jasmine.createSpy('onSubmit', () => {});
-    onDismissSpy = jasmine.createSpy('onDismiss');
-    onClickSSOSpy = jasmine.createSpy('onClickSSO');
-    setUsernameSpy = spyOn(actions, 'setUsername').and.callThrough();
-    setPasswordSpy = spyOn(actions, 'setPassword').and.callThrough();
+    onSubmitSpy = jest.fn();
+    onDismissSpy = jest.fn();
+    onClickSSOSpy = jest.fn();
+    setUsernameSpy = jest.spyOn(actions, 'setUsername');
+    setPasswordSpy = jest.spyOn(actions, 'setPassword');
 
     loginState = {
       username: initialState(''),
@@ -57,14 +58,18 @@ describe('LoginModal', () => {
       name: 'vulnerabilitySearch',
     };
 
+    mockRouteStateNameIncludesQuaratineComponent = {
+      name: 'quarantinedComponentReport',
+    };
+
     minimalProps = {
       onSubmit: onSubmitSpy,
       onDismiss: onDismissSpy,
       onClickSSO: onClickSSOSpy,
     };
 
-    useSelectorLoginSubmitStateSpy = spyOn(userLoginSelectors, 'selectLoginModalSubmitState').and.callThrough();
-    useSelectorLoginStateSpy = spyOn(userLoginSelectors, 'selectLoginModalState').and.callFake((state) => {
+    useSelectorLoginSubmitStateSpy = jest.spyOn(userLoginSelectors, 'selectLoginModalSubmitState');
+    useSelectorLoginStateSpy = jest.spyOn(userLoginSelectors, 'selectLoginModalState').mockImplementation((state) => {
       const originalSelection = originalLoginStateSelector(state);
       return { ...originalSelection, isLicensed: true, showLoginModal: true };
     });
@@ -82,8 +87,8 @@ describe('LoginModal', () => {
   });
 
   it('does NOT render Vulnerability Lookup link but does render a cancel button if license exists and user is on a page that does not require authentication', () => {
-    spyOn(routeSelectors, 'selectRouterState').and.returnValue(mockRouteStateNameIncludesVulnerabilitySearch);
-    useSelectorLoginStateSpy.and.returnValue(loginState);
+    jest.spyOn(routeSelectors, 'selectRouterState').mockReturnValue(mockRouteStateNameIncludesVulnerabilitySearch);
+    useSelectorLoginStateSpy.mockReturnValue(loginState);
     renderComponent();
 
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
@@ -91,7 +96,7 @@ describe('LoginModal', () => {
   });
 
   it('does not render Vulnerability Lookup link when isUnauthenticatedPagesEnabled false', () => {
-    useSelectorLoginStateSpy.and.callFake((state) => {
+    useSelectorLoginStateSpy.mockImplementation((state) => {
       const originalSelection = originalLoginStateSelector(state);
       return { ...originalSelection, isLicensed: true, showLoginModal: true, isUnauthenticatedPagesEnabled: false };
     });
@@ -101,12 +106,12 @@ describe('LoginModal', () => {
   });
 
   it('renders Vulnerability Lookup link in index but NOT cancel button when unauthenticated pages is enabled', () => {
-    let hrefSpy = jasmine.createSpy('href').and.callFake((args) => `href-${args}`);
-    spyOn(routeSelectors, 'selectRouterState').and.returnValue({ name: 'index' });
-    spyOn(routerContext, 'useRouterState').and.returnValue({
+    let hrefSpy = jest.fn().mockImplementation((args) => `href-${args}`);
+    jest.spyOn(routeSelectors, 'selectRouterState').mockReturnValue({ name: 'index' });
+    jest.spyOn(routerContext, 'useRouterState').mockReturnValue({
       href: hrefSpy,
     });
-    useSelectorLoginStateSpy.and.returnValue(loginState);
+    useSelectorLoginStateSpy.mockReturnValue(loginState);
     renderComponent();
 
     expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
@@ -114,11 +119,11 @@ describe('LoginModal', () => {
   });
 
   it('gets the href for Vulnerability Link', () => {
-    spyOn(routeSelectors, 'selectRouterState').and.returnValue({ name: 'index' });
-    useSelectorLoginStateSpy.and.returnValue(loginState);
-    let hrefSpy = jasmine.createSpy('href').and.callFake((args) => `href-${args}`);
-    let includesSpy = jasmine.createSpy('includes').and.returnValue(false);
-    spyOn(routerContext, 'useRouterState').and.returnValue({
+    jest.spyOn(routeSelectors, 'selectRouterState').mockReturnValue({ name: 'index' });
+    useSelectorLoginStateSpy.mockReturnValue(loginState);
+    let hrefSpy = jest.fn().mockImplementation((args) => `href-${args}`);
+    let includesSpy = jest.fn().mockReturnValue(false);
+    jest.spyOn(routerContext, 'useRouterState').mockReturnValue({
       href: hrefSpy,
       includes: includesSpy,
     });
@@ -131,8 +136,8 @@ describe('LoginModal', () => {
   });
 
   it('does not render Vulnerability Lookup link or cancel button if unlicensed, even if on a page that does not require authentication', () => {
-    spyOn(routeSelectors, 'selectRouterState').and.returnValue(mockRouteStateNameIncludesVulnerabilitySearch);
-    useSelectorLoginStateSpy.and.callFake((state) => {
+    jest.spyOn(routeSelectors, 'selectRouterState').mockReturnValue(mockRouteStateNameIncludesVulnerabilitySearch);
+    useSelectorLoginStateSpy.mockImplementation((state) => {
       const originalSelection = originalLoginStateSelector(state);
       return { ...originalSelection, isLicensed: false, showLoginModal: true };
     });
@@ -143,7 +148,7 @@ describe('LoginModal', () => {
   });
 
   it('renders a system notice alert when one is enabled', () => {
-    spyOn(userLoginSelectors, 'selectSystemNoticeServerData').and.returnValue({
+    jest.spyOn(userLoginSelectors, 'selectSystemNoticeServerData').mockReturnValue({
       enabled: true,
       message: 'test notice',
     });
@@ -153,7 +158,7 @@ describe('LoginModal', () => {
   });
 
   it('does not render a system notice alert when not enabled', () => {
-    spyOn(userLoginSelectors, 'selectSystemNoticeServerData').and.returnValue({
+    jest.spyOn(userLoginSelectors, 'selectSystemNoticeServerData').mockReturnValue({
       enabled: false,
       message: 'test notice',
     });
@@ -162,7 +167,7 @@ describe('LoginModal', () => {
   });
 
   it('still renders login modal when system notice is not configured', () => {
-    spyOn(userLoginSelectors, 'selectSystemNoticeServerData').and.returnValue(undefined);
+    jest.spyOn(userLoginSelectors, 'selectSystemNoticeServerData').mockReturnValue(undefined);
     renderComponent();
 
     expect(screen.getByRole('heading', { name: 'Sign in' })).toBeVisible();
@@ -196,9 +201,20 @@ describe('LoginModal', () => {
       expect(screen.getAllByText('Required field').length).toBe(2);
     });
 
-    it('dismisses the modal when cancel button is clicked', () => {
-      spyOn(routeSelectors, 'selectRouterState').and.returnValue(mockRouteStateNameIncludesVulnerabilitySearch);
-      useSelectorLoginStateSpy.and.returnValue({ ...loginState, showSamlSso: true });
+    it('dismisses the modal when cancel button is clicked and route is vulnerabilitySearch', () => {
+      jest.spyOn(routeSelectors, 'selectRouterState').mockReturnValue(mockRouteStateNameIncludesVulnerabilitySearch);
+      useSelectorLoginStateSpy.mockReturnValue({ ...loginState, showSamlSso: true });
+      renderComponent();
+
+      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+      fireEvent.click(cancelButton);
+
+      expect(onDismissSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('dismisses the modal when cancel button is clicked and route is quarantinedComponentReport', () => {
+      jest.spyOn(routeSelectors, 'selectRouterState').mockReturnValue(mockRouteStateNameIncludesQuaratineComponent);
+      useSelectorLoginStateSpy.mockReturnValue({ ...loginState, showSamlSso: true });
       renderComponent();
 
       const cancelButton = screen.getByRole('button', { name: 'Cancel' });
@@ -224,21 +240,21 @@ describe('LoginModal', () => {
 
     describe('saml SSO Button tests', () => {
       it('renders login modal with "single sign-on (sso)" button if showSamlSso is true', () => {
-        useSelectorLoginStateSpy.and.returnValue({ ...loginState, showSamlSso: true });
+        useSelectorLoginStateSpy.mockReturnValue({ ...loginState, showSamlSso: true });
         renderComponent();
         expect(screen.getByRole('heading', { name: 'Sign in' })).toBeVisible();
         expect(screen.getByText('Single Sign-On (SSO)')).toBeVisible();
       });
 
       it('renders login modal without the "single sign-on (sso)" button if showSamlSso is false', () => {
-        useSelectorLoginStateSpy.and.returnValue({ ...loginState, showSamlSso: false });
+        useSelectorLoginStateSpy.mockReturnValue({ ...loginState, showSamlSso: false });
         renderComponent();
         expect(screen.getByRole('heading', { name: 'Sign in' })).toBeVisible();
         expect(() => screen.getByText('Single Sign-On (SSO)')).toThrowError();
       });
 
       it('redirects to sso login when "single sign-on (sso)" button is clicked', () => {
-        useSelectorLoginStateSpy.and.returnValue({ ...loginState, showSamlSso: true });
+        useSelectorLoginStateSpy.mockReturnValue({ ...loginState, showSamlSso: true });
         renderComponent();
 
         const ssoButton = screen.getByText('Single Sign-On (SSO)');
@@ -249,7 +265,7 @@ describe('LoginModal', () => {
     });
 
     it('renders pending submit mask upon firing login request', () => {
-      useSelectorLoginSubmitStateSpy.and.returnValue({ ...loginSubmitState, loginSubmitMaskState: false });
+      useSelectorLoginSubmitStateSpy.mockReturnValue({ ...loginSubmitState, loginSubmitMaskState: false });
       renderComponent();
 
       expect(screen.getByRole('status')).toBeVisible();
@@ -257,7 +273,7 @@ describe('LoginModal', () => {
     });
 
     it('renders success submit mask upon successful login request', () => {
-      useSelectorLoginSubmitStateSpy.and.returnValue({ ...loginSubmitState, loginSubmitMaskState: true });
+      useSelectorLoginSubmitStateSpy.mockReturnValue({ ...loginSubmitState, loginSubmitMaskState: true });
       renderComponent();
 
       expect(screen.getByRole('status')).toBeVisible();
@@ -265,7 +281,7 @@ describe('LoginModal', () => {
     });
 
     it('renders error alert with retry button if login error is thrown', () => {
-      useSelectorLoginSubmitStateSpy.and.returnValue({
+      useSelectorLoginSubmitStateSpy.mockReturnValue({
         ...loginSubmitState,
         loginSubmitError: 'Invalid credentials. Please try again.',
       });

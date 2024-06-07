@@ -204,7 +204,10 @@ public class ConfigurationProperty
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST, List.class,
           (p, s) -> ConfigurationUtils.stringToList(s),
-          (p, o) -> ConfigurationUtils.listToStringDuplicatesRemoved((List<String>) o))
+          (p, o) -> ConfigurationUtils.listToStringDuplicatesRemoved((List<String>) o)),
+      new ConfigurationProperty(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION, Boolean.class,
+          (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
+          (p, o) -> Objects.toString(o, null)),
       };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

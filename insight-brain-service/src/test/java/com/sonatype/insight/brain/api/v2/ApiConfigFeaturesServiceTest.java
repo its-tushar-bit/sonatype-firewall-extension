@@ -819,4 +819,39 @@ public class ApiConfigFeaturesServiceTest
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Feature is already disabled.");
   }
+
+  @Test
+  public void testEnableFeature_SkipSbomImportValidation() {
+    service.enableFeature(SKIP_SBOM_IMPORT_VALIDATION);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION)
+        .getValue()).isEqualTo("true");
+  }
+
+  @Test
+  public void testEnableFeature_SkipSbomImportValidation_AlreadyEnabled() {
+    service.enableFeature(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION);
+    assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_SkipSbomImportValidation() {
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION
+        .getPropertyName(), "true");
+    service.disableFeature(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION))
+        .isNull();
+  }
+
+  @Test
+  public void testDisabledByDefaultFeature_SkipSbomImportValidation() {
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION))
+        .isNull();
+  }
+
+  @Test
+  public void testDisableFeature_SkipSbomImportValidation_AlreadyDisabled() {
+    assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
 }

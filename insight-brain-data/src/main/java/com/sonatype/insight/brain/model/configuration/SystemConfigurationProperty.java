@@ -227,6 +227,8 @@ public class SystemConfigurationProperty
 
   public static final String OAUTH2_ENABLED = "OAUTH2_ENABLED";
 
+  public static final String SKIP_SBOM_IMPORT_VALIDATION = "skipSbomImportValidation";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

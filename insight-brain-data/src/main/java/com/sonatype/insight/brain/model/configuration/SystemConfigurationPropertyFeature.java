@@ -209,7 +209,9 @@ public enum SystemConfigurationPropertyFeature
    * If enabled IQ will be able to use OAuth2 to implement authentication and will be able to handle JWT bearer tokens
    * sent on the Authorization HTTP header
    */
-  OAUTH2_ENABLED(SystemConfigurationProperty.OAUTH2_ENABLED, false);
+  OAUTH2_ENABLED(SystemConfigurationProperty.OAUTH2_ENABLED, false),
+
+  SKIP_SBOM_IMPORT_VALIDATION(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION, false);
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

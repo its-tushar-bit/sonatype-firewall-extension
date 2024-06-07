@@ -188,7 +188,8 @@ public class Configuration
         SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS,
         SystemConfigurationProperty.ENTERPRISE_REPORTING_VERSION_CACHE_EXPIRATION_IN_MINUTES,
         SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED,
-        SystemConfigurationProperty.API_ACCESS_ALLOW_LIST)
+        SystemConfigurationProperty.API_ACCESS_ALLOW_LIST,
+        SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION)
     );
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
     configCache.putOrRemoveIfNull(REVERSE_PROXY_AUTHENTICATION_CONFIGURATION,

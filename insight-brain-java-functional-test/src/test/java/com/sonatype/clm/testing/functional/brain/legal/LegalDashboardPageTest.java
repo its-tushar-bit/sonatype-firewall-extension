@@ -497,6 +497,7 @@ public class LegalDashboardPageTest
     LegalDashboardPage ldp = new LegalDashboardPage();
     ldp.applicationsTab().click();
     eyesWatcher.eyesCheck();
+    ldp.tableRows().shouldHave(size(3));
     ldp.createAttributionReportButton().click();
     ldp.generateAttributionReportButton().click();
     AttributionReportFormPage arfp = new AttributionReportFormPage();

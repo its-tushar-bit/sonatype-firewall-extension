@@ -56,6 +56,12 @@ public class OAuth2ConfigurationDAO
     super.insert(tx, configuration);
   }
 
+  @Override
+  public void update(TransactionContext tx, OAuth2Configuration configuration) {
+    validate(configuration);
+    super.update(tx, configuration);
+  }
+
   private static void validate(OAuth2Configuration config) {
     if (config == null) {
       throw new IllegalArgumentException(INVALID_CONFIGURATION);

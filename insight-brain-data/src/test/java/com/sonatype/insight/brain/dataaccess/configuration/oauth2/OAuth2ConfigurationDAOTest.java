@@ -120,7 +120,7 @@ public class OAuth2ConfigurationDAOTest
 
   @Test
   public void testInsert_JwksNotSet_Blank() {
-    OAuth2Configuration config = new OAuth2Configuration(ISSUER, JWS_ALGORITHM, null, null);
+    OAuth2Configuration config = new OAuth2Configuration(ISSUER, JWS_ALGORITHM, null, "");
 
     assertThatThrownBy(() -> dao.insert(config)).isInstanceOf(IllegalArgumentException.class)
         .hasMessage(OAuth2ConfigurationDAO.IDP_JWKS_REQUIRED);
@@ -132,6 +132,55 @@ public class OAuth2ConfigurationDAOTest
     config.setExactMatchClaimsJson("{asjkdhrfk");
 
     assertThatThrownBy(() -> dao.insert(config)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(OAuth2ConfigurationDAO.EXACT_MATCH_CLAIMS_JSON_IS_INVALID);
+  }
+
+  @Test
+  public void testUpdate_AlgorithmNull() {
+    OAuth2Configuration config = new OAuth2Configuration(ISSUER, null, JWKS_URL, IDP_JWKS);
+
+    assertThatThrownBy(() -> dao.update(config)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(OAuth2ConfigurationDAO.IDP_JWS_ALGORITHM_REQUIRED);
+  }
+
+  @Test
+  public void testUpdate_AlgorithmBlank() {
+    OAuth2Configuration config = new OAuth2Configuration(ISSUER, "", JWKS_URL, IDP_JWKS);
+
+    assertThatThrownBy(() -> dao.update(config)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(OAuth2ConfigurationDAO.IDP_JWS_ALGORITHM_REQUIRED);
+  }
+
+  @Test
+  public void testUpdate_AlgorithmOnDenyList() {
+    OAuth2Configuration config = new OAuth2Configuration(ISSUER, "none", JWKS_URL, IDP_JWKS);
+
+    assertThatThrownBy(() -> dao.update(config)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(OAuth2ConfigurationDAO.JWS_ALGORITHM_NOT_ALLOWED);
+  }
+
+  @Test
+  public void testUpdate_JwksNotSet_Null() {
+    OAuth2Configuration config = new OAuth2Configuration(ISSUER, JWS_ALGORITHM, null, null);
+
+    assertThatThrownBy(() -> dao.update(config)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(OAuth2ConfigurationDAO.IDP_JWKS_REQUIRED);
+  }
+
+  @Test
+  public void testUpdate_JwksNotSet_Blank() {
+    OAuth2Configuration config = new OAuth2Configuration(ISSUER, JWS_ALGORITHM, null, "");
+
+    assertThatThrownBy(() -> dao.update(config)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(OAuth2ConfigurationDAO.IDP_JWKS_REQUIRED);
+  }
+
+  @Test
+  public void testUpdate_InvalidExactMatchClaimsJson() {
+    OAuth2Configuration config = new OAuth2Configuration(ISSUER, JWS_ALGORITHM, JWKS_URL, null);
+    config.setExactMatchClaimsJson("{asjkdhrfk");
+
+    assertThatThrownBy(() -> dao.update(config)).isInstanceOf(IllegalArgumentException.class)
         .hasMessage(OAuth2ConfigurationDAO.EXACT_MATCH_CLAIMS_JSON_IS_INVALID);
   }
 

@@ -166,6 +166,88 @@ public class OidcConfigurationDAOTest
         .hasMessage(OidcConfigurationDAO.TOKEN_REQUEST_PARAMS_JSON_IS_INVALID);
   }
 
+  @Test
+  public void testUpdate_ClientIdNull() {
+    OidcConfiguration config = new OidcConfiguration(ISSUER, null, CLIENT_SECRET, AUTHORIZATION_URL, TOKEN_URL);
+
+    assertThatThrownBy(() -> dao.update(config)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(OidcConfigurationDAO.CLIENT_ID_REQUIRED);
+  }
+
+  @Test
+  public void testUpdate_ClientIdBlank() {
+    OidcConfiguration config = new OidcConfiguration(ISSUER, "", CLIENT_SECRET, AUTHORIZATION_URL, TOKEN_URL);
+
+    assertThatThrownBy(() -> dao.update(config)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(OidcConfigurationDAO.CLIENT_ID_REQUIRED);
+  }
+
+  @Test
+  public void testUpdate_ClientSecretNull() {
+    OidcConfiguration config = new OidcConfiguration(ISSUER, CLIENT_ID, null, AUTHORIZATION_URL, TOKEN_URL);
+
+    assertThatThrownBy(() -> dao.update(config)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(OidcConfigurationDAO.CLIENT_SECRET_REQUIRED);
+  }
+
+  @Test
+  public void testUpdate_ClientSecretBlank() {
+    OidcConfiguration config = new OidcConfiguration(ISSUER, CLIENT_ID, "", AUTHORIZATION_URL, TOKEN_URL);
+
+    assertThatThrownBy(() -> dao.update(config)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(OidcConfigurationDAO.CLIENT_SECRET_REQUIRED);
+  }
+
+  @Test
+  public void testUpdate_AuthorizationUrlNull() {
+    OidcConfiguration config = new OidcConfiguration(ISSUER, CLIENT_ID, CLIENT_SECRET, null, TOKEN_URL);
+
+    assertThatThrownBy(() -> dao.update(config)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(OidcConfigurationDAO.IDP_AUTHORIZATION_URL_REQUIRED);
+  }
+
+  @Test
+  public void testUpdate_AuthorizationUrlBlank() {
+    OidcConfiguration config = new OidcConfiguration(ISSUER, CLIENT_ID, CLIENT_SECRET, "", TOKEN_URL);
+
+    assertThatThrownBy(() -> dao.update(config)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(OidcConfigurationDAO.IDP_AUTHORIZATION_URL_REQUIRED);
+  }
+
+  @Test
+  public void testUpdate_TokenUrlNull() {
+    OidcConfiguration config = new OidcConfiguration(ISSUER, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, null);
+
+    assertThatThrownBy(() -> dao.update(config)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(OidcConfigurationDAO.IDP_TOKEN_URL_REQUIRED);
+  }
+
+  @Test
+  public void testUpdate_TokenUrlBlank() {
+    OidcConfiguration config = new OidcConfiguration(ISSUER, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, "");
+
+    assertThatThrownBy(() -> dao.update(config)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(OidcConfigurationDAO.IDP_TOKEN_URL_REQUIRED);
+  }
+
+  @Test
+  public void testUpdate_InvalidAuthorizationCustomParamsJson() {
+    OidcConfiguration config = new OidcConfiguration(ISSUER, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, TOKEN_URL);
+    config.setAuthorizationCustomParamsJson("{asjkdhrfk");
+
+    assertThatThrownBy(() -> dao.update(config)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(OidcConfigurationDAO.AUTHORIZATION_PARAMS_JSON_IS_INVALID);
+  }
+
+  @Test
+  public void testUpdate_InvalidTokenRequestCustomParamsJson() {
+    OidcConfiguration config = new OidcConfiguration(ISSUER, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, TOKEN_URL);
+    config.setTokenRequestCustomParamsJson("{asjkdhrfk");
+
+    assertThatThrownBy(() -> dao.update(config)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage(OidcConfigurationDAO.TOKEN_REQUEST_PARAMS_JSON_IS_INVALID);
+  }
+
   public void assertOidcConfigurationIsTheExpected(OidcConfiguration config) {
     assertThat(config).isNotNull();
     assertThat(config.getId()).isEqualTo(ISSUER);

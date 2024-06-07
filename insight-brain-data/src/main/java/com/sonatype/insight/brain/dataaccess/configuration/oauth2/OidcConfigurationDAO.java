@@ -56,6 +56,12 @@ public class OidcConfigurationDAO
     super.insert(tx, configuration);
   }
 
+  @Override
+  public void update(TransactionContext tx, OidcConfiguration configuration) {
+    validate(configuration);
+    super.update(tx, configuration);
+  }
+
   public OidcConfiguration get() {
     String sQuery = "SELECT entity FROM OidcConfiguration entity";
     return createQuery(sQuery).forceSingleResult().get();

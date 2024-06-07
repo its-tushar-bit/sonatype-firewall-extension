@@ -96,6 +96,9 @@ describe('OwnerSideNav', () => {
         currentState: { name: 'management.view.organization' },
       },
       orgsAndPolicies: {
+        ownerSummary: {
+          loading: false,
+        },
         ownerSideNav: {
           filterQuery: rscInitialState(''),
           filteredEntries: {
@@ -142,6 +145,41 @@ describe('OwnerSideNav', () => {
     const searchInput = await screen.findByRole('textbox');
     expect(searchInput).toBeVisible();
     expect(searchInput).toHaveTextContent('');
+  });
+
+  it('remains in loading state when OwnerSummary is loading', async () => {
+    const preloadedState = {
+      productFeatures: {
+        productFeatures: {
+          'orgs-and-apps': true,
+        },
+      },
+      router: {
+        currentParams: {},
+        currentState: { name: 'management.view.organization' },
+      },
+      orgsAndPolicies: {
+        ownerSummary: {
+          loading: true,
+        },
+        ownerSideNav: {
+          loading: false,
+          filterQuery: rscInitialState(''),
+          filteredEntries: {
+            applications: [],
+            organizations: [],
+          },
+          displayedOrganization: {
+            type: 'organization',
+          },
+        },
+      },
+    };
+
+    mockAxiosCalls.reset();
+
+    renderComponent(preloadedState);
+    expect(screen.getByText('Loading…')).toBeVisible();
   });
 
   it('renders sbom manager error when trying to access without permission', async () => {

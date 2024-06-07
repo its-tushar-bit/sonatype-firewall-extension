@@ -27,6 +27,7 @@ import { actions as ownerModalActions } from 'MainRoot/OrgsAndPolicies/ownerModa
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { actions } from './ownerSideNavSlice';
 import { selectOwnerSideNavSlice, selectIsOrganizationTopOfHierarchyForUser } from './ownerSideNavSelectors';
+import { selectLoading as selectOwnerSummaryLoading } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import Application from './Application';
 import Organization from './Organization';
 import RepositoryManager from './RepositoryManager';
@@ -78,6 +79,7 @@ export default function OwnerSideNav() {
     filterLoading,
     ownersMap,
   } = useSelector(selectOwnerSideNavSlice);
+  const loadingOwnerSummary = useSelector(selectOwnerSummaryLoading);
   const isRootOrganization = useSelector(selectIsRootOrganization);
   const isOrganizationTopOfHierarchyForUser = useSelector(selectIsOrganizationTopOfHierarchyForUser);
   const isOrganization = useSelector(selectIsOrganization);
@@ -407,7 +409,11 @@ export default function OwnerSideNav() {
   return (
     <>
       <MenuBarStatefulBreadcrumb />
-      <NxLoadWrapper loading={loading || !displayedOrganization} error={error} retryHandler={load}>
+      <NxLoadWrapper
+        loading={loading || loadingOwnerSummary || !displayedOrganization}
+        error={error}
+        retryHandler={load}
+      >
         {() => {
           return (
             <>

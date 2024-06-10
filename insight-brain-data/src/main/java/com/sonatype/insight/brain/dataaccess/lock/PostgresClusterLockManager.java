@@ -5,10 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.lock;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-
 import com.sonatype.insight.brain.dataaccess.LockDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -17,8 +13,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
  * A Postgres implementation of {@link ClusterLockManager}. Locks are stored in the database and clustering is fully
  * supported.
  */
-@Named
-@Singleton
 public class PostgresClusterLockManager
     extends AbstractClusterLockManager
 {
@@ -26,7 +20,6 @@ public class PostgresClusterLockManager
 
   private final LockDAO lockDAO;
 
-  @Inject
   public PostgresClusterLockManager(final OperationalDataStore operationalDataStore, final LockDAO lockDAO) {
     this.operationalDataStore = operationalDataStore;
     this.lockDAO = lockDAO;

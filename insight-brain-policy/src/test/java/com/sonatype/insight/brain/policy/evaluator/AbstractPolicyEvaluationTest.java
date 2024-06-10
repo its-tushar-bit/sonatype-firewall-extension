@@ -29,6 +29,8 @@ import com.sonatype.insight.brain.dataaccess.DAOFactory;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -102,6 +104,7 @@ public abstract class AbstractPolicyEvaluationTest
     binder.bind(AggregationDataStore.class).toInstance(databaseRule.getAggregationDataStore());
     binder.bind(DataMartDataStore.class).toInstance(databaseRule.getDataMartDataStore());
     binder.bind(ThirdPartyScansDataStore.class).toInstance(databaseRule.getThirdPartyScansDataStore());
+    binder.bind(ClusterLockManager.class).toProvider(ClusterLockManagerProvider.class);
 
     binder.requestStaticInjection(ConditionTypes.class);
     binder.requestStaticInjection(ConditionValueTypes.class);

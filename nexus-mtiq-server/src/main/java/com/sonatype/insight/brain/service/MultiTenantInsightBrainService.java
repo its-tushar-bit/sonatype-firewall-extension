@@ -24,6 +24,8 @@ import com.sonatype.insight.brain.api.admin.service.MultiTenantActiveRequestCoun
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.audit.AdminAuditContainerRequestFilter;
 import com.sonatype.insight.brain.clients.AwsSecretsManagerClient;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
 import com.sonatype.insight.brain.datadog.DatadogInterceptor;
 import com.sonatype.insight.brain.db.DatabaseConfigProvider;
 import com.sonatype.insight.brain.db.DatabaseContainer;
@@ -312,6 +314,7 @@ public class MultiTenantInsightBrainService
         bind(DataMartDataStore.class).toInstance(databaseContainer.getDataMartDataStore());
         bind(ThirdPartyScansDataStore.class).toInstance(databaseContainer.getThirdPartyScansDataStore());
         bind(DataStoreProvider.class).toInstance(databaseContainer);
+        bind(ClusterLockManager.class).toProvider(ClusterLockManagerProvider.class);
         bind(DatabaseConfigProvider.class).toInstance(getDatabaseConfigProvider(configuration()));
       }
     });

@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.dataaccess.lock;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Semaphore;
-import javax.inject.Named;
-import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock.LockType;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -19,8 +17,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
  * not support row-level locking, due to it being configured to use the PageStore engine. So this implementation can
  * only be used in a non-clustered environment.
  */
-@Named
-@Singleton
 public class H2ClusterLockManager
     extends AbstractClusterLockManager
 {

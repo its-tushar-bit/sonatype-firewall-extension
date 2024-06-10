@@ -38,6 +38,13 @@
     }
   }
 
+  &__export-button {
+    .nx-btn.nx-segmented-btn__main-btn {
+      padding-left: var(--nx-spacing-3x);
+      padding-right: var(--nx-spacing-3x);
+    }
+  }
+
   .summary-grid {
     display: grid;
     grid-template-columns: auto auto auto;

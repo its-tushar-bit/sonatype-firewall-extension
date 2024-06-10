@@ -15,13 +15,13 @@ import {
   EXPORT_SBOM_STATE,
 } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
 
-export default function ExportAugmentedSbomModal() {
+export default function SbomAdditionalExportOptionsModal() {
   const dispatch = useDispatch();
   const {
-    exportAugmentedSbomModal: { showModal, sbomSpecification, sbomFileFormat },
+    sbomAdditionalExportOptionsModal: { showModal, sbomSpecification, sbomFileFormat },
   } = useSelector(selectBillOfMaterialsPage);
 
-  const closeModal = () => dispatch(actions.setShowExportAugmentedSbomModal(false));
+  const closeModal = () => dispatch(actions.setShowSbomAdditionalExportOptionsModal(false));
   const exportAndDownloadSbom = () => dispatch(actions.exportAndDownloadSbom({ state: EXPORT_SBOM_STATE.current }));
 
   const createRadioHandler = (name, currentValue, actionCreator) => (value) => ({
@@ -34,13 +34,13 @@ export default function ExportAugmentedSbomModal() {
   const createSbomSpecificationRadioHandler = createRadioHandler(
     'sbom-specification',
     sbomSpecification,
-    actions.setExportAugmentedSbomSpecification
+    actions.setExportSbomSpecification
   );
 
   const createSbomFileFormatRadioHandler = createRadioHandler(
     'sbom-file-format',
     sbomFileFormat,
-    actions.setExportAugmentedSbomFileFormat
+    actions.setExportSbomFileFormat
   );
 
   return (
@@ -48,11 +48,11 @@ export default function ExportAugmentedSbomModal() {
       {showModal && (
         <NxModal
           onCancel={closeModal}
-          aria-labelledby="export-augmented-sbom-modal-title"
-          id="export-augmented-sbom-modal"
+          aria-labelledby="sbom-additional-export-options-modal-title"
+          id="sbom-additional-export-options-modal"
         >
           <NxModal.Header>
-            <NxH2 id="export-augmented-sbom-modal-title">Export Augmented SBOM</NxH2>
+            <NxH2 id="sbom-additional-export-options-modal-title">Additional Export Options</NxH2>
           </NxModal.Header>
           <NxModal.Content tabIndex={0}>
             <NxFieldset label="SBOM Specification">
@@ -70,7 +70,7 @@ export default function ExportAugmentedSbomModal() {
             <div className="nx-btn-bar">
               <NxButton onClick={closeModal}>Cancel</NxButton>
               <NxButton variant="primary" onClick={exportAndDownloadSbom}>
-                Export
+                Export SBOM
               </NxButton>
             </div>
           </NxFooter>

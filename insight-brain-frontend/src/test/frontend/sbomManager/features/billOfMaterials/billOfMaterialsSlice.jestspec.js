@@ -10,7 +10,7 @@ import reducer, {
   EXPORT_SBOM_FILE_FORMAT,
   EXPORT_SBOM_SPECIFICATION,
   exportAndDownloadSbomSubmitMaskInitialState,
-  exportAugmentedSbomModalInitialState,
+  sbomAdditionalExportOptionsModalInitialState,
   initialState,
 } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
@@ -353,14 +353,14 @@ describe('billOfMaterialsPage reducers have the correct state when the following
         type: 'billOfMaterialsPage/exportAndDownloadSbom/pending',
       });
 
-      expect(newState.exportAugmentedSbomModal.showModal).toBe(false);
+      expect(newState.sbomAdditionalExportOptionsModal.showModal).toBe(false);
       expect(newState.exportAndDownloadSbomSubmitMask.showSubmitMask).toBe(true);
     });
 
     it('/rejected', () => {
       const state = {
         ...initialState,
-        exportAugmentedSbomModal: {
+        sbomAdditionalExportOptionsModal: {
           showModal: true,
           sbomSpecification: EXPORT_SBOM_SPECIFICATION.spdx,
           sbomFileFormat: EXPORT_SBOM_FILE_FORMAT.xml,
@@ -376,7 +376,7 @@ describe('billOfMaterialsPage reducers have the correct state when the following
         type: 'billOfMaterialsPage/exportAndDownloadSbom/rejected',
       });
 
-      expect(newState.exportAugmentedSbomModal).toEqual(exportAugmentedSbomModalInitialState);
+      expect(newState.sbomAdditionalExportOptionsModal).toEqual(sbomAdditionalExportOptionsModalInitialState);
       expect(newState.exportAndDownloadSbomSubmitMask).toEqual(exportAndDownloadSbomSubmitMaskInitialState);
     });
 
@@ -393,63 +393,63 @@ describe('billOfMaterialsPage reducers have the correct state when the following
     });
   });
 
-  describe('setShowExportAugmentedSbomModal', () => {
+  describe('setShowSbomAdditionalExportOptionsModal', () => {
     const state = {
-      exportAugmentedSbomModal: {
+      sbomAdditionalExportOptionsModal: {
         showModal: false,
       },
     };
 
     const newState = reducer(state, {
-      type: 'billOfMaterialsPage/setShowExportAugmentedSbomModal',
+      type: 'billOfMaterialsPage/setShowSbomAdditionalExportOptionsModal',
       payload: true,
     });
 
-    expect(newState.exportAugmentedSbomModal.showModal).toBe(true);
+    expect(newState.sbomAdditionalExportOptionsModal.showModal).toBe(true);
   });
 
-  describe('setExportAugmentedSbomSpecification', () => {
+  describe('setExportSbomSpecification', () => {
     const state = {
-      exportAugmentedSbomModal: {
+      sbomAdditionalExportOptionsModal: {
         sbomSpecification: EXPORT_SBOM_SPECIFICATION.cyclonedx,
       },
     };
 
     const newState1 = reducer(state, {
-      type: 'billOfMaterialsPage/setExportAugmentedSbomSpecification',
+      type: 'billOfMaterialsPage/setExportSbomSpecification',
       payload: 'invalid-specification',
     });
 
-    expect(newState1.exportAugmentedSbomModal.sbomSpecification).toBe(EXPORT_SBOM_SPECIFICATION.cyclonedx);
+    expect(newState1.sbomAdditionalExportOptionsModal.sbomSpecification).toBe(EXPORT_SBOM_SPECIFICATION.cyclonedx);
 
     const newState2 = reducer(newState1, {
-      type: 'billOfMaterialsPage/setExportAugmentedSbomSpecification',
+      type: 'billOfMaterialsPage/setExportSbomSpecification',
       payload: EXPORT_SBOM_SPECIFICATION.spdx,
     });
 
-    expect(newState2.exportAugmentedSbomModal.sbomSpecification).toBe(EXPORT_SBOM_SPECIFICATION.spdx);
+    expect(newState2.sbomAdditionalExportOptionsModal.sbomSpecification).toBe(EXPORT_SBOM_SPECIFICATION.spdx);
   });
 
-  describe('setExportAugmentedSbomFileFormat', () => {
+  describe('setExportSbomFileFormat', () => {
     const state = {
-      exportAugmentedSbomModal: {
+      sbomAdditionalExportOptionsModal: {
         sbomFileFormat: EXPORT_SBOM_FILE_FORMAT.json,
       },
     };
 
     const newState1 = reducer(state, {
-      type: 'billOfMaterialsPage/setExportAugmentedSbomFileFormat',
+      type: 'billOfMaterialsPage/setExportSbomFileFormat',
       payload: 'invalid-file-format',
     });
 
-    expect(newState1.exportAugmentedSbomModal.sbomFileFormat).toBe(EXPORT_SBOM_FILE_FORMAT.json);
+    expect(newState1.sbomAdditionalExportOptionsModal.sbomFileFormat).toBe(EXPORT_SBOM_FILE_FORMAT.json);
 
     const newState2 = reducer(newState1, {
-      type: 'billOfMaterialsPage/setExportAugmentedSbomFileFormat',
+      type: 'billOfMaterialsPage/setExportSbomFileFormat',
       payload: EXPORT_SBOM_FILE_FORMAT.xml,
     });
 
-    expect(newState2.exportAugmentedSbomModal.sbomFileFormat).toBe(EXPORT_SBOM_FILE_FORMAT.xml);
+    expect(newState2.sbomAdditionalExportOptionsModal.sbomFileFormat).toBe(EXPORT_SBOM_FILE_FORMAT.xml);
   });
 
   describe('UI_ROUTER_ON_FINISH', () => {

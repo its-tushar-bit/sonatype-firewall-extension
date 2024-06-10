@@ -178,7 +178,7 @@ describe('BillOfMaterials Page', () => {
     const sbomImportedDate = screen.getByTestId('bill-of-materials-page-sbom-imported-date');
     expect(sbomImportedDate).toHaveTextContent(`Imported:${createdAt}`);
 
-    expect(screen.getByRole('button', { name: 'Export' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Export SBOM' })).toBeVisible();
     expect(screen.getByText('Components')).toBeVisible();
 
     const field = await screen.findByRole('button', { name: /Viewing:/i });

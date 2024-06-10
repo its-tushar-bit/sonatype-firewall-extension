@@ -84,7 +84,7 @@ export const exportAndDownloadSbomSubmitMaskInitialState = Object.freeze({
   successMessage: null,
 });
 
-// export-augmented-modal
+// sbom-additional-export-options-modal
 export const EXPORT_SBOM_FILE_FORMAT = Object.freeze({
   json: 'application/json',
   xml: 'application/xml',
@@ -100,7 +100,7 @@ export const EXPORT_SBOM_STATE = Object.freeze({
   current: 'current',
 });
 
-export const exportAugmentedSbomModalInitialState = Object.freeze({
+export const sbomAdditionalExportOptionsModalInitialState = Object.freeze({
   showModal: false,
   sbomSpecification: EXPORT_SBOM_SPECIFICATION.cyclonedx,
   sbomFileFormat: EXPORT_SBOM_FILE_FORMAT.json,
@@ -133,8 +133,8 @@ export const initialState = Object.freeze({
   vulnerabilitiesSummary: { ...vulnerabilitiesSummaryInitialState },
   annotatedVulnerabilitesPercentage: null,
 
-  // export-augmented-sbom-modal
-  exportAugmentedSbomModal: { ...exportAugmentedSbomModalInitialState },
+  // sbom-additional-export-options-modal
+  sbomAdditionalExportOptionsModal: { ...sbomAdditionalExportOptionsModalInitialState },
   exportAndDownloadSbomSubmitMask: { ...exportAndDownloadSbomSubmitMaskInitialState },
 });
 
@@ -266,36 +266,36 @@ const loadSbomSummary = createAsyncThunk(
       .catch((err) => rejectWithValue(err))
 );
 
-// export-augmented-sbom-modal
-const setShowExportAugmentedSbomModal = (state, { payload }) => {
-  state.exportAugmentedSbomModal.showModal = payload;
+// sbom-additional-export-options-modal
+const setShowSbomAdditionalExportOptionsModal = (state, { payload }) => {
+  state.sbomAdditionalExportOptionsModal.showModal = payload;
 };
 
-const setExportAugmentedSbomSpecification = (state, { payload }) => {
+const setExportSbomSpecification = (state, { payload }) => {
   if (includes(payload, values(EXPORT_SBOM_SPECIFICATION))) {
-    state.exportAugmentedSbomModal.sbomSpecification = payload;
+    state.sbomAdditionalExportOptionsModal.sbomSpecification = payload;
   }
 };
 
-const setExportAugmentedSbomFileFormat = (state, { payload }) => {
+const setExportSbomFileFormat = (state, { payload }) => {
   if (includes(payload, values(EXPORT_SBOM_FILE_FORMAT))) {
-    state.exportAugmentedSbomModal.sbomFileFormat = payload;
+    state.sbomAdditionalExportOptionsModal.sbomFileFormat = payload;
   }
 };
 
 // export-and-download-sbom
 const exportAndDownloadSbomRequested = (state) => {
-  state.exportAugmentedSbomModal.showModal = false;
+  state.sbomAdditionalExportOptionsModal.showModal = false;
   state.exportAndDownloadSbomSubmitMask.showSubmitMask = true;
 };
 
 const exportAndDownloadSbomFailed = (state) => {
-  state.exportAugmentedSbomModal = { ...exportAugmentedSbomModalInitialState };
+  state.sbomAdditionalExportOptionsModal = { ...sbomAdditionalExportOptionsModalInitialState };
   state.exportAndDownloadSbomSubmitMask = { ...exportAndDownloadSbomSubmitMaskInitialState };
 };
 
 const exportAndDownloadSbomFulfilled = (state) => {
-  state.exportAugmentedSbomModal = { ...exportAugmentedSbomModalInitialState };
+  state.sbomAdditionalExportOptionsModal = { ...sbomAdditionalExportOptionsModalInitialState };
 
   state.exportAndDownloadSbomSubmitMask.showSubmitMask = true;
   state.exportAndDownloadSbomSubmitMask.success = true;
@@ -325,7 +325,7 @@ const exportAndDownloadSbom = createAsyncThunk(
 
     const {
       internalAppId,
-      exportAugmentedSbomModal: { sbomFileFormat, sbomSpecification },
+      sbomAdditionalExportOptionsModal: { sbomFileFormat, sbomSpecification },
     } = selectBillOfMaterialsPage(state);
     const { versionId: sbomVersion } = selectRouterCurrentParams(state);
 
@@ -377,9 +377,9 @@ const billsOfMaterialsPageSlice = createSlice({
     setPublicAppId: (state, { payload }) => {
       state.publicAppId = payload;
     },
-    setShowExportAugmentedSbomModal,
-    setExportAugmentedSbomSpecification,
-    setExportAugmentedSbomFileFormat,
+    setShowSbomAdditionalExportOptionsModal,
+    setExportSbomSpecification,
+    setExportSbomFileFormat,
     exportAndDownloadSbomSubmitMaskTimerDone,
   },
   extraReducers: {

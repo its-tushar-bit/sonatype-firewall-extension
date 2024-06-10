@@ -12,16 +12,17 @@ import {
   NxPageTitle,
   NxStatefulSegmentedButton,
   NxStatefulSubmitMask,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 import { faDownload } from '@fortawesome/pro-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { toLower } from 'ramda';
+import { toLower, toUpper } from 'ramda';
 
 import LoadWrapper from 'MainRoot/react/LoadWrapper';
 import SbomVersionDropdown from 'MainRoot/sbomManager/features/sbomVersionDropdown/SbomVersionDropdown';
 import SummaryTile from 'MainRoot/sbomManager/features/billOfMaterials/summaryTile/SummaryTile';
 import BillOfMaterialsComponentsTile from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/BillOfMaterialsComponentsTile';
-import ExportAugmentedSbomModal from './exportAugmentedSbomModal/ExportAugmentedSbomModal';
+import SbomAdditionalExportOptionsModal from './sbomAdditionalExportOptionsModal/SbomAdditionalExportOptionsModal';
 
 import { getDownloadSbomFileUrl } from 'MainRoot/util/CLMLocation';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -74,7 +75,7 @@ export default function BillOfMaterials() {
   const publicAppId = routerParams.applicationPublicId;
   const currentSbomVersion = routerParams.versionId;
 
-  const showExportAugmentedSbomModal = () => dispatch(actions.setShowExportAugmentedSbomModal(true));
+  const showSbomAdditionalExportOptionsModal = () => dispatch(actions.setShowSbomAdditionalExportOptionsModal(true));
   const exportAndDownloadSbom = (options) => dispatch(actions.exportAndDownloadSbom(options));
 
   const doLoad = () => {
@@ -129,7 +130,7 @@ export default function BillOfMaterials() {
   return (
     <div id="sbom-manager-bom" className="sbom-manager-bill-of-materials-page">
       {exportAndDownloadSbomSubmitMask}
-      <ExportAugmentedSbomModal />
+      <SbomAdditionalExportOptionsModal />
       <LoadWrapper retryHandler={() => doLoad()} loading={isLoading} error={loadError}>
         <NxPageTitle>
           <NxH1>{applicationName}</NxH1>
@@ -142,20 +143,35 @@ export default function BillOfMaterials() {
               />
             )}
             <NxStatefulSegmentedButton
+              className="sbom-manager-bill-of-materials-page__export-button"
               variant="primary"
               onClick={downloadLatestSbomFile}
               buttonContent={
-                <>
-                  <NxFontAwesomeIcon icon={faDownload} />
-                  <span>Export</span>
-                </>
+                <NxTooltip
+                  title={
+                    sbomMetadata.fileFormat &&
+                    sbomMetadata.specification &&
+                    `Export the current version of SBOM in ${sbomMetadata.specification} and ${toUpper(
+                      sbomMetadata.fileFormat
+                    )} format.`
+                  }
+                >
+                  <span>
+                    <NxFontAwesomeIcon icon={faDownload} />
+                    <span>Export SBOM</span>
+                  </span>
+                </NxTooltip>
               }
             >
               <button className="nx-dropdown-button" onClick={downloadOriginalSbomFile}>
-                Download Original SBOM
+                <NxTooltip title="Export the original imported SBOM.">
+                  <span>Export Original SBOM</span>
+                </NxTooltip>
               </button>
-              <button className="nx-dropdown-button" onClick={showExportAugmentedSbomModal}>
-                Export Augmented
+              <button className="nx-dropdown-button" onClick={showSbomAdditionalExportOptionsModal}>
+                <NxTooltip title="Export SBOM with customized options.">
+                  <span>Additional Export Options</span>
+                </NxTooltip>
               </button>
             </NxStatefulSegmentedButton>
           </NxButtonBar>

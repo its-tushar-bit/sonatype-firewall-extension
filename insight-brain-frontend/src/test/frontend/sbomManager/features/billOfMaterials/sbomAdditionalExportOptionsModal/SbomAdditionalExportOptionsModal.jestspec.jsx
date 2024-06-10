@@ -8,15 +8,15 @@ import { assocPath } from 'ramda';
 
 import { fireEvent, render, screen } from 'TestRoot/SpecUtil';
 
-import ExportAugmentedSbomModal from 'MainRoot/sbomManager/features/billOfMaterials/exportAugmentedSbomModal/ExportAugmentedSbomModal';
+import SbomAdditionalExportOptionsModal from 'MainRoot/sbomManager/features/billOfMaterials/sbomAdditionalExportOptionsModal/SbomAdditionalExportOptionsModal';
 import {
   EXPORT_SBOM_SPECIFICATION,
   EXPORT_SBOM_FILE_FORMAT,
   exportAndDownloadSbomSubmitMaskInitialState,
-  exportAugmentedSbomModalInitialState,
+  sbomAdditionalExportOptionsModalInitialState,
 } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
 
-describe('ExportAugmentedSbomModal', () => {
+describe('SbomAdditionalExportOptionsModal', () => {
   const APPLICATION_PUBLIC_ID = 'APPLICATION-PUBLIC-ID';
   const SBOM_VERSION = 'SBOM-VERSION';
 
@@ -28,20 +28,20 @@ describe('ExportAugmentedSbomModal', () => {
       },
     },
     billOfMaterialsPage: {
-      exportAugmentedSbomModal: {
-        ...exportAugmentedSbomModalInitialState,
+      sbomAdditionalExportOptionsModal: {
+        ...sbomAdditionalExportOptionsModalInitialState,
         showModal: true,
       },
       exportAndDownloadSbomSubmitMask: { ...exportAndDownloadSbomSubmitMaskInitialState },
     },
   });
 
-  const renderComponent = (state) => render(<ExportAugmentedSbomModal />, { preloadedState: { ...state } });
+  const renderComponent = (state) => render(<SbomAdditionalExportOptionsModal />, { preloadedState: { ...state } });
 
   it('should render the correct content', () => {
     renderComponent(initialState);
 
-    expect(screen.getByText(/Export Augmented SBOM/)).toBeVisible();
+    expect(screen.getByText(/Additional Export Options/)).toBeVisible();
 
     expect(screen.getByText(/SBOM Specification/)).toBeVisible();
     expect(screen.getByLabelText(/Cyclone DX/)).toBeVisible();
@@ -54,12 +54,12 @@ describe('ExportAugmentedSbomModal', () => {
     expect(screen.getByLabelText(/XML/)).toBeVisible();
 
     expect(screen.getByRole('button', { name: /Cancel/ })).toBeVisible();
-    expect(screen.getByRole('button', { name: /Export/ })).toBeVisible();
+    expect(screen.getByRole('button', { name: /Export SBOM/ })).toBeVisible();
   });
 
   it('render the correct radios state', () => {
     const preloadedState = assocPath(
-      ['billOfMaterialsPage', 'exportAugmentedSbomModal'],
+      ['billOfMaterialsPage', 'sbomAdditionalExportOptionsModal'],
       {
         showModal: true,
         sbomSpecification: EXPORT_SBOM_SPECIFICATION.spdx,
@@ -97,12 +97,12 @@ describe('ExportAugmentedSbomModal', () => {
   it('should close the modal when you click "Cancel"', async () => {
     renderComponent(initialState);
 
-    expect(screen.getByText(/Export Augmented SBOM/)).toBeVisible();
+    expect(screen.getByText(/Additional Export Options/)).toBeVisible();
 
     const cancelButton = screen.getByRole('button', { name: /Cancel/ });
 
     fireEvent.click(cancelButton);
 
-    expect(await screen.queryByText(/Export Augmented SBOM/)).not.toBeInTheDocument();
+    expect(await screen.queryByText(/Additional Export Options/)).not.toBeInTheDocument();
   });
 });

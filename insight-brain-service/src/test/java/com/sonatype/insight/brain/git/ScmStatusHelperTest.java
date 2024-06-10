@@ -49,7 +49,7 @@ public class ScmStatusHelperTest
       "http://localhost:8070/ui/links/application/appPublicId/report/scanId?source=github";
 
   private static final String PRIORITIES_TARGET_URL =
-          "http://localhost:8070/ui/links/development/priorities/appPublicId/scanId";
+          "http://localhost:8070/ui/links/developer/priorities/appPublicId/scanId";
 
   private static final String SUCCESS_DESCRIPTION = "Components: Critical: 0, Severe: 0, Moderate: 0";
 

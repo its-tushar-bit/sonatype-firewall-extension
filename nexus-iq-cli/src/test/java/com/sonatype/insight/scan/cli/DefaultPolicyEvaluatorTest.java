@@ -364,7 +364,7 @@ public abstract class DefaultPolicyEvaluatorTest
             "src/test/data/artifact.jar");
     withTestRunner(params)
             .expectInfoLog("The detailed report can be viewed online at " + insightServerUrl
-                    + "ui/links/development/priorities/the-app-id/SCAN-ID")
+                    + "ui/links/developer/priorities/the-app-id/SCAN-ID")
             .doPolicyEvaluationRun();
   }
 

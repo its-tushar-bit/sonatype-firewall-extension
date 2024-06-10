@@ -330,6 +330,15 @@ public class UserInterfaceLinksResource
     return linkToPrioritiesReportRedirect(applicationPublicId, scanId);
   }
 
+  @GET
+  @Path(PRIORITIES_PATH_LEGACY)
+  public Response legacyLinkToPrioritiesReport(
+      @PathParam("applicationPublicId") String applicationPublicId,
+      @PathParam("scanId") String scanId)
+  {
+    return linkToPrioritiesReportRedirect(applicationPublicId, scanId);
+  }
+
   private Response linkToPrioritiesReportRedirect(final String applicationPublicId, final String scanId) {
     final UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(ASSET_INDEX_PATH).fragment(PRIORITIES_PATH);

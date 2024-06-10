@@ -678,7 +678,7 @@ describe('AppIntegrationsAndRiskTable', () => {
     it('renders a link "View" when hasPrioritiesReport is true', async () => {
       const hrefSpy = jest
         .fn('href')
-        .mockImplementation((_, params) => `#/development/priorities/${params.publicAppId}/${params.scanId}`);
+        .mockImplementation((_, params) => `#/developer/priorities/${params.publicAppId}/${params.scanId}`);
       const routerContextMock = { href: hrefSpy };
       jest.spyOn(routerStateContext, 'useRouterState').mockReturnValue(routerContextMock);
 
@@ -705,7 +705,7 @@ describe('AppIntegrationsAndRiskTable', () => {
         expect(prioritiesReportLink).toBeInTheDocument();
         expect(prioritiesReportLink).toHaveAttribute(
           'href',
-          `#/development/priorities/${results[i].applicationPublicId}/${results[i].lastScanId}`
+          `#/developer/priorities/${results[i].applicationPublicId}/${results[i].lastScanId}`
         );
       }
     });

@@ -33,6 +33,7 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.COMPONENT_SCAN_REPORT_PATH;
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.POLICY_VIOLATION_REPORT_PATH;
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.PRIORITIES_PATH;
+import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.PRIORITIES_PATH_LEGACY;
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksResource.ASSET_INDEX_PATH;
 import static java.util.stream.Collectors.groupingBy;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -333,7 +334,20 @@ public class UserInterfaceLinksResourceTest
         .anon()
         .get();
     assertRedirect(response,
-        "assets/index.html#/development/priorities/" + appPublicId + "/scan-id");
+        "assets/index.html#/developer/priorities/" + appPublicId + "/scan-id");
+  }
+
+  @Test
+  public void testLegacyLinkToPrioritiesReport() throws Exception {
+    final Application application = tempEntity.newApplicationWithParent();
+    final String appPublicId = application.getPublicId();
+    final HttpResponse response = restRequest()
+        .path(UserInterfaceLinksHelper.RESOURCE_PATH).path(PRIORITIES_PATH_LEGACY)
+        .parameter(appPublicId, "scan-id")
+        .anon()
+        .get();
+    assertRedirect(response,
+        "assets/index.html#/developer/priorities/" + appPublicId + "/scan-id");
   }
 
   private Map<TelemetryPurpose, List<TelemetryItem>> getTelemetryItemsByPurpose(

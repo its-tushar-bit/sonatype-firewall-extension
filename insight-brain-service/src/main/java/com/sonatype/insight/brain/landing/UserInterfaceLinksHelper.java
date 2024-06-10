@@ -35,7 +35,9 @@ public class UserInterfaceLinksHelper
 
   public static final String PDF_PATH = "application/{applicationPublicId}/report/{scanId}/pdf";
 
-  public static final String PRIORITIES_PATH = "/development/priorities/{applicationPublicId}/{scanId}";
+  public static final String PRIORITIES_PATH = "/developer/priorities/{applicationPublicId}/{scanId}";
+
+  public static final String PRIORITIES_PATH_LEGACY = "/development/priorities/{applicationPublicId}/{scanId}";
 
   public static final String REPO_RESULT_PATH = "repository/{repositoryId}/result";
 

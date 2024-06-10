@@ -12,7 +12,7 @@ const prioritiesPageModule = angular
   .component('prioritiesPage', iqReact2Angular(PrioritiesPage, [], ['$ngRedux', '$state']))
   .config(routes);
 
-const url = '/development/priorities/{publicAppId}/{scanId}';
+const url = '/developer/priorities/{publicAppId}/{scanId}';
 
 function routes($stateProvider, $urlRouterProvider) {
   $stateProvider
@@ -24,7 +24,7 @@ function routes($stateProvider, $urlRouterProvider) {
       },
     })
     .state('prioritiesPageContainer', {
-      url: '/development/priorities/report/{publicId}/{scanId}',
+      url: '/developer/priorities/report/{publicId}/{scanId}',
       abstract: true,
       component: 'applicationReportRoot',
     })

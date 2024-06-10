@@ -38,7 +38,7 @@ public final class ReportClient
   }
 
   public String linkToPrioritiesReport() {
-    return UrlUtils.appendUrlPaths(serverUrl, "ui/links/development/priorities", appId, scanId);
+    return UrlUtils.appendUrlPaths(serverUrl, "ui/links/developer/priorities", appId, scanId);
   }
 
   /**

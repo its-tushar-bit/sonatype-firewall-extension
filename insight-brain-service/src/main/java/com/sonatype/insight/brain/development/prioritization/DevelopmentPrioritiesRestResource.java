@@ -29,7 +29,7 @@ public class DevelopmentPrioritiesRestResource
 
   static final String DEFAULT_PAGE_SIZE = "10";
 
-  static final String RESOURCE_PATH = "rest/development/priorities/{applicationId}/{scanId}";
+  static final String RESOURCE_PATH = "rest/developer/priorities/{applicationId}/{scanId}";
 
   private final DevelopmentPrioritiesService developmentPrioritiesService;
 

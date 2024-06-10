@@ -36,7 +36,7 @@ public class DevelopmentPrioritiesRestResourceTest
   }
 
   private static final String GET_PRIORITIES_PATH =
-      "rest/development/priorities/some-app-public-id/57e6e8169eca4b5a8e5d48d624c9e1ee";
+      "rest/developer/priorities/some-app-public-id/57e6e8169eca4b5a8e5d48d624c9e1ee";
 
   @Test
   public void testGetPriorities_returnsCorrectErrorWithoutAuthentication() throws Exception {

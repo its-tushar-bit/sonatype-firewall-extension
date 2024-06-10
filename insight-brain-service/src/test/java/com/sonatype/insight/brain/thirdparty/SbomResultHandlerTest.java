@@ -52,6 +52,7 @@ import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguratio
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
+import org.cyclonedx.model.Component.Type;
 import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.ExtensibleType;
 import org.cyclonedx.model.Extension;
@@ -189,7 +190,7 @@ public class SbomResultHandlerTest
         .containsOnly("9.0.14", "1.2.3", "2.9.9", "2.1.0");
     assertThat(components).extracting(Component::getPurl)
         .containsExactlyInAnyOrder("pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar", null,
-            "pkg:library/com.fasterxml.jackson.core/jackson-databind@2.9.9", null);
+            "pkg:generic/com.fasterxml.jackson.core/jackson-databind@2.9.9?sbom_type=library", null);
     assertThat(components).extracting("properties.size")
         .containsOnly(2, 2, 1, 2);
     assertThat(components.get(1).getProperties())
@@ -218,7 +219,7 @@ public class SbomResultHandlerTest
     // 4 purls were collected: 2 original purls, 2 from cpe
     assertThat(components).extracting(Component::getPurl).containsExactlyInAnyOrder(
         "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar",
-        "pkg:library/com.fasterxml.jackson.core/jackson-databind@2.9.9",
+        "pkg:generic/com.fasterxml.jackson.core/jackson-databind@2.9.9?sbom_type=library",
         "pkg:cpe/apache/log4j@2.11.2?update=rc3",
         "pkg:cpe/apache/log4j@2.12.2?language=en&update=rc1",
         null, null);
@@ -250,7 +251,7 @@ public class SbomResultHandlerTest
     // 4 purls were collected: 2 original purls, 2 from cpe
     assertThat(components).extracting(Component::getPurl).containsExactlyInAnyOrder(
         "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar",
-        "pkg:library/com.fasterxml.jackson.core/jackson-databind@2.9.9",
+        "pkg:generic/com.fasterxml.jackson.core/jackson-databind@2.9.9?sbom_type=library",
         "pkg:swid/Apache%20Log4J@2.11.2?tag_creator_name=Acme%2C%20Inc.&tag_creator_regid=example.com&" +
             "tag_id=swidgen-242eb18a-503e-ca37-393b-cf156ef09691_2.11.2",
         null, null);
@@ -281,7 +282,7 @@ public class SbomResultHandlerTest
     assertThat(components).extracting(component -> component.getType().getTypeName())
         .containsOnly("library", "library");
     assertThat(components).extracting(Component::getPurl)
-        .containsOnly(null, "pkg:library/com.fasterxml.jackson.core/jackson-databind@2.9.9");
+        .containsOnly(null, "pkg:generic/com.fasterxml.jackson.core/jackson-databind@2.9.9?sbom_type=library");
     assertThat(components).extracting("properties.size")
         .containsOnly(2, 1);
     assertThat(components.get(0).getProperties())
@@ -981,6 +982,27 @@ public class SbomResultHandlerTest
     Bom bom = assertFilteredSbomFile(filteredContent, 2);
     assertThat(bom.getMetadata()).isNotNull();
     assertThat(bom.getMetadata().getComponent().getPurl()).isEqualTo("pkg:generic/Acme/Acme%20Application@9.1.1");
+  }
+
+  @Test
+  public void testHandleAndFilterContents_v1_4_containerType_noPurl() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-v1_4-container-nopurl.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-v1_4-container-nopurl.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+
+    assertThat(filteredContent).isNotNull();
+    Bom bom = getBom(filteredContent);
+    assertThat(bom).isNotNull();
+
+    List<Component> components = bom.getComponents();
+    assertThat(components).hasSize(2);
+    assertThat(components).extracting(Component::getType).containsExactlyInAnyOrder(Type.LIBRARY, Type.CONTAINER);
+    assertThat(components).extracting(Component::getPurl).containsExactlyInAnyOrder(
+        "pkg:generic/com.google.guava/guava@30.1-jre?sbom_type=library",
+        "pkg:generic/annotation-api@1.1.6?sbom_type=container"
+    );
   }
 
   @Test
@@ -2033,7 +2055,7 @@ public class SbomResultHandlerTest
           .isEqualTo(PackageUrlIdentifier.fromComponentIdentifier(ci).getPackageUrl());
     }
     else {
-      assertThat(coordinate.getFormat()).isEqualTo(component.getType().getTypeName());
+      assertThat(coordinate.getFormat()).isEqualTo(PackageUrlIdentifier.GENERIC_FORMAT);
       assertThat(coordinate.getPackageUrl()).isNull();
     }
 

@@ -107,6 +107,8 @@ public class SbomResultHandler
 
   private static final String VULNERABILITY_KEY = "vulnerabilities";
 
+  public static final String PURL_BOM_TYPE = "sbom_type";
+
   protected final ThirdPartyFileDAO thirdPartyFileDAO;
 
   protected final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
@@ -381,14 +383,14 @@ public class SbomResultHandler
     return null;
   }
 
-  private String getPackageUrlFromCoordinates(Component component, String  name)
+  private String getPackageUrlFromCoordinates(Component component, String name)
       throws MalformedPackageURLException
   {
     String group = component.getGroup();
     String publisher = component.getPublisher();
 
     PackageURLBuilder packageURLBuilder = PackageURLBuilder.aPackageURL()
-        .withType(component.getType().getTypeName())
+        .withType(PackageUrlIdentifier.GENERIC_FORMAT)
         .withName(name)
         .withVersion(component.getVersion());
     if (StringUtils.isNotBlank(group)) {
@@ -397,6 +399,9 @@ public class SbomResultHandler
     if (StringUtils.isNotBlank(publisher)) {
       packageURLBuilder.withQualifier("publisher", publisher);
     }
+
+    packageURLBuilder.withQualifier(PURL_BOM_TYPE, component.getType().getTypeName());
+
     return packageURLBuilder.build().toString();
   }
 

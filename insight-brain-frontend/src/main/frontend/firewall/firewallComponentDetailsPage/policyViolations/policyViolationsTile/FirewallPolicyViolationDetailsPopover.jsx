@@ -22,8 +22,8 @@ import { selectApplicableWaivers } from 'MainRoot/violation/violationSelectors';
 import {
   selectAddWaiverFromFirewallRedirectionProps,
   selectFirewallPolicyViolations,
-  selectHasEditIqPermission,
   selectFirewallIsLoading,
+  selectHasPermissionToAddWaivers,
 } from 'MainRoot/firewall/firewallSelectors';
 import { selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 
@@ -40,7 +40,7 @@ export default function FirewallPolicyViolationDetailsPopover() {
   const redirectionProps = useSelector(selectAddWaiverFromFirewallRedirectionProps);
   const { activeWaivers } = useSelector(selectApplicableWaivers);
   const policyViolations = useSelector(selectFirewallPolicyViolations);
-  const hasPermissionForAppWaivers = useSelector(selectHasEditIqPermission);
+  const hasPermissionForAddWaivers = useSelector(selectHasPermissionToAddWaivers);
   const loading = useSelector(selectFirewallIsLoading);
 
   const policyDetail = selectedPolicyViolation
@@ -103,7 +103,7 @@ export default function FirewallPolicyViolationDetailsPopover() {
             ) : null}
             <AddOrRequestWaiverButton
               variant={activeWaivers?.length ? 'secondary' : 'primary'}
-              hasPermissionForAppWaivers={hasPermissionForAppWaivers}
+              hasPermissionForAppWaivers={hasPermissionForAddWaivers}
               isFirewallOrRepository
               onClickAddWaiver={redirectToAddWaiverPage}
               onClickRequestWaiver={() => {}}

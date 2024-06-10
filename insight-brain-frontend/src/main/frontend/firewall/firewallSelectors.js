@@ -61,9 +61,9 @@ export const selectFirewallLoadingError = createSelector(
   prop('firewallViolationDetailsError')
 );
 
-export const selectHasEditIqPermission = createSelector(
+export const selectHasPermissionToAddWaivers = createSelector(
   selectFirewallComponentDetailsPage,
-  prop('hasEditIqPermission')
+  prop('hasWaivePermission')
 );
 
 export const selectComponentDetails = createSelector(selectFirewallComponentDetailsPage, prop('componentDetails'));

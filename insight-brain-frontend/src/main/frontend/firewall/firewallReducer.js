@@ -104,7 +104,7 @@ export const initialState = Object.freeze({
     existingWaiversError: null,
     showManageWaiverPage: false,
     violationDetails: [],
-    hasEditIqPermission: false,
+    hasWaivePermission: false,
   }),
   viewState: Object.freeze({
     isShowConfigurationModal: false,
@@ -741,7 +741,7 @@ const loadViolationDetailFulfilled = (payload, state) => {
     componentDetailsPage: {
       ...state.componentDetailsPage,
       violationDetails: payload,
-      hasEditIqPermission: payload?.hasEditIqPermission,
+      hasWaivePermission: payload?.hasWaivePermission || false,
       firewallPolicyName: payload.policyName,
       firewallThreatLevel: payload.threatLevel,
       firewallViolationDetailsLoading: false,

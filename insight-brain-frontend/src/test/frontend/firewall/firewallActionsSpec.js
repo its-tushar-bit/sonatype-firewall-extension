@@ -1944,12 +1944,12 @@ describe('firewallActions', function () {
       expect(actions.length).toBe(1);
     });
 
-    it('dispatches FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED action after successfully requests with hasEditIqPermission=true', (done) => {
+    it('dispatches FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED action after successfully requests with hasWaivePermission=true', (done) => {
       const urlPermissionRequest = getPermissionContextTestUrl('repository', state.router.currentParams.repositoryId);
       mockAxiosCalls({
         put: {
           [urlPermissionRequest]: Promise.resolve({
-            data: ['WRITE'],
+            data: ['WAIVE_POLICY_VIOLATIONS'],
           }),
         },
       });
@@ -1960,7 +1960,7 @@ describe('firewallActions', function () {
         expect(actions[0].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED);
         expect(actions[0].payload).toBeUndefined();
         expect(actions[1].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED);
-        expect(actions[1].payload.hasEditIqPermission).toEqual(true);
+        expect(actions[1].payload.hasWaivePermission).toEqual(true);
         done();
       });
 

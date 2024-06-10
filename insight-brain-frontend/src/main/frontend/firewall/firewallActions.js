@@ -685,8 +685,8 @@ export function onGoToRepositoryComponentWaiversPage(violationId) {
     dispatch(isShowManageWaiverPage(true));
   };
 }
-function checkEditIqPermission(repositoryId) {
-  return checkPermissions(['WRITE'], 'repository', repositoryId);
+function checkPermissionToAddWaivers(repositoryId) {
+  return checkPermissions(['WAIVE_POLICY_VIOLATIONS'], 'repository', repositoryId);
 }
 export const loadFirewallViolationDetails = (policyViolationId) => (dispatch, getState) => {
   dispatch(loadViolationDetailRequested());
@@ -695,10 +695,9 @@ export const loadFirewallViolationDetails = (policyViolationId) => (dispatch, ge
     .get(getRepositoryPolicyViolationUrl(repositoryId, policyViolationId))
     .then(({ data }) => {
       const convertData = convertToWaiverViolationFormat(data);
-
-      return checkEditIqPermission(repositoryId)
+      return checkPermissionToAddWaivers(repositoryId)
         .then((_) => {
-          dispatch(loadViolationDetailFulfilled({ ...convertData, hasEditIqPermission: true, _ }));
+          dispatch(loadViolationDetailFulfilled({ ...convertData, hasWaivePermission: true, _ }));
         })
         .catch(() => {
           dispatch(loadViolationDetailFulfilled(convertData));

@@ -16,7 +16,6 @@ make(
     useEventSpy: false,
     javaVersion: 'OpenJDK 17',
     mavenVersion: 'Maven 3.9.x',
-    mavenSettingsFile: 'private-settings-build-cache',
     mavenOptions: "-D skip-functional-test -D build.number=${env.BUILD_NUMBER} --threads 4",
     retentionPolicy: currentBuild.fullProjectName.contains('master-snapshot') ? RetentionPolicy.DEFAULT : RetentionPolicy.SHORT_TERM,
     prepare: {

@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -1695,7 +1696,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport = apiLicenseLegalService
         .getLicenseLegalComponentReport(application.getType(), application.getPublicId(), componentIdentifier, null,
-            null, null, null, null);
+            null, null, null);
 
     // Without overrides, we get the HDS data
     assertThat(licenseLegalComponentReport.component.licenseLegalData.copyrights)
@@ -1738,7 +1739,7 @@ public class ApiLicenseLegalServiceTest
 
     licenseLegalComponentReport = apiLicenseLegalService
         .getLicenseLegalComponentReport(application.getType(), application.getPublicId(), componentIdentifier, null,
-            null, null, null, null);
+            null, null, null);
 
     // With overrides, we get the overridden data
     assertThat(licenseLegalComponentReport.component.licenseLegalData.copyrights)
@@ -1943,7 +1944,7 @@ public class ApiLicenseLegalServiceTest
         .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport = apiLicenseLegalService
-        .getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), c, null, null, null, null, null);
+        .getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), c, null, null, null, null);
 
     // Without saved obligation data (no obligations or obligation attributions), we get defaults
     List<ApiLicenseLegalObligationDTO> obligationDTOS =
@@ -1977,7 +1978,7 @@ public class ApiLicenseLegalServiceTest
         tempEntity.newComponentObligationAttribution(c, owner.getId(), "name4", "content4", "legalContentHash");
 
     licenseLegalComponentReport = apiLicenseLegalService
-        .getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), c, null, null, null, null, null);
+        .getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), c, null, null, null, null);
 
     // With saved obligation data, the corresponding set is as expected
     obligationDTOS =
@@ -2092,7 +2093,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
-            packageUrl, hash, null, identificationSource, scanId);
+            packageUrl, hash, identificationSource, scanId);
 
     verify(apiLicenseDataAdapterSpy).convertToDTOV2(componentArgumentCaptor.capture());
     Component component = componentArgumentCaptor.getValue();
@@ -2179,11 +2180,11 @@ public class ApiLicenseLegalServiceTest
     String ownerId = "doesNotExist";
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> apiLicenseLegalService.getLicenseLegalComponentReport(OwnerType.APPLICATION, ownerId, null,
-            null, null, null, null, null))
+            null, null, null, null))
         .withMessageContaining("Application with ID " + ownerId + " does not exist.");
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> apiLicenseLegalService.getLicenseLegalComponentReport(OwnerType.ORGANIZATION, ownerId, null,
-            null, null, null, null, null))
+            null, null, null, null))
         .withMessageContaining("Organization with ID " + ownerId + " does not exist.");
   }
 
@@ -2192,7 +2193,7 @@ public class ApiLicenseLegalServiceTest
     Application application = tempEntity.newApplicationWithParent();
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> apiLicenseLegalService.getLicenseLegalComponentReport(OwnerType.APPLICATION,
-            application.getPublicId(), null, null, "hash", null, null, null))
+            application.getPublicId(), null, null, "hash", null, null))
         .withMessageContaining("Unable to determine componentIdentifier.");
   }
 
@@ -2208,7 +2209,7 @@ public class ApiLicenseLegalServiceTest
     String packageUrl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> apiLicenseLegalService.getLicenseLegalComponentReport(OwnerType.APPLICATION,
-            application.getPublicId(), componentIdentifier, packageUrl, null, null, null, null))
+            application.getPublicId(), componentIdentifier, packageUrl, null, null, null))
         .withMessageContaining("Only one of componentIdentifier, packageUrl, or hash must be specified.");
   }
 
@@ -2218,7 +2219,7 @@ public class ApiLicenseLegalServiceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> apiLicenseLegalService.getLicenseLegalComponentReport(OwnerType.APPLICATION,
-            application.getPublicId(), componentIdentifier, "hash", null, null, null, null))
+            application.getPublicId(), componentIdentifier, "hash", null, null, null))
         .withMessageContaining("Only one of componentIdentifier, packageUrl, or hash must be specified.");
   }
 
@@ -2229,7 +2230,7 @@ public class ApiLicenseLegalServiceTest
     String packageUrl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> apiLicenseLegalService.getLicenseLegalComponentReport(OwnerType.APPLICATION,
-            application.getPublicId(), null, packageUrl, "hash", null, null, null))
+            application.getPublicId(), null, packageUrl, "hash", null, null))
         .withMessageContaining("Only one of componentIdentifier, packageUrl, or hash must be specified.");
   }
 
@@ -2240,7 +2241,7 @@ public class ApiLicenseLegalServiceTest
     String packageUrl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> apiLicenseLegalService.getLicenseLegalComponentReport(OwnerType.APPLICATION,
-            application.getPublicId(), componentIdentifier, packageUrl, "hash", null, null, null))
+            application.getPublicId(), componentIdentifier, packageUrl, "hash", null, null))
         .withMessageContaining("Only one of componentIdentifier, packageUrl, or hash must be specified.");
   }
 
@@ -2248,7 +2249,7 @@ public class ApiLicenseLegalServiceTest
   public void testGetLicenseLegalComponentReport_Unlicensed() {
     setUnlicensedForAdvancedLegalPack();
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> apiLicenseLegalService
-        .getLicenseLegalComponentReport(OwnerType.APPLICATION, "anAppPublicId", null, null, "hash", null, null, null));
+        .getLicenseLegalComponentReport(OwnerType.APPLICATION, "anAppPublicId", null, null, "hash", null, null));
   }
 
   @Test
@@ -2264,7 +2265,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
-            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+            null, null, IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport.component.licenseLegalData.componentCopyrightId)
         .isEqualTo(componentCopyright.getId());
@@ -2292,7 +2293,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(app.getType(), app.getPublicId(), componentIdentifier,
-            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+            null, null, IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport.component.licenseLegalData.componentLicensesId)
         .isEqualTo(componentLicense.getId());
@@ -2329,7 +2330,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
-            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+            null, null, IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport.component.licenseLegalData.copyrights).extracting(c -> c.content)
         .containsExactly("a", "z");
@@ -2354,7 +2355,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
-            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+            null, null, IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport.component.licenseLegalData.copyrights).extracting(c -> c.content)
         .containsExactly("a", "z", "b", "y");
@@ -2388,7 +2389,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
-            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+            null, null, IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport.component.licenseLegalData.noticeFiles).extracting(c -> c.content)
         .containsExactly("a", "z");
@@ -2427,7 +2428,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
-            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+            null, null, IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport.component.licenseLegalData.noticeFiles).extracting(c -> c.content)
         .containsExactly("a", "z", "b", "y");
@@ -2458,7 +2459,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
-            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+            null, null, IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport.component.licenseLegalData.noticeFiles).extracting(c -> c.content)
         .containsExactly("a");
@@ -2513,8 +2514,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(),
-            componentIdentifierBinary,null, null, null,
-            IdentificationSource.SONATYPE.toString(), null);
+            componentIdentifierBinary, null, null, IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport.component.licenseLegalData.noticeFiles).extracting(c -> c.content)
         .containsExactly("a");
@@ -2562,7 +2562,7 @@ public class ApiLicenseLegalServiceTest
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(),
             ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "e"),
-            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+            null, null, IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport.component.licenseLegalData.noticeFiles).extracting(c -> c.relPath)
         .containsExactlyElementsOf(Arrays.asList("/1","/2","/3"));
@@ -2581,7 +2581,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
-            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+            null, null, IdentificationSource.SONATYPE.toString(), null);
 
     ApiLicenseThreatDTOV2 expected = new ApiLicenseThreatDTOV2();
     expected.licenseThreatGroupCategory = "severe";
@@ -2605,7 +2605,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
-            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+            null, null, IdentificationSource.SONATYPE.toString(), null);
 
     ApiLicenseThreatDTOV2 expected = new ApiLicenseThreatDTOV2();
     expected.licenseThreatGroupCategory = "critical";
@@ -2646,7 +2646,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
-            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+            null, null, IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport.licenseLegalMetadata).isNotNull().isNotEmpty().hasSize(4);
     assertThat(licenseLegalComponentReport.licenseLegalMetadata)
@@ -2696,7 +2696,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
-            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+            null, null, IdentificationSource.SONATYPE.toString(), null);
 
     ApiLicenseThreatDTOV2 expected = new ApiLicenseThreatDTOV2();
     expected.licenseThreatGroupCategory = "critical";
@@ -2718,7 +2718,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
-            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+            null, null, IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport.component.licenseLegalData.highestEffectiveLicenseThreatGroup).isNull();
   }
@@ -2734,7 +2734,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
-            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+            null, null, IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport.component.stageScans)
         .usingRecursiveFieldByFieldElementComparator()
@@ -2777,7 +2777,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
-            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+            null, null, IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport.component.stageScans)
         .usingRecursiveFieldByFieldElementComparator()
@@ -2806,7 +2806,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), null,
-            null, "otherHash", null, IdentificationSource.SONATYPE.toString(), null);
+            null, "otherHash", IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport.component.stageScans)
         .usingRecursiveFieldByFieldElementComparator()
@@ -2833,7 +2833,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
-            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+            null, null, IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport.component.stageScans)
         .usingRecursiveFieldByFieldElementComparator()
@@ -2869,7 +2869,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
-            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+            null, null, IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport.component.licenseLegalData.obligations).extracting(
         ApiLicenseLegalObligationDTO::getName).containsExactly("a", "b", "k", "x", "y", "z");
@@ -2893,7 +2893,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
-            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+            null, null, IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport.component.licenseLegalData.attributions).extracting(
             ComponentObligationAttributionDTO::getObligationName)
@@ -2912,7 +2912,7 @@ public class ApiLicenseLegalServiceTest
 
     ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
         apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
-            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+            null, null, IdentificationSource.SONATYPE.toString(), null);
 
     assertThat(licenseLegalComponentReport).isNotNull();
     assertThat(licenseLegalComponentReport.component).isNotNull();

@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -115,9 +114,6 @@ public class ApiLegalReportResourceV2
   private final ApplicationAttributionReportBuilder applicationAttributionReportBuilder;
 
   private final IdUtils idUtils;
-
-  @Context
-  private HttpServletRequest httpRequest;
 
   @Inject
   public ApiLegalReportResourceV2(
@@ -402,6 +398,6 @@ public class ApiLegalReportResourceV2
       @QueryParam("scanId") String scanId) throws IOException
   {
     return apiLicenseLegalServiceV2.getLicenseLegalComponentReport(ownerType, ownerId, componentIdentifier, packageUrl,
-        hash, httpRequest, identificationSource, scanId);
+        hash, identificationSource, scanId);
   }
 }

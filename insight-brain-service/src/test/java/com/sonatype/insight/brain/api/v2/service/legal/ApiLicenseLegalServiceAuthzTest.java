@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service.legal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -183,60 +184,60 @@ public class ApiLicenseLegalServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testGetLicenseLegalComponentReport_ApplicationUnauthenticated() throws Exception {
     apiLicenseLegalService.getLicenseLegalComponentReport(app.getType(), app.getPublicId(), ComponentIdentifier
-        .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null, null);
+        .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetLicenseLegalComponentReport_ApplicationUnauthorized() throws Exception {
     login();
     apiLicenseLegalService.getLicenseLegalComponentReport(app.getType(), app.getPublicId(), ComponentIdentifier
-        .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null, null);
+        .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null);
   }
 
   @Test
   public void testGetLicenseLegalComponentReport_ApplicationAuthorized() throws Exception {
     grantLegalReviewerPermission(app.getId());
     apiLicenseLegalService.getLicenseLegalComponentReport(app.getType(), app.getPublicId(), ComponentIdentifier
-        .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null, null);
+        .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetLicenseLegalComponentReport_OrganizationUnauthenticated() throws Exception {
     apiLicenseLegalService.getLicenseLegalComponentReport(org.getType(), org.getPublicId(), ComponentIdentifier
-        .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null, null);
+        .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetLicenseLegalComponentReport_OrganizationUnauthorized() throws Exception {
     login();
     apiLicenseLegalService.getLicenseLegalComponentReport(org.getType(), org.getPublicId(), ComponentIdentifier
-        .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null, null);
+        .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null);
   }
 
   @Test
   public void testGetLicenseLegalComponentReport_OrganizationAuthorized() throws Exception {
     grantLegalReviewerPermission(org.getId());
     apiLicenseLegalService.getLicenseLegalComponentReport(org.getType(), org.getPublicId(), ComponentIdentifier
-        .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null, null);
+        .createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetLicenseLegalComponentReport_RootOrganizationUnauthenticated() throws Exception {
     apiLicenseLegalService.getLicenseLegalComponentReport(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null, null);
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetLicenseLegalComponentReport_RootOrganizationUnauthorized() throws Exception {
     login();
     apiLicenseLegalService.getLicenseLegalComponentReport(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null, null);
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null);
   }
 
   @Test
   public void testGetLicenseLegalComponentReport_RootOrganizationAuthorized() throws Exception {
     grantLegalReviewerPermission(Organization.ROOT_ORGANIZATION_ID);
     apiLicenseLegalService.getLicenseLegalComponentReport(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null, null);
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), null, null, null, null);
   }
 }

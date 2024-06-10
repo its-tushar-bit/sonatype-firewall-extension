@@ -35,7 +35,6 @@ import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
@@ -792,7 +791,6 @@ public class ApiLicenseLegalService
       ComponentIdentifier componentIdentifier,
       String packageUrl,
       String hash,
-      HttpServletRequest httpRequest,
       String identificationSource,
       String scanId) throws IOException
   {
@@ -809,7 +807,7 @@ public class ApiLicenseLegalService
     // A passed in aggregate component synthetic hash (i.e. hash of its coordinates)
     // will be different to the HDS component hash i.e. hash may not equal component.getHash()
     Component component = componentInfoService.augmentComponentDetails(owner, componentInfoService
-        .getUnaugmentedComponentDetails(owner, compIdentifier, httpRequest, identificationSource, scanId));
+        .getUnaugmentedComponentDetails(owner, compIdentifier, null, identificationSource, scanId));
     if (component.getHash() == null && hash != null) {
       component.setHash(hash);
     }

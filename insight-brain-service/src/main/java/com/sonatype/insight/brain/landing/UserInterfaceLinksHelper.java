@@ -5,7 +5,12 @@
  */
 package com.sonatype.insight.brain.landing;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import javax.ws.rs.core.UriBuilder;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class UserInterfaceLinksHelper
 {
@@ -95,6 +100,17 @@ public class UserInterfaceLinksHelper
 
   public static String getLatestReportUrl(String applicationPublicId, String stageId) {
     return buildStableUrl(LATEST_REPORT_PATH, applicationPublicId, stageId);
+  }
+
+  public static String getApplicationReportTab(String tab) {
+    String defaultTab = "overview";
+    if (!StringUtils.isEmpty(tab)) {
+      Set<String> tabs = new HashSet<>(Arrays.asList(defaultTab, "violations", "security", "legal", "labels", "audit"));
+      if (tabs.contains(tab)) {
+        return tab;
+      }
+    }
+    return defaultTab;
   }
 
   /**

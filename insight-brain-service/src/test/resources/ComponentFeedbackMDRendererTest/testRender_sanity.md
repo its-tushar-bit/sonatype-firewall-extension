@@ -1,7 +1,7 @@
 
 
 
-# <img title="Critical" alt="Critical" src="https://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png" width="20" height="20"/> <img title="Direct Dependency" alt="Direct Dependency" src="https://cdn.sonatype.com/iq-for-scm/1.0/d-logo.png" width="20" height="20"/>  Sonatype IQ found critical issues introduced by com.fasterxml.jackson.core.jackson-databind:2.13.1<br /><img title="Preview" alt="Preview" src="https://cdn.sonatype.com/iq-for-scm/1.0/Preview.svg" width="70" height="20"/>
+# <img title="Critical" alt="Critical" src="https://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png" width="20" height="20"/> <img title="Direct Dependency" alt="Direct Dependency" src="https://cdn.sonatype.com/iq-for-scm/1.0/d-logo.png" width="20" height="20"/>  Sonatype IQ found issues introduced by com.fasterxml.jackson.core.jackson-databind:2.13.1<br /><img title="Preview" alt="Preview" src="https://cdn.sonatype.com/iq-for-scm/1.0/Preview.svg" width="70" height="20"/>
 <details>
 <br/>
 

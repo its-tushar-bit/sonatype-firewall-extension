@@ -153,6 +153,21 @@ public class UserInterfaceLinksResourceTest
   }
 
   @Test
+  public void testLinkComponentScanReportWithTabQueryParam() throws Exception {
+    assertThat(UserInterfaceLinksHelper.getReportUrl("my-app-id", "my-scan-id"))
+        .isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/application/my-app-id/report/my-scan-id");
+    HttpResponse response = restRequest()
+        .path(UserInterfaceLinksHelper.RESOURCE_PATH + "/" + COMPONENT_SCAN_REPORT_PATH)
+        .parameter("my-app-id", "my-scan-id", "my-component-scan-hash")
+        .query("utm_source=github&tab=violations")
+        .anon()
+        .get();
+    assertRedirect(response,
+        "assets/index.html?utm_source=github&tab=violations#/applicationReport/my-app-id" +
+            "/my-scan-id/componentDetails/my-component-scan-hash/violations");
+  }
+
+  @Test
   public void testLinkToPolicyViolationReport() throws Exception {
     assertThat(UserInterfaceLinksHelper.getPolicyViolationReportPath("my-pv-id"))
         .isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/policyViolationReport/my-pv-id");

@@ -197,14 +197,16 @@ public class UserInterfaceLinksResource
       @PathParam("applicationPublicId") String applicationPublicId,
       @PathParam("scanId") String scanId,
       @PathParam("componentScanHash") String componentScanHash,
-      @QueryParam("source") String source)
+      @QueryParam("source") String source,
+      @QueryParam("tab") String tab)
   {
     Application application = applicationDAO.getByPublicId(applicationPublicId);
     sendSourceTelemetryData(application != null ? application.getId() : applicationPublicId, scanId, source);
-    String fragmentTemplate =
-        "/applicationReport/{applicationPublicId}/{scanId}/componentDetails/{componentScanHash}/overview";
+    String fragmentTemplate = "/applicationReport/{applicationPublicId}/{scanId}/componentDetails/{componentScanHash}";
+    String reportTab = getApplicationReportTab(tab);
+    String fragmentTemplateWithTab = fragmentTemplate.concat("/").concat(reportTab);
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(ASSET_INDEX_PATH).fragment(fragmentTemplate);
+    uriBuilder.path(ASSET_INDEX_PATH).fragment(fragmentTemplateWithTab);
     return redirect(uriBuilder, applicationPublicId, scanId, componentScanHash);
   }
 

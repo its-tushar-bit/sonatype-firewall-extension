@@ -109,9 +109,9 @@ public class ComponentFeedbackContextFactory
   {
     final String reportPath = getReportUrl(applicationPublicId, featureBranchScanId);
     return extractComponentHash(violations)
-            .map(componentHash -> format("/componentDetails/%s?source=pr-line-commenting", componentHash))
-            .map(url -> maybeAppendUTMSourceParam(url, provider))
-            .map(componentDetailsPath -> baseUrl + reportPath + componentDetailsPath);
+        .map(componentHash -> format("/componentDetails/%s?source=pr-line-commenting&tab=violations", componentHash))
+        .map(url -> maybeAppendUTMSourceParam(url, provider))
+        .map(componentDetailsPath -> baseUrl + reportPath + componentDetailsPath);
   }
 
   private static Optional<String> extractComponentHash(final List<PolicyViolation> violations) {

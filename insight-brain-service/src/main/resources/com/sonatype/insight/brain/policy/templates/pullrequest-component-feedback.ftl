@@ -60,7 +60,7 @@ There are no breaking changes. This version upgrade requires minimal effort.
 <#if data.severityInfo?hasContent>[${data.severityInfo.refId}]<#else>None</#if> <#if data.description?hasContent>${data.description}</#if>
     </#compress>
 </#macro>
-# <@threatLevelIndicatorComponent/> <@dependencyIndicatorComponent/>  Sonatype IQ found critical issues introduced by ${componentDisplayName}<#if provider == "github" || provider == "gitlab"><br /><@imageComponent mdImage=previewImage imgWidth=70 imgHeight=20/></#if>
+# <@threatLevelIndicatorComponent/> <@dependencyIndicatorComponent/>  Sonatype IQ found issues introduced by ${componentDisplayName}<#if provider == "github" || provider == "gitlab"><br /><@imageComponent mdImage=previewImage imgWidth=70 imgHeight=20/></#if>
 <details>
 <br/>
 

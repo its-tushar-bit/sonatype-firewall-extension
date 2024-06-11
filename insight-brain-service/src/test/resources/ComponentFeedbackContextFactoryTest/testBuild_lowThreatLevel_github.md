@@ -1,11 +1,11 @@
 
 
 
-# <img title="Low" alt="Low" src="https://cdn.sonatype.com/iq-for-scm/1.0/dark-blue-bar.png" width="20" height="20"/> <img title="Direct Dependency" alt="Direct Dependency" src="https://cdn.sonatype.com/iq-for-scm/1.0/d-logo.png" width="20" height="20"/>  Sonatype IQ found critical issues introduced by com.fasterxml.jackson.core.jackson-databind:2.13.1<br /><img title="Preview" alt="Preview" src="https://cdn.sonatype.com/iq-for-scm/1.0/Preview.svg" width="70" height="20"/>
+# <img title="Low" alt="Low" src="https://cdn.sonatype.com/iq-for-scm/1.0/dark-blue-bar.png" width="20" height="20"/> <img title="Direct Dependency" alt="Direct Dependency" src="https://cdn.sonatype.com/iq-for-scm/1.0/d-logo.png" width="20" height="20"/>  Sonatype IQ found issues introduced by com.fasterxml.jackson.core.jackson-databind:2.13.1<br /><img title="Preview" alt="Preview" src="https://cdn.sonatype.com/iq-for-scm/1.0/Preview.svg" width="70" height="20"/>
 <details>
 <br/>
 
-Threat Level: <strong>Low (1)</strong> \| [View Component Details in Sonatype Lifecycle](https://iq.example.com/ui/links/application/some-public-app-id/report/some-feature-branch-scan-id/componentDetails/myhash123?source=pr-line-commenting&utm_source=github)
+Threat Level: <strong>Low (1)</strong> \| [View Component Details in Sonatype Lifecycle](https://iq.example.com/ui/links/application/some-public-app-id/report/some-feature-branch-scan-id/componentDetails/myhash123?source=pr-line-commenting&tab=violations&utm_source=github)
 
 ## :shield: Recommendation
 No recommended versions are available for this component (as of _Aug 16, 2023_)

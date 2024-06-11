@@ -84,7 +84,7 @@ public class ComponentFeedbackContextFactoryTest
 
   private static final String NO_UTM_COMP_DETAILS_LINK =
       "https://iq.example.com/ui/links/application/some-public-app-id/" +
-          "report/some-feature-branch-scan-id/componentDetails/myhash123?source=pr-line-commenting";
+          "report/some-feature-branch-scan-id/componentDetails/myhash123?source=pr-line-commenting&tab=violations";
 
   private static final SecurityVulnerabilityData VULN_1 = generateVulnData("CVE-123-01", FAST_TRACK, 5.6f);
 
@@ -443,27 +443,6 @@ public class ComponentFeedbackContextFactoryTest
             DIRECT_DEP_LOGO,
             SONATYPE_PREVIEW_TAG,
             NO_CODE_SUGGESTION,
-        true);
-  }
-
-  private static ComponentFeedbackContext buildThreatLevelAndNonVulnContext(
-      final SourceControlProvider provider,
-      final ThreatLevelDisplay threatLevelDisplay,
-      final List<SecurityIssue> expectedSecurityIssues)
-  {
-    return new ComponentFeedbackContext(
-        true,
-        threatLevelDisplay,
-        resolveExpectedComponentDetailsLink(true, provider),
-        COMPONENT_DISPLAY_NAME,
-        provider,
-        BreakingChangeType.NOT_APPLICABLE.getNumBreakingChanges(),
-        "",
-        false,
-        expectedSecurityIssues,
-        DIRECT_DEP_LOGO,
-        SONATYPE_PREVIEW_TAG,
-        NO_CODE_SUGGESTION,
         true);
   }
 

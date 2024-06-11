@@ -25,7 +25,9 @@
       "version" : "2.13.2",
       "licenses" : [
         {
-          "expression" : "Apache-2.0"
+          "license" : {
+            "id" : "Apache-2.0"
+          }
         }
       ],
       "purl" : "pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar",
@@ -38,7 +40,9 @@
       "version" : "4.12",
       "licenses" : [
         {
-          "expression" : "EPL-1.0"
+          "license" : {
+            "id" : "EPL-1.0"
+          }
         }
       ],
       "purl" : "pkg:maven/junit/junit@4.12?type=jar",
@@ -48,11 +52,7 @@
     {
       "group" : "sonatype",
       "name" : "iq_application_SCM_Test",
-      "licenses" : [
-        {
-          "expression" : "NOASSERTION"
-        }
-      ],
+      "licenses" : [ ],
       "purl" : "pkg:generic/sonatype/iq_application_SCM_Test",
       "type" : "application",
       "bom-ref" : "473cbbff5cc120e810c1a32cfa9925859f40ce8f"
@@ -63,7 +63,14 @@
       "version" : "1.3",
       "licenses" : [
         {
-          "expression" : "(BSD-2-Clause AND BSD-3-Clause)"
+          "license" : {
+            "id" : "BSD-2-Clause"
+          }
+        },
+        {
+          "license" : {
+            "id" : "BSD-3-Clause"
+          }
         }
       ],
       "purl" : "pkg:maven/org.hamcrest/hamcrest-core@1.3?type=jar",
@@ -76,7 +83,9 @@
       "version" : "2.13.2",
       "licenses" : [
         {
-          "expression" : "Apache-2.0"
+          "license" : {
+            "id" : "Apache-2.0"
+          }
         }
       ],
       "purl" : "pkg:maven/org.apache.logging.log4j/log4j-api@2.13.2?type=jar",
@@ -89,7 +98,9 @@
       "version" : "1.29",
       "licenses" : [
         {
-          "expression" : "Apache-2.0"
+          "license" : {
+            "id" : "Apache-2.0"
+          }
         }
       ],
       "purl" : "pkg:maven/org.yaml/snakeyaml@1.29?type=jar",

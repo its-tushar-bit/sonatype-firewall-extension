@@ -248,7 +248,7 @@ public class SpdxToSpdxExporterTest
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar")
         .hasConcludedLicense("Apache-2.0")
         .hasDeclaredLicense("Apache-2.0")
-        .containsLicenses("Apache-2.0", "LicenseRef-Sonatype-Private", "LicenseRef-Not-Supported");
+        .containsLicenses("Apache-2.0", "Sonatype-Private", "Not-Supported");
   }
 
   @Test

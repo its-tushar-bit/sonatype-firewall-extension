@@ -70,4 +70,15 @@ public class CycloneDxComponentAssert
     }
     return this;
   }
+
+  public CycloneDxComponentAssert containsNotListedLicenses(final String... licenseNames) {
+    isNotNull();
+    List<String> actuals = actual.getLicenseChoice().getLicenses().stream().map(License::getName)
+        .collect(Collectors.toList());
+    List<String> expected = Arrays.asList(licenseNames);
+    if (!CollectionUtils.isSubCollection(expected, actuals)) {
+      failWithMessage("Expected licenses %s to be a sub set of %s", expected, actuals);
+    }
+    return this;
+  }
 }

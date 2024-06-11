@@ -235,7 +235,9 @@ public class SpdxToCycloneDxExporterTest
             "pkg:maven/org.example/JavaApp@1.0-SNAPSHOT?type=jar");
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar")
         .hasLicenseCount(3)
-        .containsLicenses("Apache-2.0", "Sonatype-Private", "Not-Supported");
+        .containsLicenses("Apache-2.0")
+        .containsNotListedLicenses("Sonatype-Private", "Not-Supported");
+
   }
 
   private Map<String, Object> mockOriginalThirdPartyScan() {

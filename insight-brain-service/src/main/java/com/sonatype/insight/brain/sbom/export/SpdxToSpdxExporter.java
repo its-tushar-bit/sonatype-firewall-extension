@@ -39,7 +39,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.spdx.library.DefaultModelStore;
 import org.spdx.library.InvalidSPDXAnalysisException;
-import org.spdx.library.SpdxConstants;
 import org.spdx.library.model.ExternalRef;
 import org.spdx.library.model.ReferenceType;
 import org.spdx.library.model.Relationship;
@@ -50,14 +49,16 @@ import org.spdx.library.model.enumerations.ReferenceCategory;
 import org.spdx.library.model.enumerations.RelationshipType;
 import org.spdx.library.model.license.AnyLicenseInfo;
 import org.spdx.library.model.license.ExtractedLicenseInfo;
+import org.spdx.library.model.license.InvalidLicenseStringException;
+import org.spdx.library.model.license.LicenseInfoFactory;
 import org.spdx.library.model.license.ListedLicenses;
+
+import static org.spdx.library.SpdxConstants.NON_STD_LICENSE_ID_PRENUM;
 
 @Named
 public class SpdxToSpdxExporter
     extends AbstractSpdxExporter
 {
-  private static final String LICENSE_REF_PREFIX = "LicenseRef-";
-
   @Inject
   protected SpdxToSpdxExporter(
       final InsightWork insightWork,
@@ -263,7 +264,9 @@ public class SpdxToSpdxExporter
     Map<String, AnyLicenseInfo> collect = new HashMap<>();
     for (ThirdPartyCoordinateLicense license : licenses) {
       AnyLicenseInfo licenseObject = createLicenseObject(license.getLicenseId(), extractedLicenses);
-      collect.put(StringUtils.lowerCase(licenseObject.getId(), Locale.ROOT), licenseObject);
+      if (licenseObject != null) {
+        collect.put(StringUtils.lowerCase(licenseObject.getId(), Locale.ROOT), licenseObject);
+      }
     }
     return collect.values();
   }
@@ -283,26 +286,37 @@ public class SpdxToSpdxExporter
       String licenseId,
       final Map<String, ExtractedLicenseInfo> extractedLicenses)
   {
+    AnyLicenseInfo anyLicenseInfo = null;
     try {
-      if (ListedLicenses.getListedLicenses().isSpdxListedLicenseId(licenseId)) {
-        return ListedLicenses.getListedLicenses().getListedLicenseById(licenseId);
+      anyLicenseInfo = LicenseInfoFactory.parseSPDXLicenseString(licenseId);
+    }
+    catch (InvalidLicenseStringException e) {
+      log.debug("Failed to parse spdx license string: {}.", licenseId);
+    }
+    if (anyLicenseInfo == null) {
+      try {
+        if (ListedLicenses.getListedLicenses().isSpdxListedLicenseId(licenseId)) {
+          return ListedLicenses.getListedLicenses().getListedLicenseById(licenseId);
+        }
+
+        if (!licenseId.startsWith(NON_STD_LICENSE_ID_PRENUM)) {
+          licenseId = NON_STD_LICENSE_ID_PRENUM + licenseId.replaceAll(INVALID_REF_REGEX, "-");
+        }
+        String lowerLicenseId = StringUtils.lowerCase(licenseId, Locale.ROOT);
+        if (extractedLicenses.containsKey(lowerLicenseId)) {
+          return extractedLicenses.get(lowerLicenseId);
+        }
+        else {
+          ExtractedLicenseInfo extractedLicenseInfo = new ExtractedLicenseInfo(licenseId, licenseId);
+          extractedLicenses.put(StringUtils.lowerCase(extractedLicenseInfo.getLicenseId(), Locale.ROOT),
+              extractedLicenseInfo);
+          return extractedLicenseInfo;
+        }
       }
-      if (!licenseId.startsWith(LICENSE_REF_PREFIX)) {
-        licenseId = SpdxConstants.NON_STD_LICENSE_ID_PRENUM + licenseId.replaceAll(INVALID_REF_REGEX, "-");
-      }
-      String lowerLicenseId = StringUtils.lowerCase(licenseId, Locale.ROOT);
-      if (extractedLicenses.containsKey(lowerLicenseId)) {
-        return extractedLicenses.get(lowerLicenseId);
-      }
-      else {
-        ExtractedLicenseInfo extractedLicenseInfo = new ExtractedLicenseInfo(licenseId, licenseId);
-        extractedLicenses.put(StringUtils.lowerCase(extractedLicenseInfo.getLicenseId(), Locale.ROOT),
-            extractedLicenseInfo);
-        return extractedLicenseInfo;
+      catch (InvalidSPDXAnalysisException e) {
+        throw new SbomExportException("Internal error extracting license information for " + licenseId, e);
       }
     }
-    catch (InvalidSPDXAnalysisException e) {
-      throw new SbomExportException("Internal error extracting license information for " + licenseId, e);
-    }
+    return anyLicenseInfo;
   }
 }

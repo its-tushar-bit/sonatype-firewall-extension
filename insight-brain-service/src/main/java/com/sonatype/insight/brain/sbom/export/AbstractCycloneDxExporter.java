@@ -57,6 +57,9 @@ import org.cyclonedx.model.vulnerability.Vulnerability.Source;
 import org.spdx.library.InvalidSPDXAnalysisException;
 import org.spdx.library.model.license.AnyLicenseInfo;
 import org.spdx.library.model.license.LicenseInfoFactory;
+import org.spdx.library.model.license.ListedLicenses;
+
+import static org.spdx.library.SpdxConstants.NON_STD_LICENSE_ID_PRENUM;
 
 public abstract class AbstractCycloneDxExporter
     extends AbstractSbomExporter
@@ -199,7 +202,7 @@ public abstract class AbstractCycloneDxExporter
     return bomComponent.getLicenseChoice();
   }
 
-  private List<License> parseLicenseChoiceExpression(String expression, String purl, String bomRef) {
+  protected List<License> parseLicenseChoiceExpression(String expression, String purl, String bomRef) {
     List<License> licenses = new ArrayList<>();
     try {
       AnyLicenseInfo anyLicenseInfo = LicenseInfoFactory.parseSPDXLicenseString(expression);
@@ -207,8 +210,17 @@ public abstract class AbstractCycloneDxExporter
       spdxLicenseExpressionUtil.parseLicenses(anyLicenseInfo, processedLicenses, purl);
       for (String licenseId : processedLicenses.keySet()) {
         License processedLicense = new License();
-        processedLicense.setId(licenseId);
-        processedLicense.setBomRef(bomRef);
+        if (ListedLicenses.getListedLicenses().isSpdxListedLicenseId(licenseId)) {
+          processedLicense.setId(licenseId);
+        }
+        else {
+          processedLicense.setName(licenseId.replaceAll(NON_STD_LICENSE_ID_PRENUM, ""));
+        }
+
+        if (bomRef != null) {
+          processedLicense.setBomRef(bomRef);
+        }
+
         licenses.add(processedLicense);
       }
     }
@@ -328,13 +340,15 @@ public abstract class AbstractCycloneDxExporter
 
   private License createNewBomComponentLicenseWithSonatypeData(ThirdPartyCoordinateLicense sonatypeComponentLicense) {
     License license = new License();
+    String licenseId = sonatypeComponentLicense.getLicenseId();
 
-    if (sonatypeComponentLicense.getLicenseId() != null) {
-      license.setId(sonatypeComponentLicense.getLicenseId());
+    if (ListedLicenses.getListedLicenses().isSpdxListedLicenseId(licenseId)) {
+      license.setId(licenseId);
     }
     else {
-      license.setName(sonatypeComponentLicense.getName());
+      license.setName(licenseId);
     }
+
     license.setUrl(sonatypeComponentLicense.getUrl());
     if (StringUtils.isNotEmpty(sonatypeComponentLicense.getIdentificationSources())) {
       if (license.getProperties() == null) {
@@ -385,21 +399,19 @@ public abstract class AbstractCycloneDxExporter
     bomAnalysis.setState(State.fromString(sonatypeVexInformation.getState()));
     bomAnalysis.setFirstIssued(sonatypeVexInformation.getCreatedAt());
     bomAnalysis.setLastUpdated(sonatypeVexInformation.getUpdatedAt());
-    if (CollectionUtils.isEmpty(bomAnalysis.getResponses())) {
-      if (StringUtils.isNotBlank(sonatypeVexInformation.getResponse())) {
-        bomAnalysis.setResponses(Collections.singletonList(Response.fromString(sonatypeVexInformation.getResponse())));
-      }
-    }
-    else {
-      Optional<Response> bomResponseFound = bomAnalysis.getResponses().stream()
-          .filter(Objects::nonNull)
-          .filter(response -> sonatypeVexInformation.getResponse() != null && response.name()
-              .equalsIgnoreCase(sonatypeVexInformation.getResponse())).findFirst();
-      if (!bomResponseFound.isPresent()) {
-        bomAnalysis.getResponses().add(Response.fromString(sonatypeVexInformation.getResponse()));
-      }
+
+    List<Response> sonatypeResponses = new ArrayList<>();
+
+    if (StringUtils.isNotBlank(sonatypeVexInformation.getResponse())) {
+      sonatypeResponses =
+          Arrays.stream(sonatypeVexInformation.getResponse().split(",")).filter(Objects::nonNull).map(String::trim)
+              .map(Response::fromString).collect(Collectors.toList());
     }
 
+    //Always override existing responses. Empty sonatypeResponses means the original VEX responses are empty as well.
+    if (CollectionUtils.isNotEmpty(sonatypeResponses)) {
+      bomAnalysis.setResponses(sonatypeResponses);
+    }
     return bomAnalysis;
   }
 

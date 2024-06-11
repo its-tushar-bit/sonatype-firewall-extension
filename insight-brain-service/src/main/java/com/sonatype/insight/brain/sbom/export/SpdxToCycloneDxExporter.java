@@ -43,6 +43,7 @@ import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.Hash;
+import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Property;
 import org.cyclonedx.model.vulnerability.Vulnerability;
@@ -222,7 +223,12 @@ public class SpdxToCycloneDxExporter
   private void setLicenseInformation(SpdxPackage spdxPackage, Component component) {
     LicenseChoice licenseChoice = new LicenseChoice();
     try {
-      licenseChoice.setExpression(spdxPackage.getLicenseConcluded().toString());
+      String licenseExpression = spdxPackage.getLicenseConcluded().toString();
+      if (StringUtils.isNotBlank(licenseExpression)) {
+        List<License> licenses =
+            parseLicenseChoiceExpression(licenseExpression, component.getPurl(), null);
+        licenseChoice.setLicenses(licenses);
+      }
     }
     catch (InvalidSPDXAnalysisException e) {
       log.debug("Error reading license information for SPDX package with ID {}", spdxPackage.getId(), e);

@@ -2118,10 +2118,10 @@
     prop-types "^15.8.1"
     ramda "^0.29.0"
 
-"@sonatype/solution-switcher-react-component@^12.6.0":
-  version "12.6.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/solution-switcher-react-component/-/solution-switcher-react-component-12.6.0.tgz#d82d56d930dfa34bca481a06cfcc8d5c0d1990bb"
-  integrity sha512-Ml2x1WyW2Wv3vskHhbqyPrm2JrNIcSXFWhZdqiYUoPJHYmNiGT44trCFH+Y/xi2f3WezC6ID66viwS9gsXgzOg==
+"@sonatype/solution-switcher-react-component@^12.7.0":
+  version "12.7.0"
+  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/solution-switcher-react-component/-/solution-switcher-react-component-12.7.0.tgz#0c9240ab2b6aaad0f5f2e70a1777883a6f7a9ac9"
+  integrity sha512-aRgiwKImQHJhzzR+10Op5Sou32aUPwFzGYxT1PrwbBtRW0ob6VLIBMVrGiHUt9KrNUbRPYa9IeE1t1cr6/ozkQ==
   dependencies:
     "@fortawesome/pro-light-svg-icons" "^5.15.4"
     "@fortawesome/pro-regular-svg-icons" "^5.15.4"

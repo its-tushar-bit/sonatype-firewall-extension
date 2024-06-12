@@ -16,10 +16,13 @@ import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelpe
 import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkProvider;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.rule.DatabaseContainerRule;
 import com.sonatype.insight.brain.db.rule.MultiTenantDatabaseContainerRule;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.security.EncryptionKeyStore;
+import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.security.TestMultiTenantEncryptionKeyStore;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.tenancy.Tenant;
@@ -124,6 +127,11 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
 
     TenantTestHelper.setGlobalTenant();
     afterDatabaseReset();
+
+    if (testCLMServer != null && testCLMServer.isRunning()) {
+      disableSsoWithSaml();
+      disableSsoWithOAuth2();
+    }
 
     super.cleanupTest();
   }
@@ -311,5 +319,32 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
 
   protected void testAsGlobal(ConsumerWithException<Tenant> test) {
     TenantTestHelper.testAsTenant(GLOBAL_TENANT, test);
+  }
+
+  public void enableSsoWithOAuth2() {
+    SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(true);
+    tenantTemporaryEntity.newOAuth2Configuration();
+    loadSsoConfiguration();
+  }
+
+  public void disableSsoWithOAuth2() {
+    SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(false);
+    loadSsoConfiguration();
+  }
+
+  public void enableSsoWithSaml() {
+    tenantTemporaryEntity.newSamlConfiguration();
+    loadSsoConfiguration();
+  }
+
+  public void disableSsoWithSaml() {
+    SamlConfigurationDAO samlConfigurationDAO = lookup(SamlConfigurationDAO.class);
+    samlConfigurationDAO.delete();
+    loadSsoConfiguration();
+  }
+
+  private void loadSsoConfiguration() {
+    SsoUserService ssoUserService = lookup(SsoUserService.class);
+    ssoUserService.loadSsoConfiguration();
   }
 }

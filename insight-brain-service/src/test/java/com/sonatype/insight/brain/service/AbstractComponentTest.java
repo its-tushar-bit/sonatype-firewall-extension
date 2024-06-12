@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.dataaccess.DatamartUpdaterState;
 import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.TelemetryId;
@@ -48,6 +49,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
 import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
 import com.sonatype.insight.brain.security.InternalRealm;
+import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -139,6 +141,8 @@ public class AbstractComponentTest
     resetAccessAllowlist();
     resetApiAccessAllowList();
     SharedConfigurationState.clear();
+    disableSsoWithOAuth2();
+    disableSsoWithSaml();
   }
 
   public String getBaseUrl() {
@@ -358,5 +362,32 @@ public class AbstractComponentTest
     assertThat(oneException).hasValue(null);
     assertThat(twoFinished.await(2, TimeUnit.SECONDS)).isTrue();
     assertThat(twoException).hasValue(null);
+  }
+
+  public void enableSsoWithOAuth2() {
+    SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(true);
+    tempEntity.newOAuth2Configuration();
+    loadSsoConfiguration();
+  }
+
+  public void disableSsoWithOAuth2() {
+    SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(false);
+    loadSsoConfiguration();
+  }
+
+  public void enableSsoWithSaml() {
+    tempEntity.newSamlConfiguration();
+    loadSsoConfiguration();
+  }
+
+  public void disableSsoWithSaml() {
+    SamlConfigurationDAO samlConfigurationDAO = lookup(SamlConfigurationDAO.class);
+    samlConfigurationDAO.delete();
+    loadSsoConfiguration();
+  }
+
+  private void loadSsoConfiguration() {
+    SsoUserService ssoUserService = lookup(SsoUserService.class);
+    ssoUserService.loadSsoConfiguration();
   }
 }

@@ -31,7 +31,7 @@ public class MultiTenantAdministratorsTest
     refreshOrOpen(AdministratorsPage.url());
     loginAsAdmin();
 
-    tempEntity.newSamlConfiguration();
+    enableSsoWithSaml();
     tempEntity.newSamlUser("a-john@doe.net", "John", "Doe", "a-john@doe.net");
     tempEntity.newSamlUser("b-jane@doe.net", "Jane", "Doe", "b-jane@doe.net");
   }

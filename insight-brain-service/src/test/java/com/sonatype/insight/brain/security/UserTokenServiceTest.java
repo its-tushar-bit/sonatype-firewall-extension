@@ -16,19 +16,22 @@ import java.util.Locale;
 import java.util.Objects;
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenExistsDTO;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
+import com.sonatype.insight.brain.model.security.OAuth2User;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -73,11 +76,15 @@ public class UserTokenServiceTest
 
   private SamlUserDAO spySamlUserDAO;
 
+  private OAuth2UserDAO spyOAuth2UserDAO;
+
   @Override
   public void configure(Binder binder) {
     spySamlUserDAO = spy(daoFactory.createSamlUserDAO());
+    spyOAuth2UserDAO = spy(daoFactory.createOAuth2UserDAO());
     binder.bind(ProductLicense.class).toInstance(mockProductLicense);
     binder.bind(SamlUserDAO.class).toInstance(spySamlUserDAO);
+    binder.bind(OAuth2UserDAO.class).toInstance(spyOAuth2UserDAO);
     super.configure(binder);
   }
 
@@ -139,10 +146,12 @@ public class UserTokenServiceTest
 
   @Test
   public void testCreateUserToken_SamlUser_DoesNotExist() {
+    enableSsoWithSaml();
+
     SamlUser samlUser = new SamlUser("someUsername", "someFirstName", "someLastName", "someEmail@someDomain.com",
         new LinkedHashSet<>(Arrays.asList("someGroup1", "someGroup2")));
     when(subject.getPrincipal()).thenReturn(
-        new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), SamlUser.SAML_REALM_ID,
+        new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), SamlRealm.ID,
             samlUser.getGroups()));
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> userTokenService.createUserToken())
@@ -151,10 +160,12 @@ public class UserTokenServiceTest
 
   @Test
   public void testCreateUserToken_SamlUser_Exists() {
+    enableSsoWithSaml();
+
     SamlUser samlUser = tempEntity.newSamlUser();
     try {
       when(subject.getPrincipal()).thenReturn(
-          new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), SamlUser.SAML_REALM_ID,
+          new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), SamlRealm.ID,
               samlUser.getGroups()));
       Date start = new Date();
 
@@ -163,12 +174,12 @@ public class UserTokenServiceTest
       Date end = new Date();
       assertThat(apiUserTokenDTO.userCode).hasSize(8);
       assertThat(apiUserTokenDTO.passCode).hasSize(44);
-      UserToken persistedToken = userTokenDAO.getByUsernameAndRealmId(samlUser.getUsername(), SamlUser.SAML_REALM_ID);
+      UserToken persistedToken = userTokenDAO.getByUsernameAndRealmId(samlUser.getUsername(), SamlRealm.ID);
       assertThat(persistedToken).isNotNull();
       assertThat(persistedToken.getUsername()).isEqualTo(samlUser.getUsername());
       assertThat(persistedToken.getUserCode()).isEqualTo(apiUserTokenDTO.userCode);
       assertThat(persistedToken.getPassCode()).isNotNull();
-      assertThat(persistedToken.getRealmId()).isEqualTo(SamlUser.SAML_REALM_ID);
+      assertThat(persistedToken.getRealmId()).isEqualTo(SamlRealm.ID);
       assertThat(persistedToken.getCreateTime()).isBetween(start, end, true, true);
       assertThat(persistedToken.isInternalUser()).isFalse();
       assertThat(persistedToken.getPassCode()).isNotEqualTo(apiUserTokenDTO.passCode);
@@ -178,7 +189,57 @@ public class UserTokenServiceTest
       verify(spySamlUserDAO, never()).insert(any(), any());
     }
     finally {
-      userTokenDAO.delete(userTokenDAO.getByUsernameAndRealmId(samlUser.getUsername(), SamlUser.SAML_REALM_ID));
+      userTokenDAO.delete(userTokenDAO.getByUsernameAndRealmId(samlUser.getUsername(), SamlRealm.ID));
+    }
+  }
+
+  @Test
+  public void testCreateUserToken_OAuth2User_DoesNotExist() {
+    enableSsoWithSaml();
+
+    OAuth2User oauth2User = new OAuth2User("someUsername", "someFirstName", "someLastName", "someEmail@someDomain.com",
+        new LinkedHashSet<>(Arrays.asList("someGroup1", "someGroup2")));
+    when(subject.getPrincipal()).thenReturn(
+        new UserPrincipal(oauth2User.getUsername(), oauth2User.calculateDisplayName(), OAuth2Realm.ID,
+            oauth2User.getGroups()));
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> userTokenService.createUserToken())
+        .withMessageContaining("Unable to get user session details, you must relogin before generating a user token.");
+  }
+
+  @Test
+  public void testCreateUserToken_OAuth2User_Exists() {
+    enableSsoWithOAuth2();
+
+    OAuth2User oauth2User = tempEntity.newOAuth2User();
+    try {
+      when(subject.getPrincipal()).thenReturn(
+          new UserPrincipal(oauth2User.getUsername(), oauth2User.calculateDisplayName(), OAuth2Realm.ID,
+              oauth2User.getGroups()));
+      Date start = new Date();
+
+      ApiUserTokenDTO apiUserTokenDTO = userTokenService.createUserToken();
+
+      Date end = new Date();
+      assertThat(apiUserTokenDTO.userCode).hasSize(8);
+      assertThat(apiUserTokenDTO.passCode).hasSize(44);
+      UserToken persistedToken =
+          userTokenDAO.getByUsernameAndRealmId(oauth2User.getUsername(), OAuth2Realm.ID);
+      assertThat(persistedToken).isNotNull();
+      assertThat(persistedToken.getUsername()).isEqualTo(oauth2User.getUsername());
+      assertThat(persistedToken.getUserCode()).isEqualTo(apiUserTokenDTO.userCode);
+      assertThat(persistedToken.getPassCode()).isNotNull();
+      assertThat(persistedToken.getRealmId()).isEqualTo(OAuth2Realm.ID);
+      assertThat(persistedToken.getCreateTime()).isBetween(start, end, true, true);
+      assertThat(persistedToken.isInternalUser()).isFalse();
+      assertThat(persistedToken.getPassCode()).isNotEqualTo(apiUserTokenDTO.passCode);
+
+      assertThat(spyOAuth2UserDAO.getByUsername(oauth2User.getUsername())).usingRecursiveComparison().ignoringFields(
+          JPA.IGNORE_FIELDS).isEqualTo(oauth2User);
+      verify(spyOAuth2UserDAO, never()).insert(any(), any());
+    }
+    finally {
+      userTokenDAO.delete(userTokenDAO.getByUsernameAndRealmId(oauth2User.getUsername(), OAuth2Realm.ID));
     }
   }
 
@@ -281,9 +342,9 @@ public class UserTokenServiceTest
     tempEntity.newUserToken("foo", User.INTERNAL_REALM_ID, december27);
     UserToken bar = tempEntity.newUserToken("bar", User.INTERNAL_REALM_ID, december28);
     tempEntity.newUserToken("baz", User.INTERNAL_REALM_ID, december29);
-    UserToken qux = tempEntity.newUserToken("qux", SamlUser.SAML_REALM_ID, december28);
-    tempEntity.newUserToken("sam27", SamlUser.SAML_REALM_ID, december27);
-    tempEntity.newUserToken("sam29", SamlUser.SAML_REALM_ID, december29);
+    UserToken qux = tempEntity.newUserToken("qux", SamlRealm.ID, december28);
+    tempEntity.newUserToken("sam27", SamlRealm.ID, december27);
+    tempEntity.newUserToken("sam29", SamlRealm.ID, december29);
 
     List<ApiUserTokenDTO> userTokenDTOs =
         userTokenService.getUserTokensCreatedBetweenAndRealmId("2019-12-28", "2019-12-28", "iNTeRnaL");
@@ -305,13 +366,13 @@ public class UserTokenServiceTest
   @Test
   public void testGetUserTokensByCreatedBetweenAndRealmId_MustHandleNullArguments() {
     tempEntity.newUserToken("foo", december27);
-    UserToken sam1 = tempEntity.newUserToken("sam1", SamlUser.SAML_REALM_ID, december27);
+    UserToken sam1 = tempEntity.newUserToken("sam1", SamlRealm.ID, december27);
     tempEntity.newUserToken("bar", december28);
-    UserToken sam2 = tempEntity.newUserToken("sam2", SamlUser.SAML_REALM_ID, december28);
+    UserToken sam2 = tempEntity.newUserToken("sam2", SamlRealm.ID, december28);
     tempEntity.newUserToken("baz", december29);
-    UserToken sam3 = tempEntity.newUserToken("sam3", SamlUser.SAML_REALM_ID, december29);
+    UserToken sam3 = tempEntity.newUserToken("sam3", SamlRealm.ID, december29);
     tempEntity.newUserToken("qux", december30);
-    UserToken sam4 = tempEntity.newUserToken("sam4", SamlUser.SAML_REALM_ID, december30);
+    UserToken sam4 = tempEntity.newUserToken("sam4", SamlRealm.ID, december30);
 
     // Assert all user tokens are returned with user code
     List<ApiUserTokenDTO> userTokenDTOs = userTokenService.getUserTokensCreatedBetweenAndRealmId(null, null, "SAML");
@@ -441,21 +502,21 @@ public class UserTokenServiceTest
         tempEntity.newUserToken("username1", "userCode1", "passCode", User.INTERNAL_REALM_ID);
     tempEntity.newUser("username2");
     tempEntity.newUserToken("username2", User.INTERNAL_REALM_ID);
-    UserToken samlUserToken1 = tempEntity.newUserToken("username1", "userCode2", "passCode", SamlUser.SAML_REALM_ID);
-    tempEntity.newUserToken("username2", "userCode3", "passCode", SamlUser.SAML_REALM_ID);
+    UserToken samlUserToken1 = tempEntity.newUserToken("username1", "userCode2", "passCode", SamlRealm.ID);
+    tempEntity.newUserToken("username2", "userCode3", "passCode", SamlRealm.ID);
     tempEntity.newUserToken("username1", "userCode4", "passCode", "other");
     tempEntity.newUserToken("username2", "userCode5", "passCode", "other");
 
-    if (!SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
+    if (!SamlRealm.ID.equalsIgnoreCase(realmId)) {
       usernameToQuery = usernameToQuery.toUpperCase(Locale.ENGLISH);
     }
 
     ApiUserTokenDTO result = userTokenService.getUserTokenByUsernameAndRealmId(usernameToQuery, realmId);
 
     String expectedRealmId;
-    if (SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
+    if (SamlRealm.ID.equalsIgnoreCase(realmId)) {
       assertThat(result.userCode).isEqualTo(samlUserToken1.getUserCode());
-      expectedRealmId = SamlUser.SAML_REALM_ID;
+      expectedRealmId = SamlRealm.ID;
     }
     else {
       assertThat(result.userCode).isEqualTo(internalUserToken1.getUserCode());

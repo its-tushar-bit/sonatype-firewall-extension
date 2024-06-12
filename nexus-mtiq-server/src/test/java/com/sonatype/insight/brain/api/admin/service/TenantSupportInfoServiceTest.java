@@ -64,6 +64,7 @@ public class TenantSupportInfoServiceTest
       when(supportInfoFiles.withTenantInfo()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withUsersDetails()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withSamlUsersDetails()).thenReturn(supportInfoFiles);
+      when(supportInfoFiles.withOauth2UsersDetails()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withRolesDetails()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withRolePermissionDetails()).thenReturn(supportInfoFiles);
       when(supportInfoFiles.withMembershipMappings()).thenReturn(supportInfoFiles);

@@ -9,7 +9,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.users.MtiqUserDTO;
 
 @Named
@@ -18,17 +17,18 @@ public class MultiTenantSsoUserService
     extends SsoUserService
 {
   @Inject
-  public MultiTenantSsoUserService(SamlSsoUserProvider samlUserGroupHelper) {
-    super(samlUserGroupHelper);
+  public MultiTenantSsoUserService(
+      SamlSsoUserProvider samlSsoUserProvider,
+      OAuth2SsoUserProvider oAuth2SsoUserProvider)
+  {
+    super(samlSsoUserProvider, oAuth2SsoUserProvider);
   }
 
   public void upsertByUsername(final MtiqUserDTO ssoUser) {
-    samlSsoUserProvider.upsertByUsername(ssoUserFromMtiqUser(ssoUser));
+    getEnabledSsoUserProvider().upsertByUsername(ssoUserFromMtiqUser(ssoUser));
   }
 
   static SsoUser ssoUserFromMtiqUser(final MtiqUserDTO user) {
-    SsoUser ssoUser = new SsoUser(user.getUsername(), user.getFirstName(), user.getLastName(), user.getEmail(),
-        SamlUser.SAML_REALM_ID, null);
-    return ssoUser;
+    return new SsoUser(user.getUsername(), user.getFirstName(), user.getLastName(), user.getEmail());
   }
 }

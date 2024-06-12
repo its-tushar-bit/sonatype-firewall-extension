@@ -49,8 +49,8 @@ public class JwtCredentialsMatcherTest
     String token = jwtGenerator.generateJWT(sub, issuer);
     ShiroJsonWebToken shiroJsonWebToken = new ShiroJsonWebToken(token);
     AuthenticationInfo authenticationInfo =
-        new SimpleAuthenticationInfo(new UserPrincipal(sub, sub, JwtRealm.ID, groups),
-            shiroJsonWebToken.getCredentials(), JwtRealm.ID);
+        new SimpleAuthenticationInfo(new UserPrincipal(sub, sub, OAuth2Realm.ID, groups),
+            shiroJsonWebToken.getCredentials(), OAuth2Realm.ID);
     when(shiroJsonWebTokenValidator.isTokenValid(shiroJsonWebToken)).thenReturn(true);
 
     assertThat(credentialsMatcher.doCredentialsMatch(shiroJsonWebToken, authenticationInfo)).isTrue();
@@ -68,8 +68,8 @@ public class JwtCredentialsMatcherTest
     ShiroJsonWebToken shiroJsonWebToken = new ShiroJsonWebToken(token);
     ShiroJsonWebToken anotherShiroJsonWebToken = new ShiroJsonWebToken(anotherToken);
     AuthenticationInfo authenticationInfo =
-        new SimpleAuthenticationInfo(new UserPrincipal(sub, sub, JwtRealm.ID, groups),
-            anotherShiroJsonWebToken.getCredentials(), JwtRealm.ID);
+        new SimpleAuthenticationInfo(new UserPrincipal(sub, sub, OAuth2Realm.ID, groups),
+            anotherShiroJsonWebToken.getCredentials(), OAuth2Realm.ID);
 
     assertThat(credentialsMatcher.doCredentialsMatch(shiroJsonWebToken, authenticationInfo)).isFalse();
     verify(shiroJsonWebTokenValidator, never()).isTokenValid(shiroJsonWebToken);
@@ -84,8 +84,8 @@ public class JwtCredentialsMatcherTest
     String token = jwtGenerator.generateJWT(sub, issuer);
     ShiroJsonWebToken shiroJsonWebToken = new ShiroJsonWebToken(token);
     AuthenticationInfo authenticationInfo =
-        new SimpleAuthenticationInfo(new UserPrincipal(sub, sub, JwtRealm.ID, groups),
-            shiroJsonWebToken.getCredentials(), JwtRealm.ID);
+        new SimpleAuthenticationInfo(new UserPrincipal(sub, sub, OAuth2Realm.ID, groups),
+            shiroJsonWebToken.getCredentials(), OAuth2Realm.ID);
     when(shiroJsonWebTokenValidator.isTokenValid(shiroJsonWebToken)).thenReturn(false);
 
     assertThat(credentialsMatcher.doCredentialsMatch(shiroJsonWebToken, authenticationInfo)).isFalse();

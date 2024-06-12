@@ -68,7 +68,7 @@ public class UserToken
   }
 
   public boolean isSsoUser() {
-    return SamlUser.SAML_REALM_ID.equals(realmId);
+    return SamlUser.SAML_REALM_ID.equals(realmId) || OAuth2User.OAUTH2_REALM_ID.equals(realmId);
   }
 
   public String getUserCode() {

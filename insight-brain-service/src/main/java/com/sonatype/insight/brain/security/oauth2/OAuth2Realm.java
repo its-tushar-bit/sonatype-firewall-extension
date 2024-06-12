@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.security.oauth2;
 
 import java.util.LinkedHashSet;
-import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -14,7 +13,10 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2ConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration;
+import com.sonatype.insight.brain.model.security.OAuth2User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.security.SsoUser;
+import com.sonatype.insight.brain.security.SsoUserService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authc.AuthenticationException;
@@ -27,12 +29,12 @@ import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
-public class JwtRealm
+public class OAuth2Realm
     extends AuthenticatingRealm
 {
-  private static final Logger log = LoggerFactory.getLogger(JwtRealm.class);
+  private static final Logger log = LoggerFactory.getLogger(OAuth2Realm.class);
 
-  public static final String ID = "JWT";
+  public static final String ID = OAuth2User.OAUTH2_REALM_ID;
 
   public static final String NICKNAME_CLAIM = "nickname";
 
@@ -46,12 +48,16 @@ public class JwtRealm
 
   private final OAuth2ConfigurationDAO oAuth2ConfigurationDAO;
 
+  private final SsoUserService ssoUserService;
+
   @Inject
-  public JwtRealm(
+  public OAuth2Realm(
       final OAuth2ConfigurationDAO oAuth2ConfigurationDAO,
-      final ShiroJsonWebTokenValidator shiroJsonWebTokenValidator)
+      final ShiroJsonWebTokenValidator shiroJsonWebTokenValidator,
+      final SsoUserService ssoUserService)
   {
     this.oAuth2ConfigurationDAO = oAuth2ConfigurationDAO;
+    this.ssoUserService = ssoUserService;
     this.setCredentialsMatcher(new JwtCredentialsMatcher(shiroJsonWebTokenValidator));
   }
 
@@ -91,31 +97,25 @@ public class JwtRealm
     String lastName = jwtToken.getValueFromClaimOrDefaultClaim(configuration.getLastNameClaim(), FAMILY_NAME_CLAIM);
     String email = jwtToken.getValueFromClaimOrDefaultClaim(configuration.getEmailClaim(), EMAIL_CLAIM);
 
-    // Calculate the final username, name and groups
-    String principalUsername = calculatePrincipalUserName(username, email, sub);
-    String name = calculateDisplayName(firstName, lastName, principalUsername);
+    // Calculate the principal username and groups
+    String principalUsername = getPrincipalUsername(username, email, sub);
     Set<String> groups =
         new LinkedHashSet<>(jwtToken.getValueAsListFromClaimOrDefaultClaim(configuration.getGroupsClaim(),
             GROUPS_CLAIM));
 
-    return new UserPrincipal(principalUsername, name, ID, groups);
+    // Creating the oauth2 user
+    SsoUser ssoUser = new SsoUser(principalUsername, firstName, lastName, email, ID, groups);
+    ssoUserService.updateSsoUserAndGroups(ssoUser, ssoUser.getGroups());
+
+    return new UserPrincipal(ssoUser.getUsername(), ssoUser.calculateDisplayName(), ID, groups);
   }
 
-  public String calculatePrincipalUserName(String username, String email, String subject) {
+  public String getPrincipalUsername(String username, String email, String subject) {
     if (StringUtils.isNotBlank(username)) {
       return username;
     }
     else {
       return StringUtils.isNotBlank(email) ? email : subject;
     }
-  }
-
-  public String calculateDisplayName(String firstName, String lastName, String username) {
-    String displayName = Optional.ofNullable(firstName).orElse("") + " " + Optional.ofNullable(lastName).orElse("");
-    displayName = displayName.trim();
-    if (displayName.isEmpty()) {
-      displayName = username;
-    }
-    return displayName;
   }
 }

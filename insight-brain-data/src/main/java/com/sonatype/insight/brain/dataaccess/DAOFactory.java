@@ -79,6 +79,9 @@ import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScmScanContextDAO;
 import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
+import com.sonatype.insight.brain.dataaccess.security.OAuth2GroupDAO;
+import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
+import com.sonatype.insight.brain.dataaccess.security.OAuth2UserGroupDAO;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
@@ -298,6 +301,12 @@ public interface DAOFactory
   SamlUserDAO createSamlUserDAO();
 
   SamlUserGroupDAO createSamlUserGroupDAO();
+
+  OAuth2GroupDAO createOAuth2GroupDAO();
+
+  OAuth2UserDAO createOAuth2UserDAO();
+
+  OAuth2UserGroupDAO createOAuth2UserGroupDAO();
 
   ShiroSessionDAO createShiroSessionDAO();
 

@@ -131,6 +131,9 @@
     <class>com.sonatype.insight.brain.model.sast.SastPullRequestComment</class>
     <class>com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration</class>
     <class>com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration</class>
+    <class>com.sonatype.insight.brain.model.security.OAuth2User</class>
+    <class>com.sonatype.insight.brain.model.security.OAuth2Group</class>
+    <class>com.sonatype.insight.brain.model.security.OAuth2UserGroup</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

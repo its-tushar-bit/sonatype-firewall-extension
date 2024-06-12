@@ -85,6 +85,9 @@ import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.dataaccess.search.DefaultSearchIndexManager;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
+import com.sonatype.insight.brain.dataaccess.security.OAuth2GroupDAO;
+import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
+import com.sonatype.insight.brain.dataaccess.security.OAuth2UserGroupDAO;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
@@ -760,6 +763,28 @@ public class TestDAOFactory
   @Override
   public SamlUserGroupDAO createSamlUserGroupDAO() {
     return new SamlUserGroupDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public OAuth2GroupDAO createOAuth2GroupDAO() {
+    OAuth2UserGroupDAO oAuth2UserGroupDAO = createOAuth2UserGroupDAO();
+    return new OAuth2GroupDAO(dataStoreProvider.getOperationalDataStore(), oAuth2UserGroupDAO);
+  }
+
+  @Override
+  public OAuth2UserDAO createOAuth2UserDAO() {
+    UserTokenDAO userTokenDAO = createUserTokenDAO();
+    DashboardFilterDAO dashboardFilterDAO = createDashboardFilterDAO();
+    UserFilterDAO userFilterDAO = createUserFilterDAO();
+    UserViewedProductNotificationDAO userViewedProductNotificationDAO = createUserViewedProductNotificationDAO();
+    OAuth2UserGroupDAO oAuth2UserGroupDAO = createOAuth2UserGroupDAO();
+    return new OAuth2UserDAO(dataStoreProvider.getOperationalDataStore(), userTokenDAO, dashboardFilterDAO,
+        userFilterDAO, userViewedProductNotificationDAO, oAuth2UserGroupDAO);
+  }
+
+  @Override
+  public OAuth2UserGroupDAO createOAuth2UserGroupDAO() {
+    return new OAuth2UserGroupDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override

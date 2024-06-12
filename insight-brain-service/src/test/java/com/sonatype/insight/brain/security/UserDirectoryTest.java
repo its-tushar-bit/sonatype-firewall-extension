@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.naming.NamingException;
 
@@ -26,16 +25,20 @@ import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.model.security.OAuth2Group;
+import com.sonatype.insight.brain.model.security.OAuth2User;
 import com.sonatype.insight.brain.model.security.SamlGroup;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserDirectory.QueryResult;
+import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.atlassian.crowd.exception.OperationFailedException;
@@ -939,7 +942,8 @@ public class UserDirectoryTest
 
   @Test
   public void testGetUsersByName_Saml() {
-    tempEntity.newSamlConfiguration();
+    enableSsoWithSaml();
+
     UserDirectory userDirectory =
         new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, crowdClientFactory);
     SamlUser samlUser1 = tempEntity.newSamlUser("username1", null, null, null, null);
@@ -952,9 +956,9 @@ public class UserDirectoryTest
     assertThat(result.get()).usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(
             new Member(MemberType.USER, samlUser1.getUsername(), samlUser1.calculateDisplayName(), samlUser1.getEmail(),
-                SamlUser.SAML_REALM_ID),
+                SamlRealm.ID),
             new Member(MemberType.USER, samlUser2.getUsername(), samlUser2.calculateDisplayName(), samlUser2.getEmail(),
-                SamlUser.SAML_REALM_ID));
+                SamlRealm.ID));
     assertThat(result.hasException()).isFalse();
     assertThat(result.getException()).isNull();
   }
@@ -976,7 +980,8 @@ public class UserDirectoryTest
 
   @Test
   public void testGetMembersByQuery_Users_Saml() {
-    tempEntity.newSamlConfiguration();
+    enableSsoWithSaml();
+
     UserDirectory userDirectory =
         new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, crowdClientFactory);
     SamlUser samlUser1 = tempEntity.newSamlUser("username1", "bob", "smith", null, null);
@@ -988,9 +993,9 @@ public class UserDirectoryTest
     assertThat(result.get()).usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(
             new Member(MemberType.USER, samlUser1.getUsername(), samlUser1.calculateDisplayName(), samlUser1.getEmail(),
-                SamlUser.SAML_REALM_ID),
+                SamlRealm.ID),
             new Member(MemberType.USER, samlUser2.getUsername(), samlUser2.calculateDisplayName(), samlUser2.getEmail(),
-                SamlUser.SAML_REALM_ID));
+                SamlRealm.ID));
     assertThat(result.hasException()).isFalse();
     assertThat(result.getException()).isNull();
   }
@@ -1011,7 +1016,8 @@ public class UserDirectoryTest
 
   @Test
   public void testGetMembersByQuery_Groups_GroupSearchEnabled_Saml() {
-    tempEntity.newSamlConfiguration();
+    enableSsoWithSaml();
+
     UserDirectory userDirectory =
         new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, crowdClientFactory);
     SamlGroup samlGroup1 = tempEntity.newSamlGroup("group1");
@@ -1021,8 +1027,8 @@ public class UserDirectoryTest
 
     assertThat(result.get()).usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(
-            new Member(MemberType.GROUP, samlGroup1.getName(), samlGroup1.getName(), null, SamlUser.SAML_REALM_ID),
-            new Member(MemberType.GROUP, samlGroup2.getName(), samlGroup2.getName(), null, SamlUser.SAML_REALM_ID));
+            new Member(MemberType.GROUP, samlGroup1.getName(), samlGroup1.getName(), null, SamlRealm.ID),
+            new Member(MemberType.GROUP, samlGroup2.getName(), samlGroup2.getName(), null, SamlRealm.ID));
     assertThat(result.hasException()).isFalse();
     assertThat(result.getException()).isNull();
   }
@@ -1034,6 +1040,138 @@ public class UserDirectoryTest
         new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, crowdClientFactory);
     tempEntity.newSamlGroup("group1");
     tempEntity.newSamlGroup("group2");
+
+    QueryResult result = userDirectory.getMembersByQuery("group*", false);
+
+    assertThat(result.get()).isEmpty();
+    assertThat(result.hasException()).isFalse();
+    assertThat(result.getException()).isNull();
+  }
+
+  @Test
+  public void testGetUsersByName_OAuth2_NotConfigured() {
+    UserDirectory userDirectory =
+        new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, crowdClientFactory);
+    tempEntity.newOAuth2User("username1", null, null, null, null);
+    tempEntity.newOAuth2User("username2", null, null, null, null);
+    Set<String> usernames = Sets.newHashSet("username1", "username2", "username3");
+
+    QueryResult result = userDirectory.getUsersByName(usernames);
+
+    assertThat(result).isNotNull();
+    assertThat(result.get()).isEmpty();
+    assertThat(result.hasException()).isFalse();
+    assertThat(result.getException()).isNull();
+  }
+
+  @Test
+  public void testGetUsersByName_OAuth2() {
+    enableSsoWithOAuth2();
+
+    UserDirectory userDirectory =
+        new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, crowdClientFactory);
+    OAuth2User oauth2User1 = tempEntity.newOAuth2User("username1", null, null, null, null);
+    OAuth2User oauth2User2 = tempEntity.newOAuth2User("username2", null, null, null, null);
+    Set<String> usernames = Sets.newHashSet("username1", "username2", "username3");
+
+    QueryResult result = userDirectory.getUsersByName(usernames);
+
+    assertThat(result).isNotNull();
+    assertThat(result.get()).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(
+            new Member(MemberType.USER, oauth2User1.getUsername(), oauth2User1.calculateDisplayName(),
+                oauth2User1.getEmail(),
+                OAuth2Realm.ID),
+            new Member(MemberType.USER, oauth2User2.getUsername(), oauth2User2.calculateDisplayName(),
+                oauth2User2.getEmail(),
+                OAuth2Realm.ID));
+    assertThat(result.hasException()).isFalse();
+    assertThat(result.getException()).isNull();
+  }
+
+  @Test
+  public void testGetMembersByQuery_Users_OAuth2_NotConfigured() {
+    UserDirectory userDirectory =
+        new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, crowdClientFactory);
+    tempEntity.newOAuth2User("username1", null, null, null, null);
+    tempEntity.newOAuth2User("username2", null, null, null, null);
+
+    QueryResult result = userDirectory.getMembersByQuery("username*", false);
+
+    assertThat(result).isNotNull();
+    assertThat(result.get()).isEmpty();
+    assertThat(result.hasException()).isFalse();
+    assertThat(result.getException()).isNull();
+  }
+
+  @Test
+  public void testGetMembersByQuery_Users_OAuth2() {
+    enableSsoWithOAuth2();
+
+    UserDirectory userDirectory =
+        new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, crowdClientFactory);
+    OAuth2User oauth2User1 = tempEntity.newOAuth2User("username1", "bob", "smith", null, null);
+    OAuth2User oauth2User2 = tempEntity.newOAuth2User("username2", "john", "smith", null, null);
+
+    QueryResult result = userDirectory.getMembersByQuery("*smith", false);
+
+    assertThat(result).isNotNull();
+    assertThat(result.get()).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(
+            new Member(MemberType.USER, oauth2User1.getUsername(), oauth2User1.calculateDisplayName(),
+                oauth2User1.getEmail(),
+                OAuth2Realm.ID),
+            new Member(MemberType.USER, oauth2User2.getUsername(), oauth2User2.calculateDisplayName(),
+                oauth2User2.getEmail(),
+                OAuth2Realm.ID));
+    assertThat(result.hasException()).isFalse();
+    assertThat(result.getException()).isNull();
+  }
+
+  @Test
+  public void testGetMembersByQuery_Groups_GroupSearchEnabled_OAuth2_NotConfigured() {
+    UserDirectory userDirectory =
+        new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, crowdClientFactory);
+    tempEntity.newOAuth2Group("group1");
+    tempEntity.newOAuth2Group("group2");
+
+    QueryResult result = userDirectory.getMembersByQuery("group*", true);
+
+    assertThat(result.get()).isEmpty();
+    assertThat(result.hasException()).isFalse();
+    assertThat(result.getException()).isNull();
+  }
+
+  @Test
+  public void testGetMembersByQuery_Groups_GroupSearchEnabled_OAuth2() {
+    enableSsoWithOAuth2();
+
+    UserDirectory userDirectory =
+        new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, crowdClientFactory);
+    OAuth2Group oauth2Group1 = tempEntity.newOAuth2Group("group1");
+    OAuth2Group oauth2Group2 = tempEntity.newOAuth2Group("group2");
+
+    QueryResult result = userDirectory.getMembersByQuery("group*", true);
+
+    assertThat(result.get()).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(
+            new Member(MemberType.GROUP, oauth2Group1.getName(), oauth2Group1.getName(), null,
+                OAuth2Realm.ID),
+            new Member(MemberType.GROUP, oauth2Group2.getName(), oauth2Group2.getName(), null,
+                OAuth2Realm.ID));
+    assertThat(result.hasException()).isFalse();
+    assertThat(result.getException()).isNull();
+  }
+
+  @Test
+  public void testGetMembersByQuery_Groups_GroupSearchDisabled_OAuth2() {
+    SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(true);
+    tempEntity.newOAuth2Configuration();
+
+    UserDirectory userDirectory =
+        new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, crowdClientFactory);
+    tempEntity.newOAuth2Group("group1");
+    tempEntity.newOAuth2Group("group2");
 
     QueryResult result = userDirectory.getMembersByQuery("group*", false);
 

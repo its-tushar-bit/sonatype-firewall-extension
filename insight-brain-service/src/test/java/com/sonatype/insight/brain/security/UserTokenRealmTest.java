@@ -8,17 +8,18 @@ package com.sonatype.insight.brain.security;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.security.Group;
+import com.sonatype.insight.brain.model.security.OAuth2User;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.atlassian.crowd.exception.UserNotFoundException;
@@ -170,6 +171,8 @@ public class UserTokenRealmTest
 
   @Test
   public void testGetAuthenticationInfo_Saml() {
+    enableSsoWithSaml();
+
     String userTokenPassword = "TestPassword";
     String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
     SamlUser samlUser = tempEntity.newSamlUser();
@@ -194,6 +197,8 @@ public class UserTokenRealmTest
 
   @Test
   public void testGetAuthenticationInfo_Saml_WrongPassword() {
+    enableSsoWithSaml();
+
     String userTokenPassword = "TestPassword";
     String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
     SamlUser samlUser = tempEntity.newSamlUser();
@@ -207,6 +212,8 @@ public class UserTokenRealmTest
 
   @Test
   public void testDoGetAuthenticationInfo_Saml() {
+    enableSsoWithSaml();
+
     String userTokenPassword = "TestPassword";
     String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
     SamlUser samlUser = tempEntity.newSamlUser();
@@ -231,6 +238,8 @@ public class UserTokenRealmTest
 
   @Test
   public void testDoGetAuthenticationInfo_Saml_WrongPassword() {
+    enableSsoWithSaml();
+
     String userTokenPassword = "TestPassword";
     String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
     SamlUser samlUser = tempEntity.newSamlUser();
@@ -247,6 +256,101 @@ public class UserTokenRealmTest
     expectedGroups.add(Group.AUTHENTICATED_USERS_GROUP_ID);
     assertThat(principal).usingRecursiveComparison().isEqualTo(
         new UserPrincipal(samlUser.getUsername(), samlUser.calculateDisplayName(), UserTokenRealm.ID, expectedGroups));
+    assertThat(principalIterator.hasNext()).isFalse();
+    assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
+    assertThat(authenticationInfo.getCredentials()).isEqualTo(hashedUserTokenPassword);
+  }
+
+  @Test
+  public void testGetAuthenticationInfo_OAuth2() {
+    enableSsoWithOAuth2();
+
+    String userTokenPassword = "TestPassword";
+    String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
+    OAuth2User oauth2User = tempEntity.newOAuth2User();
+    UserToken userToken =
+        tempEntity.newUserToken(oauth2User.getUsername(), "TestUserCode", hashedUserTokenPassword, OAuth2Realm.ID);
+    UsernamePasswordToken usernamePasswordToken =
+        new UsernamePasswordToken(userToken.getUserCode(), userTokenPassword);
+
+    AuthenticationInfo authenticationInfo = realm.getAuthenticationInfo(usernamePasswordToken);
+
+    PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
+    Iterator<?> principalIterator = principalCollection.iterator();
+    Object principal = principalIterator.next();
+    Set<String> expectedGroups = new LinkedHashSet<>(oauth2User.getGroups());
+    expectedGroups.add(Group.AUTHENTICATED_USERS_GROUP_ID);
+    assertThat(principal).usingRecursiveComparison().isEqualTo(
+        new UserPrincipal(oauth2User.getUsername(), oauth2User.calculateDisplayName(), UserTokenRealm.ID,
+            expectedGroups));
+    assertThat(principalIterator.hasNext()).isFalse();
+    assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
+    assertThat(authenticationInfo.getCredentials()).isEqualTo(hashedUserTokenPassword);
+  }
+
+  @Test
+  public void testGetAuthenticationInfo_OAuth2_WrongPassword() {
+    enableSsoWithOAuth2();
+
+    String userTokenPassword = "TestPassword";
+    String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
+    OAuth2User oauth2User = tempEntity.newOAuth2User();
+    UserToken userToken =
+        tempEntity.newUserToken(oauth2User.getUsername(), "TestUserCode", hashedUserTokenPassword, OAuth2Realm.ID);
+    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userToken.getUserCode(), "WrongPassword");
+
+    assertThatExceptionOfType(IncorrectCredentialsException.class).isThrownBy(
+        () -> realm.getAuthenticationInfo(usernamePasswordToken));
+  }
+
+  @Test
+  public void testDoGetAuthenticationInfo_OAuth2() {
+    enableSsoWithOAuth2();
+
+    String userTokenPassword = "TestPassword";
+    String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
+    OAuth2User oauth2User = tempEntity.newOAuth2User();
+    UserToken userToken =
+        tempEntity.newUserToken(oauth2User.getUsername(), "TestUserCode", hashedUserTokenPassword, OAuth2Realm.ID);
+    UsernamePasswordToken usernamePasswordToken =
+        new UsernamePasswordToken(userToken.getUserCode(), userTokenPassword);
+
+    AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(usernamePasswordToken);
+
+    PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
+    Iterator<?> principalIterator = principalCollection.iterator();
+    Object principal = principalIterator.next();
+    Set<String> expectedGroups = new LinkedHashSet<>(oauth2User.getGroups());
+    expectedGroups.add(Group.AUTHENTICATED_USERS_GROUP_ID);
+    assertThat(principal).usingRecursiveComparison().isEqualTo(
+        new UserPrincipal(oauth2User.getUsername(), oauth2User.calculateDisplayName(), UserTokenRealm.ID,
+            expectedGroups));
+    assertThat(principalIterator.hasNext()).isFalse();
+    assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
+    assertThat(authenticationInfo.getCredentials()).isEqualTo(hashedUserTokenPassword);
+  }
+
+  @Test
+  public void testDoGetAuthenticationInfo_OAuth2_WrongPassword() {
+    enableSsoWithOAuth2();
+
+    String userTokenPassword = "TestPassword";
+    String hashedUserTokenPassword = passwordService.encryptPassword(userTokenPassword);
+    OAuth2User oauth2User = tempEntity.newOAuth2User();
+    UserToken userToken =
+        tempEntity.newUserToken(oauth2User.getUsername(), "TestUserCode", hashedUserTokenPassword, OAuth2Realm.ID);
+    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userToken.getUserCode(), "WrongPassword");
+
+    AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(usernamePasswordToken);
+
+    PrincipalCollection principalCollection = authenticationInfo.getPrincipals();
+    Iterator<?> principalIterator = principalCollection.iterator();
+    Object principal = principalIterator.next();
+    Set<String> expectedGroups = new LinkedHashSet<>(oauth2User.getGroups());
+    expectedGroups.add(Group.AUTHENTICATED_USERS_GROUP_ID);
+    assertThat(principal).usingRecursiveComparison().isEqualTo(
+        new UserPrincipal(oauth2User.getUsername(), oauth2User.calculateDisplayName(), UserTokenRealm.ID,
+            expectedGroups));
     assertThat(principalIterator.hasNext()).isFalse();
     assertThat(principalCollection.getRealmNames()).containsExactlyInAnyOrder(realm.getName());
     assertThat(authenticationInfo.getCredentials()).isEqualTo(hashedUserTokenPassword);

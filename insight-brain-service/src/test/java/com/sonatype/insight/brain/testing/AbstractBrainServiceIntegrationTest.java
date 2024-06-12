@@ -6,8 +6,12 @@
 package com.sonatype.insight.brain.testing;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.security.SsoUserService;
 
+import org.junit.After;
 import org.junit.Rule;
 
 /**
@@ -30,5 +34,43 @@ public abstract class AbstractBrainServiceIntegrationTest
   @Override
   public void setUpTestLicenseThreatGroups() {
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
+  }
+
+  @After
+  public void disableSso() {
+    if (testCLMServer == null || !testCLMServer.isRunning()) {
+      return;
+    }
+
+    disableSsoWithOAuth2();
+    disableSsoWithSaml();
+    loadSsoConfiguration();
+  }
+
+  public void enableSsoWithOAuth2() {
+    SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(true);
+    tempEntity.newOAuth2Configuration();
+    loadSsoConfiguration();
+  }
+
+  public void disableSsoWithOAuth2() {
+    SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(false);
+    loadSsoConfiguration();
+  }
+
+  public void enableSsoWithSaml() {
+    tempEntity.newSamlConfiguration();
+    loadSsoConfiguration();
+  }
+
+  public void disableSsoWithSaml() {
+    SamlConfigurationDAO samlConfigurationDAO = lookup(SamlConfigurationDAO.class);
+    samlConfigurationDAO.delete();
+    loadSsoConfiguration();
+  }
+
+  private void loadSsoConfiguration() {
+    SsoUserService ssoUserService = lookup(SsoUserService.class);
+    ssoUserService.loadSsoConfiguration();
   }
 }

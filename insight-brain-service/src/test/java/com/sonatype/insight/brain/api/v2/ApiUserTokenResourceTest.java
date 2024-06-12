@@ -18,11 +18,12 @@ import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
-import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.security.CrowdRealm;
 import com.sonatype.insight.brain.security.InternalRealm;
+import com.sonatype.insight.brain.security.SamlRealm;
+import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -109,11 +110,13 @@ public class ApiUserTokenResourceTest
     tempEntity.newUserToken("victor.wooten", User.INTERNAL_REALM_ID, december01);
     UserToken userToken = tempEntity.newUserToken("marcus.miller", User.INTERNAL_REALM_ID, december15);
     tempEntity.newUserToken("stanley.clarke", User.INTERNAL_REALM_ID, december31);
-    UserToken samlToken = tempEntity.newUserToken("zak.crawly", SamlUser.SAML_REALM_ID, december15);
+    UserToken samlToken = tempEntity.newUserToken("zak.crawly", SamlRealm.ID, december15);
+    UserToken oauth2Token = tempEntity.newUserToken("john.doe", OAuth2Realm.ID, december15);
 
     assertUserToken(userToken, null);
     assertUserToken(userToken, "InterNaL");
-    assertUserToken(samlToken, SamlUser.SAML_REALM_ID);
+    assertUserToken(samlToken, SamlRealm.ID);
+    assertUserToken(oauth2Token, OAuth2Realm.ID);
   }
 
   @Test
@@ -121,11 +124,13 @@ public class ApiUserTokenResourceTest
     tempEntity.newUserToken("victor.wooten", User.INTERNAL_REALM_ID , december01);
     UserToken internalToken = tempEntity.newUserToken("marcus.miller", User.INTERNAL_REALM_ID, december15);
     tempEntity.newUserToken("stanley.clarke", User.INTERNAL_REALM_ID ,december31);
-    UserToken samlToken = tempEntity.newUserToken("zak.crawly", SamlUser.SAML_REALM_ID, december15);
+    UserToken samlToken = tempEntity.newUserToken("zak.crawly", SamlRealm.ID, december15);
+    UserToken oauth2Token = tempEntity.newUserToken("john.doe", OAuth2Realm.ID, december15);
 
     assertUserToken(internalToken, null);
     assertUserToken(internalToken, "InterNaL");
     assertUserToken(samlToken, "saMl");
+    assertUserToken(oauth2Token, "OaUth2");
   }
 
   @Test
@@ -221,6 +226,17 @@ public class ApiUserTokenResourceTest
   }
 
   @Test
+  public void testGetUserTokenByUsernameAndRealmId_OAuth2Unknown() throws Exception {
+    enableSsoWithOAuth2();
+
+    HttpResponse httpResponse =
+        restRequest().path(ApiUserTokenResource.USERNAME).parameter("unknown").query("realm", "OAUTH2").get();
+
+    assertResponseStatus(404, httpResponse);
+    assertThat(httpResponse.getBodyText()).contains("No user token found for OAUTH2 user unknown.");
+  }
+
+  @Test
   public void testGetUserTokenByUsernameAndRealmId_CrowdIntegrationDisabled_Unknown()
       throws Exception
   {
@@ -247,26 +263,6 @@ public class ApiUserTokenResourceTest
 
     assertResponseStatus(404, httpResponse);
     assertThat(httpResponse.getBodyText()).contains("No user token found for Crowd user unknown.");
-  }
-
-  @Test
-  public void testGetUserTokenByUsernameAndRealmId_NoRealmId() throws Exception {
-    testGetUserTokenByUsernameAndRealmId_Saml(null);
-  }
-
-  @Test
-  public void testGetUserTokenByUsernameAndRealmId_UnknownRealmId() throws Exception {
-    testGetUserTokenByUsernameAndRealmId_Saml("unknown");
-  }
-
-  @Test
-  public void testGetUserTokenByUsernameAndRealmId_InternalRealmId() throws Exception {
-    testGetUserTokenByUsernameAndRealmId_Saml("InTeRnAl");
-  }
-
-  @Test
-  public void testGetUserTokenByUsernameAndRealmId_SamlRealmId() throws Exception {
-    testGetUserTokenByUsernameAndRealmId_Saml("SaMl");
   }
 
   @Test
@@ -309,10 +305,15 @@ public class ApiUserTokenResourceTest
     testGetUserTokenByUsernameAndRealmId_Crowd(false, "cRoWd");
   }
 
-  private void testGetUserTokenByUsernameAndRealmId_Saml(String realmId)
-      throws Exception
-  {
-    testGetUserTokenByUsernameAndRealmId(false, realmId);
+  @Test
+  public void testGetUserTokenByUsernameAndRealmId_CrowdIntegrationFeatureDisabled_SamlRealmId() throws Exception {
+    testGetUserTokenByUsernameAndRealmId_Crowd(false, "SaMl");
+  }
+
+  @Test
+  public void testGetUserTokenByUsernameAndRealmId_CrowdIntegrationFeatureDisabled_OAuth2RealmId() throws Exception {
+    enableSsoWithOAuth2();
+    testGetUserTokenByUsernameAndRealmId_Crowd(false, "OaUth2");
   }
 
   private void testGetUserTokenByUsernameAndRealmId_Crowd(boolean isCrowdIntegrationFeatureEnabled, String realmId)
@@ -328,12 +329,15 @@ public class ApiUserTokenResourceTest
     UserToken internalUserToken1 =
         tempEntity.newUserToken("username1", "userCode1", "passCode", User.INTERNAL_REALM_ID);
     tempEntity.newUserToken("username2", User.INTERNAL_REALM_ID);
-    UserToken samlUserToken1 = tempEntity.newUserToken("username1", "userCode2", "passCode", SamlUser.SAML_REALM_ID);
-    tempEntity.newUserToken("username2", "userCode3", "passCode", SamlUser.SAML_REALM_ID);
-    tempEntity.newUserToken("username1", "userCode4", "passCode", "other");
-    tempEntity.newUserToken("username2", "userCode5", "passCode", "other");
+    UserToken samlUserToken1 = tempEntity.newUserToken("username1", "userCode2", "passCode", SamlRealm.ID);
+    tempEntity.newUserToken("username2", "userCode3", "passCode", SamlRealm.ID);
+    UserToken oauth2UserToken1 =
+        tempEntity.newUserToken("username1", "userCode4", "passCode", OAuth2Realm.ID);
+    tempEntity.newUserToken("username2", "userCode5", "passCode", OAuth2Realm.ID);
     UserToken crowdUserToken1 = tempEntity.newUserToken("username1", "userCode6", "passCode", CrowdRealm.ID);
     tempEntity.newUserToken("username2", "userCode7", "passCode", CrowdRealm.ID);
+    tempEntity.newUserToken("username1", "userCode8", "passCode", "other");
+    tempEntity.newUserToken("username2", "userCode9", "passCode", "other");
     SystemConfigurationPropertyFeature.CROWD_INTEGRATION.setEnabled(isCrowdIntegrationFeatureEnabled);
     HttpRequest httpRequest = restRequest().path(ApiUserTokenResource.USERNAME).parameter("username1");
     if (realmId != null) {
@@ -345,9 +349,13 @@ public class ApiUserTokenResourceTest
     assertResponseStatus(200, httpResponse);
     ApiUserTokenDTO result = httpResponse.getBody(ApiUserTokenDTO.class);
     String expectedRealmId;
-    if (SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
+    if (SamlRealm.ID.equalsIgnoreCase(realmId)) {
       assertThat(result.userCode).isEqualTo(samlUserToken1.getUserCode());
-      expectedRealmId = SamlUser.SAML_REALM_ID;
+      expectedRealmId = SamlRealm.ID;
+    }
+    else if (OAuth2Realm.ID.equalsIgnoreCase(realmId)) {
+      assertThat(result.userCode).isEqualTo(oauth2UserToken1.getUserCode());
+      expectedRealmId = OAuth2Realm.ID;
     }
     else if (isCrowdIntegrationFeatureEnabled && CrowdRealm.ID.equalsIgnoreCase(realmId)) {
       assertThat(result.userCode).isEqualTo(crowdUserToken1.getUserCode());

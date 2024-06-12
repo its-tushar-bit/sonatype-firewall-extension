@@ -16,6 +16,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.support.SupportService.SupportFile;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
@@ -48,6 +49,8 @@ public class SupportInfoFiles
   private static final String USER_FILE = "user.json";
 
   private static final String SAML_USER_FILE = "samlUser.json";
+
+  private static final String OAUTH2_USER_FILE = "oauth2User.json";
 
   private static final String ROLE_FILE = "role.json";
 
@@ -115,7 +118,9 @@ public class SupportInfoFiles
 
   private final DbData dbData;
 
-  private final SamlUserDAO samlUserDao;
+  private final SamlUserDAO samlUserDAO;
+
+  private final OAuth2UserDAO oAuth2UserDAO;
 
   private final ConfigurationInfo configurationInfo;
 
@@ -131,7 +136,8 @@ public class SupportInfoFiles
   public SupportInfoFiles(
       VersionService versionService,
       DbData dbData,
-      SamlUserDAO samlUserDao,
+      SamlUserDAO samlUserDAO,
+      OAuth2UserDAO oAuth2UserDAO,
       ConfigurationInfo configurationInfo,
       SystemInfo systemInfo,
       SourceControlConfigurationInfo sourceControlConfigurationInfo,
@@ -139,7 +145,8 @@ public class SupportInfoFiles
   {
     this.versionService = versionService;
     this.dbData = dbData;
-    this.samlUserDao = samlUserDao;
+    this.samlUserDAO = samlUserDAO;
+    this.oAuth2UserDAO = oAuth2UserDAO;
     this.configurationInfo = configurationInfo;
     this.systemInfo = systemInfo;
     this.sourceControlConfigurationInfo = sourceControlConfigurationInfo;
@@ -211,10 +218,19 @@ public class SupportInfoFiles
   }
 
   public SupportInfoFiles withSamlUsersDetails() {
-    Entry<String, Object> samlUsers = new AbstractMap.SimpleImmutableEntry<>("samlUser", samlUserDao.getAll());
+    Entry<String, Object> samlUsers = new AbstractMap.SimpleImmutableEntry<>("samlUser", samlUserDAO.getAll());
     String samlUsersJson = JsonUtils.format(samlUsers);
 
     createAndAddSupportFile(samlUsersJson, SAML_USER_FILE, SupportFileType.DB);
+
+    return this;
+  }
+
+  public SupportInfoFiles withOauth2UsersDetails() {
+    Entry<String, Object> oauth2Users = new AbstractMap.SimpleImmutableEntry<>("oauth2User", oAuth2UserDAO.getAll());
+    String oauthUsersJson = JsonUtils.format(oauth2Users);
+
+    createAndAddSupportFile(oauthUsersJson, OAUTH2_USER_FILE, SupportFileType.DB);
 
     return this;
   }

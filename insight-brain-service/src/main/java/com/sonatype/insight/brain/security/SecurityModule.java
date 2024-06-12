@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.configuration.ldap.LdapRealm;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.security.oauth2.JwtAuthenticationFilter;
-import com.sonatype.insight.brain.security.oauth2.JwtRealm;
+import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.security.oauth2.OidcLoginFilter;
 
 import com.google.inject.TypeLiteral;
@@ -68,7 +68,7 @@ public class SecurityModule
     bindRealm().to(CrowdRealm.class);
     bindRealm().to(ReverseProxyRealm.class);
     bindRealm().to(SamlRealm.class);
-    bindRealm().to(JwtRealm.class);
+    bindRealm().to(OAuth2Realm.class);
     binder().requestInjection(new ComponentConfigurator());
   }
 

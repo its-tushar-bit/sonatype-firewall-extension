@@ -70,6 +70,7 @@ public class TenantSupportInfoService
         .withTenantInfo()
         .withUsersDetails()
         .withSamlUsersDetails()
+        .withOauth2UsersDetails()
         .withRolesDetails()
         .withRolePermissionDetails()
         .withMembershipMappings()

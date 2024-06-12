@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.security.OAuth2User;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.policy.ActionDTO;
@@ -283,6 +284,11 @@ public interface AuditTestSupport
   default void assertUserData(AuditDTO auditDTO, String realmId, SamlUser samlUser) {
     assertUserData(auditDTO, realmId, samlUser.getUsername(), samlUser.getFirstName(), samlUser.getLastName(),
         samlUser.getEmail());
+  }
+
+  default void assertUserData(AuditDTO auditDTO, String realmId, OAuth2User oAuth2User) {
+    assertUserData(auditDTO, realmId, oAuth2User.getUsername(), oAuth2User.getFirstName(), oAuth2User.getLastName(),
+        oAuth2User.getEmail());
   }
 
   default void assertUserData(

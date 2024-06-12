@@ -13,7 +13,6 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.security.AbstractUserService;
 import com.sonatype.insight.brain.security.Authorize;
@@ -88,17 +87,18 @@ public class MultiTenantUserService
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   @Override
   public void deleteByUsername(final String username) {
-    validateUserToDeleteIsNotCurrentlyLoggedIn(SamlUser.SAML_REALM_ID, username);
     TenantMetadata tenantMetadata = getTenantMetadata();
 
     try {
+      SsoUser ssoUser = multiTenantSsoUserService.getByUsername(username);
+      if (ssoUser != null) {
+        validateUserToDeleteIsNotCurrentlyLoggedIn(ssoUser.getRealmId(), username);
+        deleteUser(ssoUser);
+      }
+
       multiTenantAuth0ManagementService.deleteUser(username, tenantMetadata.getConnectionId());
       log.debug("user deleted on Auth0 successfully");
 
-      SsoUser ssoUser = multiTenantSsoUserService.getByUsername(username);
-      if (ssoUser != null) {
-        deleteUser(ssoUser);
-      }
       log.info("user deleted successfully");
     }
     catch (Exception e) {

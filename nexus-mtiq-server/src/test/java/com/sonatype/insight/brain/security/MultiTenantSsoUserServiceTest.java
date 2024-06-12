@@ -5,8 +5,12 @@
  */
 package com.sonatype.insight.brain.security;
 
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 import com.sonatype.insight.brain.users.MtiqUserDTO;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -15,31 +19,66 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantSsoUserServiceTest
     extends AbstractMultiTenantTest
 {
   @Mock
-  SamlSsoUserProvider samlUserGroupHelper;
+  SamlSsoUserProvider samlSsoUserProvider;
+
+  @Mock
+  OAuth2SsoUserProvider oAuth2SsoUserProvider;
+
+  @Mock
+  SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   private MultiTenantSsoUserService underTest;
 
   @Before
   public void setup() {
-    underTest = new MultiTenantSsoUserService(samlUserGroupHelper);
+    underTest = new MultiTenantSsoUserService(samlSsoUserProvider, oAuth2SsoUserProvider);
   }
 
   @Test
   public void testUpsertByUsername_Saml() {
+    when(samlSsoUserProvider.isSsoConfigured()).thenReturn(true);
+    when(oAuth2SsoUserProvider.isSsoConfigured()).thenReturn(false);
+
     MtiqUserDTO mtiqUserDTO = new MtiqUserDTO();
     mtiqUserDTO.setUsername("username");
 
     testAsNewTenant(t1 -> {
+      underTest.loadSsoConfiguration();
+
       underTest.upsertByUsername(mtiqUserDTO);
 
-      verify(samlUserGroupHelper).upsertByUsername(any(SsoUser.class));
+      verify(samlSsoUserProvider).upsertByUsername(any(SsoUser.class));
+    });
+  }
+
+  @Test
+  public void testUpsertByUsername_OAuth2() {
+    final TransactionContext tx = mock(TransactionContext.class);
+    when(samlSsoUserProvider.isSsoConfigured()).thenReturn(false);
+    when(oAuth2SsoUserProvider.isSsoConfigured()).thenReturn(true);
+    when(systemConfigurationPropertyDAO.createTransactionContext()).thenReturn(tx);
+    when(systemConfigurationPropertyDAO.getByName(tx, SystemConfigurationProperty.OAUTH2_ENABLED)).thenReturn(
+        new SystemConfigurationProperty(SystemConfigurationProperty.OAUTH2_ENABLED, "true"));
+
+    MtiqUserDTO mtiqUserDTO = new MtiqUserDTO();
+    mtiqUserDTO.setUsername("username");
+
+    testAsNewTenant(t1 -> {
+      underTest.loadSsoConfiguration();
+      SystemConfigurationPropertyFeature.injectDependencies(systemConfigurationPropertyDAO);
+
+      underTest.upsertByUsername(mtiqUserDTO);
+
+      verify(oAuth2SsoUserProvider).upsertByUsername(any(SsoUser.class));
     });
   }
 }

@@ -21,6 +21,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
@@ -46,6 +47,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.OAuth2User;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
@@ -90,7 +92,10 @@ public class SupportInfoFilesTest
   private DbData dbData;
 
   @Mock
-  private SamlUserDAO samlUserDao;
+  private SamlUserDAO samlUserDAO;
+
+  @Mock
+  private OAuth2UserDAO oAuth2UserDAO;
 
   @Mock
   private ConfigurationInfo configurationInfo;
@@ -109,7 +114,7 @@ public class SupportInfoFilesTest
   @Before
   public void setup() {
     supportInfoFiles =
-        new SupportInfoFiles(versionService, dbData, samlUserDao, configurationInfo, systemInfo,
+        new SupportInfoFiles(versionService, dbData, samlUserDAO, oAuth2UserDAO, configurationInfo, systemInfo,
             sourceControlConfigurationInfo, supportInfoUtil);
   }
 
@@ -270,6 +275,31 @@ public class SupportInfoFilesTest
     assertThat(supportFile.file).exists();
     String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
     assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedSamlUsers));
+  }
+
+  @Test
+  public void shouldProvideOAuth2UsersDetails() throws IOException {
+    // Given
+    OAuth2User oAuth2User1 = new OAuth2User();
+    oAuth2User1.setId("id1");
+    oAuth2User1.setUsername("name1");
+    OAuth2User oAuth2User2 = new OAuth2User();
+    oAuth2User2.setId("id2");
+    oAuth2User2.setUsername("name2");
+    List<OAuth2User> oAuth2Users = Arrays.asList(oAuth2User1, oAuth2User2);
+    Map<String, Object> expectedOAuth2Users = new HashMap<>();
+    expectedOAuth2Users.put("user", oAuth2Users);
+
+    // When
+    when(supportInfoUtil.writeTextToFile(any(), any())).thenReturn(
+        writeFile(WORK_DIR, JsonUtils.writeUnformatted(expectedOAuth2Users), "oauth2User.json"));
+    SupportFile supportFile =
+        supportInfoFiles.aNewListOfSupportFiles().withOauth2UsersDetails().build().get(0);
+
+    // Then
+    assertThat(supportFile.file).exists();
+    String fileContents = new String(Files.readAllBytes(supportFile.file.toPath()));
+    assertThat(fileContents).isEqualTo(JsonUtils.writeUnformatted(expectedOAuth2Users));
   }
 
   @Test

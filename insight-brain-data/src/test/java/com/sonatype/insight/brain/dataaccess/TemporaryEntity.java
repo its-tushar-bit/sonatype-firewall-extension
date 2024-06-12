@@ -114,6 +114,9 @@ import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScmScanContextDAO;
 import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
+import com.sonatype.insight.brain.dataaccess.security.OAuth2GroupDAO;
+import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
+import com.sonatype.insight.brain.dataaccess.security.OAuth2UserGroupDAO;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
@@ -253,6 +256,9 @@ import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.brain.model.sast.SastScmScanContext;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.OAuth2Group;
+import com.sonatype.insight.brain.model.security.OAuth2User;
+import com.sonatype.insight.brain.model.security.OAuth2UserGroup;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.PersistedUserSession;
 import com.sonatype.insight.brain.model.security.Role;
@@ -361,6 +367,12 @@ public class TemporaryEntity
   private SamlGroupDAO samlGroupDAO;
 
   private SamlUserGroupDAO samlUserGroupDAO;
+
+  private OAuth2UserDAO oAuth2UserDAO;
+
+  private OAuth2GroupDAO oAuth2GroupDAO;
+
+  private OAuth2UserGroupDAO oAuth2UserGroupDAO;
 
   private RoleDAO roleDAO;
 
@@ -807,6 +819,9 @@ public class TemporaryEntity
       samlUserGroupDAO.getAll().forEach(samlUserGroupDAO::delete);
       samlUserDAO.getAll().forEach(samlUserDAO::delete);
       samlGroupDAO.getAll().forEach(samlGroupDAO::delete);
+      oAuth2UserGroupDAO.getAll().forEach(oAuth2UserGroupDAO::delete);
+      oAuth2UserDAO.getAll().forEach(oAuth2UserDAO::delete);
+      oAuth2GroupDAO.getAll().forEach(oAuth2GroupDAO::delete);
       restoreInitialRoles();
       delete(ldapServerDAO.getAll(), ldapServerDAO);
       delete(hashComponentIdentifierDAO.getAll(), hashComponentIdentifierDAO);
@@ -1411,6 +1426,55 @@ public class TemporaryEntity
     SamlUserGroup samlUserGroup = new SamlUserGroup(samlUserId, samlGroupId);
     samlUserGroupDAO.insert(samlUserGroup);
     return samlUserGroup;
+  }
+
+  public OAuth2User newOAuth2User() {
+    String uuid = uuid();
+    return newOAuth2User("username" + uuid, "firstName" + uuid, "lastName" + uuid, "email@domain" + uuid + ".com",
+        new LinkedHashSet<>(Arrays.asList("group1" + uuid, "group2" + uuid)));
+  }
+
+  public OAuth2User newOAuth2User(String username) {
+    String uuid = uuid();
+    return newOAuth2User(username, "firstName" + uuid, "lastName" + uuid, "email@domain" + uuid + ".com",
+        new LinkedHashSet<>(Arrays.asList("group1" + uuid, "group2" + uuid)));
+  }
+
+  public OAuth2User newOAuth2User(String username, Set<String> groups) {
+    String uuid = uuid();
+    return newOAuth2User(username, "firstName" + uuid, "lastName" + uuid, "email@domain" + uuid + ".com", groups);
+  }
+
+  public OAuth2User newOAuth2User(
+      String username,
+      String firstName,
+      String lastName,
+      String email,
+      Set<String> groups)
+  {
+    OAuth2User oAuth2User = new OAuth2User(username, firstName, lastName, email, groups);
+    oAuth2UserDAO.insert(oAuth2User);
+    return oAuth2User;
+  }
+
+  public OAuth2User newOAuth2User(String username, String firstName, String lastName, String email) {
+    return newOAuth2User(username, firstName, lastName, email, Collections.emptySet());
+  }
+
+  public OAuth2Group newOAuth2Group() {
+    return newOAuth2Group("name" + uuid());
+  }
+
+  public OAuth2Group newOAuth2Group(String name) {
+    OAuth2Group oAuth2Group = new OAuth2Group(name);
+    oAuth2GroupDAO.insert(oAuth2Group);
+    return oAuth2Group;
+  }
+
+  public OAuth2UserGroup newOAuth2UserGroup(String oAuth2UserId, String oAuth2GroupId) {
+    OAuth2UserGroup oAuth2UserGroup = new OAuth2UserGroup(oAuth2UserId, oAuth2GroupId);
+    oAuth2UserGroupDAO.insert(oAuth2UserGroup);
+    return oAuth2UserGroup;
   }
 
   public Role newRole(boolean global, Permission... permissions) {
@@ -4873,6 +4937,10 @@ public class TemporaryEntity
     return sbomMetadata;
   }
 
+  public OAuth2Configuration newOAuth2Configuration() {
+    return newOAuth2Configuration("https://an-idp", "RS256", "https://an-idp/jwks.json", "");
+  }
+
   public OAuth2Configuration newOAuth2Configuration(
       String issuer,
       String jwsAlgorithm,
@@ -4919,6 +4987,9 @@ public class TemporaryEntity
     samlUserDAO = daoFactory.createSamlUserDAO();
     samlGroupDAO = daoFactory.createSamlGroupDAO();
     samlUserGroupDAO = daoFactory.createSamlUserGroupDAO();
+    oAuth2UserDAO = daoFactory.createOAuth2UserDAO();
+    oAuth2GroupDAO = daoFactory.createOAuth2GroupDAO();
+    oAuth2UserGroupDAO = daoFactory.createOAuth2UserGroupDAO();
     roleDAO = daoFactory.createRoleDAO();
     rolePermDAO = daoFactory.createRolePermissionDAO();
     membershipMappingDAO = daoFactory.createMembershipMappingDAO();

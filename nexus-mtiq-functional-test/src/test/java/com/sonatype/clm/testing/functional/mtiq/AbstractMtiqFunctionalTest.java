@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.DAOFactory;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.db.DatabaseName;
@@ -54,6 +55,7 @@ import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.InternalRealm;
+import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
@@ -765,5 +767,21 @@ public abstract class AbstractMtiqFunctionalTest
 
   protected <T> T lookup(Class<T> type) {
     return testCLMServer.getCLMServer().getInstance(type);
+  }
+
+  public void enableSsoWithSaml() {
+    tempEntity.newSamlConfiguration();
+    loadSsoConfiguration();
+  }
+
+  public void disableSsoWithSaml() {
+    SamlConfigurationDAO samlConfigurationDAO = lookup(SamlConfigurationDAO.class);
+    samlConfigurationDAO.delete();
+    loadSsoConfiguration();
+  }
+
+  private void loadSsoConfiguration() {
+    SsoUserService ssoUserService = lookup(SsoUserService.class);
+    ssoUserService.loadSsoConfiguration();
   }
 }

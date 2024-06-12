@@ -51,6 +51,8 @@ import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.model.security.OAuth2Group;
+import com.sonatype.insight.brain.model.security.OAuth2User;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.SamlGroup;
@@ -181,19 +183,19 @@ public class PolicyAlertEmailerTest
     String ownerName = "ownerName";
     assertThat(
         policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(1, 2, 3, 4, 5), ownerName, StageTypes.BUILD))
-            .isEqualTo("Policy Alert for ownerName at stage Build: 1 critical violation out of 15");
+        .isEqualTo("Policy Alert for ownerName at stage Build: 1 critical violation out of 15");
     assertThat(
         policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 2, 3, 4, 5), ownerName, StageTypes.BUILD))
-            .isEqualTo("Policy Alert for ownerName at stage Build: 2 severe violations out of 14");
+        .isEqualTo("Policy Alert for ownerName at stage Build: 2 severe violations out of 14");
     assertThat(
         policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 3, 4, 5), ownerName, StageTypes.BUILD))
-            .isEqualTo("Policy Alert for ownerName at stage Build: 3 moderate violations out of 12");
+        .isEqualTo("Policy Alert for ownerName at stage Build: 3 moderate violations out of 12");
     assertThat(
         policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 0, 4, 5), ownerName, StageTypes.BUILD))
-            .isEqualTo("Policy Alert for ownerName at stage Build: 9 neutral violations out of 9");
+        .isEqualTo("Policy Alert for ownerName at stage Build: 9 neutral violations out of 9");
     assertThat(
         policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(0, 0, 0, 0, 5), ownerName, StageTypes.RELEASE))
-            .isEqualTo("Policy Alert for ownerName at stage Release: 5 neutral violations out of 5");
+        .isEqualTo("Policy Alert for ownerName at stage Release: 5 neutral violations out of 5");
   }
 
   @Test
@@ -411,7 +413,7 @@ public class PolicyAlertEmailerTest
     Application app = tempEntity.newApplicationWithParent("test");
 
     Role role = tempEntity.newRole(false /* global */, Permission.READ);
-    tempEntity.newMembershipMapping(app.getId(), role.getId(),"xb", MemberType.GROUP);
+    tempEntity.newMembershipMapping(app.getId(), role.getId(), "xb", MemberType.GROUP);
 
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = "scan-id";
@@ -656,7 +658,8 @@ public class PolicyAlertEmailerTest
 
   @Test
   public void testSendNotifications_Role_Saml() {
-    tempEntity.newSamlConfiguration();
+    enableSsoWithSaml();
+
     String uuid = TemporaryEntity.uuid();
     SamlUser samlUser1 = tempEntity.newSamlUser("username1" + uuid, null, null, "email1", null);
     SamlUser samlUser2 = tempEntity.newSamlUser("username2" + uuid, null, null, null, null);
@@ -672,6 +675,29 @@ public class PolicyAlertEmailerTest
     tempEntity.newSamlUserGroup(samlUser5.getId(), samlGroup2.getId());
 
     sendRoleNotifications(samlGroup1.getName(), samlGroup2.getName(), "group3");
+
+    assertEmailAddresses("email1", "email5");
+  }
+
+  @Test
+  public void testSendNotifications_Role_OAuth2() {
+    enableSsoWithOAuth2();
+
+    String uuid = TemporaryEntity.uuid();
+    OAuth2User oAuth2User1 = tempEntity.newOAuth2User("username1" + uuid, null, null, "email1", null);
+    OAuth2User oAuth2User2 = tempEntity.newOAuth2User("username2" + uuid, null, null, null, null);
+    OAuth2User oAuth2User3 = tempEntity.newOAuth2User("username3" + uuid, null, null, "", null);
+    OAuth2User oAuth2User4 = tempEntity.newOAuth2User("username4" + uuid, null, null, " ", null);
+    OAuth2User oAuth2User5 = tempEntity.newOAuth2User("username5" + uuid, null, null, "email5", null);
+    OAuth2Group oAuth2Group1 = tempEntity.newOAuth2Group();
+    OAuth2Group oAuth2Group2 = tempEntity.newOAuth2Group();
+    tempEntity.newOAuth2UserGroup(oAuth2User1.getId(), oAuth2Group1.getId());
+    tempEntity.newOAuth2UserGroup(oAuth2User2.getId(), oAuth2Group1.getId());
+    tempEntity.newOAuth2UserGroup(oAuth2User3.getId(), oAuth2Group1.getId());
+    tempEntity.newOAuth2UserGroup(oAuth2User4.getId(), oAuth2Group1.getId());
+    tempEntity.newOAuth2UserGroup(oAuth2User5.getId(), oAuth2Group2.getId());
+
+    sendRoleNotifications(oAuth2Group1.getName(), oAuth2Group2.getName(), "group3");
 
     assertEmailAddresses("email1", "email5");
   }

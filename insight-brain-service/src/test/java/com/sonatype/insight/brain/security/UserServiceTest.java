@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiUserListDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -22,11 +23,13 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.model.security.OAuth2User;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.UserService.ChangePasswordDTO;
 import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
+import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -56,6 +59,9 @@ public class UserServiceTest
 
   @Inject
   private SamlUserDAO samlUserDAO;
+
+  @Inject
+  private OAuth2UserDAO oAuth2UserDAO;
 
   @Inject
   private ApplicationDAO applicationDAO;
@@ -407,15 +413,32 @@ public class UserServiceTest
 
   @Test
   public void testGetAllApiUserDTOs_Saml() {
+    enableSsoWithSaml();
+
     SamlUser user1 = tempEntity.newSamlUser();
     SamlUser user2 = tempEntity.newSamlUser();
 
-    ApiUserListDTO apiUserListDTO = userService.getAllApiUserDTOs(SamlUser.SAML_REALM_ID);
+    ApiUserListDTO apiUserListDTO = userService.getAllApiUserDTOs(SamlRealm.ID);
 
     assertThat(apiUserListDTO).isNotNull();
     assertThat(apiUserListDTO.users).hasSize(2);
-    assertContainsApiUserDTOMatchingUser(apiUserListDTO.users, user1);
-    assertContainsApiUserDTOMatchingUser(apiUserListDTO.users, user2);
+    assertContainsApiUserDTOMatchingUser(apiUserListDTO.users, SsoUser.fromSamlUser(user1));
+    assertContainsApiUserDTOMatchingUser(apiUserListDTO.users, SsoUser.fromSamlUser(user2));
+  }
+
+  @Test
+  public void testGetAllApiUserDTOs_OAuth2() {
+    enableSsoWithOAuth2();
+
+    OAuth2User user1 = tempEntity.newOAuth2User();
+    OAuth2User user2 = tempEntity.newOAuth2User();
+
+    ApiUserListDTO apiUserListDTO = userService.getAllApiUserDTOs(OAuth2Realm.ID);
+
+    assertThat(apiUserListDTO).isNotNull();
+    assertThat(apiUserListDTO.users).hasSize(2);
+    assertContainsApiUserDTOMatchingUser(apiUserListDTO.users, SsoUser.fromOAuth2User(user1));
+    assertContainsApiUserDTOMatchingUser(apiUserListDTO.users, SsoUser.fromOAuth2User(user2));
   }
 
   private void testGetAllApiUserDTOs_User(String queryRealm, String expectedRealm) {
@@ -438,7 +461,7 @@ public class UserServiceTest
     assertThat(apiUserDTO.realm).isEqualTo(realm);
   }
 
-  private void assertContainsApiUserDTOMatchingUser(List<ApiUserDTO> apiUserDTOs, SamlUser user) {
+  private void assertContainsApiUserDTOMatchingUser(List<ApiUserDTO> apiUserDTOs, SsoUser user) {
     ApiUserDTO userDTO =
         apiUserDTOs.stream().filter(dto -> dto.username.equals(user.getUsername())).findFirst().orElse(null);
     assertThat(userDTO).isNotNull();
@@ -447,7 +470,7 @@ public class UserServiceTest
     assertThat(userDTO.firstName).isEqualTo(user.getFirstName());
     assertThat(userDTO.lastName).isEqualTo(user.getLastName());
     assertThat(userDTO.email).isEqualTo(user.getEmail());
-    assertThat(userDTO.realm).isEqualTo(SamlUser.SAML_REALM_ID);
+    assertThat(userDTO.realm).isEqualTo(user.getRealmId());
   }
 
   @Test
@@ -460,13 +483,28 @@ public class UserServiceTest
 
   @Test
   public void testGetApiUserDTOByUsernameAndRealmId_Saml() {
+    enableSsoWithSaml();
+
     SamlUser samlUser = tempEntity.newSamlUser();
     List<ApiUserDTO> apiUserDTOs = new ArrayList<>();
 
     ApiUserDTO apiUserDTO = userService.getApiUserDTOByUsernameAndRealmId(samlUser.getUsername(),
-        SamlUser.SAML_REALM_ID);
+        SamlRealm.ID);
     apiUserDTOs.add(apiUserDTO);
-    assertContainsApiUserDTOMatchingUser(apiUserDTOs, samlUser);
+    assertContainsApiUserDTOMatchingUser(apiUserDTOs, SsoUser.fromSamlUser(samlUser));
+  }
+
+  @Test
+  public void testGetApiUserDTOByUsernameAndRealmId_OAuth2() {
+    enableSsoWithOAuth2();
+
+    OAuth2User oauth2User = tempEntity.newOAuth2User();
+    List<ApiUserDTO> apiUserDTOs = new ArrayList<>();
+
+    ApiUserDTO apiUserDTO = userService.getApiUserDTOByUsernameAndRealmId(oauth2User.getUsername(),
+        OAuth2Realm.ID);
+    apiUserDTOs.add(apiUserDTO);
+    assertContainsApiUserDTOMatchingUser(apiUserDTOs, SsoUser.fromOAuth2User(oauth2User));
   }
 
   @Test
@@ -493,9 +531,19 @@ public class UserServiceTest
 
   @Test
   public void testGetApiUserDTOByUsernameAndRealmId_UserDoesNotExist_Saml() {
+    enableSsoWithSaml();
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> userService.getApiUserDTOByUsernameAndRealmId("doesNotExist", SamlUser.SAML_REALM_ID))
+        .isThrownBy(() -> userService.getApiUserDTOByUsernameAndRealmId("doesNotExist", SamlRealm.ID))
         .withMessage("Cannot find a SAML user with username doesNotExist.");
+  }
+
+  @Test
+  public void testGetApiUserDTOByUsernameAndRealmId_UserDoesNotExist_OAuth2() {
+    enableSsoWithOAuth2();
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> userService.getApiUserDTOByUsernameAndRealmId("doesNotExist", OAuth2Realm.ID))
+        .withMessage("Cannot find a OAuth2 user with username doesNotExist.");
   }
 
   @Test
@@ -584,9 +632,18 @@ public class UserServiceTest
 
   @Test
   public void testDeleteUserByRealmIdAndUsername_SamlUserDoesNotExist() {
+    enableSsoWithSaml();
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> userService.deleteUserByRealmIdAndUsername(SamlUser.SAML_REALM_ID, "doesNotExist"))
+        .isThrownBy(() -> userService.deleteUserByRealmIdAndUsername(SamlRealm.ID, "doesNotExist"))
         .withMessage("Cannot find a SAML user with username doesNotExist.");
+  }
+
+  @Test
+  public void testDeleteUserByRealmIdAndUsername_OAuth2UserDoesNotExist() {
+    enableSsoWithOAuth2();
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> userService.deleteUserByRealmIdAndUsername(OAuth2Realm.ID, "doesNotExist"))
+        .withMessage("Cannot find a OAuth2 user with username doesNotExist.");
   }
 
   @Test
@@ -606,23 +663,47 @@ public class UserServiceTest
 
   @Test
   public void testDeleteUserByRealmIdAndUsername_SamlRealmId() {
+    enableSsoWithSaml();
     testDeleteUserByRealmIdAndUsername("SaMl");
+  }
+
+  @Test
+  public void testDeleteUserByRealmIdAndUsername_OAuth2RealmId() {
+    enableSsoWithOAuth2();
+    testDeleteUserByRealmIdAndUsername("oauth2");
   }
 
   private void testDeleteUserByRealmIdAndUsername(String realmId) {
     SamlUser samlUser1 = tempEntity.newSamlUser();
     SamlUser samlUser2 = tempEntity.newSamlUser();
+
+    OAuth2User oauth2User1 = tempEntity.newOAuth2User(samlUser1.getUsername());
+    OAuth2User oauth2User2 = tempEntity.newOAuth2User();
+
     User user = tempEntity.newUser(samlUser1.getUsername());
+
     userService.deleteUserByRealmIdAndUsername(realmId, samlUser1.getUsername());
-    if (SamlUser.SAML_REALM_ID.equalsIgnoreCase(realmId)) {
+    if (SamlRealm.ID.equalsIgnoreCase(realmId)) {
       assertThat(samlUserDAO.getById(samlUser1.getId())).isNull();
       assertThat(samlUserDAO.getById(samlUser2.getId())).isNotNull();
+      assertThat(oAuth2UserDAO.getById(oauth2User1.getId())).isNotNull();
+      assertThat(oAuth2UserDAO.getById(oauth2User2.getId())).isNotNull();
+      assertThat(userDAO.getById(user.getId())).isNotNull();
+      assertThat(userDAO.getByUsername(User.ADMIN_USERNAME)).isNotNull();
+    }
+    else if (OAuth2Realm.ID.equalsIgnoreCase(realmId)) {
+      assertThat(samlUserDAO.getById(samlUser1.getId())).isNotNull();
+      assertThat(samlUserDAO.getById(samlUser2.getId())).isNotNull();
+      assertThat(oAuth2UserDAO.getById(oauth2User1.getId())).isNull();
+      assertThat(oAuth2UserDAO.getById(oauth2User2.getId())).isNotNull();
       assertThat(userDAO.getById(user.getId())).isNotNull();
       assertThat(userDAO.getByUsername(User.ADMIN_USERNAME)).isNotNull();
     }
     else {
       assertThat(samlUserDAO.getById(samlUser1.getId())).isNotNull();
       assertThat(samlUserDAO.getById(samlUser2.getId())).isNotNull();
+      assertThat(oAuth2UserDAO.getById(oauth2User1.getId())).isNotNull();
+      assertThat(oAuth2UserDAO.getById(oauth2User2.getId())).isNotNull();
       assertThat(userDAO.getById(user.getId())).isNull();
       assertThat(userDAO.getByUsername(User.ADMIN_USERNAME)).isNotNull();
     }

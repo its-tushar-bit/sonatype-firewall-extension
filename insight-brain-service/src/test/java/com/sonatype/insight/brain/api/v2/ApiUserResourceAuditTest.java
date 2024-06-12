@@ -11,8 +11,11 @@ import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.model.security.OAuth2User;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.security.SamlRealm;
+import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Before;
@@ -89,10 +92,22 @@ public class ApiUserResourceAuditTest
     SamlUser samlUser = tempEntity.newSamlUser();
 
     restRequest().path(ApiUserResource.USERNAME_PATH).parameter(samlUser.getUsername())
-        .query("realm", SamlUser.SAML_REALM_ID).delete();
+        .query("realm", SamlRealm.ID).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_USER, null);
-    assertUserData(auditDTO, SamlUser.SAML_REALM_ID, samlUser);
+    assertUserData(auditDTO, SamlRealm.ID, samlUser);
+  }
+
+  @Test
+  public void testDelete_OAuthUser() throws Exception {
+    enableSsoWithOAuth2();
+    OAuth2User oAuth2User = tempEntity.newOAuth2User();
+
+    restRequest().path(ApiUserResource.USERNAME_PATH).parameter(oAuth2User.getUsername())
+        .query("realm", OAuth2Realm.ID).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_USER, null);
+    assertUserData(auditDTO, OAuth2Realm.ID, oAuth2User);
   }
 
   @Test

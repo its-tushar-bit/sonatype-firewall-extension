@@ -15,9 +15,11 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.security.OAuth2User;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -40,12 +42,15 @@ public class MtiqUserResourceTest
 {
   private SamlUserDAO samlUserDAO;
 
+  private OAuth2UserDAO oAuth2UserDAO;
+
   private TenantMetadataDAO tenantMetadataDAO;
 
   @Before
   public void localTestBefore() {
-    samlUserDAO = getCLMServer().getInstance(SamlUserDAO.class);
-    tenantMetadataDAO = getCLMServer().getInstance(TenantMetadataDAO.class);
+    samlUserDAO = lookup(SamlUserDAO.class);
+    oAuth2UserDAO = lookup(OAuth2UserDAO.class);
+    tenantMetadataDAO = lookup(TenantMetadataDAO.class);
   }
 
   @Override
@@ -68,7 +73,9 @@ public class MtiqUserResourceTest
   }
 
   @Test
-  public void test_ListOfUser() throws Exception {
+  public void test_ListOfUser_Saml() throws Exception {
+    enableSsoWithSaml();
+
     SamlUser samlUser =
         new SamlUser("username@example.com", "firstname", "lastname", "username@example.com", Collections.emptySet());
     samlUserDAO.insert(samlUser);
@@ -80,6 +87,24 @@ public class MtiqUserResourceTest
     List<MtiqUserDTO> data = JsonUtils.parse(response.getBodyText(), new TypeReference<List<MtiqUserDTO>>() { });
     assertThat(data).hasSize(1);
     assertThat(MtiqUserDTO.ssoUserToMtiqUser(SsoUser.fromSamlUser(samlUser))).usingRecursiveComparison()
+        .isEqualTo(data.get(0));
+  }
+
+  @Test
+  public void test_ListOfUser_OAuth2() throws Exception {
+    enableSsoWithOAuth2();
+
+    OAuth2User oAuth2User =
+        new OAuth2User("username@example.com", "firstname", "lastname", "username@example.com", Collections.emptySet());
+    oAuth2UserDAO.insert(oAuth2User);
+
+    HttpResponse response = restRequest().get();
+
+    assertResponseStatus(200, response);
+
+    List<MtiqUserDTO> data = JsonUtils.parse(response.getBodyText(), new TypeReference<List<MtiqUserDTO>>() { });
+    assertThat(data).hasSize(1);
+    assertThat(MtiqUserDTO.ssoUserToMtiqUser(SsoUser.fromOAuth2User(oAuth2User))).usingRecursiveComparison()
         .isEqualTo(data.get(0));
   }
 
@@ -97,7 +122,9 @@ public class MtiqUserResourceTest
   }
 
   @Test
-  public void test_inviteUser() throws Exception {
+  public void test_inviteUser_Saml() throws Exception {
+    enableSsoWithSaml();
+
     tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName", null));
 
     MtiqUserDTO mtiqUserDTO = new MtiqUserDTO();
@@ -114,7 +141,28 @@ public class MtiqUserResourceTest
   }
 
   @Test
-  public void test_deleteUser() throws Exception {
+  public void test_inviteUser_OAuth2() throws Exception {
+    enableSsoWithOAuth2();
+
+    tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName", null));
+
+    MtiqUserDTO mtiqUserDTO = new MtiqUserDTO();
+    mtiqUserDTO.setFirstName("foo");
+    mtiqUserDTO.setLastName("bar");
+    mtiqUserDTO.setEmail("foo@bar.com");
+    mtiqUserDTO.setUsername("foo@bar.com");
+
+    assertThat(oAuth2UserDAO.getAll()).hasSize(0);
+    HttpResponse response = restRequest().body(mtiqUserDTO).post();
+
+    assertResponseStatus(204, response);
+    assertThat(oAuth2UserDAO.getAll()).hasSize(1);
+  }
+
+  @Test
+  public void test_deleteUser_Saml() throws Exception {
+    enableSsoWithSaml();
+
     tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName", null));
     samlUserDAO.insert(new SamlUser("foo@bar.com", "foo", "bar", "foo@bar.com", Collections.emptySet()));
 
@@ -123,6 +171,20 @@ public class MtiqUserResourceTest
 
     assertResponseStatus(204, response);
     assertThat(samlUserDAO.getAll()).hasSize(0);
+  }
+
+  @Test
+  public void test_deleteUser_OAuth2() throws Exception {
+    enableSsoWithOAuth2();
+
+    tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName", null));
+    oAuth2UserDAO.insert(new OAuth2User("foo@bar.com", "foo", "bar", "foo@bar.com", Collections.emptySet()));
+
+    assertThat(oAuth2UserDAO.getAll()).hasSize(1);
+    HttpResponse response = restRequest().path("foo@bar.com").delete();
+
+    assertResponseStatus(204, response);
+    assertThat(oAuth2UserDAO.getAll()).hasSize(0);
   }
 
   @Test

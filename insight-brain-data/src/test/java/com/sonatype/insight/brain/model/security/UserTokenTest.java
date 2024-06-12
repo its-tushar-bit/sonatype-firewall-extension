@@ -21,6 +21,15 @@ public class UserTokenTest
   }
 
   @Test
+  public void testIsSsoUser_OAuth2() {
+    UserToken samlUserToken = createUserToken(OAuth2User.OAUTH2_REALM_ID);
+    UserToken otherUserToken = createUserToken("other");
+
+    assertThat(samlUserToken.isSsoUser()).isTrue();
+    assertThat(otherUserToken.isSsoUser()).isFalse();
+  }
+
+  @Test
   public void testIsInternalUser() {
     UserToken internalUserToken = createUserToken(User.INTERNAL_REALM_ID);
     UserToken otherUserToken = createUserToken("other");

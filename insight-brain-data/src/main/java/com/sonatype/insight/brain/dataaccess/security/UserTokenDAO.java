@@ -14,6 +14,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.model.security.OAuth2User;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
@@ -42,8 +43,8 @@ public class UserTokenDAO
 
   public List<UserToken> getAllLdap() {
     String sQuery = "SELECT userToken FROM UserToken userToken" + //
-        " WHERE userToken.realmId<>?1 AND userToken.realmId<>?2";
-    return getList(sQuery, User.INTERNAL_REALM_ID, SamlUser.SAML_REALM_ID);
+        " WHERE userToken.realmId<>?1 AND userToken.realmId<>?2 AND userToken.realmId<>?3";
+    return getList(sQuery, User.INTERNAL_REALM_ID, SamlUser.SAML_REALM_ID, OAuth2User.OAUTH2_REALM_ID);
   }
 
   public UserToken getInternalByUsername(TransactionContext tx, String username) {

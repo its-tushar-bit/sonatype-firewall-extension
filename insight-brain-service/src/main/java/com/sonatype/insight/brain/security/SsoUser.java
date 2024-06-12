@@ -8,10 +8,12 @@ package com.sonatype.insight.brain.security;
 import java.util.Optional;
 import java.util.Set;
 
+import com.sonatype.insight.brain.model.security.OAuth2User;
 import com.sonatype.insight.brain.model.security.SamlUser;
+import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 
 /**
- * Class representing a SSO User
+ * Class representing an SSO User
  */
 public class SsoUser
 {
@@ -33,16 +35,20 @@ public class SsoUser
       final String username,
       final String firstName,
       final String lastName,
+      final String email)
+  {
+    this(null, username, firstName, lastName, email, null, null);
+  }
+
+  public SsoUser(
+      final String username,
+      final String firstName,
+      final String lastName,
       final String email,
       final String realmId,
       final Set<String> groups)
   {
-    this.username = username;
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.email = email;
-    this.realmId = realmId;
-    this.groups = groups;
+    this(null, username, firstName, lastName, email, realmId, groups);
   }
 
   public SsoUser(
@@ -143,9 +149,28 @@ public class SsoUser
       return null;
     }
 
-    SsoUser user =
-        new SsoUser(samlUser.getId(), samlUser.getUsername(), samlUser.getFirstName(), samlUser.getLastName(),
-            samlUser.getEmail(), SamlUser.SAML_REALM_ID, samlUser.getGroups());
+    return new SsoUser(samlUser.getId(), samlUser.getUsername(), samlUser.getFirstName(), samlUser.getLastName(),
+        samlUser.getEmail(), SamlRealm.ID, samlUser.getGroups());
+  }
+
+  public static OAuth2User toOAuth2User(SsoUser ssoUser) {
+    if (ssoUser == null) {
+      return null;
+    }
+
+    OAuth2User user =
+        new OAuth2User(ssoUser.username, ssoUser.firstName, ssoUser.lastName, ssoUser.email, ssoUser.groups);
+    user.setId(ssoUser.id);
     return user;
+  }
+
+  public static SsoUser fromOAuth2User(OAuth2User oauth2User) {
+    if (oauth2User == null) {
+      return null;
+    }
+
+    return new SsoUser(oauth2User.getId(), oauth2User.getUsername(), oauth2User.getFirstName(),
+        oauth2User.getLastName(),
+        oauth2User.getEmail(), OAuth2Realm.ID, oauth2User.getGroups());
   }
 }

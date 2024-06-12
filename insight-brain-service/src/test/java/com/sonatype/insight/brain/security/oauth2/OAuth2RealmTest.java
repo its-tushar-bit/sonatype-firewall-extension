@@ -13,27 +13,43 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2ConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.security.OAuth2GroupDAO;
+import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
 import com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration;
+import com.sonatype.insight.brain.model.security.OAuth2Group;
+import com.sonatype.insight.brain.model.security.OAuth2User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.subject.PrincipalCollection;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class JwtRealmTest
+public class OAuth2RealmTest
     extends AbstractComponentTest
 {
   @Inject
-  private JwtRealm realm;
+  private OAuth2Realm realm;
 
   @Inject
   private JWTGenerator jwtGenerator;
 
   @Inject
   private OAuth2ConfigurationDAO oAuth2ConfigurationDAO;
+
+  @Inject
+  private OAuth2UserDAO oAuth2UserDAO;
+
+  @Inject
+  private OAuth2GroupDAO oAuth2GroupDAO;
+
+  @Before
+  public void enableFeature() {
+    enableSsoWithOAuth2();
+  }
 
   @Test
   public void testDoGetAuthenticationInfo() {
@@ -53,6 +69,8 @@ public class JwtRealmTest
     AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(shiroJsonWebToken);
 
     assertAuthenticationInfoIsTheExpected(username, "Bob Sanders", groups, shiroJsonWebToken, authenticationInfo);
+    assertOAuth2UserIsTheExpected(username, firstName, lastName, email, groups);
+    assertOAuth2GroupsAreCreated(groups);
   }
 
   @Test
@@ -73,6 +91,8 @@ public class JwtRealmTest
     AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(shiroJsonWebToken);
 
     assertAuthenticationInfoIsTheExpected(username, "Bob Sanders", groups, shiroJsonWebToken, authenticationInfo);
+    assertOAuth2UserIsTheExpected(username, firstName, lastName, email, groups);
+    assertOAuth2GroupsAreCreated(groups);
   }
 
   @Test
@@ -93,6 +113,8 @@ public class JwtRealmTest
     AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(shiroJsonWebToken);
 
     assertAuthenticationInfoIsTheExpected(username, username, groups, shiroJsonWebToken, authenticationInfo);
+    assertOAuth2UserIsTheExpected(username, firstName, lastName, email, groups);
+    assertOAuth2GroupsAreCreated(groups);
   }
 
   @Test
@@ -110,6 +132,8 @@ public class JwtRealmTest
     AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(shiroJsonWebToken);
 
     assertAuthenticationInfoIsTheExpected(email, email, groups, shiroJsonWebToken, authenticationInfo);
+    assertOAuth2UserIsTheExpected(email, "", "", email, groups);
+    assertOAuth2GroupsAreCreated(groups);
   }
 
   @Test
@@ -126,6 +150,8 @@ public class JwtRealmTest
     AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(shiroJsonWebToken);
 
     assertAuthenticationInfoIsTheExpected(sub, sub, groups, shiroJsonWebToken, authenticationInfo);
+    assertOAuth2UserIsTheExpected(sub, "", "", "", groups);
+    assertOAuth2GroupsAreCreated(groups);
   }
 
   @Test
@@ -142,6 +168,8 @@ public class JwtRealmTest
     AuthenticationInfo authenticationInfo = realm.doGetAuthenticationInfo(shiroJsonWebToken);
 
     assertAuthenticationInfoIsTheExpected(sub, sub, groups, shiroJsonWebToken, authenticationInfo);
+    assertOAuth2UserIsTheExpected(sub, "", "", "", groups);
+    assertThat(oAuth2GroupDAO.getAll()).isEmpty();
   }
 
   @Test
@@ -156,6 +184,8 @@ public class JwtRealmTest
 
     assertAuthenticationInfoIsTheExpected(sub, sub, Arrays.asList("(all-authenticated-users)"), shiroJsonWebToken,
         authenticationInfo);
+    assertThat(oAuth2UserDAO.getByUsername(sub)).isNull();
+    assertThat(oAuth2GroupDAO.getAll()).isEmpty();
   }
 
   private static void assertAuthenticationInfoIsTheExpected(
@@ -171,7 +201,7 @@ public class JwtRealmTest
 
     assertThat(principal).isInstanceOf(UserPrincipal.class);
     UserPrincipal userPrincipal = (UserPrincipal) principal;
-    assertThat(userPrincipal.getRealmId()).isEqualTo(JwtRealm.ID);
+    assertThat(userPrincipal.getRealmId()).isEqualTo(OAuth2Realm.ID);
     assertThat(userPrincipal.getUsername()).isEqualTo(username);
     assertThat(userPrincipal.getDisplayName()).isEqualTo(displayName);
     assertThat(userPrincipal.getMembership()).containsAll(groups);
@@ -196,5 +226,26 @@ public class JwtRealmTest
     oAuth2ConfigurationDAO.insert(oAuth2Configuration);
 
     return jwtGenerator.getCustomClaims(username, firstName, lastName, email, groups);
+  }
+
+  private void assertOAuth2GroupsAreCreated(final List<String> groups) {
+    List<OAuth2Group> oAuth2Groups = oAuth2GroupDAO.getAll();
+    assertThat(oAuth2Groups.stream().map(OAuth2Group::getName)).contains(groups.toArray(new String[0]));
+  }
+
+  private void assertOAuth2UserIsTheExpected(
+      final String username,
+      final String firstName,
+      final String lastName,
+      final String email,
+      final List<String> groups)
+  {
+    OAuth2User oAuth2User = oAuth2UserDAO.getByUsername(username);
+    assertThat(oAuth2User).isNotNull();
+    assertThat(oAuth2User.getId()).isNotNull();
+    assertThat(oAuth2User.getFirstName()).isEqualTo(firstName);
+    assertThat(oAuth2User.getLastName()).isEqualTo(lastName);
+    assertThat(oAuth2User.getEmail()).isEqualTo(email);
+    assertThat(oAuth2User.getGroups()).contains(groups.toArray(new String[0]));
   }
 }

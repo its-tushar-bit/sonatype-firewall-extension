@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
+import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 
 import org.junit.Assume;
@@ -52,6 +53,8 @@ public class UserTokenAuthcTest
 
   private final boolean isSamlUser;
 
+  private final boolean isOAuth2User;
+
   private String realmId = "testRealmId";
 
   private final String userTokenPassword = "TestPassword";
@@ -60,24 +63,33 @@ public class UserTokenAuthcTest
 
   private UserTokenDAO userTokenDAO;
 
-  public UserTokenAuthcTest(boolean setupLdap, boolean isLdapUser, boolean isInternalUser, boolean isSamlUser) {
+  public UserTokenAuthcTest(
+      boolean setupLdap,
+      boolean isLdapUser,
+      boolean isInternalUser,
+      boolean isSamlUser,
+      boolean isOAuth2User)
+  {
     this.setupLdap = setupLdap;
     this.isLdapUser = isLdapUser;
     this.isInternalUser = isInternalUser;
     this.isSamlUser = isSamlUser;
+    this.isOAuth2User = isOAuth2User;
   }
 
   @Parameterized.Parameters(name = "setupLdap={0}, isLdapUser={1}, isInternalUser={2}, isSamlUser={3}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
-        {false, false, false, false}, // totally unknown user, no LDAP configured
-        {true, false, false, false}, // totally unknown user, LDAP configured
-        {false, false, true, false}, // user only present in local db, no LDAP configured
-        {true, false, true, false}, // user only present in local db, LDAP configured
-        {true, true, false, false}, // user only present in LDAP
-        {true, true, true, false}, // user present in local db and LDAP
-        {false, false, false, true}, // user only present in SAML
-        {false, false, true, true} // user present in local db and SAML
+        {false, false, false, false, false}, // totally unknown user, no LDAP configured
+        {true, false, false, false, false}, // totally unknown user, LDAP configured
+        {false, false, true, false, false}, // user only present in local db, no LDAP configured
+        {true, false, true, false, false}, // user only present in local db, LDAP configured
+        {true, true, false, false, false}, // user only present in LDAP
+        {true, true, true, false, false}, // user present in local db and LDAP
+        {false, false, false, true, false}, // user only present in SAML
+        {false, false, true, true, false}, // user present in local db and SAML
+        {false, false, true, false, true}, // user only present in OAuth2
+        {false, false, true, false, true} // user present in local db and OAuth2
     });
   }
 
@@ -107,13 +119,18 @@ public class UserTokenAuthcTest
       }
     }
     if (isSamlUser) {
-      tempEntity.newSamlUser("testuser", "John", "Doe", "test.user@company.com",
+      tempEntity.newSamlUser(USERNAME, "John", "Doe", "test.user@company.com",
           new LinkedHashSet<>(Arrays.asList("group1", "group2")));
       realmId = SamlRealm.ID;
     }
+    if (isOAuth2User) {
+      tempEntity.newSamlUser(USERNAME, "John", "Doe", "test.user@company.com",
+          new LinkedHashSet<>(Arrays.asList("group1", "group2")));
+      realmId = OAuth2Realm.ID;
+    }
     if (isInternalUser) {
       // Be sure to keep the detail in-sync with the ldap defined user details for the testuser
-      tempEntity.newUser("testuser", "John", "Doe", "test.user@company.com");
+      tempEntity.newUser(USERNAME, "John", "Doe", "test.user@company.com");
       realmId = InternalRealm.ID;
     }
 
@@ -128,7 +145,7 @@ public class UserTokenAuthcTest
     if (isLdapUser && !isInternalUser) {
       groupNames.add("Alpha2");
     }
-    if (isSamlUser && !isInternalUser) {
+    if ((isSamlUser || isOAuth2User) && !isInternalUser) {
       groupNames.add("group1");
       groupNames.add("group2");
     }

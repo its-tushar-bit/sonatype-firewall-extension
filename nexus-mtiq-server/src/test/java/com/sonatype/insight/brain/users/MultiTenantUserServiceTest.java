@@ -54,6 +54,7 @@ public class MultiTenantUserServiceTest
 
     underTest = new MultiTenantUserService(webSessionManager, sessionDAO, ssoUserService, tenantMetadataDAO,
         auth0ManagementService, currentUser);
+    enableSsoWithOAuth2();
   }
 
   @Test
@@ -89,6 +90,7 @@ public class MultiTenantUserServiceTest
 
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       provisionTenant(tenant.tenantSlug);
+      enableSsoWithOAuth2();
       createTenantMetadata(tenant);
 
       assertThat(ssoUserService.getAll()).hasSize(0);
@@ -112,6 +114,7 @@ public class MultiTenantUserServiceTest
 
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       provisionTenant(tenant.tenantSlug);
+      enableSsoWithOAuth2();
       createTenantMetadata(tenant);
 
       underTest.inviteUser(user1);
@@ -123,6 +126,7 @@ public class MultiTenantUserServiceTest
 
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       provisionTenant(tenant.tenantSlug);
+      enableSsoWithOAuth2();
       createTenantMetadata(tenant);
 
       underTest.inviteUser(user3);
@@ -141,6 +145,7 @@ public class MultiTenantUserServiceTest
 
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       provisionTenant(tenant.tenantSlug);
+      enableSsoWithOAuth2();
 
       assertThatThrownBy(() -> underTest.inviteUser(user)).isInstanceOf(RuntimeException.class)
           .hasMessageContaining("Tenant metadata not found");
@@ -157,6 +162,7 @@ public class MultiTenantUserServiceTest
 
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       provisionTenant(tenant.tenantSlug);
+      enableSsoWithOAuth2();
       TenantMetadata tenantMetadata = createTenantMetadata(tenant);
 
       when(currentUser.getUsername()).thenReturn("random@email.com");
@@ -177,6 +183,7 @@ public class MultiTenantUserServiceTest
 
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       provisionTenant(tenant.tenantSlug);
+      enableSsoWithOAuth2();
       TenantMetadata tenantMetadata = createTenantMetadata(tenant);
 
       when(currentUser.getUsername()).thenReturn("admin@email.com");
@@ -197,6 +204,7 @@ public class MultiTenantUserServiceTest
 
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       provisionTenant(tenant.tenantSlug);
+      enableSsoWithOAuth2();
       ssoUserService.upsertByUsername(user1);
       ssoUserService.upsertByUsername(user2);
 
@@ -207,11 +215,16 @@ public class MultiTenantUserServiceTest
 
   @Test
   public void test_deletionFailsIfUserIsLoggedInUser() {
-    when(currentUser.getUsername()).thenReturn("random@email.com");
+    String username = "random@email.com";
+    when(currentUser.getUsername()).thenReturn(username);
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       provisionTenant(tenant.tenantSlug);
 
-      assertThatThrownBy(() -> underTest.deleteByUsername("random@email.com"))
+      tenantTemporaryEntity.newOAuth2User(username);
+      enableSsoWithOAuth2();
+      createTenantMetadata(tenant);
+
+      assertThatThrownBy(() -> underTest.deleteByUsername(username))
           .isInstanceOf(BadRequestException.class);
     });
   }

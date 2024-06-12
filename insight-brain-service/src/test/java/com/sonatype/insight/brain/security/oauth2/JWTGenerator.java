@@ -145,11 +145,11 @@ public class JWTGenerator
       final List<String> groups)
   {
     Map<String, Object> claims = new HashMap<>();
-    claims.put(JwtRealm.GIVEN_NAME_CLAIM, firstName);
-    claims.put(JwtRealm.FAMILY_NAME_CLAIM, lastName);
-    claims.put(JwtRealm.NICKNAME_CLAIM, username);
-    claims.put(JwtRealm.EMAIL_CLAIM, email);
-    claims.put(JwtRealm.GROUPS_CLAIM, groups);
+    claims.put(OAuth2Realm.GIVEN_NAME_CLAIM, firstName);
+    claims.put(OAuth2Realm.FAMILY_NAME_CLAIM, lastName);
+    claims.put(OAuth2Realm.NICKNAME_CLAIM, username);
+    claims.put(OAuth2Realm.EMAIL_CLAIM, email);
+    claims.put(OAuth2Realm.GROUPS_CLAIM, groups);
 
     return claims;
   }

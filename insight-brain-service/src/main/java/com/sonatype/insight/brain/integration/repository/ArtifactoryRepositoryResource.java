@@ -87,6 +87,19 @@ public class ArtifactoryRepositoryResource
         HdsClient.getClientUserAgent(request));
   }
 
+  @GET
+  @Path(REPOSITORY_RESULTS_URL)
+  @Produces(MediaType.TEXT_PLAIN)
+  @Timed
+  public String getRepositoryResultsUrl(
+      @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") final String repositoryPublicId,
+      @Context final HttpServletRequest request)
+  {
+    return repositoryService.getRepositoryResultsUrl(repositoryManagerInstanceId, repositoryPublicId,
+        HdsClient.getClientUserAgent(request));
+  }
+
   @POST
   @Path(EVALUATE_COMPONENTS_PATH)
   @Consumes(MediaType.APPLICATION_JSON)

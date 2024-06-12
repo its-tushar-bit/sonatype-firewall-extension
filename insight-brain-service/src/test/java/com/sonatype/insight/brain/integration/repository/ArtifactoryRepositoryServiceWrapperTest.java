@@ -50,6 +50,10 @@ public class ArtifactoryRepositoryServiceWrapperTest
     verify(artifactoryRepositoryService).getPolicyEvaluationSummary(repositoryManagerInstanceId, repositoryPublicId,
         null);
 
+    wrapper.getRepositoryResultsUrl(repositoryManagerInstanceId, repositoryPublicId, null);
+    verify(artifactoryRepositoryService).getRepositoryResultsUrl(repositoryManagerInstanceId, repositoryPublicId,
+        null);
+
     RepositoryComponentEvaluationDataRequestList list = new RepositoryComponentEvaluationDataRequestList();
     wrapper.evaluateComponents(repositoryManagerInstanceId, repositoryPublicId, list, true, "agent");
     verify(artifactoryRepositoryService).evaluateComponents(repositoryManagerInstanceId, repositoryPublicId, list, true,

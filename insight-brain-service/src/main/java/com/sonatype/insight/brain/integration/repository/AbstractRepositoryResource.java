@@ -11,6 +11,8 @@ abstract class AbstractRepositoryResource
 
   static final String SUMMARY_PATH = REPOSITORY_PATH + "summary";
 
+  static final String REPOSITORY_RESULTS_URL = REPOSITORY_PATH + "repositoryResultsUrl";
+
   static final String QUARANTINE_PATH = REPOSITORY_PATH + "quarantine/{enabled}";
 
   public static final String AUDIT_ENABLE_PATH = REPOSITORY_PATH + "enable/{enabled}";

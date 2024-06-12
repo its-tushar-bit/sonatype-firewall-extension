@@ -246,6 +246,12 @@ public class RestClientFactory
     }
 
     @Override
+    public String getRepositoryResultsUrl() throws IOException {
+      return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, repositoryManagerType)
+          .getRepositoryResultsUrl();
+    }
+
+    @Override
     public void removeComponent(String pathname) throws IOException {
       newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, repositoryManagerType)
           .removeComponent(pathname);

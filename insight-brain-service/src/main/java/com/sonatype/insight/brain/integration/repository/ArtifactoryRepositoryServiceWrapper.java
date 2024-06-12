@@ -94,6 +94,16 @@ class ArtifactoryRepositoryServiceWrapper
         clientUserAgent);
   }
 
+  String getRepositoryResultsUrl(
+      final String repositoryManagerInstanceId,
+      final String repositoryPublicId,
+      final String clientUserAgent)
+  {
+    return repositoryService.getRepositoryResultsUrl(
+        getRepositoryManagerInstanceId(repositoryManagerInstanceId, repositoryPublicId), repositoryPublicId,
+        clientUserAgent);
+  }
+
   RepositoryComponentEvaluationDataList evaluateComponents(
       final String repositoryManagerInstanceId,
       final String repositoryPublicId,

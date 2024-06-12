@@ -68,6 +68,10 @@ public abstract class AbstractRepositoryResourceTest
     return restRequest().path(AbstractRepositoryResource.SUMMARY_PATH);
   }
 
+  private HttpRequest repositoryResultsUrlRequest() {
+    return restRequest().path(AbstractRepositoryResource.REPOSITORY_RESULTS_URL);
+  }
+
   private HttpRequest quarantineRequest() {
     return restRequest().path(AbstractRepositoryResource.QUARANTINE_PATH);
   }
@@ -251,6 +255,70 @@ public abstract class AbstractRepositoryResourceTest
     String repositoryId = repository.getPublicId();
 
     HttpResponse response = summaryRequest().parameter(repositoryManager.getInstanceId(), repositoryId).get();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Repository " + repositoryId + " is disabled.");
+  }
+
+  @Test
+  public void testGetRepositoryResultsUrl() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true);
+
+    HttpResponse response = repositoryResultsUrlRequest()
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
+        .get();
+
+    assertResponseStatus(200, response);
+    String repositoryResultsUrl = response.getBodyText();
+
+    assertThat(repositoryResultsUrl).isEqualTo("ui/links/repository/" + repository.getId() + "/result");
+  }
+
+  @Test
+  public void testGetRepositoryResultsUrl_WithClientUserAgent() throws Exception {
+    String userAgent = getUserAgent();
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true);
+
+    HttpResponse response = repositoryResultsUrlRequest()
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
+        .header(HttpHeaders.USER_AGENT, userAgent)
+        .get();
+
+    assertResponseStatus(200, response);
+    String repositoryResultsUrl = response.getBodyText();
+
+    RepositoryManager foundRepositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
+
+    assertThat(foundRepositoryManager.getUserAgent()).isEqualTo(userAgent);
+    assertThat(repositoryResultsUrl).isEqualTo("ui/links/repository/" + repository.getId() + "/result");
+  }
+
+  @Test
+  public void testGetRepositoryResultsUrl_NoRepository() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    String repositoryId = "NonExistentRepositoryId";
+
+    HttpResponse response = repositoryResultsUrlRequest()
+        .parameter(repositoryManager.getInstanceId(), repositoryId)
+        .get();
+
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).isEqualTo(
+        "Cannot find a repository with repositoryManagerInstanceId=" + repositoryManager.getInstanceId() +
+            " and publicId=" + repositoryId + ".");
+  }
+
+  @Test
+  public void testGetRepositoryResultsUrl_RepositoryDisabled() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
+    String repositoryId = repository.getPublicId();
+
+    HttpResponse response = repositoryResultsUrlRequest()
+        .parameter(repositoryManager.getInstanceId(), repositoryId)
+        .get();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Repository " + repositoryId + " is disabled.");

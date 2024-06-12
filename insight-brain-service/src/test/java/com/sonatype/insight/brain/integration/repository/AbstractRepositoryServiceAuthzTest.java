@@ -10,6 +10,7 @@ import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -155,6 +156,26 @@ public abstract class AbstractRepositoryServiceAuthzTest
     createRepository();
     grantWritePermission();
     getRepositoryService().getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, null);
+  }
+
+  @Test
+  public void testGetRepositoryResultsUrl_Authorized() {
+    Repository repo = createRepository();
+    grantPermission(repo.getId(), Permission.EVALUATE_COMPONENT);
+    getRepositoryService().getRepositoryResultsUrl(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetRepositoryResultsUrl_Unauthenticated() {
+    createRepository();
+    getRepositoryService().getRepositoryResultsUrl(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetRepositoryResultsUrl_Unauthorized() {
+    createRepository();
+    login();
+    getRepositoryService().getRepositoryResultsUrl(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID, null);
   }
 
   @Test

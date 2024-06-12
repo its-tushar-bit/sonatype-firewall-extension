@@ -34,6 +34,8 @@ public class FirewallClient
 
   private static final String SUMMARY_PATH = "summary";
 
+  private static final String REPOSITORY_RESULTS_URL = "repositoryResultsUrl";
+
   private static final String ENABLE_PATH = "enable";
 
   private static final String QUARANTINE_PATH = "quarantine";
@@ -168,6 +170,11 @@ public class FirewallClient
   public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException {
     Result result = path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, SUMMARY_PATH).get();
     return parseResult(result, RepositoryPolicyEvaluationSummary.class);
+  }
+
+  public String getRepositoryResultsUrl() throws IOException {
+    Result result = path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, REPOSITORY_RESULTS_URL).get();
+    return parseResult(result, String.class);
   }
 
   public UnquarantinedComponentList getUnquarantinedComponents(final long sinceUtcTimestamp) throws IOException {

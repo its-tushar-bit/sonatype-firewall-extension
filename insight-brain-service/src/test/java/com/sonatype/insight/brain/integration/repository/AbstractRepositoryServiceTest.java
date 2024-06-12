@@ -476,6 +476,35 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
+  public void testGetRepositoryResultsUrl() {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+
+    String repositoryResultsUrl = getRepositoryService()
+        .getRepositoryResultsUrl(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null);
+    assertThat(repositoryResultsUrl).isEqualTo("ui/links/repository/" + repository.getId() + "/result");
+  }
+
+  @Test
+  public void testGetRepositoryResultsUrl_NotProxyRepository() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo =
+        tempEntity.newRepository(repoManager, "testPublicId", RepositoryType.hosted, ComponentIdentifier.FORMAT_NPM);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      getRepositoryService().getRepositoryResultsUrl(repoManager.getInstanceId(), repo.getPublicId(), null);
+    }).withMessage("Repository " + repo.getPublicId() + " (" + repo.getId() + ") is not a proxy repository");
+  }
+
+  @Test
+  public void testGetRepositoryResultsUrl_MissingLicenseFeature() {
+    testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(
+            () -> getRepositoryService().getRepositoryResultsUrl(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null))
+        .withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+  }
+
+  @Test
   public void testEvaluateComponents_WithQuarantine_RepositoryDoesNotExist() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(

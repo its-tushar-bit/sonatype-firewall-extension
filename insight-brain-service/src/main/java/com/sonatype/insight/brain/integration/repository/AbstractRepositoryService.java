@@ -171,7 +171,26 @@ public abstract class AbstractRepositoryService
       final String clientUserAgent)
   {
     checkLicenseFeature();
+    final Repository repository = getRepository(repositoryManagerInstanceId, repositoryPublicId, clientUserAgent);
 
+    return getPolicyEvaluationSummary(repository);
+  }
+
+  String getRepositoryResultsUrl(
+      final String repositoryManagerInstanceId,
+      final String repositoryPublicId,
+      final String clientUserAgent)
+  {
+    checkLicenseFeature();
+    final Repository repository =
+        getRepository(repositoryManagerInstanceId, repositoryPublicId, clientUserAgent);
+
+    return getRepositoryResultsUrl(repository);
+  }
+
+  private Repository getRepository(
+      final String repositoryManagerInstanceId, final String repositoryPublicId, final String clientUserAgent)
+  {
     Repository repository = repositoryDAO.getByRepositoryManagerInstanceIdAndPublicIdNotNull(
         repositoryManagerInstanceId, repositoryPublicId);
     validateIsProxyRepository(repository);
@@ -181,8 +200,7 @@ public abstract class AbstractRepositoryService
     }
 
     updateUserAgent(clientUserAgent, repository);
-
-    return getPolicyEvaluationSummary(repository);
+    return repository;
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -190,6 +208,11 @@ public abstract class AbstractRepositoryService
       @AuthzContext(Key.REPOSITORY) final Repository repository)
   {
     return getPolicyEvaluationSummaryInternal(repository);
+  }
+
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  String getRepositoryResultsUrl(@AuthzContext(Key.REPOSITORY) final Repository repository) {
+    return UserInterfaceLinksHelper.getRepositoryReportUrl(repository.getId());
   }
 
   ApiRepositoryDTO setAuditEnabled(

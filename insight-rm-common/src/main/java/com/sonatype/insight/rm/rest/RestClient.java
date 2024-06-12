@@ -100,6 +100,8 @@ public interface RestClient
 
     RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException;
 
+    String getRepositoryResultsUrl() throws IOException;
+
     UnquarantinedComponentList getUnquarantinedComponents(long sinceUtcTimestamp) throws IOException;
 
     void addProprietaryComponentNames(ProprietaryComponentNames proprietaryComponentNames) throws IOException;

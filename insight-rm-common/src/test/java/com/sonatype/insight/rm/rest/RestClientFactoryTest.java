@@ -343,6 +343,26 @@ public class RestClientFactoryTest
   }
 
   @Test
+  public void testRestClientRepository_GetRepositoryResultsUrl() throws Exception {
+    String repositoryResultsUrl = "https://example.com/iqReport";
+
+    final FirewallClient firewallClient = mock(FirewallClient.class);
+    when(firewallClient.getRepositoryResultsUrl()).thenReturn(repositoryResultsUrl);
+
+    final String repositoryManagerInstanceId = "repositoryManagerInstanceId";
+    final String repositoryPublicId = "repositoryPublicId";
+
+    final RestClientFactory factory = spy(new RestClientFactory());
+    doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
+        eq(repositoryPublicId), eq(RepositoryManagerType.NEXUS));
+
+    final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+    final Repository repository =
+        client.forRepository(repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
+    assertThat(repository.getRepositoryResultsUrl()).isSameAs(repositoryResultsUrl);
+  }
+
+  @Test
   public void testRestClientRepository_GetQuarantinedComponentReport() throws Exception {
     QuarantinedComponentReport quarantinedComponentReport = new QuarantinedComponentReport();
     quarantinedComponentReport.setReportUrl("components/quarantinedComponentReportUrl");

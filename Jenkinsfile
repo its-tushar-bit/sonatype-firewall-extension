@@ -163,10 +163,11 @@ void configureBranchJob() {
 }
 
 void pushDockerImageIfDeployBranch() {
-    //If the git repo branch name isn't main or the project name isn't snapshot, skip the image build and deploy.
+    def push = true
+    // If the git repo branch name isn't main or the project name isn't snapshot, skip the image push.
     if (!isDeployBranch(env, 'main') || !currentBuild.fullProjectName.contains("snapshot")) {
         echo 'Skipping push of docker image for non-deploy branch or release'
-        return
+        push = false
     }
 
     String iqVersion = getMavenProjectVersion('.')
@@ -184,27 +185,29 @@ void pushDockerImageIfDeployBranch() {
             sh "docker buildx build --platform=linux/amd64,linux/arm64 --build-arg " +
                 "SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg " +
                 "IQ_SERVER_VERSION=${iqVersion} " +
-                " --push " +
+                (push ? " --push " : "") +
                 " --tag ${latest} " +
                 " --tag ${fullImage} ."
         }
     }
 
-    // Trigger downstream jobs for IQ
-    String targetImage = "${sonatypeDockerRegistryId()}/iq/staging:${imageVersion}"
-    build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/staging',
-          parameters: [
-            string(name: 'BASE_IMAGE', value: fullImage),
-            string(name: 'TARGET_IMAGE', value: targetImage),
-          ],
-          propagate: false)
+    if (push) {
+        // Trigger downstream jobs for IQ
+        String targetImage = "${sonatypeDockerRegistryId()}/iq/staging:${imageVersion}"
+        build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/staging',
+              parameters: [
+                string(name: 'BASE_IMAGE', value: fullImage),
+                string(name: 'TARGET_IMAGE', value: targetImage),
+              ],
+              propagate: false)
 
-    build('job': 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/staging',
-          parameters: [
-            string(name: 'environment', value: 'Staging'),
-            string(name:'imageUrl', value: targetImage)
-          ],
-          propagate: false)
+        build('job': 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/staging',
+              parameters: [
+                string(name: 'environment', value: 'Staging'),
+                string(name:'imageUrl', value: targetImage)
+              ],
+              propagate: false)
+    }
 }
 
 void pushMTIQDockerImage() {

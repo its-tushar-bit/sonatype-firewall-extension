@@ -80,6 +80,20 @@ public class SbomCycloneDxUtilsTest
   }
 
   @Test
+  public void testGetSbomCreationDetails_OnlyCreators_NoManufactureContacts() throws Exception {
+    Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata-only-creators-manufacture-null-contacts.xml");
+    String actual = SbomCycloneDxUtils.getSbomCreationDetailsJson(bom);
+    assertThat(actual).isEqualTo(expectedOnlyCreatorsSbomMetadata());
+  }
+
+  @Test
+  public void testGetSbomCreationDetails_OnlyCreators_NoSupplierContacts() throws Exception {
+    Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata-only-creators-supplier-null-contacts.xml");
+    String actual = SbomCycloneDxUtils.getSbomCreationDetailsJson(bom);
+    assertThat(actual).isEqualTo(expectedOnlyCreatorsSbomMetadata());
+  }
+
+  @Test
   public void testGetSbomCreationDetails_OnlyTools() throws Exception {
     Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata-only-tools.xml");
     String actual = SbomCycloneDxUtils.getSbomCreationDetailsJson(bom);

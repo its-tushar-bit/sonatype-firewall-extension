@@ -133,7 +133,7 @@ public class SbomCycloneDxUtils
       Metadata metadataFromSbomFile)
   {
     OrganizationalEntity manufactureFromSbomFile = metadataFromSbomFile.getManufacture();
-    if (manufactureFromSbomFile != null) {
+    if (manufactureFromSbomFile != null && CollectionUtils.isNotEmpty(manufactureFromSbomFile.getContacts())) {
       extractedMetadata.creators.addAll(manufactureFromSbomFile.getContacts().stream()
           .map(contact -> mapOrganizationalContactToCreator(contact,
               SbomCreationDetails.CreatorType.Manufacturer.name(),
@@ -144,7 +144,7 @@ public class SbomCycloneDxUtils
 
   private static void buildCreatorsWithSupplier(SbomCreationDetails extractedMetadata, Metadata metadataFromSbomFile) {
     OrganizationalEntity supplierFromSbomFile = metadataFromSbomFile.getSupplier();
-    if (supplierFromSbomFile != null) {
+    if (supplierFromSbomFile != null && CollectionUtils.isNotEmpty(supplierFromSbomFile.getContacts())) {
       extractedMetadata.creators.addAll(supplierFromSbomFile.getContacts().stream()
           .map(contact -> mapOrganizationalContactToCreator(contact, SbomCreationDetails.CreatorType.Supplier.name(),
               supplierFromSbomFile.getUrls()))

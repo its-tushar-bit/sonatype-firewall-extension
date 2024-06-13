@@ -33,6 +33,7 @@ import javax.ws.rs.core.Response;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.ComponentLocator;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.VulnerabilityAnalysis;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomVulnerabilityAnalysisService;
@@ -333,5 +334,35 @@ public class ApiSbomResource
     AuditData.get().setVulnerability(apiSbomVulnerabilityAnalysisRequestDto, refId);
     return apiSbomVulnerabilityAnalysisService.saveVulnerabilityAnalysis(applicationId, sbomVersion, refId,
         apiSbomVulnerabilityAnalysisRequestDto);
+  }
+
+  @Operation(summary = "Deletes a Vulnerability analysis for a given component.",
+      tags = {"sbom"},
+      description = "Deletes a Vulnerability analysis for a given component.",
+      responses = {
+          @ApiResponse(responseCode = "404", description = "Vulnerability analysis not found"),
+          @ApiResponse(responseCode = "204", description = "Vulnerability analysis deleted")
+      })
+
+  @DELETE
+  @Path(SBOM_VULNERABILITY_ANALYSIS_ANNOTATION_PATH)
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  @Consumes({MediaType.APPLICATION_JSON})
+  @Audited(AuditEvent.DELETE_SBOM_VULNERABILITY_ANALYSIS)
+  public Response deleteVulnerabilityAnalysis(
+      @Parameter(description = "The internal id of the application", required = true)
+      @PathParam("applicationId") String applicationId,
+      @Parameter(description = "The version for a specific SBOM where the vulnerability " +
+          "is present", required = true)
+      @PathParam("version") String sbomVersion,
+      @Parameter(description = "The vulnerability id of a vulnerability", required = true)
+      @PathParam("refId") String refId,
+      @RequestBody(description = "Hash or packageUrl to identify the component",
+          required = true)
+      ComponentLocator componentLocator)
+  {
+    AuditData.get().setVulnerability(componentLocator, refId);
+    return apiSbomVulnerabilityAnalysisService.deleteVulnerabilityAnalysis(applicationId, sbomVersion, refId,
+        componentLocator);
   }
 }

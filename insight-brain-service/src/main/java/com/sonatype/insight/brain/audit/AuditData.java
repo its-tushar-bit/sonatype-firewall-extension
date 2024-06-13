@@ -495,4 +495,15 @@ public abstract class AuditData
     }
     setData("vulnerabilityReference", refId);
   }
+
+  public void setVulnerability(
+      final ComponentLocator componentLocator,
+      final String refId)
+  {
+    if (componentLocator != null) {
+      setData("packageUrl", componentLocator.getPackageUrl());
+      setData("componentHash", componentLocator.getHash());
+    }
+    setData("vulnerabilityReference", refId);
+  }
 }

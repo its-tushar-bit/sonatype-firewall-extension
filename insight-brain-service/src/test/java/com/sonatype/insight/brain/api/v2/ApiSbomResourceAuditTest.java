@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
@@ -147,12 +148,7 @@ public class ApiSbomResourceAuditTest
         .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_SBOM_VULNERABILITY_ANALYSIS, null);
-    assertThat(auditDTO.data).containsEntry("applicationId", app.getId());
-    assertThat(auditDTO.data).containsEntry("applicationPublicId", app.getPublicId());
-    assertThat(auditDTO.data).containsEntry("applicationName", app.getName());
-    assertThat(auditDTO.data).containsEntry("componentHash", component.getHash());
-    assertThat(auditDTO.data).containsEntry("packageUrl", component.getPackageUrl());
-    assertThat(auditDTO.data).containsEntry("vulnerabilityReference", refId);
+    assertVulnerabilityAnalysisAuditData(auditDTO, app, component.getHash(), component.getPackageUrl(), refId);
   }
 
   @Test
@@ -171,12 +167,50 @@ public class ApiSbomResourceAuditTest
         .put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_SBOM_VULNERABILITY_ANALYSIS, "unauthorized");
-    assertThat(auditDTO.data).containsEntry("applicationId", app.getId());
-    assertThat(auditDTO.data).containsEntry("applicationPublicId", app.getPublicId());
-    assertThat(auditDTO.data).containsEntry("applicationName", app.getName());
-    assertThat(auditDTO.data).containsEntry("componentHash", "hash001");
-    assertThat(auditDTO.data).containsEntry("packageUrl", "purl");
-    assertThat(auditDTO.data).containsEntry("vulnerabilityReference", refId);
+    assertVulnerabilityAnalysisAuditData(auditDTO, app, "hash001", "purl", refId);
+  }
+
+  @Test
+  public void testDeleteVulnerabilityAnalysis_Authorized() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(thirdPartyFile);
+    String refId = "CVE-123";
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), SbomStatus.ACTIVE.toString(),
+            "file.tgz");
+    ThirdPartyFileCoordinate component =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "ThirdParty", "npm", "bloom", "1.0", "hash001",
+            "pkg:npm/bloom@1.0");
+    ThirdPartyCoordinateSecurity security =
+        tempEntity.newThirdPartyCoordinateSecurity(component, refId, "description", "link", 8.1, "Critical",
+            "1.2.0");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(security, security.getRefId(),
+        State.EXPLOITABLE.toString(), Justification.REQUIRES_DEPENDENCY.toString(), Response.WILL_NOT_FIX.toString(),
+        "some detail");
+
+    restRequest().path(ApiSbomResource.SBOM_VULNERABILITY_ANALYSIS_ANNOTATION_PATH)
+        .parameter(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion(), refId)
+        .body(new ComponentLocator(component.getHash(), component.getPackageUrl()))
+        .delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_SBOM_VULNERABILITY_ANALYSIS, null);
+    assertVulnerabilityAnalysisAuditData(auditDTO, app, component.getHash(), component.getPackageUrl(), refId);
+  }
+
+  @Test
+  public void testDeleteVulnerabilityAnalysis_Unauthorized() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    String refId = "CVE-123";
+
+    restRequest().path(ApiSbomResource.SBOM_VULNERABILITY_ANALYSIS_ANNOTATION_PATH)
+        .with(unauthorizedUser())
+        .parameter(app.getId(), "v1", refId)
+        .body(new ComponentLocator("hash001", "purl"))
+        .delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_SBOM_VULNERABILITY_ANALYSIS, "unauthorized");
+    assertVulnerabilityAnalysisAuditData(auditDTO, app, "hash001", "purl", refId);
   }
 
   private static VulnerabilityAnalysis mockAnalysisRequest() {
@@ -199,5 +233,17 @@ public class ApiSbomResourceAuditTest
     HttpResponse response = await().atMost(10, TimeUnit.SECONDS).until(() -> super.restRequest().path(statusUrl).get(),
         resp -> resp.getStatusCode() == 200);
     return response.getBody(ApiSbomStatusDTO.class);
+  }
+
+  private void assertVulnerabilityAnalysisAuditData(
+      AuditDTO auditDTO, Application app, String componentHash,
+      String componentPurl, String refId)
+  {
+    assertThat(auditDTO.data).containsEntry("applicationId", app.getId());
+    assertThat(auditDTO.data).containsEntry("applicationPublicId", app.getPublicId());
+    assertThat(auditDTO.data).containsEntry("applicationName", app.getName());
+    assertThat(auditDTO.data).containsEntry("componentHash", componentHash);
+    assertThat(auditDTO.data).containsEntry("packageUrl", componentPurl);
+    assertThat(auditDTO.data).containsEntry("vulnerabilityReference", refId);
   }
 }

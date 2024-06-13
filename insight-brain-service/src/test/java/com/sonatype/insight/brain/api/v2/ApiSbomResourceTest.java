@@ -14,7 +14,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
@@ -41,6 +40,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentListDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
@@ -561,6 +561,32 @@ public class ApiSbomResourceTest
     assertThat(result.get("createdOn").asText()).isNotNull();
     assertThat(result.get("lastUpdatedOn").asText()).isNotNull();
     assertThat(result.get("lastUpdatedBy").asText()).isEqualTo("admin");
+  }
+
+  @Test
+  public void testDeleteVulnerabilityAnalysis() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(thirdPartyFile);
+    String refId = "CVE-123";
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), SbomStatus.ACTIVE.toString(),
+            "file.tgz");
+    ThirdPartyFileCoordinate component =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "ThirdParty", "npm", "bloom", "1.0", "hash001",
+            "pkg:npm/bloom@1.0");
+    ThirdPartyCoordinateSecurity security =
+        tempEntity.newThirdPartyCoordinateSecurity(component, refId, "description", "link", 8.1, "Critical", "1.2.0");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(security, security.getRefId(),
+        State.EXPLOITABLE.toString(), Justification.REQUIRES_DEPENDENCY.toString(), Response.WILL_NOT_FIX.toString(),
+        "some detail");
+
+    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_VULNERABILITY_ANALYSIS_ANNOTATION_PATH)
+        .parameter(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion(), refId)
+        .body(new ComponentLocator(component.getHash(), null))
+        .delete();
+
+    assertResponseStatus(Status.NO_CONTENT.getStatusCode(), response);
   }
 
   private static VulnerabilityAnalysis mockAnalysisRequest() {

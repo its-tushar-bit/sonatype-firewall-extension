@@ -18,6 +18,7 @@ import {
   selectRepositoryId,
   selectIsRepositoryManager,
   selectIsSbomManager,
+  selectSbomVersionId,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { useRouterState } from '../../react/RouterStateContext';
@@ -26,6 +27,7 @@ import {
   selectDisplayedOrganization,
 } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import { getOwnerInfo } from 'MainRoot/OrgsAndPolicies/ownerSideNav/utils';
+import { selectNoSbomManagerEnabledError } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 const BREAD_CRUMB_CONTAINER_ID = 'menu-bar__bread-crumb-container';
 
@@ -39,7 +41,8 @@ const getBreadcrumb = (
   repositoryId,
   pageTitle,
   currentRouteName,
-  isSbomManager
+  isSbomManager,
+  sbomVersionId
 ) => {
   const breadcrumb = [];
 
@@ -52,7 +55,12 @@ const getBreadcrumb = (
     breadcrumb.unshift({ name: pageTitle, href });
   }
 
-  if (isApplication && ownersMap.hasOwnProperty(applicationPublicId)) {
+  if (isSbomManager && sbomVersionId) {
+    const href = uiRouterState.href(currentRouteName, applicationPublicId, sbomVersionId);
+    breadcrumb.unshift({ name: sbomVersionId, href });
+  }
+
+  if ((isApplication && ownersMap.hasOwnProperty(applicationPublicId)) || (isSbomManager && sbomVersionId)) {
     const displayedApplication = ownersMap[applicationPublicId];
     breadcrumb.unshift({
       name: displayedApplication.name,
@@ -95,6 +103,7 @@ const MenuBarStatefulBreadcrumb = () => {
   containerRef.current = containerRef.current || container;
 
   const uiRouterState = useRouterState();
+  const routeName = useSelector(selectCurrentRouteName);
   const ownersMap = useSelector(selectOwnersMap);
   const displayedOrganization = useSelector(selectDisplayedOrganization);
   const isApplication = useSelector(selectIsApplication);
@@ -104,10 +113,11 @@ const MenuBarStatefulBreadcrumb = () => {
   const applicationPublicId = useSelector(selectApplicationId);
   const repositoryId = useSelector(selectRepositoryId);
   const pageTitle = useSelector(selectCurrentRouteTitle);
-  const routeName = useSelector(selectCurrentRouteName);
   const isSbomManager = useSelector(selectIsSbomManager);
+  const sbomVersionId = useSelector(selectSbomVersionId);
+  const noSbomManagerEnabledError = useSelector(selectNoSbomManagerEnabledError);
 
-  if (isNilOrEmpty(ownersMap) || isNilOrEmpty(displayedOrganization)) {
+  if (isNilOrEmpty(ownersMap) || isNilOrEmpty(displayedOrganization) || noSbomManagerEnabledError) {
     return null;
   }
 
@@ -121,7 +131,8 @@ const MenuBarStatefulBreadcrumb = () => {
     repositoryId,
     pageTitle,
     routeName,
-    isSbomManager
+    isSbomManager,
+    sbomVersionId
   );
 
   const renderComponentInsidePortal = (componentToRender) =>

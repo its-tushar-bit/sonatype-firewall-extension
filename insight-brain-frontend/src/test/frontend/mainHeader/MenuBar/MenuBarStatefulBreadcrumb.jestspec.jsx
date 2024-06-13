@@ -28,6 +28,62 @@ describe('MenuBarStatefulBreadcrumb', () => {
   const applicationPublicId = 'application publicId 2 at organization 2';
   const organizationsDepth = 2;
   const ownersMap = getOwnersMap(organizationsDepth);
+  const sbomOwnersMap = {
+    'REPOSITORY-CONTAINER-ID': {
+      type: 'repository_container',
+      id: 'REPOSITORY-CONTAINER-ID',
+      name: 'Repository Managers',
+      repositoryManagerIds: [],
+      parentId: 'ROOT-ORGANIZATION-ID',
+    },
+    'ORG-TEST': {
+      type: 'organization',
+      id: 'ORG-TEST',
+      name: 'ORG-TEST',
+      synthetic: false,
+      parentOrganizationId: 'ROOT-ORGANIZATION-ID',
+      applicationIds: ['APPLICATION-PUBLIC-ID'],
+      subOrgs: 1,
+      totalApps: 1,
+      organizationIds: [],
+      parentId: 'ROOT-ORGANIZATION-ID',
+    },
+    'APPLICATION-PUBLIC-ID': {
+      type: 'application',
+      id: 'APPLICATION-INTERNAL-ID',
+      name: 'APPLICATION-PUBLIC-ID',
+      publicId: 'APPLICATION-PUBLIC-ID',
+      organizationId: 'ORG-TEST',
+      provider: null,
+      repositoryUrl: null,
+      parentId: 'ORG-TEST',
+    },
+    'ROOT-ORGANIZATION-ID': {
+      type: 'organization',
+      id: 'ROOT-ORGANIZATION-ID',
+      name: 'Root Organization',
+      synthetic: false,
+      parentOrganizationId: null,
+      applicationIds: null,
+      subOrgs: 1,
+      totalApps: 1,
+      organizationIds: ['ORG-TEST'],
+      repositoryContainerId: 'REPOSITORY-CONTAINER-ID',
+      parentId: null,
+    },
+  };
+  const sbomDisplayedOrg = {
+    type: 'organization',
+    id: 'ORG-TEST',
+    name: 'ORG-TEST',
+    synthetic: false,
+    parentOrganizationId: 'ROOT-ORGANIZATION-ID',
+    applicationIds: ['APPLICATION-PUBLIC-ID'],
+    subOrgs: 1,
+    totalApps: 1,
+    organizationIds: [],
+    parentId: 'ROOT-ORGANIZATION-ID',
+  };
 
   describe('When displaying an organization', () => {
     let state;
@@ -183,6 +239,57 @@ describe('MenuBarStatefulBreadcrumb', () => {
       expectedBreadCrumbs.forEach((breadCrumbName) => {
         expect(screen.getByText(breadCrumbName)).toBeVisible();
       });
+    });
+  });
+
+  describe('When displaying on the SBOM Bill of Materials page', () => {
+    const bomState = {
+      productFeatures: {
+        loading: false,
+        productFeatures: {
+          'sbom-manager': true,
+        },
+      },
+      router: {
+        currentParams: {
+          applicationPublicId: 'APPLICATION-PUBLIC-ID',
+          versionId: 'VERSION-ID',
+        },
+        currentState: { name: 'sbomManager.management.view.bom' },
+      },
+      orgsAndPolicies: {
+        ownerSideNav: {
+          ownersMap: sbomOwnersMap,
+          displayedOrganization: sbomDisplayedOrg,
+        },
+      },
+    };
+
+    const bomStateSbomManagerNotEnabled = {
+      productFeatures: {
+        loading: false,
+        productFeatures: {
+          'sbom-manager': false,
+        },
+      },
+      router: {
+        currentState: { name: 'sbomManager.management.view.bom' },
+      },
+    };
+
+    it('renders the correct breadcrumbs', async () => {
+      renderComponent(bomState);
+
+      const expectedBreadCrumbs = ['VERSION-ID', 'APPLICATION-PUBLIC-ID', 'ORG-TEST', 'Root Organization'];
+
+      expectedBreadCrumbs.forEach((breadCrumbName) => {
+        expect(screen.getByText(breadCrumbName)).toBeVisible();
+      });
+    });
+
+    it('does not render breadcrumbs when SBOM Manager is NOT enabled', async () => {
+      renderComponent(bomStateSbomManagerNotEnabled);
+      expect(screen.queryByText('Root Organization')).not.toBeInTheDocument();
     });
   });
 });

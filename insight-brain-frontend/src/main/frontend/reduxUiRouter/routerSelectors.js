@@ -90,6 +90,7 @@ export const selectIsRepositoriesRelated = createSelector(
 export const selectOrganizationId = createSelector(selectRouterCurrentParams, propOr('', 'organizationId'));
 export const selectApplicationId = createSelector(selectRouterCurrentParams, propOr('', 'applicationPublicId'));
 export const selectRepositoryId = createSelector(selectRouterCurrentParams, propOr('', 'repositoryId'));
+export const selectSbomVersionId = createSelector(selectRouterCurrentParams, propOr('', 'versionId'));
 export const selectRepositoryManagerId = createSelector(selectRouterCurrentParams, propOr('', 'repositoryManagerId'));
 export const selectRepositoryContainerId = createSelector(
   selectRouterCurrentParams,

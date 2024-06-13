@@ -178,4 +178,100 @@ public class ThirdPartyCoordinateSecurityDAO
       throw new InternalServerException(e);
     }
   }
+
+  public long getSbomReleaseStatusNeedsAttention(Set<String> applicationIds) {
+    String sQuery = "" + //
+        "SELECT COUNT(DISTINCT sm.third_party_file_id)" + //
+        " FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
+        " JOIN " + getDatabaseSchema() + ".file_coordinate fc" + //
+        " ON fc.third_party_file_id = sm.third_party_file_id" + //
+        " JOIN " + getDatabaseSchema() + ".coordinate_security cs" + //
+        " ON cs.file_coordinate_id = fc.file_coordinate_id" + //
+        " LEFT JOIN " + getDatabaseSchema() + ".vulnerability_exploitability vex" + //
+        " ON cs.coordinate_security_id = vex.coordinate_security_id" + //
+        " WHERE cs.severity >= ?1" + //
+        " AND sm.status = 'ACTIVE'" + //
+        " AND vex.vulnerability_exploitability_id IS NULL" + //
+        " AND sm.application_id = ANY(array[?2])";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = createNativeQuery(tx, sQuery, HIGH.getStartScoreRange(),
+          createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
+      return (long) query.getSingleResult();
+    }
+    catch (SQLException e) {
+      throw new InternalServerException(e);
+    }
+  }
+
+  public long getSbomReleaseStatusPartiallyReady(Set<String> applicationIds) {
+    String sQuery = "" + //
+        "SELECT COUNT(DISTINCT sm.third_party_file_id)" + //
+        " FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
+        " JOIN " + getDatabaseSchema() + ".file_coordinate fc" + //
+        " ON fc.third_party_file_id = sm.third_party_file_id" + //
+        " JOIN " + getDatabaseSchema() + ".coordinate_security cs" + //
+        " ON cs.file_coordinate_id = fc.file_coordinate_id" + //
+        " WHERE cs.severity >= ?1" + //
+        " AND sm.application_id = ANY(array[?2])" + //
+        " AND sm.status = 'ACTIVE'" + //
+        " AND sm.third_party_file_id IN (" + //
+        "   SELECT third_party_file_id" + //
+        "   FROM " + getDatabaseSchema() + ".file_coordinate fc" + //
+        "   JOIN " + getDatabaseSchema() + ".coordinate_security cs" + //
+        "   ON fc.file_coordinate_id = cs.file_coordinate_id" + //
+        "   LEFT JOIN " + getDatabaseSchema() + ".vulnerability_exploitability vex" +
+        "   ON cs.coordinate_security_id = vex.coordinate_security_id" + //
+        "   WHERE cs.severity > ?1" +
+        "   AND vex.vulnerability_exploitability_id IS NULL" + //
+        " )" + //
+        " AND sm.third_party_file_id IN (" + //
+        "    SELECT third_party_file_id" + //
+        "    FROM " + getDatabaseSchema() + ".file_coordinate fc" + //
+        "    JOIN " + getDatabaseSchema() + ".coordinate_security cs" + //
+        "    ON fc.file_coordinate_id = cs.file_coordinate_id" + //
+        "    JOIN " + getDatabaseSchema() + ".vulnerability_exploitability vex" + //
+        "    ON cs.coordinate_security_id = vex.coordinate_security_id" + //
+        "    WHERE cs.severity > ?1" + //
+        " )";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = createNativeQuery(tx, sQuery, HIGH.getStartScoreRange(),
+          createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
+      return (long) query.getSingleResult();
+    }
+    catch (SQLException e) {
+      throw new InternalServerException(e);
+    }
+  }
+
+  public long getSbomReleaseStatusReleaseReady(Set<String> applicationIds) {
+    String sQuery = "" + //
+        "SELECT COUNT(DISTINCT sm.third_party_file_id)" + //
+        " FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
+        " WHERE sm.status = 'ACTIVE'" + //
+        " AND sm.application_id = ANY(array[?2])" + //
+        " AND sm.third_party_file_id NOT IN (" + //
+        "   SELECT DISTINCT metadata.third_party_file_id" + //
+        "   FROM " + getDatabaseSchema() + ".sbom_metadata metadata" + //
+        "   JOIN " + getDatabaseSchema() + ".file_coordinate component" + //
+        "   ON metadata.third_party_file_id = component.third_party_file_id" + //
+        "   JOIN " + getDatabaseSchema() + ".coordinate_security vulnerability " + //
+        "   ON component.file_coordinate_id = vulnerability.file_coordinate_id" + //
+        "   LEFT JOIN " + getDatabaseSchema() + ".vulnerability_exploitability vex " + //
+        "   ON vulnerability.coordinate_security_id = vex.coordinate_security_id" + //
+        "   WHERE vulnerability.severity > ?1 " + //
+        "   AND vex.coordinate_security_id is NULL" + //
+        " )";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = createNativeQuery(tx, sQuery, HIGH.getStartScoreRange(),
+          createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
+
+      return (long) query.getSingleResult();
+    }
+    catch (SQLException e) {
+      throw new InternalServerException(e);
+    }
+  }
 }

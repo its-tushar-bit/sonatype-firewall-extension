@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.sbom.dashboard;
 
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -16,6 +15,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.model.thirdpartyscans.RecentVulnerabilitiesDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ReleaseStatusDTO;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -31,6 +31,8 @@ public class SbomDashboardResource
 
   static final String SBOMS_HIGH_PRIORITY_VULNERABILITIES = "highPriorityVulnerabilities";
 
+  static final String SBOM_RELEASE_STATUS = "sbomReleaseStatus";
+
   private final SbomDashboardService service;
 
   @Inject
@@ -44,5 +46,13 @@ public class SbomDashboardResource
   @Produces(MediaType.APPLICATION_JSON)
   public List<RecentVulnerabilitiesDTO> getRecentHighPriorityVulnerabilities() {
     return service.getRecentHighPriorityVulnerabilities();
+  }
+
+  @GET
+  @Path(SBOM_RELEASE_STATUS)
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ReleaseStatusDTO getSbomReleaseStatus() {
+    return service.getSbomReleaseStatus();
   }
 }

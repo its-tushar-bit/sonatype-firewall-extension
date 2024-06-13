@@ -15,6 +15,7 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.thirdpartyscans.RecentVulnerabilitiesDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ReleaseStatusDTO;
 import com.sonatype.insight.brain.organization.ApplicationService;
 
 @Named
@@ -41,5 +42,19 @@ public class SbomDashboardService
       return new ArrayList<>();
     }
     return thirdPartyCoordinateSecurityDAO.getRecentHighPriorityVulnerabilities(applicationIds);
+  }
+
+  public ReleaseStatusDTO getSbomReleaseStatus() {
+    List<Application> applications = applicationService.getApplications();
+    Set<String> applicationIds = applications.stream().map(Application::getId).collect(Collectors.toSet());
+    if (applicationIds.isEmpty()) {
+      return new ReleaseStatusDTO();
+    }
+    long needsAttentionCount = thirdPartyCoordinateSecurityDAO.getSbomReleaseStatusNeedsAttention(applicationIds);
+    long partiallyReadyCount = thirdPartyCoordinateSecurityDAO.getSbomReleaseStatusPartiallyReady(applicationIds);
+    long releaseReadyCount = thirdPartyCoordinateSecurityDAO.getSbomReleaseStatusReleaseReady(applicationIds);
+
+    ReleaseStatusDTO result = new ReleaseStatusDTO(releaseReadyCount, partiallyReadyCount, needsAttentionCount);
+    return result;
   }
 }

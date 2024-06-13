@@ -750,23 +750,6 @@ public class ApiConfigFeaturesServiceTest
   }
 
   @Test
-  public void testEnableFeature_SaasPreRegisterAllTenants_singleTenant() {
-    assertThat(SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS.isEnabled()).isTrue();
-  }
-
-  @Test
-  public void testEnableFeature_SaasPreRegisterAllTenants_setEnabledForSingleTenant() {
-    SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS.setEnabled(true);
-    assertThat(SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS.isEnabled()).isTrue();
-  }
-
-  @Test
-  public void testEnableFeature_SaasPreRegisterAllTenants_setDisabledForSingleTenant() {
-    SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS.setEnabled(false);
-    assertThat(SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS.isEnabled()).isFalse();
-  }
-
-  @Test
   public void testEnableFeature_SbomManager_singleTenant() {
     assertThat(SystemConfigurationPropertyFeature.SBOM_MANAGER.isEnabled()).isFalse();
   }

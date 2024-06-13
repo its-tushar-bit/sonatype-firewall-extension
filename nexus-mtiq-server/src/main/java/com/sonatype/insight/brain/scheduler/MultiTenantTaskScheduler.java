@@ -95,7 +95,17 @@ public class MultiTenantTaskScheduler
 
   @Override
   public void start() throws Exception {
+    assertTenantsArePreRegistered();
+
     startOrStandbyTaskSchedulers();
+  }
+
+  private void assertTenantsArePreRegistered() {
+    if (!tenantManager.areTenantsPreRegistered()) {
+      // If this ever fails, ensure TenantManager is started BEFORE MultiTenantTaskScheduler
+      System.err.println("Fatal error: Task scheduler is trying to start but tenants are not pre-registered yet");
+      System.exit(11);
+    }
   }
 
   public void startOrStandbyTaskSchedulers() throws Exception {

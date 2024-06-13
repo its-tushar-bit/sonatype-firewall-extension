@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.TenantLifecycle;
 
 import org.junit.Before;
@@ -275,26 +274,6 @@ public class TenantManagerTest
     spyUnderTest.start();
 
     verify(spyUnderTest, times(1)).preregisterAllTenants();
-  }
-
-  @Test
-  public void shouldRegisterAllTenantsOnBootIfConfigIsTrue() {
-    SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS.setEnabled(true);
-    TenantManager spyUnderTest = spy(underTest);
-
-    spyUnderTest.start();
-
-    verify(spyUnderTest, times(1)).preregisterAllTenants();
-  }
-
-  @Test
-  public void shouldNotRegisterAllTenantsOnBootIfConfigIsFalse() {
-    SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS.setEnabled(false);
-    TenantManager spyUnderTest = spy(underTest);
-
-    spyUnderTest.start();
-
-    verify(spyUnderTest, never()).preregisterAllTenants();
   }
 
   @Test

@@ -18,7 +18,6 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.api.admin.service.TenantService;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
@@ -59,6 +58,8 @@ public class TenantManager
   static final String TENANT_PARAMETER_CANNOT_BE_NULL = "Tenant parameter cannot be null";
 
   private final Map<Tenant, Boolean> registeredTenants = new ConcurrentHashMap<>();
+
+  private volatile boolean tenantsPreRegistered = false;
 
   private final Collection<TenantManaged> tenantManagedBeans;
 
@@ -127,9 +128,7 @@ public class TenantManager
 
   @Override
   public void start() {
-    if (SystemConfigurationPropertyFeature.SAAS_PRE_REGISTER_ALL_TENANTS.isEnabled()) {
-      preregisterAllTenants();
-    }
+    preregisterAllTenants();
   }
 
   @VisibleForTesting
@@ -146,6 +145,12 @@ public class TenantManager
     registerTenants(nonDeletedTenants);
 
     TenantThreadLocal.setGlobalTenant();
+
+    tenantsPreRegistered = true;
+  }
+
+  public boolean areTenantsPreRegistered() {
+    return tenantsPreRegistered;
   }
 
   private void registerTenants(List<String> tenants) {

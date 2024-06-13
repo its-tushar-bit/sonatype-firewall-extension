@@ -94,6 +94,7 @@ public class MultiTenantTaskSchedulerTest
   public void setup() {
     when(mockQuartzTriggerListener.getName()).thenReturn("mockQuartzTriggerListener");
     when(mockTenantContextJobListener.getName()).thenReturn("mockTenantContextJobListener");
+    when(mockTenantManager.areTenantsPreRegistered()).thenReturn(true);
     objectMapper = CloudyClusterConfigReader.createObjectMapper();
     cloudyClusterConfigReader = new CloudyClusterConfigReader(mockMultiTenantInsightConfig, objectMapper);
     spyUnderTest = spy(new MultiTenantTaskScheduler(

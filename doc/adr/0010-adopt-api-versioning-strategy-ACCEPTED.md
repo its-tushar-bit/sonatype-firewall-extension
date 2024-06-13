@@ -26,7 +26,8 @@ Along with defining breaking changes, we will also need to document when breakin
 A trival example of how versioning could be implemented was created in [version-demo](https://github.com/sonatype/version-demo). This follows a pattern used by [Stripe](https://stripe.com/blog/api-versioning) which attempts to encapsulate breaking changes into a set of version migrations, so that the main endpoints can represent the latest API version, and not share the concern of versions where possible.
 
 ## Decision
-TBD
+ * Versioning strategy is adopted
+ * Implemented will be determined based on prioritization and need. A need would occur when the engineering team determines an API change must happen in a non-backwards compatible way, requiring the need to start enforcing versioning.
 
 ## Consequences
  * Introducing a pattern like suggested provides a framework for handling breaking changes. Risk is introduced with every breaking change, and adds complexity to the system. Introducing a breaking change should still be a last resort after all other reasonable options have been considered. This is an important aspect that might not be immediately clear when faced with new system requirements
@@ -34,3 +35,7 @@ TBD
  * Deprecated fields in DTO's will need to stay in the code as long as there is support for the version of the API that they were last supported in
  * Integrations will need to adopt the use of the Sonatype-Version header
  * Existing integrations without knowledge of the proposed versioning strategy will need to have sane and default behavior such that future version don't retroactively cause breakages
+ * Standardizing around a common base path for all new APIs will establish a consistent URL path. The common `/api/v2` path must be used for all new API resources.
+
+## Changelog
+ * Adds clarification to use `/api/v2` as the default base path for all new resources

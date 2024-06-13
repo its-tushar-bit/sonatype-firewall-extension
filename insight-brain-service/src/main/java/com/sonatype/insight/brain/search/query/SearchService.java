@@ -13,6 +13,7 @@ import java.io.Writer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -108,6 +109,8 @@ public class SearchService
   private static final String NO_INDEX_ERROR_MESSAGE =
       "Index does not exist or is unreadable, please (re)create your index.";
 
+  private static final int MAX_PAGE_SIZE = 10000;
+
   private final LuceneComponents luceneComponents;
 
   private final AdvancedSearchTelemetryMetrics advancedSearchTelemetryMetrics;
@@ -162,19 +165,7 @@ public class SearchService
       throws IOException
   {
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.verifyEnabled();
-    return searchIndex(searchQuery, pageSize, page, allComponents, false, mode);
-  }
-
-  public SearchResultDTO searchIndex(
-      String searchQuery,
-      int pageSize,
-      int page,
-      boolean allComponents,
-      boolean isExportable,
-      ProductMode mode)
-      throws IOException
-  {
-    return searchIndex(searchQuery, pageSize, page, allComponents, isExportable, isSbomManagerMode(mode));
+    return searchIndex(searchQuery, pageSize, page, allComponents, isSbomManagerMode(mode));
   }
 
   private SearchResultDTO searchIndex(
@@ -182,7 +173,6 @@ public class SearchService
       int pageSize,
       int page,
       boolean allComponents,
-      boolean isExportable,
       boolean isSbomManagerMode)
       throws IOException
   {
@@ -199,9 +189,6 @@ public class SearchService
 
     try (Directory directory = openSearchIndex(); //
          IndexReader indexReader = DirectoryReader.open(directory)) {
-
-      //Get all results
-      pageSize = isExportable ? Math.max(1, indexReader.maxDoc()) : pageSize;
 
       AuditData.get() //
           .setData("searchQuery", searchQuery) //
@@ -266,13 +253,7 @@ public class SearchService
       groupDocuments(indexSearcher, topDocs.scoreDocs, page, pageSize, searchResultDTO,
           getGroupFieldNamesByItemType(fieldNames));
 
-      int resultRecordCount;
-      if (isExportable) {
-        resultRecordCount = (int) topDocs.totalHits.value;
-      }
-      else {
-        resultRecordCount = countSearchResults(searchResultDTO);
-      }
+      int resultRecordCount = countSearchResults(searchResultDTO);
 
       searchResultDTO.totalNumberOfHits = (int) topDocs.totalHits.value;
       searchResultDTO.isExactTotalNumberOfHits = topDocs.totalHits.relation == Relation.EQUAL_TO;
@@ -342,26 +323,54 @@ public class SearchService
     }
   }
 
-  public Response exportSearch(String searchQuery, boolean allComponents, ProductMode mode) {
+  public Response exportSearch(
+      String searchQuery,
+      Integer pageSize,
+      int page,
+      boolean allComponents,
+      ProductMode mode)
+  {
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.verifyEnabled();
     boolean isSbomManagerMode = isSbomManagerMode(mode);
-    try {
-      List<SearchResultItemDTO> searchResultItemsDTO =
-          searchIndex(searchQuery, 0, 0, allComponents, true, isSbomManagerMode)
-              .groupingByDTOS.stream()
+    Iterator<List<SearchResultItemDTO>> iterator = new Iterator<List<SearchResultItemDTO>>()
+    {
+      private int currentPage = Math.max(1, page);
+
+      private Integer lastResultsSize = null;
+
+      @Override
+      public boolean hasNext() {
+        return !Objects.equals(lastResultsSize, 0);
+      }
+
+      @Override
+      public List<SearchResultItemDTO> next() {
+        try {
+          List<SearchResultItemDTO> results = searchIndex(
+              searchQuery,
+              Math.min(pageSize == null ? SearchService.MAX_PAGE_SIZE : pageSize, SearchService.MAX_PAGE_SIZE),
+              currentPage++,
+              allComponents,
+              isSbomManagerMode
+          )
+              .groupingByDTOS
+              .stream()
               .flatMap(g -> g.searchResultItemDTOS.stream())
               .collect(Collectors.toList());
-
-      ResponseBuilder responseBuilder = Response.ok(createAdvancedSearchCSV(searchResultItemsDTO, isSbomManagerMode))
-          .type("application/csv; charset=UTF-8")
-          .encoding("UTF-8")
-          .header(HttpHeaders.CONTENT_DISPOSITION,
-              HttpHeaderUtils.buildContentDispositionHeaderValue(EXPORT_FILE_NAME));
-      return responseBuilder.build();
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException("The response with CSV file could not be sent", e);
-    }
+          lastResultsSize = results.size();
+          return results;
+        }
+        catch (IOException e) {
+          throw new UncheckedIOException("The response with CSV file could not be sent", e);
+        }
+      }
+    };
+    ResponseBuilder responseBuilder = Response.ok(createAdvancedSearchCSV(iterator, pageSize, isSbomManagerMode))
+        .type("application/csv; charset=UTF-8")
+        .encoding("UTF-8")
+        .header(HttpHeaders.CONTENT_DISPOSITION,
+            HttpHeaderUtils.buildContentDispositionHeaderValue(EXPORT_FILE_NAME));
+    return responseBuilder.build();
   }
 
   private Directory openSearchIndex() {
@@ -595,7 +604,8 @@ public class SearchService
   }
 
   private StreamingOutput createAdvancedSearchCSV(
-      List<SearchResultItemDTO> searchResultItemsDTOS,
+      Iterator<List<SearchResultItemDTO>> searchResultItemsDTOSIterator,
+      Integer pageSize,
       boolean isSbomManagerMode)
   {
     SearchRowFactory searchExportRowFactory = getSearchRowFactory(isSbomManagerMode);
@@ -608,13 +618,18 @@ public class SearchService
     String baseUrl = Objects.toString(systemConfigurationPropertyDAO.get(SystemConfigurationProperty.BASE_URL), "");
 
     return os -> {
+      int count = 0;
       try (Writer writer = new BufferedWriter(new OutputStreamWriter(os));
            CSVPrinter printer = new CSVPrinter(writer, csvFormat)) {
-        for (SearchResultItemDTO searchResultItemDTO : searchResultItemsDTOS) {
-          printer.printRecord(searchExportRowFactory.create(searchResultItemDTO, baseUrl));
+        while (searchResultItemsDTOSIterator.hasNext() && (pageSize == null || count < pageSize)) {
+          for (SearchResultItemDTO searchResultItemDTO : searchResultItemsDTOSIterator.next()) {
+            count++;
+            printer.printRecord(searchExportRowFactory.create(searchResultItemDTO, baseUrl));
+          }
+          printer.flush();
+          writer.flush();
+          os.flush();
         }
-        printer.flush();
-        writer.flush();
       }
     };
   }

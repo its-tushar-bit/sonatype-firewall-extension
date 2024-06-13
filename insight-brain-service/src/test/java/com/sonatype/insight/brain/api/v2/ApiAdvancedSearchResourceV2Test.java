@@ -201,6 +201,57 @@ public class ApiAdvancedSearchResourceV2Test
   }
 
   @Test
+  public void testGetExportResults_GivenPageSize() throws Exception {
+    String applicationPublicIdPrefix = "testGetExportResults";
+    for (int i = 0; i < 10; i++) {
+      tempEntity.newApplicationWithParent(applicationPublicIdPrefix + i);
+    }
+
+    restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
+    awaitIndexCompletion();
+
+    assertApplicationExportResults(applicationPublicIdPrefix, 1, 1, 1);
+    assertApplicationExportResults(applicationPublicIdPrefix, 1, 10, 1);
+    assertApplicationExportResults(applicationPublicIdPrefix, 1, 11, 0);
+
+    assertApplicationExportResults(applicationPublicIdPrefix, 3, 1, 3);
+    assertApplicationExportResults(applicationPublicIdPrefix, 3, 4, 1);
+    assertApplicationExportResults(applicationPublicIdPrefix, 3, 5, 0);
+  }
+
+  @Test
+  public void testGetExportResults_NotGivenPageSize() throws Exception {
+    String applicationPublicIdPrefix = "testGetExportResults";
+    for (int i = 0; i < 10; i++) {
+      tempEntity.newApplicationWithParent("testGetExportResults_Paged" + i);
+    }
+
+    restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
+    awaitIndexCompletion();
+
+    assertApplicationExportResults(applicationPublicIdPrefix, null, 1, 10);
+  }
+
+  private void assertApplicationExportResults(
+      String applicationPublicIdPrefix,
+      Integer pageSize,
+      int page,
+      int expectedResults) throws Exception
+  {
+    HttpResponse response = restRequest()
+        .path(ApiAdvancedSearchResourceV2.EXPORT_CSV_REPORT_PATH)
+        .query("query", "itemType:APPLICATION AND applicationPublicId:" + applicationPublicIdPrefix + "*")
+        .query("pageSize", pageSize)
+        .query("page", page)
+        .get();
+    String[] split = response.getBodyText().split("\n");
+    assertThat(split).hasSize(expectedResults + 1);
+    for (int i = 0; i < expectedResults; i++) {
+      assertThat(split[i + 1]).contains(applicationPublicIdPrefix);
+    }
+  }
+
+  @Test
   public void testGetExportResults_SBOMManagerMode() throws Exception {
     setFeatures(LicensedFeature.SBOM_MANAGER);
     restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();

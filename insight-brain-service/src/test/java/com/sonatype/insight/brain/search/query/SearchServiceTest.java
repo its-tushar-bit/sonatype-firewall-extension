@@ -558,7 +558,7 @@ public class SearchServiceTest
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(false);
 
     assertThatExceptionOfType(NotAuthorizedException.class)
-        .isThrownBy(() -> searchService.exportSearch("itemType:*", true, null))
+        .isThrownBy(() -> searchService.exportSearch("itemType:*", Integer.MAX_VALUE, 1, true, null))
         .withMessage("advanced-search-configuration feature is disabled.");
   }
 
@@ -585,7 +585,7 @@ public class SearchServiceTest
 
     indexService.createSearchIndex();
 
-    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:*", 100, 0, true, true, null);
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:*", 100, 0, true, null);
 
     List<SearchResultItemDTO> results = searchResultDTO.groupingByDTOS.stream()
         .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
@@ -598,7 +598,8 @@ public class SearchServiceTest
     expectedItemTypes.remove("SBOM_METADATA");
     assertThat(actualItemTypes).containsExactlyInAnyOrderElementsOf(expectedItemTypes);
 
-    StreamingOutput stream = (StreamingOutput) searchService.exportSearch("itemType:*", true, null).getEntity();
+    StreamingOutput stream =
+        (StreamingOutput) searchService.exportSearch("itemType:*", Integer.MAX_VALUE, 1, true, null).getEntity();
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     stream.write(baos);
     List<String> export = Arrays.stream(baos.toString().split("\n")).collect(Collectors.toList());
@@ -635,7 +636,7 @@ public class SearchServiceTest
           SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER, ";");
       configurationService.applyConfigurationToClients(
           SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER);
-      stream = (StreamingOutput) searchService.exportSearch("itemType:*", true, null).getEntity();
+      stream = (StreamingOutput) searchService.exportSearch("itemType:*", Integer.MAX_VALUE, 1, true, null).getEntity();
       baos = new ByteArrayOutputStream();
       stream.write(baos);
       export = Arrays.stream(baos.toString().split("\n")).collect(Collectors.toList());
@@ -653,7 +654,7 @@ public class SearchServiceTest
   public void testSearchIndex_SbomManagerMode_MissingLicensedFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
     assertThatExceptionOfType(InvalidLicenseException.class)
-        .isThrownBy(() -> searchService.searchIndex("itemType:*", 100, 0, true, true, ProductMode.SBOM_MANAGER))
+        .isThrownBy(() -> searchService.searchIndex("itemType:*", 100, 0, true, ProductMode.SBOM_MANAGER))
         .withMessageContaining("The SBOM Manager feature is not supported by your license.");
   }
 
@@ -661,7 +662,7 @@ public class SearchServiceTest
   public void testSearchIndex_SbomManagerFeature_DefaultModeNotSupported() {
     testProductLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
     assertThatExceptionOfType(InvalidLicenseException.class)
-        .isThrownBy(() -> searchService.searchIndex("itemType:*", 100, 0, true, true, null))
+        .isThrownBy(() -> searchService.searchIndex("itemType:*", 100, 0, true, null))
         .withMessageContaining("Only SBOM Manager mode is supported by your license.");
   }
 
@@ -689,15 +690,15 @@ public class SearchServiceTest
     tempEntity.newPolicy(); // Should not be returned
     newAppReport(app.getId(), Stage.ID_BUILD, "someScanId3", "/SearchServiceTest/report-3");
     indexService.createSearchIndex();
-    assertThat(searchService.searchIndex("applicationCategoryId:*", 100, 0, true, true,
+    assertThat(searchService.searchIndex("applicationCategoryId:*", 100, 0, true,
         ProductMode.SBOM_MANAGER).groupingByDTOS).isEmpty();
-    assertThat(searchService.searchIndex("componentLabelId:*", 100, 0, true, true,
+    assertThat(searchService.searchIndex("componentLabelId:*", 100, 0, true,
         ProductMode.SBOM_MANAGER).groupingByDTOS).isEmpty();
-    assertThat(searchService.searchIndex("policyId:*", 100, 0, true, true,
+    assertThat(searchService.searchIndex("policyId:*", 100, 0, true,
         ProductMode.SBOM_MANAGER).groupingByDTOS).isEmpty();
 
     SearchResultDTO searchResultDTO =
-        searchService.searchIndex("itemType:*", 100, 0, true, true, ProductMode.SBOM_MANAGER);
+        searchService.searchIndex("itemType:*", 100, 0, true, ProductMode.SBOM_MANAGER);
 
     List<SearchResultItemDTO> results = searchResultDTO.groupingByDTOS.stream()
         .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
@@ -753,9 +754,9 @@ public class SearchServiceTest
     Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
     Policy policy = tempEntity.newPolicy();
     indexService.createSearchIndex();
-    assertThat(searchService.searchIndex("applicationVersion:*", 100, 0, true, true, null).groupingByDTOS).isEmpty();
+    assertThat(searchService.searchIndex("applicationVersion:*", 100, 0, true, null).groupingByDTOS).isEmpty();
 
-    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:*", 100, 0, true, true, null);
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:*", 100, 0, true, null);
 
     List<SearchResultItemDTO> results = searchResultDTO.groupingByDTOS.stream()
         .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
@@ -804,13 +805,14 @@ public class SearchServiceTest
     newAppReport(app.getId(), Stage.ID_BUILD, "someScanId3", "/SearchServiceTest/report-3");
     indexService.createSearchIndex();
     SearchResultDTO searchResultDTO =
-        searchService.searchIndex("itemType:*", 100, 0, true, true, ProductMode.SBOM_MANAGER);
+        searchService.searchIndex("itemType:*", 100, 0, true, ProductMode.SBOM_MANAGER);
     List<SearchResultItemDTO> results = searchResultDTO.groupingByDTOS.stream()
         .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
         .collect(toList());
 
     StreamingOutput stream =
-        (StreamingOutput) searchService.exportSearch("itemType:*", true, ProductMode.SBOM_MANAGER).getEntity();
+        (StreamingOutput) searchService.exportSearch("itemType:*", Integer.MAX_VALUE, 1, true,
+            ProductMode.SBOM_MANAGER).getEntity();
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     stream.write(baos);
@@ -878,13 +880,13 @@ public class SearchServiceTest
     Policy policy = tempEntity.newPolicy();
     newAppReport(app.getId(), Stage.ID_BUILD, "someScanId3", "/SearchServiceTest/report-3");
     indexService.createSearchIndex();
-    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:*", 100, 0, true, true, null);
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:*", 100, 0, true, null);
     List<SearchResultItemDTO> results = searchResultDTO.groupingByDTOS.stream()
         .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
         .collect(toList());
 
     StreamingOutput stream =
-        (StreamingOutput) searchService.exportSearch("itemType:*", true, null).getEntity();
+        (StreamingOutput) searchService.exportSearch("itemType:*", Integer.MAX_VALUE, 1, true, null).getEntity();
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     stream.write(baos);

@@ -130,10 +130,13 @@ public class ApiAdvancedSearchResourceV2
   public Response getExportResults(
       @Parameter(description = "A well-formed search query.", required = true)
       @QueryParam("query") String searchQuery,
+      @Parameter(description = "Enter the no. of results that should be visible per page, unset gives all results")
+      @QueryParam("pageSize") Integer pageSize,
+      @Parameter(description = "Enter the page no. for the page containing results") @QueryParam("page") int page,
       @Parameter(description = "Set to `true` to retrieve results that include components with no violations.")
       @DefaultValue("false") @QueryParam("allComponents") boolean allComponents,
       @QueryParam("mode") ProductMode mode)
   {
-    return searchService.exportSearch(searchQuery, allComponents, mode);
+    return searchService.exportSearch(searchQuery, pageSize, page, allComponents, mode);
   }
 }

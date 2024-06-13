@@ -120,7 +120,7 @@ public class GettingStartedTest
     licenseTile.expiryDate().shouldBe(visible).should(matchText("[a-zA-Z]+ [0-9]+, 2[0-9]{3}"));
     licenseTile.daysToExpiration().shouldBe(visible).shouldHave(matchText("[0-1]"));
 
-    licenseTile.products().shouldHave(texts("Sonatype Sbom Manager SaaS"));
+    licenseTile.products().shouldHave(texts("Sonatype SBOM Manager SaaS"));
     licenseTile.licensedSboms().shouldBe(visible).should(matchText("99"));
     licenseTile.fingerprint().shouldBe(visible).should(matchText("1234"));
 
@@ -134,7 +134,7 @@ public class GettingStartedTest
     licenseTile.expiryDate().shouldBe(visible).should(matchText("[a-zA-Z]+ [0-9]+, 2[0-9]{3}"));
     licenseTile.daysToExpiration().shouldBe(visible).shouldHave(matchText("[0-1]"));
     licenseTile.products()
-        .shouldHave(texts("Sonatype Lifecycle Cloud", "Sonatype Sbom Manager SaaS", "Sonatype Lifecycle",
+        .shouldHave(texts("Sonatype Lifecycle Cloud", "Sonatype SBOM Manager SaaS", "Sonatype Lifecycle",
             "Sonatype Repository Firewall"));
     // NOTE: the emdashes are added in CSS and apparently don't show up here
     licenseTile.licensedDevelopersRows().shouldHave(texts("Lifecycle50", "Firewall45"));

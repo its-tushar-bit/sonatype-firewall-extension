@@ -178,7 +178,7 @@ public class DefaultProductLicenseTest
     ProductLicensePage.licensedDevelopers().shouldNotBe(visible);
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
     ProductLicensePage.licensedSboms().shouldBe(visible).shouldHave(text("99"));
-    ProductLicensePage.products().shouldHave(texts("Sonatype Sbom Manager"));
+    ProductLicensePage.products().shouldHave(texts("Sonatype SBOM Manager"));
 
     SidebarNavigation.openNavigationSidebar();
     SidebarNavigation.productLogo().shouldHave(attribute("alt", "sonatype sbom manager"));

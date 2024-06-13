@@ -65,7 +65,7 @@ public class SbomManagerOwnerSummaryPageTest
     OwnerSummaryTile ownerSummaryTile = OwnerSummaryPage.summaryTile();
     ownerSummaryTile.shouldBe(visible);
     isSbomManagerPage();
-    eyesWatcher.eyesCheck("Sbom Manager Organizations Page");
+    eyesWatcher.eyesCheck("SBOM Manager Organizations Page");
 
     OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
     checkEntityVisibility(orgsAndPoliciesSidebar.getOrganizationLink(0), parentOrganization, 0, 2);

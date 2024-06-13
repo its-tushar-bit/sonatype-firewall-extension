@@ -14,5 +14,5 @@ export const selectIsSbomManagerOnlyLicense = createSelector(
   selectProducts,
   (products) =>
     length(products) === 1 &&
-    (equals(products[0], 'Sonatype Sbom Manager SaaS') || equals(products[0], 'Sonatype Sbom Manager'))
+    (equals(products[0], 'Sonatype SBOM Manager SaaS') || equals(products[0], 'Sonatype SBOM Manager'))
 );

@@ -607,7 +607,7 @@ describe('OwnerModal', () => {
       expect(screen.getByText('Edit Organization')).toBeVisible();
     });
 
-    it('renders the correct field label when it is Sbom Manager', () => {
+    it('renders the correct field label when it is SBOM Manager', () => {
       renderComponent(sbomManagerEditOrgState);
       expect(screen.getByText(`Organization Name`)).toBeVisible();
     });

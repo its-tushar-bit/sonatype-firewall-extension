@@ -102,9 +102,9 @@ public class CLMLicenseManager
 
   public static final String PRODUCT_AUDITOR_SAAS = "Auditor SaaS";
 
-  public static final String PRODUCT_SBOM_MANAGER = "Sbom Manager";
+  public static final String PRODUCT_SBOM_MANAGER = "SBOM Manager";
 
-  public static final String PRODUCT_SBOM_MANAGER_SAAS = "Sbom Manager SaaS";
+  public static final String PRODUCT_SBOM_MANAGER_SAAS = "SBOM Manager SaaS";
 
   public static final String PRODUCT_SONATYPE_DEVELOPMENT = "Development";
 

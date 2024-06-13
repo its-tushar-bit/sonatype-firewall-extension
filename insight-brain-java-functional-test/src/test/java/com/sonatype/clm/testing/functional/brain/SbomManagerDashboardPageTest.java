@@ -33,7 +33,7 @@ public class SbomManagerDashboardPageTest
     refreshOrOpen(SbomManagerDashboardPage.url());
     sbomManagerPage.dashboard().shouldBe(visible);
     SidebarNavigation.productLogo().shouldHave(attribute("alt", "sonatype sbom manager"));
-    eyesWatcher.eyesCheck("Sbom Manager Dashboard page");
+    eyesWatcher.eyesCheck("SBOM Manager Dashboard page");
   }
 
   @Test
@@ -42,6 +42,6 @@ public class SbomManagerDashboardPageTest
     refreshOrOpen(SbomManagerDashboardPage.url());
     sbomManagerPage.sbomManagerNotEnabledError().shouldBe(visible);
     SidebarNavigation.productLogo().shouldHave(attribute("alt", "sonatype sbom manager"));
-    eyesWatcher.eyesCheck("Sbom Manager Dashboard not enabled");
+    eyesWatcher.eyesCheck("SBOM Manager Dashboard not enabled");
   }
 }

@@ -12,7 +12,7 @@ describe('sbomManagerUtil', () => {
     initialState = {
       productLicense: {
         license: {
-          products: ['Sonatype Sbom Manager'],
+          products: ['Sonatype SBOM Manager'],
         },
       },
       productFeatures: {
@@ -29,7 +29,7 @@ describe('sbomManagerUtil', () => {
     });
 
     it('returns true when Sbom manager SaaS is the only product in the license', function () {
-      initialState.productLicense.license.products[0] = 'Sonatype Sbom Manager SaaS';
+      initialState.productLicense.license.products[0] = 'Sonatype SBOM Manager SaaS';
       expect(checkSbomManagerIsOnlyProductEnabled(initialState)).toBeTruthy();
     });
 

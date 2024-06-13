@@ -31,6 +31,6 @@ public class SbomManagerBillOfMaterialsPageTest
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url("mockAppId", "mockVersionId"));
     sbomManagerBillOfMaterialsPage.pageTitle().shouldNotBe(visible);
     sbomManagerBillOfMaterialsPage.sbomManagerNotEnabledError().shouldBe(visible);
-    eyesWatcher.eyesCheck("Sbom Manager Bill of Materials page not enabled");
+    eyesWatcher.eyesCheck("SBOM Manager Bill of Materials page not enabled");
   }
 }

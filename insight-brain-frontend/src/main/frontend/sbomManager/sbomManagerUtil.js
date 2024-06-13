@@ -14,7 +14,7 @@ export function checkSbomManagerIsOnlyProductEnabled(state) {
     products &&
     Array.isArray(products) &&
     products.length === 1 &&
-    (products[0] === 'Sonatype Sbom Manager' || products[0] === 'Sonatype Sbom Manager SaaS') &&
+    (products[0] === 'Sonatype SBOM Manager' || products[0] === 'Sonatype SBOM Manager SaaS') &&
     isSbomManagerEnabled
   );
 }

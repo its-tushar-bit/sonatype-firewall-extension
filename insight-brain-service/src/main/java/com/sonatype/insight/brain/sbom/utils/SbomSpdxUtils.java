@@ -264,7 +264,7 @@ public final class SbomSpdxUtils
     if (matcher.matches()) {
       return matcher.group(1);
     }
-    return link;
+    return null;
   }
 
   public static SbomCreationDetails getSbomCreationDetails(SpdxDocument document) throws InvalidSPDXAnalysisException {

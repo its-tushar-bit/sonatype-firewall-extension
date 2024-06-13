@@ -20,27 +20,22 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
-import com.sonatype.insight.scan.file.SbomFormat;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.cyclonedx.exception.ParseException;
+import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
 import org.jetbrains.annotations.NotNull;
-import org.spdx.jacksonstore.MultiFormatStore;
-import org.spdx.jacksonstore.MultiFormatStore.Format;
-import org.spdx.jacksonstore.MultiFormatStore.Verbose;
-import org.spdx.library.DefaultModelStore;
-import org.spdx.storage.simple.InMemSpdxStore;
 
 import org.cyclonedx.model.Ancestors;
 import org.cyclonedx.model.AttachmentText;
@@ -142,8 +137,6 @@ public class CycloneDxToSpdxExporter
     COMPONENT_TYPE_TO_PURPOSE = Collections.unmodifiableMap(compPurpose);
   }
 
-  private ModelCopyManager copyManager = new ModelCopyManager();
-
   private Map<String, SpdxElement> componentIdToSpdxElement = new HashMap<>();
 
   private Map<String, AnyLicenseInfo> cdxLicenseIdToSpdxLicense = new HashMap<>();
@@ -151,7 +144,6 @@ public class CycloneDxToSpdxExporter
   @Inject
   protected CycloneDxToSpdxExporter(
       final InsightWork insightWork,
-      final MultiLicenseDAO multiLicenseDAO,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
@@ -160,29 +152,19 @@ public class CycloneDxToSpdxExporter
       final IdUtils idUtils,
       final VersionService versionService)
   {
-    super(insightWork, multiLicenseDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+    super(insightWork, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
         thirdPartyCoordinateLicenseDAO, thirdPartyVulnerabilityExploitabilityExchangeDAO, baseUrl, idUtils,
         versionService);
   }
 
   @Override
   public String export() {
-    // get original CycloneDX SBOM and merge database state first
+    init();
     try (InputStream gis = new GZIPInputStream(Files.newInputStream(getOriginalSbomFile().toPath()))) {
       Bom originalBom = SbomCycloneDxUtils.parseContentStreamNoValidation(gis);
-
-      // For the current purpose, this intermediate process (merging in to cyclonedx format before spdx conversion)
-      // seems to work as expected. However, with the expected future enhancements, if this proves to be expensive,
-      // we should refactor this out and merge directly in to a SPDX instead.
-      Bom updatedSbom = mergeCurrentDatabaseState(originalBom);
-
-      DefaultModelStore.reset();
-      SbomFormat sbomFormat = SbomFormat.forString(exportParams.sbomMetadata.getSpecFormat());
-      Format format = sbomFormat == SbomFormat.JSON ? Format.JSON : Format.XML;
-
-      MultiFormatStore multiFormatStore = new MultiFormatStore(new InMemSpdxStore(), format, Verbose.COMPACT);
-
-      SpdxDocument newDocument = spdxDocumentFromCycloneDxBom(updatedSbom, multiFormatStore);
+      checkAndGenerateComponentMetadataIfMissing(originalBom);
+      SpdxDocument originalDocument = spdxDocumentFromCycloneDxBom(originalBom, multiFormatStore);
+      SpdxDocument newDocument = createNewDocumentFrom(originalDocument);
       return generateTargetSbomString(newDocument);
     }
     catch (IOException | ParseException e) {
@@ -190,6 +172,32 @@ public class CycloneDxToSpdxExporter
           String.format("Internal error reading from the original SBOM file for application %s, version %s",
               exportParams.sbomMetadata.getApplicationId(), exportParams.sbomMetadata.getSbomVersion()), e);
     }
+    catch (InvalidSPDXAnalysisException e) {
+      throw new SbomExportException(
+          String.format("Internal error reading from the translated SBOM file for application %s, version %s",
+              exportParams.sbomMetadata.getApplicationId(), exportParams.sbomMetadata.getSbomVersion()), e);
+    }
+  }
+
+  private void checkAndGenerateComponentMetadataIfMissing(Bom bom) {
+    if (bom == null) {
+      return;
+    }
+    if (bom.getMetadata() == null) {
+      bom.setMetadata(new Metadata());
+    }
+    if (bom.getMetadata().getComponent() == null) {
+      Component bomComponentInfo = createDefaultComponentDocumentDescribes();
+      bom.getMetadata().setComponent(bomComponentInfo);
+    }
+  }
+
+  private Component createDefaultComponentDocumentDescribes() {
+    Component bomComponentInfo = new Component();
+    bomComponentInfo.setType(Type.APPLICATION);
+    bomComponentInfo.setName(idUtils.getPublicOwnerId(OwnerType.APPLICATION, exportParams.sbomMetadata
+        .getApplicationId()));
+    return bomComponentInfo;
   }
 
   public SpdxDocument spdxDocumentFromCycloneDxBom(Bom baseBom, IModelStore spdxModelStore) {

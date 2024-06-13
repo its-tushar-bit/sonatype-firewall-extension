@@ -7,14 +7,10 @@ package com.sonatype.insight.brain.sbom.export;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.zip.GZIPInputStream;
 
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -28,7 +24,6 @@ import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.file.SbomFormat;
 
-import org.apache.commons.io.IOUtils;
 import org.cyclonedx.BomGeneratorFactory;
 import org.cyclonedx.CycloneDxSchema.Version;
 import org.cyclonedx.exception.GeneratorException;
@@ -87,19 +82,6 @@ public abstract class AbstractSbomExporter
     this.baseUrl = baseUrl;
     this.idUtils = idUtils;
     this.versionService = versionService;
-  }
-
-  protected String getOriginalSbomContentAsString() {
-    if (exportParams == null) {
-      throw new IllegalStateException("Sbom exporter initialized without export parameters");
-    }
-
-    try (GZIPInputStream gis = new GZIPInputStream(Files.newInputStream(getOriginalSbomFile().toPath()))) {
-      return IOUtils.toString(gis, StandardCharsets.UTF_8);
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
   }
 
   protected File getOriginalSbomFile() {

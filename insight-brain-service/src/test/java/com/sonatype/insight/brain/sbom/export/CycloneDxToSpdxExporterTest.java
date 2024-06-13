@@ -7,10 +7,8 @@
 package com.sonatype.insight.brain.sbom.export;
 
 import java.io.File;
-
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -51,9 +49,6 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
   private static final String SCAN_ID = "sid1";
 
   @Inject
-  private MultiLicenseDAO multiLicenseDAO;
-
-  @Inject
   private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
   @Inject
@@ -85,7 +80,6 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
     thirdPartyFile = tempEntity.newThirdPartyFile(THIRD_PARTY_FILE);
     exporter = new CycloneDxToSpdxExporter(
         mockInsightWork,
-        multiLicenseDAO,
         thirdPartyFileCoordinateDAO,
         thirdPartyCoordinateSecurityDAO,
         thirdPartyCoordinateLicenseDAO,
@@ -111,6 +105,7 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
     File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom(TEST_XML_SBOM));
     String exportedBomStr = setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.JSON);
     assertThatJson(exportedBomStr)
+        .whenIgnoringPaths("creationInfo.created", "creationInfo.creators[0]")
         .isEqualTo(readFileToString("outputs/webgoat-from-xml-to-spdx.json"));
   }
 
@@ -118,6 +113,7 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
   public void exportTest_withJsonInputFormat_toXmlOutputFormat() throws Exception {
     File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom(TEST_JSON_SBOM));
     String exportedBomStr = setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.XML);
+    System.out.println("exportedBomStr: \n" + exportedBomStr);
     XmlAssert.assertThat(exportedBomStr).and(readFileToString("outputs/webgoat-from-json-to-spdx.xml"))
         .withNodeFilter(spdxDxIgnoreNodesFilter())
         .ignoreWhitespace()
@@ -129,6 +125,7 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
     File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom(TEST_JSON_SBOM));
     String exportedBomStr = setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.JSON);
     assertThatJson(exportedBomStr)
+        .whenIgnoringPaths("creationInfo.created", "creationInfo.creators[0]")
         .isEqualTo(readFileToString("outputs/webgoat-from-json-to-spdx.json"));
   }
 
@@ -138,6 +135,7 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
     String exportedBomStr = setupExportSbomScenarioWithNullDbVulnerabilityField(testBomFile,
         SbomFormat.JSON, "cwes");
     assertThatJson(exportedBomStr)
+        .whenIgnoringPaths("creationInfo.created", "creationInfo.creators[0]")
         .isEqualTo(readFileToString("outputs/webgoat-from-json-to-spdx.json"));
   }
 
@@ -147,7 +145,19 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
     String exportedBomStr = setupExportSbomScenarioWithNullDbVulnerabilityField(testBomFile,
         SbomFormat.JSON, "severityDescription");
     assertThatJson(exportedBomStr)
+        .whenIgnoringPaths("creationInfo.created", "creationInfo.creators[0]")
         .isEqualTo(readFileToString("outputs/webgoat-from-json-to-spdx.json"));
+  }
+
+  @Test
+  public void exportTest_BomMissingMetadata() throws Exception {
+    File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom("missing-metadata-bom.json"));
+    String exportedBomStr = setupExportSbomScenarioWithNullDbVulnerabilityField(testBomFile,
+        SbomFormat.JSON, "");
+    System.out.println("exportedBomStr: \n" + exportedBomStr);
+    assertThatJson(exportedBomStr)
+        .whenIgnoringPaths("creationInfo.created", "creationInfo.creators[0]")
+        .isEqualTo(readFileToString("outputs/missing-metadata-from-json-to-spdx.json"));
   }
 
   private String setupExportSbomScenarioWithFileAndOutputFormat(File testBomFile, SbomFormat outputFormat) {
@@ -178,22 +188,24 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
   private void defineDbTestData(ThirdPartyFile thirdPartyFile, String nullField) {
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ThirdPartyFileCoordinate fileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
-        "testSource",
+        "Sonatype",
         "JSON",
-        "test",
-        "1.5",
-        "abc",
+        "log4j",
+        "1.2.8",
+        "3640dd71069d7986c9a1",
         "pkg:maven/log4j/log4j@1.2.8?type=jar"
     );
 
     defineDbTestDataNullVulnerabilityField(nullField, fileCoordinate);
     tempEntity.newThirdPartyCoordinateSecurity(fileCoordinate,
-        "ABC-123", "DESC 123", "http//", 1.5d, "1.2", "source",
+        "ABC-123", "DESC 123", "http://www.source.com/abc-123", 1.5d,
+        "1.2", "source",
         "v:2", "lkk", "5467", "owasp", "<dd>r1<dd/>",
         "<dd>a1<dd/>", "M");
 
     tempEntity.newThirdPartyCoordinateSecurity(
-        fileCoordinate, "CVE-2022-23307", "DESC 123", "http//", 1.5d, "1.2",
+        fileCoordinate, "CVE-2022-23307", "DESC 123", "http://www.source.com/cve-2022-23307",
+        1.5d, "1.2",
         "source", "v:2", "lkk", "5467", "owasp",
         "<dd>r1<dd/>", "<dd>a1<dd/>", "M");
 
@@ -218,19 +230,22 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
     switch (nullField) {
       case "cwes":
         tempEntity.newThirdPartyCoordinateSecurity(
-            fileCoordinate, "sonatype-2010-0053", "DESC sonatype-2010-0053", "l1", 5.5d,
+            fileCoordinate, "sonatype-2010-0053", "DESC sonatype-2010-0053",
+            "http://www.sonatype.com/sonatype-2010-0053", 5.5d,
             "1.1", "source", "v:1", "Medium", null,
             "m1", "<dd>r1<dd/>", "<dd>a1<dd/>", "G,F");
         break;
       case "severityDescription":
         tempEntity.newThirdPartyCoordinateSecurity(
-            fileCoordinate, "sonatype-2010-0053", "DESC sonatype-2010-0053", "l1", 5.5d,
+            fileCoordinate, "sonatype-2010-0053", "DESC sonatype-2010-0053",
+            "http://www.sonatype.com/sonatype-2010-0053", 5.5d,
             "1.1", "source", "v:1", null, "1234",
             "m1", "<dd>r1<dd/>", "<dd>a1<dd/>", "G,F");
         break;
       default:
         tempEntity.newThirdPartyCoordinateSecurity(
-            fileCoordinate, "sonatype-2010-0053", "DESC sonatype-2010-0053", "l1", 5.5d,
+            fileCoordinate, "sonatype-2010-0053", "DESC sonatype-2010-0053",
+            "http://www.sonatype.com/sonatype-2010-0053", 5.5d,
             "1.1", "source", "v:1", "Medium", "1234",
             "m1", "<dd>r1<dd/>", "<dd>a1<dd/>", "G,F");
     }

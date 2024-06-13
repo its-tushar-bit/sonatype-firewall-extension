@@ -77,7 +77,7 @@ public class SpdxToSpdxExporterTest
 
   @Before
   public void before() {
-    spdxExporter = new SpdxToSpdxExporter(mockInsightWork, multiLicenseDAO, thirdPartyFileCoordinateDAO,
+    spdxExporter = new SpdxToSpdxExporter(mockInsightWork, thirdPartyFileCoordinateDAO,
         thirdPartyCoordinateSecurityDAO, thirdPartyCoordinateLicenseDAO, vulnerabilityExploitabilityExchangeDAO,
         baseUrl, idUtils, versionService);
     when(baseUrl.get()).thenReturn("http://localhost:8070/");
@@ -98,6 +98,7 @@ public class SpdxToSpdxExporterTest
     String export = spdxExporter.export();
     ThirdPartyUtils.parseAndValidateSpdx(export, SbomFormat.JSON);
     assertThatJson(export)
+        .whenIgnoringPaths("creationInfo.created", "documentNamespace", "name")
         .isEqualTo(readFileToString("outputs/output_spdx-v2_3.json"));
   }
 
@@ -332,10 +333,12 @@ public class SpdxToSpdxExporterTest
             "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar",
             "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.3?type=jar",
             "pkg:maven/org.example/JavaApp@1.0-SNAPSHOT?type=jar")
-        .hasVulnerabilityCount(3);
+        .hasVulnerabilityCount(2);
+    // In this case, we received vulnerability info but since the vulnerability source and link are missing we are not
+    // including them in the current SBOM. From a technical point of view it might seem odd not to include something we
+    // have data for but if we can't tell who or where we got the vulnerability from we provide little value
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.3?type=jar")
-        .hasVulnerabilityCount(1)
-        .containsVulnerabilities("sonatype-2022-6438");
+        .hasVulnerabilityCount(0);
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar")
         .hasVulnerabilityCount(2)
         .containsVulnerabilities("CVE-2022-42003", "CVE-2022-42004");

@@ -368,8 +368,6 @@ public class SbomDashboardServiceTest extends AbstractComponentTest
         "r10", "d3", "l3", 5.1, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate4,
         "r11", "d3", "l3", 8.1, "sd3", "f3");
-    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate4,
-        "r12", "d3", "l3", 10.0, "sd3", "f3");
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate4,
             "r12", "d3", "l3", 10.0, "sd3", "f3");

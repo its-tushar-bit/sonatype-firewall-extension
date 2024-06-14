@@ -44,7 +44,7 @@ public class SourceControlPullRequestComment
   private int pullRequestId;
 
   @Column(name = "pull_request_comment_id")
-  private int pullRequestCommentId;
+  private long pullRequestCommentId;
 
   @Column(name = "pull_request_comment_version")
   private Integer pullRequestCommentVersion;
@@ -74,7 +74,7 @@ public class SourceControlPullRequestComment
   public SourceControlPullRequestComment(
       String applicationId,
       int pullRequestId,
-      int pullRequestCommentId,
+      long pullRequestCommentId,
       Integer pullRequestCommentVersion,
       String contentHash,
       String sourcePolicyEvaluationId,
@@ -99,7 +99,7 @@ public class SourceControlPullRequestComment
       String componentHash,
       String pathname,
       int pullRequestId,
-      int pullRequestCommentId,
+      long pullRequestCommentId,
       Integer pullRequestCommentVersion,
       String sourcePolicyEvaluationId,
       String targetPolicyEvaluationId)
@@ -147,11 +147,11 @@ public class SourceControlPullRequestComment
     return this;
   }
 
-  public int getPullRequestCommentId() {
+  public long getPullRequestCommentId() {
     return pullRequestCommentId;
   }
 
-  public SourceControlPullRequestComment setPullRequestCommentId(final int pullRequestCommentId) {
+  public SourceControlPullRequestComment setPullRequestCommentId(final long pullRequestCommentId) {
     this.pullRequestCommentId = pullRequestCommentId;
     return this;
   }

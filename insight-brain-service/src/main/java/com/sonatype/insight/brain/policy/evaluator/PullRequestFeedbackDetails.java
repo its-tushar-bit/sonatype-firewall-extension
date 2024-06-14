@@ -321,7 +321,7 @@ public class PullRequestFeedbackDetails
     String link = "";
     ComponentIdentifier identifier = getComponentIdentifier(violationList);
     if (identifier != null) {
-      Integer scmId = null;
+      Long scmId = null;
       for (PullRequestLineCommentDTO lineComment : pullRequestLineComments) {
         if (lineComment.getComponentIdentifier().equals(identifier)) {
           scmId = lineComment.getScmId();
@@ -336,7 +336,7 @@ public class PullRequestFeedbackDetails
   private static String createLink(
       final GitRepositoryInfo gitRepositoryInfo,
       final Integer prNumber,
-      final Integer scmId)
+      final Long scmId)
   {
     String linkUrl = "";
     if (scmId != null) {

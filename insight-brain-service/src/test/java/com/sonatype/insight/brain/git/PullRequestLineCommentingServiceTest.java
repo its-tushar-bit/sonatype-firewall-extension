@@ -42,6 +42,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -87,7 +88,7 @@ public class PullRequestLineCommentingServiceTest
 
   private final String featureBranchScanId = "myScanId";
 
-  private final int scmId = 11;
+  private final long scmId = 11;
 
   private LocationDiscoveryResult locationDiscoveryResult;
 
@@ -378,7 +379,7 @@ public class PullRequestLineCommentingServiceTest
 
     // then: gitApiClient client should be created, and delete should be called on client and DAO for each
     verify(mockGitClientFactory).createApiClient(any());
-    verify(mockGitApiClient, times(5)).deletePullRequestLineComment(anyInt(), anyInt(), anyInt());
+    verify(mockGitApiClient, times(5)).deletePullRequestLineComment(anyLong(), anyInt(), anyInt());
     verify(mockPullRequestCommentDAO, times(5)).delete(any());
 
     // and: there were no exceptions recorded
@@ -390,7 +391,7 @@ public class PullRequestLineCommentingServiceTest
     // given:
     PullRequestLineCommentingService service =
         new TestablePullRequestLineCommentingServiceBuilder().withExistingLineComments(5).build();
-    doThrow(new HttpResponseException(404, "Not Found")).when(mockGitApiClient).deletePullRequestLineComment(3, 1, 1);
+    doThrow(new HttpResponseException(404, "Not Found")).when(mockGitApiClient).deletePullRequestLineComment(3L, 1, 1);
 
     // when: try to create line comments
     PullRequestLineCommentCreationResult result =
@@ -407,7 +408,7 @@ public class PullRequestLineCommentingServiceTest
 
     // then: delete should be called on API client for each, dao for all that were deleted on api
     verify(mockGitClientFactory).createApiClient(any());
-    verify(mockGitApiClient, times(5)).deletePullRequestLineComment(anyInt(), anyInt(), anyInt());
+    verify(mockGitApiClient, times(5)).deletePullRequestLineComment(anyLong(), anyInt(), anyInt());
     verify(mockPullRequestCommentDAO, times(5)).delete(any());
 
     // and: there were no exceptions recorded
@@ -420,7 +421,7 @@ public class PullRequestLineCommentingServiceTest
     PullRequestLineCommentingService service =
         new TestablePullRequestLineCommentingServiceBuilder().withExistingLineComments(2).build();
     doThrow(new HttpResponseException(400, "Bad Request")).when(mockGitApiClient)
-        .deletePullRequestLineComment(anyInt(), anyInt(), anyInt());
+        .deletePullRequestLineComment(anyLong(), anyInt(), anyInt());
 
     // when: try to create line comments
     PullRequestLineCommentCreationResult result =
@@ -437,7 +438,7 @@ public class PullRequestLineCommentingServiceTest
 
     // then: processing of deletes should stop after exception
     verify(mockGitClientFactory).createApiClient(any());
-    verify(mockGitApiClient, times(2)).deletePullRequestLineComment(anyInt(), anyInt(), anyInt());
+    verify(mockGitApiClient, times(2)).deletePullRequestLineComment(anyLong(), anyInt(), anyInt());
     verify(mockPullRequestCommentDAO, times(2)).delete(any());
 
     // and: there were 2 exceptions recorded

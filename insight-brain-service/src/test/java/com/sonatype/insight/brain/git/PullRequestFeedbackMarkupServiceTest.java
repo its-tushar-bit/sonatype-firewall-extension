@@ -203,7 +203,7 @@ public class PullRequestFeedbackMarkupServiceTest
     List<PullRequestLineCommentDTO> pullRequestLineComments = new ArrayList<>();
     PullRequestLineCommentDTO lineCommentDTO =
         new PullRequestLineCommentDTO(componentIdentifier, new DiffPosition("path", 1, 0, 1, null, 1));
-    lineCommentDTO.setScmId(12345);
+    lineCommentDTO.setScmId(12345L);
     pullRequestLineComments.add(lineCommentDTO);
 
     //setup gitRepositoryInfo

@@ -167,7 +167,7 @@ public class SourceControlPullRequestCommentDAOTest
 
     // then: all are retrieved and there are none we don't expect
     assertThat(subjectComments.size()).isEqualTo(lineCommentCount);
-    Set<Integer> commentIdSet = new HashSet<>();
+    Set<Long> commentIdSet = new HashSet<>();
     subjectComments.forEach(comment -> {
       assertThat(comment.getApplicationId()).isEqualTo(application.getId());
       assertThat(comment.getPullRequestId()).isEqualTo(subjectPullRequestId);

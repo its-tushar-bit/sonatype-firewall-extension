@@ -232,7 +232,7 @@ public class SastPullRequestCommentingService
     final CommentResponse commentResponse;
     try {
       commentResponse =
-          gitApiClient.updatePullRequestComment(Integer.parseInt(preexistingSastPrComment.getPullRequestCommentId()),
+          gitApiClient.updatePullRequestComment(Long.parseLong(preexistingSastPrComment.getPullRequestCommentId()),
               pullRequest.getNumber(), preexistingSastPrComment.getPullRequestCommentVersion(), commentText);
 
       if (commentResponse == null) {

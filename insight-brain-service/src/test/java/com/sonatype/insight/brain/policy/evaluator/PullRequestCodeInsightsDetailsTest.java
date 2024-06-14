@@ -488,7 +488,7 @@ public class PullRequestCodeInsightsDetailsTest
     pullRequestLineComments = new ArrayList<>();
     PullRequestLineCommentDTO lineCommentDTO = new PullRequestLineCommentDTO(ci, new DiffPosition("path",
             1, 0, 1, "456", 1));
-    lineCommentDTO.setScmId(12345);
+    lineCommentDTO.setScmId(12345L);
     pullRequestLineComments.add(lineCommentDTO);
 
     //setup gitRepositoryInfo

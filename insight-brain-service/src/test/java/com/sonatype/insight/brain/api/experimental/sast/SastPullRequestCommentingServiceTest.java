@@ -53,6 +53,7 @@ import static com.sonatype.insight.brain.telemetry.SastPullRequestCommentTelemet
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -64,7 +65,7 @@ public class SastPullRequestCommentingServiceTest
 {
   private static final String COMMIT_HASH = "test-commit-hash";
 
-  private static final int COMMENT_ID = 123;
+  private static final long COMMENT_ID = 123;
 
   @Inject
   private SastPullRequestCommentingService pullRequestCommentingService;
@@ -614,7 +615,7 @@ public class SastPullRequestCommentingServiceTest
     final String expectedContentPattern = "Sonatype found \\*\\*0 issues\\*\\* active in this branch\\. " +
         "\\[Click here]\\(.+\\) to view the full SAST report\\.";
     final ArgumentCaptor<String> contentArgumentCaptor = ArgumentCaptor.forClass(String.class);
-    verify(gitApiClient).updatePullRequestComment(anyInt(), anyInt(), anyInt(), contentArgumentCaptor.capture());
+    verify(gitApiClient).updatePullRequestComment(anyLong(), anyInt(), anyInt(), contentArgumentCaptor.capture());
     final String actualContent = contentArgumentCaptor.getValue();
     assertThat(actualContent)
         .matches(expectedContentPattern);
@@ -690,7 +691,7 @@ public class SastPullRequestCommentingServiceTest
     // When: PR commenting is attempted and updating the preexisting comment fails
     doThrow(IOException.class)
         .when(gitApiClient)
-        .updatePullRequestComment(anyInt(), anyInt(), anyInt(), anyString());
+        .updatePullRequestComment(anyLong(), anyInt(), anyInt(), anyString());
     pullRequestCommentingService.createOrUpdateSastPullRequestComment(sastScan, COMMIT_HASH);
 
     // Then: the preexisting comment record is not updated
@@ -858,7 +859,7 @@ public class SastPullRequestCommentingServiceTest
     // When: PR commenting is attempted
     doThrow(IOException.class)
         .when(gitApiClient)
-        .updatePullRequestComment(anyInt(), anyInt(), anyInt(), anyString());
+        .updatePullRequestComment(anyLong(), anyInt(), anyInt(), anyString());
     pullRequestCommentingService.createOrUpdateSastPullRequestComment(sastScan, COMMIT_HASH);
 
     // Then: telemetry data is not sent
@@ -900,7 +901,7 @@ public class SastPullRequestCommentingServiceTest
     commentResponse.setId(COMMENT_ID);
     doReturn(commentResponse)
         .when(gitApiClient)
-        .updatePullRequestComment(anyInt(), anyInt(), anyInt(), anyString());
+        .updatePullRequestComment(anyLong(), anyInt(), anyInt(), anyString());
   }
 
   private void includeDeveloperLicenseFeature() {

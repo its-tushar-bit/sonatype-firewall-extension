@@ -67,7 +67,7 @@ public class PullRequestCommentingClientTest
     String commentText = "Comment text";
     PullRequestCommentTelemetry prCommentTelemetry = new PullRequestCommentTelemetry("app1", 1, "app1");
     DefaultCommentResponse gitApiResponse = new DefaultCommentResponse();
-    gitApiResponse.setId(20);
+    gitApiResponse.setId(20L);
     gitApiResponse.setVersion(1);
     when(mockGitClientApi.createPullRequestComment(any(), any()))
         .thenReturn(gitApiResponse);
@@ -107,7 +107,7 @@ public class PullRequestCommentingClientTest
     SourceControlPullRequestComment prComment =
         createSourceControlPullRequestComment(applicationId, pullRequestNumber, 1, commentVersion);
     DefaultCommentResponse gitApiResponse = new DefaultCommentResponse();
-    gitApiResponse.setId(20);
+    gitApiResponse.setId(20L);
     gitApiResponse.setVersion(null);
     when(mockGitClientApi.updatePullRequestComment(any(), any(), any(), any()))
         .thenReturn(gitApiResponse);
@@ -152,7 +152,7 @@ public class PullRequestCommentingClientTest
     SourceControlPullRequestComment prComment =
         createSourceControlPullRequestComment(applicationId, pullRequestNumber, 20, commentVersion);
     DefaultCommentResponse gitApiResponse = new DefaultCommentResponse();
-    gitApiResponse.setId(20);
+    gitApiResponse.setId(20L);
     gitApiResponse.setVersion(11);
     when(mockGitClientApi.updatePullRequestComment(any(), any(), any(), any()))
         .thenReturn(gitApiResponse);

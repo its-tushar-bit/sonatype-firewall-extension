@@ -22,7 +22,7 @@ public class PullRequestCommentTelemetry
 
   public int prNumber;
 
-  public int commentId;
+  public long commentId;
 
   public String action;
 

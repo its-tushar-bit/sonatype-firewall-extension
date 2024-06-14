@@ -278,7 +278,7 @@ public class PullRequestCommentCreator
    */
   private void recordCommentInDatabase(
       PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO,
-      Integer commentId,
+      Long commentId,
       Integer commentVersion,
       String contentHash,
       SourceControlPullRequestComment existingPullRequestComment)

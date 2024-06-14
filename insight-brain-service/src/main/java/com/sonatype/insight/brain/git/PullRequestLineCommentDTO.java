@@ -28,7 +28,7 @@ public class PullRequestLineCommentDTO
 
   private String markup;
 
-  private Integer scmId;
+  private Long scmId;
 
   private Integer scmVersion;
 
@@ -87,11 +87,11 @@ public class PullRequestLineCommentDTO
     return markup != null && !markup.isEmpty();
   }
 
-  public Integer getScmId() {
+  public Long getScmId() {
     return scmId;
   }
 
-  public void setScmId(final Integer scmId) {
+  public void setScmId(final Long scmId) {
     this.scmId = scmId;
   }
 

@@ -18,7 +18,7 @@ public class SastPullRequestCommentTelemetry
 
   public int prNumber;
 
-  public int commentId;
+  public Long commentId;
 
   public String action;
 

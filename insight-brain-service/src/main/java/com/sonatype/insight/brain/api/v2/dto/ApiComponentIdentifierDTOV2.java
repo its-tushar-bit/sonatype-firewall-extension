@@ -12,6 +12,8 @@ import java.util.TreeMap;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
+import com.google.common.base.Objects;
+
 /**
  * @since 1.13.0
  */
@@ -59,5 +61,23 @@ public class ApiComponentIdentifierDTOV2
 
   public SortedMap<String, String> getCoordinates() {
     return Collections.unmodifiableSortedMap(coordinates);
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ApiComponentIdentifierDTOV2 that = (ApiComponentIdentifierDTOV2) o;
+    return Objects.equal(format, that.format) &&
+        Objects.equal(coordinates, that.coordinates);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(format, coordinates);
   }
 }

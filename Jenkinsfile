@@ -319,7 +319,6 @@ Map<String, Closure> getParallelTests() {
   }
 
   if (isDeployBranch(env, 'main')) {
-    testStages << createGebTests(zips)
     testStages << createUnitTests('Unit and Integration Tests - Java 8 A', 'Java 8', '.*/[A-C].*Test.class', zips)
     testStages << createUnitTests('Unit and Integration Tests - Java 8 B', 'Java 8', '.*/[D-K].*Test.class', zips)
     testStages << createUnitTests('Unit and Integration Tests - Java 8 C', 'Java 8', '.*/[L-P].*Test.class', zips)
@@ -358,28 +357,6 @@ Map<String, Closure> getParallelTests() {
 
 
   return testStages
-}
-
-Map<String, Closure> createGebTests(String... zipFiles) {
-  return ['Geb Tests': {
-    // 2024-05-03: We are using c6i.2xlarge EC2 instances. I tried c6i.4xlarge and there was no difference.
-    node(InsightConstants.AGENT_LABEL) {
-      stage('Geb Tests') {
-        try {
-          copyRepo(zipFiles)
-          String mavenOptions = "-Dgeb.env=ci -Drun-functional-tests=docker -Ddocker." +
-              "registry=${sonatypeDockerRegistryId()} " +
-              "-Dfailsafe.rerunFailingTestsCount=2 -Dfailsafe.failOnFlakeCount=5 --threads 4"
-          Map<String, ?> testConfig = testConfig(mavenOptions, 'insight-brain-functional-test/pom.xml')
-          // We just want to execute tests so directly invoke goals. Docker goal is needed.
-          mvn testConfig, 'docker:start failsafe:integration-test failsafe:verify docker:stop'
-        }
-        finally {
-          captureResultsAndCleanup()
-        }
-      }
-    }
-  }]
 }
 
 Map<String, Closure> createFunctionalTests(

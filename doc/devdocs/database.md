@@ -102,7 +102,6 @@ that is closed after the test is complete. This does not affect the default shar
     - For multi-tenant tests in `nexus-mtiq-server` use `AbstractMultiTenantBaseIntegrationTest`
 - For java functional tests in `insight-brain-java-functional-test` use AbstractFunctionalTest
 - For java functional tests in `nexus-mtiq-functional-test` use AbstractMtiqFunctionalTest
-- For geb tests in `insight-brain-functional-test` use BaseSpec
 
 #### Postgres Specifics
 

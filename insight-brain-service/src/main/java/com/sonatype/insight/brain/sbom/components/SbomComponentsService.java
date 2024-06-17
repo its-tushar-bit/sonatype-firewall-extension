@@ -257,7 +257,7 @@ public class SbomComponentsService
 
     return buildSbomMetadataDTO(
         new SbomMetadataDTO(metadataEntity.getSpec(), metadataEntity.getSpecVersion(), metadataEntity.getSpecFormat(),
-            metadataEntity.getMetadataJson(), scanEntity.getScanId()));
+            metadataEntity.getMetadataJson(), scanEntity.getScanId(), metadataEntity.getCreatedAt()));
   }
 
   private BomPageMetadataDTO buildSbomMetadataDTO(SbomMetadataDTO sbomMetadataDTO) {
@@ -267,7 +267,6 @@ public class SbomComponentsService
     List<String> authorList = new ArrayList<>();
     List<String> personList = new ArrayList<>();
     List<String> organizationList = new ArrayList<>();
-    String createdAt = "";
     if (metadataJson != null) {
       try {
         SbomCreationDetails creationDetails = JsonUtils.parse(metadataJson, SbomCreationDetails.class);
@@ -304,7 +303,6 @@ public class SbomComponentsService
             }
           }
         }
-        createdAt = creationDetails.created;
       }
       catch (IOException e) {
         throw new IllegalStateException("Can not read metadata json, incorrect format", e);
@@ -319,7 +317,7 @@ public class SbomComponentsService
         sbomMetadataDTO.specification,
         sbomMetadataDTO.specVersion,
         sbomMetadataDTO.fileFormat,
-        createdAt,
+        sbomMetadataDTO.createdAt,
         sbomMetadataDTO.scanId
     );
   }

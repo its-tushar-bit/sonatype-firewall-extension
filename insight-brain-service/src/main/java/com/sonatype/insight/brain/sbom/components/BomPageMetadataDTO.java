@@ -5,7 +5,12 @@
  */
 package com.sonatype.insight.brain.sbom.components;
 
+import java.util.Date;
 import java.util.List;
+
+import com.sonatype.insight.json.store.ISODateSerializer;
+
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 public class BomPageMetadataDTO
 {
@@ -25,7 +30,8 @@ public class BomPageMetadataDTO
 
   public String fileFormat;
 
-  public String createdAt;
+  @JsonSerialize(using = ISODateSerializer.class)
+  public Date createdAt;
 
   public String scanId;
 
@@ -38,7 +44,7 @@ public class BomPageMetadataDTO
       final String specification,
       final String specVersion,
       final String fileFormat,
-      final String createdAt,
+      final Date createdAt,
       final String scanId)
   {
     this.author = author;

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.sbom.components;
 
+import java.util.Date;
+
 public class SbomMetadataDTO
 {
   public String specification;
@@ -17,6 +19,8 @@ public class SbomMetadataDTO
 
   public String scanId;
 
+  public Date createdAt;
+
   public SbomMetadataDTO() {
   }
 
@@ -25,12 +29,14 @@ public class SbomMetadataDTO
       final String specVersion,
       final String fileFormat,
       final String metadataJson,
-      final String scanId)
+      final String scanId,
+      final Date createdAt)
   {
     this.specification = specification;
     this.specVersion = specVersion;
     this.fileFormat = fileFormat;
     this.metadataJson = metadataJson;
     this.scanId = scanId;
+    this.createdAt = createdAt;
   }
 }

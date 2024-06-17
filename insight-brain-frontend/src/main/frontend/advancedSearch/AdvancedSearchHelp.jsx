@@ -14,6 +14,8 @@ import * as PropTypes from 'prop-types';
 export default function AdvancedSearchHelp(props) {
   const { showHelp, toggleHelp } = props;
   const isSbomManager = useSelector(selectIsSbomManager);
+  const prodUrl = 'https://links.sonatype.com/products';
+  const searchDocUrl = prodUrl + (isSbomManager ? '/sbom/docs/search' : '/nxiq/doc/advanced-search');
 
   const helpDiv = (
     <div id="advanced-search-help-container">
@@ -62,14 +64,12 @@ export default function AdvancedSearchHelp(props) {
         </span>
       </p>
       <p>
-        {!isSbomManager && (
-          <span className="iq-adv-search-help__explanation">
-            Read additional{' '}
-            <NxTextLink external href="https://links.sonatype.com/products/nxiq/doc/advanced-search">
-              documentation
-            </NxTextLink>
-          </span>
-        )}
+        <span className="iq-adv-search-help__explanation">
+          Read additional{' '}
+          <NxTextLink external href={searchDocUrl}>
+            documentation
+          </NxTextLink>
+        </span>
         <span className="iq-adv-search-help__explanation">
           Send feedback to the{' '}
           <NxTextLink external href="https://links.sonatype.com/products/nxiq/feedback/advanced-search">

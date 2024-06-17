@@ -104,9 +104,10 @@ describe('AdvancedSearch', function () {
 
       helpLink = screen.getByRole('link', { name: 'documentation' });
       expect(helpLink).toBeInTheDocument();
+      expect(helpLink).toHaveAttribute('href', 'https://links.sonatype.com/products/nxiq/doc/advanced-search');
     });
 
-    it('does not display additional help when in SBOM Manager', function () {
+    it('displays additional help when in SBOM Manager', function () {
       const sbomManagerState = {
         ...initialState,
         router: {
@@ -123,7 +124,8 @@ describe('AdvancedSearch', function () {
       fireEvent.click(toggle);
 
       helpLink = screen.queryByRole('link', { name: 'documentation' });
-      expect(helpLink).not.toBeInTheDocument();
+      expect(helpLink).toBeInTheDocument();
+      expect(helpLink).toHaveAttribute('href', 'https://links.sonatype.com/products/sbom/docs/search');
     });
 
     it('shows error when the SBOM Manager license is disabled', async () => {

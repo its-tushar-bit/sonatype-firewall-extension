@@ -14,6 +14,7 @@ import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelector
 import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
 import { getRemediationsPrioritiesPage } from '../../componentDetails/overview/riskRemediation/recommendedVersionsUtils';
 import PropTypes from 'prop-types';
+import { isNilOrEmpty } from '../../util/jsUtil';
 
 const dependencyTypeMap = {
   Direct: 'direct',
@@ -48,6 +49,7 @@ export default function PrioritiesPageRow({ component, onClick }) {
   const policyAction = action === 'none' ? null : action;
   const formattedDependencyType = dependencyTypeMap[dependencyType];
   const actualVersion = componentIdentifier?.coordinates?.version;
+  const isUnknown = formattedDependencyType === dependencyTypeMap.Unknown && componentIdentifier === null;
 
   const requestData = {
     clientType: 'ci',
@@ -128,6 +130,7 @@ export default function PrioritiesPageRow({ component, onClick }) {
           <Recommendation
             loading={loading}
             error={error}
+            isUnknown={isUnknown}
             recommendationText={recommendationText}
             recommendationSubtext={recommendationSubtext}
           />
@@ -138,13 +141,17 @@ export default function PrioritiesPageRow({ component, onClick }) {
   );
 }
 
-function Recommendation({ loading, error, recommendationText, recommendationSubtext }) {
+function Recommendation({ loading, error, recommendationText, recommendationSubtext, isUnknown }) {
   if (loading) {
     return <NxLoadingSpinner />;
   }
 
-  if (error) {
-    return <span>N/A</span>;
+  if (error || isUnknown) {
+    return <div className="iq-priorities-page-remediation__upgrade">No recommendation available</div>;
+  }
+
+  if (isNilOrEmpty(recommendationText)) {
+    return <div className="iq-priorities-page-remediation__upgrade">{recommendationSubtext}</div>;
   }
 
   return (
@@ -160,6 +167,7 @@ Recommendation.propTypes = {
   error: PropTypes.string,
   recommendationText: PropTypes.string,
   recommendationSubtext: PropTypes.string,
+  isUnknown: PropTypes.bool,
 };
 
 PrioritiesPageRow.propTypes = {

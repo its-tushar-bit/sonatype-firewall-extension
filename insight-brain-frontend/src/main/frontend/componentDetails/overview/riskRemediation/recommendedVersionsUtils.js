@@ -88,7 +88,7 @@ const createSuggestedRemediationWithCurrentVersion = (item, remediationVersion, 
   }
 };
 
-const createSuggestedRemediation = (item, applicationVersion, stageId) => {
+const createSuggestedRemediation = (item, applicationVersion, stageId, skipCurrentVersionForPrioritiesPage = false) => {
   const remediationVersion =
     item &&
     item.data &&
@@ -104,6 +104,10 @@ const createSuggestedRemediation = (item, applicationVersion, stageId) => {
     };
   } else if (remediationVersion !== applicationVersion) {
     return createSuggestedRemediationWithRecommendedVersion(item, remediationVersion, stageId);
+  } else if (skipCurrentVersionForPrioritiesPage) {
+    return {
+      text: 'No recommendation available',
+    };
   } else {
     return createSuggestedRemediationWithCurrentVersion(item, remediationVersion, stageId);
   }
@@ -177,6 +181,7 @@ export const setRemediations = (remediation, actualVersion, stageId) => {
 };
 
 export const getRemediationsPrioritiesPage = (remediation, actualVersion, stageId) => {
+  const skipCurrentVersionForPrioritiesPage = true;
   if (remediation && remediation.versionChanges?.length > 0) {
     const nonViolatingDependencySuggestion = find(
       propEq('type', NEXT_NO_VIOLATIONS_DEPENDENCIES),
@@ -190,7 +195,12 @@ export const getRemediationsPrioritiesPage = (remediation, actualVersion, stageI
     const nonFailingSuggestion = find(propEq('type', NEXT_NON_FAILING), remediation.versionChanges);
 
     if (nonViolatingDependencySuggestion) {
-      return createSuggestedRemediation(nonViolatingDependencySuggestion, actualVersion, stageId);
+      return createSuggestedRemediation(
+        nonViolatingDependencySuggestion,
+        actualVersion,
+        stageId,
+        skipCurrentVersionForPrioritiesPage
+      );
     }
 
     if (
@@ -200,22 +210,37 @@ export const getRemediationsPrioritiesPage = (remediation, actualVersion, stageI
         actualVersion
       )
     ) {
-      return createSuggestedRemediation(nonViolatingSuggestion, actualVersion, stageId);
+      return createSuggestedRemediation(
+        nonViolatingSuggestion,
+        actualVersion,
+        stageId,
+        skipCurrentVersionForPrioritiesPage
+      );
     }
 
     if (nonFailingDependencySuggestion) {
-      return createSuggestedRemediation(nonFailingDependencySuggestion, actualVersion, stageId);
+      return createSuggestedRemediation(
+        nonFailingDependencySuggestion,
+        actualVersion,
+        stageId,
+        skipCurrentVersionForPrioritiesPage
+      );
     }
 
     if (
       shouldDisplayWithoutDependenciesRemediation(nonFailingDependencySuggestion, nonFailingSuggestion, actualVersion)
     ) {
-      return createSuggestedRemediation(nonFailingSuggestion, actualVersion, stageId);
+      return createSuggestedRemediation(
+        nonFailingSuggestion,
+        actualVersion,
+        stageId,
+        skipCurrentVersionForPrioritiesPage
+      );
     }
   }
 
   return {
     id: 'no-versions-available',
-    text: 'No recommended versions are available for the current component',
+    text: 'No recommendation available',
   };
 };

@@ -10,6 +10,7 @@ import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 import ReportTitle from 'MainRoot/applicationReport/ReportTitle';
 
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
@@ -41,32 +42,33 @@ describe('ReportTitle', () => {
       },
     };
 
-    selectApplicationReportMetaDataSpy = spyOn(
-      applicationReportSelectors,
-      'selectApplicationReportMetaData'
-    ).and.returnValue(metadataDetails);
+    selectApplicationReportMetaDataSpy = jest
+      .spyOn(applicationReportSelectors, 'selectApplicationReportMetaData')
+      .mockReturnValue(metadataDetails);
 
-    selectSelectedReportSpy = spyOn(applicationReportSelectors, 'selectSelectedReport').and.returnValue({
+    selectSelectedReportSpy = jest.spyOn(applicationReportSelectors, 'selectSelectedReport').mockReturnValue({
       reportVersion: 3,
     });
 
-    mockedReevaluateReport = spyOn(applicationReportActions, 'reevaluateReport').and.callThrough();
+    mockedReevaluateReport = jest.spyOn(applicationReportActions, 'reevaluateReport');
 
-    spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({
+    jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({
       publicId: 'publicId',
       scanId: 'scanId',
     });
 
-    spyOn(applicationReportSelectors, 'selectReportParameters').and.returnValue({
+    jest.spyOn(applicationReportSelectors, 'selectReportParameters').mockReturnValue({
       appId: 'appId',
       scanId: 'scanId',
     });
 
+    jest.spyOn(productFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').mockReturnValue(false);
+
     routerContextMock = {
-      href: jasmine.createSpy('href').and.returnValue('mockValue'),
-      get: jasmine.createSpy('get').and.returnValue('mockGetValue'),
+      href: jest.fn('href').mockReturnValue('mockValue'),
+      get: jest.fn('get').mockReturnValue('mockGetValue'),
     };
-    spyOn(routerContext, 'useRouterState').and.returnValue(routerContextMock);
+    jest.spyOn(routerContext, 'useRouterState').mockReturnValue(routerContextMock);
 
     renderComponent = () => {
       render(<ReportTitle />);
@@ -81,8 +83,6 @@ describe('ReportTitle', () => {
   });
 
   it('options dropdown render 5 links', async () => {
-    SpecUtil.requestIdleCallbackInvokeImmediate();
-
     renderComponent();
     const options = screen.getByRole('button', { name: 'Options' });
     expect(options).toBeInTheDocument();
@@ -103,9 +103,31 @@ describe('ReportTitle', () => {
     expect(screen.getByRole('link', { name: 'View legacy report' })).toBeVisible();
   });
 
-  it('renders a disabled view vulnerabilities link if report version is less than 5', async () => {
-    SpecUtil.requestIdleCallbackInvokeImmediate();
+  it('options dropdown renders 6 links if developer dashboard is enabled', async () => {
+    productFeaturesSelectors.selectIsDeveloperDashboardEnabled.mockReturnValue(true);
 
+    renderComponent();
+    const options = screen.getByRole('button', { name: 'Options' });
+    expect(options).toBeInTheDocument();
+
+    fireEvent.click(options);
+
+    expect(screen.getByRole('link', { name: 'Export PDF' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Export CycloneDx' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Export SPDX' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'View raw data' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Priorities' })).toBeVisible();
+
+    const viewVulnerabilitiesLink = await screen.findByRole('link', {
+      name: 'Reevaluate the report in order to enable Vulnerabilities view',
+    });
+    expect(viewVulnerabilitiesLink).toBeVisible();
+    expect(viewVulnerabilitiesLink).toHaveTextContent(/view vulnerabilities/i);
+
+    expect(screen.getByRole('link', { name: 'View legacy report' })).toBeVisible();
+  });
+
+  it('renders a disabled view vulnerabilities link if report version is less than 5', async () => {
     renderComponent();
     const options = screen.getByRole('button', { name: 'Options' });
     expect(options).toBeVisible();
@@ -115,7 +137,7 @@ describe('ReportTitle', () => {
     const vulnerabilities = await screen.findByRole('link', {
       name: 'Reevaluate the report in order to enable Vulnerabilities view',
     });
-    expect(vulnerabilities).toHaveClassName('disabled');
+    expect(vulnerabilities).toHaveAttribute('aria-disabled', 'true');
     expect(vulnerabilities).toHaveTextContent(/view vulnerabilities/i);
 
     fireEvent.mouseOver(vulnerabilities);
@@ -124,7 +146,7 @@ describe('ReportTitle', () => {
   });
 
   it('renders an enabled view vulnerabilities link if report version is greater than 5', () => {
-    selectSelectedReportSpy.and.returnValue({
+    selectSelectedReportSpy.mockReturnValue({
       reportVersion: 7,
     });
     renderComponent();
@@ -134,15 +156,15 @@ describe('ReportTitle', () => {
     fireEvent.click(options);
 
     const vulnerabilitiesLink = screen.getByRole('link', { name: 'View vulnerabilities' });
-    expect(vulnerabilitiesLink).not.toHaveClassName('disabled');
+    expect(vulnerabilitiesLink).toHaveAttribute('aria-disabled', 'false');
+
     expect(vulnerabilitiesLink).toHaveTextContent(/view vulnerabilities/i);
   });
 
   it('renders a disabled view vulnerabilities link if report version is lower than 5 ', async () => {
-    selectSelectedReportSpy.and.returnValue({
+    selectSelectedReportSpy.mockReturnValue({
       reportVersion: 4,
     });
-    SpecUtil.requestIdleCallbackInvokeImmediate();
 
     renderComponent();
     const options = screen.getByText('Options');
@@ -153,7 +175,8 @@ describe('ReportTitle', () => {
     const vulnerabilitiesLink = await screen.findByRole('link', {
       name: 'Reevaluate the report in order to enable Vulnerabilities view',
     });
-    expect(vulnerabilitiesLink).toHaveClassName('disabled');
+    expect(vulnerabilitiesLink).toHaveAttribute('aria-disabled', 'true');
+
     expect(vulnerabilitiesLink).toHaveTextContent(/view vulnerabilities/i);
     expect(vulnerabilitiesLink).toHaveAttribute('aria-disabled', 'true');
   });
@@ -177,7 +200,7 @@ describe('ReportTitle', () => {
   });
 
   it('renders a description with triggered by scan type from continuous monitoring', () => {
-    selectApplicationReportMetaDataSpy.and.returnValue({ ...metadataDetails, forMonitoring: true });
+    selectApplicationReportMetaDataSpy.mockReturnValue({ ...metadataDetails, forMonitoring: true });
     renderComponent();
     const description = screen.getByText(
       `Triggered by ${metadataDetails.scanTriggerType} (Continuous Monitoring) on 2018-11-11 15:13:11 UTC-0500`
@@ -187,7 +210,7 @@ describe('ReportTitle', () => {
   });
 
   it('renders a description with triggered by scan type from re-evaluation', () => {
-    selectApplicationReportMetaDataSpy.and.returnValue({ ...metadataDetails, reevaluation: true });
+    selectApplicationReportMetaDataSpy.mockReturnValue({ ...metadataDetails, reevaluation: true });
     renderComponent();
     const description = screen.getByText(
       `Triggered by ${metadataDetails.scanTriggerType} (Re-evaluation) on 2018-11-11 15:13:11 UTC-0500`

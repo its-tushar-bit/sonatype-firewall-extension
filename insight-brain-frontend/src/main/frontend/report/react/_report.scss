@@ -42,6 +42,11 @@ reports-page {
           }
         }
       }
+
+      .iq-report-links-container {
+        display: flex;
+        gap: var(--nx-spacing-2x);
+      }
     }
     .iq-report-violation-cell {
       width: 180px;

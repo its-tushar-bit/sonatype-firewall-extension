@@ -28,6 +28,7 @@ import {
   selectReportsFilter,
   selectLoadingPublicIds,
 } from './reportsSelectors';
+import { selectIsDeveloperDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from './reportsSlice';
 import ReportPageViolationCell from './ReportsPageViolationCell';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
@@ -51,6 +52,7 @@ export default function ReportsPage() {
   const appliedSort = useSelector(selectAppliedSortReports);
   const appFilter = useSelector(selectReportsFilter);
   const loadingPublicIds = useSelector(selectLoadingPublicIds);
+  const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
 
   // Actions
   const loadStagesAndReports = () => dispatch(actions.loadStagesAndReports());
@@ -129,7 +131,12 @@ export default function ReportsPage() {
   const violationCells = (report) =>
     allStages.map((currStage) =>
       availStages.find((elem) => elem.stageTypeId === currStage)
-        ? ReportPageViolationCell({ stage: currStage, app: report, hrefUiRouterState: uiRouterState.href })
+        ? ReportPageViolationCell({
+            stage: currStage,
+            app: report,
+            hrefUiRouterState: uiRouterState.href,
+            isDeveloperDashboardEnabled,
+          })
         : null
     );
 

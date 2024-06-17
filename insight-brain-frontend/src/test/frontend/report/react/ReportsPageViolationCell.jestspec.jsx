@@ -11,7 +11,7 @@ describe('ReportsPageViolationCell', () => {
   let renderComponent, hrefUiRouterStateSpy, props;
 
   beforeEach(() => {
-    hrefUiRouterStateSpy = jasmine.createSpy('hrefUiRouterState');
+    hrefUiRouterStateSpy = jest.fn('hrefUiRouterState').mockImplementation((state) => state);
     props = {
       stage: 'build',
       app: {
@@ -144,9 +144,42 @@ describe('ReportsPageViolationCell', () => {
     expect(severePolicyViolationCount).toBeVisible();
     expect(moderatePolicyViolationCount).toBeVisible();
 
-    const viewReport = screen.getByText('View Report');
+    const viewReport = screen.getByRole('link', { name: /view report/i });
     expect(viewReport).toBeVisible();
     fireEvent.click(viewReport);
-    expect(hrefUiRouterStateSpy).toHaveBeenCalled();
+    expect(hrefUiRouterStateSpy).toHaveBeenCalledWith('applicationReport.policy', {
+      publicId: 'CDPAPPGO',
+      scanId: '4d8ad4f41b7d46a79d95e1359d40b861',
+    });
+
+    expect(screen.queryByRole('link', { name: /priorities/i })).not.toBeInTheDocument();
+  });
+
+  it('Renders the component with priorities link if development dashboard is enabled', () => {
+    renderComponent({ ...props, isDeveloperDashboardEnabled: true });
+
+    const criticalPolicyViolationCount = screen.getByText('709');
+    const severePolicyViolationCount = screen.getByText('152');
+    const moderatePolicyViolationCount = screen.getByText('7');
+
+    expect(criticalPolicyViolationCount).toBeVisible();
+    expect(severePolicyViolationCount).toBeVisible();
+    expect(moderatePolicyViolationCount).toBeVisible();
+
+    const viewReport = screen.getByRole('link', { name: /report/i });
+    expect(viewReport).toBeVisible();
+    fireEvent.click(viewReport);
+    expect(hrefUiRouterStateSpy).toHaveBeenCalledWith('applicationReport.policy', {
+      publicId: 'CDPAPPGO',
+      scanId: '4d8ad4f41b7d46a79d95e1359d40b861',
+    });
+
+    const viewPriorities = screen.getByRole('link', { name: /priorities/i });
+    expect(viewPriorities).toBeVisible();
+    fireEvent.click(viewPriorities);
+    expect(hrefUiRouterStateSpy).toHaveBeenCalledWith('prioritiesPage', {
+      publicAppId: 'CDPAPPGO',
+      scanId: '4d8ad4f41b7d46a79d95e1359d40b861',
+    });
   });
 });

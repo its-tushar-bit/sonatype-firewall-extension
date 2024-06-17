@@ -9,7 +9,7 @@ import { NxSmallThreatCounter, NxTable, NxTextLink, NxFontAwesomeIcon } from '@s
 import { faHourglassHalf } from '@fortawesome/pro-regular-svg-icons';
 import { formatTimeAgo } from 'MainRoot/util/dateUtils';
 
-const ReportsPageViolationCell = ({ stage, app, hrefUiRouterState }) => {
+const ReportsPageViolationCell = ({ stage, app, hrefUiRouterState, isDeveloperDashboardEnabled }) => {
   const results = app.policyEvaluationsResults[stage],
     evaluation = app.policyEvaluations[stage],
     publicAppId = app.publicId,
@@ -47,15 +47,32 @@ const ReportsPageViolationCell = ({ stage, app, hrefUiRouterState }) => {
         />
       )}
       <div className="iq-report-age">{formatTimeAgo(evaluation.time)}</div>
-      <NxTextLink
-        id="iq-report-link"
-        href={hrefUiRouterState('applicationReport.policy', {
-          publicId: publicAppId,
-          scanId: evaluation.scanId,
-        })}
-      >
-        View Report
-      </NxTextLink>
+      <div className="iq-report-links-container">
+        <NxTextLink
+          id="iq-report-link"
+          href={hrefUiRouterState('applicationReport.policy', {
+            publicId: publicAppId,
+            scanId: evaluation.scanId,
+          })}
+        >
+          {isDeveloperDashboardEnabled ? 'Report' : 'View Report'}
+        </NxTextLink>
+        {isDeveloperDashboardEnabled && (
+          <>
+            <span>|</span>
+            <NxTextLink
+              id="iq-developer-priorities-link-from-reports-pag"
+              data-analytics-id="iq-developer-priorities-link-from-reports-page"
+              href={hrefUiRouterState('prioritiesPage', {
+                publicAppId,
+                scanId: evaluation.scanId,
+              })}
+            >
+              Priorities
+            </NxTextLink>
+          </>
+        )}
+      </div>
     </NxTable.Cell>
   );
 };
@@ -71,6 +88,7 @@ ReportsPageViolationCell.propTypes = {
     })
   ).isRequired,
   hrefUiRouterState: PropTypes.func.isRequired,
+  isDeveloperDashboardEnabled: PropTypes.bool.isRequired,
 };
 
 export default ReportsPageViolationCell;

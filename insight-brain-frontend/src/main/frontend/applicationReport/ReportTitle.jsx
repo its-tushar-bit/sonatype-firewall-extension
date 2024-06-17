@@ -16,9 +16,11 @@ import {
   NxTooltip,
   NxFontAwesomeIcon,
 } from '@sonatype/react-shared-components';
+import faFilterList from '../../frontend/img/icon-filter-list.svg';
 
 import { selectApplicationReportMetaData, selectSelectedReport } from './applicationReportSelectors';
 import { selectRouterCurrentParams, selectIsPrioritiesPageContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsDeveloperDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { reevaluateReport as reevaluateR } from './applicationReportActions';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
@@ -47,10 +49,15 @@ export default function ReportTitle() {
   const uiRouterState = useRouterState();
   const reevaluateReport = (...args) => dispatch(reevaluateR(...args));
   const isPrioritiesPageContainer = useSelector(selectIsPrioritiesPageContainer);
+  const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
 
   const pdfUrl = getDownloadPdfUrl(publicId, scanId);
   const sbomUrl = getExportCycloneDxUrl(metadataDetails.application.id, scanId);
   const spdxUrl = getExportSpdxUrl(metadataDetails.application.id, scanId);
+  const prioritiesUrl = uiRouterState.href('prioritiesPage', {
+    publicAppId: publicId,
+    scanId: scanId,
+  });
   const rawDataUrl = uiRouterState.href(
     isPrioritiesPageContainer ? 'prioritiesPageContainer.rawData' : 'applicationReport.rawData',
     { publicId, scanId }
@@ -91,6 +98,16 @@ export default function ReportTitle() {
             <NxFontAwesomeIcon icon={faFilePdf} />
             <span>Export SPDX</span>
           </a>
+          {isDeveloperDashboardEnabled && (
+            <a
+              className="nx-dropdown-button iq-developer-priorities-link-from-options-dropdown"
+              href={prioritiesUrl}
+              data-analytics-id="iq-developer-priorities-link-from-options-dropdown"
+            >
+              <img src={faFilterList} className="iq-priorities-icon" />
+              <span>Priorities</span>
+            </a>
+          )}
           <NxDropdownDivider />
           <a className="nx-dropdown-link" href={rawDataUrl}>
             <NxFontAwesomeIcon icon={faFile} />

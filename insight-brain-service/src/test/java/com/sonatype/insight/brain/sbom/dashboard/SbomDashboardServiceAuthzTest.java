@@ -11,6 +11,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.thirdpartyscans.RecentImportedSbomsDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.RecentVulnerabilitiesDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ReleaseStatusDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
@@ -163,5 +164,64 @@ public class SbomDashboardServiceAuthzTest extends AbstractServiceAuthzTest
     assertThat(results.getReleaseReadyCount()).isEqualTo(2L);
     assertThat(results.getNeedsAttentionCount()).isEqualTo(1L);
     assertThat(results.getPartiallyReadyCount()).isEqualTo(0L);
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetRecentImportSboms_Authorized() {
+    grantReadPermission(app.getId());
+
+    Date now = new Date();
+    Date oneYearAgo = DateUtils.addYears(now, -1);
+    Date sixMonthsAgo = DateUtils.addMonths(now, -6);
+
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withCreatedAt(sixMonthsAgo)
+        .build();
+
+    ThirdPartyFileCoordinate coordinate1 =
+        tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(), "s1", "f1",
+            "n1", "v1", "", "");
+
+    ThirdPartyCoordinateSecurity coordinateSecurity1 = tempEntity.newThirdPartyCoordinateSecurity(coordinate1,
+        "r1", "d1", "l1", CvssV3Severity.CRITICAL.getStartScoreRange(),
+        CvssV3Severity.CRITICAL.getDisplayName(), "f1");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity1, coordinateSecurity1.getRefId(),
+        "state", "justification", "response", "detail");
+
+    // No permission on this application yet
+    Application newApplication = tempEntity.newApplicationWithParent();
+
+    ThirdPartySbomMetadata sbomMetadata2 = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(newApplication.getId())
+        .withCreatedAt(oneYearAgo)
+        .build();
+
+    ThirdPartyFileCoordinate coordinate2 =
+        tempEntity.newThirdPartyFileCoordinate(sbomMetadata2.getThirdPartyFileId(), "s2", "f2",
+            "n2", "v2", "", "");
+
+    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "r2", "d2", "l2",
+        CvssV3Severity.HIGH.getStartScoreRange(), CvssV3Severity.HIGH.getDisplayName(), "f2");
+
+    List<RecentImportedSbomsDTO> results = service.getRecentSbomsImported();
+
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0).getApplicationName()).isEqualTo(app.getName());
+
+    grantReadPermission(newApplication.getId());
+
+    results = service.getRecentSbomsImported();
+
+    assertThat(results).hasSize(2);
+    assertThat(results.get(0).getApplicationName()).isEqualTo(app.getName());
+    assertThat(results.get(1).getApplicationName()).isEqualTo(newApplication.getName());
+  }
+
+  @Test
+  public void testGetRecentImportSboms_Unauthenticated() {
+    List<RecentImportedSbomsDTO> results = service.getRecentSbomsImported();
+    assertThat(results).isEmpty();
   }
 }

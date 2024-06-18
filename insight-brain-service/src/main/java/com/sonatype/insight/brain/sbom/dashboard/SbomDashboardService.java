@@ -7,13 +7,16 @@ package com.sonatype.insight.brain.sbom.dashboard;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.thirdpartyscans.RecentImportedSbomsDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.RecentVulnerabilitiesDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ReleaseStatusDTO;
 import com.sonatype.insight.brain.organization.ApplicationService;
@@ -56,5 +59,22 @@ public class SbomDashboardService
 
     ReleaseStatusDTO result = new ReleaseStatusDTO(releaseReadyCount, partiallyReadyCount, needsAttentionCount);
     return result;
+  }
+
+  public List<RecentImportedSbomsDTO> getRecentSbomsImported() {
+    List<Application> applications = applicationService.getApplications();
+    Set<String> applicationIds = applications.stream().map(Application::getId).collect(Collectors.toSet());
+    if (applicationIds.isEmpty()) {
+      return new ArrayList<>();
+    }
+    List<RecentImportedSbomsDTO> sbomsDTOList = thirdPartyCoordinateSecurityDAO.getRecentImportedSboms(applicationIds);
+    Map<String, Application> applicationsMap = applications.stream()
+        .collect(Collectors.toMap(Application::getId, Function.identity()));
+    sbomsDTOList.forEach(recentImported -> {
+      Application application = applicationsMap.get(recentImported.getApplicationId());
+      recentImported.setApplicationName(application.getName());
+      recentImported.setPublicApplicationId(application.getPublicId());
+    });
+    return sbomsDTOList;
   }
 }

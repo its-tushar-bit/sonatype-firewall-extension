@@ -19,6 +19,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.model.thirdpartyscans.RecentImportedSbomsDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.RecentVulnerabilitiesDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.VulnerabilitiesThreadLevelMetricDTO;
@@ -272,6 +273,41 @@ public class ThirdPartyCoordinateSecurityDAO
     }
     catch (SQLException e) {
       throw new InternalServerException(e);
+    }
+  }
+
+  public List<RecentImportedSbomsDTO> getRecentImportedSboms(Set<String> applicationIds) {
+    String databaseSchema = getDatabaseSchema();
+    String sQuery = "" + //
+        "SELECT sm.application_id," + //
+        "       sm.sbom_version," + //
+        "       sm.spec," + //
+        "       sm.created_at," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?1 AND ?2) THEN 1 END) as low," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?3 AND ?4) THEN 1 END) as medium," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?5 AND ?6) THEN 1 END) as high," + //
+        "       COUNT(CASE WHEN (cs.severity BETWEEN ?7 AND ?8) THEN 1 END) as critical" + //
+        " FROM " + databaseSchema + ".sbom_metadata sm" + //
+        " JOIN " + databaseSchema + ".file_coordinate fc" + //
+        " ON fc.third_party_file_id = sm.third_party_file_id" + //
+        " LEFT JOIN " + databaseSchema + ".coordinate_security cs" + //
+        " ON cs.file_coordinate_id = fc.file_coordinate_id" + //
+        " WHERE sm.status = ?9" + //
+        " AND sm.application_id = ANY(array[?10])" + //
+        " GROUP BY sm.application_id, sm.sbom_version, sm.spec, sm.created_at" + //
+        " ORDER BY sm.created_at DESC LIMIT 7";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = createNativeQuery(tx, sQuery, LOW.getStartScoreRange(),
+          LOW.getEndScoreRange(), MEDIUM.getStartScoreRange(), MEDIUM.getEndScoreRange(), HIGH.getStartScoreRange(),
+          HIGH.getEndScoreRange(), CRITICAL.getStartScoreRange(), CRITICAL.getEndScoreRange(), "ACTIVE",
+          createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
+
+      return ((Stream<Object[]>) query.getResultStream())
+          .map(RecentImportedSbomsDTO::new).collect(Collectors.toList());
+    }
+    catch (SQLException e) {
+      throw new RuntimeException(e);
     }
   }
 }

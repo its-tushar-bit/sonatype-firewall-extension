@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
@@ -260,6 +261,7 @@ public class SamlUserDAOTest
   private void assertSamlUser(SamlUser expectedSamlUser, List<SamlUser> users) {
     SamlUser foundUser = users.stream()
         .filter(samlUser -> expectedSamlUser.getUsername().equals(samlUser.getUsername())).findFirst().orElse(null);
+
     assertThat(foundUser).isNotNull().usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
         .isEqualTo(expectedSamlUser);
   }
@@ -395,6 +397,67 @@ public class SamlUserDAOTest
     assertThat(samlUserDAO.findUsersByNameOrUsernameQuery("%-PoStgREs%"))
         .usingRecursiveFieldByFieldElementComparator()
         .containsExactly(samlUser1, samlUser2);
+  }
+
+  @Test
+  public void testWithAllUsersWithGroups() {
+    String uuid = UUID.randomUUID().toString();
+    String group1 = "group1" + uuid;
+    String group2 = "group2" + uuid;
+    String group3 = "group3" + uuid;
+
+    Set<String> user1Groups = new HashSet<>(Arrays.asList(group1, group2));
+    Set<String> user2Groups = new HashSet<>(Arrays.asList(group1, group2, group3));
+    Set<String> user3Groups = new HashSet<>(Arrays.asList(group1));
+    Set<String> user4Groups = new HashSet<>();
+
+    SamlUser samlUser1 = tempEntity.newSamlUser("username1" + uuid, user1Groups);
+    SamlUser samlUser2 = tempEntity.newSamlUser("username2" + uuid, user2Groups);
+    SamlUser samlUser3 = tempEntity.newSamlUser("username3" + uuid, user3Groups);
+    SamlUser samlUser4 = tempEntity.newSamlUser("username4" + uuid, user4Groups);
+    SamlGroup samlGroup1 = tempEntity.newSamlGroup(group1);
+    SamlGroup samlGroup2 = tempEntity.newSamlGroup(group2);
+    SamlGroup samlGroup3 = tempEntity.newSamlGroup(group3);
+    tempEntity.newSamlUserGroup(samlUser1.getId(), samlGroup1.getId());
+    tempEntity.newSamlUserGroup(samlUser1.getId(), samlGroup2.getId());
+    tempEntity.newSamlUserGroup(samlUser2.getId(), samlGroup1.getId());
+    tempEntity.newSamlUserGroup(samlUser2.getId(), samlGroup2.getId());
+    tempEntity.newSamlUserGroup(samlUser2.getId(), samlGroup3.getId());
+    tempEntity.newSamlUserGroup(samlUser3.getId(), samlGroup1.getId());
+
+    samlUserDAO.withAllUsersWithGroups((SamlUser user) -> {
+      if (user.getId().equals(samlUser1.getId())) {
+        assertSamlUserWithGroups(samlUser1, user, user1Groups);
+        return;
+      }
+
+      if (user.getId().equals(samlUser2.getId())) {
+        assertSamlUserWithGroups(samlUser2, user, user2Groups);
+        return;
+      }
+
+      if (user.getId().equals(samlUser3.getId())) {
+        assertSamlUserWithGroups(samlUser3, user, user3Groups);
+        return;
+      }
+
+      if (user.getId().equals(samlUser4.getId())) {
+        assertSamlUserWithGroups(samlUser4, user, user4Groups);
+        return;
+      }
+
+      // Should never reach this point
+      throw new RuntimeException(String.format("Unexpected user with id: %s", user.getId()));
+    });
+  }
+
+  private void assertSamlUserWithGroups(SamlUser expectedSamlUser, SamlUser foundUser, Set<String> expectedGroups) {
+    assertThat(foundUser).isNotNull().usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .ignoringFields("groupsString")
+        .isEqualTo(expectedSamlUser);
+
+    assertThat(foundUser.getGroups()).containsAll(expectedGroups);
   }
 
   private SamlUser createSamlUser() {

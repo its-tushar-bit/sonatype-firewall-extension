@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.admin.dto.OAuth2ConfigurationDTO;
@@ -12,8 +16,14 @@ import com.sonatype.insight.brain.api.admin.dto.OidcConfigurationDTO;
 import com.sonatype.insight.brain.api.admin.dto.SsoConfigurationDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2ConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
+import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration;
 import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
+import com.sonatype.insight.brain.model.security.OAuth2Group;
+import com.sonatype.insight.brain.model.security.OAuth2User;
+import com.sonatype.insight.brain.model.security.SamlGroup;
+import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 
 import junit.framework.TestCase;
@@ -34,10 +44,74 @@ public class TenantSsoConfigurationResourceTest
 
   private OidcConfigurationDAO oidcConfigurationDAO;
 
+  private SamlUserDAO samlUserDAO;
+
+  private OAuth2UserDAO oAuth2UserDAO;
+
   @Before
   public void before() {
     oAuth2ConfigurationDAO = lookup(OAuth2ConfigurationDAO.class);
     oidcConfigurationDAO = lookup(OidcConfigurationDAO.class);
+    samlUserDAO = lookup(SamlUserDAO.class);
+    oAuth2UserDAO = lookup(OAuth2UserDAO.class);
+  }
+
+  @Test
+  public void shouldSyncSsoProviderDataSources_whenTenantExists() throws Exception {
+    String samlUsername = "samlUserName";
+    String samlGroupName1 = "samlGroupName1";
+    String samlGroupName2 = "samlGroupName2";
+    Set<String> samlUserGroups = new HashSet<>(Arrays.asList(samlGroupName1, samlGroupName2));
+
+    String oAuth2Username = "oAuth2UserName";
+    String oAuth2GroupName1 = "oAuth2GroupName1";
+    String oAuth2GroupName2 = "oAuth2GroupName2";
+    Set<String> oAuth2UserGroups = new HashSet<>(Arrays.asList(oAuth2GroupName1, oAuth2GroupName2));
+
+    // Create SAML User
+    SamlUser samlUser =
+        tenantTemporaryEntity.newSamlUser(samlUsername, samlUserGroups);
+    SamlGroup samlGroup1 = tenantTemporaryEntity.newSamlGroup(samlGroupName1);
+    SamlGroup samlGroup2 = tenantTemporaryEntity.newSamlGroup(samlGroupName2);
+    tenantTemporaryEntity.newSamlUserGroup(samlUser.getId(), samlGroup1.getId());
+    tenantTemporaryEntity.newSamlUserGroup(samlUser.getId(), samlGroup2.getId());
+
+    // Create OAuth2 User
+    OAuth2User oAuth2User =
+        tenantTemporaryEntity.newOAuth2User(oAuth2Username, oAuth2UserGroups);
+    OAuth2Group oAuth2Group1 = tenantTemporaryEntity.newOAuth2Group(oAuth2GroupName1);
+    OAuth2Group oAuth2Group2 = tenantTemporaryEntity.newOAuth2Group(oAuth2GroupName2);
+    tenantTemporaryEntity.newOAuth2UserGroup(oAuth2User.getId(), oAuth2Group1.getId());
+    tenantTemporaryEntity.newOAuth2UserGroup(oAuth2User.getId(), oAuth2Group2.getId());
+
+    // Confirm OAuth2 and SAML data sources are not synced
+    assertThat(samlUserDAO.getByUsername(oAuth2Username)).isNull();
+    assertThat(oAuth2UserDAO.getByUsername(samlUsername)).isNull();
+
+    // Sync data sources
+    HttpResponse response = syncSsoProviderDataSources(getTestTenant().tenantSlug).post();
+
+    // Confirm OAuth2 and SAML data sources are synced
+    assertResponseStatus(204, response);
+    assertSamlUserExistsAndIsTheExpected(samlUsername, samlUserGroups);
+    assertSamlUserExistsAndIsTheExpected(oAuth2Username, oAuth2UserGroups);
+    assertOAuth2UserExistsAndIsTheExpected(samlUsername, samlUserGroups);
+    assertOAuth2UserExistsAndIsTheExpected(oAuth2Username, oAuth2UserGroups);
+  }
+
+  @Test
+  public void shouldSend400_whenCallingSyncSsoProviderDataSourcesAndTenantIsGlobal() throws Exception {
+    HttpResponse response = syncSsoProviderDataSources("global").post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
+  }
+
+  @Test
+  public void shouldSend404_whenCallingSyncSsoProviderDataSourcesTenantDoesntExist() throws Exception {
+    HttpResponse response = syncSsoProviderDataSources("tenant4").post();
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
   }
 
   @Test
@@ -68,7 +142,7 @@ public class TenantSsoConfigurationResourceTest
   }
 
   @Test
-  public void shouldSend400_whenTenantIsGlobal() throws Exception {
+  public void shouldSend400_whenCallingUpdateSsoConfigurationAndTenantIsGlobal() throws Exception {
     HttpResponse response = updateSsoConfiguration("global", ssoConfigurationDTO).put();
 
     assertResponseStatus(400, response);
@@ -76,10 +150,22 @@ public class TenantSsoConfigurationResourceTest
   }
 
   @Test
-  public void shouldSend404_whenTenantDoesntExist() throws Exception {
+  public void shouldSend404_whenCallingUpdateSsoConfigurationAndTenantDoesntExist() throws Exception {
     HttpResponse response = updateSsoConfiguration("tenant4", ssoConfigurationDTO).put();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("Tenant doesn't exist");
+  }
+
+  private void assertSamlUserExistsAndIsTheExpected(final String username, final Set<String> samlUserGroups) {
+    SamlUser user = samlUserDAO.getByUsername(username);
+    assertThat(user).isNotNull();
+    assertThat(user.getGroups()).containsAll(samlUserGroups);
+  }
+
+  private void assertOAuth2UserExistsAndIsTheExpected(final String username, final Set<String> samlUserGroups) {
+    OAuth2User user = oAuth2UserDAO.getByUsername(username);
+    assertThat(user).isNotNull();
+    assertThat(user.getGroups()).containsAll(samlUserGroups);
   }
 
   private HttpRequest updateSsoConfiguration(String tenant, final SsoConfigurationDTO ssoConfigurationDTO)
@@ -88,6 +174,11 @@ public class TenantSsoConfigurationResourceTest
     return adminRestRequest(ADMIN_TENANT_SSO_CONFIGURATION_PATH)
         .parameter(tenant)
         .body(objectMapper.writeValueAsString(ssoConfigurationDTO));
+  }
+
+  private HttpRequest syncSsoProviderDataSources(String tenant) {
+    return adminRestRequest(ADMIN_TENANT_SSO_CONFIGURATION_PATH + TenantSsoConfigurationResource.SYNC_PATH)
+        .parameter(tenant);
   }
 
   private void assertConfigurationIsTheExpected(final HttpResponse response) {

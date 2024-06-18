@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2Configur
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration;
 import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
+import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
@@ -53,6 +54,9 @@ public class TenantSsoConfigurationServiceTest
   @Mock
   private TenantValidator mockTenantValidator;
 
+  @Mock
+  private SsoUserService mockSsoUserService;
+
   @Captor
   private ArgumentCaptor<OAuth2Configuration> oAuth2ConfigurationCaptor;
 
@@ -65,7 +69,44 @@ public class TenantSsoConfigurationServiceTest
   public void setup() {
     when(mockTenantValidator.validateTenantExists(anyString())).thenReturn(true);
     underTest = new TenantSsoConfigurationService(mockTenantUtil, mockTenantValidator, mockOAuth2ConfigurationDAO,
-        mockOidcConfigurationDAO);
+        mockOidcConfigurationDAO, mockSsoUserService);
+  }
+
+  @Test
+  public void shouldSyncSsoProviderDataSources() {
+    testAsNewTenant(tenant -> {
+      when(mockTenantUtil.isGlobalTenant()).thenReturn(false);
+      when(mockTenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+
+      underTest.syncSsoProviderDataSources(tenant.tenantSlug);
+
+      verify(mockSsoUserService).syncSsoProviderDataSources();
+      verify(mockSsoUserService).loadSsoConfiguration();
+    });
+  }
+
+  @Test
+  public void shouldThrowRuntimeException_whenCallSyncSsoProviderDataSourcesAndTenantDoesntExist() {
+    testAsNewTenant(tenant -> {
+      when(mockTenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
+
+      assertThatThrownBy(
+          () -> underTest.syncSsoProviderDataSources(tenant.tenantSlug))
+          .withFailMessage("Tenant doesn't exist")
+          .isInstanceOf(NotFoundException.class);
+    });
+  }
+
+  @Test
+  public void shouldThrowRuntimeException_whenCallSyncSsoProviderDataSourcesAndUsingGlobalTenant() {
+    testAsGlobalTenant(tenant -> {
+      when(mockTenantUtil.isGlobalTenant()).thenReturn(true);
+
+      assertThatThrownBy(
+          () -> underTest.syncSsoProviderDataSources(tenant.tenantSlug))
+          .withFailMessage("Invalid tenant")
+          .isInstanceOf(BadRequestException.class);
+    });
   }
 
   @Test
@@ -116,7 +157,7 @@ public class TenantSsoConfigurationServiceTest
   }
 
   @Test
-  public void shouldThrowRuntimeException_whenTenantDoesntExist() {
+  public void shouldThrowRuntimeException_whenCallingUpdateSsoConfigurationAndTenantDoesntExist() {
     SsoConfigurationDTO ssoConfigurationDTO = createSsoConfigurationDTO();
 
     testAsNewTenant(tenant -> {
@@ -130,7 +171,7 @@ public class TenantSsoConfigurationServiceTest
   }
 
   @Test
-  public void shouldThrowRuntimeException_whenUsingGlobalTenant() {
+  public void shouldThrowRuntimeException_whenCallingUpdateSsoConfigurationAndUsingGlobalTenant() {
     SsoConfigurationDTO ssoConfigurationDTO = createSsoConfigurationDTO();
 
     testAsGlobalTenant(tenant -> {
@@ -167,6 +208,8 @@ public class TenantSsoConfigurationServiceTest
     else {
       verify(mockOidcConfigurationDAO).update(oidcConfigurationCaptor.capture());
     }
+
+    verify(mockSsoUserService).loadSsoConfiguration();
 
     assertOauth2ConfigurationIsTheExpected(ssoConfigurationDTO.getOAuth2Configuration(),
         oAuth2ConfigurationCaptor.getValue());

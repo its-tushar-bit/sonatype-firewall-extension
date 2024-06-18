@@ -14,8 +14,12 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
+import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.MemberType;
+import com.sonatype.insight.brain.model.security.OAuth2User;
+import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantReference;
@@ -35,12 +39,23 @@ public class SsoUserService
 
   private final OAuth2SsoUserProvider oAuth2SsoUserProvider;
 
+  private final SamlUserDAO samlUserDAO;
+
+  private final OAuth2UserDAO oAuth2UserDAO;
+
   private TenantReference<Map<String, Boolean>> configurationMap;
 
   @Inject
-  public SsoUserService(SamlSsoUserProvider samlSsoUserProvider, OAuth2SsoUserProvider oAuth2SsoUserProvider) {
+  public SsoUserService(
+      final SamlSsoUserProvider samlSsoUserProvider,
+      final OAuth2SsoUserProvider oAuth2SsoUserProvider,
+      final SamlUserDAO samlUserDAO,
+      final OAuth2UserDAO oAuth2UserDAO)
+  {
     this.samlSsoUserProvider = samlSsoUserProvider;
     this.oAuth2SsoUserProvider = oAuth2SsoUserProvider;
+    this.samlUserDAO = samlUserDAO;
+    this.oAuth2UserDAO = oAuth2UserDAO;
     configurationMap = new TenantReference<>(HashMap::new);
   }
 
@@ -140,6 +155,18 @@ public class SsoUserService
 
   public SsoUser getByUsername(final String username) {
     return getEnabledSsoUserProvider().getByUsername(username);
+  }
+
+  public void syncSsoProviderDataSources() {
+    samlUserDAO.withAllUsersWithGroups((SamlUser samlUser) -> {
+      SsoUser ssoUser = SsoUser.fromSamlUser(samlUser);
+      oAuth2SsoUserProvider.updateSsoUserAndGroups(ssoUser, ssoUser.getGroups());
+    });
+
+    oAuth2UserDAO.withAllUsersWithGroups((OAuth2User oAuth2User) -> {
+      SsoUser ssoUser = SsoUser.fromOAuth2User(oAuth2User);
+      samlSsoUserProvider.updateSsoUserAndGroups(ssoUser, ssoUser.getGroups());
+    });
   }
 
   @Override

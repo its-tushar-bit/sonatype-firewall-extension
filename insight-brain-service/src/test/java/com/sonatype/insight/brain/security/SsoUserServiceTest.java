@@ -426,6 +426,60 @@ public class SsoUserServiceTest
     });
   }
 
+  @Test
+  public void testSyncSsoProviderDataSources() {
+    String samlUsername = "samlUserName";
+    String samlGroupName1 = "samlGroupName1";
+    String samlGroupName2 = "samlGroupName2";
+    Set<String> samlUserGroups = new HashSet<>(Arrays.asList(samlGroupName1, samlGroupName2));
+
+    String oAuth2Username = "oAuth2UserName";
+    String oAuth2GroupName1 = "oAuth2GroupName1";
+    String oAuth2GroupName2 = "oAuth2GroupName2";
+    Set<String> oAuth2UserGroups = new HashSet<>(Arrays.asList(oAuth2GroupName1, oAuth2GroupName2));
+
+    // Create SAML User
+    SamlUser samlUser =
+        tempEntity.newSamlUser(samlUsername, samlUserGroups);
+    SamlGroup samlGroup1 = tempEntity.newSamlGroup(samlGroupName1);
+    SamlGroup samlGroup2 = tempEntity.newSamlGroup(samlGroupName2);
+    tempEntity.newSamlUserGroup(samlUser.getId(), samlGroup1.getId());
+    tempEntity.newSamlUserGroup(samlUser.getId(), samlGroup2.getId());
+
+    // Create OAuth2 User
+    OAuth2User oAuth2User =
+        tempEntity.newOAuth2User(oAuth2Username, oAuth2UserGroups);
+    OAuth2Group oAuth2Group1 = tempEntity.newOAuth2Group(oAuth2GroupName1);
+    OAuth2Group oAuth2Group2 = tempEntity.newOAuth2Group(oAuth2GroupName2);
+    tempEntity.newOAuth2UserGroup(oAuth2User.getId(), oAuth2Group1.getId());
+    tempEntity.newOAuth2UserGroup(oAuth2User.getId(), oAuth2Group2.getId());
+
+    // Confirm OAuth2 and SAML data sources are not synced
+    assertThat(samlUserDAO.getByUsername(oAuth2Username)).isNull();
+    assertThat(oAuth2UserDAO.getByUsername(samlUsername)).isNull();
+
+    // Sync data sources
+    ssoUserService.syncSsoProviderDataSources();
+
+    // Confirm OAuth2 and SAML data sources are synced
+    assertSamlUserExistsAndIsTheExpected(samlUsername, samlUserGroups);
+    assertSamlUserExistsAndIsTheExpected(oAuth2Username, oAuth2UserGroups);
+    assertOAuth2UserExistsAndIsTheExpected(samlUsername, samlUserGroups);
+    assertOAuth2UserExistsAndIsTheExpected(oAuth2Username, oAuth2UserGroups);
+  }
+
+  private void assertSamlUserExistsAndIsTheExpected(final String username, final Set<String> samlUserGroups) {
+    SamlUser user = samlUserDAO.getByUsername(username);
+    assertThat(user).isNotNull();
+    assertThat(user.getGroups()).containsAll(samlUserGroups);
+  }
+
+  private void assertOAuth2UserExistsAndIsTheExpected(final String username, final Set<String> samlUserGroups) {
+    OAuth2User user = oAuth2UserDAO.getByUsername(username);
+    assertThat(user).isNotNull();
+    assertThat(user.getGroups()).containsAll(samlUserGroups);
+  }
+
   private void assertSamlUserGroups(
       SamlUser expectedSamlUser,
       Set<String> expectedGroupNames,

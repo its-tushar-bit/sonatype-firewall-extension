@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
@@ -401,6 +402,71 @@ public class OAuth2UserDAOTest
     assertThat(oAuth2UserDAO.findUsersByNameOrUsernameQuery("%-PoStgREs%"))
         .usingRecursiveFieldByFieldElementComparator()
         .containsExactly(oAuth2User1, oAuth2User2);
+  }
+
+  @Test
+  public void testWithAllUsersWithGroups() {
+    String uuid = UUID.randomUUID().toString();
+    String group1 = "group1" + uuid;
+    String group2 = "group2" + uuid;
+    String group3 = "group3" + uuid;
+
+    Set<String> user1Groups = new HashSet<>(Arrays.asList(group1, group2));
+    Set<String> user2Groups = new HashSet<>(Arrays.asList(group1, group2, group3));
+    Set<String> user3Groups = new HashSet<>(Arrays.asList(group1));
+    Set<String> user4Groups = new HashSet<>();
+
+    OAuth2User oAuth2User1 = tempEntity.newOAuth2User("username1" + uuid, user1Groups);
+    OAuth2User oAuth2User2 = tempEntity.newOAuth2User("username2" + uuid, user2Groups);
+    OAuth2User oAuth2User3 = tempEntity.newOAuth2User("username3" + uuid, user3Groups);
+    OAuth2User oAuth2User4 = tempEntity.newOAuth2User("username4" + uuid, user4Groups);
+    OAuth2Group oAuth2Group1 = tempEntity.newOAuth2Group(group1);
+    OAuth2Group oAuth2Group2 = tempEntity.newOAuth2Group(group2);
+    OAuth2Group oAuth2Group3 = tempEntity.newOAuth2Group(group3);
+    tempEntity.newOAuth2UserGroup(oAuth2User1.getId(), oAuth2Group1.getId());
+    tempEntity.newOAuth2UserGroup(oAuth2User1.getId(), oAuth2Group2.getId());
+    tempEntity.newOAuth2UserGroup(oAuth2User2.getId(), oAuth2Group1.getId());
+    tempEntity.newOAuth2UserGroup(oAuth2User2.getId(), oAuth2Group2.getId());
+    tempEntity.newOAuth2UserGroup(oAuth2User2.getId(), oAuth2Group3.getId());
+    tempEntity.newOAuth2UserGroup(oAuth2User3.getId(), oAuth2Group1.getId());
+
+    oAuth2UserDAO.withAllUsersWithGroups((OAuth2User user) -> {
+      if (user.getId().equals(oAuth2User1.getId())) {
+        assertOAuth2UserWithGroups(oAuth2User1, user, user1Groups);
+        return;
+      }
+
+      if (user.getId().equals(oAuth2User2.getId())) {
+        assertOAuth2UserWithGroups(oAuth2User2, user, user2Groups);
+        return;
+      }
+
+      if (user.getId().equals(oAuth2User3.getId())) {
+        assertOAuth2UserWithGroups(oAuth2User3, user, user3Groups);
+        return;
+      }
+
+      if (user.getId().equals(oAuth2User4.getId())) {
+        assertOAuth2UserWithGroups(oAuth2User4, user, user4Groups);
+        return;
+      }
+
+      // Should never reach this point
+      throw new RuntimeException(String.format("Unexpected user with id: %s", user.getId()));
+    });
+  }
+
+  private void assertOAuth2UserWithGroups(
+      OAuth2User expectedSamlUser,
+      OAuth2User foundUser,
+      Set<String> expectedGroups)
+  {
+    assertThat(foundUser).isNotNull().usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .ignoringFields("groupsJson")
+        .isEqualTo(expectedSamlUser);
+
+    assertThat(foundUser.getGroups()).containsAll(expectedGroups);
   }
 
   private OAuth2User createOauth2User() {

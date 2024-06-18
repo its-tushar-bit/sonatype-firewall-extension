@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.security;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
+import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
@@ -36,11 +38,17 @@ public class MultiTenantSsoUserServiceTest
   @Mock
   SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
+  @Mock
+  SamlUserDAO samlUserDAO;
+
+  @Mock
+  OAuth2UserDAO oAuth2UserDAO;
+
   private MultiTenantSsoUserService underTest;
 
   @Before
   public void setup() {
-    underTest = new MultiTenantSsoUserService(samlSsoUserProvider, oAuth2SsoUserProvider);
+    underTest = new MultiTenantSsoUserService(samlSsoUserProvider, oAuth2SsoUserProvider, samlUserDAO, oAuth2UserDAO);
   }
 
   @Test

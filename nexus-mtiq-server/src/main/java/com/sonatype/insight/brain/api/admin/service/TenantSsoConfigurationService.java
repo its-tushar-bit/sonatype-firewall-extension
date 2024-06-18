@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2Configur
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration;
 import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
+import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -36,17 +37,30 @@ public class TenantSsoConfigurationService
 
   private final OidcConfigurationDAO oidcConfigurationDAO;
 
+  private final SsoUserService ssoUserService;
+
   @Inject
   public TenantSsoConfigurationService(
       TenantUtil tenantUtil,
       TenantValidator tenantValidator,
       OAuth2ConfigurationDAO oAuth2ConfigurationDAO,
-      OidcConfigurationDAO oidcConfigurationDAO)
+      OidcConfigurationDAO oidcConfigurationDAO,
+      SsoUserService ssoUserService)
   {
     this.tenantUtil = tenantUtil;
     this.tenantValidator = tenantValidator;
     this.oAuth2ConfigurationDAO = oAuth2ConfigurationDAO;
     this.oidcConfigurationDAO = oidcConfigurationDAO;
+    this.ssoUserService = ssoUserService;
+  }
+
+  public void syncSsoProviderDataSources(String tenantSlug) {
+    validateCurrentTenant(tenantSlug);
+
+    ssoUserService.syncSsoProviderDataSources();
+
+    // Ensuring the tenant reload the configuration for SSO
+    ssoUserService.loadSsoConfiguration();
   }
 
   public void updateSsoConfiguration(SsoConfigurationDTO ssoConfigurationDTO, String tenantSlug) {
@@ -54,6 +68,9 @@ public class TenantSsoConfigurationService
 
     upsertOAuth2Configuration(ssoConfigurationDTO);
     upsertOidcConfiguration(ssoConfigurationDTO);
+
+    // Ensuring the tenant reload the configuration for SSO
+    ssoUserService.loadSsoConfiguration();
   }
 
   private void validateCurrentTenant(String tenantSlug) {

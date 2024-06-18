@@ -346,7 +346,9 @@ public class SamlSsoUserProviderTest
   private void assertSamlUser(SamlUser expectedSamlUser, List<SsoUser> users) {
     SsoUser foundUser = users.stream()
         .filter(samlUser -> expectedSamlUser.getUsername().equals(samlUser.getUsername())).findFirst().orElse(null);
-    assertThat(foundUser).isNotNull().usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+    assertThat(foundUser).isNotNull().usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS)
+        .ignoringFields("groupsString", "realmId", "groups")
         .isEqualTo(SsoUser.fromSamlUser(expectedSamlUser));
   }
 

@@ -9,6 +9,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
+import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.users.MtiqUserDTO;
 
 @Named
@@ -19,9 +21,11 @@ public class MultiTenantSsoUserService
   @Inject
   public MultiTenantSsoUserService(
       SamlSsoUserProvider samlSsoUserProvider,
-      OAuth2SsoUserProvider oAuth2SsoUserProvider)
+      OAuth2SsoUserProvider oAuth2SsoUserProvider,
+      SamlUserDAO samlUserDAO,
+      OAuth2UserDAO oAuth2UserDAO)
   {
-    super(samlSsoUserProvider, oAuth2SsoUserProvider);
+    super(samlSsoUserProvider, oAuth2SsoUserProvider, samlUserDAO, oAuth2UserDAO);
   }
 
   public void upsertByUsername(final MtiqUserDTO ssoUser) {

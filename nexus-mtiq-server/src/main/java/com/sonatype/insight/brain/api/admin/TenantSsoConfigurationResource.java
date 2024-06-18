@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.admin;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -25,6 +26,8 @@ import com.sonatype.insight.brain.audit.Audited;
 @Path(AdminApiPaths.ADMIN_TENANT_SSO_CONFIGURATION_PATH)
 public class TenantSsoConfigurationResource
 {
+  public static final String SYNC_PATH = "/sync";
+
   private final TenantSsoConfigurationService tenantSsoConfigurationService;
 
   @Inject
@@ -40,5 +43,12 @@ public class TenantSsoConfigurationResource
       @PathParam("tenantSlug") String tenantSlug)
   {
     tenantSsoConfigurationService.updateSsoConfiguration(ssoConfigurationDTO, tenantSlug);
+  }
+
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Path(SYNC_PATH)
+  public void syncSsoProviderDataSources(@PathParam("tenantSlug") String tenantSlug) {
+    tenantSsoConfigurationService.syncSsoProviderDataSources(tenantSlug);
   }
 }

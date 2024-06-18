@@ -5,11 +5,14 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -25,6 +28,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @since 1.133
@@ -163,5 +167,45 @@ public class SamlUserDAO
     String sQuery = "SELECT entity FROM SamlUser entity" + //
         " ORDER BY entity.username";
     return getList(sQuery);
+  }
+
+  public void withAllUsersWithGroups(Consumer<SamlUser> consumer) {
+    String sQuery =
+        "SELECT saml_user.saml_user_id, saml_user.username, saml_user.first_name," +
+            " saml_user.last_name, saml_user.email," + //
+            " STRING_AGG(saml_group.name, CHR(44)) groups" +
+            " FROM " + getDatabaseSchema() + ".saml_user saml_user" + //
+            "   LEFT JOIN " + getDatabaseSchema() + ".saml_user_group saml_user_group" + //
+            "     ON saml_user_group.saml_user_id = saml_user.saml_user_id" + //
+            "   LEFT JOIN " + getDatabaseSchema() + ".saml_group saml_group" + //
+            "     ON saml_group.saml_group_id = saml_user_group.saml_group_id" + //
+            " GROUP BY saml_user.saml_user_id, saml_user.username, saml_user.first_name," + //
+            " saml_user.last_name, saml_user.email";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = tx.createNativeQuery(sQuery);
+
+      ((Stream<Object[]>) query.getResultStream())
+          .map(array -> {
+            String id = (String) array[0];
+            String username = (String) array[1];
+            String firstName = (String) array[2];
+            String lastName = (String) array[3];
+            String email = (String) array[4];
+            String groups = (String) array[5];
+
+            Set<String> groupsSet = new LinkedHashSet<>();
+            if (StringUtils.isNotBlank(groups)) {
+              groupsSet.addAll(Arrays.asList(groups.split(",")));
+            }
+
+            SamlUser samlUser =
+                new SamlUser(username, firstName, lastName, email, groupsSet);
+            samlUser.setId(id);
+
+            return samlUser;
+          })
+          .forEach(consumer);
+    }
   }
 }

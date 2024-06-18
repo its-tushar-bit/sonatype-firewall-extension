@@ -5,10 +5,14 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -24,6 +28,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @Named
 @Singleton
@@ -163,5 +168,45 @@ public class OAuth2UserDAO
     String sQuery = SELECT_FROM_ENTITY + //
         ORDER_BY_USERNAME;
     return getList(sQuery);
+  }
+
+  public void withAllUsersWithGroups(Consumer<OAuth2User> consumer) {
+    String sQuery =
+        "SELECT oauth2_user.oauth2_user_id, oauth2_user.username, oauth2_user.first_name," + //
+            " oauth2_user.last_name, oauth2_user.email," + //
+            " STRING_AGG(oauth2_group.name, CHR(44)) groups" +
+            " FROM " + getDatabaseSchema() + ".oauth2_user oauth2_user" + //
+            "   LEFT JOIN " + getDatabaseSchema() + ".oauth2_user_group oauth2_user_group" + //
+            "     ON oauth2_user_group.oauth2_user_id = oauth2_user.oauth2_user_id" + //
+            "   LEFT JOIN " + getDatabaseSchema() + ".oauth2_group oauth2_group" + //
+            "     ON oauth2_group.oauth2_group_id = oauth2_user_group.oauth2_group_id" + //
+            " GROUP BY oauth2_user.oauth2_user_id, oauth2_user.username, oauth2_user.first_name," + //
+            " oauth2_user.last_name, oauth2_user.email";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = tx.createNativeQuery(sQuery);
+
+      ((Stream<Object[]>) query.getResultStream())
+          .map(array -> {
+            String id = (String) array[0];
+            String username = (String) array[1];
+            String firstName = (String) array[2];
+            String lastName = (String) array[3];
+            String email = (String) array[4];
+            String groups = (String) array[5];
+
+            Set<String> groupsSet = new LinkedHashSet<>();
+            if (StringUtils.isNotBlank(groups)) {
+              groupsSet.addAll(Arrays.asList(groups.split(",")));
+            }
+
+            OAuth2User oAuth2User =
+                new OAuth2User(username, firstName, lastName, email, groupsSet);
+            oAuth2User.setId(id);
+
+            return oAuth2User;
+          })
+          .forEach(consumer);
+    }
   }
 }

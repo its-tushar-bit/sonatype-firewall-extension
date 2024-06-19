@@ -227,6 +227,8 @@ public class SystemConfigurationProperty
 
   public static final String SKIP_SBOM_IMPORT_VALIDATION = "skipSbomImportValidation";
 
+  public static final String DEVELOPER_BULK_RECOMMENDATIONS = "developerBulkRecommendations";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

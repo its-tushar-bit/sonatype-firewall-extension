@@ -30,6 +30,8 @@ import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurat
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationInternalDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
+import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
+import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
@@ -407,4 +409,8 @@ public interface DAOFactory
   SastPullRequestCommentDAO createSastPullRequestCommentDAO();
 
   ThirdPartySbomMetadataDAO createThirdPartySbomMetadataDAO();
+
+  DevelopmentPrioritizationComponentInfoDAO createDevelopmentPrioritizationComponentInfoDAO();
+
+  DevelopmentPrioritizationDAO createDevelopmentPrioritizationDAO();
 }

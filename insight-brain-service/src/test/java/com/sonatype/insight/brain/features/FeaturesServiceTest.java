@@ -166,4 +166,19 @@ public class FeaturesServiceTest
     assertThat(featuresService.getFeatures())
         .doesNotContain(SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT);
   }
+
+  @Test
+  public void testGetFeatures_DeveloperBulkRecommendationsEnabled() {
+    when(productLicense.isValid()).thenReturn(true);
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.DEVELOPER_BULK_RECOMMENDATIONS, "true");
+    assertThat(featuresService.getFeatures())
+        .contains(SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS);
+  }
+
+  @Test
+  public void testGetFeatures_DeveloperBulkRecommendationsDisabled() {
+    when(productLicense.isValid()).thenReturn(true);
+    assertThat(featuresService.getFeatures())
+        .doesNotContain(SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS);
+  }
 }

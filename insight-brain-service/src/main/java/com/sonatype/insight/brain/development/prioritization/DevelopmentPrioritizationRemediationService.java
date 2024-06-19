@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.development.prioritization;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -16,11 +17,14 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
+import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationDAO;
 import com.sonatype.insight.brain.development.prioritization.dto.PrioritizationRemediationVersionDTO;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
@@ -28,6 +32,9 @@ import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.ComponentRemediationService;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritization;
+import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.Maps;
 import com.google.common.annotations.VisibleForTesting;
@@ -44,6 +51,10 @@ public class DevelopmentPrioritizationRemediationService
 {
   private final ApplicationDAO applicationDAO;
 
+  private final DevelopmentPrioritizationComponentInfoDAO developmentPrioritizationComponentInfoDAO;
+
+  private final DevelopmentPrioritizationDAO developmentPrioritizationDAO;
+
   private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
 
   private final ComponentInfoService componentInfoService;
@@ -55,12 +66,50 @@ public class DevelopmentPrioritizationRemediationService
       final ApplicationDAO applicationDAO,
       final ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
       final ComponentInfoService componentInfoService,
-      final ComponentRemediationService componentRemediationService)
+      final ComponentRemediationService componentRemediationService,
+      final DevelopmentPrioritizationComponentInfoDAO developmentPrioritizationComponentInfoDAO,
+      final DevelopmentPrioritizationDAO developmentPrioritizationDAO)
   {
     this.applicationDAO = applicationDAO;
     this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
     this.componentInfoService = componentInfoService;
     this.componentRemediationService = componentRemediationService;
+    this.developmentPrioritizationComponentInfoDAO = developmentPrioritizationComponentInfoDAO;
+    this.developmentPrioritizationDAO = developmentPrioritizationDAO;
+  }
+
+  public void fetchAndPersistRemediationRecommendations(
+      List<ComponentIdentifier> componentIdentifiers, String scanId, String appId, Stage stage)
+  {
+    Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> remediationVersions =
+        getRemediationVersions(componentIdentifiers, appId, stage.getStageName(), scanId);
+    persistRemediationRecommendations(remediationVersions, scanId);
+  }
+
+  void persistRemediationRecommendations(
+      Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> remediationVersions, String scanId)
+  {
+    DevelopmentPrioritization scanPrioritization = new DevelopmentPrioritization(scanId);
+    try (TransactionContext tx = developmentPrioritizationDAO.createTransactionContext()) {
+      tx.begin();
+      developmentPrioritizationDAO.insert(tx, scanPrioritization);
+      String parentId = scanPrioritization.getId();
+      List<DevelopmentPrioritizationComponentInfo> componentInfoList = remediationVersions.entrySet().stream()
+          .map(entry -> convertRemediationVersionsEntry(entry, parentId, scanId))
+          .collect(Collectors.toList());
+      developmentPrioritizationComponentInfoDAO.insertBatch(tx, componentInfoList);
+      tx.commit();
+    }
+  }
+
+  private static DevelopmentPrioritizationComponentInfo convertRemediationVersionsEntry(
+      Entry<ComponentIdentifier, PrioritizationRemediationVersionDTO> remediationVersionEntry,
+      final String parentId, final String scanId)
+  {
+    ComponentIdentifier componentIdentifier = remediationVersionEntry.getKey();
+    PrioritizationRemediationVersionDTO remediationVersion = remediationVersionEntry.getValue();
+    return new DevelopmentPrioritizationComponentInfo(parentId, scanId, componentIdentifier.toSyntheticHash(),
+        remediationVersion.getRemediationType(), remediationVersion.getVersion());
   }
 
   public Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> getRemediationVersions(

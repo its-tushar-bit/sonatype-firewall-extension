@@ -24,11 +24,7 @@ import {
 
 import { faSync } from '@fortawesome/pro-solid-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
-import {
-  formatDate,
-  FIREWALL_TIME_DATE_FORMAT,
-  FIREWALL_DATE_TIME_FORMAT
-} from 'MainRoot/util/dateUtils';
+import { formatDate, FIREWALL_TIME_DATE_FORMAT, FIREWALL_DATE_TIME_FORMAT } from 'MainRoot/util/dateUtils';
 
 export default function FirewallQuarantineTable(props) {
   // actions
@@ -163,9 +159,7 @@ export default function FirewallQuarantineTable(props) {
                     </NxTableCell>
                     <NxTableCell className="iq-policy-cell">
                       <NxOverflowTooltip title={!row.policyName ? 'None' : row.policyName}>
-                        <div className="nx-truncate-ellipsis">
-                          {!row.policyName ? 'None' : row.policyName}
-                        </div>
+                        <div className="nx-truncate-ellipsis">{!row.policyName ? 'None' : row.policyName}</div>
                       </NxOverflowTooltip>
                     </NxTableCell>
                     <NxTableCell className="visual-testing-ignore">

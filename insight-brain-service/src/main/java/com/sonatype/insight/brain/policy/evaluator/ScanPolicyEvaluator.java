@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -36,16 +37,18 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
-import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritizationRemediationService;
+import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.AggregateFile;
@@ -53,6 +56,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -87,6 +91,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -167,6 +172,10 @@ public class ScanPolicyEvaluator
 
   private final TelemetryUtils telemetryUtils;
 
+  private final DevelopmentPrioritizationRemediationService developmentPrioritizationRemediationService;
+
+  private final FeaturesService featuresService;
+
   @Inject
   public ScanPolicyEvaluator(
       final InsightWork insightWork,
@@ -191,7 +200,9 @@ public class ScanPolicyEvaluator
       final ComponentLoaderFactory componentLoaderFactory,
       final ClusterLockManager clusterLockManager,
       final PolicyAlertUtil policyAlertUtil,
-      final TelemetryUtils telemetryUtils)
+      final TelemetryUtils telemetryUtils,
+      final DevelopmentPrioritizationRemediationService developmentPrioritizationRemediationService,
+      final FeaturesService featuresService)
   {
     this.work = insightWork;
     this.reportService = reportService;
@@ -216,6 +227,8 @@ public class ScanPolicyEvaluator
     this.clusterLockManager = clusterLockManager;
     this.policyAlertUtil = policyAlertUtil;
     this.telemetryUtils = telemetryUtils;
+    this.developmentPrioritizationRemediationService = developmentPrioritizationRemediationService;
+    this.featuresService = featuresService;
   }
 
   public ScanPolicyEvaluatorResults evaluate(
@@ -320,9 +333,32 @@ public class ScanPolicyEvaluator
 
     sendLegacyViolationTelemetryData(application.getId(), scanPolicyEvaluatorResults.allViolations);
 
+    final Set<Feature> features = featuresService.getFeatures();
+    if (features.contains(SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS)) {
+      fetchAndPersistRemediationRecommendations(scanId, stage, components, appId);
+    }
+
     postEvents(scanPolicyEvaluatorResults, application, components);
 
     return scanPolicyEvaluatorResults;
+  }
+
+  private void fetchAndPersistRemediationRecommendations(
+      final String scanId, final Stage stage, final List<Component> components, final String appId)
+  {
+    try {
+      List<ComponentIdentifier> componentIdentifiers = components.stream()
+          .map(Component::getComponentIdentifier)
+          .filter(Objects::nonNull) // Some components, like local jars, don't have any identifier
+          .collect(toList());
+      developmentPrioritizationRemediationService.fetchAndPersistRemediationRecommendations(
+          componentIdentifiers, scanId, appId, stage);
+      log.debug("Subroutine fetchAndPersistRemediationRecommendations() finished.");
+    }
+    catch (Throwable ex) {
+      log.error("Subroutine fetchAndPersistRemediationRecommendations() failed. " +
+          "Propagation prevented because it shouldn't affect the main routine.", ex);
+    }
   }
 
   private List<PolicyAlert> createPolicyAlerts(

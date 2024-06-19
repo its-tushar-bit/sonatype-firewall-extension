@@ -837,4 +837,41 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION))
         .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
   }
+
+  @Test
+  public void testEnableFeature_DeveloperBulkRecommendations() {
+    service.enableFeature(DEVELOPER_BULK_RECOMMENDATIONS);
+    assertThat(systemConfigurationPropertyDAO.getByName(DEVELOPER_BULK_RECOMMENDATIONS)
+        .getValue()).isEqualTo("true");
+  }
+
+  @Test
+  public void testEnableFeature_DeveloperBulkRecommendations_AlreadyEnabled() {
+    service.enableFeature(DEVELOPER_BULK_RECOMMENDATIONS);
+    assertThatThrownBy(() -> service.enableFeature(DEVELOPER_BULK_RECOMMENDATIONS))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_DeveloperBulkRecommendations() {
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS
+        .getPropertyName(), "true");
+    service.disableFeature(DEVELOPER_BULK_RECOMMENDATIONS);
+    assertThat(systemConfigurationPropertyDAO.getByName(DEVELOPER_BULK_RECOMMENDATIONS))
+        .isNull();
+  }
+
+  @Test
+  public void testDisabledByDefaultFeature_DeveloperBulkRecommendations() {
+    assertThat(systemConfigurationPropertyDAO.getByName(DEVELOPER_BULK_RECOMMENDATIONS))
+        .isNull();
+  }
+
+  @Test
+  public void testDisableFeature_DeveloperBulkRecommendations_AlreadyDisabled() {
+    assertThatThrownBy(() -> service.disableFeature(DEVELOPER_BULK_RECOMMENDATIONS))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
+  }
 }

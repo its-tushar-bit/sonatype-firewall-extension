@@ -32,6 +32,8 @@ import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurat
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationInternalDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
+import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
+import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
@@ -1108,5 +1110,16 @@ public class TestDAOFactory
   @Override
   public ThirdPartySbomMetadataDAO createThirdPartySbomMetadataDAO() {
     return new ThirdPartySbomMetadataDAO(dataStoreProvider.getThirdPartyScansDataStore());
+  }
+
+  @Override
+  public DevelopmentPrioritizationComponentInfoDAO createDevelopmentPrioritizationComponentInfoDAO() {
+    return new DevelopmentPrioritizationComponentInfoDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public DevelopmentPrioritizationDAO createDevelopmentPrioritizationDAO() {
+    return new DevelopmentPrioritizationDAO(
+        dataStoreProvider.getOperationalDataStore(), createDevelopmentPrioritizationComponentInfoDAO());
   }
 }

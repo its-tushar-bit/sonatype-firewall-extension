@@ -50,6 +50,7 @@ import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.clm.dto.model.repository.migration.MigrationState;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO.TestEntityLeakDetectionData;
 import com.sonatype.insight.brain.dataaccess.artifactory.ArtifactoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
@@ -73,6 +74,8 @@ import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2Configur
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
+import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
+import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
@@ -242,6 +245,8 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritization;
+import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -594,6 +599,10 @@ public class TemporaryEntity
 
   private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
+  private DevelopmentPrioritizationComponentInfoDAO developmentPrioritizationComponentInfoDAO;
+
+  private DevelopmentPrioritizationDAO developmentPrioritizationDAO;
+
   private OAuth2ConfigurationDAO oAuth2ConfigurationDAO;
 
   private OidcConfigurationDAO oidcConfigurationDAO;
@@ -896,6 +905,9 @@ public class TemporaryEntity
           .forEach(applicationCountHistoryDAO::delete);
       delete(oAuth2ConfigurationDAO.getAll(), oAuth2ConfigurationDAO);
       delete(oidcConfigurationDAO.getAll(), oidcConfigurationDAO);
+
+      delete(developmentPrioritizationComponentInfoDAO.getAll(), developmentPrioritizationComponentInfoDAO);
+      delete(developmentPrioritizationDAO.getAll(), developmentPrioritizationDAO);
 
       detectEntityLeaks(testEntityLeaksDetectionData);
     }
@@ -4972,6 +4984,26 @@ public class TemporaryEntity
     return oidcConfiguration;
   }
 
+  public DevelopmentPrioritization newDevelopmentPrioritization(String scanId) {
+    DevelopmentPrioritization developmentPrioritization = new DevelopmentPrioritization(scanId);
+    developmentPrioritizationDAO.insert(developmentPrioritization);
+    return developmentPrioritization;
+  }
+
+  public DevelopmentPrioritizationComponentInfo newDevelopmentPrioritizationComponentInfo(
+      final String developmentPrioritizationId,
+      final String scanId,
+      final String componentHash,
+      final ApiVersionChangeOptionType remediationType,
+      final String remediationVersion)
+  {
+    DevelopmentPrioritizationComponentInfo developmentPrioritizationComponentInfo =
+        new DevelopmentPrioritizationComponentInfo(
+            developmentPrioritizationId, scanId, componentHash, remediationType, remediationVersion);
+    developmentPrioritizationComponentInfoDAO.insert(developmentPrioritizationComponentInfo);
+    return developmentPrioritizationComponentInfo;
+  }
+
   private void initializeDAOs() {
     initializeOperationalDataStoreDAOs();
     initializeDataMartDataStoreDAOs();
@@ -5087,6 +5119,10 @@ public class TemporaryEntity
     sastFindingDAO = daoFactory.createSastFindingDAO();
     sastScmScanContextDAO = daoFactory.createSastScmScanContextDAO();
     sastPullRequestCommentDAO = daoFactory.createSastPullRequestCommentDAO();
+    developmentPrioritizationComponentInfoDAO =
+        daoFactory.createDevelopmentPrioritizationComponentInfoDAO();
+    developmentPrioritizationDAO =
+        daoFactory.createDevelopmentPrioritizationDAO();
     oAuth2ConfigurationDAO = daoFactory.createOAuth2ConfigurationDAO();
     oidcConfigurationDAO = daoFactory.createOidcConfigurationDAO();
   }

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.development.prioritization;
 
-import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -13,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
@@ -22,16 +22,19 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentCha
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
+import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationDAO;
 import com.sonatype.insight.brain.development.prioritization.dto.PrioritizationRemediationVersionDTO;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.ComponentRemediationService;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritization;
+import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.common.collect.ImmutableMap;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,6 +47,7 @@ import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersi
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -57,6 +61,12 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
 
   @Inject
   private ApplicationDAO applicationDAO;
+
+  @Inject
+  private DevelopmentPrioritizationComponentInfoDAO developmentPrioritizationComponentInfoDAO;
+
+  @Inject
+  private DevelopmentPrioritizationDAO developmentPrioritizationDAO;
 
   @Mock
   private ComponentInfoService mockComponentInfoService;
@@ -72,8 +82,46 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
   public void setUp() throws Exception {
     super.setUp();
     application = tempEntity.newApplicationWithParent();
-    service = new DevelopmentPrioritizationRemediationService(applicationDAO, componentDetailsLoaderFactory,
-        mockComponentInfoService, mockComponentRemediationService);
+    service = new DevelopmentPrioritizationRemediationService(
+        applicationDAO, componentDetailsLoaderFactory, mockComponentInfoService,
+        mockComponentRemediationService, developmentPrioritizationComponentInfoDAO, developmentPrioritizationDAO);
+  }
+
+  @Test
+  public void testFetchAndPersistRemediationRecommendations_insertsAllFoundRecommendations() {
+    ComponentIdentifier componentIdentifiers1 = ComponentIdentifier.createMavenCoordinates("foo1", "bar1", "2.0.0");
+    ComponentIdentifier componentIdentifiers2 = ComponentIdentifier.createMavenCoordinates("foo2", "bar2", "3.1.1");
+
+    String scanId = "scan1";
+    Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> recommendationMap = ImmutableMap.of(
+        componentIdentifiers1, new PrioritizationRemediationVersionDTO(
+            "2.1.1", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES),
+        componentIdentifiers2, new PrioritizationRemediationVersionDTO(
+            "3.2.2", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS)
+    );
+
+    service.persistRemediationRecommendations(recommendationMap, scanId);
+
+    DevelopmentPrioritization developmentPrioritizationList = developmentPrioritizationDAO.getByScanId(scanId);
+    assertThat(developmentPrioritizationList)
+        .isNotNull()
+        .extracting(DevelopmentPrioritization::getScanId)
+        .isEqualTo(scanId);
+
+    List<DevelopmentPrioritizationComponentInfo> developmentPrioritizationComponentInfoList =
+        developmentPrioritizationComponentInfoDAO.getAllByScanId(scanId);
+    assertThat(developmentPrioritizationComponentInfoList)
+        .hasSize(2)
+        .extracting(DevelopmentPrioritizationComponentInfo::getScanId,
+            DevelopmentPrioritizationComponentInfo::getComponentHash,
+            DevelopmentPrioritizationComponentInfo::getRemediationType,
+            DevelopmentPrioritizationComponentInfo::getRemediationVersion)
+        .containsExactlyInAnyOrder(
+            tuple(scanId, componentIdentifiers1.toSyntheticHash(),
+                ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, "2.1.1"),
+            tuple(scanId, componentIdentifiers2.toSyntheticHash(),
+                ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, "3.2.2")
+      );
   }
 
   @Test

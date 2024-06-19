@@ -98,7 +98,8 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT.getId(),
           SystemConfigurationPropertyFeature.SAAS_ALP_ENABLED.getId(),
           SystemConfigurationPropertyFeature.OAUTH2_ENABLED.getId(),
-          SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.getId()
+          SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.getId(),
+          SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS.getId()
       }
   )).toArray(String[]::new);
 

@@ -29,6 +29,7 @@ import com.sonatype.insight.scan.file.UnsupportedSbomException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -41,6 +42,8 @@ import org.spdx.library.InvalidSPDXAnalysisException;
 import org.spdx.library.model.SpdxDocument;
 import org.spdx.library.model.SpdxPackage;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -61,7 +64,7 @@ public class SbomFileDetector
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  private final SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
+  private static final SAXParserFactory saxParserFactory;
 
   public SbomDetectionResult getSbomDetectionResult(final InputStream sbomInputStream) {
     if (sbomInputStream == null) {
@@ -235,19 +238,33 @@ public class SbomFileDetector
     return false;
   }
 
-  private boolean isPlainTextValidXml(String sbomContent) {
+  @VisibleForTesting
+  boolean isPlainTextValidXml(String sbomContent) {
     try {
       SAXParser saxParser = saxParserFactory.newSAXParser();
       saxParser.parse(new ByteArrayInputStream(sbomContent.getBytes(StandardCharsets.UTF_8)), new DefaultHandler());
       return true;
     }
     catch (ParserConfigurationException | IOException | SAXException e) {
-      log.debug("File content is not valid a XML document");
+      log.debug("File content is not valid a XML document. {}", e.getMessage());
     }
     return false;
   }
 
   private String getSbomStringContent(File sbomFile) throws IOException {
     return FileUtils.readFileToString(sbomFile, StandardCharsets.UTF_8);
+  }
+
+  static {
+    saxParserFactory = SAXParserFactory.newInstance();
+    saxParserFactory.setNamespaceAware(true);
+    try {
+      saxParserFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+      saxParserFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+      saxParserFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+    }
+    catch (SAXNotSupportedException | SAXNotRecognizedException | ParserConfigurationException e) {
+      log.debug("Error configuring SAXParserFactory", e);
+    }
   }
 }

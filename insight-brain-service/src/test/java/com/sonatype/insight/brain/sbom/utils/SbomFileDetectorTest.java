@@ -6,10 +6,13 @@
 package com.sonatype.insight.brain.sbom.utils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -179,6 +182,27 @@ public class SbomFileDetectorTest
     SbomDetectionResult expected =
         createExpectedResult(false, "text/plain", "provided file type is not a supported SBOM file type");
     getSbomMetadata("test.tt", expected);
+  }
+
+  @Test
+  public void testGetSbomMetadata_Other_Text_UnsafeContent_CycloneDx() throws IOException {
+    File fileToDetect = getTestFile("unsafe-plain-text-cdx.tt");
+    String sbomContent = FileUtils.readFileToString(fileToDetect, StandardCharsets.UTF_8);
+    assertThat(detector.isPlainTextValidXml(sbomContent)).isFalse();
+  }
+
+  @Test
+  public void testGetSbomMetadata_Other_Text_UnsafeContent_SPDX() throws IOException {
+    File fileToDetect = getTestFile("unsafe-plain-text-spdx.tt");
+    String sbomContent = FileUtils.readFileToString(fileToDetect, StandardCharsets.UTF_8);
+    assertThat(detector.isPlainTextValidXml(sbomContent)).isFalse();
+  }
+
+  @Test
+  public void testGetSbomMetadata_Other_Text_SafeContent() throws IOException {
+    File fileToDetect = getTestFile("safe-plain-text.tt");
+    String sbomContent = FileUtils.readFileToString(fileToDetect, StandardCharsets.UTF_8);
+    assertThat(detector.isPlainTextValidXml(sbomContent)).isTrue();
   }
 
   private void getSbomMetadata(String fileName, SbomDetectionResult expected) {

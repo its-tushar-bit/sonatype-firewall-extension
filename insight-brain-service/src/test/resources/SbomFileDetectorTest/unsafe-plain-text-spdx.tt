@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE spdx [
+  <!ENTITY xxe SYSTEM "file:///etc/hosts">
+]>
+<SpdxDocument
+    xmlns="http://spdx.org/spdx/v2.3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://spdx.org/spdx/v2.3 http://spdx.org/spdx/v2.3/Spdx.xsd">
+    <creationInfo>
+        <creators>
+            <creator>Tool: SPDX-Tools-Version-1.2</creator>
+        </creators>
+        <created>2024-06-17T00:00:00Z</created>
+    </creationInfo>
+    <name>&xxe;</name>
+    <dataLicense>CC0-1.0</dataLicense>
+    <spdxVersion>SPDX-2.3</spdxVersion>
+</SpdxDocument>

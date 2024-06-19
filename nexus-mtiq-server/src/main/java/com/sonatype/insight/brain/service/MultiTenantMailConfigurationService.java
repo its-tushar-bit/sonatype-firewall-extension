@@ -34,9 +34,10 @@ public class MultiTenantMailConfigurationService
   private final PasswordHandler passwordHandler;
 
   @Inject
-  public MultiTenantMailConfigurationService(final MailConfigurationDAO mailConfigurationDAO,
-                                             final InsightConfig insightConfig,
-                                             final PasswordHandler passwordHandler)
+  public MultiTenantMailConfigurationService(
+      final MailConfigurationDAO mailConfigurationDAO,
+      final InsightConfig insightConfig,
+      final PasswordHandler passwordHandler)
   {
     this.mailConfigurationDAO = mailConfigurationDAO;
     this.insightConfig = insightConfig;
@@ -45,28 +46,32 @@ public class MultiTenantMailConfigurationService
 
   @Override
   public void start() throws Exception {
+    log.info("Setting smtp email configuration");
+
+    MailConfig mailConfig = insightConfig.getMailConfig();
+    if (mailConfig == null) {
+      log.error("Global smtp email configuration cannot be null");
+      return;
+    }
+
     runAsGlobal(() -> {
-      MailConfiguration mailConfiguration = getMailConfiguration();
-      if (mailConfiguration != null && mailConfigurationDAO.get() == null) {
-        log.info("Global smtp email configuration not set, updating with configured values");
-        mailConfigurationDAO.set(mailConfiguration);
-      }
+      MailConfiguration mailConfiguration = buildMailConfiguration(mailConfig);
+
+      log.info("Saving or Updating global smtp email configuration");
+      mailConfigurationDAO.set(mailConfiguration);
+
       return null;
     });
   }
 
-  private MailConfiguration getMailConfiguration() {
-    MailConfig mailConfig = insightConfig.getMailConfig();
-    if (mailConfig != null) {
-      MailConfiguration mailConfiguration = new MailConfiguration();
-      mailConfiguration.setHostname(mailConfig.getHostname());
-      mailConfiguration.setPort(mailConfig.getPort());
-      mailConfiguration.setSystemEmail(mailConfig.getSystemEmail());
-      mailConfiguration.setUsername(mailConfig.getUsername());
-      mailConfiguration.setPassword(passwordHandler.encryptPassword(mailConfig.getPassword()));
-      mailConfiguration.setSslEnabled(mailConfig.isSsl());
-      return mailConfiguration;
-    }
-    return null;
+  private MailConfiguration buildMailConfiguration(final MailConfig mailConfig) {
+    MailConfiguration mailConfiguration = new MailConfiguration();
+    mailConfiguration.setHostname(mailConfig.getHostname());
+    mailConfiguration.setPort(mailConfig.getPort());
+    mailConfiguration.setSystemEmail(mailConfig.getSystemEmail());
+    mailConfiguration.setUsername(mailConfig.getUsername());
+    mailConfiguration.setPassword(passwordHandler.encryptPassword(mailConfig.getPassword()));
+    mailConfiguration.setSslEnabled(mailConfig.isSsl());
+    return mailConfiguration;
   }
 }

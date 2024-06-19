@@ -131,6 +131,19 @@ public abstract class AbstractSpdxExporter
     if (StringUtils.isNotBlank(dbVulnerability.getLink())) {
       locator = dbVulnerability.getLink();
     }
+    else if (dbVulnerability.getRefId().toLowerCase().startsWith("sonatype")) {
+      String baseUrlValue;
+      try {
+        baseUrlValue = baseUrl.get();
+      }
+      catch (IllegalStateException e) {
+        log.debug("Base URL not configured. Unable to generate external reference for vulnerability id {} in SBOM " +
+            "version {}:{}", dbVulnerability.getRefId(), exportParams.sbomMetadata.getApplicationId(),
+            exportParams.sbomMetadata.getSbomVersion());
+        return null;
+      }
+      locator = baseUrlValue + "ui/links/vln/" + dbVulnerability.getRefId();
+    }
     else {
       return null;
     }

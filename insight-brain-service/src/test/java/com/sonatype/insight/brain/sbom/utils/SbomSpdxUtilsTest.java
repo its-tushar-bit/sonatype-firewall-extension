@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.spdx.jacksonstore.MultiFormatStore;
@@ -115,7 +116,7 @@ public class SbomSpdxUtilsTest
 
   @Test
   public void testGetOrGenerateSpdxSerialNumber_isEmpty() throws InvalidSPDXAnalysisException {
-    SpdxDocument doc = new SpdxDocument("" );
+    SpdxDocument doc = new SpdxDocument("");
     assertThat(SbomSpdxUtils.getOrGenerateSpdxSerialNumber(doc)).startsWith(
         "sonatype/spdxdocs/uuid/");
   }
@@ -154,6 +155,34 @@ public class SbomSpdxUtilsTest
     SpdxDocument spdxDocument = getSpdxDocument("spdx-with-metadata-only-creators.json", Format.JSON);
     String actual = SbomSpdxUtils.getSbomCreationDetailsJson(spdxDocument);
     assertThat(actual).isEqualTo(expectedSbomMetadataJsonOnlyCreators());
+  }
+
+  @Test
+  public void testGetRefIdAndSourceForVulnerability() {
+    assertThat(SbomSpdxUtils
+        .getRefIdAndSourceForVulnerability("http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-27088"))
+        .isEqualTo(Pair.of("CVE-2024-27088", "NVD"));
+    assertThat(SbomSpdxUtils
+        .getRefIdAndSourceForVulnerability("http://nvd.nist.gov/vuln/detail/CVE-2016-5007"))
+        .isEqualTo(Pair.of("CVE-2016-5007", "NVD"));
+    assertThat(SbomSpdxUtils
+        .getRefIdAndSourceForVulnerability("http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2016-5007"))
+        .isEqualTo(Pair.of("CVE-2016-5007", "NVD"));
+    assertThat(SbomSpdxUtils
+        .getRefIdAndSourceForVulnerability("https://osv.dev/vulnerability/BIT-vault-2024-5798"))
+        .isEqualTo(Pair.of("BIT-vault-2024-5798", "OSV"));
+    assertThat(SbomSpdxUtils
+        .getRefIdAndSourceForVulnerability("https://iq.sonatype.dev/ui/links/vln/sonatype-2014-0026"))
+        .isEqualTo(Pair.of("sonatype-2014-0026", "SONATYPE"));
+    assertThat(SbomSpdxUtils
+        .getRefIdAndSourceForVulnerability("https://security.snyk.io/vuln/SNYK-PYTHON-PYMONGO-7172112"))
+        .isEqualTo(Pair.of("SNYK-PYTHON-PYMONGO-7172112", "OTHER"));
+
+    //invalid
+    assertThat(SbomSpdxUtils.getRefIdAndSourceForVulnerability("invalid-url")).isNull();
+    assertThat(SbomSpdxUtils.getRefIdAndSourceForVulnerability("https://iq.sonatype.dev/ui/links/vln")).isNull();
+    assertThat(SbomSpdxUtils.getRefIdAndSourceForVulnerability(
+        "https://osv.dev/vulnerability/BIT-vault-2024-5798/vln")).isNull();
   }
 
   private static SpdxDocument getSpdxDocument(final String fileName, Format format)

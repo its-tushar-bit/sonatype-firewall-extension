@@ -19,8 +19,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -38,6 +36,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
+import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -279,39 +278,16 @@ public class SpdxResultHandler
     }
   }
 
-  private static final Pattern CVE_LINK_PATTERN =
-      Pattern.compile("https?://cve.mitre.org/cgi-bin/cvename.cgi\\?name=([^=]+)");
-
-  private static final Pattern NVD_LINK_PATTERN = Pattern.compile("https?://nvd.nist.gov/vuln/detail/([^/]+)");
-
-  private static final Pattern OSV_LINK_PATTERN = Pattern.compile("https?://osv.dev/vulnerability/([^/]+)");
-
-  private static final Pattern SONATYPE_LINK_PATTERN = Pattern.compile("https?://.+/vln/(sonatype-[0-9-]+)");
-
   private ThirdPartyCoordinateSecurity parseVulnerability(
       final ExternalRef externalRef,
       final String fileCoordinateId)
       throws InvalidSPDXAnalysisException
   {
-    String link = externalRef.getReferenceLocator();
-    if (StringUtils.isBlank(link)) {
-      return null;
-    }
-    Matcher matcher = CVE_LINK_PATTERN.matcher(link);
-    if (matcher.matches()) {
-      return createThirdPartyCoordinateSecurity(fileCoordinateId, matcher.group(1), link, "NVD");
-    }
-    matcher = NVD_LINK_PATTERN.matcher(link);
-    if (matcher.matches()) {
-      return createThirdPartyCoordinateSecurity(fileCoordinateId, matcher.group(1), link, "NVD");
-    }
-    matcher = OSV_LINK_PATTERN.matcher(link);
-    if (matcher.matches()) {
-      return createThirdPartyCoordinateSecurity(fileCoordinateId, matcher.group(1), link, "OSV");
-    }
-    matcher = SONATYPE_LINK_PATTERN.matcher(link);
-    if (matcher.matches()) {
-      return createThirdPartyCoordinateSecurity(fileCoordinateId, matcher.group(1), link, "SONATYPE");
+    Pair<String, String> vulnSource = SbomSpdxUtils.getRefIdAndSourceForVulnerability(externalRef);
+    if (vulnSource != null) {
+      return createThirdPartyCoordinateSecurity(fileCoordinateId, vulnSource.getKey(),
+          externalRef.getReferenceLocator(),
+          vulnSource.getValue());
     }
     return null;
   }

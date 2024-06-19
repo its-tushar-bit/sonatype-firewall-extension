@@ -6,6 +6,9 @@
 package com.sonatype.insight.brain.sbom.utils;
 
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,10 +31,13 @@ import com.sonatype.insight.scan.file.UnsupportedSbomException;
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import com.github.packageurl.PackageURLBuilder;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.cyclonedx.model.Swid;
 import org.spdx.jacksonstore.MultiFormatStore;
 import org.spdx.jacksonstore.MultiFormatStore.Format;
@@ -67,14 +74,13 @@ public final class SbomSpdxUtils
   public static final Pattern toolSpdxPattern =
       Pattern.compile("Tool: ([\\w'. ]+)-([\\w_\\-'. ]+)");
 
-  private static final Pattern CVE_LINK_PATTERN =
-      Pattern.compile("https?://cve.mitre.org/cgi-bin/cvename.cgi\\?name=([^=]+)");
+  private static final Pattern URL_REF_ID_PATTERN = Pattern.compile("([A-Za-z0-9]+(-[A-Za-z0-9]+)+)$");
 
-  public static final Pattern NVD_LINK_PATTERN = Pattern.compile("https?://nvd.nist.gov/vuln/detail/([^/]+)");
+  private static final Set<String> SOURCE_NVD_DOMAINS = ImmutableSet.of("cve.mitre.org", "nvd.nist.gov", "cve.org");
 
-  public static final Pattern OSV_LINK_PATTERN = Pattern.compile("https?://osv.dev/vulnerability/([^/]+)");
+  private static final String SOURCE_OSV_DOMAIN = "osv.dev";
 
-  public static final Pattern SONATYPE_LINK_PATTERN = Pattern.compile("https?://.+/vln/(sonatype-[0-9-]+)");
+  private static final String SOURCE_SONATYPE = "sonatype";
 
   private static final Pattern DEPRECATION_PATTERN =
       Pattern.compile(".*Relationship error: [^\\s]+ is deprecated\\..*");
@@ -243,28 +249,58 @@ public final class SbomSpdxUtils
     return null;
   }
 
-  public static String getRefIdForVulnerability(final ExternalRef externalRef) throws InvalidSPDXAnalysisException {
+  public static Pair<String, String> getRefIdAndSourceForVulnerability(final ExternalRef externalRef)
+      throws InvalidSPDXAnalysisException
+  {
     String link = externalRef.getReferenceLocator();
-    if (StringUtils.isEmpty(link) && StringUtils.isBlank(link)) {
+    if (StringUtils.isBlank(link)) {
       return null;
     }
-    Matcher matcher = CVE_LINK_PATTERN.matcher(link);
-    if (matcher.matches()) {
-      return matcher.group(1);
+    return getRefIdAndSourceForVulnerability(link);
+  }
+
+  public static String getRefIdForVulnerability(final ExternalRef externalRef) throws InvalidSPDXAnalysisException {
+    Pair<String, String> refIdAndSource = getRefIdAndSourceForVulnerability(externalRef);
+    return refIdAndSource != null ? refIdAndSource.getKey() : null;
+  }
+
+  @VisibleForTesting
+  static Pair<String, String> getRefIdAndSourceForVulnerability(final String link) {
+    if (!isValidURL(link)) {
+      return null;
     }
-    matcher = NVD_LINK_PATTERN.matcher(link);
-    if (matcher.matches()) {
-      return matcher.group(1);
-    }
-    matcher = OSV_LINK_PATTERN.matcher(link);
-    if (matcher.matches()) {
-      return matcher.group(1);
-    }
-    matcher = SONATYPE_LINK_PATTERN.matcher(link);
-    if (matcher.matches()) {
-      return matcher.group(1);
+
+    Matcher matcher = URL_REF_ID_PATTERN.matcher(link);
+    if (matcher.find()) {
+      String refId = matcher.group(1);
+      if (StringUtils.isNotBlank(refId)) {
+        return Pair.of(refId, getSourceForUrl(link, refId));
+      }
     }
     return null;
+  }
+
+  private static String getSourceForUrl(final String url, final String refId) {
+    if (SOURCE_NVD_DOMAINS.stream().anyMatch(domain -> StringUtils.containsIgnoreCase(url, domain))) {
+      return "NVD";
+    }
+    if (StringUtils.containsIgnoreCase(url, SOURCE_OSV_DOMAIN)) {
+      return "OSV";
+    }
+    if (StringUtils.containsIgnoreCase(refId, SOURCE_SONATYPE)) {
+      return "SONATYPE";
+    }
+    return "OTHER";
+  }
+
+  private static boolean isValidURL(String url) {
+    try {
+      new URL(url).toURI();
+      return true;
+    }
+    catch (MalformedURLException | URISyntaxException e) {
+      return false;
+    }
   }
 
   public static SbomCreationDetails getSbomCreationDetails(SpdxDocument document) throws InvalidSPDXAnalysisException {

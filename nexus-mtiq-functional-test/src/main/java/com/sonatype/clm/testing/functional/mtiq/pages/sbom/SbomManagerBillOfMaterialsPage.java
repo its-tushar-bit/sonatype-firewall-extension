@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.clm.testing.functional.pages;
+package com.sonatype.clm.testing.functional.mtiq.pages.sbom;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
@@ -18,15 +18,19 @@ public class SbomManagerBillOfMaterialsPage
         applicationId, versionId);
   }
 
-  public SelenideElement bomPageContainer() {
+  public SelenideElement container() {
     return child("#sbom-manager-bom");
   }
 
-  public SelenideElement pageTitle() {
+  public SelenideElement title() {
     return child(".nx-h1");
   }
 
-  public SelenideElement sbomManagerNotEnabledError() {
+  public SelenideElement importedDate() {
+    return child("#bill-of-materials-page-imported-date");
+  }
+
+  public SelenideElement errorAlert() {
     return child(".nx-alert--error");
   }
 }

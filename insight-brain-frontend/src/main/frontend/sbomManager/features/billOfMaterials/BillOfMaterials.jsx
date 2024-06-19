@@ -188,7 +188,7 @@ export default function BillOfMaterials() {
                   data-testid="bill-of-materials-page-sbom-imported-date"
                 >
                   <strong>Imported:</strong>
-                  <span>{formatDate(sbomMetadata.createdAt)}</span>
+                  <span id="bill-of-materials-page-imported-date">{formatDate(sbomMetadata.createdAt)}</span>
                 </div>
               </div>
             </NxPageTitle.Description>

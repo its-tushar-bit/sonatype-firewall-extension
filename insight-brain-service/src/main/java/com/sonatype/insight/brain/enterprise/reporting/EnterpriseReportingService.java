@@ -71,8 +71,6 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.utils.UrlUtil.getDomainWithProtocol;
-
 @Named
 @Singleton
 @DisallowConcurrentExecution
@@ -186,19 +184,15 @@ public class EnterpriseReportingService
 
   public EmbedCookielessSessionAcquire acquireEmbedSession(
       String dashboardId,
+      String hostWithProtocol,
       String clientUserAgent)
   {
     AuditData.get().setLookerDashboard(dashboardId);
     validate(dashboardId);
     HttpEntity entity;
     try {
-      if (configuration.getBaseUrlConfiguration().getBaseUrl() == null) {
-        throw new BadRequestException("'baseUrl' system property is not configured");
-      }
       entity = new StringEntity(
-          JsonUtils.toJson(createEmbedRequest(dashboardId,
-              getDomainWithProtocol(configuration.getBaseUrlConfiguration().getBaseUrl()))),
-          ContentType.APPLICATION_JSON);
+          JsonUtils.toJson(createEmbedRequest(dashboardId, hostWithProtocol)), ContentType.APPLICATION_JSON);
     }
     catch (IOException e) {
       throw new BadRequestException(e);

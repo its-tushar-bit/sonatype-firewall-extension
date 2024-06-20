@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage.ListRow;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
@@ -117,6 +118,8 @@ public class LdapServerListTest
     ldapServerListPage.saveButton().shouldBe(visible).click();
     ldapServerListPage.listElements().shouldHave(texts("Third Server",
         "Fourth Server", "First Server", "Second Server"));
+
+    NxSubmitMask.seeAndWaitForDismissal();
 
     List<LdapServer> actualLdapServers = ldapServerDAO.getAll();
     String[] ldapServerNames = new String[]{"Third Server", "Fourth Server",

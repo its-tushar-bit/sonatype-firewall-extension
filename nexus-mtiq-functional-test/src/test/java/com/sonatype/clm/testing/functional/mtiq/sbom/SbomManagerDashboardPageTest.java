@@ -7,9 +7,10 @@ package com.sonatype.clm.testing.functional.mtiq.sbom;
 
 import com.sonatype.clm.testing.functional.mtiq.AbstractMtiqFunctionalTest;
 import com.sonatype.clm.testing.functional.mtiq.pages.sbom.SbomManagerDashboardPage;
+import com.sonatype.clm.testing.functional.pages.IndexPage;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import com.sonatype.insight.license.model.LicensedFeature;
-
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.text;
@@ -20,19 +21,27 @@ public class SbomManagerDashboardPageTest
 {
   private final SbomManagerDashboardPage sbomManagerDashboardPage = new SbomManagerDashboardPage();
 
-  @Test
-  public void testDashboardPageHeader() {
-    setFeatures(LicensedFeature.SBOM_MANAGER);
-    refreshOrOpen(sbomManagerDashboardPage.url());
+  @Before
+  public void before() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+    refreshOrOpen(IndexPage.url());
     loginAsAdmin();
-    sbomManagerDashboardPage.title().shouldHave(text("Dashboard")).shouldBe(visible);
   }
 
   @Test
-  public void testFeatureDisabled_Error() {
-    setMissingFeature(LicensedFeature.SBOM_MANAGER);
-    refreshOrOpen(sbomManagerDashboardPage.url());
-    loginAsAdmin();
+  public void testDashboard_PageHeader() {
+    refreshOrOpen(SbomManagerDashboardPage.url());
+
+    sbomManagerDashboardPage.title()
+        .shouldBe(visible)
+        .shouldHave(text("Dashboard"));
+  }
+
+  @Test
+  public void testDashboard_SbomManagerDisabled() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+    refreshOrOpen(SbomManagerDashboardPage.url());
+
     sbomManagerDashboardPage.title().shouldNotBe(visible);
     sbomManagerDashboardPage.errorAlert().shouldBe(visible);
   }

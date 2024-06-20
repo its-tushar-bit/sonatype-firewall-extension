@@ -11,18 +11,20 @@ import com.sonatype.clm.testing.functional.elements.OwnerSummaryTile;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.mtiq.AbstractMtiqFunctionalTest;
 import com.sonatype.clm.testing.functional.mtiq.pages.sbom.SbomManagerDashboardPage;
+import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
-import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 
 public class SbomManagerOwnerSummaryPageTest
     extends AbstractMtiqFunctionalTest
@@ -39,12 +41,6 @@ public class SbomManagerOwnerSummaryPageTest
 
   private Application childApplication2;
 
-  @BeforeClass
-  public static void beforeClass() {
-    refreshOrOpen(SbomManagerDashboardPage.url());
-    loginAsAdmin();
-  }
-
   @Before
   public void init() {
     parentOrganization = tempEntity.newOrganization(YE_OLE_ORGANIZATION);
@@ -52,13 +48,15 @@ public class SbomManagerOwnerSummaryPageTest
     childOrganization2 = tempEntity.newOrganization("2nd Child organization", parentOrganization);
     childApplication1 = tempEntity.newApplicationWithParent(childOrganization);
     childApplication2 = tempEntity.newApplicationWithParent(childOrganization2);
-    setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.ORGS_AND_APPS);
+
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+    refreshOrOpen(IndexPage.url());
+    loginAsAdmin();
   }
 
   @Test
   public void testNavigateToOrganizations() {
     refreshOrOpen(SbomManagerDashboardPage.url());
-    loginAsAdmin();
     SidebarNavigation.sbomManagerOrganizationsNavigationButton().click();
 
     OwnerSummaryTile ownerSummaryTile = OwnerSummaryPage.summaryTile();

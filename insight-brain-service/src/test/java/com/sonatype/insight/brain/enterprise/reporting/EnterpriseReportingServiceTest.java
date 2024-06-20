@@ -44,6 +44,7 @@ import com.sonatype.insight.scan.util.HashUtils;
 
 import com.google.inject.Binder;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -54,8 +55,8 @@ import org.quartz.JobExecutionContext;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_CURRENT_VERSION_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -106,6 +107,11 @@ public class EnterpriseReportingServiceTest
     binder.bind(MembershipMappingService.class).toInstance(mockMembershipMappingService);
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
     super.configure(binder);
+  }
+
+  @Before
+  public void setup() {
+    setBaseUrl("http://localhost:8070/");
   }
 
   @Test
@@ -545,8 +551,7 @@ public class EnterpriseReportingServiceTest
         expectedResponse);
 
     EmbedCookielessSessionAcquire sessionAcquireResult =
-        enterpriseReportingService.acquireEmbedSession("dashboardId", "http://sonatype.sonatype.sonatype.com",
-            "Mozilla/:::::");
+        enterpriseReportingService.acquireEmbedSession("dashboardId", "Mozilla/:::::");
     assertThat(sessionAcquireResult).isNotNull();
 
     assertThat(sessionAcquireResult.getAuthenticationToken()).isEqualTo("authTokenResponse");
@@ -560,10 +565,17 @@ public class EnterpriseReportingServiceTest
   }
 
   @Test
+  public void testAcquireEmbedSession_BadRequest_baseUrlIsNotConfigured() {
+    setBaseUrl(null);
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
+            enterpriseReportingService.acquireEmbedSession("dashboardId", "Mozilla/:::::"))
+        .withMessage("'baseUrl' system property is not configured");
+  }
+
+  @Test
   public void testAcquireEmbedSession_BadRequest_missingParameters() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
-            enterpriseReportingService.acquireEmbedSession(null, "http://sonatype.sonatype.sonatype.com",
-                "Mozilla/:::::"))
+            enterpriseReportingService.acquireEmbedSession(null, "Mozilla/:::::"))
         .withMessage("Dashboard is null or empty");
   }
 

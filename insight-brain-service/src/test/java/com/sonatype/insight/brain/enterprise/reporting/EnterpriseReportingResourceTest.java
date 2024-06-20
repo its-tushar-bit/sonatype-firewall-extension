@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokensRes
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.jaxrs.JsonUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -104,8 +105,11 @@ public class EnterpriseReportingResourceTest
     // Verify that the domain sent to HDS was truncated to exclude the final separator
     String requestBody = hdsMockServer.getCapturedRequestBody("rest/enterpriseReporting/acquireEmbedSession");
     SSOEmbedUrlRequest requestSentToHds = JsonUtils.parse(requestBody, new TypeReference<SSOEmbedUrlRequest>() { });
+
+    Configuration configuration = lookup(Configuration.class);
     assertThat(requestSentToHds.embedDomain).doesNotEndWith("/");
-    assertThat(requestSentToHds.embedDomain + "/").isEqualTo(getRestBaseUrl());
+    assertThat(requestSentToHds.embedDomain + "/")
+        .isEqualTo(configuration.getBaseUrlConfiguration().getBaseUrl());
   }
 
   @Test

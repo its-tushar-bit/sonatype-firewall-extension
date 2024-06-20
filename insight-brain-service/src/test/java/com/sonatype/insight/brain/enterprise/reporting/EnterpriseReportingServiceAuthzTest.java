@@ -17,6 +17,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.scan.util.HashUtils;
 
 import org.apache.shiro.authz.UnauthenticatedException;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,18 +28,25 @@ public class EnterpriseReportingServiceAuthzTest
   final String clientUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
       "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
+  private final String embedDomain = "http://sonatype.sonatype.sonatype.com";
+
   @Inject
   private EnterpriseReportingService enterpriseReportingService;
 
+  @Before
+  public void setup() {
+    setBaseUrl(embedDomain);
+  }
+
   @Test(expected = UnauthenticatedException.class)
   public void testAcquireEmbedSession_UnAuthenticated() {
-    enterpriseReportingService.acquireEmbedSession("rolling-recap", "http://localhost:8080", clientUserAgent);
+    enterpriseReportingService.acquireEmbedSession("rolling-recap", clientUserAgent);
   }
 
   @Test(expected = BadRequestException.class)
   public void testAcquireEmbedSession_UnAuthorized() {
     login();
-    enterpriseReportingService.acquireEmbedSession(null, "http://localhost:8080", clientUserAgent);
+    enterpriseReportingService.acquireEmbedSession(null, clientUserAgent);
   }
 
   /**
@@ -52,7 +60,6 @@ public class EnterpriseReportingServiceAuthzTest
     login();
 
     String dashboardId = "dashboardId";
-    String embedDomain = "http://sonatype.sonatype.sonatype.com";
 
     final Organization organization = tempEntity.newOrganization("Test Org");
     tempEntity.newApplication("Some App", "SOME_APP", organization.getId());

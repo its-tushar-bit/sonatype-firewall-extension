@@ -782,13 +782,13 @@ describe('CLMLocation.js', function () {
 
   describe('getTotalSbomsAnalyzedUrl', function () {
     it('should return the url for getting total SBOMs analyzed', function () {
-      expect(CLMLocation.getTotalSbomsAnalyzedUrl()).toBe('/api/v2/sbom/dashboard/sbomsAnalyzed');
+      expect(CLMLocation.getTotalSbomsAnalyzedUrl()).toBe('/rest/sbom/dashboard/sbomsAnalyzed');
     });
   });
 
   describe('getSbomsHistoryUrl', function () {
     it('should return the url for getting SBOMs history', function () {
-      expect(CLMLocation.getSbomsHistoryUrl()).toBe('/api/v2/sbom/dashboard/sbomsHistoryMetrics');
+      expect(CLMLocation.getSbomsHistoryUrl()).toBe('/rest/sbom/dashboard/sbomsHistoryMetrics');
     });
   });
 
@@ -808,9 +808,7 @@ describe('CLMLocation.js', function () {
 
   describe('getVulnerabilitesByThreatLevelUrl', function () {
     it('should return the url for getting vulnerabilities by threat level', function () {
-      expect(CLMLocation.getVulnerabilitesByThreatLevelUrl()).toBe(
-        '/api/v2/sbom/dashboard/vulnerabilitiesByThreatLevel'
-      );
+      expect(CLMLocation.getVulnerabilitesByThreatLevelUrl()).toBe('/rest/sbom/dashboard/vulnerabilitiesByThreatLevel');
     });
   });
 

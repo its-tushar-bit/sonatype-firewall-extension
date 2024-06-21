@@ -15,10 +15,12 @@ import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.v2.dto.SbomsAnalyzedMetricsDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.thirdpartyscans.ApiSbomApplicationsHistoryMetricDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.RecentImportedSbomsDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.RecentVulnerabilitiesDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ReleaseStatusDTO;
@@ -26,15 +28,21 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.brain.model.thirdpartyscans.VulnerabilitiesThreadLevelMetricDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.utils.CvssV3Severity;
+import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.sbom.dashboard.SbomDashboardResource.SBOMS_ANALYZED_PATH;
 import static com.sonatype.insight.brain.sbom.dashboard.SbomDashboardResource.SBOMS_HIGH_PRIORITY_VULNERABILITIES;
+import static com.sonatype.insight.brain.sbom.dashboard.SbomDashboardResource.SBOMS_HISTORY_METRICS_PATH;
 import static com.sonatype.insight.brain.sbom.dashboard.SbomDashboardResource.SBOMS_RECENTLY_IMPORTED;
+import static com.sonatype.insight.brain.sbom.dashboard.SbomDashboardResource.SBOMS_VULNERABILITES_BY_THREAT_LEVEL_PATH;
 import static com.sonatype.insight.brain.sbom.dashboard.SbomDashboardResource.SBOM_RELEASE_STATUS;
 import static com.sonatype.insight.brain.utils.SbomMetadataBuilder.newSbomMetadataBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -423,7 +431,7 @@ public class SbomDashboardResourceTest extends AbstractResourceTest
   @Test
   @PostgresTest
   public void testGetRecentImportSboms() throws Exception {
-    insertSbomData();
+    insertSbomDataAndComponentVulnerabilities();
     HttpResponse response = restRequest()
         .path(SBOMS_RECENTLY_IMPORTED).get();
 
@@ -443,7 +451,7 @@ public class SbomDashboardResourceTest extends AbstractResourceTest
   @Test
   @PostgresTest
   public void testGetRecentImportSboms_TestSbomsWithoutComponents() throws Exception {
-    insertSbomData();
+    insertSbomDataAndComponentVulnerabilities();
     Application tempApp = tempEntity.newApplicationWithParent();
     ThirdPartyScan thirdPartyScan1 = tempEntity.newThirdPartyScan();
 
@@ -463,7 +471,95 @@ public class SbomDashboardResourceTest extends AbstractResourceTest
         sbom -> sbom.getSbomVersion().equals(sbomMetadata.getSbomVersion()))).isTrue();
   }
 
-  private void insertSbomData() {
+  @Test
+  public void testGetSbomsAnalyzedMetrics() throws Exception {
+    insertNewSbomDataWithoutComponents();
+    HttpResponse response = restRequest().path(SBOMS_ANALYZED_PATH).get();
+    assertResponseStatus(200, response);
+
+    SbomsAnalyzedMetricsDTO result = response.getBody(SbomsAnalyzedMetricsDTO.class);
+    assertThat(result).isNotNull();
+    assertThat(result.getTotal()).isEqualTo(7);
+    assertThat(result.getThreshold()).isEqualTo(testProductLicense.getMaxSboms().longValue());
+  }
+
+  @Test
+  public void testGetSbomsHistoryMetrics() throws Exception {
+    insertNewSbomDataWithoutComponents();
+    HttpResponse response = restRequest().path(SBOMS_HISTORY_METRICS_PATH).get();
+    assertResponseStatus(200, response);
+
+    ApiSbomApplicationsHistoryMetricDTO result = response.getBody(ApiSbomApplicationsHistoryMetricDTO.class);
+    assertThat(result).isNotNull();
+    assertThat(result.totalScannedApplications).isEqualTo(7);
+    assertThat(result.applicationsUpdatedLastYear).isEqualTo(7);
+    assertThat(result.applicationsUpdatedLastMonth).isEqualTo(4);
+    assertThat(result.applicationsUpdatedLastWeek).isEqualTo(3);
+  }
+
+  @Test
+  public void testGetVulnerabilitiesByThreatLevel() throws Exception {
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(tempEntity.newApplicationWithParent().getId())
+        .build();
+
+    ThirdPartyFileCoordinate coordinate =
+        tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(), "s", "f", "n", "v", "", "");
+
+    ThirdPartyCoordinateSecurity coordinateSecurity = tempEntity.newThirdPartyCoordinateSecurity(coordinate, "r", "d",
+        "l", CvssV3Severity.LOW.getStartScoreRange(), CvssV3Severity.LOW.getDisplayName(), "f");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity, coordinateSecurity.getRefId(),
+        "state", "justification", "response", "detail");
+
+    HttpResponse response = restRequest()
+        .path(SBOMS_VULNERABILITES_BY_THREAT_LEVEL_PATH)
+        .get();
+    assertResponseStatus(200, response);
+
+    VulnerabilitiesThreadLevelMetricDTO result = response.getBody(VulnerabilitiesThreadLevelMetricDTO.class);
+    assertThat(result).isNotNull();
+
+    assertThat(result.getLow()).isOne();
+    assertThat(result.getLowAnnotated()).isOne();
+    assertThat(result.getLowUnannotated()).isZero();
+
+    assertThat(result.getMedium()).isZero();
+    assertThat(result.getMediumAnnotated()).isZero();
+    assertThat(result.getMediumUnannotated()).isZero();
+
+    assertThat(result.getHigh()).isZero();
+    assertThat(result.getHighAnnotated()).isZero();
+    assertThat(result.getHighUnannotated()).isZero();
+
+    assertThat(result.getCritical()).isZero();
+    assertThat(result.getCriticalAnnotated()).isZero();
+    assertThat(result.getCriticalUnannotated()).isZero();
+
+    assertThat(result.getTotalVulnerabilities()).isOne();
+    assertThat(result.getTotalVulnerabilitiesAnnotated()).isOne();
+    assertThat(result.getTotalVulnerabilitiesUnannotated()).isZero();
+  }
+
+  private void insertNewSbomDataWithoutComponents() {
+    Date now = new Date();
+    Date oneYearAgo = DateUtils.addYears(now, -1);
+    Date sixMonthsAgo = DateUtils.addMonths(now, -6);
+    Date twoMonthsAgo = DateUtils.addMonths(now, -2);
+    Date oneMonthAgo = DateUtils.addMonths(now, -1);
+    Date oneWeekAgo = DateUtils.addWeeks(now, -1);
+    Date yesterday = DateUtils.addDays(now, -1);
+
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(now).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneYearAgo).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(sixMonthsAgo).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(twoMonthsAgo).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneMonthAgo).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneWeekAgo).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus("PENDING").build();
+  }
+
+  private void insertSbomDataAndComponentVulnerabilities() {
     ThirdPartyScan thirdPartyScan1 = tempEntity.newThirdPartyScan();
     ThirdPartyScan thirdPartyScan2 = tempEntity.newThirdPartyScan();
     ThirdPartyScan thirdPartyScan3 = tempEntity.newThirdPartyScan();

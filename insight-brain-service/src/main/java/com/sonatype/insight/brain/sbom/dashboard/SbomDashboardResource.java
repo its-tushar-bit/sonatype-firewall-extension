@@ -15,9 +15,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.api.v2.dto.SbomsAnalyzedMetricsDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ApiSbomApplicationsHistoryMetricDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.RecentImportedSbomsDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.RecentVulnerabilitiesDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ReleaseStatusDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.VulnerabilitiesThreadLevelMetricDTO;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -36,6 +39,12 @@ public class SbomDashboardResource
   static final String SBOMS_RECENTLY_IMPORTED = "recentlyImportedSboms";
 
   static final String SBOM_RELEASE_STATUS = "sbomReleaseStatus";
+
+  static final String SBOMS_ANALYZED_PATH = "sbomsAnalyzed";
+
+  static final String SBOMS_HISTORY_METRICS_PATH = "sbomsHistoryMetrics";
+
+  static final String SBOMS_VULNERABILITES_BY_THREAT_LEVEL_PATH = "vulnerabilitiesByThreatLevel";
 
   private final SbomDashboardService service;
 
@@ -66,5 +75,29 @@ public class SbomDashboardResource
   @Produces(MediaType.APPLICATION_JSON)
   public ReleaseStatusDTO getSbomReleaseStatus() {
     return service.getSbomReleaseStatus();
+  }
+
+  @GET
+  @Path(SBOMS_ANALYZED_PATH)
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  @Produces(MediaType.APPLICATION_JSON)
+  public SbomsAnalyzedMetricsDTO getSbomsAnalyzedMetrics() {
+    return service.getSbomsAnalyzedMetrics();
+  }
+
+  @GET
+  @Path(SBOMS_HISTORY_METRICS_PATH)
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiSbomApplicationsHistoryMetricDTO getApplicationsHistoryMetric() {
+    return service.getApplicationsHistoryMetric();
+  }
+
+  @GET
+  @Path(SBOMS_VULNERABILITES_BY_THREAT_LEVEL_PATH)
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  @Produces(MediaType.APPLICATION_JSON)
+  public VulnerabilitiesThreadLevelMetricDTO getVulnerabilitiesByThreatLevel() {
+    return service.getVulnerabilitiesByThreatLevel();
   }
 }

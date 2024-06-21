@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.sbom.dashboard;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,12 +15,19 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.v2.dto.SbomsAnalyzedMetricsDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.thirdpartyscans.ApiSbomApplicationsHistoryMetricDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.RecentImportedSbomsDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.RecentVulnerabilitiesDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ReleaseStatusDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.VulnerabilitiesThreadLevelMetricDTO;
 import com.sonatype.insight.brain.organization.ApplicationService;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+
+import org.apache.commons.lang3.tuple.Pair;
 
 @Named
 public class SbomDashboardService
@@ -28,14 +36,22 @@ public class SbomDashboardService
 
   private final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
+  private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
+  private final ProductLicense productLicense;
+
   @Inject
   public  SbomDashboardService(
       final ApplicationService applicationService,
-      final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO
+      final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
+      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
+      final ProductLicense productLicense
   )
   {
     this.applicationService = applicationService;
     this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
+    this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
+    this.productLicense = productLicense;
   }
 
   public List<RecentVulnerabilitiesDTO> getRecentHighPriorityVulnerabilities() {
@@ -76,5 +92,29 @@ public class SbomDashboardService
       recentImported.setPublicApplicationId(application.getPublicId());
     });
     return sbomsDTOList;
+  }
+
+  public SbomsAnalyzedMetricsDTO getSbomsAnalyzedMetrics() {
+    return new SbomsAnalyzedMetricsDTO(thirdPartySbomMetadataDAO.getActiveSbomCount(), productLicense.getMaxSboms());
+  }
+
+  public ApiSbomApplicationsHistoryMetricDTO getApplicationsHistoryMetric() {
+    return thirdPartySbomMetadataDAO.getSbomsHistoryMetrics();
+  }
+
+  public VulnerabilitiesThreadLevelMetricDTO getVulnerabilitiesByThreatLevel() {
+    Pair<List<Application>, Boolean> pair = applicationService.getApplicationsAndCheckIfAll();
+    List<Application> applications = pair.getLeft();
+    boolean hasPermissionInAllApps = pair.getRight();
+
+    if (applications.isEmpty()) {
+      return new VulnerabilitiesThreadLevelMetricDTO();
+    }
+
+    Set<String> applicationIds = hasPermissionInAllApps
+        ? Collections.emptySet()
+        : applications.stream().map(Application::getId).collect(Collectors.toSet());
+
+    return thirdPartyCoordinateSecurityDAO.getVulnerabilitiesByThreatLevel(applicationIds);
   }
 }

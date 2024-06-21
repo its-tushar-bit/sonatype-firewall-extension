@@ -1488,9 +1488,9 @@ export const getSbomSummaryUrl = (applicationId, version) =>
 export const getPrioritiesPageTableData = (applicationId, scanId) =>
   uriTemplate`/api/experimental/priorities/${applicationId}/${scanId}`;
 
-export const getTotalSbomsAnalyzedUrl = () => uriTemplate`/api/v2/sbom/dashboard/sbomsAnalyzed`;
+export const getTotalSbomsAnalyzedUrl = () => uriTemplate`/rest/sbom/dashboard/sbomsAnalyzed`;
 
-export const getSbomsHistoryUrl = () => uriTemplate`/api/v2/sbom/dashboard/sbomsHistoryMetrics`;
+export const getSbomsHistoryUrl = () => uriTemplate`/rest/sbom/dashboard/sbomsHistoryMetrics`;
 
 export const getSbomsHighPriorityVulnerabilitiesUrl = () =>
   uriTemplate`/rest/sbom/dashboard/highPriorityVulnerabilities`;
@@ -1500,7 +1500,7 @@ export const getRecentlyImportedSbomsUrl = () => uriTemplate`/rest/sbom/dashboar
 export const getSbomVulnerabibilityAnalysisReferenceData = () =>
   uriTemplate`/rest/sbom/vulnerabilityAnalysis/referenceData`;
 
-export const getVulnerabilitesByThreatLevelUrl = () => uriTemplate`/api/v2/sbom/dashboard/vulnerabilitiesByThreatLevel`;
+export const getVulnerabilitesByThreatLevelUrl = () => uriTemplate`/rest/sbom/dashboard/vulnerabilitiesByThreatLevel`;
 
 export const getLicensedSolutionsUrl = () => uriTemplate`/api/v2/solutions/licensed?allowRelativeUrls=true`;
 

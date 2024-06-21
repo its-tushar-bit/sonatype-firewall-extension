@@ -22,6 +22,9 @@ import com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingServic
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @since 1.59
  */
@@ -29,6 +32,8 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 public class CspHeaderFilter
     implements Filter
 {
+  private static final Logger log = LoggerFactory.getLogger(CspHeaderFilter.class);
+
   public static final String URL_PATTERN = "/assets/*";
 
   private final Configuration configuration;
@@ -74,7 +79,12 @@ public class CspHeaderFilter
   String getFrameSrc() {
     String lookerHost = null;
     if (productLicense.isValid()) {
-      lookerHost = getUrlHost(enterpriseReportingService.getEnterpriseReportingConfigDTOBaseUrl());
+      try {
+        lookerHost = getUrlHost(enterpriseReportingService.getEnterpriseReportingConfigDTOBaseUrl());
+      }
+      catch (Exception ex) {
+        log.warn("Could not resolve a looker host: " + ex.getMessage());
+      }
     }
     return lookerHost != null ? String.format("frame-src 'self' %s; ", lookerHost) : "";
   }

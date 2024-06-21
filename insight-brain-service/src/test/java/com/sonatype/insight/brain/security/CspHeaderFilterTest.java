@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.security;
 import com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.error.exception.BadGatewayException;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -64,5 +65,13 @@ public class CspHeaderFilterTest
   public void testGetFrameSrc_InvalidLicense() {
     when(productLicense.isValid()).thenReturn(false);
     assertThat(cspHeaderFilter.getFrameSrc()).isEmpty();
+  }
+
+  @Test
+  public void testGetFrameSrc_shouldReturnEmptyStringWhenHDSIsNotReachable() {
+    when(enterpriseReportingService.getEnterpriseReportingConfigDTOBaseUrl()).thenThrow(
+        new BadGatewayException("Some Networking Problem"));
+
+    assertThat(cspHeaderFilter.getFrameSrc()).isEqualTo("");
   }
 }

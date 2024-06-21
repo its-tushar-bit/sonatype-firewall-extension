@@ -209,12 +209,13 @@ public class TestDAOFactory
         createSourceControlDefaultBranchCommitHistoryDAO();
     SastScanDAO sastScanDAO = createSastScanDAO();
     ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO = createThirdPartySbomMetadataDAO();
+    ThirdPartyFileDAO thirdPartyFileDAO = createThirdPartyFileDAO();
     return new ApplicationDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager, sourceControlDAOProvider,
         sourceControlEventDAO, sourceControlPullRequestResultDAO, policyViolationDAO, policyEvaluationDAO,
         licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider, ownerDAOProvider, applicationTagDAO,
         applicationComponentDAOProvider, proprietaryConfigDAO, innerSourceComponentDAO, membershipMappingDAO,
         policyViolationAggregationDAO, repositoryConnectionDAO, sourceControlDefaultBranchCommitHistoryDAO,
-        sastScanDAO, thirdPartySbomMetadataDAO, clusterLockManager);
+        sastScanDAO, thirdPartySbomMetadataDAO, thirdPartyFileDAO, clusterLockManager);
   }
 
   @Override

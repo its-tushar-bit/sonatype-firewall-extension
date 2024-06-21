@@ -190,11 +190,11 @@ public class InsightWork
     return sbomTempDir;
   }
 
-  public File getSbomDir(final String appId) {
+  public File getSbomDir(final String appId, final boolean createIfNotExist) {
     IdValidationUtils.validate(appId);
     File sbomTempDir = new File(getSbomDir(), appId);
 
-    if (!sbomTempDir.exists()) {
+    if (!sbomTempDir.exists() && createIfNotExist) {
       try {
         Files.createDirectories(sbomTempDir.toPath());
       }
@@ -203,6 +203,10 @@ public class InsightWork
       }
     }
     return sbomTempDir;
+  }
+
+  public File getSbomDir(final String appId) {
+    return getSbomDir(appId, true);
   }
   
   public File getSbomTempDir() {

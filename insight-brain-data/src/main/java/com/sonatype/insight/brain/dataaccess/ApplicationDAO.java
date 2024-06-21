@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Application;
@@ -53,6 +54,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -109,6 +111,8 @@ public class ApplicationDAO
 
   private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
+  private final ThirdPartyFileDAO thirdPartyFileDAO;
+
   private final ClusterLockManager clusterLockManager;
 
   @Inject
@@ -134,6 +138,7 @@ public class ApplicationDAO
       final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO,
       final SastScanDAO sastScanDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
+      final ThirdPartyFileDAO thirdPartyFileDAO,
       final ClusterLockManager clusterLockManager)
   {
     super(operationalDataStore, searchIndexManager);
@@ -156,6 +161,7 @@ public class ApplicationDAO
     this.sourceControlDefaultBranchCommitHistoryDAO = sourceControlDefaultBranchCommitHistoryDAO;
     this.sastScanDAO = sastScanDAO;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
+    this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.clusterLockManager = clusterLockManager;
   }
 
@@ -596,10 +602,13 @@ public class ApplicationDAO
     }
 
     // Cascade to aggregation tables. These are in a separate schema and therefore use a separate transaction.
-    try (TransactionContext thirdPartyScansTx = thirdPartySbomMetadataDAO.createTransactionContext()) {
+    try (TransactionContext thirdPartyScansTx = thirdPartyFileDAO.createTransactionContext()) {
       thirdPartyScansTx.begin();
 
-      thirdPartySbomMetadataDAO.deleteByApplicationId(thirdPartyScansTx, application.getId());
+      List<ThirdPartySbomMetadata> thirdPartySbomMetadataList =
+          thirdPartySbomMetadataDAO.getByApplicationId(thirdPartyScansTx, application.getId());
+      thirdPartySbomMetadataList.forEach(thirdPartySbomMetadata ->
+          thirdPartyFileDAO.delete(thirdPartyScansTx, thirdPartySbomMetadata.getThirdPartyFileId()));
 
       thirdPartyScansTx.commit();
     }

@@ -50,12 +50,34 @@ public class ApplicationCleanerTest
   }
 
   @Test
-  public void testDelete_DeleteIconDirectory() throws Exception {
+  public void testDelete_DeleteDirectories() throws Exception {
     // Given
     Application app = tempEntity.newApplicationWithParent();
     File iconDir = new File(work.getApplicationIconDir(), app.getId());
     iconDir.mkdirs();
     new File(iconDir, "icon.png").createNewFile();
+
+    File scanDir = work.getScanDir(app.getId());
+    scanDir.mkdirs();
+    new File(scanDir, "scanFile").createNewFile();
+    File auditDir = work.getAuditDir(app.getId());
+    auditDir.mkdirs();
+    new File(auditDir, "auditFile").createNewFile();
+    File reportDir = work.getReportDir(app.getId());
+    reportDir.mkdirs();
+    new File(auditDir, "reportFile").createNewFile();
+    File sourceControlDir = work.getSourceControlDir(app.getId());
+    sourceControlDir.mkdirs();
+    new File(auditDir, "sourceControlFile").createNewFile();
+    File sbomDir = work.getSbomDir(app.getId());
+    sbomDir.mkdirs();
+    new File(sbomDir, "sbomFile").createNewFile();
+
+    assertThat(scanDir).exists();
+    assertThat(auditDir).exists();
+    assertThat(reportDir).exists();
+    assertThat(sourceControlDir).exists();
+    assertThat(sbomDir).exists();
 
     // When
     try (TransactionContext tx = applicationDAO.createTransactionContext()) {
@@ -64,8 +86,14 @@ public class ApplicationCleanerTest
       tx.commit();
     }
 
-    // THen
+    // Then
     assertThat(iconDir).doesNotExist();
+    assertThat(scanDir).doesNotExist();
+    assertThat(auditDir).doesNotExist();
+    assertThat(reportDir).doesNotExist();
+    assertThat(sourceControlDir).doesNotExist();
+    assertThat(sbomDir).doesNotExist();
+
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
     final TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();

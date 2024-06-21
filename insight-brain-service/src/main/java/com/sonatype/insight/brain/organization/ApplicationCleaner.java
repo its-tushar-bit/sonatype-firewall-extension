@@ -57,6 +57,8 @@ public class ApplicationCleaner
     fileCleaner.delete(work.getAuditDir(application.getId()));
     fileCleaner.delete(work.getReportDir(application.getId()));
     fileCleaner.delete(work.getSourceControlDir(application.getId()));
+    fileCleaner.delete(work.getSbomDir(application.getId(), false));
+
     File applicationIconDirectory = new File(work.getApplicationIconDir(), application.getId());
     try {
       fileCleaner.delete(applicationIconDirectory);

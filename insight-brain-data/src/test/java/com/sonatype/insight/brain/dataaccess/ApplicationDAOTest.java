@@ -45,6 +45,10 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
@@ -87,6 +91,10 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestRe
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSeverity;
@@ -94,6 +102,7 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVec
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.Lists;
@@ -1264,6 +1273,46 @@ public class ApplicationDAOTest
     assertThat(applicationDAO.getByOrganizationIds(Sets.newHashSet(org1.getId(), org2.getId())))
         .extracting(Application::getId)
         .containsExactlyInAnyOrder(app11.getId(), app12.getId(), app21.getId(), app22.getId());
+  }
+
+  @Test
+  public void testDelete_CascadesToSbomThirdPartyEntities() {
+    String appVersion = "1.2.3";
+    String sbomSpec = "spdx";
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    ThirdPartySbomMetadata thirdPartySbomMetadata = tempEntity.newSbomEvaluation(app, appVersion, sbomSpec,
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345deadbeef", false);
+
+    ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO = daoFactory.createThirdPartyFileCoordinateDAO();
+    ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO = daoFactory.createThirdPartySbomMetadataDAO();
+    ThirdPartyScanDAO thirdPartyScanDAO = daoFactory.createThirdPartyScanDAO();
+    ThirdPartyFileDAO thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
+
+    String thirdPartyFileId = thirdPartySbomMetadata.getThirdPartyFileId();
+    assertThat(thirdPartyFileId).isNotNull();
+    List<ThirdPartyFileCoordinate> thirdPartyFileCoordinateList =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFileId);
+    assertThat(thirdPartyFileCoordinateList.size()).isEqualTo(1);
+    ThirdPartyScan thirdPartyScan = thirdPartyScanDAO.getSingleByThirdPartyFileId(thirdPartyFileId);
+    assertThat(thirdPartyScan).isNotNull();
+    ThirdPartyFile thirdPartyFile = thirdPartyFileDAO.getById(thirdPartyFileId);
+    assertThat(thirdPartyFile).isNotNull();
+
+    applicationDAO.delete(app);
+
+    thirdPartyFile = thirdPartyFileDAO.getById(thirdPartyFileId);
+    assertThat(thirdPartyFile).isNull();
+
+    thirdPartyFileCoordinateList =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFileId);
+    assertThat(thirdPartyFileCoordinateList).isEmpty();
+
+    List<ThirdPartyScan> thirdPartyScanList = thirdPartyScanDAO.getByThirdPartyFileId(thirdPartyFileId);
+    assertThat(thirdPartyScanList).isEmpty();
+
+    thirdPartySbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(thirdPartyFileId);
+    assertThat(thirdPartySbomMetadata).isNull();
   }
 
   @Test

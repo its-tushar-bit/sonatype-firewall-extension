@@ -204,4 +204,25 @@ public class InsightWorkTest
     assertThat(work.getIerDashboardIconsDirectory()).isEqualTo(
         new File(work.getNodeCacheDir(), "enterpriseReportingDashboardIcons"));
   }
+
+  @Test
+  public void testApplicationSbomDir() {
+    File file = work.getSbomDir("appId");
+    assertThat(file).isNotNull();
+    assertThat(file.exists()).isTrue();
+  }
+
+  @Test
+  public void testApplicationSbomDirWithCreateFlagTrue() {
+    File file = work.getSbomDir("appId", true);
+    assertThat(file).isNotNull();
+    assertThat(file.exists()).isTrue();
+  }
+
+  @Test
+  public void testApplicationSbomDirWithCreateFlagFalse() {
+    File file = work.getSbomDir("appId", false);
+    assertThat(file).isNotNull();
+    assertThat(file.exists()).isFalse();
+  }
 }

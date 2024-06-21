@@ -70,6 +70,12 @@ public class ThirdPartySbomMetadataDAO
     return getList(sQuery, applicationId);
   }
 
+  public List<ThirdPartySbomMetadata> getByApplicationId(TransactionContext tx, String applicationId) {
+    String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity " + //
+        " WHERE entity.applicationId=?1";
+    return getList(tx, sQuery, applicationId);
+  }
+
   public List<ThirdPartySbomMetadata> getActiveByApplicationId(String applicationId) {
     String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity " + //
         " WHERE entity.applicationId=?1" + //

@@ -464,4 +464,21 @@ public class FirewallClientTest
             repository.getPublicId(), pathname))
         .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
   }
+
+  @Test
+  public void testGetRepositoryResultsUrl() throws Exception {
+    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, true);
+    FirewallClient client =
+        new FirewallClient(getConfiguration(), rmInstanceId, repository.getPublicId(), resourcePath);
+    String repositoryResultsUrl = client.getRepositoryResultsUrl();
+    assertThat(repositoryResultsUrl).startsWith("ui/links/repository/");
+  }
+
+  @Test
+  public void testGetRepositoryResultsUrl_Error() {
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
+    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(client::getRepositoryResultsUrl)
+        .withMessage(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID))
+        .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
+  }
 }

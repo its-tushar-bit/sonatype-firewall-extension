@@ -174,7 +174,8 @@ public class FirewallClient
 
   public String getRepositoryResultsUrl() throws IOException {
     Result result = path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, REPOSITORY_RESULTS_URL).get();
-    return parseResult(result, String.class);
+    verifyStatusCode(result);
+    return result.text();
   }
 
   public UnquarantinedComponentList getUnquarantinedComponents(final long sinceUtcTimestamp) throws IOException {

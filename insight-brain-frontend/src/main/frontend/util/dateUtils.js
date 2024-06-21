@@ -10,8 +10,10 @@ export const STANDARD_DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss [UTC]Z';
 export const SIMPLE_TIME_FORMAT = 'h:mm A';
 
 export const STANDARD_DATE_FORMAT = 'YYYY-MM-DD';
+export const STANDARD_DATE_TIME_FORMAT_NO_TZ = 'YYYY-MM-DD HH:mm:ss';
+
 export const FIREWALL_TIME_DATE_FORMAT = 'h:mm:ss A YYYY-MM-DD';
-export const FIREWALL_DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss';
+export const FIREWALL_DATE_TIME_FORMAT = STANDARD_DATE_TIME_FORMAT_NO_TZ;
 export const formatDate = (date, format = STANDARD_DATE_TIME_FORMAT) => {
   if (typeof date === 'undefined' || date === null) {
     return '';

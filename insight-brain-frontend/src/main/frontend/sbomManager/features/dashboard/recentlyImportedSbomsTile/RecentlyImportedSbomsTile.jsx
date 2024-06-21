@@ -3,49 +3,83 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { NxH2, NxSmallThreatCounter, NxTable, NxTextLink, NxTile } from '@sonatype/react-shared-components';
+import { keys, props, values, zipObj } from 'ramda';
 
-import LoadWrapper from 'MainRoot/react/LoadWrapper';
+import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
+import { formatDate, STANDARD_DATE_TIME_FORMAT_NO_TZ } from 'MainRoot/util/dateUtils';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
+
+import { selectRecentlyImportedSbomsTile } from './recentlyImportedSbomsTileSelectors';
+import { actions } from './recentlyImportedSbomsTileSlice';
 
 import './RecentlyImportedSbomsTile.scss';
 
-export default function RecentlyImportedSboms() {
-  const doLoad = () => {};
-  const sortDir = 'asc';
+const SMALL_THREAT_INDICATOR_KEYS_MAP = {
+  criticalCount: 'criticalCount',
+  highCount: 'severeCount',
+  mediumCount: 'moderateCount',
+  lowCount: 'lowCount',
+};
 
-  const sboms = [
-    {
-      name: 'MuseDev',
-      version: '0.0.2',
-      fileFormat: 'SPDX',
-      importDate: '2024-07-07 19-05-33',
-      vulnerabilitiesInfo: {
-        criticalCount: 12,
-        severeCount: 5,
-        moderateCount: 5,
-        lowCount: 6,
-        noneCount: 9,
-        unspecifiedCount: 9,
-      },
+const VIEW_BOM_STATE = 'sbomManager.management.view.bom';
+
+const extractSmallThreatCounterProps = (sbom) =>
+  zipObj(values(SMALL_THREAT_INDICATOR_KEYS_MAP), props(keys(SMALL_THREAT_INDICATOR_KEYS_MAP), sbom));
+
+export default function RecentlyImportedSbomsTile() {
+  const dispatch = useDispatch();
+  const uiRouterState = useRouterState();
+  const { loading, loadingErrorMessage, sortDirection, sboms } = useSelector(selectRecentlyImportedSbomsTile);
+
+  const doLoad = () => dispatch(actions.loadRecentlyImportedSboms());
+
+  useEffect(() => {
+    doLoad();
+  }, []);
+
+  const isEmpty = isNilOrEmpty(sboms);
+
+  const getBillOfMaterialsPageHref = (applicationPublicId, sbomVersion) =>
+    uiRouterState.href(VIEW_BOM_STATE, { applicationPublicId, versionId: sbomVersion });
+
+  const sbomsRows =
+    !isEmpty &&
+    sboms.map((sbom, index) => (
+      <NxTable.Row key={index}>
+        <NxTable.Cell>{sbom.applicationName}</NxTable.Cell>
+        <NxTable.Cell>
+          <NxTextLink href={getBillOfMaterialsPageHref(sbom.publicApplicationId, sbom.sbomVersion)}>
+            {sbom.sbomVersion}
+          </NxTextLink>
+        </NxTable.Cell>
+        <NxTable.Cell>{sbom.specification}</NxTable.Cell>
+        <NxTable.Cell>{formatDate(sbom.importDate, STANDARD_DATE_TIME_FORMAT_NO_TZ)}</NxTable.Cell>
+        <NxTable.Cell>
+          <NxSmallThreatCounter {...extractSmallThreatCounterProps(sbom)} />
+        </NxTable.Cell>
+      </NxTable.Row>
+    ));
+
+  const isSortable = !loading && !loadingErrorMessage && !isEmpty;
+  const appNameSortOptions = {
+    isSortable,
+    sortDir: sortDirection,
+    onClick: () => {
+      if (isSortable) {
+        dispatch(actions.cycleNextSortDirection());
+        dispatch(actions.sortSboms());
+      }
     },
-  ];
+  };
 
-  const sortByName = () => {};
-
-  const sbomsRows = sboms.map((sbom, index) => (
-    <NxTable.Row key={index}>
-      <NxTable.Cell>{sbom.name}</NxTable.Cell>
-      <NxTable.Cell>
-        <NxTextLink>{sbom.version}</NxTextLink>
-      </NxTable.Cell>
-      <NxTable.Cell>{sbom.fileFormat}</NxTable.Cell>
-      <NxTable.Cell>{sbom.importDate}</NxTable.Cell>
-      <NxTable.Cell>
-        <NxSmallThreatCounter {...sbom.vulnerabilitiesInfo} />
-      </NxTable.Cell>
-    </NxTable.Row>
-  ));
+  const tableBodyProps = {
+    isLoading: loading,
+    ...(loadingErrorMessage && { error: loadingErrorMessage }),
+    ...(!loading && isEmpty && { emptyMessage: 'No recently imported SBOMs.' }),
+  };
 
   return (
     <NxTile id="recently-imported-sboms-tile" className="sbom-manager-recently-imported-sboms-tile">
@@ -55,22 +89,18 @@ export default function RecentlyImportedSboms() {
         </NxTile.HeaderTitle>
       </NxTile.Header>
       <NxTile.Content>
-        <LoadWrapper retryHandler={doLoad} error={null}>
-          <NxTable id="recently-imported-sboms-tile-table">
-            <NxTable.Head>
-              <NxTable.Row>
-                <NxTable.Cell isSortable sortDir={sortDir} onClick={() => sortByName()}>
-                  Application Name
-                </NxTable.Cell>
-                <NxTable.Cell>Version</NxTable.Cell>
-                <NxTable.Cell>File Format</NxTable.Cell>
-                <NxTable.Cell>Import Date</NxTable.Cell>
-                <NxTable.Cell>Vulnerabilities</NxTable.Cell>
-              </NxTable.Row>
-            </NxTable.Head>
-            <NxTable.Body>{sbomsRows}</NxTable.Body>
-          </NxTable>
-        </LoadWrapper>
+        <NxTable id="recently-imported-sboms-tile-table">
+          <NxTable.Head>
+            <NxTable.Row>
+              <NxTable.Cell {...appNameSortOptions}>Application Name</NxTable.Cell>
+              <NxTable.Cell>Version</NxTable.Cell>
+              <NxTable.Cell>BOM Format</NxTable.Cell>
+              <NxTable.Cell>Import Date</NxTable.Cell>
+              <NxTable.Cell>Vulnerabilities</NxTable.Cell>
+            </NxTable.Row>
+          </NxTable.Head>
+          <NxTable.Body {...tableBodyProps}>{sbomsRows}</NxTable.Body>
+        </NxTable>
       </NxTile.Content>
     </NxTile>
   );

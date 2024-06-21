@@ -9,10 +9,12 @@ import totalSbomsStoredTileSlice from './totalSbomsStoredTile/totalSbomsStoredTi
 import applicationsHistoryTileSlice from './applicationsHistoryTile/applicationsHistoryTileSlice';
 import highPriorityVulnerabilitiesTileSlice from './highPriorityVulnerabilitiesTile/highPriorityVulnerabilitiesTileSlice';
 import vulnerabilitiesByThreatLevelTileSlice from './vulnerabilitiesByThreatLevelTile/vulnerabilitiesByThreatLevelTileSlice';
+import recentlyImportedSbomsTileSlice from './recentlyImportedSbomsTile/recentlyImportedSbomsTileSlice';
 
 export default combineReducers({
   totalSbomsStoredTile: totalSbomsStoredTileSlice,
   applicationsHistoryTile: applicationsHistoryTileSlice,
   highPriorityVulnerabilitiesTile: highPriorityVulnerabilitiesTileSlice,
   vulnerabilitiesByThreatLevelTile: vulnerabilitiesByThreatLevelTileSlice,
+  recentlyImportedSbomsTile: recentlyImportedSbomsTileSlice,
 });

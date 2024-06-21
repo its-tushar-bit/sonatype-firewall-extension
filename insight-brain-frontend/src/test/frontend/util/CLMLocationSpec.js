@@ -800,6 +800,12 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  describe('getRecentlyImportedSbomsUrl', function () {
+    it('should return the url for dashboard recently imported SBOMs', function () {
+      expect(CLMLocation.getRecentlyImportedSbomsUrl()).toBe('/rest/sbom/dashboard/recentlyImportedSboms');
+    });
+  });
+
   describe('getVulnerabilitesByThreatLevelUrl', function () {
     it('should return the url for getting vulnerabilities by threat level', function () {
       expect(CLMLocation.getVulnerabilitesByThreatLevelUrl()).toBe(

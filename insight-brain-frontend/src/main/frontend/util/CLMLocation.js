@@ -1495,6 +1495,8 @@ export const getSbomsHistoryUrl = () => uriTemplate`/api/v2/sbom/dashboard/sboms
 export const getSbomsHighPriorityVulnerabilitiesUrl = () =>
   uriTemplate`/rest/sbom/dashboard/highPriorityVulnerabilities`;
 
+export const getRecentlyImportedSbomsUrl = () => uriTemplate`/rest/sbom/dashboard/recentlyImportedSboms`;
+
 export const getSbomVulnerabibilityAnalysisReferenceData = () =>
   uriTemplate`/rest/sbom/vulnerabilityAnalysis/referenceData`;
 

@@ -26,6 +26,7 @@ import * as PropTypes from 'prop-types';
 
 export default function VulnerabilitiesTile(props) {
   const {
+    tableUniqueIdentifier = '',
     isDisclosedVulnerabilities = true,
     vulnerabilities,
     openVulnerabilityDetailsModal,
@@ -158,8 +159,11 @@ export default function VulnerabilitiesTile(props) {
     }
   };
 
+  const identifierSeparator = isNilOrEmpty(tableUniqueIdentifier) ? '' : '__';
+  const tableTileId = `sbom-manager-cdp-vulnerabilities-tile${identifierSeparator}${tableUniqueIdentifier}`;
+
   return (
-    <NxTile id="sbom-manager-cdp-vulnerabilities-tile" className="sbom-manager-cdp-vulnerabilities-tile">
+    <NxTile id={tableTileId} className="sbom-manager-cdp-vulnerabilities-tile">
       <NxTile.Header>
         <NxTile.HeaderTitle>
           <NxH2>{determineTableTitle()}</NxH2>
@@ -187,6 +191,7 @@ export default function VulnerabilitiesTile(props) {
 }
 
 VulnerabilitiesTile.propTypes = {
+  tableUniqueIdentifier: PropTypes.string,
   isDisclosedVulnerabilities: PropTypes.bool,
   vulnerabilities: PropTypes.array,
   openVulnerabilityDetailsModal: PropTypes.func,

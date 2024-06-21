@@ -197,12 +197,14 @@ export default function ComponentDetailsPage() {
                 ></VulnerabilitiesSummary>
               )}
               <VulnerabilitiesTile
+                tableUniqueIdentifier={'disclosedVulnerabilities'}
                 vulnerabilities={componentDetails?.disclosedVulnerabilities}
                 openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
                 openVexAnnotationModal={openVexAnnotationModal}
                 analysisStatusesOptions={analysisStatusesOptions}
               ></VulnerabilitiesTile>
               <VulnerabilitiesTile
+                tableUniqueIdentifier={'sonatypeIdentifiedVulnerabilities'}
                 vulnerabilities={componentDetails?.sonatypeIdentifiedVulnerabilities}
                 isDisclosedVulnerabilities={false}
                 openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}

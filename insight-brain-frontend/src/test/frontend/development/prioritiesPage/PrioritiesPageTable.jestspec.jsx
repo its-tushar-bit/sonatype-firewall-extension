@@ -184,6 +184,27 @@ describe('PrioritiesPageTable', () => {
     expect(tooltip).toBeInTheDocument();
   });
 
+  it('renders a "no findings" message if number of priorities is 0', async () => {
+    const numOfTopPriorities = 0;
+    const numOfAdditionalPriorities = 0;
+    const mockData = generateMockData(numOfTopPriorities, numOfAdditionalPriorities);
+    const mockResponsePage1 = generateMockResponseByPage(1, mockData);
+    axiosMock
+      .onGet(getPrioritiesPageTableData(publicAppId, scanId), { params: { pageSize: 10, page: 1 } })
+      .reply(200, mockResponsePage1);
+
+    renderComponent();
+
+    const table = await screen.findByRole('table');
+    expect(table).toBeInTheDocument();
+
+    const rows = screen.getAllByRole('row');
+    expect(rows.length).toBe(2);
+
+    const rowWithMessage = rows[1];
+    expect(rowWithMessage).toHaveTextContent('All clear! No violations were found during this evaluation.');
+  });
+
   describe('Top X Priorities Accordion', () => {
     it('renders "Top X Priorities" based on number of top priorities', async () => {
       const numOfTopPriorities = 2;
@@ -205,26 +226,6 @@ describe('PrioritiesPageTable', () => {
       expect(within(topPrioritiesAccordion).getByRole('button')).toHaveAccessibleName(
         `Top ${numOfTopPriorities} Priorities`
       );
-    });
-
-    it('renders "Top Priorities" if number of top priorities 0', async () => {
-      const numOfTopPriorities = 0;
-      const numOfAdditionalPriorities = 10;
-      const mockData = generateMockData(numOfTopPriorities, numOfAdditionalPriorities);
-      const mockResponsePage1 = generateMockResponseByPage(1, mockData);
-      axiosMock
-        .onGet(getPrioritiesPageTableData(publicAppId, scanId), { params: { pageSize: 10, page: 1 } })
-        .reply(200, mockResponsePage1);
-
-      renderComponent();
-
-      const table = await screen.findByRole('table');
-      expect(table).toBeInTheDocument();
-
-      const accordions = screen.getAllByRole('group');
-      const topPrioritiesAccordion = accordions[0];
-
-      expect(within(topPrioritiesAccordion).getByRole('button')).toHaveAccessibleName(`Top Priorities`);
     });
 
     it('renders "Top Priority" if number of top priorities is 1', async () => {

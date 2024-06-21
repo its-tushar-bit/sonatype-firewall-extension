@@ -41,10 +41,6 @@ export default function PrioritiesPageTable() {
   const isFirstPage = page === 1;
 
   const getTopPrioritiesLabel = () => {
-    if (isNilOrEmpty(topPrioritiesData)) {
-      return 'Top Priorities';
-    }
-
     if (topPrioritiesData.length === 1) {
       return 'Top Priority';
     }
@@ -52,6 +48,7 @@ export default function PrioritiesPageTable() {
     return `Top ${topPrioritiesData.length} Priorities`;
   };
 
+  const hasZeroFindings = isNilOrEmpty(topPrioritiesData) && isNilOrEmpty(additionalPrioritiesData);
   const setPage = (page) => dispatch(actions.setPage(page));
 
   useEffect(() => {
@@ -77,8 +74,13 @@ export default function PrioritiesPageTable() {
               <NxTable.Cell chevron />
             </NxTable.Row>
           </NxTable.Head>
-          <NxTable.Body isLoading={loadingTableData} retryHandler={doLoad} error={loadErrorTableData}>
-            {isFirstPage && (
+          <NxTable.Body
+            isLoading={loadingTableData}
+            retryHandler={doLoad}
+            error={loadErrorTableData}
+            emptyMessage="All clear! No violations were found during this evaluation."
+          >
+            {!hasZeroFindings && isFirstPage && (
               <>
                 <NxTable.Row>
                   <NxTable.Cell className="iq-priorities-page-priority-findings-toggle" colSpan={5}>
@@ -92,15 +94,17 @@ export default function PrioritiesPageTable() {
                 {showPriorityFindings && <DataRows dataset={topPrioritiesData} />}
               </>
             )}
-            <NxTable.Row>
-              <NxTable.Cell className="iq-priorities-page-all-findings" colSpan={5}>
-                Remaining Findings
-              </NxTable.Cell>
-            </NxTable.Row>
+            {!hasZeroFindings && (
+              <NxTable.Row>
+                <NxTable.Cell className="iq-priorities-page-all-findings" colSpan={5}>
+                  Remaining Findings
+                </NxTable.Cell>
+              </NxTable.Row>
+            )}
             <DataRows dataset={additionalPrioritiesData} />
           </NxTable.Body>
         </NxTable>
-        {additionalPrioritiesData && (
+        {!hasZeroFindings && additionalPrioritiesData && (
           <div className="nx-table-container__footer">
             <NxPagination
               aria-controls="pagination-table"

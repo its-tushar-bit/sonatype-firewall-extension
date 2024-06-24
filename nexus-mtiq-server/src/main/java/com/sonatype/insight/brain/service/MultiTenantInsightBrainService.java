@@ -366,6 +366,8 @@ public class MultiTenantInsightBrainService
 
         bind(UserDirectory.class).to(MultiTenantUserDirectory.class);
 
+        bind(InsightMail.class).to(MultiTenantInsightMail.class);
+
         bind(BranchMonitorExecutor.class).to(MultiTenantDefaultBranchMonitorExecutor.class);
 
         bind(SourceControlSshValidator.class).to(MtiqSourceControlSshValidator.class);

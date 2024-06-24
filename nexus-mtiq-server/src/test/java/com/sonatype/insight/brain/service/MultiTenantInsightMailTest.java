@@ -1,0 +1,98 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.service;
+
+import javax.mail.Message;
+import javax.mail.Session;
+
+import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
+import com.sonatype.insight.brain.model.configuration.MailConfiguration;
+import com.sonatype.insight.brain.security.PasswordHandler;
+
+import org.apache.commons.mail.EmailConstants;
+import org.junit.Before;
+import org.junit.Test;
+import org.jvnet.mock_javamail.Mailbox;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
+public class MultiTenantInsightMailTest
+    extends AbstractMultiTenantBaseIntegrationTest
+{
+  private PasswordHandler passwordHandler;
+
+  private MailConfigurationDAO mailConfigurationDAO;
+
+  private MultiTenantInsightMail underTest;
+
+  @Before
+  public void setup() {
+    passwordHandler = lookup(PasswordHandler.class);
+    mailConfigurationDAO = lookup(MailConfigurationDAO.class);
+    underTest = (MultiTenantInsightMail) getTestCLMServer().getCLMServer().getInstance(InsightMail.class);
+  }
+
+  @Test
+  public void testSendHtml_WhenExistsCustomMailConfigForTenant() throws Exception {
+    MailConfiguration mailConfiguration = new MailConfiguration();
+    mailConfiguration.setHostname("mail.example.com");
+    mailConfiguration.setPort(12345);
+    mailConfiguration.setUsername("testUsername");
+    mailConfiguration.setPassword(passwordHandler.encryptPassword("testPassword".toCharArray()));
+    mailConfiguration.setSystemEmail("noreply@example.com");
+
+    mailConfigurationDAO.set(mailConfiguration);
+
+    testSendHtml_MailConfigured(mailConfiguration);
+  }
+
+  @Test
+  public void testSendHtml_WhenOnlyExistsGlobalMailConfig() throws Exception {
+    MailConfiguration mailConfiguration = new MailConfiguration();
+    mailConfiguration.setHostname("mailglobal.example.com");
+    mailConfiguration.setPort(123);
+    mailConfiguration.setUsername("testUsername");
+    // encrypted using the global key
+    mailConfiguration.setPassword("{NB6WQZFvc2sHa5txZFGh9zlWrRkPVA1NyNLsu0BAoJs=}".toCharArray());
+    mailConfiguration.setSystemEmail("noreplyglobal@example.com");
+    testAsGlobal(g -> mailConfigurationDAO.set(mailConfiguration));
+
+    try {
+      testSendHtml_MailConfigured(mailConfiguration);
+    }
+    finally {
+      testAsGlobal(g -> mailConfigurationDAO.delete());
+    }
+  }
+
+  @Test
+  public void testSendHtml_MailConfigurationNull() {
+    assertThatExceptionOfType(IllegalStateException.class)
+        .isThrownBy(
+            () -> underTest.sendHtml("testuser@example.com", "testSubject", "testMessage"))
+        .withMessage("Mail is not configured.");
+  }
+
+  private void testSendHtml_MailConfigured(MailConfiguration mailConfiguration) throws Exception {
+    String toEmailAddress = "testuser@example.com";
+    Mailbox.clearAll();
+    Mailbox emails = Mailbox.get(toEmailAddress);
+
+    String subject = "testSubject";
+    String message = "testMessage";
+    underTest.sendHtml(toEmailAddress, subject, message);
+
+    assertThat(emails).hasSize(1);
+    Message email = emails.get(0);
+
+    // Assert mail server
+    Session session = email.getSession();
+    assertThat(session.getProperties())
+        .containsEntry(EmailConstants.MAIL_HOST, mailConfiguration.getHostname())
+        .containsEntry(EmailConstants.MAIL_PORT, String.valueOf(mailConfiguration.getPort()));
+  }
+}

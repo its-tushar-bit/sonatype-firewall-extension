@@ -34,7 +34,7 @@ public class InsightMail
 
   private final PasswordHandler passwordHandler;
 
-  private final MailConfigurationDAO mailConfigurationDAO;
+  protected final MailConfigurationDAO mailConfigurationDAO;
 
   @Inject
   public InsightMail(

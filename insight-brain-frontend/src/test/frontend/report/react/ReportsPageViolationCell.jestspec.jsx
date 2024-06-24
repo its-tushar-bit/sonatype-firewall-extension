@@ -177,7 +177,7 @@ describe('ReportsPageViolationCell', () => {
     const viewPriorities = screen.getByRole('link', { name: /priorities/i });
     expect(viewPriorities).toBeVisible();
     fireEvent.click(viewPriorities);
-    expect(hrefUiRouterStateSpy).toHaveBeenCalledWith('prioritiesPage', {
+    expect(hrefUiRouterStateSpy).toHaveBeenCalledWith('prioritiesPageFromReports', {
       publicAppId: 'CDPAPPGO',
       scanId: '4d8ad4f41b7d46a79d95e1359d40b861',
     });

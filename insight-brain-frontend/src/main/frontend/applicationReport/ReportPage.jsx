@@ -27,7 +27,11 @@ import {
   selectHasUnscannedComponents,
   selectIsPolicyTypeFilterEnabled,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
-import { selectRouterCurrentParams, selectIsPrioritiesPageContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectRouterCurrentParams,
+  selectIsPrioritiesPageContainer,
+  selectPrioritiesPageName,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsDeveloperDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as applicationReportActions from './applicationReportActions';
 import { selectSelectedReport } from './applicationReportSelectors';
@@ -144,9 +148,11 @@ export default function ReportPage() {
 function BackButton() {
   const uiRouterState = useRouterState();
   const isPrioritiesPageContainer = useSelector(selectIsPrioritiesPageContainer);
+  const prioritiesPageName = useSelector(selectPrioritiesPageName);
+
   const { publicId, scanId } = useSelector(selectRouterCurrentParams);
   if (isPrioritiesPageContainer) {
-    const prioritiesPageHref = uiRouterState.href('prioritiesPage', {
+    const prioritiesPageHref = uiRouterState.href(prioritiesPageName, {
       scanId: scanId,
       publicAppId: publicId,
     });

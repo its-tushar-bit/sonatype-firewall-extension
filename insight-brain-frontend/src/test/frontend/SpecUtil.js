@@ -555,3 +555,15 @@ export function mockInterceptionObserver() {
   window.IntersectionObserver = IntersectionObserver;
   global.IntersectionObserver = IntersectionObserver;
 }
+
+export const setupPortalContainer = () => {
+  const backButtonRoot = global.document.createElement('div');
+  backButtonRoot.setAttribute('id', 'menu-bar__back-button-container');
+  const body = global.document.querySelector('body');
+  body.appendChild(backButtonRoot);
+};
+
+export const removePortalContainer = () => {
+  const backButtonRoot = global.document.querySelector('#menu-bar__back-button-container');
+  backButtonRoot && backButtonRoot.remove();
+};

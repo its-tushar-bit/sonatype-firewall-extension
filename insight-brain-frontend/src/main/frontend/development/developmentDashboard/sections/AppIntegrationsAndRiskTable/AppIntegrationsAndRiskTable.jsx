@@ -283,7 +283,7 @@ function PrioritiesReportCell(props) {
     return <span>N/A</span>;
   }
 
-  const prioritiesHref = uiRouterState.href('prioritiesPage', {
+  const prioritiesHref = uiRouterState.href('prioritiesPageFromDashboard', {
     publicAppId: applicationPublicId,
     scanId: lastScanId,
   });

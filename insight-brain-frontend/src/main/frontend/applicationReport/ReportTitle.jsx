@@ -19,7 +19,12 @@ import {
 import faFilterList from '../../frontend/img/icon-filter-list.svg';
 
 import { selectApplicationReportMetaData, selectSelectedReport } from './applicationReportSelectors';
-import { selectRouterCurrentParams, selectIsPrioritiesPageContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectRouterCurrentParams,
+  selectIsPrioritiesPageContainer,
+  selectPrioritiesPageContainerName,
+  selectPrioritiesPageName,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsDeveloperDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { reevaluateReport as reevaluateR } from './applicationReportActions';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
@@ -54,17 +59,21 @@ export default function ReportTitle() {
   const pdfUrl = getDownloadPdfUrl(publicId, scanId);
   const sbomUrl = getExportCycloneDxUrl(metadataDetails.application.id, scanId);
   const spdxUrl = getExportSpdxUrl(metadataDetails.application.id, scanId);
-  const prioritiesUrl = uiRouterState.href('prioritiesPage', {
-    publicAppId: publicId,
-    scanId: scanId,
-  });
+  const prioritiesPageContainerName = useSelector(selectPrioritiesPageContainerName);
+  const prioritiesPageName = useSelector(selectPrioritiesPageName);
+
+  const prioritiesUrl = uiRouterState.href(
+    isPrioritiesPageContainer ? prioritiesPageName : 'prioritiesPageFromAppReport',
+    { publicAppId: publicId, scanId }
+  );
+
   const rawDataUrl = uiRouterState.href(
-    isPrioritiesPageContainer ? 'prioritiesPageContainer.rawData' : 'applicationReport.rawData',
+    isPrioritiesPageContainer ? `${prioritiesPageContainerName}.rawData` : 'applicationReport.rawData',
     { publicId, scanId }
   );
   const legacyReportUrl = uiRouterState.href('report', { publicId, scanId });
   const vulnerabilitiesUrl = uiRouterState.href(
-    isPrioritiesPageContainer ? 'prioritiesPageContainer.vulnerabilities' : 'applicationReport.vulnerabilities',
+    isPrioritiesPageContainer ? `${prioritiesPageContainerName}.vulnerabilities` : 'applicationReport.vulnerabilities',
     { publicId, scanId }
   );
   const vulnerabilitiesPageDisable = selectedReport && selectedReport.reportVersion < 5 ? true : false;

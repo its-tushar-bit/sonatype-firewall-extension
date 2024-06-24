@@ -63,7 +63,7 @@ const ReportsPageViolationCell = ({ stage, app, hrefUiRouterState, isDeveloperDa
             <NxTextLink
               id="iq-developer-priorities-link-from-reports-pag"
               data-analytics-id="iq-developer-priorities-link-from-reports-page"
-              href={hrefUiRouterState('prioritiesPage', {
+              href={hrefUiRouterState('prioritiesPageFromReports', {
                 publicAppId,
                 scanId: evaluation.scanId,
               })}

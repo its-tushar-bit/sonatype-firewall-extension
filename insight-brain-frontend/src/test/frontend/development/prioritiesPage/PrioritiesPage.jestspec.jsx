@@ -5,7 +5,14 @@
  */
 
 import React from 'react';
-import { render, screen, axiosMockAdapter, fireEvent } from 'TestRoot/SpecUtil';
+import {
+  render,
+  screen,
+  axiosMockAdapter,
+  fireEvent,
+  setupPortalContainer,
+  removePortalContainer,
+} from 'TestRoot/SpecUtil';
 import PrioritiesPage from 'MainRoot/development/prioritiesPage/PrioritiesPage';
 
 import * as ProductFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
@@ -15,12 +22,13 @@ import { metadata } from 'TestRoot/componentDetails/data';
 import { getReportMetadataUrl } from 'MainRoot/util/CLMLocation';
 
 import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
+import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 
 const publicAppId = 'testPublicAppId';
 const scanId = 'testScanId';
 
 describe('PrioritiesPage', () => {
-  let renderComponent, selectIsDeveloperDashboardEnabled, axiosMock, stateGoSpy;
+  let renderComponent, selectIsDeveloperDashboardEnabled, axiosMock, stateGoSpy, hrefSpy;
 
   const defaultPreloadedState = {
     router: {
@@ -44,6 +52,10 @@ describe('PrioritiesPage', () => {
     axiosMock.onGet(getReportMetadataUrl(publicAppId, scanId)).reply(200, metadata);
 
     stateGoSpy = jest.spyOn(RouterActions, 'stateGo');
+
+    hrefSpy = jest.fn('href').mockImplementation((stateName) => stateName);
+    const routerContextMock = { href: hrefSpy };
+    jest.spyOn(routerStateContext, 'useRouterState').mockReturnValue(routerContextMock);
   });
 
   it('renders an alert in place of content given the feature is not enabled for the license', async () => {
@@ -77,12 +89,120 @@ describe('PrioritiesPage', () => {
 
     const viewFullReportBtn = await screen.findByRole('button', { name: /view full report/i });
     expect(viewFullReportBtn).toBeInTheDocument();
+  });
 
-    fireEvent.click(viewFullReportBtn);
+  describe('when priorities page is navigated from Reports page', () => {
+    const preloadedState = {
+      router: {
+        currentParams: {
+          publicAppId,
+          scanId,
+        },
+        currentState: {
+          name: 'prioritiesPageFromReports',
+        },
+      },
+    };
 
-    expect(stateGoSpy).toHaveBeenCalledWith('prioritiesPageContainer.policy', {
-      publicId: publicAppId,
-      scanId,
+    it('view full report button navigates to URL based on correct stateName', async () => {
+      renderComponent(preloadedState);
+      const viewFullReportBtn = await screen.findByRole('button', { name: /view full report/i });
+      expect(viewFullReportBtn).toBeInTheDocument();
+
+      fireEvent.click(viewFullReportBtn);
+
+      expect(stateGoSpy).toHaveBeenCalledWith('appReportPageWithinPrioritiesPageContainerFromReports.policy', {
+        publicId: publicAppId,
+        scanId,
+      });
+    });
+
+    it('back button navigates back to Reports Page', async () => {
+      setupPortalContainer();
+      renderComponent(preloadedState);
+
+      const backBtn = await screen.findByRole('link', { name: /back to reports/i });
+      expect(backBtn).toBeInTheDocument();
+      expect(backBtn).toHaveAttribute('href', 'violations');
+
+      removePortalContainer();
+    });
+  });
+
+  describe('when priorities page is navigated from App Report page', () => {
+    const preloadedState = {
+      router: {
+        currentParams: {
+          publicAppId,
+          scanId,
+        },
+        currentState: {
+          name: 'prioritiesPageFromAppReport',
+        },
+      },
+    };
+
+    it('view full report button navigates to URL based on correct stateName', async () => {
+      renderComponent(preloadedState);
+
+      const viewFullReportBtn = await screen.findByRole('button', { name: /view full report/i });
+      expect(viewFullReportBtn).toBeInTheDocument();
+
+      fireEvent.click(viewFullReportBtn);
+
+      expect(stateGoSpy).toHaveBeenCalledWith('appReportPageWithinPrioritiesPageContainerFromAppReport.policy', {
+        publicId: publicAppId,
+        scanId,
+      });
+    });
+
+    it('back button navigates back to App Reports Page', async () => {
+      setupPortalContainer();
+      renderComponent(preloadedState);
+
+      const backBtn = await screen.findByRole('link', { name: /back to application report/i });
+      expect(backBtn).toBeInTheDocument();
+      expect(backBtn).toHaveAttribute('href', 'applicationReport.policy');
+
+      removePortalContainer();
+    });
+  });
+
+  describe('when priorities page is navigated from Developer Dashboard', () => {
+    const preloadedState = {
+      router: {
+        currentParams: {
+          publicAppId,
+          scanId,
+        },
+        currentState: {
+          name: 'prioritiesPageFromDashboard',
+        },
+      },
+    };
+
+    it('view full report button navigates to URL based on correct stateName', async () => {
+      renderComponent(preloadedState);
+      const viewFullReportBtn = await screen.findByRole('button', { name: /view full report/i });
+      expect(viewFullReportBtn).toBeInTheDocument();
+
+      fireEvent.click(viewFullReportBtn);
+
+      expect(stateGoSpy).toHaveBeenCalledWith('appReportPageWithinPrioritiesPageContainerFromDashboard.policy', {
+        publicId: publicAppId,
+        scanId,
+      });
+    });
+
+    it('back button navigates back to Developer Dashboard', async () => {
+      setupPortalContainer();
+      renderComponent(preloadedState);
+
+      const backBtn = await screen.findByRole('link', { name: /back to developer dashboard/i });
+      expect(backBtn).toBeInTheDocument();
+      expect(backBtn).toHaveAttribute('href', 'integrations');
+
+      removePortalContainer();
     });
   });
 });

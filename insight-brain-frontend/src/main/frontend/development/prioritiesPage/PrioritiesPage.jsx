@@ -18,10 +18,45 @@ import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelector
 import { actions } from 'MainRoot/development/prioritiesPage/slices/prioritiesPageSlice';
 import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import { selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function PrioritiesPage() {
+  const currentRouteName = useSelector(selectCurrentRouteName);
+  const uiRouterState = useRouterState();
+  const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
+
+  const getHref = () => {
+    if (currentRouteName === 'prioritiesPageFromDashboard') {
+      return {
+        href: uiRouterState.href('integrations'),
+        text: 'Back to Developer Dashboard',
+      };
+    } else if (currentRouteName === 'prioritiesPageFromReports') {
+      return {
+        href: uiRouterState.href('violations'),
+        text: 'Back to Reports',
+      };
+    } else if (currentRouteName === 'prioritiesPageFromAppReport') {
+      return {
+        href: uiRouterState.href('applicationReport.policy', {
+          publicId: publicAppId,
+          scanId,
+        }),
+        text: 'Back to Application Report',
+      };
+    }
+    return {
+      href: uiRouterState.href('violations'),
+      text: 'Back to Reports',
+    };
+  };
+
+  const { href, text } = getHref();
   return (
     <NxPageMain className="iq-priorities-page">
+      <MenuBarBackButton href={href} text={text} />
       <PageContents />
     </NxPageMain>
   );
@@ -44,8 +79,19 @@ function PrioritiesPageContents() {
   const dispatch = useDispatch();
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
   const { loadingMetadata, loadErrorMetadata, metadata } = useSelector(selectPrioritiesPageSlice);
+  const currentRouteName = useSelector(selectCurrentRouteName);
 
-  const goToFullReport = () => dispatch(stateGo('prioritiesPageContainer.policy', { scanId, publicId: publicAppId }));
+  const getPrioritiesPageStateName = () => {
+    if (currentRouteName === 'prioritiesPageFromReports') {
+      return 'appReportPageWithinPrioritiesPageContainerFromReports.policy';
+    } else if (currentRouteName === 'prioritiesPageFromDashboard') {
+      return 'appReportPageWithinPrioritiesPageContainerFromDashboard.policy';
+    } else if (currentRouteName === 'prioritiesPageFromAppReport') {
+      return 'appReportPageWithinPrioritiesPageContainerFromAppReport.policy';
+    }
+  };
+
+  const goToFullReport = () => dispatch(stateGo(getPrioritiesPageStateName(), { scanId, publicId: publicAppId }));
 
   const doLoad = () => {
     dispatch(actions.loadMetadata());

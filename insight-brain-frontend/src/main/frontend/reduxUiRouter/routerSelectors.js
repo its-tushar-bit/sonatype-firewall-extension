@@ -43,7 +43,7 @@ const nameIncludesLicenseThreatGroup = includesNamePart('licenseThreatGroup');
 const nameIncludesSourceControl = includesNamePart('source-control');
 const nameIncludesOnboarding = includesNamePart('onboarding');
 const nameIncludesAccess = includesNamePart('access');
-const nameIncludesPrioritiesPageContainer = includesNamePart('prioritiesPageContainer');
+const nameIncludesPrioritiesPageContainer = includesNamePart('PageWithinPrioritiesPageContainer');
 
 export const selectIsOrganization = createSelector(selectCurrentRouteName, nameIncludesOrganization);
 export const selectIsTransitiveViolations = createSelector(selectCurrentRouteName, nameIncludesTransitiveViolations);
@@ -69,6 +69,33 @@ export const selectIsPrioritiesPageContainer = createSelector(
   selectCurrentRouteName,
   nameIncludesPrioritiesPageContainer
 );
+export const selectPrioritiesPageContainerName = createSelector(
+  selectIsPrioritiesPageContainer,
+  selectCurrentRouteName,
+  (isPrioritiesPageContainer, currentRouteName) => {
+    if (isPrioritiesPageContainer) {
+      return currentRouteName.split('.')[0];
+    }
+  }
+);
+export const selectPrioritiesPageName = createSelector(
+  selectIsPrioritiesPageContainer,
+  selectCurrentRouteName,
+  (isPrioritiesPageContainer, currentRouteName) => {
+    if (isPrioritiesPageContainer) {
+      const prioritiesPageContainerName = currentRouteName.split('.')[0];
+      if (prioritiesPageContainerName === 'appReportPageWithinPrioritiesPageContainerFromDashboard') {
+        return 'prioritiesPageFromDashboard';
+      } else if (prioritiesPageContainerName === 'appReportPageWithinPrioritiesPageContainerFromReports') {
+        return 'prioritiesPageFromReports';
+      } else if (prioritiesPageContainerName === 'appReportPageWithinPrioritiesPageContainerFromAppReport') {
+        return 'prioritiesPageFromAppReport';
+      }
+    }
+    return '';
+  }
+);
+
 // we can access to component details page from application report but also from firewall or repository results view,
 // so this is used to find out if the route is a firewall route or repository route
 export const selectIsFirewallOrRepository = createSelector(

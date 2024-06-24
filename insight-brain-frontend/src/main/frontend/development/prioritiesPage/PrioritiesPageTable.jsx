@@ -18,7 +18,7 @@ import PrioritiesPageRow from 'MainRoot/development/prioritiesPage/PrioritiesPag
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { selectComponent } from 'MainRoot/applicationReport/applicationReportActions';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectRouterCurrentParams, selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions } from 'MainRoot/development/prioritiesPage/slices/prioritiesPageSlice';
 import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
@@ -36,9 +36,13 @@ export default function PrioritiesPageTable() {
     additionalPrioritiesData,
     page,
     pageCount,
+    metadata,
   } = useSelector(selectPrioritiesPageSlice);
   const currentPage = pageCount && pageCount > 0 ? page - 1 : null;
   const isFirstPage = page === 1;
+
+  const storedPublicId = metadata.application.publicId;
+  const { publicAppId } = useSelector(selectRouterCurrentParams);
 
   const getTopPrioritiesLabel = () => {
     if (topPrioritiesData.length === 1) {
@@ -52,6 +56,10 @@ export default function PrioritiesPageTable() {
   const setPage = (page) => dispatch(actions.setPage(page));
 
   useEffect(() => {
+    //If page is viewed for a different application, reset pagination
+    if (publicAppId !== storedPublicId) {
+      setPage(0);
+    }
     doLoad();
   }, [page]);
 
@@ -123,8 +131,23 @@ function DataRows({ dataset }) {
   const dispatch = useDispatch();
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
   const setSelectedComponent = (idx) => dispatch(selectComponent(idx));
+  const currentRouteName = useSelector(selectCurrentRouteName);
+
+  const getCurrentPrioritiesContainer = () => {
+    if (currentRouteName === 'prioritiesPageFromDashboard') {
+      return 'appReportPageWithinPrioritiesPageContainerFromDashboard';
+    } else if (currentRouteName === 'prioritiesPageFromReports') {
+      return 'appReportPageWithinPrioritiesPageContainerFromReports';
+    } else if (currentRouteName === 'prioritiesPageFromAppReport') {
+      return 'appReportPageWithinPrioritiesPageContainerFromAppReport';
+    }
+    return 'prioritiesPageContainer';
+  };
+
+  const prioritiesState = `${getCurrentPrioritiesContainer()}.componentDetails.overview`;
+
   const dispatchComponentDetailsPage = (hash) =>
-    dispatch(stateGo('prioritiesPageContainer.componentDetails.overview', { hash, publicId: publicAppId, scanId }));
+    dispatch(stateGo(prioritiesState, { hash, publicId: publicAppId, scanId }));
   if (!dataset) return [];
 
   return dataset.map((component, index) => {

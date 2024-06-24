@@ -177,10 +177,17 @@ const setPage = (state, { payload }) => {
   };
 };
 
+const resetState = (state) => {
+  return {
+    ...state,
+    recommendations: {},
+  };
+};
+
 const prioritiesPageSlice = createSlice({
   name: PRIORITIES_PAGE_REDUCER_NAME,
   initialState: initialState(),
-  reducers: { resetState: () => initialState(), setPage },
+  reducers: { resetState, setPage },
   extraReducers: {
     [loadTableData.pending]: loadTableDataRequested,
     [loadTableData.fulfilled]: loadTableDataFulfilled,

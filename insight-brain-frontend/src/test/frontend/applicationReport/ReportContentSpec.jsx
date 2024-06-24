@@ -196,16 +196,22 @@ describe('ReportContent component', function () {
     describe('when page is navigated from the priorities page', () => {
       it('navigates with the prioritiesPageContainer state', () => {
         spyOn(routerSelectors, 'selectIsPrioritiesPageContainer').and.returnValue(true);
+        spyOn(routerSelectors, 'selectPrioritiesPageContainerName').and.returnValue(
+          'appReportPageWithinPrioritiesPageContainerFromReports'
+        );
         renderComponent();
 
         const firstComponentRow = screen.getAllByRole('row')[2];
         fireEvent.click(firstComponentRow);
 
-        expect(stateGoSpy).toHaveBeenCalledWith('prioritiesPageContainer.componentDetailsFromReport.overview', {
-          publicId: routerCurrentParams.publicId,
-          scanId: routerCurrentParams.scanId,
-          hash: 'hash1',
-        });
+        expect(stateGoSpy).toHaveBeenCalledWith(
+          'appReportPageWithinPrioritiesPageContainerFromReports.componentDetailsFromReport.overview',
+          {
+            publicId: routerCurrentParams.publicId,
+            scanId: routerCurrentParams.scanId,
+            hash: 'hash1',
+          }
+        );
       });
     });
   });

@@ -25,7 +25,11 @@ import {
   getReportSecurityUrl,
   getReportUnknownJsUrl,
 } from '../util/CLMLocation';
-import { selectRouterCurrentParams, selectIsPrioritiesPageContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectRouterCurrentParams,
+  selectIsPrioritiesPageContainer,
+  selectPrioritiesPageContainerName,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectSelectedReport, selectReportParameters } from './applicationReportSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 
@@ -394,9 +398,10 @@ export const goToDependencyTreePage = (hash) => {
   return (dispatch, getState) => {
     const { publicId, scanId } = selectRouterCurrentParams(getState());
     const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(getState());
+    const prioritiesPageContainerName = selectPrioritiesPageContainerName(getState());
 
     if (isPrioritiesPageContainer) {
-      dispatch(stateGo('prioritiesPageContainer.dependencyTree', { hash, publicId, scanId }));
+      dispatch(stateGo(`${prioritiesPageContainerName}.dependencyTree`, { hash, publicId, scanId }));
     } else {
       dispatch(stateGo('applicationReport.dependencyTree', { hash, publicId, scanId }));
     }
@@ -407,9 +412,12 @@ export const goToComponentDetailsPage = (hash) => {
   return (dispatch, getState) => {
     const { publicId, scanId } = selectRouterCurrentParams(getState());
     const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(getState());
+    const prioritiesPageContainerName = selectPrioritiesPageContainerName(getState());
 
     if (isPrioritiesPageContainer) {
-      dispatch(stateGo('prioritiesPageContainer.componentDetailsFromReport.overview', { hash, publicId, scanId }));
+      dispatch(
+        stateGo(`${prioritiesPageContainerName}.componentDetailsFromReport.overview`, { hash, publicId, scanId })
+      );
     } else {
       dispatch(stateGo('applicationReport.componentDetails', { hash, publicId, scanId }));
     }

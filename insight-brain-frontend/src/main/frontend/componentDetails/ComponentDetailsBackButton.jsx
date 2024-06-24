@@ -12,6 +12,8 @@ import { useSelector } from 'react-redux';
 import {
   selectRouterCurrentParams,
   selectIsPrioritiesPageContainer,
+  selectPrioritiesPageContainerName,
+  selectPrioritiesPageName,
   selectCurrentRouteName,
 } from '../reduxUiRouter/routerSelectors';
 
@@ -20,32 +22,36 @@ export default function ComponentDetailsBackButton(props) {
   const dependencyTreePropsPresent = scanId && publicId;
 
   const isPrioritiesPageContainer = useSelector(selectIsPrioritiesPageContainer);
+  const prioritiesPageContainerName = useSelector(selectPrioritiesPageContainerName);
+  const prioritiesPageName = useSelector(selectPrioritiesPageName);
   const currentParams = useSelector(selectRouterCurrentParams);
   const currentRouteName = useSelector(selectCurrentRouteName);
   const uiRouterState = useRouterState();
 
-  if (!dependencyTreePropsPresent) {
-    if (isPrioritiesPageContainer) {
-      if (currentRouteName.includes('componentDetailsFromReport')) {
-        const prioritiesPageHref = uiRouterState.href('prioritiesPageContainer.policy', {
-          scanId: currentParams.scanId,
-          publicId: currentParams.publicId,
-        });
-        return <MenuBarBackButton href={prioritiesPageHref} text="Back to Application Report" />;
-      }
-      const prioritiesPageHref = uiRouterState.href('prioritiesPage', {
-        scanId: currentParams.scanId,
-        publicAppId: currentParams.publicId,
-      });
-      return <MenuBarBackButton href={prioritiesPageHref} text="Back to Priorities" />;
-    }
-    return <MenuBarBackButton stateName="applicationReport.policy" />;
+  if (dependencyTreePropsPresent) {
+    const text = 'Back To Dependency Tree';
+    const href = useRouterState().href('applicationReport.dependencyTree', { scanId, publicId });
+
+    return <MenuBarBackButton text={text} href={href} />;
   }
 
-  const text = 'Back To Dependency Tree';
-  const href = useRouterState().href('applicationReport.dependencyTree', { scanId, publicId });
+  if (isPrioritiesPageContainer) {
+    if (currentRouteName.includes('componentDetailsFromReport')) {
+      const href = uiRouterState.href(`${prioritiesPageContainerName}.policy`, {
+        scanId: currentParams.scanId,
+        publicId: currentParams.publicId,
+      });
+      return <MenuBarBackButton href={href} text="Back to Application Report" />;
+    }
 
-  return <MenuBarBackButton text={text} href={href} />;
+    const href = uiRouterState.href(prioritiesPageName, {
+      scanId: currentParams.scanId,
+      publicAppId: currentParams.publicId,
+    });
+    return <MenuBarBackButton href={href} text="Back to Priorities" />;
+  }
+
+  return <MenuBarBackButton stateName="applicationReport.policy" />;
 }
 
 ComponentDetailsBackButton.propTypes = {

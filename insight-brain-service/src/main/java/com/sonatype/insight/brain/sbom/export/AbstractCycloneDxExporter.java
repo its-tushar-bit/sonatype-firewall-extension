@@ -91,7 +91,16 @@ public abstract class AbstractCycloneDxExporter
     bom.setMetadata(generateNewBomMetadata());
     List<ThirdPartyFileCoordinate> sonatypeComponents = thirdPartyFileCoordinateDAO.getByThirdPartyFileId(
         exportParams.sbomMetadata.getThirdPartyFileId());
-    List<Vulnerability> bomVulnerabilitiesList = bom.getVulnerabilities();
+
+    List<Vulnerability> bomVulnerabilitiesList;
+
+    if (CollectionUtils.isEmpty(bom.getVulnerabilities())) {
+      bomVulnerabilitiesList = new ArrayList<>();
+      bom.setVulnerabilities(bomVulnerabilitiesList);
+    }
+    else {
+      bomVulnerabilitiesList = bom.getVulnerabilities();
+    }
 
     if (sonatypeComponents != null) {
       for (ThirdPartyFileCoordinate sonatypeComponent : sonatypeComponents) {
@@ -107,7 +116,6 @@ public abstract class AbstractCycloneDxExporter
 
           // Merge sonatype vulnerabilities into bom
           mergeSonatypeDataVulnerabilities(bomComponent, sonatypeComponentVulnerabilities, bomVulnerabilitiesList);
-
           // If no new licenses were recovered from db, skip merge process (left current licenses unaltered)
           if (sonatypeComponentLicenses == null) {
             continue;
@@ -131,10 +139,7 @@ public abstract class AbstractCycloneDxExporter
 
       Optional<Vulnerability> vulnerabilityFromBom = Optional.empty();
 
-      if (bomVulnerabilities == null) {
-        bomVulnerabilities = new ArrayList<>();
-      }
-      else {
+      if (bomVulnerabilities != null) {
         vulnerabilityFromBom = bomVulnerabilities.stream()
             .filter((Vulnerability bomVulnerability) -> bomVulnerability.getId()
                 .equals(sonatypeVulnerability.getRefId())).findAny();

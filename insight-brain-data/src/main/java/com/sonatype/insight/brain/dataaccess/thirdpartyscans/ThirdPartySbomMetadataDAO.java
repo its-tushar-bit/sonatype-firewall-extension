@@ -157,15 +157,14 @@ public class ThirdPartySbomMetadataDAO
         "       COUNT(DISTINCT CASE WHEN (sm.created_at >= ?2 OR ve.created_at >= ?2 OR ve.updated_at >= ?2)" +
         " THEN sm.application_id END) AS last_month," + //
         "       COUNT(DISTINCT CASE WHEN (sm.created_at >= ?3 OR ve.created_at >= ?3 OR ve.updated_at >= ?3)" +
-        " THEN sm.application_id END) AS last_week" + //
-        " FROM " + databaseSchema + ".sbom_metadata sm" + //
-        "   LEFT JOIN " + databaseSchema + ".file_coordinate fc" + //
-        "     ON fc.third_party_file_id = sm.third_party_file_id" + //
-        "   LEFT JOIN " + databaseSchema + ".coordinate_security cs" + //
-        "     ON cs.file_coordinate_id = fc.file_coordinate_id" + //
-        "   LEFT JOIN " + databaseSchema + ".vulnerability_exploitability ve" + //
-        "     ON cs.coordinate_security_id = ve.coordinate_security_id" + //
-        " WHERE sm.status = ?4";
+        " THEN sm.application_id END) AS last_week " + //
+        "FROM " +
+        "  " + databaseSchema + ".vulnerability_exploitability ve " +
+        "  INNER JOIN " + databaseSchema + ".coordinate_security cs " +
+        "    ON cs.coordinate_security_id = ve.coordinate_security_id " +
+        "  INNER JOIN " + databaseSchema + ".file_coordinate fc ON cs.file_coordinate_id = fc.file_coordinate_id " +
+        "  RIGHT JOIN " + databaseSchema + ".sbom_metadata sm ON sm.third_party_file_id = fc.third_party_file_id " +
+        "WHERE sm.status = ?4";
 
     LocalDate now = LocalDate.now();
     LocalDate lastWeek = now.minusWeeks(1);

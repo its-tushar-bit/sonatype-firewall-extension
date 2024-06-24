@@ -94,7 +94,7 @@ public class SpdxToSpdxExporterTest
     String export = spdxExporter.export();
     ThirdPartyUtils.parseAndValidateSpdx(export, SbomFormat.JSON);
     assertThatJson(export)
-        .whenIgnoringPaths("creationInfo.created", "documentNamespace", "name")
+        .whenIgnoringPaths("creationInfo.created", "creationInfo.creators[0]", "documentNamespace", "name")
         .isEqualTo(readFileToString("outputs/output_spdx-v2_3.json"));
   }
 

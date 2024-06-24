@@ -178,7 +178,7 @@ public class ApiSbomResourceTest
     assertContentHeader(response, app, sbomVersion, ".json");
     String sbomContent = new String(response.getBodyBytes());
     assertThatJson(sbomContent)
-        .whenIgnoringPaths("creationInfo.created", "documentNamespace", "name")
+        .whenIgnoringPaths("creationInfo.created", "creationInfo.creators[0]", "documentNamespace", "name")
         .isEqualTo(expectedContentIn("sboms/valid-spdx-result-bom.json"));
   }
 

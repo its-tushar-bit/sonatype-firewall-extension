@@ -163,6 +163,10 @@ void configureBranchJob() {
 }
 
 void pushDockerImageIfDeployBranch() {
+    if (!currentBuild.fullProjectName.contains("snapshot")) {
+      echo 'Skipping build of docker image on release branch'
+      return
+    }
     def push = true
     // If the git repo branch name isn't main or the project name isn't snapshot, skip the image push.
     if (!isDeployBranch(env, 'main') || !currentBuild.fullProjectName.contains("snapshot")) {

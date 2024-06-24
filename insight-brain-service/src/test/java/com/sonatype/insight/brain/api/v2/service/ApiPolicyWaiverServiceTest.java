@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -1649,6 +1650,99 @@ public class ApiPolicyWaiverServiceTest
         policyViolation.getConstraintFactsJson(), EXACT_COMPONENT, componentPurl.getPackageUrl());
     assertTelemetry(OwnerType.APPLICATION, app.getId());
     assertWaiverTelemetry(OwnerType.APPLICATION, policyViolation, policyWaiverDAO.getByOwnerId(app.getId()).get(0));
+  }
+
+  @Test
+  public void testGetSimilarWaivers_null() {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
+        () -> apiPolicyWaiverService.getSimilarWaivers(null)
+    ).withMessageContaining("Could not find policy violation with ID null.");
+  }
+
+  @Test
+  public void testGetSimilarWaivers_AllFiltersValid() {
+    List<ConstraintFact> constraintFacts = new ArrayList<>(policyViolation.getConstraintFacts());
+    constraintFacts.add(new ConstraintFact("id", "Test Constraint 2", null));
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policyViolation.getHash(),
+        policyViolation.getPolicyId(),
+        policyViolation.getOwnerId(),
+        constraintFacts);
+
+    List<ApiPolicyWaiverDTO> similarWaivers = apiPolicyWaiverService.getSimilarWaivers(policyViolation.getId());
+
+    assertThat(similarWaivers).isNotEmpty();
+    assertThat(similarWaivers).hasSize(1);
+
+    assertWaivers(similarWaivers.get(0), policyWaiver, null, app);
+  }
+
+  @Test
+  public void testGetSimilarWaivers_AllFiltersValid_NoSecurityViolation() {
+    PolicyViolation policyViolation2 =
+            tempEntity.newPolicyViolation(policyEvaluation, policy, 0, PolicyThreatCategory.LICENSE);
+    List<ConstraintFact> constraintFacts = new ArrayList<>(policyViolation2.getConstraintFacts());
+    constraintFacts.add(new ConstraintFact("id", "Test Constraint 2", null));
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policyViolation2.getHash(),
+        policyViolation2.getPolicyId(),
+        policyViolation2.getOwnerId(),
+        constraintFacts);
+
+    List<ApiPolicyWaiverDTO> similarWaivers = apiPolicyWaiverService.getSimilarWaivers(policyViolation2.getId());
+
+    assertThat(similarWaivers).isNotEmpty();
+    assertThat(similarWaivers).hasSize(1);
+
+    assertWaivers(similarWaivers.get(0), policyWaiver, null, app);
+  }
+
+  @Test
+  public void testGetSimilarWaivers_NoViewPermissionOnWaiver() {
+    tempEntity.newWaiver(policyViolation.getHash(),
+            policyViolation.getPolicyId(),
+            "",
+            policyViolation.getConstraintFacts());
+
+    List<ApiPolicyWaiverDTO> similarWaivers = apiPolicyWaiverService.getSimilarWaivers(policyViolation.getId());
+
+    assertThat(similarWaivers).isEmpty();
+  }
+
+  @Test
+  public void testGetSimilarWaivers_IsAnApplicableWaiver() {
+    tempEntity.newWaiver(policyViolation.getHash(),
+            policyViolation.getPolicyId(),
+            policyViolation.getOwnerId(),
+            policyViolation.getConstraintFacts());
+
+    List<ApiPolicyWaiverDTO> similarWaivers = apiPolicyWaiverService.getSimilarWaivers(policyViolation.getId());
+
+    assertThat(similarWaivers).isEmpty();
+  }
+
+  @Test
+  public void testGetSimilarWaivers_WaiverDoesNotMatchComponent() {
+    List<ConstraintFact> constraintFacts = new ArrayList<>(policyViolation.getConstraintFacts());
+    constraintFacts.add(new ConstraintFact("id", "Test Constraint 2", null));
+    tempEntity.newWaiver("",
+            policyViolation.getPolicyId(),
+            policyViolation.getOwnerId(),
+            constraintFacts);
+
+    List<ApiPolicyWaiverDTO> similarWaivers = apiPolicyWaiverService.getSimilarWaivers(policyViolation.getId());
+
+    assertThat(similarWaivers).isEmpty();
+  }
+
+  @Test
+  public void testGetSimilarWaivers_VulnerabilityDoesNotMatch() {
+    tempEntity.newWaiver(policyViolation.getHash(),
+            policyViolation.getPolicyId(),
+            policyViolation.getOwnerId(),
+            Collections.singletonList(new ConstraintFact("id", "Test Constraint 2", null)));
+
+    List<ApiPolicyWaiverDTO> similarWaivers = apiPolicyWaiverService.getSimilarWaivers(policyViolation.getId());
+
+    assertThat(similarWaivers).isEmpty();
   }
 
   private void assertWaivers(ApiPolicyWaiverDTO savedWaiver, PolicyWaiver policyWaiver, Policy policy, Owner owner) {

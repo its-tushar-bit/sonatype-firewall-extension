@@ -4,11 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import reducer, { initState } from '../../../main/frontend/waivers/manageWaiversReducer';
-import {
-  WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED,
-  WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED,
-  WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED,
-} from '../../../main/frontend/waivers/waiverActions';
 import { UI_ROUTER_ON_FINISH } from '../../../main/frontend/reduxUiRouter/routerActions';
 
 describe('manageWaiversReducer', function () {
@@ -43,61 +38,6 @@ describe('manageWaiversReducer', function () {
       expect(() => {
         state.loading = true;
       }).toThrowError(TypeError);
-    });
-  });
-
-  describe('WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED action', function () {
-    it('sets loadingApplicableWaivers to true and loadApplicableWaiversError to null ', function () {
-      const state = {
-        loadingApplicableWaivers: false,
-        loadApplicableWaiversError: 'error',
-        otherProp: { prop: 'foo' },
-      };
-
-      const newState = reducer(state, {
-        type: WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED,
-      });
-
-      expect(newState.loadingApplicableWaivers).toBe(true);
-      expect(newState.loadApplicableWaiversError).toBeNull();
-      expect(newState.otherProp).toBe(state.otherProp);
-    });
-  });
-
-  describe('WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED action', function () {
-    it('sets loadingApplicableWaivers to false and loadApplicableWaiversError to null ', function () {
-      const state = {
-        loadingApplicableWaivers: true,
-        loadApplicableWaiversError: 'error',
-        otherProp: { prop: 'foo' },
-      };
-
-      const newState = reducer(state, {
-        type: WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED,
-      });
-
-      expect(newState.loadingApplicableWaivers).toBe(false);
-      expect(newState.loadApplicableWaiversError).toBeNull();
-      expect(newState.otherProp).toBe(state.otherProp);
-    });
-  });
-
-  describe('WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED action', function () {
-    it('sets loadingApplicableWaivers to false and loadApplicableWaiversError to null ', function () {
-      const state = {
-        loadingApplicableWaivers: true,
-        loadApplicableWaiversError: 'error',
-        otherProp: { prop: 'foo' },
-      };
-
-      const newState = reducer(state, {
-        type: WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED,
-        payload: 'load applicable waivers error',
-      });
-
-      expect(newState.loadingApplicableWaivers).toBe(false);
-      expect(newState.loadApplicableWaiversError).toBe('load applicable waivers error');
-      expect(newState.otherProp).toBe(state.otherProp);
     });
   });
 

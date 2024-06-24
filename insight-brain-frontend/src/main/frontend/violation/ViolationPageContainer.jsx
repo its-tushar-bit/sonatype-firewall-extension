@@ -6,7 +6,12 @@
 import { connect } from 'react-redux';
 import { pick } from 'ramda';
 
-import { loadViolation, loadVulnerabilityDetails, loadFirewallPolicyVulnerabilityDetails } from './violationActions';
+import {
+  loadViolation,
+  loadVulnerabilityDetails,
+  loadFirewallPolicyVulnerabilityDetails,
+  setFilterIdsSimilarWaivers,
+} from './violationActions';
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { fetchStageTypes } from '../stages/stagesActions';
 import ViolationPage from './ViolationPage';
@@ -15,7 +20,6 @@ import {
   selectSelectedViolationId,
 } from '../componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 import { loadFirewallViolationDetails } from '../firewall/firewallActions';
-import { loadApplicableWaivers } from 'MainRoot/waivers/waiverActions';
 import { selectComponentDetails } from 'MainRoot/componentDetails/componentDetailsSelectors';
 import {
   selectIsFirewall,
@@ -72,6 +76,7 @@ function mapStateToProps(state, props) {
         'addWaiverPermissionError',
         'hasPermissionForAppWaivers',
         'isVulnerabilityDetailsOutdated',
+        'similarWaiversFilterSelectedIds',
       ],
       violation
     ),
@@ -104,7 +109,7 @@ const mapDispatchToProps = {
   fetchStageTypes,
   stateGo,
   loadFirewallViolationDetails: loadFirewallViolationDetails,
-  loadApplicableWaivers: loadApplicableWaivers,
+  setFilterIdsSimilarWaivers,
   setSelectPolicyViolation: actions.setSelectedPolicyViolation,
 };
 

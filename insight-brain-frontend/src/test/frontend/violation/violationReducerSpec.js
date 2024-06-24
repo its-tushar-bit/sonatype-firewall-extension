@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import reducer from '../../../main/frontend/violation/violationReducer';
+import { clone } from 'ramda';
 
 describe('violationReducer', function () {
   describe('unknown action', function () {
@@ -81,9 +82,11 @@ describe('violationReducer', function () {
         otherProp: 'asdf',
         activeWaivers: [123],
         expiredWaivers: [321],
+        similarWaivers: [],
         hasPermissionForAppWaivers: false,
         hasEditIqPermission: false,
         isVulnerabilityDetailsOutdated: false,
+        similarWaiversFilterSelectedIds: new Set([]),
       };
 
       const newState = reducer(initialState, {
@@ -99,10 +102,14 @@ describe('violationReducer', function () {
         vulnerabilityDetailsError: null,
         activeWaivers: [],
         expiredWaivers: [],
+        similarWaivers: [],
         selectedViolationId: null,
         hasPermissionForAppWaivers: false,
         hasEditIqPermission: false,
         isVulnerabilityDetailsOutdated: false,
+        similarWaiversFilterSelectedIds: new Set([]),
+        loadingApplicableWaivers: false,
+        loadApplicableWaiversError: null,
       });
     });
   });
@@ -290,6 +297,8 @@ describe('violationReducer', function () {
     it('sets the waivers in the state', function () {
       const state = {
         loading: true,
+        loadingApplicableWaivers: true,
+        loadApplicableWaiversError: 'error',
         otherProp: { prop: 'foo' },
       };
 
@@ -304,6 +313,121 @@ describe('violationReducer', function () {
       expect(newState.activeWaivers).toEqual(['foo']);
       expect(newState.expiredWaivers).toEqual(['bar']);
       expect(newState.loading).toBe(true);
+      expect(newState.loadingApplicableWaivers).toBe(false);
+      expect(newState.loadApplicableWaiversError).toBe(null);
+      expect(newState.otherProp).toBe(state.otherProp);
+    });
+  });
+
+  describe('VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED', function () {
+    it('sets error and loading states for applicable waivers', function () {
+      const state = {
+        loadingApplicableWaivers: false,
+        loadApplicableWaiversError: 'error',
+        otherProp: { prop: 'foo' },
+      };
+
+      const newState = reducer(state, {
+        type: 'VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED',
+      });
+
+      expect(newState.loadingApplicableWaivers).toBe(true);
+      expect(newState.loadApplicableWaiversError).toBe(null);
+      expect(newState.otherProp).toBe(state.otherProp);
+    });
+  });
+
+  describe('VIOLATION_FETCH_APPLICABLE_WAIVERS_FAILED', function () {
+    it('sets error and loading states for applicable waivers', function () {
+      const state = {
+        loadingApplicableWaivers: true,
+        loadApplicableWaiversError: 'error',
+        otherProp: { prop: 'foo' },
+      };
+
+      const newState = reducer(state, {
+        type: 'VIOLATION_FETCH_APPLICABLE_WAIVERS_FAILED',
+        payload: 'some error',
+      });
+
+      expect(newState.loadingApplicableWaivers).toBe(false);
+      expect(newState.loadApplicableWaiversError).toBe('some error');
+      expect(newState.otherProp).toBe(state.otherProp);
+    });
+  });
+
+  describe('VIOLATION_FETCH_SIMILAR_WAIVERS_FULFILLED', function () {
+    it('sets the similar waivers in the state', function () {
+      const state = {
+        loading: true,
+        otherProp: { prop: 'foo' },
+      };
+
+      const newState = reducer(state, {
+        type: 'VIOLATION_FETCH_SIMILAR_WAIVERS_FULFILLED',
+        payload: ['foo'],
+      });
+
+      expect(newState.similarWaivers).toEqual(['foo']);
+      expect(newState.loading).toBe(true);
+      expect(newState.otherProp).toBe(state.otherProp);
+    });
+  });
+
+  describe('VIOLATION_SORT_SIMILAR_WAIVERS', function () {
+    it('sets the similar waivers sorting', function () {
+      const convertArrayToObj = (p, c) => [...p, { createTime: c }];
+      const initialOrder = [
+        '2024-01-11T15:32:35.849+0000',
+        '2025-11-05T20:05:40.101+0000',
+        '2020-04-21T05:10:11.002+0000',
+      ];
+      const ascOrder = clone(initialOrder).sort();
+      const descOrder = clone(initialOrder).sort().reverse();
+
+      const state = {
+        similarWaivers: initialOrder.reduce(convertArrayToObj, []),
+        otherProp: { prop: 'foo' },
+      };
+
+      const newStateNull = reducer(state, {
+        type: 'VIOLATION_SORT_SIMILAR_WAIVERS',
+        payload: null,
+      });
+
+      expect(newStateNull.similarWaivers).toEqual(ascOrder.reduce(convertArrayToObj, []));
+      expect(newStateNull.otherProp).toBe(state.otherProp);
+
+      const newStateAsc = reducer(state, {
+        type: 'VIOLATION_SORT_SIMILAR_WAIVERS',
+        payload: 'asc',
+      });
+
+      expect(newStateAsc.similarWaivers).toEqual(ascOrder.reduce(convertArrayToObj, []));
+      expect(newStateAsc.otherProp).toBe(state.otherProp);
+
+      const newStateDesc = reducer(state, {
+        type: 'VIOLATION_SORT_SIMILAR_WAIVERS',
+        payload: 'desc',
+      });
+
+      expect(newStateDesc.similarWaivers).toEqual(descOrder.reduce(convertArrayToObj, []));
+      expect(newStateDesc.otherProp).toBe(state.otherProp);
+    });
+  });
+
+  describe('VIOLATION_SET_FILTER_IDS_SIMILAR_WAIVERS', function () {
+    it('sets the similar waivers filter id set', function () {
+      const state = Object.freeze({
+        otherProp: { prop: 'foo' },
+      });
+
+      const newState = reducer(state, {
+        type: 'VIOLATION_SET_FILTER_IDS_SIMILAR_WAIVERS',
+        payload: new Set([{ id: 'id', displayName: 'disp' }]),
+      });
+
+      expect([...newState.similarWaiversFilterSelectedIds]).toEqual([{ id: 'id', displayName: 'disp' }]);
       expect(newState.otherProp).toBe(state.otherProp);
     });
   });

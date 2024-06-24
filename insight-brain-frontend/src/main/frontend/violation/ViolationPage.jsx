@@ -11,16 +11,26 @@ import ViolationDetailsTile, { violationDetailsPropTypes } from './ViolationDeta
 import { constraintViolationsPropType } from './PolicyViolationConstraintInfo';
 import { capitalizeFirstLetter } from '../util/jsUtil';
 import { getComponentName } from 'MainRoot/util/componentNameUtils';
-import { NxH3, NxTab, NxTabList, NxTabPanel, NxTabs } from '@sonatype/react-shared-components';
+import {
+  NxH3,
+  NxOverflowTooltip,
+  NxStatefulFilterDropdown,
+  NxTab,
+  NxTabList,
+  NxTabPanel,
+  NxTabs,
+} from '@sonatype/react-shared-components';
 import classnames from 'classnames';
 import { indexOf } from 'ramda';
 
 import SecurityVulnerabilityDetailsTile from './SecurityVulnerabilityDetailsTile';
 import ListWaiversTable from 'MainRoot/waivers/ListWaiversTable';
+import ListSimilarWaiversTable from 'MainRoot/waivers/ListSimilarWaiversTable';
 
 // TABS
 const VULNERABILITY_DETAILS = 'VULNERABILITY_DETAILS';
 const APPLICABLE_WAIVERS = 'APPLICABLE_WAIVERS';
+const SIMILAR_WAIVERS = 'SIMILAR_WAIVERS';
 
 export default function ViolationPage(props) {
   const {
@@ -47,7 +57,6 @@ export default function ViolationPage(props) {
     loadFirewallViolationDetails,
     hasPermissionForAppWaivers,
     hasEditIqPermission,
-    loadApplicableWaivers,
     setSelectPolicyViolation,
     componentHash,
     tabId,
@@ -57,7 +66,15 @@ export default function ViolationPage(props) {
     isFirewall,
     firewallIsLoading,
     isSbomManager,
+    similarWaiversFilterSelectedIds,
+    setFilterIdsSimilarWaivers,
   } = props;
+
+  const similarWaiversFilterOptions = [
+    { id: 'active', displayName: 'Active (Unexpired)' },
+    { id: 'exact', displayName: 'Exact Version' },
+    { id: 'comment', displayName: 'With comment' },
+  ];
 
   const [activeTabName, setActiveTabName] = useState(VULNERABILITY_DETAILS);
 
@@ -82,7 +99,9 @@ export default function ViolationPage(props) {
       isFirewallContext ? policyDetail.policyThreatCategory : violationDetails && violationDetails.policyThreatCategory
     ) === 'Security';
 
-  const displayedTabs = isSecurityVulnerability ? [VULNERABILITY_DETAILS, APPLICABLE_WAIVERS] : [APPLICABLE_WAIVERS];
+  const displayedTabs = isSecurityVulnerability
+    ? [VULNERABILITY_DETAILS, APPLICABLE_WAIVERS, SIMILAR_WAIVERS]
+    : [APPLICABLE_WAIVERS, SIMILAR_WAIVERS];
 
   const setActiveTab = (index) => setActiveTabName(displayedTabs[index]);
 
@@ -108,7 +127,6 @@ export default function ViolationPage(props) {
       }
     } else {
       loadFirewallViolationDetails(selectPolicyId);
-      loadApplicableWaivers(selectPolicyId);
       if (conditionTriggerReference) {
         loadFirewallPolicyVulnerabilityDetails(conditionTriggerReference.value);
       }
@@ -153,6 +171,7 @@ export default function ViolationPage(props) {
                   <span> Applicable Waivers </span>
                 </div>
               </NxTab>
+              <NxTab id="violation-similar-waivers-tab">Similar Waivers</NxTab>
             </NxTabList>
             {isSecurityVulnerability && (
               <NxTabPanel>
@@ -183,6 +202,28 @@ export default function ViolationPage(props) {
                   <b> Active and expired waivers applicable to this violation of {violationDetails?.policyName}</b>
                 </NxH3>
                 <ListWaiversTable violationDetails={violationDetails} unknownComponentName={componentDisplayName} />
+              </div>
+            </NxTabPanel>
+            <NxTabPanel>
+              <div id="similar-waivers-tile">
+                <div className="similar-waivers-header">
+                  <NxOverflowTooltip>
+                    <NxH3 className="similar-waivers-header__title">
+                      Waivers for similar violations of {violationDetails?.policyName}
+                    </NxH3>
+                  </NxOverflowTooltip>
+                  <div className="similar-waivers-header__subtitle">
+                    Across all component versions
+                    {isSecurityVulnerability ? ` implicated by ${vulnerabilityDetails?.identifier}` : ''}
+                  </div>
+                  <NxStatefulFilterDropdown
+                    className="similar-waivers-header__filter"
+                    options={similarWaiversFilterOptions}
+                    selectedIds={similarWaiversFilterSelectedIds}
+                    onChange={setFilterIdsSimilarWaivers}
+                  />
+                </div>
+                <ListSimilarWaiversTable />
               </div>
             </NxTabPanel>
           </NxTabs>
@@ -217,7 +258,6 @@ export const violationPageTypes = {
   activeWaivers: ListWaiversTable.propTypes.activeWaivers,
   componentDisplayName: PropTypes.string,
   loadFirewallViolationDetails: PropTypes.func.isRequired,
-  loadApplicableWaivers: PropTypes.func.isRequired,
   isFromPolicyViolations: PropTypes.bool,
   isFirewallContext: PropTypes.bool,
   policyViolations: PropTypes.array,
@@ -234,6 +274,8 @@ export const violationPageTypes = {
   firewallIsLoading: PropTypes.bool,
   setSelectPolicyViolation: PropTypes.func,
   isSbomManager: PropTypes.bool,
+  similarWaiversFilterSelectedIds: PropTypes.object,
+  setFilterIdsSimilarWaivers: PropTypes.func,
 };
 
 ViolationPage.propTypes = violationPageTypes;

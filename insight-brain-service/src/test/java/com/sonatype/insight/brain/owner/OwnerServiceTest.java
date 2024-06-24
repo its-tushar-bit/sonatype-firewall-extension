@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.owner;
 
 import java.util.Collections;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -15,11 +16,15 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -42,7 +47,7 @@ public class OwnerServiceTest
 
   @Test
   public void testGetHierarchyNoAuth_RootOrganization() {
-    Owner rootOrg = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    Owner rootOrg = ownerDAO.getById(ROOT_ORGANIZATION_ID);
     OwnerHierarchyDTO expectedHierarchy = new OwnerHierarchyDTO(rootOrg.getId(), rootOrg.getPublicId(),
         rootOrg.getName(), rootOrg.getType(), null);
 
@@ -56,7 +61,7 @@ public class OwnerServiceTest
     Organization organization = tempEntity.newOrganization();
     OwnerHierarchyDTO organizationHierarchy = new OwnerHierarchyDTO(organization.getId(), organization.getPublicId(),
         organization.getName(), organization.getType(), null);
-    Owner rootOrganization = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    Owner rootOrganization = ownerDAO.getById(ROOT_ORGANIZATION_ID);
     OwnerHierarchyDTO expectedHierarchy = new OwnerHierarchyDTO(rootOrganization.getId(),
         rootOrganization.getPublicId(), rootOrganization.getName(), rootOrganization.getType(),
         Collections.singletonList(organizationHierarchy));
@@ -74,7 +79,7 @@ public class OwnerServiceTest
         application.getName(), application.getType(), null);
     OwnerHierarchyDTO organizationHierarchy = new OwnerHierarchyDTO(organization.getId(), organization.getPublicId(),
         organization.getName(), organization.getType(), Collections.singletonList(applicationHierarchy));
-    Owner rootOrganization = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    Owner rootOrganization = ownerDAO.getById(ROOT_ORGANIZATION_ID);
     OwnerHierarchyDTO expectedHierarchy = new OwnerHierarchyDTO(rootOrganization.getId(),
         rootOrganization.getPublicId(), rootOrganization.getName(), rootOrganization.getType(),
         Collections.singletonList(organizationHierarchy));
@@ -82,5 +87,72 @@ public class OwnerServiceTest
     OwnerHierarchyDTO hierarchy = ownerService.getHierarchyNoAuth(application.getType(), application.getPublicId());
 
     assertThat(hierarchy).usingRecursiveComparison().isEqualTo(expectedHierarchy);
+  }
+
+  @Test
+  public void testGetOwnersWithReadPermissionsById_ROOT_ORGANIZATION_ID() {
+    Map<String, Owner> allOwnersById = ownerService.getOwnersWithReadPermissionsById();
+    assertThat(allOwnersById).isNotEmpty();
+    assertThat(allOwnersById).hasSize(2);
+    assertThat(allOwnersById.containsKey(ROOT_ORGANIZATION_ID)).isTrue();
+    assertThat(allOwnersById.containsKey(REPOSITORY_CONTAINER_ID)).isTrue();
+  }
+
+  @Test
+  public void testGetOwnersWithReadPermissionsById_SeveralOrganizations() {
+    Organization organization = tempEntity.newOrganization();
+    Organization organization1 = tempEntity.newOrganization();
+
+    Map<String, Owner> allOwnersById = ownerService.getOwnersWithReadPermissionsById();
+
+    assertThat(allOwnersById).isNotEmpty();
+    assertThat(allOwnersById).hasSize(4);
+    assertThat(allOwnersById.containsKey(organization.getId())).isTrue();
+    assertThat(allOwnersById.containsKey(organization1.getId())).isTrue();
+    assertThat(allOwnersById.containsKey(ROOT_ORGANIZATION_ID)).isTrue();
+    assertThat(allOwnersById.containsKey(REPOSITORY_CONTAINER_ID)).isTrue();
+  }
+
+  @Test
+  public void testGetOwnersWithReadPermissionsById_SeveralApplications() {
+    Application application = tempEntity.newApplication(ROOT_ORGANIZATION_ID);
+    Application application1 = tempEntity.newApplication(ROOT_ORGANIZATION_ID);
+
+    Map<String, Owner> allOwnersById = ownerService.getOwnersWithReadPermissionsById();
+
+    assertThat(allOwnersById).isNotEmpty();
+    assertThat(allOwnersById).hasSize(4);
+    assertThat(allOwnersById.containsKey(application.getId())).isTrue();
+    assertThat(allOwnersById.containsKey(application1.getId())).isTrue();
+    assertThat(allOwnersById.containsKey(ROOT_ORGANIZATION_ID)).isTrue();
+    assertThat(allOwnersById.containsKey(REPOSITORY_CONTAINER_ID)).isTrue();
+  }
+
+  @Test
+  public void testGetOwnersWithReadPermissionsById_SeveralRepositories() {
+    Repository repository = tempEntity.newRepository();
+    Repository repository1 = tempEntity.newRepository();
+
+    Map<String, Owner> allOwnersById = ownerService.getOwnersWithReadPermissionsById();
+
+    assertThat(allOwnersById).isNotEmpty();
+    assertThat(allOwnersById).hasSize(4);
+    assertThat(allOwnersById.containsKey(repository.getId())).isTrue();
+    assertThat(allOwnersById.containsKey(repository1.getId())).isTrue();
+    assertThat(allOwnersById.containsKey(ROOT_ORGANIZATION_ID)).isTrue();
+    assertThat(allOwnersById.containsKey(REPOSITORY_CONTAINER_ID)).isTrue();
+  }
+
+  @Test
+  public void testGetOwnersWithReadPermissionsById_RepositoryManager() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+
+    Map<String, Owner> allOwnersById = ownerService.getOwnersWithReadPermissionsById();
+
+    assertThat(allOwnersById).isNotEmpty();
+    assertThat(allOwnersById).hasSize(2);
+    assertThat(allOwnersById.containsKey(repositoryManager.getId())).isFalse();
+    assertThat(allOwnersById.containsKey(ROOT_ORGANIZATION_ID)).isTrue();
+    assertThat(allOwnersById.containsKey(REPOSITORY_CONTAINER_ID)).isTrue();
   }
 }

@@ -35,6 +35,7 @@ import { actions as componentDetailsActions } from 'MainRoot/componentDetails/co
 import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 import { getShowWelcomeModalFromStore, removeShowWelcomeModalFromStore } from './firewallWelcomeModalStore';
+import { fetchApplicableWaivers, fetchSimilarWaivers } from 'MainRoot/violation/violationActions';
 
 export const FIREWALL_SET_SHOW_WELCOME_MODAL = 'FIREWALL_SET_SHOW_WELCOME_MODAL';
 
@@ -691,9 +692,15 @@ function checkPermissionToAddWaivers(repositoryId) {
 export const loadFirewallViolationDetails = (policyViolationId) => (dispatch, getState) => {
   dispatch(loadViolationDetailRequested());
   const repositoryId = selectRepositoryId(getState());
-  return axios
-    .get(getRepositoryPolicyViolationUrl(repositoryId, policyViolationId))
-    .then(({ data }) => {
+  const parallelRequests = [
+    axios.get(getRepositoryPolicyViolationUrl(repositoryId, policyViolationId)),
+    dispatch(fetchSimilarWaivers(policyViolationId)),
+    dispatch(fetchApplicableWaivers(policyViolationId)),
+  ];
+
+  return Promise.all(parallelRequests)
+    .then((responses) => {
+      const { data } = responses[0];
       const convertData = convertToWaiverViolationFormat(data);
       return checkPermissionToAddWaivers(repositoryId)
         .then((_) => {

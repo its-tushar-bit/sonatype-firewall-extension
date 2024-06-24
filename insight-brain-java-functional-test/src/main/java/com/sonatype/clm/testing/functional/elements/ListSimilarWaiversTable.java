@@ -12,70 +12,66 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
-public class ListWaiversTable
-    extends BasicElement<ListWaiversTable>
+public class ListSimilarWaiversTable
+    extends BasicElement<ListSimilarWaiversTable>
 {
   static final String ROW_SELECTOR = "tbody .nx-table-row";
 
-  public ListWaiversTable(String parentComponentSelector) {
-    super(parentComponentSelector, "#list-waivers-table");
+  public ListSimilarWaiversTable(String parentComponentSelector) {
+    super(parentComponentSelector, "#list-similar-waivers-table");
   }
 
-  public ListWaiversTableRow headerRow() {
-    return new ListWaiversTableRow(childSelector("thead .nx-table-row"));
+  public ListSimilarWaiversTableRow headerRow() {
+    return new ListSimilarWaiversTableRow(childSelector("thead .nx-table-row"));
   }
 
   public ElementsCollection rows() {
     return children(ROW_SELECTOR);
   }
 
-  public ListWaiversTableRow row(int i) {
-    return new ListWaiversTableRow(childSelector(ROW_SELECTOR, nthChild(i)));
+  public ListSimilarWaiversTableRow row(int i) {
+    return new ListSimilarWaiversTableRow(childSelector(ROW_SELECTOR, nthChild(i)));
   }
 
   public SelenideElement noWaiversMessage() {
     return child("tbody tr td.nx-cell--meta-info");
   }
 
-  public static class ListWaiversTableRow
-      extends BasicElement<ListWaiversTableRow>
+  public static class ListSimilarWaiversTableRow
+      extends BasicElement<ListSimilarWaiversTableRow>
   {
     private static final String TABLE_CELL_SELECTOR = ".nx-cell";
 
-    public ListWaiversTableRow(String selector) {
+    public ListSimilarWaiversTableRow(String selector) {
       super(selector);
     }
 
     public SelenideElement dateCreated() {
-      return child(".iq-waivers-table__created");
-    }
-
-    public SelenideElement duration() {
-      return child(TABLE_CELL_SELECTOR, nthChild(1));
+      return child(TABLE_CELL_SELECTOR, ".iq-similar-waivers-table__created");
     }
 
     public SelenideElement waiverExpiration() {
-      return child(".iq-waivers-table__expiration");
-    }
-
-    public SelenideElement waiverDetails() {
-      return child(TABLE_CELL_SELECTOR, nthChild(2));
+      return child(TABLE_CELL_SELECTOR, ".iq-similar-waivers-table__expiration");
     }
 
     public SelenideElement createdBy() {
-      return child(".iq-waivers-table__author");
+      return child(TABLE_CELL_SELECTOR, ".iq-similar-waivers-table__author");
     }
 
     public SelenideElement scope() {
-      return child(".iq-waivers-table__scope");
+      return child(TABLE_CELL_SELECTOR, ".iq-similar-waivers-table__scope");
     }
 
     public SelenideElement components() {
-      return child(".iq-waivers-table__component");
+      return child(TABLE_CELL_SELECTOR, ".iq-similar-waivers-table__component");
+    }
+
+    public SelenideElement conditions() {
+      return child(TABLE_CELL_SELECTOR, ".iq-similar-waivers-table__conditions");
     }
 
     public SelenideElement comments() {
-      return child(".iq-waivers-table__comment");
+      return child(TABLE_CELL_SELECTOR, ".iq-similar-waivers-table__comment");
     }
 
     public SelenideElement deleteButton() {

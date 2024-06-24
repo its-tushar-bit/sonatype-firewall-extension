@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.List;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -21,6 +22,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentTransitivePolicyViolationsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiCrossStageViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyViolationServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
@@ -55,6 +57,8 @@ public class ApiPolicyViolationResourceV2
   public static final String VIOLATIONID = "/{violationId}";
 
   public static final String APPLICABLE_WAIVERS_PATH = "/applicableWaivers";
+
+  public static final String SIMILAR_WAIVERS_PATH = "/similarWaivers";
 
   public static final String TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH =
       "transitive/{ownerType: application|organization}/{ownerId}/stages/{stageId}";
@@ -205,6 +209,15 @@ public class ApiPolicyViolationResourceV2
   /**
    * @since 1.115
    */
+  @GET
+  @Path(VIOLATIONID + SIMILAR_WAIVERS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<ApiPolicyWaiverDTO> getSimilarWaivers(
+      @PathParam("violationId") final String violationId)
+  {
+    return apiPolicyWaiverService.getSimilarWaivers(violationId);
+  }
+
   @GET
   @Path(TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH)
   @Produces(MediaType.APPLICATION_JSON)

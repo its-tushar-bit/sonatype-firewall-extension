@@ -302,6 +302,10 @@ export function getApplicableWaiversUrl(policyViolationId) {
   return uriTemplate`/api/v2/policyViolations/${policyViolationId}/applicableWaivers`;
 }
 
+export function getSimilarWaiversUrl(policyViolationId) {
+  return uriTemplate`/api/v2/policyViolations/${policyViolationId}/similarWaivers`;
+}
+
 export function getApplicationReportsUrl(applicationId) {
   return uriTemplate`/api/v2/reports/applications/${applicationId}`;
 }

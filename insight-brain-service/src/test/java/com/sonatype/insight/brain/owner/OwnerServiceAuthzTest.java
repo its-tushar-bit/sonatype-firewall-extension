@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.owner;
 
+import java.util.Map;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -16,6 +18,8 @@ import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class OwnerServiceAuthzTest
     extends AbstractServiceAuthzTest
@@ -132,5 +136,28 @@ public class OwnerServiceAuthzTest
   public void testGetHierarchyForLegalReviewer_Application_Authorized() {
     grantPermission(app.getId(), Permission.LEGAL_REVIEWER);
     ownerService.getHierarchyForLegalReviewer(app.getType(), app.getPublicId());
+  }
+
+  @Test
+  public void testGetOwnersWithReadPermissionsById_Unauthenticated() {
+    Map<String, Owner> ownersWithReadPermissionsById = ownerService.getOwnersWithReadPermissionsById();
+    assertThat(ownersWithReadPermissionsById).isEmpty();
+  }
+
+  @Test
+  public void testGetOwnersWithReadPermissionsById_Unauthorized() {
+    login();
+    Map<String, Owner> ownersWithReadPermissionsById = ownerService.getOwnersWithReadPermissionsById();
+    assertThat(ownersWithReadPermissionsById).isEmpty();
+  }
+
+  @Test
+  public void testGetOwnersWithReadPermissionsById_Authorized() {
+    login();
+    Owner rootOrg = ownerDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    grantPermission(rootOrg.getId(), Permission.READ);
+    Map<String, Owner> ownersWithReadPermissionsById = ownerService.getOwnersWithReadPermissionsById();
+    assertThat(ownersWithReadPermissionsById).isNotEmpty();
+    assertThat(ownersWithReadPermissionsById).hasSize(5);
   }
 }

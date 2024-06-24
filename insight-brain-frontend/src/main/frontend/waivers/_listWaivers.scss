@@ -13,18 +13,19 @@
 }
 
 .iq-waivers-table {
-  &--author,
-  &--component,
-  &--comment,
-  &--scope {
-    @include mixins.overflow-wrap-anywhere;
+  &__duration {
+    width: 90px;
   }
-
-  &--delete {
-    width: 24px;
+  &__expiration-label {
+    word-break: keep-all;
   }
+}
 
-  &--duration {
-    width: 118px;
+.iq-similar-waivers-table {
+  &__duration {
+    width: 90px;
+  }
+  &__expiration-label {
+    word-break: keep-all;
   }
 }

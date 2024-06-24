@@ -8,6 +8,8 @@ package com.sonatype.clm.testing.functional.elements.componentdetails;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationApplicableWaiversInfoTile;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationApplicableWaiversTab;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationSimilarWaiversInfoTile;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationSimilarWaiversTab;
 
 import com.codeborne.selenide.SelenideElement;
 
@@ -49,10 +51,6 @@ public class PolicyViolationDetailPopover
     return child("#policy-violation-reasons");
   }
 
-  public SelenideElement popoverHeaderTitle() {
-    return child(".policy-violation-details-popover-title");
-  }
-
   public SelenideElement popoverThreatLevel() {
     return child(".iq-threat-level");
   }
@@ -73,6 +71,16 @@ public class PolicyViolationDetailPopover
   // The resulting object is tied to ViolationDetailsPage as we are reusing that component as part of the contents here
   public PolicyViolationApplicableWaiversTab applicableWaiversTab() {
     return new PolicyViolationApplicableWaiversTab(childSelector("#violation-applicable-waivers-tab"));
+  }
+
+  // The resulting object is tied to ViolationDetailsPage as we are reusing that component as part of the contents here
+  public PolicyViolationSimilarWaiversInfoTile similarWaiversInfoTile() {
+    return new PolicyViolationSimilarWaiversInfoTile(childSelector("#similar-waivers-tile"));
+  }
+
+  // The resulting object is tied to ViolationDetailsPage as we are reusing that component as part of the contents here
+  public PolicyViolationSimilarWaiversTab similarWaiversTab() {
+    return new PolicyViolationSimilarWaiversTab(childSelector("#violation-similar-waivers-tab"));
   }
 
   public SelenideElement securityVulnerabilityDetailsTab() {

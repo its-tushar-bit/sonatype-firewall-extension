@@ -34,6 +34,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.ListSimilarWaiversTable;
 import com.sonatype.clm.testing.functional.elements.ListWaiversTable;
 import com.sonatype.clm.testing.functional.elements.ListWaiversTable.ListWaiversTableRow;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
@@ -64,12 +65,14 @@ import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.Firewall
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryResultTable;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationSimilarWaiversInfoTile;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -81,6 +84,7 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
@@ -130,12 +134,6 @@ public class FirewallComponentDetailsPageTest
 
   private final FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
 
-  private MultiLicenseDAO multiLicenseDAO;
-
-  private RepositoryComponentDAO repositoryComponentDAO;
-
-  private PolicyDAO policyDAO;
-
   // declared and observed licenses are not the same
   private final String multiLicensed = "multiLicensed";
 
@@ -149,6 +147,12 @@ public class FirewallComponentDetailsPageTest
   private final String overriddenLicense = "overriddenLicense";
 
   private final String[] expectedLabelsTexts = {"Label 1", "Label 2", "Label 3", "Label 4"};
+
+  private MultiLicenseDAO multiLicenseDAO;
+
+  private RepositoryComponentDAO repositoryComponentDAO;
+
+  private PolicyDAO policyDAO;
 
   private Repository repository;
 
@@ -167,6 +171,8 @@ public class FirewallComponentDetailsPageTest
   private Policy coordinatesPolicy;
 
   private Policy unknownComponentPolicy;
+
+  private Application app;
 
   private Date date;
 
@@ -191,6 +197,7 @@ public class FirewallComponentDetailsPageTest
     repositoryManager = tempEntity.newRepositoryManager();
     repository = tempEntity.newRepository(repositoryManager, "repositoryPublicId");
     date = new Date();
+    app = tempEntity.newApplication( "publicId", tempEntity.newOrganization().getId());
   }
 
   private void waitUntilSpinnersGone() {
@@ -436,6 +443,12 @@ public class FirewallComponentDetailsPageTest
           "summary", "security vulnerability severity >= 4.3");
       PolicyWaiver policyWaiver = tempEntity.newWaiver(repositoryComponent.getHash(), securityLowPolicy.getId(),
           Organization.ROOT_ORGANIZATION_ID, Collections.singletonList(securityLowConstraintFact),
+          "Test comment for waiver");
+      // Creating similar waiver
+      tempEntity.newWaiver(repositoryComponent.getHash(), securityLowPolicy.getId(),
+          app.getId(), Collections.singletonList(securityLowConstraintFact),
+          PackageUrlIdentifier.toPackageUrl(repositoryComponent.getComponentIdentifier()),
+          ComponentMatcherStrategyForWaiver.ALL_VERSIONS,
           "Test comment for waiver");
       createRepositoryPolicyViolation(repository.getId(), 6, repositoryComponent.getPathname(),
           repositoryComponent.getHash(), Collections.singletonList(securityLowConstraintFact), true /* isWaived */,
@@ -2688,6 +2701,33 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
+  public void testSimilarWaivers() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(2);
+    violationRow1Cells.get(3).click();
+    policyViolationDetailPopover.shouldBe(visible);
+    policyViolationDetailPopover.similarWaiversTab().shouldBe(visible, enabled).click();
+    PolicyViolationSimilarWaiversInfoTile similarWaiversTile = policyViolationDetailPopover.similarWaiversInfoTile();
+    similarWaiversTile.shouldBe(visible);
+    ListSimilarWaiversTable similarWaiversTable = similarWaiversTile.getSimilarWaiversTable();
+    similarWaiversTable.rows().shouldHave(size(1));
+    similarWaiversTable.row(1).components().shouldHave(text("com.lingocoder : abi.cli (all versions)"));
+    similarWaiversTable.row(1).conditions().shouldHave(text("security vulnerability severity >= 4.3"));
+    similarWaiversTable.row(1).scope().shouldHave(text(app.getName()));
+    similarWaiversTable.row(1).comments().shouldHave(text("Test comment for waiver"));
+    eyesWatcher.eyesCheck("Firewall Component Details Page - Similar Waivers Tab");
+  }
+
+  @Test
   public void testAddWaiversAndRemoveThemFromExistingWaiversPopovers() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
@@ -2960,7 +3000,7 @@ public class FirewallComponentDetailsPageTest
     violationRow1Cells.get(3).click();
     PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
     policyViolationDetailPopover.shouldBe(visible);
-    policyViolationDetailPopover.popoverHeaderTitle().shouldHave(text(policyName));
+    policyViolationDetailPopover.headerPopoverTitle().shouldHave(text(policyName));
 
     //waitUntilSpinnersGone();
     policyViolationDetailPopover.getAddWaiversButton().click();

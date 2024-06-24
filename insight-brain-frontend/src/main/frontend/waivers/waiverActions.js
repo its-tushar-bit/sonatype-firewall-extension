@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { compose } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { capitalize, getISODateFromDateInput } from '../util/jsUtil';
@@ -62,10 +61,6 @@ export const WAIVERS_DELETE_WAIVER_FULFILLED = 'WAIVERS_DELETE_WAIVER_FULFILLED'
 export const WAIVERS_DELETE_WAIVER_FAILED = 'WAIVERS_DELETE_WAIVER_FAILED';
 export const WAIVERS_DELETE_MASK_TIMER_DONE = 'WAIVERS_DELETE_MASK_TIMER_DONE';
 export const WAIVERS_RESET_ADD_WAIVER_DATA = 'WAIVERS_RESET_ADD_WAIVER_DATA';
-
-export const WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED = 'WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED';
-export const WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED = 'WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED';
-export const WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED = 'WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED';
 
 export const WAIVERS_SET_MANAGE_WAIVERS_BACK_BUTTON_STATE_NAME = 'WAIVERS_SET_MANAGE_WAIVERS_BACK_BUTTON_STATE_NAME';
 
@@ -324,9 +319,9 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
           const hash = selectHash(state);
           const ownerId = selectRepositoryId(state);
           dispatch(loadExistingWaiversData('repository', ownerId, hash));
-          dispatch(reloadComponentWaivers ? policyViolationsActions.load() : loadApplicableWaivers(policyViolationId));
+          dispatch(reloadComponentWaivers ? policyViolationsActions.load() : fetchApplicableWaivers(policyViolationId));
         } else {
-          dispatch(reloadComponentWaivers ? policyViolationsActions.load() : loadApplicableWaivers(policyViolationId));
+          dispatch(reloadComponentWaivers ? policyViolationsActions.load() : fetchApplicableWaivers(policyViolationId));
         }
         setTimeout(() => {
           dispatch(deleteWaiverMaskTimerDone());
@@ -335,19 +330,6 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
       .catch((err) => {
         dispatch(deleteWaiverFailed(Messages.getHttpErrorMessage(err)));
       });
-  };
-}
-
-const loadApplicableWaiversRequested = noPayloadActionCreator(WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED);
-const loadApplicableWaiversFulfilled = noPayloadActionCreator(WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED);
-const loadApplicableWaiversFailed = payloadParamActionCreator(WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED);
-
-export function loadApplicableWaivers(policyViolationId) {
-  return function (dispatch) {
-    dispatch(loadApplicableWaiversRequested());
-    return dispatch(fetchApplicableWaivers(policyViolationId))
-      .then(compose(dispatch, loadApplicableWaiversFulfilled))
-      .catch(compose(dispatch, loadApplicableWaiversFailed));
   };
 }
 

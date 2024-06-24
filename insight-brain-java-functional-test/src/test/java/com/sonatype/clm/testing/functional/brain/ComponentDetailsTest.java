@@ -14,14 +14,20 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.MatchStateFilter;
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.ProprietaryFilter;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.ListSimilarWaiversTable;
+import com.sonatype.clm.testing.functional.elements.ListSimilarWaiversTable.ListSimilarWaiversTableRow;
 import com.sonatype.clm.testing.functional.elements.ListWaiversTable;
 import com.sonatype.clm.testing.functional.elements.ListWaiversTable.ListWaiversTableRow;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
@@ -58,16 +64,22 @@ import com.sonatype.clm.testing.functional.pages.LegalApplicationDetailsPage;
 import com.sonatype.clm.testing.functional.pages.RequestWaiverPage;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationSimilarWaiversInfoTile;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
+import com.sonatype.clm.testing.functional.utils.SimilarWaiverCreator;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.clm.testing.functional.utils.WaiverApplierForReport;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.policy.LegacyViolationService;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
@@ -118,7 +130,13 @@ public class ComponentDetailsTest
 
   private Application app;
 
+  private Application otherApp;
+
   private TestReportEvaluator evaluator;
+
+  private SimilarWaiverCreator similarWaiverCreator;
+
+  private PolicyViolationDAO policyViolationDAO;
 
   @BeforeClass
   public static void startup() {
@@ -130,6 +148,7 @@ public class ComponentDetailsTest
   public void start() throws IOException {
     policyDAO = lookup(PolicyDAO.class);
     applicationDAO = lookup(ApplicationDAO.class);
+    policyViolationDAO = lookup(PolicyViolationDAO.class);
 
     URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
@@ -160,10 +179,14 @@ public class ComponentDetailsTest
     org = tempEntity.newOrganization("Test Organization", parentOrg);
     policyImportExport.importOrganization(org, referencePolicies);
     app = tempEntity.newApplication("ApplicationReportTest", "ApplicationReportTest", org.getId());
+    otherApp = tempEntity.newApplication("OtherApplicationReportTest", "OtherApplicationReportTest", org.getId());
     URL zippedReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
     evaluator.evaluatePolicy();
+
+    similarWaiverCreator = new SimilarWaiverCreator(zippedReport, otherApp, testCLMServer,
+        AbstractFunctionalTest::refreshOrOpen);
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
   }
 
@@ -673,6 +696,115 @@ public class ComponentDetailsTest
     applicableWaiversTable.rows().shouldHave(size(1));
     ListWaiversTableRow waiversTableRow = applicableWaiversTable.row(1);
     waiversTableRow.components().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
+
+    violationDetailPopover.similarWaiversTab().shouldBe(visible).click();
+    ListSimilarWaiversTable similarWaiversTable =
+        violationDetailPopover.similarWaiversInfoTile().getSimilarWaiversTable();
+    similarWaiversTable.rows().shouldHave(size(1));
+    similarWaiversTable.noWaiversMessage().shouldBe(visible);
+
+    similarWaiverCreator.createSimilarWaiver();
+
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+
+    navigateToComponentDetailsPageViolationsTab(openComponentDetailsPageForFirstViolation());
+
+    row.click();
+
+    violationDetailPopover.similarWaiversTab().shouldBe(visible).click();
+    similarWaiversTable.rows().shouldHave(size(1));
+    ListSimilarWaiversTableRow similarWaiversTableRow = similarWaiversTable.row(1);
+    similarWaiversTableRow.components().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
+  }
+
+  @Test
+  public void testPolicyViolationsTab_FilterSimilarWaivers() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
+    navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
+    List<PolicyViolation> policyViolations = policyViolationDAO.getByApplicationId(app.getId()).stream()
+        .filter(policyViolation -> policyViolation.getHash().equals(HASH)).collect(
+            Collectors.toList());
+
+    // 1 app is needed per waiver for it to show in Similar waivers
+    Application app2 = tempEntity.newApplication("ApplicationReportTest1", "ApplicationReportTest1", org.getId());
+    Application app3 = tempEntity.newApplication("ApplicationReportTest2", "ApplicationReportTest2", org.getId());
+    Application app4 = tempEntity.newApplication("ApplicationReportTest3", "ApplicationReportTest3", org.getId());
+    Application app5 = tempEntity.newApplication("ApplicationReportTest4", "ApplicationReportTest4", org.getId());
+    Date futureDate = new Date(System.currentTimeMillis() + 60_000);
+    Date pastDate = new Date(System.currentTimeMillis() - 60_000);
+    // Create waiver with and without comments, active and expired
+    ConditionFact conditionFact = new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID, 0, "foo", "bar");
+    conditionFact.setTriggerJson("{\"conditionIndex\":1,\"trigger\":{\"refId\":\"1234\",\"severity\":5.7}}");
+    ConstraintFact constraintFact = new ConstraintFact("id", "name", LogicalOperator.AND.toString());
+    constraintFact.addConditionFact(conditionFact);
+
+    tempEntity.newWaiver(HASH, policyViolations.get(0).getPolicyId(), app2.getId(),
+        Collections.singletonList(constraintFact), "", new Date(), pastDate);
+    tempEntity.newWaiver(HASH, policyViolations.get(0).getPolicyId(), app3.getId(),
+        Collections.singletonList(constraintFact), "some comment");
+    tempEntity.newWaiver(HASH, policyViolations.get(0).getPolicyId(), app4.getId(),
+        Collections.singletonList(constraintFact), "");
+    tempEntity.newWaiver(HASH, policyViolations.get(0).getPolicyId(), app5.getId(),
+        Collections.singletonList(constraintFact), "some other comment", new Date(), futureDate);
+
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    navigateToComponentDetailsPageViolationsTab(openComponentDetailsPageForFirstViolation());
+    PolicyViolationDetailPopover violationDetailPopover = new PolicyViolationDetailPopover();
+    PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
+    ListSimilarWaiversTable similarWaiversTable =
+        violationDetailPopover.similarWaiversInfoTile().getSimilarWaiversTable();
+    SelenideElement row = policyViolationsTable.getRows().first();
+
+    row.click();
+
+    violationDetailPopover.similarWaiversTab().shouldBe(visible).click();
+    similarWaiversTable.rows().shouldHave(size(4));
+    eyesWatcher.eyesCheck("Similar waivers tab");
+    ListSimilarWaiversTableRow similarWaiversTableRow = similarWaiversTable.row(1);
+    similarWaiversTableRow.conditions().shouldHave(text("bar"));
+    PolicyViolationSimilarWaiversInfoTile similarWaiversInfoTile =
+        violationDetailPopover.similarWaiversInfoTile();
+    similarWaiversInfoTile.filterDropdown().click();
+    similarWaiversInfoTile.activeFilter().click();
+    similarWaiversTable.rows().shouldHave(size(3));
+    similarWaiversInfoTile.activeFilter().click();
+    similarWaiversInfoTile.commentFilter().click();
+    similarWaiversTable.rows().shouldHave(size(2));
+    similarWaiversInfoTile.commentFilter().click();
+    similarWaiversInfoTile.exactFilter().click();
+    similarWaiversTable.rows().shouldHave(size(4));
+  }
+
+  @Test
+  public void testPolicyViolationsTab_ClearFilterSimilarWaiversOnNavigation() {
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
+
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    navigateToComponentDetailsPageViolationsTab(openComponentDetailsPageForFirstViolation());
+    PolicyViolationDetailPopover violationDetailPopover = new PolicyViolationDetailPopover();
+    PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
+    SelenideElement row = policyViolationsTable.getRows().first();
+
+    row.click();
+
+    violationDetailPopover.similarWaiversTab().shouldBe(visible).click();
+    PolicyViolationSimilarWaiversInfoTile similarWaiversInfoTile =
+        violationDetailPopover.similarWaiversInfoTile();
+    similarWaiversInfoTile.filterDropdown().click();
+    similarWaiversInfoTile.activeFilter().click();
+    similarWaiversInfoTile.activeFilterCheckbox().shouldBe(visible);
+
+    componentDetailsPage.overviewTab().click();
+    componentDetailsPage.violationsTab().click();
+
+    row.click();
+
+    violationDetailPopover.similarWaiversTab().shouldBe(visible).click();
+    similarWaiversInfoTile.filterDropdown().click();
+    similarWaiversInfoTile = violationDetailPopover.similarWaiversInfoTile();
+    similarWaiversInfoTile.filterDropdown().click();
+    similarWaiversInfoTile.activeFilterCheckbox().shouldNotBe(visible);
   }
 
   @Test

@@ -47,8 +47,9 @@ describe('FirewallPolicyViolationDetailsPopover', () => {
 
   it('renders proper policy name', async () => {
     renderComponent();
-    const violationName = screen.getByText('Violation of Some policy name');
+    const violationName = screen.getByText('Violation of');
     expect(violationName).toBeInTheDocument();
+    expect(violationName).toHaveTextContent('Violation of Some policy name');
   });
 
   it('while loading do not render add or request waiver button', () => {

@@ -160,7 +160,7 @@ public class FirewallComponentDetailsPage
   }
 
   public SelenideElement getComponentPolicyViolationsTitle() {
-    return child(".nx-tile-header__title");
+    return child("#component-details-violations-tab-content .nx-tile-header__title");
   }
 
   public SelenideElement getComponentPolicyViolationsTable() {

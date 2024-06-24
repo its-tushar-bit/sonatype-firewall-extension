@@ -119,10 +119,17 @@ import {
   getComponentLabels,
   getFirewallTileMetricsUrl,
   getPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodeUrl,
-} from '../../../main/frontend/util/CLMLocation';
+  getSimilarWaiversUrl,
+  getApplicableWaiversUrl,
+} from 'MainRoot/util/CLMLocation';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { INTEGRITY_RATING_POLICY_TYPE_ID } from '../../../main/frontend/firewall/config/firewallConfigurationModalReducer';
 import { getPermissionContextTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
+import {
+  VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED,
+  VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED,
+  VIOLATION_FETCH_SIMILAR_WAIVERS_FULFILLED,
+} from 'MainRoot/violation/violationActions';
 
 describe('firewallActions', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),
@@ -136,6 +143,12 @@ describe('firewallActions', function () {
     policiesUrl = getPoliciesUrl(),
     requestRepositoryPolicyViolationUrl = getRepositoryPolicyViolationUrl('repositoryId', 'RepolicyViolationId'),
     repositoryPolicyViolationUrl = getRepositoryPolicyViolationUrl('repositoryId', 'policyViolationId'),
+    similarWaiversUrl = getSimilarWaiversUrl('policyViolationId'),
+    similarWaiversUrlRe = getSimilarWaiversUrl('RepolicyViolationId'),
+    similarWaiversUrlError = getSimilarWaiversUrl('ErrorpolicyViolationId'),
+    applicableWaiversUrl = getApplicableWaiversUrl('policyViolationId'),
+    applicableWaiversUrlRe = getApplicableWaiversUrl('RepolicyViolationId'),
+    applicableWaiversUrlError = getApplicableWaiversUrl('ErrorpolicyViolationId'),
     errorRepositoryPolicyViolationUrl = getRepositoryPolicyViolationUrl('repositoryId', 'ErrorpolicyViolationId'),
     allLicensesUrl = getLicensesWithSyntheticFilterUrl(),
     componentMultiLicensesUrl = getComponentMultiLicensesUrl({
@@ -1903,6 +1916,12 @@ describe('firewallActions', function () {
           [requestRepositoryPolicyViolationUrl]: () => Promise.resolve({}),
           [repositoryPolicyViolationUrl]: () => Promise.resolve({ data: mockData }),
           [errorRepositoryPolicyViolationUrl]: () => Promise.reject('error'),
+          [similarWaiversUrl]: () => Promise.resolve(),
+          [similarWaiversUrlError]: () => Promise.resolve(),
+          [similarWaiversUrlRe]: () => Promise.resolve(),
+          [applicableWaiversUrl]: () => Promise.resolve(),
+          [applicableWaiversUrlRe]: () => Promise.resolve(),
+          [applicableWaiversUrlError]: () => Promise.resolve(),
         },
       });
     });
@@ -1911,37 +1930,44 @@ describe('firewallActions', function () {
       store.dispatch(loadFirewallViolationDetails('RepolicyViolationId'));
 
       const actions = store.getActions();
-      expect(actions.length).toBe(1);
+      expect(actions.length).toBe(2);
       expect(actions[0].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED);
+      expect(actions[1].type).toBe(VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED);
       expect(actions[0].payload).toBeUndefined();
     });
 
     it('dispatches FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED action after successfully requests', (done) => {
       store.dispatch(loadFirewallViolationDetails('policyViolationId')).then(() => {
         actions = store.getActions();
-        expect(actions.length).toBe(2);
+        expect(actions.length).toBe(5);
         expect(actions[0].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED);
         expect(actions[0].payload).toBeUndefined();
-        expect(actions[1].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED);
-        expect(actions[1].payload).toEqual(mockData);
+        expect(actions[1].type).toBe(VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED);
+        expect(actions[2].type).toBe(VIOLATION_FETCH_SIMILAR_WAIVERS_FULFILLED);
+        expect(actions[3].type).toBe(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+        expect(actions[4].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED);
+        expect(actions[4].payload).toEqual(mockData);
         done();
       });
 
       let actions = store.getActions();
-      expect(actions.length).toBe(1);
+      expect(actions.length).toBe(2);
     });
 
     it('dispatches FIREWALL_LOAD_VIOLATION_DETAIL_FAILED action after one of all of the requests failed', () => {
       store.dispatch(loadFirewallViolationDetails('ErrorpolicyViolationId')).then(() => {
         actions = store.getActions();
-        expect(actions.length).toBe(2);
+        expect(actions.length).toBe(5);
         expect(actions[0].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED);
         expect(actions[0].payload).toBeUndefined();
-        expect(actions[1].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_FAILED);
-        expect(actions[1].payload).toBe('error');
+        expect(actions[1].type).toBe(VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED);
+        expect(actions[2].type).toBe(VIOLATION_FETCH_SIMILAR_WAIVERS_FULFILLED);
+        expect(actions[3].type).toBe(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+        expect(actions[4].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_FAILED);
+        expect(actions[4].payload).toBe('error');
       });
       let actions = store.getActions();
-      expect(actions.length).toBe(1);
+      expect(actions.length).toBe(2);
     });
 
     it('dispatches FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED action after successfully requests with hasWaivePermission=true', (done) => {
@@ -1956,16 +1982,19 @@ describe('firewallActions', function () {
 
       store.dispatch(loadFirewallViolationDetails('policyViolationId')).then(() => {
         actions = store.getActions();
-        expect(actions.length).toBe(2);
+        expect(actions.length).toBe(5);
         expect(actions[0].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED);
         expect(actions[0].payload).toBeUndefined();
-        expect(actions[1].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED);
-        expect(actions[1].payload.hasWaivePermission).toEqual(true);
+        expect(actions[1].type).toBe(VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED);
+        expect(actions[2].type).toBe(VIOLATION_FETCH_SIMILAR_WAIVERS_FULFILLED);
+        expect(actions[3].type).toBe(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+        expect(actions[4].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED);
+        expect(actions[4].payload.hasWaivePermission).toEqual(true);
         done();
       });
 
       let actions = store.getActions();
-      expect(actions.length).toBe(1);
+      expect(actions.length).toBe(2);
     });
   });
 });

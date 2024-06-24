@@ -202,8 +202,9 @@ describe('ComponentDetails', () => {
       expect(dialog).not.toHaveAttribute('open');
       await fireEvent.animationEnd(dialog);
       expect(dialog).toHaveAttribute('open');
-      const dialogTitle = within(dialog).getByText('Violation of Security-Medium');
+      const dialogTitle = within(dialog).getByText('Violation of');
       expect(dialogTitle).toBeVisible();
+      expect(dialogTitle).toHaveTextContent('Violation of Security-Medium');
     });
   });
 });

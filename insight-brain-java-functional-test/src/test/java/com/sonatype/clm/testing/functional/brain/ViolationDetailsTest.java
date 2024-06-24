@@ -33,6 +33,7 @@ import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViol
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationApplicableWaiversTab;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationConstraintInfo;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationSecurityDetailsInfoTile;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.PolicyViolationSimilarWaiversInfoTile;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.SidebarNav;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.SidebarNavListItem;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage.ViolationDetailsTile;
@@ -131,7 +132,7 @@ public class ViolationDetailsTest
     policyDAO.delete(deletedPolicy);
 
     Policy nonSecurityPolicy = createPolicy(Organization.ROOT_ORGANIZATION_ID, 1, "Policy 4",
-            LicenseThreatGroupLevelConditionType.ID, "<=", "1");
+        LicenseThreatGroupLevelConditionType.ID, "<=", "1");
     nonSecurityPolicyViolation = tempEntity.newPolicyViolation(policyEvaluation2, nonSecurityPolicy);
 
     mockHdsResponseForVulnerabilityDetails();
@@ -276,27 +277,44 @@ public class ViolationDetailsTest
 
     SelenideElement vulnerabilityTab = violationDetailsPage.securityVulnerabilityDetailsTab();
     PolicyViolationApplicableWaiversTab waiversTab = violationDetailsPage.applicableWaiversTab();
+    SelenideElement similarWaiversTab = violationDetailsPage.similarWaiversTab();
+
     PolicyViolationSecurityDetailsInfoTile securityDetailsInfoTile
-            = violationDetailsPage.securityVulnerabilityDetailsTile();
+        = violationDetailsPage.securityVulnerabilityDetailsTile();
     PolicyViolationApplicableWaiversInfoTile applicableWaiversInfoTile
-            = violationDetailsPage.applicableWaiversInfoTile();
+        = violationDetailsPage.applicableWaiversInfoTile();
+    PolicyViolationSimilarWaiversInfoTile similarWaiversInfoTile
+        = violationDetailsPage.similarWaiversInfoTile();
 
     // Check tabs presence
     vulnerabilityTab.shouldBe(visible).shouldHave(exactText("Vulnerability Details"));
     waiversTab.shouldBe(visible).shouldHave(textCaseSensitive("1 Applicable Waivers"));
+    similarWaiversTab.shouldBe(visible).shouldHave(textCaseSensitive("Similar Waivers"));
 
     // Check that default tab (security vulnerability) is displayed and that info is correct.
     securityDetailsInfoTile.vulnerabilityDetailsHeader().shouldBe(visible)
-            .shouldHave(exactText("sonatype-2017-0507"));
+        .shouldHave(exactText("sonatype-2017-0507"));
     applicableWaiversInfoTile.shouldNotBe(visible);
+    similarWaiversInfoTile.shouldNotBe(visible);
 
     // Switch tabs, check visibility
     waiversTab.click();
     securityDetailsInfoTile.shouldNotBe(visible);
     applicableWaiversInfoTile.shouldBe(visible);
+    similarWaiversInfoTile.shouldNotBe(visible);
     applicableWaiversInfoTile.waiverListHeader().shouldBe(visible)
-      .shouldHave(exactText("Active and expired waivers applicable to this violation of " + policyName));
+        .shouldHave(exactText("Active and expired waivers applicable to this violation of " + policyName));
     applicableWaiversInfoTile.getApplicableWaiversTable().shouldBe(visible);
+
+    // Switch tabs, check visibility
+    similarWaiversTab.click();
+    similarWaiversInfoTile.shouldBe(visible);
+    securityDetailsInfoTile.shouldNotBe(visible);
+    applicableWaiversInfoTile.shouldNotBe(visible);
+    similarWaiversInfoTile.waiverListHeader().shouldBe(visible)
+        .shouldHave(exactText("Waivers for similar violations of " + policyName));
+    similarWaiversInfoTile.waiverListSubtitle().shouldBe(visible)
+        .shouldHave(exactText("Across all component versions implicated by sonatype-2017-0507"));
 
     // Switch tabs again
     vulnerabilityTab.click();
@@ -321,17 +339,30 @@ public class ViolationDetailsTest
 
     SelenideElement vulnerabilityTab = violationDetailsPage.securityVulnerabilityDetailsTab();
     PolicyViolationApplicableWaiversTab waiversTab = violationDetailsPage.applicableWaiversTab();
+    SelenideElement similarWaiversTab = violationDetailsPage.similarWaiversTab();
 
     vulnerabilityTab.shouldNotBe(visible);
     waiversTab.shouldBe(visible).shouldHave(text("Applicable Waivers"));
+    similarWaiversTab.shouldBe(visible).shouldHave(textCaseSensitive("Similar Waivers"));
 
     PolicyViolationApplicableWaiversInfoTile applicableWaiversTile =
-            violationDetailsPage.applicableWaiversInfoTile();
-    applicableWaiversTile.shouldBe(visible);
-    applicableWaiversTile.waiverListHeader().shouldBe(visible)
-            .shouldHave(exactText("Active and expired waivers applicable to this violation of " + policyName));
+        violationDetailsPage.applicableWaiversInfoTile();
+    PolicyViolationSimilarWaiversInfoTile similarWaiversInfoTile
+        = violationDetailsPage.similarWaiversInfoTile();
 
-    // TODO: CLM-28964 redundant when tabs are always shown.
+    applicableWaiversTile.shouldBe(visible);
+    similarWaiversInfoTile.shouldNotBe(visible);
+    applicableWaiversTile.waiverListHeader().shouldBe(visible)
+        .shouldHave(exactText("Active and expired waivers applicable to this violation of " + policyName));
+
+    // Switch tabs, check visibility
+    similarWaiversTab.click();
+    similarWaiversInfoTile.shouldBe(visible);
+    applicableWaiversTile.shouldNotBe(visible);
+    similarWaiversInfoTile.waiverListHeader().shouldBe(visible)
+        .shouldHave(exactText("Waivers for similar violations of " + policyName));
+    similarWaiversInfoTile.waiverListSubtitle().shouldBe(visible)
+        .shouldHave(exactText("Across all component versions"));
   }
 
   @Test

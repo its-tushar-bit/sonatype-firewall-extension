@@ -5,9 +5,15 @@
  */
 import React, { useEffect } from 'react';
 import { useRouterState } from '../../react/RouterStateContext';
-import ViolationDetailsTileHeaderMainTitle from 'MainRoot/violation/ViolationDetailsTileHeaderMainTitle';
 import { useDispatch, useSelector } from 'react-redux';
-import { NxDrawer, NxFooter, NxButtonBar, categoryByPolicyThreatLevel } from '@sonatype/react-shared-components';
+import {
+  NxDrawer,
+  NxFooter,
+  NxButtonBar,
+  categoryByPolicyThreatLevel,
+  NxH2,
+  NxPolicyViolationIndicator,
+} from '@sonatype/react-shared-components';
 
 import ViolationPageContainer from 'MainRoot/violation/ViolationPageContainer';
 import ActiveWaiversIndicator from 'MainRoot/violation/ActiveWaiversIndicator';
@@ -25,6 +31,7 @@ import {
   selectApplicableWaivers,
   selectHasPermissionForAppWaivers,
 } from 'MainRoot/violation/violationSelectors';
+import ViolationName from './ViolationName';
 
 export default function PolicyViolationDetailsPopover() {
   const dispatch = useDispatch();
@@ -45,6 +52,10 @@ export default function PolicyViolationDetailsPopover() {
   const redirectToRequestWaiver = () =>
     dispatch(stateGo('requestWaiver', { violationId: selectedPolicyViolation.policyViolationId }));
 
+  const titleThreatLevelCategory =
+    categoryByPolicyThreatLevel[selectedPolicyViolation?.policyThreatLevel || selectedPolicyViolation?.threatLevel];
+  const getPolicyExists = policyExists || violationIsLoading;
+
   useEffect(() => {
     return () => {
       unsetShowViolationsDetailPopover();
@@ -64,18 +75,14 @@ export default function PolicyViolationDetailsPopover() {
       className="policy-violation-details-popover"
     >
       <NxDrawer.Header>
-        <NxDrawer.HeaderTitle id="policy-violation-details-popover-title">
-          <ViolationDetailsTileHeaderMainTitle
-            // This prevents the title to show as non existing while loading
-            policyExists={policyExists || violationIsLoading}
+        <NxDrawer.HeaderTitle className="nx-h2" id="policy-violation-details-popover-title">
+          <ViolationName
+            policyExists={getPolicyExists}
             policyName={selectedPolicyViolation?.policyName}
-            threatLevelCategory={
-              categoryByPolicyThreatLevel[
-                selectedPolicyViolation?.policyThreatLevel || selectedPolicyViolation?.threatLevel
-              ]
-            }
-          />
+          ></ViolationName>
         </NxDrawer.HeaderTitle>
+        {getPolicyExists ? <NxPolicyViolationIndicator threatLevelCategory={titleThreatLevelCategory} /> : <div></div>}
+        {!getPolicyExists && <NxH2>Policy no longer exists</NxH2>}
       </NxDrawer.Header>
       <NxDrawer.Content tabIndex={0}>
         {isViolationsDetailPopoverOpen && <ViolationPageContainer $state={uiRouterState} isFromPolicyViolations />}

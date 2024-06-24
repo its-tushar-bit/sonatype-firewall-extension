@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
+import com.sonatype.clm.testing.functional.elements.ListSimilarWaiversTable;
 import com.sonatype.clm.testing.functional.elements.ListWaiversTable;
 import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
@@ -104,12 +105,20 @@ public class ViolationDetailsPage
     return new PolicyViolationApplicableWaiversInfoTile(childSelector("#applicable-waivers-tile"));
   }
 
+  public PolicyViolationSimilarWaiversInfoTile similarWaiversInfoTile() {
+    return new PolicyViolationSimilarWaiversInfoTile(childSelector("#similar-waivers-tile"));
+  }
+
   public SelenideElement securityVulnerabilityDetailsTab() {
     return child("#violation-security-vulnerability-details-tab");
   }
 
   public PolicyViolationApplicableWaiversTab applicableWaiversTab() {
     return new PolicyViolationApplicableWaiversTab(childSelector("#violation-applicable-waivers-tab"));
+  }
+
+  public SelenideElement similarWaiversTab() {
+    return child("#violation-similar-waivers-tab");
   }
 
   public static class ViolationDetailsTile
@@ -256,6 +265,50 @@ public class ViolationDetailsPage
     }
   }
 
+  public static class PolicyViolationSimilarWaiversInfoTile
+          extends BasicElement<PolicyViolationSimilarWaiversInfoTile>
+  {
+    private final String parentSelector;
+
+    public PolicyViolationSimilarWaiversInfoTile(String selector) {
+      super(selector);
+      parentSelector = selector;
+    }
+
+    public SelenideElement waiverListHeader() {
+      return child(".similar-waivers-header__title");
+    }
+
+    public SelenideElement waiverListSubtitle() {
+      return child(".similar-waivers-header__subtitle");
+    }
+
+    public ListSimilarWaiversTable getSimilarWaiversTable() {
+      return new ListSimilarWaiversTable(parentSelector);
+    }
+
+    public SelenideElement filterDropdown() {
+      return child(".similar-waivers-header__filter");
+    }
+
+    public SelenideElement activeFilter() {
+      return child(".similar-waivers-header__filter .nx-radio-checkbox:nth-child(1)");
+    }
+
+    public SelenideElement activeFilterCheckbox() {
+      return child(".similar-waivers-header__filter .nx-radio-checkbox:nth-child(1) " +
+          ".nx-radio-checkbox__control .fa-check");
+    }
+
+    public SelenideElement exactFilter() {
+      return child(".similar-waivers-header__filter .nx-radio-checkbox:nth-child(2)");
+    }
+
+    public SelenideElement commentFilter() {
+      return child(".similar-waivers-header__filter .nx-radio-checkbox:nth-child(3)");
+    }
+  }
+
   public static class PolicyViolationApplicableWaiversTab
           extends BasicElement<PolicyViolationApplicableWaiversTab>
   {
@@ -265,6 +318,14 @@ public class ViolationDetailsPage
 
     public SelenideElement waiversIndicator() {
       return child(".iq-waiver-indicator-tab");
+    }
+  }
+
+  public static class PolicyViolationSimilarWaiversTab
+          extends BasicElement<PolicyViolationSimilarWaiversTab>
+  {
+    public PolicyViolationSimilarWaiversTab(String selector) {
+      super(selector);
     }
   }
 }

@@ -24,7 +24,6 @@ import {
   deleteWaiver,
   hideDeleteWaiverModal,
   loadAddWaiverData,
-  loadApplicableWaivers,
   returnToAddWaiverOriginPage,
   saveWaiverAndLoadPolicyViolationData,
   saveWaiverAndRedirect,
@@ -47,9 +46,6 @@ import {
   WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED,
   WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED,
   WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED,
-  WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED,
-  WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED,
-  WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED,
   WAIVERS_SAVE_WAIVER_FAILED,
   WAIVERS_SAVE_WAIVER_FULFILLED,
   WAIVERS_SAVE_WAIVER_REQUESTED,
@@ -1178,7 +1174,6 @@ describe('waiverActions', function () {
           expect(store.getActions().length).toBe(5);
           expect(store.getActions()[1].type).toBe(WAIVERS_DELETE_WAIVER_FULFILLED);
           expect(store.getActions()[2].type).toBe(FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED);
-          expect(store.getActions()[3].type).toBe(WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED);
           expect(store.getActions()[4].type).toBe(WAIVERS_DELETE_MASK_TIMER_DONE);
           done();
         });
@@ -1310,13 +1305,11 @@ describe('waiverActions', function () {
           jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
           expect(axios.delete).toHaveBeenCalledWith(requestUrl);
-          expect(store.getActions().length).toBe(6);
+          expect(store.getActions().length).toBe(5);
           expect(store.getActions()[1].type).toBe(WAIVERS_DELETE_WAIVER_FULFILLED);
-          expect(store.getActions()[2].type).toEqual(WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED);
           expect(store.getActions()[3].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
           expect(store.getActions()[3].payload).toBe('applicableWaivers');
-          expect(store.getActions()[4].type).toEqual(WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED);
-          expect(store.getActions()[5].type).toBe(WAIVERS_DELETE_MASK_TIMER_DONE);
+          expect(store.getActions()[4].type).toBe(WAIVERS_DELETE_MASK_TIMER_DONE);
           done();
         });
 
@@ -1449,58 +1442,6 @@ describe('waiverActions', function () {
 
         expect(store.getActions().length).toBe(1);
         expect(store.getActions()[0].type).toBe(WAIVERS_DELETE_WAIVER_REQUESTED);
-      });
-    });
-  });
-
-  describe('immediately dispatches WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED', function () {
-    it('starts the request', function () {
-      mockAxiosCalls({
-        get: {
-          [getApplicableWaiversUrl('foo')]: () => Promise.reject('ERR'),
-        },
-      });
-
-      store.dispatch(loadApplicableWaivers('foo'));
-      expect(store.getActions()[0].type).toEqual(WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED);
-    });
-
-    it('calls fetchApplicableWaivers and dispatches FULFILLED action if the request is successful', function (done) {
-      mockAxiosCalls({
-        get: {
-          [getApplicableWaiversUrl('foo')]: Promise.resolve({
-            data: {
-              activeWaivers: [{ id: 'active' }],
-              expiredWaivers: [{ id: 'expired' }],
-            },
-          }),
-        },
-      });
-
-      store.dispatch(loadApplicableWaivers('foo')).then(() => {
-        expect(store.getActions().length).toBe(3);
-        expect(store.getActions()[1].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
-        expect(store.getActions()[1].payload).toEqual({
-          activeWaivers: [{ id: 'active' }],
-          expiredWaivers: [{ id: 'expired' }],
-        });
-        expect(store.getActions()[2].type).toEqual(WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED);
-        done();
-      });
-    });
-
-    it('dispatches WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED if the request fails', function (done) {
-      mockAxiosCalls({
-        get: {
-          [getApplicableWaiversUrl('foo')]: () => Promise.reject('ERR'),
-        },
-      });
-
-      store.dispatch(loadApplicableWaivers('foo')).then(() => {
-        expect(store.getActions().length).toBe(2);
-        expect(store.getActions()[1].type).toEqual(WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED);
-        expect(store.getActions()[1].payload).toEqual('ERR');
-        done();
       });
     });
   });

@@ -53,7 +53,7 @@ describe('ListWaiversTable', () => {
     });
 
     it('with a loading spinner if applicable waivers are loading', () => {
-      renderComponent({ manageWaivers: { loadingApplicableWaivers: true } });
+      renderComponent({ violation: { loadingApplicableWaivers: true } });
 
       expect(screen.getByText('Loading…')).toBeInTheDocument();
     });
@@ -64,7 +64,7 @@ describe('ListWaiversTable', () => {
           activeWaivers: [{ ...getBasicWaiverData() }],
           expiredWaivers: [],
         });
-        renderComponent({ manageWaivers: { loadApplicableWaiversError: 'Error' } });
+        renderComponent({ violation: { loadApplicableWaiversError: 'Error' } });
 
         await waitFor(() => screen.getByText(/An error occurred loading data/));
         const retryButton = screen.getByRole('button', { name: 'Retry' });

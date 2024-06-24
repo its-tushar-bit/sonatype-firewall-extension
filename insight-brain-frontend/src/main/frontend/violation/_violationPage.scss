@@ -17,6 +17,33 @@
   .nx-list--violation-reasons:last-child {
     margin-bottom: 0;
   }
+  .nx-tile-header__title span {
+    @include nx-text-helpers.truncate-ellipsis;
+  }
+}
+
+#similar-waivers-tile {
+  .similar-waivers-header {
+    display: grid;
+    grid-template:
+      'title filter'
+      'subtitle filter' / auto min-content;
+    &__title {
+      @include nx-text-helpers.truncate-ellipsis;
+      margin-right: var(--nx-spacing-4x);
+      margin-bottom: var(--nx-spacing-base);
+      margin-top: 0;
+    }
+    &__subtitle {
+      grid-area: subtitle;
+    }
+    &__filter {
+      grid-area: filter;
+    }
+  }
+  .nx-table > tbody > .nx-table-row > .nx-cell {
+    word-break: break-word;
+  }
 }
 
 .nx-drawer .iq-violation-details-popover-section {
@@ -31,9 +58,17 @@
   }
 }
 
+.policy-violation-details-popover .nx-drawer-header {
+  grid-template: 'title vulnerability-level close-button' / auto 1fr auto;
+}
+
 .iq-violation-details {
   .nx-tile-header {
     row-gap: var(--nx-spacing-2x);
+    grid-template:
+      'title tags actions' 40px
+      'nopolicy nopolicy nopolicy'
+      'subtitle subtitle .' auto / auto 1fr auto;
 
     .iq-waiver-indicator--active {
       color: var(--nx-swatch-green-30);

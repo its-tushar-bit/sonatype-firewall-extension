@@ -11,6 +11,7 @@ import {
   getViolationDetailsUrl,
   getVulnerabilityJsonDetailUrl,
   getApplicableWaiversUrl,
+  getSimilarWaiversUrl,
   getRepositoryPolicyViolationUrl,
   getApplicationSummaryUrl,
 } from '../util/CLMLocation';
@@ -33,16 +34,30 @@ export const VIOLATION_LOAD_VIOLATION_DETAILS_FAILED = 'VIOLATION_LOAD_VIOLATION
 
 export const VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED = 'VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED';
 export const VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED = 'VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED';
+export const VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED = 'VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED';
+export const VIOLATION_FETCH_APPLICABLE_WAIVERS_FAILED = 'VIOLATION_FETCH_APPLICABLE_WAIVERS_FAILED';
+export const VIOLATION_FETCH_SIMILAR_WAIVERS_FULFILLED = 'VIOLATION_FETCH_SIMILAR_WAIVERS_FULFILLED';
 
 export const VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED = 'VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED';
 export const VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED = 'VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED';
 export const VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED = 'VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED';
 
+export const VIOLATION_SORT_SIMILAR_WAIVERS = 'VIOLATION_SORT_SIMILAR_WAIVERS';
+export const VIOLATION_SET_FILTER_IDS_SIMILAR_WAIVERS = 'VIOLATION_SET_FILTER_IDS_SIMILAR_WAIVERS';
+
+const fetchApplicableWaiversRequested = payloadParamActionCreator(VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED);
+const fetchApplicableWaiversFulfilled = payloadParamActionCreator(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+const fetchApplicableWaiversFailed = payloadParamActionCreator(VIOLATION_FETCH_APPLICABLE_WAIVERS_FAILED);
+
 export function loadViolation(id) {
   return function (dispatch, getState) {
     dispatch(loadViolationDetailsRequested());
 
-    const parallelRequests = [dispatch(fetchCrossStageViolation(id)), dispatch(fetchApplicableWaivers(id))];
+    const parallelRequests = [
+      dispatch(fetchCrossStageViolation(id)),
+      dispatch(fetchApplicableWaivers(id)),
+      dispatch(fetchSimilarWaivers(id)),
+    ];
 
     return Promise.all(parallelRequests)
       .then(() => loadPermissionForAppWaivers(getState().violation.violationDetails.applicationPublicId))
@@ -54,9 +69,31 @@ export function loadViolation(id) {
 
 export function fetchApplicableWaivers(id) {
   return function (dispatch) {
+    dispatch(fetchApplicableWaiversRequested());
     return axios
       .get(getApplicableWaiversUrl(id))
-      .then(compose(dispatch, payloadParamActionCreator(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED), prop('data')));
+      .then(compose(dispatch, fetchApplicableWaiversFulfilled, prop('data')))
+      .catch(compose(dispatch, fetchApplicableWaiversFailed));
+  };
+}
+
+export function fetchSimilarWaivers(id) {
+  return function (dispatch) {
+    return axios
+      .get(getSimilarWaiversUrl(id))
+      .then(compose(dispatch, payloadParamActionCreator(VIOLATION_FETCH_SIMILAR_WAIVERS_FULFILLED), prop('data')));
+  };
+}
+
+export function sortSimilarWaivers(sortDir) {
+  return function (dispatch) {
+    return dispatch(payloadParamActionCreator(VIOLATION_SORT_SIMILAR_WAIVERS)(sortDir));
+  };
+}
+
+export function setFilterIdsSimilarWaivers(selectedIds) {
+  return function (dispatch) {
+    return dispatch(payloadParamActionCreator(VIOLATION_SET_FILTER_IDS_SIMILAR_WAIVERS)(selectedIds));
   };
 }
 

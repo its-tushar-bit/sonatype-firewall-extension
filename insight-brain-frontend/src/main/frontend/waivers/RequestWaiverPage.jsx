@@ -41,6 +41,7 @@ import {
 import { loadViolation as loadViolationAction } from 'MainRoot/violation/violationActions';
 import { actions } from './requestWaiverSlice';
 import { returnToAddWaiverOriginPage } from './waiverActions';
+import { selectViolationSlice } from '../violation/violationSelectors';
 
 const WaiverRequestWebhookAlert = () => {
   const { loading, error, waiverRequestWebhookAvailable } = useSelector(selectWaiverRequestWebhookState);
@@ -69,6 +70,7 @@ const RequestWaiversPage = () => {
   const submitError = useSelector(selectSubmitError);
   const waiverComments = useSelector(selectComments);
   const submitMaskState = useSelector(selectSubmitMaskState);
+  const { loadApplicableWaiversError, vulnerabilityDetailsError } = useSelector(selectViolationSlice);
   const { loading: webhookInfoLoading, error: webhookInfoError, waiverRequestWebhookAvailable } = useSelector(
     selectWaiverRequestWebhookState
   );
@@ -97,7 +99,9 @@ const RequestWaiversPage = () => {
     prevParams,
   };
 
-  const error = violationId ? violationDetailsError : 'No Violation ID provided.';
+  const error = violationId
+    ? violationDetailsError || loadApplicableWaiversError || vulnerabilityDetailsError
+    : 'No Violation ID provided.';
 
   const load = () => {
     if (violationId) {

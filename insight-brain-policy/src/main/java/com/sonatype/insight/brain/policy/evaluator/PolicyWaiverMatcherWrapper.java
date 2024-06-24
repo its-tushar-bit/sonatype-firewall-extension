@@ -58,6 +58,27 @@ public class PolicyWaiverMatcherWrapper
     }
   }
 
+  public boolean matchesComponentOrAnyVersionOfComponent(ComponentFact componentFact) {
+    componentFactNotNull(componentFact);
+    ComponentMatcherStrategyForWaiver componentMatchStrategy = policyWaiver.getComponentMatchStrategy();
+    return
+        isWaiverForAllComponents(componentMatchStrategy) ||
+            isWaiverForExactComponent(componentFact, componentMatchStrategy) ||
+            matchesAllVersionsOfComponent(componentFact);
+  }
+
+  private boolean isWaiverForAllComponents(final ComponentMatcherStrategyForWaiver componentMatchStrategy) {
+    return ComponentMatcherStrategyForWaiver.ALL_COMPONENTS.equals(componentMatchStrategy) && matchesAllComponents();
+  }
+
+  private boolean isWaiverForExactComponent(
+      final ComponentFact componentFact,
+      final ComponentMatcherStrategyForWaiver componentMatchStrategy)
+  {
+    return ComponentMatcherStrategyForWaiver.EXACT_COMPONENT.equals(componentMatchStrategy) &&
+        matchesComponentHash(componentFact);
+  }
+
   private boolean matchesComponentIdentifier(ComponentFact componentFact) {
     ComponentIdentifier policyWaiverComponentIdentifier = policyWaiver.getComponentIdentifier();
     ComponentIdentifier componentFactComponentIdentifier = componentFact.getComponentIdentifier();
@@ -119,7 +140,7 @@ public class PolicyWaiverMatcherWrapper
       log.warn("Failed to ensureComplete for purl {} with the following error: {}",
           policyWaiver.getAssociatedPackageUrl(), e.getMessage());
     }
-    
+
     // The policy waiver component identifier is converted from a purl, and purl applies some name normalizations.
     // So we have to convert the component fact component identifier to purl and back to ensure the same normalizations
     // are applied.

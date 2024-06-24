@@ -8,9 +8,8 @@ import * as PropTypes from 'prop-types';
 import { compose, keys, map, max, prop, reduce, values } from 'ramda';
 import classnames from 'classnames';
 import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/util/threatLevels';
-import { NxTextLink } from '@sonatype/react-shared-components';
+import { NxH2, NxPolicyViolationIndicator, NxTextLink, NxTile } from '@sonatype/react-shared-components';
 
-import ViolationDetailsTileHeaderMainTitle from './ViolationDetailsTileHeaderMainTitle';
 import ActiveWaiversIndicator from 'MainRoot/violation/ActiveWaiversIndicator';
 import { timeAgo } from '../utilAngular/CommonServices';
 import { capitalizeFirstLetter } from '../util/jsUtil';
@@ -18,6 +17,7 @@ import ViolationDetailsSubtitle from './ViolationDetailsSubtitle';
 import StageDisplay from './StageDisplay';
 import PolicyViolationConstraintInfo, { constraintViolationsPropType } from './PolicyViolationConstraintInfo';
 import AddOrRequestWaiverButton from 'MainRoot/waivers/AddOrRequestWaiverButton';
+import ViolationName from 'MainRoot/componentDetails/ViolationsTableTile/ViolationName';
 
 const ownerIdTypeMap = {
   application: 'applicationPublicId',
@@ -100,6 +100,11 @@ export default function ViolationDetailsTile(props) {
   const bottomFormGroupClasses = classnames('iq-violation-details__bottom-details', {
     'iq-violation-details__bottom-from-firewall': isFirewallContext,
   });
+
+  const titleClassnames = classnames({
+    'nx-tile-header__title--disabled': !policyExists,
+  });
+
   return (
     <section id="violation-details-tile" className={sectionClasses}>
       {isFromPolicyViolations ? (
@@ -111,13 +116,17 @@ export default function ViolationDetailsTile(props) {
             'header--disabled': !policyExists,
           })}
         >
-          <ViolationDetailsTileHeaderMainTitle
-            policyExists={policyExists}
-            policyName={policyName}
-            threatLevelCategory={threatLevelCategory}
-          />
-          {!isFirewallContext && <ViolationDetailsSubtitle {...violationDetails} />}
-          {policyExists && (
+          <NxTile.HeaderTitle className={titleClassnames}>
+            <NxH2>
+              <ViolationName policyExists={policyExists} policyName={policyName}></ViolationName>
+            </NxH2>
+          </NxTile.HeaderTitle>
+          <NxTile.HeaderTags>
+            {policyExists ? <NxPolicyViolationIndicator threatLevelCategory={threatLevelCategory} /> : <div></div>}
+          </NxTile.HeaderTags>
+          {!policyExists && <NxH2>Policy no longer exists</NxH2>}
+          {!isFirewallContext && <ViolationDetailsSubtitle {...violationDetails} policyExists={policyExists} />}
+          {policyExists ? (
             <Fragment>
               <div className="nx-tile__actions">
                 <AddOrRequestWaiverButton
@@ -135,6 +144,8 @@ export default function ViolationDetailsTile(props) {
                 />
               ) : null}
             </Fragment>
+          ) : (
+            <div className="nx-tile__actions"></div>
           )}
         </header>
       )}

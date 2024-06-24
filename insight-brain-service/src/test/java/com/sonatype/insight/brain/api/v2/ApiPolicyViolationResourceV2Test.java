@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
@@ -37,6 +38,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.report.ReportTestUtils;
@@ -268,6 +270,55 @@ public class ApiPolicyViolationResourceV2Test
     assertThat(expiredApplicableWaivers.size()).isEqualTo(1);
     assertApiPolicyWaiverDTO("hash", policyId, appId, "NewApp", "", violationId, expiredExpiryTime,
         "testuser", "Test User", EXACT_COMPONENT, packageUrlAllVersionsWaiver, expiredApplicableWaivers.get(0));
+  }
+
+  @Test
+  public void testGetSimilarWaivers() throws Exception {
+    DateTime now = DateTime.now();
+    List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
+    Organization newOrg = tempEntity.newOrganization("NewOrg");
+    Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(newApp.getId(), BuildStageType.ID, "scanId");
+    Policy policy = tempEntity.newPolicy(newOrg);
+    ComponentIdentifier identifier =
+        ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.0", "c1", "jar");
+    ComponentIdentifier identifierForAllVersionsWaiver =
+        ComponentIdentifier.createMavenCoordinates("group", "artifact", "2.0", "c1", "jar");
+    String packageUrlAllVersionsWaiver = PackageUrlIdentifier.toPackageUrl(identifierForAllVersionsWaiver);
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, policy, identifier, "hash");
+    policyViolation.setConstraintFacts(constraintFacts);
+    policyViolationDAO.update(policyViolation);
+
+    String policyId = policy.getId();
+    String orgId = newOrg.getId();
+    String violationId = policyViolation.getId();
+
+    List<ConstraintFact> constraintFactsCopy = new ArrayList<>(policyViolation.getConstraintFacts());
+    constraintFactsCopy.add(new ConstraintFact("id", "Test Constraint 2", null));
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hashX",
+        policyId,
+        orgId,
+        constraintFactsCopy,
+        packageUrlAllVersionsWaiver,
+        ALL_VERSIONS,
+        "",
+        now.minusDays(10).toDate());
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
+        .path(ApiPolicyViolationResourceV2.VIOLATIONID +
+            ApiPolicyViolationResourceV2.SIMILAR_WAIVERS_PATH)
+        .parameter(policyViolation.getId())
+        .get();
+
+    assertResponseStatus(200, response);
+    ApiPolicyWaiverDTO[] apiPolicyWaivers = response.getBody(ApiPolicyWaiverDTO[].class);
+
+    assertThat(apiPolicyWaivers).isNotEmpty();
+    assertThat(apiPolicyWaivers).hasSize(1);
+    assertApiPolicyWaiverDTO("hashX", policyId, orgId, "NewOrg", "", violationId, null,
+            "testuser", "Test User", ALL_VERSIONS, packageUrlAllVersionsWaiver, apiPolicyWaivers[0]);
+    assertThat(policyWaiver.getConstraintFactsJson()).isEqualTo( apiPolicyWaivers[0].constraintFactsJson);
   }
 
   @Test

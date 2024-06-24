@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -15,15 +16,20 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.validation.constraints.NotNull;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
@@ -46,10 +52,12 @@ import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.owner.OwnerService;
 import com.sonatype.insight.brain.policy.ConstraintFactDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyWaiverMatcherWrapper;
 import com.sonatype.insight.brain.security.Authorize;
@@ -71,6 +79,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
@@ -108,6 +117,8 @@ public class ApiPolicyWaiverService
 
   private final CurrentUser currentUser;
 
+  private final OwnerService ownerService;
+  
   private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
   private final PolicyViolationDAO policyViolationDAO;
@@ -129,6 +140,7 @@ public class ApiPolicyWaiverService
       ApiPolicyViolationServiceV2 apiPolicyViolationServiceV2,
       PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator,
       CurrentUser currentUser,
+      OwnerService ownerService,
       RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       PolicyViolationDAO policyViolationDAO,
       OrganizationDAO organizationDAO,
@@ -144,6 +156,7 @@ public class ApiPolicyWaiverService
     this.apiPolicyViolationServiceV2 = apiPolicyViolationServiceV2;
     this.policyWaiverTelemetryCreator = policyWaiverTelemetryCreator;
     this.currentUser = currentUser;
+    this.ownerService = ownerService;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.organizationDAO = organizationDAO;
@@ -428,14 +441,8 @@ public class ApiPolicyWaiverService
    * @since 1.98
    */
   public ApiPolicyWaiversApplicableToViolationDTO getApplicableWaivers(final String violationId) {
-    // The violationId may references an application policy violation or a repository policy violation
-    AbstractPolicyViolation policyViolation = policyViolationDAO.getById(violationId);
-    if (policyViolation == null) {
-      policyViolation = repositoryPolicyViolationDAO.getById(violationId);
-      if (policyViolation == null) {
-        throw new NotFoundException("Could not find policy violation with ID " + violationId + ".");
-      }
-    }
+    // The violationId may reference an application policy violation or a repository policy violation
+    final AbstractPolicyViolation policyViolation = getAbstractPolicyViolation(violationId);
 
     String policyId = policyViolation.getPolicyId();
     String constraintFactsJson = policyViolation.getConstraintFactsJson();
@@ -458,6 +465,85 @@ public class ApiPolicyWaiverService
     apiPolicyWaivers.expiredWaivers = applicableWaivers.get(Boolean.TRUE);
 
     return apiPolicyWaivers;
+  }
+
+  public List<ApiPolicyWaiverDTO> getSimilarWaivers(final String violationId) {
+    // The violationId may reference an application policy violation or a repository policy violation
+    final AbstractPolicyViolation policyViolation = getAbstractPolicyViolation(violationId);
+
+    // Waiver is created for the same policy ID
+    // Should include expired waivers
+    // Waivers are not limited to current scope - query across all (orgs and apps)
+    String policyId = policyViolation.getPolicyId();
+    List<PolicyWaiver> waiversForPolicy = policyWaiverDAO.getByPolicyId(policyId);
+
+    // User has view permission for the waiver
+    Map<String, Owner> availableOwners = ownerService.getOwnersWithReadPermissionsById();
+    Predicate<PolicyWaiver> userHasViewPermissionOnWaiverOwner =
+        policyWaiver -> availableOwners.containsKey(policyWaiver.getOwnerId());
+
+    // Waivers that are applicable to the current component (any version)
+    // Exact waivers for the same component (hash)
+    // Waivers for any version of the same component
+    // “All component” waivers
+    final ComponentFact componentFact =
+        new ComponentFact(policyViolation.getComponentIdentifier(), policyViolation.getHash());
+    Predicate<PolicyWaiver> waiverMatchesComponentOrAnyVersionOfIt =
+        policyWaiver -> new PolicyWaiverMatcherWrapper(policyWaiver).matchesComponentOrAnyVersionOfComponent(
+            componentFact);
+
+    // For security violations, we also need to limit waivers to the same Vulnerability ID
+    Predicate<PolicyWaiver> securityWaiverAppliesToSameVulnerabilityId = policyWaiver -> true;
+    if (PolicyThreatCategory.SECURITY.equals(policyViolation.getThreatCategory())) {
+      final Optional<String> policyViolationSecurityVulnerabilityId =
+          findFirstTriggerReference(policyViolation.getConstraintFacts().stream());
+
+      if (policyViolationSecurityVulnerabilityId.isPresent()) {
+        securityWaiverAppliesToSameVulnerabilityId = policyWaiver -> {
+          Optional<String> firstTriggerReference =
+              findFirstTriggerReference(policyWaiver.getConstraintFacts().stream());
+          return policyViolationSecurityVulnerabilityId.equals(firstTriggerReference);
+        };
+      }
+    }
+
+    //Should exclude Applicable waivers (waivers shown in Applicable Waivers table)
+    ApiPolicyWaiversApplicableToViolationDTO applicableWaiversDTO = getApplicableWaivers(violationId);
+    List<String> applicableWaiversIds =
+        Stream.of(applicableWaiversDTO.activeWaivers, applicableWaiversDTO.expiredWaivers).flatMap(Collection::stream)
+            .map(apiPolicyWaiverDTO -> apiPolicyWaiverDTO.policyWaiverId).collect(toList());
+    Predicate<PolicyWaiver> isNotAnApplicableWaiver =
+        policyWaiver -> !applicableWaiversIds.contains(policyWaiver.getId());
+
+    return waiversForPolicy.stream()
+        .filter(userHasViewPermissionOnWaiverOwner)
+        .filter(isNotAnApplicableWaiver) // higher in filter hierarchy since it's a lighter filter to process
+        .filter(waiverMatchesComponentOrAnyVersionOfIt)
+        .filter(securityWaiverAppliesToSameVulnerabilityId) // saved for the end as it requires more processing
+        .map(policyWaiver -> ApiPolicyWaiverDTO.toDtoWithConstraints(policyWaiver,
+            availableOwners.get(policyWaiver.getOwnerId()), violationId))
+        .collect(toList());
+  }
+
+  @NotNull
+  private AbstractPolicyViolation getAbstractPolicyViolation(final String violationId) {
+    AbstractPolicyViolation policyViolation = policyViolationDAO.getById(violationId);
+    if (policyViolation == null) {
+      policyViolation = repositoryPolicyViolationDAO.getById(violationId);
+      if (policyViolation == null) {
+        throw new NotFoundException("Could not find policy violation with ID " + violationId + ".");
+      }
+    }
+    return policyViolation;
+  }
+
+  private static Optional<String> findFirstTriggerReference(Stream<ConstraintFact> streamOfConstraintFacts) {
+    return streamOfConstraintFacts
+        .flatMap(constraintFact -> constraintFact.getConditionFacts().stream().map(ConditionFact::getReference))
+        .filter(Objects::nonNull)
+        .filter(triggerReference -> triggerReference.getType().equals(SECURITY_VULNERABILITY_REFID))
+        .map(TriggerReference::getValue)
+        .findFirst();
   }
 
   @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)

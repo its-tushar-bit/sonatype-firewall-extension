@@ -324,6 +324,39 @@ public class PolicyWaiverMatcherWrapperTest
     assertThat(policyWaiverMatcherWrapper.isLegacyWaiver()).isFalse();
   }
 
+  @Test
+  public void testMatcherWrapper_matchesComponentOrAnyVersionOfComponent_ALL_COMPONENTS() {
+    PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper =
+            new PolicyWaiverMatcherWrapper(
+                    new PolicyWaiverBuilder().setComponentMatchStrategy(ALL_COMPONENTS)
+                            .build());
+    assertThat(policyWaiverMatcherWrapper.matchesComponentOrAnyVersionOfComponent(new ComponentFact()))
+            .isTrue();
+  }
+
+  @Test
+  public void testMatcherWrapper_matchesComponentOrAnyVersionOfComponent_EXACT_COMPONENT() {
+    PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper =
+            new PolicyWaiverMatcherWrapper(
+                    new PolicyWaiverBuilder()
+                            .setHash("My hash")
+                            .setComponentMatchStrategy(EXACT_COMPONENT)
+                            .build());
+    assertThat(policyWaiverMatcherWrapper.matchesComponentOrAnyVersionOfComponent(new ComponentFact(null, "My hash")))
+            .isTrue();
+  }
+
+  @Test
+  public void testMatcherWrapper_matchesComponentOrAnyVersionOfComponent_matchesAllVersionsOfComponent() {
+    PolicyWaiver policyWaiver = new PolicyWaiverBuilder()
+            .setAssociatedPackagedUrl(associatedPackagedUrl)
+            .build();
+    PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
+    assertThat(policyWaiverMatcherWrapper.matchesComponentOrAnyVersionOfComponent(
+            new ComponentFact(policyWaiver.getComponentIdentifier(), null)))
+            .isTrue();
+  }
+
   private static class PolicyWaiverBuilder
   {
     private final PolicyWaiver policyWaiver;

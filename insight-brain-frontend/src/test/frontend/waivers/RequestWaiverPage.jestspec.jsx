@@ -9,6 +9,7 @@ import { axiosMockAdapter, fireEvent, render, screen } from 'TestRoot/SpecUtil';
 import RouterStateContext from 'MainRoot/react/RouterStateContext';
 import {
   getApplicableWaiversUrl,
+  getSimilarWaiversUrl,
   getApplicationSummaryUrl,
   getPermissionContextTestUrl,
   saveRequestWaiverUrl,
@@ -16,6 +17,7 @@ import {
 } from 'MainRoot/util/CLMLocation';
 import { clone } from 'ramda';
 import { initialState } from 'MainRoot/waivers/requestWaiverSlice';
+import { fetchCrossStageViolation } from 'MainRoot/violation/violationActions';
 
 describe('RequestWaiverPage', function () {
   let renderComponent;
@@ -85,6 +87,7 @@ describe('RequestWaiverPage', function () {
     };
 
     mock.onGet(getApplicableWaiversUrl(violationId)).reply(200, { activeWaivers: [], expiredWaivers: [] });
+    mock.onGet(getSimilarWaiversUrl(violationId)).reply(200, []);
     mock.onGet(getApplicationSummaryUrl(applicationPublicId)).reply(200, {
       contact: null,
       hasPendingSourceControlPolicyEvaluation: false,
@@ -96,6 +99,8 @@ describe('RequestWaiverPage', function () {
       policyEvaluationsResults: {},
       publicId: applicationPublicId,
     });
+    mock.onGet(fetchCrossStageViolation(violationId)).reply(200, {});
+    mock.onGet(getWaiverRequestWebhooksCountUrl()).reply(200, 1);
     mock
       .onPut(getPermissionContextTestUrl('application', internalApplicationId))
       .reply(200, ['WAIVE_POLICY_VIOLATIONS']);

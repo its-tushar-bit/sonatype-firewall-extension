@@ -72,15 +72,13 @@ export default function FirewallPolicyViolationDetailsPopover() {
         toggleDrawer();
         unsetRowClick();
       }}
-      className="policy-violation-detail-header"
+      className="policy-violation-details-popover"
     >
       <NxDrawer.Header id="component-details-popover-scroll">
-        <NxDrawer.HeaderTitle id="policy-violation-details-popover-title">
-          <span className="policy-violation-details-popover-title">
-            Violation of {selectedPolicyViolation?.policyName}
-          </span>
-          <NxPolicyViolationIndicator policyThreatLevel={selectedPolicyViolation?.policyThreatLevel} />
+        <NxDrawer.HeaderTitle id="policy-violation-details-popover-title" className="nx-h2">
+          Violation of <em>{selectedPolicyViolation?.policyName}</em>
         </NxDrawer.HeaderTitle>
+        <NxPolicyViolationIndicator policyThreatLevel={selectedPolicyViolation?.policyThreatLevel} />
       </NxDrawer.Header>
       <NxDrawer.Content tabIndex={0}>
         {isViolationsDetailPopoverOpen && (

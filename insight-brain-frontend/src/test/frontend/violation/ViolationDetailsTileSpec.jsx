@@ -180,10 +180,10 @@ describe('ViolationDetailsTile', function () {
       const component = getMountedComponentWithAutoClean(
           pathSet(['violationDetails', 'policyOwner', 'ownerId'], null, minimalProps)
         ),
-        header = component.find('.nx-tile-header .nx-tile-header__title'),
-        texts = header.find('span');
+        header = component.find('.nx-tile-header'),
+        texts = header.find('.nx-h2');
       expect(texts.at(0)).toHaveText('Violation of pol');
-      expect(texts.at(3)).toHaveText('Policy no longer exists');
+      expect(texts.at(1)).toHaveText('Policy no longer exists');
     });
 
     it('sets the correct threatLevelCategory on the NxPolicyViolationIndicator', function () {
@@ -226,8 +226,8 @@ describe('ViolationDetailsTile', function () {
       expect(
         getMountedComponentWithAutoClean(
           pathSet(['violationDetails', 'policyOwner', 'ownerId'], null, minimalProps)
-        ).find(NxPolicyViolationIndicator)
-      ).toHaveProp('threatLevelCategory', null);
+        ).find(NxPolicyViolationIndicator).length
+      ).toBe(0);
     });
 
     it('renders the policy name in an <em>', function () {

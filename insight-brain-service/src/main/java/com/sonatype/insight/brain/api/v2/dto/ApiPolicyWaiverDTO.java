@@ -206,4 +206,16 @@ public class ApiPolicyWaiverDTO
 
     return dto;
   }
+
+  public static ApiPolicyWaiverDTO toDtoWithConstraints(
+      PolicyWaiver policyWaiver,
+      Owner owner,
+      String policyViolationId)
+  {
+    ApiPolicyWaiverDTO dto = toDto(policyWaiver, owner, policyViolationId);
+    dto.constraintFactsJson = policyWaiver.getConstraintFactsJson();
+    dto.constraintFacts = policyWaiver.getConstraintFacts();
+
+    return dto;
+  }
 }

@@ -90,21 +90,6 @@
   }
 }
 
-.policy-violation-details-popover .nx-drawer-header {
-  .policy-violation-detail-header__title {
-    display: flex;
-    justify-content: space-between;
-  }
-  .nx-h2 {
-    display: flex;
-    align-items: center;
-    .nx-policy-violation-indicator {
-      margin-left: var(--nx-spacing-4x);
-      margin-bottom: 0;
-    }
-  }
-}
-
 #policy-violation-close-btn {
   font-size: var(--nx-font-size-heading-2);
 }
@@ -118,6 +103,14 @@
   }
   .nx-loading-spinner {
     padding: var(--nx-spacing-6x);
+  }
+  .nx-drawer-content {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    padding: 0;
   }
   .nx-footer {
     .iq-waiver-indicator--active > span:last-child {

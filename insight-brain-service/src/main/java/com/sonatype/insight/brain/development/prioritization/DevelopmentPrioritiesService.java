@@ -128,6 +128,7 @@ public class DevelopmentPrioritiesService
               securityReachable
           );
         })
+        .filter(unprioritizedComponent -> unprioritizedComponent.highestThreat > 0)
         .sorted(this::compareScoreDescending)
         .collect(Collectors.toList());
 

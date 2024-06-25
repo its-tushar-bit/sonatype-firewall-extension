@@ -137,8 +137,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(results.getTopPriorities()).containsExactlyElementsOf(
         Lists.newArrayList(
             toPrioritizedComponent(component2, 10, "policy-f", null, 1),
-            toPrioritizedComponent(component1, 6, "policy-b", null, 2),
-            toPrioritizedComponent(component3, 0, null, null, 3)));
+            toPrioritizedComponent(component1, 6, "policy-b", null, 2)));
 
     // should be no additional priorities, everything is in top 3
     assertPaginationResultCorrect(results.getAdditionalPriorities(), 0, 0, 0, 1);
@@ -160,11 +159,28 @@ public class DevelopmentPrioritiesServiceTest
     final ApiReportComponentDTOV2 component5 =
         createComponent("eee", "component5", getDependencyTypeWithNulls());
 
+    final List<PolicyViolation> component1Violations =
+        Collections.singletonList(createPolicyViolation(1, "a", "policy-a"));
+    final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(component1, component1Violations);
+    final List<PolicyViolation> component2Violations =
+        Collections.singletonList(createPolicyViolation(1, "b", "policy-b"));
+    final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(component2, component2Violations);
+    final List<PolicyViolation> component3Violations =
+        Collections.singletonList(createPolicyViolation(1, "c", "policy-c"));
+    final PolicyThreats.Component component3Threats = createPolicyThreatsComponents(component3, component3Violations);
+    final List<PolicyViolation> component4Violations =
+        Collections.singletonList(createPolicyViolation(1, "d", "policy-d"));
+    final PolicyThreats.Component component4Threats = createPolicyThreatsComponents(component4, component4Violations);
+    final List<PolicyViolation> component5Violations =
+        Collections.singletonList(createPolicyViolation(1, "e", "policy-e"));
+    final PolicyThreats.Component component5Threats = createPolicyThreatsComponents(component5, component5Violations);
+
     // === WHEN ===
     when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
         createApiReportRawDataDTOV2(Lists.newArrayList(component1, component2, component3, component4, component5)));
-    when(developmentPrioritiesReportService.getPolicyThreatsNoAuth(anyString(), anyString())).thenReturn(
-        createPolicyThreats(Lists.newArrayList()));
+    when(developmentPrioritiesReportService.getPolicyThreatsNoAuth(anyString(), anyString()))
+        .thenReturn(createPolicyThreats(Lists.newArrayList(component1Threats, component2Threats,
+            component3Threats, component4Threats, component5Threats)));
     when(featuresService.getFeatures()).thenReturn(Sets.newHashSet(DEVELOPER_DASHBOARD));
 
     // === Then ===
@@ -201,30 +217,19 @@ public class DevelopmentPrioritiesServiceTest
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> warningComponentsWithSecurityReachable =
         generateComponentAtEachThreatLevelWithWarnActions("reachable-component-with-warn-action", "SECURITY");
 
-    final Pair<List<ApiReportComponentDTOV2>, List<Component>> noActionComponents =
-        generateComponentAtEachThreatLevelWitNoActions("component-with-no-action", "not-security");
-
-    final Pair<List<ApiReportComponentDTOV2>, List<Component>> noActionComponentsWithSecurityReachable =
-        generateComponentAtEachThreatLevelWitNoActions("reachable-component-with-no-action", "SECURITY");
-
     final List<ApiReportComponentDTOV2> bomComponents = new ArrayList<>();
     bomComponents.addAll(failingComponents.getA());
     bomComponents.addAll(warningComponents.getA());
-    bomComponents.addAll(noActionComponents.getA());
     bomComponents.addAll(failingComponentsWithSecurityReachable.getA());
     bomComponents.addAll(warningComponentsWithSecurityReachable.getA());
-    bomComponents.addAll(noActionComponentsWithSecurityReachable.getA());
 
     Collections.shuffle(bomComponents);
 
     final List<PolicyThreats.Component> policyThreatComponents = new ArrayList<>();
     policyThreatComponents.addAll(failingComponents.getB());
     policyThreatComponents.addAll(warningComponents.getB());
-    policyThreatComponents.addAll(noActionComponents.getB());
     policyThreatComponents.addAll(failingComponentsWithSecurityReachable.getB());
     policyThreatComponents.addAll(warningComponentsWithSecurityReachable.getB());
-    policyThreatComponents.addAll(noActionComponentsWithSecurityReachable.getB());
-
     Collections.shuffle(policyThreatComponents);
 
     // === WHEN ===
@@ -241,7 +246,7 @@ public class DevelopmentPrioritiesServiceTest
         developmentPrioritiesService
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1, 66);
 
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 63, 63, 1, 1);
+    assertPaginationResultCorrect(results.getAdditionalPriorities(), 37, 37, 1, 1);
 
     final List<PrioritizedComponent> actualTop3 = results.getTopPriorities();
     final List<PrioritizedComponent> actualAdditionalPriorities = results.getAdditionalPriorities().getResults();
@@ -261,9 +266,9 @@ public class DevelopmentPrioritiesServiceTest
       assertThat(actualPrioritizedComponent.getHighestThreat()).isEqualTo(10 - i);
     }
 
-    // first 8 additional should be reachable and failing actions with descending threat levels
+    // first 7 additional should be reachable and failing actions with descending threat levels
     int offset = 0;
-    for (int i = offset; i < offset + 8; i++) {
+    for (int i = offset; i < offset + 7; i++) {
       final PrioritizedComponent actualPrioritizedComponent = actualAdditionalPriorities.get(i);
 
       final int expectedThreat = 10 - i - offset - 3;
@@ -277,9 +282,9 @@ public class DevelopmentPrioritiesServiceTest
       assertThat(actualPrioritizedComponent.getHighestThreat()).isEqualTo(expectedThreat);
     }
 
-    // next 11 should be fail actions that are not reachable with descending threat levels
-    offset = 8;
-    for (int i = offset; i < offset + 11; i++) {
+    // next 10 should be fail actions that are not reachable with descending threat levels
+    offset = 7;
+    for (int i = offset; i < offset + 10; i++) {
       final PrioritizedComponent actualPrioritizedComponent = actualAdditionalPriorities.get(i);
 
       final String expectedComponentDisplayName = "component-with-fail-action" + (10 - (i - offset));
@@ -291,9 +296,9 @@ public class DevelopmentPrioritiesServiceTest
       assertThat(actualPrioritizedComponent.getHighestThreat()).isEqualTo(10 - (i - offset));
     }
 
-    // next 11 should be reachable warn actions with descending threat levels
-    offset += 11;
-    for (int i = offset; i < offset + 11; i++) {
+    // next 10 should be reachable warn actions with descending threat levels
+    offset += 10;
+    for (int i = offset; i < offset + 10; i++) {
       final PrioritizedComponent actualPrioritizedComponent = actualAdditionalPriorities.get(i);
 
       final String expectedComponentDisplayName = "reachable-component-with-warn-action" + (10 - (i - offset));
@@ -305,9 +310,9 @@ public class DevelopmentPrioritiesServiceTest
       assertThat(actualPrioritizedComponent.getHighestThreat()).isEqualTo(10 - (i - offset));
     }
 
-    // next 11 should be warn actions with descending threat levels
-    offset += 11;
-    for (int i = offset; i < offset + 11; i++) {
+    // next 10 should be warn actions with descending threat levels
+    offset += 10;
+    for (int i = offset; i < offset + 10; i++) {
       final PrioritizedComponent actualPrioritizedComponent = actualAdditionalPriorities.get(i);
 
       final String expectedComponentDisplayName = "component-with-warn-action" + (10 - (i - offset));
@@ -316,34 +321,6 @@ public class DevelopmentPrioritiesServiceTest
       assertThat(actualPrioritizedComponent.getAction()).isEqualTo("warn");
       assertThat(actualPrioritizedComponent.getHasFailActionOnComponent()).isFalse();
       assertThat(actualPrioritizedComponent.isSecurityReachable()).isFalse();
-      assertThat(actualPrioritizedComponent.getHighestThreat()).isEqualTo(10 - (i - offset));
-    }
-
-    // next 11 should be reachable no actions with descending threat levels
-    offset += 11;
-    for (int i = offset; i < offset + 11; i++) {
-      final PrioritizedComponent actualPrioritizedComponent = actualAdditionalPriorities.get(i);
-
-      final String expectedComponentDisplayName = "reachable-component-with-no-action" + (10 - (i - offset));
-      assertThat(actualPrioritizedComponent.getDisplayName()).isEqualTo(expectedComponentDisplayName);
-      assertThat(actualPrioritizedComponent.getPriority()).isEqualTo(i + 4); // add 4 to account for top 3
-      assertThat(actualPrioritizedComponent.getAction()).isEqualTo("none");
-      assertThat(actualPrioritizedComponent.getHasFailActionOnComponent()).isFalse();
-      assertThat(actualPrioritizedComponent.isSecurityReachable()).isTrue();
-      assertThat(actualPrioritizedComponent.getHighestThreat()).isEqualTo(10 - (i - offset));
-    }
-
-    // next 11 should be no actions with descending threat levels
-    offset += 11;
-    for (int i = offset; i < offset + 11; i++) {
-      final PrioritizedComponent actualPrioritizedComponent = actualAdditionalPriorities.get(i);
-
-      final String expectedComponentDisplayName = "component-with-no-action" + (10 - (i - offset));
-      assertThat(actualPrioritizedComponent.getDisplayName()).isEqualTo(expectedComponentDisplayName);
-      assertThat(actualPrioritizedComponent.getPriority()).isEqualTo(i + 4);  // add 4 to account for top 3
-      assertThat(actualPrioritizedComponent.getAction()).isEqualTo("none");
-      assertThat(actualPrioritizedComponent.getHasFailActionOnComponent()).isEqualTo(false);
-      assertThat(actualPrioritizedComponent.isSecurityReachable()).isEqualTo(false);
       assertThat(actualPrioritizedComponent.getHighestThreat()).isEqualTo(10 - (i - offset));
     }
 
@@ -377,7 +354,7 @@ public class DevelopmentPrioritiesServiceTest
         .hasSize(3)
         .allSatisfy(result -> assertThat(result.isSecurityReachable()).isFalse());
 
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 8, 8, 1, 1);
+    assertPaginationResultCorrect(results.getAdditionalPriorities(), 7, 7, 1, 1);
 
     assertThat(actualAdditionalPriorities)
         .allSatisfy(result -> assertThat(result.isSecurityReachable()).isFalse());
@@ -408,7 +385,7 @@ public class DevelopmentPrioritiesServiceTest
     final List<PrioritizedComponent> actualTop3 = results.getTopPriorities();
     final List<PrioritizedComponent> actualAdditionalProperties = results.getAdditionalPriorities().getResults();
 
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 8, 8, 1, 1);
+    assertPaginationResultCorrect(results.getAdditionalPriorities(), 7, 7, 1, 1);
 
     assertThat(actualTop3)
         .hasSize(3)
@@ -500,6 +477,78 @@ public class DevelopmentPrioritiesServiceTest
   }
 
   @Test
+  public void testGetPrioritizedFindings_shouldFilterOutPrioritiesWithZeroThreat() {
+    // === GIVEN ===
+    // will be middle priority with component2 (priority 2)
+    final ApiReportComponentDTOV2 component1 = createComponent("aaa", "component1");
+    final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
+        component1,
+        Lists.newArrayList(createPolicyViolation(7, "a", "policy-a")));
+
+    final ApiReportComponentDTOV2 component2 = createComponent("bbb", "component1");
+    final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(
+        component2,
+        Lists.newArrayList(createPolicyViolation(7, "b", "policy-b")));
+
+    final ApiReportComponentDTOV2 component3 = createComponent("ccc", "component1");
+    final PolicyThreats.Component component3Threats = createPolicyThreatsComponents(
+        component3,
+        Lists.newArrayList(createPolicyViolation(9, "c", "policy-c")));
+
+    final ApiReportComponentDTOV2 component4 = createComponent("ddd", "component4");
+    final PolicyThreats.Component component4Threats = createPolicyThreatsComponents(
+        component4,
+        Lists.newArrayList(createPolicyViolation(2, "d", "policy-d")));
+
+    final ApiReportComponentDTOV2 component5 = createComponent("eee", "component5");
+    final PolicyThreats.Component component5Threats = createPolicyThreatsComponents(
+        component5,
+        Lists.newArrayList(createPolicyViolation(0, "e", "policy-e")));
+
+    final ApiReportComponentDTOV2 component6 = createComponent("fff", "component6");
+    final PolicyThreats.Component component6Threats = createPolicyThreatsComponents(
+        component6,
+        Lists.newArrayList(createPolicyViolation(0, "g", "policy-g")));
+
+    final ApiReportComponentDTOV2 component7 = createComponent("hhh", "component7");
+    final PolicyThreats.Component component7Threats = createPolicyThreatsComponents(
+        component7,
+        Lists.newArrayList(createPolicyViolation(0, "h", "policy-h")));
+
+    final ApiReportComponentDTOV2 component8 = createComponent("iii", "component8");
+    final PolicyThreats.Component component8Threats = createPolicyThreatsComponents(
+        component5,
+        Lists.newArrayList(createPolicyViolation(0, "i", "policy-i")));
+
+    // === WHEN ===
+    when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
+        createApiReportRawDataDTOV2(Lists.newArrayList(component1, component2, component3, component4, component5,
+            component6, component7, component8)));
+    when(developmentPrioritiesReportService.getPolicyThreatsNoAuth(anyString(), anyString())).thenReturn(
+        createPolicyThreats(Lists.newArrayList(
+            component1Threats, component2Threats, component3Threats, component4Threats, component5Threats,
+            component6Threats, component7Threats, component8Threats)));
+    when(featuresService.getFeatures()).thenReturn(Sets.newHashSet(DEVELOPER_DASHBOARD));
+
+    // === THEN ===
+    DevelopmentPrioritizationResults results =
+        developmentPrioritiesService
+            .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10);
+
+    final List<PrioritizedComponent> actualTop3 = results.getTopPriorities();
+    List<PrioritizedComponent> actualAdditionalPriorities = results.getAdditionalPriorities().getResults();
+
+    assertThat(actualTop3)
+        .hasSize(3)
+        .allSatisfy(prioritizedComponent -> assertThat(prioritizedComponent.getHighestThreat()).isPositive());
+    assertThat(actualAdditionalPriorities)
+        .hasSize(1)
+        .allSatisfy(prioritizedComponent -> assertThat(prioritizedComponent.getHighestThreat()).isPositive());
+
+    verifyServiceCallsInvokedWithExpectedArguments();
+  }
+
+  @Test
   public void testGetPrioritizedFindings_shouldCorrectlyCombineBomAndPolicyThreatsIntoSingleResponse() {
     // === Given ====
     final String someHash = tempEntity.newRandomHash();
@@ -584,51 +633,13 @@ public class DevelopmentPrioritiesServiceTest
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> warningComponents =
         generateComponentAtEachThreatLevelWithWarnActions("component-with-warn-action", "not-security");
 
-    // create a few more components to pad out things out to a third page. They will have no actions,
-    // ensuring they come at the end.
-    final ApiReportComponentDTOV2 componentWithNoAction1 = createComponent(
-        TemporaryEntity.uuid(),
-        "page3-component-1",
-        getDirectDependencyType()
-    );
-    final PolicyThreats.Component policyThreatComponentWithNoAction1 = createPolicyThreatsComponents(
-        componentWithNoAction1,
-        Lists.newArrayList(
-            createPolicyViolation(10, TemporaryEntity.uuid(), "page3-component-1-policy-violation")));
-
-    final ApiReportComponentDTOV2 componentWithNoAction2 = createComponent(
-        TemporaryEntity.uuid(),
-        "page3-component-2",
-        getDirectDependencyType()
-    );
-    final PolicyThreats.Component policyThreatComponentWithNoAction2 = createPolicyThreatsComponents(
-        componentWithNoAction2,
-        Lists.newArrayList(
-            createPolicyViolation(9, TemporaryEntity.uuid(), "page3-component-2-policy-violation")));
-
-    final ApiReportComponentDTOV2 componentWithNoAction3 = createComponent(
-        TemporaryEntity.uuid(),
-        "page3-component-1",
-        getDirectDependencyType()
-    );
-    final PolicyThreats.Component policyThreatComponentWithNoAction3 = createPolicyThreatsComponents(
-        componentWithNoAction3,
-        Lists.newArrayList(
-            createPolicyViolation(8, TemporaryEntity.uuid(), "page3-component-3-policy-violation")));
-
     final List<ApiReportComponentDTOV2> bomComponents = new ArrayList<>();
     bomComponents.addAll(failingComponents.getA());
     bomComponents.addAll(warningComponents.getA());
-    bomComponents.add(componentWithNoAction1);
-    bomComponents.add(componentWithNoAction2);
-    bomComponents.add(componentWithNoAction3);
 
     final List<PolicyThreats.Component> policyThreatComponents = new ArrayList<>();
     policyThreatComponents.addAll(failingComponents.getB());
     policyThreatComponents.addAll(warningComponents.getB());
-    policyThreatComponents.add(policyThreatComponentWithNoAction1);
-    policyThreatComponents.add(policyThreatComponentWithNoAction2);
-    policyThreatComponents.add(policyThreatComponentWithNoAction3);
 
     // === WHEN ===
     when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
@@ -651,7 +662,7 @@ public class DevelopmentPrioritiesServiceTest
 
     // add the additional failing component hashes in order
     expectedAdditionalHashesInOrder.addAll(
-        failingComponents.getA().subList(3, failingComponents.getA().size())
+        failingComponents.getA().subList(3, failingComponents.getA().size() - 1)
             .stream()
             .map(comp -> comp.hash)
             .collect(Collectors.toList()));
@@ -660,10 +671,8 @@ public class DevelopmentPrioritiesServiceTest
     expectedAdditionalHashesInOrder.addAll(warningComponents.getA()
         .stream()
         .map(comp -> comp.hash)
-        .collect(Collectors.toList()));
-    expectedAdditionalHashesInOrder.add(componentWithNoAction1.hash);
-    expectedAdditionalHashesInOrder.add(componentWithNoAction2.hash);
-    expectedAdditionalHashesInOrder.add(componentWithNoAction3.hash);
+        .collect(Collectors.toList())
+        .subList(0, warningComponents.getA().size() - 1));
 
     // check first page contains priorities 1-10 and the first 10 hashes
     DevelopmentPrioritizationResults results = developmentPrioritiesService
@@ -672,7 +681,7 @@ public class DevelopmentPrioritiesServiceTest
     // should be same regardless of page
     assertTop3Hashes(results.getTopPriorities(), expectedTop3HashesInOrder);
 
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 10, 22, 3, 1);
+    assertPaginationResultCorrect(results.getAdditionalPriorities(), 10, 17, 2, 1);
 
     List<PrioritizedComponent> additionalPriorities = results.getAdditionalPriorities().getResults();
     int priorityOffset = 4;
@@ -690,7 +699,7 @@ public class DevelopmentPrioritiesServiceTest
     // should be same regardless of page
     assertTop3Hashes(results.getTopPriorities(), expectedTop3HashesInOrder);
 
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 10, 22, 3, 2);
+    assertPaginationResultCorrect(results.getAdditionalPriorities(), 7, 17, 2, 2);
 
     additionalPriorities = results.getAdditionalPriorities().getResults();
     priorityOffset = 14;
@@ -708,21 +717,15 @@ public class DevelopmentPrioritiesServiceTest
     // should be same regardless of page
     assertTop3Hashes(results.getTopPriorities(), expectedTop3HashesInOrder);
 
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 2, 22, 3, 3);
+    assertPaginationResultCorrect(results.getAdditionalPriorities(), 0, 17, 2, 3);
 
-    additionalPriorities = results.getAdditionalPriorities().getResults();
-    priorityOffset = 24;
-    for (int i = 0; i < additionalPriorities.size(); i++) {
-      final PrioritizedComponent actualComponent = additionalPriorities.get(i);
-      assertThat(actualComponent.getPriority()).isEqualTo(i + priorityOffset);
-      assertThat(actualComponent.getComponentHash()).isEqualTo(expectedAdditionalHashesInOrder.get(i + 20));
-    }
+    assertThat(results.getAdditionalPriorities().getResults()).isEmpty();
 
     // should return empty list if requesting a page past the end
     results =
         developmentPrioritiesService
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 4, GIVEN_PAGE_SIZE_10);
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 0, 22, 3,4);
+    assertPaginationResultCorrect(results.getAdditionalPriorities(), 0, 17, 2,4);
 
     // should be same regardless of page
     assertTop3Hashes(results.getTopPriorities(), expectedTop3HashesInOrder);
@@ -732,7 +735,7 @@ public class DevelopmentPrioritiesServiceTest
         developmentPrioritiesService
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 1, 5);
 
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 5, 22, 5, 1);
+    assertPaginationResultCorrect(results.getAdditionalPriorities(), 5, 17, 4, 1);
 
     // should be same regardless of page
     assertTop3Hashes(results.getTopPriorities(), expectedTop3HashesInOrder);
@@ -750,7 +753,7 @@ public class DevelopmentPrioritiesServiceTest
         developmentPrioritiesService
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 2, 5);
 
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 5, 22, 5, 2);
+    assertPaginationResultCorrect(results.getAdditionalPriorities(), 5, 17, 4, 2);
 
     // should be same regardless of page
     assertTop3Hashes(results.getTopPriorities(), expectedTop3HashesInOrder);

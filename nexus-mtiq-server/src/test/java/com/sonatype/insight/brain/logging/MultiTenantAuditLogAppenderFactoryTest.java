@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.model.Organization;
@@ -26,6 +27,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 /*
  * WARNING:
@@ -90,12 +92,13 @@ public class MultiTenantAuditLogAppenderFactoryTest
     return restRequest().path(OrganizationResource.RESOURCE_PATH);
   }
 
-  private void assertLogContains(String tenantSlug, String value) throws IOException {
+  private void assertLogContains(String tenantSlug, String value) {
     String tenantAuditLogFileName = MultiTenantAuditLogAppenderFactory.getAuditLogFileName(tenantSlug);
     assertThat(tenantAuditLogFileName).contains(tenantSlug);
-    String tenantAuditLogContents =
-        FileUtils.readFileToString(new File(tenantAuditLogFileName), StandardCharsets.UTF_8);
-    assertThat(tenantAuditLogContents).contains(value);
+    // Need to await for logback to flush the logs to disk.
+    await().atMost(5, TimeUnit.SECONDS).untilAsserted(
+        () -> assertThat(FileUtils.readFileToString(new File(tenantAuditLogFileName), StandardCharsets.UTF_8))
+            .contains(value));
   }
 
   private void assertLogDoesNotContain(String tenantSlug, String value) throws IOException {

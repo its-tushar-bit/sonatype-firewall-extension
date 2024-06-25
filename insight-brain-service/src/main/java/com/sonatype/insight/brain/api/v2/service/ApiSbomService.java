@@ -72,14 +72,13 @@ import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.model.ClientScanType;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.cyclonedx.exception.ParseException;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spdx.library.InvalidSPDXAnalysisException;
 
 @Named
 @Singleton
@@ -94,6 +93,8 @@ public class ApiSbomService
   public static final String SBOM_STATE_ORIGINAL = "original";
 
   public static final String STATE_PARAM = "state";
+
+  public static final String SBOM_VALIDATED_HEADER = "X-SBOM-Validated";
 
   private final ThirdPartySbomMetadataDAO dao;
 
@@ -195,15 +196,17 @@ public class ApiSbomService
         .withTargetFormat(sbomFormat);
 
     String content = sbomExporterProvider.get(params).export();
-    validateAndLogAnyErrors(content, applicationId, version, exportSpec, sbomFormat);
+    boolean validity = validateAndLogAnyErrors(content, applicationId, version, exportSpec, sbomFormat);
     content = content != null ? content : "";
     String fileName = getExportFileName(applicationId, version, sbomFormat.toString());
     return Response.ok(content.getBytes(StandardCharsets.UTF_8), acceptType)
+        .header(SBOM_VALIDATED_HEADER, String.valueOf(validity))
         .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(fileName))
         .build();
   }
 
-  private void validateAndLogAnyErrors(
+  @VisibleForTesting
+  boolean validateAndLogAnyErrors(
       String content,
       final String applicationId,
       final String version,
@@ -216,10 +219,12 @@ public class ApiSbomService
       else if (SbomSpecification.SPDX.equals(exportSpec.getSpecification())) {
         ThirdPartyUtils.parseAndValidateSpdx(content, sbomFormat);
       }
+      return true;
     }
-    catch (ParseException | IOException | InvalidSPDXAnalysisException e) {
+    catch (Exception e) {
       log.debug("Invalid SBOM generated for application {}, version {}, spec {}, format {}", applicationId, version,
           exportSpec.getSpecification(), sbomFormat, e);
+      return false;
     }
   }
 

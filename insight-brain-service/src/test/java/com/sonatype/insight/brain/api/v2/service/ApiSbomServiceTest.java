@@ -13,7 +13,6 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -40,6 +39,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -51,16 +51,19 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.internal.stubbing.answers.AnswersWithDelay;
 import org.mockito.internal.stubbing.answers.Returns;
 import org.xmlunit.assertj.XmlAssert;
 
+import static com.sonatype.insight.brain.api.v2.service.ApiSbomService.SBOM_VALIDATED_HEADER;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.CYCLONEDX_IGNORE_ATTRIBS;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreNodesFilter;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
@@ -81,6 +84,9 @@ import static org.mockito.Mockito.lenient;
 public class ApiSbomServiceTest
     extends AbstractComponentTest
 {
+  @Rule
+  public LogOutput logOutput = new LogOutput(1, ApiSbomServiceTest.class, ApiSbomService.class);
+
   private static final String DUMMY_USER_AGENT = RandomStringUtils.random(10, true, true);
 
   @Inject
@@ -228,6 +234,7 @@ public class ApiSbomServiceTest
 
     assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
     assertThat(response.getMediaType().toString()).isEqualTo(MediaType.APPLICATION_XML);
+    assertThat(response.getHeaderString(SBOM_VALIDATED_HEADER)).isEqualTo("true");
 
     assertContentHeader(response, app, sbomVersion, ".xml");
     String sbomContent = new String((byte []) response.getEntity());
@@ -253,8 +260,8 @@ public class ApiSbomServiceTest
             "cyclonedx1.5", MediaType.APPLICATION_JSON);
 
     assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
-
     assertThat(response.getMediaType().toString()).isEqualTo(MediaType.APPLICATION_JSON);
+    assertThat(response.getHeaderString(SBOM_VALIDATED_HEADER)).isEqualTo("true");
 
     String sbomContent = new String((byte []) response.getEntity());
     assertContentHeader(response, app, sbomVersion, ".json");
@@ -277,6 +284,7 @@ public class ApiSbomServiceTest
 
     assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
     assertThat(response.getMediaType().toString()).isEqualTo(MediaType.APPLICATION_XML);
+    assertThat(response.getHeaderString(SBOM_VALIDATED_HEADER)).isEqualTo("true");
 
     String sbomContent = new String((byte[]) response.getEntity());
     assertContentHeader(response, app, sbomVersion, ".xml");
@@ -301,12 +309,41 @@ public class ApiSbomServiceTest
 
     assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
     assertThat(response.getMediaType().toString()).isEqualTo(MediaType.APPLICATION_JSON);
+    assertThat(response.getHeaderString(SBOM_VALIDATED_HEADER)).isEqualTo("true");
 
     String sbomContent = new String((byte []) response.getEntity());
     assertContentHeader(response, app, sbomVersion, ".json");
     assertThatJson(sbomContent)
         .whenIgnoringPaths("creationInfo.created", "creationInfo.creators[0]", "documentNamespace", "name")
         .isEqualTo(expectedContentIn("sboms/valid-spdx-result-bom.json"));
+  }
+
+  @Test
+  public void testValidateAndLogAnyErrors_Invalid() throws Exception {
+    String content = "<?xml version=\"1.0\"?>\n" +
+        "<bom serialNumber=\"urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79\" version=\"1\"\n" +
+        "     xmlns=\"http://cyclonedx.org/schema/bom/1.1\"\n" +
+        "     xmlns:v=\"http://cyclonedx.org/schema/ext/vulnerability/1.0\">\n" +
+        "  <components>\n" +
+        "    <component type=\"library\" bom-ref=\"pkg:maven/com.jackson.core/jackson-databind@2.9.9?type=jar\">\n" +
+        "      <group>com.fasterxml.jackson.core</group>\n" +
+        "      <name>jackson-databind</name>\n" +
+        "      <version>2.9.9</version>\n" +
+        "      <licenses>\n" +
+        "        <license>\n" +
+        "          <id></id>\n" +
+        "        </license>\n" +
+        "      </licenses>\n" +
+        "      <purl>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</purl>\n" +
+        "    </component>\n" +
+        "  </components>\n" +
+        "</bom>";
+    boolean validated =
+        service.validateAndLogAnyErrors(content, "appId", "v1", ExportSpecification.CYCLONEDX_15, SbomFormat.XML);
+    assertThat(validated).isFalse();
+    logOutput.assertThat()
+        .contains("Invalid SBOM generated for application appId, version v1, spec CycloneDx, format xml")
+        .atDebugLevel();
   }
 
   @Test

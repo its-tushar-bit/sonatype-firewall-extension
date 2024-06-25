@@ -282,8 +282,12 @@ public class SbomCycloneDxUtils
   }
 
   public static Optional<Component> findComponentByPackageUrl(String packageUrl, Bom bom) {
+    if (packageUrl == null) {
+      return Optional.empty();
+    }
+
     return bom.getComponents().stream().filter(
-        bc -> bc.getPurl().equals(packageUrl) ).findFirst();
+        bc -> packageUrl.equals(bc.getPurl()) ).findFirst();
   }
 
   public static void addSonatypeIdentifierPropertyToComponent(

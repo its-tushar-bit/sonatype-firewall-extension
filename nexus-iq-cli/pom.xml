@@ -80,6 +80,11 @@
           <groupId>org.antlr</groupId>
           <artifactId>antlr4-runtime</artifactId>
         </exclusion>
+        <!-- Avoid older kotlin lib versions that break call flow analysis -->
+        <exclusion>
+          <groupId>org.jetbrains.kotlin</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
       </exclusions>
       <scope>test</scope>
     </dependency>

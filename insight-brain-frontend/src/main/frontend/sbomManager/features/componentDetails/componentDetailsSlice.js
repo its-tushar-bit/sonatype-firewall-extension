@@ -5,6 +5,8 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { always, findIndex, includes, prop, values, without } from 'ramda';
+
 import {
   getApplicationSummaryUrl,
   getSbomComponentDependencyTreeUrl,
@@ -16,9 +18,24 @@ import {
 } from 'MainRoot/util/CLMLocation';
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
-import { always } from 'ramda';
 
 const REDUCER_NAME = 'sbomComponentDetailsPage';
+
+export const SORT_BY_FIELDS = Object.freeze({
+  cvssScore: 'cvssScore',
+  analysisStatus: 'analysisStatus',
+});
+
+export const SORT_DIRECTION = Object.freeze({
+  ASC: 'asc',
+  DESC: 'desc',
+  DEFAULT: null,
+});
+
+export const defaultSortConfiguration = Object.freeze({
+  sortBy: SORT_BY_FIELDS.cvssScore,
+  sortDirection: SORT_DIRECTION.DESC,
+});
 
 export const initialState = {
   loading: false,
@@ -33,6 +50,8 @@ export const initialState = {
   loadVulnerabilityAnalysisReferenceDataError: null,
   publicAppId: null,
   componentDetails: null,
+  disclosedVulnerabilitiesSortConfiguration: { ...defaultSortConfiguration },
+  additionalVulnerabilitiesSortConfiguration: { ...defaultSortConfiguration },
   dependencyTreeSubset: null,
   vulnerabilityDetails: null,
   vulnerabilityAnalysisReferenceData: {
@@ -219,6 +238,51 @@ const getVulnerabilityAnalysisReferenceData = createAsyncThunk(
   }
 );
 
+// vulnerabilities-sort-configuration
+const cycleList = (list, current) => {
+  const index = findIndex((item) => item === current, list);
+  return list[(index + 1) % list.length];
+};
+
+const cycleVulnerabilitiesReducerCreator = (sortConfigurationStatePath) => (
+  state,
+  { payload: { sortBy: newSortBy } }
+) => {
+  const { sortBy: currentSortBy, sortDirection: currentSortDirection } = prop(sortConfigurationStatePath, state);
+  const { sortBy: defaultSortBy, sortDirection: defaultSortDirection } = defaultSortConfiguration;
+  const sortDirections = values(SORT_DIRECTION);
+
+  if (newSortBy === defaultSortBy) {
+    const complement = [defaultSortDirection, SORT_DIRECTION.DEFAULT];
+    if (newSortBy !== currentSortBy) {
+      state[sortConfigurationStatePath].sortDirection = sortDirections[0];
+    } else if (includes(currentSortDirection, complement)) {
+      state[sortConfigurationStatePath].sortDirection = cycleList(
+        without(complement, sortDirections),
+        currentSortDirection
+      );
+    } else if (includes(cycleList(sortDirections, currentSortDirection), complement)) {
+      state[sortConfigurationStatePath].sortDirection = defaultSortDirection;
+    }
+    state[sortConfigurationStatePath].sortBy = newSortBy;
+  } else {
+    const nextDirection =
+      newSortBy !== currentSortBy ? sortDirections[0] : cycleList(sortDirections, currentSortDirection);
+    state[sortConfigurationStatePath] =
+      nextDirection === SORT_DIRECTION.DEFAULT
+        ? { ...defaultSortConfiguration }
+        : { sortBy: newSortBy, sortDirection: nextDirection };
+  }
+};
+
+const cycleDisclosedVulnerabilitiesSortDirection = cycleVulnerabilitiesReducerCreator(
+  'disclosedVulnerabilitiesSortConfiguration'
+);
+
+const cycleAdditionalVulnerabilitiesSortDirection = cycleVulnerabilitiesReducerCreator(
+  'additionalVulnerabilitiesSortConfiguration'
+);
+
 const sbomComponentDetailsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -229,6 +293,8 @@ const sbomComponentDetailsSlice = createSlice({
     setFormErrorSaveMessage: (state, { payload }) => {
       state.loadSaveVexAnnotationFormError = payload;
     },
+    cycleDisclosedVulnerabilitiesSortDirection,
+    cycleAdditionalVulnerabilitiesSortDirection,
   },
   extraReducers: {
     [loadComponentDetails.pending]: loadComponentDetailsRequested,

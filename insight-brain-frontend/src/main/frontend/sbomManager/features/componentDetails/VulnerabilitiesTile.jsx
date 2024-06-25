@@ -4,7 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
+import * as PropTypes from 'prop-types';
 import {
   allThreatLevelNumbers,
   NxButton,
@@ -19,10 +20,48 @@ import {
   NxThreatIndicator,
   NxTile,
 } from '@sonatype/react-shared-components';
-import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { faCheckCircle, faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
+import {
+  always,
+  ascend,
+  assoc,
+  cond,
+  descend,
+  equals,
+  find,
+  isNil,
+  map,
+  prop,
+  propSatisfies,
+  sortWith,
+  T,
+  toUpper,
+  when,
+} from 'ramda';
+
+import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
+import { SORT_BY_FIELDS, SORT_DIRECTION } from './componentDetailsSlice';
+
 import './VulnerabilitiesTile.scss';
-import * as PropTypes from 'prop-types';
+
+const transformJustification = (justification) =>
+  justification ? justification.replace(/_/g, ' ').replace(/^\w/, toUpper) : '';
+
+export const isVulnerabilityAnnotated = (vulnerabilityRow, vulnerabilityValidAnalysisStates) =>
+  vulnerabilityValidAnalysisStates.map((entry) => entry.key).indexOf(vulnerabilityRow?.analysisStatus) > -1;
+
+const sortVulnerabilities = (vulnerabilites, { sortBy, sortDirection }) => {
+  const sortConfig = cond([
+    [equals(SORT_DIRECTION.ASC), always([ascend(prop(sortBy))])],
+    [equals(SORT_DIRECTION.DESC), always([descend(prop(sortBy))])],
+    [T, always([always(0)])],
+  ])(sortDirection);
+  return sortWith(sortConfig)(vulnerabilites);
+};
+
+const augmentVulnerabilitiesAnalysisStatusUnannotated = map(
+  when(propSatisfies(isNil, 'analysisStatus'), assoc('analysisStatus', 'unannotated'))
+);
 
 export default function VulnerabilitiesTile(props) {
   const {
@@ -32,132 +71,105 @@ export default function VulnerabilitiesTile(props) {
     openVulnerabilityDetailsModal,
     openVexAnnotationModal,
     analysisStatusesOptions,
+    sortConfiguration,
+    toggleSortDirection,
   } = props;
 
-  const determineTableTitle = () => {
-    let title;
-    if (isDisclosedVulnerabilities) {
-      title = 'Disclosed Vulnerabilities';
-    } else {
-      title = 'Additional Sonatype Identified Vulnerabilities';
-    }
+  const isEmpty = isNilOrEmpty(vulnerabilities);
 
-    return title;
-  };
+  const sortedVulnerabilities = useMemo(
+    () =>
+      isEmpty
+        ? []
+        : sortVulnerabilities(augmentVulnerabilitiesAnalysisStatusUnannotated(vulnerabilities), sortConfiguration),
+    [vulnerabilities, sortConfiguration, isEmpty]
+  );
 
-  const determineTableSubtitle = () => {
-    let subtitle;
-    if (isDisclosedVulnerabilities) {
-      subtitle = 'Existing vulnerabilities disclosed by the originator of this SBOM.';
-    } else {
-      subtitle = 'Additional vulnerabilities in this SBOM, detected by Sonatype vulnerability detection system.';
-    }
-
-    return <span>{subtitle}</span>;
-  };
-
-  const determineVerifiedUnverifiedStatus = (status) => {
-    if (status) {
-      return (
-        <div>
-          <NxFontAwesomeIcon className={'sbom-verified-icon'} icon={faCheckCircle} />
-          <span>Sonatype Verified</span>
-        </div>
-      );
-    } else {
-      return (
-        <div>
-          <NxFontAwesomeIcon className={'sbom-unverified-icon'} icon={faExclamationTriangle} />
-          <span>Unverified</span>
-        </div>
-      );
-    }
-  };
-
-  const determineAnalysisStatus = (status) => {
-    let statusIndicator;
+  const analysisStatusIndicator = (status) => {
     switch (status) {
       case 'resolved':
-        statusIndicator = <NxPositiveStatusIndicator>Resolved</NxPositiveStatusIndicator>;
-        break;
+        return <NxPositiveStatusIndicator>Resolved</NxPositiveStatusIndicator>;
       case 'resolved_with_pedigree':
-        statusIndicator = <NxPositiveStatusIndicator>Resolved with Pedigree</NxPositiveStatusIndicator>;
-        break;
+        return <NxPositiveStatusIndicator>Resolved with Pedigree</NxPositiveStatusIndicator>;
       case 'exploitable':
-        statusIndicator = <NxErrorStatusIndicator>Exploitable</NxErrorStatusIndicator>;
-        break;
+        return <NxErrorStatusIndicator>Exploitable</NxErrorStatusIndicator>;
       case 'in_triage':
-        statusIndicator = (
+        return (
           <NxNegativeStatusIndicator className="sbom-manager-cdp-vulnerabilities-tile__intriage-status">
             In Triage
           </NxNegativeStatusIndicator>
         );
-        break;
       case 'false_positive':
-        statusIndicator = <NxNegativeStatusIndicator>False Positive</NxNegativeStatusIndicator>;
-        break;
+        return <NxNegativeStatusIndicator>False Positive</NxNegativeStatusIndicator>;
       case 'not_affected':
-        statusIndicator = <NxIntermediateStatusIndicator>Not Affected</NxIntermediateStatusIndicator>;
-        break;
+        return <NxIntermediateStatusIndicator>Not Affected</NxIntermediateStatusIndicator>;
       default:
-        statusIndicator = <span>Unannotated</span>;
+        return <span>Unannotated</span>;
     }
-
-    return statusIndicator;
   };
 
   const isRowAnnotated = (vulnRow, states) => isVulnerabilityAnnotated(vulnRow, states);
 
-  const translateJustification = (justification) => {
-    return justification ? justification.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase()) : '';
-  };
+  const tableBodyRows = !isEmpty
+    ? sortedVulnerabilities.map((vulnerability) => (
+        <NxTable.Row key={vulnerability.issue}>
+          <NxTable.Cell>
+            <NxThreatIndicator
+              policyThreatLevel={find(equals(Math.floor(vulnerability.cvssScore)))(allThreatLevelNumbers)}
+              presentational
+            />
+            <span>{vulnerability.cvssScore}</span>
+          </NxTable.Cell>
 
-  const generateTableBodyRows = () => {
-    if (!isNilOrEmpty(vulnerabilities)) {
-      return (
-        <>
-          {vulnerabilities.map((vulnerability) => (
-            <NxTable.Row key={vulnerability.issue}>
-              <NxTable.Cell>
-                <NxThreatIndicator
-                  policyThreatLevel={allThreatLevelNumbers.find((n) => n === Math.floor(vulnerability.cvssScore))}
-                  presentational
+          <NxTable.Cell>
+            <NxTextLink id="sbom-component-details-link" onClick={() => openVulnerabilityDetailsModal(vulnerability)}>
+              {vulnerability.issue}
+            </NxTextLink>
+          </NxTable.Cell>
+
+          {isDisclosedVulnerabilities && (
+            <NxTable.Cell>
+              <div>
+                <NxFontAwesomeIcon
+                  className={vulnerability.verified ? 'sbom-verified-icon' : 'sbom-unverified-icon'}
+                  icon={vulnerability.verified ? faCheckCircle : faExclamationTriangle}
                 />
-                <span>{vulnerability.cvssScore}</span>
-              </NxTable.Cell>
-              <NxTable.Cell>
-                <NxTextLink
-                  id="sbom-component-details-link"
-                  onClick={() => openVulnerabilityDetailsModal(vulnerability)}
-                >
-                  {vulnerability.issue}
-                </NxTextLink>
-              </NxTable.Cell>
-              {isDisclosedVulnerabilities && (
-                <NxTable.Cell>{determineVerifiedUnverifiedStatus(vulnerability.verified)}</NxTable.Cell>
-              )}
-              <NxTable.Cell>{determineAnalysisStatus(vulnerability.analysisStatus)}</NxTable.Cell>
-              <NxTable.Cell>
-                <span>{translateJustification(vulnerability.justification)}</span>
-              </NxTable.Cell>
-              <NxTable.Cell>
-                <NxButton
-                  onClick={() =>
-                    openVexAnnotationModal({
-                      ...vulnerability,
-                      isRowAnnotated: isRowAnnotated(vulnerability, analysisStatusesOptions),
-                    })
-                  }
-                >
-                  {isRowAnnotated(vulnerability, analysisStatusesOptions) ? 'Edit' : 'Add'}
-                </NxButton>
-              </NxTable.Cell>
-            </NxTable.Row>
-          ))}
-        </>
-      );
-    }
-  };
+                <span>{vulnerability.verified ? 'Sonatype Verified' : 'Unverified'}</span>
+              </div>
+            </NxTable.Cell>
+          )}
+
+          <NxTable.Cell>{analysisStatusIndicator(vulnerability.analysisStatus)}</NxTable.Cell>
+
+          <NxTable.Cell>
+            <span>{transformJustification(vulnerability.justification)}</span>
+          </NxTable.Cell>
+
+          <NxTable.Cell>
+            <NxButton
+              onClick={() =>
+                openVexAnnotationModal({
+                  ...vulnerability,
+                  isRowAnnotated: isRowAnnotated(vulnerability, analysisStatusesOptions),
+                })
+              }
+            >
+              {isRowAnnotated(vulnerability, analysisStatusesOptions) ? 'Edit' : 'Add'}
+            </NxButton>
+          </NxTable.Cell>
+        </NxTable.Row>
+      ))
+    : null;
+
+  const sortableConfigCreator = (sortBy) => ({
+    isSortable: !isEmpty,
+    sortDir: sortConfiguration.sortBy === sortBy ? sortConfiguration.sortDirection : SORT_DIRECTION.UNSORTED,
+    onClick: () => {
+      if (!isEmpty) {
+        toggleSortDirection(sortBy);
+      }
+    },
+  });
 
   const identifierSeparator = isNilOrEmpty(tableUniqueIdentifier) ? '' : '__';
   const tableTileId = `sbom-manager-cdp-vulnerabilities-tile${identifierSeparator}${tableUniqueIdentifier}`;
@@ -166,24 +178,32 @@ export default function VulnerabilitiesTile(props) {
     <NxTile id={tableTileId} className="sbom-manager-cdp-vulnerabilities-tile">
       <NxTile.Header>
         <NxTile.HeaderTitle>
-          <NxH2>{determineTableTitle()}</NxH2>
+          <NxH2>
+            {isDisclosedVulnerabilities
+              ? 'Disclosed Vulnerabilities'
+              : 'Additional Sonatype Identified Vulnerabilities'}
+          </NxH2>
         </NxTile.HeaderTitle>
       </NxTile.Header>
       <NxTile.Content className="sbom-manager-cdp-vulnerabilities-tile__content">
-        {determineTableSubtitle()}
+        <span>
+          {isDisclosedVulnerabilities
+            ? 'Existing vulnerabilities disclosed by the originator of this SBOM.'
+            : 'Additional vulnerabilities in this SBOM, detected by Sonatype vulnerability detection system.'}
+        </span>
 
         <NxTable>
           <NxTable.Head>
             <NxTable.Row>
-              <NxTable.Cell>CVSS SCORE</NxTable.Cell>
-              <NxTable.Cell>ISSUE</NxTable.Cell>
-              {isDisclosedVulnerabilities && <NxTable.Cell>VERIFIED STATUS</NxTable.Cell>}
-              <NxTable.Cell>ANALYSIS STATUS</NxTable.Cell>
-              <NxTable.Cell>JUSTIFICATION</NxTable.Cell>
-              <NxTable.Cell>ACTION</NxTable.Cell>
+              <NxTable.Cell {...sortableConfigCreator(SORT_BY_FIELDS.cvssScore)}>CVSS Score</NxTable.Cell>
+              <NxTable.Cell>Issue</NxTable.Cell>
+              {isDisclosedVulnerabilities && <NxTable.Cell>Verified Status</NxTable.Cell>}
+              <NxTable.Cell {...sortableConfigCreator(SORT_BY_FIELDS.analysisStatus)}>Analysis Status</NxTable.Cell>
+              <NxTable.Cell>Justification</NxTable.Cell>
+              <NxTable.Cell>Action</NxTable.Cell>
             </NxTable.Row>
           </NxTable.Head>
-          <NxTable.Body emptyMessage="No vulnerabilities found">{generateTableBodyRows()}</NxTable.Body>
+          <NxTable.Body emptyMessage="No vulnerabilities found">{tableBodyRows}</NxTable.Body>
         </NxTable>
       </NxTile.Content>
     </NxTile>
@@ -197,7 +217,9 @@ VulnerabilitiesTile.propTypes = {
   openVulnerabilityDetailsModal: PropTypes.func,
   openVexAnnotationModal: PropTypes.func,
   analysisStatusesOptions: PropTypes.array.isRequired,
+  sortConfiguration: PropTypes.shape({
+    sortBy: PropTypes.string.isRequired,
+    sortDirection: PropTypes.string,
+  }).isRequired,
+  toggleSortDirection: PropTypes.func.isRequired,
 };
-
-export const isVulnerabilityAnnotated = (vulnerabilityRow, vulnerabilityValidAnalysisStates) =>
-  vulnerabilityValidAnalysisStates.map((entry) => entry.key).indexOf(vulnerabilityRow?.analysisStatus) > -1;

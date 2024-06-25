@@ -18,6 +18,7 @@ import { ComponentDetailsHeader, ComponentDetailsTags, Title } from 'MainRoot/co
 import VulnerabilitiesTile from 'MainRoot/sbomManager/features/componentDetails/VulnerabilitiesTile';
 import { faCopy } from '@fortawesome/pro-regular-svg-icons';
 import {
+  selectSbomComponentDetails,
   selectComponentDetails,
   selectIsLoading,
   selectJustificationsReferenceData,
@@ -49,6 +50,9 @@ export default function ComponentDetailsPage() {
   const justificationsOptions = useSelector(selectJustificationsReferenceData);
   const responsesOptions = useSelector(selectResponsesReferenceData);
   const analysisStatusesOptions = useSelector(selectStatesReferenceData);
+  const { disclosedVulnerabilitiesSortConfiguration, additionalVulnerabilitiesSortConfiguration } = useSelector(
+    selectSbomComponentDetails
+  );
 
   const uiRouterState = useRouterState();
   const { applicationPublicId, sbomVersion, componentHash } = routerParams;
@@ -83,6 +87,11 @@ export default function ComponentDetailsPage() {
   };
 
   const loadInternalAppId = () => dispatch(billOfMaterialsActions.loadInternalAppId(applicationPublicId));
+
+  const cycleDisclosedVulnerabilitiesSortDirection = (sortBy) =>
+    dispatch(actions.cycleDisclosedVulnerabilitiesSortDirection({ sortBy }));
+  const cycleAdditionalVulnerabilitiesSortDirection = (sortBy) =>
+    dispatch(actions.cycleAdditionalVulnerabilitiesSortDirection({ sortBy }));
 
   const initialize = () => {
     loadInternalAppId();
@@ -202,6 +211,8 @@ export default function ComponentDetailsPage() {
                 openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
                 openVexAnnotationModal={openVexAnnotationModal}
                 analysisStatusesOptions={analysisStatusesOptions}
+                sortConfiguration={disclosedVulnerabilitiesSortConfiguration}
+                toggleSortDirection={cycleDisclosedVulnerabilitiesSortDirection}
               ></VulnerabilitiesTile>
               <VulnerabilitiesTile
                 tableUniqueIdentifier={'sonatypeIdentifiedVulnerabilities'}
@@ -210,6 +221,8 @@ export default function ComponentDetailsPage() {
                 openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
                 openVexAnnotationModal={openVexAnnotationModal}
                 analysisStatusesOptions={analysisStatusesOptions}
+                sortConfiguration={additionalVulnerabilitiesSortConfiguration}
+                toggleSortDirection={cycleAdditionalVulnerabilitiesSortDirection}
               ></VulnerabilitiesTile>
               <ComponentDetailsDependencyTreeTile
                 componentDetails={componentDetails}

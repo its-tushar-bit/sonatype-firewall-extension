@@ -4,9 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, within } from 'TestRoot/SpecUtil';
-import { screen } from '@testing-library/dom';
+import { render, screen, within } from 'TestRoot/SpecUtil';
+
 import VulnerabilitiesTile from 'MainRoot/sbomManager/features/componentDetails/VulnerabilitiesTile';
+import {
+  defaultSortConfiguration,
+  SORT_BY_FIELDS,
+  SORT_DIRECTION,
+} from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
 
 describe('Vulnerabilities Tile', () => {
   let renderPage;
@@ -90,13 +95,17 @@ describe('Vulnerabilities Tile', () => {
     },
   ];
 
+  const toggleSortDirection = jest.fn();
+
   beforeEach(() => {
-    renderPage = (isDisclosedVulnerabilities, vulnerabilities) =>
+    renderPage = (isDisclosedVulnerabilities, vulnerabilities, sortConfiguration = { ...defaultSortConfiguration }) =>
       render(
         <VulnerabilitiesTile
           isDisclosedVulnerabilities={isDisclosedVulnerabilities}
           vulnerabilities={vulnerabilities}
           analysisStatusesOptions={analysisStatusesOptions}
+          sortConfiguration={sortConfiguration}
+          toggleSortDirection={toggleSortDirection}
         />
       );
   });
@@ -111,15 +120,24 @@ describe('Vulnerabilities Tile', () => {
 
     const headersRow = tableRows[0];
     let rowCells = within(headersRow).getAllByRole('columnheader');
-    expect(rowCells[0]).toHaveTextContent('CVSS SCORE');
-    expect(rowCells[1]).toHaveTextContent('ISSUE');
-    expect(rowCells[2]).toHaveTextContent('VERIFIED STATUS');
-    expect(rowCells[3]).toHaveTextContent('ANALYSIS STATUS');
-    expect(rowCells[4]).toHaveTextContent('JUSTIFICATION');
-    expect(rowCells[5]).toHaveTextContent('ACTION');
+    expect(rowCells[0]).toHaveTextContent('CVSS Score');
+    expect(rowCells[1]).toHaveTextContent('Issue');
+    expect(rowCells[2]).toHaveTextContent('Verified Status');
+    expect(rowCells[3]).toHaveTextContent('Analysis Status');
+    expect(rowCells[4]).toHaveTextContent('Justification');
+    expect(rowCells[5]).toHaveTextContent('Action');
 
     const firstRow = tableRows[1];
     rowCells = within(firstRow).getAllByRole('cell');
+    expect(rowCells[0]).toHaveTextContent('6');
+    expect(rowCells[1]).toHaveTextContent('CVE-2022-38752');
+    expect(rowCells[2]).toHaveTextContent('Sonatype Verified');
+    expect(rowCells[3]).toHaveTextContent('Resolved with Pedigree');
+    expect(rowCells[4]).toHaveTextContent('Requires dependency');
+    expect(within(rowCells[5]).getByRole('button', { name: 'Edit' })).toBeInTheDocument();
+
+    const secondRow = tableRows[2];
+    rowCells = within(secondRow).getAllByRole('cell');
     expect(rowCells[0]).toHaveTextContent('4');
     expect(rowCells[1]).toHaveTextContent('CVE-2019-10247');
     expect(rowCells[2]).toHaveTextContent('Sonatype Verified');
@@ -127,22 +145,13 @@ describe('Vulnerabilities Tile', () => {
     expect(rowCells[4]).toHaveTextContent('');
     expect(within(rowCells[5]).getByRole('button', { name: 'Add' })).toBeInTheDocument();
 
-    const secondRow = tableRows[2];
-    rowCells = within(secondRow).getAllByRole('cell');
+    const thirdRow = tableRows[3];
+    rowCells = within(thirdRow).getAllByRole('cell');
     expect(rowCells[0]).toHaveTextContent('2');
     expect(rowCells[1]).toHaveTextContent('CVE-2019-11358');
     expect(rowCells[2]).toHaveTextContent('Unverified');
     expect(rowCells[3]).toHaveTextContent('Resolved');
     expect(rowCells[4]).toHaveTextContent('Protected by mitigating control');
-    expect(within(rowCells[5]).getByRole('button', { name: 'Edit' })).toBeInTheDocument();
-
-    const thirdRow = tableRows[3];
-    rowCells = within(thirdRow).getAllByRole('cell');
-    expect(rowCells[0]).toHaveTextContent('6');
-    expect(rowCells[1]).toHaveTextContent('CVE-2022-38752');
-    expect(rowCells[2]).toHaveTextContent('Sonatype Verified');
-    expect(rowCells[3]).toHaveTextContent('Resolved with Pedigree');
-    expect(rowCells[4]).toHaveTextContent('Requires dependency');
     expect(within(rowCells[5]).getByRole('button', { name: 'Edit' })).toBeInTheDocument();
   });
 
@@ -158,11 +167,11 @@ describe('Vulnerabilities Tile', () => {
 
     const headersRow = tableRows[0];
     let rowCells = within(headersRow).getAllByRole('columnheader');
-    expect(rowCells[0]).toHaveTextContent('CVSS SCORE');
-    expect(rowCells[1]).toHaveTextContent('ISSUE');
-    expect(rowCells[2]).toHaveTextContent('ANALYSIS STATUS');
-    expect(rowCells[3]).toHaveTextContent('JUSTIFICATION');
-    expect(rowCells[4]).toHaveTextContent('ACTION');
+    expect(rowCells[0]).toHaveTextContent('CVSS Score');
+    expect(rowCells[1]).toHaveTextContent('Issue');
+    expect(rowCells[2]).toHaveTextContent('Analysis Status');
+    expect(rowCells[3]).toHaveTextContent('Justification');
+    expect(rowCells[4]).toHaveTextContent('Action');
 
     const firstRow = tableRows[1];
     rowCells = within(firstRow).getAllByRole('cell');
@@ -193,14 +202,169 @@ describe('Vulnerabilities Tile', () => {
 
     const headersRow = tableRows[0];
     let rowCells = within(headersRow).getAllByRole('columnheader');
-    expect(rowCells[0]).toHaveTextContent('CVSS SCORE');
-    expect(rowCells[1]).toHaveTextContent('ISSUE');
-    expect(rowCells[2]).toHaveTextContent('ANALYSIS STATUS');
-    expect(rowCells[3]).toHaveTextContent('JUSTIFICATION');
-    expect(rowCells[4]).toHaveTextContent('ACTION');
+    expect(rowCells[0]).toHaveTextContent('CVSS Score');
+    expect(rowCells[1]).toHaveTextContent('Issue');
+    expect(rowCells[2]).toHaveTextContent('Analysis Status');
+    expect(rowCells[3]).toHaveTextContent('Justification');
+    expect(rowCells[4]).toHaveTextContent('Action');
 
     const firstRow = tableRows[1];
     rowCells = within(firstRow).getAllByRole('cell');
     expect(rowCells[0]).toHaveTextContent('No vulnerabilities found');
+  });
+
+  describe('Sorting', () => {
+    const unsortedVulnerabilities = [
+      {
+        cvssScore: 5,
+        issue: 'CVE-0000-0001',
+        analysisStatus: null,
+        justification: null,
+        details: null,
+        verified: false,
+      },
+      {
+        cvssScore: 10,
+        issue: 'CVE-0000-0002',
+        analysisStatus: 'resolved',
+        justification: null,
+        details: null,
+        verified: false,
+      },
+      {
+        cvssScore: 1,
+        issue: 'CVE-0000-0003',
+        analysisStatus: 'resolved_with_pedigree',
+        justification: null,
+        details: null,
+        verified: false,
+      },
+    ];
+
+    it('renders the table in the correct sorting order: cvssScore, descending', async () => {
+      const sortConfiguration = {
+        sortBy: SORT_BY_FIELDS.cvssScore,
+        sortDirection: SORT_DIRECTION.DESC,
+      };
+
+      renderPage(false, unsortedVulnerabilities, sortConfiguration);
+
+      expect(await screen.findByText('Additional Sonatype Identified Vulnerabilities')).toBeVisible();
+
+      const tableRows = await screen.findAllByRole('row');
+
+      const firstRow = tableRows[1];
+      let rowCells = within(firstRow).getAllByRole('cell');
+      expect(rowCells[0]).toHaveTextContent('10');
+      expect(rowCells[1]).toHaveTextContent('CVE-0000-0002');
+      expect(rowCells[2]).toHaveTextContent('Resolved');
+
+      const secondRow = tableRows[2];
+      rowCells = within(secondRow).getAllByRole('cell');
+      expect(rowCells[0]).toHaveTextContent('5');
+      expect(rowCells[1]).toHaveTextContent('CVE-0000-0001');
+      expect(rowCells[2]).toHaveTextContent('Unannotated');
+
+      const thirdRow = tableRows[3];
+      rowCells = within(thirdRow).getAllByRole('cell');
+      expect(rowCells[0]).toHaveTextContent('1');
+      expect(rowCells[1]).toHaveTextContent('CVE-0000-0003');
+      expect(rowCells[2]).toHaveTextContent('Resolved with Pedigree');
+    });
+
+    it('renders the table in the correct sorting order: cvssScore, ascending', async () => {
+      const sortConfiguration = {
+        sortBy: SORT_BY_FIELDS.cvssScore,
+        sortDirection: SORT_DIRECTION.ASC,
+      };
+
+      renderPage(false, unsortedVulnerabilities, sortConfiguration);
+
+      expect(await screen.findByText('Additional Sonatype Identified Vulnerabilities')).toBeVisible();
+
+      const tableRows = await screen.findAllByRole('row');
+
+      const firstRow = tableRows[1];
+      let rowCells = within(firstRow).getAllByRole('cell');
+      expect(rowCells[0]).toHaveTextContent('1');
+      expect(rowCells[1]).toHaveTextContent('CVE-0000-0003');
+      expect(rowCells[2]).toHaveTextContent('Resolved with Pedigree');
+
+      const secondRow = tableRows[2];
+      rowCells = within(secondRow).getAllByRole('cell');
+      expect(rowCells[0]).toHaveTextContent('5');
+      expect(rowCells[1]).toHaveTextContent('CVE-0000-0001');
+      expect(rowCells[2]).toHaveTextContent('Unannotated');
+
+      const thirdRow = tableRows[3];
+      rowCells = within(thirdRow).getAllByRole('cell');
+      expect(rowCells[0]).toHaveTextContent('10');
+      expect(rowCells[1]).toHaveTextContent('CVE-0000-0002');
+      expect(rowCells[2]).toHaveTextContent('Resolved');
+    });
+
+    it('renders the table in the correct sorting order: analysisStatus, ascending', async () => {
+      const sortConfiguration = {
+        sortBy: SORT_BY_FIELDS.analysisStatus,
+        sortDirection: SORT_DIRECTION.ASC,
+      };
+
+      renderPage(false, unsortedVulnerabilities, sortConfiguration);
+
+      expect(await screen.findByText('Additional Sonatype Identified Vulnerabilities')).toBeVisible();
+
+      const tableRows = await screen.findAllByRole('row');
+
+      const firstRow = tableRows[1];
+      let rowCells = within(firstRow).getAllByRole('cell');
+      rowCells = within(firstRow).getAllByRole('cell');
+      expect(rowCells[0]).toHaveTextContent('10');
+      expect(rowCells[1]).toHaveTextContent('CVE-0000-0002');
+      expect(rowCells[2]).toHaveTextContent('Resolved');
+
+      const secondRow = tableRows[2];
+      rowCells = within(secondRow).getAllByRole('cell');
+      expect(rowCells[0]).toHaveTextContent('1');
+      expect(rowCells[1]).toHaveTextContent('CVE-0000-0003');
+      expect(rowCells[2]).toHaveTextContent('Resolved with Pedigree');
+
+      const thirdRow = tableRows[3];
+      rowCells = within(thirdRow).getAllByRole('cell');
+      expect(rowCells[0]).toHaveTextContent('5');
+      expect(rowCells[1]).toHaveTextContent('CVE-0000-0001');
+      expect(rowCells[2]).toHaveTextContent('Unannotated');
+    });
+
+    it('renders the table in the correct sorting order: analysisStatus, descending', async () => {
+      const sortConfiguration = {
+        sortBy: SORT_BY_FIELDS.analysisStatus,
+        sortDirection: SORT_DIRECTION.DESC,
+      };
+
+      renderPage(false, unsortedVulnerabilities, sortConfiguration);
+
+      expect(await screen.findByText('Additional Sonatype Identified Vulnerabilities')).toBeVisible();
+
+      const tableRows = await screen.findAllByRole('row');
+
+      const firstRow = tableRows[1];
+      let rowCells = within(firstRow).getAllByRole('cell');
+      rowCells = within(firstRow).getAllByRole('cell');
+      expect(rowCells[0]).toHaveTextContent('5');
+      expect(rowCells[1]).toHaveTextContent('CVE-0000-0001');
+      expect(rowCells[2]).toHaveTextContent('Unannotated');
+
+      const secondRow = tableRows[2];
+      rowCells = within(secondRow).getAllByRole('cell');
+      expect(rowCells[0]).toHaveTextContent('1');
+      expect(rowCells[1]).toHaveTextContent('CVE-0000-0003');
+      expect(rowCells[2]).toHaveTextContent('Resolved with Pedigree');
+
+      const thirdRow = tableRows[3];
+      rowCells = within(thirdRow).getAllByRole('cell');
+      expect(rowCells[0]).toHaveTextContent('10');
+      expect(rowCells[1]).toHaveTextContent('CVE-0000-0002');
+      expect(rowCells[2]).toHaveTextContent('Resolved');
+    });
   });
 });

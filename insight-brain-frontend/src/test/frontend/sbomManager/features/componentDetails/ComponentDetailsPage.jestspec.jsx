@@ -4,16 +4,17 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import { screen, fireEvent, getByText, queryByText } from '@testing-library/react';
+
 import { axiosMockAdapter, render, waitFor } from 'TestRoot/SpecUtil';
-import ComponentDetailsPage from 'MainRoot/sbomManager/features/componentDetails/ComponentDetailsPage';
-import { screen } from '@testing-library/dom';
 import {
   getApplicationSummaryUrl,
   getSbomComponentDetailsUrl,
   getSbomVulnerabibilityAnalysisReferenceData,
   saveSbomVulnerabilityAnnotationUrl,
 } from 'MainRoot/util/CLMLocation';
-import { fireEvent, getByText, queryByText } from '@testing-library/react';
+import ComponentDetailsPage from 'MainRoot/sbomManager/features/componentDetails/ComponentDetailsPage';
+import { defaultSortConfiguration } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
 
 describe('ComponentDetailsPage', () => {
   let renderPage;
@@ -194,6 +195,9 @@ describe('ComponentDetailsPage', () => {
         loadError: null,
         publicAppId: null,
         componentDetails: null,
+
+        disclosedVulnerabilitiesSortConfiguration: { ...defaultSortConfiguration },
+        additionalVulnerabilitiesSortConfiguration: { ...defaultSortConfiguration },
 
         vulnerabilityAnalysisReferenceData,
       },

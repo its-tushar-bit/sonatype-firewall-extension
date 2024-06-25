@@ -17,7 +17,7 @@ import ApplicationsHistoryTile from './applicationsHistoryTile/ApplicationsHisto
 import HighPriorityVulnerabilitiesTile from './highPriorityVulnerabilitiesTile/HighPriorityVulnerabilitiesTile';
 import VulnerabilitiesByThreatLevelTile from './vulnerabilitiesByThreatLevelTile/VulnerabilitiesByThreatLevelTile';
 import RecentlyImportedSbomsTile from './recentlyImportedSbomsTile/RecentlyImportedSbomsTile';
-// import SbomReleaseStatusTile from './sbomReleaseStatusTile/SbomReleaseStatusTile';
+import SbomReleaseStatusTile from './sbomReleaseStatusTile/SbomReleaseStatusTile';
 
 import './SbomManagerDashboard.scss';
 
@@ -44,13 +44,8 @@ export default function SbomManagerDashboard() {
             <ApplicationsHistoryTile />
             <HighPriorityVulnerabilitiesTile />
             <VulnerabilitiesByThreatLevelTile />
+            <SbomReleaseStatusTile />
             <RecentlyImportedSbomsTile />
-            {/*
-              CLM-30199
-              Incomplete dashboard tiles are hidden
-              until they are implemented.
-              <SbomReleaseStatusTile />
-            */}
           </div>
         </>
       </NxLoadWrapper>

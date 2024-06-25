@@ -800,6 +800,12 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  describe('getSbomReleaseStatusUrl', function () {
+    it('should return the url for dashboard SBOM release status', function () {
+      expect(CLMLocation.getSbomReleaseStatusUrl()).toBe('/rest/sbom/dashboard/sbomReleaseStatus');
+    });
+  });
+
   describe('getRecentlyImportedSbomsUrl', function () {
     it('should return the url for dashboard recently imported SBOMs', function () {
       expect(CLMLocation.getRecentlyImportedSbomsUrl()).toBe('/rest/sbom/dashboard/recentlyImportedSboms');

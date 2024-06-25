@@ -1,0 +1,107 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.sbom;
+
+public class SbomComponentInfoTelemetry
+{
+  public static final String ATTRIBUTE_NAME = "sbom_data_summary";
+
+  private String contentType = null;
+
+  private String spec = null;
+
+  private String specVersion = null;
+
+  private int purlCount = 0;
+
+  private int cpeCount = 0;
+
+  private int swidCount = 0;
+
+  private int hashCount = 0;
+
+  private int coordinateCount = 0;
+
+  public SbomComponentInfoTelemetry() {}
+
+  public SbomComponentInfoTelemetry(
+      int purlCount,
+      int cpeCount,
+      int swidCount,
+      int hashCount,
+      int coordinateCount)
+  {
+    this.purlCount = purlCount;
+    this.cpeCount = cpeCount;
+    this.swidCount = swidCount;
+    this.hashCount = hashCount;
+    this.coordinateCount = coordinateCount;
+  }
+
+  public String getContentType() {
+    return contentType;
+  }
+
+  public void setContentType(final String contentType) {
+    this.contentType = contentType;
+  }
+
+  public String getSpec() {
+    return spec;
+  }
+
+  public void setSpec(final String spec) {
+    this.spec = spec;
+  }
+
+  public String getSpecVersion() {
+    return specVersion;
+  }
+
+  public void setSpecVersion(final String specVersion) {
+    this.specVersion = specVersion;
+  }
+
+  public void incrementPurlCount() {
+    purlCount++;
+  }
+
+  public void incrementCpeCount() {
+    cpeCount++;
+  }
+
+  public void incrementSwidCount() {
+    swidCount++;
+  }
+
+  public void incrementHashCount() {
+    hashCount++;
+  }
+
+  public void incrementCoordinateCount() {
+    coordinateCount++;
+  }
+
+  public int getPurlCount() {
+    return purlCount;
+  }
+
+  public int getCpeCount() {
+    return cpeCount;
+  }
+
+  public int getSwidCount() {
+    return swidCount;
+  }
+
+  public int getHashCount() {
+    return hashCount;
+  }
+
+  public int getCoordinateCount() {
+    return coordinateCount;
+  }
+}

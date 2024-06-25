@@ -37,12 +37,15 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.model.ProjectScanItem;
+import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.packageurl.MalformedPackageURLException;
@@ -81,6 +84,7 @@ import org.spdx.library.model.license.AnyLicenseInfo;
 import org.spdx.library.model.license.SpdxNoAssertionLicense;
 import org.spdx.library.model.license.SpdxNoneLicense;
 
+import static com.sonatype.insight.brain.sbom.SbomSpecification.SPDX;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedThirdPartyIdentificationSource;
 
 public class SpdxResultHandler
@@ -95,11 +99,12 @@ public class SpdxResultHandler
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
       final MultiLicenseDAO multiLicenseDAO,
-      final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO)
+      final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO,
+      final TelemetryUtils telemetryUtils,
+      final TelemetrySender telemetrySender)
   {
     super(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-        thirdPartyCoordinateLicenseDAO,
-        multiLicenseDAO, thirdPartyVexDAO);
+        thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender);
   }
 
   @Override
@@ -114,6 +119,11 @@ public class SpdxResultHandler
         List<ProjectScanItem> moduleDependencies = new ArrayList<>();
         log.info("Processing SPDX content for file: {}", content.getPath());
         processSpdxDocument(content.getPath(), spdxDocument, targetBom, thirdPartyFile, moduleDependencies);
+        componentInfoTelemetry.setSpec(SPDX.name());
+        componentInfoTelemetry.setSpecVersion(spdxDocument.getSpecVersion());
+        TelemetryData thirdPartyScanComponentInfoTelemetryData =
+            telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry);
+        telemetrySender.send(thirdPartyScanComponentInfoTelemetryData);
         if (CollectionUtils.isEmpty(targetBom.getComponents())) {
           return new FilteredThirdPartyContent(content.getContent(), moduleDependencies);
         }
@@ -243,6 +253,7 @@ public class SpdxResultHandler
       fileCoordinate.setCpe(component.getCpe());
     }
     if (component.getSwid() != null) {
+      componentInfoTelemetry.incrementSwidCount();
       fileCoordinate.setSwid(ThirdPartyComponentDAO.MAPPER.writeValueAsString(component.getSwid()));
     }
     fileCoordinate.setIdentificationSources(SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE);
@@ -346,6 +357,7 @@ public class SpdxResultHandler
         String packageUrl = purlOptional.get();
         PackageUrlIdentifier packageUrlIdentifier = resolvePackageUrl(packageUrl);
         if (StringUtils.isNoneBlank(packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion())) {
+          componentInfoTelemetry.incrementPurlCount();
           return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId, false);
         }
         else {
@@ -361,6 +373,7 @@ public class SpdxResultHandler
       String cpe = cpeOptional.get();
       PackageUrlIdentifier packageUrlIdentifier = SbomIdentityUtils.buildPackageUrlFromCpe(cpe);
       if (packageUrlIdentifier != null) {
+        componentInfoTelemetry.incrementCpeCount();
         return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId, false);
       }
     }
@@ -415,6 +428,7 @@ public class SpdxResultHandler
     // The hash has priority over coordinates
     Optional<String> sha1Optional = getChecksum(spdxPackage, ChecksumAlgorithm.SHA1);
     if (sha1Optional.isPresent()) {
+      componentInfoTelemetry.incrementHashCount();
       Component component = new Component();
       component.setType(isRootPackage ? Type.APPLICATION : Type.LIBRARY);
       component.setBomRef(spdxPackage.getId());
@@ -427,6 +441,7 @@ public class SpdxResultHandler
     String name = spdxPackage.getName().orElse(MISSING_COMPONENT_NAME);
     String version = spdxPackage.getVersionInfo().orElse("");
     if (StringUtils.isNotBlank(version)) {
+      componentInfoTelemetry.incrementCoordinateCount();
       PackageUrlIdentifier packageUrlIdentifier = resolvePackageUrl(
           getPackageUrlFromCoordinates(name, version, isRootPackage));
       return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId, true);
@@ -662,6 +677,7 @@ public class SpdxResultHandler
   {
     String extension = FilenameUtils.getExtension(content.getPath());
     SbomFormat sbomFormat = SbomFormat.forString(extension.toLowerCase(Locale.ROOT));
+    componentInfoTelemetry.setContentType(sbomFormat.name());
     return ThirdPartyUtils.parseAndValidateSpdx(content.getContent(), sbomFormat);
   }
 }

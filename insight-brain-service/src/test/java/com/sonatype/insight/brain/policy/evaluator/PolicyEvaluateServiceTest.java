@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-
 import javax.inject.Inject;
 import javax.mail.Message;
 import javax.servlet.http.HttpServletRequest;
@@ -571,6 +570,7 @@ public class PolicyEvaluateServiceTest
     expectedAttributes.put("application_id", app.getPublicId());
     expectedAttributes.put("stage_id", stage.getStageTypeId());
     expectedAttributes.put("source", IntegrationType.CLI.toString());
+    expectedAttributes.put("scan_type", ScanTriggerType.CLI.toString());
     expectedAttributes.put("user_agent", "userAgent");
     assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
   }

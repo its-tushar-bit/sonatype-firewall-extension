@@ -26,6 +26,8 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.scan.model.ItemContentType;
 
 import org.junit.Before;
@@ -54,6 +56,12 @@ public class ContainerResultsHandlerTest
   private ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO;
 
   @Inject
+  private TelemetryUtils telemetryUtils;
+
+  @Inject
+  private TelemetrySender telemetrySender;
+
+  @Inject
   private MultiLicenseDAO multiLicenseDAO;
 
   private ContainerResultHandler containerResultHandler;
@@ -67,7 +75,7 @@ public class ContainerResultsHandlerTest
   public void before() {
     containerResultHandler =
         new ContainerResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO);
+            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender);
   }
 
   @Test

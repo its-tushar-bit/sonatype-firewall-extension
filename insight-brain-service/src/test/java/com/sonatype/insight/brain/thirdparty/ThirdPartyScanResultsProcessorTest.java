@@ -259,7 +259,7 @@ public class ThirdPartyScanResultsProcessorTest
     thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), telemetryData,
         DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
     verify(telemetrySender).send(telemetryData);
-    assertTelemetryData(telemetryData, "SPDX");
+    assertTelemetryData(telemetryData);
   }
 
   @Test
@@ -270,7 +270,7 @@ public class ThirdPartyScanResultsProcessorTest
     thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
         DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.SBOM));
-    assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SBOM, true, 2);
+    assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SBOM, true, 3);
   }
 
   @Test
@@ -283,7 +283,7 @@ public class ThirdPartyScanResultsProcessorTest
     thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
         application.getId(), DEFAULT_STAGE_TYPE);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(ItemContentType.SBOM);
-    assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SBOM, true, 2);
+    assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SBOM, true, 3);
 
     File sbomDir = insightWork.getSbomDir(application.getId());
     assertThat(sbomDir).isEmptyDirectory();
@@ -307,7 +307,7 @@ public class ThirdPartyScanResultsProcessorTest
             application.getId(), StageTypes.RELEASE.getName());
     thirdPartyScanResultsProcessorSpy.postHandle(scanId, scanRequestId);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(ItemContentType.SBOM);
-    assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SBOM, true, 2);
+    assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SBOM, true, 3);
 
     List<ThirdPartyFile> thirdPartyFileList = thirdPartyFileDAO.getByScanId(scanId);
 
@@ -326,7 +326,7 @@ public class ThirdPartyScanResultsProcessorTest
         "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79",
         "CycloneDx",
         "xml",
-        "1.1",
+        "1.5",
         SbomStatus.PENDING.name(),
         new Date(), null);
     assertThirdPartySbomMetadata(thirdPartyFileList.get(0), true, sbomMetadata);
@@ -340,7 +340,7 @@ public class ThirdPartyScanResultsProcessorTest
     thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), telemetryData,
         DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
     verify(telemetrySender).send(telemetryData);
-    assertTelemetryData(telemetryData, "SBOM");
+    assertTelemetryData(telemetryData);
   }
 
   @Test
@@ -446,7 +446,7 @@ public class ThirdPartyScanResultsProcessorTest
     thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), telemetryData,
         DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
     verify(telemetrySender, times(2)).send(telemetryData);
-    assertTelemetryData(telemetryData, "CLAIR_SCANNER");
+    assertTelemetryData(telemetryData);
   }
 
   @Test
@@ -866,7 +866,12 @@ public class ThirdPartyScanResultsProcessorTest
       assertThat(component.getDescription()).isNull();
       assertThat(component.getExternalReferences()).isNull();
       assertThat(component.getExtensibleTypes()).isNull();
-      assertThat(component.getGroup()).isNotNull();
+      if (component.getSwid() != null) {
+        assertThat(component.getAuthor()).isNull();
+      }
+      else {
+        assertThat(component.getGroup()).isNotNull();
+      }
       assertThat(component.getLicenseChoice()).isNull();
       assertThat(component.getPedigree()).isNull();
       assertThat(component.getPublisher()).isNull();
@@ -941,11 +946,11 @@ public class ThirdPartyScanResultsProcessorTest
     }
   }
 
-  private void assertTelemetryData(TelemetryData telemetryData, String contentType) {
-    assertThat(telemetryData.getAttributes()).hasSize(5);
+  private void assertTelemetryData(TelemetryData telemetryData) {
+    assertThat(telemetryData.getAttributes()).hasSize(4);
     assertThat(telemetryData.getAttributes())
         .contains(entry("application_id", "appId"), entry("stage_id", "build"), entry("source", "api"),
-            entry("user_agent", "agent"), entry("content_type", contentType));
+            entry("user_agent", "agent"));
   }
 
   private TelemetryData buildThirdPartyScanTelemetryData() {

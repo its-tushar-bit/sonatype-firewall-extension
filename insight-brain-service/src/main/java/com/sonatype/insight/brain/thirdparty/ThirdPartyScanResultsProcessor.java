@@ -231,8 +231,6 @@ public class ThirdPartyScanResultsProcessor
     String contentType = parser.getAttributeValue(null, "contentType");
     if (contentType != null && thirdPartyItemContentTypes.contains(contentType)) {
       if (thirdPartyScanTelemetryData != null) {
-        // add the content type to telemetry data
-        thirdPartyScanTelemetryData.getAttributes().put("content_type", contentType);
         telemetrySender.send(thirdPartyScanTelemetryData);
       }
       List<ProjectScanItem> moduleDependencies = new ArrayList<>();

@@ -35,15 +35,20 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
+import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.UnsupportedSbomException;
 import com.sonatype.insight.scan.model.ProjectScanItem;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.insight.util.SbomUtils;
 
@@ -72,6 +77,8 @@ import org.cyclonedx.parsers.XmlParser;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.ATTACK_VECTOR_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.FORMAT_MAX_LENGTH;
@@ -83,6 +90,7 @@ import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VE
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VULNERABILITY_SOURCE_MAX_LENGTH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.verify;
 
 public class SbomResultHandlerTest
     extends AbstractComponentTest
@@ -103,6 +111,12 @@ public class SbomResultHandlerTest
   private ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO;
 
   @Inject
+  private TelemetryUtils telemetryUtils;
+
+  @Mock
+  private TelemetrySender telemetrySender;
+
+  @Inject
   private MultiLicenseDAO multiLicenseDAO;
 
   private SbomResultHandler sbomResultHandler;
@@ -119,7 +133,7 @@ public class SbomResultHandlerTest
   public void before() {
     sbomResultHandler =
         new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO);
+            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender);
   }
 
   @Test
@@ -1904,6 +1918,117 @@ public class SbomResultHandlerTest
           sbomResultHandler.parseVulnerabilityExploitability(vulnerability, "anyId");
       assertThat(vex).isNull();
     });
+  }
+
+  @Test
+  public void testComponentInfoTelemetry_PurlCpeCoordinateCounts() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-purl-cpe-hash-coords.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("bom.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    assertFilteredSbomFile(filteredContent, 6);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
+
+    Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    SbomComponentInfoTelemetry componentInfoTelemetry =
+        (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
+
+    assertThat(componentInfoTelemetry.getContentType()).isEqualTo("XML");
+    assertThat(componentInfoTelemetry.getSpec()).isEqualTo("CYCLONEDX");
+    assertThat(componentInfoTelemetry.getSpecVersion()).isEqualTo("1.1");
+    assertThat(componentInfoTelemetry.getPurlCount()).isEqualTo(1);
+    assertThat(componentInfoTelemetry.getCpeCount()).isEqualTo(2);
+    assertThat(componentInfoTelemetry.getCoordinateCount()).isEqualTo(3);
+  }
+
+  @Test
+  public void testComponentInfoTelemetry_HashCount() throws Exception {
+    String sbomContent = getSbomXmlFile("scan-with-sbom-no-name-and-version-no-purl.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("bom.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
+
+    Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    SbomComponentInfoTelemetry componentInfoTelemetry =
+        (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
+
+    assertThat(componentInfoTelemetry.getContentType()).isEqualTo("XML");
+    assertThat(componentInfoTelemetry.getSpec()).isEqualTo("CYCLONEDX");
+    assertThat(componentInfoTelemetry.getSpecVersion()).isEqualTo("1.1");
+    assertThat(componentInfoTelemetry.getHashCount()).isEqualTo(1);
+  }
+
+  @Test
+  public void testComponentInfoTelemetry_Xml_SwidCount() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-purl-swid-hash-coords.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("bom.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    assertFilteredSbomFile(filteredContent, 5);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
+
+    Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    SbomComponentInfoTelemetry componentInfoTelemetry =
+        (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
+
+    assertThat(componentInfoTelemetry.getContentType()).isEqualTo("XML");
+    assertThat(componentInfoTelemetry.getSpec()).isEqualTo("CYCLONEDX");
+    assertThat(componentInfoTelemetry.getSpecVersion()).isEqualTo("1.5");
+    assertThat(componentInfoTelemetry.getPurlCount()).isEqualTo(1);
+    assertThat(componentInfoTelemetry.getSwidCount()).isEqualTo(1);
+    assertThat(componentInfoTelemetry.getCoordinateCount()).isEqualTo(3);
+  }
+
+  @Test
+  public void testComponentInfoTelemetry_Json_CpeCount() throws Exception {
+    String sbomContent = getSbomJsonFile("sbom-with-cpe-swid.json");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("bom.json", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    assertFilteredSbomFile(filteredContent, 1);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
+
+    Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    SbomComponentInfoTelemetry componentInfoTelemetry =
+        (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
+
+    assertThat(componentInfoTelemetry.getContentType()).isEqualTo("JSON");
+    assertThat(componentInfoTelemetry.getSpec()).isEqualTo("CYCLONEDX");
+    assertThat(componentInfoTelemetry.getSpecVersion()).isEqualTo("1.5");
+    assertThat(componentInfoTelemetry.getCpeCount()).isEqualTo(1);
   }
 
   private void assertExtensionVulnerabilities(Component component) {

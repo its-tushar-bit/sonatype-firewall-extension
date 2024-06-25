@@ -37,14 +37,18 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
+import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.model.ProjectScanItem;
+import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.util.SbomUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -90,6 +94,7 @@ import org.spdx.library.model.license.AnyLicenseInfo;
 import org.spdx.library.model.license.InvalidLicenseStringException;
 import org.spdx.library.model.license.LicenseInfoFactory;
 
+import static com.sonatype.insight.brain.sbom.SbomSpecification.CYCLONEDX;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedAttackVector;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedLink;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedRatingMethod;
@@ -121,7 +126,13 @@ public class SbomResultHandler
 
   protected final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO;
 
+  protected final TelemetryUtils telemetryUtils;
+
+  protected final TelemetrySender telemetrySender;
+
   protected final SpdxLicenseExpressionUtil spdxLicenseExpressionUtil;
+
+  protected final SbomComponentInfoTelemetry componentInfoTelemetry;
 
   public SbomResultHandler(
       final ThirdPartyFileDAO thirdPartyFileDAO,
@@ -129,7 +140,9 @@ public class SbomResultHandler
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
       final MultiLicenseDAO multiLicenseDAO,
-      final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO)
+      final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO,
+      final TelemetryUtils telemetryUtils,
+      final TelemetrySender telemetrySender)
   {
     this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
@@ -137,6 +150,9 @@ public class SbomResultHandler
     this.thirdPartyCoordinateLicenseDAO = thirdPartyCoordinateLicenseDAO;
     this.multiLicenseDAO = multiLicenseDAO;
     this.thirdPartyVexDAO = thirdPartyVexDAO;
+    this.telemetryUtils = telemetryUtils;
+    this.telemetrySender = telemetrySender;;
+    this.componentInfoTelemetry = new SbomComponentInfoTelemetry();
     spdxLicenseExpressionUtil = new SpdxLicenseExpressionUtil(multiLicenseDAO);
   }
 
@@ -153,6 +169,11 @@ public class SbomResultHandler
         List<ProjectScanItem> moduleDependencies = new ArrayList<>();
         log.info("Processing SBOM content for file: {}", content.getPath());
         processSbom(content.getPath(), sourceBom, targetBom, thirdPartyFile, moduleDependencies);
+        componentInfoTelemetry.setSpec(CYCLONEDX.name());
+        componentInfoTelemetry.setSpecVersion(sourceBom.getSpecVersion());
+        TelemetryData thirdPartyScanComponentInfoTelemetryData =
+            telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry);
+        telemetrySender.send(thirdPartyScanComponentInfoTelemetryData);
         if (targetBom.getComponents() != null && targetBom.getComponents().isEmpty()) {
           return new FilteredThirdPartyContent(content.getContent(), moduleDependencies);
         }
@@ -171,6 +192,7 @@ public class SbomResultHandler
   Bom parseBom(final ThirdPartyScanContent content) throws ParseException, IOException {
     String extension = FilenameUtils.getExtension(content.getPath());
     SbomFormat sbomFormat = SbomFormat.forString(extension.toLowerCase(Locale.ROOT));
+    componentInfoTelemetry.setContentType(sbomFormat.name());
     return ThirdPartyUtils.parseAndValidateCycloneDx(content.getContent(), sbomFormat);
   }
 
@@ -330,6 +352,7 @@ public class SbomResultHandler
       if (StringUtils.isNotBlank(packageUrl)) {
         PackageUrlIdentifier packageUrlIdentifier = resolvePackageUrl(packageUrl);
         if (StringUtils.isNoneBlank(packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion())) {
+          componentInfoTelemetry.incrementPurlCount();
           return createComponent(sourceComponent, packageUrlIdentifier, false);
         }
         else {
@@ -343,11 +366,13 @@ public class SbomResultHandler
     String cpe = sourceComponent.getCpe();
     PackageUrlIdentifier packageUrlIdentifier = SbomIdentityUtils.buildPackageUrlFromCpe(cpe);
     if (packageUrlIdentifier != null) {
+      componentInfoTelemetry.incrementCpeCount();
       return createComponent(sourceComponent, packageUrlIdentifier, false);
     }
     Swid swid = sourceComponent.getSwid();
     packageUrlIdentifier = SbomIdentityUtils.buildPackageUrlFromSwid(swid);
     if (packageUrlIdentifier != null) {
+      componentInfoTelemetry.incrementSwidCount();
       return createComponent(sourceComponent, packageUrlIdentifier, false);
     }
 
@@ -363,6 +388,7 @@ public class SbomResultHandler
     if (StringUtils.isNotBlank(version)) {
       PackageUrlIdentifier packageUrlIdentifier =
           resolvePackageUrl(getPackageUrlFromCoordinates(sourceComponent, name));
+      componentInfoTelemetry.incrementCoordinateCount();
       return createComponent(sourceComponent, packageUrlIdentifier, true);
     }
     else {
@@ -373,6 +399,7 @@ public class SbomResultHandler
         component.setType(sourceComponent.getType());
         component.setBomRef(sourceComponent.getBomRef());
         setHash(sha1, component);
+        componentInfoTelemetry.incrementHashCount();
         return Pair.of(null, component);
       }
       else {

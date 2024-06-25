@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -48,9 +49,29 @@ public class TelemetryUtilsTest
   @Test
   public void test_buildThirdPartyScanTelemetryData() {
     TelemetryData telemetryData =
-        telemetryUtils.buildThirdPartyScanTelemetryData("appId", new Stage(Stage.ID_RELEASE), "cli", "agent");
-    assertThat(telemetryData.getAttributes()).contains(entry("application_id", "appId"),
-        entry("stage_id", "release"), entry("source", "cli"), entry("user_agent", "agent"));
+        telemetryUtils.buildThirdPartyScanTelemetryData("appId", new Stage(Stage.ID_RELEASE), "cli",
+            ScanTriggerType.SBOM_UI, "agent");
+    assertThat(telemetryData.getAttributes()).contains(entry("application_id", "appId"), entry("stage_id", "release"),
+        entry("source", "cli"), entry("scan_type", "SBOM_UI"), entry("user_agent", "agent"));
+  }
+
+  @Test
+  public void test_buildThirdPartyScanComponentInfoTelemetryData() {
+    SbomComponentInfoTelemetry componentInfoTelemetry =
+        new SbomComponentInfoTelemetry(0, 1, 2, 3, 4);
+    componentInfoTelemetry.incrementPurlCount();
+    componentInfoTelemetry.incrementCpeCount();
+    componentInfoTelemetry.incrementSwidCount();
+    componentInfoTelemetry.incrementHashCount();
+    componentInfoTelemetry.incrementCoordinateCount();
+    TelemetryData telemetryData = telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry);
+    SbomComponentInfoTelemetry componentIdCounts =
+        (SbomComponentInfoTelemetry) telemetryData.getAttributes().get("sbom_data_summary");
+    assertThat(componentIdCounts.getPurlCount()).isEqualTo(1);
+    assertThat(componentIdCounts.getCpeCount()).isEqualTo(2);
+    assertThat(componentIdCounts.getSwidCount()).isEqualTo(3);
+    assertThat(componentIdCounts.getHashCount()).isEqualTo(4);
+    assertThat(componentIdCounts.getCoordinateCount()).isEqualTo(5);
   }
 
   @Test

@@ -15,6 +15,7 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.brain.telemetry.ClientUserAgentUtil.UserAgent;
 import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -37,18 +38,30 @@ public final class TelemetryUtils
       final String applicationPublicId,
       final Stage stage,
       final String thirdPartyScanType,
+      final ScanTriggerType scanTriggerType,
       final String userAgent)
   {
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("application_id", applicationPublicId);
     attributes.put("stage_id", stage.getStageTypeId());
     attributes.put("source", thirdPartyScanType);
+    if (scanTriggerType != null) {
+      attributes.put("scan_type", scanTriggerType.getId());
+    }
     if (userAgent != null) {
       attributes.put("user_agent", userAgent);
     }
 
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.THIRD_PARTY_SCAN_USAGE);
     telemetryData.setAttributes(attributes);
+    return telemetryData;
+  }
+
+  public TelemetryData buildThirdPartyScanComponentInfoTelemetryData(
+      final SbomComponentInfoTelemetry componentInfoTelemetry)
+  {
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SBOM_DATA_METRICS);
+    telemetryData.put(SbomComponentInfoTelemetry.ATTRIBUTE_NAME, componentInfoTelemetry);
     return telemetryData;
   }
 

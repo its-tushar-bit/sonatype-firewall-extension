@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.scan;
 
 import java.io.File;
 import java.util.UUID;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -228,7 +227,8 @@ class ScanTask
       if (ClientScanType.SONATYPE_THIRD_PARTY.equals(scanResult.getClientScanType())) {
         scanReceipt = thirdPartyScanService.filterAndUpload(scanResult.getScanFile(), app, stage.getStageTypeId(),
             null /* clientUserAgent */,
-            telemetryUtils.buildThirdPartyScanTelemetryData(appPublicId, stage, scanType, userAgent));
+            telemetryUtils.buildThirdPartyScanTelemetryData(appPublicId, stage, scanType, null /* scanTriggerType */,
+                userAgent));
       }
       else {
         scanReceipt =

@@ -27,6 +27,8 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 
@@ -62,11 +64,12 @@ public class ContainerResultHandler
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
       final MultiLicenseDAO multiLicenseDAO,
-      final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO)
+      final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO,
+      final TelemetryUtils telemetryUtils,
+      final TelemetrySender telemetrySender)
   {
     super(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-        thirdPartyCoordinateLicenseDAO,
-        multiLicenseDAO, thirdPartyVexDAO);
+        thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender);
   }
 
   @Override

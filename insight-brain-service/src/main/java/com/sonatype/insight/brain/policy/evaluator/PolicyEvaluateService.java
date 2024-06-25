@@ -332,7 +332,8 @@ public class PolicyEvaluateService
             + "The status ID of the operation is {}.",
         app.getPublicId(), clientScanType, stage.getStageTypeId(), statusId);
     TelemetryData thirdPartyScanTelemetryData =
-        telemetryUtils.buildThirdPartyScanTelemetryData(app.getPublicId(), stage, thirdPartyScanType, clientUserAgent);
+        telemetryUtils.buildThirdPartyScanTelemetryData(app.getPublicId(), stage, thirdPartyScanType, scanTriggerType,
+            clientUserAgent);
     AuditData.get().continueAsync(
         new Task(app, clientScanType, statusId, stage, scanTriggerType, tempScanFile,
             thirdPartyScanTelemetryData, persistedPolicyEvaluationPollingResult, clientUserAgent, clientInstanceId),
@@ -515,7 +516,7 @@ public class PolicyEvaluateService
     try {
       TelemetryData thirdPartyScanTelemetryData =
           telemetryUtils.buildThirdPartyScanTelemetryData(application.getPublicId(), stage,
-              null /* thirdPartyScanType */, clientUserAgent);
+              null /* thirdPartyScanType */, scanTriggerType, clientUserAgent);
       ScanReceipt scanReceipt = scanHandler.handle(scanFile, application, clientScanType, thirdPartyScanTelemetryData,
           stage.getStageTypeId(), clientUserAgent);
       scanId = scanReceipt.getScanId();

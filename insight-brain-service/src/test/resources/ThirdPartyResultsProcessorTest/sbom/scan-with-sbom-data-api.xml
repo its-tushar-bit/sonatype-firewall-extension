@@ -26,7 +26,7 @@
 </configuration>
 <item contentType="SBOM" lastModified="1571788783929" path="test-bom.xml" sha1="80d8ce5924b4b67314bf">
   <content>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;bom xmlns=&quot;http://cyclonedx.org/schema/bom/1.1&quot; serialNumber=&quot;urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79&quot; version=&quot;1&quot;&gt;
+&lt;bom xmlns=&quot;http://cyclonedx.org/schema/bom/1.5&quot; serialNumber=&quot;urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79&quot; version=&quot;1&quot;&gt;
   &lt;components&gt;
     &lt;component type=&quot;library&quot;&gt;
       &lt;publisher&gt;Apache&lt;/publisher&gt;
@@ -44,6 +44,7 @@
           &lt;id&gt;Apache-2.0&lt;/id&gt;
         &lt;/license&gt;
       &lt;/licenses&gt;
+      &lt;cpe&gt;cpe:/a:b:c:1.0.0&lt;/cpe&gt;
       &lt;purl&gt;pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar&lt;/purl&gt;
     &lt;/component&gt;
     &lt;component type=&quot;library&quot; bom-ref=&quot;pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar&quot;&gt;
@@ -51,6 +52,13 @@
       &lt;name&gt;jackson-databind&lt;/name&gt;
       &lt;version&gt;2.9.9&lt;/version&gt;
       &lt;purl&gt;pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar&lt;/purl&gt;
+    &lt;/component&gt;
+    &lt;component type=&quot;application&quot;&gt;
+      &lt;name&gt;jackson-databindx&lt;/name&gt;
+      &lt;version&gt;2.8.9&lt;/version&gt;
+      &lt;swid tagId=&quot;x&quot; name=&quot;jackson-databindx&quot; version=&quot;2.8.9&quot;&gt;
+        &lt;text&gt;x&lt;/text&gt;
+      &lt;/swid&gt;
     &lt;/component&gt;
   &lt;/components&gt;
 &lt;/bom&gt;</content>

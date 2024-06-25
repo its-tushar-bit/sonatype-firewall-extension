@@ -20,7 +20,11 @@ LABEL vendor=Sonatype \
   maintainer="MTIQ Team <mtiq-dev@sonatype.com>" \
   com.sonatype.name="MTIQ Server Docker Image"
 
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+  git \
+  # SBOM-298, can remove after
+  libjemalloc2 \
+&& rm -rf /var/lib/apt/lists/*
 
 # Copy JAR
 COPY target/nexus-mtiq-server.jar /opt/sonatype/nexus-iq-server/nexus-mtiq-server.jar

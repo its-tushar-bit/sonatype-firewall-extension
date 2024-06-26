@@ -96,4 +96,8 @@ public class ApiDependencyTreeSearcher
 
     path.removeLast();
   }
+
+  public boolean isDirectNode() {
+    return isDirectNode;
+  }
 }

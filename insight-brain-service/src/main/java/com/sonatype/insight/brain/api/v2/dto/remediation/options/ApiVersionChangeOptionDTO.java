@@ -5,7 +5,13 @@
  */
 package com.sonatype.insight.brain.api.v2.dto.remediation.options;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentChangeActionDTO;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * @since 1.64
@@ -16,6 +22,12 @@ public class ApiVersionChangeOptionDTO
   private ApiVersionChangeOptionType type;
 
   private ApiComponentChangeActionDTO data;
+
+  @JsonInclude(Include.NON_NULL)
+  private Boolean directDependency;
+
+  @JsonInclude(Include.NON_EMPTY)
+  private List<ApiComponentChangeActionDTO> directDependencyData = new ArrayList<>();
 
   public ApiVersionChangeOptionDTO(ApiVersionChangeOptionType type, ApiComponentChangeActionDTO data) {
     this.type = type;
@@ -44,6 +56,22 @@ public class ApiVersionChangeOptionDTO
   // for JSON
   public void setData(ApiComponentChangeActionDTO data) {
     this.data = data;
+  }
+
+  public Boolean getDirectDependency() {
+    return directDependency;
+  }
+
+  public void setDirectDependency(final Boolean directDependency) {
+    this.directDependency = directDependency;
+  }
+
+  public List<ApiComponentChangeActionDTO> getDirectDependencyData() {
+    return directDependencyData;
+  }
+
+  public void setDirectDependencyData(final List<ApiComponentChangeActionDTO> directDependencyData) {
+    this.directDependencyData = directDependencyData;
   }
 }
 

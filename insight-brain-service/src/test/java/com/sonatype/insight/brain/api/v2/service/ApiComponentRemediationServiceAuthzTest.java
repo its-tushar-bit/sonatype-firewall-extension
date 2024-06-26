@@ -65,7 +65,7 @@ public class ApiComponentRemediationServiceAuthzTest
     configureHdsClientMock();
     grantEvaluateComponentPermission(owner.getId());
     apiComponentRemediationService.getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, owner.getType(),
-        owner.getId(), DevelopStageType.ID, null /* identificationSource */, null /* scanId */);
+        owner.getId(), DevelopStageType.ID, null /* identificationSource */, null /* scanId */, null);
   }
 
   @Test
@@ -83,14 +83,14 @@ public class ApiComponentRemediationServiceAuthzTest
     configureHdsClientMock();
     grantEvaluateComponentPermission(repository.getId());
     apiComponentRemediationService.getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, OwnerType.REPOSITORY,
-        repository.getId(), ProxyStageType.ID, null /* identificationSource */, null /* scanId */);
+        repository.getId(), ProxyStageType.ID, null /* identificationSource */, null /* scanId */, null);
   }
 
   private void testGetSuggestedRemediationForComponent_Unauthorized(Owner owner) {
     login();
 
     apiComponentRemediationService.getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, owner.getType(),
-        owner.getId(), DevelopStageType.ID, null /* identificationSource */, null /* scanId */);
+        owner.getId(), DevelopStageType.ID, null /* identificationSource */, null /* scanId */, null);
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -107,12 +107,12 @@ public class ApiComponentRemediationServiceAuthzTest
   public void testGetSuggestedRemediationForComponent_Unauthorized_Repository() {
     login();
     apiComponentRemediationService.getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, OwnerType.REPOSITORY,
-        repository.getId(), ProxyStageType.ID, null /* identificationSource */, null /* scanId */);
+        repository.getId(), ProxyStageType.ID, null /* identificationSource */, null /* scanId */, null);
   }
 
   private void testGetSuggestedRemediationForComponent_Unauthenticated(Owner owner) {
     apiComponentRemediationService.getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, owner.getType(),
-        owner.getId(), DevelopStageType.ID, null /* identificationSource */, null /* scanId */);
+        owner.getId(), DevelopStageType.ID, null /* identificationSource */, null /* scanId */, null);
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -128,7 +128,7 @@ public class ApiComponentRemediationServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testGetSuggestedRemediationForComponent_Unauthenticated_Repository() {
     apiComponentRemediationService.getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, OwnerType.REPOSITORY,
-        repository.getId(), ProxyStageType.ID, null /* identificationSource */, null /* scanId */);
+        repository.getId(), ProxyStageType.ID, null /* identificationSource */, null /* scanId */, null);
   }
 
   private static ApiComponentDTOV2 createApiComponentDTOV2() {

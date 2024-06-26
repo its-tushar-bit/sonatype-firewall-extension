@@ -5,18 +5,24 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
+import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.HttpResponse;
@@ -43,6 +49,7 @@ import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -84,6 +91,160 @@ public class ApiComponentRemediationResourceTest
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
     );
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_Application_includeParentRemediation_transitiveComponent()
+      throws Exception
+  {
+    final String scanID = "scanID";
+    createReportFile(app.getId(), scanID, "/ApiComponentRemediationResourceTest/extendReport");
+    final ComponentIdentifier transitiveComponent =
+        ComponentIdentifier.createMavenCoordinates("ch.qos.logback", "logback-core", "1.3.14", "", "jar");
+    final ComponentIdentifier currentParentComponent =
+        ComponentIdentifier.createMavenCoordinates("ch.qos.logback", "logback-classic", "1.3.14", "", "jar");
+    final ComponentIdentifier newerVersionParentComponent1 =
+        ComponentIdentifier.createMavenCoordinates("ch.qos.logback", "logback-classic", "1.3.15", "", "jar");
+    final ComponentIdentifier newerVersionParentComponent2 =
+        ComponentIdentifier.createMavenCoordinates("ch.qos.logback", "logback-classic", "1.3.16", "", "jar");
+
+    mockComponentSummary(transitiveComponent, ComponentSummary.create(true));
+    mockGetDependencies(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>()));
+
+    ApiComponentDTOV2 transitiveComponentDTOV2 = componentEvaluationV2Helper.createComponent(transitiveComponent, null);
+
+    createPolicyWithSecurityVulnerabilityConstraint(app.getId());
+
+    ComponentEvaluationDataList componentEvaluationDataList = new ComponentEvaluationDataList();
+    ComponentEvaluationData componentEvaluationData1 = new ComponentEvaluationData();
+    componentEvaluationData1.declaredLicenses = Sets.newHashSet(new License("GPL-2.0", "GPL-2.0"));
+    componentEvaluationData1.securityVulnerabilities =
+        Collections.singletonList(new SecurityVulnerability("Test Ref Id", "Test Source", 7.5F));
+    componentEvaluationData1.componentIdentifier = currentParentComponent;
+    componentEvaluationDataList.components = new ArrayList<>();
+    componentEvaluationDataList.components.add(componentEvaluationData1);
+    ComponentEvaluationData componentEvaluationData2 = new ComponentEvaluationData();
+    componentEvaluationData2.declaredLicenses = Sets.newHashSet(new License("GPL-2.0", "GPL-2.0"));
+    componentEvaluationData2.securityVulnerabilities = Collections.emptyList();
+    componentEvaluationData2.componentIdentifier = newerVersionParentComponent1;
+    componentEvaluationDataList.components.add(componentEvaluationData2);
+    ComponentEvaluationData componentEvaluationData3 = new ComponentEvaluationData();
+    componentEvaluationData3.declaredLicenses = Sets.newHashSet(new License("GPL-2.0", "GPL-2.0"));
+    componentEvaluationData3.securityVulnerabilities = Collections.emptyList();
+    componentEvaluationData3.componentIdentifier = newerVersionParentComponent2;
+    componentEvaluationDataList.components.add(componentEvaluationData3);
+
+    mockComponentEvaluationData(componentEvaluationDataList);
+
+    Map<String, List<String>> versionsByComponent = new LinkedHashMap<>();
+    versionsByComponent.put(PackageUrlIdentifier.toPackageUrl(currentParentComponent),
+        Arrays.asList("1.3.14", "1.3.15", "1.3.16"));
+    mockComponentVersionList(versionsByComponent);
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2)
+        .parameter(OwnerType.APPLICATION, app.getId())
+        .query("scanId", scanID)
+        .query("stageId", BuildStageType.ID)
+        .query("includeParentRemediation", "true")
+        .body(transitiveComponentDTOV2)
+        .post();
+
+    assertResponseStatus(200, response);
+    ApiComponentRemediationDTO result = response.getBody(ApiComponentRemediationDTO.class);
+    assertThat(result).isNotNull();
+    assertThat(result.remediation.versionChanges).hasSize(2);
+
+    //next-no-violations-with-dependencies should have newer version fix for parent component
+    assertThat(result.remediation.versionChanges.get(0).getType()).isEqualTo(
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
+    assertThat(result.remediation.versionChanges.get(0).getData()
+        .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(transitiveComponent);
+    ApiVersionChangeOptionDTO transitiveVersionChangeOptionDTO = result.remediation.versionChanges.get(0);
+    assertThat(transitiveVersionChangeOptionDTO.getDirectDependency()).isFalse();
+    assertThat(transitiveVersionChangeOptionDTO.getDirectDependencyData().get(0)
+        .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(newerVersionParentComponent1);
+
+    //next-no-failing-with-dependencies should have current version fix for parent component
+    assertThat(result.remediation.versionChanges.get(1).getData()
+        .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(transitiveComponent);
+    assertThat(result.remediation.versionChanges.get(1).getType()).isEqualTo(
+        ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
+    transitiveVersionChangeOptionDTO = result.remediation.versionChanges.get(1);
+    assertThat(transitiveVersionChangeOptionDTO.getDirectDependency()).isFalse();
+    assertThat(transitiveVersionChangeOptionDTO.getDirectDependencyData().get(0)
+        .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(currentParentComponent);
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_Application_includeParentRemediation_directComponent()
+      throws Exception
+  {
+    final String scanID = "scanID";
+    createReportFile(app.getId(), scanID, "/ApiComponentRemediationResourceTest/extendReport");
+    final ComponentIdentifier currentParentComponent =
+        ComponentIdentifier.createMavenCoordinates("ch.qos.logback", "logback-classic", "1.3.14", "", "jar");
+    final ComponentIdentifier newerVersionComponent1 =
+        ComponentIdentifier.createMavenCoordinates("ch.qos.logback", "logback-classic", "1.3.15", "", "jar");
+    final ComponentIdentifier newerVersionComponent2 =
+        ComponentIdentifier.createMavenCoordinates("ch.qos.logback", "logback-classic", "1.3.16", "", "jar");
+
+    ComponentDetails details1 = createComponentDetailsForSecurityViolation(currentParentComponent);
+    ComponentDetails details2 = createComponentDetailsForSecurityViolation(newerVersionComponent1);
+    ComponentDetails details3 = createComponentDetailsForNoViolation(newerVersionComponent2);
+    List<ComponentDetails> list = Stream.of(details1, details2, details3).collect(Collectors.toList());
+    ComponentDetailsList detailsList = new ComponentDetailsList();
+    detailsList.setList(list);
+    mockComponentDetails(detailsList);
+
+    mockComponentSummary(currentParentComponent, ComponentSummary.create(true));
+    mockGetDependencies(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>()));
+
+    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(currentParentComponent, null);
+
+    createPolicyWithSecurityVulnerabilityConstraint(app.getId());
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2)
+        .parameter(OwnerType.APPLICATION, app.getId())
+        .query("scanId", scanID)
+        .query("stageId", BuildStageType.ID)
+        .query("includeParentRemediation", "true")
+        .body(component)
+        .post();
+
+    assertResponseStatus(200, response);
+    ApiComponentRemediationDTO result = response.getBody(ApiComponentRemediationDTO.class);
+    assertThat(result).isNotNull();
+    assertThat(result.remediation.versionChanges).hasSize(4);
+
+    assertThat(result.remediation.versionChanges.get(0).getType()).isEqualTo(
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+    assertThat(result.remediation.versionChanges.get(0).getDirectDependency()).isTrue();
+    assertThat(result.remediation.versionChanges.get(0).getDirectDependencyData()).isEmpty();
+    assertThat(result.remediation.versionChanges.get(0).getData()
+        .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(newerVersionComponent2);
+
+    assertThat(result.remediation.versionChanges.get(1).getType()).isEqualTo(
+        ApiVersionChangeOptionType.NEXT_NON_FAILING);
+    assertThat(result.remediation.versionChanges.get(1).getDirectDependency()).isTrue();
+    assertThat(result.remediation.versionChanges.get(1).getDirectDependencyData()).isEmpty();
+    assertThat(result.remediation.versionChanges.get(1).getData()
+        .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(currentParentComponent);
+
+    assertThat(result.remediation.versionChanges.get(2).getType()).isEqualTo(
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
+    assertThat(result.remediation.versionChanges.get(2).getDirectDependency()).isTrue();
+    assertThat(result.remediation.versionChanges.get(2).getDirectDependencyData()).isEmpty();
+    assertThat(result.remediation.versionChanges.get(2).getData()
+        .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(newerVersionComponent2);
+
+    assertThat(result.remediation.versionChanges.get(3).getType()).isEqualTo(
+        ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
+    assertThat(result.remediation.versionChanges.get(3).getDirectDependency()).isTrue();
+    assertThat(result.remediation.versionChanges.get(3).getDirectDependencyData()).isEmpty();
+    assertThat(result.remediation.versionChanges.get(3).getData()
+        .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(currentParentComponent);
   }
 
   @Test
@@ -343,6 +504,14 @@ public class ApiComponentRemediationResourceTest
 
   private void mockComponentDetails(final ComponentDetailsList componentEvaluationDataList) {
     hdsRespondWith(componentEvaluationDataList).atUri("rest/ci/componentDetails/list");
+  }
+
+  private void mockComponentVersionList(final Map<String, List<String>> versionsByComponent) {
+    hdsRespondWith(versionsByComponent).atUri("rest/component/versions/list");
+  }
+
+  private void mockComponentEvaluationData(final ComponentEvaluationDataList componentEvaluationDataList) {
+    hdsRespondWith(componentEvaluationDataList).atUri("rest/component/details/integration");
   }
 
   private void assertResponse(

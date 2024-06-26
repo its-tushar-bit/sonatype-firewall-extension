@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentCha
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -158,6 +159,9 @@ public class ComponentRemediationServiceTest
   private static final PackageUrlIdentifier purlA1V6 = PackageUrlIdentifier.fromComponentIdentifier(
       MAVEN_COORDINATES_A1_V6);
 
+  private static final PackageUrlIdentifier purlA1V11 = PackageUrlIdentifier.fromComponentIdentifier(
+      MAVEN_COORDINATES_A1_V11);
+
   private static final PackageUrlIdentifier purlA2V1 = PackageUrlIdentifier.fromComponentIdentifier(
       MAVEN_COORDINATES_A2_V1);
 
@@ -195,6 +199,8 @@ public class ComponentRemediationServiceTest
 
   private Organization org;
 
+  private Application app;
+
   private final ApiComponentDTOV2 componentDtoA1V1 = new ApiComponentDTOV2();
 
   private final ApiComponentDTOV2 componentDtoA1V2 = new ApiComponentDTOV2();
@@ -209,6 +215,8 @@ public class ComponentRemediationServiceTest
 
   private final ApiComponentDTOV2 componentDtoA1V11 = new ApiComponentDTOV2();
 
+  private final ApiComponentDTOV2 componentDtoA2V1 = new ApiComponentDTOV2();
+
   private final ComponentDetailsDTO detailsDtoA1V1 = new ComponentDetailsDTO();
 
   private final ComponentDetailsDTO detailsDtoA1V2 = new ComponentDetailsDTO();
@@ -222,6 +230,8 @@ public class ComponentRemediationServiceTest
   private final ComponentDetailsDTO detailsDtoA1V6 = new ComponentDetailsDTO();
 
   private final ComponentDetailsDTO detailsDtoA1V11 = new ComponentDetailsDTO();
+
+  private final ComponentDetailsDTO detailsDtoA2V1 = new ComponentDetailsDTO();
 
   private ComponentDetails detailsA2V1 = new ComponentDetails();
 
@@ -240,6 +250,7 @@ public class ComponentRemediationServiceTest
   @Before
   public void before() {
     org = tempEntity.newOrganization();
+    app = tempEntity.newApplication("app", org.getId());
 
     componentDtoA1V1.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_A1_V1);
     componentDtoA1V1.packageUrl = "pkg:maven/g1/a1@v1?type=jar";
@@ -263,6 +274,9 @@ public class ComponentRemediationServiceTest
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_A1_V11);
     componentDtoA1V11.packageUrl = "pkg:maven/g1/a1@v11?type=jar";
     componentDtoA1V11.breakingChangesCount = BREAKING_CHANGES_11;
+    componentDtoA2V1.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_A2_V1);
+    componentDtoA2V1.packageUrl = "pkg:maven/g1/a2@v1?type=jar";
+    componentDtoA2V1.breakingChangesCount = 0;
 
     // A1
     detailsDtoA1V1.componentIdentifier = MAVEN_COORDINATES_A1_V1;
@@ -296,6 +310,10 @@ public class ComponentRemediationServiceTest
     detailsDtoA1V11.componentIdentifier = MAVEN_COORDINATES_A1_V11;
     detailsDtoA1V11.violatedPolicyCount = 0;
     detailsDtoA1V11.breakingChangesCount = BREAKING_CHANGES_11;
+
+    detailsDtoA2V1.componentIdentifier = MAVEN_COORDINATES_A2_V1;
+    detailsDtoA2V1.violatedPolicyCount = 0;
+    detailsDtoA2V1.breakingChangesCount = 0;
 
     // A2
     detailsA2V1 = buildComponentDetails(MAVEN_COORDINATES_A2_V1, Arrays.asList(warnAlert, failAlert));
@@ -1057,6 +1075,82 @@ public class ComponentRemediationServiceTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> componentRemediationService.getSuggestedRemediation(currentComponent,
             allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org)));
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForTransitive_Advanced() {
+    enableTransitiveSolver();
+
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+
+    dependenciesMap.put(purlA1V1, Collections.singletonList(purlA2V1));
+    dependenciesMap.put(purlA1V5, Collections.singletonList(purlA2V3));
+    dependenciesMap.put(purlA1V11, Collections.singletonList(purlA2V4));
+
+    detailsMap.put(purlA2V1, detailsA2V1);
+    detailsMap.put(purlA2V4, detailsA2V4);
+    detailsMap.put(purlA2V3, detailsA2V3);
+
+    ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V5, detailsDtoA1V11);
+    mockHdsGetComponentDependencies(returnDto);
+    mockLicenseFeature(true);
+
+    Map<ComponentIdentifier, List<ComponentDetailsDTO>> dtoMap = new HashMap<>();
+    dtoMap.put(detailsDtoA1V5.componentIdentifier, allVersions);
+
+    ApiComponentIdentifierDTOV2 transitiveComponent =
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(detailsA2V1.getComponentIdentifier());
+
+    ApiComponentRemediationValueDTO dto =
+        componentRemediationService.getSuggestedRemediationForTransitive(dtoMap, transitiveComponent,
+            app, BuildStageType.ID, componentDetailsLoaderFactory.newInstance(org));
+
+    assertThat(dto.versionChanges).hasSize(2);
+    ApiVersionChangeOptionDTO apiVersionChangeOptionDTO = dto.versionChanges.get(0);
+    assertThat(apiVersionChangeOptionDTO.getData().getComponent().componentIdentifier).isEqualTo(transitiveComponent);
+    assertThat(apiVersionChangeOptionDTO.getDirectDependency()).isFalse();
+    assertThat(apiVersionChangeOptionDTO.getType()).isEqualTo(NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
+    assertThat(apiVersionChangeOptionDTO.getDirectDependencyData().get(0)
+        .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(detailsDtoA1V11.componentIdentifier);
+
+    apiVersionChangeOptionDTO = dto.versionChanges.get(1);
+    assertThat(apiVersionChangeOptionDTO.getData().getComponent().componentIdentifier).isEqualTo(transitiveComponent);
+    assertThat(apiVersionChangeOptionDTO.getDirectDependency()).isFalse();
+    assertThat(apiVersionChangeOptionDTO.getType()).isEqualTo(NEXT_NON_FAILING_WITH_DEPENDENCIES);
+    assertThat(apiVersionChangeOptionDTO.getDirectDependencyData().get(0)
+        .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(detailsDtoA1V5.componentIdentifier);
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForTransitive_NoAdvanced() {
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+
+    dependenciesMap.put(purlA1V1, Collections.singletonList(purlA2V1));
+    dependenciesMap.put(purlA1V5, Collections.singletonList(purlA2V3));
+    dependenciesMap.put(purlA1V11, Collections.singletonList(purlA2V4));
+
+    detailsMap.put(purlA2V1, detailsA2V1);
+    detailsMap.put(purlA2V4, detailsA2V4);
+    detailsMap.put(purlA2V3, detailsA2V3);
+
+    ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V5, detailsDtoA1V11);
+    mockHdsGetComponentDependencies(returnDto);
+
+    Map<ComponentIdentifier, List<ComponentDetailsDTO>> dtoMap = new HashMap<>();
+    dtoMap.put(detailsDtoA1V5.componentIdentifier, allVersions);
+
+    ApiComponentIdentifierDTOV2 transitiveComponent =
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(detailsA2V1.getComponentIdentifier());
+
+    ApiComponentRemediationValueDTO dto =
+        componentRemediationService.getSuggestedRemediationForTransitive(dtoMap, transitiveComponent,
+            app, BuildStageType.ID, componentDetailsLoaderFactory.newInstance(org));
+
+    assertThat(dto.versionChanges).hasSize(0);
   }
 
   final ComponentDetailsDTO createComponentDetailsDTO(

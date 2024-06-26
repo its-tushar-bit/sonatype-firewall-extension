@@ -5,9 +5,15 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -16,8 +22,10 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
@@ -25,6 +33,7 @@ import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.ComponentRemediationService;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
@@ -54,9 +63,15 @@ public class ApiComponentRemediationService
 
   private final ThirdPartyComponentDAO thirdPartyComponentDAO;
 
+  private final ApplicationDAO applicationDAO;
+
   private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
 
   private final IdUtils idUtils;
+
+  private final ApiReportDataServiceV2 apiReportDataServiceV2;
+
+  private final ApiDependencyTreeSearcher apiDependencyTreeSearcher;
 
   @Inject
   public ApiComponentRemediationService(
@@ -64,16 +79,22 @@ public class ApiComponentRemediationService
       ComponentRemediationService componentRemediationService,
       HdsClient hdsClient,
       ThirdPartyComponentDAO thirdPartyComponentDAO,
+      ApplicationDAO applicationDAO,
       ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
-      IdUtils idUtils)
+      IdUtils idUtils,
+      ApiReportDataServiceV2 apiReportDataServiceV2,
+      ApiDependencyTreeSearcher apiDependencyTreeSearcher)
   {
     this.componentInfoService = componentInfoService;
     componentInfoService.setToolName("ci");
     this.componentRemediationService = componentRemediationService;
     this.hdsClient = hdsClient;
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
+    this.applicationDAO = applicationDAO;
     this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
     this.idUtils = idUtils;
+    this.apiReportDataServiceV2 = apiReportDataServiceV2;
+    this.apiDependencyTreeSearcher = apiDependencyTreeSearcher;
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -83,10 +104,11 @@ public class ApiComponentRemediationService
       @AuthzContext(Key.INTERNAL_ID) final String ownerId,
       String stageId,
       final String identificationSource,
-      final String scanId)
+      final String scanId,
+      final Boolean includeParentRemediation)
   {
     return getSuggestedRemediationForComponentNoAuthz(componentDTO, ownerType, ownerId, stageId, identificationSource,
-        scanId);
+        scanId, includeParentRemediation);
   }
 
   /**
@@ -100,7 +122,8 @@ public class ApiComponentRemediationService
       final String ownerId,
       String stageId,
       final String identificationSource,
-      final String scanId)
+      final String scanId,
+      final Boolean includeParentRemediation)
   {
     if (OwnerType.REPOSITORY.equals(ownerType)) {
       if (stageId == null) {
@@ -117,6 +140,8 @@ public class ApiComponentRemediationService
     else if (stageId != null && StageTypes.getById(stageId) == null) {
       throw new BadRequestException("Invalid stage ID: " + stageId + ".");
     }
+
+    boolean includeParentRem = includeParentRemediation != null && includeParentRemediation;
 
     boolean isThirdPartySource =
         IdentificationSource.isThirdPartyIdentificationSource(identificationSource);
@@ -142,16 +167,46 @@ public class ApiComponentRemediationService
     // See https://sonatype.atlassian.net/browse/CLM-28129
     ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(owner);
 
-    List<ComponentDetailsDTO> dtos = componentInfoService.getComponentDetailsForAllVersionsNoAuth(owner,
-        componentIdentifier, stageId, identificationSource, scanId, null, componentDetailsLoader).getLeft();
+    List<ComponentDetailsDTO> dtos = new ArrayList<>();
+    Map<ComponentIdentifier, List<ComponentDetailsDTO>> parentComponentsToVersionsMap = new HashMap<>();
+
+    List<ComponentIdentifier> directParentComponentIdentifiers = Collections.emptyList();
+
+    if (includeParentRem) {
+      directParentComponentIdentifiers =
+          getDirectParentComponentIdentifiers(componentDTO, ownerType, ownerId, scanId, componentIdentifier);
+    }
+
+    if (directParentComponentIdentifiers.isEmpty()) {
+      dtos = componentInfoService.getComponentDetailsForAllVersionsNoAuth(owner, componentIdentifier, stageId,
+          identificationSource, scanId, null, componentDetailsLoader).getLeft();
+    }
+    else {
+      Map<ComponentIdentifier, List<ComponentDetailsDTO>> componentDetailsForAllVersions =
+          componentInfoService.getComponentDetailsForAllVersionsNoAuthBulk(owner, directParentComponentIdentifiers,
+              stageId, scanId, componentDetailsLoader);
+      parentComponentsToVersionsMap =
+          mapComponentsAllVersionsFromBulk(componentDetailsForAllVersions, directParentComponentIdentifiers);
+    }
 
     ApiComponentRemediationValueDTO remediationValueDto;
     if (isThirdPartySource) {
       remediationValueDto = thirdPartyComponentDAO.getSuggestedRemmediation(owner.getId(), componentIdentifier, scanId);
     }
     else {
-      remediationValueDto = componentRemediationService.getSuggestedRemediation(componentIdentifier, dtos, owner,
-          stageId, componentDetailsLoader);
+      if (parentComponentsToVersionsMap.isEmpty()) {
+        remediationValueDto = componentRemediationService.getSuggestedRemediation(componentIdentifier, dtos, owner,
+            stageId, componentDetailsLoader);
+
+        if (includeParentRem && apiDependencyTreeSearcher.isDirectNode()) {
+          remediationValueDto.versionChanges.forEach(it -> it.setDirectDependency(true));
+        }
+      }
+      else {
+        remediationValueDto =
+            componentRemediationService.getSuggestedRemediationForTransitive(parentComponentsToVersionsMap,
+                componentDTO.componentIdentifier, owner, stageId, componentDetailsLoader);
+      }
     }
 
     return remediationValueDto == null ? null : new ApiComponentRemediationDTO(remediationValueDto);
@@ -195,5 +250,59 @@ public class ApiComponentRemediationService
     Map<String, String> queryParams = Collections.singletonMap("componentIdentifier",
         ComponentIdentifierAdapter.toJson(componentIdentifier));
     return hdsClient.get(ComponentSummary.class, "rest/component/summary", queryParams);
+  }
+
+  public Map<ComponentIdentifier, List<ComponentDetailsDTO>> mapComponentsAllVersionsFromBulk(
+      Map<ComponentIdentifier, List<ComponentDetailsDTO>> componentMap,
+      List<ComponentIdentifier> componentIdentifiers)
+  {
+
+    //Preprocess the componentMap to create a name-based(no version) map
+    Map<String, List<ComponentDetailsDTO>> nameBasedMap = new LinkedHashMap<>();
+    for (Map.Entry<ComponentIdentifier, List<ComponentDetailsDTO>> entry : componentMap.entrySet()) {
+      String componentName = entry.getKey().get("groupdId") + ":" + entry.getKey().get("artifactId");
+      nameBasedMap.computeIfAbsent(componentName, k -> new ArrayList<>()).addAll(entry.getValue());
+    }
+
+    Map<ComponentIdentifier, List<ComponentDetailsDTO>> resultMap = new LinkedHashMap<>();
+    for (ComponentIdentifier identifier : componentIdentifiers) {
+      String componentName = identifier.get("groupdId") + ":" + identifier.get("artifactId");
+      if (nameBasedMap.containsKey(componentName)) {
+        resultMap.computeIfAbsent(identifier, k -> new ArrayList<>()).addAll(nameBasedMap.get(componentName));
+      }
+    }
+
+    return resultMap;
+  }
+
+  private List<ComponentIdentifier> getDirectParentComponentIdentifiers(
+      final ApiComponentDTOV2 componentDTO,
+      final OwnerType ownerType,
+      final String ownerId,
+      final String scanId,
+      final ComponentIdentifier componentIdentifier)
+  {
+    List<ComponentIdentifier> directParentComponentIdentifiers = Collections.emptyList();
+
+    if (ownerType.equals(OwnerType.APPLICATION) && scanId != null && componentIdentifier.isMaven()) {
+
+      Application application = applicationDAO.getByIdNotNull(ownerId);
+      try {
+        ApiDependencyTreeNodeDTO dependencyTree =
+            apiReportDataServiceV2.getDependencyTreeNoAuth(application.getPublicId(), scanId);
+        Set<ApiDependencyTreeNodeDTO> directParents =
+            apiDependencyTreeSearcher.findAllDirectParents(dependencyTree, componentDTO.componentIdentifier);
+        if (!directParents.isEmpty()) {
+          directParentComponentIdentifiers = directParents.stream()
+              .map(node -> node.getComponentIdentifier().toComponentIdentifier())
+              .distinct()
+              .collect(Collectors.toList());
+        }
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return directParentComponentIdentifiers;
   }
 }

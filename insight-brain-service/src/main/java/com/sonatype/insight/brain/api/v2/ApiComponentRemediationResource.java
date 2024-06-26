@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -84,9 +85,14 @@ public class ApiComponentRemediationResource
       @QueryParam("identificationSource") String identificationSource,
       @Parameter(description = "Enter the scanId (reportId) if you want the remediation result based on" +
           " third-party scan information (non-Sonatype).")
-      @QueryParam("scanId") String scanId)
+      @QueryParam("scanId") String scanId,
+      @Parameter(description =
+          "Enter true if you want to include parent remediation for transitive dependency in the response based" +
+              " on your application policy scan.")
+      @DefaultValue("false") @QueryParam("includeParentRemediation") Boolean includeParentRemediation)
   {
     return remediationService
-        .getSuggestedRemediationForComponent(component, ownerType, ownerId, stageId, identificationSource, scanId);
+        .getSuggestedRemediationForComponent(component, ownerType, ownerId, stageId, identificationSource, scanId,
+            includeParentRemediation);
   }
 }

@@ -15,7 +15,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -124,11 +123,7 @@ public class ComponentRemediationService
   {
     ApiComponentRemediationValueDTO componentRemediationDto = new ApiComponentRemediationValueDTO();
 
-    int currentIndex = IntStream.range(0, allVersions.size())
-        .filter(i -> ensureCompleteIfNeeded(allVersions.get(i).componentIdentifier)
-            .equals(ensureCompleteIfNeeded(currentComponent)))
-        .findFirst()
-        .orElse(-1);
+    int currentIndex = findCurrentIndex(allVersions, currentComponent);
 
     Map<String, Object> telemetryAttributes = new HashMap<>();
 
@@ -162,9 +157,7 @@ public class ComponentRemediationService
             telemetryAttributes.put(OPTION_NEXT_NON_FAILING_ATTR, String.valueOf(true));
           });
 
-      boolean includeAdvancedStrategies = currentComponent.isMaven() &&
-          productLicense.hasFeature(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES)
-          && SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.isEnabled();
+      boolean includeAdvancedStrategies = shouldIncludeAdvancedStrategies(currentComponent);
 
       if (includeAdvancedStrategies) {
         final ComponentDependenciesDTO componentDependencies =
@@ -199,6 +192,68 @@ public class ComponentRemediationService
 
     sendTelemetry(owner, currentComponent, telemetryAttributes);
     return componentRemediationDto;
+  }
+
+  public ApiComponentRemediationValueDTO getSuggestedRemediationForTransitive(
+      final Map<ComponentIdentifier, List<ComponentDetailsDTO>> componentIdentifierToAllVersionMap,
+      final ApiComponentIdentifierDTOV2 transitiveComponent,
+      final Owner owner,
+      final String stageId,
+      final ComponentDetailsLoader componentDetailsLoader)
+  {
+
+    ApiComponentRemediationValueDTO transitiveComponentRemediationValueDTO = new ApiComponentRemediationValueDTO();
+    int currentIndex = -1;
+    Map<String, Object> telemetryAttributes = new HashMap<>();
+
+    for (Map.Entry<ComponentIdentifier, List<ComponentDetailsDTO>> entry
+        : componentIdentifierToAllVersionMap.entrySet()) {
+
+      ComponentIdentifier directComponentIdentifier = entry.getKey();
+      List<ComponentDetailsDTO> allVersions = entry.getValue();
+
+      currentIndex = findCurrentIndex(allVersions, directComponentIdentifier);
+
+      if (currentIndex < 0) {
+        continue;
+      }
+
+      List<ComponentDetailsDTO> nonViolatingVersions = nonViolatingVersions(currentIndex, allVersions);
+      List<ComponentDetailsDTO> nonFailingVersions =
+          (stageId == null) ? Collections.emptyList() : nonFailingVersions(currentIndex, allVersions);
+
+      boolean includeAdvancedStrategies = shouldIncludeAdvancedStrategies(directComponentIdentifier);
+
+      if (includeAdvancedStrategies) {
+        final ComponentDependenciesDTO componentDependencies = fetchDependencyInformation(allVersions, currentIndex);
+        Map<PackageUrlIdentifier, List<PolicyAlert>> dependencyAlerts =
+            getDependencyAlerts(componentDependencies, owner, stageId, componentDetailsLoader);
+
+        if (!nonViolatingVersions.isEmpty()) {
+          nonViolatingWithDependencies(nonViolatingVersions, dependencyAlerts).ifPresent(dto -> {
+            ApiVersionChangeOptionDTO versionChangeOption =
+                createVersionChangeOptionForTransitiveComponent(transitiveComponent, dto,
+                    ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
+            telemetryAttributes.put(OPTION_NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES_ATTR, String.valueOf(true));
+            transitiveComponentRemediationValueDTO.versionChanges.add(versionChangeOption);
+          });
+        }
+
+        if (!nonFailingVersions.isEmpty()) {
+          nonFailingWithDependencies(nonFailingVersions, dependencyAlerts).ifPresent(dto -> {
+            ApiVersionChangeOptionDTO versionChangeOption =
+                createVersionChangeOptionForTransitiveComponent(transitiveComponent, dto,
+                    ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
+            telemetryAttributes.put(OPTION_NEXT_NON_FAILING_WITH_DEPENDENCIES_ATTR, String.valueOf(true));
+            transitiveComponentRemediationValueDTO.versionChanges.add(versionChangeOption);
+          });
+        }
+      }
+
+      sendTelemetry(owner, directComponentIdentifier, telemetryAttributes);
+    }
+
+    return transitiveComponentRemediationValueDTO;
   }
 
   /**
@@ -367,9 +422,47 @@ public class ComponentRemediationService
     return new ApiVersionChangeOptionDTO(apiVersionChangeOptionType, new ApiComponentChangeActionDTO(componentDTOV2));
   }
 
+  private ApiVersionChangeOptionDTO createVersionChangeOptionForTransitiveComponent(
+      final ApiComponentIdentifierDTOV2 transitiveComponent,
+      final ComponentDetailsDTO dto,
+      final ApiVersionChangeOptionType apiVersionChangeOptionType)
+  {
+    ApiComponentDTOV2 directApiComponentDTOV2 = new ApiComponentDTOV2();
+    directApiComponentDTOV2.componentIdentifier =
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(dto.componentIdentifier);
+    directApiComponentDTOV2.packageUrl = PackageUrlIdentifier.toPackageUrl(dto.componentIdentifier);
+    ComponentDisplayName componentDisplayName =
+        ComponentDisplayNameUtil.fromIdentifier(dto.componentIdentifier);
+    directApiComponentDTOV2.displayName = componentDisplayName != null ? componentDisplayName.toString() : null;
+    directApiComponentDTOV2.proprietary = null; // not applicable
+    directApiComponentDTOV2.breakingChangesCount = dto.breakingChangesCount;
+    ApiComponentChangeActionDTO parentAction = new ApiComponentChangeActionDTO(directApiComponentDTOV2);
+    ApiVersionChangeOptionDTO versionChangeOption =
+        createVersionChangeOption(transitiveComponent.toComponentIdentifier(),
+            apiVersionChangeOptionType, dto.breakingChangesCount
+        );
+    versionChangeOption.setDirectDependency(false);
+    versionChangeOption.getDirectDependencyData().add(parentAction);
+    return versionChangeOption;
+  }
+
   private ComponentDependenciesDTO getComponentDependencies(
       final Collection<PackageUrlIdentifier> componentIdentifiers)
   {
     return hdsClient.post(ComponentDependenciesDTO.class, "rest/component/dependencies", componentIdentifiers);
+  }
+
+  private int findCurrentIndex(List<ComponentDetailsDTO> allVersions, ComponentIdentifier componentIdentifier) {
+    return IntStream.range(0, allVersions.size())
+        .filter(i -> ensureCompleteIfNeeded(allVersions.get(i).componentIdentifier)
+            .equals(ensureCompleteIfNeeded(componentIdentifier)))
+        .findFirst()
+        .orElse(-1);
+  }
+
+  private boolean shouldIncludeAdvancedStrategies(ComponentIdentifier componentIdentifier) {
+    return componentIdentifier.isMaven() &&
+        productLicense.hasFeature(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES) &&
+        SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.isEnabled();
   }
 }

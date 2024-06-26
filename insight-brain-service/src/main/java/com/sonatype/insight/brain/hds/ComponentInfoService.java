@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -543,7 +544,7 @@ public class ComponentInfoService
               = evaluatePoliciesAndGetComponentDetails(owner, stageId, components, componentDetailsList);
 
           return Maps.immutableEntry(componentIdentifier, componentDetailsDTOs);
-        }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
   }
 
   Map<ComponentIdentifier, List<ComponentDetails>> getComponentDetailsListBulk(
@@ -597,7 +598,7 @@ public class ComponentInfoService
     Map<ComponentIdentifier, List<ComponentDetails>> allComponentDetails =
         Stream.of(terraformDetails.entrySet(), nonTerraformDetails.entrySet(), unknownComponentDetails.entrySet())
             .flatMap(Set::stream)
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
 
     if (MapUtils.isNotEmpty(allComponentDetails)) {
       log.debug("Loaded component details list(s) for {} component identifiers in {} ms.",
@@ -1041,7 +1042,7 @@ public class ComponentInfoService
       List<ComponentEvaluationDataList.ComponentEvaluationData> componentEvaluationData)
   {
     Map<ComponentIdentifier, List<ComponentEvaluationDataList.ComponentEvaluationData>> groupedComponentIdentifiers
-        = new HashMap<>();
+        = new LinkedHashMap<>();
 
     componentEvaluationData.forEach(currentComponentEvaluationData -> {
       ComponentIdentifier componentIdentifier = currentComponentEvaluationData.componentIdentifier;
@@ -1088,7 +1089,7 @@ public class ComponentInfoService
               })
               .collect(Collectors.toList());
           return Maps.immutableEntry(key, mappedComponentDetailsList);
-        }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
   }
 
   public List<ComponentIdentifier> expandVersionsByComponent(Map<String, List<String>> versionsByComponent) {

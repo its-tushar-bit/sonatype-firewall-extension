@@ -1,0 +1,269 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "logback-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ch.qos.logback",
+        "version" : "1.3.14"
+      }
+    },
+    "packageUrl" : "pkg:maven/ch.qos.logback/logback-core@1.3.14?type=jar",
+    "groupId" : "ch.qos.logback",
+    "artifactId" : "logback-core",
+    "version" : "1.3.14",
+    "filenames" : [ "logback-core-1.3.14.jar" ],
+    "pathnames" : [ "dependency:/org.example:untitled:jar:1.0-SNAPSHOT/ch.qos.logback:logback-core:jar:1.3.14" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0436bd0d56730df756cf",
+    "relativePopularity" : 0.03,
+    "createTime" : 1701432339504,
+    "lastModifiedTime" : 1701432338000,
+    "lastModifiedEntryTime" : 1701450000000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 0,
+      "label" : "Normal"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "ch.qos.logback"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "logback-core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.3.14"
+      } ],
+      "name" : "logback-core"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/ch.qos.logback/logback-classic@1.3.14?type=jar" ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "slf4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "2.0.7"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.slf4j/slf4j-api@2.0.7?type=jar",
+    "groupId" : "org.slf4j",
+    "artifactId" : "slf4j-api",
+    "version" : "2.0.7",
+    "filenames" : [ "slf4j-api-2.0.7.jar" ],
+    "pathnames" : [ "dependency:/org.example:untitled:jar:1.0-SNAPSHOT/org.slf4j:slf4j-api:jar:2.0.7" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "41eb7184ea9d556f23e1",
+    "relativePopularity" : 0.23,
+    "createTime" : 1679081818000,
+    "lastModifiedTime" : 1679081818000,
+    "lastModifiedEntryTime" : 1679096100000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 0,
+      "label" : "Normal"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.slf4j"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "slf4j-api"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.0.7"
+      } ],
+      "name" : "slf4j-api"
+    },
+    "directDependency" : false,
+    "innerSource" : false,
+    "parentComponentPurls" : [ "pkg:maven/ch.qos.logback/logback-classic@1.3.14?type=jar" ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-io",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-io",
+        "version" : "2.2"
+      }
+    },
+    "packageUrl" : "pkg:maven/commons-io/commons-io@2.2?type=jar",
+    "groupId" : "commons-io",
+    "artifactId" : "commons-io",
+    "version" : "2.2",
+    "filenames" : [ "commons-io-2.2.jar" ],
+    "pathnames" : [ "dependency:/org.example:untitled:jar:1.0-SNAPSHOT/commons-io:commons-io:jar:2.2" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "83b5b8a7ba1c08f9e8c8",
+    "relativePopularity" : 0.1,
+    "createTime" : 1332774876000,
+    "lastModifiedTime" : 1696557888000,
+    "lastModifiedEntryTime" : 1332773974000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-io"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-io"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.2"
+      } ],
+      "name" : "commons-io"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "logback-classic",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ch.qos.logback",
+        "version" : "1.3.14"
+      }
+    },
+    "packageUrl" : "pkg:maven/ch.qos.logback/logback-classic@1.3.14?type=jar",
+    "groupId" : "ch.qos.logback",
+    "artifactId" : "logback-classic",
+    "version" : "1.3.14",
+    "filenames" : [ "logback-classic-1.3.14.jar" ],
+    "pathnames" : [ "dependency:/org.example:untitled:jar:1.0-SNAPSHOT/ch.qos.logback:logback-classic:jar:1.3.14" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "a2f0045eae641a356b74",
+    "relativePopularity" : 0.03,
+    "createTime" : 1701432373260,
+    "lastModifiedTime" : 1701432372000,
+    "lastModifiedEntryTime" : 1701450000000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 0,
+      "label" : "Normal"
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "ch.qos.logback"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "logback-classic"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.3.14"
+      } ],
+      "name" : "logback-classic"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  } ],
+  "dependencyDataIncluded" : true
+}

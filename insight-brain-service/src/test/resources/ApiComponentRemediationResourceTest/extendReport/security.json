@@ -1,0 +1,48 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-io",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-io",
+        "version" : "2.2"
+      }
+    },
+    "groupId" : "commons-io",
+    "artifactId" : "commons-io",
+    "version" : "2.2",
+    "hash" : "83b5b8a7ba1c08f9e8c8",
+    "url" : null,
+    "reference" : "sonatype-2018-0705",
+    "source" : "sonatype",
+    "score" : 5.3,
+    "cwe" : "22",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ "CVE-2021-29425" ],
+    "vulnIds" : [ "sonatype-2018-0705", "CVE-2021-29425" ],
+    "researchType" : "DEEP_DIVE",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "commons-io"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "commons-io"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.2"
+      } ],
+      "name" : "commons-io"
+    }
+  } ]
+}

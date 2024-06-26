@@ -1,0 +1,229 @@
+{
+  "dependencyGraph" : [ {
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "commons-io",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "commons-io",
+          "version" : "2.2"
+        }
+      },
+      "packageUrl" : "pkg:maven/commons-io/commons-io@2.2?type=jar",
+      "directDependency" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "logback-classic",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "ch.qos.logback",
+          "version" : "1.3.14"
+        }
+      },
+      "packageUrl" : "pkg:maven/ch.qos.logback/logback-classic@1.3.14?type=jar",
+      "directDependency" : true
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "logback-classic",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ch.qos.logback",
+        "version" : "1.3.14"
+      }
+    },
+    "packageUrl" : "pkg:maven/ch.qos.logback/logback-classic@1.3.14?type=jar",
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "logback-core",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "ch.qos.logback",
+          "version" : "1.3.14"
+        }
+      },
+      "packageUrl" : "pkg:maven/ch.qos.logback/logback-core@1.3.14?type=jar"
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "slf4j-api",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.slf4j",
+          "version" : "2.0.7"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.slf4j/slf4j-api@2.0.7?type=jar"
+    } ],
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "logback-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ch.qos.logback",
+        "version" : "1.3.14"
+      }
+    },
+    "packageUrl" : "pkg:maven/ch.qos.logback/logback-core@1.3.14?type=jar",
+    "directDependency" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-io",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-io",
+        "version" : "2.2"
+      }
+    },
+    "packageUrl" : "pkg:maven/commons-io/commons-io@2.2?type=jar",
+    "directDependency" : true
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "slf4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "2.0.7"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.slf4j/slf4j-api@2.0.7?type=jar",
+    "directDependency" : false
+  } ],
+  "gavDepths" : {
+    "ch.qos.logback:logback-core:1.3.14" : [ 2 ],
+    "commons-io:commons-io:2.2" : [ 1 ],
+    "org.slf4j:slf4j-api:2.0.7" : [ 2 ],
+    "ch.qos.logback:logback-classic:1.3.14" : [ 1 ]
+  },
+  "componentDepths" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-io",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-io",
+        "version" : "2.2"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "logback-classic",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ch.qos.logback",
+        "version" : "1.3.14"
+      }
+    },
+    "depths" : [ 1 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "logback-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "ch.qos.logback",
+        "version" : "1.3.14"
+      }
+    },
+    "depths" : [ 2 ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "slf4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "2.0.7"
+      }
+    },
+    "depths" : [ 2 ]
+  } ],
+  "dependencyTree" : {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "untitled",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.example",
+        "version" : "1.0-SNAPSHOT"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.example/untitled@1.0-SNAPSHOT?type=jar",
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "commons-io",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "commons-io",
+          "version" : "2.2"
+        }
+      },
+      "packageUrl" : "pkg:maven/commons-io/commons-io@2.2?type=jar",
+      "direct" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "logback-classic",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "ch.qos.logback",
+          "version" : "1.3.14"
+        }
+      },
+      "packageUrl" : "pkg:maven/ch.qos.logback/logback-classic@1.3.14?type=jar",
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "logback-core",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "ch.qos.logback",
+            "version" : "1.3.14"
+          }
+        },
+        "packageUrl" : "pkg:maven/ch.qos.logback/logback-core@1.3.14?type=jar"
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "slf4j-api",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.slf4j",
+            "version" : "2.0.7"
+          }
+        },
+        "packageUrl" : "pkg:maven/org.slf4j/slf4j-api@2.0.7?type=jar"
+      } ],
+      "direct" : true
+    } ],
+    "module" : true
+  }
+}

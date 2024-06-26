@@ -844,6 +844,27 @@ public class CLMLicenseManager
       features.add(LicensedFeature.DATA_RETENTION);
       features.add(LicensedFeature.ORGS_AND_APPS);
       features.add(LicensedFeature.ENFORCEMENT);
+
+      // Temporarily add these features to SBOM Manager until the frontend is complete - SBOM-295
+      features.add(LicensedFeature.API_PAGE);
+      features.add(LicensedFeature.APPLICATION_REPORTS);
+      features.add(LicensedFeature.APPLICATION_EVALUATION);
+      features.add(LicensedFeature.CALL_FLOW_ANALYSIS);
+      features.add(LicensedFeature.COMPONENT_EVALUATION);
+      features.add(LicensedFeature.COMPONENT_LABELS);
+      features.add(LicensedFeature.COMPONENT_SEARCH);
+      features.add(LicensedFeature.POLICY_MANAGEMENT);
+      features.add(LicensedFeature.POLICY_VIOLATIONS);
+      features.add(LicensedFeature.POLICY_WAIVERS);
+      features.add(LicensedFeature.REPOSITORY_EVALUATION);
+      features.add(LicensedFeature.REPOSITORY_REPORTS);
+      features.add(LicensedFeature.SBOM_EVALUATION);
+      features.add(LicensedFeature.SBOM_REPORTS);
+      features.add(LicensedFeature.SOURCE_CONTROL);
+      features.add(LicensedFeature.SUCCESS_METRICS);
+      features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
+      features.add(LicensedFeature.WAIVER_REPORTS);
+
       stageTypes.add(StageTypes.RELEASE);
     }
 

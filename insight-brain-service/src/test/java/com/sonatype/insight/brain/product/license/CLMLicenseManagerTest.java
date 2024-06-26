@@ -753,7 +753,25 @@ public class CLMLicenseManagerTest
         LicensedFeature.NOTIFICATIONS,
         LicensedFeature.DATA_RETENTION,
         LicensedFeature.ORGS_AND_APPS,
-        LicensedFeature.ENFORCEMENT);
+        LicensedFeature.ENFORCEMENT,
+        LicensedFeature.API_PAGE,
+        LicensedFeature.APPLICATION_REPORTS,
+        LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.CALL_FLOW_ANALYSIS,
+        LicensedFeature.COMPONENT_EVALUATION,
+        LicensedFeature.COMPONENT_LABELS,
+        LicensedFeature.COMPONENT_SEARCH,
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.POLICY_VIOLATIONS,
+        LicensedFeature.POLICY_WAIVERS,
+        LicensedFeature.REPOSITORY_EVALUATION,
+        LicensedFeature.REPOSITORY_REPORTS,
+        LicensedFeature.SBOM_EVALUATION,
+        LicensedFeature.SBOM_REPORTS,
+        LicensedFeature.SOURCE_CONTROL,
+        LicensedFeature.SUCCESS_METRICS,
+        LicensedFeature.VULNERABILITY_CUSTOMIZATION,
+        LicensedFeature.WAIVER_REPORTS);
   }
 
   @Test
@@ -769,7 +787,25 @@ public class CLMLicenseManagerTest
         LicensedFeature.NOTIFICATIONS,
         LicensedFeature.DATA_RETENTION,
         LicensedFeature.ORGS_AND_APPS,
-        LicensedFeature.ENFORCEMENT);
+        LicensedFeature.ENFORCEMENT,
+        LicensedFeature.API_PAGE,
+        LicensedFeature.APPLICATION_REPORTS,
+        LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.CALL_FLOW_ANALYSIS,
+        LicensedFeature.COMPONENT_EVALUATION,
+        LicensedFeature.COMPONENT_LABELS,
+        LicensedFeature.COMPONENT_SEARCH,
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.POLICY_VIOLATIONS,
+        LicensedFeature.POLICY_WAIVERS,
+        LicensedFeature.REPOSITORY_EVALUATION,
+        LicensedFeature.REPOSITORY_REPORTS,
+        LicensedFeature.SBOM_EVALUATION,
+        LicensedFeature.SBOM_REPORTS,
+        LicensedFeature.SOURCE_CONTROL,
+        LicensedFeature.SUCCESS_METRICS,
+        LicensedFeature.VULNERABILITY_CUSTOMIZATION,
+        LicensedFeature.WAIVER_REPORTS);
   }
 
   @Test

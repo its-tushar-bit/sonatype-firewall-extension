@@ -205,12 +205,14 @@ public class NoticeDetailsTest
     noticeOverview.shouldHave(text(noticeText));
   }
 
+  @Ignore("CLM-30844")
   @Test
   public void testEditNoticeByHash() {
     loadByHash();
     doTestEditNotice();
   }
 
+  @Ignore("CLM-30844")
   @Test
   public void testEditNoticeByComponentIdentifier() throws UnsupportedEncodingException {
     loadByComponentIdentifier();

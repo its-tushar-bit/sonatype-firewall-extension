@@ -1443,6 +1443,8 @@ CREATE TABLE IF NOT EXISTS tenant_metadata
   connection_id varchar(50) NOT NULL,
   connection_name varchar(100) NOT NULL,
   encryption_key_name varchar(512),
+  organization_id varchar(50),
+  organization_name varchar(100),
   CONSTRAINT tenant_metadata_pk PRIMARY KEY (tenant_metadata_id)
 );
 

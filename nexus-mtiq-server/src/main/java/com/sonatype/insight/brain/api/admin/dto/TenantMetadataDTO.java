@@ -19,6 +19,10 @@ public class TenantMetadataDTO
 
   private String encryptionKeyName;
 
+  private String organizationId;
+
+  private String organizationName;
+
   public TenantMetadataDTO() {
     // no-op
   }
@@ -28,13 +32,17 @@ public class TenantMetadataDTO
       final String applicationName,
       final String connectionId,
       final String connectionName,
-      final String encryptionKeyName)
+      final String encryptionKeyName,
+      final String organizationId,
+      final String organizationName)
   {
     this.applicationId = applicationId;
     this.applicationName = applicationName;
     this.connectionId = connectionId;
     this.connectionName = connectionName;
     this.encryptionKeyName = encryptionKeyName;
+    this.organizationId = organizationId;
+    this.organizationName = organizationName;
   }
 
   public String getApplicationId() {
@@ -77,14 +85,32 @@ public class TenantMetadataDTO
     this.encryptionKeyName = encryptionKeyName;
   }
 
+  public String getOrganizationId() {
+    return organizationId;
+  }
+
+  public void setOrganizationId(final String organizationId) {
+    this.organizationId = organizationId;
+  }
+
+  public String getOrganizationName() {
+    return organizationName;
+  }
+
+  public void setOrganizationName(final String organizationName) {
+    this.organizationName = organizationName;
+  }
+
   public static TenantMetadataDTO toDTO(TenantMetadata tenantMetadata) {
     return new TenantMetadataDTO(tenantMetadata.getApplicationId(), tenantMetadata.getApplicationName(),
-        tenantMetadata.getConnectionId(), tenantMetadata.getConnectionName(), tenantMetadata.getEncryptionKeyName());
+        tenantMetadata.getConnectionId(), tenantMetadata.getConnectionName(), tenantMetadata.getEncryptionKeyName(),
+        tenantMetadata.getOrganizationId(), tenantMetadata.getOrganizationName());
   }
 
   public static TenantMetadata fromDTO(TenantMetadataDTO tenantMetadataDTO) {
     return new TenantMetadata(tenantMetadataDTO.getApplicationId(), tenantMetadataDTO.getApplicationName(),
         tenantMetadataDTO.getConnectionId(), tenantMetadataDTO.getConnectionName(),
-        tenantMetadataDTO.getEncryptionKeyName());
+        tenantMetadataDTO.getEncryptionKeyName(), tenantMetadataDTO.getOrganizationId(),
+        tenantMetadataDTO.getOrganizationName());
   }
 }

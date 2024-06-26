@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import com.auth0.json.mgmt.users.User;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.junit.Before;
@@ -26,6 +27,8 @@ import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -86,13 +89,28 @@ public class MultiTenantUserServiceTest
 
   @Test
   public void test_canInviteAUser() {
+    test_canInviteAUser(false);
+  }
+
+  @Test
+  public void test_canInviteAUser_AndAddMemberToOrganization() {
+    test_canInviteAUser(true);
+  }
+
+  private void test_canInviteAUser(boolean includeOrg) {
+    String userId = "userId";
     MtiqUserDTO user = createMtiqUser("foo");
 
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       provisionTenant(tenant.tenantSlug);
       enableSsoWithOAuth2();
-      createTenantMetadata(tenant);
+      TenantMetadata tenantMetadata = createTenantMetadata(tenant, includeOrg);
 
+      User user1 = mock(User.class);
+      when(user1.getId()).thenReturn(userId);
+      when(auth0ManagementService.createOrUpdateUser(user.getEmail(), user.getFirstName(), user.getLastName(),
+          tenantMetadata.getConnectionName(), tenantMetadata.getApplicationId(),
+          tenantMetadata.getConnectionId())).thenReturn(user1);
       assertThat(ssoUserService.getAll()).hasSize(0);
 
       underTest.inviteUser(user);
@@ -100,6 +118,16 @@ public class MultiTenantUserServiceTest
       List<SsoUser> allUsers = ssoUserService.getAll();
       assertThat(allUsers).hasSize(1);
       assertThat(MtiqUserDTO.ssoUserToMtiqUser(allUsers.get(0))).usingRecursiveComparison().isEqualTo(user);
+
+      verify(auth0ManagementService).createOrUpdateUser(user.getEmail(), user.getFirstName(), user.getLastName(),
+          tenantMetadata.getConnectionName(), tenantMetadata.getApplicationId(), tenantMetadata.getConnectionId());
+
+      if (includeOrg) {
+        verify(auth0ManagementService).addMemberToOrganization(tenantMetadata.getOrganizationId(), userId);
+      }
+      else {
+        verify(auth0ManagementService, never()).addMemberToOrganization(tenantMetadata.getOrganizationId(), userId);
+      }
     });
 
     List<SsoUser> allUsers = ssoUserService.getAll();
@@ -115,7 +143,7 @@ public class MultiTenantUserServiceTest
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       provisionTenant(tenant.tenantSlug);
       enableSsoWithOAuth2();
-      createTenantMetadata(tenant);
+      createTenantMetadata(tenant, false);
 
       underTest.inviteUser(user1);
       underTest.inviteUser(user2);
@@ -127,7 +155,7 @@ public class MultiTenantUserServiceTest
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       provisionTenant(tenant.tenantSlug);
       enableSsoWithOAuth2();
-      createTenantMetadata(tenant);
+      createTenantMetadata(tenant, false);
 
       underTest.inviteUser(user3);
 
@@ -157,13 +185,22 @@ public class MultiTenantUserServiceTest
 
   @Test
   public void test_canDeleteUser() {
+    test_canDeleteUser(false);
+  }
+
+  @Test
+  public void test_canDeleteUser_AndRemoveMemberFromOrganization() {
+    test_canDeleteUser(false);
+  }
+
+  private void test_canDeleteUser(boolean includeOrg) {
     MtiqUserDTO user1 = createMtiqUser("foo");
     MtiqUserDTO user2 = createMtiqUser("bar");
 
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       provisionTenant(tenant.tenantSlug);
       enableSsoWithOAuth2();
-      TenantMetadata tenantMetadata = createTenantMetadata(tenant);
+      TenantMetadata tenantMetadata = createTenantMetadata(tenant, includeOrg);
 
       when(currentUser.getUsername()).thenReturn("random@email.com");
       ssoUserService.upsertByUsername(user1);
@@ -171,7 +208,17 @@ public class MultiTenantUserServiceTest
 
       underTest.deleteByUsername(user2.getEmail());
 
-      verify(auth0ManagementService).deleteUser(user2.getEmail(), tenantMetadata.getConnectionId());
+      if (includeOrg) {
+        verify(auth0ManagementService).removeMemberFromOrganization(tenantMetadata.getOrganizationId(),
+            user2.getEmail());
+        verify(auth0ManagementService, never()).deleteUser(user2.getEmail(), tenantMetadata.getConnectionId());
+      }
+      else {
+        verify(auth0ManagementService).deleteUser(user2.getEmail(), tenantMetadata.getConnectionId());
+        verify(auth0ManagementService, never()).removeMemberFromOrganization(tenantMetadata.getOrganizationId(),
+            user2.getEmail());
+      }
+
       assertThat(ssoUserService.getByUsername(user2.getEmail())).isNull();
     });
   }
@@ -184,7 +231,7 @@ public class MultiTenantUserServiceTest
     TenantTestHelper.testAsNewTenant(testName, tenant -> {
       provisionTenant(tenant.tenantSlug);
       enableSsoWithOAuth2();
-      TenantMetadata tenantMetadata = createTenantMetadata(tenant);
+      TenantMetadata tenantMetadata = createTenantMetadata(tenant, false);
 
       when(currentUser.getUsername()).thenReturn("admin@email.com");
       ssoUserService.upsertByUsername(user1);
@@ -222,20 +269,26 @@ public class MultiTenantUserServiceTest
 
       tenantTemporaryEntity.newOAuth2User(username);
       enableSsoWithOAuth2();
-      createTenantMetadata(tenant);
+      createTenantMetadata(tenant, false);
 
       assertThatThrownBy(() -> underTest.deleteByUsername(username))
           .isInstanceOf(BadRequestException.class);
     });
   }
 
-  private TenantMetadata createTenantMetadata(final Tenant tenant) {
+  private TenantMetadata createTenantMetadata(final Tenant tenant, boolean includeOrg) {
     TenantMetadata tenantMetadata = new TenantMetadata();
     String tempName = tenant.tenantSlug.substring(tenant.tenantSlug.length() - 20);
     tenantMetadata.setApplicationId("appId-" + tempName);
     tenantMetadata.setApplicationName("appName-" + tempName);
     tenantMetadata.setConnectionId("conId-" + tempName);
     tenantMetadata.setConnectionName("conName-" + tempName);
+
+    if (includeOrg) {
+      tenantMetadata.setOrganizationId("orgId-" + tempName);
+      tenantMetadata.setOrganizationName("orgName-" + tempName);
+    }
+
     tenantMetadataDAO.insert(tenantMetadata);
     return tenantMetadata;
   }

@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class TenantTenantMetadataServiceTest
+public class TenantMetadataServiceTest
     extends AbstractMultiTenantTest
 {
   public static final String APP_ID = "appId";
@@ -40,6 +40,10 @@ public class TenantTenantMetadataServiceTest
   public static final String CONN_NAME = "connName";
 
   public static final String ENC_KEY_NAME = "encKeyName";
+
+  public static final String ORG_ID = "orgId";
+
+  public static final String ORG_NAME = "orgName";
 
   @Mock
   private MultiTenantEncryptionKeyStore multiTenantEncryptionKeyStore;
@@ -61,7 +65,8 @@ public class TenantTenantMetadataServiceTest
   @Test
   public void shouldInsertAuth0Configuration() {
     testAsNewTenant(tenant -> {
-      TenantMetadataDTO expected1 = new TenantMetadataDTO(APP_ID, APP_NAME, CONN_ID, CONN_NAME, ENC_KEY_NAME);
+      TenantMetadataDTO expected1 =
+          new TenantMetadataDTO(APP_ID, APP_NAME, CONN_ID, CONN_NAME, ENC_KEY_NAME, ORG_ID, ORG_NAME);
 
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
       when(tenantMetadataDAO.get()).thenReturn(null);
@@ -77,6 +82,8 @@ public class TenantTenantMetadataServiceTest
       assertEquals(CONN_ID, argument.getValue().getConnectionId());
       assertEquals(CONN_NAME, argument.getValue().getConnectionName());
       assertEquals(ENC_KEY_NAME, argument.getValue().getEncryptionKeyName());
+      assertEquals(ORG_ID, argument.getValue().getOrganizationId());
+      assertEquals(ORG_NAME, argument.getValue().getOrganizationName());
 
       verify(multiTenantEncryptionKeyStore).initializeTenantKey();
     });
@@ -85,11 +92,13 @@ public class TenantTenantMetadataServiceTest
   @Test
   public void shouldUpdateAuth0Configuration() {
     testAsNewTenant(tenant -> {
-      TenantMetadataDTO expected1 = new TenantMetadataDTO(APP_ID, APP_NAME, CONN_ID, CONN_NAME, ENC_KEY_NAME);
+      TenantMetadataDTO expected1 =
+          new TenantMetadataDTO(APP_ID, APP_NAME, CONN_ID, CONN_NAME, ENC_KEY_NAME, ORG_ID, ORG_NAME);
 
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
       when(tenantMetadataDAO.get()).thenReturn(
-          TenantMetadataDTO.fromDTO(new TenantMetadataDTO(null, APP_NAME, CONN_ID, CONN_NAME, ENC_KEY_NAME)));
+          TenantMetadataDTO.fromDTO(
+              new TenantMetadataDTO(null, APP_NAME, CONN_ID, CONN_NAME, ENC_KEY_NAME, ORG_ID, ORG_NAME)));
 
       underTest.insertOrUpdateMetadata(expected1, tenant.tenantSlug);
 
@@ -102,6 +111,8 @@ public class TenantTenantMetadataServiceTest
       assertEquals(CONN_ID, argument.getValue().getConnectionId());
       assertEquals(CONN_NAME, argument.getValue().getConnectionName());
       assertEquals(ENC_KEY_NAME, argument.getValue().getEncryptionKeyName());
+      assertEquals(ORG_ID, argument.getValue().getOrganizationId());
+      assertEquals(ORG_NAME, argument.getValue().getOrganizationName());
 
       verify(multiTenantEncryptionKeyStore).initializeTenantKey();
     });
@@ -112,7 +123,8 @@ public class TenantTenantMetadataServiceTest
     testAsNewTenant(tenant -> {
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
 
-      TenantMetadataDTO expected = new TenantMetadataDTO(APP_ID, APP_NAME, CONN_ID, CONN_NAME, ENC_KEY_NAME);
+      TenantMetadataDTO expected =
+          new TenantMetadataDTO(APP_ID, APP_NAME, CONN_ID, CONN_NAME, ENC_KEY_NAME, ORG_ID, ORG_NAME);
 
       assertThatThrownBy(
           () -> underTest.insertOrUpdateMetadata(expected, tenant.tenantSlug))
@@ -123,7 +135,8 @@ public class TenantTenantMetadataServiceTest
 
   @Test
   public void shouldThrowRuntimeException_whenUsingGlobalTenant() {
-    TenantMetadataDTO expected = new TenantMetadataDTO(APP_ID, APP_NAME, CONN_ID, CONN_NAME, ENC_KEY_NAME);
+    TenantMetadataDTO expected =
+        new TenantMetadataDTO(APP_ID, APP_NAME, CONN_ID, CONN_NAME, ENC_KEY_NAME, ORG_ID, ORG_NAME);
 
     testAsGlobalTenant(tenant -> {
       assertThatThrownBy(

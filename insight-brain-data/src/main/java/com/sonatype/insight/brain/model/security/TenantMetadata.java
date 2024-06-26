@@ -36,6 +36,12 @@ public class TenantMetadata
   @Column(name = "encryption_key_name")
   private String encryptionKeyName;
 
+  @Column(name = "organization_id")
+  private String organizationId;
+
+  @Column(name = "organization_name")
+  private String organizationName;
+
   public TenantMetadata() {
   }
 
@@ -44,13 +50,17 @@ public class TenantMetadata
       final String applicationName,
       final String connectionId,
       final String connectionName,
-      final String encryptionKeyName)
+      final String encryptionKeyName,
+      final String organizationId,
+      final String organizationName)
   {
     this.applicationId = applicationId;
     this.applicationName = applicationName;
     this.connectionId = connectionId;
     this.connectionName = connectionName;
     this.encryptionKeyName = encryptionKeyName;
+    this.organizationId = organizationId;
+    this.organizationName = organizationName;
   }
 
   @Override
@@ -101,5 +111,21 @@ public class TenantMetadata
 
   public void setEncryptionKeyName(final String encryptionKeyName) {
     this.encryptionKeyName = encryptionKeyName;
+  }
+
+  public String getOrganizationId() {
+    return organizationId;
+  }
+
+  public void setOrganizationId(final String organizationId) {
+    this.organizationId = organizationId;
+  }
+
+  public String getOrganizationName() {
+    return organizationName;
+  }
+
+  public void setOrganizationName(final String organizationName) {
+    this.organizationName = organizationName;
   }
 }

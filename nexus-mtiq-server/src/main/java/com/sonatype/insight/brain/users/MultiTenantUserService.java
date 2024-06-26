@@ -20,6 +20,8 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.MultiTenantSsoUserService;
 import com.sonatype.insight.brain.security.SsoUser;
 
+import com.auth0.json.mgmt.users.User;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.slf4j.Logger;
@@ -67,26 +69,36 @@ public class MultiTenantUserService
     TenantMetadata tenantMetadata = getTenantMetadata();
 
     try {
-      multiTenantAuth0ManagementService.createOrUpdateUser(user.getEmail(), user.getFirstName(),
-          user.getLastName(), tenantMetadata.getConnectionName(), tenantMetadata.getApplicationId(),
-          tenantMetadata.getConnectionId());
+      User auth0User =
+          multiTenantAuth0ManagementService.createOrUpdateUser(user.getEmail(), user.getFirstName(),
+              user.getLastName(), tenantMetadata.getConnectionName(), tenantMetadata.getApplicationId(),
+              tenantMetadata.getConnectionId());
       log.debug("user created on Auth0 successfully");
 
       multiTenantSsoUserService.upsertByUsername(user);
       log.info("user created successfully");
+
+      String organizationId = tenantMetadata.getOrganizationId();
+      if (StringUtils.isNotBlank(organizationId)) {
+        multiTenantAuth0ManagementService.addMemberToOrganization(organizationId, auth0User.getId());
+      }
     }
     catch (Exception e) {
-      log.error("User creation or update failed for username: {}, auth0 applicationId:{}, connectionId: {}",
+      log.error(
+          "User creation or update failed for username: {}, auth0 applicationId:{}, connectionId: {}, " +
+              "organizationId: {}",
           user.getUsername(),
           tenantMetadata.getApplicationId(),
-          tenantMetadata.getConnectionId());
+          tenantMetadata.getConnectionId(),
+          tenantMetadata.getOrganizationId());
       throw e;
     }
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   @Override
-  public void deleteByUsername(final String username) {
+  public void deleteByUsername(String username) {
+    username = username.toLowerCase();
     TenantMetadata tenantMetadata = getTenantMetadata();
 
     try {
@@ -96,16 +108,24 @@ public class MultiTenantUserService
         deleteUser(ssoUser);
       }
 
-      multiTenantAuth0ManagementService.deleteUser(username, tenantMetadata.getConnectionId());
-      log.debug("user deleted on Auth0 successfully");
+      String organizationId = tenantMetadata.getOrganizationId();
+      if (StringUtils.isNotBlank(organizationId)) {
+        multiTenantAuth0ManagementService.removeMemberFromOrganization(organizationId, username);
+        log.debug("user removed from organization successfully");
+      }
+      else {
+        multiTenantAuth0ManagementService.deleteUser(username, tenantMetadata.getConnectionId());
+        log.debug("user deleted on Auth0 successfully");
+      }
 
       log.info("user deleted successfully");
     }
     catch (Exception e) {
-      log.error("User deletion failed for username: {}, auth0 applicationId:{},  connectionId: {}",
+      log.error("User deletion failed for username: {}, auth0 applicationId:{},  connectionId: {}, organizationId: {}",
           username,
           tenantMetadata.getApplicationId(),
-          tenantMetadata.getConnectionId());
+          tenantMetadata.getConnectionId(),
+          tenantMetadata.getOrganizationId());
       throw e;
     }
   }

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.auth;
 
+import java.util.Collections;
 import java.util.Date;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -18,7 +19,10 @@ import com.auth0.client.mgmt.filter.ConnectionFilter;
 import com.auth0.exception.Auth0Exception;
 import com.auth0.json.auth.TokenHolder;
 import com.auth0.json.mgmt.Connection;
+import com.auth0.json.mgmt.organizations.Member;
+import com.auth0.json.mgmt.users.User;
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +57,7 @@ public class MultiTenantAuth0ManagementService
     //no-op
   }
 
-  public void createOrUpdateUser(
+  public User createOrUpdateUser(
       final String email,
       final String firstName,
       final String lastName,
@@ -67,19 +71,22 @@ public class MultiTenantAuth0ManagementService
       throw new RuntimeException("Unable to initialise Auth0 Management API");
     }
 
-    boolean userExists;
+    User user;
+
     try {
-      userExists = auth0ManagementAPI.userExists(email, connectionName);
+      user = auth0ManagementAPI.getUserByEmail(email, connectionName);
     }
     catch (Auth0Exception e) {
       log.warn("Unable to determine if user already exists in Auth0");
       throw new RuntimeException(e);
     }
 
-    if (!userExists) {
-      auth0ManagementAPI.createOrGetUser(email, firstName, lastName, connectionName);
+    if (user == null) {
+      user = auth0ManagementAPI.createOrGetUser(email, firstName, lastName, connectionName);
       sendResetPassword(email, connectionName, connectionId, applicationId);
     }
+
+    return user;
   }
 
   private void sendResetPassword(
@@ -117,22 +124,30 @@ public class MultiTenantAuth0ManagementService
     auth0ManagementAPI.deleteUserByEmailFromConnection(username, connectionId);
   }
 
-  public boolean deleteTenant(final String applicationId, final String connectionId) {
+  public boolean deleteTenant(final String applicationId, final String connectionId, final String organizationId) {
     refreshManagementApiToken();
 
-    log.debug("Deleting Auth0 client with ID: {}", applicationId);
     try {
-      auth0ManagementAPI.clients().delete(applicationId).execute();
+      if (StringUtils.isNotBlank(organizationId)) {
+        // This is the logic to delete tenants using OIDC as SSO
+        log.debug("Deleting Auth0 organization with ID: {}", organizationId);
+        auth0ManagementAPI.deleteOrganization(organizationId);
+      }
+      else {
+        // This is the logic to delete tenants using SAML as SSO
+        log.debug("Deleting Auth0 client with ID: {}", applicationId);
+        auth0ManagementAPI.clients().delete(applicationId).execute();
 
-      //Only retrieving strategy field for the connection
-      ConnectionFilter connectionFilter = new ConnectionFilter().withFields("strategy", true);
-      Connection connection = auth0ManagementAPI.connections().get(connectionId, connectionFilter).execute();
+        //Only retrieving strategy field for the connection
+        ConnectionFilter connectionFilter = new ConnectionFilter().withFields("strategy", true);
+        Connection connection = auth0ManagementAPI.connections().get(connectionId, connectionFilter).execute();
 
-      //Only removing DB Auth0 connections
-      if (!CONNECTION_CREATION_SKIPPED.equals(connectionId) &&
-          connection.getStrategy().equals(Auth0ManagementAPI.AUTH0_CONNECTION_STRATEGY)) {
-        log.debug("Deleting Auth0 connection with ID: {}", connectionId);
-        auth0ManagementAPI.connections().delete(connectionId).execute();
+        //Only removing DB Auth0 connections
+        if (!CONNECTION_CREATION_SKIPPED.equals(connectionId) &&
+            connection.getStrategy().equals(Auth0ManagementAPI.AUTH0_CONNECTION_STRATEGY)) {
+          log.debug("Deleting Auth0 connection with ID: {}", connectionId);
+          auth0ManagementAPI.connections().delete(connectionId).execute();
+        }
       }
     }
     catch (Auth0Exception e) {
@@ -140,6 +155,27 @@ public class MultiTenantAuth0ManagementService
       return false;
     }
     return true;
+  }
+
+  public void addMemberToOrganization(final String organizationId, final String userId) {
+    refreshManagementApiToken();
+
+    log.debug("Adding user {} to organization {}", userId, organizationId);
+
+    auth0ManagementAPI.addMembersToOrganization(organizationId, Collections.singletonList(userId));
+  }
+
+  public void removeMemberFromOrganization(final String organizationId, final String username) {
+    refreshManagementApiToken();
+
+    log.debug("Removing user {} from organization {}", username, organizationId);
+
+    // Note: username and email are both stored as the email for mtiq (username does not exist in the ui)
+    Member member = auth0ManagementAPI.getMemberFromOrganization(organizationId, username);
+
+    if (member != null) {
+      auth0ManagementAPI.removeMembersFromOrganization(organizationId, Collections.singletonList(member.getUserId()));
+    }
   }
 
   private Auth0AuthAPI getAuthApiLazily(final Auth0Config auth0Config) {

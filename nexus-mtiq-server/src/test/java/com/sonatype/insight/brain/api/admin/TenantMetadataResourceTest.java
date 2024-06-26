@@ -23,7 +23,7 @@ public class TenantMetadataResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {
   private static final TenantMetadataDTO metadata =
-      new TenantMetadataDTO("appId1", "appName1", "connId1", "connName1", "encKeyName1");
+      new TenantMetadataDTO("appId1", "appName1", "connId1", "connName1", "encKeyName1", "orgId", "orgName");
 
   private TenantMetadataDAO tenantMetadataDAO;
 
@@ -47,7 +47,8 @@ public class TenantMetadataResourceTest
     assertResponseStatus(204, response1);
     assertMetadataResult(tenantMetadataDAO.get(), TenantMetadataDTO.fromDTO(metadata));
 
-    TenantMetadataDTO payload2 = new TenantMetadataDTO("appId1", "appName1", "connId1", "connName1", "encKeyName2");
+    TenantMetadataDTO payload2 =
+        new TenantMetadataDTO("appId1", "appName1", "connId1", "connName1", "encKeyName2", "orgId", "orgName");
 
     HttpResponse response2 = updateTenantMetadata(getTestTenant().tenantSlug, payload2).put();
 
@@ -84,6 +85,8 @@ public class TenantMetadataResourceTest
       assertEquals(tenantMetadata1.getConnectionId(), tenantMetadata2.getConnectionId());
       assertEquals(tenantMetadata1.getConnectionName(), tenantMetadata2.getConnectionName());
       assertEquals(tenantMetadata1.getEncryptionKeyName(), tenantMetadata2.getEncryptionKeyName());
+      assertEquals(tenantMetadata1.getOrganizationId(), tenantMetadata2.getOrganizationId());
+      assertEquals(tenantMetadata1.getOrganizationName(), tenantMetadata2.getOrganizationName());
     });
   }
 }

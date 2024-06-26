@@ -108,7 +108,8 @@ public class MtiqUserManagementTest
         String.valueOf(true));
 
     tenantMetadataDAO = lookup(TenantMetadataDAO.class);
-    tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connectionId", "connectionName", "encKeyName"));
+    tenantMetadataDAO.insert(
+        new TenantMetadata("appId", "appName", "connectionId", "connectionName", "encKeyName", "", ""));
   }
 
   @After
@@ -171,7 +172,7 @@ public class MtiqUserManagementTest
 
     page.userItems().shouldHave(size(1));
 
-    // verify that the API call to delete the use from Auth0 was made as well
+    // verify that the API call to delete the user from Auth0 was made as well
     Mockito.verify(auth0ManagementAPI).deleteUserByEmailFromConnection(KEYCLOAK_USER_EMAIL_2, "connectionId");
   }
 

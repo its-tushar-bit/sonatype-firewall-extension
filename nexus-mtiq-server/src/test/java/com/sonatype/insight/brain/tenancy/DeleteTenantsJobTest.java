@@ -271,7 +271,8 @@ public class DeleteTenantsJobTest
   private void provisionTenant(Tenant tenant, String auth0AppId) throws Exception {
     provisionTenant(tenant.tenantSlug);
     tenantManager.setTenant(tenant);
-    tenantMetadataDAO.insert(new TenantMetadata(auth0AppId, "appName", "connId", "connName", "encKeyName"));
+    tenantMetadataDAO.insert(
+        new TenantMetadata(auth0AppId, "appName", "connId", "connName", "encKeyName", "orgId", "orgName"));
   }
 
   private void scheduleJobsForTenant() {
@@ -308,7 +309,7 @@ public class DeleteTenantsJobTest
     }
 
     @Override
-    public boolean deleteTenant(final String applicationId, final String connectionId) {
+    public boolean deleteTenant(final String applicationId, final String connectionId, final String organizationId) {
       if (BAD_APPLICATION_ID.equals(applicationId)) {
         return false;
       }

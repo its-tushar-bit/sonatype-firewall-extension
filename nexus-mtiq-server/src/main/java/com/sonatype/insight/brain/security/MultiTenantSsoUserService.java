@@ -33,6 +33,6 @@ public class MultiTenantSsoUserService
   }
 
   static SsoUser ssoUserFromMtiqUser(final MtiqUserDTO user) {
-    return new SsoUser(user.getUsername(), user.getFirstName(), user.getLastName(), user.getEmail());
+    return new SsoUser(user.getUsername().toLowerCase(), user.getFirstName(), user.getLastName(), user.getEmail());
   }
 }

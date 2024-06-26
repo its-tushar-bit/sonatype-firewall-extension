@@ -16,6 +16,8 @@ import com.auth0.client.mgmt.filter.ConnectionFilter;
 import com.auth0.exception.Auth0Exception;
 import com.auth0.json.auth.TokenHolder;
 import com.auth0.json.mgmt.Connection;
+import com.auth0.json.mgmt.organizations.Member;
+import com.auth0.json.mgmt.users.User;
 import com.auth0.net.Request;
 import com.auth0.net.TokenRequest;
 import org.junit.Before;
@@ -29,7 +31,10 @@ import static com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService.
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,6 +55,8 @@ public class MultiTenantAuth0ManagementServiceTest
   public static final String APPLICATION_ID = "applicationId";
 
   private static final String CONNECTION_ID = "connectionId";
+
+  public static final String ORGANIZATION_ID = "organizationId";
 
   @Mock
   private MultiTenantAuth0ApiSupplier auth0ApiSupplier;
@@ -117,7 +124,6 @@ public class MultiTenantAuth0ManagementServiceTest
     when(tokenRequest.execute()).thenReturn(tokenHolder);
     when(authApi.requestToken(any())).thenReturn(tokenRequest);
     when(authApi.resetPassword(any(), any(), any())).thenThrow(new RuntimeException("Password reset failed"));
-    when(managementApi.userExists(any(), any())).thenReturn(false);
 
     assertThatThrownBy(
         () -> underTest.createOrUpdateUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME,
@@ -135,7 +141,7 @@ public class MultiTenantAuth0ManagementServiceTest
   public void test_restPasswordNotSentIfUserAlreadyExists() throws Exception {
     when(tokenRequest.execute()).thenReturn(tokenHolder);
     when(authApi.requestToken(any())).thenReturn(tokenRequest);
-    when(managementApi.userExists(any(), any())).thenReturn(true);
+    when(managementApi.getUserByEmail(any(), any())).thenReturn(new User());
 
     underTest.createOrUpdateUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME, APPLICATION_ID, CONNECTION_ID);
 
@@ -156,7 +162,7 @@ public class MultiTenantAuth0ManagementServiceTest
     when(clientsEntity.delete(APPLICATION_ID)).thenReturn(request);
     doThrow(new Auth0Exception("mock exception")).when(request).execute();
 
-    assertThat(underTest.deleteTenant(APPLICATION_ID, CONNECTION_ID)).isFalse();
+    assertThat(underTest.deleteTenant(APPLICATION_ID, CONNECTION_ID, "")).isFalse();
     verify(managementApi, never()).connections();
   }
 
@@ -177,7 +183,7 @@ public class MultiTenantAuth0ManagementServiceTest
     when(managementApi.connections()).thenReturn(connectionsEntity);
     when(connectionsEntity.delete(CONNECTION_ID)).thenReturn(deletionRequest);
 
-    assertThat(underTest.deleteTenant(APPLICATION_ID, CONNECTION_ID)).isTrue();
+    assertThat(underTest.deleteTenant(APPLICATION_ID, CONNECTION_ID, "")).isTrue();
     verify(managementApi.clients()).delete(APPLICATION_ID);
     verify(managementApi.connections()).delete(CONNECTION_ID);
   }
@@ -199,7 +205,7 @@ public class MultiTenantAuth0ManagementServiceTest
     when(clientsEntity.delete(APPLICATION_ID)).thenReturn(deletionRequest);
     when(managementApi.connections()).thenReturn(connectionsEntity);
 
-    assertThat(underTest.deleteTenant(APPLICATION_ID, CONNECTION_CREATION_SKIPPED)).isTrue();
+    assertThat(underTest.deleteTenant(APPLICATION_ID, CONNECTION_CREATION_SKIPPED, "")).isTrue();
     verify(managementApi.clients()).delete(APPLICATION_ID);
     verify(managementApi.connections(), never()).delete(CONNECTION_CREATION_SKIPPED);
   }
@@ -220,8 +226,57 @@ public class MultiTenantAuth0ManagementServiceTest
     when(managementApi.clients()).thenReturn(clientsEntity);
     when(managementApi.connections()).thenReturn(connectionsEntity);
 
-    assertThat(underTest.deleteTenant(APPLICATION_ID, CONNECTION_ID)).isTrue();
+    assertThat(underTest.deleteTenant(APPLICATION_ID, CONNECTION_ID, "")).isTrue();
     verify(managementApi.clients()).delete(APPLICATION_ID);
     verify(managementApi.connections(), never()).delete(CONNECTION_ID);
+  }
+
+  @Test
+  public void test_deleteTenant_WhenOrganizationIdIsSent() throws Exception {
+    when(tokenRequest.execute()).thenReturn(tokenHolder);
+    when(authApi.requestToken(any())).thenReturn(tokenRequest);
+
+    assertThat(underTest.deleteTenant(APPLICATION_ID, CONNECTION_ID, ORGANIZATION_ID)).isTrue();
+
+    verify(managementApi).deleteOrganization(ORGANIZATION_ID);
+    verify(managementApi, never()).clients();
+    verify(managementApi, never()).connections();
+  }
+
+  @Test
+  public void test_canAddMemberToOrganization() throws Exception {
+    String userId = "userId";
+    when(tokenRequest.execute()).thenReturn(tokenHolder);
+    when(authApi.requestToken(any())).thenReturn(tokenRequest);
+
+    underTest.addMemberToOrganization(ORGANIZATION_ID, userId);
+
+    verify(managementApi).addMembersToOrganization(eq(ORGANIZATION_ID), anyList());
+  }
+
+  @Test
+  public void test_canRemoveMemberFromOrganization() throws Exception {
+    String username = "username";
+    when(tokenRequest.execute()).thenReturn(tokenHolder);
+    when(authApi.requestToken(any())).thenReturn(tokenRequest);
+
+    Member member = mock(Member.class);
+    when(managementApi.getMemberFromOrganization(ORGANIZATION_ID, username)).thenReturn(member);
+
+    underTest.removeMemberFromOrganization(ORGANIZATION_ID, username);
+
+    verify(managementApi).removeMembersFromOrganization(eq(ORGANIZATION_ID), anyList());
+  }
+
+  @Test
+  public void test_shouldNotRemoveUserIfIsNotAMember() throws Exception {
+    String username = "username";
+    when(tokenRequest.execute()).thenReturn(tokenHolder);
+    when(authApi.requestToken(any())).thenReturn(tokenRequest);
+    when(managementApi.getMemberFromOrganization(ORGANIZATION_ID, username)).thenReturn(null);
+
+    underTest.removeMemberFromOrganization(ORGANIZATION_ID, username);
+
+    verify(managementApi, never()).removeMembersFromOrganization(eq(ORGANIZATION_ID), anyList());
   }
 }

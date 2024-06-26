@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
 import com.sonatype.insight.jaxrs.JsonUtils;
 
+import com.auth0.json.mgmt.users.User;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
@@ -125,7 +126,7 @@ public class MtiqUserResourceTest
   public void test_inviteUser_Saml() throws Exception {
     enableSsoWithSaml();
 
-    tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName", null));
+    tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName", null, null, null));
 
     MtiqUserDTO mtiqUserDTO = new MtiqUserDTO();
     mtiqUserDTO.setFirstName("foo");
@@ -144,7 +145,7 @@ public class MtiqUserResourceTest
   public void test_inviteUser_OAuth2() throws Exception {
     enableSsoWithOAuth2();
 
-    tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName", null));
+    tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName", null, null, null));
 
     MtiqUserDTO mtiqUserDTO = new MtiqUserDTO();
     mtiqUserDTO.setFirstName("foo");
@@ -163,7 +164,7 @@ public class MtiqUserResourceTest
   public void test_deleteUser_Saml() throws Exception {
     enableSsoWithSaml();
 
-    tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName", null));
+    tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName", null, null, null));
     samlUserDAO.insert(new SamlUser("foo@bar.com", "foo", "bar", "foo@bar.com", Collections.emptySet()));
 
     assertThat(samlUserDAO.getAll()).hasSize(1);
@@ -177,7 +178,7 @@ public class MtiqUserResourceTest
   public void test_deleteUser_OAuth2() throws Exception {
     enableSsoWithOAuth2();
 
-    tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName", null));
+    tenantMetadataDAO.insert(new TenantMetadata("appId", "appName", "connId", "connName", null, null, null));
     oAuth2UserDAO.insert(new OAuth2User("foo@bar.com", "foo", "bar", "foo@bar.com", Collections.emptySet()));
 
     assertThat(oAuth2UserDAO.getAll()).hasSize(1);
@@ -216,7 +217,7 @@ public class MtiqUserResourceTest
       extends MultiTenantAuth0ManagementService
   {
     @Override
-    public void createOrUpdateUser(
+    public User createOrUpdateUser(
         final String email,
         final String firstName,
         final String lastName,
@@ -224,7 +225,7 @@ public class MtiqUserResourceTest
         final String applicationId,
         final String connectionId)
     {
-      //no-op
+      return new User();
     }
 
     @Override

@@ -208,7 +208,7 @@ public class DeleteTenantsJob
           return true;
         }
         return auth0ManagementService.deleteTenant(tenantMetadata.getApplicationId(),
-            tenantMetadata.getConnectionId());
+            tenantMetadata.getConnectionId(), tenantMetadata.getOrganizationId());
       });
     }
     catch (IllegalArgumentException e) {

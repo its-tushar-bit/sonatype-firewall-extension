@@ -213,7 +213,8 @@ public class ApiLicenseLegalHdsService
     List<ComponentSourceLinkDTO> componentSourceLinkDTOs = StreamSupport
         .stream(Iterables.partition(componentIdentifier, configuration.getLicenseLegalHdsRequestLimit()).spliterator(),
             true)
-        .flatMap(partition -> Arrays.stream(hdsClient.post(ComponentSourceLinkDTO[].class, SOURCE_LINK_URL, partition)))
+        .flatMap(new TenantAwareFunction<List<ComponentIdentifier>, Stream<ComponentSourceLinkDTO>>(
+            partition -> Arrays.stream(hdsClient.post(ComponentSourceLinkDTO[].class, SOURCE_LINK_URL, partition))))
         .collect(Collectors.toList());
     for (ComponentSourceLinkDTO component : componentSourceLinkDTOs) {
       legalSourceLinkDTOByComponents.put(component.getComponentIdentifier(),

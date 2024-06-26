@@ -162,7 +162,7 @@ describe('PrioritiesPageTable', () => {
     const columnHeaders = within(table).getAllByRole('columnheader');
     expect(columnHeaders[0]).toHaveAccessibleName(/priority/i);
     expect(columnHeaders[1]).toHaveAccessibleName(/component/i);
-    expect(columnHeaders[2]).toHaveAccessibleName(/highest policy threat/i);
+    expect(columnHeaders[2]).toHaveAccessibleName(/policy/i);
     expect(columnHeaders[3]).toHaveAccessibleName(/recommendation/i);
   });
 
@@ -179,7 +179,8 @@ describe('PrioritiesPageTable', () => {
 
     fireEvent.mouseOver(infoIcon);
     const tooltip = await screen.findByRole('tooltip', {
-      name: 'Some title', //TODO change later
+      name:
+        "Priority of actionable items based on this application's policy, component reachability status, recommendation availability, and threat score severity.",
     });
     expect(tooltip).toBeInTheDocument();
   });
@@ -205,8 +206,8 @@ describe('PrioritiesPageTable', () => {
     expect(rowWithMessage).toHaveTextContent('All clear! No violations were found during this evaluation.');
   });
 
-  describe('Top X Priorities Accordion', () => {
-    it('renders "Top X Priorities" based on number of top priorities', async () => {
+  describe('Top Priorities Accordion', () => {
+    it('renders "Top Priorities" when number of top priorities is larger than 1', async () => {
       const numOfTopPriorities = 2;
       const numOfAdditionalPriorities = 0;
       const mockData = generateMockData(numOfTopPriorities, numOfAdditionalPriorities);
@@ -223,12 +224,10 @@ describe('PrioritiesPageTable', () => {
       const accordions = screen.getAllByRole('group');
       const topPrioritiesAccordion = accordions[0];
 
-      expect(within(topPrioritiesAccordion).getByRole('button')).toHaveAccessibleName(
-        `Top ${numOfTopPriorities} Priorities`
-      );
+      expect(within(topPrioritiesAccordion).getByRole('button')).toHaveAccessibleName(`Top Priorities`);
     });
 
-    it('renders "Top Priority" if number of top priorities is 1', async () => {
+    it('renders "Top Priorities" if number of top priorities is 1', async () => {
       const numOfTopPriorities = 1;
       const numOfAdditionalPriorities = 10;
       const mockData = generateMockData(numOfTopPriorities, numOfAdditionalPriorities);
@@ -245,7 +244,7 @@ describe('PrioritiesPageTable', () => {
       const accordions = screen.getAllByRole('group');
       const topPrioritiesAccordion = accordions[0];
 
-      expect(within(topPrioritiesAccordion).getByRole('button')).toHaveAccessibleName(`Top Priority`);
+      expect(within(topPrioritiesAccordion).getByRole('button')).toHaveAccessibleName(`Top Priorities`);
     });
 
     it('renders an open accordion with title "Top Priorities"', async () => {
@@ -258,9 +257,7 @@ describe('PrioritiesPageTable', () => {
 
       expect(topPrioritiesAccordion).toHaveAttribute('aria-expanded', 'true');
 
-      expect(within(topPrioritiesAccordion).getByRole('button')).toHaveAccessibleName(
-        `Top ${NUM_OF_RESULTS_TOP_PRIORITIES} Priorities`
-      );
+      expect(within(topPrioritiesAccordion).getByRole('button')).toHaveAccessibleName(`Top Priorities`);
     });
 
     it('hides the priority rows when clicked on accordion', async () => {
@@ -327,7 +324,7 @@ describe('PrioritiesPageTable', () => {
     });
   });
 
-  it('renders a "Remaining Findings" row ', async () => {
+  it('renders a "Remaining Priorities" row ', async () => {
     renderComponent();
 
     const table = await screen.findByRole('table');
@@ -335,7 +332,7 @@ describe('PrioritiesPageTable', () => {
 
     //table header row + top priorities header row + priority rows
     const remainingFindingsRowNumber = 1 + 1 + NUM_OF_RESULTS_TOP_PRIORITIES;
-    expect(within(table).getAllByRole('row')[remainingFindingsRowNumber]).toHaveTextContent(/remaining findings/i);
+    expect(within(table).getAllByRole('row')[remainingFindingsRowNumber]).toHaveTextContent(/remaining priorities/i);
   });
 
   it('renders rows that when clicked navigates to component details page - violations section', async () => {
@@ -476,7 +473,7 @@ async function assertCorrectDataRowsByTypeAndPage(priorityType, page) {
     /*
      * for top priority rows, skip table header and "top priorities" accordion row
      * for additional priority rows, skip table header, top priority accordion and data rows,
-     * and remaining findings header row
+     * and remaining priorities header row
      */
     const row = rows[i + 2 + (page === 1 && priorityType === 'additionalPriorities' ? 4 : 0)];
 

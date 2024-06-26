@@ -44,16 +44,10 @@ export default function PrioritiesPageTable() {
   const storedPublicId = metadata.application.publicId;
   const { publicAppId } = useSelector(selectRouterCurrentParams);
 
-  const getTopPrioritiesLabel = () => {
-    if (topPrioritiesData.length === 1) {
-      return 'Top Priority';
-    }
-
-    return `Top ${topPrioritiesData.length} Priorities`;
-  };
-
   const hasZeroFindings = isNilOrEmpty(topPrioritiesData) && isNilOrEmpty(additionalPrioritiesData);
   const setPage = (page) => dispatch(actions.setPage(page));
+
+  const priorityTooltip = `Priority of actionable items based on this application's policy, component reachability status, recommendation availability, and threat score severity.`
 
   useEffect(() => {
     //If page is viewed for a different application, reset pagination
@@ -70,14 +64,14 @@ export default function PrioritiesPageTable() {
           <NxTable.Head>
             <NxTable.Row>
               <NxTable.Cell>
-                <NxTooltip title="Some title">
+                <NxTooltip title={priorityTooltip}>
                   <span>
                     Priority <NxFontAwesomeIcon className="iq-priorities-page-table-info-icon" icon={faInfoCircle} />
                   </span>
                 </NxTooltip>
               </NxTable.Cell>
               <NxTable.Cell>Component</NxTable.Cell>
-              <NxTable.Cell>Highest Policy Threat</NxTable.Cell>
+              <NxTable.Cell>Policy</NxTable.Cell>
               <NxTable.Cell>Recommendation</NxTable.Cell>
               <NxTable.Cell chevron />
             </NxTable.Row>
@@ -94,7 +88,7 @@ export default function PrioritiesPageTable() {
                   <NxTable.Cell className="iq-priorities-page-priority-findings-toggle" colSpan={5}>
                     <NxAccordion open={showPriorityFindings} onToggle={toggleShowPriorityFindings}>
                       <NxAccordion.Header>
-                        <NxAccordion.Title>{getTopPrioritiesLabel()}</NxAccordion.Title>
+                        <NxAccordion.Title>Top Priorities</NxAccordion.Title>
                       </NxAccordion.Header>
                     </NxAccordion>
                   </NxTable.Cell>
@@ -105,7 +99,7 @@ export default function PrioritiesPageTable() {
             {!hasZeroFindings && (
               <NxTable.Row>
                 <NxTable.Cell className="iq-priorities-page-all-findings" colSpan={5}>
-                  Remaining Findings
+                  Remaining Priorities
                 </NxTable.Cell>
               </NxTable.Row>
             )}

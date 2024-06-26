@@ -92,7 +92,8 @@ public class SpdxLicenseExpressionUtil
       throws InvalidSPDXAnalysisException
   {
     if (!processedLicenses.containsKey(license.getId())) {
-      processedLicenses.put(license.getId(), license.getExtractedText());
+      String licenseText = license.getExtractedText();
+      processedLicenses.put(licenseText, licenseText);
     }
   }
 

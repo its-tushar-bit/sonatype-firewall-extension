@@ -295,8 +295,8 @@ public class SpdxResultHandlerTest
           "LGPL-3.0",
           "MIT",
           "MPL-1.1",
-          "LicenseRef-COMMERCIAL",
-          "LicenseRef-PUBLIC-DOMAIN"
+          "COMMERCIAL",
+          "PUBLIC-DOMAIN"
       );
     }
   }

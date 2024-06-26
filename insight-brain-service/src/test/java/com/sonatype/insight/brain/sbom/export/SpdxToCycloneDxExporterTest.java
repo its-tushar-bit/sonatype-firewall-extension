@@ -36,10 +36,8 @@ import org.mockito.Mock;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 import org.xmlunit.assertj.XmlAssert;
 
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreNodesFilter;
 import static com.sonatype.insight.brain.sbom.export.CycloneDxDocumentAssert.assertThatCycloneDx;
-import static com.sonatype.insight.brain.sbom.SbomTestHelper.CYCLONEDX_IGNORE_METADATA_COMPONENT_PATH;
-import static com.sonatype.insight.brain.sbom.SbomTestHelper.CYCLONEDX_IGNORE_METADATA_TIMESTAMP_PATH;
-
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
 public class SpdxToCycloneDxExporterTest
@@ -96,7 +94,6 @@ public class SpdxToCycloneDxExporterTest
         "/outputs/" + "output_cdx-v1_5.json", Charset.defaultCharset());
     String actual = spdxToCycloneDxExporter.export();
     assertThatJson(actual)
-        .whenIgnoringPaths(CYCLONEDX_IGNORE_METADATA_COMPONENT_PATH, CYCLONEDX_IGNORE_METADATA_TIMESTAMP_PATH)
         .isEqualTo(expected);
   }
 
@@ -112,8 +109,7 @@ public class SpdxToCycloneDxExporterTest
     spdxToCycloneDxExporter.setExportParams(exportParams);
     String actual = spdxToCycloneDxExporter.export();
     XmlAssert.assertThat(actual).and(readFileToString("outputs/output_cdx-v1_5.xml"))
-        .withNodeFilter(node -> node.getParentNode().getNodeName().equals("metadata") &&
-                (node.getNodeName().equals("component") || node.getNodeName().equals("timestamp")))
+        .withNodeFilter(cycloneDxIgnoreNodesFilter())
         .ignoreWhitespace()
         .areIdentical();
   }

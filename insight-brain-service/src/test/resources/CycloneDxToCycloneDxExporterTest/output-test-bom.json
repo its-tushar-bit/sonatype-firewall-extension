@@ -16,7 +16,8 @@
     },
     "component" : {
       "name" : "webgoat",
-      "type" : "application"
+      "type" : "application",
+      "version" : "v1"
     }
   },
   "components" : [

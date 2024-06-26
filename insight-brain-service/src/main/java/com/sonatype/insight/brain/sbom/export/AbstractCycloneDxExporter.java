@@ -446,6 +446,7 @@ public abstract class AbstractCycloneDxExporter
     bomComponentInfo.setType(Type.APPLICATION);
     bomComponentInfo.setName(idUtils.getPublicOwnerId(OwnerType.APPLICATION, exportParams.sbomMetadata
         .getApplicationId()));
+    bomComponentInfo.setVersion(exportParams.sbomMetadata.getSbomVersion());
     newBomMetadata.setComponent(bomComponentInfo);
     return newBomMetadata;
   }

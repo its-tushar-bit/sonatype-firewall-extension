@@ -3,7 +3,7 @@
   "specVersion" : "1.5",
   "version" : 1,
   "metadata" : {
-    "timestamp" : "2024-05-23T00:34:53Z",
+    "timestamp" : "${json-unit.ignore}",
     "tools" : {
       "components" : [
         {
@@ -14,8 +14,9 @@
       ]
     },
     "component" : {
-      "name" : "DUMMY-PUBLIC-ID-bfc5a8ba174040ef8f6c4ae464703a0e",
-      "type" : "application"
+      "name" : "${json-unit.ignore}",
+      "type" : "application",
+      "version": "${json-unit.ignore}"
     }
   },
   "components" : [

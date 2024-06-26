@@ -61,8 +61,8 @@ public class SbomTestHelper
         return false;
       }
 
-      //ignore name only if it is in the metadata component
-      if ("name".equals(node.getNodeName())) {
+      //ignore name and version only if it is in the metadata component
+      if ("name".equals(node.getNodeName()) || "version".equals(node.getNodeName())) {
         Node p = node.getParentNode();
         if (p != null && "component".equals(p.getNodeName())) {
           p = p.getParentNode();

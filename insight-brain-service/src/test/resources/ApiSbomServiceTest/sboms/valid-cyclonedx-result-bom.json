@@ -16,7 +16,8 @@
     },
     "component" : {
       "name" : "${json-unit.ignore}",
-      "type" : "application"
+      "type" : "application",
+      "version" : "${json-unit.ignore}"
     }
   },
   "components" : [

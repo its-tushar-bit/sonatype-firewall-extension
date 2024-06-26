@@ -5,8 +5,13 @@
  */
 package com.sonatype.insight.brain.support;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.service.ConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
@@ -234,5 +239,37 @@ public class ConfigurationInfoTest
     assertThat(configNode.get(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED)
             .asText()).isEqualTo("true");
     assertThat(configNode.get(SystemConfigurationProperty.API_ACCESS_ALLOW_LIST).isEmpty()).isTrue();
+  }
+
+  @Test
+  public void testGetConfigurationInfo_PropertiesIncluded() throws IOException {
+    // A list of configuration properties that we expect not to be included in the
+    // support zip.
+    List<String> propertiesExcluded = Arrays.asList(
+        "sourceControlEventProcessorPoolSize",
+        "sourceControlImportPoolSize",
+        "SCHEMA_MIGRATION_ENABLED",
+        "sessionTimeout",
+        "bfs.artifactoryExpiredTokenRegex",
+        "bfs.artifactoryExpiredTokenEmail",
+        "bfs.artifactoryAqlBatchSize",
+        "bfs.componentQueryLimit",
+        "bfs.repositories",
+        "quarantinedItemCustomMessage",
+        "enterpriseReportingVersionCacheExpirationInMinutes",
+        "SAAS_POLICY_MONITOR_POOL_SIZE",
+        "skipSbomImportValidation");
+
+    // Properties included in the config.json in support zip
+    JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());
+
+    for (ConfigurationProperty property : ConfigurationProperty.PROPERTIES) {
+      String name = property.getName();
+      if (configNode.get(name) == null) {
+        if (!propertiesExcluded.contains(name)) {
+          throw new RuntimeException("config.json in support zip is missing expected property: " + name);
+        }
+      }
+    }
   }
 }

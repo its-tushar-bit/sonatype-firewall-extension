@@ -33,7 +33,8 @@ import static com.sonatype.insight.brain.policy.evaluator.PolicyMonitor.POLICY_M
 
 public class ConfigurationProperty
 {
-  protected static final ConfigurationProperty[] PROPERTIES = new ConfigurationProperty[]{
+  // Visible for testing
+  public static final ConfigurationProperty[] PROPERTIES = new ConfigurationProperty[]{
       new ConfigurationProperty(SystemConfigurationProperty.BASE_URL, String.class,
           (p, s) -> s,
           (p, o) -> ConfigurationUtils.urlValueToString(o)),

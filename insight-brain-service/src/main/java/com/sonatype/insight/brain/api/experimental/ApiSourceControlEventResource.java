@@ -18,12 +18,15 @@ import java.util.List;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
 @Named
 @Timed
 @Path(PublicApiPaths.SOURCE_CONTROL_EVENTS_RESOURCE_PATH)
+@ProductLicenseEnforcementPoint(LicensedFeature.SOURCE_CONTROL)
 public class ApiSourceControlEventResource
 {
   private final ApiSourceControlEventService service;

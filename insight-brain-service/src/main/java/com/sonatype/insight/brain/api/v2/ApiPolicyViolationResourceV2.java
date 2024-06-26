@@ -29,6 +29,8 @@ import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,6 +52,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
         "\n" +
         "Cross-stage policy violations are helpful in performance analysis like MTTR metrics."
 )
+@ProductLicenseEnforcementPoint(LicensedFeature.POLICY_VIOLATIONS)
 public class ApiPolicyViolationResourceV2
 {
   public static final String CROSS_STAGE_POLICY_VIOLATION_SUBPATH = "crossStage";

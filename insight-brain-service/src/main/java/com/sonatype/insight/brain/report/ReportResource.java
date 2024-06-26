@@ -70,6 +70,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphService;
 import com.sonatype.insight.brain.report.pdf.PdfGeneratorService;
 import com.sonatype.insight.brain.security.Authorize;
@@ -83,6 +84,7 @@ import com.sonatype.insight.brain.utils.JsonStore;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -189,6 +191,7 @@ public class ReportResource
   @Path(BROWSE_PATH + "/{path:.*}")
   @Authorize(permission = Permission.READ)
   @Audited(AuditEvent.VIEW_APPLICATION_COMPOSITION_REPORT)
+  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_REPORTS)
   public Response browseReport(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String appPublicId,
       @PathParam("scanId") final String scanId,
@@ -286,6 +289,7 @@ public class ReportResource
   @GET
   @Path(METADATA_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_REPORTS)
   public ReportMetadataDTO getReportMetadata(@PathParam("applicationPublicId") final String applicationPublicId,
                                              @PathParam("scanId") final String scanId) throws IOException
   {
@@ -300,6 +304,7 @@ public class ReportResource
   @Path("reevaluatePolicy")
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
   @Audited(AuditEvent.EVALUATE_APPLICATION)
+  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION)
   public Response reevaluatePolicy(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId")
       final String applicationPublicId,
@@ -325,6 +330,7 @@ public class ReportResource
   @Path(PRINT_PATH)
   @Produces("application/pdf")
   @Audited(AuditEvent.PRINT_APPLICATION_COMPOSITION_REPORT)
+  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_REPORTS)
   public Response printReport(
       @PathParam("applicationPublicId") final String appPublicId,
       @PathParam("scanId") final String scanId) throws IOException
@@ -343,6 +349,7 @@ public class ReportResource
   @Produces("application/zip")
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
   @Audited(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT)
+  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_REPORTS)
   public Response downloadBundle(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId") final String appPublicId,
       @PathParam("scanId") final String scanId) throws IOException

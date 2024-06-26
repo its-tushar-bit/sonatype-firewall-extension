@@ -23,12 +23,15 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
 @Path(PolicyEvaluateResource.RESOURCE_PATH)
 @Named
 @Timed
+@ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION)
 public class PolicyEvaluateResource
 {
   public static final String RESOURCE_PATH = "rest/policy/{applicationPublicId}/evaluate";

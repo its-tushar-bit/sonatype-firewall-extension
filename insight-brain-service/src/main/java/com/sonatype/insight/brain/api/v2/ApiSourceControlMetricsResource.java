@@ -18,6 +18,8 @@ import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiPullRequestResults
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -27,6 +29,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(value = PublicApiPaths.SOURCE_CONTROL_METRICS_PATH_V2)
+@ProductLicenseEnforcementPoint(LicensedFeature.SOURCE_CONTROL)
 public class ApiSourceControlMetricsResource
 {
   private static final String OWNER_TYPE = "{ownerType:application|organization}";

@@ -21,6 +21,8 @@ import com.sonatype.insight.brain.api.v2.service.ApiSourceControlConfigurationSe
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -33,6 +35,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Timed
 @Path(value = PublicApiPaths.SOURCE_CONTROL_CONFIG_RESOURCE_PATH_V2)
 @Tag(name = "Config Source Control")
+@ProductLicenseEnforcementPoint(LicensedFeature.SOURCE_CONTROL)
 public class ApiSourceControlConfigurationResource
 {
   private final ApiSourceControlConfigurationService service;

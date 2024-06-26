@@ -19,8 +19,6 @@ public enum NonLicensedFeature
 
   POLICY,
 
-  POLICY_VIOLATIONS,
-
   REEVALUATE_POLICY,
 
   RELEASE_GRAPH,

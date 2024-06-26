@@ -21,6 +21,8 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.service.ApiSpdxService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -31,6 +33,7 @@ import com.codahale.metrics.annotation.Timed;
 @Timed
 @Singleton
 @Path(PublicApiPaths.SPDX_RESOURCE_PATH)
+@ProductLicenseEnforcementPoint(LicensedFeature.SBOM_REPORTS)
 public class ApiSpdxResource
 {
   static final String GET_BY_STAGE_PATH = "{applicationId}/stages/{stageId}";

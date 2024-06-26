@@ -24,9 +24,11 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.tag.ApplicableTagsDTO;
 import com.sonatype.insight.brain.tag.AppliedTagsDTO;
 import com.sonatype.insight.brain.tag.TagService;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,6 +46,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "Application Categories",
     description = "Use the Application Categories REST API to manage " +
         "the application categories or tags assigned to the applications in an organization. ")
+@ProductLicenseEnforcementPoint(LicensedFeature.POLICY_MANAGEMENT)
 public class ApiApplicationCategoryResource
 {
   public static final String RESOURCE_PATH = PublicApiPaths.APPLICATION_CATEGORY_RESOURCE_PATH;

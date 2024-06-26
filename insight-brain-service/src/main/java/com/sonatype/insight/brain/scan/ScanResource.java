@@ -27,10 +27,12 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
@@ -44,6 +46,7 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 @Named
 @Timed
 @Path(ScanResource.RESOURCE_PATH)
+@ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION)
 public class ScanResource
 {
   public static final String RESOURCE_PATH = "rest/scan/{applicationPublicId}";

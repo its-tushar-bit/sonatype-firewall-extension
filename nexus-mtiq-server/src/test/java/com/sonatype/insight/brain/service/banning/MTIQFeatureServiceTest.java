@@ -209,6 +209,7 @@ public class MTIQFeatureServiceTest
         Stream.of(getEnabledSystemConfigurationPropertyFeatures()),
         stream(LicensedFeature.values())
             .filter(f -> !f.equals(LicensedFeature.ADVANCED_LEGAL_PACK))
+            .filter(f -> !f.equals(LicensedFeature.API_PAGE))
             .filter(f -> !f.equals(LicensedFeature.DATA_INSIGHTS))
             .filter(f -> !f.equals(LicensedFeature.DEVELOPER_DASHBOARD))
             .filter(f -> !f.equals(LicensedFeature.FIREWALL_FOR_ARTIFACTORY))

@@ -21,12 +21,15 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.label.ComponentLabelService.AppliedLabels;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
 @Named
 @Timed
 @Path(ComponentLabelResource.RESOURCE_PATH)
+@ProductLicenseEnforcementPoint(LicensedFeature.COMPONENT_LABELS)
 public class ComponentLabelResource
 {
   public static final String RESOURCE_PATH = 

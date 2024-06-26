@@ -73,7 +73,7 @@ public class ApiComponentRemediationResourceTest
 
     org = tempEntity.newOrganization("Org");
     app = tempEntity.newApplication(org.getId());
-    setFeatures(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES);
+    setFeatures(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES, LicensedFeature.COMPONENT_EVALUATION);
   }
 
   @Test

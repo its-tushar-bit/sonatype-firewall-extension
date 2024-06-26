@@ -30,7 +30,9 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -42,6 +44,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 @Timed
 @Path(value = PublicApiPaths.REPOSITORY_CONNECTION_CONFIG_PATH_V2)
 @Hidden
+@ProductLicenseEnforcementPoint(LicensedFeature.INNER_SOURCE_REPOSITORIES)
 public class ApiRepositoryConnectionResource
 {
   private static final String OWNER_TYPE = "{ownerType:application|organization}";

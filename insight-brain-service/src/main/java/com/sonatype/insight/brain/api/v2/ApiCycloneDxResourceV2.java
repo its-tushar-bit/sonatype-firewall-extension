@@ -22,6 +22,8 @@ import com.sonatype.insight.brain.api.v2.service.ApiCycloneDxServiceV2;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 
 import com.codahale.metrics.annotation.Timed;
@@ -43,6 +45,7 @@ import org.cyclonedx.CycloneDxSchema.Version;
 @Tag(name = "CycloneDX",
     description = "Use the CycloneDX REST API to generate CycloneDX SBOMs in XML or JSON formats, containing " +
         "coordinates and licenses for components found in a scan report.")
+@ProductLicenseEnforcementPoint(LicensedFeature.SBOM_REPORTS)
 public class ApiCycloneDxResourceV2
 {
   static final String GET_BY_STAGE_PATH = "{applicationId}/stages/{stageId}";

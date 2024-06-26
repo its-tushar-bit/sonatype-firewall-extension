@@ -26,7 +26,9 @@ import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.PaginationResponseBuilder;
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -37,6 +39,7 @@ import com.codahale.metrics.annotation.Timed;
 @Timed
 @Path(QuarantinedComponentResource.RESOURCE_PATH)
 @Produces(MediaType.APPLICATION_JSON)
+@ProductLicenseEnforcementPoint(LicensedFeature.FIREWALL)
 public class QuarantinedComponentResource
 {
   public static final String RESOURCE_PATH = "rest/repositories/quarantinedComponent/";

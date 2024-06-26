@@ -17,7 +17,9 @@ import com.sonatype.insight.brain.api.v2.service.ApiRepositoryIdentifiedComponen
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -28,6 +30,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 @Named
 @Timed
 @Path(value = PublicApiPaths.REPOSITORY_IDENTIFIED_COMPONENT_PATH_V2)
+@ProductLicenseEnforcementPoint(LicensedFeature.INNER_SOURCE_REPOSITORIES)
 public class ApiRepositoryIdentifiedComponentResource
 {
   private final ApiRepositoryIdentifiedComponentService repositoryIdentifiedComponentService;

@@ -621,6 +621,24 @@ public class CLMLicenseManager
       features.add(LicensedFeature.ORGS_AND_APPS);
       features.add(LicensedFeature.PROPRIETARY_COMPONENTS);
 
+      features.add(LicensedFeature.APPLICATION_REPORTS);
+      features.add(LicensedFeature.APPLICATION_EVALUATION);
+      features.add(LicensedFeature.CALL_FLOW_ANALYSIS);
+      features.add(LicensedFeature.COMPONENT_EVALUATION);
+      features.add(LicensedFeature.COMPONENT_LABELS);
+      features.add(LicensedFeature.COMPONENT_SEARCH);
+      features.add(LicensedFeature.POLICY_MANAGEMENT);
+      features.add(LicensedFeature.POLICY_VIOLATIONS);
+      features.add(LicensedFeature.POLICY_WAIVERS);
+      features.add(LicensedFeature.REPOSITORY_EVALUATION);
+      features.add(LicensedFeature.REPOSITORY_REPORTS);
+      features.add(LicensedFeature.SBOM_EVALUATION);
+      features.add(LicensedFeature.SBOM_REPORTS);
+      features.add(LicensedFeature.SOURCE_CONTROL);
+      features.add(LicensedFeature.SUCCESS_METRICS);
+      features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
+      features.add(LicensedFeature.WAIVER_REPORTS);
+
       stageTypes.add(StageTypes.RELEASE);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)
@@ -650,6 +668,26 @@ public class CLMLicenseManager
       features.add(LicensedFeature.INNER_SOURCE_REPOSITORIES);
       features.add(LicensedFeature.ORGS_AND_APPS);
       features.add(LicensedFeature.PROPRIETARY_COMPONENTS);
+
+      features.add(LicensedFeature.API_PAGE);
+      features.add(LicensedFeature.APPLICATION_REPORTS);
+      features.add(LicensedFeature.APPLICATION_EVALUATION);
+      features.add(LicensedFeature.CALL_FLOW_ANALYSIS);
+      features.add(LicensedFeature.COMPONENT_EVALUATION);
+      features.add(LicensedFeature.COMPONENT_LABELS);
+      features.add(LicensedFeature.COMPONENT_SEARCH);
+      features.add(LicensedFeature.POLICY_MANAGEMENT);
+      features.add(LicensedFeature.POLICY_VIOLATIONS);
+      features.add(LicensedFeature.POLICY_WAIVERS);
+      features.add(LicensedFeature.REPOSITORY_EVALUATION);
+      features.add(LicensedFeature.REPOSITORY_REPORTS);
+      features.add(LicensedFeature.SBOM_EVALUATION);
+      features.add(LicensedFeature.SBOM_REPORTS);
+      features.add(LicensedFeature.SOURCE_CONTROL);
+      features.add(LicensedFeature.SUCCESS_METRICS);
+      features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
+      features.add(LicensedFeature.WAIVER_REPORTS);
+
       stageTypes.addAll(StageTypes.getAll());
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL) ||
@@ -660,6 +698,26 @@ public class CLMLicenseManager
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
       features.add(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
       features.add(LicensedFeature.WAIVERS_DASHBOARD);
+
+      features.add(LicensedFeature.API_PAGE);
+      features.add(LicensedFeature.APPLICATION_REPORTS);
+      features.add(LicensedFeature.APPLICATION_EVALUATION);
+      features.add(LicensedFeature.CALL_FLOW_ANALYSIS);
+      features.add(LicensedFeature.COMPONENT_EVALUATION);
+      features.add(LicensedFeature.COMPONENT_LABELS);
+      features.add(LicensedFeature.COMPONENT_SEARCH);
+      features.add(LicensedFeature.POLICY_MANAGEMENT);
+      features.add(LicensedFeature.POLICY_VIOLATIONS);
+      features.add(LicensedFeature.POLICY_WAIVERS);
+      features.add(LicensedFeature.REPOSITORY_EVALUATION);
+      features.add(LicensedFeature.REPOSITORY_REPORTS);
+      features.add(LicensedFeature.SBOM_EVALUATION);
+      features.add(LicensedFeature.SBOM_REPORTS);
+      features.add(LicensedFeature.SOURCE_CONTROL);
+      features.add(LicensedFeature.SUCCESS_METRICS);
+      features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
+      features.add(LicensedFeature.WAIVER_REPORTS);
+
       stageTypes.add(StageTypes.STAGE_RELEASE);
       stageTypes.add(StageTypes.RELEASE);
     }
@@ -674,6 +732,26 @@ public class CLMLicenseManager
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
       features.add(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
       features.add(LicensedFeature.WAIVERS_DASHBOARD);
+
+      features.add(LicensedFeature.API_PAGE);
+      features.add(LicensedFeature.APPLICATION_REPORTS);
+      features.add(LicensedFeature.APPLICATION_EVALUATION);
+      features.add(LicensedFeature.CALL_FLOW_ANALYSIS);
+      features.add(LicensedFeature.COMPONENT_EVALUATION);
+      features.add(LicensedFeature.COMPONENT_LABELS);
+      features.add(LicensedFeature.COMPONENT_SEARCH);
+      features.add(LicensedFeature.POLICY_MANAGEMENT);
+      features.add(LicensedFeature.POLICY_VIOLATIONS);
+      features.add(LicensedFeature.POLICY_WAIVERS);
+      features.add(LicensedFeature.REPOSITORY_EVALUATION);
+      features.add(LicensedFeature.REPOSITORY_REPORTS);
+      features.add(LicensedFeature.SBOM_EVALUATION);
+      features.add(LicensedFeature.SBOM_REPORTS);
+      features.add(LicensedFeature.SOURCE_CONTROL);
+      features.add(LicensedFeature.SUCCESS_METRICS);
+      features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
+      features.add(LicensedFeature.WAIVER_REPORTS);
+
       stageTypes.add(StageTypes.STAGE_RELEASE);
       stageTypes.add(StageTypes.RELEASE);
     }
@@ -701,6 +779,26 @@ public class CLMLicenseManager
       features.add(LicensedFeature.INNER_SOURCE_REPOSITORIES);
       features.add(LicensedFeature.ORGS_AND_APPS);
       features.add(LicensedFeature.PROPRIETARY_COMPONENTS);
+
+      features.add(LicensedFeature.API_PAGE);
+      features.add(LicensedFeature.APPLICATION_REPORTS);
+      features.add(LicensedFeature.APPLICATION_EVALUATION);
+      features.add(LicensedFeature.CALL_FLOW_ANALYSIS);
+      features.add(LicensedFeature.COMPONENT_EVALUATION);
+      features.add(LicensedFeature.COMPONENT_LABELS);
+      features.add(LicensedFeature.COMPONENT_SEARCH);
+      features.add(LicensedFeature.POLICY_MANAGEMENT);
+      features.add(LicensedFeature.POLICY_VIOLATIONS);
+      features.add(LicensedFeature.POLICY_WAIVERS);
+      features.add(LicensedFeature.REPOSITORY_EVALUATION);
+      features.add(LicensedFeature.REPOSITORY_REPORTS);
+      features.add(LicensedFeature.SBOM_EVALUATION);
+      features.add(LicensedFeature.SBOM_REPORTS);
+      features.add(LicensedFeature.SOURCE_CONTROL);
+      features.add(LicensedFeature.SUCCESS_METRICS);
+      features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
+      features.add(LicensedFeature.WAIVER_REPORTS);
+
       stageTypes.addAll(StageTypes.getAll());
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD)) {
@@ -713,6 +811,26 @@ public class CLMLicenseManager
       features.add(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
       features.add(LicensedFeature.IP_ALLOWLIST);
       features.add(LicensedFeature.WAIVERS_DASHBOARD);
+
+      features.add(LicensedFeature.API_PAGE);
+      features.add(LicensedFeature.APPLICATION_REPORTS);
+      features.add(LicensedFeature.APPLICATION_EVALUATION);
+      features.add(LicensedFeature.CALL_FLOW_ANALYSIS);
+      features.add(LicensedFeature.COMPONENT_EVALUATION);
+      features.add(LicensedFeature.COMPONENT_LABELS);
+      features.add(LicensedFeature.COMPONENT_SEARCH);
+      features.add(LicensedFeature.POLICY_MANAGEMENT);
+      features.add(LicensedFeature.POLICY_VIOLATIONS);
+      features.add(LicensedFeature.POLICY_WAIVERS);
+      features.add(LicensedFeature.REPOSITORY_EVALUATION);
+      features.add(LicensedFeature.REPOSITORY_REPORTS);
+      features.add(LicensedFeature.SBOM_EVALUATION);
+      features.add(LicensedFeature.SBOM_REPORTS);
+      features.add(LicensedFeature.SOURCE_CONTROL);
+      features.add(LicensedFeature.SUCCESS_METRICS);
+      features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
+      features.add(LicensedFeature.WAIVER_REPORTS);
+
       stageTypes.add(StageTypes.STAGE_RELEASE);
       stageTypes.add(StageTypes.RELEASE);
     }
@@ -798,6 +916,25 @@ public class CLMLicenseManager
     features.add(LicensedFeature.INNER_SOURCE_REPOSITORIES);
     features.add(LicensedFeature.ORGS_AND_APPS);
     features.add(LicensedFeature.PROPRIETARY_COMPONENTS);
+
+    features.add(LicensedFeature.API_PAGE);
+    features.add(LicensedFeature.APPLICATION_REPORTS);
+    features.add(LicensedFeature.APPLICATION_EVALUATION);
+    features.add(LicensedFeature.CALL_FLOW_ANALYSIS);
+    features.add(LicensedFeature.COMPONENT_EVALUATION);
+    features.add(LicensedFeature.COMPONENT_LABELS);
+    features.add(LicensedFeature.COMPONENT_SEARCH);
+    features.add(LicensedFeature.POLICY_MANAGEMENT);
+    features.add(LicensedFeature.POLICY_VIOLATIONS);
+    features.add(LicensedFeature.POLICY_WAIVERS);
+    features.add(LicensedFeature.REPOSITORY_EVALUATION);
+    features.add(LicensedFeature.REPOSITORY_REPORTS);
+    features.add(LicensedFeature.SBOM_EVALUATION);
+    features.add(LicensedFeature.SBOM_REPORTS);
+    features.add(LicensedFeature.SOURCE_CONTROL);
+    features.add(LicensedFeature.SUCCESS_METRICS);
+    features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
+    features.add(LicensedFeature.WAIVER_REPORTS);
   }
 
   private String getProperty(ProductLicenseKey key, String property) {

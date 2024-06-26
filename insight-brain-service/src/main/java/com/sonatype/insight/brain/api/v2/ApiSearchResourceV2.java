@@ -19,6 +19,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiSearchServiceV2;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -30,6 +32,7 @@ import com.codahale.metrics.annotation.Timed;
 @Path(PublicApiPaths.SEARCH_RESOURCE_PATH_V2)
 @Named
 @Timed
+@ProductLicenseEnforcementPoint(LicensedFeature.COMPONENT_SEARCH)
 public class ApiSearchResourceV2
 {
   private final ApiSearchServiceV2 searchService;

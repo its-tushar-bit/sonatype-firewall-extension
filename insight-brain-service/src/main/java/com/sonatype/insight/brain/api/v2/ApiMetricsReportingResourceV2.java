@@ -25,6 +25,8 @@ import com.sonatype.insight.brain.api.v2.service.ApiMetricsReportingServiceV2;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,6 +41,7 @@ import org.joda.time.DateTime;
 @Timed
 @Path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + ApiMetricsReportingResourceV2.PATH)
 @Consumes(MediaType.APPLICATION_JSON)
+@ProductLicenseEnforcementPoint(LicensedFeature.SUCCESS_METRICS)
 public class ApiMetricsReportingResourceV2
 {
   // Visible for testing

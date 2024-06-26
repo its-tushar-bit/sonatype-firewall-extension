@@ -17,6 +17,8 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.service.ApiCompositeSourceControlConfigValidatorService;
 import com.sonatype.insight.brain.git.ConfigurationValidationResult;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -28,6 +30,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(value = PublicApiPaths.COMPOSITE_SOURCE_CONTROL_CONFIG_VALIDATOR_PATH_V2)
+@ProductLicenseEnforcementPoint(LicensedFeature.SOURCE_CONTROL)
 public class ApiCompositeSourceControlConfigValidatorResource
 {
   private final ApiCompositeSourceControlConfigValidatorService service;

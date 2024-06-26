@@ -25,12 +25,15 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
 @Path(IDEComponentInfoResource.RESOURCE_PATH)
 @Named
 @Timed
+@ProductLicenseEnforcementPoint(LicensedFeature.COMPONENT_EVALUATION)
 public class IDEComponentInfoResource
 {
   public static final String RESOURCE_PATH = "rest/ide/componentDetails";

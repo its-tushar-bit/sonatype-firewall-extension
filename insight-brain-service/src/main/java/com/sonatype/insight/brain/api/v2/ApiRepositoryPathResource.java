@@ -19,6 +19,8 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryPathResponseDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiRepositoryPathService;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -33,6 +35,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.REPOSITORIES_RESOURCE_PATH)
+@ProductLicenseEnforcementPoint(LicensedFeature.FIREWALL)
 public class ApiRepositoryPathResource
 {
   static final String PATHNAMES_PATH =

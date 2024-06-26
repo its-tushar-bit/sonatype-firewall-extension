@@ -23,6 +23,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -34,6 +36,7 @@ import com.codahale.metrics.annotation.Timed;
 @Path(RepoManComponentInfoResource.RESOURCE_PATH)
 @Named
 @Timed
+@ProductLicenseEnforcementPoint(LicensedFeature.COMPONENT_EVALUATION)
 public class RepoManComponentInfoResource
 {
   public static final String RESOURCE_PATH = "rest/rm/componentDetails";

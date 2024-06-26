@@ -24,6 +24,8 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.git.dto.ImportScmOrganizationRequest;
 import com.sonatype.insight.brain.git.dto.ImportScmOrganizationStatus;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -35,6 +37,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.EXPERIMENTAL_ONBOARDING_RESOURCE_PATH)
+@ProductLicenseEnforcementPoint(LicensedFeature.SOURCE_CONTROL)
 public class ApiScmOnboardingResource
 {
   static final String IMPORT_REPO_PATH = "importRepositories/{organizationId}";

@@ -17,7 +17,9 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import org.slf4j.Logger;
@@ -31,6 +33,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Timed
 @Path(PolicyEvaluationSummaryResource.RESOURCE_PATH)
+@ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_REPORTS)
 public class PolicyEvaluationSummaryResource
 {
   public static final String RESOURCE_PATH = "rest/quality/evaluations/{applicationId}/{stageTypeId}";

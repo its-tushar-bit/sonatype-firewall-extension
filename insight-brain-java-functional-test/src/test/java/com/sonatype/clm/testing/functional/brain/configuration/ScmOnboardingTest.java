@@ -118,7 +118,7 @@ public class ScmOnboardingTest
     org = tempEntity.newOrganization("Test Org");
     level1ChildOrg = tempEntity.newOrganization("Child Organization N-Level", org);
 
-    setFeatures(LicensedFeature.AUTOMATION);
+    setFeatures(LicensedFeature.AUTOMATION, LicensedFeature.SOURCE_CONTROL);
   }
 
   private void setupMockRepos() throws IOException {

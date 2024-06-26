@@ -28,6 +28,8 @@ import com.sonatype.insight.brain.api.v2.service.ApiThirdPartyScanService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.file.SbomFormat;
 
 import com.codahale.metrics.annotation.Timed;
@@ -38,6 +40,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.THIRD_PARTY_SCAN_PATH)
+@ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION)
 public class ApiThirdPartyScanResource
 {
   public static final String SCAN_COMPONENTS = "{applicationId}/sources/{source}";

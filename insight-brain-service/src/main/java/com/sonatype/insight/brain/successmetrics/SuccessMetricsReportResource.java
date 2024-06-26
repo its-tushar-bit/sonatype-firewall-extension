@@ -21,6 +21,8 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
@@ -31,6 +33,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(SuccessMetricsReportResource.RESOURCE_PATH)
+@ProductLicenseEnforcementPoint(LicensedFeature.SUCCESS_METRICS)
 public class SuccessMetricsReportResource
 {
   public static final String RESOURCE_PATH = "rest/successMetrics/report";

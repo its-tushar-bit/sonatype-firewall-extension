@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.nexus.iq.manager.PullRequestResult;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -755,9 +756,9 @@ public class ApplicationSourceControlEditorTest
   }
 
   @Test
-  public void testSourceControlEditor_LicensingAwareNotificationOnly() {
+  public void testSourceControlEditor_LicensingAwareNotificationsAndSourceControlOnly() {
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
-    setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
+    setFeatures(LicensedFeature.NOTIFICATIONS, LicensedFeature.SOURCE_CONTROL);
     refresh();
 
     verifyNotificationFeaturesOnly();

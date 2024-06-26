@@ -45,6 +45,12 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Adobe-G
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Adobe-Glyph','Adobe-Glyph');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ADOBE-PC-SLA','ADOBE-PC-SLA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Adobe-Utopia','Adobe-Utopia');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AEL-CM-AO-1.1','AEL-CM-AO-1.1');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AEL-CM-AT-1.1','AEL-CM-AT-1.1');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AEL-CM-NA-1.1','AEL-CM-NA-1.1');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AEL-NC-AO-1.1','AEL-NC-AO-1.1');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AEL-NC-AT-1.1','AEL-NC-AT-1.1');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AEL-NC-NA-1.1','AEL-NC-NA-1.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Aerospike-MLA','Aerospike-MLA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AFL-1.1','AFL-1.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AFL-1.2','AFL-1.2');
@@ -95,6 +101,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AfterLo
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AG-Software-LA','AG-Software-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AGEL','AGEL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Agility-CA','Agility-CA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Agilium-Labs-MetaApi-TAC-ED03072024','Agilium-Labs-MetaApi-TAC-ED03072024');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AGPL-1.0','AGPL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AGPL-1.0-CPAL-1.0','AGPL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AGPL-1.0-CPAL-1.0','CPAL-1.0');
@@ -211,9 +218,11 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AGPL-UN
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AGPL-UNSPECIFIED-GPL-UNSPECIFIED','GPL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AI-Pubs-Open-RAIL-M-License-0.1','AI-Pubs-Open-RAIL-M-License-0.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AI-Pubs-Open-RAIL-S-License-0.1','AI-Pubs-Open-RAIL-S-License-0.1');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AI-Pubs-Open-RAIL-S-License-UNSPECIFIED','AI-Pubs-Open-RAIL-S-License-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AI-Pubs-Research-Use-RAIL-M-License-0.1','AI-Pubs-Research-Use-RAIL-M-License-0.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AI-Pubs-Research-Use-RAIL-S-License-0.1','AI-Pubs-Research-Use-RAIL-S-License-0.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AI-Squared-DLA','AI-Squared-DLA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AI-Swedens-LLM-AI-MLA','AI-Swedens-LLM-AI-MLA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AI2-ImpACT-HRA-1.0','AI2-ImpACT-HRA-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AI2-ImpACT-HRA-2.0','AI2-ImpACT-HRA-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AI2-ImpACT-LRA-1.0','AI2-ImpACT-LRA-1.0');
@@ -252,6 +261,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Amazon-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Ambisafe-TOS','Ambisafe-TOS');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AmCharts-TAC','AmCharts-TAC');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AMD-PLPA','AMD-PLPA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AmenokakuCode-License-1.0','AmenokakuCode-License-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AMES-EULA-RD12072022','AMES-EULA-RD12072022');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Amiyul-FlonaDB-EULA','Amiyul-FlonaDB-EULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('AML','AML');
@@ -286,6 +296,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0+-BSD-2-Clause-EPL-1.0+-GPL-2.0+-LGPL-2.1+','GPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0+-BSD-2-Clause-EPL-1.0+-GPL-2.0+-LGPL-2.1+','LGPL-2.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0+-BSD-2-Clause-EPL-1.0+-GPL-2.0+-LGPL-2.1+','LGPL-3.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0+-BSD-3-Clause','Apache-2.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0+-BSD-3-Clause','BSD-3-Clause');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0+-BSD-3-Clause-EPL-1.0+-GPL-2.0+-LGPL-2.1+','Apache-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0+-BSD-3-Clause-EPL-1.0+-GPL-2.0+-LGPL-2.1+','BSD-3-Clause');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0+-BSD-3-Clause-EPL-1.0+-GPL-2.0+-LGPL-2.1+','EPL-1.0');
@@ -727,6 +739,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-UPL-1.0','UPL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-UPL-UNSPECIFIED','Apache-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-UPL-UNSPECIFIED','UPL-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-with-Commercial-Use-Enforcer','Apache-2.0-with-Commercial-Use-Enforcer');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-with-Commons-Clause-1.0','Apache-2.0-with-Commons-Clause-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-with-LLVM-exception','Apache-2.0-with-LLVM-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-with-LLVM-exception-MIT','Apache-2.0-with-LLVM-exception');
@@ -1088,6 +1101,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Atlassi
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Atlassian-Customer-Agreement','Atlassian-Customer-Agreement');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Atlassian-SLA-ED08012023','Atlassian-SLA-ED08012023');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ATP-OfficeComponent-EULA','ATP-OfficeComponent-EULA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ATR-ESL-0.6','ATR-ESL-0.6');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ATT','ATT');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Audioburst-Publishers-Terms-RD06082020','Audioburst-Publishers-Terms-RD06082020');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Audioroute-n-Track-SDK-LA-1.0','Audioroute-n-Track-SDK-LA-1.0');
@@ -1145,6 +1159,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Better-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BigCode-Open-RAIL-M-LA-1.0','BigCode-Open-RAIL-M-LA-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Bigelow-Holmes-URW-GmbH-LFL','Bigelow-Holmes-URW-GmbH-LFL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BigML-TOS','BigML-TOS');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BigScience-Open-RAIL-M-License-08182022','BigScience-Open-RAIL-M-License-08182022');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BigScience-RAIL-License-1.0','BigScience-RAIL-License-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BigTribe-IP','BigTribe-IP');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BigTribe-IP-NoRedistribution','BigTribe-IP-NoRedistribution');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Binary-Anvil-WP-EULA','Binary-Anvil-WP-EULA');
@@ -1162,6 +1178,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Bitward
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BlackBaud-Contributor-LA','BlackBaud-Contributor-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Blackbird-Agency-LA','Blackbird-Agency-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('blessing','blessing');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BLOOMChat-176B-License-1.0','BLOOMChat-176B-License-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Blue-Breeze-EULA','Blue-Breeze-EULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BlueConic-US-Online-TAC-UD11012022','BlueConic-US-Online-TAC-UD11012022');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BlueLeet-Code-Commercial-Product-LA','BlueLeet-Code-Commercial-Product-LA');
@@ -1183,11 +1200,13 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Bouncer
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Bouncycastle-license','Bouncycastle-license');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('bpmn-io-License','bpmn-io-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Bprotocol-Foundation-License','Bprotocol-Foundation-License');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Brady-SLA','Brady-SLA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BrainCloud-TOS','BrainCloud-TOS');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Brankas-OL-1.0','Brankas-OL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Braze-Appboy-Web-SDK-License','Braze-Appboy-Web-SDK-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Brecons-Tag-Helper-EULA','Brecons-Tag-Helper-EULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BRIA-2.0-HF-MLA','BRIA-2.0-HF-MLA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Bria-AI-Customer-GTC','Bria-AI-Customer-GTC');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BRIA-HF-MLA-NC','BRIA-HF-MLA-NC');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Brian-Gladman-2-Clause','Brian-Gladman-2-Clause');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Brian-Gladman-3-Clause','Brian-Gladman-3-Clause');
@@ -1220,6 +1239,9 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-2-C
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-2-Clause-GPL-2.0-Intel','BSD-2-Clause');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-2-Clause-GPL-2.0-Intel','GPL-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-2-Clause-GPL-2.0-Intel','Intel');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-2-Clause-GPL-3.0+-LGPL-3.0+','BSD-2-Clause');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-2-Clause-GPL-3.0+-LGPL-3.0+','GPL-3.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-2-Clause-GPL-3.0+-LGPL-3.0+','LGPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-2-Clause-GPL-3.0+-MIT','BSD-2-Clause');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-2-Clause-GPL-3.0+-MIT','GPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-2-Clause-GPL-3.0+-MIT','MIT');
@@ -1514,6 +1536,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CC-BY-2
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CC-BY-2.5','CC-BY-2.5');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CC-BY-2.5-AU','CC-BY-2.5-AU');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CC-BY-2.5-Canada','CC-BY-2.5-Canada');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CC-BY-2.5-ZA','CC-BY-2.5-ZA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CC-BY-3.0','CC-BY-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CC-BY-3.0-AU','CC-BY-3.0-AU');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CC-BY-3.0-IGO','CC-BY-3.0-IGO');
@@ -1791,6 +1814,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CNRI-UN
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CockroachDB-Community-LA','CockroachDB-Community-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Code-Effects-EULA','Code-Effects-EULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Codefoco-Fantas-EULA','Codefoco-Fantas-EULA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CodeFuse-CLA-RD09082023','CodeFuse-CLA-RD09082023');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CodeKamer-License','CodeKamer-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CodeML-Open-RAIL-M-License-0.1','CodeML-Open-RAIL-M-License-0.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CodeSmith-Generator','CodeSmith-Generator');
@@ -1861,6 +1885,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Commons
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CommServer-Software-Family-CP-CAS-LA','CommServer-Software-Family-CP-CAS-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Community-Spec-1.0','Community-Spec-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ComnetSolutions-TAC','ComnetSolutions-TAC');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Comodule-SDK-LA','Comodule-SDK-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ComponentArt-Datazen-Software-TOU','ComponentArt-Datazen-Software-TOU');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ComponentPro-EULA-RD06042019','ComponentPro-EULA-RD06042019');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ComponentSpace-EULA','ComponentSpace-EULA');
@@ -1879,6 +1904,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Convert
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Convex-PL-0.5','Convex-PL-0.5');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Convex-PL-UNSPECIFIED','Convex-PL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Conviva-Inc-SDK-LLA-RD04262018','Conviva-Inc-SDK-LLA-RD04262018');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CoopCycle-License','CoopCycle-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Copyleaks-TOU-RD04062016','Copyleaks-TOU-RD04062016');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('copyleft-next-0.3.0','copyleft-next-0.3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('copyleft-next-0.3.1','copyleft-next-0.3.1');
@@ -1936,6 +1962,9 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CRAPL',
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Crashlytics-TOS-RD07232018','Crashlytics-TOS-RD07232018');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Crashlytics-TOS-UNSPECIFIED','Crashlytics-TOS-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Crawler-Lib-EULA','Crawler-Lib-EULA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CreativeML-Open-RAIL-M-License-08222022','CreativeML-Open-RAIL-M-License-08222022');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CreativeML-Open-RAIL-M-License-UNSPECIFIED','CreativeML-Open-RAIL-M-License-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CreativeML-Open-RAIL-Plus-Plus-M-11242022','CreativeML-Open-RAIL-Plus-Plus-M-11242022');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CriticalArc-SDK-LA','CriticalArc-SDK-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Cronyx','Cronyx');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Crossword','Crossword');
@@ -1975,6 +2004,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Dandeli
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('DarkMindFX-EULA','DarkMindFX-EULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Dartcom-Incorporated-EULA','Dartcom-Incorporated-EULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Databricks-JDBC-ODBC-DL','Databricks-JDBC-ODBC-DL');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Databricks-OML-RD03272024','Databricks-OML-RD03272024');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Datalogics-EULA','Datalogics-EULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('DataPM-1.0','DataPM-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('DataStax-DSE-Driver-License','DataStax-DSE-Driver-License');
@@ -1987,6 +2017,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Debian-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('DEC-3-Clause','DEC-3-Clause');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Deci-Infery-License','Deci-Infery-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Decibel-API-TOU','Decibel-API-TOU');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('DeciLM-License-1.0','DeciLM-License-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('DeepAR-CA-UD04122022','DeepAR-CA-UD04122022');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Deephaven-CLA-1.0','Deephaven-CLA-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Deephaven-CLA-UNSPECIFIED','Deephaven-CLA-UNSPECIFIED');
@@ -2041,6 +2072,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('DreamFa
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('DRL-1.0','DRL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('DRL-1.1','DRL-1.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Dropbox-Developer-TOC','Dropbox-Developer-TOC');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('DRVR-TOU','DRVR-TOU');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('DSDP','DSDP');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('DSpace-Source-Code-BSD-License','DSpace-Source-Code-BSD-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('DTDDoc-License','DTDDoc-License');
@@ -2072,6 +2104,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ECL-2.0
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ECL-UNSPECIFIED','ECL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('eCos-2.0','eCos-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Edge-Store-Engine-EULA','Edge-Store-Engine-EULA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EdgeConf-MSU-LA','EdgeConf-MSU-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EDIFabric-EULA','EDIFabric-EULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EDL-1.0','EDL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EDL-1.0-EPL-1.0','EDL-1.0');
@@ -2082,6 +2115,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EDL-UNS
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('edtFTPj','edtFTPj');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EF6-Runtime-Alpha-License','EF6-Runtime-Alpha-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EF6-Runtime-Beta-RC-License','EF6-Runtime-Beta-RC-License');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Efemarai-SDK-LA','Efemarai-SDK-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EFL-1.0','EFL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EFL-2.0','EFL-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EFL-UNSPECIFIED','EFL-UNSPECIFIED');
@@ -2105,6 +2139,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Eneter-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Eneter-License-Commercial','Eneter-License-Commercial');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EnHelix-Aptinium-SDK-SLA','EnHelix-Aptinium-SDK-SLA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Enkadia-Synexsis-SDK-EULA','Enkadia-Synexsis-SDK-EULA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ENOT-License-1.0','ENOT-License-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Enreach-Swyx-EULA-112021','Enreach-Swyx-EULA-112021');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Ensighten-License','Ensighten-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Enterprise-Distributed-Technologies-LA','Enterprise-Distributed-Technologies-LA');
@@ -2247,6 +2282,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Faceboo
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Facebook-SDK','Facebook-SDK');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FAFOL-0.2','FAFOL-0.2');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Fahd-El-Haraka-SnipeGenius-LA-FPU','Fahd-El-Haraka-SnipeGenius-LA-FPU');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FAIPL-1.0','FAIPL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FAIPL-1.0-SD','FAIPL-1.0-SD');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Fair','Fair');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Fair-Source-License-0.9','Fair-Source-License-0.9');
@@ -2258,6 +2294,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Fantasy
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FastReport-.Net-EULA-RD07102019','FastReport-.Net-EULA-RD07102019');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FBM','FBM');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FDK-AAC','FDK-AAC');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FDPL-1.0','FDPL-1.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FDPL-1.0-US','FDPL-1.0-US');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FeedAd-TAC','FeedAd-TAC');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Ferguson-Twofish','Ferguson-Twofish');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Figaro-Oracle-Berkeley-DB-XML-Software-License','Figaro-Oracle-Berkeley-DB-XML-Software-License');
@@ -2271,6 +2309,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Flora-L
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Flourish-Component-License-1.0','Flourish-Component-License-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FlowPlater-SL','FlowPlater-SL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Flowplayer-Commercial-License-0.4','Flowplayer-Commercial-License-0.4');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Flowplayer-Commercial-License-UNSPECIFIED','Flowplayer-Commercial-License-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FLTK-LA-RD-12112001','FLTK-LA-RD-12112001');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Flurry-Analytics-TOS','Flurry-Analytics-TOS');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Font-Awesome-Pro-License','Font-Awesome-Pro-License');
@@ -2314,6 +2353,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FTL-LGP
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FTL-LGPL-2.1+','LGPL-2.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FTL-LGPL-2.1+','LGPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FTWPL','FTWPL');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FunASR-Model-OSL-1.0','FunASR-Model-OSL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FundsXpress-License','FundsXpress-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Furuseth','Furuseth');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FusionCharts-SLA','FusionCharts-SLA');
@@ -2870,6 +2910,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GrowCre
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GSBase-SL-1.0','GSBase-SL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('gSOAP-1.3b','gSOAP-1.3b');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('gtkbook','gtkbook');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GTRC-GPULA','GTRC-GPULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Gurobi-Optimization-EULA-RD072019','Gurobi-Optimization-EULA-RD072019');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GUST-FONT-LICENSE','GUST-FONT-LICENSE');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('H-LPL-1.0.0','H-LPL-1.0.0');
@@ -2936,6 +2977,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('HPND-se
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('HPND-sell-variant','HPND-sell-variant');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('HPND-sell-variant-MIT-disclaimer','HPND-sell-variant-MIT-disclaimer');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('HPND-UC','HPND-UC');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('HSUL-1.0','HSUL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('HTMLTIDY','HTMLTIDY');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Hugware-License','Hugware-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Hydraulic-Conveyor-EULA-1.0','Hydraulic-Conveyor-EULA-1.0');
@@ -3045,6 +3087,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('IPA','I
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('IPL-1.0','IPL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('IPL-UNSPECIFIED','IPL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Iprel-Progetti-SRL-EULA','Iprel-Progetti-SRL-EULA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('iProov-Biometrics-SDK-Terms','iProov-Biometrics-SDK-Terms');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('IPTC','IPTC');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('IrfanView-SLA','IrfanView-SLA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Irof-License-0.0001','Irof-License-0.0001');
@@ -3155,6 +3198,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Kount-T
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('KPSL-1.1-01','KPSL-1.1-01');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('KPSL-UNSPECIFIED','KPSL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Kreative-SRF-FUL-1.2f','Kreative-SRF-FUL-1.2f');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Krisp-Plugin-EULA','Krisp-Plugin-EULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('KX-PL-Version-2020.05','KX-PL-Version-2020.05');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Laavor-Software-License','Laavor-Software-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Latex2e','Latex2e');
@@ -3331,6 +3375,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Linux-O
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Liquid-Controls-Source-Code-License','Liquid-Controls-Source-Code-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Live-Captions-.com-LA','Live-Captions-.com-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Llama-2-CLA','Llama-2-CLA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('LLaMA-LA','LLaMA-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('LMG-xmlproc-License','LMG-xmlproc-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('LOG-ALA-1.0','LOG-ALA-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Logchop-License','Logchop-License');
@@ -3353,6 +3398,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('LPPL-1.
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('LPPL-UNSPECIFIED','LPPL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('lsof','lsof');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Lucida-Bitmap-Fonts','Lucida-Bitmap-Fonts');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Lunit-PL-Benchmarking-SSL-DPD','Lunit-PL-Benchmarking-SSL-DPD');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Luppes-Consulting-SLA','Luppes-Consulting-SLA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Lux-License-0.1.2','Lux-License-0.1.2');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Luxcium-License','Luxcium-License');
@@ -3396,6 +3442,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MbientL
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('McPhee-slideshow','McPhee-slideshow');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Med42-License-1.0','Med42-License-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Media-Protect-LA','Media-Protect-LA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MediaTek-Research-Bloom-zh-1.0','MediaTek-Research-Bloom-zh-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MediaTek-Research-Bloom-zh-2.0','MediaTek-Research-Bloom-zh-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Member-Export-PRO-LA','Member-Export-PRO-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Memority-PA-EULA','Memority-PA-EULA');
@@ -3487,7 +3534,10 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-Zli
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MITNFA','MITNFA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MITRE-CVWL','MITRE-CVWL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Mitsua-Open-RAIL-M-License-03032023','Mitsua-Open-RAIL-M-License-03032023');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Miva-SDK-LA-UD11202018','Miva-SDK-LA-UD11202018');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Miva-SDK-LA-UNSPECIFIED','Miva-SDK-LA-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MixRadio-Services-DA-Consumer-Applications','MixRadio-Services-DA-Consumer-Applications');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ml5-.js-1.0','ml5-.js-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MMIXware','MMIXware');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MMSR-LLC-MapVida-TOU','MMSR-LLC-MapVida-TOU');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MobileFoundation-IPLA','MobileFoundation-IPLA');
@@ -3496,6 +3546,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Mockrun
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Modified-SOFA-License','Modified-SOFA-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MoEngage-Platform-License','MoEngage-Platform-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Moesif-TOU','Moesif-TOU');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MoeSpeech-License','MoeSpeech-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Mojio-TOU','Mojio-TOU');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MongoDB-Embedded-License','MongoDB-Embedded-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MongoDB-SSPL-1.0','MongoDB-SSPL-1.0');
@@ -3504,6 +3555,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MonoX-L
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Monza-Cloud-LLC-EULA-1.0','Monza-Cloud-LLC-EULA-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MoPub-SDK-LA-RD09222020','MoPub-SDK-LA-RD09222020');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Mosek-EULA-RD11052017','Mosek-EULA-RD11052017');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MOSLA-Dataset-LA','MOSLA-Dataset-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Mother-Group-Ltd-TAC','Mother-Group-Ltd-TAC');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Motor-Packages-Standard-License','Motor-Packages-Standard-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Motosoto','Motosoto');
@@ -3616,6 +3668,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MS-Pre-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MS-Project-System-Extensibility-Preview','MS-Project-System-Extensibility-Preview');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MS-Quantum-Development-Kit-License','MS-Quantum-Development-Kit-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MS-Quantum-NC-Source-Repository','MS-Quantum-NC-Source-Repository');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MS-RDLA-Wikiqa-Corpus','MS-RDLA-Wikiqa-Corpus');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MS-Rdx-.Net-Client-Library-Azure-TSI-0.1','MS-Rdx-.Net-Client-Library-Azure-TSI-0.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MS-Report-Viewer-Runtime-for-MS-SQL-Server','MS-Report-Viewer-Runtime-for-MS-SQL-Server');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MS-RL','MS-RL');
@@ -3678,6 +3731,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MS-Wind
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MS-Windows-Azure-SDK-for-.NET','MS-Windows-Azure-SDK-for-.NET');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MS-Windows-ET-TP','MS-Windows-ET-TP');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MS-Windows-ET-TP-Pre-Release','MS-Windows-ET-TP-Pre-Release');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MS-Windows-SDK-Validation-OS-License','MS-Windows-SDK-Validation-OS-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MS-WOS-Update1-Entity-Framework-4.1','MS-WOS-Update1-Entity-Framework-4.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MS-WSDK-Windows-10-License','MS-WSDK-Windows-10-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MS-Xamarin-Workbooks-Inspector-License','MS-Xamarin-Workbooks-Inspector-License');
@@ -3704,6 +3758,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MXpath-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MyIDHUB-LLC-TOU','MyIDHUB-LLC-TOU');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MyScript-Interactive-Ink-SDK-N-V1-092017','MyScript-Interactive-Ink-SDK-N-V1-092017');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NAIST-2003','NAIST-2003');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Nanbeige-16B-Model-LA-1.0','Nanbeige-16B-Model-LA-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NanoGW-Plugin-PicoGW-EULA','NanoGW-Plugin-PicoGW-EULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Nanospell-ASP.Net-Spell-Checker-License','Nanospell-ASP.Net-Spell-Checker-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Naomi-PL-MD08202023','Naomi-PL-MD08202023');
@@ -3763,6 +3818,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Noemax-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Noemax-PowerWebSockets-Trial-SLA-V120115','Noemax-PowerWebSockets-Trial-SLA-V120115');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Nokia','Nokia');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Nokia-Imaging-SDK-LA','Nokia-Imaging-SDK-LA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NOMERGE-License','NOMERGE-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NON-AI-Apache-2.0','NON-AI-Apache-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NON-AI-BSD-1-Clause','NON-AI-BSD-1-Clause');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NON-AI-BSD-2-Clause','NON-AI-BSD-2-Clause');
@@ -3827,6 +3883,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVIDIA-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVIDIA-DL-Win-v7.0-v8.0','NVIDIA-DL-Win-v7.0-v8.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVIDIA-Nsight-VS-SLA-v5.5-v8.0','NVIDIA-Nsight-VS-SLA-v5.5-v8.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVIDIA-Nsight-VS-UNSPECIFIED','NVIDIA-Nsight-VS-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVIDIA-SCL-Radio','NVIDIA-SCL-Radio');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVIDIA-SCL-SegFormer','NVIDIA-SCL-SegFormer');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVIDIA-SDK-LA-UNSPECIFIED','NVIDIA-SDK-LA-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVIDIA-SDK-LA-v10.0.130-v10.2.89','NVIDIA-SDK-LA-v10.0.130-v10.2.89');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVIDIA-SDK-LA-v11.0.171','NVIDIA-SDK-LA-v11.0.171');
@@ -3835,6 +3893,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVIDIA-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVPL-3.0','NVPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVPL-4.0','NVPL-4.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVPL-5.0','NVPL-5.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NW-NL-Disclaimer','NW-NL-Disclaimer');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NYSL','NYSL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NYSL-0.9982','NYSL-0.9982');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('O-UDA-1.0','O-UDA-1.0');
@@ -3903,6 +3962,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Ontotex
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OPC-Redistributables-AOU-1.3','OPC-Redistributables-AOU-1.3');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Open-Development-Public-License-1.0','Open-Development-Public-License-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Open-IE-4-SLA','Open-IE-4-SLA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OpenAI-TOU-ED01312024','OpenAI-TOU-ED01312024');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OpenFin-Inc-TOS','OpenFin-Inc-TOS');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OpenMRS-PL-1.0','OpenMRS-PL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('OpenMRS-PL-UNSPECIFIED','OpenMRS-PL-UNSPECIFIED');
@@ -3987,6 +4047,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('PayPal-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('PayPal-SDK','PayPal-SDK');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('PCRE-License','PCRE-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('PDDL-1.0','PDDL-1.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('PDF-Tools-AG-GTC','PDF-Tools-AG-GTC');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('PDFGen.net-License','PDFGen.net-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Pdfium-.Net-SDK-SLA-LW-RD11152018','Pdfium-.Net-SDK-SLA-LW-RD11152018');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('pdir-Contao-Theme-License','pdir-Contao-Theme-License');
@@ -4020,6 +4081,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Pixelne
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('PixelPin-TOU','PixelPin-TOU');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Pizzaware','Pizzaware');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Play-Integrity-API-TOS','Play-Integrity-API-TOS');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Playground-v2-CL','Playground-v2-CL');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Playground-v2.5-CL','Playground-v2.5-CL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Playwire-TOS-UD12262023','Playwire-TOS-UD12262023');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('PLE-Software-EULA','PLE-Software-EULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Plexus','Plexus');
@@ -4100,6 +4163,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Python-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Python-UNSPECIFIED-ZPL-UNSPECIFIED','ZPL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('PyTis-Public-License-3.0','PyTis-Public-License-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Q-CTRL-TOS-RD11052020','Q-CTRL-TOS-RD11052020');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Q-CTRL-TOS-RD11082023','Q-CTRL-TOS-RD11082023');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Qhull','Qhull');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Qlik-User-LA-RD09092020','Qlik-User-LA-RD09092020');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Qorvo-PyQSPICE-SLA','Qorvo-PyQSPICE-SLA');
@@ -4113,6 +4177,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('QuantCo
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('QuanticastTOS','QuanticastTOS');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Quantuloop-QuBOX-UFSC-CE-RD01182023','Quantuloop-QuBOX-UFSC-CE-RD01182023');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('QuartzDesk-COMMERCIAL-LA','QuartzDesk-COMMERCIAL-LA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Quasar-License-1.0','Quasar-License-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('QuickFix-SL-1.0','QuickFix-SL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('QuickFix-SL-UNSPECIFIED','QuickFix-SL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Quiddita-Nucleus-LA-1.0','Quiddita-Nucleus-LA-1.0');
@@ -4202,9 +4267,11 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('RWTFPL-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Ryskamp-Learning-Machine-License','Ryskamp-Learning-Machine-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('S-Lab-1.0','S-Lab-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('S-Lab-UNSPECIFIED','S-Lab-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SA-1B-Dataset-RL','SA-1B-Dataset-RL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SaaS-TOS','SaaS-TOS');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Sahha-SDK-LA-1.0','Sahha-SDK-LA-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Sahha-SDK-LA-UNSPECIFIED','Sahha-SDK-LA-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SAI-DeepFloyd-IF-LA','SAI-DeepFloyd-IF-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SAI-NC-RCLA-11282023','SAI-NC-RCLA-11282023');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SAI-Stable-Beluga-NC-CLA-07272023','SAI-Stable-Beluga-NC-CLA-07272023');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SAI-Stable-Video-Diffusion-NC-CLA-11212023','SAI-Stable-Video-Diffusion-NC-CLA-11212023');
@@ -4244,6 +4311,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('sCrypt-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SDL-Web-Developer-SDA','SDL-Web-Developer-SDA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Seald-License','Seald-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SeaLights-License','SeaLights-License');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SeaLLMs-LA','SeaLLMs-LA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Seamless-LA-UD12182023','Seamless-LA-UD12182023');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SecureBlackbox-EULA','SecureBlackbox-EULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Secured-Signing-TOU-and-Privacy','Secured-Signing-TOU-and-Privacy');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Sedris-LA','Sedris-LA');
@@ -4266,6 +4335,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SGI-GLX
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SGI-OpenGL','SGI-OpenGL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SGP4','SGP4');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SGPL-1.0','SGPL-1.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Shadow-lilac-Extension-BSD-3-License-1.0','Shadow-lilac-Extension-BSD-3-License-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Shadowbox-.js-Commercial-1.0','Shadowbox-.js-Commercial-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Shadowbox-.js-NC-1.0','Shadowbox-.js-NC-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SharpDev-AbotX-EULA','SharpDev-AbotX-EULA');
@@ -4291,6 +4361,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SISSL-U
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Sitecore-Marketplace-TOU','Sitecore-Marketplace-TOU');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Sitecore-MyGet-LA','Sitecore-MyGet-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Skype-EULA-RD012011','Skype-EULA-RD012011');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Skywork-13B-Model-CL','Skywork-13B-Model-CL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SL','SL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Sleepycat','Sleepycat');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Smaato-TOS','Smaato-TOS');
@@ -4370,6 +4441,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Steema-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Steema-TeeChart-.NET-Xamarin-Forms-EULA','Steema-TeeChart-.NET-Xamarin-Forms-EULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Steema-TeeChart-Java-Android-EULA','Steema-TeeChart-Java-Android-EULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Steinwurf-Evaluation-License','Steinwurf-Evaluation-License');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Step-Function-IO-LA','Step-Function-IO-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Steve-Konves-Get-Stuff-Done-License','Steve-Konves-Get-Stuff-Done-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Stigg-SDK-License-TAC','Stigg-SDK-License-TAC');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Stimulsoft-DLA','Stimulsoft-DLA');
@@ -4400,6 +4472,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Sun-TM'
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SunPro','SunPro');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SuperOffice-LA','SuperOffice-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Sushi-Ware-License','Sushi-Ware-License');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Sweep-EE-License','Sweep-EE-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Swiss-Ephemeris-Professional-License','Swiss-Ephemeris-Professional-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('SWL','SWL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('swrule','swrule');
@@ -4451,9 +4524,11 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('TGPPL-1
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('TGPPL-UNSPECIFIED','TGPPL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ThinkGeo-LLC-SLA-2.0','ThinkGeo-LLC-SLA-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ThirdWatch-TOS','ThirdWatch-TOS');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Thomson-Reuters-BLLM-EULA','Thomson-Reuters-BLLM-EULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ThoughtSpot-Development-Tools-EULA','ThoughtSpot-Development-Tools-EULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Tick42-Glue42-BCLA-RD03042020','Tick42-Glue42-BCLA-RD03042020');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('TigerConnect-EULA','TigerConnect-EULA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('TII-Falcon-LLM-1.0','TII-Falcon-LLM-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Tink-MM-SDK-TAC-1.1','Tink-MM-SDK-TAC-1.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('TLL-TAC-with-AS-TAC-Addendum','TLL-TAC-with-AS-TAC-Addendum');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('TMAPI-1.0','TMAPI-1.0');
@@ -4473,6 +4548,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('TPDL','
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('TPL','TPL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('TPL-Dataflow-MS-.NET-Framework-4.5','TPL-Dataflow-MS-.NET-Framework-4.5');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Trace-Agent-LLC-TOS-RD03042013','Trace-Agent-LLC-TOS-RD03042013');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('TransNormerLLM-Model-CLA','TransNormerLLM-Model-CLA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Tridium-OSL','Tridium-OSL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Trimble-Projectsight-End-User-Terms-1.0','Trimble-Projectsight-End-User-Terms-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Trimble-Tekla-EULA-RD02012022','Trimble-Tekla-EULA-RD02012022');
@@ -4499,6 +4575,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('UCLA-CG
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('UCUM-License','UCUM-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('UFL-1.0','UFL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Ugo-Chirico-Disigon-LA','Ugo-Chirico-Disigon-LA');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('UIUC-CCG-RAUL','UIUC-CCG-RAUL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ulem','ulem');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('UltiDev-Web-Server-Software-License','UltiDev-Web-Server-Software-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Umbraco-NSP-EULA','Umbraco-NSP-EULA');
@@ -4656,6 +4733,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Yandex-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Yandex-.Money-API-UA','Yandex-.Money-API-UA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Yandex-Pay-SDK-LA-07202022','Yandex-Pay-SDK-LA-07202022');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Yandex-UNSPECIFIED','Yandex-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Yelp-Dataset-TOU-UD07072023','Yelp-Dataset-TOU-UD07072023');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('YESMERGE-License','YESMERGE-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('YetiForce-Public-License-1.1','YetiForce-Public-License-1.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('YetiForce-Public-License-2.0','YetiForce-Public-License-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('YetiForce-Public-License-3.0','YetiForce-Public-License-3.0');
@@ -4681,6 +4760,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Zeebe-C
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Zeeff','Zeeff');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Zend-2.0','Zend-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Zend-UNSPECIFIED','Zend-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ZhongJingGPT-2.0','ZhongJingGPT-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Zimbra-1.3','Zimbra-1.3');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Zimbra-1.4','Zimbra-1.4');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Zlib','Zlib');

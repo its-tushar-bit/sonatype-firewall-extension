@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -107,8 +108,8 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
   }
 
   @Test
-  public void testSourceControlTile_LicensingAwareNotificationOnly() {
-    setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
+  public void testSourceControlTile_LicensingAwareNotificationsAndSourceControlOnly() {
+    setFeatures(LicensedFeature.NOTIFICATIONS, LicensedFeature.SOURCE_CONTROL);
     refresh();
     SidebarNavigation.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();

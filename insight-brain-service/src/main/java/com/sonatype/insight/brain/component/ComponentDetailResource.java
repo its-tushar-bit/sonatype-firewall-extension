@@ -19,6 +19,8 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -43,6 +45,7 @@ public class ComponentDetailResource
   @Path("applications")
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_DASHBOARD_COMPONENT_DETAILS)
+  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_REPORTS)
   public List<ApplicationComponentDetailsDTO> getApplicationDetailsByHash(@QueryParam("hash") String hash) {
     return componentDetailService.getApplicationDetailsByHash(hash);
   }

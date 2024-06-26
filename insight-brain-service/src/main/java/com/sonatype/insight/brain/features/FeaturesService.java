@@ -82,7 +82,7 @@ public class FeaturesService
   private void addVersionSpecificFeatures(Set<Feature> features) {
     // Changes to this list should be replicated in brain.client.js
     Collections.addAll(features, NonLicensedFeature.POLICY, NonLicensedFeature.LABELS, NonLicensedFeature.RELEASE_GRAPH,
-        NonLicensedFeature.POLICY_VIOLATIONS, NonLicensedFeature.REEVALUATE_POLICY);
+        NonLicensedFeature.REEVALUATE_POLICY);
   }
 
   private void addLicenseSpecificFeatures(Set<Feature> features) {
@@ -99,6 +99,14 @@ public class FeaturesService
     }
     if (systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.REPORTS_LIST_DISABLED) != null) {
       features.remove(NonLicensedFeature.REPORTS_LIST);
+    }
+    if (features.contains(SystemConfigurationPropertyFeature.API_PAGE) && features.contains(LicensedFeature.API_PAGE)) {
+      // We only need one API_PAGE feature to be returned
+      features.remove(SystemConfigurationPropertyFeature.API_PAGE);
+    }
+    else {
+      features.remove(SystemConfigurationPropertyFeature.API_PAGE);
+      features.remove(LicensedFeature.API_PAGE);
     }
   }
 }

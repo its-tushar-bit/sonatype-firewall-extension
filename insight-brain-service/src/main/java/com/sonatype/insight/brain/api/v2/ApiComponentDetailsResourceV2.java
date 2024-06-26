@@ -17,6 +17,8 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsRequestDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDetailsResultDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,7 +35,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "Components",
     description = "Use this REST API to retrieve a component's security vulnerability data, license data, age and " +
         "popularity.")
-
+@ProductLicenseEnforcementPoint(LicensedFeature.COMPONENT_EVALUATION)
 public class ApiComponentDetailsResourceV2
 {
   private final ApiComponentDetailsServiceV2 componentDetailsService;

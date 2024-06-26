@@ -20,6 +20,8 @@ import com.sonatype.clm.dto.model.callflowanalysis.ApiCallFlowAnalysisConfigDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -30,6 +32,7 @@ import static com.sonatype.insight.brain.api.PublicApiPaths.CALL_FLOW_ANALYSIS_C
 @Path(CALL_FLOW_ANALYSIS_CONFIG)
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
+@ProductLicenseEnforcementPoint(LicensedFeature.CALL_FLOW_ANALYSIS)
 public class ApiCallFlowAnalysisConfigResource
 {
   private final ApiCallFlowAnalysisConfigService apiCallFlowAnalysisService;

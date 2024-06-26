@@ -21,6 +21,8 @@ import com.sonatype.insight.brain.api.v2.service.ApiDataRetentionPolicyService;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,6 +43,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
         "<p>" +
         "Note that IQ Server has a preset limit of purging 5000 reports in one execution of its report purging job."
 )
+@ProductLicenseEnforcementPoint(LicensedFeature.DATA_RETENTION)
 public class ApiDataRetentionPolicyResource
 {
   static final String ORGANIZATION_PATH = "organizations/{organizationId}";

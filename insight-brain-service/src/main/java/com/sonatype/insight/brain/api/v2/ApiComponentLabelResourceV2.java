@@ -17,6 +17,8 @@ import com.sonatype.insight.brain.api.v2.service.ApiComponentLabelServiceV2;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,6 +33,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 @Path(PublicApiPaths.APP_COMPONENT_LABELS_PATH_V2)
 @Named
 @Timed
+@ProductLicenseEnforcementPoint(LicensedFeature.COMPONENT_LABELS)
 public class ApiComponentLabelResourceV2
 {
   private final ApiComponentLabelServiceV2 apiComponentLabelService;

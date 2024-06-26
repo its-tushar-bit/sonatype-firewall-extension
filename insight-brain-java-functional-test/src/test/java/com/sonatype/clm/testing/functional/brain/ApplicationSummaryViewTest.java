@@ -670,8 +670,8 @@ public class ApplicationSummaryViewTest
   }
 
   @Test
-  public void testSourceControlTile_LicensingAwareNotificationOnly() {
-    setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
+  public void testSourceControlTile_LicensingAwareNotificationsAndSourceControlOnly() {
+    setFeatures(LicensedFeature.NOTIFICATIONS, LicensedFeature.SOURCE_CONTROL);
     refresh();
     SidebarNavigation.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();

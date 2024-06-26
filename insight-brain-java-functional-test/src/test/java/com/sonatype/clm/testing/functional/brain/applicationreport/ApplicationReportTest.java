@@ -204,7 +204,8 @@ public class ApplicationReportTest
 
   @Test
   public void testSummaryWithDeveloperDashboardEnabled() throws Exception {
-    setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.POLICY_GRANDFATHERING);
+    setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.POLICY_GRANDFATHERING,
+        LicensedFeature.APPLICATION_REPORTS, LicensedFeature.SUCCESS_METRICS, LicensedFeature.APPLICATION_EVALUATION);
     refresh();
 
     PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);

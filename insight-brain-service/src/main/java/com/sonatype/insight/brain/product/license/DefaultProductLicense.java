@@ -5,8 +5,10 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.validation.constraints.NotNull;
@@ -14,6 +16,9 @@ import javax.validation.constraints.NotNull;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.license.model.LicensedFeature;
 import org.sonatype.licensing.product.ProductLicenseKey;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Describes the currently installed product license.
@@ -23,6 +28,8 @@ import org.sonatype.licensing.product.ProductLicenseKey;
 public class DefaultProductLicense
     implements ProductLicense
 {
+  private static final Logger log = LoggerFactory.getLogger(DefaultProductLicense.class);
+
   static class ProductLicenseData
   {
     private final String fingerprint;
@@ -182,6 +189,7 @@ public class DefaultProductLicense
   @Override
   public void validateFeature(LicensedFeature feature) {
     if (!hasFeature(feature)) {
+      log.error("Product license is missing license feature " + feature.name());
       throw new InvalidLicenseException();
     }
   }
@@ -193,6 +201,8 @@ public class DefaultProductLicense
         return;
       }
     }
+    log.error("Product license is missing any one of " + Arrays.stream(features).map(LicensedFeature::name).collect(
+        Collectors.joining(", ")));
     throw new InvalidLicenseException();
   }
 

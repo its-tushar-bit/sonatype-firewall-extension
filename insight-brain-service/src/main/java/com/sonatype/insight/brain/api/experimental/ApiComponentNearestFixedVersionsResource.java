@@ -15,6 +15,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentNearestFixedVersions;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,6 +27,7 @@ import io.swagger.v3.oas.annotations.Operation;
 @Named
 @Timed
 @Path(ApiComponentNearestFixedVersionsResource.RESOURCE_PATH)
+@ProductLicenseEnforcementPoint(LicensedFeature.COMPONENT_EVALUATION)
 public class ApiComponentNearestFixedVersionsResource
 {
   static final String RESOURCE_PATH = "/api/experimental/components/vulnerabilities/nearestFixedVersions";

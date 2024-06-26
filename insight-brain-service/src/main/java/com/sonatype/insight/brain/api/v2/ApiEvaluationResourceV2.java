@@ -32,6 +32,8 @@ import com.sonatype.insight.brain.api.v2.service.ApiSourceControlEvaluationServi
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
@@ -98,6 +100,7 @@ public class ApiEvaluationResourceV2
               useReturnTypeSchema = true)
       }
   )
+  @ProductLicenseEnforcementPoint(LicensedFeature.COMPONENT_EVALUATION)
   public ApiComponentEvaluationTicketDTOV2 evaluateComponents(
       @Parameter(description = "Enter the internal applicationId. Use the Applications REST API to retrieve the " +
           "internal applicationId.", required = true)
@@ -133,6 +136,7 @@ public class ApiEvaluationResourceV2
               useReturnTypeSchema = true
           )
       })
+  @ProductLicenseEnforcementPoint(LicensedFeature.COMPONENT_EVALUATION)
   public ApiComponentEvaluationResultDTOV2 getComponentEvaluation(
       @Parameter(description = "Enter the internal applicationId (same as that sent in the POST request (step 1))",
           required = true)
@@ -166,6 +170,7 @@ public class ApiEvaluationResourceV2
           )
       }
   )
+  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION)
   public ApiApplicationEvaluationStatusDTOV2 promoteScan(
       @Parameter(description = "Enter the internal applicationId. Use the Applications REST API to retrieve the " +
           "internal applicationId.", required = true)
@@ -205,6 +210,7 @@ public class ApiEvaluationResourceV2
           )
       }
   )
+  @ProductLicenseEnforcementPoint(LicensedFeature.SOURCE_CONTROL)
   public ApiApplicationEvaluationStatusDTOV2 evaluateSourceControl(
       @Parameter(description = "Enter the internal applicationId. Use the Applications REST API to retrieve the " +
           "internal applicationId.", required = true)
@@ -242,6 +248,7 @@ public class ApiEvaluationResourceV2
               useReturnTypeSchema = true
           )
       })
+  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION) 
   public ApiApplicationEvaluationResultDTOV2 getApplicationEvaluationStatus(
       @Parameter(description = "Enter the applicationId, for the which policy evaluation was requested.",
           required = true)

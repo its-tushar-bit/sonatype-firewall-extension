@@ -63,7 +63,7 @@ public class RootOrganizationPolicyEditorTest
   @Test
   public void testQuarantineWarningOnCreatePolicy() {
     setFeatures(LicensedFeature.RELEASE_INTEGRITY, LicensedFeature.HYGIENE, LicensedFeature.POLICY_MONITORING,
-        LicensedFeature.ENFORCEMENT,
+        LicensedFeature.POLICY_MANAGEMENT, LicensedFeature.ENFORCEMENT,
         LicensedFeature.NOTIFICATIONS, LicensedFeature.WEBHOOKS_FOR_APPLICATIONS, LicensedFeature.DASHBOARD);
 
     refreshOrOpen(OwnerSummaryPage.url(rootOrganization));

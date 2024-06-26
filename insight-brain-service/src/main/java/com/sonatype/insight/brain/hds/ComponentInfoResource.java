@@ -28,12 +28,15 @@ import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentMultiLicense
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVulnerabilities;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.DependencyType;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
 @Path(ComponentInfoResource.RESOURCE_PATH)
 @Named
 @Timed
+@ProductLicenseEnforcementPoint(LicensedFeature.COMPONENT_EVALUATION)
 public class ComponentInfoResource
 {
   public static final String RESOURCE_PATH = "rest/ci/componentDetails";

@@ -57,6 +57,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -66,6 +67,7 @@ import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -87,6 +89,7 @@ import static java.util.stream.Stream.concat;
 @Named
 @Timed
 @Path(PolicyResource.RESOURCE_PATH)
+@ProductLicenseEnforcementPoint(LicensedFeature.POLICY_MANAGEMENT)
 public class PolicyResource
 {
   public static final String RESOURCE_PATH =

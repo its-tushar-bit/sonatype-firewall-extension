@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -361,9 +362,9 @@ public class RootOrganizationSourceControlEditorTest
   }
 
   @Test
-  public void testSourceControlEditor_LicensingAwareNotificationOnly() {
+  public void testSourceControlEditor_LicensingAwareNotificationsAndSourceControlOnly() {
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
-    setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
+    setFeatures(LicensedFeature.NOTIFICATIONS, LicensedFeature.SOURCE_CONTROL);
     refresh();
 
     rootOrgVerifyNotificationFeaturesOnly();

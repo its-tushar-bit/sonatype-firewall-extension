@@ -35,7 +35,7 @@ public class MonitoredStageEditorPage
   }
 
   public static Condition unsupportedLicenseText() {
-    return text("Continuous monitoring is not supported by your license.");
+    return text("Your IQ Server license does not enable this feature.");
   }
 
   public static SelenideElement title() {

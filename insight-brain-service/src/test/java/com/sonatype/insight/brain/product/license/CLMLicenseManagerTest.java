@@ -260,7 +260,24 @@ public class CLMLicenseManagerTest
         LicensedFeature.PROPRIETARY_COMPONENTS, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WAIVERS_DASHBOARD, //
-        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
+        LicensedFeature.APPLICATION_REPORTS,
+        LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.CALL_FLOW_ANALYSIS,
+        LicensedFeature.COMPONENT_EVALUATION,
+        LicensedFeature.COMPONENT_LABELS,
+        LicensedFeature.COMPONENT_SEARCH,
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.POLICY_VIOLATIONS,
+        LicensedFeature.POLICY_WAIVERS,
+        LicensedFeature.REPOSITORY_EVALUATION,
+        LicensedFeature.REPOSITORY_REPORTS,
+        LicensedFeature.SBOM_EVALUATION,
+        LicensedFeature.SBOM_REPORTS,
+        LicensedFeature.SOURCE_CONTROL,
+        LicensedFeature.SUCCESS_METRICS,
+        LicensedFeature.VULNERABILITY_CUSTOMIZATION,
+        LicensedFeature.WAIVER_REPORTS);
   }
 
   @Test
@@ -282,7 +299,24 @@ public class CLMLicenseManagerTest
         LicensedFeature.PROPRIETARY_COMPONENTS, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WAIVERS_DASHBOARD, //
-        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS);
+        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
+        LicensedFeature.APPLICATION_REPORTS,
+        LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.CALL_FLOW_ANALYSIS,
+        LicensedFeature.COMPONENT_EVALUATION,
+        LicensedFeature.COMPONENT_LABELS,
+        LicensedFeature.COMPONENT_SEARCH,
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.POLICY_VIOLATIONS,
+        LicensedFeature.POLICY_WAIVERS,
+        LicensedFeature.REPOSITORY_EVALUATION,
+        LicensedFeature.REPOSITORY_REPORTS,
+        LicensedFeature.SBOM_EVALUATION,
+        LicensedFeature.SBOM_REPORTS,
+        LicensedFeature.SOURCE_CONTROL,
+        LicensedFeature.SUCCESS_METRICS,
+        LicensedFeature.VULNERABILITY_CUSTOMIZATION,
+        LicensedFeature.WAIVER_REPORTS);
   }
 
   @Test
@@ -312,7 +346,25 @@ public class CLMLicenseManagerTest
         LicensedFeature.RELEASE_INTEGRITY, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WAIVERS_DASHBOARD, //
-        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS
+        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
+        LicensedFeature.API_PAGE,
+        LicensedFeature.APPLICATION_REPORTS,
+        LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.CALL_FLOW_ANALYSIS,
+        LicensedFeature.COMPONENT_EVALUATION,
+        LicensedFeature.COMPONENT_LABELS,
+        LicensedFeature.COMPONENT_SEARCH,
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.POLICY_VIOLATIONS,
+        LicensedFeature.POLICY_WAIVERS,
+        LicensedFeature.REPOSITORY_EVALUATION,
+        LicensedFeature.REPOSITORY_REPORTS,
+        LicensedFeature.SBOM_EVALUATION,
+        LicensedFeature.SBOM_REPORTS,
+        LicensedFeature.SOURCE_CONTROL,
+        LicensedFeature.SUCCESS_METRICS,
+        LicensedFeature.VULNERABILITY_CUSTOMIZATION,
+        LicensedFeature.WAIVER_REPORTS
     );
   }
 
@@ -340,7 +392,25 @@ public class CLMLicenseManagerTest
         LicensedFeature.QUALITY, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WAIVERS_DASHBOARD, //
-        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS
+        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
+        LicensedFeature.API_PAGE,
+        LicensedFeature.APPLICATION_REPORTS,
+        LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.CALL_FLOW_ANALYSIS,
+        LicensedFeature.COMPONENT_EVALUATION,
+        LicensedFeature.COMPONENT_LABELS,
+        LicensedFeature.COMPONENT_SEARCH,
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.POLICY_VIOLATIONS,
+        LicensedFeature.POLICY_WAIVERS,
+        LicensedFeature.REPOSITORY_EVALUATION,
+        LicensedFeature.REPOSITORY_REPORTS,
+        LicensedFeature.SBOM_EVALUATION,
+        LicensedFeature.SBOM_REPORTS,
+        LicensedFeature.SOURCE_CONTROL,
+        LicensedFeature.SUCCESS_METRICS,
+        LicensedFeature.VULNERABILITY_CUSTOMIZATION,
+        LicensedFeature.WAIVER_REPORTS
     );
   }
 
@@ -371,7 +441,25 @@ public class CLMLicenseManagerTest
         LicensedFeature.RELEASE_INTEGRITY,
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WAIVERS_DASHBOARD, //
-        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS
+        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
+        LicensedFeature.API_PAGE,
+        LicensedFeature.APPLICATION_REPORTS,
+        LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.CALL_FLOW_ANALYSIS,
+        LicensedFeature.COMPONENT_EVALUATION,
+        LicensedFeature.COMPONENT_LABELS,
+        LicensedFeature.COMPONENT_SEARCH,
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.POLICY_VIOLATIONS,
+        LicensedFeature.POLICY_WAIVERS,
+        LicensedFeature.REPOSITORY_EVALUATION,
+        LicensedFeature.REPOSITORY_REPORTS,
+        LicensedFeature.SBOM_EVALUATION,
+        LicensedFeature.SBOM_REPORTS,
+        LicensedFeature.SOURCE_CONTROL,
+        LicensedFeature.SUCCESS_METRICS,
+        LicensedFeature.VULNERABILITY_CUSTOMIZATION,
+        LicensedFeature.WAIVER_REPORTS
     );
   }
 
@@ -386,7 +474,25 @@ public class CLMLicenseManagerTest
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WAIVERS_DASHBOARD, //
-        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES,
+        LicensedFeature.API_PAGE,
+        LicensedFeature.APPLICATION_REPORTS,
+        LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.CALL_FLOW_ANALYSIS,
+        LicensedFeature.COMPONENT_EVALUATION,
+        LicensedFeature.COMPONENT_LABELS,
+        LicensedFeature.COMPONENT_SEARCH,
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.POLICY_VIOLATIONS,
+        LicensedFeature.POLICY_WAIVERS,
+        LicensedFeature.REPOSITORY_EVALUATION,
+        LicensedFeature.REPOSITORY_REPORTS,
+        LicensedFeature.SBOM_EVALUATION,
+        LicensedFeature.SBOM_REPORTS,
+        LicensedFeature.SOURCE_CONTROL,
+        LicensedFeature.SUCCESS_METRICS,
+        LicensedFeature.VULNERABILITY_CUSTOMIZATION,
+        LicensedFeature.WAIVER_REPORTS);
   }
 
   @Test
@@ -400,7 +506,25 @@ public class CLMLicenseManagerTest
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WAIVERS_DASHBOARD, //
-        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES,
+        LicensedFeature.API_PAGE,
+        LicensedFeature.APPLICATION_REPORTS,
+        LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.CALL_FLOW_ANALYSIS,
+        LicensedFeature.COMPONENT_EVALUATION,
+        LicensedFeature.COMPONENT_LABELS,
+        LicensedFeature.COMPONENT_SEARCH,
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.POLICY_VIOLATIONS,
+        LicensedFeature.POLICY_WAIVERS,
+        LicensedFeature.REPOSITORY_EVALUATION,
+        LicensedFeature.REPOSITORY_REPORTS,
+        LicensedFeature.SBOM_EVALUATION,
+        LicensedFeature.SBOM_REPORTS,
+        LicensedFeature.SOURCE_CONTROL,
+        LicensedFeature.SUCCESS_METRICS,
+        LicensedFeature.VULNERABILITY_CUSTOMIZATION,
+        LicensedFeature.WAIVER_REPORTS);
   }
 
   @Test
@@ -416,7 +540,25 @@ public class CLMLicenseManagerTest
         LicensedFeature.RELEASE_INTEGRITY,
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WAIVERS_DASHBOARD, //
-        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES,
+        LicensedFeature.API_PAGE,
+        LicensedFeature.APPLICATION_REPORTS,
+        LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.CALL_FLOW_ANALYSIS,
+        LicensedFeature.COMPONENT_EVALUATION,
+        LicensedFeature.COMPONENT_LABELS,
+        LicensedFeature.COMPONENT_SEARCH,
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.POLICY_VIOLATIONS,
+        LicensedFeature.POLICY_WAIVERS,
+        LicensedFeature.REPOSITORY_EVALUATION,
+        LicensedFeature.REPOSITORY_REPORTS,
+        LicensedFeature.SBOM_EVALUATION,
+        LicensedFeature.SBOM_REPORTS,
+        LicensedFeature.SOURCE_CONTROL,
+        LicensedFeature.SUCCESS_METRICS,
+        LicensedFeature.VULNERABILITY_CUSTOMIZATION,
+        LicensedFeature.WAIVER_REPORTS);
   }
 
   @Test
@@ -432,7 +574,25 @@ public class CLMLicenseManagerTest
         LicensedFeature.RELEASE_INTEGRITY, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WAIVERS_DASHBOARD, //
-        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES,
+        LicensedFeature.API_PAGE,
+        LicensedFeature.APPLICATION_REPORTS,
+        LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.CALL_FLOW_ANALYSIS,
+        LicensedFeature.COMPONENT_EVALUATION,
+        LicensedFeature.COMPONENT_LABELS,
+        LicensedFeature.COMPONENT_SEARCH,
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.POLICY_VIOLATIONS,
+        LicensedFeature.POLICY_WAIVERS,
+        LicensedFeature.REPOSITORY_EVALUATION,
+        LicensedFeature.REPOSITORY_REPORTS,
+        LicensedFeature.SBOM_EVALUATION,
+        LicensedFeature.SBOM_REPORTS,
+        LicensedFeature.SOURCE_CONTROL,
+        LicensedFeature.SUCCESS_METRICS,
+        LicensedFeature.VULNERABILITY_CUSTOMIZATION,
+        LicensedFeature.WAIVER_REPORTS);
   }
 
   @Test
@@ -449,7 +609,25 @@ public class CLMLicenseManagerTest
         LicensedFeature.RELEASE_INTEGRITY, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WAIVERS_DASHBOARD, //
-        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES,
+        LicensedFeature.API_PAGE,
+        LicensedFeature.APPLICATION_REPORTS,
+        LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.CALL_FLOW_ANALYSIS,
+        LicensedFeature.COMPONENT_EVALUATION,
+        LicensedFeature.COMPONENT_LABELS,
+        LicensedFeature.COMPONENT_SEARCH,
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.POLICY_VIOLATIONS,
+        LicensedFeature.POLICY_WAIVERS,
+        LicensedFeature.REPOSITORY_EVALUATION,
+        LicensedFeature.REPOSITORY_REPORTS,
+        LicensedFeature.SBOM_EVALUATION,
+        LicensedFeature.SBOM_REPORTS,
+        LicensedFeature.SOURCE_CONTROL,
+        LicensedFeature.SUCCESS_METRICS,
+        LicensedFeature.VULNERABILITY_CUSTOMIZATION,
+        LicensedFeature.WAIVER_REPORTS);
   }
 
   /**
@@ -469,7 +647,25 @@ public class CLMLicenseManagerTest
         LicensedFeature.RELEASE_INTEGRITY, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WAIVERS_DASHBOARD, //
-        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES,
+        LicensedFeature.API_PAGE,
+        LicensedFeature.APPLICATION_REPORTS,
+        LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.CALL_FLOW_ANALYSIS,
+        LicensedFeature.COMPONENT_EVALUATION,
+        LicensedFeature.COMPONENT_LABELS,
+        LicensedFeature.COMPONENT_SEARCH,
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.POLICY_VIOLATIONS,
+        LicensedFeature.POLICY_WAIVERS,
+        LicensedFeature.REPOSITORY_EVALUATION,
+        LicensedFeature.REPOSITORY_REPORTS,
+        LicensedFeature.SBOM_EVALUATION,
+        LicensedFeature.SBOM_REPORTS,
+        LicensedFeature.SOURCE_CONTROL,
+        LicensedFeature.SUCCESS_METRICS,
+        LicensedFeature.VULNERABILITY_CUSTOMIZATION,
+        LicensedFeature.WAIVER_REPORTS);
   }
 
   @Test
@@ -487,7 +683,25 @@ public class CLMLicenseManagerTest
         LicensedFeature.PROPRIETARY_COMPONENTS, //
         LicensedFeature.QUALITY, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
-        LicensedFeature.WAIVERS_DASHBOARD);
+        LicensedFeature.WAIVERS_DASHBOARD,
+        LicensedFeature.API_PAGE,
+        LicensedFeature.APPLICATION_REPORTS,
+        LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.CALL_FLOW_ANALYSIS,
+        LicensedFeature.COMPONENT_EVALUATION,
+        LicensedFeature.COMPONENT_LABELS,
+        LicensedFeature.COMPONENT_SEARCH,
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.POLICY_VIOLATIONS,
+        LicensedFeature.POLICY_WAIVERS,
+        LicensedFeature.REPOSITORY_EVALUATION,
+        LicensedFeature.REPOSITORY_REPORTS,
+        LicensedFeature.SBOM_EVALUATION,
+        LicensedFeature.SBOM_REPORTS,
+        LicensedFeature.SOURCE_CONTROL,
+        LicensedFeature.SUCCESS_METRICS,
+        LicensedFeature.VULNERABILITY_CUSTOMIZATION,
+        LicensedFeature.WAIVER_REPORTS);
   }
 
   @Test
@@ -505,7 +719,25 @@ public class CLMLicenseManagerTest
         LicensedFeature.PROPRIETARY_COMPONENTS, //
         LicensedFeature.QUALITY, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
-        LicensedFeature.WAIVERS_DASHBOARD);
+        LicensedFeature.WAIVERS_DASHBOARD,
+        LicensedFeature.API_PAGE,
+        LicensedFeature.APPLICATION_REPORTS,
+        LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.CALL_FLOW_ANALYSIS,
+        LicensedFeature.COMPONENT_EVALUATION,
+        LicensedFeature.COMPONENT_LABELS,
+        LicensedFeature.COMPONENT_SEARCH,
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.POLICY_VIOLATIONS,
+        LicensedFeature.POLICY_WAIVERS,
+        LicensedFeature.REPOSITORY_EVALUATION,
+        LicensedFeature.REPOSITORY_REPORTS,
+        LicensedFeature.SBOM_EVALUATION,
+        LicensedFeature.SBOM_REPORTS,
+        LicensedFeature.SOURCE_CONTROL,
+        LicensedFeature.SUCCESS_METRICS,
+        LicensedFeature.VULNERABILITY_CUSTOMIZATION,
+        LicensedFeature.WAIVER_REPORTS);
   }
 
   @Test
@@ -568,7 +800,25 @@ public class CLMLicenseManagerTest
         LicensedFeature.RM_STAGING_INTEGRATION,
         LicensedFeature.WAIVERS_DASHBOARD,
         LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
-        LicensedFeature.DEVELOPER_DASHBOARD);
+        LicensedFeature.DEVELOPER_DASHBOARD,
+        LicensedFeature.API_PAGE,
+        LicensedFeature.APPLICATION_REPORTS,
+        LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.CALL_FLOW_ANALYSIS,
+        LicensedFeature.COMPONENT_EVALUATION,
+        LicensedFeature.COMPONENT_LABELS,
+        LicensedFeature.COMPONENT_SEARCH,
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.POLICY_VIOLATIONS,
+        LicensedFeature.POLICY_WAIVERS,
+        LicensedFeature.REPOSITORY_EVALUATION,
+        LicensedFeature.REPOSITORY_REPORTS,
+        LicensedFeature.SBOM_EVALUATION,
+        LicensedFeature.SBOM_REPORTS,
+        LicensedFeature.SOURCE_CONTROL,
+        LicensedFeature.SUCCESS_METRICS,
+        LicensedFeature.VULNERABILITY_CUSTOMIZATION,
+        LicensedFeature.WAIVER_REPORTS);
   }
 
   @Test

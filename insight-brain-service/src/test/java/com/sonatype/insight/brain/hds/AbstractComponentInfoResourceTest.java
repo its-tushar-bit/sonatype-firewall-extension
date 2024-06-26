@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -98,9 +99,9 @@ public abstract class AbstractComponentInfoResourceTest
   public void before() throws Exception {
     /*
      * License restrictions on enforcement points are checked when uploading scan data, report data retrieval is
-     * permitted with any valid license, so these tests should not require any special feature in the license.
+     * permitted with most valid licenses.
      */
-    setFeatures();
+    setFeatures(LicensedFeature.COMPONENT_EVALUATION);
 
     multiLicenseDAO = lookup(MultiLicenseDAO.class);
     application = tempEntity.newApplicationWithParent("AbstractComponentInfoResourceTest");

@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -50,6 +51,7 @@ import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codahale.metrics.annotation.Timed;
@@ -63,6 +65,7 @@ import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatc
 @Named
 @Timed
 @Path(PolicyWaiverResource.RESOURCE_PATH)
+@ProductLicenseEnforcementPoint(LicensedFeature.POLICY_WAIVERS)
 public class PolicyWaiverResource
 {
   public static final String SERVICE_BASEPATH = "rest/policyWaiver/";

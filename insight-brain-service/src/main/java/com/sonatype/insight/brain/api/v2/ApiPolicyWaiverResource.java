@@ -28,7 +28,9 @@ import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.webhook.RequestPolicyWaiverEventService;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,7 +47,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Path(PublicApiPaths.POLICY_WAIVER_PATH)
 @Tag(name = "Policy Waivers",
     description = "Use this REST API to create and retrieve policy waivers.")
-
+@ProductLicenseEnforcementPoint(LicensedFeature.POLICY_WAIVERS)
 public class ApiPolicyWaiverResource
 {
   private final ApiPolicyWaiverService apiPolicyWaiverService;

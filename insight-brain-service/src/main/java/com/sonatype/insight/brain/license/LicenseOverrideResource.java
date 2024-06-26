@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.license;
 
 import java.io.IOException;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -27,6 +26,8 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.license.LicenseOverrideService.AppliedLicenseOverrides;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -54,6 +55,7 @@ public class LicenseOverrideResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.UPDATE_COMPONENT_LICENSE)
+  @ProductLicenseEnforcementPoint(LicensedFeature.POLICY_MANAGEMENT)
   public LicenseOverride addLicenseOverride(@PathParam("ownerType") OwnerType ownerType,
                                             @PathParam("ownerId") String ownerId,
                                             LicenseOverride licenseOverride,
@@ -66,6 +68,7 @@ public class LicenseOverrideResource
   @DELETE
   @Path("{licenseOverrideId}")
   @Audited(AuditEvent.UPDATE_COMPONENT_LICENSE)
+  @ProductLicenseEnforcementPoint(LicensedFeature.POLICY_MANAGEMENT)
   public void deleteLicenseOverride(@PathParam("ownerType") OwnerType ownerType,
                                     @PathParam("ownerId") String ownerId,
                                     @PathParam("licenseOverrideId") String licenseOverrideId,

@@ -17,6 +17,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentsInQuarantineDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentsInQuarantineReportingService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -26,6 +28,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + ApiComponentsInQuarantineReportingResource.PATH)
+@ProductLicenseEnforcementPoint(LicensedFeature.FIREWALL)
 public class ApiComponentsInQuarantineReportingResource
 {
   public static final String PATH = "/components/quarantined";

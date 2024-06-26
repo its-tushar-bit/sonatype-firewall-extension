@@ -66,7 +66,8 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
   @Before
   public void before() {
-    setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.DASHBOARD);
+    setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.DASHBOARD, LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.APPLICATION_REPORTS);
     refreshOrOpen(IntegrationsPage.urlOverview());
     loginAsAdmin();
   }

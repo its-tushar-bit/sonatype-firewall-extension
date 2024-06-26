@@ -29,6 +29,8 @@ import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.label.ApplicableLabels;
 import com.sonatype.insight.brain.label.LabelService;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -38,6 +40,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.LABEL_RESOURCE_PATH)
+@ProductLicenseEnforcementPoint(LicensedFeature.COMPONENT_LABELS)
 public class ApiLabelResource
 {
   private final LabelService labelService;

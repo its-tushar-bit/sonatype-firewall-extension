@@ -12,7 +12,6 @@ import {
   NxTile,
   NxFieldset,
   NxRadio,
-  NxErrorAlert,
   NxLoadWrapper,
 } from '@sonatype/react-shared-components';
 import { actions } from '../policyMonitoringSlice';
@@ -25,7 +24,6 @@ import {
   selectContinuousMonitoringSubmitMaskState,
 } from '../policyMonitoringSelectors';
 import { selectCliStagesWithInheritOrNoMonitorOption } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
-import { selectIsMonitoringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 export default function ContinuousMonitoringEditor() {
@@ -35,7 +33,6 @@ export default function ContinuousMonitoringEditor() {
   const submitError = useSelector(selectPolicyMonitoringSubmitError);
   const stages = useSelector(selectCliStagesWithInheritOrNoMonitorOption);
   const monitoredStage = useSelector(selectSelectedMonitoredStage);
-  const isMonitoringSupported = useSelector(selectIsMonitoringSupported);
   const isDirty = useSelector(selectContinousMonitoringIsDirty);
   const submitMaskState = useSelector(selectContinuousMonitoringSubmitMaskState);
 
@@ -56,7 +53,7 @@ export default function ContinuousMonitoringEditor() {
   }, []);
 
   return (
-    <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
+    <>
       <NxPageTitle>
         <NxH1>Continuous Monitoring</NxH1>
         <NxPageTitle.Description>
@@ -64,7 +61,7 @@ export default function ContinuousMonitoringEditor() {
           can be configured per policy.
         </NxPageTitle.Description>
       </NxPageTitle>
-      {isMonitoringSupported ? (
+      <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
         <NxTile>
           <NxTile.Content>
             <NxStatefulForm
@@ -95,9 +92,7 @@ export default function ContinuousMonitoringEditor() {
             </NxStatefulForm>
           </NxTile.Content>
         </NxTile>
-      ) : (
-        <NxErrorAlert>Continuous monitoring is not supported by your license.</NxErrorAlert>
-      )}
-    </NxLoadWrapper>
+      </NxLoadWrapper>
+    </>
   );
 }

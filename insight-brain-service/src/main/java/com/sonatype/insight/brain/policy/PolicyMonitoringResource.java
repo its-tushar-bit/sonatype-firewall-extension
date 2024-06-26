@@ -31,9 +31,11 @@ import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import org.slf4j.Logger;
@@ -45,6 +47,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Timed
 @Path(PolicyMonitoringResource.RESOURCE_PATH)
+@ProductLicenseEnforcementPoint(LicensedFeature.POLICY_MONITORING)
 public class PolicyMonitoringResource
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyMonitoringResource.class);

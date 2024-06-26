@@ -15,6 +15,8 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyListDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyService;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -25,6 +27,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.POLICY_RESOURCE_PATH)
+@ProductLicenseEnforcementPoint(LicensedFeature.POLICY_MANAGEMENT)
 public class ApiPolicyResourceV2
 {
   private final ApiPolicyService apiPolicyService;

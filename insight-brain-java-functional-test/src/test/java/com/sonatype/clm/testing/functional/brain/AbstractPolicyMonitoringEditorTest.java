@@ -19,6 +19,7 @@ import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.Condition;
@@ -74,7 +75,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
 
   @Test
   public void testNotLicensed() {
-    setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
+    setFeatures(LicensedFeature.NOTIFICATIONS, LicensedFeature.POLICY_MANAGEMENT);
     assertNotLicensed(false);
   }
 

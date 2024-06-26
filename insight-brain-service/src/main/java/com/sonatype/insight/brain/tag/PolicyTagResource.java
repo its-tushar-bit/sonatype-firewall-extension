@@ -22,6 +22,8 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -33,6 +35,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PolicyTagResource.RESOURCE_PATH)
+@ProductLicenseEnforcementPoint(LicensedFeature.POLICY_MANAGEMENT)
 public class PolicyTagResource
 {
   public static final String RESOURCE_PATH = "rest/appliedTag/policy/{policyId}/{ownerType}/{ownerId}";

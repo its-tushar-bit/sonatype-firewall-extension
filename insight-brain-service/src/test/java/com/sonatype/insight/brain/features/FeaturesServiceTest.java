@@ -7,12 +7,12 @@ package com.sonatype.insight.brain.features;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
@@ -56,7 +56,7 @@ public class FeaturesServiceTest
   @Test
   public void testGetFeatures_WithVersionSpecificFeatures() {
     Set<NonLicensedFeature> features = EnumSet.of(NonLicensedFeature.POLICY, NonLicensedFeature.LABELS,
-        NonLicensedFeature.RELEASE_GRAPH, NonLicensedFeature.POLICY_VIOLATIONS, NonLicensedFeature.REEVALUATE_POLICY);
+        NonLicensedFeature.RELEASE_GRAPH, NonLicensedFeature.REEVALUATE_POLICY);
     when(productLicense.isValid()).thenReturn(true);
     assertThat(featuresService.getFeatures()).containsAll(features);
   }
@@ -180,5 +180,33 @@ public class FeaturesServiceTest
     when(productLicense.isValid()).thenReturn(true);
     assertThat(featuresService.getFeatures())
         .doesNotContain(SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS);
+  }
+
+  @Test
+  public void testGetFeatures_API_PAGE() {
+    when(productLicense.isValid()).thenReturn(true);
+
+    // Both LicensedFeature.API_PAGE and SystemConfigurationPropertyFeature.API_PAGE
+    SystemConfigurationPropertyFeature.API_PAGE.setEnabled(true);
+    when(productLicense.getFeatures()).thenReturn(Collections.singleton(LicensedFeature.API_PAGE));
+    assertThat(featuresService.getFeatures()).contains(LicensedFeature.API_PAGE);
+
+    // Only LicensedFeature.API_PAGE
+    SystemConfigurationPropertyFeature.API_PAGE.setEnabled(false);
+    when(productLicense.getFeatures()).thenReturn(Collections.singleton(LicensedFeature.API_PAGE));
+    assertThat(featuresService.getFeatures()).doesNotContain(LicensedFeature.API_PAGE,
+        SystemConfigurationPropertyFeature.API_PAGE);
+
+    // Only SystemConfigurationPropertyFeature.API_PAGE
+    SystemConfigurationPropertyFeature.API_PAGE.setEnabled(true);
+    when(productLicense.getFeatures()).thenReturn(Collections.emptySet());
+    assertThat(featuresService.getFeatures()).doesNotContain(LicensedFeature.API_PAGE,
+        SystemConfigurationPropertyFeature.API_PAGE);
+
+    // Neither LicensedFeature.API_PAGE or SystemConfigurationPropertyFeature.API_PAGE
+    SystemConfigurationPropertyFeature.API_PAGE.setEnabled(false);
+    when(productLicense.getFeatures()).thenReturn(Collections.emptySet());
+    assertThat(featuresService.getFeatures()).doesNotContain(LicensedFeature.API_PAGE,
+        SystemConfigurationPropertyFeature.API_PAGE);
   }
 }

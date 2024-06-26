@@ -14,10 +14,13 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,6 +31,7 @@ import io.swagger.v3.oas.annotations.Operation;
 @Named
 @Timed
 @Path(PublicApiPaths.POLICY_VIOLATION_WAIVER_PATH)
+@ProductLicenseEnforcementPoint(LicensedFeature.POLICY_WAIVERS)
 public class ApiPolicyViolationWaiverResource
 {
   private ApiPolicyWaiverService apiPolicyWaiverService;

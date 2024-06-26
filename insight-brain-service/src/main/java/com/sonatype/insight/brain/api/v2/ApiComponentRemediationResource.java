@@ -20,6 +20,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,6 +34,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 @Named
 @Timed
 @Path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2)
+@ProductLicenseEnforcementPoint(LicensedFeature.COMPONENT_EVALUATION)
 public class ApiComponentRemediationResource
 {
   private final ApiComponentRemediationService remediationService;

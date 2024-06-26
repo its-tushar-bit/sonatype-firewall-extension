@@ -24,13 +24,16 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.license.LicenseThreatGroupService.ApplicableLicenseThreatGroups;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
 @Named
 @Timed
 @Path(LicenseThreatGroupResource.RESOURCE_PATH)
+@ProductLicenseEnforcementPoint(LicensedFeature.POLICY_MANAGEMENT)
 public class LicenseThreatGroupResource
 {
   public static final String RESOURCE_PATH = "rest/licenseThreatGroup/{ownerType: application|organization}/{ownerId}";

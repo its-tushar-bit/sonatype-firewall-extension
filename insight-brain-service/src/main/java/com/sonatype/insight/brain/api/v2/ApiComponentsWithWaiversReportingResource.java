@@ -19,6 +19,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentWaiversDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentsWithWaiversReportingService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -29,6 +31,7 @@ import com.codahale.metrics.annotation.Timed;
 @Timed
 @Path(PublicApiPaths.REPORTS_RESOURCE_PATH_V2 + ApiComponentsWithWaiversReportingResource.PATH)
 @Consumes(MediaType.APPLICATION_JSON)
+@ProductLicenseEnforcementPoint(LicensedFeature.WAIVER_REPORTS)
 public class ApiComponentsWithWaiversReportingResource
 {
   public static final String PATH = "/components/waivers";

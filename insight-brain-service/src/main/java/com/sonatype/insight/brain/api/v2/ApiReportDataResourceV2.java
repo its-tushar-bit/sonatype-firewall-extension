@@ -28,7 +28,9 @@ import com.sonatype.insight.brain.api.v2.service.ApiReportViolationsDiffService;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -75,6 +77,7 @@ public class ApiReportDataResourceV2
    */
   @GET
   @Path(SCAN_PATH)
+  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_REPORTS)
   public Response getData(@PathParam("applicationPublicId") String applicationPublicId,
                           @PathParam("scanId") String scanId) throws Exception
   {
@@ -90,6 +93,7 @@ public class ApiReportDataResourceV2
   @Path(SCAN_PATH + "/" + RAW_DATA_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT)
+  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_REPORTS)
   public ApiReportRawDataDTOV2 getRawData(@PathParam("applicationPublicId") String applicationPublicId,
                                           @PathParam("scanId") String scanId) throws Exception
   {
@@ -106,6 +110,7 @@ public class ApiReportDataResourceV2
   @Path(SCAN_PATH + "/" + POLICY_DATA_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT)
+  @ProductLicenseEnforcementPoint(LicensedFeature.POLICY_VIOLATIONS)
   public ApiReportPolicyDataDTOV2 getPolicyViolations(@PathParam("applicationPublicId") String applicationPublicId,
                                                       @PathParam("scanId") String scanId) throws Exception
   {
@@ -117,6 +122,7 @@ public class ApiReportDataResourceV2
   @Path(SCAN_PATH + "/" + DEPENDENCY_TREE_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT)
+  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_REPORTS)
   public ApiDependencyTreeResponseDTO getDependencyTree(
       @PathParam("applicationPublicId") String applicationPublicId,
       @PathParam("scanId") String scanId) throws Exception
@@ -138,6 +144,7 @@ public class ApiReportDataResourceV2
   @GET
   @Path(VIOLATION_DIFF_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @ProductLicenseEnforcementPoint(LicensedFeature.POLICY_VIOLATIONS)
   public ApiPolicyViolationDiffDTO getPolicyViolationDiff(
       @PathParam("applicationPublicId") final String applicationPublicId,
       @QueryParam("fromCommit") final String fromCommit,

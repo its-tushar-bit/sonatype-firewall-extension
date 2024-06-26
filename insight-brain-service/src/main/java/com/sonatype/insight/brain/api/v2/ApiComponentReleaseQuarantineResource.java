@@ -19,6 +19,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentReleasedFromQuarantineD
 import com.sonatype.insight.brain.api.v2.service.ApiComponentReleaseQuarantineService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -28,6 +30,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.COMPONENT_QUARANTINE_RELEASE_PATH_V2)
+@ProductLicenseEnforcementPoint(LicensedFeature.FIREWALL)
 public class ApiComponentReleaseQuarantineResource
 {
   private final ApiComponentReleaseQuarantineService componentReleaseQuarantineServiceV2;

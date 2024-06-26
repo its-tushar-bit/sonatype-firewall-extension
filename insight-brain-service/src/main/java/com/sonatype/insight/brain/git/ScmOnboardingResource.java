@@ -26,6 +26,8 @@ import com.sonatype.insight.brain.git.dto.OnboardingOrganization;
 import com.sonatype.insight.brain.git.dto.SCMRepositories;
 import com.sonatype.insight.brain.git.dto.ValidationResponse;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.ImmutableMap;
@@ -38,6 +40,7 @@ import com.google.common.collect.ImmutableMap;
 @Named
 @Timed
 @Path(ScmOnboardingResource.RESOURCE_PATH)
+@ProductLicenseEnforcementPoint(LicensedFeature.SOURCE_CONTROL)
 public class ScmOnboardingResource
 {
   static final String RESOURCE_PATH = "rest/onboarding";

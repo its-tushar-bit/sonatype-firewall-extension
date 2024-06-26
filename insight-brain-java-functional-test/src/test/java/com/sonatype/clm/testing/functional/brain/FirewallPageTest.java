@@ -103,6 +103,9 @@ public class FirewallPageTest
     repositoryComponentDAO = lookup(RepositoryComponentDAO.class);
 
     setFeatures(
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.COMPONENT_EVALUATION,
+        LicensedFeature.REPOSITORY_REPORTS,
         LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
         LicensedFeature.RELEASE_INTEGRITY,
         LicensedFeature.DASHBOARD,

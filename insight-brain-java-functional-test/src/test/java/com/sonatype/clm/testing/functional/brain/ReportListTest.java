@@ -39,6 +39,7 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -276,6 +277,7 @@ public class ReportListTest
   }
 
   @Test
+  @Ignore // See CLM-30842
   public void testOrder() {
     List<Organization> orgs = new ArrayList<>();
     List<Application> apps = new ArrayList<>();

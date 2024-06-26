@@ -36,6 +36,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -88,7 +89,7 @@ public class TenantSecurityConfigurationServiceTest
   }
 
   @Test
-  public void shouldUpdateSamlConfiguration() {
+  public void shouldUpdateSamlConfigurationAndGrantAdminPermissions() {
     testAsNewTenant(tenant -> {
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
       when(roleDAO.getGlobalRoles()).thenReturn(globalRoles);
@@ -105,7 +106,7 @@ public class TenantSecurityConfigurationServiceTest
   }
 
   @Test
-  public void shouldThrowRuntimeException_whenTenantDoesntExist() {
+  public void updateSamlConfigurationAndGrantAdminPermissions_shouldThrowRuntimeException_whenTenantDoesntExist() {
     testAsNewTenant(tenant -> {
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
 
@@ -117,10 +118,86 @@ public class TenantSecurityConfigurationServiceTest
   }
 
   @Test
-  public void shouldThrowRuntimeException_whenUsingGlobalTenant() {
+  public void updateSamlConfigurationAndGrantAdminPermissions_shouldThrowRuntimeException_whenUsingGlobalTenant() {
     testAsGlobalTenant(tenant -> {
       assertThatThrownBy(
           () -> underTest.updateSamlConfigurationAndGrantAdminPermissions(securityConfiguration, tenant.tenantSlug))
+          .withFailMessage("Invalid tenant")
+          .isInstanceOf(BadRequestException.class);
+    });
+  }
+
+  @Test
+  public void shouldUpdateSamlConfiguration() {
+    testAsNewTenant(tenant -> {
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+
+      underTest.updateSamlConfiguration(securityConfiguration, tenant.tenantSlug);
+
+      verify(apiSamlConfigurationService).insertOrUpdateSamlConfigurationNoAuthz(IDENTITY_PROVIDER_XML,
+          securityConfiguration.getSamlConfiguration());
+      verify(roleDAO, never()).getGlobalRoles();
+      verify(membershipMappingService, never()).grantMembershipMappingsForGlobalContextNoAuthz(
+          roleToMembersCaptor.capture());
+    });
+  }
+
+  @Test
+  public void updateSamlConfiguration_shouldThrowRuntimeException_whenTenantDoesntExist() {
+    testAsNewTenant(tenant -> {
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
+
+      assertThatThrownBy(
+          () -> underTest.updateSamlConfiguration(securityConfiguration, tenant.tenantSlug))
+          .withFailMessage("Tenant doesn't exist")
+          .isInstanceOf(NotFoundException.class);
+    });
+  }
+
+  @Test
+  public void updateSamlConfiguration_shouldThrowRuntimeException_whenUsingGlobalTenant() {
+    testAsGlobalTenant(tenant -> {
+      assertThatThrownBy(
+          () -> underTest.updateSamlConfiguration(securityConfiguration, tenant.tenantSlug))
+          .withFailMessage("Invalid tenant")
+          .isInstanceOf(BadRequestException.class);
+    });
+  }
+
+  @Test
+  public void shouldGrantAdminPermissionsForAdmins() {
+    testAsNewTenant(tenant -> {
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(true);
+      when(roleDAO.getGlobalRoles()).thenReturn(globalRoles);
+
+      underTest.grantAdminPermissionForAdmins(securityConfiguration.getAdminEmails(), tenant.tenantSlug);
+
+      verify(roleDAO).getGlobalRoles();
+      verify(membershipMappingService).grantMembershipMappingsForGlobalContextNoAuthz(roleToMembersCaptor.capture());
+      verify(apiSamlConfigurationService, never()).insertOrUpdateSamlConfigurationNoAuthz(IDENTITY_PROVIDER_XML,
+          securityConfiguration.getSamlConfiguration());
+
+      assertRolesToMembersMappingIsTheExpected();
+    });
+  }
+
+  @Test
+  public void grantAdminPermissionsForAdmins_shouldThrowRuntimeException_whenTenantDoesntExist() {
+    testAsNewTenant(tenant -> {
+      when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
+
+      assertThatThrownBy(
+          () -> underTest.grantAdminPermissionForAdmins(securityConfiguration.getAdminEmails(), tenant.tenantSlug))
+          .withFailMessage("Tenant doesn't exist")
+          .isInstanceOf(NotFoundException.class);
+    });
+  }
+
+  @Test
+  public void grantAdminPermissionsForAdmins_shouldThrowRuntimeException_whenUsingGlobalTenant() {
+    testAsGlobalTenant(tenant -> {
+      assertThatThrownBy(
+          () -> underTest.grantAdminPermissionForAdmins(securityConfiguration.getAdminEmails(), tenant.tenantSlug))
           .withFailMessage("Invalid tenant")
           .isInstanceOf(BadRequestException.class);
     });

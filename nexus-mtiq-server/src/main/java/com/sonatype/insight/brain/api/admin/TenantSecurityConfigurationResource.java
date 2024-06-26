@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -25,6 +26,10 @@ import com.sonatype.insight.brain.audit.Audited;
 @Path(AdminApiPaths.ADMIN_TENANT_SECURITY_CONFIG_PATH)
 public class TenantSecurityConfigurationResource
 {
+  public static final String UPDATE_SAML_CONFIGURATION_PATH = "/saml";
+
+  public static final String GRANT_ADMIN_PERMISSIONS_PATH = "/users/admin";
+
   private final TenantSecurityConfigurationService tenantSecurityConfigurationService;
 
   @Inject
@@ -35,11 +40,33 @@ public class TenantSecurityConfigurationResource
   @PUT
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.UPDATE_TENANT_SECURITY)
-  public void updateSecurityConfiguration(
+  public void updateSamlConfigurationAndGrantAdminPermissions(
       SecurityConfigurationDTO securityConfiguration,
       @PathParam("tenantSlug") String tenantSlug)
   {
     tenantSecurityConfigurationService.updateSamlConfigurationAndGrantAdminPermissions(securityConfiguration,
         tenantSlug);
+  }
+
+  @PUT
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.UPDATE_TENANT_SECURITY)
+  @Path(UPDATE_SAML_CONFIGURATION_PATH)
+  public void updateSamlConfiguration(
+      SecurityConfigurationDTO securityConfiguration,
+      @PathParam("tenantSlug") String tenantSlug)
+  {
+    tenantSecurityConfigurationService.updateSamlConfiguration(securityConfiguration, tenantSlug);
+  }
+
+  @PUT
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.UPDATE_TENANT_SECURITY)
+  @Path(GRANT_ADMIN_PERMISSIONS_PATH)
+  public void grantAdminPermissionForAdmins(
+      List<String> adminEmails,
+      @PathParam("tenantSlug") String tenantSlug)
+  {
+    tenantSecurityConfigurationService.grantAdminPermissionForAdmins(adminEmails, tenantSlug);
   }
 }

@@ -16,11 +16,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TimeZone;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.git.PullRequestLineCommentDTO;
@@ -34,6 +36,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -44,10 +47,13 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.DiffPosition;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.testcontainers.shaded.com.google.common.collect.Lists;
 
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_MAVEN;
 import static com.sonatype.insight.brain.git.PullRequestCommentingService.MINIMUM_THREAT_LEVEL;
 import static com.sonatype.insight.brain.policy.evaluator.PullRequestDetailsBaseTest.CONVERT_URLS;
 import static com.sonatype.insight.brain.report.ReportTestUtils.createReportFile;
@@ -370,6 +376,238 @@ public class PullRequestFeedbackDetailsTest
   }
 
   @Test
+  public void testPullRequestFeedback_clearedDoNotShowAsFixedWhenAlsoAppearedByAnotherVersionOfSameComponent()
+      throws Exception
+  {
+    final GitRepositoryInfo githubGitRepositoryInfo = getGitRepositoryInfo();
+
+    final PolicyEvaluation baseBranchEvalEvaluation = tempEntity
+        .newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), TO_SCAN_ID);
+    baseBranchEvalEvaluation.setTime(
+        new GregorianCalendar(2020, Calendar.JUNE, 20, 9, 15, 32).getTime());
+
+    final PolicyEvaluation policyEvaluation = tempEntity
+        .newPolicyEvaluation(app.getId(), StageTypes.DEVELOP.getId(), TO_SCAN_ID);
+    policyEvaluation.setTime(
+        new GregorianCalendar(2020, Calendar.JUNE, 21, 9, 15, 32).getTime());
+
+    // ====
+
+    // component 1 has 2 violations, 1 of them appears only in cleared, meaning it was truly fixed by the pr
+    // the vulnerability underlying the second violation was also re-introduced by the new version of the component
+    // and so should not count as fixed
+    final ComponentIdentifier component1 = createComponentIdentifier(
+        "com.test",
+        "component-1",
+        "0.0.1",
+        null);
+    final ComponentIdentifier component1MinorVersionBump = component1.createAlternativeVersion("0.0.2");
+
+    // policy violation 1 only in cleared so actually shown as fixed
+    final PolicyViolation policyViolation1 = createPolicyViolation(
+        component1,
+        "component-1-hash",
+        app.getId(),
+        "build",
+        "policy-id-1",
+        "policy-name-1",
+        9,
+        getConstraintJson("policy-violation-1-constraint", "CVE-2024-1")
+    );
+
+    // policy violation 2, present against the new component version
+    final PolicyViolation policyViolation2 = createPolicyViolation(
+        component1,
+        "component-1-hash",
+        app.getId(),
+        "build",
+        "policy-id-2",
+        "policy-name-2",
+        7,
+        getConstraintJson("policy-violation-2-constraint", "CVE-2024-2")
+    );
+    final PolicyViolation policyViolation2AgainstNewVersion = createPolicyViolation(
+        component1MinorVersionBump, // component 1 at a new version
+        "component-1-version-bump-hash",
+        app.getId(),
+        "build",
+        "policy-id-2",
+        "policy-name-2",
+        7,
+        getConstraintJson("policy-violation-2-constraint", "CVE-2024-2")
+    );
+
+    final PolicyViolationDiff<PolicyViolation> evaluationDiff = createDiff(
+        Lists.newArrayList(policyViolation2AgainstNewVersion),
+        Lists.newArrayList(policyViolation1, policyViolation2)
+    );
+
+    // === When ===
+    final SourceControlComponentDetails sourceControlComponentDetails = createSourceControlComponentDetails(
+        Lists.newArrayList(
+            Pair.of("component-1-hash", component1),
+            Pair.of("component-1-version-bump-hash", component1MinorVersionBump)));
+
+    final PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(
+            sourceControlComponentDetails,
+            policyEvaluation,
+            baseBranchEvalEvaluation,
+            evaluationDiff,
+            new HashMap<>(),
+            Lists.newArrayList(),
+            githubGitRepositoryInfo,
+            pullRequestNumber,
+            app,
+            lookup(BaseUrl.class).getConfigured(),
+            false,
+            organizationDAO,
+            featuresService);
+
+    final Optional<String> contents = details.renderTemplateAndGetContents();
+
+    // === Then ===
+    final String expectedContent = readResource(
+        "testPullRequestFeedback_clearedDoNotShowAsFixedWhenAlsoAppearedByAnotherVersionOfSameComponent.md");
+    assertThat(contents).isNotEmpty();
+    assertThat(contents.get()).isEqualTo(expectedContent);
+  }
+
+  @Test
+  public void testPullRequestFeedback_appearedDoNotShowAsIntroducedWhenAlsoClearedFromAnotherVersionOfSameComponent()
+      throws Exception
+  {
+    // === Given ===
+    final GitRepositoryInfo githubGitRepositoryInfo = getGitRepositoryInfo();
+
+    final PolicyEvaluation baseBranchEvalEvaluation = tempEntity
+        .newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), TO_SCAN_ID);
+    baseBranchEvalEvaluation.setTime(
+        new GregorianCalendar(2020, Calendar.JUNE, 20, 9, 15, 32).getTime());
+
+    final PolicyEvaluation policyEvaluation = tempEntity
+        .newPolicyEvaluation(app.getId(), StageTypes.DEVELOP.getId(), TO_SCAN_ID);
+    policyEvaluation.setTime(
+        new GregorianCalendar(2020, Calendar.JUNE, 21, 9, 15, 32).getTime());
+
+    // component 1 has 2 violations one of which is represented in both appeared and cleared, the other is
+    // only in cleared --
+    // this means only 1 violation was truly fixed
+    // by represented I mean that a violation with:
+    // the same constraint json and the same component (without regard to violation)
+    final ComponentIdentifier component1 = createComponentIdentifier(
+        "com.test",
+        "component-1",
+        "0.0.1",
+        null);
+
+    // this one will get filtered out and not show in the summary comments as either fixed or introduced
+    final PolicyViolation policyViolation1 = createPolicyViolation(
+        component1,
+        "component-1-hash",
+        app.getId(),
+        "build",
+            "policy-id-1",
+        "policy-name-1",
+        9,
+        getConstraintJson("policy-violation-1-constraint", "CVE-2024-1")
+    );
+
+    // this one will show up as introduced
+    final PolicyViolation policyViolation2 = createPolicyViolation(
+        component1,
+        "component-1-hash",
+        app.getId(),
+        "build",
+        "policy-id-2",
+        "policy-name-2",
+        7,
+        getConstraintJson("policy-violation-2-constraint", "CVE-2024-2")
+    );
+
+    final ComponentIdentifier component1MinorVersionBump = component1.createAlternativeVersion("0.0.2");
+    final PolicyViolation policyViolation1AgainstNewVersion = createPolicyViolation(
+        component1MinorVersionBump, // came component at a new version
+        "component-1-hash-bump",
+        app.getId(),
+        "build",
+        "policy-id-1",
+        "policy-name-1",
+        9,
+        // same constraint json as policyViolation1
+        getConstraintJson("policy-violation-1-constraint", "CVE-2024-1")
+    );
+
+    // This component has 1 violation in appeared and that same 1 violation in cleared for bumped version of the
+    // component. The component should not show in the comment at all
+    final ComponentIdentifier component2 = createComponentIdentifier(
+        "com.test",
+        "component-2",
+        "0.0.1",
+        null);
+    final ComponentIdentifier component2MinorVersionBump = component2.createAlternativeVersion("0.0.2");
+
+    final PolicyViolation policyViolation3 = createPolicyViolation(
+        component2,
+        "component-2-hash",
+        app.getId(),
+        "build",
+        "policy-id-3",
+        "policy-name-3",
+        5,
+        getConstraintJson("policy-violation-3-constraint", "CVE-2024-3")
+    );
+
+    final PolicyViolation policyViolation3AgainstNewVersion = createPolicyViolation(
+        component2MinorVersionBump,
+        "component-2-bumped-hash",
+        app.getId(),
+        "build",
+        "policy-id-3",
+        "policy-name-3",
+        5,
+        getConstraintJson("policy-violation-3-constraint", "CVE-2024-3")
+    );
+
+    final PolicyViolationDiff<PolicyViolation> evaluationDiff = createDiff(
+        Lists.newArrayList(policyViolation1, policyViolation2, policyViolation3),
+        Lists.newArrayList(policyViolation1AgainstNewVersion, policyViolation3AgainstNewVersion)
+    );
+
+    // === When ===
+    final SourceControlComponentDetails sourceControlComponentDetails = createSourceControlComponentDetails(
+        Lists.newArrayList(
+            Pair.of("component-1-hash", component1),
+            Pair.of("component-1-hash-bump", component1MinorVersionBump),
+            Pair.of("component-2-hash", component2),
+            Pair.of("component-2-bumped-hash", component2MinorVersionBump)));
+
+    final PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(
+            sourceControlComponentDetails,
+            policyEvaluation,
+            baseBranchEvalEvaluation,
+            evaluationDiff,
+            new HashMap<>(),
+            Lists.newArrayList(),
+            githubGitRepositoryInfo,
+            pullRequestNumber,
+            app,
+            lookup(BaseUrl.class).getConfigured(),
+            false,
+            organizationDAO,
+            featuresService);
+
+    final Optional<String> contents = details.renderTemplateAndGetContents();
+
+    // === Then ===
+    final String expectedContent = readResource(
+        "PullRequestFeedback_clearedDoNotShowAsIntroducedWhenAlsoAddedToAnotherVersionOfSameComponent.md");
+    assertThat(contents).isNotEmpty();
+    assertThat(contents.get()).isEqualTo(expectedContent);
+  }
+
+  @Test
   public void testPullRequestFeedback_addedAndCleared() throws Exception {
     //setup test data
     setupTestData();
@@ -400,7 +638,15 @@ public class PullRequestFeedbackDetailsTest
   public void testPullRequestFeedback_addedAndCleared_noEmbeddedHtml() throws Exception {
     //setup test data
     setupTestData();
-    diff.getCleared().addAll(diff.getAppeared());
+
+    // Add all the same violations that appeared to cleared. To make sure they don't get filtered out when we
+    // de-duplicate cleared violations that appear to be the same as appeared violations for the same component,
+    // we tweak the component identifiers
+    final List<PolicyViolation> clearedViolations = diff.getAppeared().stream()
+        .map(policyViolation -> clonePolicyViolationWithModifiedComponentIdentifier(policyViolation, "-cleared"))
+        .collect(Collectors.toList());
+
+    diff.getCleared().addAll(clearedViolations);
 
     SourceControlComponentDetails sourceControlComponentDetails =
         sourceControlComponentLoader.getSourceControlComponentDetails(
@@ -845,9 +1091,7 @@ public class PullRequestFeedbackDetailsTest
     pullRequestLineComments.add(lineCommentDTO);
 
     //setup gitRepositoryInfo
-    githubGitRepositoryInfo =
-        new GitRepositoryInfo("https://github.com/sonatype/enhanced-commit-information", null, null, "token",
-            SourceControlProvider.GITHUB, "master", true, true, true, true, false, null);
+    githubGitRepositoryInfo = getGitRepositoryInfo();
 
     gitlabGitRepositoryInfo =
         new GitRepositoryInfo("https://gitlab.com/sonatype/enhanced-commit-information", null, null, "token",
@@ -878,5 +1122,168 @@ public class PullRequestFeedbackDetailsTest
       newComponentInfo = new ComponentInfo(componentInfo.getDisplayName(), false);
       componentDetails.getHashToComponentInfoMap().put("7a03e737484ca232d714", newComponentInfo);
     }
+  }
+
+  private PolicyViolation clonePolicyViolationWithModifiedComponentIdentifier(
+      final PolicyViolation originalPolicyViolation,
+      final String postfix
+  )
+  {
+    final ComponentIdentifier appearedComponent = originalPolicyViolation.getComponentIdentifier();
+
+    final PolicyViolation clearedPolicyViolation1 = new PolicyViolation();
+
+    if (appearedComponent != null) {
+      clearedPolicyViolation1.setComponentIdentifier(
+          createComponentIdentifier(
+              appearedComponent.getCoordinates().get("groupId"),
+              appearedComponent.getCoordinates().get("artifactId") + postfix,
+              appearedComponent.getCoordinates().get("version"),
+              appearedComponent.getCoordinates().get("classifier")));
+
+      clearedPolicyViolation1.setHash(originalPolicyViolation.getHash() + postfix);
+    }
+    else {
+      // this is not a component with an identifier, so it won't be affected by code to detect when different
+      // versions of the same component are pulling in the same vulnerabilities,
+      // just copy over the hash so it can be matched to a file in the test data via sourceControlComponentDetails
+      clearedPolicyViolation1.setHash(originalPolicyViolation.getHash());
+    }
+
+    clearedPolicyViolation1.setApplicationId(originalPolicyViolation.getApplicationId());
+    clearedPolicyViolation1.setStageTypeId(originalPolicyViolation.getStageTypeId());
+
+    clearedPolicyViolation1.setPolicyId(originalPolicyViolation.getPolicyId() + postfix);
+    clearedPolicyViolation1.setPolicyName(originalPolicyViolation.getPolicyName());
+    clearedPolicyViolation1.setThreatLevel(originalPolicyViolation.getThreatLevel());
+    clearedPolicyViolation1.setConstraintFactsJson(originalPolicyViolation.getConstraintFactsJson());
+
+    return clearedPolicyViolation1;
+  }
+
+  private ComponentIdentifier createComponentIdentifier(
+      final String groupId,
+      final String artifactId,
+      final String version,
+      final String classifier
+  )
+  {
+    return new ComponentIdentifier(FORMAT_MAVEN, new TreeMap<String, String>()
+    {
+      {
+        this.put("groupId", groupId);
+        this.put("artifactId", artifactId);
+        this.put("version", version);
+        this.put("classifier", classifier);
+      }
+    });
+  }
+
+  private PolicyViolation createPolicyViolation(
+      final ComponentIdentifier componentIdentifier,
+      final String hash,
+      final String applicationId,
+      final String stageTypeId,
+      final String policyId,
+      final String policyName,
+      final int threatLevel,
+      final String constraintFactJson
+  )
+  {
+    final PolicyViolation policyViolation = new PolicyViolation();
+
+    policyViolation.setComponentIdentifier(componentIdentifier);
+    policyViolation.setHash(hash);
+    policyViolation.setApplicationId(applicationId);
+    policyViolation.setStageTypeId(stageTypeId);
+    policyViolation.setPolicyId(policyId);
+    policyViolation.setPolicyName(policyName);
+    policyViolation.setThreatLevel(threatLevel);
+    policyViolation.setConstraintFactsJson(constraintFactJson);
+
+    return policyViolation;
+  }
+
+  private void addComponentToSourceControlComponentDetails(
+      final SourceControlComponentDetails sourceControlComponentDetails,
+      final String componentHash,
+      final ComponentIdentifier componentIdentifier
+  )
+  {
+    final ComponentInfo componentInfo =
+        new ComponentInfo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString(), true);
+
+    sourceControlComponentDetails.getHashToComponentInfoMap().put(
+        componentHash,
+        componentInfo);
+
+    sourceControlComponentDetails.getIdentifierToComponentInfoMap().put(componentIdentifier,
+        componentInfo);
+  }
+
+  private String getConstraintJson(
+      final String constraintName,
+      final String cve
+  )
+  {
+    final String str = "[" +
+        "{" +
+        "   \"constraintId\":\"feca8c475e2047839d8838823e7affef\"," +
+        "   \"constraintName\":\"%s\"," +
+        "   \"operatorName\":\"AND\"," +
+        "   \"conditionFacts\": [{" +
+        "      \"conditionTypeId\":\"SecurityVulnerabilitySeverity\"," +
+               "\"conditionIndex\":0," +
+               "\"summary\":\"Security Vulnerability Severity >= 0\"," +
+               "\"reason\":\"Found security vulnerability %s with severity >= 0 (severity = 3.5)\"," +
+               "\"reference\":{\"value\":\"%s\",\"type\":\"SECURITY_VULNERABILITY_REFID\"}," +
+               "\"triggerJson\":\"{}\"}]}]";
+
+    return String.format(str, constraintName, cve, cve);
+  }
+
+  private PolicyViolationDiff<PolicyViolation> createDiff(
+      final List<PolicyViolation> appeared,
+      final List<PolicyViolation> cleared
+  )
+  {
+    final PolicyViolationDiff<PolicyViolation> evaluationDiff = new PolicyViolationDiff<>();
+
+    evaluationDiff.getAppeared().addAll(appeared);
+
+    evaluationDiff.getCleared().addAll(cleared);
+
+    return evaluationDiff;
+  }
+
+  private SourceControlComponentDetails createSourceControlComponentDetails(
+      List<Pair<String, ComponentIdentifier>> hashesToComponent
+  )
+  {
+    final SourceControlComponentDetails sourceControlComponentDetails = new SourceControlComponentDetails();
+
+    hashesToComponent.forEach(pair -> addComponentToSourceControlComponentDetails(
+        sourceControlComponentDetails,
+        pair.getLeft(),
+        pair.getRight()
+    ));
+
+    return sourceControlComponentDetails;
+  }
+
+  private GitRepositoryInfo getGitRepositoryInfo() {
+    return new GitRepositoryInfo(
+        "https://github.com/sonatype/enhanced-commit-information",
+        null,
+        null,
+        "token",
+        SourceControlProvider.GITHUB,
+        "master",
+        true,
+        true,
+        true,
+        true,
+        false,
+        null);
   }
 }

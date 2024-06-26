@@ -49,8 +49,10 @@ https://sonatype.atlassian.net/browse/SDEV-154
 </#list>
 <#else>
   ### :smiley: All Clear! Nexus IQ didn't find any policy violations introduced by this <#if provider.name() == "GITLAB">MR<#else>PR</#if><#lt>
+  <#if hasNoViolationsInPR>
   Well done. The committed code does not violate any of your organization's Nexus IQ policies.<#lt>
 
+  </#if>
 </#if>
 <#if ( fixedPolicyViolationsCount > 0 )>
 ---

@@ -53,7 +53,7 @@
 ---
 ### :sunglasses: Nexus IQ determined that you fixed outstanding policy violations:
 
-:white_check_mark: **com.h2database : h2 : 1.4.190**
+:white_check_mark: **com.h2database : h2-cleared : 1.4.190**
 
 | **Threat (of 10)** | **Policy** | **Violation Details** |
 | --- | --- | --- |
@@ -62,7 +62,7 @@
 
 &#8192;
 
-:white_check_mark: **org.springframework.security : spring-security-web : 4.2.3.RELEASE**
+:white_check_mark: **org.springframework.security : spring-security-web-cleared : 4.2.3.RELEASE**
 
 | **Threat (of 10)** | **Policy** | **Violation Details** |
 | --- | --- | --- |

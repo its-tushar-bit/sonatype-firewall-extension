@@ -42,9 +42,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import freemarker.template.Template;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * Constructs a pull request comment given a policy violation diff
@@ -180,26 +183,77 @@ public class PullRequestFeedbackDetails
    * @return An optional variable containing the PR feedback contents
    */
   private String constructContents() throws IOException {
+    final List<PolicyViolation> introducedPolicyViolations = getIntroducedPolicyViolations();
+    final List<PolicyViolation> fixedPolicyViolations = getFixedPolicyViolations();
+
     //Policy violations grouped by component hash, any component not in the bom will not be considered
-    final Map<String, List<PolicyViolation>> componentPolicyViolationsMap = diff.hasAppeared() ?
-        getComponentPolicyViolationsMap(diff.getAppeared()) : Collections.emptyMap();
+    final Map<String, List<PolicyViolation>> componentPolicyViolationsMap = !introducedPolicyViolations.isEmpty() ?
+        getComponentPolicyViolationsMap(introducedPolicyViolations) : Collections.emptyMap();
+
     //Get a map containing the PR feedback for each of the components
     final List<Map<String, Object>> newComponentFeedbackList = getNewComponentFeedbackList(componentPolicyViolationsMap,
         remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, iqBaseUrl);
     newViolationsComponentCount = newComponentFeedbackList.size();
 
-    final Map<String, List<PolicyViolation>> fixedComponentPolicyViolationsMap = diff.hasCleared() ?
-        getComponentPolicyViolationsMap(diff.getCleared()) : Collections.emptyMap();
+    final Map<String, List<PolicyViolation>> fixedComponentPolicyViolationsMap = !fixedPolicyViolations.isEmpty() ?
+        getComponentPolicyViolationsMap(fixedPolicyViolations) : Collections.emptyMap();
     //Get a map containing the PR feedback for each of the components
     final List<Map<String, Object>> fixedComponentFeedbackList =
         getFixedComponentFeedbackList(fixedComponentPolicyViolationsMap, iqBaseUrl);
     clearedViolationsComponentCount = fixedComponentFeedbackList.size();
 
+    final boolean hasNoViolationsInPR = CollectionUtils.isEmpty(diff.getAppeared());
+
     //Get a map containing all model values to be used in the template
     final Map<String, Object> modelMap =
-        getModelMap(newComponentFeedbackList, fixedComponentFeedbackList, gitRepositoryInfo.provider, iqBaseUrl);
+        getModelMap(
+            newComponentFeedbackList,
+            fixedComponentFeedbackList,
+            gitRepositoryInfo.provider,
+            iqBaseUrl,
+            hasNoViolationsInPR);
 
     return TemplateUtils.render(getPolicyTemplate(), modelMap);
+  }
+
+  private List<PolicyViolation> getFixedPolicyViolations() {
+    // all violations that were cleared and are not in the new version of the component
+    return diff.getCleared()
+        .stream()
+        .filter(policyViolationA -> diff
+              .getAppeared()
+              .stream()
+              .noneMatch(policyViolationB -> policyViolationsTheSame(policyViolationA, policyViolationB))
+        )
+        .collect(toList());
+  }
+
+  private List<PolicyViolation> getIntroducedPolicyViolations() {
+    return diff.getAppeared()
+        .stream()
+        .filter(policyViolationA -> diff
+              .getCleared()
+              .stream()
+              .noneMatch(policyViolationB -> policyViolationsTheSame(policyViolationA, policyViolationB))
+        )
+        .collect(toList());
+  }
+
+  private boolean policyViolationsTheSame(PolicyViolation policyViolationA, PolicyViolation policyViolationB) {
+    if (policyViolationA.getComponentIdentifier() == null || policyViolationB.getComponentIdentifier() == null) {
+      return false;
+    }
+
+    final ComponentIdentifier versionlessIdentifierA = policyViolationA
+        .getComponentIdentifier()
+        .createAlternativeVersion(null);
+    final ComponentIdentifier versionlessIdentifierB = policyViolationB
+        .getComponentIdentifier()
+        .createAlternativeVersion(null);
+
+    return
+        versionlessIdentifierA.equals(versionlessIdentifierB) &&
+            policyViolationA.getConstraintFactsJson().equals(policyViolationB.getConstraintFactsJson());
   }
 
   private Template getPolicyTemplate() {
@@ -245,7 +299,7 @@ public class PullRequestFeedbackDetails
             .build())
         .sorted(
             (o1, o2) -> Integer.compare((Integer) o2.get("highestThreatLevel"), (Integer) o1.get("highestThreatLevel")))
-        .collect(Collectors.toList());
+        .collect(toList());
   }
 
   /**
@@ -309,7 +363,7 @@ public class PullRequestFeedbackDetails
         })
         .sorted(
             (o1, o2) -> Integer.compare((Integer) o2.get("highestThreatLevel"), (Integer) o1.get("highestThreatLevel")))
-        .collect(Collectors.toList());
+        .collect(toList());
   }
 
   private static String getLineCommentLink(
@@ -393,7 +447,8 @@ public class PullRequestFeedbackDetails
       final List<Map<String, Object>> newComponentFeedbackList,
       final List<Map<String, Object>> fixedComponentFeedbackList,
       final SourceControlProvider provider,
-      final String baseUrl)
+      final String baseUrl,
+      final boolean hasNoViolationsInPR)
   {
     return ImmutableMap.<String, Object>builder()
         .put("applicationName", app.getName())
@@ -424,6 +479,7 @@ public class PullRequestFeedbackDetails
         .put("threatImageArray", THREAT_IMAGE_ARRAY)
         .put("provider", provider)
         .put("scmChangesEnabled", scmImprovementsEnabled)
+        .put("hasNoViolationsInPR", hasNoViolationsInPR)
         .build();
   }
 

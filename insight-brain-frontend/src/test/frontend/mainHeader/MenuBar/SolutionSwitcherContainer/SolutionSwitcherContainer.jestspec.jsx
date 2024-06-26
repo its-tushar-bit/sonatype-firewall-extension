@@ -68,6 +68,10 @@ describe('SolutionSwitcher', function () {
         id: 'lifecycle',
         url: 'lifecyclelink',
       },
+      {
+        id: 'developer',
+        url: 'developerlink',
+      },
     ];
 
     axiosMock.onGet(getLicensedSolutionsUrl()).reply(200, mockResponse);
@@ -84,10 +88,22 @@ describe('SolutionSwitcher', function () {
     expect(lifecycle).toHaveAttribute('href', 'lifecyclelink');
     const firewall = within(mySonatypeSection).getByRole('link', { name: 'Repository Firewall' });
     expect(firewall).toHaveAttribute('href', 'firewalllink');
+    const developer = within(mySonatypeSection).getByRole('link', { name: 'Developer' });
+    expect(developer).toHaveAttribute('href', 'developerlink');
 
     const exploreSection = screen.getByRole('region', { name: 'Explore' });
     within(exploreSection).getByText('Explore');
     within(exploreSection).getByRole('link', { name: 'Nexus Repository Manager' });
     within(exploreSection).getByRole('link', { name: 'SBOM Manager' });
+  });
+
+  it('it should not render developer under "Explore" even if user has no licensed solutions', () => {
+    axiosMock.onGet(getLicensedSolutionsUrl()).reply(200, []);
+    const wrapper = renderComponent();
+    const SolutionSwitcherComponent = wrapper.getByRole('button', { name: 'solution switcher' });
+    fireEvent.click(SolutionSwitcherComponent);
+
+    const exploreSection = screen.getByRole('region', { name: 'Explore' });
+    expect(within(exploreSection).queryByRole('link', { name: 'Developer' })).not.toBeInTheDocument();
   });
 });

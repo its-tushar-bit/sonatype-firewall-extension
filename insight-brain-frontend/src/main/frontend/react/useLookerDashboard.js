@@ -29,7 +29,7 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard') {
 
   const acquireEmbedSession = async () =>
     axios
-      .get(getEnterpriseReportingAcquireEmbedSessionUrl(selectedDashboard.dashboardId))
+      .get(getEnterpriseReportingAcquireEmbedSessionUrl(selectedDashboard.dashboardId, window.location.origin))
       .then(prop('data'))
       .then((data) => {
         tokens.current = data;

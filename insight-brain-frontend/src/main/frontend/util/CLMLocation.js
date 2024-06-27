@@ -39,8 +39,10 @@ export const getEnterpriseReportingBaseUrl = () => uriTemplate`/rest/enterpriseR
 
 export const getEnterpriseReportingDashboardsUrl = () => uriTemplate`/rest/enterpriseReporting/dashboards`;
 
-export const getEnterpriseReportingAcquireEmbedSessionUrl = (dashboardId) =>
-  uriTemplate`/rest/enterpriseReporting/acquireEmbedSession?dashboardId=${dashboardId}`;
+export const getEnterpriseReportingAcquireEmbedSessionUrl = (dashboardId, embedDomain) =>
+  uriTemplate`/rest/enterpriseReporting/acquireEmbedSession?dashboardId=${dashboardId}&embedDomain=${encodeURIComponent(
+    embedDomain
+  )}`;
 
 export const getEnterpriseReportingGenerateEmbedTokensUrl = () =>
   uriTemplate`/rest/enterpriseReporting/generateEmbedTokens`;

@@ -27,18 +27,20 @@ public class EnterpriseReportingServiceAuthzTest
   final String clientUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
       "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
+  private final String embedDomain = "http%3A%2F%2Flocalhost%3A8070";
+
   @Inject
   private EnterpriseReportingService enterpriseReportingService;
 
   @Test(expected = UnauthenticatedException.class)
   public void testAcquireEmbedSession_UnAuthenticated() {
-    enterpriseReportingService.acquireEmbedSession("rolling-recap", "http://localhost:8080", clientUserAgent);
+    enterpriseReportingService.acquireEmbedSession("rolling-recap", embedDomain, clientUserAgent);
   }
 
   @Test(expected = BadRequestException.class)
   public void testAcquireEmbedSession_UnAuthorized() {
     login();
-    enterpriseReportingService.acquireEmbedSession(null, "http://localhost:8080", clientUserAgent);
+    enterpriseReportingService.acquireEmbedSession(null, embedDomain, clientUserAgent);
   }
 
   /**

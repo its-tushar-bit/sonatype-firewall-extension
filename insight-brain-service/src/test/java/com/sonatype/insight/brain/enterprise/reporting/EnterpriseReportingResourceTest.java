@@ -84,8 +84,11 @@ public class EnterpriseReportingResourceTest
             "sessionTokenResponse", 600);
     hdsMockServer.respondWith(expectedResponse).atUri("rest/enterpriseReporting/acquireEmbedSession");
 
+    String encodedEmbedDomain = "http%3A%2F%2Flocalhost%3A8070";
+    String embedDomain = "http://localhost:8070";
     HttpResponse response =
         restRequest().path(EnterpriseReportingResource.ACQUIRE_EMBED_SESSION).query("dashboardId", "dashboardIdParam")
+            .query("embedDomain", encodedEmbedDomain)
             .get();
     assertResponseStatus(200, response);
     EmbedCookielessSessionAcquire embedSessionResponse =
@@ -104,8 +107,7 @@ public class EnterpriseReportingResourceTest
     // Verify that the domain sent to HDS was truncated to exclude the final separator
     String requestBody = hdsMockServer.getCapturedRequestBody("rest/enterpriseReporting/acquireEmbedSession");
     SSOEmbedUrlRequest requestSentToHds = JsonUtils.parse(requestBody, new TypeReference<SSOEmbedUrlRequest>() { });
-    assertThat(requestSentToHds.embedDomain).doesNotEndWith("/");
-    assertThat(requestSentToHds.embedDomain + "/").isEqualTo(getRestBaseUrl());
+    assertThat(requestSentToHds.embedDomain).isEqualTo(embedDomain);
   }
 
   @Test

@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.enterprise.reporting;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -184,7 +186,7 @@ public class EnterpriseReportingService
 
   public EmbedCookielessSessionAcquire acquireEmbedSession(
       String dashboardId,
-      String hostWithProtocol,
+      String encodedEmbedDomain,
       String clientUserAgent)
   {
     AuditData.get().setLookerDashboard(dashboardId);
@@ -192,7 +194,9 @@ public class EnterpriseReportingService
     HttpEntity entity;
     try {
       entity = new StringEntity(
-          JsonUtils.toJson(createEmbedRequest(dashboardId, hostWithProtocol)), ContentType.APPLICATION_JSON);
+          JsonUtils.toJson(createEmbedRequest(dashboardId,
+              URLDecoder.decode(encodedEmbedDomain, StandardCharsets.UTF_8.name()))),
+          ContentType.APPLICATION_JSON);
     }
     catch (IOException e) {
       throw new BadRequestException(e);

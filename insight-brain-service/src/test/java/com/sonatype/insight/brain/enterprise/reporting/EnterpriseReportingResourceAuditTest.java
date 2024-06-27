@@ -36,8 +36,10 @@ public class EnterpriseReportingResourceAuditTest
         new EmbedCookielessSessionAcquire("authTokenResponse", 300, "navTokenResponse", 400, "apiTokenResponse", 500,
             "sessionTokenResponse", 600);
     hdsMockServer.respondWith(expectedResponse).atUri("rest/enterpriseReporting/acquireEmbedSession");
+    String encodedEmbedDomain = "http%3A%2F%2Flocalhost%3A8070";
 
     restRequest().path(EnterpriseReportingResource.ACQUIRE_EMBED_SESSION).query("dashboardId", "dashboardIdParam")
+        .query("embedDomain",encodedEmbedDomain)
         .get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_INTEGRATED_ENTERPRISE_REPORTING_DASHBOARD, null);

@@ -54,8 +54,8 @@ import org.quartz.JobExecutionContext;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_CURRENT_VERSION_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH;
 import static com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingService.ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -73,6 +73,8 @@ import static org.mockito.Mockito.when;
 public class EnterpriseReportingServiceTest
     extends AbstractComponentTest
 {
+  private final String embedDomain = "http%3A%2F%2Flocalhost%3A8070";
+
   @Mock
   private HdsClient mockHdsClient;
 
@@ -545,7 +547,7 @@ public class EnterpriseReportingServiceTest
         expectedResponse);
 
     EmbedCookielessSessionAcquire sessionAcquireResult =
-        enterpriseReportingService.acquireEmbedSession("dashboardId", "http://sonatype.sonatype.sonatype.com",
+        enterpriseReportingService.acquireEmbedSession("dashboardId", embedDomain,
             "Mozilla/:::::");
     assertThat(sessionAcquireResult).isNotNull();
 
@@ -562,7 +564,7 @@ public class EnterpriseReportingServiceTest
   @Test
   public void testAcquireEmbedSession_BadRequest_missingParameters() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
-            enterpriseReportingService.acquireEmbedSession(null, "http://sonatype.sonatype.sonatype.com",
+            enterpriseReportingService.acquireEmbedSession(null, embedDomain,
                 "Mozilla/:::::"))
         .withMessage("Dashboard is null or empty");
   }

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -665,6 +666,42 @@ public class MembershipMappingServiceTest
     assertThat(actual).isNotNull();
     assertThat(actual).containsExactlyInAnyOrder("Add", "Change", "Claim", "Edit", "Evaluate", "Manage",
         "Review","View", "Waive");
+  }
+
+  @Test
+  public void testGrantRoleMembershipsForNonGlobalContextNoAuthz_NewMemberships() throws InterruptedException,
+                                                                                         SQLException
+  {
+    handler = new TestEventHandler<>(new CountDownLatch(1), RoleEvent.class);
+    eventBus.register(handler);
+
+    String username1 = tempEntity.newUser("a-user-1").getUsername();
+    String username2 = tempEntity.newUser("a-user-2").getUsername();
+    String username3 = tempEntity.newUser("a-user-3").getUsername();
+
+    Set<String> usernames = new HashSet<>();
+    usernames.add(username1);
+    usernames.add(username2);
+    usernames.add(username3);
+    String applicationId = tempEntity.newApplicationWithParent().getId();
+
+    membershipMappingService.grantRoleMembershipsForNonGlobalContextNoAuthz(OwnerType.APPLICATION, applicationId,
+        Role.DEVELOPER_ROLE_ID, MemberType.USER, usernames);
+
+    List<MembershipMapping> membershipMappings = membershipMappingDAO
+        .getByContextIdAndRoleId(applicationId, Role.DEVELOPER_ROLE_ID);
+
+    assertThat(membershipMappings).hasSize(3);
+    assertThat(membershipMappings.stream().map(MembershipMapping::getMemberName))
+        .containsExactlyInAnyOrder(username1, username2, username3);
+
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(CREATED);
+
+    List<Member> members = handler.getEvent().roleIdToMemberMap.entrySet().iterator().next().getValue();
+    assertThat(members.stream().map(Member::getInternalName))
+        .containsExactlyInAnyOrder(username1, username2, username3);
+    assertThat(members.get(0).getType()).isEqualTo(MemberType.USER);
   }
 
   private void assertGlobalPermisionsAreGranted(final TestEventHandler<RoleEvent> handler, final String username)

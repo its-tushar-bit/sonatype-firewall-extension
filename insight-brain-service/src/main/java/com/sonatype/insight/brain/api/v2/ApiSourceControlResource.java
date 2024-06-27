@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.git.ScmUserMatchingService;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
@@ -48,11 +50,19 @@ public class ApiSourceControlResource
   /* paths are package private for use in tests */
   static final String BY_OWNER = OWNER_TYPE + "/" + OWNER_ID;
 
+  static final String AUTOMATIC_ROLE_ASSIGNMENT_PATH = "/automaticRoleAssignment/{publicId}";
+
   private final ApiSourceControlService sourceControlService;
 
+  private final ScmUserMatchingService scmUserMatchingService;
+
   @Inject
-  public ApiSourceControlResource(final ApiSourceControlService apiSourceControlService) {
+  public ApiSourceControlResource(
+      final ApiSourceControlService apiSourceControlService,
+      final ScmUserMatchingService scmUserMatchingService)
+  {
     this.sourceControlService = apiSourceControlService;
+    this.scmUserMatchingService = scmUserMatchingService;
   }
 
   @GET
@@ -118,5 +128,15 @@ public class ApiSourceControlResource
   {
     return sourceControlService.addOrUpdateSourceControl(publicId,
         repositoryUrl, apiSourceControlRepoUserDTO);
+  }
+
+  @POST
+  @Path(AUTOMATIC_ROLE_ASSIGNMENT_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.GRANT_ROLE_MEMBERSHIP)
+  public Set<String> automaticRoleAssignment(
+      @PathParam("publicId") String publicId)
+  {
+    return scmUserMatchingService.automaticRoleAssignment(publicId);
   }
 }

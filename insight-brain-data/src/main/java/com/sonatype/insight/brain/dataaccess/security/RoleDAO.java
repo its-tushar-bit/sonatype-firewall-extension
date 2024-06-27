@@ -43,6 +43,8 @@ public class RoleDAO
 
   private final PolicyDAO policyDAO;
 
+  public static final String DEVELOPER = "Developer";
+
   @Inject
   public RoleDAO(
       final OperationalDataStore operationalDataStore,

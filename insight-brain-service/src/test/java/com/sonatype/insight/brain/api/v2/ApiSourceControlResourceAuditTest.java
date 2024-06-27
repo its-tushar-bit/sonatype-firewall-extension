@@ -5,25 +5,44 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlAdapter;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.api.GitApiClient;
 
+import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.PublicApiPaths.SOURCE_CONTROL_PATH_V2;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.model.security.Role.DEVELOPER_ROLE_ID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ApiSourceControlResourceAuditTest
     extends AbstractAuditTest
@@ -32,11 +51,21 @@ public class ApiSourceControlResourceAuditTest
 
   private Application app;
 
+  private RoleDAO roleDAO;
+
+  @Override
+  public void configure(final Binder binder) {
+    binder.bind(GitClientFactory.class).toInstance(mock(GitClientFactory.class));
+    binder.bind(SourceControlUtils.class).toInstance(mock(SourceControlUtils.class));
+    super.configure(binder);
+  }
+
   @Before
   public void setup() {
+    roleDAO = lookup(RoleDAO.class);
     automaticSourceControlConfigurationDAO = lookup(AutomaticSourceControlConfigurationDAO.class);
     app = tempEntity.newApplicationWithParent();
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, "pass", SourceControlProvider.GITHUB);
   }
 
   @Test
@@ -118,5 +147,74 @@ public class ApiSourceControlResourceAuditTest
     List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.AUTO_CREATE_SOURCE_CONTROL, 1, null);
     auditDTO = auditDTOs.get(0);
     assertCustomData(auditDTO, "repositoryUrl", repositoryUrl);
+  }
+
+  /*
+   * TODO this only cover one user test case CLM-30465
+   * MembershipMappingService.grantRoleMembership method is only able to register on the audit event the
+   * last user on the list this can be fixed in the optimize bulk insert ticket
+   */
+  @Test
+  public void testAutomaticRoleAssignment() throws Exception {
+    tempEntity.newSourceControl(app.getId(), ApiSourceControlResourceTest.VALID_URL);
+    tempEntity.newUser("myuser");
+    tempEntity.newUser("othermyuser");
+    tempEntity.newUser("anothermyuser");
+
+    Set<String> githubUsers = new HashSet<>();
+    githubUsers.add("myuser");
+    githubUsers.add("othermyuser");
+    githubUsers.add("anothermyuser");
+    githubUsers.add("unknownuser");
+
+    mockGithubClient(githubUsers);
+
+    HttpResponse response = roleAssignmentRestRequest().parameter(app.getPublicId()).post();
+    assertResponseStatus(200, response);
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.GRANT_ROLE_MEMBERSHIP, null);
+    assertRoleMembershipData(auditDTO, DEVELOPER_ROLE_ID, Arrays.asList("myuser", "othermyuser", "anothermyuser"));
+  }
+
+  @Test
+  public void testAutomaticRoleAssignment_Unauthorized() throws Exception {
+    HttpResponse response = roleAssignmentRestRequest().with(unauthorizedUser()).parameter(app.getPublicId()).post();
+    assertResponseStatus(403, response);
+
+    assertAuditLog(AuditEvent.GRANT_ROLE_MEMBERSHIP, "unauthorized");
+  }
+
+  private void mockGithubClient(Set<String> githubUsers) throws IOException {
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo();
+    when(getCLMServer().getInstance(SourceControlUtils.class)
+        .getGitRepositoryInfoForApplication(app.getId())).thenReturn(gitRepositoryInfo);
+    GitApiClient mockClient = mock(GitApiClient.class);
+    when(getCLMServer().getInstance(GitClientFactory.class).createApiClient(gitRepositoryInfo)).thenReturn(mockClient);
+    when(mockClient.getRepositoryContributorsUsernames()).thenReturn(githubUsers);
+  }
+
+  protected HttpRequest roleAssignmentRestRequest() {
+    return super.restRequest().path(PublicApiPaths.SOURCE_CONTROL_PATH_V2)
+        .path(ApiSourceControlResource.AUTOMATIC_ROLE_ASSIGNMENT_PATH);
+  }
+
+  private GitRepositoryInfo getGitRepositoryInfo() {
+    return new GitRepositoryInfo(ApiSourceControlResourceTest.VALID_URL, null, "user", "pass",
+        SourceControlProvider.GITHUB, "main", true, true, true, true, false, null);
+  }
+
+  protected void assertRoleMembershipData(AuditDTO auditDTO, String roleId, List<String> members) {
+    assertRoleData(auditDTO, roleId);
+    assertThat(auditDTO.data).containsKey("roleMembers");
+    assertThat(auditDTO.data.get("roleMembers")).isInstanceOf(List.class);
+    List<String> roleMembers = ((List<LinkedHashMap<String, String>>) auditDTO.data.get("roleMembers"))
+        .stream().map(username -> username.get("username")).collect(Collectors.toList());
+    assertThat(roleMembers).containsExactlyInAnyOrderElementsOf(members);
+  }
+
+  private void assertRoleData(final AuditDTO auditDTO, final String roleId) {
+    Role role = roleDAO.getByIdNotNull(roleId);
+    assertCustomData(auditDTO, "roleId", role.getId());
+    assertCustomData(auditDTO, "roleName", role.getName());
   }
 }

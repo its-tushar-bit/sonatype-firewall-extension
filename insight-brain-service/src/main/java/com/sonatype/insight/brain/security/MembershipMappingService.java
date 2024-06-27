@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -155,6 +156,39 @@ public class MembershipMappingService
     roleMemberMappingList.memberMappings = roleMemberMappingList.memberMappings.stream()
         .filter(dto -> !dto.members.isEmpty()).collect(Collectors.toList());
     return roleMemberMappingList;
+  }
+
+  public void grantRoleMembershipsForNonGlobalContextNoAuthz(
+      final OwnerType ownerType,
+      final String internalOwnerId,
+      final String roleId,
+      final MemberType memberType,
+      final Set<String> memberNames) throws SQLException
+  {
+    validateContextId(ownerType, internalOwnerId);
+
+    Map<String, List<Member>> roleToMembers = new HashMap<>();
+    List<Member> members = new ArrayList<>();
+    List<MembershipMapping> membershipMappings = new ArrayList<>();
+
+    for (String memberName : memberNames) {
+      Member member = new Member();
+      member.setInternalName(memberName);
+      member.setType(memberType);
+      members.add(member);
+
+      membershipMappings.add(new MembershipMapping(internalOwnerId, roleId, memberName, memberType));
+    }
+
+    membershipMappingDAO.insertAll(membershipMappings);
+
+    Role role = validateRole(ownerType, roleId);
+
+    AuditData auditData = AuditData.get();
+    auditRoleMemberData(auditData, role, members);
+
+    roleToMembers.put(roleId, members);
+    managementEventService.postEvent(EventAction.CREATED, roleToMembers, internalOwnerId);
   }
 
   /**
@@ -487,6 +521,12 @@ public class MembershipMappingService
     auditData.setData("roleId", role.getId());
     auditData.setData("roleName", role.getName());
     auditData.setData("roleMember", MemberDTO.transcribe(member));
+  }
+
+  private void auditRoleMemberData(AuditData auditData, Role role, List<Member> members) {
+    auditData.setData("roleId", role.getId());
+    auditData.setData("roleName", role.getName());
+    auditData.setData("roleMembers", MemberDTO.transcribe(members));
   }
 
   public void grantMembershipMappingsForGlobalContextNoAuthz(Map<String, List<Member>> roleToMembers) {

@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +18,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.db.IdUtil;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -29,9 +33,12 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 public class MembershipMappingDAO
     extends AbstractOperationalSqlDAO<MembershipMapping>
 {
+  private final OperationalDataStore operationalDataStore;
+
   @Inject
   public MembershipMappingDAO(OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
+    this.operationalDataStore = operationalDataStore;
   }
 
   /**
@@ -175,6 +182,35 @@ public class MembershipMappingDAO
   @Override
   public void update(TransactionContext tx, MembershipMapping entity) {
     throw new UnsupportedOperationException("Use setMembershipMappingsForContextAndRole() instead");
+  }
+
+  public void insertAll(final List<MembershipMapping> membershipMappings) throws SQLException {
+    if (null == membershipMappings || membershipMappings.isEmpty()) {
+      return;
+    }
+    try (Connection connection = operationalDataStore.getDataSourceForLocks().getConnection()) {
+      String databaseSchema = getDatabaseSchema();
+      String h2Query = "MERGE INTO " + databaseSchema + ".membership_mapping" +
+          " (membership_mapping_id, context_id, role_id, member_name, member_type)" +
+          " KEY (context_id, role_id, member_name, member_type)" +
+          " VALUES (?, ?, ?, ?, ?);";
+      String postgresQuery = "INSERT INTO " + databaseSchema + ".membership_mapping" +
+          " (membership_mapping_id, context_id, role_id, member_name, member_type)" +
+          " VALUES (?, ?, ?, ?, ?)" +
+          " ON CONFLICT (context_id, role_id, member_name, member_type) DO NOTHING;";
+      PreparedStatement statement = connection.prepareStatement(isDatabasePostgresql() ? postgresQuery : h2Query);
+
+      for (MembershipMapping membershipMapping : membershipMappings) {
+        statement.setString(1, IdUtil.newUUID());
+        statement.setString(2, membershipMapping.getContextId());
+        statement.setString(3, membershipMapping.getRoleId());
+        statement.setString(4, membershipMapping.getMemberName());
+        statement.setString(5, membershipMapping.getMemberType().toString());
+        statement.addBatch();
+      }
+
+      statement.executeBatch();
+    }
   }
 
   /**

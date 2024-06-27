@@ -42,6 +42,13 @@
                 <plugin groupId="org.apache.openjpa" artifactId="openjpa-maven-plugin"/>
                 <plugin groupId="org.apache.maven.plugins" artifactId="maven-dependency-plugin"/>
             </plugins>
+            <goalsLists>
+                <goalsList artifactId="maven-install-plugin">
+                    <goals>
+                        <goal>install</goal>
+                    </goals>
+                </goalsList>
+            </goalsLists>
         </runAlways>
         <reconcile>
             <plugins>

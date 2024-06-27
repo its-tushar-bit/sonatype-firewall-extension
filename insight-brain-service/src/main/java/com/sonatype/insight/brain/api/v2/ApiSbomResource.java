@@ -214,6 +214,9 @@ public class ApiSbomResource
       @Parameter(description = "If provided, filter components by the given dependency types")
       @QueryParam("dependencyTypes") Set<ThirdPartyDependencyType> dependencyTypes,
 
+      @Parameter(description = "If provided, filter components by the component name")
+      @QueryParam("componentName") String componentName,
+
       @Parameter(description = "Criteria to sort the results. default = VULNERABILITIES")
       @DefaultValue("VULNERABILITIES") @QueryParam("sortBy") SbomComponentSortableField sortBy,
 
@@ -226,8 +229,8 @@ public class ApiSbomResource
       @Parameter(description = "Number of items to return by page. default = 50")
       @DefaultValue("50") @QueryParam("pageSize") int pageSize)
   {
-    return apiSbomService.getSbomComponents(applicationId, version, vulnerabilityThreatLevels, dependencyTypes, sortBy,
-        asc, pageSize, page);
+    return apiSbomService.getSbomComponents(applicationId, version, vulnerabilityThreatLevels, dependencyTypes,
+        componentName, sortBy, asc, pageSize, page);
   }
 
   @Operation(summary = "Gets a list of active sbom versions by application id",

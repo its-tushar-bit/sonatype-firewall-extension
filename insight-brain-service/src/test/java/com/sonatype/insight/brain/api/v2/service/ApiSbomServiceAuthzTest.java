@@ -129,14 +129,14 @@ public class ApiSbomServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetSbomComponents_Unauthenticated() {
-    apiSbomService.getSbomComponents("test-app", "test-version", null, null, null, true, 3, 1);
+    apiSbomService.getSbomComponents("test-app", "test-version", null, null, null, null, true, 3, 1);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetSbomComponents_Unauthorized() {
     login();
     Application application = tempEntity.newApplicationWithParent();
-    apiSbomService.getSbomComponents(application.getId(), "test-version", null, null, null, true, 3, 1);
+    apiSbomService.getSbomComponents(application.getId(), "test-version", null, null, null, null, true, 3, 1);
   }
 
   @Test
@@ -149,7 +149,8 @@ public class ApiSbomServiceAuthzTest
         .build();
 
     grantReadPermission(application.getId());
-    apiSbomService.getSbomComponents(application.getId(), "test-version", null, null, null, true, 3, 1);
+    apiSbomService.getSbomComponents(application.getId(), "test-version", null, null, null,
+        null, true, 3, 1);
   }
 
   @Test(expected = UnauthenticatedException.class)

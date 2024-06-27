@@ -5,10 +5,14 @@
  */
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,6 +30,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.SbomDependencyTypeDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.InternalServerException;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -173,6 +178,7 @@ public class ThirdPartyFileCoordinateDAO
       String thirdPartyFileId,
       Set<CvssV3Severity> vulnerabilityThreatLevels,
       Set<ThirdPartyDependencyType> dependencyTypes,
+      String componentName,
       SbomComponentSortableField sortBy,
       boolean asc,
       int pageSize,
@@ -207,8 +213,11 @@ public class ThirdPartyFileCoordinateDAO
         "    ON lic.file_coordinate_id = fc.file_coordinate_id" + //
         "  LEFT JOIN " + getDatabaseSchema() + ".vulnerability_exploitability ve" + //
         "    ON cs.coordinate_security_id = ve.coordinate_security_id" + //
-        " WHERE fc.third_party_file_id = ?10" + //
-        generateHavingByDependencyTypes(dependencyTypes, dependencyTypesParams, 11) + //
+        " WHERE fc.third_party_file_id = ?10";
+    if (componentName != null) {
+      sQuery += applyComponentNameFilter(componentName, 11);
+    }
+    sQuery += generateHavingByDependencyTypes(dependencyTypes, dependencyTypesParams, 13) + //
         " GROUP BY fc.hash, fc.package_url, fc.name, fc.version, licenses_json ,fc.dependency_type " + //
         generateHavingByVulnerabilityThreatLevels(vulnerabilityThreatLevels) + //
         generateOrderBySortFieldSelected(sortBy, asc);
@@ -218,6 +227,17 @@ public class ThirdPartyFileCoordinateDAO
     try (TransactionContext tx = createTransactionContext()) {
       javax.persistence.Query paginationQuery =
           createPaginationQueryWithScoreRangeParams(thirdPartyFileId, pageSize, sQuery, offset, tx);
+      if (componentName != null) {
+        componentName = URLEncoder.encode(componentName, StandardCharsets.UTF_8.toString());
+
+        String componentNameQuoted = StringUtils.containsAny(componentName, ".", "*", "?", "+")
+            ? Pattern.quote(componentName).replace("\\", "\\\\")
+            : componentName;
+
+        paginationQuery.setParameter(11, "((?<=\\/)(.*" + componentNameQuoted + ".*)(?=\\@))|((?<=@)(.*"
+            + componentNameQuoted + "[^=]*)(?=(\\?|&|$)))");
+        paginationQuery.setParameter(12,'%' + componentName + '%');
+      }
       dependencyTypesParams.forEach(paginationQuery::setParameter);
 
       SbomComponentListDTO result = new SbomComponentListDTO();
@@ -233,6 +253,9 @@ public class ThirdPartyFileCoordinateDAO
 
       result.setResults(dtos);
       return result;
+    }
+    catch (UnsupportedEncodingException e) {
+      throw new InternalServerException(e);
     }
   }
 
@@ -458,6 +481,18 @@ public class ThirdPartyFileCoordinateDAO
       return StringUtils.removeEnd(query, "OR ") + ")";
     }
 
+    return "";
+  }
+
+  private String applyComponentNameFilter(String componentName,
+                                          int index)
+  {
+    if (!componentName.isEmpty()) {
+      String query = " AND ((lower(fc.package_url) ~ lower(?" + index++ + "))" + //
+          " OR (lower(fc.name) LIKE lower(?" + index + ") OR lower(fc.version) LIKE lower(?" + index + ")))";
+
+      return query;
+    }
     return "";
   }
 

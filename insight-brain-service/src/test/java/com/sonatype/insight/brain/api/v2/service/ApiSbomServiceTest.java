@@ -63,6 +63,9 @@ import org.mockito.internal.stubbing.answers.AnswersWithDelay;
 import org.mockito.internal.stubbing.answers.Returns;
 import org.xmlunit.assertj.XmlAssert;
 
+import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.DIRECT;
+import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.TRANSITIVE;
+import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.UNSPECIFIED;
 import static com.sonatype.insight.brain.api.v2.service.ApiSbomService.SBOM_VALIDATED_HEADER;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.CYCLONEDX_IGNORE_ATTRIBS;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreNodesFilter;
@@ -417,11 +420,11 @@ public class ApiSbomServiceTest
   @Test
   public void testGetSbomComponents_InvalidPagination() {
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> service.getSbomComponents("appId", "version", null, null, null, true, -1, 2))
+        .isThrownBy(() -> service.getSbomComponents("appId", "version", null, null, null, null, true, -1, 2))
         .withMessage("pageSize must not be less than one!");
 
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> service.getSbomComponents("appId", "version", null, null, null, true, 1, -2))
+        .isThrownBy(() -> service.getSbomComponents("appId", "version", null, null, null, null, true, 1, -2))
         .withMessage("page index must not be less than one!");
   }
 
@@ -436,7 +439,7 @@ public class ApiSbomServiceTest
 
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> service.getSbomComponents(applicationWithoutSbom.getId(), sbomMetadata.getSbomVersion(), null,
-            null, null, true, 3, 1))
+            null, null, null, true, 3, 1))
         .withMessage("Cannot find version " + sbomMetadata.getSbomVersion() + " for application with ID "
             + applicationWithoutSbom.getId() + ".");
   }
@@ -452,7 +455,8 @@ public class ApiSbomServiceTest
 
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(
-            () -> service.getSbomComponents(sbomMetadata.getApplicationId(), fakeVersion, null, null, null, true, 3, 1))
+            () -> service.getSbomComponents(sbomMetadata.getApplicationId(), fakeVersion, null,
+                null, null, null, true, 3, 1))
         .withMessage(
             "Cannot find version " + fakeVersion + " for application with ID " + sbomMetadata.getApplicationId() + ".");
   }
@@ -466,7 +470,8 @@ public class ApiSbomServiceTest
         .build();
 
     SbomComponentListDTO result = service.getSbomComponents(sbomMetadata.getApplicationId(),
-        sbomMetadata.getSbomVersion(), null, null, null, true, 3, 1);
+        sbomMetadata.getSbomVersion(), null, null, null,
+        null, true, 3, 1);
 
     assertThat(result).isNotNull();
     assertThat(result.getTotalResultsCount()).isZero();
@@ -497,7 +502,8 @@ public class ApiSbomServiceTest
     tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-2", "License 2", "http://license-2");
 
     SbomComponentListDTO result = service.getSbomComponents(sbomMetadata.getApplicationId(),
-        sbomMetadata.getSbomVersion(), null, null, null, true, 3, 1);
+        sbomMetadata.getSbomVersion(), null, null, null,
+        null, true, 3, 1);
 
     assertThat(result).isNotNull();
     assertThat(result.getTotalResultsCount()).isEqualTo(2);
@@ -547,6 +553,49 @@ public class ApiSbomServiceTest
 
   @Test
   @PostgresTest
+  public void testGetSbomComponentsByThirdPartyFileId_ComponentNameFilter() {
+    Application application = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata sbomMetadata =
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata("ACTIVE", application.getId(), thirdPartyFile.getId());
+    dao.insert(sbomMetadata);
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("slf4j-log4j12", "1.7.12");
+    PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
+    tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s1", packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(),
+        "h1", packageUrlIdentifier1.getPackageUrl(), TRANSITIVE);
+
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("cxf-rt-transports-http-jetty",
+        "3.0.4");
+    PackageUrlIdentifier packageUrlIdentifier2 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier2);
+    tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s2", packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(),
+        "h2", packageUrlIdentifier2.getPackageUrl(), DIRECT);
+
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createNpmCoordinates("slf4j-log4j", "2.4.0");
+    PackageUrlIdentifier packageUrlIdentifier3 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier3);
+    tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s3", packageUrlIdentifier3.getFormat(), packageUrlIdentifier3.getName(), packageUrlIdentifier3.getVersion(),
+        "h3", packageUrlIdentifier3.getPackageUrl(), UNSPECIFIED);
+
+    SbomComponentListDTO result = service.getSbomComponents(
+        sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion(), null, null,
+        "slf4j-log4j", null, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(2);
+
+    result = service.getSbomComponents(
+        sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion(), null, null,
+        null, null, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(3);
+  }
+
+  @Test
+  @PostgresTest
   public void testGetSbomComponents_WithResults_EmptyPackageUrl() {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -567,7 +616,8 @@ public class ApiSbomServiceTest
     tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-2", "License 2", "http://license-2");
 
     SbomComponentListDTO result = service.getSbomComponents(sbomMetadata.getApplicationId(),
-        sbomMetadata.getSbomVersion(), null, null, null, true, 3, 1);
+        sbomMetadata.getSbomVersion(), null, null, null,
+        null, true, 3, 1);
 
     assertThat(result).isNotNull();
     assertThat(result.getTotalResultsCount()).isEqualTo(2);

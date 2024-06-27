@@ -305,6 +305,7 @@ public class ApiSbomService
       String version,
       Set<CvssV3Severity> vulnerabilityThreatLevels,
       Set<ThirdPartyDependencyType> dependencyTypes,
+      String componentName,
       SbomComponentSortableField sortBy,
       boolean asc,
       int pageSize,
@@ -313,7 +314,7 @@ public class ApiSbomService
     validatePagination(pageSize, page);
     ThirdPartySbomMetadata thirdPartySbomMetadata = getThirdPartySbomMetadataNotNull(applicationId, version);
     return thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId(),
-        vulnerabilityThreatLevels, dependencyTypes, sortBy, asc, pageSize, page);
+        vulnerabilityThreatLevels, dependencyTypes, componentName, sortBy, asc, pageSize, page);
   }
 
   private void validatePagination(int pageSize, int page) {

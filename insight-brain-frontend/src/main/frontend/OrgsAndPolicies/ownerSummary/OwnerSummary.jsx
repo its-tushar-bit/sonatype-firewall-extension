@@ -14,10 +14,7 @@ import { selectLoadError as selectLoadSelectedOwnerError } from 'MainRoot/OrgsAn
 import { selectIsApplication, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectSelectedOwner, selectEntityId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectRepositoryUrl, selectScmProviderIcon } from 'MainRoot/OrgsAndPolicies/sourceControlSelectors';
-import {
-  selectIsSbomManagerEnabled,
-  selectNoSbomManagerEnabledError,
-} from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectNoSbomManagerEnabledError } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions as ownerSummaryActions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
 import OwnerSummaryPills from 'MainRoot/OrgsAndPolicies/OwnerSummaryPills/OwnerSummaryPills';
@@ -57,7 +54,6 @@ export default function OwnerSummary() {
   const scmProviderIcon = useSelector(selectScmProviderIcon);
   const entityId = useSelector(selectEntityId);
   const isSyntheticOrg = useSelector(selectIsDisplayedOrganizationSynthetic) && !isApp;
-  const isSbomManagerEnabled = useSelector(selectIsSbomManagerEnabled);
   const isSbomManager = useSelector(selectIsSbomManager);
   const noSbomManagerEnabledError = useSelector(selectNoSbomManagerEnabledError);
   // loading is false when the page is already loaded. entityId may be set to null before doLoad is called.
@@ -110,7 +106,7 @@ export default function OwnerSummary() {
         className="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-viewport-sized__scrollable"
         id="owner-summary-sections"
       >
-        {isSbomManagerEnabled && isSbomManager && isApp ? (
+        {isSbomManager && isApp ? (
           <SbomsTile />
         ) : (
           <>

@@ -5,7 +5,7 @@
  */
 import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectIsApplication, selectIsOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsApplication, selectIsOrganization, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectIsArtifactoryRepositorySupported,
   selectIsDataRetentionEnabled,
@@ -18,7 +18,6 @@ import {
   selectIsSourceControlForSourceTileSupported,
   selectTenantMode,
   selectIsScmEnabled,
-  selectIsSbomManagerEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 import NavPills from 'MainRoot/navPills/NavPills';
@@ -38,10 +37,10 @@ export default function OwnerSummaryPills() {
   const isDataRetentionConfigEnabled = isDataRetentionEnabled && !isMultiTenant;
   const isSourceControlForSourceTileSupported = useSelector(selectIsSourceControlForSourceTileSupported);
   const isScmEnabled = useSelector(selectIsScmEnabled);
-  const isSbomManagerEnabled = useSelector(selectIsSbomManagerEnabled);
+  const isSbomManager = useSelector(selectIsSbomManager);
 
   const navList = useMemo(() => {
-    if (isSbomManagerEnabled && isApp) {
+    if (isSbomManager && isApp) {
       return [
         {
           label: 'SBOMs',
@@ -129,7 +128,7 @@ export default function OwnerSummaryPills() {
     isInnerSourceRepositorySupported,
     isInnerSourceRepositoriesEnabled,
     isArtifactoryRepositorySupported,
-    isSbomManagerEnabled,
+    isSbomManager,
   ]);
   return <NavPills list={navList} root="#owner-summary-sections" />;
 }

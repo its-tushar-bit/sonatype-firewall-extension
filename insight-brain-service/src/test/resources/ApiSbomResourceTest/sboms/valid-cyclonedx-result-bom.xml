@@ -63,7 +63,7 @@
           </source>
           <score>6.0</score>
           <severity>high</severity>
-          <method>other</method>
+          <method>CVSSv3</method>
           <vector>CVSS:3.1/AV:L/AC:L/PR:H/UI:N/S:C/C:H/I:N/A:N</vector>
         </rating>
       </ratings>

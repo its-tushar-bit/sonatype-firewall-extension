@@ -253,7 +253,7 @@ public abstract class AbstractCycloneDxExporter
     bomRating.setSeverity(bomSeverity == null ? Severity.UNKNOWN : bomSeverity);
     Method bomMethod = null;
     if (StringUtils.isNotBlank(sonatypeVulnerability.getRatingMethod())) {
-      bomMethod = Method.fromString(sonatypeVulnerability.getRatingMethod().toLowerCase());
+      bomMethod = SbomCycloneDxUtils.resolveRatingMethod(sonatypeVulnerability.getRatingMethod());
     }
     bomRating.setMethod(bomMethod == null ? Method.OTHER : bomMethod);
     bomRating.setScore(sonatypeVulnerability.getSeverity());

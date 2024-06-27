@@ -22,6 +22,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.io.IOUtils;
 import org.cyclonedx.BomParserFactory;
@@ -34,6 +35,7 @@ import org.cyclonedx.model.OrganizationalEntity;
 import org.cyclonedx.model.Property;
 import org.cyclonedx.model.Service;
 import org.cyclonedx.model.Tool;
+import org.cyclonedx.model.vulnerability.Vulnerability.Rating;
 import org.cyclonedx.parsers.Parser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -298,5 +300,14 @@ public class SbomCycloneDxUtils
     prop.setName(PROPERTY_SONATYPE_IDENTIFIER);
     prop.setValue(fileCoordinateId);
     resolvedComponent.getRight().addProperty(prop);
+  }
+
+  public static Rating.Method resolveRatingMethod(String text) {
+    for (Rating.Method method : Rating.Method.values()) {
+      if (StringUtils.equalsIgnoreCase(method.getMethodName(), text)) {
+        return method;
+      }
+    }
+    return null;
   }
 }

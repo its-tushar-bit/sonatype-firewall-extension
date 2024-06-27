@@ -86,7 +86,7 @@
           },
           "score" : 6.0,
           "severity" : "high",
-          "method" : "other",
+          "method" : "CVSSv3",
           "vector" : "CVSS:3.1/AV:L/AC:L/PR:H/UI:N/S:C/C:H/I:N/A:N"
         }
       ],

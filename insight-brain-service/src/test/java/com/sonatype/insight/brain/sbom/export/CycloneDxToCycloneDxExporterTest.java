@@ -161,7 +161,32 @@ public class CycloneDxToCycloneDxExporterTest
     String export = exporter.export();
     assertThatJson(export)
         .whenIgnoringPaths("metadata.timestamp", "metadata.tools.components[0].version")
-        .isEqualTo(readFileToString("output-test-bom.json"));
+        .isEqualTo(readFileToString("outputs/output-test-bom.json"));
+  }
+
+  @Test
+  public void exportTest_VulnerabilityRatingFieldsPreserved() throws Exception {
+    String testFileName = "test-bom.xml";
+    File testBomFile = prepareTestReportFile(testFileName);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(testBomFile.getName(), thirdPartyFile);
+    exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_15, SbomFormat.JSON));
+    tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
+    ThirdPartyFileCoordinate fileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
+        "source",
+        "maven",
+        "log4j",
+        "1.2.8",
+        "abcdef",
+        "pkg:maven/log4j/log4j@1.2.8?type=jar"
+    );
+    tempEntity.newThirdPartyCoordinateSecurity(
+        fileCoordinate, "CVE-2022-23307", "DESC CVE-2022-23307", "NVD-link", 5.5d,
+        "1.1", "NVD", "CVSS:3.1", "Medium", "1234",
+        "cvSSv3", "<dd>r1<dd/>", "<dd>a1<dd/>", "G,F");
+    String export = exporter.export();
+    assertThatJson(export)
+        .whenIgnoringPaths("metadata.timestamp", "metadata.tools.components[0].version")
+        .isEqualTo(readFileToString("outputs/output-test-bom-2.json"));
   }
 
   private void testExportingWebgoatAppWithInputFormatAndOutputFormat(SbomFormat inputFormat, SbomFormat outputFormat)

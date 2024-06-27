@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter.SortField;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter.SortField.SortableField;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.model.policy.PolicyViolationSummary;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -105,12 +106,24 @@ public class RepositoryPolicyViolationDAO
     return getList(sQuery, repositoryId);
   }
 
-  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndNotWaived(final String repositoryId) {
-    String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
-        " WHERE entity.repositoryId=?1" + //
-        " AND entity.active=true" + //
-        " AND entity.isWaived=false";
-    return getList(sQuery, repositoryId);
+  public PolicyViolationSummary getPolicyViolationSummary(final String repositoryId) {
+    String sQuery =
+        " SELECT COUNT(CASE WHEN max_threat_level >= 8 THEN 1 END)                              AS criticalCount," +
+            "        COUNT(CASE WHEN max_threat_level >= 4 AND max_threat_level < 8 THEN 1 END) AS severeCount," +
+            "        COUNT(CASE WHEN max_threat_level >= 2 AND max_threat_level < 4 THEN 1 END) AS moderateCount" +
+            " FROM (SELECT MAX(threat_level) AS max_threat_level" +
+            "       FROM " + getDatabaseSchema() + ".repository_policy_violation" +
+            "       WHERE repository_id=?1" +
+            "         AND active=true" +
+            "         AND waived=false" +
+            "       GROUP BY pathname) AS subquery";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = tx.createNativeQuery(sQuery);
+      query.setParameter(1, repositoryId);
+      Object[] result = (Object[]) query.getSingleResult();
+      return new PolicyViolationSummary((Long) result[0], (Long) result[1], (Long) result[2]);
+    }
   }
 
   public List<RepositoryPolicyViolation> getActiveWaivedRepositoryPolicyViolations(

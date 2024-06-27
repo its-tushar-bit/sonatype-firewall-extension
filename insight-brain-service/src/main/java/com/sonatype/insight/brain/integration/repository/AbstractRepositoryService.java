@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.PolicyViolationSummary;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -673,37 +674,13 @@ public abstract class AbstractRepositoryService
   }
 
   private RepositoryPolicyEvaluationSummary getPolicyEvaluationSummaryInternal(final Repository repository) {
-    List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
-        .getActiveByRepositoryIdAndNotWaived(repository.getId());
-
-    final Map<String, Integer> componentThreatLevels = new HashMap<>();
-    for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
-      String pathname = repositoryPolicyViolation.getPathname();
-      Integer threatLevel = componentThreatLevels.get(pathname);
-      if (threatLevel == null || threatLevel < repositoryPolicyViolation.getThreatLevel()) {
-        componentThreatLevels.put(pathname, repositoryPolicyViolation.getThreatLevel());
-      }
-    }
-    int criticalCount = 0;
-    int severeCount = 0;
-    int moderateCount = 0;
-    for (final int level : componentThreatLevels.values()) {
-      if (level >= 8) {
-        criticalCount++;
-      }
-      else if (level >= 4) {
-        severeCount++;
-      }
-      else if (level >= 2) {
-        moderateCount++;
-      }
-    }
+    PolicyViolationSummary summary = repositoryPolicyViolationDAO.getPolicyViolationSummary(repository.getId());
 
     RepositoryPolicyEvaluationSummary policyEvaluationSummary = new RepositoryPolicyEvaluationSummary();
-    policyEvaluationSummary.setCriticalComponentCount(criticalCount);
-    policyEvaluationSummary.setSevereComponentCount(severeCount);
-    policyEvaluationSummary.setModerateComponentCount(moderateCount);
-    policyEvaluationSummary.setAffectedComponentCount(criticalCount + severeCount + moderateCount);
+    policyEvaluationSummary.setCriticalComponentCount(summary.getCriticalCount());
+    policyEvaluationSummary.setSevereComponentCount(summary.getSevereCount());
+    policyEvaluationSummary.setModerateComponentCount(summary.getModerateCount());
+    policyEvaluationSummary.setAffectedComponentCount(summary.getAffectedComponentCount());
     policyEvaluationSummary.setQuarantinedComponentCount(repositoryComponentDAO
         .getQuarantinedComponentCountByRepositoryId(repository.getId()));
 

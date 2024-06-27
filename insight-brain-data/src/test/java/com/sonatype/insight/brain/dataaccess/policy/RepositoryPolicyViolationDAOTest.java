@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.PolicyViolationSummary;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -369,6 +370,92 @@ public class RepositoryPolicyViolationDAOTest
   public void testGetRepositoryResultsDetails_FilterThreatLevel_Postgres() {
     assertThat(dao.isDatabaseEmbedded()).isFalse();
     testGetRepositoryResultsDetails_FilterThreatLevel();
+  }
+
+  @Test
+  public void testGetPolicyViolationSummary() {
+    PolicyViolationSummary policyViolationSummary;
+
+    Policy p1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p1", 10);
+    Policy p2 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p2", 8);
+    Policy p3 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p3", 5);
+    Policy p4 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p4", 3);
+    Policy p5 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p5", 2);
+    Policy p6 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "p6", 1);
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2");
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3", "c3", "e3");
+    ComponentIdentifier componentIdentifier4 = ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4", "c4", "e4");
+    ComponentIdentifier componentIdentifier5 = ComponentIdentifier.createMavenCoordinates("g5", "a5", "v5", "c5", "e5");
+
+    RepositoryComponent c1 = tempEntity.newRepositoryComponent(
+        repository.getId(), MatchState.EXACT, "g1/a1/v1/test-v1-c1.e1", "hash1", componentIdentifier1, false);
+    RepositoryComponent c2 = tempEntity.newRepositoryComponent(
+        repository.getId(), MatchState.EXACT, "g2/a2/v2/test-v2-c2.e2", "hash1", componentIdentifier2, false);
+    RepositoryComponent c3 = tempEntity.newRepositoryComponent(
+        repository.getId(), MatchState.EXACT, "g3/a3/v3/test-v3-c3.e3", "hash1", componentIdentifier3, false);
+    RepositoryComponent c4 = tempEntity.newRepositoryComponent(
+        repository.getId(), MatchState.EXACT, "g4/a4/v4/test-v4-c4.e4", "hash1", componentIdentifier4, false);
+    RepositoryComponent c5 = tempEntity.newRepositoryComponent(
+        repository.getId(), MatchState.EXACT, "g5/a5/v5/test-v5-c5.e5", "hash1", componentIdentifier5, false);
+
+    // c1 component has 2 critical policy violations
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), p1.getThreatLevel(), c1.getPathname(), false,
+        p1.getId(), p1.getName(), c1.getComponentIdentifier());
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), p2.getThreatLevel(), c1.getPathname(), false,
+        p2.getId(), p2.getName(), c1.getComponentIdentifier());
+    policyViolationSummary = dao.getPolicyViolationSummary(repository.getId());
+    assertThat(policyViolationSummary.getCriticalCount()).isEqualTo(1);
+    assertThat(policyViolationSummary.getSevereCount()).isEqualTo(0);
+    assertThat(policyViolationSummary.getModerateCount()).isEqualTo(0);
+    assertThat(policyViolationSummary.getAffectedComponentCount()).isEqualTo(1);
+
+    // c2 component has 1 severe policy violation
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), p3.getThreatLevel(), c2.getPathname(), false,
+        p3.getId(), p3.getName(), c2.getComponentIdentifier());
+    policyViolationSummary = dao.getPolicyViolationSummary(repository.getId());
+    assertThat(policyViolationSummary.getCriticalCount()).isEqualTo(1);
+    assertThat(policyViolationSummary.getSevereCount()).isEqualTo(1);
+    assertThat(policyViolationSummary.getModerateCount()).isEqualTo(0);
+    assertThat(policyViolationSummary.getAffectedComponentCount()).isEqualTo(2);
+
+    // c3 component has 1 moderate policy violation
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), p4.getThreatLevel(), c3.getPathname(), false,
+        p4.getId(), p4.getName(), c3.getComponentIdentifier());
+    policyViolationSummary = dao.getPolicyViolationSummary(repository.getId());
+    assertThat(policyViolationSummary.getCriticalCount()).isEqualTo(1);
+    assertThat(policyViolationSummary.getSevereCount()).isEqualTo(1);
+    assertThat(policyViolationSummary.getModerateCount()).isEqualTo(1);
+    assertThat(policyViolationSummary.getAffectedComponentCount()).isEqualTo(3);
+
+    // c4 component has 1 moderate policy violation
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), p5.getThreatLevel(), c4.getPathname(), false,
+        p5.getId(), p5.getName(), c4.getComponentIdentifier());
+    policyViolationSummary = dao.getPolicyViolationSummary(repository.getId());
+    assertThat(policyViolationSummary.getCriticalCount()).isEqualTo(1);
+    assertThat(policyViolationSummary.getSevereCount()).isEqualTo(1);
+    assertThat(policyViolationSummary.getModerateCount()).isEqualTo(2);
+    assertThat(policyViolationSummary.getAffectedComponentCount()).isEqualTo(4);
+
+    // c5 component has 1 minor policy violation (we don't count it)
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), p6.getThreatLevel(), c5.getPathname(), false,
+        p6.getId(), p6.getName(), c5.getComponentIdentifier());
+    policyViolationSummary = dao.getPolicyViolationSummary(repository.getId());
+    assertThat(policyViolationSummary.getCriticalCount()).isEqualTo(1);
+    assertThat(policyViolationSummary.getSevereCount()).isEqualTo(1);
+    assertThat(policyViolationSummary.getModerateCount()).isEqualTo(2);
+    assertThat(policyViolationSummary.getAffectedComponentCount()).isEqualTo(4);
+
+    // verify that violations for a different repository are not counted
+    Repository repository2 = tempEntity.newRepository(repositoryManager);
+    tempEntity.newRepositoryPolicyViolation(repository2.getId(), p1.getThreatLevel(), c1.getPathname(), false,
+        p1.getId(), p1.getName(), c1.getComponentIdentifier());
+    policyViolationSummary = dao.getPolicyViolationSummary(repository.getId());
+    assertThat(policyViolationSummary.getCriticalCount()).isEqualTo(1);
+    assertThat(policyViolationSummary.getSevereCount()).isEqualTo(1);
+    assertThat(policyViolationSummary.getModerateCount()).isEqualTo(2);
+    assertThat(policyViolationSummary.getAffectedComponentCount()).isEqualTo(4);
   }
 
   private void testGetRepositoryResultsDetails_FilterThreatLevel() {

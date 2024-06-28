@@ -219,4 +219,50 @@ public class SidebarServiceAuthzTest
         (OwnerHierarchyApplicationDTO) ownerHierarchyDTO.ownersMap.get(applicationInsideChildOfOrg2.getPublicId());
     assertThat(deepestApp).isNotNull();
   }
+
+  @Test
+  public void testGetOwnersList_onlyPermissionsForRepositories() {
+    // Other hierarchy the user has no access to, but exists
+    Organization organization1 = tempEntity.newOrganization("Org1");
+    tempEntity.newApplication("Org1_App1", organization1.getId());
+
+    RepositoryManager repositoryManager1 = tempEntity.newRepositoryManager();
+    Repository repository1 = tempEntity.newRepository(repositoryManager1, "testPublicId1");
+    grantReadPermission(repositoryManager1.getId());
+    grantReadPermission(repository1.getId());
+
+    OwnerHierarchyDTO ownerHierarchyDTO = sidebarService.getOwnerList();
+    assertThat(ownerHierarchyDTO.ownersMap).isNotEmpty();
+    assertThat(ownerHierarchyDTO.topParentOrganizationId).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
+
+    assertThat(ownerHierarchyDTO.ownersMap.keySet()).containsExactlyInAnyOrder(
+        repositoryManager1.getId(), REPOSITORY_CONTAINER_ID, repository1.getId());
+
+    OwnerHierarchyRepositoryContainerDTO repositoryContainerDTO =
+        (OwnerHierarchyRepositoryContainerDTO) ownerHierarchyDTO.ownersMap.get(REPOSITORY_CONTAINER_ID);
+    assertThat(repositoryContainerDTO).isNotNull();
+    assertThat(repositoryContainerDTO.repositoryManagerIds).containsExactly(repositoryManager1.getId());
+
+    OwnerHierarchyRepositoryManagerDTO repositoryManagerDTO =
+        (OwnerHierarchyRepositoryManagerDTO) ownerHierarchyDTO.ownersMap.get(repositoryManager1.getId());
+    assertThat(repositoryManagerDTO).isNotNull();
+    assertThat(repositoryManagerDTO.repositoryIds).containsExactly(repository1.getId());
+
+    OwnerHierarchyRepositoryDTO repositoryDTO =
+        (OwnerHierarchyRepositoryDTO) ownerHierarchyDTO.ownersMap.get(repository1.getId());
+    assertThat(repositoryDTO).isNotNull();
+  }
+
+  @Test
+  public void testGetOwnersList_noPermissions_returnsEmptyMapButRootOrganizationAsTop() {
+    // Other hierarchy the user has no access to, but exists
+    Organization organization1 = tempEntity.newOrganization("Org1");
+    tempEntity.newApplication("Org1_App1", organization1.getId());
+    Organization organization2 = tempEntity.newOrganization("Org2");
+    tempEntity.newApplication("Org2_App1", organization2.getId());
+
+    OwnerHierarchyDTO ownerHierarchyDTO = sidebarService.getOwnerList();
+    assertThat(ownerHierarchyDTO.ownersMap).isEmpty();
+    assertThat(ownerHierarchyDTO.topParentOrganizationId).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
+  }
 }

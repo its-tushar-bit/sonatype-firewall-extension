@@ -89,7 +89,14 @@ public class OwnerHierarchy
 
   public OwnerHierarchyOrganizationDTO root() {
     OwnerHierarchyOrganizationDTO root = getOrganizationById(topParentOrganizationId);
-    if (root != null) {
+    if (root == null) {
+      topParentOrganizationId = Organization.ROOT_ORGANIZATION_ID;
+      root = getSyntheticOrganization(Organization.ROOT_ORGANIZATION_ID);
+
+      boolean hasNoPermissions = repositoryManagerMap.isEmpty() && organizationMap.isEmpty();
+      root.repositoryContainerId = hasNoPermissions ? root.repositoryContainerId : repositoryContainer.id;
+    }
+    else {
       root.repositoryContainerId = repositoryContainer.id;
     }
     return root;
@@ -149,9 +156,12 @@ public class OwnerHierarchy
     owners.putAll(applicationMap);
     owners.putAll(organizationMap);
     owners.putAll(syntheticOrganizationMap);
-    owners.put(RepositoryContainer.REPOSITORY_CONTAINER_ID, repositoryContainer);
     owners.putAll(repositoryManagerMap);
     owners.putAll(repositoryMap);
+
+    if (!owners.isEmpty()) {
+      owners.put(RepositoryContainer.REPOSITORY_CONTAINER_ID, repositoryContainer);
+    }
     return owners;
   }
 

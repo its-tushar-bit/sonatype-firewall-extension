@@ -109,10 +109,11 @@ class SidebarService
 
     OwnerHierarchy hierarchy = createOrganizationHierarchy(orgs, apps, repositoryManagers, repositories);
 
-    if (hierarchy.root() != null) {
-      calculateChildrenSize(hierarchy, hierarchy.root());
+    OwnerHierarchyOrganizationDTO hierarchyRoot = hierarchy.root();
+    if (hierarchyRoot != null) {
+      calculateChildrenSize(hierarchy, hierarchyRoot);
       ownerHierarchyDTO.ownersMap = hierarchy.asHashMap();
-      ownerHierarchyDTO.topParentOrganizationId = hierarchy.root().id;
+      ownerHierarchyDTO.topParentOrganizationId = hierarchyRoot.id;
     }
 
     return ownerHierarchyDTO;

@@ -35,7 +35,7 @@ import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.CommentResponse;
 import com.sonatype.nexus.scm.api.model.CommitInformation;
 import com.sonatype.nexus.scm.api.model.DefaultCommentResponse;
-import com.sonatype.nexus.scm.api.model.ProjectUri;
+import com.sonatype.nexus.scm.api.model.ProjectUrl;
 import com.sonatype.nexus.scm.api.model.PullRequest;
 import com.sonatype.nexus.scm.api.model.PullRequestImpl;
 import com.sonatype.nexus.scm.api.model.PullRequestState;
@@ -86,7 +86,7 @@ public class SastPullRequestCommentingServiceTest
   private GitClientFactory gitClientFactory;
 
   @Mock
-  private ProjectUri projectUri;
+  private ProjectUrl projectUrl;
 
   @Mock
   private GitApiClient gitApiClient;
@@ -108,7 +108,7 @@ public class SastPullRequestCommentingServiceTest
     binder.bind(PullRequestInfoClient.class).toInstance(pullRequestInfoClient);
     binder.bind(PullRequestRepositoryValidator.class).toInstance(pullRequestRepositoryValidator);
     binder.bind(GitClientFactory.class).toInstance(gitClientFactory);
-    binder.bind(ProjectUri.class).toInstance(projectUri);
+    binder.bind(ProjectUrl.class).toInstance(projectUrl);
     binder.bind(GitApiClient.class).toInstance(gitApiClient);
     binder.bind(TelemetrySender.class).toInstance(telemetrySender);
     super.configure(binder);

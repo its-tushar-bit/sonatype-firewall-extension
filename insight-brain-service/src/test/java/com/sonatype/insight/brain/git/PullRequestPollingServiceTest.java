@@ -27,9 +27,9 @@ import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
-import com.sonatype.nexus.scm.api.model.ProjectUri;
+import com.sonatype.nexus.scm.api.model.ProjectUrl;
 import com.sonatype.nexus.scm.api.model.PullRequest;
-import com.sonatype.nexus.scm.common.SimpleProjectUri;
+import com.sonatype.nexus.scm.github.dto.GitHubProjectUrl;
 import com.sonatype.nexus.scm.github.dto.GithubPullRequest;
 import com.sonatype.nexus.scm.gitlab.dto.GitlabMergeRequestResponse;
 
@@ -698,8 +698,9 @@ public class PullRequestPollingServiceTest
             .when(mockSourceControlUtils).isBitbucketCloud(mockRepo.gitRepositoryInfo);
 
         if (null != mockRepo.gitRepositoryInfo) {
-          ProjectUri projectUri = new SimpleProjectUri(mockRepo.gitRepositoryInfo.repositoryUrl);
-          doReturn(projectUri).when(mockRepo.mockGitApiClient).getProjectUri();
+          // Use a GitHubProjectUrl as the most generic format to test with
+          ProjectUrl projectUrl = new GitHubProjectUrl(mockRepo.gitRepositoryInfo.repositoryUrl);
+          doReturn(projectUrl).when(mockRepo.mockGitApiClient).getProjectUrl();
         }
 
         if (null != mockRepo.gitRepositoryInfo &&

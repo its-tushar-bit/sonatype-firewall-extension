@@ -132,13 +132,13 @@ public class GitCommitStatusService
         gitApiClient, gitRepositoryInfo.provider);
 
     log.debug("Creating a {} commit status for repository: {}, commit hash: {}, with outcome: {}, state: {}",
-        gitRepositoryInfo.provider, gitApiClient.getProjectUri().getUrl(),
+        gitRepositoryInfo.provider, gitApiClient.getProjectUrl().getUrl(),
         event.getCommitHash(), event.getPolicyEvaluationOutcome(), statusRequest.getState());
     try {
       Status status = gitApiClient.createStatus(event.getCommitHash(), statusRequest);
       log.info(
           "Commit status sent for repository: {}, commit hash: {}, evaluation outcome: {}, state: {}, response: {}",
-          gitApiClient.getProjectUri().getUrl(), event.getCommitHash(), event.getPolicyEvaluationOutcome(),
+          gitApiClient.getProjectUrl().getUrl(), event.getCommitHash(), event.getPolicyEvaluationOutcome(),
           statusRequest.getState(), status
       );
     }

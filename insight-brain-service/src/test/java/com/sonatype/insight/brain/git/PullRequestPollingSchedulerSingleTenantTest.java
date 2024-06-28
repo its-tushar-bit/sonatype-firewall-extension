@@ -30,7 +30,7 @@ import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
-import com.sonatype.nexus.scm.api.model.ProjectUri;
+import com.sonatype.nexus.scm.api.model.ProjectUrl;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import com.google.inject.AbstractModule;
@@ -147,9 +147,9 @@ public class PullRequestPollingSchedulerSingleTenantTest
       GitRepositoryInfo repoInfo = (GitRepositoryInfo)invocation.getArgument(0);
 
       GitApiClient gitApiClient = mock(GitApiClient.class);
-      ProjectUri projectUri = mock(ProjectUri.class);
-      when(gitApiClient.getProjectUri()).thenReturn(projectUri);
-      when(projectUri.getNamespace()).thenReturn(repoInfo.getRepositoryUrl());
+      ProjectUrl projectUrl = mock(ProjectUrl.class);
+      when(gitApiClient.getProjectUrl()).thenReturn(projectUrl);
+      when(projectUrl.getNamespace()).thenReturn(repoInfo.getRepositoryUrl());
 
       return gitApiClient;
     }).when(gitClientFactorySpy).createApiClient(any());

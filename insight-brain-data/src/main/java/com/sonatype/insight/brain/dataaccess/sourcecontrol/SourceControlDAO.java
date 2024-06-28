@@ -634,7 +634,7 @@ public class SourceControlDAO
     }
     try {
       gitApiClientFactory.getGitApiClientUtils(getProvider(tx, sourceControl))
-          .createProjectUri(sourceControl.getNormalizedRepositoryUrl());
+          .createProjectUrl(sourceControl.getNormalizedRepositoryUrl());
     }
     catch (IllegalArgumentException e) {
       throw new BadRequestException("SourceControl repositoryUrl is invalid: " + e.getMessage(), e);

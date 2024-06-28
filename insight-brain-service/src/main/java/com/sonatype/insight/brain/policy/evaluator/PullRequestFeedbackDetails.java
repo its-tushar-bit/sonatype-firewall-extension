@@ -33,10 +33,10 @@ import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
-import com.sonatype.nexus.scm.api.dto.BaseProjectUri;
-import com.sonatype.nexus.scm.bitbucket.dto.BitbucketServerProjectUri;
-import com.sonatype.nexus.scm.common.SimpleProjectUri;
-import com.sonatype.nexus.scm.gitlab.dto.GitlabProjectUri;
+import com.sonatype.nexus.scm.api.dto.BaseProjectUrl;
+import com.sonatype.nexus.scm.bitbucket.dto.BitbucketServerProjectUrl;
+import com.sonatype.nexus.scm.github.dto.GitHubProjectUrl;
+import com.sonatype.nexus.scm.gitlab.dto.GitlabProjectUrl;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -394,21 +394,21 @@ public class PullRequestFeedbackDetails
   {
     String linkUrl = "";
     if (scmId != null) {
-      BaseProjectUri projectUri;
+      BaseProjectUrl projectUrl;
       String repositoryUrl = gitRepositoryInfo.normalizedRepositoryUrl;
       switch (gitRepositoryInfo.provider) {
         case GITHUB:
-          projectUri = new SimpleProjectUri(repositoryUrl);
-          linkUrl = projectUri.getCanonicalUri().toString() + "pull/" + prNumber + "#discussion_r" + scmId;
+          projectUrl = new GitHubProjectUrl(repositoryUrl);
+          linkUrl = projectUrl.getCanonicalUrl().toString() + "pull/" + prNumber + "#discussion_r" + scmId;
           break;
         case GITLAB:
-          projectUri = new GitlabProjectUri(repositoryUrl);
-          linkUrl = projectUri.getCanonicalUri().toString() + "-/merge_requests/" + prNumber + "#note_" + scmId;
+          projectUrl = new GitlabProjectUrl(repositoryUrl);
+          linkUrl = projectUrl.getCanonicalUrl().toString() + "-/merge_requests/" + prNumber + "#note_" + scmId;
           break;
         case BITBUCKET:
-          projectUri = new BitbucketServerProjectUri(repositoryUrl);
-          String context = StringUtils.isBlank(projectUri.getContext()) ? "" : "/" + projectUri.getContext();
-          linkUrl = context + "/projects/" + projectUri.getNamespace() + "/repos/" + projectUri.getProject() +
+          projectUrl = new BitbucketServerProjectUrl(repositoryUrl);
+          String context = StringUtils.isBlank(projectUrl.getContext()) ? "" : "/" + projectUrl.getContext();
+          linkUrl = context + "/projects/" + projectUrl.getNamespace() + "/repos/" + projectUrl.getProject() +
               "/pull-requests/" + prNumber + "/overview?commentId=" + scmId;
           break;
         default:

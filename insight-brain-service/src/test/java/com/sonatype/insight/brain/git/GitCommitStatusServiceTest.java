@@ -28,10 +28,10 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient.StateType;
-import com.sonatype.nexus.scm.api.model.ProjectUri;
+import com.sonatype.nexus.scm.api.model.ProjectUrl;
 import com.sonatype.nexus.scm.api.model.Status;
 import com.sonatype.nexus.scm.api.model.StatusRequest;
-import com.sonatype.nexus.scm.gitlab.dto.GitlabProjectUri;
+import com.sonatype.nexus.scm.gitlab.dto.GitlabProjectUrl;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -623,8 +623,8 @@ public class GitCommitStatusServiceTest
 
       doReturn(baseUrl).when(mockBaseUrl).get();
 
-      ProjectUri projectUri = new GitlabProjectUri("https://gitlab.com/sonatype/testing/testRepo1");
-      doReturn(projectUri).when(mockGitApiClient).getProjectUri();
+      ProjectUrl projectUrl = new GitlabProjectUrl("https://gitlab.com/sonatype/testing/testRepo1");
+      doReturn(projectUrl).when(mockGitApiClient).getProjectUrl();
 
       ScmStatusHelper scmStatusHelper = new ScmStatusHelper(mockApplicationDAO, mockBaseUrl, mockFeaturesService);
 

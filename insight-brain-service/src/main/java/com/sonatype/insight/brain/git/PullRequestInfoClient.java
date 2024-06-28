@@ -16,7 +16,7 @@ import com.sonatype.nexus.scm.GitApiClientFactory;
 import com.sonatype.nexus.scm.api.GitApiClientUtils;
 import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
 import com.sonatype.nexus.scm.api.model.CommitInformation;
-import com.sonatype.nexus.scm.api.model.ProjectUri;
+import com.sonatype.nexus.scm.api.model.ProjectUrl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +42,7 @@ public class PullRequestInfoClient
     CommitInformation result;
 
     GitApiClientUtils gitApiClientUtils = new GitApiClientFactory().getGitApiClientUtils(gitRepositoryInfo.provider);
-    ProjectUri projectUri = gitApiClientUtils.createProjectUri(gitRepositoryInfo.normalizedRepositoryUrl);
+    ProjectUrl projectUri = gitApiClientUtils.createProjectUrl(gitRepositoryInfo.normalizedRepositoryUrl);
 
     try {
       PullRequestInfoProvider client = gitClientFactory.createPullRequestInfoClient(gitRepositoryInfo);

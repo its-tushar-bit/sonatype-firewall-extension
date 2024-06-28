@@ -27,7 +27,7 @@ import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
-import com.sonatype.nexus.scm.api.model.ProjectUri;
+import com.sonatype.nexus.scm.api.model.ProjectUrl;
 import com.sonatype.nexus.scm.api.model.PullRequest;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -238,7 +238,7 @@ public class PullRequestPollingService
         String repo = null;
         try {
           GitApiClient gitApiClient = gitClientFactory.createApiClient(gitRepositoryInfo);
-          ProjectUri projectUri = gitApiClient.getProjectUri();
+          ProjectUrl projectUri = gitApiClient.getProjectUrl();
           org = projectUri.getNamespace();
           // if a provider supports querying across the organization, we do not need a repo in context
           repo =

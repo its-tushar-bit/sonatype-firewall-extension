@@ -133,8 +133,8 @@ public class DevelopmentPrioritizationRemediationService
           List<ComponentDetailsDTO> componentDetailsDTOs = componentDetailsVersionsEntry.getValue();
 
           ApiComponentRemediationValueDTO remediationValueDto =
-              componentRemediationService.getSuggestedRemediation(componentIdentifier, componentDetailsDTOs,
-                  app, stage, componentDetailsLoader);
+              componentRemediationService.getSuggestedSelectedRemediation(componentIdentifier, componentDetailsDTOs,
+                  app, stage, componentDetailsLoader, false);
 
           if (remediationValueDto != null) {
             Optional<ApiVersionChangeOptionDTO> versionChangeDTO =

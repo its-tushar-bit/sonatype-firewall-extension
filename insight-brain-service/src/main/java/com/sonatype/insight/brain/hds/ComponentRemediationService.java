@@ -114,12 +114,33 @@ public class ComponentRemediationService
     return componentIdentifier;
   }
 
+  /**
+   * Get the suggested component remediations, specifically including "advanced" strategies which include
+   * non-violating and non-failing components when taking their dependencies into account.
+   */
   public ApiComponentRemediationValueDTO getSuggestedRemediation(
       final ComponentIdentifier currentComponent,
       final List<ComponentDetailsDTO> allVersions,
       final Owner owner,
       final String stageId,
       ComponentDetailsLoader componentDetailsLoader)
+  {
+    return getSuggestedSelectedRemediation(
+        currentComponent,
+        allVersions,
+        owner,
+        stageId,
+        componentDetailsLoader,
+        shouldIncludeAdvancedStrategies(currentComponent));
+  }
+
+  public ApiComponentRemediationValueDTO getSuggestedSelectedRemediation(
+      final ComponentIdentifier currentComponent,
+      final List<ComponentDetailsDTO> allVersions,
+      final Owner owner,
+      final String stageId,
+      ComponentDetailsLoader componentDetailsLoader,
+      final boolean advancedStrategies)
   {
     ApiComponentRemediationValueDTO componentRemediationDto = new ApiComponentRemediationValueDTO();
 
@@ -157,36 +178,38 @@ public class ComponentRemediationService
             telemetryAttributes.put(OPTION_NEXT_NON_FAILING_ATTR, String.valueOf(true));
           });
 
-      boolean includeAdvancedStrategies = shouldIncludeAdvancedStrategies(currentComponent);
+      if (advancedStrategies) {
+        boolean includeAdvancedStrategies = shouldIncludeAdvancedStrategies(currentComponent);
 
-      if (includeAdvancedStrategies) {
-        final ComponentDependenciesDTO componentDependencies =
-            fetchDependencyInformation(
-                allVersions,
-                currentIndex
-            );
-        Map<PackageUrlIdentifier, List<PolicyAlert>> dependencyAlerts = getDependencyAlerts(componentDependencies,
-            owner, stageId, componentDetailsLoader);
-
-        // find first non violating where dependencies have no violations
-        nonViolatingWithDependencies(nonViolatingVersions, dependencyAlerts)
-            .ifPresent(dto -> {
-              componentRemediationDto.versionChanges.add(
-                  createVersionChangeOption(dto.componentIdentifier,
-                      ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, dto.breakingChangesCount)
+        if (includeAdvancedStrategies) {
+          final ComponentDependenciesDTO componentDependencies =
+              fetchDependencyInformation(
+                  allVersions,
+                  currentIndex
               );
-              telemetryAttributes.put(OPTION_NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES_ATTR, String.valueOf(true));
-            });
+          Map<PackageUrlIdentifier, List<PolicyAlert>> dependencyAlerts = getDependencyAlerts(componentDependencies,
+              owner, stageId, componentDetailsLoader);
 
-        // find first non failing where dependencies have no violations
-        nonFailingWithDependencies(nonFailingVersions, dependencyAlerts)
-            .ifPresent(dto -> {
-              componentRemediationDto.versionChanges.add(
-                  createVersionChangeOption(dto.componentIdentifier,
-                      ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES, dto.breakingChangesCount)
-              );
-              telemetryAttributes.put(OPTION_NEXT_NON_FAILING_WITH_DEPENDENCIES_ATTR, String.valueOf(true));
-            });
+          // find first non violating where dependencies have no violations
+          nonViolatingWithDependencies(nonViolatingVersions, dependencyAlerts)
+              .ifPresent(dto -> {
+                componentRemediationDto.versionChanges.add(
+                    createVersionChangeOption(dto.componentIdentifier,
+                        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, dto.breakingChangesCount)
+                );
+                telemetryAttributes.put(OPTION_NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES_ATTR, String.valueOf(true));
+              });
+
+          // find first non failing where dependencies have no violations
+          nonFailingWithDependencies(nonFailingVersions, dependencyAlerts)
+              .ifPresent(dto -> {
+                componentRemediationDto.versionChanges.add(
+                    createVersionChangeOption(dto.componentIdentifier,
+                        ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES, dto.breakingChangesCount)
+                );
+                telemetryAttributes.put(OPTION_NEXT_NON_FAILING_WITH_DEPENDENCIES_ATTR, String.valueOf(true));
+              });
+        }
       }
     }
 
@@ -328,14 +351,14 @@ public class ComponentRemediationService
   }
 
   private List<ComponentDetailsDTO> nonViolatingVersions(int startingIndex, List<ComponentDetailsDTO> dtos) {
-    return dtos.stream()
+    return dtos.stream().parallel()
         .skip(startingIndex)
         .filter(dto -> dto.violatedPolicyCount == 0)
         .collect(Collectors.toList());
   }
 
   private List<ComponentDetailsDTO> nonFailingVersions(int startingIndex, List<ComponentDetailsDTO> dtos) {
-    return dtos.stream()
+    return dtos.stream().parallel()
         .skip(startingIndex)
         .filter(dto -> !hasFailAction(dto.policyAlerts))
         .collect(Collectors.toList());

@@ -158,8 +158,8 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
             any(), eq(componentIdentifiers), eq("myStage"), eq("scanId"), any()))
             .thenReturn(Collections.singletonMap(componentIdentifier, componentDetailsDTOs));
 
-    when(mockComponentRemediationService.getSuggestedRemediation(
-            eq(componentIdentifier), eq(componentDetailsDTOs), any(), any(), any())).thenReturn(null);
+    when(mockComponentRemediationService.getSuggestedSelectedRemediation(
+            eq(componentIdentifier), eq(componentDetailsDTOs), any(), any(), any(), eq(false))).thenReturn(null);
 
     Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> remediationList =
             service.getRemediationVersions(componentIdentifiers, application.getId(), "myStage", "scanId");
@@ -358,8 +358,9 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
       remediationValueDto.versionChanges
               .add(getApiVersionChangeOptionDTO(componentIdentifier));
     }
-    when(mockComponentRemediationService.getSuggestedRemediation(
-            eq(componentIdentifier), eq(componentDetailsDTOList), any(), any(), any())).thenReturn(remediationValueDto);
+    when(mockComponentRemediationService.getSuggestedSelectedRemediation(
+        eq(componentIdentifier), eq(componentDetailsDTOList),
+        any(), any(), any(), eq(false))).thenReturn(remediationValueDto);
   }
 
   private ApiVersionChangeOptionDTO getApiVersionChangeOptionDTO(ComponentIdentifier componentIdentifier) {

@@ -79,6 +79,7 @@ import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.lqa.LqaFormat;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.util.HashUtils;
 
 import com.google.common.collect.Maps;
@@ -522,29 +523,24 @@ public class ComponentInfoService
     Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsByComponentIdentifier =
         getComponentDetailsListBulk(componentIdentifiers, owner, scanId);
 
-    return componentDetailsByComponentIdentifier
-        .entrySet()
+    List<ComponentDetails> allComponentDetails = componentDetailsByComponentIdentifier.entrySet()
         .stream()
-        .map(componentIdentifierAndDetails -> {
-          ComponentIdentifier componentIdentifier = componentIdentifierAndDetails
-              .getKey();
+        .flatMap(componentIdentifierListEntry -> componentIdentifierListEntry.getValue().stream())
+        .collect(Collectors.toList());
+    List<Component> allComponents = componentDetailsLoader.augmentComponentDetails(
+        allComponentDetails,
+        MatchState.EXACT.getId(),
+        null
+    );
 
-          List<ComponentDetails> componentDetailsList = componentIdentifierAndDetails
-              .getValue();
+    List<ComponentDetailsDTO> allComponentDetailsDTOs
+        = evaluatePoliciesAndGetComponentDetails(owner, stageId, allComponents, allComponentDetails);
 
-          // Fix match state to exact as there's no point propagating it to other versions.
-          List<Component> components = componentDetailsLoader.augmentComponentDetails(
-              componentDetailsList,
-              MatchState.EXACT.getId(),
-              null
-          );
-
-          // Evaluate the policies and get the PolicyAlerts
-          List<ComponentDetailsDTO> componentDetailsDTOs
-              = evaluatePoliciesAndGetComponentDetails(owner, stageId, components, componentDetailsList);
-
-          return Maps.immutableEntry(componentIdentifier, componentDetailsDTOs);
-        }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+    Map<ComponentIdentifier, List<ComponentDetailsDTO>> results = new LinkedHashMap<>();
+    for (ComponentDetailsDTO dto: allComponentDetailsDTOs) {
+      results.put(dto.componentIdentifier, Collections.singletonList(dto));
+    }
+    return results;
   }
 
   Map<ComponentIdentifier, List<ComponentDetails>> getComponentDetailsListBulk(
@@ -1014,7 +1010,8 @@ public class ComponentInfoService
 
     log.debug("Fetched versions for {} components from HDS.", versionsByComponent.size());
 
-    List<ComponentIdentifier> expandedComponentIdentifiers = expandVersionsByComponent(versionsByComponent);
+    List<ComponentIdentifier> expandedComponentIdentifiers =
+        expandVersionsByComponent(componentIdentifiers, versionsByComponent);
 
     if (CollectionUtils.isEmpty(expandedComponentIdentifiers)) {
       log.warn("There are no expanded componentIdentifiers to get details from in HDS");
@@ -1092,24 +1089,40 @@ public class ComponentInfoService
         }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
   }
 
-  public List<ComponentIdentifier> expandVersionsByComponent(Map<String, List<String>> versionsByComponent) {
-    return versionsByComponent
-        .entrySet()
-        .stream()
-        .map(versionsByPackageUrl -> {
-          String componentPackageUrl = versionsByPackageUrl.getKey(); // sample format -> pkg:a-name/jquery
-          List<String> availableVersions = versionsByPackageUrl.getValue();
+  /**
+   * Given a list of component identifiers, and a list of all versions for each component, generate a new list of
+   * component identifiers representing all versions of the components with versions greater or equal to that
+   * of the original component.
+   */
+  public List<ComponentIdentifier> expandVersionsByComponent(
+      final List<ComponentIdentifier> componentIdentifiers,
+      Map<String, List<String>> versionsByComponent)
+  {
+    List<ComponentIdentifier> results = new ArrayList<>();
 
-          return availableVersions.stream()
-              .map(version -> {
-                return ComponentIdentifierAdapter
-                    .toComponentIdentifier(componentPackageUrl)
-                    .createAlternativeVersion(version);
-              })
-              .collect(Collectors.toList());
-        })
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList());
+    componentIdentifiers.forEach(cid -> {
+      PackageUrlIdentifier pid = PackageUrlIdentifier.fromComponentIdentifier(cid);
+      // Get the PURL without a version number
+      PackageUrlIdentifier packageOnly = PackageUrlIdentifier
+          .fromComponentIdentifier(cid)
+          .createAlternativeVersion(null);
+      String purl = packageOnly.getPackageUrl();
+      List<String> availableVersions = versionsByComponent.get(purl);
+      if (availableVersions != null) {
+        List<ComponentIdentifier> result = availableVersions.stream()
+            .filter(availableCid -> {
+              ComparableVersion availableVersion = new ComparableVersion(availableCid);
+              ComparableVersion minVersion = new ComparableVersion(pid.getVersion());
+              return availableVersion.compareTo(minVersion) >= 0;
+            })
+            .map(version -> cid.createAlternativeVersion(version))
+            .collect(Collectors.toList());
+
+        results.addAll(result);
+      }
+    });
+
+    return results;
   }
 
   /**

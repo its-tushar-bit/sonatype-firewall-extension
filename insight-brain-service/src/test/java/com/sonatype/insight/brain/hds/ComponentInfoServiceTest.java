@@ -246,15 +246,21 @@ public class ComponentInfoServiceTest
   }
 
   private void mockHdsGetComponentDetailsListBulk(
-      List<ComponentEvaluationDataList.ComponentEvaluationData> componentEvaluationDataList,
-      List<ComponentIdentifier> componentIdentifiers)
+      List<ComponentIdentifier> componentIdentifiers,
+      String responsePath,
+      String responseVersion)
   {
     Map<String, List<String>> stringListMap =
-        Collections.singletonMap("pkg:a-name/jquery", Collections.singletonList("1.0.0"));
+        Collections.singletonMap(responsePath, Collections.singletonList(responseVersion));
 
     when(hdsClientMock.post(Map.class, "rest/component/versions/list", componentIdentifiers))
         .thenReturn(stringListMap);
+  }
 
+  private void mockGetComponentDetailsListFromHds(
+      List<ComponentEvaluationDataList.ComponentEvaluationData> componentEvaluationDataList
+  )
+  {
     when(apiComponentDetailsServiceV2Mock.getComponentDetailsListFromHds(anyList(), any(String.class)))
         .thenReturn(componentEvaluationDataList);
   }
@@ -1046,6 +1052,74 @@ public class ComponentInfoServiceTest
   }
 
   @Test
+  public void testGetComponentDetailsListBulk_dontFetchEarlierVersions() {
+    // Create the mocked hds response
+    ComponentEvaluationDataList.ComponentEvaluationData componentEvaluationData1 =
+        new ComponentEvaluationDataList.ComponentEvaluationData();
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "1.0.0");
+    componentEvaluationData1.componentIdentifier = componentIdentifier1;
+    componentEvaluationData1.declaredLicenses = Sets.newHashSet(new License("Apache-2.0", "Apache-2.0"));
+
+    List<ComponentIdentifier> componentIdentifiers = asList(componentIdentifier1);
+
+    mockHdsGetComponentDetailsListBulk(
+        Collections.singletonList(componentIdentifier1),
+        "pkg:maven/g1/a1",
+        "0.0.1");
+
+    // Versions that come BEFORE the requested component identifiers should not be returned
+    Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null);
+    assertThat(componentDetailsMap).isEmpty();
+  }
+
+  @Test
+  public void testGetComponentDetailsListBulk_doFetchEquivalentVersions() {
+    // Create the mocked hds response
+    ComponentEvaluationDataList.ComponentEvaluationData componentEvaluationData1 =
+        new ComponentEvaluationDataList.ComponentEvaluationData();
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "1.0.0");
+    componentEvaluationData1.componentIdentifier = componentIdentifier1;
+    componentEvaluationData1.declaredLicenses = Sets.newHashSet(new License("Apache-2.0", "Apache-2.0"));
+
+    List<ComponentIdentifier> componentIdentifiers = asList(componentIdentifier1);
+
+    mockHdsGetComponentDetailsListBulk(
+        Collections.singletonList(componentIdentifier1),
+        "pkg:maven/g1/a1",
+        "1.0.0");
+    mockGetComponentDetailsListFromHds(Collections.singletonList(componentEvaluationData1));
+    
+    // Versions that equal the requested component identifiers should be returned
+    Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null);
+    assertThat(componentDetailsMap).hasSize(1);
+  }
+
+  @Test
+  public void testGetComponentDetailsListBulk_doFetchLaterVersions() {
+    // Create the mocked hds response
+    ComponentEvaluationDataList.ComponentEvaluationData componentEvaluationData1 =
+        new ComponentEvaluationDataList.ComponentEvaluationData();
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "1.0.0");
+    componentEvaluationData1.componentIdentifier = componentIdentifier1;
+    componentEvaluationData1.declaredLicenses = Sets.newHashSet(new License("Apache-2.0", "Apache-2.0"));
+
+    List<ComponentIdentifier> componentIdentifiers = asList(componentIdentifier1);
+
+    mockHdsGetComponentDetailsListBulk(
+        Collections.singletonList(componentIdentifier1),
+        "pkg:maven/g1/a1",
+        "2.0.0");
+    mockGetComponentDetailsListFromHds(Collections.singletonList(componentEvaluationData1));
+
+    // Versions that come AFTER the requested component identifiers should be returned
+    Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
+        componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null);
+    assertThat(componentDetailsMap).hasSize(1);
+  }
+
+  @Test
   public void testGetComponentDetailsListBulk_nonTerraformComponents() {
     Organization organization = tempEntity.newOrganization("testGetComponentDetailsList");
     String applicationPublicId = "testGetComponentDetailsList";
@@ -1074,8 +1148,11 @@ public class ComponentInfoServiceTest
         asList(componentIdentifier1, componentIdentifier2, componentIdentifier3);
 
     mockHdsGetComponentDetailsListBulk(
-        asList(componentEvaluationData1, componentEvaluationData2, componentEvaluationData3),
-        asList(componentIdentifier1, componentIdentifier2, componentIdentifier3));
+        asList(componentIdentifier1, componentIdentifier2, componentIdentifier3),
+        "pkg:maven/g1/a1",
+        "3.0.0");
+    mockGetComponentDetailsListFromHds(
+        asList(componentEvaluationData1, componentEvaluationData2, componentEvaluationData3));
 
     Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
         componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null);
@@ -1242,8 +1319,10 @@ public class ComponentInfoServiceTest
     componentEvaluationData1.declaredLicenses = Sets.newHashSet(new License("Apache-2.0", "Apache-2.0"));
 
     mockHdsGetComponentDetailsListBulk(
-        Collections.singletonList(componentEvaluationData1),
-        Collections.singletonList(componentIdentifier1));
+        Collections.singletonList(componentIdentifier1),
+        "pkg:maven/g1/a1",
+        "3.0.0");
+    mockGetComponentDetailsListFromHds(Collections.singletonList(componentEvaluationData1));
 
     //terraform
     ComponentIdentifier componentIdentifier2 = new ComponentIdentifier("terraform", new TreeMap<String, String>() {{

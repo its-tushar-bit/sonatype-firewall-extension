@@ -136,8 +136,13 @@ public class ApiComponentRemediationResourceTest
 
     mockComponentEvaluationData(componentEvaluationDataList);
 
+    // Get the PURL without a version number
+    PackageUrlIdentifier packageOnly = PackageUrlIdentifier
+        .fromComponentIdentifier(currentParentComponent)
+        .createAlternativeVersion(null);
+
     Map<String, List<String>> versionsByComponent = new LinkedHashMap<>();
-    versionsByComponent.put(PackageUrlIdentifier.toPackageUrl(currentParentComponent),
+    versionsByComponent.put(PackageUrlIdentifier.toPackageUrl(packageOnly.toComponentIdentifier()),
         Arrays.asList("1.3.14", "1.3.15", "1.3.16"));
     mockComponentVersionList(versionsByComponent);
 

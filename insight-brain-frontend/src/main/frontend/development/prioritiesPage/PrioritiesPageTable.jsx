@@ -36,13 +36,15 @@ export default function PrioritiesPageTable() {
     additionalPrioritiesData,
     page,
     pageCount,
-    metadata,
+    metadata: {
+      application: { publicId: storedPublicId },
+      scanId: storedScanId,
+    },
   } = useSelector(selectPrioritiesPageSlice);
   const currentPage = pageCount && pageCount > 0 ? page - 1 : null;
   const isFirstPage = page === 1;
 
-  const storedPublicId = metadata.application.publicId;
-  const { publicAppId } = useSelector(selectRouterCurrentParams);
+  const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
 
   const hasZeroFindings = isNilOrEmpty(topPrioritiesData) && isNilOrEmpty(additionalPrioritiesData);
   const setPage = (page) => dispatch(actions.setPage(page));
@@ -50,8 +52,8 @@ export default function PrioritiesPageTable() {
   const priorityTooltip = `Priority of actionable items based on this application's policy, component reachability status, recommendation availability, and threat score severity.`
 
   useEffect(() => {
-    //If page is viewed for a different application, reset pagination
-    if (publicAppId !== storedPublicId) {
+    //If page is viewed for a different applicationId and scanId, reset pagination
+    if (publicAppId !== storedPublicId || scanId !== storedScanId) {
       setPage(0);
     }
     doLoad();

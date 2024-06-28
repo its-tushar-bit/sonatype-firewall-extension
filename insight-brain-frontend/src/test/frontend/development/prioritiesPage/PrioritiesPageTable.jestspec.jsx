@@ -42,6 +42,7 @@ describe('PrioritiesPageTable', () => {
     totalRisk: 138,
     forMonitoring: false,
     reevaluation: false,
+    scanId,
   };
 
   const defaultPreloadedState = {

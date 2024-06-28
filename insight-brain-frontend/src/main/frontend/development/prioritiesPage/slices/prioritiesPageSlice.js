@@ -105,7 +105,7 @@ const loadMetadata = createAsyncThunk(
 
     return axios
       .get(metadataUrl)
-      .then(({ data }) => data)
+      .then(({ data }) => ({ ...data, scanId }))
       .catch(rejectWithValue);
   }
 );

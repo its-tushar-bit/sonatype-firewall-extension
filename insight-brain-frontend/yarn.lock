@@ -6249,10 +6249,10 @@ expect@^29.0.0, expect@^29.6.1:
     jest-message-util "^29.6.1"
     jest-util "^29.6.1"
 
-exports-loader@^3.0.0:
-  version "3.0.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/exports-loader/-/exports-loader-3.0.0.tgz"
-  integrity sha512-b23Yg5SKR63ZvikGrQgfGgwd40MDehaYb7vOXgD7C0fMV04wS8U1I4f7n1j1wEhtQNKUqgdFox/ol2rOruOpOA==
+exports-loader@^4.0.0:
+  version "4.0.0"
+  resolved "https://repo.sonatype.com/repository/npm-all/exports-loader/-/exports-loader-4.0.0.tgz#af34fe80a18f12fb0f42f435edd7df0fe9db49bb"
+  integrity sha512-4iqFFIAnlVAbkAUMHhWceyxK6N6dMDWpQFbSHLmiayGEPMXl2bgWD4D11GYi1VNuEQwJaHGdATcPYTnXpwzSmw==
   dependencies:
     source-map "^0.6.1"
 

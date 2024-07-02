@@ -108,7 +108,7 @@
     "eslint-plugin-deprecate": "^0.7.0",
     "eslint-plugin-react": "^7.12.4",
     "eslint-webpack-plugin": "^3.0.1",
-    "exports-loader": "^3.0.0",
+    "exports-loader": "^4.0.0",
     "html-loader": "^2.1.2",
     "husky": "=4",
     "inject-loader": "^4.0.1",

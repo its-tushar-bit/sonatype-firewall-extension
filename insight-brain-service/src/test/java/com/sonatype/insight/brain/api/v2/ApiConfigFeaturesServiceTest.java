@@ -768,14 +768,14 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testEnableFeature_PrioritizedFindingsReport() {
-    service.enableFeature(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT);
-    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT)
-        .getValue()).isEqualTo("true");
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT
+            .getPropertyName(), "false");
+    service.enableFeature(PRIORITIZED_FINDINGS_REPORT);
+    assertThat(systemConfigurationPropertyDAO.getByName(PRIORITIZED_FINDINGS_REPORT)).isNull();
   }
 
   @Test
   public void testEnableFeature_PrioritizedFindingsReport_AlreadyEnabled() {
-    service.enableFeature(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT);
     assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Feature is already enabled.");
@@ -783,11 +783,9 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testDisableFeature_PrioritizedFindingsReport() {
-    tempEntity.newSystemConfigurationProperty(SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT
-        .getPropertyName(), "true");
     service.disableFeature(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT);
-    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT))
-        .isNull();
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT)
+        .getValue()).isEqualTo("false");
   }
 
   @Test
@@ -798,6 +796,7 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testDisableFeature_PrioritizedFindingsReport_AlreadyDisabled() {
+    service.disableFeature(PRIORITIZED_FINDINGS_REPORT);
     assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("Feature is already disabled.");

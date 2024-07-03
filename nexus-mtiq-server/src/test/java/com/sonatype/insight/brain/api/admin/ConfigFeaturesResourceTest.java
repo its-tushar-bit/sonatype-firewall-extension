@@ -59,6 +59,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
       SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.getId(),
       SystemConfigurationPropertyFeature.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION.getId(),
+      SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT.getId(),
       };
 
   /**
@@ -84,7 +85,8 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.getId(),
       SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.getId(),
       SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.getId(),
-      SystemConfigurationPropertyFeature.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION.getId()
+      SystemConfigurationPropertyFeature.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION.getId(),
+      SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT.getId(),
       };
 
   /**
@@ -95,7 +97,6 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.SSO_IDP_MANAGED_BY_SONATYPE.getId(),
           SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.getId(),
           SystemConfigurationPropertyFeature.SBOM_MANAGER.getId(),
-          SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT.getId(),
           SystemConfigurationPropertyFeature.SAAS_ALP_ENABLED.getId(),
           SystemConfigurationPropertyFeature.OAUTH2_ENABLED.getId(),
           SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.getId(),

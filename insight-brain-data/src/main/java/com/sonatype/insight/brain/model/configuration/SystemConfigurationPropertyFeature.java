@@ -197,7 +197,7 @@ public enum SystemConfigurationPropertyFeature
       SystemConfigurationProperty.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION,
       true
   ),
-  PRIORITIZED_FINDINGS_REPORT(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT, false),
+  PRIORITIZED_FINDINGS_REPORT(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT, true),
 
   /**
    * If enabled IQ will be able to use OAuth2 to implement authentication and will be able to handle JWT bearer tokens

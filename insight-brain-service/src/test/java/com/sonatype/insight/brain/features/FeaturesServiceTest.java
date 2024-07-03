@@ -153,18 +153,10 @@ public class FeaturesServiceTest
   }
 
   @Test
-  public void testGetFeatures_PrioritizedFindingsReportEnabled() {
+  public void testGetFeatures_PrioritizedFindingsReportEnabledByDefault() {
     when(productLicense.isValid()).thenReturn(true);
-    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.PRIORITIZED_FINDINGS_REPORT, "true");
     assertThat(featuresService.getFeatures())
         .contains(SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT);
-  }
-
-  @Test
-  public void testGetFeatures_PrioritizedFindingsReportDisabled() {
-    when(productLicense.isValid()).thenReturn(true);
-    assertThat(featuresService.getFeatures())
-        .doesNotContain(SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT);
   }
 
   @Test

@@ -3,20 +3,21 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
 import React from 'react';
 import moment from 'moment-timezone';
-
-import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
-import ReportPage from 'MainRoot/applicationReport/ReportPage';
-import * as routerContext from 'MainRoot/react/RouterStateContext';
-import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
-import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
+import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
+import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
+import * as routerContext from 'MainRoot/react/RouterStateContext';
+import { fireEvent, render, screen, within, setupPortalContainer, removePortalContainer } from 'TestRoot/SpecUtil';
+import ReportPage from 'MainRoot/applicationReport/ReportPage';
 
 describe('Report Page component', () => {
-  let renderComponent,
-    loadReportIfNeededSpy,
+  let loadReportIfNeededSpy,
+    selectHasUnscannedComponentsSpy,
+    selectDisplayedComponentListSpy,
     routerContextMock,
     applicationReport,
     displayedEntries,
@@ -33,122 +34,47 @@ describe('Report Page component', () => {
   });
 
   beforeEach(() => {
-    displayedEntries = [
-      {
-        derivedComponentName: 'componentA : 1.0.0',
-        displayName: {
-          name: 'componentA : 1.0.0',
-          parts: [{ field: 'packageId', value: 'componentA' }, { value: ' : ' }, { field: 'version', value: '1.0.0' }],
-        },
-        policyName: 'Security-Critical',
-        policyThreatLevel: 10,
-      },
-      {
-        derivedComponentName: 'componentB : 1.0.0',
-        displayName: {
-          name: 'componentB : 1.0.0',
-          parts: [{ field: 'packageId', value: 'componentB' }, { value: ' : ' }, { field: 'version', value: '1.0.0' }],
-        },
-        policyName: 'Security-Medium',
-        policyThreatLevel: 7,
-      },
-      {
-        derivedComponentName: 'componentC : 1.0.0',
-        displayName: {
-          name: 'componentC : 1.0.0',
-          parts: [{ field: 'packageId', value: 'componentC' }, { value: ' : ' }, { field: 'version', value: '1.0.0' }],
-        },
-        policyName: 'Component-Unknown',
-        policyThreatLevel: 2,
-      },
-      {
-        derivedComponentName: 'componentD : 1.0.0',
-        displayName: {
-          name: 'componentD : 1.0.0',
-          parts: [{ field: 'packageId', value: 'componentD' }, { value: ' : ' }, { field: 'version', value: '1.0.0' }],
-        },
-        policyName: 'Architecture-Quality',
-        policyThreatLevel: 1,
-      },
-      {
-        derivedComponentName: 'componentE : 1.0.0',
-        displayName: {
-          name: 'componentE : 1.0.0',
-          parts: [{ field: 'packageId', value: 'componentE' }, { value: ' : ' }, { field: 'version', value: '1.0.0' }],
-        },
-        policyName: 'None',
-        policyThreatLevel: 0,
-      },
-    ];
-    selectedReport = {
-      displayedEntries: displayedEntries,
-      reportVersion: 3,
-      knownArtifactCount: 250,
-      totalArtifactCount: 500,
-      policyComponentCount: 555,
-      legacyViolationCount: 33,
-      criticalViolationCount: 111,
-      severeViolationCount: 222,
-      moderateViolationCount: 333,
-      nonLowViolationCount: 123,
-    };
+    displayedEntries = getDefaultDisplayEntriesDataForTest();
+    selectedReport = getDefaultSelectedReportForTest(displayedEntries);
+    metadata = getDefaultMetadataForTest();
+    router = getDefaultRouterStateForTest();
+    applicationReport = getDefaultApplicationReportForTest(selectedReport, metadata);
 
-    metadata = {
-      scanTriggerType: 'Unknown',
-      reportTitle: 'Title',
-      reportTime: moment('2018-11-11 15:13:11').toDate().getTime(),
-      application: {
-        id: '704e2674ffe845a7ac037524ce32ae89',
-        publicId: 'App Name',
-        name: 'App Name',
-        organizationId: '8637a3377e8f40748e263474d4a131c5',
-      },
-      totalRisk: 404,
-    };
+    jest.spyOn(routerSelectors, 'selectRouterSlice').mockReturnValue(router);
+    jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue(router.currentParams);
+    jest.spyOn(applicationReportSelectors, 'selectApplicationReportSlice').mockReturnValue(applicationReport);
+    jest.spyOn(applicationReportSelectors, 'selectApplicationReportMetaData').mockReturnValue(metadata);
+    jest.spyOn(applicationReportSelectors, 'selectSelectedReport').mockReturnValue(selectedReport);
+    jest.spyOn(applicationReportSelectors, 'selectIsAggregated').mockReturnValue(true);
+    selectDisplayedComponentListSpy = jest
+      .spyOn(applicationReportSelectors, 'selectDisplayedComponentList')
+      .mockReturnValue(selectedReport.displayedEntries);
+    jest.spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').mockReturnValue(true);
+    jest.spyOn(applicationReportSelectors, 'selectIsPolicyTypeFilterEnabled').mockReturnValue(true);
+    jest.spyOn(applicationReportSelectors, 'selectDependencyTreeUnavailableMessage').mockReturnValue('');
+    jest.spyOn(applicationReportSelectors, 'selectDependencyTreeIsOldReport').mockReturnValue(false);
 
-    router = {
-      currentParams: {
-        publicId: 'publicId',
-        scanId: 'scanId',
-      },
-    };
+    selectHasUnscannedComponentsSpy = jest
+      .spyOn(applicationReportSelectors, 'selectHasUnscannedComponents')
+      .mockReturnValue(false);
+    jest.spyOn(productFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').mockReturnValue(false);
 
-    applicationReport = {
-      selectedReport: selectedReport,
-      metadata: metadata,
-      exactValueFilters: {},
-      reevaluating: false,
-      loadError: null,
-      pendingLoads: {},
-    };
-
-    spyOn(routerSelectors, 'selectRouterSlice').and.returnValue(router);
-    spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue(router.currentParams);
-    spyOn(applicationReportSelectors, 'selectApplicationReportSlice').and.returnValue(applicationReport);
-    spyOn(applicationReportSelectors, 'selectApplicationReportMetaData').and.returnValue(metadata);
-    spyOn(applicationReportSelectors, 'selectSelectedReport').and.returnValue(selectedReport);
-    spyOn(applicationReportSelectors, 'selectIsAggregated').and.returnValue(true);
-    spyOn(applicationReportSelectors, 'selectDisplayedComponentList').and.returnValue(selectedReport.displayedEntries);
-    spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(true);
-    spyOn(applicationReportSelectors, 'selectIsPolicyTypeFilterEnabled').and.returnValue(true);
-    spyOn(applicationReportSelectors, 'selectDependencyTreeUnavailableMessage').and.returnValue('');
-    spyOn(applicationReportSelectors, 'selectDependencyTreeIsOldReport').and.returnValue(false);
-    spyOn(applicationReportSelectors, 'selectHasUnscannedComponents').and.returnValue(false);
-    spyOn(productFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').and.returnValue(false);
-
-    loadReportIfNeededSpy = spyOn(applicationReportActions, 'loadReportIfNeeded').and.callThrough();
-    spyOn(applicationReportActions, 'toggleAggregateReportEntries');
-    spyOn(applicationReportActions, 'goToDependencyTreePage').and.returnValue({ type: 'type' });
+    loadReportIfNeededSpy = jest.spyOn(applicationReportActions, 'loadReportIfNeeded');
+    jest.spyOn(applicationReportActions, 'toggleAggregateReportEntries');
+    jest.spyOn(applicationReportActions, 'goToDependencyTreePage').mockReturnValue({ type: 'type' });
 
     routerContextMock = {
-      href: jasmine.createSpy('href').and.returnValue('mockValue'),
-      get: jasmine.createSpy('get').and.returnValue('mockGetValue'),
+      href: jest.fn().mockReturnValue('mockValue'),
+      get: jest.fn().mockReturnValue('mockGetValue'),
     };
-    spyOn(routerContext, 'useRouterState').and.returnValue(routerContextMock);
+    jest.spyOn(routerContext, 'useRouterState').mockReturnValue(routerContextMock);
 
-    renderComponent = () => {
-      render(<ReportPage />);
-    };
+    // this is needed to test the back button because it is placed through the use of react portals
+    setupPortalContainer();
+  });
+
+  afterEach(() => {
+    removePortalContainer();
   });
 
   it('renders an alert and retry button if there is an issue while loading information', () => {
@@ -167,7 +93,7 @@ describe('Report Page component', () => {
   });
 
   it('renders an All Reports back button', () => {
-    applicationReportSelectors.selectDisplayedComponentList.and.returnValue([]);
+    selectDisplayedComponentListSpy.mockReturnValue([]);
     renderComponent();
 
     const backToAllReports = screen.getByRole('link', { name: 'All Reports' });
@@ -175,8 +101,8 @@ describe('Report Page component', () => {
   });
 
   it('renders a "Back to Priorities" back button if navigated from Priorities Page', () => {
-    applicationReportSelectors.selectDisplayedComponentList.and.returnValue([]);
-    spyOn(routerSelectors, 'selectIsPrioritiesPageContainer').and.returnValue(true);
+    selectDisplayedComponentListSpy.mockReturnValue([]);
+    jest.spyOn(routerSelectors, 'selectIsPrioritiesPageContainer').mockReturnValue(true);
 
     renderComponent();
 
@@ -185,8 +111,9 @@ describe('Report Page component', () => {
   });
 
   it('renders a ReportTitle', async () => {
-    applicationReportSelectors.selectDisplayedComponentList.and.returnValue([]);
-    SpecUtil.requestIdleCallbackInvokeImmediate();
+    selectDisplayedComponentListSpy.mockReturnValue([]);
+    SpecUtil.requestIdleCallbackInvokeImmediateJest();
+
     renderComponent();
 
     const header = screen.getByRole('heading', { name: 'App Name Title' });
@@ -214,9 +141,10 @@ describe('Report Page component', () => {
   });
 
   it('renders a ReportStatusBar', () => {
-    applicationReportSelectors.selectDisplayedComponentList.and.returnValue([]);
+    selectDisplayedComponentListSpy.mockReturnValue([]);
     selectedReport.nonLowViolationCount = 1;
     selectedReport.policyComponentCount = 1;
+
     renderComponent();
 
     const criticalThreatIndicator = screen
@@ -237,11 +165,11 @@ describe('Report Page component', () => {
     );
 
     expect(criticalThreatIndicator).toBeVisible();
-    expect(criticalThreatIndicator).toHaveClassName('nx-small-threat-counter--critical');
+    expect(criticalThreatIndicator).toHaveClass('nx-small-threat-counter--critical');
     expect(severeThreatIndicator).toBeVisible();
-    expect(severeThreatIndicator).toHaveClassName('nx-small-threat-counter--severe');
+    expect(severeThreatIndicator).toHaveClass('nx-small-threat-counter--severe');
     expect(moderateThreatIndicator).toBeVisible();
-    expect(moderateThreatIndicator).toHaveClassName('nx-small-threat-counter--moderate');
+    expect(moderateThreatIndicator).toHaveClass('nx-small-threat-counter--moderate');
     expect(totalViolationText).toBeVisible();
     expect(affectedComponentText).toBeVisible();
     expect(totalArtifactText).toBeVisible();
@@ -250,7 +178,7 @@ describe('Report Page component', () => {
   });
 
   it('when developer-dashboard feature is disabled renders a ReportStatusBar without application risk score', () => {
-    productFeaturesSelectors.selectIsDeveloperDashboardEnabled.and.returnValue(false);
+    productFeaturesSelectors.selectIsDeveloperDashboardEnabled.mockReturnValue(false);
     renderComponent();
     expect(screen.queryByText(/application risk score/i)).not.toBeInTheDocument();
     expect(screen.queryByText(metadata.totalRisk)).not.toBeInTheDocument();
@@ -258,7 +186,7 @@ describe('Report Page component', () => {
 
   describe('when developer-dashboard feature is enabled', () => {
     beforeEach(() => {
-      productFeaturesSelectors.selectIsDeveloperDashboardEnabled.and.returnValue(true);
+      productFeaturesSelectors.selectIsDeveloperDashboardEnabled.mockReturnValue(true);
     });
 
     it('renders a ReportStatusBar with app risk score', () => {
@@ -314,7 +242,7 @@ describe('Report Page component', () => {
   });
 
   it('renders ReportContent with 3 actions', async () => {
-    SpecUtil.requestIdleCallbackInvokeImmediate();
+    SpecUtil.requestIdleCallbackInvokeImmediateJest();
     renderComponent();
 
     const aggregateByComponentToggleTooltip =
@@ -343,12 +271,13 @@ describe('Report Page component', () => {
   });
 
   it('renders ReportContent with information', async () => {
-    SpecUtil.requestIdleCallbackInvokeImmediate();
+    SpecUtil.requestIdleCallbackInvokeImmediateJest();
     renderComponent();
 
     const componentRaws = screen.getAllByRole('row');
     expect(componentRaws.length).toBeGreaterThanOrEqual(6);
 
+    // !!! foo
     expect(await screen.findByLabelText('Critical')).toBeVisible();
     expect(screen.getByText(`${displayedEntries[0].policyThreatLevel}`)).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[0].policyName}` })).toBeVisible();
@@ -376,7 +305,7 @@ describe('Report Page component', () => {
   });
 
   it('does not render warning message when policy types filter is enabled', () => {
-    applicationReportSelectors.selectIsPolicyTypeFilterEnabled.and.returnValue(true);
+    applicationReportSelectors.selectIsPolicyTypeFilterEnabled.mockReturnValue(true);
     renderComponent();
     expect(
       screen.queryByText(
@@ -387,7 +316,7 @@ describe('Report Page component', () => {
   });
 
   it('renders warning message when policy types filter is not enabled', () => {
-    applicationReportSelectors.selectIsPolicyTypeFilterEnabled.and.returnValue(false);
+    applicationReportSelectors.selectIsPolicyTypeFilterEnabled.mockReturnValue(false);
     renderComponent();
     expect(
       screen.getByText(
@@ -398,7 +327,7 @@ describe('Report Page component', () => {
   });
 
   it('does not render old report warning message when dependencyTree is available', () => {
-    applicationReportSelectors.selectDependencyTreeIsOldReport.and.returnValue(false);
+    applicationReportSelectors.selectDependencyTreeIsOldReport.mockReturnValue(false);
     renderComponent();
     expect(
       screen.queryByText('This report was generated with an older version of IQ. Please re-scan the application.')
@@ -406,7 +335,7 @@ describe('Report Page component', () => {
   });
 
   it('renders old report warning message when dependencyTree is null', () => {
-    applicationReportSelectors.selectDependencyTreeIsOldReport.and.returnValue(true);
+    applicationReportSelectors.selectDependencyTreeIsOldReport.mockReturnValue(true);
     renderComponent();
     expect(
       screen.getByText('This report was generated with an older version of IQ. Please re-scan the application.')
@@ -426,14 +355,16 @@ describe('Report Page component', () => {
   });
 
   describe('when unscannable components exist in the report', () => {
-    it('renders an error alert if the report contains unscannable components', () => {
-      applicationReportSelectors.selectHasUnscannedComponents.and.returnValue(true);
+    it('renders an error alert if the report contains unscannable components', async () => {
+      selectHasUnscannedComponentsSpy.mockReturnValue(true);
       renderComponent();
-      expect(screen.getByText('You have unscannable components in this build')).toBeVisible();
+
+      const unscannable = await screen.findByText('You have unscannable components in this build');
+      expect(unscannable).toBeVisible();
     });
 
     it('displays a modal when the alert\'s "View" button is clicked and closes when the Close button is clicked', () => {
-      applicationReportSelectors.selectHasUnscannedComponents.and.returnValue(true);
+      selectHasUnscannedComponentsSpy.mockReturnValue(true);
       renderComponent();
 
       const viewButton = screen.getByRole('button', { name: 'View' });
@@ -450,4 +381,108 @@ describe('Report Page component', () => {
       expect(screen.queryByText('Unscannable Components')).toBeNull();
     });
   });
+
+  function renderComponent() {
+    return render(<ReportPage />);
+  }
+
+  function getDefaultDisplayEntriesDataForTest() {
+    return [
+      {
+        derivedComponentName: 'componentA : 1.0.0',
+        displayName: {
+          name: 'componentA : 1.0.0',
+          parts: [{ field: 'packageId', value: 'componentA' }, { value: ' : ' }, { field: 'version', value: '1.0.0' }],
+        },
+        policyName: 'Security-Critical',
+        policyThreatLevel: 10,
+      },
+      {
+        derivedComponentName: 'componentB : 1.0.0',
+        displayName: {
+          name: 'componentB : 1.0.0',
+          parts: [{ field: 'packageId', value: 'componentB' }, { value: ' : ' }, { field: 'version', value: '1.0.0' }],
+        },
+        policyName: 'Security-Medium',
+        policyThreatLevel: 7,
+      },
+      {
+        derivedComponentName: 'componentC : 1.0.0',
+        displayName: {
+          name: 'componentC : 1.0.0',
+          parts: [{ field: 'packageId', value: 'componentC' }, { value: ' : ' }, { field: 'version', value: '1.0.0' }],
+        },
+        policyName: 'Component-Unknown',
+        policyThreatLevel: 2,
+      },
+      {
+        derivedComponentName: 'componentD : 1.0.0',
+        displayName: {
+          name: 'componentD : 1.0.0',
+          parts: [{ field: 'packageId', value: 'componentD' }, { value: ' : ' }, { field: 'version', value: '1.0.0' }],
+        },
+        policyName: 'Architecture-Quality',
+        policyThreatLevel: 1,
+      },
+      {
+        derivedComponentName: 'componentE : 1.0.0',
+        displayName: {
+          name: 'componentE : 1.0.0',
+          parts: [{ field: 'packageId', value: 'componentE' }, { value: ' : ' }, { field: 'version', value: '1.0.0' }],
+        },
+        policyName: 'None',
+        policyThreatLevel: 0,
+      },
+    ];
+  }
+
+  function getDefaultSelectedReportForTest(displayedEntries) {
+    return {
+      displayedEntries: displayedEntries,
+      reportVersion: 3,
+      knownArtifactCount: 250,
+      totalArtifactCount: 500,
+      policyComponentCount: 555,
+      legacyViolationCount: 33,
+      criticalViolationCount: 111,
+      severeViolationCount: 222,
+      moderateViolationCount: 333,
+      nonLowViolationCount: 123,
+    };
+  }
+
+  function getDefaultMetadataForTest() {
+    return {
+      scanTriggerType: 'Unknown',
+      reportTitle: 'Title',
+      reportTime: moment('2018-11-11 15:13:11').toDate().getTime(),
+      application: {
+        id: '704e2674ffe845a7ac037524ce32ae89',
+        publicId: 'App Name',
+        name: 'App Name',
+        organizationId: '8637a3377e8f40748e263474d4a131c5',
+      },
+      totalRisk: 404,
+    };
+  }
+
+  function getDefaultRouterStateForTest() {
+    return {
+      currentParams: {
+        publicId: 'publicId',
+        scanId: 'scanId',
+      },
+    };
+  }
+
+  function getDefaultApplicationReportForTest(selectReport, metadata) {
+    return {
+      selectedReport: selectedReport,
+      metadata: metadata,
+      exactValueFilters: {},
+      reevaluating: false,
+      loadError: null,
+      pendingLoads: {},
+    };
+  }
 });

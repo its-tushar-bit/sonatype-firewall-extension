@@ -366,6 +366,14 @@ window.SpecUtil = {
         cb();
       }, 0);
     }),
+
+  requestIdleCallbackInvokeImmediateJest: () => {
+    window.requestIdleCallback = jest.fn().mockImplementation((cb) => {
+      setTimeout(() => {
+        cb();
+      }, 0);
+    });
+  },
 };
 
 // custom equality tester for Sets

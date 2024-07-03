@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.development.prioritization;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -126,7 +127,14 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
 
   @Test
   public void testGetRemediationVersions_noDetails() {
-    List<ComponentIdentifier> componentIdentifiers = Collections.singletonList(new ComponentIdentifier());
+    TreeMap<String, String> coordinates = new TreeMap<String, String>() {{
+        this.put("artifactId", "Artifact1");
+        this.put("groupId", "Group1");
+        this.put("version", "1.2.3");
+      }};
+    ComponentIdentifier componentIdentifier = new ComponentIdentifier("maven", coordinates);
+
+    List<ComponentIdentifier> componentIdentifiers = Collections.singletonList(componentIdentifier);
 
     when(mockComponentInfoService.getComponentDetailsForAllVersionsNoAuthBulk(
             any(), eq(componentIdentifiers), eq("myStage"), eq("scanId"), any()))
@@ -156,10 +164,12 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
 
     when(mockComponentInfoService.getComponentDetailsForAllVersionsNoAuthBulk(
             any(), eq(componentIdentifiers), eq("myStage"), eq("scanId"), any()))
-            .thenReturn(Collections.singletonMap(componentIdentifier, componentDetailsDTOs));
+            .thenReturn(Collections.singletonMap(
+                componentIdentifier.createAlternativeVersion(null), componentDetailsDTOs));
 
     when(mockComponentRemediationService.getSuggestedSelectedRemediation(
-            eq(componentIdentifier), eq(componentDetailsDTOs), any(), any(), any(), eq(false))).thenReturn(null);
+            eq(componentIdentifier), eq(componentDetailsDTOs),
+            any(), any(), any(), eq(false))).thenReturn(null);
 
     Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> remediationList =
             service.getRemediationVersions(componentIdentifiers, application.getId(), "myStage", "scanId");
@@ -185,7 +195,8 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
 
     when(mockComponentInfoService.getComponentDetailsForAllVersionsNoAuthBulk(
             any(), eq(componentIdentifiers), eq("myStage"), eq("scanId"), any()))
-            .thenReturn(Collections.singletonMap(componentIdentifier, componentDetailsDTOs));
+            .thenReturn(Collections.singletonMap(componentIdentifier.createAlternativeVersion(null),
+                componentDetailsDTOs));
 
     componentRemediationServiceSetup(componentIdentifier, componentDetailsDTOs);
 
@@ -229,29 +240,39 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
         this.put("groupId", "Group3");
         this.put("version", "1.2.3");
       }};
-    ComponentIdentifier componentIdentifier2 = new ComponentIdentifier("maven", coordinates2);
+    ComponentIdentifier componentIdentifier2a = new ComponentIdentifier("maven", coordinates2);
+    ComponentIdentifier componentIdentifier2b = componentIdentifier2a.createAlternativeVersion("1.2.4");
 
-    ComponentDetailsDTO componentDetailsDTO2 = new ComponentDetailsDTO();
-    componentDetailsDTO2.componentIdentifier = componentIdentifier2;
-    componentDetailsDTO2.violatedPolicyCount = 0;
+    ComponentDetailsDTO componentDetailsDTO2a = new ComponentDetailsDTO();
+    componentDetailsDTO2a.componentIdentifier = componentIdentifier2a;
+    componentDetailsDTO2a.violatedPolicyCount = 0;
+
+    ComponentDetailsDTO componentDetailsDTO2b = new ComponentDetailsDTO();
+    componentDetailsDTO2b.componentIdentifier = componentIdentifier2b;
+    componentDetailsDTO2b.violatedPolicyCount = 0;
 
     List<ComponentDetailsDTO> componentDetailsDTOs = Collections.singletonList(componentDetailsDTO);
     List<ComponentDetailsDTO> componentDetailsDTOs1 = Collections.singletonList(componentDetailsDTO1);
-    List<ComponentDetailsDTO> componentDetailsDTOs2 = Collections.singletonList(componentDetailsDTO2);
+
+    // Two possible upgrades for test "2". This is used to ensure we don't choose an incorrect version,
+    // and also that we don't make recommendations for versions that we do not need recommendations for.
+    List<ComponentDetailsDTO> componentDetailsDTOs2 = new ArrayList<>();
+    componentDetailsDTOs2.add(componentDetailsDTO2a);
+    componentDetailsDTOs2.add(componentDetailsDTO2b);
 
     List<ComponentIdentifier> componentIdentifiers =
-        Arrays.asList(componentIdentifier, componentIdentifier1, componentIdentifier2);
+        Arrays.asList(componentIdentifier, componentIdentifier1, componentIdentifier2a);
 
     when(mockComponentInfoService.getComponentDetailsForAllVersionsNoAuthBulk(
         any(), eq(componentIdentifiers), eq("myStage"), eq("scanId"), any()))
         .thenReturn(ImmutableMap.of(
-            componentIdentifier, componentDetailsDTOs,
-            componentIdentifier1, componentDetailsDTOs1,
-            componentIdentifier2, componentDetailsDTOs2));
+            componentIdentifier.createAlternativeVersion(null), componentDetailsDTOs,
+            componentIdentifier1.createAlternativeVersion(null), componentDetailsDTOs1,
+            componentIdentifier2a.createAlternativeVersion(null), componentDetailsDTOs2));
 
     componentRemediationServiceSetup(componentIdentifier, componentDetailsDTOs);
     componentRemediationServiceSetup(componentIdentifier1, componentDetailsDTOs1);
-    componentRemediationServiceSetup(componentIdentifier2, componentDetailsDTOs2);
+    componentRemediationServiceSetup(componentIdentifier2a, componentDetailsDTOs2);
 
     Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> remediationList =
         service.getRemediationVersions(componentIdentifiers, application.getId(), "myStage", "scanId");
@@ -269,7 +290,7 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
     assertThat(prioritizationRemediationVersionDTO.getRemediationType())
             .isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
 
-    prioritizationRemediationVersionDTO = remediationList.get(componentIdentifier2);
+    prioritizationRemediationVersionDTO = remediationList.get(componentIdentifier2a);
     assertThat(prioritizationRemediationVersionDTO).isNotNull();
     assertThat(prioritizationRemediationVersionDTO.getVersion()).isEqualTo("1.2.3");
     assertThat(prioritizationRemediationVersionDTO.getRemediationType())

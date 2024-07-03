@@ -513,6 +513,11 @@ public class ComponentInfoService
     return new ComponentVersionInfoDTO(componentDetailsDTOs, remediationDto, result.getRight());
   }
 
+  /**
+   * Build a map of versionless component identifiers (packages) to a list of version details for
+   * the package, where the versions are greater than or equal to the provided componentIdentifier
+   * versions.
+   */
   public Map<ComponentIdentifier, List<ComponentDetailsDTO>> getComponentDetailsForAllVersionsNoAuthBulk(
       Owner owner,
       List<ComponentIdentifier> componentIdentifiers,
@@ -538,7 +543,11 @@ public class ComponentInfoService
 
     Map<ComponentIdentifier, List<ComponentDetailsDTO>> results = new LinkedHashMap<>();
     for (ComponentDetailsDTO dto: allComponentDetailsDTOs) {
-      results.put(dto.componentIdentifier, Collections.singletonList(dto));
+      ComponentIdentifier pkgIdentifier = dto.componentIdentifier.createAlternativeVersion(null);
+      if (!results.containsKey(pkgIdentifier)) {
+        results.put(pkgIdentifier, new ArrayList<>());
+      }
+      results.get(pkgIdentifier).add(dto);
     }
     return results;
   }

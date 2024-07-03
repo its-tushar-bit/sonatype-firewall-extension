@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.development.prioritization;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -82,7 +83,7 @@ public class DevelopmentPrioritizationRemediationService
       List<ComponentIdentifier> componentIdentifiers, String scanId, String appId, Stage stage)
   {
     Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> remediationVersions =
-        getRemediationVersions(componentIdentifiers, appId, stage.getStageName(), scanId);
+        getRemediationVersions(componentIdentifiers, appId, stage.getStageTypeId(), scanId);
     persistRemediationRecommendations(remediationVersions, scanId);
   }
 
@@ -125,30 +126,27 @@ public class DevelopmentPrioritizationRemediationService
         componentInfoService.getComponentDetailsForAllVersionsNoAuthBulk(app,
             componentIdentifiers, stage, scanId, componentDetailsLoader);
 
-    return componentDetailsForAllVersionsNoAuthBulk
-        .entrySet()
-        .stream()
-        .map(componentDetailsVersionsEntry -> {
-          ComponentIdentifier componentIdentifier = componentDetailsVersionsEntry.getKey();
-          List<ComponentDetailsDTO> componentDetailsDTOs = componentDetailsVersionsEntry.getValue();
+    return componentIdentifiers.stream().map(componentIdentifier -> {
+      ComponentIdentifier pkgIdentifier = componentIdentifier.createAlternativeVersion(null);
+      List<ComponentDetailsDTO> componentDetailsDTOs = componentDetailsForAllVersionsNoAuthBulk.get(pkgIdentifier);
 
-          ApiComponentRemediationValueDTO remediationValueDto =
-              componentRemediationService.getSuggestedSelectedRemediation(componentIdentifier, componentDetailsDTOs,
-                  app, stage, componentDetailsLoader, false);
+      ApiComponentRemediationValueDTO remediationValueDto =
+          componentRemediationService.getSuggestedSelectedRemediation(componentIdentifier, componentDetailsDTOs,
+              app, stage, componentDetailsLoader, false);
 
-          if (remediationValueDto != null) {
-            Optional<ApiVersionChangeOptionDTO> versionChangeDTO =
-                getRecommendedVersionChange(remediationValueDto.versionChanges);
+      if (remediationValueDto != null) {
+        Optional<ApiVersionChangeOptionDTO> versionChangeDTO =
+            getRecommendedVersionChange(remediationValueDto.versionChanges);
 
-            final PrioritizationRemediationVersionDTO prioritizationRemediationVersionDTO =
-                getPrioritizationRemediationVersionDTO(versionChangeDTO);
+        final PrioritizationRemediationVersionDTO prioritizationRemediationVersionDTO =
+            getPrioritizationRemediationVersionDTO(versionChangeDTO);
 
-            return Maps.immutableEntry(componentIdentifier, prioritizationRemediationVersionDTO);
-          }
-          return Maps.immutableEntry(componentIdentifier, (PrioritizationRemediationVersionDTO) null);
-        })
-        .filter(entrySet -> Objects.nonNull(entrySet.getValue()))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return Maps.immutableEntry(componentIdentifier, prioritizationRemediationVersionDTO);
+      }
+      return Maps.immutableEntry(componentIdentifier, (PrioritizationRemediationVersionDTO) null);
+    })
+    .filter(entrySet -> Objects.nonNull(entrySet.getValue()))
+    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
   }
 
   private PrioritizationRemediationVersionDTO getPrioritizationRemediationVersionDTO(

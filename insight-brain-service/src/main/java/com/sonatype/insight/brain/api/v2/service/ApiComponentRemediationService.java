@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -252,23 +251,27 @@ public class ApiComponentRemediationService
     return hdsClient.get(ComponentSummary.class, "rest/component/summary", queryParams);
   }
 
+  /** Using a list of component identifiers, and a map of package identifiers to a list of
+   * details for versions of this package, produce a map from the identifier itself to the
+   * details.
+   *
+   * Note that the pkgBasedMap only contains versions greater than or equal to the component
+   * identifier in the provided componentIdentifiers list. We never look back.
+   *
+   * @param pkgBasedMap Map of component identifiers *without* versions to details lists
+   * @param componentIdentifiers List of identifiers we are checking
+   * @return A map from a versioned component identifier to details of versions greater or
+   *         equal to the key's version.
+   */
   public Map<ComponentIdentifier, List<ComponentDetailsDTO>> mapComponentsAllVersionsFromBulk(
-      Map<ComponentIdentifier, List<ComponentDetailsDTO>> componentMap,
+      Map<ComponentIdentifier, List<ComponentDetailsDTO>> pkgBasedMap,
       List<ComponentIdentifier> componentIdentifiers)
   {
-
-    //Preprocess the componentMap to create a name-based(no version) map
-    Map<String, List<ComponentDetailsDTO>> nameBasedMap = new LinkedHashMap<>();
-    for (Map.Entry<ComponentIdentifier, List<ComponentDetailsDTO>> entry : componentMap.entrySet()) {
-      String componentName = entry.getKey().get("groupdId") + ":" + entry.getKey().get("artifactId");
-      nameBasedMap.computeIfAbsent(componentName, k -> new ArrayList<>()).addAll(entry.getValue());
-    }
-
-    Map<ComponentIdentifier, List<ComponentDetailsDTO>> resultMap = new LinkedHashMap<>();
+    Map<ComponentIdentifier, List<ComponentDetailsDTO>> resultMap = new HashMap<>();
     for (ComponentIdentifier identifier : componentIdentifiers) {
-      String componentName = identifier.get("groupdId") + ":" + identifier.get("artifactId");
-      if (nameBasedMap.containsKey(componentName)) {
-        resultMap.computeIfAbsent(identifier, k -> new ArrayList<>()).addAll(nameBasedMap.get(componentName));
+      ComponentIdentifier packageIdentifier = identifier.createAlternativeVersion(null);
+      if (pkgBasedMap.containsKey(packageIdentifier)) {
+        resultMap.computeIfAbsent(identifier, k -> new ArrayList<>()).addAll(pkgBasedMap.get(packageIdentifier));
       }
     }
 

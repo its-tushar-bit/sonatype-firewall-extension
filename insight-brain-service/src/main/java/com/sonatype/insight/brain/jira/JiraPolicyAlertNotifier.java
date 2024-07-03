@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Creates JIRA issues for policy alert notifications.
- *
+ * This class is only for internal Jira integration. Jira Cloud uses Webhooks.
  * @since 1.21.0
  */
 @Named
@@ -108,18 +108,20 @@ public class JiraPolicyAlertNotifier
       final Stage stage,
       final List<PolicyNotification> policyNotifications)
   {
+    String appId = app.getPublicId();
+
     if (!productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)) {
-      log.debug("Not sending JIRA notifications for application {} and scan {} in stage {}" +
-          ", license does not support notifications", app.getPublicId(), scanId, stage.getStageTypeId());
+      log.debug("Not sending internal JIRA notifications for application {} and scan {} in stage {}" +
+          ", license does not support notifications.", appId, scanId, stage.getStageTypeId());
       return;
     }
     JiraConfiguration jiraConfiguration = jiraService.getConfiguration();
     if (jiraConfiguration == null) {
-      log.debug("JIRA integration is not enabled; skipping issue creation");
+      log.debug("Internal JIRA integration is not enabled; skipping issue creation.");
       return;
     }
 
-    log.debug("Sending JIRA notifications for application: {}, scan: {}, stage: {}", app.getId(), scanId, stage);
+    log.debug("Sending Internal JIRA notifications for application: {}, scan: {}, stage: {}.", appId, scanId, stage);
 
     Thread jiraNotificationThread = new Thread(new TenantAwareOneTimeRunnable(() -> {
       Map<String, Object> customFields = jiraConfiguration.getCustomFields();
@@ -128,8 +130,8 @@ public class JiraPolicyAlertNotifier
           policyNotifications);
 
       if (policyFactsByJiraNotifications.isEmpty()) {
-        log.debug("Not sending JIRA notifications for application {} and scan {} in stage {}"
-            + ", no JIRA projects configured for any violated policy", app.getPublicId(), scanId, stage);
+        log.debug("Not sending Internal JIRA notifications for application {} and scan {} in stage {}"
+            + ", no JIRA projects configured for any violated policy.", appId, scanId, stage);
         return;
       }
 
@@ -166,17 +168,17 @@ public class JiraPolicyAlertNotifier
                 createDescription(app, appContact, scanId, stage, counts, policyFacts,
                     isCloudDeployment(jiraConfiguration)));
 
-            log.debug("Creating JIRA issue: {}", request);
+            log.debug("Creating Internal JIRA issue: {}.", request);
             JiraClient client = jiraService.client(jiraConfiguration);
             JiraIssueCreateResponse response = client.createIssue(request, isCloudDeployment(jiraConfiguration));
-            log.info("Created JIRA issue: {}", response.getKey());
+            log.info("Created Internal JIRA issue: {}.", response.getKey());
           }
           catch (Exception e) {
             AuditData.get().setException(e);
             log.error(
-                "Failed to create JIRA notification for JIRA project key " + jiraNotification.getProjectKey() +
-                    " and JIRA issue type id " + jiraNotification.getIssueTypeId() + ". Failed for application " +
-                    app.getPublicId() + " and scan " + scanId + " in stage " + stage.getStageTypeId(), e);
+                "Failed to create notification for Internal JIRA project key " + jiraNotification.getProjectKey() +
+                    " and issue type id " + jiraNotification.getIssueTypeId() + ". Failed for application " +
+                        appId + " and scan " + scanId + " in stage " + stage.getStageTypeId() + ".", e);
           }
         }
       }

@@ -205,9 +205,9 @@ public class JiraPolicyAlertNotifierTest
     jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
 
     await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> assertThat(logOutput).atErrorLevel()
-        .contains("Failed to create JIRA notification for JIRA project key " + projectKey + " and JIRA issue type id "
+        .contains("Failed to create notification for Internal JIRA project key " + projectKey + " and issue type id "
             + issueTypeId + ". Failed for application " + application.getPublicId() + " and scan " + scanId
-            + " in stage " + stage.getStageTypeId(), ex));
+            + " in stage " + stage.getStageTypeId() + ".", ex));
   }
 
   @Test
@@ -232,9 +232,9 @@ public class JiraPolicyAlertNotifierTest
     jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
 
     await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> assertThat(logOutput).atDebugLevel()
-        .contains("Not sending JIRA notifications for application " + application.getPublicId() + " and scan "
+        .contains("Not sending Internal JIRA notifications for application " + application.getPublicId() + " and scan "
             + evaluation.getScanId() + " in stage " + evaluation.getStageTypeId()
-            + ", no JIRA projects configured for any violated policy"));
+            + ", no JIRA projects configured for any violated policy."));
   }
 
   @Test
@@ -243,7 +243,7 @@ public class JiraPolicyAlertNotifierTest
 
     jiraPolicyAlertNotifier.sendNotifications(new Application(), "", new Stage(), Collections.emptyList());
 
-    assertThat(logOutput).atDebugLevel().contains("JIRA integration is not enabled; skipping issue creation");
+    assertThat(logOutput).atDebugLevel().contains("Internal JIRA integration is not enabled; skipping issue creation");
 
     verify(jiraClient, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis()).times(0))
         .createIssue(any(JiraIssueCreateRequest.class), anyBoolean());

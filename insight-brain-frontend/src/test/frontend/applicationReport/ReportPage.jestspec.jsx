@@ -18,6 +18,7 @@ describe('Report Page component', () => {
   let loadReportIfNeededSpy,
     selectHasUnscannedComponentsSpy,
     selectDisplayedComponentListSpy,
+    selectIsDeveloperDashboardEnabledSpy,
     routerContextMock,
     applicationReport,
     displayedEntries,
@@ -57,7 +58,9 @@ describe('Report Page component', () => {
     selectHasUnscannedComponentsSpy = jest
       .spyOn(applicationReportSelectors, 'selectHasUnscannedComponents')
       .mockReturnValue(false);
-    jest.spyOn(productFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').mockReturnValue(false);
+    selectIsDeveloperDashboardEnabledSpy = jest
+      .spyOn(productFeaturesSelectors, 'selectIsDeveloperDashboardEnabled')
+      .mockReturnValue(false);
 
     loadReportIfNeededSpy = jest.spyOn(applicationReportActions, 'loadReportIfNeeded');
     jest.spyOn(applicationReportActions, 'toggleAggregateReportEntries');
@@ -178,7 +181,7 @@ describe('Report Page component', () => {
   });
 
   it('when developer-dashboard feature is disabled renders a ReportStatusBar without application risk score', () => {
-    productFeaturesSelectors.selectIsDeveloperDashboardEnabled.mockReturnValue(false);
+    selectIsDeveloperDashboardEnabledSpy.mockReturnValue(false);
     renderComponent();
     expect(screen.queryByText(/application risk score/i)).not.toBeInTheDocument();
     expect(screen.queryByText(metadata.totalRisk)).not.toBeInTheDocument();
@@ -186,7 +189,7 @@ describe('Report Page component', () => {
 
   describe('when developer-dashboard feature is enabled', () => {
     beforeEach(() => {
-      productFeaturesSelectors.selectIsDeveloperDashboardEnabled.mockReturnValue(true);
+      selectIsDeveloperDashboardEnabledSpy.mockReturnValue(true);
     });
 
     it('renders a ReportStatusBar with app risk score', () => {
@@ -270,14 +273,13 @@ describe('Report Page component', () => {
     expect(screen.getByRole('button', { name: 'Component unsorted' })).toBeVisible();
   });
 
-  xit('renders ReportContent with information', async () => {
+  it('renders ReportContent with information', async () => {
     SpecUtil.requestIdleCallbackInvokeImmediateJest();
     renderComponent();
 
     const componentRaws = screen.getAllByRole('row');
     expect(componentRaws.length).toBeGreaterThanOrEqual(6);
 
-    // !!! foo
     expect(await screen.findByLabelText('Critical')).toBeVisible();
     expect(screen.getByText(`${displayedEntries[0].policyThreatLevel}`)).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[0].policyName}` })).toBeVisible();
@@ -302,7 +304,7 @@ describe('Report Page component', () => {
     expect(screen.getByText(`${displayedEntries[4].policyThreatLevel}`)).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[4].policyName}` })).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[4].derivedComponentName}` })).toBeVisible();
-  });
+  }, 10000); // increasing timeout to stabilize spec (CLM-30887), on jenkins it seems to be taking around 8 seconds
 
   it('does not render warning message when policy types filter is enabled', () => {
     applicationReportSelectors.selectIsPolicyTypeFilterEnabled.mockReturnValue(true);
@@ -390,6 +392,8 @@ describe('Report Page component', () => {
     return [
       {
         derivedComponentName: 'componentA : 1.0.0',
+        derivedDependencyType: 'unknown',
+        policyViolationId: 'some-violation-id-1',
         displayName: {
           name: 'componentA : 1.0.0',
           parts: [{ field: 'packageId', value: 'componentA' }, { value: ' : ' }, { field: 'version', value: '1.0.0' }],
@@ -399,6 +403,8 @@ describe('Report Page component', () => {
       },
       {
         derivedComponentName: 'componentB : 1.0.0',
+        derivedDependencyType: 'unknown',
+        policyViolationId: 'some-violation-id-2',
         displayName: {
           name: 'componentB : 1.0.0',
           parts: [{ field: 'packageId', value: 'componentB' }, { value: ' : ' }, { field: 'version', value: '1.0.0' }],
@@ -408,6 +414,8 @@ describe('Report Page component', () => {
       },
       {
         derivedComponentName: 'componentC : 1.0.0',
+        derivedDependencyType: 'unknown',
+        policyViolationId: 'some-violation-id-3',
         displayName: {
           name: 'componentC : 1.0.0',
           parts: [{ field: 'packageId', value: 'componentC' }, { value: ' : ' }, { field: 'version', value: '1.0.0' }],
@@ -417,6 +425,8 @@ describe('Report Page component', () => {
       },
       {
         derivedComponentName: 'componentD : 1.0.0',
+        derivedDependencyType: 'unknown',
+        policyViolationId: 'some-violation-id-4',
         displayName: {
           name: 'componentD : 1.0.0',
           parts: [{ field: 'packageId', value: 'componentD' }, { value: ' : ' }, { field: 'version', value: '1.0.0' }],
@@ -426,6 +436,8 @@ describe('Report Page component', () => {
       },
       {
         derivedComponentName: 'componentE : 1.0.0',
+        policyViolationId: 'some-violation-id-5',
+        derivedDependencyType: 'unknown',
         displayName: {
           name: 'componentE : 1.0.0',
           parts: [{ field: 'packageId', value: 'componentE' }, { value: ' : ' }, { field: 'version', value: '1.0.0' }],

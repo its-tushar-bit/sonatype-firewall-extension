@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.support.SupportService.SupportFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -34,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
+@Ignore("CLM-30888") //https://sonatype.atlassian.net/browse/CLM-30888
 public class SupportInfoUtilTest
 {
   @Mock

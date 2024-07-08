@@ -22,6 +22,12 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runForAllTenantsOnBatch;
 
+/**
+ * Quartz job listener for MTIQ to add pre-job-execution hooks to perform various tenant sanity checks. On nodes that do
+ * not receive the call from the Admin App to create tenants (secondary `mtiq-server` nodes or `mtiq-batch` nodes) it is
+ * through Quartz jobs that tenant are first discovered. This can either be on node boot or more specifically when a new
+ * tenant is provisioned.
+ */
 @Named
 public class TenantContextJobListener
     extends JobListenerSupport
@@ -59,19 +65,9 @@ public class TenantContextJobListener
     try {
       tidyUp();
 
-      String group = context.getJobDetail().getKey().getGroup();
+      Tenant tenant = getTenantFromQuartzJob(context);
 
-      Tenant tenant;
-      if (tenantUtil.isGlobalTenant(group)) {
-        tenant = Tenant.GLOBAL_TENANT;
-      }
-      else {
-        tenant = new Tenant(group);
-      }
-
-      tenantUtil.validateTenantForType(context.getJobInstance().getClass(), tenant);
-
-      tenantManager.setTenant(tenant);
+      checkAndSetTenant(tenant);
 
       if (tenantUtil.isAllTenantsJob(context.getJobDetail().getJobClass()) && tenantUtil.isMtiqBatchMode()) {
         registerAllNonDeletedTenants();
@@ -89,6 +85,49 @@ public class TenantContextJobListener
     }
   }
 
+  private Tenant getTenantFromQuartzJob(final JobExecutionContext context) {
+    String group = context.getJobDetail().getKey().getGroup();
+
+    Tenant tenant;
+    if (tenantUtil.isGlobalTenant(group)) {
+      tenant = Tenant.GLOBAL_TENANT;
+    }
+    else {
+      tenant = new Tenant(group);
+    }
+
+    tenantUtil.validateTenantForType(context.getJobInstance().getClass(), tenant);
+
+    return tenant;
+  }
+
+  /**
+   * Calls {@link TenantManager#setTenant(String)} but first checks to see if the tenant is registered in this node.
+   * This class is a gateway to quartz job execution and locally this method should be called and not
+   * {@link TenantManager#setTenant} directly.
+   * <br>
+   * If this tenant is not yet registered then Quartz should not be attempting to run jobs against it yet. This can
+   * happen on a second node when a tenant is being provisioned on the first node. The second node runs the job too
+   * early and since the tenant is not fully provisioned can actually end up trying to populate it as well. To reduce
+   * the chance of this race condition we are going to add a delay to the execution of this job. This delay will also
+   * execute on a cold start of a node for the first job that attempts to run, but that is ok.
+   */
+  private void checkAndSetTenant(final Tenant tenant) {
+    if (!tenantUtil.isGlobalTenant(tenant.tenantSlug) && !tenantManager.isTenantRegistered(tenant)) {
+      log.warn("Tenant {} is not yet registered. Sleeping for 5 seconds", tenant.tenantSlug);
+
+      try {
+        Thread.sleep(5_000);
+      }
+      catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException(e);
+      }
+    }
+
+    tenantManager.setTenant(tenant);
+  }
+
   private void registerAllNonDeletedTenants() {
     List<String> allTenants = tenantService.getAllTenantsNames();
     List<String> deletedTenants = deletedTenantDAO.getAllTenantDeletions().stream()
@@ -99,9 +138,8 @@ public class TenantContextJobListener
 
     runForAllTenantsOnBatch(allNonDeletedTenants, "registerAllTenants",
         t -> {
-          log.trace("Setting tenant {} for quartz job execution", t);
           try {
-            tenantManager.setTenant(t);
+            checkAndSetTenant(t);
           }
           catch (Exception e) {
             log.error("Failed to register tenant {} for execution of quartz jobs", t, e);

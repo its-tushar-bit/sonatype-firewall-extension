@@ -123,7 +123,7 @@ public class TenantManager
       span.setTag("tenant", tenant.tenantSlug);
     }
 
-    registerTenant(tenant);
+    validateAndRegisterTenant(tenant);
   }
 
   @Override
@@ -168,7 +168,11 @@ public class TenantManager
         });
   }
 
-  private void registerTenant(final Tenant tenant) {
+  /**
+   * Validate and then register a tenant. This method is `synchronized` as it is possible for multiple Quartz jobs for a
+   * single tenant to execute at the same time on a single node. But registration should only happen once.
+   */
+  private synchronized void validateAndRegisterTenant(final Tenant tenant) {
     // Global tenant does not require tenant registration
     if (Tenant.GLOBAL_TENANT.equals(tenant)) {
       return;
@@ -176,10 +180,12 @@ public class TenantManager
 
     try {
       if (registeredTenants.putIfAbsent(tenant, true) == null) {
+        log.info("Starting tenant {} registration", tenant.tenantSlug);
         long start = runAndLogTime("validate tenant", tenant, System.currentTimeMillis(),
             () -> validateTenant(tenant));
 
         runAndLogTime("registration", tenant, start, () -> performRegistration(tenant));
+        log.info("Tenant {} registration fully complete", tenant.tenantSlug);
       }
     }
     catch (IllegalArgumentException e) {
@@ -196,10 +202,8 @@ public class TenantManager
    * Perform all registration for a tenant: database init (not migration), tenant jobs, and app lifecycle boot
    */
   private void performRegistration(final Tenant tenant) {
-    log.info("Registering tenant {}", tenant.tenantSlug);
-
     long start = runAndLogTime("database init", tenant, System.currentTimeMillis(),
-        () -> databaseProvisioner.initializeDatabaseWithoutMigration());
+        databaseProvisioner::initializeDatabaseWithoutMigration);
 
     start = runAndLogTime("jobs init", tenant, start, this::setupTenantJobs);
 

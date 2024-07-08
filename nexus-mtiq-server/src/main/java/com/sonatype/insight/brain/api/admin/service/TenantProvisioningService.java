@@ -79,12 +79,12 @@ public class TenantProvisioningService
     }
 
     if (tenantValidator.validateTenantExists(tenantSlug)) {
-      log.debug("Tenant {} already exists", tenantSlug.replaceAll("[\n\r]", "_"));
+      log.error("Tenant {} already exists", tenantSlug.replaceAll("[\n\r]", "_"));
       throw new ConflictException("Tenant already exists");
     }
 
     databaseProvisioner.initializeDatabaseWithMigration();
-    log.debug("New Tenant Provisioned: {}", tenantSlug.replaceAll("[\n\r]", "_"));
+    log.info("New Tenant Provisioned: {}", tenantSlug.replaceAll("[\n\r]", "_"));
 
     adjustDefaultTenantData();
   }

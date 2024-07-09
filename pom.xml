@@ -43,8 +43,9 @@
     <!-- shiro 2.x requires Java 11 -->
     <shiro.version>1.13.0</shiro.version>
     <!-- Also update the jboss/keycloak docker image version in the KeycloakServer java class.
-     keycloak 22.x requires Java 17 -->
-    <keycloak.version>21.1.2</keycloak.version>
+     keycloak 24.x has breaking changes.
+     keycloak 25.x has major breaking changes. -->
+    <keycloak.version>23.0.7</keycloak.version>
     <bouncycastle.version>1.78</bouncycastle.version>
 
     <!--

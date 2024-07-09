@@ -322,13 +322,6 @@ Map<String, Closure> getParallelTests() {
     zips = ['m2.zip', 'iq-tests.zip']
   }
 
-  if (isDeployBranch(env, 'main')) {
-    testStages << createUnitTests('Unit and Integration Tests - Java 8 A', 'Java 8', '.*/[A-C].*Test.class', zips)
-    testStages << createUnitTests('Unit and Integration Tests - Java 8 B', 'Java 8', '.*/[D-K].*Test.class', zips)
-    testStages << createUnitTests('Unit and Integration Tests - Java 8 C', 'Java 8', '.*/[L-P].*Test.class', zips)
-    testStages << createUnitTests('Unit and Integration Tests - Java 8 D', 'Java 8', '.*/[R-Z].*Test.class', zips)
-  }
-
   if (!isFastBuild()) {
     testStages << createFunctionalTests('Java Functional Tests A', '.*/[A-B].*Test.class', zips)
     testStages << createFunctionalTests('Java Functional Tests B', '.*/[C-E].*Test.class', zips)

@@ -213,17 +213,6 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <!-- This configuration is needed because we are using
-               restricted Java APIs (sun.security.*) to generate keystores for SAML.
-          -->
-          <fork>true</fork>
-          <compilerArgument>-XDignore.symbol.file</compilerArgument>
-        </configuration>
-      </plugin>
-      <plugin>
         <groupId>org.apache.openjpa</groupId>
         <artifactId>openjpa-maven-plugin</artifactId>
         <version>${openjpa.version}</version>

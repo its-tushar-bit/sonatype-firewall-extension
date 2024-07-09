@@ -10,7 +10,7 @@ pipeline {
     minorVersion = "${parseVersion(getVersionFromBuildName(env.releaseBuild_NAME))?.minor}"
   }
   tools {
-    jdk 'Java 8'
+    jdk 'OpenJDK 17'
   }
   options {
     buildDiscarder(

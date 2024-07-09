@@ -4,7 +4,7 @@
 # "Sonatype" is a trademark of Sonatype, Inc.
 #
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal
+FROM registry.access.redhat.com/ubi9/openjdk-17
 
 # Build parameters
 ARG IQ_SERVER_VERSION=1.160.0-01
@@ -25,7 +25,6 @@ USER root
 
 # For testing
 RUN microdnf update -y \
-&& microdnf --setopt=install_weak_deps=0 --setopt=tsflags=nodocs install -y java-1.8.0-openjdk-headless \
 && microdnf install -y procps gzip unzip tar shadow-utils findutils util-linux less rsync git \
 && microdnf clean all
 

@@ -27,7 +27,37 @@ import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
 
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.*;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.APPLICATION_CATEGORY_COLOR;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.APPLICATION_CATEGORY_ID;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.APPLICATION_CATEGORY_NAME;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.APPLICATION_ID;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.APPLICATION_NAME;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.APPLICATION_PUBLIC_ID;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.APPLICATION_VERSION;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.COMPONENT_FORMAT;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.COMPONENT_HASH;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.COMPONENT_LABEL_COLOR;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.COMPONENT_LABEL_DESCRIPTION;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.COMPONENT_LABEL_ID;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.COMPONENT_LABEL_NAME;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.COMPONENT_NAME;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.ITEM_TYPE;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.ORGANIZATION_ID;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.ORGANIZATION_NAME;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.PARENT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.PARENT_ORGANIZATION_NAME;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.POLICY_EVALUATION_STAGE;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.POLICY_ID;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.POLICY_NAME;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.POLICY_THREAT_CATEGORY;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.POLICY_THREAT_LEVEL;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.REPORT_ID;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.SBOM_SPECIFICATION;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.VULNERABILITY_DESCRIPTION;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.VULNERABILITY_ID;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.VULNERABILITY_SEVERITY;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.VULNERABILITY_STATUS;
 
 public class DocumentBuilder
 {

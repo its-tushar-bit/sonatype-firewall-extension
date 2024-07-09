@@ -472,7 +472,7 @@ class SystemInfo
       });
     }
     catch (Exception e) {
-      log.warn("Failed to serialize samlDeployment.");
+      log.warn("Failed to serialize samlDeployment.", e);
     }
     return JsonUtils.format(samlInfo);
   }

@@ -46,7 +46,7 @@ Please read our [contribution rules and guidelines](contributing.md).
 ## Requirements ##
 
 This project requires the following local installs:
-1. Java 8 (if you use a version of Maven that has a newer JDK, you'll want to point JAVA_HOME to your Java 8 install)
+1. Java 17
 2. Maven 3.9.x
 3. npm and yarn (for the frontend; see [that readme](insight-brain-frontend/README.md) for more specific detail)
 

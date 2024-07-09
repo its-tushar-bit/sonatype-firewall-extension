@@ -32,7 +32,6 @@ export const selectHasPermissionForAppWaivers = createSelector(
   prop('hasPermissionForAppWaivers')
 );
 
-export const selectViolationSimilarWaivers = createSelector(selectViolationSlice, prop('similarWaivers'));
 export const selectViolationFilteredSimilarWaivers = createSelector(
   selectViolationSlice,
   ({ similarWaivers, similarWaiversFilterSelectedIds }) => {

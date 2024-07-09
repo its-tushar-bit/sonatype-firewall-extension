@@ -16,10 +16,11 @@ import {
   getAddPolicyViolationWaiverUrl,
   getOwnerContextHierarchyUrl,
   deleteWaiverUrl,
+  getSimilarWaiversUrl,
 } from '../util/CLMLocation';
 import {
   fetchCrossStageViolation,
-  fetchApplicableWaivers,
+  loadApplicableWaivers,
   fetchCrossStageViolationAddWaiver,
 } from '../violation/violationActions';
 import { getExpiryTime, originNamesForAddRequestPages } from '../util/waiverUtils';
@@ -37,6 +38,7 @@ import {
 import { gotoWaiver, setSidebarNavListData } from 'MainRoot/sidebarNav/sidebarNavListActions';
 import { loadExistingWaiversData } from 'MainRoot/firewall/firewallActions';
 import { selectComponentDetailsViolationsSlice } from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
+import { compose, prop } from 'ramda';
 
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED';
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED';
@@ -61,6 +63,9 @@ export const WAIVERS_DELETE_WAIVER_FULFILLED = 'WAIVERS_DELETE_WAIVER_FULFILLED'
 export const WAIVERS_DELETE_WAIVER_FAILED = 'WAIVERS_DELETE_WAIVER_FAILED';
 export const WAIVERS_DELETE_MASK_TIMER_DONE = 'WAIVERS_DELETE_MASK_TIMER_DONE';
 export const WAIVERS_RESET_ADD_WAIVER_DATA = 'WAIVERS_RESET_ADD_WAIVER_DATA';
+export const WAIVERS_LOAD_SIMILAR_WAIVERS_REQUESTED = 'WAIVERS_LOAD_SIMILAR_WAIVERS_REQUESTED';
+export const WAIVERS_LOAD_SIMILAR_WAIVERS_FULFILLED = 'WAIVERS_LOAD_SIMILAR_WAIVERS_FULFILLED';
+export const WAIVERS_LOAD_SIMILAR_WAIVERS_FAILED = 'WAIVERS_LOAD_SIMILAR_WAIVERS_FAILED';
 
 export const WAIVERS_SET_MANAGE_WAIVERS_BACK_BUTTON_STATE_NAME = 'WAIVERS_SET_MANAGE_WAIVERS_BACK_BUTTON_STATE_NAME';
 
@@ -269,6 +274,9 @@ export const hideDeleteWaiverModal = noPayloadActionCreator(WAIVERS_HIDE_DELETE_
 const deleteWaiverRequested = noPayloadActionCreator(WAIVERS_DELETE_WAIVER_REQUESTED);
 const deleteWaiverFulfilled = noPayloadActionCreator(WAIVERS_DELETE_WAIVER_FULFILLED);
 const deleteWaiverFailed = payloadParamActionCreator(WAIVERS_DELETE_WAIVER_FAILED);
+const loadSimilarWaiversRequested = noPayloadActionCreator(WAIVERS_LOAD_SIMILAR_WAIVERS_REQUESTED);
+const loadSimilarWaiversFulfilled = payloadParamActionCreator(WAIVERS_LOAD_SIMILAR_WAIVERS_FULFILLED);
+const loadSimilarWaiversFailed = payloadParamActionCreator(WAIVERS_LOAD_SIMILAR_WAIVERS_FAILED);
 const deleteWaiverMaskTimerDone = noPayloadActionCreator(WAIVERS_DELETE_MASK_TIMER_DONE);
 
 export const filterDataByIdAndRedirectToNextWaiverOrDashboard = (waiverList, waiverId) => {
@@ -319,9 +327,9 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
           const hash = selectHash(state);
           const ownerId = selectRepositoryId(state);
           dispatch(loadExistingWaiversData('repository', ownerId, hash));
-          dispatch(reloadComponentWaivers ? policyViolationsActions.load() : fetchApplicableWaivers(policyViolationId));
+          dispatch(reloadComponentWaivers ? policyViolationsActions.load() : loadApplicableWaivers(policyViolationId));
         } else {
-          dispatch(reloadComponentWaivers ? policyViolationsActions.load() : fetchApplicableWaivers(policyViolationId));
+          dispatch(reloadComponentWaivers ? policyViolationsActions.load() : loadApplicableWaivers(policyViolationId));
         }
         setTimeout(() => {
           dispatch(deleteWaiverMaskTimerDone());
@@ -338,3 +346,16 @@ export const setShowUnsavedChangesModal = (flag) => {
     dispatch(payloadParamActionCreator(WAIVERS_ADD_WAIVER_SET_SHOW_UNSAVED_CHANGES_MODAL)(flag));
   };
 };
+
+export function loadSimilarWaivers(id) {
+  return function (dispatch) {
+    if (!id) {
+      return dispatch(loadSimilarWaiversFulfilled({ similarWaivers: [] }));
+    }
+    dispatch(loadSimilarWaiversRequested());
+    return axios
+      .get(getSimilarWaiversUrl(id))
+      .then(compose(dispatch, loadSimilarWaiversFulfilled, prop('data')))
+      .catch(compose(dispatch, loadSimilarWaiversFailed, Messages.getHttpErrorMessage));
+  };
+}

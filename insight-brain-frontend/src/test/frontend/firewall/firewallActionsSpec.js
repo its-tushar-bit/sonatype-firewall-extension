@@ -128,7 +128,6 @@ import { getPermissionContextTestUrl } from 'MainRoot/utilAngular/CLMContextLoca
 import {
   VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED,
   VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED,
-  VIOLATION_FETCH_SIMILAR_WAIVERS_FULFILLED,
 } from 'MainRoot/violation/violationActions';
 
 describe('firewallActions', function () {
@@ -1939,14 +1938,13 @@ describe('firewallActions', function () {
     it('dispatches FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED action after successfully requests', (done) => {
       store.dispatch(loadFirewallViolationDetails('policyViolationId')).then(() => {
         actions = store.getActions();
-        expect(actions.length).toBe(5);
+        expect(actions.length).toBe(4);
         expect(actions[0].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED);
         expect(actions[0].payload).toBeUndefined();
         expect(actions[1].type).toBe(VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED);
-        expect(actions[2].type).toBe(VIOLATION_FETCH_SIMILAR_WAIVERS_FULFILLED);
-        expect(actions[3].type).toBe(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
-        expect(actions[4].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED);
-        expect(actions[4].payload).toEqual(mockData);
+        expect(actions[2].type).toBe(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+        expect(actions[3].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED);
+        expect(actions[3].payload).toEqual(mockData);
         done();
       });
 
@@ -1957,14 +1955,13 @@ describe('firewallActions', function () {
     it('dispatches FIREWALL_LOAD_VIOLATION_DETAIL_FAILED action after one of all of the requests failed', () => {
       store.dispatch(loadFirewallViolationDetails('ErrorpolicyViolationId')).then(() => {
         actions = store.getActions();
-        expect(actions.length).toBe(5);
+        expect(actions.length).toBe(4);
         expect(actions[0].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED);
         expect(actions[0].payload).toBeUndefined();
         expect(actions[1].type).toBe(VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED);
-        expect(actions[2].type).toBe(VIOLATION_FETCH_SIMILAR_WAIVERS_FULFILLED);
-        expect(actions[3].type).toBe(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
-        expect(actions[4].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_FAILED);
-        expect(actions[4].payload).toBe('error');
+        expect(actions[2].type).toBe(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+        expect(actions[3].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_FAILED);
+        expect(actions[3].payload).toBe('error');
       });
       let actions = store.getActions();
       expect(actions.length).toBe(2);
@@ -1982,14 +1979,13 @@ describe('firewallActions', function () {
 
       store.dispatch(loadFirewallViolationDetails('policyViolationId')).then(() => {
         actions = store.getActions();
-        expect(actions.length).toBe(5);
+        expect(actions.length).toBe(4);
         expect(actions[0].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED);
         expect(actions[0].payload).toBeUndefined();
         expect(actions[1].type).toBe(VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED);
-        expect(actions[2].type).toBe(VIOLATION_FETCH_SIMILAR_WAIVERS_FULFILLED);
-        expect(actions[3].type).toBe(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
-        expect(actions[4].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED);
-        expect(actions[4].payload.hasWaivePermission).toEqual(true);
+        expect(actions[2].type).toBe(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
+        expect(actions[3].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED);
+        expect(actions[3].payload.hasWaivePermission).toEqual(true);
         done();
       });
 

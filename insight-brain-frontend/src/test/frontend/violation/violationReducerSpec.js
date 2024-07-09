@@ -87,6 +87,8 @@ describe('violationReducer', function () {
         hasEditIqPermission: false,
         isVulnerabilityDetailsOutdated: false,
         similarWaiversFilterSelectedIds: new Set([]),
+        loadingSimilarWaivers: true,
+        loadSimilarWaiversError: 'error',
       };
 
       const newState = reducer(initialState, {
@@ -110,6 +112,8 @@ describe('violationReducer', function () {
         similarWaiversFilterSelectedIds: new Set([]),
         loadingApplicableWaivers: false,
         loadApplicableWaiversError: null,
+        loadingSimilarWaivers: false,
+        loadSimilarWaiversError: null,
       });
     });
   });
@@ -356,20 +360,59 @@ describe('violationReducer', function () {
     });
   });
 
-  describe('VIOLATION_FETCH_SIMILAR_WAIVERS_FULFILLED', function () {
-    it('sets the similar waivers in the state', function () {
+  describe('WAIVERS_LOAD_SIMILAR_WAIVERS_FULFILLED', function () {
+    it('sets the similar waivers in the state and clears error and loading', function () {
       const state = {
-        loading: true,
+        loadingSimilarWaivers: true,
+        loadSimilarWaiversError: 'error',
         otherProp: { prop: 'foo' },
       };
 
       const newState = reducer(state, {
-        type: 'VIOLATION_FETCH_SIMILAR_WAIVERS_FULFILLED',
+        type: 'WAIVERS_LOAD_SIMILAR_WAIVERS_FULFILLED',
         payload: ['foo'],
       });
 
       expect(newState.similarWaivers).toEqual(['foo']);
-      expect(newState.loading).toBe(true);
+      expect(newState.loadingSimilarWaivers).toBe(false);
+      expect(newState.loadSimilarWaiversError).toBe(null);
+      expect(newState.otherProp).toBe(state.otherProp);
+    });
+  });
+
+  describe('WAIVERS_LOAD_SIMILAR_WAIVERS_FAILED', function () {
+    it('sets the error and clears the loading for similar waivers', function () {
+      const state = {
+        loadingSimilarWaivers: true,
+        loadSimilarWaiversError: null,
+        otherProp: { prop: 'foo' },
+      };
+
+      const newState = reducer(state, {
+        type: 'WAIVERS_LOAD_SIMILAR_WAIVERS_FAILED',
+        payload: 'some error',
+      });
+
+      expect(newState.loadingSimilarWaivers).toBe(false);
+      expect(newState.loadSimilarWaiversError).toBe('some error');
+      expect(newState.otherProp).toBe(state.otherProp);
+    });
+  });
+
+  describe('WAIVERS_LOAD_SIMILAR_WAIVERS_REQUESTED', function () {
+    it('sets the loading and clears the error for similar waivers', function () {
+      const state = {
+        loadingSimilarWaivers: false,
+        loadSimilarWaiversError: 'error',
+        otherProp: { prop: 'foo' },
+      };
+
+      const newState = reducer(state, {
+        type: 'WAIVERS_LOAD_SIMILAR_WAIVERS_REQUESTED',
+      });
+
+      expect(newState.loadingSimilarWaivers).toBe(true);
+      expect(newState.loadSimilarWaiversError).toBe(null);
       expect(newState.otherProp).toBe(state.otherProp);
     });
   });

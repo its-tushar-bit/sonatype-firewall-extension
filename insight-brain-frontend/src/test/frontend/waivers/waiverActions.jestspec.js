@@ -69,6 +69,13 @@ import {
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED,
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED,
 } from 'MainRoot/firewall/firewallActions';
+import {
+  WAIVERS_LOAD_SIMILAR_WAIVERS_FAILED,
+  WAIVERS_LOAD_SIMILAR_WAIVERS_FULFILLED,
+  WAIVERS_LOAD_SIMILAR_WAIVERS_REQUESTED,
+  loadSimilarWaivers,
+} from 'MainRoot/waivers/waiverActions';
+import { getSimilarWaiversUrl } from 'MainRoot/util/CLMLocation';
 
 describe('waiverActions', function () {
   let store, mockAxiosCalls, mock;
@@ -1495,6 +1502,74 @@ describe('waiverActions', function () {
 
       expect(stateGoSpy).toHaveBeenCalledWith('dashboard.overview.waivers');
       expect(store.getActions()).toHaveActionType(SET_SIDEBAR_NAV_LIST_DATA);
+    });
+  });
+
+  describe('loadSimilarWaivers', function () {
+    it('immediately dispatches a WAIVERS_LOAD_SIMILAR_WAIVERS_REQUESTED action', function () {
+      mockAxiosCalls({
+        get: {
+          [getSimilarWaiversUrl('violationId')]: () =>
+            Promise.resolve({
+              data: { similarWaivers: [] },
+            }),
+        },
+      });
+      store.dispatch(loadSimilarWaivers('violationId'));
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toEqual(WAIVERS_LOAD_SIMILAR_WAIVERS_REQUESTED);
+    });
+
+    it('dispatches a WAIVERS_LOAD_SIMILAR_WAIVERS_FULFILLED action', function (done) {
+      mockAxiosCalls({
+        get: {
+          [getSimilarWaiversUrl('violationId')]: () =>
+            Promise.resolve({
+              data: { similarWaivers: 'similar waivers payload' },
+            }),
+        },
+      });
+
+      store.dispatch(loadSimilarWaivers('violationId')).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[0].type).toEqual(WAIVERS_LOAD_SIMILAR_WAIVERS_REQUESTED);
+        expect(actions[1].type).toEqual(WAIVERS_LOAD_SIMILAR_WAIVERS_FULFILLED);
+        expect(actions[1].payload).toEqual({ similarWaivers: 'similar waivers payload' });
+        done();
+      });
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toEqual(WAIVERS_LOAD_SIMILAR_WAIVERS_REQUESTED);
+    });
+
+    it('dispatches a WAIVERS_LOAD_SIMILAR_WAIVERS_FAILED action', function (done) {
+      mockAxiosCalls({
+        get: {
+          [getSimilarWaiversUrl('violationId')]: () => Promise.reject('some error'),
+        },
+      });
+
+      store.dispatch(loadSimilarWaivers('violationId')).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[0].type).toEqual(WAIVERS_LOAD_SIMILAR_WAIVERS_REQUESTED);
+        expect(actions[1].type).toEqual(WAIVERS_LOAD_SIMILAR_WAIVERS_FAILED);
+        expect(actions[1].payload).toEqual('some error');
+        done();
+      });
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toEqual(WAIVERS_LOAD_SIMILAR_WAIVERS_REQUESTED);
+    });
+
+    it('immediately dispatches a WAIVERS_LOAD_SIMILAR_WAIVERS_FULFILLED action if no id is provided', function () {
+      store.dispatch(loadSimilarWaivers(null));
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toEqual(WAIVERS_LOAD_SIMILAR_WAIVERS_FULFILLED);
+      expect(actions[0].payload).toEqual({ similarWaivers: [] });
     });
   });
 });

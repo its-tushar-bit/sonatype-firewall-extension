@@ -9,7 +9,6 @@ import {
   VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED,
   VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED,
   VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED,
-  VIOLATION_FETCH_SIMILAR_WAIVERS_FULFILLED,
   VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED,
   VIOLATION_LOAD_VIOLATION_DETAILS_FAILED,
   VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED,
@@ -22,6 +21,11 @@ import {
   VIOLATION_FETCH_APPLICABLE_WAIVERS_FAILED,
 } from './violationActions';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
+import {
+  WAIVERS_LOAD_SIMILAR_WAIVERS_FAILED,
+  WAIVERS_LOAD_SIMILAR_WAIVERS_FULFILLED,
+  WAIVERS_LOAD_SIMILAR_WAIVERS_REQUESTED,
+} from '../waivers/waiverActions';
 
 const initialState = Object.freeze({
   violationDetails: null,
@@ -40,6 +44,8 @@ const initialState = Object.freeze({
   isVulnerabilityDetailsOutdated: false,
   loadingApplicableWaivers: false,
   loadApplicableWaiversError: null,
+  loadingSimilarWaivers: false,
+  loadSimilarWaiversError: null,
 });
 
 const sortByCreateTime = (a, b) => (a.createTime > b.createTime ? 1 : a.createTime === b.createTime ? 0 : -1);
@@ -75,7 +81,7 @@ function loadViolationFulfilled(payload, state) {
   };
 }
 
-function fetchApplicableWaiversFulfilled({ activeWaivers, expiredWaivers }, state) {
+function loadApplicableWaiversFulfilled({ activeWaivers, expiredWaivers }, state) {
   return {
     ...state,
     activeWaivers,
@@ -85,24 +91,36 @@ function fetchApplicableWaiversFulfilled({ activeWaivers, expiredWaivers }, stat
   };
 }
 
-const fetchApplicableWaiversRequested = (payload, state) => ({
+const loadApplicableWaiversRequested = (payload, state) => ({
   ...state,
   loadingApplicableWaivers: true,
   loadApplicableWaiversError: null,
 });
 
-const fetchApplicableWaiversFailed = (payload, state) => ({
+const loadApplicableWaiversFailed = (payload, state) => ({
   ...state,
   loadingApplicableWaivers: false,
   loadApplicableWaiversError: payload,
 });
 
-function fetchSimilarWaiversFulfilled(similarWaivers, state) {
-  return {
-    ...state,
-    similarWaivers,
-  };
-}
+const loadSimilarWaiversRequested = (payload, state) => ({
+  ...state,
+  loadingSimilarWaivers: true,
+  loadSimilarWaiversError: null,
+});
+
+const loadSimilarWaiversFailed = (payload, state) => ({
+  ...state,
+  loadingSimilarWaivers: false,
+  loadSimilarWaiversError: payload,
+});
+
+const loadSimilarWaiversFulfilled = (payload, state) => ({
+  ...state,
+  loadingSimilarWaivers: false,
+  loadSimilarWaiversError: null,
+  similarWaivers: payload,
+});
 
 function sortSimilarWaives(sortDir, state) {
   const sortedSimilarWaivers = clone(state.similarWaivers);
@@ -153,10 +171,9 @@ const reducerActionMap = {
   [VIOLATION_RESET_VIOLATION_DETAILS_REQUESTED]: resetViolation,
   [VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED]: loadViolationRequested,
   [VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED]: fetchCrossStageViolationFulfilled,
-  [VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED]: fetchApplicableWaiversFulfilled,
-  [VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED]: fetchApplicableWaiversRequested,
-  [VIOLATION_FETCH_APPLICABLE_WAIVERS_FAILED]: fetchApplicableWaiversFailed,
-  [VIOLATION_FETCH_SIMILAR_WAIVERS_FULFILLED]: fetchSimilarWaiversFulfilled,
+  [VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED]: loadApplicableWaiversFulfilled,
+  [VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED]: loadApplicableWaiversRequested,
+  [VIOLATION_FETCH_APPLICABLE_WAIVERS_FAILED]: loadApplicableWaiversFailed,
   [VIOLATION_SORT_SIMILAR_WAIVERS]: sortSimilarWaives,
   [VIOLATION_SET_FILTER_IDS_SIMILAR_WAIVERS]: setFilterIdsSimilarWivers,
   [VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED]: loadViolationFulfilled,
@@ -164,6 +181,9 @@ const reducerActionMap = {
   [VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED]: propSetConst('vulnerabilityDetailsLoading', true),
   [VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED]: loadVulnerabilityDetailsFulfilled,
   [VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED]: loadVulnerabilityDetailsFailed,
+  [WAIVERS_LOAD_SIMILAR_WAIVERS_REQUESTED]: loadSimilarWaiversRequested,
+  [WAIVERS_LOAD_SIMILAR_WAIVERS_FAILED]: loadSimilarWaiversFailed,
+  [WAIVERS_LOAD_SIMILAR_WAIVERS_FULFILLED]: loadSimilarWaiversFulfilled,
   [UI_ROUTER_ON_FINISH]: (_, state) => setFilterIdsSimilarWivers(new Set([]), state),
 };
 

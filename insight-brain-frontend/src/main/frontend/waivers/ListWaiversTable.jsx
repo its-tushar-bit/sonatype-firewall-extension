@@ -33,7 +33,7 @@ import { setWaiverToDelete } from 'MainRoot/waivers/waiverActions';
 import DeleteWaiverModalContainer from 'MainRoot/waivers/deleteWaiverModal/DeleteWaiverModalContainer';
 import { selectWaiverToDelete } from 'MainRoot/waivers/deleteWaiverModal/deleteWaiverSelector';
 import { selectApplicableWaivers } from 'MainRoot/violation/violationSelectors';
-import { fetchApplicableWaivers } from 'MainRoot/violation/violationActions';
+import { loadApplicableWaivers } from 'MainRoot/violation/violationActions';
 import { selectViolationSlice } from './requestWaiverSelectors';
 
 export default function ListWaiversTable(props) {
@@ -130,7 +130,7 @@ export default function ListWaiversTable(props) {
           emptyMessage={emptyMessage}
           isLoading={loadingApplicableWaivers}
           error={Messages.getHttpErrorMessage(loadApplicableWaiversError)}
-          retryHandler={() => dispatch(fetchApplicableWaivers(violationDetails.policyViolationId))}
+          retryHandler={() => dispatch(loadApplicableWaivers(violationDetails.policyViolationId))}
         >
           {activeWaivers && map(displayWaiverInTableRow(false), sort(descend(prop('createTime')), activeWaivers))}
           {expiredWaivers && map(displayWaiverInTableRow(true), sort(descend(prop('createTime')), expiredWaivers))}

@@ -6,16 +6,30 @@
 import React from 'react';
 import { mergeDeepRight } from 'ramda';
 
-import { render, screen, within } from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, render, screen, within } from 'TestRoot/SpecUtil';
 import ListSimilarWaiversTable from 'MainRoot/waivers/ListSimilarWaiversTable';
+import { getSimilarWaiversUrl } from 'MainRoot/util/CLMLocation';
 
 describe('ListSimilarWaiversTable', () => {
-  const renderComponent = (preloadedState = {}) => render(<ListSimilarWaiversTable />, { preloadedState });
-
+  const initState = {
+    router: {
+      currentParams: {
+        violationId: 'violationId',
+      },
+    },
+  };
+  const renderComponent = (preloadedState = initState) => render(<ListSimilarWaiversTable />, { preloadedState });
+  let axiosMock;
+  beforeAll(() => {
+    axiosMock = axiosMockAdapter();
+  });
   describe('renders a table', () => {
-    it('with headers', async () => {
+    it('with headers and loading', async () => {
+      axiosMock.onGet(getSimilarWaiversUrl('violationId')).reply(200, []);
       renderComponent();
-      const table = await screen.findByRole('table');
+      screen.getByText('Loading…');
+      await screen.findByText('help documentation');
+      const table = screen.getByRole('table');
       const groups = within(table).getAllByRole('rowgroup');
       expect(groups.length).toBe(2);
 
@@ -26,8 +40,11 @@ describe('ListSimilarWaiversTable', () => {
     });
 
     it('with message if there are no waivers to display', async () => {
+      axiosMock.onGet(getSimilarWaiversUrl('violationId')).reply(200, []);
       renderComponent();
-      const table = await screen.findByRole('table');
+      await screen.findByText('help documentation');
+
+      const table = screen.getByRole('table');
       const groups = within(table).getAllByRole('rowgroup');
       expect(groups.length).toBe(2);
 
@@ -70,9 +87,13 @@ describe('ListSimilarWaiversTable', () => {
           }),
         },
       ];
-      renderComponent({ violation: { similarWaivers, similarWaiversFilterSelectedIds: new Set([]) } });
-
-      const table = await screen.findByRole('table');
+      axiosMock.onGet(getSimilarWaiversUrl('violationId')).reply(200, similarWaivers);
+      renderComponent({
+        ...initState,
+        violation: { similarWaivers: [], similarWaiversFilterSelectedIds: new Set([]) },
+      });
+      await screen.findAllByText('Organization - Org');
+      const table = screen.getByRole('table');
       const groups = within(table).getAllByRole('rowgroup');
       const rows = within(groups[1]).getAllByRole('row');
       expect(rows.length).toBe(3);
@@ -126,9 +147,13 @@ describe('ListSimilarWaiversTable', () => {
           }),
         },
       ];
-      renderComponent({ violation: { similarWaivers, similarWaiversFilterSelectedIds: new Set(['active']) } });
-
-      const table = await screen.findByRole('table');
+      axiosMock.onGet(getSimilarWaiversUrl('violationId')).reply(200, similarWaivers);
+      renderComponent({
+        ...initState,
+        violation: { similarWaivers: [], similarWaiversFilterSelectedIds: new Set(['active']) },
+      });
+      await screen.findAllByText('Organization - Org');
+      const table = screen.getByRole('table');
       const groups = within(table).getAllByRole('rowgroup');
       const rows = within(groups[1]).getAllByRole('row');
       expect(rows.length).toBe(1);
@@ -165,9 +190,13 @@ describe('ListSimilarWaiversTable', () => {
           }),
         },
       ];
-      renderComponent({ violation: { similarWaivers, similarWaiversFilterSelectedIds: new Set(['comment']) } });
-
-      const table = await screen.findByRole('table');
+      axiosMock.onGet(getSimilarWaiversUrl('violationId')).reply(200, similarWaivers);
+      renderComponent({
+        ...initState,
+        violation: { similarWaivers: [], similarWaiversFilterSelectedIds: new Set(['comment']) },
+      });
+      await screen.findAllByText('Organization - Org');
+      const table = screen.getByRole('table');
       const groups = within(table).getAllByRole('rowgroup');
       const rows = within(groups[1]).getAllByRole('row');
       expect(rows.length).toBe(2);
@@ -212,9 +241,13 @@ describe('ListSimilarWaiversTable', () => {
           }),
         },
       ];
-      renderComponent({ violation: { similarWaivers, similarWaiversFilterSelectedIds: new Set(['exact']) } });
-
-      const table = await screen.findByRole('table');
+      axiosMock.onGet(getSimilarWaiversUrl('violationId')).reply(200, similarWaivers);
+      renderComponent({
+        ...initState,
+        violation: { similarWaivers: [], similarWaiversFilterSelectedIds: new Set(['exact']) },
+      });
+      await screen.findAllByText('Organization - Org');
+      const table = screen.getByRole('table');
       const groups = within(table).getAllByRole('rowgroup');
       const rows = within(groups[1]).getAllByRole('row');
       expect(rows.length).toBe(2);
@@ -244,6 +277,7 @@ describe('ListSimilarWaiversTable', () => {
           }),
         },
       ];
+      axiosMock.onGet(getSimilarWaiversUrl('violationId')).reply(200, similarWaivers);
       renderComponent({
         router: {
           currentState: {
@@ -253,10 +287,10 @@ describe('ListSimilarWaiversTable', () => {
             componentDisplayName: 'firewall component name',
           },
         },
-        violation: { similarWaivers, similarWaiversFilterSelectedIds: new Set([]) },
+        componentDetailsPolicyViolations: { selectedPolicyViolation: { policyViolationId: 'violationId' } },
       });
-
-      const table = await screen.findByRole('table');
+      await screen.findAllByText('Organization - Org');
+      const table = screen.getByRole('table');
       const groups = within(table).getAllByRole('rowgroup');
       const rows = within(groups[1]).getAllByRole('row');
       expect(rows.length).toBe(1);

@@ -17,3 +17,14 @@
     }
   }
 }
+
+.sbom-manager-recently-imported-sboms-tile-table {
+  &__application-name {
+    width: 175px;
+  }
+
+  &__sbom-version {
+    display: inline-block;
+    width: 150px;
+  }
+}

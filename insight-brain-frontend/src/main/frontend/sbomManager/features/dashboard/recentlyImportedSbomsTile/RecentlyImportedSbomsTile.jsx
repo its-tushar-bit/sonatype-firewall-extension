@@ -5,7 +5,14 @@
  */
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { NxH2, NxSmallThreatCounter, NxTable, NxTextLink, NxTile } from '@sonatype/react-shared-components';
+import {
+  NxH2,
+  NxOverflowTooltip,
+  NxSmallThreatCounter,
+  NxTable,
+  NxTextLink,
+  NxTile,
+} from '@sonatype/react-shared-components';
 import { keys, props, values, zipObj } from 'ramda';
 
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
@@ -49,11 +56,22 @@ export default function RecentlyImportedSbomsTile() {
     !isEmpty &&
     sboms.map((sbom, index) => (
       <NxTable.Row key={index}>
-        <NxTable.Cell>{sbom.applicationName}</NxTable.Cell>
         <NxTable.Cell>
-          <NxTextLink href={getBillOfMaterialsPageHref(sbom.publicApplicationId, sbom.sbomVersion)}>
-            {sbom.sbomVersion}
-          </NxTextLink>
+          <NxOverflowTooltip>
+            <div className="nx-truncate-ellipsis sbom-manager-recently-imported-sboms-tile-table__application-name">
+              {sbom.applicationName}
+            </div>
+          </NxOverflowTooltip>
+        </NxTable.Cell>
+        <NxTable.Cell>
+          <NxOverflowTooltip>
+            <NxTextLink
+              className="nx-truncate-ellipsis sbom-manager-recently-imported-sboms-tile-table__sbom-version"
+              href={getBillOfMaterialsPageHref(sbom.publicApplicationId, sbom.sbomVersion)}
+            >
+              {sbom.sbomVersion}
+            </NxTextLink>
+          </NxOverflowTooltip>
         </NxTable.Cell>
         <NxTable.Cell>{sbom.specification}</NxTable.Cell>
         <NxTable.Cell>{formatDate(sbom.importDate, STANDARD_DATE_TIME_FORMAT_NO_TZ)}</NxTable.Cell>
@@ -89,7 +107,7 @@ export default function RecentlyImportedSbomsTile() {
         </NxTile.HeaderTitle>
       </NxTile.Header>
       <NxTile.Content>
-        <NxTable id="recently-imported-sboms-tile-table">
+        <NxTable id="recently-imported-sboms-tile-table" className="sbom-manager-recently-imported-sboms-tile-table">
           <NxTable.Head>
             <NxTable.Row>
               <NxTable.Cell {...appNameSortOptions}>Application Name</NxTable.Cell>

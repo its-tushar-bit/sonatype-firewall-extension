@@ -19,6 +19,7 @@ import {
   NxTabList,
   NxTabPanel,
   NxTabs,
+  NxWarningAlert,
 } from '@sonatype/react-shared-components';
 import classnames from 'classnames';
 import { indexOf } from 'ramda';
@@ -69,6 +70,8 @@ export default function ViolationPage(props) {
     similarWaiversFilterSelectedIds,
     setFilterIdsSimilarWaivers,
   } = props;
+
+  const violationMissingDatabaseIdentifier = !isFirewallContext && !selectedViolationId;
 
   const similarWaiversFilterOptions = [
     { id: 'active', displayName: 'Active (Unexpired)' },
@@ -137,101 +140,121 @@ export default function ViolationPage(props) {
     'nx-tile': !isFromPolicyViolations,
     'iq-violation-details-popover-section': isFromPolicyViolations,
   });
+
   return (
     <div id="violation-page">
-      <LoadWrapper error={error} loading={violationLoading} retryHandler={load}>
-        <ViolationDetailsTile
-          {...{
-            $state,
-            stageTypes,
-            violationDetails,
-            stateGo,
-            activeWaivers,
-            selectedViolationId,
-            isFromPolicyViolations,
-            isFirewallContext,
-            policyViolations,
-            policyDetail,
-            hasPermissionForAppWaivers,
-            constraintViolations,
-            isSbomManager,
-          }}
-        />
-        <section className={sectionClasses}>
-          <NxTabs activeTab={getActiveTabIndex()} onTabSelect={setActiveTab}>
-            <NxTabList>
-              {isSecurityVulnerability && (
-                <NxTab id="violation-security-vulnerability-details-tab">Vulnerability Details</NxTab>
-              )}
-              <NxTab id="violation-applicable-waivers-tab">
-                <div className="iq-waiver-indicator-tab">
-                  {activeWaivers.length > 0 && (
-                    <span className="iq-waiver-indicator__counter">{activeWaivers.length}</span>
-                  )}
-                  <span> Applicable Waivers </span>
-                </div>
-              </NxTab>
-              <NxTab id="violation-similar-waivers-tab">Similar Waivers</NxTab>
-            </NxTabList>
-            {isSecurityVulnerability && (
-              <NxTabPanel>
-                <SecurityVulnerabilityDetailsTile
-                  showTitle={false}
-                  vulnerabilityDetails={vulnerabilityDetails}
-                  error={vulnerabilityDetailsError}
-                  isVulnerabilityDetailsOutdated={isVulnerabilityDetailsOutdated}
-                  loading={vulnerabilityDetailsLoading}
-                  retryLoad={loadVulnerabilityDetails}
-                  componentName={violationDetails ? getComponentName(violationDetails) : null}
-                  componentIdentifier={violationDetails?.componentIdentifier}
-                  ownerType={isFirewallContext ? 'organization' : 'application'}
-                  ownerId={isFirewallContext ? 'ROOT_ORGANIZATION_ID' : violationDetails?.applicationPublicId}
-                  hasEditIqPermission={hasEditIqPermission}
-                  componentHash={componentHash}
-                  tabId={tabId}
-                  repositoryId={repositoryId}
-                  matchState={matchState}
-                  pathname={pathname}
-                  isFirewall={isFirewall}
-                />
-              </NxTabPanel>
-            )}
-            <NxTabPanel>
-              <div id="applicable-waivers-tile">
-                <NxH3>
-                  <b> Active and expired waivers applicable to this violation of {violationDetails?.policyName}</b>
-                </NxH3>
-                <ListWaiversTable violationDetails={violationDetails} unknownComponentName={componentDisplayName} />
-              </div>
-            </NxTabPanel>
-            <NxTabPanel>
-              <div id="similar-waivers-tile">
-                <div className="similar-waivers-header">
-                  <NxOverflowTooltip>
-                    <NxH3 className="similar-waivers-header__title">
-                      Waivers for similar violations of {violationDetails?.policyName}
-                    </NxH3>
-                  </NxOverflowTooltip>
-                  <div className="similar-waivers-header__subtitle">
-                    Across all component versions
-                    {isSecurityVulnerability ? ` implicated by ${vulnerabilityDetails?.identifier}` : ''}
+      <InvalidViolationGuard violationMissingDatabaseIdentifier={violationMissingDatabaseIdentifier}>
+        <LoadWrapper error={error} loading={violationLoading} retryHandler={load}>
+          <ViolationDetailsTile
+            {...{
+              $state,
+              stageTypes,
+              violationDetails,
+              stateGo,
+              activeWaivers,
+              selectedViolationId,
+              isFromPolicyViolations,
+              isFirewallContext,
+              policyViolations,
+              policyDetail,
+              hasPermissionForAppWaivers,
+              constraintViolations,
+              isSbomManager,
+            }}
+          />
+
+          <section className={sectionClasses}>
+            <NxTabs activeTab={getActiveTabIndex()} onTabSelect={setActiveTab}>
+              <NxTabList>
+                {isSecurityVulnerability && (
+                  <NxTab id="violation-security-vulnerability-details-tab">Vulnerability Details</NxTab>
+                )}
+                <NxTab id="violation-applicable-waivers-tab">
+                  <div className="iq-waiver-indicator-tab">
+                    {activeWaivers.length > 0 && (
+                      <span className="iq-waiver-indicator__counter">{activeWaivers.length}</span>
+                    )}
+                    <span> Applicable Waivers </span>
                   </div>
-                  <NxStatefulFilterDropdown
-                    className="similar-waivers-header__filter"
-                    options={similarWaiversFilterOptions}
-                    selectedIds={similarWaiversFilterSelectedIds}
-                    onChange={setFilterIdsSimilarWaivers}
+                </NxTab>
+                <NxTab id="violation-similar-waivers-tab">Similar Waivers</NxTab>
+              </NxTabList>
+              {isSecurityVulnerability && (
+                <NxTabPanel>
+                  <SecurityVulnerabilityDetailsTile
+                    showTitle={false}
+                    vulnerabilityDetails={vulnerabilityDetails}
+                    error={vulnerabilityDetailsError}
+                    isVulnerabilityDetailsOutdated={isVulnerabilityDetailsOutdated}
+                    loading={vulnerabilityDetailsLoading}
+                    retryLoad={loadVulnerabilityDetails}
+                    componentName={violationDetails ? getComponentName(violationDetails) : null}
+                    componentIdentifier={violationDetails?.componentIdentifier}
+                    ownerType={isFirewallContext ? 'organization' : 'application'}
+                    ownerId={isFirewallContext ? 'ROOT_ORGANIZATION_ID' : violationDetails?.applicationPublicId}
+                    hasEditIqPermission={hasEditIqPermission}
+                    componentHash={componentHash}
+                    tabId={tabId}
+                    repositoryId={repositoryId}
+                    matchState={matchState}
+                    pathname={pathname}
+                    isFirewall={isFirewall}
                   />
+                </NxTabPanel>
+              )}
+              <NxTabPanel>
+                <div id="applicable-waivers-tile">
+                  <NxH3>
+                    <b> Active and expired waivers applicable to this violation of {violationDetails?.policyName}</b>
+                  </NxH3>
+                  <ListWaiversTable violationDetails={violationDetails} unknownComponentName={componentDisplayName} />
                 </div>
-                <ListSimilarWaiversTable />
-              </div>
-            </NxTabPanel>
-          </NxTabs>
-        </section>
-      </LoadWrapper>
+              </NxTabPanel>
+              <NxTabPanel>
+                <div id="similar-waivers-tile">
+                  <div className="similar-waivers-header">
+                    <NxOverflowTooltip>
+                      <NxH3 className="similar-waivers-header__title">
+                        Waivers for similar violations of {violationDetails?.policyName}
+                      </NxH3>
+                    </NxOverflowTooltip>
+                    <div className="similar-waivers-header__subtitle">
+                      Across all component versions
+                      {isSecurityVulnerability ? ` implicated by ${vulnerabilityDetails?.identifier}` : ''}
+                    </div>
+                    <NxStatefulFilterDropdown
+                      className="similar-waivers-header__filter"
+                      options={similarWaiversFilterOptions}
+                      selectedIds={similarWaiversFilterSelectedIds}
+                      onChange={setFilterIdsSimilarWaivers}
+                    />
+                  </div>
+                  <ListSimilarWaiversTable />
+                </div>
+              </NxTabPanel>
+            </NxTabs>
+          </section>
+        </LoadWrapper>
+      </InvalidViolationGuard>
     </div>
   );
 }
+
+function InvalidViolationGuard({ children, violationMissingDatabaseIdentifier }) {
+  if (violationMissingDatabaseIdentifier) {
+    return (
+      <section className="iq-violation-details-popover-section">
+        <NxWarningAlert>{MISSING_VIOLATION_ID_MESSAGE_TEXT}</NxWarningAlert>
+      </section>
+    );
+  } else {
+    return <>{children}</>;
+  }
+}
+
+export const MISSING_VIOLATION_ID_MESSAGE_TEXT =
+  'The policy violation requested does not have a valid database identifier. We can not look up details for it. ' +
+  'Try evaluating your application again to produce a new report.';
 
 export const violationPageTypes = {
   $state: PropTypes.shape({
@@ -255,7 +278,7 @@ export const violationPageTypes = {
   vulnerabilityDetails: PropTypes.object,
   vulnerabilityDetailsError: LoadWrapper.propTypes.error,
   isVulnerabilityDetailsOutdated: PropTypes.bool.isRequired,
-  activeWaivers: ListWaiversTable.propTypes.activeWaivers,
+  activeWaivers: PropTypes.array,
   componentDisplayName: PropTypes.string,
   loadFirewallViolationDetails: PropTypes.func.isRequired,
   isFromPolicyViolations: PropTypes.bool,

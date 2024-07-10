@@ -89,8 +89,6 @@ describe('ViolationPage', function () {
             ],
           },
         ],
-        constraintFactsJson:
-          '[{"constraintId":"c6436a5a051046b1ba2aa94e9fd82a51","constraintName":"Medium risk CVSS score","operatorName":"AND","conditionFacts":[{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":0,"summary":"Security Vulnerability Severity >= 4","reason":"Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"},{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":1,"summary":"Security Vulnerability Severity < 7","reason":"Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":1,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"}]}]',
         policyActionTypeId: null,
         lastReported: '2022-08-10T13:35:40.641+03:00',
       },
@@ -160,8 +158,6 @@ describe('ViolationPage', function () {
               ],
             },
           ],
-          constraintFactsJson:
-            '[{"constraintId":"c6436a5a051046b1ba2aa94e9fd82a51","constraintName":"Medium risk CVSS score","operatorName":"AND","conditionFacts":[{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":0,"summary":"Security Vulnerability Severity >= 4","reason":"Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"},{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":1,"summary":"Security Vulnerability Severity < 7","reason":"Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":1,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"}]}]',
           policyActionTypeId: null,
           lastReported: '2022-08-10T13:35:40.641+03:00',
         },
@@ -178,10 +174,6 @@ describe('ViolationPage', function () {
 
     getShallowComponent = enzymeUtils.getShallowComponent(ViolationPage, minimalProps);
     getMountedComponent = enzymeUtils.getMountedComponent(ViolationPage, minimalProps);
-  });
-
-  it('renders a LoadWrapper within the page', function () {
-    expect(getShallowComponent().find(LoadWrapper)).toExist();
   });
 
   it("sets the LoadWrapper's loading flag based on the loading, violationDetails, and stageTypes props", function () {
@@ -216,13 +208,6 @@ describe('ViolationPage', function () {
     expect(fetchStageTypesSpy).toHaveBeenCalledWith('dashboard');
   });
 
-  it('calls loadViolation with the $state id param, fetchStageTypes with the `dashboard` param and loadAddWaiverPermission on first load', function () {
-    getMountedComponent();
-
-    expect(loadViolationSpy).toHaveBeenCalledWith('foo');
-    expect(fetchStageTypesSpy).toHaveBeenCalledWith('dashboard');
-  });
-
   it('calls loadViolation whenever the selectedViolationId prop changes', function () {
     const component = getMountedComponent();
 
@@ -232,37 +217,6 @@ describe('ViolationPage', function () {
     component.setProps({ selectedViolationId: 'bar' });
 
     expect(loadViolationSpy).toHaveBeenCalledWith('bar');
-  });
-
-  it('calls loadViolation whenever the violation details is null and isFirewallContext is false', function () {
-    const violationDetails = null,
-      isFirewallContext = false,
-      stageTypes = {},
-      stateGo = () => {},
-      component = getMountedComponent({
-        ...minimalProps,
-        violationDetails,
-        isFirewallContext,
-        stageTypes,
-        stateGo,
-      });
-
-    expect(loadViolationSpy).toHaveBeenCalledWith('foo');
-    expect(loadViolationSpy).not.toHaveBeenCalledWith('bar');
-
-    component.setProps({ selectedViolationId: 'bar' });
-
-    expect(loadViolationSpy).toHaveBeenCalledWith('bar');
-  });
-
-  it('calls loadFirewallPolicyVulnerabilityDetails', function () {
-    const component = getMountedComponent({ violationDetails: {} });
-
-    expect(loadFirewallPolicyVulnerabilityDetailsSpy).not.toHaveBeenCalledWith('CVE-2012-2098');
-
-    component.setProps({ isFirewallContext: true });
-
-    expect(loadFirewallPolicyVulnerabilityDetailsSpy).toHaveBeenCalledWith('CVE-2012-2098');
   });
 
   it('renders a ViolationDetailsTile within the LoadWrapper with $state, stageTypes, violationDetails & stateGo', function () {

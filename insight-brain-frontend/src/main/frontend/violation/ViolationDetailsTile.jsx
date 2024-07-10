@@ -41,7 +41,7 @@ export default function ViolationDetailsTile(props) {
     } = props,
     applicationPublicId = isFirewallContext ? null : violationDetails.applicationPublicId,
     policyName = isFirewallContext ? policyDetail.policyName : violationDetails.policyName,
-    policyExists = isFirewallContext ? policyDetail.policyOwner.ownerId : !!violationDetails.policyOwner.ownerId,
+    policyExists = isFirewallContext ? !!policyDetail.policyOwner.ownerId : !!violationDetails.policyOwner.ownerId,
     threatLevel = isFirewallContext ? policyDetail.policyThreatLevel : violationDetails.threatLevel,
     stageData = isFirewallContext
       ? { release: { mostRecentEvaluationTime: policyDetail.lastReported } }

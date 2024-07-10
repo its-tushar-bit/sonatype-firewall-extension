@@ -76,9 +76,11 @@ export default function PolicyViolationsTable({
           isLoading={loading}
           retryHandler={loadPolicyViolationsInformation}
         >
-          {orderedViolations.map((violation) => (
+          {orderedViolations.map((violation, index) => (
             <PolicyViolationsTableRow
-              key={violation.policyViolationId}
+              // in some scenarios data corruption causes old report to lose policyViolationIds, falling back
+              // to index makes sure we still have unique key. See CLM-25312 for more details.
+              key={violation.policyViolationId || index}
               violation={violation}
               toggleShowViolationsDetailPopover={toggleShowViolationsDetail}
               setSelectedPolicyViolationId={setSelectedPolicyViolationId}

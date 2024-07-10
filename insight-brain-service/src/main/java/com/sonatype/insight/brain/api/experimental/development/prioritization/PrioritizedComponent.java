@@ -9,6 +9,8 @@ package com.sonatype.insight.brain.api.experimental.development.prioritization;
 import java.util.Objects;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
 
 public class PrioritizedComponent
 {
@@ -42,6 +44,10 @@ public class PrioritizedComponent
 
   private final int priority;
 
+  private ApiVersionChangeOptionType remediationType;
+
+  private String remediationVersion;
+
   public PrioritizedComponent(
       final String displayName,
       final ComponentIdentifier componentIdentifier,
@@ -53,7 +59,8 @@ public class PrioritizedComponent
       final String highestThreatPolicyName,
       final String highestThreatPolicyConstraintName,
       final boolean securityReachable,
-      final int priority
+      final int priority,
+      final DevelopmentPrioritizationComponentInfo prioritizationComponentInfo
   )
   {
     this.displayName = displayName;
@@ -67,6 +74,10 @@ public class PrioritizedComponent
     this.highestThreatPolicyConstraintName = highestThreatPolicyConstraintName;
     this.securityReachable = securityReachable;
     this.priority = priority;
+    if (prioritizationComponentInfo != null) {
+      this.remediationType = prioritizationComponentInfo.getRemediationType();
+      this.remediationVersion = prioritizationComponentInfo.getRemediationVersion();
+    }
   }
 
   public ComponentIdentifier getComponentIdentifier() {
@@ -113,6 +124,14 @@ public class PrioritizedComponent
     return priority;
   }
 
+  public ApiVersionChangeOptionType getRemediationType() {
+    return remediationType;
+  }
+
+  public String getRemediationVersion() {
+    return remediationVersion;
+  }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -132,7 +151,9 @@ public class PrioritizedComponent
         Objects.equals(hasFailActionOnComponent, that.hasFailActionOnComponent) &&
         Objects.equals(highestThreatPolicyName, that.highestThreatPolicyName) &&
         Objects.equals(highestThreatPolicyConstraintName, that.highestThreatPolicyConstraintName) &&
-        Objects.equals(action, that.action);
+        Objects.equals(action, that.action) &&
+        Objects.equals(remediationType, that.remediationType) &&
+        Objects.equals(remediationVersion, that.remediationVersion);
   }
 
   @Override
@@ -148,7 +169,9 @@ public class PrioritizedComponent
         highestThreatPolicyName,
         highestThreatPolicyConstraintName,
         securityReachable,
-        priority);
+        priority,
+        remediationType,
+        remediationVersion);
   }
 
   @Override
@@ -165,6 +188,8 @@ public class PrioritizedComponent
         ", highestThreatPolicyConstraintName=" + highestThreatPolicyConstraintName +
         ", securityReachable=" + securityReachable +
         ", priority=" + priority +
+        ", remediationType=" + remediationType +
+        ", remediationVersion=" + remediationVersion +
         '}';
   }
 }

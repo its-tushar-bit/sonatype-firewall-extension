@@ -9,6 +9,7 @@ package com.sonatype.insight.brain.development.prioritization;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -21,9 +22,12 @@ import com.sonatype.insight.brain.api.v2.dto.ApiDependencyDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
+import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.label.ComponentLabelService;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.Component;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyViolation;
@@ -46,16 +50,21 @@ public class DevelopmentPrioritiesService
 
   private final ComponentLabelService componentLabelService;
 
+  private final DevelopmentPrioritizationComponentInfoDAO prioritizationComponentInfoDAO;
+
+  private boolean isBulkRecommendationsEnabled;
+
   @Inject
   public DevelopmentPrioritiesService(
       final FeaturesService featuresService,
       final DevelopmentPrioritiesReportService developmentPrioritiesReportService,
-      final ComponentLabelService componentLabelService
-  )
+      final ComponentLabelService componentLabelService,
+      final DevelopmentPrioritizationComponentInfoDAO prioritizationComponentInfoDAO)
   {
     this.featuresService = featuresService;
     this.developmentPrioritiesReportService = developmentPrioritiesReportService;
     this.componentLabelService = componentLabelService;
+    this.prioritizationComponentInfoDAO = prioritizationComponentInfoDAO;
   }
 
   public DevelopmentPrioritizationResults getPrioritizedFindings(
@@ -74,6 +83,7 @@ public class DevelopmentPrioritiesService
         this.developmentPrioritiesReportService.getPolicyThreatsNoAuth(applicationPublicId, scanId);
 
     final int skipCount = (page - 1) * pageSize;
+    isBulkRecommendationsEnabled = isBulkRecommendationsEnabled();
 
     final List<UnprioritizedComponent> sortedComponents = apiReportRawDataDTOV2.components
         .stream()
@@ -81,15 +91,10 @@ public class DevelopmentPrioritiesService
           final List<PolicyViolation> policyViolations =
               getMatchingViolations(policyThreats.aaData, component);
 
-          final ComponentIdentifier componentIdentifier;
-
-          if (component.componentIdentifier != null) {
-            componentIdentifier = component.componentIdentifier.toComponentIdentifier();
-          }
-          else {
-            componentIdentifier = null;
-          }
-
+          // Component identifier can be null for unknown components
+          final ComponentIdentifier componentIdentifier =  component.componentIdentifier != null ?
+              component.componentIdentifier.toComponentIdentifier() :
+              null;
           final PolicyViolation highestPolicyViolation = getHighestThreat(policyViolations);
           final int highestThreatLevel;
           final String policyName;
@@ -115,6 +120,14 @@ public class DevelopmentPrioritiesService
           final boolean securityReachable = hasSecurityViolations(policyViolations)
               && isSecurityReachable(applicationPublicId, component.hash);
 
+          DevelopmentPrioritizationComponentInfo prioritizationComponentInfo = null;
+          if (isBulkRecommendationsEnabled && componentIdentifier != null) {
+            // component.hash and componentIdentifier.toSyntheticHash() have different values. The synthetic hash
+            // from the component identifier (does not use the binary) is what is stored in the database
+            prioritizationComponentInfo = prioritizationComponentInfoDAO.getByScanIdAndComponentHash(scanId,
+                componentIdentifier.toSyntheticHash());
+          }
+
           return new UnprioritizedComponent(
               component.displayName,
               componentIdentifier,
@@ -125,7 +138,8 @@ public class DevelopmentPrioritiesService
               policyName,
               highestThreatConstraintName,
               component.hash,
-              securityReachable
+              securityReachable,
+              prioritizationComponentInfo
           );
         })
         .filter(unprioritizedComponent -> unprioritizedComponent.highestThreat > 0)
@@ -309,15 +323,15 @@ public class DevelopmentPrioritiesService
     return prioritizedComponents;
   }
 
-  // TODO - SDEV-1019 complete the scoring algorithm
-  private int getScore(final UnprioritizedComponent prioritizedComponent) {
-    return getActionNumber(prioritizedComponent.action) * 10000 +
-        getSecurityReachableNumber(prioritizedComponent) * 100 +
-        prioritizedComponent.highestThreat;
+  private int getScore(final UnprioritizedComponent unprioritizedComponent) {
+    return getActionNumber(unprioritizedComponent.action) * 100000 +
+        getSecurityReachableNumber(unprioritizedComponent) * 1000 +
+        getRecommendationNumber(unprioritizedComponent) * 100 +
+        unprioritizedComponent.highestThreat;
   }
 
-  private int getSecurityReachableNumber(final UnprioritizedComponent prioritizedComponent) {
-    if (prioritizedComponent.securityReachable) {
+  private int getSecurityReachableNumber(final UnprioritizedComponent unprioritizedComponent) {
+    if (unprioritizedComponent.securityReachable) {
       return 1;
     }
     else {
@@ -335,6 +349,20 @@ public class DevelopmentPrioritiesService
     else {
       return 0;
     }
+  }
+
+  private int getRecommendationNumber(final UnprioritizedComponent unprioritizedComponent) {
+    if (isBulkRecommendationsEnabled && Objects.nonNull(unprioritizedComponent.prioritizationComponentInfo)) {
+      final String originalComponentVersion =
+          unprioritizedComponent.componentIdentifier.get(ComponentIdentifier.VERSION);
+      final String remediationVersion = unprioritizedComponent.prioritizationComponentInfo.getRemediationVersion();
+
+      // Remove from consideration situations where IQ recommends the same version because it isn't failing policy
+      if (!originalComponentVersion.equals(remediationVersion)) {
+        return 1;
+      }
+    }
+    return 0;
   }
 
   private void throwErrorIfDevelopmentNotEnabledByLicense() {
@@ -372,6 +400,12 @@ public class DevelopmentPrioritiesService
         });
   }
 
+  private boolean isBulkRecommendationsEnabled() {
+    final Set<Feature> features = featuresService.getFeatures();
+
+    return features.contains(SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS);
+  }
+
   private static class UnprioritizedComponent
   {
     public final String displayName;
@@ -394,6 +428,8 @@ public class DevelopmentPrioritiesService
 
     public final boolean securityReachable;
 
+    public DevelopmentPrioritizationComponentInfo prioritizationComponentInfo;
+
     public UnprioritizedComponent(
         final String displayName,
         final ComponentIdentifier componentIdentifier,
@@ -404,7 +440,8 @@ public class DevelopmentPrioritiesService
         final String highestThreatPolicyName,
         final String highestThreatPolicyConstraintName,
         final String hash,
-        final boolean securityReachable
+        final boolean securityReachable,
+        final DevelopmentPrioritizationComponentInfo prioritizationComponentInfo
     )
     {
       this.displayName = displayName;
@@ -417,7 +454,7 @@ public class DevelopmentPrioritiesService
       this.highestThreatPolicyConstraintName = highestThreatPolicyConstraintName;
       this.hash = hash;
       this.securityReachable = securityReachable;
-
+      this.prioritizationComponentInfo = prioritizationComponentInfo;
     }
 
     public PrioritizedComponent toPrioritizedComponent(final int priority) {
@@ -432,7 +469,8 @@ public class DevelopmentPrioritiesService
           highestThreatPolicyName,
           highestThreatPolicyConstraintName,
           securityReachable,
-          priority);
+          priority,
+          prioritizationComponentInfo);
     }
   }
 }

@@ -49,7 +49,7 @@ export default function PrioritiesPageTable() {
   const hasZeroFindings = isNilOrEmpty(topPrioritiesData) && isNilOrEmpty(additionalPrioritiesData);
   const setPage = (page) => dispatch(actions.setPage(page));
 
-  const priorityTooltip = `Priority of actionable items based on this application's policy, component reachability status, recommendation availability, and threat score severity.`
+  const priorityTooltip = `Priority of actionable items based on this application's policy, component reachability status, recommendation availability, and threat score severity.`;
 
   useEffect(() => {
     //If page is viewed for a different applicationId and scanId, reset pagination

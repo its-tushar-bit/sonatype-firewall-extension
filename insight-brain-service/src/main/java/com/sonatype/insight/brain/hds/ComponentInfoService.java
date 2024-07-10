@@ -1014,8 +1014,8 @@ public class ComponentInfoService
       return Collections.emptyMap();
     }
 
-    Map<String, List<String>> versionsByComponent
-        = hdsClient.post(Map.class, VERSIONS_BY_COMPONENT_ENDPOINT_URL, componentIdentifiers);
+    Map<String, List<String>> versionsByComponent =
+        hdsClient.post(Map.class, VERSIONS_BY_COMPONENT_ENDPOINT_URL, componentIdentifiers);
 
     log.debug("Fetched versions for {} components from HDS.", versionsByComponent.size());
 

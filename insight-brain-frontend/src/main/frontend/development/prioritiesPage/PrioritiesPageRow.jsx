@@ -12,11 +12,15 @@ import { actions } from './slices/prioritiesPageSlice';
 import { stringifyComponentIdentifier } from 'MainRoot/util/componentIdentifierUtils';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
-import { getRemediationsPrioritiesPage } from '../../componentDetails/overview/riskRemediation/recommendedVersionsUtils';
+import { selectIsDeveloperBulkRecommendationsEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  getAsyncRecommendationsPrioritiesPage,
+  getRecommendationsPrioritiesPage,
+} from '../../componentDetails/overview/riskRemediation/recommendedVersionsUtils';
 import PropTypes from 'prop-types';
 import { isNilOrEmpty } from '../../util/jsUtil';
 
-const dependencyTypeMap = {
+export const dependencyTypeMap = {
   Direct: 'direct',
   Transitive: 'transitive',
   'Inner Source': 'inner-source',
@@ -31,6 +35,7 @@ export default function PrioritiesPageRow({ component, onClick }) {
     recommendations,
     metadata: { stageId },
   } = useSelector(selectPrioritiesPageSlice);
+  const isDeveloperBulkRecommendationsEnabled = useSelector(selectIsDeveloperBulkRecommendationsEnabled);
 
   const {
     displayName,
@@ -44,6 +49,8 @@ export default function PrioritiesPageRow({ component, onClick }) {
     componentIdentifier,
     componentHash,
     pathName,
+    remediationType,
+    remediationVersion,
   } = component;
 
   const policyAction = action === 'none' ? null : action;
@@ -51,28 +58,21 @@ export default function PrioritiesPageRow({ component, onClick }) {
   const actualVersion = componentIdentifier?.coordinates?.version;
   const isUnknown = formattedDependencyType === dependencyTypeMap.Unknown && componentIdentifier === null;
 
-  const requestData = {
-    clientType: 'ci',
-    ownerType: 'application',
-    ownerId: publicAppId,
-    matchState: 'exact',
-    proprietary: 'false',
-    identificationSource: 'Sonatype',
-    componentIdentifier: componentIdentifier ? stringifyComponentIdentifier(componentIdentifier, 'exact') : null,
-    hash: componentHash,
-    scanId,
-    pathName,
-    displayName,
-    stageId,
-    dependencyType: formattedDependencyType,
-  };
+  const loading = isDeveloperBulkRecommendationsEnabled ? false : recommendations[componentHash]?.loading;
+  const error = isDeveloperBulkRecommendationsEnabled ? null : recommendations[componentHash]?.error;
+  const remediation = isDeveloperBulkRecommendationsEnabled ? null : recommendations[componentHash]?.remediation;
 
-  const { loading, error, remediation } = recommendations[componentHash] || {};
-
-  const recommendation = useMemo(() => getRemediationsPrioritiesPage(remediation, actualVersion, stageId), [
-    remediation,
-    actualVersion,
-  ]);
+  const recommendation = isDeveloperBulkRecommendationsEnabled
+    ? useMemo(() => getRecommendationsPrioritiesPage(remediationType, remediationVersion, actualVersion, stageId), [
+        remediationType,
+        remediationVersion,
+        stageId,
+      ])
+    : useMemo(() => getAsyncRecommendationsPrioritiesPage(remediation, actualVersion, stageId), [
+        remediation,
+        actualVersion,
+        stageId,
+      ]);
 
   const recommendationText =
     !recommendation?.version || actualVersion === recommendation?.version
@@ -81,12 +81,30 @@ export default function PrioritiesPageRow({ component, onClick }) {
   const recommendationSubtext = !recommendation?.text ? '' : recommendation.text;
 
   const doLoad = () => {
+    const requestData = {
+      clientType: 'ci',
+      ownerType: 'application',
+      ownerId: publicAppId,
+      matchState: 'exact',
+      proprietary: 'false',
+      identificationSource: 'Sonatype',
+      componentIdentifier: componentIdentifier ? stringifyComponentIdentifier(componentIdentifier, 'exact') : null,
+      hash: componentHash,
+      scanId,
+      pathName,
+      displayName,
+      stageId,
+      dependencyType: formattedDependencyType,
+    };
+
     dispatch(actions.checkIfLoadRecommendationsNeeded(requestData));
   };
 
   useEffect(() => {
-    doLoad();
-  }, []);
+    if (!isDeveloperBulkRecommendationsEnabled) {
+      doLoad();
+    }
+  }, [isDeveloperBulkRecommendationsEnabled]);
 
   return (
     <NxTable.Row isClickable onClick={onClick}>

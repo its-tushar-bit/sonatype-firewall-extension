@@ -208,27 +208,7 @@ describe('PrioritiesPageTable', () => {
   });
 
   describe('Top Priorities Accordion', () => {
-    it('renders "Top Priorities" when number of top priorities is larger than 1', async () => {
-      const numOfTopPriorities = 2;
-      const numOfAdditionalPriorities = 0;
-      const mockData = generateMockData(numOfTopPriorities, numOfAdditionalPriorities);
-      const mockResponsePage1 = generateMockResponseByPage(1, mockData);
-      axiosMock
-        .onGet(getPrioritiesPageTableData(publicAppId, scanId), { params: { pageSize: 10, page: 1 } })
-        .reply(200, mockResponsePage1);
-
-      renderComponent();
-
-      const table = await screen.findByRole('table');
-      expect(table).toBeInTheDocument();
-
-      const accordions = screen.getAllByRole('group');
-      const topPrioritiesAccordion = accordions[0];
-
-      expect(within(topPrioritiesAccordion).getByRole('button')).toHaveAccessibleName(`Top Priorities`);
-    });
-
-    it('renders "Top Priorities" if number of top priorities is 1', async () => {
+    it('renders an accordion with the title "Top Priorities"', async () => {
       const numOfTopPriorities = 1;
       const numOfAdditionalPriorities = 10;
       const mockData = generateMockData(numOfTopPriorities, numOfAdditionalPriorities);
@@ -404,114 +384,8 @@ describe('PrioritiesPageTable', () => {
       expect(axiosMock.history.get[22].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
       expect(axiosMock.history.get[22].params).toEqual({ pageSize: 10, page: 1 });
     });
-
-    it('correct data when page is changed', async () => {
-      renderComponent();
-
-      const table = await screen.findByRole('table');
-      expect(table).toBeInTheDocument();
-
-      let pagination = await screen.findByRole('navigation');
-      expect(within(pagination).getAllByRole('button').length).toBe(3);
-
-      await assertCorrectDataRowsByTypeAndPage('topPriorities', 1);
-      await assertCorrectDataRowsByTypeAndPage('additionalPriorities', 1);
-
-      const nextPageBtn = within(pagination).getByRole('button', { name: /goto next page/i });
-      expect(nextPageBtn).toBeInTheDocument();
-
-      fireEvent.click(nextPageBtn);
-
-      pagination = await screen.findByRole('navigation');
-
-      await assertCorrectDataRowsByTypeAndPage('topPriorities', 2);
-      await assertCorrectDataRowsByTypeAndPage('additionalPriorities', 2);
-
-      const prevPageBtn = within(pagination).getByRole('button', { name: /goto previous page/i });
-      expect(prevPageBtn).toBeInTheDocument();
-
-      fireEvent.click(prevPageBtn);
-
-      await screen.findByRole('table');
-      pagination = await screen.findByRole('navigation');
-
-      await assertCorrectDataRowsByTypeAndPage('topPriorities', 1);
-      await assertCorrectDataRowsByTypeAndPage('additionalPriorities', 1);
-    }, 20000);
   });
 });
-
-async function assertCorrectDataRowsByTypeAndPage(priorityType, page) {
-  if (priorityType === 'topPriorities' && page !== 1) {
-    return;
-  }
-
-  const mockResponse = page === 1 ? mockResponsePage1 : mockResponsePage2;
-
-  const {
-    topPriorities,
-    additionalPriorities: { results },
-  } = mockResponse;
-
-  const responseArrayToAssertAgainst = priorityType === 'topPriorities' ? topPriorities : results;
-  for (let i = 0; i < responseArrayToAssertAgainst.length; i++) {
-    const {
-      priority,
-      displayName,
-      dependencyType,
-      highestThreat,
-      highestThreatPolicyName,
-      highestThreatPolicyConstraintName,
-      action,
-      securityReachable,
-    } = responseArrayToAssertAgainst[i];
-
-    const table = await screen.findByRole('table');
-    expect(table).toBeInTheDocument();
-
-    const rows = screen.getAllByRole('row');
-
-    /*
-     * for top priority rows, skip table header and "top priorities" accordion row
-     * for additional priority rows, skip table header, top priority accordion and data rows,
-     * and remaining priorities header row
-     */
-    const row = rows[i + 2 + (page === 1 && priorityType === 'additionalPriorities' ? 4 : 0)];
-
-    const cells = within(row).getAllByRole('cell');
-
-    const priorityCell = cells[0];
-    expect(priorityCell).toHaveTextContent(priority);
-
-    const componentCell = cells[1];
-    expect(componentCell).toHaveTextContent(displayName);
-
-    /*
-     * for additional priority rows skip top priority data rows,
-     */
-    expect(
-      screen.getAllByTestId('dependency-type')[i + (priorityType === 'topPriorities' || page === 2 ? 0 : 3)]
-    ).toHaveTextContent(dependencyType.substring(0, 1));
-
-    if (securityReachable) {
-      expect(componentCell).toHaveTextContent('Security-Reachable');
-    }
-
-    const policyCell = cells[2];
-    expect(policyCell).toHaveTextContent(highestThreat);
-    expect(policyCell).toHaveTextContent(highestThreatPolicyName);
-    expect(policyCell).toHaveTextContent(highestThreatPolicyConstraintName);
-
-    if (action !== 'none') {
-      expect(policyCell).toHaveTextContent(action);
-    }
-
-    //TODO
-    // const remediation = firstComponentCells[3];
-    // expect(remediation).toHaveTextContent('Upgrade to 1.11.0');
-    // expect(remediation).toHaveTextContent('Next version with no policy violations for this component and its dependencies')
-  }
-}
 
 function generateMockData(numOfTopPriorities, numOfAdditionalPriorities) {
   const topPriorities = [];

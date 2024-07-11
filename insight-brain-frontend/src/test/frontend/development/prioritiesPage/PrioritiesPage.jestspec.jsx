@@ -104,6 +104,8 @@ describe('PrioritiesPage', () => {
       },
     };
 
+    afterEach(() => removePortalContainer());
+
     it('view full report button navigates to URL based on correct stateName', async () => {
       renderComponent(preloadedState);
       const viewFullReportBtn = await screen.findByRole('button', { name: /view full report/i });
@@ -124,8 +126,6 @@ describe('PrioritiesPage', () => {
       const backBtn = await screen.findByRole('link', { name: /back to reports/i });
       expect(backBtn).toBeInTheDocument();
       expect(backBtn).toHaveAttribute('href', 'violations');
-
-      removePortalContainer();
     });
   });
 
@@ -141,6 +141,8 @@ describe('PrioritiesPage', () => {
         },
       },
     };
+
+    afterEach(() => removePortalContainer());
 
     it('view full report button navigates to URL based on correct stateName', async () => {
       renderComponent(preloadedState);
@@ -163,8 +165,6 @@ describe('PrioritiesPage', () => {
       const backBtn = await screen.findByRole('link', { name: /back to application report/i });
       expect(backBtn).toBeInTheDocument();
       expect(backBtn).toHaveAttribute('href', 'applicationReport.policy');
-
-      removePortalContainer();
     });
   });
 
@@ -180,6 +180,8 @@ describe('PrioritiesPage', () => {
         },
       },
     };
+
+    afterEach(() => removePortalContainer());
 
     it('view full report button navigates to URL based on correct stateName', async () => {
       renderComponent(preloadedState);
@@ -201,8 +203,6 @@ describe('PrioritiesPage', () => {
       const backBtn = await screen.findByRole('link', { name: /back to developer dashboard/i });
       expect(backBtn).toBeInTheDocument();
       expect(backBtn).toHaveAttribute('href', 'integrations');
-
-      removePortalContainer();
     });
   });
 });

@@ -243,3 +243,8 @@ export const selectNoSbomManagerEnabledError = createSelector(
   (isSbomManagerEnable, loading, isSbomManager) =>
     !isSbomManagerEnable && isSbomManager && !loading ? 'The SBOM Manager license feature is not enabled.' : null
 );
+
+export const selectIsDeveloperBulkRecommendationsEnabled = createSelector(
+  selectProductFeatures,
+  propOr(false, 'developer-bulk-recommendations')
+);

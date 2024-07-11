@@ -1492,7 +1492,7 @@ export const getSbomSummaryUrl = (applicationId, version) =>
   uriTemplate`/rest/sbom/applications/${applicationId}/versions/${version}/summary`;
 
 export const getPrioritiesPageTableData = (applicationId, scanId) =>
-  uriTemplate`/api/experimental/priorities/${applicationId}/${scanId}`;
+  uriTemplate`/rest/developer/priorities/${applicationId}/${scanId}`;
 
 export const getTotalSbomsAnalyzedUrl = () => uriTemplate`/rest/sbom/dashboard/sbomsAnalyzed`;
 

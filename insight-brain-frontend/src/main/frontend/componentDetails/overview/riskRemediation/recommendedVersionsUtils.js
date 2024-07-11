@@ -180,7 +180,7 @@ export const setRemediations = (remediation, actualVersion, stageId) => {
   return suggestedRemediations;
 };
 
-export const getRemediationsPrioritiesPage = (remediation, actualVersion, stageId) => {
+export const getAsyncRecommendationsPrioritiesPage = (remediation, actualVersion, stageId) => {
   const skipCurrentVersionForPrioritiesPage = true;
   if (remediation && remediation.versionChanges?.length > 0) {
     const nonViolatingDependencySuggestion = find(
@@ -239,6 +239,16 @@ export const getRemediationsPrioritiesPage = (remediation, actualVersion, stageI
     }
   }
 
+  return {
+    id: 'no-versions-available',
+    text: 'No recommendation available',
+  };
+};
+
+export const getRecommendationsPrioritiesPage = (remediationType, remediationVersion, actualVersion, stageId) => {
+  if (remediationType && remediationVersion !== actualVersion) {
+    return createSuggestedRemediationWithRecommendedVersion({ type: remediationType }, remediationVersion, stageId);
+  }
   return {
     id: 'no-versions-available',
     text: 'No recommendation available',

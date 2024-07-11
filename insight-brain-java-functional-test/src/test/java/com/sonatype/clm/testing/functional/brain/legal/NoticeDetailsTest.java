@@ -194,8 +194,8 @@ public class NoticeDetailsTest
 
     final String noticeText = "text of added notice";
     final NoticeFileEditor editorModal = ComponentNoticeDetailsPage.noticeFileEditor();
-    editorModal.noticeText(1).shouldBe(visible);
-    editorModal.noticeText(1).setValue(noticeText);
+    editorModal.noticeText(0).shouldBe(visible);
+    editorModal.noticeText(0).setValue(noticeText);
     editorModal.saveButton().click();
 
     final NoticeOverview noticeOverview = ComponentNoticeDetailsPage.noticeOverview();
@@ -205,14 +205,12 @@ public class NoticeDetailsTest
     noticeOverview.shouldHave(text(noticeText));
   }
 
-  @Ignore("CLM-30844")
   @Test
   public void testEditNoticeByHash() {
     loadByHash();
     doTestEditNotice();
   }
 
-  @Ignore("CLM-30844")
   @Test
   public void testEditNoticeByComponentIdentifier() throws UnsupportedEncodingException {
     loadByComponentIdentifier();

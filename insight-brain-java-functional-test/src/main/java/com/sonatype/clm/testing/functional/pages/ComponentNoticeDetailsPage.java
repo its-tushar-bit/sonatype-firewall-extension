@@ -126,14 +126,14 @@ public final class ComponentNoticeDetailsPage
   public static class NoticeFileEditor
       extends BasicElement<ComponentNoticeDetailsPage.NoticeFileEditor>
   {
-    private static final String NOTICE_EDITOR_MODAL_SELECTOR = "notice-details-header div.nx-modal-backdrop";
+    private static final String NOTICE_EDITOR_MODAL_SELECTOR = "#edit-notices-attribution-modal";
 
     public NoticeFileEditor() {
       super(NOTICE_EDITOR_MODAL_SELECTOR);
     }
 
     public SelenideElement noticeText(final int index) {
-      return $(String.format("td:nth-child(%d) textarea", index));
+      return child(String.format("#notice-text-input-%d", index));
     }
 
     public SelenideElement saveButton() {

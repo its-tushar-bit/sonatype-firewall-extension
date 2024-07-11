@@ -157,6 +157,13 @@ public class SbomFileDetectorTest
   }
 
   @Test
+  public void testGetSbomMetadata_CycloneDx_InvalidXml2() {
+    SbomDetectionResult expected =
+        createExpectedResult(false, "application/xml", "not a valid CycloneDx SBOM file");
+    getSbomMetadata("cyclonedx-invalid-2-xml.tmp", expected);
+  }
+
+  @Test
   public void testGetSbomMetadata_SPDX_InvalidJson() {
     SbomDetectionResult expected =
         createExpectedResult(false, "application/json", "not a valid SPDX SBOM file");

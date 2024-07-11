@@ -183,7 +183,7 @@ public class SbomFileDetector
     catch (UnsupportedSbomException e) {
       sbomResult.errorMessage = e.getMessage();
     }
-    catch (IOException | ParseException e) {
+    catch (IOException | ParseException | InvalidSbomException e ) {
       log.debug("error parsing content as sbom", e);
       sbomResult.errorMessage = "not a valid CycloneDx SBOM file";
     }

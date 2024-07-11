@@ -67,7 +67,7 @@ CREATE TABLE coordinate_license (
   coordinate_license_id VARCHAR(50) NOT NULL,
   file_coordinate_id VARCHAR(50) NOT NULL,
   license_id VARCHAR(1000) NOT NULL,
-  name VARCHAR(1000) NULL,
+  name TEXT NULL,
   url VARCHAR(200) NULL,
   identification_sources VARCHAR(100) NULL,
   CONSTRAINT license_coordinate_pk PRIMARY KEY (coordinate_license_id),

@@ -1798,7 +1798,7 @@ CREATE TABLE IF NOT EXISTS development_prioritization (
   updated_at timestamp DEFAULT now() NOT NULL,
   CONSTRAINT development_prioritization_pk PRIMARY KEY (development_prioritization_id),
   CONSTRAINT development_prioritization_scan_id_uk UNIQUE (scan_id)
-  );
+);
 
 CREATE TABLE IF NOT EXISTS development_prioritization_component_info (
   development_prioritization_component_info_id varchar(50) NOT NULL,
@@ -1809,9 +1809,13 @@ CREATE TABLE IF NOT EXISTS development_prioritization_component_info (
   remediation_version varchar(100),
   created_at timestamp NOT NULL,
   updated_at timestamp NOT NULL,
+  source_status varchar(20) NULL,
+  build_status varchar(20) NULL,
+  stage_release_status varchar(20) NULL,
+  release_status varchar(20) NULL,
   CONSTRAINT development_prioritization_component_info_pk PRIMARY KEY (development_prioritization_component_info_id),
   CONSTRAINT development_prioritization_component_scan_id_hash_uk UNIQUE (scan_id, component_hash),
   CONSTRAINT development_prioritization_component_info_parent_fk FOREIGN KEY (development_prioritization_id) REFERENCES development_prioritization(development_prioritization_id)
-  );
+);
 
 CREATE INDEX development_prioritization_component_scan_id_hash_idx ON development_prioritization_component_info(scan_id, component_hash);

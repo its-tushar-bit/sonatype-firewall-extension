@@ -6,15 +6,27 @@
 
 package com.sonatype.insight.brain.dataaccess.development.prioritization;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.policy.stages.SourceStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -83,9 +95,9 @@ public class DevelopmentPrioritizationComponentInfoDAO
   {
     String qs = "INSERT INTO " + getDatabaseSchema() + ".development_prioritization_component_info" +
         " (development_prioritization_component_info_id, scan_id, development_prioritization_id, component_hash," +
-        " remediation_type, remediation_version, created_at, updated_at)" +
-        " VALUES (?, ?, ?, ?, ?, ?, ?, ?)" + StringUtils.repeat(
-            ", (?, ?, ?, ?, ?, ?, ?, ?)", developmentPrioritizationComponentInfoCollection.size() - 1);
+        " remediation_type, remediation_version, created_at, updated_at, source_status, build_status," +
+        " stage_release_status, release_status)" + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" + StringUtils.repeat(
+        ", (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", developmentPrioritizationComponentInfoCollection.size() - 1);
 
     javax.persistence.Query query = tx.createNativeQuery(qs);
     int pos = 0;
@@ -100,8 +112,54 @@ public class DevelopmentPrioritizationComponentInfoDAO
           .setParameter(++pos, componentInfo.getRemediationType().toString())
           .setParameter(++pos, componentInfo.getRemediationVersion())
           .setParameter(++pos, componentInfo.getCreatedAt())
-          .setParameter(++pos, componentInfo.getUpdatedAt());
+          .setParameter(++pos, componentInfo.getUpdatedAt())
+          .setParameter(++pos, componentInfo.getSourceStatus())
+          .setParameter(++pos, componentInfo.getBuildStatus())
+          .setParameter(++pos, componentInfo.getStageReleaseStatus())
+          .setParameter(++pos, componentInfo.getReleaseStatus());
     }
     return query;
+  }
+
+  public Map<StageType, String> getStageStatusesByScanIdAndComponentHash(
+      final String scanId,
+      final String componentHash)
+  {
+    final DevelopmentPrioritizationComponentInfo componentInfo = getByScanIdAndComponentHash(scanId, componentHash);
+    if (Objects.isNull(componentInfo)) {
+      return Collections.emptyMap();
+    }
+
+    final Map<StageType, String> stageStatuses = new HashMap<>();
+    getSupportedStageTypes().forEach(stageType ->
+        stageStatuses.put(stageType, getStageStatusByStageType(stageType.getId(), componentInfo)));
+    return stageStatuses;
+  }
+
+  private List<StageType> getSupportedStageTypes() {
+    final Collection<StageType> allStageTypes = StageTypes.getAll();
+    final List<StageType> supportedStageTypes =
+        Arrays.asList(StageTypes.SOURCE, StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE);
+    return allStageTypes.stream()
+        .filter(supportedStageTypes::contains)
+        .collect(Collectors.toList());
+  }
+
+  private String getStageStatusByStageType(
+      final String stageTypeId,
+      final DevelopmentPrioritizationComponentInfo componentInfo)
+  {
+    switch (stageTypeId) {
+      case SourceStageType.ID:
+        return componentInfo.getSourceStatus();
+      case BuildStageType.ID:
+        return componentInfo.getBuildStatus();
+      case StageReleaseStageType.ID:
+        return componentInfo.getStageReleaseStatus();
+      case ReleaseStageType.ID:
+        return componentInfo.getReleaseStatus();
+      default:
+        throw new IllegalStateException("Unsupported stage: " + stageTypeId);
+    }
   }
 }

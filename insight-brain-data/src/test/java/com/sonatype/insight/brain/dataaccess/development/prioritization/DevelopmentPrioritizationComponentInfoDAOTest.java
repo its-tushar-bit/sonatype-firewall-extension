@@ -7,15 +7,21 @@
 package com.sonatype.insight.brain.dataaccess.development.prioritization;
 
 import java.util.Arrays;
+import java.util.Map;
 
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritization;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -83,6 +89,50 @@ public class DevelopmentPrioritizationComponentInfoDAOTest
     assertThat(dao.getAllByScanId("scan3"))
         .hasSize(2)
         .containsExactlyInAnyOrder(scan3component1, scan3component2);
+  }
+
+  @Test
+  public void testGetStageStatusesByScanIdAndComponentHash() {
+    final DevelopmentPrioritization developmentPrioritization = tempEntity.newDevelopmentPrioritization("scan123");
+    final DevelopmentPrioritizationComponentInfo componentInfo =
+        tempEntity.newDevelopmentPrioritizationComponentInfo(developmentPrioritization.getId(),
+            developmentPrioritization.getScanId(), "hash123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
+            "1.0.1", "none", FailActionType.ID, "none", WarnActionType.ID);
+
+    final Map<StageType, String> componentStatuses =
+        dao.getStageStatusesByScanIdAndComponentHash(componentInfo.getScanId(), componentInfo.getComponentHash());
+    final Map<StageType, String> expectedStatuses = ImmutableMap.of(
+        StageTypes.SOURCE, "none",
+        StageTypes.BUILD, FailActionType.ID,
+        StageTypes.STAGE_RELEASE, "none",
+        StageTypes.RELEASE, WarnActionType.ID
+    );
+    assertThat(componentStatuses)
+        .hasSize(4)
+        .doesNotContainKeys(StageTypes.DEVELOP, StageTypes.OPERATE, StageTypes.PROXY)
+        .containsExactlyInAnyOrderEntriesOf(expectedStatuses);
+  }
+
+  @Test
+  public void testGetStageStatusesByScanIdAndComponentHash_WhenComponentNotFound() {
+    final Map<StageType, String> componentStatuses =
+        dao.getStageStatusesByScanIdAndComponentHash("nonexistent", "nonexistent");
+    assertThat(componentStatuses)
+        .isEmpty();
+  }
+
+  @Test
+  public void testUpdate_UpdateStageStatus() {
+    assertThat(dao.getByScanIdAndComponentHash(scan1component1.getScanId(), scan1component1.getComponentHash())
+        .getBuildStatus())
+        .isNull();
+
+    scan1component1.setBuildStatus(WarnActionType.ID);
+    dao.update(scan1component1);
+
+    assertThat(dao.getByScanIdAndComponentHash(scan1component1.getScanId(), scan1component1.getComponentHash())
+        .getBuildStatus())
+        .isEqualTo(WarnActionType.ID);
   }
 
   private void insertComponentInfoRows() {

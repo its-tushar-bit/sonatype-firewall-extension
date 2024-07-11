@@ -4998,8 +4998,27 @@ public class TemporaryEntity
       final String remediationVersion)
   {
     DevelopmentPrioritizationComponentInfo developmentPrioritizationComponentInfo =
+        new DevelopmentPrioritizationComponentInfo(developmentPrioritizationId, scanId, componentHash, remediationType,
+            remediationVersion, null, null, null, null);
+    developmentPrioritizationComponentInfoDAO.insert(developmentPrioritizationComponentInfo);
+    return developmentPrioritizationComponentInfo;
+  }
+
+  public DevelopmentPrioritizationComponentInfo newDevelopmentPrioritizationComponentInfo(
+      final String developmentPrioritizationId,
+      final String scanId,
+      final String componentHash,
+      final ApiVersionChangeOptionType remediationType,
+      final String remediationVersion,
+      final String sourceStageStatus,
+      final String buildStageStatus,
+      final String stageReleaseStageStatus,
+      final String releaseStageStatus)
+  {
+    DevelopmentPrioritizationComponentInfo developmentPrioritizationComponentInfo =
         new DevelopmentPrioritizationComponentInfo(
-            developmentPrioritizationId, scanId, componentHash, remediationType, remediationVersion);
+            developmentPrioritizationId, scanId, componentHash, remediationType, remediationVersion, sourceStageStatus,
+            buildStageStatus, stageReleaseStageStatus, releaseStageStatus);
     developmentPrioritizationComponentInfoDAO.insert(developmentPrioritizationComponentInfo);
     return developmentPrioritizationComponentInfo;
   }

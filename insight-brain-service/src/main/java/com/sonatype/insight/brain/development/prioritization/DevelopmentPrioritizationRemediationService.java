@@ -83,7 +83,7 @@ public class DevelopmentPrioritizationRemediationService
       List<ComponentIdentifier> componentIdentifiers, String scanId, String appId, Stage stage)
   {
     Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> remediationVersions =
-        getRemediationVersions(componentIdentifiers, appId, stage.getStageTypeId(), scanId);
+        getRemediationVersions(componentIdentifiers, appId, stage.getStageName(), scanId);
     persistRemediationRecommendations(remediationVersions, scanId);
   }
 

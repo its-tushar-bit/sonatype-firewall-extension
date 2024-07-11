@@ -49,6 +49,18 @@ public class DevelopmentPrioritizationComponentInfo
   @Column(name = "updated_at")
   private Date updatedAt;
 
+  @Column(name = "source_status")
+  private String sourceStatus;
+
+  @Column(name = "build_status")
+  private String buildStatus;
+
+  @Column(name = "stage_release_status")
+  private String stageReleaseStatus;
+
+  @Column(name = "release_status")
+  private String releaseStatus;
+
   public DevelopmentPrioritizationComponentInfo() {
   }
 
@@ -65,6 +77,24 @@ public class DevelopmentPrioritizationComponentInfo
     this.remediationType = remediationType;
     this.remediationVersion = remediationVersion;
     this.updatedAt = this.createdAt = new Date();
+  }
+
+  public DevelopmentPrioritizationComponentInfo(
+      final String developmentPrioritizationId,
+      final String scanId,
+      final String componentHash,
+      final ApiVersionChangeOptionType remediationType,
+      final String remediationVersion,
+      final String sourceStatus,
+      final String buildStatus,
+      final String stageReleaseStatus,
+      final String releaseStatus)
+  {
+    this(developmentPrioritizationId, scanId, componentHash, remediationType, remediationVersion);
+    this.sourceStatus = sourceStatus;
+    this.buildStatus = buildStatus;
+    this.stageReleaseStatus = stageReleaseStatus;
+    this.releaseStatus = releaseStatus;
   }
 
   @Override
@@ -125,6 +155,38 @@ public class DevelopmentPrioritizationComponentInfo
     this.updatedAt = updatedAt;
   }
 
+  public String getSourceStatus() {
+    return sourceStatus;
+  }
+
+  public void setSourceStatus(String sourceStatus) {
+    this.sourceStatus = sourceStatus;
+  }
+
+  public String getBuildStatus() {
+    return buildStatus;
+  }
+
+  public void setBuildStatus(String buildStatus) {
+    this.buildStatus = buildStatus;
+  }
+
+  public String getStageReleaseStatus() {
+    return stageReleaseStatus;
+  }
+
+  public void setStageReleaseStatus(String stageReleaseStatus) {
+    this.stageReleaseStatus = stageReleaseStatus;
+  }
+
+  public String getReleaseStatus() {
+    return releaseStatus;
+  }
+
+  public void setReleaseStatus(String releaseStatus) {
+    this.releaseStatus = releaseStatus;
+  }
+
   public String getDevelopmentPrioritizationId() {
     return developmentPrioritizationId;
   }
@@ -146,13 +208,16 @@ public class DevelopmentPrioritizationComponentInfo
         Objects.equals(developmentPrioritizationId, that.developmentPrioritizationId) &&
         Objects.equals(componentHash, that.componentHash) && remediationType == that.remediationType &&
         Objects.equals(remediationVersion, that.remediationVersion) &&
-        Objects.equals(createdAt, that.createdAt) && Objects.equals(updatedAt, that.updatedAt);
+        Objects.equals(createdAt, that.createdAt) && Objects.equals(updatedAt, that.updatedAt) &&
+        Objects.equals(sourceStatus, that.sourceStatus) && Objects.equals(buildStatus, that.buildStatus) &&
+        Objects.equals(stageReleaseStatus, that.stageReleaseStatus) &&
+        Objects.equals(releaseStatus, that.releaseStatus);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(id, scanId, developmentPrioritizationId, componentHash, remediationType, remediationVersion,
-        createdAt, updatedAt);
+        createdAt, updatedAt, sourceStatus, buildStatus, stageReleaseStatus, releaseStatus);
   }
 
   @Override
@@ -166,6 +231,10 @@ public class DevelopmentPrioritizationComponentInfo
         .add("remediationVersion='" + remediationVersion + "'")
         .add("createdAt=" + createdAt)
         .add("updatedAt=" + updatedAt)
+        .add("sourceStatus='" + sourceStatus)
+        .add("buildStatus='" + buildStatus)
+        .add("stageReleaseStatus='" + stageReleaseStatus)
+        .add("releaseStatus='" + releaseStatus)
         .toString();
   }
 }

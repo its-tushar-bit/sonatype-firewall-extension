@@ -23,6 +23,7 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.ElementsCollection;
 import org.eclipse.jgit.util.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -106,12 +107,11 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
     sbomManagerComponentDetailsPage.disclosedVulnerabilities().tableRows().shouldHave(CollectionCondition
         .size(2));
     assertVulnerabilityTableRowContent(sbomManagerComponentDetailsPage.disclosedVulnerabilities(),
-        "5.6", "ABC-123", "Unverified", "Unannotated", " ",
-        "Add");
+        "5.6", "ABC-123", "Unverified", "Unannotated", " ");
 
     checkSonatypeVulnerabilitiesTableHeader(sbomManagerComponentDetailsPage.sonatypeVulnerabilitiesTile());
     assertVulnerabilityTableRowContent(sbomManagerComponentDetailsPage.sonatypeVulnerabilitiesTile(),
-        "9.6", "sonatype-123", null, "Unannotated", " ", "Add");
+        "9.6", "sonatype-123", null, "Unannotated", " ");
 
     sbomManagerComponentDetailsPage.dependencyTreeTile().header().shouldHave(text("Dependency Tree"));
     sbomManagerComponentDetailsPage.dependencyTreeTile().content().shouldHave(text("Dependency Tree not available"));
@@ -126,14 +126,19 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
     refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
         .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
 
-    SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
+    SelenideElement dropdownButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
         .getColumnData(0, 5);
-    actionButtonFirstRowColumn.shouldBe(visible);
-    actionButtonFirstRowColumn.shouldHave(text("Add"));
+    dropdownButtonFirstRowColumn.shouldBe(visible);
 
-    SelenideElement addButton =  actionButtonFirstRowColumn.find("button");
-    addButton.shouldBe(visible);
-    addButton.click();
+    ElementsCollection rowButtons =  dropdownButtonFirstRowColumn.findAll("button");
+    SelenideElement ellipsisButton =  rowButtons.get(0);
+    ellipsisButton.shouldBe(visible);
+    ellipsisButton.click();
+
+    SelenideElement addAnnotationButton =  rowButtons.get(1);
+    addAnnotationButton.shouldBe(visible);
+    addAnnotationButton.shouldHave(text("Add Annotation"));
+    addAnnotationButton.click();
 
     VexAnnotationDrawer vexDrawer = sbomManagerComponentDetailsPage.vexAnnotationDrawer();
     vexDrawer.shouldBe(visible);
@@ -152,12 +157,15 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
     SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
         .getColumnData(0, 5);
     actionButtonFirstRowColumn.shouldBe(visible);
-    actionButtonFirstRowColumn.shouldHave(text("Add"));
+    ElementsCollection rowButtons =  actionButtonFirstRowColumn.findAll("button");
+    SelenideElement ellipsisButton =  rowButtons.get(0);
+    ellipsisButton.shouldBe(visible);
+    ellipsisButton.click();
 
-    SelenideElement addButton =  actionButtonFirstRowColumn.find("button");
-    addButton.shouldBe(visible);
-
-    addButton.click();
+    SelenideElement addAnnotationButton =  rowButtons.get(1);
+    addAnnotationButton.shouldBe(visible);
+    addAnnotationButton.shouldHave(text("Add Annotation"));
+    addAnnotationButton.click();
 
     VexAnnotationDrawer vexDrawer = sbomManagerComponentDetailsPage.vexAnnotationDrawer();
     vexDrawer.shouldBe(visible);
@@ -167,7 +175,8 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
     vexDrawer.submitButton().click();
     vexDrawer.successModal().shouldBe(visible);
     vexDrawer.shouldNotBe(visible);
-    actionButtonFirstRowColumn.shouldHave(text("Edit"));
+    ellipsisButton.click();
+    actionButtonFirstRowColumn.findAll("button").get(1).shouldHave(text("Edit Annotation"));
   }
 
   @Test
@@ -180,7 +189,14 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
     SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
         .getColumnData(1, 5);
     actionButtonFirstRowColumn.shouldBe(visible);
-    actionButtonFirstRowColumn.shouldHave(text("Edit"));
+    ElementsCollection rowButtons =  actionButtonFirstRowColumn.findAll("button");
+    SelenideElement ellipsisButton =  rowButtons.get(0);
+    ellipsisButton.shouldBe(visible);
+    ellipsisButton.click();
+
+    SelenideElement editAnnotationButton =  rowButtons.get(1);
+    editAnnotationButton.shouldBe(visible);
+    editAnnotationButton.shouldHave(text("Edit Annotation"));
 
     sbomManagerComponentDetailsPage.disclosedVulnerabilities()
         .getColumnData(1, 0).shouldHave(text("1.6"));
@@ -191,10 +207,7 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
     sbomManagerComponentDetailsPage.disclosedVulnerabilities()
         .getColumnData(1, 4).shouldHave(text("Code not present"));
 
-    SelenideElement editButton =  actionButtonFirstRowColumn.find("button");
-    editButton.shouldBe(visible);
-
-    editButton.click();
+    editAnnotationButton.click();
 
     VexAnnotationDrawer vexDrawer = sbomManagerComponentDetailsPage.vexAnnotationDrawer();
     vexDrawer.shouldBe(visible);
@@ -212,6 +225,8 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
     vexDrawer.submitButton().click();
     vexDrawer.successModal().shouldBe(visible);
     vexDrawer.shouldNotBe(visible);
+
+    ellipsisButton.click();
     actionButtonFirstRowColumn.shouldHave(text("Edit"));
 
     sbomManagerComponentDetailsPage.disclosedVulnerabilities()
@@ -219,7 +234,8 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
     sbomManagerComponentDetailsPage.disclosedVulnerabilities()
         .getColumnData(1, 4).shouldHave(text("Protected at perimeter"));
 
-    editButton.click();
+    editAnnotationButton.click();
+
     vexDrawer.shouldBe(visible);
     assertVexAnnotationForm(vexDrawer, "DEF-456", TEST_COMPONENT_PURL, "1.6",
         "Unverified", "test vulnerability2", "In triage",
@@ -299,7 +315,7 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
     sbomManagerComponentDetailsPage.disclosedVulnerabilities().getColumnHeader(4).shouldHave(
         text("JUSTIFICATION"));
     sbomManagerComponentDetailsPage.disclosedVulnerabilities().getColumnHeader(5).shouldHave(
-        text("ACTION"));
+        text("ACTIONS"));
   }
 
   private void checkSonatypeVulnerabilitiesTableHeader(VulnerabilitiesTableTile table) {
@@ -314,13 +330,13 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
     table.getColumnHeader(3).shouldHave(
         text("JUSTIFICATION"));
     table.getColumnHeader(4).shouldHave(
-        text("ACTION"));
+        text("ACTIONS"));
   }
 
   private void assertVulnerabilityTableRowContent(
       VulnerabilitiesTableTile table,
       String cvssScore, String issue, String verifiedStatus,
-      String analysisStatus, String justification, String action)
+      String analysisStatus, String justification)
   {
     table.getColumnData(0, 0).shouldHave(text(cvssScore));
     table.getColumnData(0, 1).shouldHave(text(issue));
@@ -328,13 +344,11 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
       table.getColumnData(0, 2).shouldHave(text(verifiedStatus));
       table.getColumnData(0, 3).shouldHave(text(analysisStatus));
       table.getColumnData(0, 4).shouldHave(text(justification));
-      table.getColumnData(0, 5).shouldHave(text(action));
     }
     else
     {
       table.getColumnData(0, 2).shouldHave(text(analysisStatus));
       table.getColumnData(0, 3).shouldHave(text(justification));
-      table.getColumnData(0, 4).shouldHave(text(action));
     }
 
   }

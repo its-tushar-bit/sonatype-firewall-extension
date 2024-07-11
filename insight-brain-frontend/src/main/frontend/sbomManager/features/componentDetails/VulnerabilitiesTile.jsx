@@ -8,10 +8,10 @@ import React, { useMemo } from 'react';
 import * as PropTypes from 'prop-types';
 import {
   allThreatLevelNumbers,
-  NxButton,
   NxErrorStatusIndicator,
   NxFontAwesomeIcon,
   NxH2,
+  NxIconDropdown,
   NxIntermediateStatusIndicator,
   NxNegativeStatusIndicator,
   NxPositiveStatusIndicator,
@@ -20,7 +20,7 @@ import {
   NxThreatIndicator,
   NxTile,
 } from '@sonatype/react-shared-components';
-import { faCheckCircle, faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
+import { faCheckCircle, faEllipsisV, faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
 import {
   always,
   ascend,
@@ -40,9 +40,11 @@ import {
 } from 'ramda';
 
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
-import { SORT_BY_FIELDS, SORT_DIRECTION } from './componentDetailsSlice';
+import { actions, SORT_BY_FIELDS, SORT_DIRECTION } from './componentDetailsSlice';
 
 import './VulnerabilitiesTile.scss';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectIssueForActions } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSelector';
 
 const transformJustification = (justification) =>
   justification ? justification.replace(/_/g, ' ').replace(/^\w/, toUpper) : '';
@@ -74,6 +76,15 @@ export default function VulnerabilitiesTile(props) {
     sortConfiguration,
     toggleSortDirection,
   } = props;
+
+  const dispatch = useDispatch();
+  const selectedIssueForActions = useSelector(selectIssueForActions);
+
+  const isActionsOpen = (issue) => {
+    return !isNilOrEmpty(selectedIssueForActions) && selectedIssueForActions === issue;
+  };
+
+  const onActionsToggleCollapse = (issue) => dispatch(actions.setSelectedIssueForActions(issue));
 
   const isEmpty = isNilOrEmpty(vulnerabilities);
 
@@ -146,16 +157,24 @@ export default function VulnerabilitiesTile(props) {
           </NxTable.Cell>
 
           <NxTable.Cell>
-            <NxButton
-              onClick={() =>
-                openVexAnnotationModal({
-                  ...vulnerability,
-                  isRowAnnotated: isRowAnnotated(vulnerability, analysisStatusesOptions),
-                })
-              }
+            <NxIconDropdown
+              isOpen={isActionsOpen(vulnerability.issue)}
+              onToggleCollapse={() => onActionsToggleCollapse(vulnerability.issue)}
+              icon={faEllipsisV}
+              aria-label={vulnerability.issue + '-actions'}
             >
-              {isRowAnnotated(vulnerability, analysisStatusesOptions) ? 'Edit' : 'Add'}
-            </NxButton>
+              <button
+                onClick={() =>
+                  openVexAnnotationModal({
+                    ...vulnerability,
+                    isRowAnnotated: isRowAnnotated(vulnerability, analysisStatusesOptions),
+                  })
+                }
+                className="nx-dropdown-button"
+              >
+                {isRowAnnotated(vulnerability, analysisStatusesOptions) ? 'Edit Annotation' : 'Add Annotation'}
+              </button>
+            </NxIconDropdown>
           </NxTable.Cell>
         </NxTable.Row>
       ))
@@ -200,7 +219,7 @@ export default function VulnerabilitiesTile(props) {
               {isDisclosedVulnerabilities && <NxTable.Cell>Verified Status</NxTable.Cell>}
               <NxTable.Cell {...sortableConfigCreator(SORT_BY_FIELDS.analysisStatus)}>Analysis Status</NxTable.Cell>
               <NxTable.Cell>Justification</NxTable.Cell>
-              <NxTable.Cell>Action</NxTable.Cell>
+              <NxTable.Cell>Actions</NxTable.Cell>
             </NxTable.Row>
           </NxTable.Head>
           <NxTable.Body emptyMessage="No vulnerabilities found">{tableBodyRows}</NxTable.Body>

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, within } from 'TestRoot/SpecUtil';
+import { fireEvent, render, screen, within } from 'TestRoot/SpecUtil';
 
 import VulnerabilitiesTile from 'MainRoot/sbomManager/features/componentDetails/VulnerabilitiesTile';
 import {
@@ -134,7 +134,10 @@ describe('Vulnerabilities Tile', () => {
     expect(rowCells[2]).toHaveTextContent('Sonatype Verified');
     expect(rowCells[3]).toHaveTextContent('Resolved with Pedigree');
     expect(rowCells[4]).toHaveTextContent('Requires dependency');
-    expect(within(rowCells[5]).getByRole('button', { name: 'Edit' })).toBeInTheDocument();
+    const dropdownFirstRow = within(firstRow).getByRole('button');
+    fireEvent.click(dropdownFirstRow);
+    expect(screen.getByRole('button', { name: 'Edit Annotation' })).toBeVisible();
+    fireEvent.click(dropdownFirstRow);
 
     const secondRow = tableRows[2];
     rowCells = within(secondRow).getAllByRole('cell');
@@ -143,7 +146,10 @@ describe('Vulnerabilities Tile', () => {
     expect(rowCells[2]).toHaveTextContent('Sonatype Verified');
     expect(rowCells[3]).toHaveTextContent('Unannotated');
     expect(rowCells[4]).toHaveTextContent('');
-    expect(within(rowCells[5]).getByRole('button', { name: 'Add' })).toBeInTheDocument();
+    const dropdownSecondRow = within(secondRow).getByRole('button');
+    fireEvent.click(dropdownSecondRow);
+    expect(screen.getByRole('button', { name: 'Add Annotation' })).toBeVisible();
+    fireEvent.click(dropdownSecondRow);
 
     const thirdRow = tableRows[3];
     rowCells = within(thirdRow).getAllByRole('cell');
@@ -152,7 +158,9 @@ describe('Vulnerabilities Tile', () => {
     expect(rowCells[2]).toHaveTextContent('Unverified');
     expect(rowCells[3]).toHaveTextContent('Resolved');
     expect(rowCells[4]).toHaveTextContent('Protected by mitigating control');
-    expect(within(rowCells[5]).getByRole('button', { name: 'Edit' })).toBeInTheDocument();
+    const dropdownThirdRow = within(thirdRow).getByRole('button');
+    fireEvent.click(dropdownThirdRow);
+    expect(screen.getByRole('button', { name: 'Edit Annotation' })).toBeVisible();
   });
 
   it('Renders Additional Sonatype Identified Vulnerabilities table', async () => {
@@ -179,7 +187,10 @@ describe('Vulnerabilities Tile', () => {
     expect(rowCells[1]).toHaveTextContent('CVE-2021-41182');
     expect(rowCells[2]).toHaveTextContent('Unannotated');
     expect(rowCells[3]).toHaveTextContent('');
-    expect(within(rowCells[4]).getByRole('button', { name: 'Add' })).toBeInTheDocument();
+    const dropdownFirstRow = within(firstRow).getByRole('button');
+    fireEvent.click(dropdownFirstRow);
+    expect(screen.getByRole('button', { name: 'Add Annotation' })).toBeVisible();
+    fireEvent.click(dropdownFirstRow);
 
     const secondRow = tableRows[2];
     rowCells = within(secondRow).getAllByRole('cell');
@@ -187,7 +198,10 @@ describe('Vulnerabilities Tile', () => {
     expect(rowCells[1]).toHaveTextContent('CVE-2021-41183');
     expect(rowCells[2]).toHaveTextContent('Unannotated');
     expect(rowCells[3]).toHaveTextContent('');
-    expect(within(rowCells[4]).getByRole('button', { name: 'Add' })).toBeInTheDocument();
+    const dropdownSecondRow = within(secondRow).getByRole('button');
+    fireEvent.click(dropdownSecondRow);
+    expect(screen.getByRole('button', { name: 'Add Annotation' })).toBeVisible();
+    fireEvent.click(dropdownSecondRow);
   });
 
   it('Renders Additional Sonatype Identified Vulnerabilities table empty with empty message displayed', async () => {

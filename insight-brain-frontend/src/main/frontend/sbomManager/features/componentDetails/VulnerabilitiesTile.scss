@@ -13,6 +13,14 @@
     color: var(--nx-swatch-orange-50);
   }
 
+  .nx-table {
+    overflow-y: visible;
+  }
+
+  .nx-table-container__footer {
+    z-index: auto;
+  }
+
   &__intriage-status.nx-status-indicator::before {
     background-color: var(--nx-swatch-orange-60);
     border-color: var(--nx-swatch-orange-25);

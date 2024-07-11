@@ -59,6 +59,15 @@ export const initialState = {
     justifications: [],
     states: [],
   },
+  selectedIssueForActions: null,
+};
+
+const setSelectedIssueForActions = (state, { payload }) => {
+  if (state.selectedIssueForActions === payload) {
+    state.selectedIssueForActions = null;
+  } else {
+    state.selectedIssueForActions = payload;
+  }
 };
 
 const loadComponentDependencyTreeDataRequested = (state) => {
@@ -295,6 +304,7 @@ const sbomComponentDetailsSlice = createSlice({
     },
     cycleDisclosedVulnerabilitiesSortDirection,
     cycleAdditionalVulnerabilitiesSortDirection,
+    setSelectedIssueForActions,
   },
   extraReducers: {
     [loadComponentDetails.pending]: loadComponentDetailsRequested,

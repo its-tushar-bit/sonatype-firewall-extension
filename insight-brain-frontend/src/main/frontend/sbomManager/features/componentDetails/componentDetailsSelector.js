@@ -63,3 +63,5 @@ export const selectLoadingVulnerabilityAnalysisReferenceData = createSelector(
   selectSbomComponentDetails,
   prop('loadingVulnerabilityAnalysisReferenceData')
 );
+
+export const selectIssueForActions = createSelector(selectSbomComponentDetails, prop('selectedIssueForActions'));

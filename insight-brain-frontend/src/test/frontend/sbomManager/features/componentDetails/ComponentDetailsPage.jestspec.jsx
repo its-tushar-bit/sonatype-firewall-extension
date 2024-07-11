@@ -4,9 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { screen, fireEvent, getByText, queryByText } from '@testing-library/react';
+import { screen, fireEvent, queryByText } from '@testing-library/react';
 
-import { axiosMockAdapter, render, waitFor } from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, render, waitFor, within } from 'TestRoot/SpecUtil';
 import {
   getApplicationSummaryUrl,
   getSbomComponentDetailsUrl,
@@ -297,10 +297,11 @@ describe('ComponentDetailsPage', () => {
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
     const vulnerabilityRows = screen.getAllByRole('row');
-
-    const buttonFirstDataRow = vulnerabilityRows[1].querySelector('button');
-    expect(getByText(buttonFirstDataRow, 'Edit')).toBeInTheDocument();
-    fireEvent.click(buttonFirstDataRow);
+    const dropdownFirstRow = within(vulnerabilityRows[1]).getByRole('button');
+    fireEvent.click(dropdownFirstRow);
+    const editButton = screen.getByRole('button', { name: 'Edit Annotation' });
+    expect(editButton).toBeVisible();
+    fireEvent.click(editButton);
 
     expect(queryByText(container, 'Annotate sonatype-2018-0863')).toBeInTheDocument();
     expect(
@@ -330,10 +331,11 @@ describe('ComponentDetailsPage', () => {
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
     const vulnerabilityRows = screen.getAllByRole('row');
-
-    const buttonFirstDataRow = vulnerabilityRows[1].querySelector('button');
-    expect(getByText(buttonFirstDataRow, 'Edit')).toBeInTheDocument();
-    fireEvent.click(buttonFirstDataRow);
+    const dropdownFirstRow = within(vulnerabilityRows[1]).getByRole('button');
+    fireEvent.click(dropdownFirstRow);
+    const editButton = screen.getByRole('button', { name: 'Edit Annotation' });
+    expect(editButton).toBeVisible();
+    fireEvent.click(editButton);
 
     expect(queryByText(container, 'Annotate sonatype-2018-0863')).toBeInTheDocument();
     const saveButton = getVexDrawerSubmitButton(container);
@@ -355,10 +357,11 @@ describe('ComponentDetailsPage', () => {
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
     const vulnerabilityRows = screen.getAllByRole('row');
-
-    const buttonFirstDataRow = vulnerabilityRows[1].querySelector('button');
-    expect(getByText(buttonFirstDataRow, 'Add')).toBeInTheDocument();
-    fireEvent.click(buttonFirstDataRow);
+    const dropdownFirstRow = within(vulnerabilityRows[1]).getByRole('button');
+    fireEvent.click(dropdownFirstRow);
+    const editButton = screen.getByRole('button', { name: 'Add Annotation' });
+    expect(editButton).toBeVisible();
+    fireEvent.click(editButton);
 
     expect(queryByText(container, 'Annotate sonatype-2018-0863')).toBeInTheDocument();
     expect(queryByText(container, /An error occurred loading data./)).toBeInTheDocument();

@@ -22,6 +22,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -74,11 +75,10 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
-import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BooleanQuery.Builder;
-import org.apache.lucene.search.BooleanQuery.TooManyClauses;
+import org.apache.lucene.search.FieldExistsQuery;
 import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.NormsFieldExistsQuery;
+import org.apache.lucene.search.IndexSearcher.TooManyClauses;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.QueryVisitor;
 import org.apache.lucene.search.ScoreDoc;
@@ -265,7 +265,7 @@ public class SearchService
   // Update the static setting within lucene for the max query clause count, based on the current value in the
   // configuration
   private void updateMaxQueryClauseCount() {
-    BooleanQuery.setMaxClauseCount(configuration.getMaxAdvancedSearchClauseCount());
+    IndexSearcher.setMaxClauseCount(configuration.getMaxAdvancedSearchClauseCount());
   }
 
   private int countSearchResults(final SearchResultDTO searchResultDTO) {
@@ -294,7 +294,7 @@ public class SearchService
     int resultIndex = startIndex + 1;
     GroupingByDTO lastGroup = null;
     for (int i = startIndex; i < endIndex && i < scoreDocs.length; i++) {
-      Document document = indexSearcher.doc(scoreDocs[i].doc);
+      Document document = indexSearcher.storedFields().document(scoreDocs[i].doc);
       SearchResultItemDTO searchResultItemDTO = toDto(document);
       String groupFieldName = groupFieldNamesByItemType.get(searchResultItemDTO.itemType);
       FieldIdentifier groupIdentifier = getFieldIdentifier(groupFieldName);
@@ -332,7 +332,7 @@ public class SearchService
   {
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.verifyEnabled();
     boolean isSbomManagerMode = isSbomManagerMode(mode);
-    Iterator<List<SearchResultItemDTO>> iterator = new Iterator<List<SearchResultItemDTO>>()
+    Iterator<List<SearchResultItemDTO>> iterator = new Iterator<>()
     {
       private int currentPage = Math.max(1, page);
 
@@ -558,7 +558,7 @@ public class SearchService
    * </ul>
    */
   private Query appendSbomFilteringToQuery(Query originalQuery, boolean isSbomManagerMode) {
-    Query hasAppVersionQuery = new NormsFieldExistsQuery(APPLICATION_VERSION.label);
+    Query hasAppVersionQuery = new FieldExistsQuery(APPLICATION_VERSION.label);
     Occur shouldAppVersionResultsBeExcluded = isSbomManagerMode ? Occur.MUST_NOT : Occur.MUST;
     Query componentsToExcludeQuery = new Builder()
         .add(new TermQuery(new Term(ITEM_TYPE.label, ItemType.NON_VULNERABLE_COMPONENT.searchFieldName())), Occur.MUST)

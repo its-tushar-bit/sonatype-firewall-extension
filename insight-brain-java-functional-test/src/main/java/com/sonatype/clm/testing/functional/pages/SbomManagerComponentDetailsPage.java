@@ -10,6 +10,7 @@ import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.DependencyTreeTile;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VulnerabilitiesTableTile;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VexAnnotationDrawer;
+import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VulnerabilityDetailsPopover;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -26,17 +27,21 @@ public class SbomManagerComponentDetailsPage
 
   DependencyTreeTile dependencyTreeTile;
 
+  VulnerabilityDetailsPopover vulnerabilityDetailsPopover;
+
   VexAnnotationDrawer vexAnnotationDrawer;
 
   public SbomManagerComponentDetailsPage(
       final ComponentDetailsSummaryTile componentDetailsSummaryTile, final VulnerabilitiesTableTile
       vulnerabilitiesTableTile, final VulnerabilitiesTableTile sonatypeVulnerabilitiesTile,
-      final DependencyTreeTile dependencyTreeTile, final VexAnnotationDrawer vexAnnotationDrawer)
+      final DependencyTreeTile dependencyTreeTile, final VulnerabilityDetailsPopover vulnerabilityDetailsPopover,
+      final VexAnnotationDrawer vexAnnotationDrawer)
   {
     this.componentDetailsSummaryTile = componentDetailsSummaryTile;
     this.vulnerabilitiesTableTile = vulnerabilitiesTableTile;
     this.sonatypeVulnerabilitiesTile = sonatypeVulnerabilitiesTile;
     this.dependencyTreeTile = dependencyTreeTile;
+    this.vulnerabilityDetailsPopover = vulnerabilityDetailsPopover;
     this.vexAnnotationDrawer = vexAnnotationDrawer;
   }
 
@@ -71,6 +76,10 @@ public class SbomManagerComponentDetailsPage
 
   public DependencyTreeTile dependencyTreeTile() {
     return dependencyTreeTile;
+  }
+
+  public VulnerabilityDetailsPopover vulnerabilityDetailsPopover() {
+    return vulnerabilityDetailsPopover;
   }
 
   public VexAnnotationDrawer vexAnnotationDrawer() {

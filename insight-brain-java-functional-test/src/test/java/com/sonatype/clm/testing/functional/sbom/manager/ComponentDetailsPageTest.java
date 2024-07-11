@@ -10,6 +10,7 @@ import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.DependencyTreeTile;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VulnerabilitiesTableTile;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VexAnnotationDrawer;
+import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VulnerabilityDetailsPopover;
 import com.sonatype.clm.testing.functional.pages.SbomManagerComponentDetailsPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -57,6 +58,7 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
         new VulnerabilitiesTableTile("disclosedVulnerabilities"),
         new VulnerabilitiesTableTile("sonatypeIdentifiedVulnerabilities"),
         new DependencyTreeTile(),
+        new VulnerabilityDetailsPopover(),
         new VexAnnotationDrawer());
 
     Selenide.open("/#");
@@ -98,14 +100,14 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
         .shouldHave(text("Vulnerabilities Verified"));
     sbomManagerComponentDetailsPage.componentSummary().highestScoreValue().shouldHave(text("9.6"));
     sbomManagerComponentDetailsPage.componentSummary().sonatypeVerified().shouldHave(text("0 Sonatype Verified"));
-    sbomManagerComponentDetailsPage.componentSummary().unVerified().shouldHave(text("2 Unverified"));
+    sbomManagerComponentDetailsPage.componentSummary().unVerified().shouldHave(text("3 Unverified"));
 
     // Disclosed vulnerabilities
     sbomManagerComponentDetailsPage.disclosedVulnerabilities().header().shouldHave(text("Disclosed Vulnerabilities"));
 
     checkDisclosedVulnerabilitiesTableHeader();
     sbomManagerComponentDetailsPage.disclosedVulnerabilities().tableRows().shouldHave(CollectionCondition
-        .size(2));
+        .size(3));
     assertVulnerabilityTableRowContent(sbomManagerComponentDetailsPage.disclosedVulnerabilities(),
         "5.6", "ABC-123", "Unverified", "Unannotated", " ");
 
@@ -117,6 +119,30 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
     sbomManagerComponentDetailsPage.dependencyTreeTile().content().shouldHave(text("Dependency Tree not available"));
 
     eyesWatcher.eyesCheck("mockComponent");
+  }
+
+  @Test
+  public void testFeatureEnabled_opensVulnerabilityDetailsPopover_issueLink_checkContent() {
+    setTestData();
+    mockHdsResponseForVulnerabilityDetails();
+
+    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
+        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+
+    SelenideElement linkThirdRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
+        .getColumnData(2, 1);
+    linkThirdRowColumn.shouldBe(visible);
+    linkThirdRowColumn.shouldHave(text("CVE-4812"));
+
+    SelenideElement issueLink = linkThirdRowColumn.find("a");
+    issueLink.shouldBe(visible);
+    issueLink.click();
+
+    VulnerabilityDetailsPopover vulnerabilityDetailsPopover =
+        sbomManagerComponentDetailsPage.vulnerabilityDetailsPopover();
+    vulnerabilityDetailsPopover.shouldBe(visible);
+
+    assertVulnerabilityDetails(vulnerabilityDetailsPopover);
   }
 
   @Test
@@ -286,6 +312,8 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
         "http://1234.xyz", 1.6d, "testSeverity", "testUser");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityDEF456, "DEF-456", "exploitable",
         "code_not_present", "rollback", "test vex detail");
+    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "CVE-4812", "test vulnerability",
+        "http://12345.xyz", 1.5d, "testSeverity", "testUser");
 
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "sonatype-123", "test sonatype vulnerability",
         "http://sonatype.com", 9.6d, "testUser", "SONATYPE",
@@ -373,5 +401,70 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
       vexAnnotationDrawer.annotationDetails().shouldHave(text(annotationDetails));
     }
 
+  }
+
+  public void assertVulnerabilityDetails(VulnerabilityDetailsPopover vulnerabilityDetailsPopover) {
+    vulnerabilityDetailsPopover.popoverTitle().shouldHave(text("Vulnerability Details CVE-4812"));
+    vulnerabilityDetailsPopover.packageUrl().shouldHave(text("pkg:maven/2/3@1.1"));
+    vulnerabilityDetailsPopover.vulnerabilityId().shouldHave(text("CVE-4812"));
+
+    SelenideElement issueContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(1);
+    issueContent.shouldHave(text("CVE-4812"));
+
+    SelenideElement severityContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(2);
+    severityContent.shouldHave(text("CVE CVSS 31.5 CVE CVSS 2.00.0"));
+
+    SelenideElement weaknessContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(3);
+    weaknessContent.shouldHave(text("CVE CWE400"));
+
+    SelenideElement sourceContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(4);
+    sourceContent.shouldHave(text("National Vulnerability Database"));
+
+    SelenideElement categoryContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(5);
+    categoryContent.shouldHave(text("Data"));
+
+    SelenideElement descriptionFromCveContent =
+        vulnerabilityDetailsPopover.getVulnerabilityDetailsContentBySecondColumnIdx(1);
+    descriptionFromCveContent.shouldHave(text("In spring security versions prior to 5.4.11+, 5.5.7+ , 5.6.4+ " +
+        "and older unsupported versions, RegexRequestMatcher can easily be misconfigured to be bypassed on some " +
+        "servlet containers. Applications using RegexRequestMatcher with `.` in the regular expression are possibly " +
+        "vulnerable to an authorization bypass."));
+
+    SelenideElement explanationContent = vulnerabilityDetailsPopover
+        .getVulnerabilityDetailsContentBySecondColumnIdx(2);
+    explanationContent.shouldHave(text("The spring-security-web package is vulnerable to Authorization Bypass. " +
+        "The RegexRequestMatcher() function in the RegexRequestMatcher class and the addSecureUrl() function in " +
+        "the DefaultFilterInvocationSecurityMetadataSource class can return an unexpected match when a . character " +
+        "is used in a regular expression."));
+
+    SelenideElement detectionContent = vulnerabilityDetailsPopover
+        .getVulnerabilityDetailsContentBySecondColumnIdx(3);
+    detectionContent.shouldHave(text("The application is vulnerable by using this component."));
+
+    SelenideElement recommendationContent = vulnerabilityDetailsPopover
+        .getVulnerabilityDetailsContentBySecondColumnIdx(4);
+    recommendationContent.shouldHave(text("We recommend upgrading to a version of this component that is " +
+        "not vulnerable to this specific issue"));
+
+    SelenideElement rootCauseContent = vulnerabilityDetailsPopover
+        .getVulnerabilityDetailsContentBySecondColumnIdx(5);
+    rootCauseContent.shouldHave(text("spring-security-web-5.6.2.jar"));
+    rootCauseContent.shouldHave(text("org/springframework/security/web/util/matcher/" +
+        "RegexRequestMatcher.class[5.6.0.M0 , 5.6.4"));
+
+    SelenideElement advisoriesContent = vulnerabilityDetailsPopover
+        .getVulnerabilityDetailsContentBySecondColumnIdx(6);
+    advisoriesContent.shouldHave(text("Third Partyhttps://issues.apache.org/jira/browse/FILEUPLOAD-250"));
+
+    SelenideElement cvssDetailsContent = vulnerabilityDetailsPopover
+        .getVulnerabilityDetailsContentBySecondColumnIdx(7);
+    cvssDetailsContent.shouldHave(text("CVE CVSS 31.5"));
+    cvssDetailsContent.shouldHave(text("CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"));
+  }
+
+  private void mockHdsResponseForVulnerabilityDetails() {
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/vulnerabilityDetails/vulnerabilityDetails_CVE-4812.json"))
+        .atUri("rest/vulnerability/details/json/CVE-4812");
   }
 }

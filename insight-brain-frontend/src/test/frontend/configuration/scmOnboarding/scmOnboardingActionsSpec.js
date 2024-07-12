@@ -416,7 +416,7 @@ describe('scmOnboardingActions', function () {
           return store.dispatch(scmOnboardingActions.loadPage('ownerId')).then(() => {
             // then SCM_ONBOARDING_LOAD_PAGE_REQUESTED action is created
             let actions = store.getActions();
-            expect(actions.length).toBe(8);
+            expect(actions.length).toBe(9);
             expect(actions[2].type).toBe('SCM_ONBOARDING_LOAD_PAGE_REQUESTED');
             expect(actions[2].payload).toEqual('ownerId');
 

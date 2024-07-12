@@ -19,7 +19,6 @@ import {
   selectIsManagementViewRouterState,
   selectIsSbomManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { checkPermissions, PERMISSION } from 'MainRoot/util/authorizationUtil';
 import { toggleBooleanProp } from 'MainRoot/util/reduxUtil';
 import { validateMinLength } from 'MainRoot/util/validationUtil';
 import { selectOwnersMap } from './ownerSideNavSelectors';
@@ -38,7 +37,6 @@ export const initialState = {
   topParentOrganizationId: 'ROOT_ORGANIZATION_ID',
   flattenEntries: {},
   displayedOrganization: null,
-  showRepositories: false,
   toggleOrganizationsCheck: true,
   toggleApplicationsCheck: true,
   toggleRepositoryManagersCheck: false,
@@ -89,17 +87,10 @@ const loadIfNeeded = (forceReload) => (dispatch, getState) => {
 
 const load = createAsyncThunk(`${REDUCER_NAME}/load`, async (_, { getState, dispatch, rejectWithValue }) => {
   const state = getState();
-  const promises = [
-    dispatch(loadOwnerList()),
-    checkPermissions([PERMISSION.READ], 'repository_container', '')
-      .then(() => true)
-      .catch(() => false),
-    dispatch(repositoriesActions.loadRepositories()),
-  ];
+  const promises = [dispatch(loadOwnerList()), dispatch(repositoriesActions.loadRepositories())];
   return Promise.all(promises)
     .then((results) => {
       const { ownersMap, topParentOrganizationId } = unwrapResult(results[0]) || {};
-      const showRepositories = results[1];
       const routerParams = selectRouterCurrentParams(state);
       const isSbomManager = selectIsSbomManager(state);
 
@@ -122,7 +113,6 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, async (_, { getState, disp
 
       return {
         displayedOrganization,
-        showRepositories,
         flattenEntries,
       };
     })
@@ -201,7 +191,6 @@ const loadRequested = (state) => {
 const loadFulfilled = (state, { payload }) => {
   state.loading = false;
   state.displayedOrganization = payload.displayedOrganization;
-  state.showRepositories = payload.showRepositories;
   state.toggleOrganizationsCheck = initialState.toggleOrganizationsCheck;
   state.toggleApplicationsCheck = initialState.toggleApplicationsCheck;
   state.toggleRepositoryManagersCheck = initialState.toggleRepositoryManagersCheck;

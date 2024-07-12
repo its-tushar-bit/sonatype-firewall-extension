@@ -110,6 +110,16 @@ public class OwnerHierarchyDTO
           return ownerHierarchyOrganizationDTO;
         };
 
+    public static Function<RepositoryManager, OwnerHierarchyRepositoryManagerDTO>
+        transformToSyntheticRepositoryManagerDTO = repositoryManager -> {
+          OwnerHierarchyRepositoryManagerDTO ownerHierarchyRepositoryManagerDTO =
+              new OwnerHierarchyRepositoryManagerDTO();
+          ownerHierarchyRepositoryManagerDTO.id = repositoryManager.getId();
+          ownerHierarchyRepositoryManagerDTO.name = repositoryManager.getName();
+          ownerHierarchyRepositoryManagerDTO.synthetic = true;
+          return ownerHierarchyRepositoryManagerDTO;
+        };
+
     @Override
     public String getParentId() {
       return parentOrganizationId;
@@ -227,6 +237,8 @@ public class OwnerHierarchyDTO
   public static class OwnerHierarchyRepositoryManagerDTO
       extends OwnerHierarchyEntityDTO
   {
+    public boolean synthetic;
+
     public String instanceId;
 
     public List<String> repositoryIds = new ArrayList<>();

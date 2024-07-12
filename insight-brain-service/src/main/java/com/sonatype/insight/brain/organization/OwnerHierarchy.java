@@ -17,9 +17,11 @@ import java.util.Queue;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -36,6 +38,7 @@ import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyR
 import static com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyApplicationDTO.transformToApplicationDTO;
 import static com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyOrganizationDTO.transformToOrganizationDTO;
 import static com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyOrganizationDTO.transformToSyntheticOrganizationDTO;
+import static com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyOrganizationDTO.transformToSyntheticRepositoryManagerDTO;
 import static com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyRepositoryDTO.transformToRepositoryDTO;
 import static com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyRepositoryManagerDTO.transformToRepositoryManagerDTO;
 import static java.util.function.Function.identity;
@@ -59,14 +62,18 @@ public class OwnerHierarchy
 
   private OrganizationDAO organizationDAO;
 
+  private RepositoryManagerDAO repositoryManagerDAO;
+
   public OwnerHierarchy(
       List<Organization> orgs,
       List<Application> apps,
       List<RepositoryManager> repositoryManagers,
       List<Repository> repositories,
-      OrganizationDAO organizationDAO)
+      OrganizationDAO organizationDAO,
+      RepositoryManagerDAO repositoryManagerDAO)
   {
     this.organizationDAO = organizationDAO;
+    this.repositoryManagerDAO = repositoryManagerDAO;
     this.syntheticOrganizationMap = new HashMap<>();
     this.applicationMap = new HashMap<>();
     this.repositoryManagerMap = new HashMap<>();
@@ -75,8 +82,7 @@ public class OwnerHierarchy
     initSidebarOrganizationMap(orgs);
     addAppsToParentOrgs(apps);
     repositoryContainer = new OwnerHierarchyRepositoryContainerDTO();
-    addRepositoryManagersToParent(repositoryManagers);
-    addRepositoriesToParent(repositories);
+    addRepositories(repositoryManagers, repositories);
     createOrganizationHierarchy();
     removeUnauthorizedAncestor();
   }
@@ -247,6 +253,29 @@ public class OwnerHierarchy
     apps = sortOwners(apps);
     convertToMapAndUpdateParents(apps, transformToApplicationDTO, this::getOrComputeApplicationHolderIfAbsent)
         .forEach(application -> applicationMap.put(application.publicId, application));
+  }
+
+  private void addRepositories(List<RepositoryManager> repositoryManagers, List<Repository> repositories) {
+    List<String> repositoryManagersIds = repositoryManagers.stream().map(RepositoryManager::getId)
+        .collect(Collectors.toList());
+    for (Repository repository : repositories) {
+      // If user has permission over repo manager, continue
+      if (repositoryManagersIds.contains(repository.getRepositoryManagerId())) {
+        continue;
+      }
+
+      // If user permission is granted per repo, add the missing repo managers as synthetic repo managers
+      if (!repositoryManagerMap.containsKey(repository.getRepositoryManagerId())) {
+        RepositoryManager repositoryManager = repositoryManagerDAO.getByIdNotNull(repository.getRepositoryManagerId());
+        repositoryManagerMap
+            .put(repository.getRepositoryManagerId(), transformToSyntheticRepositoryManagerDTO
+                .apply(repositoryManager));
+        this.repositoryContainer.repositoryManagerIds.add(repository.getRepositoryManagerId());
+      }
+    }
+
+    addRepositoryManagersToParent(repositoryManagers);
+    addRepositoriesToParent(repositories);
   }
 
   private void addRepositoriesToParent(List<Repository> repositories) {

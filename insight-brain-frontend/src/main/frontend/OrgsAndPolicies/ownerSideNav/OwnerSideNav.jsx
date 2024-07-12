@@ -68,7 +68,6 @@ export default function OwnerSideNav() {
   const {
     loading,
     loadError,
-    showRepositories,
     displayedOrganization,
     toggleOrganizationsCheck,
     toggleApplicationsCheck,
@@ -88,12 +87,12 @@ export default function OwnerSideNav() {
   const isRepositoryManager = useSelector(selectIsRepositoryManager);
   const isRepositoryContainer = useSelector(selectIsRepositoryContainer);
   const isApplication = useSelector(selectIsApplication);
-  const showRepositoriesLink = showRepositories && isOrganizationTopOfHierarchyForUser && !isRepositoriesRelated;
+  const repositoriesCounter = useSelector(selectRepositoriesLength);
+  const showRepositoriesLink = repositoriesCounter && isOrganizationTopOfHierarchyForUser && !isRepositoriesRelated;
   const selectedApplicationId = useSelector(selectApplicationId);
   const selectedRepositoryId = useSelector(selectRepositoryId);
   const isManagementViewRoute = useSelector(selectIsManagementViewRouterState);
   const isSummaryPage = useSelector(selectIncludesManagementView);
-  const repositoriesCounter = useSelector(selectRepositoriesLength);
   const noSbomManagerEnabledError = useSelector(selectNoSbomManagerEnabledError);
   const error = loadError || noSbomManagerEnabledError;
 

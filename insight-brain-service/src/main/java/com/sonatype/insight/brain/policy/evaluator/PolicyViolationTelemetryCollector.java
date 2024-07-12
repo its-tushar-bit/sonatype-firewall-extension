@@ -59,6 +59,8 @@ public class PolicyViolationTelemetryCollector
 
   static final String WAIVER_EXPIRATION = "waiver_expiration";
 
+  static final String POLICY_WAIVER_ID = "POLICY_WAIVER_ID";
+
   static final String FIX_BY_VERSION_CHANGE = "fix_by_version_change";
 
   private final PolicyWaiverDAO policyWaiverDAO;
@@ -117,7 +119,12 @@ public class PolicyViolationTelemetryCollector
     }
   }
 
-  public void addTelemetryForUnwaivedViolation(PolicyViolation unwaivedPolicyViolation, Component component) {
+  public void addTelemetryForUnwaivedViolation(
+      final PolicyViolation unwaivedPolicyViolation,
+      final Component component,
+      final String oldPolicyWaiverId
+  )
+  {
     if (unwaivedPolicyViolation != null) {
       TelemetryData telemetryData =
           createTelemetry(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION, unwaivedPolicyViolation);
@@ -126,6 +133,8 @@ public class PolicyViolationTelemetryCollector
       }
       telemetryData.put(UNWAIVE_TIME, timeOfPolicyEvaluation.getTime());
       telemetryData.put(COUNT, -1);
+      telemetryData.put(POLICY_WAIVER_ID, oldPolicyWaiverId);
+
       telemetryDataList.add(telemetryData);
     }
   }
@@ -142,6 +151,7 @@ public class PolicyViolationTelemetryCollector
       }
       telemetryData.put(WAIVER_EXPIRATION, waiverExpirationInDays);
       telemetryData.put(WAIVE_TIME, timeOfPolicyEvaluation.getTime());
+      telemetryData.put(POLICY_WAIVER_ID, policyWaiverId);
       telemetryDataList.add(telemetryData);
     }
   }

@@ -101,10 +101,10 @@ public class PolicyViolationTelemetryCollectorTest
     assertThat(telemetryData.size()).isEqualTo(2);
     assertTelemetryAttributes(TIME_TO_REMEDIATE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, isDirectDependency, isInnerSource, null,
-        telemetryData.get(0));
+        telemetryData.get(0), policyViolation.getPolicyWaiverId());
     assertTelemetryAttributes(TIME_TO_CHANGE_VERSION_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, isDirectDependency, isInnerSource,
-        "upgrade", telemetryData.get(1));
+        "upgrade", telemetryData.get(1), policyViolation.getPolicyWaiverId());
   }
 
   @Test
@@ -137,10 +137,10 @@ public class PolicyViolationTelemetryCollectorTest
     assertThat(telemetryData.size()).isEqualTo(2);
     assertTelemetryAttributes(TIME_TO_REMEDIATE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, isDirectDependency, isInnerSource, null,
-        telemetryData.get(0));
+        telemetryData.get(0), policyViolation.getPolicyWaiverId());
     assertTelemetryAttributes(TIME_TO_CHANGE_VERSION_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, isDirectDependency, isInnerSource,
-        "downgrade", telemetryData.get(1));
+        "downgrade", telemetryData.get(1), policyViolation.getPolicyWaiverId());
   }
 
   @Test
@@ -166,7 +166,8 @@ public class PolicyViolationTelemetryCollectorTest
     assertThat(telemetryData).isNotNull();
     assertThat(telemetryData.size()).isEqualTo(1);
     assertTelemetryAttributes(TIME_TO_REMEDIATE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
-        expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, null, null, null, telemetryData.get(0));
+        expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, null, null, null, telemetryData.get(0),
+        policyViolation.getPolicyWaiverId());
   }
 
   @Test
@@ -199,7 +200,7 @@ public class PolicyViolationTelemetryCollectorTest
     assertThat(telemetryData.size()).isEqualTo(1);
     assertTelemetryAttributes(TIME_TO_REMEDIATE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, isDirectDependency, isInnerSource, null,
-        telemetryData.get(0));
+        telemetryData.get(0), policyViolation.getPolicyWaiverId());
   }
 
   @Test
@@ -238,12 +239,13 @@ public class PolicyViolationTelemetryCollectorTest
     assertThat(telemetryData.size()).isEqualTo(1);
     assertTelemetryAttributes(TIME_TO_REMEDIATE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, null, isInnerSource, null,
-        telemetryData.get(0));
+        telemetryData.get(0), policyViolation.getPolicyWaiverId());
   }
 
   @Test
   public void testAddTelemetryForUnwaivedViolation() {
     // setup : create an unwaived policy violation
+    final String oldPolicyWaiverId = "some-old-policy-waiver-id";
     final int threatLevel = 2;
     final PolicyThreatCategory policyThreatCategory = PolicyThreatCategory.SECURITY;
     final boolean isScmEnabled = true;
@@ -263,7 +265,7 @@ public class PolicyViolationTelemetryCollectorTest
     telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
 
     // when
-    telemetryCollector.addTelemetryForUnwaivedViolation(policyViolation, component);
+    telemetryCollector.addTelemetryForUnwaivedViolation(policyViolation, component, oldPolicyWaiverId);
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
 
     // then
@@ -271,7 +273,7 @@ public class PolicyViolationTelemetryCollectorTest
     assertThat(telemetryData.size()).isEqualTo(1);
     assertTelemetryAttributes(TIME_TO_WAIVE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), evalTime.getTime(), evalTime.getTime(), null, -1, isDirectDependency,
-        isInnerSource, null, telemetryData.get(0));
+        isInnerSource, null, telemetryData.get(0), "some-old-policy-waiver-id");
   }
 
   @Test
@@ -312,7 +314,7 @@ public class PolicyViolationTelemetryCollectorTest
     Map<String, Object> attributes = telemetryData.get(0).getAttributes();
     assertTelemetryAttributes(TIME_TO_WAIVE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), evalTime.getTime(), evalTime.getTime(), null, 1, isDirectDependency,
-        isInnerSource, null, telemetryData.get(0));
+        isInnerSource, null, telemetryData.get(0), policyViolation.getPolicyWaiverId());
     assertThat(attributes.get(WAIVER_EXPIRATION)).isEqualTo(waiverExpirationInDays);
   }
 
@@ -378,7 +380,7 @@ public class PolicyViolationTelemetryCollectorTest
     Map<String, Object> attributes = telemetryData.get(0).getAttributes();
     assertTelemetryAttributes(TIME_TO_LEGACY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), null, null, null, 1, isDirectDependency, isInnerSource, null,
-        telemetryData.get(0));
+        telemetryData.get(0), policyViolation.getPolicyWaiverId());
     assertThat(attributes.get(LEGACY_VIOLATION_TIME)).isEqualTo(evalTime.getTime());
   }
 
@@ -473,7 +475,8 @@ public class PolicyViolationTelemetryCollectorTest
       Boolean isDirectDependency,
       Boolean isInnersource,
       String fixByVersionChange,
-      TelemetryData telemetryData)
+      TelemetryData telemetryData,
+      final String policyWaiverId)
   {
     assertThat(telemetryData.getPurpose()).isEqualTo(telemetryPurpose);
     Map<String, Object> attributes = telemetryData.getAttributes();
@@ -484,6 +487,8 @@ public class PolicyViolationTelemetryCollectorTest
     assertThat(attributes.get(IS_SCM_ENABLED)).isEqualTo(isScmEnabled);
     assertThat(attributes.get(OPEN_TIME)).isEqualTo(openTime);
     assertThat(attributes.get(TIME)).isEqualTo(expectedTTR);
+    assertThat(attributes.get(POLICY_WAIVER_ID)).isEqualTo(policyWaiverId);
+
     if (waiveTime == null) {
       assertThat(attributes.get(WAIVE_TIME)).isNull();
     }

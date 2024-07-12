@@ -583,7 +583,10 @@ public class ScanPolicyEvaluator
             policyViolationLogger.add(PolicyViolationLogEvent.UNWAIVE, newPolicyViolation);
             Component component =
                 findComponentByComponentIdentifier(components, oldPolicyViolation.getComponentIdentifier());
-            telemetryCollector.addTelemetryForUnwaivedViolation(newPolicyViolation, component);
+            telemetryCollector.addTelemetryForUnwaivedViolation(
+                newPolicyViolation,
+                component,
+                oldPolicyViolation.getPolicyWaiverId());
           }
           else {
             if (isNotifiable(oldPolicyViolation, newPolicyViolation, forMonitoring, isReevaluation)) {

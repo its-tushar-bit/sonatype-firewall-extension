@@ -5,10 +5,11 @@
       <div ng-hide='application'><h5><i class='icon icon-time'></i> Loading...</h5></div>
       <div ng-if='application' class="iq-legacy-report__app-wrapper">
         <div id="policy-centric-report-preview-alert" class="iq-alert iq-alert--info">
+          The legacy report format is deprecated as of November 1, 2024.
           <a ui-sref="applicationReport.policy({ publicId: publicId, scanId: scanId })" class="iq-navigation__link">
             Click here<!--
        --></a>
-            to view the Application Report's new policy-centric look.
+            for the Application Report.
         </div>
         <div id='report-title'
              class="visual-testing-ignore report__title"

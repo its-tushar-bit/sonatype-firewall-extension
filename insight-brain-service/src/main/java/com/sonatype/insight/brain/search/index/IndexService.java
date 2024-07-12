@@ -801,17 +801,17 @@ public class IndexService
       StageType stageType,
       Collection<Organization> parentOrganizations)
   {
+    PolicyEvaluation latestPolicyEvaluation =
+        policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(), stageType.getId());
+    if (latestPolicyEvaluation == null) {
+      return Collections.emptyList();
+    }
+    String scanId = latestPolicyEvaluation.getScanId();
+    File reportFile = insightWork.getReportFile(application.getId(), scanId);
+    if (!reportFile.exists()) {
+      return Collections.emptyList();
+    }
     try {
-      PolicyEvaluation latestPolicyEvaluation =
-          policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(), stageType.getId());
-      if (latestPolicyEvaluation == null) {
-        return Collections.emptyList();
-      }
-      String scanId = latestPolicyEvaluation.getScanId();
-      File reportFile = insightWork.getReportFile(application.getId(), scanId);
-      if (!reportFile.exists()) {
-        return Collections.emptyList();
-      }
       ReportEntry licenseReportEntry = Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME);
       ReportEntry securityReportEntry = Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME);
       ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
@@ -837,6 +837,9 @@ public class IndexService
     }
     catch (IOException e) {
       log.error(e.getMessage(), e);
+    }
+    catch (UncheckedIOException e) {
+      log.error("Error parsing report files at {}", reportFile.getAbsoluteFile(), e);
     }
     return Collections.emptyList();
   }

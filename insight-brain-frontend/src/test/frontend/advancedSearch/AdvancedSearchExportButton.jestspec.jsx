@@ -26,7 +26,7 @@ describe('AdvancedSearchExportButton', () => {
       renderComponent({ loading: true });
 
       const aTag = screen.getByText('Export Results').closest('a');
-      expect(aTag).toHaveClassName('disabled');
+      expect(aTag).toHaveClass('disabled');
       expect(aTag).toHaveAttribute('aria-disabled', 'true');
     });
 
@@ -35,7 +35,7 @@ describe('AdvancedSearchExportButton', () => {
 
       const aTag = screen.getByText('Export Results').closest('a');
       expect(aTag).toBeVisible();
-      expect(aTag).toHaveClassName('disabled');
+      expect(aTag).toHaveClass('disabled');
       expect(aTag).toHaveAttribute('aria-disabled', 'true');
     });
 
@@ -44,7 +44,7 @@ describe('AdvancedSearchExportButton', () => {
 
       const aTag = screen.getByText('Export Results').closest('a');
       expect(aTag).toBeVisible();
-      expect(aTag).toHaveClassName('disabled');
+      expect(aTag).toHaveClass('disabled');
       expect(aTag).toHaveAttribute('aria-disabled', 'true');
     });
 
@@ -54,7 +54,7 @@ describe('AdvancedSearchExportButton', () => {
 
       const aTag = screen.getByText('Export Results').closest('a');
       expect(aTag).toBeVisible();
-      expect(aTag).not.toHaveClassName('disabled');
+      expect(aTag).not.toHaveClass('disabled');
       expect(aTag).toHaveAttribute('aria-disabled', 'false');
       expect(aTag).toHaveAttribute('download');
 

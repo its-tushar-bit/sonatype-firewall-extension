@@ -10,6 +10,9 @@ const ADVANCED_SEARCH_QUERY_REQUESTED = 'ADVANCED_SEARCH_QUERY_REQUESTED';
 const ADVANCED_SEARCH_QUERY_FULFILLED = 'ADVANCED_SEARCH_QUERY_FULFILLED';
 const ADVANCED_SEARCH_QUERY_FAILED = 'ADVANCED_SEARCH_QUERY_FAILED';
 
+// TODO: We do not test at the action level anymore, we should make sure there is enough test coverage utilizing
+// React Testing Library in AdvancedSearch.jestspec.jsx to handle the logic under test here. If there is then
+// we should delete this test
 describe('advancedSearchActions', () => {
   const defaultSearchUrl = '/api/v2/search/advanced?query=testQuery&page=0&allComponents=false';
   const defaultSearchUrlWithAllComponents = '/api/v2/search/advanced?query=testQuery&page=0&allComponents=true';

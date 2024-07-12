@@ -15,8 +15,8 @@ describe('AdvancedSearchResultCard', () => {
       searchResultItem: {},
       groupIdentifier: '',
       $state: {
-        get: jasmine.createSpy('$state.get').and.returnValue({ data: { title: 'some page' } }),
-        href: jasmine.createSpy('$state.href').and.returnValue('/noop'),
+        get: jest.fn().mockReturnValue({ data: { title: 'some page' } }),
+        href: jest.fn().mockReturnValue('/noop'),
       },
     };
 
@@ -62,8 +62,8 @@ describe('AdvancedSearchResultCard', () => {
     expect(screen.getByRole('link', { name: 'testOrg' })).toHaveAttribute('href', '/noop');
     expect(minimalProps.$state.get).toHaveBeenCalledWith('sbomManager.management.view.organization');
     expect(minimalProps.$state.href).toHaveBeenCalledWith(
-      jasmine.anything(),
-      jasmine.objectContaining({ organizationId: 'testOrgId' })
+      expect.anything(),
+      expect.objectContaining({ organizationId: 'testOrgId' })
     );
   });
 
@@ -79,8 +79,8 @@ describe('AdvancedSearchResultCard', () => {
     expect(screen.getByRole('link', { name: 'testOrg' })).toHaveAttribute('href', '/noop');
     expect(minimalProps.$state.get).toHaveBeenCalledWith('management.view.organization');
     expect(minimalProps.$state.href).toHaveBeenCalledWith(
-      jasmine.anything(),
-      jasmine.objectContaining({ organizationId: 'testOrgId' })
+      expect.anything(),
+      expect.objectContaining({ organizationId: 'testOrgId' })
     );
   });
 
@@ -96,8 +96,8 @@ describe('AdvancedSearchResultCard', () => {
     expect(screen.getByRole('link', { name: 'testApp' })).toHaveAttribute('href', '/noop');
     expect(minimalProps.$state.get).toHaveBeenCalledWith('sbomManager.management.view.application');
     expect(minimalProps.$state.href).toHaveBeenCalledWith(
-      jasmine.anything(),
-      jasmine.objectContaining({ applicationPublicId: 'testAppPublicId' })
+      expect.anything(),
+      expect.objectContaining({ applicationPublicId: 'testAppPublicId' })
     );
   });
 
@@ -113,8 +113,8 @@ describe('AdvancedSearchResultCard', () => {
     expect(screen.getByRole('link', { name: 'testApp' })).toHaveAttribute('href', '/noop');
     expect(minimalProps.$state.get).toHaveBeenCalledWith('management.view.application');
     expect(minimalProps.$state.href).toHaveBeenCalledWith(
-      jasmine.anything(),
-      jasmine.objectContaining({ applicationPublicId: 'testAppPublicId' })
+      expect.anything(),
+      expect.objectContaining({ applicationPublicId: 'testAppPublicId' })
     );
   });
 

@@ -3,26 +3,32 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import utilityModule from '../../../../main/frontend/utility/utility.module';
+import FuseFilterFactory from 'MainRoot/utility/filters/fuzzy.filter';
+import Fuse from 'fuse.js';
 
 describe('fuzzy.filter.js', function () {
-  var fuzzyFilter, nameFilter;
+  let fuzzyFilter;
+  let nameFilter;
+  let originalFuze;
 
-  beforeEach(angular.mock.module(utilityModule.name));
+  beforeEach(() => {
+    originalFuze = window.Fuse;
+    window.Fuse = Fuse;
 
-  beforeEach(inject([
-    'fuzzyFilter',
-    function (_fuzzyFilter) {
-      fuzzyFilter = _fuzzyFilter;
-      nameFilter = function (filter, names) {
-        return fuzzyFilter(
-          names.map((n) => ({ name: n })),
-          filter,
-          'name'
-        ).map((o) => o.name);
-      };
-    },
-  ]));
+    fuzzyFilter = FuseFilterFactory();
+
+    nameFilter = function (filter, names) {
+      return fuzzyFilter(
+        names.map((n) => ({ name: n })),
+        filter,
+        'name'
+      ).map((o) => o.name);
+    };
+  });
+
+  afterEach(() => {
+    window.Fuse = originalFuze;
+  });
 
   it('ignores case', function () {
     expect(nameFilter('foo', ['FOO'])).toEqual(['FOO']);

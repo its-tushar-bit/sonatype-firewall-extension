@@ -41,7 +41,7 @@ describe('advancedSearchReducer', () => {
         payload: 'componentName',
       });
 
-      expect(newState.formState.isToggleComponentResultsEnabled).toBeTrue();
+      expect(newState.formState.isToggleComponentResultsEnabled).toBe(true);
 
       // Expect it to reset to original state if component-related term is removed from the query
       let nextState = reducer(mockState, {
@@ -49,7 +49,7 @@ describe('advancedSearchReducer', () => {
         payload: 'componentLabelId', // label-related terms not included in criteria to show radio buttons
       });
 
-      expect(nextState.formState.isToggleComponentResultsEnabled).toBeFalse();
+      expect(nextState.formState.isToggleComponentResultsEnabled).toBe(false);
     });
   });
 
@@ -74,8 +74,8 @@ describe('advancedSearchReducer', () => {
 
       expect(newState.formState.searchResult).toEqual({ data: ['result1', 'result2'] });
       expect(newState.formState.searchedQuery).toBe('besto component');
-      expect(newState.formState.searchIncludedAllComponents).toBeTrue();
-      expect(newState.viewState.waitingSearchResponse).toBeFalse();
+      expect(newState.formState.searchIncludedAllComponents).toBe(true);
+      expect(newState.viewState.waitingSearchResponse).toBe(false);
     });
 
     it('sets searchIncludedAllComponents to false when isToggleComponentResults is false', () => {
@@ -92,7 +92,7 @@ describe('advancedSearchReducer', () => {
         payload: { data: [] },
       });
 
-      expect(newState.formState.searchIncludedAllComponents).toBeFalse();
+      expect(newState.formState.searchIncludedAllComponents).toBe(false);
     });
   });
 });

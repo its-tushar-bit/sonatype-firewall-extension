@@ -15,7 +15,7 @@ There are no breaking changes. This version upgrade requires minimal effort.
 
 <#macro imageComponent mdImage="" imgWidth=0 imgHeight=0>
   <#compress>
-<img title="${mdImage.title}" alt="${mdImage.alt}" src="${mdImage.src}" <#if (imgWidth > 0)>width="${imgWidth}"</#if> <#if (imgHeight > 0)>height="${imgHeight}"</#if>/>
+<a href="#;"> <img title="${mdImage.title}" alt="${mdImage.alt}" src="${mdImage.src}" <#if (imgWidth > 0)>width="${imgWidth}"</#if> <#if (imgHeight > 0)>height="${imgHeight}"</#if>/></a>
   </#compress>
 </#macro>
 
@@ -60,7 +60,7 @@ There are no breaking changes. This version upgrade requires minimal effort.
 <#if data.severityInfo?hasContent>[${data.severityInfo.refId}]<#else>None</#if> <#if data.description?hasContent>${data.description}</#if>
     </#compress>
 </#macro>
-# <@threatLevelIndicatorComponent/> <@dependencyIndicatorComponent/>  Sonatype IQ found issues introduced by ${componentDisplayName}<#if provider == "github" || provider == "gitlab"><br /><@imageComponent mdImage=previewImage imgWidth=70 imgHeight=20/></#if>
+# <@threatLevelIndicatorComponent/> <@dependencyIndicatorComponent/> Sonatype IQ found issues introduced by ${componentDisplayName}<#if provider == "github" || provider == "gitlab"><br /><@imageComponent mdImage=previewImage imgWidth=70 imgHeight=20/></#if>
 <details>
 <br/>
 

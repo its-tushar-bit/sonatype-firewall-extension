@@ -1,9 +1,9 @@
 ### :thinking: Nexus IQ found a policy violation introduced by this PR:
 
 <details>
-<summary title="Threat Level: 7 of 10"><img alt="T7" src="https://cdn.sonatype.com/iq-for-scm/1.0/orange-bar.png" width="4" height="14"> 
+<summary title="Threat Level: 7 of 10"><a href="#;"><img alt="T7" src="https://cdn.sonatype.com/iq-for-scm/1.0/orange-bar.png" width="4" height="14"></a> 
 <b>7&nbsp;&nbsp;&nbsp;
-<img alt="dependency logo" src="https://cdn.sonatype.com/iq-for-scm/1.0/d-logo.png" height="14">&nbsp;
+<a href="#;"><img alt="dependency logo" src="https://cdn.sonatype.com/iq-for-scm/1.0/d-logo.png" height="14"></a>&nbsp;
 com.test : component-1 : 0.0.1</b></summary>
 <p></p>
 

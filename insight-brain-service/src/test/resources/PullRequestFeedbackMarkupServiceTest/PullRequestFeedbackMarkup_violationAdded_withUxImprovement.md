@@ -1,9 +1,9 @@
 ### :thinking: Nexus IQ found multiple policy violations introduced by this PR:<br /><img alt="Preview" title="Preview" src="https://cdn.sonatype.com/iq-for-scm/1.0/Preview.svg" width="70" height="20">
 
 <details>
-<summary title="Threat Level: 10 of 10"><img alt="T10" src="https://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png" width="4" height="14"> 
+<summary title="Threat Level: 10 of 10"><a href="#;"><img alt="T10" src="https://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png" width="4" height="14"></a> 
 <b>10&nbsp;
-<img alt="dependency logo" src="https://cdn.sonatype.com/iq-for-scm/1.0/d-logo.png" height="14">&nbsp;
+<a href="#;"><img alt="dependency logo" src="https://cdn.sonatype.com/iq-for-scm/1.0/d-logo.png" height="14"></a>&nbsp;
 com.h2database : h2 : 1.4.190</b> - <a href="http://example.com/project/repository/pull/10#discussion_r12345">line comment</a></summary>
 <p></p>
 
@@ -18,9 +18,9 @@ Threat (of 10) | Policy | Violation Details
 </details>
 
 <details>
-<summary title="Threat Level: 10 of 10"><img alt="T10" src="https://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png" width="4" height="14"> 
+<summary title="Threat Level: 10 of 10"><a href="#;"><img alt="T10" src="https://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png" width="4" height="14"></a> 
 <b>10&nbsp;
-<img alt="dependency logo" src="https://cdn.sonatype.com/iq-for-scm/1.0/t-logo.png" height="14">&nbsp;
+<a href="#;"><img alt="dependency logo" src="https://cdn.sonatype.com/iq-for-scm/1.0/t-logo.png" height="14"></a>&nbsp;
 org.springframework.security : spring-security-web : 4.2.3.RELEASE</b></summary>
 <p></p>
 
@@ -37,9 +37,9 @@ Threat (of 10) | Policy | Violation Details
 </details>
 
 <details>
-<summary title="Threat Level: 3 of 10"><img alt="T3" src="https://cdn.sonatype.com/iq-for-scm/1.0/yellow-bar.png" width="4" height="14"> 
+<summary title="Threat Level: 3 of 10"><a href="#;"><img alt="T3" src="https://cdn.sonatype.com/iq-for-scm/1.0/yellow-bar.png" width="4" height="14"></a> 
 <b>3&nbsp;&nbsp;&nbsp;
-<img alt="dependency logo" src="https://cdn.sonatype.com/iq-for-scm/1.0/blank.png" height="14">&nbsp;
+<a href="#;"><img alt="dependency logo" src="https://cdn.sonatype.com/iq-for-scm/1.0/blank.png" height="14"></a>&nbsp;
 webgoat-server-8.0.0.M1.jar</b></summary>
 <p></p>
 
@@ -53,9 +53,9 @@ Threat (of 10) | Policy | Violation Details
 </details>
 
 <details>
-<summary title="Threat Level: 2 of 10"><img alt="T2" src="https://cdn.sonatype.com/iq-for-scm/1.0/yellow-bar.png" width="4" height="14"> 
+<summary title="Threat Level: 2 of 10"><a href="#;"><img alt="T2" src="https://cdn.sonatype.com/iq-for-scm/1.0/yellow-bar.png" width="4" height="14"></a> 
 <b>2&nbsp;&nbsp;&nbsp;
-<img alt="dependency logo" src="https://cdn.sonatype.com/iq-for-scm/1.0/blank.png" height="14">&nbsp;
+<a href="#;"><img alt="dependency logo" src="https://cdn.sonatype.com/iq-for-scm/1.0/blank.png" height="14"></a>&nbsp;
 html-tampering-8.0.0.M1.jar</b></summary>
 <p></p>
 

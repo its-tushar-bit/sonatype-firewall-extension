@@ -84,7 +84,7 @@ PieChart.propTypes = {
   colorMap: PropTypes.object.isRequired,
 };
 
-const SummaryChartAndProgress = ({ title, data, colorMap }) => {
+const SummaryChartAndProgress = ({ id, title, data, colorMap }) => {
   const total = data.total;
   const dataFields = omit(['total'], data);
 
@@ -108,7 +108,7 @@ const SummaryChartAndProgress = ({ title, data, colorMap }) => {
   });
 
   return (
-    <div className="sbom-manager-summary-chart-and-progress">
+    <div id={id} className="sbom-manager-summary-chart-and-progress">
       <NxH3>{title}</NxH3>
       <section>
         <div className="sbom-manager-summary-chart-and-progress__chart-container">
@@ -121,6 +121,7 @@ const SummaryChartAndProgress = ({ title, data, colorMap }) => {
 };
 
 SummaryChartAndProgress.propTypes = {
+  id: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
   data: PropTypes.object.isRequired,
   colorMap: PropTypes.object.isRequired,
@@ -163,12 +164,14 @@ export default function BillOfMaterialSummaryTile(props) {
       <NxTile.Content>
         <div className="sbom-manager-bill-of-materials-summary-tile__summaries">
           <SummaryChartAndProgress
+            id="bill-of-materials-summary-tile-chart-and-progress-component-summary"
             title="Component Summary"
             data={componentSummaryData}
             colorMap={NIVO_COMPONENT_SUMMARY_COLOR_MAP}
           />
           <div className="sbom-manager-bill-of-materials-summary-tile__summaries__divider"></div>
           <SummaryChartAndProgress
+            id="bill-of-materials-summary-tile-chart-and-progress-vulnerability-summary"
             title="Vulnerabilities Summary"
             data={vulnerabilitiesSummaryData}
             colorMap={NIVO_VULNERABILITIES_SUMMARY_COLOR_MAP}

@@ -126,6 +126,9 @@ public class ScanPolicyEvaluator
 
   private static final String UNKNOWN = "unknown";
 
+  public static final String REEVALUATE_NOT_ALLOWED_FOR_OUT_OF_DATE_SCAN_MESSAGE =
+      "Could not Re-Evaluate this report because it is out of date. Navigate to the latest evaluation for this stage.";
+
   private final InsightWork work;
 
   private final ReportService reportService;
@@ -290,6 +293,20 @@ public class ScanPolicyEvaluator
     if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
       throw new InvalidStageException(stage.getStageTypeId());
     }
+
+    /*
+      Re-evaluations are being disallowed in response to https://sonatype.atlassian.net/browse/CLM-25312.
+
+      When re-evaluating policy against the non-latest scan, we can not persist data to the database. This would
+      overwrite newer, more relevant state about the application (what violations are present, which have been closed,
+      meantime to remediate, etc..)
+
+      Unfortunately the report page is no longer purely driven by the Report files. It incorporates information
+      from the policy_violation tables. By generating new policy violations during a re-evaluation, but not persisting
+      them to the policy_violation table, we would leave the report in state where the policy_violations have no ids.
+      This prevents portions of the report from rendering, such as violation details.
+     */
+    throwErrorIfReEvaluatingAnOldScan(application.getId(), scanId, stage.getStageTypeId());
 
     AuditData.get().setStageId(stage.getStageTypeId());
     final File reportFile;
@@ -460,6 +477,7 @@ public class ScanPolicyEvaluator
         isForLatestScan = lastPrimaryPolicyEvaluation.getScanId().equals(scanId);
         policyEvaluation.setForObsoleteScan(!isForLatestScan);
       }
+
       policyEvaluationDAO.insert(tx, policyEvaluation);
 
       ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
@@ -1100,5 +1118,25 @@ public class ScanPolicyEvaluator
         .filter(c -> c.getComponentIdentifier().createAlternativeVersion(null)
             .equals(versionlessComponentIdentifier))
         .collect(toList());
+  }
+
+  private void throwErrorIfReEvaluatingAnOldScan(
+      final String privateAppId,
+      final String scanId,
+      final String stageTypeId
+  )
+  {
+    final boolean isReevaluation =
+        policyEvaluationDAO.getLastByApplicationIdAndScanId(privateAppId, scanId) != null;
+
+    if (isReevaluation) {
+      final PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(
+          privateAppId, stageTypeId);
+      final boolean isNotForLatestScan = !lastPrimaryPolicyEvaluation.getScanId().equals(scanId);
+
+      if (isNotForLatestScan) {
+        throw new BadRequestException(REEVALUATE_NOT_ALLOWED_FOR_OUT_OF_DATE_SCAN_MESSAGE);
+      }
+    }
   }
 }

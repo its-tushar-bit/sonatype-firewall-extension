@@ -145,11 +145,13 @@ import org.mockito.Mock;
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.WITH_REPORTS;
 import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COUNT;
 import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.LEGACY_VIOLATION_TIME;
+import static com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator.REEVALUATE_NOT_ALLOWED_FOR_OUT_OF_DATE_SCAN_MESSAGE;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -691,27 +693,6 @@ public class ScanPolicyEvaluatorTest
     scanPolicyEvaluator.evaluate(application, scanId2, stage2, ScanTriggerType.CLI, ClientScanType.SONATYPE);
     assertThat(scanFile1).isFile();
     assertThat(scanFile2).isFile();
-  }
-
-  @Test
-  public void testEvaluate_CanReEvaluatePreviousScan() throws Exception {
-    Stage stage = new Stage(Stage.ID_BUILD);
-
-    String scanId1 = simulateReportIsAvailable("report");
-    File scanFile1 = createScanFile(application, scanId1);
-    scanPolicyEvaluator.evaluate(application, scanId1, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
-
-    // Make sure we don't have two evaluations at exactly the same time
-    waitForTimeAdvance();
-
-    String scanId2 = simulateReportIsAvailable("report");
-    createScanFile(application, scanId2);
-    scanPolicyEvaluator.evaluate(application, scanId2, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
-
-    // The first scan file was deleted by the second policy evaluation.
-    // A re-evaluation of the first scan doesn't need the scan so it should succeed.
-    assertThat(scanFile1.exists()).isFalse();
-    scanPolicyEvaluator.evaluate(application, scanId1, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
   }
 
   @Test
@@ -1617,28 +1598,6 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_ReEvaluateObsoleteScan() throws Exception {
-    Stage stage = new Stage(Stage.ID_BUILD);
-
-    // Evaluate policy for scanId1
-    String scanId1 = simulateReportIsAvailable("report");
-    scanPolicyEvaluator.evaluate(application, scanId1, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
-    assertPolicyEvaluation(scanId1, false /* isReevaluation */);
-
-    // Make sure we don't have two evaluations at exactly the same time
-    Thread.sleep(1);
-
-    // Evaluate policy for scanId2
-    String scanId2 = simulateReportIsAvailable("report");
-    scanPolicyEvaluator.evaluate(application, scanId2, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
-    assertPolicyEvaluation(scanId2, false /* isReevaluation */);
-
-    // Evaluate policy again for scanId1
-    scanPolicyEvaluator.evaluate(application, scanId1, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
-    assertPolicyEvaluation(scanId1, true /* isReevaluation */, true /* isForObsoleteScan */);
-  }
-
-  @Test
   public void testEvaluate_PersistApplicationComponents() throws Exception {
     Stage stage1 = new Stage(Stage.ID_BUILD);
     Stage stage2 = new Stage(Stage.ID_RELEASE);
@@ -1965,7 +1924,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_PolicyViolationLogger_DoesNotLogPolicyViolationsForNonLatestScan() throws Exception {
+  public void testEvaluate_DoesNotAllowReevalutionForNonLatestScan() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
     scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
@@ -1975,11 +1934,9 @@ public class ScanPolicyEvaluatorTest
         ScanTriggerType.CLI, ClientScanType.SONATYPE);
     newSecurityPolicy();
 
-    ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
-
-    assertThat(results.allViolations).isNotEmpty();
-    assertPolicyViolationLogDTOs(0);
+    assertThatThrownBy(() ->
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE))
+        .hasMessage(REEVALUATE_NOT_ALLOWED_FOR_OUT_OF_DATE_SCAN_MESSAGE);
   }
 
   @Test

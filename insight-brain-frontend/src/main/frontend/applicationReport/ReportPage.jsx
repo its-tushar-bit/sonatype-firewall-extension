@@ -133,9 +133,7 @@ export default function ReportPage() {
             </NxWarningAlert>
           )}
 
-          {reevaluationError === 'Insufficient permissions' && (
-            <NxStatefulErrorAlert>Insufficient Permissions to Re-Evaluate</NxStatefulErrorAlert>
-          )}
+          <ReevaluationError reevaluationError={reevaluationError} />
 
           <ReportStatusBar {...reportStatusBarProps} />
           <ReportContent />
@@ -143,6 +141,16 @@ export default function ReportPage() {
       </main>
     </Fragment>
   );
+}
+
+function ReevaluationError({ reevaluationError }) {
+  if (reevaluationError === 'Insufficient permissions') {
+    return <NxStatefulErrorAlert>Insufficient Permissions to Re-Evaluate</NxStatefulErrorAlert>;
+  } else if (!isNilOrEmpty(reevaluationError)) {
+    return <NxStatefulErrorAlert>{reevaluationError}</NxStatefulErrorAlert>;
+  } else {
+    return null;
+  }
 }
 
 function BackButton() {

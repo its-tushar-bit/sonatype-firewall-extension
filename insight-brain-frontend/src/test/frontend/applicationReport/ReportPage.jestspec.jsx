@@ -344,10 +344,16 @@ describe('Report Page component', () => {
     ).toBeVisible();
   });
 
-  it('renders an alert if there is an issue reevaluating report', () => {
+  it('renders an alert with a custom message if there are insufficient permissions to reevaluate a report', () => {
     applicationReport.reevaluationError = 'Insufficient permissions';
     renderComponent();
     expect(screen.getByText('Insufficient Permissions to Re-Evaluate')).toBeVisible();
+  });
+
+  it('renders an alert if there is an issue reevaluating report', () => {
+    applicationReport.reevaluationError = 'any random error message';
+    renderComponent();
+    expect(screen.getByText('any random error message')).toBeVisible();
   });
 
   it('does not render an alert if there is no issue reevaluating report', () => {

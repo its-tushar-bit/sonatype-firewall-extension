@@ -74,10 +74,9 @@
     <httpcomponents.version>4.5.14</httpcomponents.version>
     <nexus-scm-client.version>1.56.0-01</nexus-scm-client.version>
     <nexus-dependency-management.version>1.23.13-01</nexus-dependency-management.version>
-    <!-- byte-buddy version should match whichever version mockito-core depends on in its pom.xml file.
-     mockito 5.x requires Java 11 -->
-    <mockito-core.version>4.11.0</mockito-core.version>
-    <byte-buddy.version>1.12.19</byte-buddy.version>
+    <!-- byte-buddy version should match whichever version mockito-core depends on in its pom.xml file. -->
+    <mockito-core.version>5.12.0</mockito-core.version>
+    <byte-buddy.version>1.14.15</byte-buddy.version>
     <testcontainers.version>1.19.8</testcontainers.version>
     <staging.autoReleaseAfterClose>true</staging.autoReleaseAfterClose>
     <aws.java.sdk.version>2.26.11</aws.java.sdk.version>

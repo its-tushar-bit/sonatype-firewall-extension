@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.util.CollectionUtils;
 import org.slf4j.Logger;
@@ -42,7 +43,8 @@ public class DevelopmentPrioritizationComponentInfoDAO
 {
   private static final Logger log = LoggerFactory.getLogger(DevelopmentPrioritizationComponentInfoDAO.class);
 
-  private static final int PG_QUERY_PARAMS_MAX_SIZE = 65535;
+  // The theoretical limit for postgres would be 65535/8 = 8191. We set our soft limit up to half of that hard limit.
+  static final int BATCH_INSERT_SIZE_LIMIT = 4000;
 
   @Inject
   public DevelopmentPrioritizationComponentInfoDAO(final OperationalDataStore operationalDataStore) {
@@ -68,20 +70,24 @@ public class DevelopmentPrioritizationComponentInfoDAO
   // https://github.com/sonatype/insight-brain/pull/11563#discussion_r1628538103
   public void insertBatch(
       TransactionContext tx,
-      Collection<DevelopmentPrioritizationComponentInfo> developmentPrioritizationComponentInfoCollection)
+      List<DevelopmentPrioritizationComponentInfo> developmentPrioritizationComponentInfoCollection)
   {
     if (CollectionUtils.isEmpty(developmentPrioritizationComponentInfoCollection)) {
       log.info("No rows to insert in the bath. Batch skipped.");
       return;
     }
-    int paramsPerEntity = 8;
-    if (developmentPrioritizationComponentInfoCollection.size() > PG_QUERY_PARAMS_MAX_SIZE / paramsPerEntity) {
-      log.error("Too many ({}) rows to insert in the batch. Skipped to avoid crashing",
-          developmentPrioritizationComponentInfoCollection.size());
-      return;
+    List<List<DevelopmentPrioritizationComponentInfo>> sizeSafeBatches =
+        Lists.partition(developmentPrioritizationComponentInfoCollection, BATCH_INSERT_SIZE_LIMIT);
+
+    if (sizeSafeBatches.size() > 1) {
+      log.info("Persisting {} batches of DevelopmentPrioritizationComponentInfo data.",
+          sizeSafeBatches.size());
     }
-    javax.persistence.Query query = buildBatchQuery(tx, developmentPrioritizationComponentInfoCollection);
-    query.executeUpdate();
+
+    sizeSafeBatches.forEach(sizeSafeBatch -> {
+      javax.persistence.Query query = buildBatchQuery(tx, sizeSafeBatch);
+      query.executeUpdate();
+    });
   }
 
   public void deleteAllByScanId(final TransactionContext tx, final String scanId) {

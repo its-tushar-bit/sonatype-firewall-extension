@@ -6,7 +6,12 @@
 
 package com.sonatype.insight.brain.dataaccess.development.prioritization;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.Map;
 
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
@@ -23,11 +28,19 @@ import org.junit.Before;
 import org.junit.Test;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 
+import static com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO.BATCH_INSERT_SIZE_LIMIT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class DevelopmentPrioritizationComponentInfoDAOTest
     extends AbstractDbDAOTest
 {
+  public static final ApiVersionChangeOptionType[] API_VERSION_CHANGE_OPTION_TYPES =
+      ApiVersionChangeOptionType.class.getEnumConstants();
+
   private DevelopmentPrioritizationComponentInfoDAO dao;
 
   private DevelopmentPrioritization scan1prioritization;
@@ -41,6 +54,8 @@ public class DevelopmentPrioritizationComponentInfoDAOTest
   private DevelopmentPrioritizationComponentInfo scan2component1;
 
   private DevelopmentPrioritizationComponentInfo scan2component2;
+
+  private Random random = ThreadLocalRandom.current();
 
   @Before
   @Override
@@ -73,7 +88,7 @@ public class DevelopmentPrioritizationComponentInfoDAOTest
   }
 
   @Test
-  public void testInsertBatch() {
+  public void testInsertBatch_smallBatch() {
     DevelopmentPrioritization scan3prioritization = tempEntity.newDevelopmentPrioritization("scan3");
     DevelopmentPrioritizationComponentInfo scan3component1 = new DevelopmentPrioritizationComponentInfo(
         scan3prioritization.getId(), scan3prioritization.getScanId(), "hash1",
@@ -92,6 +107,29 @@ public class DevelopmentPrioritizationComponentInfoDAOTest
   }
 
   @Test
+  public void testInsertBatch_splitBigBatchIntoSmallOnes() {
+    DevelopmentPrioritization scan4prioritization = tempEntity.newDevelopmentPrioritization("scan4");
+
+    List<DevelopmentPrioritizationComponentInfo> scan4components = new ArrayList<>();
+
+    for (int i = 0; i < BATCH_INSERT_SIZE_LIMIT + 1; i++) {
+      scan4components.add(new DevelopmentPrioritizationComponentInfo(
+          scan4prioritization.getId(),
+          scan4prioritization.getScanId(),
+          UUID.randomUUID().toString().replace("-", "").substring(0, 16),
+          API_VERSION_CHANGE_OPTION_TYPES[random.nextInt(API_VERSION_CHANGE_OPTION_TYPES.length)],
+          UUID.randomUUID().toString().replace("-", "").substring(0, 16)));
+    }
+    try (TransactionContext tx = spy(dao.createTransactionContext())) {
+      tx.begin();
+      dao.insertBatch(tx, scan4components);
+      tx.commit();
+      verify(tx, times(2)).createNativeQuery(any());
+    }
+    assertThat(dao.getAllByScanId("scan4"))
+        .hasSize(4001);
+  }
+
   public void testGetStageStatusesByScanIdAndComponentHash() {
     final DevelopmentPrioritization developmentPrioritization = tempEntity.newDevelopmentPrioritization("scan123");
     final DevelopmentPrioritizationComponentInfo componentInfo =

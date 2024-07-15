@@ -14,6 +14,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -61,6 +63,8 @@ import io.dropwizard.request.logging.RequestLogFactory;
 import io.dropwizard.request.logging.old.LogbackClassicRequestLogFactory;
 import io.dropwizard.server.DefaultServerFactory;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.AgeFileFilter;
+import org.apache.commons.io.filefilter.AndFileFilter;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.slf4j.Logger;
@@ -474,9 +478,16 @@ public class SupportService
     String clusterLogFileRegex = configuration.getSupportClusterLogFileRegex();
     RegexFileFilter clusterLogRegexFileFilter =
         new RegexFileFilter(Pattern.compile(clusterLogFileRegex), Path::toString);
+
+    // We only want today's logs.
+    Instant todayStartTime = Instant.now().truncatedTo(ChronoUnit.DAYS);
+    // We substract one millisecond because AgeFileFilter works with ">", not ">=".
+    AgeFileFilter ageFileFilter = new AgeFileFilter(todayStartTime.minusMillis(1), false /* acceptOlder */);
+
+    AndFileFilter clusterLogFileFilter = new AndFileFilter(clusterLogRegexFileFilter, ageFileFilter);
     try {
       Collection<File> clusterLogFiles =
-          FileUtils.listFiles(clusterDirectory, clusterLogRegexFileFilter, excludeDirFilter());
+          FileUtils.listFiles(clusterDirectory, clusterLogFileFilter, excludeDirFilter());
       log.debug("Found {} cluster log files matching the regex {}.", clusterLogFiles.size(), clusterLogFileRegex);
       for (File clusterLogFile : clusterLogFiles) {
         addFileIfExists(filesToZip, clusterLogFile, clusterLogFile.getName(), SupportFileType.CLUSTER_LOG, false);

@@ -12,6 +12,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,11 +41,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.collections4.EnumerationUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.apache.commons.io.filefilter.IOFileFilter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -334,10 +336,20 @@ public class SupportServiceTest
     insightConfig.setClusterDirectory(clusterDirectory.getAbsolutePath());
     File clusterLogFile1 = clusterDirectory.toPath().resolve(Paths.get("log", "a.log")).toFile();
     File clusterLogFile2 = clusterDirectory.toPath().resolve(Paths.get("log", "b.log")).toFile();
+    // Should not be included because it doesn't match the filename pattern for log files.
     File otherFile = clusterDirectory.toPath().resolve(Paths.get("log", "other")).toFile();
+    // Should not be included because it's older than today.
+    File oldFile = clusterDirectory.toPath().resolve(Paths.get("log", "old.log")).toFile();
     FileUtils.writeStringToFile(clusterLogFile1, "a", StandardCharsets.UTF_8);
     FileUtils.writeStringToFile(clusterLogFile2, "b", StandardCharsets.UTF_8);
     FileUtils.writeStringToFile(otherFile, "c", StandardCharsets.UTF_8);
+    FileUtils.writeStringToFile(oldFile, "d", StandardCharsets.UTF_8);
+
+    Instant todayStartTime = Instant.now().truncatedTo(ChronoUnit.DAYS);
+    clusterLogFile1.setLastModified(todayStartTime.toEpochMilli());
+    clusterLogFile2.setLastModified(todayStartTime.toEpochMilli());
+    otherFile.setLastModified(todayStartTime.toEpochMilli());
+    oldFile.setLastModified(todayStartTime.toEpochMilli() - 1);
 
     File supportZip = supportService.createSupportZip(false, null, false);
 
@@ -346,11 +358,13 @@ public class SupportServiceTest
       ZipEntry clusterLogEntry1 = entries.stream().filter(e -> e.getName().endsWith("a.log")).findFirst().orElse(null);
       ZipEntry clusterLogEntry2 = entries.stream().filter(e -> e.getName().endsWith("b.log")).findFirst().orElse(null);
       ZipEntry otherEntry = entries.stream().filter(e -> e.getName().endsWith("other")).findFirst().orElse(null);
+      ZipEntry oldEntry = entries.stream().filter(e -> e.getName().endsWith("old.log")).findFirst().orElse(null);
       assertThat(clusterLogEntry1).isNotNull();
       assertThat(IOUtils.toString(zipFile.getInputStream(clusterLogEntry1), StandardCharsets.UTF_8)).isEqualTo("a");
       assertThat(clusterLogEntry2).isNotNull();
       assertThat(IOUtils.toString(zipFile.getInputStream(clusterLogEntry2), StandardCharsets.UTF_8)).isEqualTo("b");
       assertThat(otherEntry).isNull();
+      assertThat(oldEntry).isNull();
     }
   }
 

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.git;
 
 import java.util.Collection;
-import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -17,15 +16,12 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.features.FeaturesService;
+import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritiesUtilsService;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.license.model.Feature;
-import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient.StateType;
@@ -54,17 +50,17 @@ public class ScmStatusHelper
 
   private final BaseUrl baseUrl;
 
-  private final FeaturesService featuresService;
+  private final DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService;
 
   @Inject
   public ScmStatusHelper(
       final ApplicationDAO applicationDAO,
       final BaseUrl baseUrl,
-      final FeaturesService featuresService)
+      final DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService)
   {
     this.applicationDAO = applicationDAO;
     this.baseUrl = baseUrl;
-    this.featuresService = featuresService;
+    this.developmentPrioritiesUtilsService = developmentPrioritiesUtilsService;
   }
 
   public StatusRequest createStatusRequestFromPolicyEvaluation(
@@ -112,13 +108,7 @@ public class ScmStatusHelper
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setReportUrl(reportPath);
 
-    Set<Feature> features = featuresService.getFeatures();
-    final boolean isPrioritizedFindingsEnabled = features
-        .contains(SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT);
-    final boolean isDeveloperDashboardEnabled = features
-        .contains(LicensedFeature.DEVELOPER_DASHBOARD);
-
-    if (isPrioritizedFindingsEnabled && isDeveloperDashboardEnabled) {
+    if (developmentPrioritiesUtilsService.arePrioritiesFeaturesEnabled()) {
       scanReceipt.setPrioritiesUrl(UserInterfaceLinksHelper.getPrioritiesUrl(application.getPublicId(), scanId));
       return scanReceipt.resolvePrioritiesUrl(baseUrl.get());
     }

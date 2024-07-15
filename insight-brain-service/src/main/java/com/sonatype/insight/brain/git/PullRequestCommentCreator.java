@@ -17,7 +17,7 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
-import com.sonatype.insight.brain.features.FeaturesService;
+import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritiesUtilsService;
 import com.sonatype.insight.brain.git.dto.PullRequestLineCommentCreationResult;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -60,7 +60,7 @@ public class PullRequestCommentCreator
 
   private final PullRequestLocationDiscoveryService locationDiscoveryService;
 
-  private final FeaturesService featuresService;
+  private final DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService;
 
   private final SourceControlComponentLoader sourceControlComponentLoader;
 
@@ -78,7 +78,7 @@ public class PullRequestCommentCreator
       final PullRequestLineCommentingService pullRequestLineCommentingService,
       final List<PullRequestPostCommentAction> pullRequestPostCommentActionList,
       final PullRequestLocationDiscoveryService locationDiscoveryService,
-      final FeaturesService featuresService,
+      final DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService,
       final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator,
       final SourceControlComponentLoader sourceControlComponentLoader,
       final ProductLicense productLicense,
@@ -92,7 +92,7 @@ public class PullRequestCommentCreator
     this.pullRequestLineCommentingService = pullRequestLineCommentingService;
     this.pullRequestPostCommentActionList = pullRequestPostCommentActionList;
     this.locationDiscoveryService = locationDiscoveryService;
-    this.featuresService = featuresService;
+    this.developmentPrioritiesUtilsService = developmentPrioritiesUtilsService;
     this.pullRequestCommentingEligibilityValidator = pullRequestCommentingEligibilityValidator;
     this.sourceControlComponentLoader = sourceControlComponentLoader;
     this.productLicense = productLicense;
@@ -160,7 +160,7 @@ public class PullRequestCommentCreator
           policyViolationDiff, remediationVersionMap, pullRequestLineComments,
           prPolicyEvaluationsDTO.getGitRepositoryInfo(), prPolicyEvaluationsDTO.getPullRequestNumber(),
           featureBranchPolicyEvaluation, targetPolicyEvaluation, sourceControlComponentDetails, telemetry,
-          productLicense.hasFeature(LicensedFeature.SCM_UX_IMPROVEMENTS), featuresService);
+          productLicense.hasFeature(LicensedFeature.SCM_UX_IMPROVEMENTS), developmentPrioritiesUtilsService);
 
       if (policyEvaluationDiffMarkup.isPresent()) {
         Optional<CommentResponse> response = Optional.empty();

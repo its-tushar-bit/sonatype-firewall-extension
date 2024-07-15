@@ -24,7 +24,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.features.FeaturesService;
+import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritiesUtilsService;
 import com.sonatype.insight.brain.git.PullRequestLineCommentDTO;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails;
@@ -116,7 +116,7 @@ public class PullRequestFeedbackDetailsTest
   private OrganizationDAO organizationDAO;
 
   @Inject
-  private FeaturesService featuresService;
+  private DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService;
 
   private Application app;
 
@@ -145,7 +145,7 @@ public class PullRequestFeedbackDetailsTest
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
             diff, remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_Added.md");
@@ -164,7 +164,7 @@ public class PullRequestFeedbackDetailsTest
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
             diff, remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_Added_prioritiesUrlAllowed.md");
@@ -183,7 +183,7 @@ public class PullRequestFeedbackDetailsTest
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
             diff, remediationVersionMap, pullRequestLineComments, gitlabGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_Added_prioritiesUrlAllowed_Gitlab.md");
@@ -202,7 +202,7 @@ public class PullRequestFeedbackDetailsTest
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
             diff, remediationVersionMap, pullRequestLineComments, bitbucketGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     //then assert that created contents match expected
     final Optional<String> contents = details.renderTemplateAndGetContents();
@@ -219,7 +219,7 @@ public class PullRequestFeedbackDetailsTest
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
             diff, remediationVersionMap, pullRequestLineComments, bitbucketGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     //then assert that created contents match expected
     final Optional<String> contents = details.renderTemplateAndGetContents();
@@ -240,7 +240,7 @@ public class PullRequestFeedbackDetailsTest
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
             diff, remediationVersionMap, pullRequestLineComments, bitbucketGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     //then assert that created contents match expected
     final Optional<String> contents = details.renderTemplateAndGetContents();
@@ -260,7 +260,7 @@ public class PullRequestFeedbackDetailsTest
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
             diff, remediationVersionMap, pullRequestLineComments, azureGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     //then assert that created contents follow the HTML template
     final Optional<String> contents = details.renderTemplateAndGetContents();
@@ -277,7 +277,7 @@ public class PullRequestFeedbackDetailsTest
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
             diff, remediationVersionMap, pullRequestLineComments, azureOnPremGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     //then assert that created contents are following the no-html template
     final Optional<String> contents = details.renderTemplateAndGetContents();
@@ -294,7 +294,7 @@ public class PullRequestFeedbackDetailsTest
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
             diff, remediationVersionMap, pullRequestLineComments, gitlabGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_Added_GitLab.md");
@@ -318,7 +318,7 @@ public class PullRequestFeedbackDetailsTest
         new PullRequestFeedbackDetails(sourceControlComponentDetails, featureBranchPolicyEvaluation,
             defaultBranchPolicyEvaluation, diff, remediationVersionMap, pullRequestLineComments,
             githubGitRepositoryInfo, pullRequestNumber, app, lookup(BaseUrl.class).getConfigured(),
-            false, organizationDAO, featuresService);
+            false, organizationDAO, developmentPrioritiesUtilsService);
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_Cleared.md");
@@ -342,7 +342,7 @@ public class PullRequestFeedbackDetailsTest
         new PullRequestFeedbackDetails(sourceControlComponentDetails, featureBranchPolicyEvaluation,
             defaultBranchPolicyEvaluation, diff,
             remediationVersionMap, pullRequestLineComments, bitbucketGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_Cleared_noEmbeddedHtml.md");
@@ -366,7 +366,7 @@ public class PullRequestFeedbackDetailsTest
         new PullRequestFeedbackDetails(sourceControlComponentDetails, featureBranchPolicyEvaluation,
             defaultBranchPolicyEvaluation, diff,
             remediationVersionMap, pullRequestLineComments, gitlabGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_Cleared_GitLab.md");
@@ -462,7 +462,7 @@ public class PullRequestFeedbackDetailsTest
             lookup(BaseUrl.class).getConfigured(),
             false,
             organizationDAO,
-            featuresService);
+            developmentPrioritiesUtilsService);
 
     final Optional<String> contents = details.renderTemplateAndGetContents();
 
@@ -507,7 +507,7 @@ public class PullRequestFeedbackDetailsTest
         "component-1-hash",
         app.getId(),
         "build",
-            "policy-id-1",
+        "policy-id-1",
         "policy-name-1",
         9,
         getConstraintJson("policy-violation-1-constraint", "CVE-2024-1")
@@ -596,7 +596,7 @@ public class PullRequestFeedbackDetailsTest
             lookup(BaseUrl.class).getConfigured(),
             false,
             organizationDAO,
-            featuresService);
+            developmentPrioritiesUtilsService);
 
     final Optional<String> contents = details.renderTemplateAndGetContents();
 
@@ -625,7 +625,7 @@ public class PullRequestFeedbackDetailsTest
         new PullRequestFeedbackDetails(sourceControlComponentDetails, featureBranchPolicyEvaluation,
             defaultBranchPolicyEvaluation, diff,
             remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_AddedAndCleared.md");
@@ -658,7 +658,7 @@ public class PullRequestFeedbackDetailsTest
         new PullRequestFeedbackDetails(sourceControlComponentDetails, featureBranchPolicyEvaluation,
             defaultBranchPolicyEvaluation, diff,
             remediationVersionMap, pullRequestLineComments, bitbucketGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_AddedAndCleared_noEmbeddedHtml.md");
@@ -685,7 +685,7 @@ public class PullRequestFeedbackDetailsTest
         new PullRequestFeedbackDetails(sourceControlComponentDetails, featureBranchPolicyEvaluation,
             defaultBranchPolicyEvaluation, diff,
             remediationVersionMap, pullRequestLineComments, gitlabGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_AddedAndCleared_GitLab.md");
@@ -704,7 +704,7 @@ public class PullRequestFeedbackDetailsTest
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
             diff, remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_NoAddedOrCleared.md");
@@ -723,7 +723,7 @@ public class PullRequestFeedbackDetailsTest
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
             diff, remediationVersionMap, pullRequestLineComments, bitbucketGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_NoAddedOrCleared_noEmbeddedHtml.md");
@@ -742,7 +742,7 @@ public class PullRequestFeedbackDetailsTest
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
             diff, remediationVersionMap, pullRequestLineComments, gitlabGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     //then assert that created contents match expected
     final String expectedContent = readResource("PullRequestFeedback_NoAddedOrCleared_GitLab.md");
@@ -770,7 +770,7 @@ public class PullRequestFeedbackDetailsTest
         new PullRequestFeedbackDetails(sourceControlComponentDetails, featureBranchPolicyEvaluation,
             defaultBranchPolicyEvaluation, diff,
             remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     //then assert that created contents has singular violation in heading
     final Optional<String> contents = details.renderTemplateAndGetContents();
@@ -798,7 +798,7 @@ public class PullRequestFeedbackDetailsTest
         new PullRequestFeedbackDetails(sourceControlComponentDetails, featureBranchPolicyEvaluation,
             defaultBranchPolicyEvaluation, diff,
             remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     //then assert that created contents has singular violation in heading
     final Optional<String> contents = details.renderTemplateAndGetContents();
@@ -816,7 +816,7 @@ public class PullRequestFeedbackDetailsTest
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestFeedbackDetails(null, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
             diff, remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService));
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService));
   }
 
   @Test
@@ -828,7 +828,7 @@ public class PullRequestFeedbackDetailsTest
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
             null, remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService));
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService));
   }
 
   @Test
@@ -840,7 +840,7 @@ public class PullRequestFeedbackDetailsTest
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
             diff, remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, null,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService));
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService));
   }
 
   @Test
@@ -853,8 +853,8 @@ public class PullRequestFeedbackDetailsTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
         new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
             diff, remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService)
-                .renderTemplateAndGetContents());
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService)
+            .renderTemplateAndGetContents());
   }
 
   @Test
@@ -866,7 +866,7 @@ public class PullRequestFeedbackDetailsTest
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestFeedbackDetails(componentDetails, null, defaultBranchPolicyEvaluation, diff,
             remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService));
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService));
   }
 
   @Test
@@ -878,7 +878,7 @@ public class PullRequestFeedbackDetailsTest
     assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
         new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, null, diff,
             remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService));
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService));
   }
 
   @Test
@@ -888,7 +888,7 @@ public class PullRequestFeedbackDetailsTest
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
             diff, remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     // when
     final List<Map<String, Object>> result = details.getNewComponentFeedbackList(new HashMap<>(),
@@ -917,7 +917,7 @@ public class PullRequestFeedbackDetailsTest
     final PullRequestFeedbackDetails details =
         new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
             diff, remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber, app,
-            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, featuresService);
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService);
 
     // when
     final List<Map<String, Object>> result = details.getNewComponentFeedbackList(componentMap,

@@ -11,8 +11,8 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritiesUtilsService;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
-import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.git.helper.ApplicationEvaluationEventBuilder;
 import com.sonatype.insight.brain.model.Application;
@@ -491,7 +491,7 @@ public class GitCommitStatusServiceTest
     private BaseUrl mockBaseUrl;
 
     @Mock
-    private FeaturesService mockFeaturesService;
+    private DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService;
 
     @Mock
     private ApplicationDAO mockApplicationDAO;
@@ -626,7 +626,8 @@ public class GitCommitStatusServiceTest
       ProjectUrl projectUrl = new GitlabProjectUrl("https://gitlab.com/sonatype/testing/testRepo1");
       doReturn(projectUrl).when(mockGitApiClient).getProjectUrl();
 
-      ScmStatusHelper scmStatusHelper = new ScmStatusHelper(mockApplicationDAO, mockBaseUrl, mockFeaturesService);
+      ScmStatusHelper scmStatusHelper =
+          new ScmStatusHelper(mockApplicationDAO, mockBaseUrl, developmentPrioritiesUtilsService);
 
       return new GitCommitStatusService(
           mockSourceControlUtils,

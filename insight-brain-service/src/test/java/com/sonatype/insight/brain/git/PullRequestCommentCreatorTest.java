@@ -14,7 +14,7 @@ import java.util.Optional;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
-import com.sonatype.insight.brain.features.FeaturesService;
+import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritiesUtilsService;
 import com.sonatype.insight.brain.git.dto.PullRequestLineCommentCreationResult;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -370,7 +370,7 @@ public class PullRequestCommentCreatorTest
     private PullRequestLocationDiscoveryService mockLocationDiscoveryService;
 
     @Mock
-    private FeaturesService featuresService;
+    private DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService;
 
     @Mock
     private PullRequestCommentingEligibilityValidator mockPullRequestCommentingEligibilityValidator;
@@ -411,7 +411,7 @@ public class PullRequestCommentCreatorTest
           mockLineCommentingService,
           postCommentActionList,
           mockLocationDiscoveryService,
-          featuresService,
+          developmentPrioritiesUtilsService,
           mockPullRequestCommentingEligibilityValidator,
           mockComponentLoader,
           mockProductLicense,

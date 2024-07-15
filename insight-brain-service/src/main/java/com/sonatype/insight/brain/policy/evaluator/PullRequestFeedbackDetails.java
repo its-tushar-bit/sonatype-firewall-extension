@@ -11,27 +11,23 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.features.FeaturesService;
+import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritiesUtilsService;
 import com.sonatype.insight.brain.git.PullRequestLineCommentDTO;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.utils.TemplateUtils;
 import com.sonatype.insight.client.utils.UrlUtils;
-import com.sonatype.insight.license.model.Feature;
-import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.dto.BaseProjectUrl;
 import com.sonatype.nexus.scm.bitbucket.dto.BitbucketServerProjectUrl;
@@ -111,7 +107,7 @@ public class PullRequestFeedbackDetails
 
   private final boolean scmImprovementsEnabled;
 
-  private final FeaturesService featuresService;
+  private final DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService;
 
   static {
     try {
@@ -138,7 +134,7 @@ public class PullRequestFeedbackDetails
       final String iqBaseUrl,
       final boolean scmImprovementsEnabled,
       final OrganizationDAO organizationDAO,
-      final FeaturesService featuresService)
+      final DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService)
   {
     super(organizationDAO);
     Preconditions
@@ -161,7 +157,7 @@ public class PullRequestFeedbackDetails
     this.pullRequestNumber = pullRequestNumber;
     this.iqBaseUrl = iqBaseUrl;
     this.scmImprovementsEnabled = scmImprovementsEnabled;
-    this.featuresService = featuresService;
+    this.developmentPrioritiesUtilsService = developmentPrioritiesUtilsService;
     Preconditions.checkNotNull(gitRepositoryInfo.provider, "provider is required and cannot be null");
   }
 
@@ -512,12 +508,6 @@ public class PullRequestFeedbackDetails
   }
 
   private boolean shouldIncludePrioritiesReport() {
-    Set<Feature> features = featuresService.getFeatures();
-    final boolean isPrioritizedFindingsEnabled = features
-        .contains(SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT);
-    final boolean isDeveloperDashboardEnabled = features
-        .contains(LicensedFeature.DEVELOPER_DASHBOARD);
-
-    return isPrioritizedFindingsEnabled && isDeveloperDashboardEnabled;
+    return developmentPrioritiesUtilsService.arePrioritiesFeaturesEnabled();
   }
 }

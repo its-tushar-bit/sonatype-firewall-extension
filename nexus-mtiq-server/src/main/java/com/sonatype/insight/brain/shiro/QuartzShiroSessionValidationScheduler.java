@@ -81,7 +81,7 @@ public class QuartzShiroSessionValidationScheduler
    */
   @Override
   public void deregister() {
-    taskScheduler.unscheduleTask(this);
+    // Do not unschedule task otherwise it will break MTIQ - SDEV-1312
   }
 
   @Override

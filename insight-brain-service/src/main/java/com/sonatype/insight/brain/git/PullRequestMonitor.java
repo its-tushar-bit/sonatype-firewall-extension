@@ -211,9 +211,7 @@ public class PullRequestMonitor
 
   @Override
   public void deregister() {
-    if (!disableForTesting) {
-      taskScheduler.unscheduleTask(this);
-    }
+    // Do not unschedule task otherwise it will break MTIQ - SDEV-1312
   }
 
   @Override

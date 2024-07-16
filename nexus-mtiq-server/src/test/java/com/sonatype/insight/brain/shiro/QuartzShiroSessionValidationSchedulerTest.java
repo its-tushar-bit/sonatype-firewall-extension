@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -90,6 +91,6 @@ public class QuartzShiroSessionValidationSchedulerTest
   public void testDeleteJob_onDeregister() {
     underTest.deregister();
 
-    verify(taskScheduler).unscheduleTask(underTest);
+    verify(taskScheduler, never()).unscheduleTask(underTest);
   }
 }

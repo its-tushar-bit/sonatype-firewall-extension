@@ -99,9 +99,7 @@ public class PullRequestCommentPurger
 
   @Override
   public void deregister() {
-    if (!disableForTesting && taskScheduler.unscheduleTask(this)) {
-      log.debug("Stopped periodic purging of obsolete pull request comments");
-    }
+    // Do not unschedule task otherwise it will break MTIQ - SDEV-1312
   }
 
   @VisibleForTesting

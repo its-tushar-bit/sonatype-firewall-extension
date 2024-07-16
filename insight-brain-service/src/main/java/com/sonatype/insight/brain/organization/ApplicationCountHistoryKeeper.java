@@ -61,9 +61,7 @@ public class ApplicationCountHistoryKeeper implements InsightJob
 
   @Override
   public void deregister() {
-    if (!disableForTesting && taskScheduler.unscheduleTask(this)) {
-      log.debug("Stopped the scheduled bookkeeping of the application count history.");
-    }
+    // Do not unschedule task otherwise it will break MTIQ - SDEV-1312
   }
 
   @Override

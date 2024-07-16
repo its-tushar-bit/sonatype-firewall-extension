@@ -74,10 +74,7 @@ public class WaivedComponentUpgradeScheduler implements TenantManaged
 
   @Override
   public void deregister() {
-    if (!disableForTesting && taskScheduler.isTaskScheduled(waivedComponentUpgradeTask)) {
-      log.info("Stopping waived component upgrade scheduler.");
-      taskScheduler.unscheduleTask(waivedComponentUpgradeTask);
-    }
+    // Do not unschedule task otherwise it will break MTIQ - SDEV-1312
   }
 
   private boolean taskCanBeScheduled() {

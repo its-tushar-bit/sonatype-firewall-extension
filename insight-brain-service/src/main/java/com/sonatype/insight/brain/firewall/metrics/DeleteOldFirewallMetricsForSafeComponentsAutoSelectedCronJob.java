@@ -64,9 +64,7 @@ public class DeleteOldFirewallMetricsForSafeComponentsAutoSelectedCronJob implem
 
   @Override
   public void deregister() {
-    if (!disableForTesting && taskScheduler.unscheduleTask(this)) {
-      log.debug("Stopped the scheduled delete old metrics for safe components auto-selected.");
-    }
+    // Do not unschedule task otherwise it will break MTIQ - SDEV-1312
   }
 
   @Override

@@ -352,16 +352,15 @@ public class ApiLicenseLegalService
     List<PolicyEvaluation> policyEvaluations =
         policyEvaluationDAO.getLastByApplicationIdsAndStageIds(applicationIdsToCheck, stageTypeIdsToCheck);
 
+    ApiLicenseLegalApplicationDashboardResultDTO resultDto = new ApiLicenseLegalApplicationDashboardResultDTO();
+    resultDto.totalResultsCount = policyEvaluations.size();
+
     int startIndex = (page - 1) * pageSize;
     if (startIndex >= policyEvaluations.size()) {
-      ApiLicenseLegalApplicationDashboardResultDTO resultDto = new ApiLicenseLegalApplicationDashboardResultDTO();
-      resultDto.totalResultsCount = policyEvaluations.size();
       return resultDto;
     }
 
-    Map<String, List<String>> mapApplicationIdTagNames = getTagNamesByApplicationIds(applicationIdsToCheck);
-
-    List<ApiLicenseLegalApplicationDashboardDTO> result = new ArrayList<>(policyEvaluations.size());
+    List<ApiLicenseLegalApplicationDashboardDTO> results = new ArrayList<>(policyEvaluations.size());
     for (PolicyEvaluation policyEvaluation : policyEvaluations) {
       Application application = mapApplicationIds.get(policyEvaluation.getApplicationId());
 
@@ -372,21 +371,61 @@ public class ApiLicenseLegalService
       dto.lastScanTime = policyEvaluation.getTime().getTime();
       dto.stageTypeId = policyEvaluation.getStageTypeId();
       dto.stageTypeName = StageTypes.getById(policyEvaluation.getStageTypeId()).getName();
-      dto.applicationTagNames.addAll(mapApplicationIdTagNames.get(application.getId()));
 
-      result.add(dto);
+      results.add(dto);
     }
 
-    result.sort(newApplicationDashboardComparator(order));
+    results = orderAndPage(results, order, page, pageSize, applicationIdsToCheck);
 
-    ApiLicenseLegalApplicationDashboardResultDTO resultDto = new ApiLicenseLegalApplicationDashboardResultDTO();
-    resultDto.totalResultsCount = result.size();
+    calculateComponentsReviewed(results);
 
-    result = result.subList(startIndex, Math.min(page * pageSize, result.size()));
-    calculateComponentsReviewed(result);
+    resultDto.results = results;
 
-    resultDto.results = result;
     return resultDto;
+  }
+
+  private List<ApiLicenseLegalApplicationDashboardDTO> orderAndPage(
+      final List<ApiLicenseLegalApplicationDashboardDTO> results,
+      final LicenseLegalResultsOrder order,
+      final int page,
+      final int pageSize,
+      final Set<String> allApplicationIdsToCheck)
+  {
+    int startIndex = (page - 1) * pageSize;
+
+    if (LicenseLegalResultsOrder.TAG_NAMES_ASC == order || LicenseLegalResultsOrder.TAG_NAMES_DESC == order) {
+      // if the order is by tag name, all applications must be considered
+      // if there are many applications, retrieving the tag names takes a long time.
+      fillTagNames(results, allApplicationIdsToCheck);
+
+      results.sort(newApplicationDashboardComparator(order));
+      return results.subList(startIndex, Math.min(page * pageSize, results.size()));
+    }
+
+    // if the order is not by tag name, the sorting and pagination is applied first,
+    // then the tag names are retrieved using a small number of applications.
+    results.sort(newApplicationDashboardComparator(order));
+
+    List<ApiLicenseLegalApplicationDashboardDTO> paginatedResults =
+        results.subList(startIndex, Math.min(page * pageSize, results.size()));
+
+    Set<String> smallApplicationIdsToCheck = paginatedResults.stream()
+        .map(r -> r.applicationId)
+        .collect(Collectors.toSet());
+
+    fillTagNames(paginatedResults, smallApplicationIdsToCheck);
+
+    return paginatedResults;
+  }
+
+  private void fillTagNames(
+      final List<ApiLicenseLegalApplicationDashboardDTO> results,
+      final Set<String> applicationIdsToCheck)
+  {
+    Map<String, List<String>> mapApplicationIdTagNames = getTagNamesByApplicationIds(applicationIdsToCheck);
+    for (ApiLicenseLegalApplicationDashboardDTO dto : results) {
+      dto.applicationTagNames.addAll(mapApplicationIdTagNames.get(dto.applicationId));
+    }
   }
 
   public ApiLicenseLegalComponentDashboardResultDTO getLicenseLegalComponentsDashboard(LicenseLegalFilterDTO filter) {

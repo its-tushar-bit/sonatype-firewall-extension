@@ -564,8 +564,8 @@ public class SpdxResultHandlerTest
     assertThat(swid.getTagId()).isEqualTo(swidTagId);
     assertThat(swid.getName()).isNull();
     assertThat(swid.getVersion()).isNull();
-    assertThat(swid.getTagVersion()).isEqualTo(0);
-    assertThat(swid.isPatch()).isFalse();
+    assertThat(swid.getTagVersion()).isNull();
+    assertThat(swid.isPatch()).isNull();
     assertThat(swid.getAttachmentText()).isNull();
 
     List<ThirdPartyFileCoordinate> coordinates =
@@ -576,9 +576,7 @@ public class SpdxResultHandlerTest
     assertThat(thirdPartyFileCoordinate.getCpe()).isEqualTo(cpeValue);
     assertThat(thirdPartyFileCoordinate.getSwid())
         .isEqualTo("{" +
-            "\"tagId\":\"" + swidTagId + "\"," +
-            "\"tagVersion\":0," +
-            "\"patch\":false}");
+            "\"tagId\":\"" + swidTagId + "\"}");
     assertThat(thirdPartyFileCoordinate.getIdentificationSources())
         .isEqualTo(SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE);
   }

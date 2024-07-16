@@ -233,7 +233,15 @@ public class SpdxToCycloneDxExporter
     catch (InvalidSPDXAnalysisException e) {
       log.debug("Error reading license information for SPDX package with ID {}", spdxPackage.getId(), e);
     }
-    component.setLicenseChoice(licenseChoice);
+
+    if (licenseChoice.getExpression() == null && CollectionUtils.isEmpty(licenseChoice.getLicenses())) {
+      // 1.6+ new library won't validate/generate  an empty array of licenses and a null expression on a component
+      component.setLicenses(null);
+    }
+    else
+    {
+      component.setLicenseChoice(licenseChoice);
+    }
   }
 
   private void setVulnerabilities(final List<SpdxPackage> packages,

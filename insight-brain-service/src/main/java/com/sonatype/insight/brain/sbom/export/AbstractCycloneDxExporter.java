@@ -121,11 +121,24 @@ public abstract class AbstractCycloneDxExporter
             continue;
           }
           LicenseChoice bomLicenseChoice = getBomComponentLicenses(bomComponent);
+
           //Merge new licenses here
           updateOrGenerateNewLicenseChoices(sonatypeComponentLicenses, bomLicenseChoice);
+
+          // Final verification on resulting licenses
+          if (bomLicenseChoice != null && CollectionUtils.isEmpty(bomLicenseChoice.getLicenses())) {
+            // 1.6+ new library won't validate/generate  an empty array of licenses and a null expression on a component
+            bomComponent.setLicenses(null);
+          }
         }
       }
     }
+
+    //1.6 requires properties tag to be a non-empty array for xml exports
+    if (CollectionUtils.isEmpty(bom.getProperties())) {
+      bom.setProperties(null);
+    }
+
     return bom;
   }
 
@@ -197,11 +210,12 @@ public abstract class AbstractCycloneDxExporter
       licenseChoice.setLicenses(Collections.emptyList());
       bomComponent.setLicenseChoice(licenseChoice);
     }
-    else if (StringUtils.isNotEmpty(bomComponent.getLicenseChoice().getExpression())) {
+    else if (bomComponent.getLicenseChoice().getExpression() != null &&
+        StringUtils.isNotEmpty(bomComponent.getLicenseChoice().getExpression().getValue())) {
       bomComponent.getLicenseChoice().setLicenses(new ArrayList<>());
       String purl = bomComponent.getPurl() != null ? bomComponent.getPurl() : "";
       bomComponent.getLicenseChoice().getLicenses().addAll(
-          parseLicenseChoiceExpression(bomComponent.getLicenseChoice().getExpression(), purl,
+          parseLicenseChoiceExpression(bomComponent.getLicenseChoice().getExpression().getValue(), purl,
               bomComponent.getBomRef()));
     }
     return bomComponent.getLicenseChoice();

@@ -33,7 +33,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.collections4.CollectionUtils;
-import org.cyclonedx.CycloneDxSchema.Version;
+import org.cyclonedx.Version;
 
 /**
  * @since 1.70

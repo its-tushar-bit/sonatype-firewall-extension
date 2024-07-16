@@ -63,8 +63,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.cyclonedx.BomGeneratorFactory;
-import org.cyclonedx.CycloneDxSchema.Version;
+import org.cyclonedx.generators.BomGeneratorFactory;
+import org.cyclonedx.Version;
 import org.cyclonedx.exception.GeneratorException;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.generators.xml.BomXmlGenerator;
@@ -79,6 +79,7 @@ import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.Property;
 import org.cyclonedx.model.Swid;
+import org.cyclonedx.model.license.Expression;
 import org.cyclonedx.model.vulnerability.Rating;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
@@ -817,11 +818,11 @@ public class SbomResultHandler
       }
 
       // Process license expressions
-      String expression = licenseChoice.getExpression();
-      if (StringUtils.isNotEmpty(expression)) {
+      Expression expression = licenseChoice.getExpression();
+      if (expression != null && StringUtils.isNotEmpty(expression.getValue())) {
         AnyLicenseInfo anyLicenseInfo;
         try {
-          anyLicenseInfo = LicenseInfoFactory.parseSPDXLicenseString(expression);
+          anyLicenseInfo = LicenseInfoFactory.parseSPDXLicenseString(expression.getValue());
         }
         catch (InvalidLicenseStringException e) {
           log.debug("Failed to parse spdx license string: {} for: {}.", expression, packageUrl);

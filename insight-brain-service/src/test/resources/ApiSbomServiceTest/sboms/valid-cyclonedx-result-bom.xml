@@ -23,14 +23,12 @@
       <licenses>
         <license>
           <id>Apache-2.0</id>
-          <url></url>
           <properties>
             <property name="identificationSources">SBOM,Sonatype</property>
           </properties>
         </license>
         <license>
           <id>MIT</id>
-          <url></url>
           <properties>
             <property name="identificationSources">Sonatype</property>
           </properties>

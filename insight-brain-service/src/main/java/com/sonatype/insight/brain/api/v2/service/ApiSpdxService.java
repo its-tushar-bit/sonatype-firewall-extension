@@ -65,7 +65,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.lang3.StringUtils;
-import org.cyclonedx.CycloneDxSchema.Version;
+import org.cyclonedx.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spdx.jacksonstore.MultiFormatStore;

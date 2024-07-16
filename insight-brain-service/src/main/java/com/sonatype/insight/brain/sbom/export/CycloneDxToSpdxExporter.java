@@ -32,7 +32,9 @@ import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.cyclonedx.exception.ParseException;
+import org.cyclonedx.model.license.Expression;
 import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
 import org.jetbrains.annotations.NotNull;
@@ -692,10 +694,10 @@ public class CycloneDxToSpdxExporter
   {
     List<AnyLicenseInfo> retval = new ArrayList<>();
     if (licenseChoice != null) {
-      String expression = licenseChoice.getExpression();
-      if (expression != null && !expression.isEmpty()) {
+      Expression expression = licenseChoice.getExpression();
+      if (expression != null && StringUtils.isNotEmpty(expression.getValue()) ) {
         try {
-          retval.add(LicenseInfoFactory.parseSPDXLicenseString(expression,
+          retval.add(LicenseInfoFactory.parseSPDXLicenseString(expression.getValue(),
               parentElement.getModelStore(), parentElement.getDocumentUri(), parentElement.getCopyManager()));
         }
         catch (InvalidLicenseStringException ex) {

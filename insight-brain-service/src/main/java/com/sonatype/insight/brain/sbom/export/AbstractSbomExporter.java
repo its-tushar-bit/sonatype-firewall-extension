@@ -24,8 +24,8 @@ import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.file.SbomFormat;
 
-import org.cyclonedx.BomGeneratorFactory;
-import org.cyclonedx.CycloneDxSchema.Version;
+import org.cyclonedx.generators.BomGeneratorFactory;
+import org.cyclonedx.Version;
 import org.cyclonedx.exception.GeneratorException;
 import org.cyclonedx.model.Bom;
 import org.slf4j.Logger;

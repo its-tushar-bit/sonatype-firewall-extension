@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
-import org.cyclonedx.CycloneDxSchema.Version;
+import org.cyclonedx.Version;
 import org.junit.Before;
 import org.junit.Test;
 

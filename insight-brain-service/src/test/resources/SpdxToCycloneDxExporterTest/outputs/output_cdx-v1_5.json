@@ -53,7 +53,6 @@
     {
       "group" : "sonatype",
       "name" : "iq_application_SCM_Test",
-      "licenses" : [ ],
       "purl" : "pkg:generic/sonatype/iq_application_SCM_Test",
       "type" : "application",
       "bom-ref" : "473cbbff5cc120e810c1a32cfa9925859f40ce8f"

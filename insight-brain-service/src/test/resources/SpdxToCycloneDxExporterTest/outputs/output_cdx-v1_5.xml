@@ -41,7 +41,6 @@
         <component type="application" bom-ref="473cbbff5cc120e810c1a32cfa9925859f40ce8f">
           <group>sonatype</group>
           <name>iq_application_SCM_Test</name>
-          <licenses/>
           <purl>pkg:generic/sonatype/iq_application_SCM_Test</purl>
         </component>
         <component type="library" bom-ref="7ae27c3edb8c038436ae11c8ae2bb2d11087923f">

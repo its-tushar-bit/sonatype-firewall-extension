@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import org.apache.commons.io.FileUtils;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.cyclonedx.CycloneDxSchema.Version;
+import org.cyclonedx.Version;
 import org.junit.Before;
 import org.junit.Test;
 

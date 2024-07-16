@@ -24,8 +24,8 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.cyclonedx.BomParserFactory;
-import org.cyclonedx.CycloneDxSchema.Version;
+import org.cyclonedx.parsers.BomParserFactory;
+import org.cyclonedx.Version;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;

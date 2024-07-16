@@ -167,10 +167,12 @@ public class SbomIdentityUtils
           .withVersion(ThirdPartyScanResultUtils.getTruncatedVersion(swid.getVersion()))
           .withQualifier("tag_id", swid.getTagId());
 
-      if (swid.getTagVersion() != 0) {
+      // 1.6 requires checking for nulls as it returns now objects and not primitives int
+      if (swid.getTagVersion() != null &&  swid.getTagVersion() != 0) {
         packageURLBuilder.withQualifier("tag_version", String.valueOf(swid.getTagVersion()));
       }
-      if (swid.isPatch()) {
+      // 1.6 requires checking for nulls as it returns now objects and not primitives boolean
+      if (swid.isPatch() != null && swid.isPatch()) {
         packageURLBuilder.withQualifier("patch", "true");
       }
       processAttachmentText(packageURLBuilder, swid.getAttachmentText());

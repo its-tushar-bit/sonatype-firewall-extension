@@ -834,8 +834,8 @@ public class SbomResultHandlerTest
     assertThat(swid.getTagId()).isEqualTo("swidgen-242eb18a-503e-ca37-393b-cf156ef09691_9.1.1");
     assertThat(swid.getName()).isEqualTo("Acme Application");
     assertThat(swid.getVersion()).isEqualTo("9.1.1");
-    assertThat(swid.getTagVersion()).isEqualTo(0);
-    assertThat(swid.isPatch()).isFalse();
+    assertThat(swid.getTagVersion()).isNull();
+    assertThat(swid.isPatch()).isNull();
     assertThat(swid.getAttachmentText().getEncoding()).isEqualTo("base64");
     assertThat(swid.getAttachmentText().getContentType()).isEqualTo("text/xml");
     assertThat(swid.getAttachmentText().getText()).isEqualTo("PD94bWwgdmVyc");
@@ -851,9 +851,7 @@ public class SbomResultHandlerTest
             "\"tagId\":\"swidgen-242eb18a-503e-ca37-393b-cf156ef09691_9.1.1\"," +
             "\"name\":\"Acme Application\"," +
             "\"version\":\"9.1.1\"," +
-            "\"tagVersion\":0," +
-            "\"patch\":false," +
-            "\"text\":{\"encoding\":\"base64\",\"contentType\":\"text/xml\",\"content\":\"PD94bWwgdmVyc\"}}");
+            "\"text\":{\"contentType\":\"text/xml\",\"encoding\":\"base64\",\"content\":\"PD94bWwgdmVyc\"}}");
   }
 
   @Test

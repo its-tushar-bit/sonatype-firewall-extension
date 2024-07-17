@@ -11,7 +11,7 @@ import {
   getApplicationSummaryUrl,
   getSbomComponentDetailsUrl,
   getSbomVulnerabibilityAnalysisReferenceData,
-  saveSbomVulnerabilityAnnotationUrl,
+  getSbomVulnerabilityAnnotationUrl,
 } from 'MainRoot/util/CLMLocation';
 import ComponentDetailsPage from 'MainRoot/sbomManager/features/componentDetails/ComponentDetailsPage';
 import { defaultSortConfiguration } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
@@ -173,6 +173,30 @@ describe('ComponentDetailsPage', () => {
   const getVexDrawerSubmitButton = (container) =>
     container.querySelector('.vex-annotation-drawer__form__submit-button');
 
+  const openDeleteAnnotationModal = async () => {
+    renderPage();
+
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+    const vulnerabilityRows = screen.getAllByRole('row');
+    const dropdownFirstRow = within(vulnerabilityRows[1]).getByRole('button');
+    fireEvent.click(dropdownFirstRow);
+    const deleteButton = screen.getByRole('button', { name: 'Delete Annotation' });
+    expect(deleteButton).toBeVisible();
+    fireEvent.click(deleteButton);
+
+    const dialog = screen.queryByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+    const header = within(dialog).getByRole('heading', { level: 2 });
+    expect(header).toHaveTextContent('Delete annotation for sonatype-2018-0863');
+    const body = within(dialog).getByText(
+      'Are you sure you want to delete "resolved" annotation for sonatype-2018-0863?'
+    );
+    expect(body).toBeInTheDocument();
+
+    return dialog;
+  };
+
   beforeEach(() => {
     const preloadedState = {
       productFeatures: {
@@ -323,7 +347,7 @@ describe('ComponentDetailsPage', () => {
 
     axiosMock.onGet(getSbomVulnerabibilityAnalysisReferenceData()).reply(200, vulnerabilityAnalysisReferenceData);
     axiosMock
-      .onPut(saveSbomVulnerabilityAnnotationUrl(applicationInternalId, sbomVersion, 'sonatype-2018-0863'))
+      .onPut(getSbomVulnerabilityAnnotationUrl(applicationInternalId, sbomVersion, 'sonatype-2018-0863'))
       .reply(200, {});
 
     const { container } = renderPage();
@@ -342,6 +366,71 @@ describe('ComponentDetailsPage', () => {
     expect(saveButton).toBeInTheDocument();
     fireEvent.click(saveButton);
     await waitFor(() => expect(screen.getByText(/Success/)).toBeInTheDocument());
+  });
+
+  describe('should open Delete Annotation modal', () => {
+    it('and should close it when cancel', async () => {
+      axiosMock
+        .onGet(getApplicationSummaryUrl(applicationPublicId))
+        .reply(200, { id: applicationInternalId, name: 'test-app' });
+      axiosMock
+        .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
+        .reply(200, mockComponentDetails);
+
+      axiosMock.onGet(getSbomVulnerabibilityAnalysisReferenceData()).reply(200, vulnerabilityAnalysisReferenceData);
+      axiosMock
+        .onPut(getSbomVulnerabilityAnnotationUrl(applicationInternalId, sbomVersion, 'sonatype-2018-0863'))
+        .reply(200, {});
+      const dialog = await openDeleteAnnotationModal();
+      const cancelButton = queryByText(dialog.querySelector('.nx-form__cancel-btn'), 'Cancel');
+      expect(cancelButton).toBeInTheDocument();
+      fireEvent.click(cancelButton);
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    });
+
+    it('and should delete data when submit', async () => {
+      axiosMock
+        .onGet(getApplicationSummaryUrl(applicationPublicId))
+        .reply(200, { id: applicationInternalId, name: 'test-app' });
+      axiosMock
+        .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
+        .reply(200, mockComponentDetails);
+
+      axiosMock.onGet(getSbomVulnerabibilityAnalysisReferenceData()).reply(200, vulnerabilityAnalysisReferenceData);
+      axiosMock
+        .onDelete(getSbomVulnerabilityAnnotationUrl(applicationInternalId, sbomVersion, 'sonatype-2018-0863'))
+        .reply(200, {});
+
+      const dialog = await openDeleteAnnotationModal();
+      const submitButton = queryByText(dialog.querySelector('.nx-form__submit-btn'), 'Delete');
+      expect(submitButton).toBeInTheDocument();
+      fireEvent.click(submitButton);
+      await waitFor(() => expect(screen.getByText(/Success/)).toBeInTheDocument());
+    });
+
+    it('and should display retry button when errors', async () => {
+      axiosMock
+        .onGet(getApplicationSummaryUrl(applicationPublicId))
+        .reply(200, { id: applicationInternalId, name: 'test-app' });
+      axiosMock
+        .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
+        .reply(200, mockComponentDetails);
+
+      axiosMock.onGet(getSbomVulnerabibilityAnalysisReferenceData()).reply(200, vulnerabilityAnalysisReferenceData);
+      axiosMock
+        .onDelete(getSbomVulnerabilityAnnotationUrl(applicationInternalId, sbomVersion, 'sonatype-2018-0863'))
+        .reply(500, {});
+
+      const dialog = await openDeleteAnnotationModal();
+      const submitButton = queryByText(dialog.querySelector('.nx-form__submit-btn'), 'Delete');
+      expect(submitButton).toBeInTheDocument();
+      fireEvent.click(submitButton);
+      await waitFor(() =>
+        expect(
+          screen.getByText(/An error occurred saving data. Request failed with status code 500/)
+        ).toBeInTheDocument()
+      );
+    });
   });
 
   it('should open Vex Annotation drawer and display error message when failed loading analysis reference data', async () => {

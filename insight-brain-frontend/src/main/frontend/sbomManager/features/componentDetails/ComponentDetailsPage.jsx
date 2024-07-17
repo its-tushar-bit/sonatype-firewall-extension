@@ -25,6 +25,9 @@ import {
   selectLoadError,
   selectResponsesReferenceData,
   selectStatesReferenceData,
+  selectShowDeleteModal,
+  selectDeleteError,
+  selectDeleteMaskState,
 } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSelector';
 import { actions } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
 import { actions as billOfMaterialsActions } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
@@ -37,6 +40,7 @@ import SbomVulnerabilityDetailsPopover from 'MainRoot/sbomManager/features/compo
 
 import VexAnnotationDrawer from 'MainRoot/sbomManager/features/componentDetails/vexAnnotationsDrawer/VexAnnotationDrawer';
 import { isNil } from 'ramda';
+import DeleteAnnotationModal from 'MainRoot/sbomManager/features/componentDetails/DeleteAnnotationModal';
 
 export default function ComponentDetailsPage() {
   const dispatch = useDispatch();
@@ -53,6 +57,9 @@ export default function ComponentDetailsPage() {
   const { disclosedVulnerabilitiesSortConfiguration, additionalVulnerabilitiesSortConfiguration } = useSelector(
     selectSbomComponentDetails
   );
+  const showDeleteModal = useSelector(selectShowDeleteModal);
+  const deleteError = useSelector(selectDeleteError);
+  const deleteMaskState = useSelector(selectDeleteMaskState);
 
   const uiRouterState = useRouterState();
   const { applicationPublicId, sbomVersion, componentHash } = routerParams;
@@ -81,6 +88,17 @@ export default function ComponentDetailsPage() {
         },
       })
     );
+
+  const deleteVexAnnotation = () => {
+    dispatch(
+      actions.deleteVexAnnotation({
+        internalAppId,
+        sbomVersion,
+        vulnerabilityRefId: selectedVulnerability.issue,
+        componentLocator: { hash: componentDetails?.hash, packageUrl: componentDetails?.packageUrl },
+      })
+    );
+  };
 
   const loadVexReferenceData = () => {
     dispatch(actions.getVulnerabilityAnalysisReferenceData());
@@ -144,6 +162,16 @@ export default function ComponentDetailsPage() {
     openVulnerabilityDetailsModal({
       issue: selectedVulnerability?.issue,
     });
+  };
+
+  const openDeleteModal = (vulnerability) => {
+    dispatch(actions.setShowDeleteModal(true));
+    setSelectedVulnerability(vulnerability);
+  };
+
+  const cancelDeleteModal = () => {
+    dispatch(actions.setShowDeleteModal(false));
+    setSelectedVulnerability({});
   };
 
   return (
@@ -213,6 +241,7 @@ export default function ComponentDetailsPage() {
                 analysisStatusesOptions={analysisStatusesOptions}
                 sortConfiguration={disclosedVulnerabilitiesSortConfiguration}
                 toggleSortDirection={cycleDisclosedVulnerabilitiesSortDirection}
+                onDeleteOptionClick={openDeleteModal}
               ></VulnerabilitiesTile>
               <VulnerabilitiesTile
                 tableUniqueIdentifier={'sonatypeIdentifiedVulnerabilities'}
@@ -223,6 +252,7 @@ export default function ComponentDetailsPage() {
                 analysisStatusesOptions={analysisStatusesOptions}
                 sortConfiguration={additionalVulnerabilitiesSortConfiguration}
                 toggleSortDirection={cycleAdditionalVulnerabilitiesSortDirection}
+                onDeleteOptionClick={openDeleteModal}
               ></VulnerabilitiesTile>
               <ComponentDetailsDependencyTreeTile
                 componentDetails={componentDetails}
@@ -237,6 +267,15 @@ export default function ComponentDetailsPage() {
           reloadFunction={() => loadSbomComponentVulnerabilities(selectedVulnerability)}
           componentName={componentDetails?.packageUrl}
         ></SbomVulnerabilityDetailsPopover>
+        {showDeleteModal && (
+          <DeleteAnnotationModal
+            vulnerability={selectedVulnerability}
+            deleteAnnotationFromTable={deleteVexAnnotation}
+            deleteError={deleteError}
+            deleteMaskState={deleteMaskState}
+            onCancel={cancelDeleteModal}
+          ></DeleteAnnotationModal>
+        )}
       </NxPageMain>
     </>
   );

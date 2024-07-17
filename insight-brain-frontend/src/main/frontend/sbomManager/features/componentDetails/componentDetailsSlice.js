@@ -5,7 +5,7 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { always, findIndex, includes, prop, values, without } from 'ramda';
+import { always, compose, findIndex, includes, prop, values, without } from 'ramda';
 
 import {
   getApplicationSummaryUrl,
@@ -14,10 +14,12 @@ import {
   getSbomVulnerabibilityAnalysisReferenceData,
   getVulnerabilityJsonDetailUrl,
   getVulnerabilityOverrideUrl,
-  saveSbomVulnerabilityAnnotationUrl,
+  getSbomVulnerabilityAnnotationUrl,
 } from 'MainRoot/util/CLMLocation';
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
+import { propSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 const REDUCER_NAME = 'sbomComponentDetailsPage';
 
@@ -60,6 +62,9 @@ export const initialState = {
     states: [],
   },
   selectedIssueForActions: null,
+  deleteMaskState: null,
+  deleteError: null,
+  showDeleteModal: false,
 };
 
 const setSelectedIssueForActions = (state, { payload }) => {
@@ -136,6 +141,21 @@ const saveVexAnnotationRejected = function (state, { payload }) {
   state.loadSaveVexAnnotationFormError = payload.message;
 };
 
+const deleteVexAnnotationRequested = function (state) {
+  state.deleteMaskState = false;
+  state.deleteError = null;
+};
+
+const deleteVexAnnotationRejected = function (state, { payload }) {
+  state.deleteMaskState = null;
+  state.deleteError = payload.message;
+};
+
+const deleteVexAnnotationFulfilled = function (state) {
+  state.deleteMaskState = true;
+  state.deleteError = null;
+};
+
 const getVulnerabilityAnalysisReferenceDataRequested = function (state) {
   state.loadingVulnerabilityAnalysisReferenceData = true;
   state.loadVulnerabilityAnalysisReferenceDataError = null;
@@ -150,6 +170,14 @@ const getVulnerabilityAnalysisReferenceDataFulfilled = function (state, { payloa
 const getVulnerabilityAnalysisReferenceDataRejected = function (state, { payload }) {
   state.loadingVulnerabilityAnalysisReferenceData = false;
   state.loadVulnerabilityAnalysisReferenceDataError = payload.response.data;
+};
+
+const startMaskSuccessTimer = (dispatch, action) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(dispatch(action()));
+    }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+  });
 };
 
 const loadComponentDetails = createAsyncThunk(
@@ -225,13 +253,29 @@ const loadVulnerabilityDetails = createAsyncThunk(
 const saveVexAnnotation = createAsyncThunk(
   `${REDUCER_NAME}/saveVexAnnotation`,
   async ({ internalAppId, sbomVersion, vulnerabilityRefId, vexAnnotationFormData }, { rejectWithValue }) => {
-    const urlSaveUpdate = saveSbomVulnerabilityAnnotationUrl(internalAppId, sbomVersion, vulnerabilityRefId);
+    const urlSaveUpdate = getSbomVulnerabilityAnnotationUrl(internalAppId, sbomVersion, vulnerabilityRefId);
     try {
       const response = await axios.put(urlSaveUpdate, vexAnnotationFormData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error);
     }
+  }
+);
+
+const deleteVexAnnotation = createAsyncThunk(
+  `${REDUCER_NAME}/deleteVexAnnotation`,
+  async ({ internalAppId, sbomVersion, vulnerabilityRefId, componentLocator }, { rejectWithValue, dispatch }) => {
+    const url = getSbomVulnerabilityAnnotationUrl(internalAppId, sbomVersion, vulnerabilityRefId);
+    return axios
+      .delete(url, { data: componentLocator })
+      .then(() => {
+        startMaskSuccessTimer(dispatch, actions.deleteMaskTimerDone).then(() =>
+          dispatch(actions.setShowDeleteModal(false))
+        );
+        dispatch(actions.loadComponentDetails({ internalAppId, sbomVersion, componentHash: componentLocator.hash }));
+      })
+      .catch((err) => rejectWithValue(err));
   }
 );
 
@@ -305,6 +349,8 @@ const sbomComponentDetailsSlice = createSlice({
     cycleDisclosedVulnerabilitiesSortDirection,
     cycleAdditionalVulnerabilitiesSortDirection,
     setSelectedIssueForActions,
+    setShowDeleteModal: compose(propSetConst('deleteError', null), propSet('showDeleteModal')),
+    deleteMaskTimerDone: propSetConst('deleteMaskState', null),
   },
   extraReducers: {
     [loadComponentDetails.pending]: loadComponentDetailsRequested,
@@ -319,6 +365,9 @@ const sbomComponentDetailsSlice = createSlice({
     [saveVexAnnotation.pending]: saveVexAnnotationRequested,
     [saveVexAnnotation.fulfilled]: saveVexAnnotationFulfilled,
     [saveVexAnnotation.rejected]: saveVexAnnotationRejected,
+    [deleteVexAnnotation.pending]: deleteVexAnnotationRequested,
+    [deleteVexAnnotation.fulfilled]: deleteVexAnnotationFulfilled,
+    [deleteVexAnnotation.rejected]: deleteVexAnnotationRejected,
     [getVulnerabilityAnalysisReferenceData.pending]: getVulnerabilityAnalysisReferenceDataRequested,
     [getVulnerabilityAnalysisReferenceData.fulfilled]: getVulnerabilityAnalysisReferenceDataFulfilled,
     [getVulnerabilityAnalysisReferenceData.rejected]: getVulnerabilityAnalysisReferenceDataRejected,
@@ -333,6 +382,7 @@ export const actions = {
   loadVulnerabilityDetails,
   getVulnerabilityAnalysisReferenceData,
   saveVexAnnotation,
+  deleteVexAnnotation,
 };
 
 export default sbomComponentDetailsSlice.reducer;

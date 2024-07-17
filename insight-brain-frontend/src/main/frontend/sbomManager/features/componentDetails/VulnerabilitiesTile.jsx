@@ -75,6 +75,7 @@ export default function VulnerabilitiesTile(props) {
     analysisStatusesOptions,
     sortConfiguration,
     toggleSortDirection,
+    onDeleteOptionClick,
   } = props;
 
   const dispatch = useDispatch();
@@ -161,6 +162,7 @@ export default function VulnerabilitiesTile(props) {
               isOpen={isActionsOpen(vulnerability.issue)}
               onToggleCollapse={() => onActionsToggleCollapse(vulnerability.issue)}
               icon={faEllipsisV}
+              title={'Options'}
               aria-label={vulnerability.issue + '-actions'}
             >
               <button
@@ -174,6 +176,14 @@ export default function VulnerabilitiesTile(props) {
               >
                 {isRowAnnotated(vulnerability, analysisStatusesOptions) ? 'Edit Annotation' : 'Add Annotation'}
               </button>
+              {isRowAnnotated(vulnerability, analysisStatusesOptions) && (
+                <button
+                  onClick={() => onDeleteOptionClick(vulnerability)}
+                  className="nx-dropdown-button delete-annotation"
+                >
+                  Delete Annotation
+                </button>
+              )}
             </NxIconDropdown>
           </NxTable.Cell>
         </NxTable.Row>
@@ -241,4 +251,5 @@ VulnerabilitiesTile.propTypes = {
     sortDirection: PropTypes.string,
   }).isRequired,
   toggleSortDirection: PropTypes.func.isRequired,
+  onDeleteOptionClick: PropTypes.func,
 };

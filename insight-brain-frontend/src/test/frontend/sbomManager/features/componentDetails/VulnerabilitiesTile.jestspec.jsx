@@ -137,6 +137,7 @@ describe('Vulnerabilities Tile', () => {
     const dropdownFirstRow = within(firstRow).getByRole('button');
     fireEvent.click(dropdownFirstRow);
     expect(screen.getByRole('button', { name: 'Edit Annotation' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Delete Annotation' })).toBeVisible();
     fireEvent.click(dropdownFirstRow);
 
     const secondRow = tableRows[2];
@@ -149,6 +150,7 @@ describe('Vulnerabilities Tile', () => {
     const dropdownSecondRow = within(secondRow).getByRole('button');
     fireEvent.click(dropdownSecondRow);
     expect(screen.getByRole('button', { name: 'Add Annotation' })).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Delete Annotation' })).toBeNull();
     fireEvent.click(dropdownSecondRow);
 
     const thirdRow = tableRows[3];
@@ -161,6 +163,7 @@ describe('Vulnerabilities Tile', () => {
     const dropdownThirdRow = within(thirdRow).getByRole('button');
     fireEvent.click(dropdownThirdRow);
     expect(screen.getByRole('button', { name: 'Edit Annotation' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Delete Annotation' })).toBeVisible();
   });
 
   it('Renders Additional Sonatype Identified Vulnerabilities table', async () => {

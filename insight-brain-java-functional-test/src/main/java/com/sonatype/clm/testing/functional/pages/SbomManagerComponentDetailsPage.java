@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.ComponentDetailsSummaryTile;
+import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.DeleteAnnotationModal;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.DependencyTreeTile;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VulnerabilitiesTableTile;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VexAnnotationDrawer;
@@ -31,11 +32,13 @@ public class SbomManagerComponentDetailsPage
 
   VexAnnotationDrawer vexAnnotationDrawer;
 
+  DeleteAnnotationModal deleteAnnotationModal;
+
   public SbomManagerComponentDetailsPage(
       final ComponentDetailsSummaryTile componentDetailsSummaryTile, final VulnerabilitiesTableTile
       vulnerabilitiesTableTile, final VulnerabilitiesTableTile sonatypeVulnerabilitiesTile,
       final DependencyTreeTile dependencyTreeTile, final VulnerabilityDetailsPopover vulnerabilityDetailsPopover,
-      final VexAnnotationDrawer vexAnnotationDrawer)
+      final VexAnnotationDrawer vexAnnotationDrawer, final DeleteAnnotationModal deleteAnnotationModal)
   {
     this.componentDetailsSummaryTile = componentDetailsSummaryTile;
     this.vulnerabilitiesTableTile = vulnerabilitiesTableTile;
@@ -43,6 +46,7 @@ public class SbomManagerComponentDetailsPage
     this.dependencyTreeTile = dependencyTreeTile;
     this.vulnerabilityDetailsPopover = vulnerabilityDetailsPopover;
     this.vexAnnotationDrawer = vexAnnotationDrawer;
+    this.deleteAnnotationModal = deleteAnnotationModal;
   }
 
   public static String url(String applicationId, String versionId, String componentHash ) {
@@ -84,5 +88,9 @@ public class SbomManagerComponentDetailsPage
 
   public VexAnnotationDrawer vexAnnotationDrawer() {
     return vexAnnotationDrawer;
+  }
+
+  public DeleteAnnotationModal deleteAnnotationModal() {
+    return deleteAnnotationModal;
   }
 }

@@ -10,7 +10,7 @@ import React from 'react';
 import { cleanup, fireEvent, getByText, queryByText } from '@testing-library/react';
 import VexAnnotationDrawer from 'MainRoot/sbomManager/features/componentDetails/vexAnnotationsDrawer/VexAnnotationDrawer';
 import { formatDate } from 'MainRoot/util/dateUtils';
-import { saveSbomVulnerabilityAnnotationUrl } from 'MainRoot/util/CLMLocation';
+import { getSbomVulnerabilityAnnotationUrl } from 'MainRoot/util/CLMLocation';
 
 describe('VexAnnotationDrawer', () => {
   let renderDefaultComponent;
@@ -499,7 +499,7 @@ describe('VexAnnotationDrawer', () => {
     it('saves form successfully', async () => {
       axiosMock
         .onPut(
-          saveSbomVulnerabilityAnnotationUrl(
+          getSbomVulnerabilityAnnotationUrl(
             mockVexAnnotationDrawer.internalAppId,
             mockVexAnnotationDrawer.sbomVersion,
             mockVexAnnotationDrawer.issue
@@ -528,7 +528,7 @@ describe('VexAnnotationDrawer', () => {
     it('displays an error message when failing to save the form data', async () => {
       axiosMock
         .onPut(
-          saveSbomVulnerabilityAnnotationUrl(
+          getSbomVulnerabilityAnnotationUrl(
             mockVexAnnotationDrawer.internalAppId,
             mockVexAnnotationDrawer.sbomVersion,
             mockVexAnnotationDrawer.issue
@@ -559,7 +559,7 @@ describe('VexAnnotationDrawer', () => {
     it('updates data successfully', async () => {
       axiosMock
         .onPut(
-          saveSbomVulnerabilityAnnotationUrl(
+          getSbomVulnerabilityAnnotationUrl(
             mockVexAnnotationDrawer.internalAppId,
             mockVexAnnotationDrawer.sbomVersion,
             mockVexAnnotationDrawer.issue
@@ -593,7 +593,7 @@ describe('VexAnnotationDrawer', () => {
     it('displays error an message when failing to update the form data', async () => {
       axiosMock
         .onPut(
-          saveSbomVulnerabilityAnnotationUrl(
+          getSbomVulnerabilityAnnotationUrl(
             mockVexAnnotationDrawer.internalAppId,
             mockVexAnnotationDrawer.sbomVersion,
             mockVexAnnotationDrawer.issue

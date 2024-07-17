@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.sbom.manager;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.ComponentDetailsSummaryTile;
+import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.DeleteAnnotationModal;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.DependencyTreeTile;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VulnerabilitiesTableTile;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VexAnnotationDrawer;
@@ -59,7 +60,8 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
         new VulnerabilitiesTableTile("sonatypeIdentifiedVulnerabilities"),
         new DependencyTreeTile(),
         new VulnerabilityDetailsPopover(),
-        new VexAnnotationDrawer());
+        new VexAnnotationDrawer(),
+        new DeleteAnnotationModal());
 
     Selenide.open("/#");
     loginAsAdmin();
@@ -267,6 +269,44 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
         "Unverified", "test vulnerability2", "In triage",
         "Protected at perimeter", "Update", "Update",
         "XYZ edit");
+  }
+
+  @Test
+  public void testFeatureEnabled_opensDeleteAnnotationModal_cancelAndSubmitButtons() {
+    setTestData();
+
+    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
+        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+
+    SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
+        .getColumnData(1, 5);
+    actionButtonFirstRowColumn.shouldBe(visible);
+    ElementsCollection rowButtons = actionButtonFirstRowColumn.findAll("button");
+    SelenideElement ellipsisButton = rowButtons.get(0);
+    ellipsisButton.shouldBe(visible);
+    ellipsisButton.click();
+
+    SelenideElement deleteAnnotationButton = rowButtons.get(2);
+    deleteAnnotationButton.shouldBe(visible);
+    deleteAnnotationButton.shouldHave(text("Delete Annotation"));
+
+    deleteAnnotationButton.click();
+
+    DeleteAnnotationModal deleteModal = sbomManagerComponentDetailsPage.deleteAnnotationModal();
+    deleteModal.shouldBe(visible);
+
+    deleteModal.header().shouldBe(visible).shouldHave(text("Delete annotation for DEF-456"));
+    deleteModal.body().shouldBe(visible)
+        .shouldHave(text("Are you sure you want to delete \"exploitable\" annotation for DEF-456?"));
+    deleteModal.cancelButton().shouldBe(visible).shouldHave(text("Cancel"));
+    deleteModal.submitButton().shouldBe(visible).shouldHave(text("Delete"));
+    deleteModal.cancelButton().click();
+    deleteModal.shouldNotBe(visible);
+    ellipsisButton.click();
+    deleteAnnotationButton.click();
+    deleteModal.submitButton().click();
+    deleteModal.successModal().shouldBe(visible);
+    deleteModal.shouldNotBe(visible);
   }
 
   @Test

@@ -1482,7 +1482,7 @@ export const getSbomComponentDependencyTreeUrl = (componentHash) =>
 export const getAllApplicationSbomVersions = (applicationId) =>
   uriTemplate`/api/v2/sbom/applications/${applicationId}/versions`;
 
-export const saveSbomVulnerabilityAnnotationUrl = (applicationId, version, refId) =>
+export const getSbomVulnerabilityAnnotationUrl = (applicationId, version, refId) =>
   uriTemplate`/api/v2/sbom/applications/${applicationId}/versions/${version}/vulnerability/${refId}/analysis`;
 
 export const getSbomMetadataUrl = (applicationId, version) =>

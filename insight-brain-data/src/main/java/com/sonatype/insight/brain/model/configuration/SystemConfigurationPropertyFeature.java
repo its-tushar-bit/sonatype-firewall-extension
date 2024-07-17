@@ -207,7 +207,9 @@ public enum SystemConfigurationPropertyFeature
 
   SKIP_SBOM_IMPORT_VALIDATION(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION, false),
 
-  DEVELOPER_BULK_RECOMMENDATIONS(SystemConfigurationProperty.DEVELOPER_BULK_RECOMMENDATIONS, false);
+  DEVELOPER_BULK_RECOMMENDATIONS(SystemConfigurationProperty.DEVELOPER_BULK_RECOMMENDATIONS, false),
+
+  SECURE_SHARING(SystemConfigurationProperty.SECURE_SHARING, false);
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

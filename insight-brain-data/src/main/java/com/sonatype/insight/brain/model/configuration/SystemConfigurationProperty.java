@@ -229,6 +229,8 @@ public class SystemConfigurationProperty
 
   public static final String DEVELOPER_BULK_RECOMMENDATIONS = "developerBulkRecommendations";
 
+  public static final String SECURE_SHARING = "secureSharing";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

@@ -55,6 +55,14 @@ describe('OwnerSummary', () => {
             },
           },
           ownersMap: {},
+          policyMonitoring: {
+            monitoredStage: {},
+          },
+        },
+        stages: {
+          cli: {
+            stageTypes: null,
+          },
         },
       };
     });
@@ -125,8 +133,13 @@ describe('OwnerSummary', () => {
     });
 
     it('renders insufficient permissions tree', async () => {
-      preloadedState.orgsAndPolicies.ownerSideNav = { displayedOrganization: { synthetic: true } };
-      renderComponent(preloadedState);
+      const state = {
+        ...preloadedState,
+        orgsAndPolicies: {
+          ownerSideNav: { displayedOrganization: { synthetic: true } },
+        },
+      };
+      renderComponent(state);
       const treeMessage = await screen.findByText(
         'View all organizations and applications on which you have permissions. Click on the link for the org or app below to access details.'
       );
@@ -149,6 +162,57 @@ describe('OwnerSummary', () => {
       expect(await screen.queryByRole('heading', { name: 'SBOMs' })).not.toBeInTheDocument();
       expect(await screen.queryByRole('heading', { name: 'Access' })).not.toBeInTheDocument();
       expect(await screen.queryByRole('owner-summary-action-dropdown-container')).not.toBeInTheDocument();
+    });
+
+    it('hides non-SBOM pills when in SBOM Manager', async () => {
+      const stateSBOMtrue = {
+        ...preloadedState,
+        productFeatures: {
+          productFeatures: {
+            'sbom-manager': true,
+            'policy-monitoring': false,
+          },
+        },
+        router: {
+          currentState: {
+            name: 'sbomManager.management.view.organization',
+            url: '/sbomManager/management/view/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+      };
+      renderComponent(stateSBOMtrue);
+
+      expect(await screen.findByRole('heading', { name: 'Access' })).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Access' })).toBeVisible();
+
+      expect(screen.queryByRole('heading', { name: 'Continuous monitoring' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'SBOMs' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Application Categories' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Policies' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Legacy Violations' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Proprietary Component Configuration' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Component Labels' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'License Threat Groups' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Source Control' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'InnerSource Repositories' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Continuous monitoring' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'SBOMs' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Application Categories' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Policies' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Legacy Violations' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Proprietary Components' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Component Labels' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'License Threat Groups' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Source Control' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'InnerSource Repositories' })).not.toBeInTheDocument();
+      expect(screen.queryByTestId('owner-summary-action-dropdown-container')).not.toBeInTheDocument();
     });
 
     it('does render the Actions button if SBOM Manager disabled', async () => {
@@ -330,9 +394,31 @@ describe('OwnerSummary', () => {
       renderComponent(stateSBOMtrue);
 
       expect(await screen.findByRole('heading', { name: 'SBOMs' })).toBeVisible();
-      expect(await screen.findByRole('heading', { name: 'Access' })).toBeVisible();
-      expect(await screen.queryByRole('heading', { name: 'Component Labels' })).not.toBeInTheDocument();
-      expect(await screen.queryByTestId('owner-summary-action-dropdown-container')).not.toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Access' })).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Access' })).toBeVisible();
+      expect(screen.getByRole('button', { name: 'SBOMs' })).toBeVisible();
+
+      expect(screen.queryByRole('heading', { name: 'Continuous monitoring' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Application Categories' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Policies' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Legacy Violations' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Proprietary Component Configuration' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Component Labels' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'License Threat Groups' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Source Control' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'InnerSource Repositories' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Continuous monitoring' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Application Categories' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Policies' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Legacy Violations' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Proprietary Components' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Component Labels' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'License Threat Groups' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Source Control' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'InnerSource Repositories' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Component Labels' })).not.toBeInTheDocument();
+
+      expect(screen.queryByTestId('owner-summary-action-dropdown-container')).not.toBeInTheDocument();
     });
 
     it('false, and shows error when the SBOM Manager license is disabled', async () => {

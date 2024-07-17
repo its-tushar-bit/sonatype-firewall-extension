@@ -43,6 +43,36 @@ import { selectIsDisplayedOrganizationSynthetic } from 'MainRoot/OrgsAndPolicies
 import InsufficientPermissionOwnerHierarchyTree from 'MainRoot/OrgsAndPolicies/insufficientPermissionOwnerHierarchyTree/InsufficientPermissionOwnerHierarchyTree';
 import ImportSbomModal from 'MainRoot/OrgsAndPolicies/importSbomModal/ImportSbomModal';
 
+function DefaultTiles() {
+  return (
+    <>
+      <ApplicationCategoriesTile />
+      <PoliciesTile />
+      <LegacyViolationsTile />
+      <ContinuousMonitoringSummaryTile />
+      <ProprietaryComponentConfigurationTile />
+      <LabelsTile />
+      <LicenseThreatGroupSummaryTile />
+      <RetentionTile />
+      <SourceControlTile />
+      <InnerSourceRepositoryTile />
+      <ArtifactoryRepositoryTile />
+      <AccessTile />
+    </>
+  );
+}
+
+function SbomManagerTiles(isApp) {
+  return isApp ? (
+    <>
+      <SbomsTile />
+      <AccessTile />
+    </>
+  ) : (
+    <AccessTile />
+  );
+}
+
 export default function OwnerSummary() {
   const dispatch = useDispatch();
   const loading = useSelector(selectLoading);
@@ -106,24 +136,7 @@ export default function OwnerSummary() {
         className="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-viewport-sized__scrollable"
         id="owner-summary-sections"
       >
-        {isSbomManager && isApp ? (
-          <SbomsTile />
-        ) : (
-          <>
-            <ApplicationCategoriesTile />
-            <PoliciesTile />
-            <LegacyViolationsTile />
-            <ContinuousMonitoringSummaryTile />
-            <ProprietaryComponentConfigurationTile />
-            <LabelsTile />
-            <LicenseThreatGroupSummaryTile />
-            <RetentionTile />
-            <SourceControlTile />
-            <InnerSourceRepositoryTile />
-            <ArtifactoryRepositoryTile />
-          </>
-        )}
-        <AccessTile />
+        {isSbomManager ? SbomManagerTiles(isApp) : DefaultTiles()}
       </div>
       <DeleteOwnerModal />
       <LegacyViolationModal />

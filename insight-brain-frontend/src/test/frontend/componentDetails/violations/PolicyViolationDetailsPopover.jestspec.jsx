@@ -4,23 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { axiosMockAdapter, render, screen } from 'TestRoot/SpecUtil';
+import { render, screen } from 'TestRoot/SpecUtil';
 import PolicyViolationDetailsPopover from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationDetailsPopover';
-import {
-  getApplicableWaiversUrl,
-  getApplicationSummaryUrl,
-  getPermissionContextTestUrl,
-  getViolationDetailsUrl,
-} from 'MainRoot/util/CLMLocation';
+
 import { actions } from 'MainRoot/componentDetails/ViolationsTableTile/policyViolationsSlice';
 
 describe('PolicyViolationDetailsPopover', () => {
-  let renderComponent, state, mockAxiosCalls;
+  let renderComponent, state;
   const violationId = 'violationId';
-
-  beforeAll(() => {
-    mockAxiosCalls = axiosMockAdapter();
-  });
 
   beforeEach(() => {
     state = {
@@ -40,28 +31,8 @@ describe('PolicyViolationDetailsPopover', () => {
         ],
         selectedPolicyViolationId: violationId,
       },
+      violation: { loading: true },
     };
-
-    mockAxiosCalls.onGet(getViolationDetailsUrl(violationId)).reply(200, {
-      policyName: 'Some policy name',
-      threatLevel: 10,
-      policyOwner: {
-        ownerId: 'ROOT_ORGANIZATION_ID',
-        ownerName: 'Root Organization',
-        ownerType: 'organization',
-      },
-      applicationPublicId: 'appPublicId',
-      constraintViolations: [{ constraintName: 'name', reasons: [], conditions: [] }],
-      policyThreatCategory: 'SECURITY',
-    });
-    mockAxiosCalls.onGet(getApplicableWaiversUrl('violationId')).reply(200, {
-      activeWaivers: ['foo'],
-      expiredWaivers: ['bar'],
-    });
-    mockAxiosCalls.onGet(getApplicationSummaryUrl('appPublicId')).reply(200, { id: 'applicationPrivateId' });
-    mockAxiosCalls
-      .onPut(getPermissionContextTestUrl('application', 'applicationPrivateId'))
-      .reply(200, ['WAIVE_POLICY_VIOLATIONS']);
 
     renderComponent = (preloadedState = state) =>
       render(<PolicyViolationDetailsPopover onClose={jest.fn(() => {})} />, { preloadedState });
@@ -71,22 +42,18 @@ describe('PolicyViolationDetailsPopover', () => {
     jest.restoreAllMocks();
   });
 
-  //TODO CLM-29258 This test is brocken, is not reliable
-  xit('renders loading indicator and proper policy name', () => {
-    renderComponent();
-    const loading = screen.getByText('Loading…');
-    const violationName = screen.getByText('Violation of');
-    expect(loading).toBeInTheDocument();
-    expect(violationName).toBeInTheDocument();
-    expect(violationName).toHaveTextContent('Violation of Some policy name');
-  });
-
   it('while loading do not render add or request waiver button', () => {
     renderComponent();
-    const addWaiverButton = screen.queryByRole('button', { name: 'Add Waiver' });
-    const requestWaiverButton = screen.queryByRole('button', { name: 'Request Waiver' });
-    expect(addWaiverButton).toBe(null);
-    expect(requestWaiverButton).toBe(null);
+    const addWaiverButton = screen.queryByText('Add Waiver');
+    const requestWaiverButton = screen.queryByText('Request Waiver');
+    expect(addWaiverButton).not.toBeInTheDocument();
+    expect(requestWaiverButton).not.toBeInTheDocument();
+  });
+
+  it('while not loading render add or request waiver button', () => {
+    renderComponent({ ...state, violation: { loading: false } });
+    const requestWaiverButton = screen.getByText('Request Waiver');
+    expect(requestWaiverButton).toBeInTheDocument();
   });
 
   // This code was added to do a clean up for an edge case in the workflow

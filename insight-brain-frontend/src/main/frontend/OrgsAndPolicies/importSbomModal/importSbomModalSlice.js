@@ -5,183 +5,138 @@
  */
 import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { nxFileUploadStateHelpers, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
-import { always } from 'ramda';
+import { allPass, always, complement, is, isEmpty, isNil } from 'ramda';
 
+import { getImportSbomUrl, getCommitImportedSbomUrl } from 'MainRoot/util/CLMLocation';
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { getCommitImportedSbomUrl, getImportSbomUrl } from 'MainRoot/util/CLMLocation';
-
-import { selectImportSbomModalSlice } from './importSbomModalSelectors';
 import { selectSelectedOwnerId } from '../orgsAndPoliciesSelectors';
 
-const { initialState: rscInitialFileUploadState, userInput: userFileUploadInput } = nxFileUploadStateHelpers;
+const DEFAULT_ERROR_MESSAGE = 'Encountered unexpected error while attempting to upload.';
 
 const REDUCER_NAME = `${OWNER_ACTIONS}/importSbomModal`;
-const SUBMIT_MASK_IMPORT_MESSAGE = 'Importing…';
 
-export const initialState = {
+const isNonEmptyString = allPass([is(String), complement(isEmpty)]);
+
+export const IMPORT_STATE = Object.freeze({
+  INITIAL: null,
+  UPLOADING_COMMITTING: 0,
+  SUMMARY: 1,
+  ERROR: -1,
+});
+
+const sbomSummaryInitialState = Object.freeze({
+  versionId: null,
+  totalComponents: null,
+  totalVulnerabilities: null,
+});
+
+export const initialState = Object.freeze({
   isModalOpen: false,
 
-  file: rscInitialFileUploadState(null),
+  importState: IMPORT_STATE.INITIAL,
 
-  // null: default, -1: error, 0: uploading, 1: success
-  uploadState: null,
-  uploadFileProgress: 0,
-
-  // post upload
-  requestId: null,
-  componentCount: null,
-  vulnerabilityCount: null,
-  versionId: '',
-
-  submitError: null,
-  submitMaskState: null,
-  submitMaskMessage: null,
-};
+  uploadProgress: 0,
+  errorMessage: null,
+  sbomSummary: { ...sbomSummaryInitialState },
+});
 
 const setIsModalOpen = (state, { payload }) => {
-  if (payload) {
-    state.isModalOpen = true;
-  } else {
-    return { ...initialState };
-  }
+  state.isModalOpen = payload;
 };
 
-const setVersionId = (state, { payload }) => {
-  state.versionId = payload.trim();
+const setUploadProgress = (state, { payload }) => {
+  state.uploadProgress = payload;
 };
 
-const setupFileUpload = (state, { payload }) => {
-  state.file = payload;
-  state.uploadState = payload.files ? 0 : null;
-  state.submitError = null;
-};
-
-const updateUploadFileProgress = (state, { payload }) => {
-  state.uploadFileProgress = payload;
-};
-
-const uploadFile = createAsyncThunk(
-  `${REDUCER_NAME}/upload`,
-  (filePayload, { dispatch, getState, rejectWithValue }) => {
-    const state = getState();
-    const file = userFileUploadInput(filePayload);
-    dispatch(actions.setupFileUpload(file));
-
-    if (!file.files) {
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', file.files?.[0]);
-    formData.append('filename', file.files?.[0].name);
-
-    const appId = selectSelectedOwnerId(state);
-    return axios
-      .post(getImportSbomUrl(appId), formData, {
-        onUploadProgress: function (progressEvent) {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          dispatch(actions.updateUploadFileProgress(percentCompleted));
-        },
-      })
-      .then(({ data }) => {
-        if (data.errorMessage) {
-          throw new Error(data.errorMessage);
-        }
-        return data;
-      })
-      .catch(rejectWithValue);
-  }
-);
-
-const uploadFileFulfilled = (state, { payload }) => {
-  if (state.uploadState !== null) {
-    state.uploadState = 1;
-    state.submitError = null;
-
-    state.requestId = payload.requestId;
-    state.versionId = payload.sbomSummary?.applicationVersion || '';
-    state.componentCount = payload.sbomSummary?.componentCount;
-    state.vulnerabilityCount = payload.sbomSummary?.vulnerabilityCount;
-  }
-};
-
-const uploadFileFailed = (state, { payload }) => {
-  if (state.uploadState !== null) {
-    state.uploadState = -1;
-
-    handleError(state, payload);
-  }
-};
-
-const submitImport = createAsyncThunk(`${REDUCER_NAME}/import`, async (_, { getState, dispatch, rejectWithValue }) => {
+const uploadFile = createAsyncThunk(`${REDUCER_NAME}/uploadFile`, (file, { dispatch, getState, rejectWithValue }) => {
   const state = getState();
-  const { requestId } = selectImportSbomModalSlice(state);
   const appId = selectSelectedOwnerId(state);
 
+  if (isNil(file)) {
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('filename', file.name);
+
   return axios
-    .post(getCommitImportedSbomUrl(appId, requestId))
+    .post(getImportSbomUrl(appId), formData, {
+      onUploadProgress: (progressEvent) => {
+        const percentCompleted = Math.round((progressEvent.loaded * 10) / progressEvent.total);
+        dispatch(actions.setUploadProgress(percentCompleted));
+      },
+    })
     .then(({ data }) => {
-      startSubmitMaskSuccessTimer(() => dispatch(actions.reset()));
+      if (isNonEmptyString(data.errorMessage)) {
+        throw new Error(data.errorMessage);
+      }
+      dispatch(actions.commitFile(data.requestId));
       return data;
     })
     .catch(rejectWithValue);
 });
 
-const submitImportRequested = (state) => {
-  state.submitMaskState = false;
-  state.submitMaskMessage = SUBMIT_MASK_IMPORT_MESSAGE;
-  state.submitError = null;
+const uploadFilePending = (state) => {
+  state.importState = IMPORT_STATE.UPLOADING_COMMITTING;
 };
 
-const submitImportFulfilled = (state) => {
-  state.submitMaskState = true;
+const uploadFileFulfilled = (state, { payload }) => {
+  state.importState = IMPORT_STATE.UPLOADING_COMMITTING;
+  state.sbomSummary.versionId = payload.sbomSummary.applicationVersion;
+  state.sbomSummary.totalComponents = payload.sbomSummary.componentCount;
+  state.sbomSummary.totalVulnerabilities = payload.sbomSummary.vulnerabilityCount;
 };
 
-const submitImportFailed = (state, { payload }) => {
-  state.submitMaskState = null;
+const commitFile = createAsyncThunk(`${REDUCER_NAME}/commitFile`, async (requestId, { getState, rejectWithValue }) => {
+  const state = getState();
+  const appId = selectSelectedOwnerId(state);
+  return axios
+    .post(getCommitImportedSbomUrl(appId, requestId))
+    .then(({ data }) => {
+      if (isNonEmptyString(data.errorMessage)) {
+        throw new Error(data.errorMessage);
+      }
+      return data;
+    })
+    .catch(rejectWithValue);
+});
 
-  handleError(state, payload);
+const commitFilePending = (state) => {
+  state.importState = IMPORT_STATE.UPLOADING_COMMITTING;
 };
 
-function handleError(state, payload) {
-  if (payload.response && payload.response.status === 402) {
-    state.submitError =
-      'You have reached the maximum limit of SBOM imports allowed. Please delete existing SBOMs or contact support to increase your limit.';
-  } else if (payload instanceof Error) {
-    state.submitError = payload.message;
-  } else {
-    state.submitError = Messages.getHttpErrorMessage(payload);
-  }
-}
+const commitFileFulfilled = (state) => {
+  state.importState = IMPORT_STATE.SUMMARY;
+};
 
-function startSubmitMaskSuccessTimer(callback) {
-  setTimeout(callback, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
-}
+const uploadOrCommitFileFailed = (state, { payload }) => {
+  state.importState = IMPORT_STATE.ERROR;
+  state.errorMessage = isNonEmptyString(payload.message) ? payload.message : DEFAULT_ERROR_MESSAGE;
+};
 
 const importSbomModal = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
-    reset: always(initialState),
     setIsModalOpen,
-    setVersionId,
-    setupFileUpload,
-    updateUploadFileProgress,
+    setUploadProgress,
+    reset: always(initialState),
   },
   extraReducers: {
+    [uploadFile.pending]: uploadFilePending,
     [uploadFile.fulfilled]: uploadFileFulfilled,
-    [uploadFile.rejected]: uploadFileFailed,
-    [submitImport.pending]: submitImportRequested,
-    [submitImport.fulfilled]: submitImportFulfilled,
-    [submitImport.rejected]: submitImportFailed,
+    [uploadFile.rejected]: uploadOrCommitFileFailed,
+    [commitFile.pending]: commitFilePending,
+    [commitFile.fulfilled]: commitFileFulfilled,
+    [commitFile.rejected]: uploadOrCommitFileFailed,
   },
 });
 
 export default importSbomModal.reducer;
+
 export const actions = {
   ...importSbomModal.actions,
   uploadFile,
-  submitImport,
+  commitFile,
 };

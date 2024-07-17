@@ -3,122 +3,153 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  NxButton,
+  NxDescriptionList,
+  NxErrorAlert,
   NxFileUpload,
+  nxFileUploadStateHelpers,
+  NxFooter,
   NxFormGroup,
   NxH2,
   NxInfoAlert,
   NxModal,
   NxProgressBar,
-  NxStatefulForm,
   NxTextInput,
 } from '@sonatype/react-shared-components';
-import { always, cond, equals } from 'ramda';
-import classNames from 'classnames';
+import { always, complement, compose, is, isNil, toString, when } from 'ramda';
+
+import { actions as toastActions } from 'MainRoot/toastContainer/toastSlice';
 
 import { actions } from './importSbomModalSlice';
 import { selectImportSbomModalSlice } from './importSbomModalSelectors';
 import { selectSelectedOwnerName } from '../orgsAndPoliciesSelectors';
+import { IMPORT_STATE } from './importSbomModalSlice';
 
-import './importSbomModal.scss';
+import './ImportSbomModal.scss';
+
+const POST_IMPORT_TOAST_MESSAGE =
+  'SBOM is currently being evaluated and will be available in the SBOM table shortly.\n' +
+  'Please refresh the page after few minutes to see newly imported SBOM.';
+
+const ensureString = compose(when(complement(is(String)), toString), when(isNil, always('')));
 
 export default function ImportSbomModal() {
   const dispatch = useDispatch();
+  const [fileUploadState, setFileUploadState] = useState(nxFileUploadStateHelpers.initialState(null));
+  // Store the File (non-serializable)
+  const fileRef = useRef(null);
 
-  const {
-    isModalOpen,
-
-    file,
-    uploadState,
-    uploadFileProgress,
-
-    versionId,
-    componentCount,
-    vulnerabilityCount,
-
-    submitMaskState,
-    submitMaskMessage,
-    submitError,
-  } = useSelector(selectImportSbomModalSlice);
+  const { isModalOpen, importState, uploadProgress, sbomSummary, errorMessage } = useSelector(
+    selectImportSbomModalSlice
+  );
   const applicationName = useSelector(selectSelectedOwnerName);
-  const isFileUploadSuccessful = uploadState === 1;
 
-  const closeModal = () => dispatch(actions.setIsModalOpen(false));
-  const uploadFile = (file) => dispatch(actions.uploadFile(file));
-  const submitImport = () => {
-    if (isFileUploadSuccessful) dispatch(actions.submitImport());
+  const closeModal = () => {
+    if (importState === IMPORT_STATE.SUMMARY) {
+      dispatch(toastActions.addToast({ type: 'info', message: POST_IMPORT_TOAST_MESSAGE }));
+    }
+    fileRef.current = null;
+    setFileUploadState(nxFileUploadStateHelpers.initialState(null));
+    dispatch(actions.reset());
   };
-  const versionIdHandler = (value) => dispatch(actions.setVersionId(value));
 
-  const progressBarLabel = cond([
-    [equals(-1), always({ label: 'Upload failed', labelError: 'Upload failed' })],
-    [equals(0), always({ label: `Uploading ${file.files?.[0]?.name} file` })],
-    [equals(1), always({ label: 'Upload successful!', labelSuccess: 'Upload successful!' })],
-  ])(uploadState);
+  const handleSelectFile = (files) => {
+    if (!isNil(files?.[0])) {
+      fileRef.current = files?.[0];
+    }
+    setFileUploadState(nxFileUploadStateHelpers.userInput(files));
+  };
 
-  const progressBar = () =>
-    uploadState !== null ? (
-      <NxProgressBar id="import-sbom-modal-progress-bar" value={uploadFileProgress} {...progressBarLabel} />
+  const handleImportSBOM = () => dispatch(actions.uploadFile(fileRef.current));
+
+  const initialOrErrorImportState = [IMPORT_STATE.INITIAL, IMPORT_STATE.ERROR].includes(importState);
+  const initialContent = initialOrErrorImportState ? (
+    <>
+      <NxFormGroup label="Upload SBOM File" isRequired>
+        <NxFileUpload
+          {...fileUploadState}
+          data-testid="import-sbom-modal-file-upload"
+          onChange={handleSelectFile}
+          isRequired
+        />
+      </NxFormGroup>
+      {errorMessage ? <NxErrorAlert>{errorMessage}</NxErrorAlert> : null}
+    </>
+  ) : null;
+
+  const uploadingAndCommittingContent =
+    importState === IMPORT_STATE.UPLOADING_COMMITTING ? (
+      <NxProgressBar value={uploadProgress} showSteps max={10} variant="full" label="Uploading..." />
     ) : null;
 
-  const postUploadContent = () =>
-    isFileUploadSuccessful ? (
+  const summaryContent =
+    importState === IMPORT_STATE.SUMMARY ? (
       <>
-        <NxFormGroup label="Application Name" sublabel={`SBOM linked to Application ${applicationName}`}>
+        <dl className="sbom-manager-import-sbom-modal__application-name">
+          <dt>Application Name</dt>
+          <dd>{applicationName}</dd>
+        </dl>
+
+        <NxFormGroup
+          label="Version Id"
+          sublabel="The import time is used when the version id cannot be located in the file."
+        >
           <NxTextInput
-            id="import-sbom-modal-application-name-input"
-            value={applicationName}
+            name="version-id"
+            title="Version Id"
+            value={ensureString(sbomSummary.versionId)}
             isPristine={true}
             disabled
           />
         </NxFormGroup>
 
-        <NxFormGroup label="Version Id" sublabel="Version value cannot be edited">
-          <NxTextInput
-            id="import-sbom-modal-version-id-input"
-            value={versionId}
-            isPristine={true}
-            onChange={versionIdHandler}
-            disabled
-          />
-        </NxFormGroup>
+        <NxDescriptionList>
+          <NxDescriptionList.Item>
+            <NxDescriptionList.Term>Total Components:</NxDescriptionList.Term>
+            <NxDescriptionList.Description data-testid="import-sbom-modal-total-components">
+              {sbomSummary.totalComponents}
+            </NxDescriptionList.Description>
+          </NxDescriptionList.Item>
+          <NxDescriptionList.Item>
+            <NxDescriptionList.Term>Total Vulnerabilities:</NxDescriptionList.Term>
+            <NxDescriptionList.Description data-testid="import-sbom-modal-total-vulnerabilities">
+              {sbomSummary.totalVulnerabilities}
+            </NxDescriptionList.Description>
+          </NxDescriptionList.Item>
+        </NxDescriptionList>
 
-        <NxInfoAlert id="import-sbom-modal-info-alert" data-testid="import-sbom-modal-info-alert">
-          <strong>{componentCount} components</strong> and <strong>{vulnerabilityCount} vulnerabilities</strong> will be
-          included with uploaded file.
+        <NxInfoAlert>
+          Closing the modal will not interrupt the evaluation; it will still be in progress until completed. Once the{' '}
+          evaluation is complete, you can view the SBOM in the SBOM table.
         </NxInfoAlert>
       </>
     ) : null;
 
   return isModalOpen ? (
-    <NxModal id="import-sbom-modal" className="import-sbom-modal" onCancel={closeModal}>
-      <NxStatefulForm
-        id="import-sbom-modal-form"
-        submitBtnClasses={classNames('import-sbom-modal__submit-button', {
-          disabled: !isFileUploadSuccessful,
-        })}
-        onSubmit={submitImport}
-        onCancel={closeModal}
-        submitBtnText="Finish Import"
-        submitMaskState={submitMaskState}
-        submitMaskMessage={submitMaskMessage}
-        submitError={submitError}
-        submitErrorTitleMessage={'An error occurred while importing the SBOM file.'}
-        validationErrors={undefined}
-      >
-        <NxModal.Header>
-          <NxH2>Import SBOM for Application {applicationName}</NxH2>
-        </NxModal.Header>
-        <NxModal.Content>
-          <NxFormGroup label="Upload SBOM File" isRequired>
-            <NxFileUpload data-testid="import-sbom-modal-file-upload" onChange={uploadFile} {...file} isRequired />
-          </NxFormGroup>
-          {progressBar()}
-          {postUploadContent()}
-        </NxModal.Content>
-      </NxStatefulForm>
+    <NxModal id="import-sbom-modal" className="sbom-manager-import-sbom-modal" onCancel={closeModal}>
+      <NxModal.Header>
+        <NxH2>Import SBOM for Application {applicationName}</NxH2>
+      </NxModal.Header>
+      <NxModal.Content>
+        {initialContent}
+        {uploadingAndCommittingContent}
+        {summaryContent}
+      </NxModal.Content>
+      <NxFooter>
+        <div className="nx-btn-bar">
+          {importState !== IMPORT_STATE.UPLOADING_COMMITTING ? (
+            <NxButton onClick={closeModal}>{importState === IMPORT_STATE.SUMMARY ? 'Close' : 'Cancel'}</NxButton>
+          ) : null}
+          {initialOrErrorImportState ? (
+            <NxButton variant="primary" onClick={handleImportSBOM} disabled={!fileUploadState.files}>
+              Import SBOM
+            </NxButton>
+          ) : null}
+        </div>
+      </NxFooter>
     </NxModal>
   ) : null;
 }

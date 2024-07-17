@@ -4,14 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { nxFileUploadStateHelpers } from '@sonatype/react-shared-components';
 
 import ImportSbomModal from 'MainRoot/OrgsAndPolicies/importSbomModal/ImportSbomModal';
+import { IMPORT_STATE } from 'MainRoot/OrgsAndPolicies/importSbomModal/importSbomModalSlice';
 import { getCommitImportedSbomUrl, getImportSbomUrl } from 'MainRoot/util/CLMLocation';
 
-import { axiosMockAdapter, fireEvent, render, screen, waitFor } from 'TestRoot/SpecUtil';
-
-const { initialState: rscInitialFileUploadState } = nxFileUploadStateHelpers;
+import { axiosMockAdapter, fireEvent, render, screen } from 'TestRoot/SpecUtil';
 
 describe('ImportSbomModal', () => {
   let renderComponent, axiosMock, defaultPreloadedState;
@@ -37,16 +35,14 @@ describe('ImportSbomModal', () => {
         ownerActions: {
           importSbomModal: {
             isModalOpen: true,
-            file: rscInitialFileUploadState(null),
-            uploadState: null,
-            uploadFileProgress: 0,
-            requestId: null,
-            componentCount: null,
-            vulnerabilityCount: null,
-            versionId: '',
-            submitError: null,
-            submitMaskState: null,
-            submitMaskMessage: null,
+            importState: IMPORT_STATE.INITIAL,
+            uploadProgress: 0,
+            errorMessage: null,
+            sbomSummary: {
+              versionId: null,
+              totalComponents: null,
+              totalVulnerabilities: null,
+            },
           },
         },
       },
@@ -56,72 +52,51 @@ describe('ImportSbomModal', () => {
       render(<ImportSbomModal />, { preloadedState: { ...defaultPreloadedState, ...preloadedState } });
   });
 
-  it('doesn"t show modal without being open', () => {
-    renderComponent({
-      productFeatures: {
-        productFeatures: {
-          'sbom-manager': true,
-        },
-      },
-      orgsAndPolicies: {
-        root: {
-          selectedOwner: {
-            id: 'testApplicationId',
-            name: 'testApplicationName',
+  describe('show/hide Modal', () => {
+    it('should hide modal when it is not open', () => {
+      renderComponent({
+        orgsAndPolicies: {
+          ownerActions: {
+            importSbomModal: {
+              isModalOpen: false,
+            },
           },
         },
-        ownerActions: {
-          importSbomModal: {
-            isModalOpen: false,
-            file: rscInitialFileUploadState(null),
-            uploadState: null,
-            uploadFileProgress: 0,
-            requestId: null,
-            componentCount: null,
-            vulnerabilityCount: null,
-            versionId: '',
-            submitError: null,
-            submitMaskState: null,
-            submitMaskMessage: null,
+      });
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('should show the modal when it is open', () => {
+      renderComponent({
+        orgsAndPolicies: {
+          ownerActions: {
+            importSbomModal: {
+              isModalOpen: true,
+            },
           },
         },
-      },
+      });
+      expect(screen.queryByRole('dialog')).toBeInTheDocument();
     });
-    const title = screen.queryByText('Import SBOM for Application testApplicationName');
-    expect(title).not.toBeInTheDocument();
-  });
 
-  it('shows modal with the correct title', () => {
-    renderComponent();
-    const title = screen.getByText('Import SBOM for Application testApplicationName');
-    expect(title).toBeVisible();
-  });
-
-  it('shows uploadFile and buttons on first open', async () => {
-    renderComponent();
-    const fileUpload = await screen.findByTestId('import-sbom-modal-file-upload');
-    expect(fileUpload).toBeInTheDocument();
-    const submitButton = await screen.findByRole('button', { name: 'Finish Import' });
-    expect(submitButton).toHaveClass('disabled');
-    const cancelButton = await screen.findByRole('button', { name: 'Cancel' });
-    expect(cancelButton).toBeVisible();
-  });
-
-  it('closes modal on cancel', async () => {
-    renderComponent();
-
-    const cancelButton = await screen.findByRole('button', { name: 'Cancel' });
-    fireEvent.click(cancelButton);
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-  });
-
-  describe('upload file', () => {
-    const someFile = [{ name: 'test file' }];
-    const str = JSON.stringify(someFile);
-    const blob = new Blob([str]);
-    const file = new File([blob], 'testFile.json', {
-      type: 'application/JSON',
+    it('closes the modal on cancel', () => {
+      async () => {
+        renderComponent();
+        expect(screen.queryByRole('dialog')).toBeInTheDocument();
+        const cancelButton = await screen.findByRole('button', { name: 'Cancel' });
+        fireEvent.click(cancelButton);
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      };
     });
+  });
+
+  describe('Modal Content', () => {
+    const createTestFile = () => {
+      const blob = new Blob([JSON.stringify([{ name: 'file-content' }])]);
+      return new File([blob], 'test-file.json', {
+        type: 'application/JSON',
+      });
+    };
 
     const fakeFileList = (...files) => {
       const retval = {
@@ -131,9 +106,7 @@ describe('ImportSbomModal', () => {
         },
         length: files.length,
       };
-
       Object.setPrototypeOf(retval, FileList.prototype);
-
       return retval;
     };
 
@@ -145,161 +118,132 @@ describe('ImportSbomModal', () => {
       });
     };
 
-    beforeEach(() => {
-      axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply((config) => {
-        const total = 1024; // mocked file size
-        const progress = 0.5;
-        if (config.onUploadProgress) {
-          config.onUploadProgress({ loaded: total * progress, total });
-        }
-        return new Promise(() => {});
+    describe('Initial State', () => {
+      it('shows the correct content', () => {
+        renderComponent();
+        expect(screen.getByText('Import SBOM for Application testApplicationName')).toBeInTheDocument();
+        expect(screen.getByTestId('import-sbom-modal-file-upload')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Cancel/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Import SBOM/i })).toBeInTheDocument();
+      });
+
+      it('should disable import SBOM until a file is selected', async () => {
+        renderComponent();
+        const importButton = screen.getByRole('button', { name: /Import SBOM/i });
+        expect(importButton).toBeVisible();
+        expect(importButton).toBeDisabled();
+        setFileUploadValue(await screen.findByTestId('import-sbom-modal-file-upload'), createTestFile());
+        expect(importButton).not.toBeDisabled();
       });
     });
 
-    it('renders uploaded file progress', async () => {
-      renderComponent();
+    describe('Uploading/Committing', () => {
+      it('shows the correct content', async () => {
+        axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply((config) => {
+          const total = 1024; // Mocked file size
+          const progress = 0.5;
+          if (config.onUploadProgress) {
+            config.onUploadProgress({ loaded: total * progress, total });
+          }
+          return new Promise(() => {});
+        });
 
-      const fileUpload = await screen.findByTestId('import-sbom-modal-file-upload');
-      setFileUploadValue(fileUpload, file);
+        renderComponent();
 
-      expect(screen.getByText('testFile.json')).toBeInTheDocument();
-      expect(await screen.getByRole('progressbar')).toBeVisible();
-      expect(screen.getByText('Uploading testFile.json file')).toBeVisible();
-      await waitFor(async () => expect(screen.getByText('50%')).toBeVisible());
+        setFileUploadValue(await screen.findByTestId('import-sbom-modal-file-upload'), createTestFile());
+        const importButton = screen.getByRole('button', { name: /Import SBOM/i });
+        fireEvent.click(importButton);
 
-      const submitButton = await screen.findByRole('button', { name: 'Finish Import' });
-      expect(submitButton).toHaveClass('disabled');
-    });
+        expect(await screen.findByRole('progressbar')).toBeVisible();
+        expect(await screen.findByText('Uploading...')).toBeVisible();
 
-    it('renders post upload details', async () => {
-      axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply(200, {
-        requestId: 'requestId',
-        sbomSummary: {
-          componentCount: 123,
-          vulnerabilityCount: 456,
-          applicationVersion: '0.1',
-        },
+        expect(screen.queryByRole('button', { name: /Cancel/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /Close/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /Import SBOM/i })).not.toBeInTheDocument();
       });
-
-      renderComponent();
-
-      const fileUpload = await screen.findByTestId('import-sbom-modal-file-upload');
-      setFileUploadValue(fileUpload, file);
-      expect(screen.getByText('testFile.json')).toBeInTheDocument();
-
-      const applicationNameInput = await screen.findByRole('textbox', { name: 'Application Name' });
-      expect(applicationNameInput).toBeVisible();
-      expect(applicationNameInput.value).toBe('testApplicationName');
-
-      const versionIdInput = await screen.findByRole('textbox', { name: 'Version Id' });
-      expect(versionIdInput).toBeVisible();
-      expect(versionIdInput.value).toBe('0.1');
-
-      expect(screen.getByTestId('import-sbom-modal-info-alert').textContent).toBe(
-        '123 components and 456 vulnerabilities will be included with uploaded file.'
-      );
-
-      const submitButton = await screen.findByRole('button', { name: 'Finish Import' });
-      expect(submitButton).not.toHaveClass('disabled');
     });
 
-    it('shows error alert with upload issue', async () => {
-      axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply(200, {
-        requestId: 'requestId',
-        sbomSummary: null,
-        errorMessage: 'Error Message',
+    describe('Summary', () => {
+      it('shows post upload details', async () => {
+        axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply(200, {
+          requestId: 'request-id',
+          sbomSummary: {
+            specification: 'CycloneDx',
+            format: 'json',
+            version: '1.4',
+            componentCount: 1,
+            vulnerabilityCount: 2,
+            applicationName: null,
+            applicationVersion: '1.2.3',
+            serialNumber: 'urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79',
+            creationDetails: null,
+          },
+          errorMessage: null,
+        });
+        axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', 'request-id')).reply(201, {});
+
+        renderComponent();
+
+        setFileUploadValue(await screen.findByTestId('import-sbom-modal-file-upload'), createTestFile());
+        const importButton = screen.getByRole('button', { name: /import SBOM/i });
+
+        fireEvent.click(importButton);
+
+        expect(await screen.findByText('Application Name')).toBeVisible();
+        expect(await screen.findByText('testApplicationName')).toBeVisible();
+
+        const versionIdTextBox = await screen.findByRole('textbox', { name: /version id/i });
+        expect(versionIdTextBox).toHaveValue('1.2.3');
+        expect(versionIdTextBox).toBeDisabled();
+
+        expect(await screen.findByText('Total Components:')).toBeVisible();
+        expect(await screen.findByTestId('import-sbom-modal-total-components')).toHaveTextContent('1');
+
+        expect(await screen.findByText('Total Vulnerabilities:')).toBeVisible();
+        expect(await screen.findByTestId('import-sbom-modal-total-vulnerabilities')).toHaveTextContent('2');
+
+        expect(
+          await screen.findByText(
+            'Closing the modal will not interrupt the evaluation; it will still be in progress until completed. ' +
+              'Once the evaluation is complete, you can view the SBOM in the SBOM table.'
+          )
+        ).toBeInTheDocument();
+
+        expect(screen.queryByRole('button', { name: 'Import SBOM' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument();
+
+        const closeButton = await screen.findByRole('button', { name: 'Close' });
+        expect(closeButton).toBeVisible();
+
+        fireEvent.click(closeButton);
+
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
       });
-      renderComponent();
-      const fileUpload = await screen.findByTestId('import-sbom-modal-file-upload');
-      setFileUploadValue(fileUpload, file);
-      expect(screen.getByText('testFile.json')).toBeInTheDocument();
-
-      expect(await screen.findByRole('alert')).toBeVisible();
-      expect(await screen.findByRole('button', { name: 'Retry' })).toBeVisible();
-
-      expect(await screen.findByText('An error occurred while importing the SBOM file. Error Message')).toBeVisible();
-
-      const submitButton = await screen.findByRole('button', { name: 'Finish Import' });
-      expect(submitButton).toHaveClass('disabled');
     });
 
-    it('shows error alert when max sboms limit reached', async () => {
-      axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply(402, {});
-      renderComponent();
-      const fileUpload = await screen.findByTestId('import-sbom-modal-file-upload');
-      setFileUploadValue(fileUpload, file);
-      expect(screen.getByText('testFile.json')).toBeInTheDocument();
+    describe('Error', () => {
+      it('should show an error alert', () => {
+        // We're not testing mock responses here, due to js-dom FileList error with NxFileUpload.
+        // When NxFileUpload is initially mounted with a fake "FileList" passed into the files prop, in js-dom, it throws an error:
+        // Failed to set the 'files' property on 'HTMLInputElement': The provided value is not of type 'FileList'
+        // This does not occur on other implementations because they were initially mounted with a null value.
+        // So far there is no way to construct a proper mock "real" FileList object (DataTransfer is not supported) in js-dom.
+        // Instead, we will be testing this in the functional tests.
+        renderComponent({
+          orgsAndPolicies: {
+            ownerActions: {
+              importSbomModal: {
+                isModalOpen: true,
+                importState: IMPORT_STATE.ERROR,
+                errorMessage: 'Something went wrong.',
+              },
+            },
+          },
+        });
 
-      expect(await screen.findByRole('alert')).toBeVisible();
-      expect(await screen.findByRole('button', { name: 'Retry' })).toBeVisible();
-
-      expect(
-        await screen.findByText(
-          'An error occurred while importing the SBOM file. You have reached the maximum limit of SBOM imports allowed. Please delete existing SBOMs or contact support to increase your limit.'
-        )
-      ).toBeVisible();
-
-      const submitButton = await screen.findByRole('button', { name: 'Finish Import' });
-      expect(submitButton).toHaveClass('disabled');
-    });
-  });
-
-  describe('submit import', () => {
-    beforeEach(() => {
-      const {
-        orgsAndPolicies: {
-          ownerActions: { importSbomModal },
-        },
-      } = defaultPreloadedState;
-      importSbomModal.requestId = 'requestIdTest';
-      importSbomModal.uploadState = 1;
-      importSbomModal.uploadFileProgress = 100;
-    });
-
-    it('shows importing mask upon submitting an import', async () => {
-      renderComponent();
-
-      fireEvent.click(await screen.findByRole('button', { name: 'Finish Import' }));
-
-      expect(screen.getByRole('status')).toBeVisible();
-      expect(screen.getByText('Importing…')).toBeVisible();
-    });
-
-    it('shows success mask upon a successful import', async () => {
-      axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', 'requestIdTest')).reply(201);
-      renderComponent();
-
-      fireEvent.click(await screen.findByRole('button', { name: 'Finish Import' }));
-
-      expect(screen.getByRole('status')).toBeVisible();
-      expect(await screen.findByText('Success!')).toBeVisible();
-    });
-
-    it('shows error alert with submit issue', async () => {
-      axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', 'requestIdTest')).reply(500, 'Test error');
-      renderComponent();
-
-      fireEvent.click(await screen.findByRole('button', { name: 'Finish Import' }));
-
-      const alert = await screen.findByRole('alert');
-      expect(alert).toBeVisible();
-      expect(alert.textContent).toContain('An error occurred while importing the SBOM file.');
-      expect(await screen.findByRole('button', { name: 'Retry' })).toBeVisible();
-    });
-
-    it('shows error alert when max sboms limit reached', async () => {
-      axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', 'requestIdTest')).reply(402, '');
-      renderComponent();
-
-      fireEvent.click(await screen.findByRole('button', { name: 'Finish Import' }));
-
-      expect(await screen.findByRole('alert')).toBeVisible();
-      expect(await screen.findByRole('button', { name: 'Retry' })).toBeVisible();
-      expect(
-        await screen.findByText(
-          'An error occurred while importing the SBOM file. You have reached the maximum limit of SBOM imports allowed. Please delete existing SBOMs or contact support to increase your limit.'
-        )
-      ).toBeVisible();
+        const errorAlert = screen.getByText('Something went wrong.');
+        expect(errorAlert).toBeInTheDocument();
+      });
     });
   });
 });

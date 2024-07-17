@@ -18,6 +18,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -109,7 +110,8 @@ public class StageTypeService
   {
     @Override
     public boolean test(@Nullable final StageType input) {
-      return !DevelopStageType.ID.equals(input.getId()) && !ProxyStageType.ID.equals(input.getId());
+      return !DevelopStageType.ID.equals(input.getId()) && !ProxyStageType.ID.equals(input.getId()) &&
+          !ComplianceStageType.ID.equals(input.getId());
     }
   }
 
@@ -118,7 +120,7 @@ public class StageTypeService
   {
     @Override
     public boolean test(StageType input) {
-      return !ProxyStageType.ID.equals(input.getId());
+      return !ProxyStageType.ID.equals(input.getId()) && !ComplianceStageType.ID.equals(input.getId());
     }
   }
 

@@ -1069,7 +1069,7 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withStages());
     installLicense();
 
-    assertThat(productLicense.getStageTypes()).containsOnly(StageTypes.RELEASE);
+    assertThat(productLicense.getStageTypes()).containsOnly(StageTypes.COMPLIANCE);
   }
 
   @Test
@@ -1078,7 +1078,7 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withStages());
     installLicense();
 
-    assertThat(productLicense.getStageTypes()).containsOnly(StageTypes.RELEASE);
+    assertThat(productLicense.getStageTypes()).containsOnly(StageTypes.COMPLIANCE);
   }
 
   @Test

@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentListDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
@@ -357,7 +358,7 @@ public class ApiSbomService
         sbomMetadataUtils.determineItemContentType(sbomMetadata.summary.specification), ScannerDriver.SBOM_API);
 
     policyEvaluateService.evaluateWithPolling(scanTicketDTO.requestId, application,
-        ClientScanType.SONATYPE_THIRD_PARTY, new Stage(Stage.ID_RELEASE), ScanTriggerType.SBOM_API,
+        ClientScanType.SONATYPE_THIRD_PARTY, new Stage(StageTypes.COMPLIANCE.getId()), ScanTriggerType.SBOM_API,
         scanResult.getScanFile(), ScannerDriver.SBOM_API.getValue(), clientUserAgent, null);
 
     return Response.ok(Status.ACCEPTED)

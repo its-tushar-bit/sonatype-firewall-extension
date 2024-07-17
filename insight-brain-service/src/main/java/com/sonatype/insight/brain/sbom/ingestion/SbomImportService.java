@@ -163,7 +163,7 @@ public class SbomImportService
               sbomFormat, contentType, ScannerDriver.SBOM_API);
 
       policyEvaluateService.evaluateWithPolling(importTicket.requestId, application,
-          ClientScanType.SONATYPE_THIRD_PARTY, new Stage(StageTypes.RELEASE.getId()), ScanTriggerType.SBOM_UI,
+          ClientScanType.SONATYPE_THIRD_PARTY, new Stage(StageTypes.COMPLIANCE.getId()), ScanTriggerType.SBOM_UI,
           scanResult.getScanFile(), ScannerDriver.SBOM_API.getValue(), clientUserAgent, null);
 
       return Response.status(Response.Status.CREATED).entity(importTicket).build();

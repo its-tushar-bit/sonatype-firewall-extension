@@ -42,7 +42,8 @@ public class StageTypeServiceTest
         StageTypes.BUILD, //
         StageTypes.STAGE_RELEASE, //
         StageTypes.RELEASE, //
-        StageTypes.OPERATE);
+        StageTypes.OPERATE, //
+        StageTypes.COMPLIANCE);
   }
 
   @Test
@@ -56,7 +57,8 @@ public class StageTypeServiceTest
         StageTypes.BUILD, //
         StageTypes.STAGE_RELEASE, //
         StageTypes.RELEASE, //
-        StageTypes.OPERATE);
+        StageTypes.OPERATE, //
+        StageTypes.COMPLIANCE);
   }
 
   @Test

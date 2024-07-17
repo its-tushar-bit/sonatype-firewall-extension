@@ -28,6 +28,8 @@ public class StageTypes
 
   public static final StageType PROXY = new ProxyStageType();
 
+  public static final StageType COMPLIANCE = new ComplianceStageType();
+
   private static final Map<String, StageType> allStageTypes = new LinkedHashMap<>();
 
   static {
@@ -38,6 +40,7 @@ public class StageTypes
     add(STAGE_RELEASE);
     add(RELEASE);
     add(OPERATE);
+    add(COMPLIANCE);
   }
 
   /**
@@ -60,10 +63,11 @@ public class StageTypes
   }
 
   public static boolean isIgnoredForDashboard(String stageTypeId) {
-    return DevelopStageType.ID.equals(stageTypeId) || ProxyStageType.ID.equals(stageTypeId);
+    return DevelopStageType.ID.equals(stageTypeId) || ProxyStageType.ID.equals(stageTypeId) ||
+        ComplianceStageType.ID.equals(stageTypeId);
   }
 
   public static boolean isIgnoredForPolicyViolationAggregation(String stageTypeId) {
-    return DevelopStageType.ID.equals(stageTypeId);
+    return DevelopStageType.ID.equals(stageTypeId) || ComplianceStageType.ID.equals(stageTypeId);
   }
 }

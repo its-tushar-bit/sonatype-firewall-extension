@@ -38,7 +38,7 @@ public class SbomImportResourceAuditTest extends AbstractAuditTest
 
   @Test
   public void testImportDetectedSbom() throws Exception {
-    testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+    setFeatures(LicensedFeature.SBOM_MANAGER);
     mockReport(RestHandler.SCAN_ID, "/AbstractAuditTest/report");
     URL resource = SbomImportResourceTest.class.getResource("/SbomImportResourceTest/valid-spdx-bom.json");
     File sbom = new File(Objects.requireNonNull(resource).getFile());
@@ -59,7 +59,7 @@ public class SbomImportResourceAuditTest extends AbstractAuditTest
     assertCustomData(auditDTOs.get(0), "sbomVersion", "a140fd3c3ded4bb0a640dc31e2904dc9");
     assertCustomData(auditDTOs.get(0), "status", "PENDING");
     assertCustomData(auditDTOs.get(0), "operation", "CREATE");
-    assertCustomData(auditDTOs.get(0), "stageId", "release");
+    assertCustomData(auditDTOs.get(0), "stageId", "compliance");
 
     ApiThirdPartyScanTicketDTO responseCommitBody = responseCommit.getBody(ApiThirdPartyScanTicketDTO.class);
     policyEvaluationHelper.awaitEvaluationFinished(app.getId(), getStatusId(responseCommitBody.statusUrl));

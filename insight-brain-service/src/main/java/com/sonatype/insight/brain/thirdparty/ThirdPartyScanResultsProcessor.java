@@ -42,7 +42,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
-import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
@@ -384,9 +384,9 @@ public class ThirdPartyScanResultsProcessor
   }
 
   private boolean isStageTypeSupported(ThirdPartyScanContext scanContext) {
-    return scanContext.getStageType().equalsIgnoreCase(ReleaseStageType.ID)
+    return scanContext.getStageType().equalsIgnoreCase(ComplianceStageType.ID)
         && productLicense.getStageTypes().stream().anyMatch(
-            stageType -> stageType.getId().equalsIgnoreCase( ReleaseStageType.ID));
+            stageType -> stageType.getId().equalsIgnoreCase( ComplianceStageType.ID));
   }
 
   private String storeSbom(

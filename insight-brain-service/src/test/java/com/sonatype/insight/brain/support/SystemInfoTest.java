@@ -572,7 +572,7 @@ public class SystemInfoTest
     assertThat(features).hasSizeGreaterThan(15).contains(LicensedFeature.CI_INTEGRATION.getId());
     assertThat(supportZipLicenseInfo.applicationCountLimit).isEqualTo(100);
     assertThat(supportZipLicenseInfo.stageIds).containsExactlyInAnyOrder("proxy", "operate", "build", "release",
-        "develop", "source", "stage-release");
+        "develop", "source", "stage-release", "compliance");
     assertThat(supportZipLicenseInfo.licensingModels).containsExactlyInAnyOrder("LEGACY");
   }
 

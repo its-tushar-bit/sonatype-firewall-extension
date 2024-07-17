@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -27,6 +28,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -603,6 +605,9 @@ public class CLMLicenseManager
 
     Set<LicensedFeature> features = EnumSet.noneOf(LicensedFeature.class);
     Set<StageType> stageTypes = new LinkedHashSet<>();
+    Collection<StageType> allStagesWithoutCompliance =
+        StageTypes.getAll().stream().filter(stageType -> !StageTypes.COMPLIANCE.equals(stageType))
+            .collect(Collectors.toSet());
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK)
         || products.contains(ProductLicenseDetails.PRODUCT_AUDITOR_SAAS)) {
       features.add(LicensedFeature.POLICY_MONITORING);
@@ -644,7 +649,7 @@ public class CLMLicenseManager
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)
         || products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS)) {
       addLifecycleFeatures(features);
-      stageTypes.addAll(StageTypes.getAll());
+      stageTypes.addAll(allStagesWithoutCompliance);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_NEXUS)) {
       features.add(LicensedFeature.ENFORCEMENT);
@@ -688,7 +693,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
       features.add(LicensedFeature.WAIVER_REPORTS);
 
-      stageTypes.addAll(StageTypes.getAll());
+      stageTypes.addAll(allStagesWithoutCompliance);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL) ||
         products.contains(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY)) {
@@ -799,7 +804,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
       features.add(LicensedFeature.WAIVER_REPORTS);
 
-      stageTypes.addAll(StageTypes.getAll());
+      stageTypes.addAll(allStagesWithoutCompliance);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_LIFECYCLE_FIREWALL_CLOUD)) {
       features.add(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
@@ -865,7 +870,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.VULNERABILITY_CUSTOMIZATION);
       features.add(LicensedFeature.WAIVER_REPORTS);
 
-      stageTypes.add(StageTypes.RELEASE);
+      stageTypes.add(StageTypes.COMPLIANCE);
     }
 
     if (!products.contains(ProductLicenseDetails.PRODUCT_SBOM_MANAGER) &&
@@ -879,7 +884,7 @@ public class CLMLicenseManager
     if (products.contains(ProductLicenseDetails.PRODUCT_TEAMS_EDITION)) {
       addLifecycleFeatures(features);
       addDevelopmentFeatures(features);
-      stageTypes.addAll(StageTypes.getAll());
+      stageTypes.addAll(allStagesWithoutCompliance);
     }
 
     Set<LicensedFeature> hdsControlledFeatures = EnumSet.of( //

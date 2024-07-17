@@ -361,16 +361,16 @@ public class ApplicationPolicyEditorNotificationsOverrideTest
   }
 
   private Notifications createNotifications() {
-    String[] allStageIds = getAllStageIds();
-    String[] allStageIdsWithoutProxy = getAllStageIdsWithoutProxy();
+    String[] allStageIds = getAllStageIdsWithoutCompliance();
+    String[] allStageIdsWithoutProxyAndCompliance = getAllStageIdsWithoutProxyAndCompliance();
     Notifications notifications = new Notifications(
         new UserNotification("email1@domain", allStageIds),
         new UserNotification("email2@domain"),
         new RoleNotification(role1.getId(), role1.getName(), allStageIds),
         new RoleNotification(role2.getId(), role2.getName()),
-        new WebhookNotification(webhook1.getId(), allStageIdsWithoutProxy),
+        new WebhookNotification(webhook1.getId(), allStageIdsWithoutProxyAndCompliance),
         new WebhookNotification(webhook2.getId()),
-        new JiraNotification("projectKey1", 1, allStageIdsWithoutProxy),
+        new JiraNotification("projectKey1", 1, allStageIdsWithoutProxyAndCompliance),
         new JiraNotification("projectKey2", 2)
     );
     // StageIds get desirialized as an unordered HashSet, so to allow recursive comparison ensure the StageIds here
@@ -381,8 +381,8 @@ public class ApplicationPolicyEditorNotificationsOverrideTest
   }
 
   private Notifications createNotificationsForOverrides() {
-    String[] allStageIds = getAllStageIds();
-    String[] allStageIdsWithoutProxy = getAllStageIdsWithoutProxy();
+    String[] allStageIds = getAllStageIdsWithoutCompliance();
+    String[] allStageIdsWithoutProxy = getAllStageIdsWithoutProxyAndCompliance();
     Notifications notifications = new Notifications(
         new UserNotification("email1@domain"),
         new UserNotification("email2@domain", allStageIds),
@@ -443,13 +443,16 @@ public class ApplicationPolicyEditorNotificationsOverrideTest
     throw new IllegalStateException("Unexpected notification type " + notification.getClass().getName());
   }
 
-  private String[] getAllStageIds() {
-    return getAllStageIdsSet().toArray(new String[0]);
+  private String[] getAllStageIdsWithoutCompliance() {
+    Set<String> allStageIdsSet = getAllStageIdsSet();
+    allStageIdsSet.remove(StageTypes.COMPLIANCE.getId());
+    return allStageIdsSet.toArray(new String[0]);
   }
 
-  private String[] getAllStageIdsWithoutProxy() {
+  private String[] getAllStageIdsWithoutProxyAndCompliance() {
     Set<String> allStageIdsWithoutProxy = getAllStageIdsSet();
     allStageIdsWithoutProxy.remove(StageTypes.PROXY.getId());
+    allStageIdsWithoutProxy.remove(StageTypes.COMPLIANCE.getId());
     return allStageIdsWithoutProxy.toArray(new String[0]);
   }
 

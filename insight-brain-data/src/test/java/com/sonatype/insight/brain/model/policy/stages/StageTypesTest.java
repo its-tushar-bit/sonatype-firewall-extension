@@ -19,6 +19,7 @@ public class StageTypesTest
       switch (stageType.getId()) {
         case DevelopStageType.ID:
         case ProxyStageType.ID:
+        case ComplianceStageType.ID:
           assertThat(StageTypes.isIgnoredForDashboard(stageType.getId())).isTrue();
           break;
         default:
@@ -32,6 +33,7 @@ public class StageTypesTest
     for (StageType stageType : StageTypes.getAll()) {
       switch (stageType.getId()) {
         case DevelopStageType.ID:
+        case ComplianceStageType.ID:
           assertThat(StageTypes.isIgnoredForPolicyViolationAggregation(stageType.getId())).isTrue();
           break;
         default:
@@ -43,6 +45,6 @@ public class StageTypesTest
   @Test
   public void testGetAll_ChronologicalOrdering() {
     assertThat(StageTypes.getAll()).containsExactly(StageTypes.PROXY, StageTypes.DEVELOP, StageTypes.SOURCE,
-        StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE);
+        StageTypes.BUILD, StageTypes.STAGE_RELEASE, StageTypes.RELEASE, StageTypes.OPERATE, StageTypes.COMPLIANCE);
   }
 }

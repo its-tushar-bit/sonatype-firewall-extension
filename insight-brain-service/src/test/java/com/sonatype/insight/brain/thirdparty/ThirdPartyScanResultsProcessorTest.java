@@ -204,9 +204,7 @@ public class ThirdPartyScanResultsProcessorTest
 
   @Test
   public void testHandle_spdx_api_sbomManagerEnabled() throws Exception {
-    when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
-    when(productLicense.getStageTypes()).thenReturn(new HashSet<>(Arrays.asList(StageTypes.RELEASE)));
-    when(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).thenReturn(false);
+    mockValidSbomManagerLicense();
 
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
@@ -216,7 +214,7 @@ public class ThirdPartyScanResultsProcessorTest
 
     String scanRequestId =
         thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-            application.getId(), StageTypes.RELEASE.getName());
+            application.getId(), StageTypes.COMPLIANCE.getName());
     thirdPartyScanResultsProcessorSpy.postHandle(scanId, scanRequestId);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(ItemContentType.SPDX);
 
@@ -292,9 +290,7 @@ public class ThirdPartyScanResultsProcessorTest
 
   @Test
   public void testHandle_cyclonedx_api_sbomManagerEnabled() throws Exception {
-    when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
-    when(productLicense.getStageTypes()).thenReturn(new HashSet<>(Arrays.asList(StageTypes.RELEASE)));
-    when(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).thenReturn(false);
+    mockValidSbomManagerLicense();
 
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
@@ -304,7 +300,7 @@ public class ThirdPartyScanResultsProcessorTest
 
     String scanRequestId =
         thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-            application.getId(), StageTypes.RELEASE.getName());
+            application.getId(), StageTypes.COMPLIANCE.getName());
     thirdPartyScanResultsProcessorSpy.postHandle(scanId, scanRequestId);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(ItemContentType.SBOM);
     assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SBOM, true, 3);
@@ -357,9 +353,7 @@ public class ThirdPartyScanResultsProcessorTest
 
   @Test
   public void testHandle_sbom_cli_sbomManagerEnabled() throws Exception {
-    when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
-    when(productLicense.getStageTypes()).thenReturn(new HashSet<>(Arrays.asList(StageTypes.RELEASE)));
-    when(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).thenReturn(false);
+    mockValidSbomManagerLicense();
 
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
@@ -369,7 +363,7 @@ public class ThirdPartyScanResultsProcessorTest
 
     String scanRequestId =
         thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-            application.getId(), StageTypes.RELEASE.getName());
+            application.getId(), StageTypes.COMPLIANCE.getName());
     thirdPartyScanResultsProcessorSpy.postHandle(scanId, scanRequestId);
 
     verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(ItemContentType.SBOM);
@@ -609,9 +603,7 @@ public class ThirdPartyScanResultsProcessorTest
 
   @Test
   public void testHandle_cyclonedx_api_sbomManagerEnabled_creationDetails() throws Exception {
-    when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
-    when(productLicense.getStageTypes()).thenReturn(new HashSet<>(Arrays.asList(StageTypes.RELEASE)));
-    when(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).thenReturn(false);
+    mockValidSbomManagerLicense();
 
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
@@ -621,7 +613,7 @@ public class ThirdPartyScanResultsProcessorTest
 
     String scanRequestId =
         thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-            application.getId(), StageTypes.RELEASE.getName());
+            application.getId(), StageTypes.COMPLIANCE.getName());
     thirdPartyScanResultsProcessorSpy.postHandle(scanId, scanRequestId);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(ItemContentType.SBOM);
     assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SBOM, true, 2);
@@ -991,5 +983,11 @@ public class ThirdPartyScanResultsProcessorTest
         "\"Jane Doe\",\"email\":\"Jane.doe@example.com\",\"phone\":\"1-800-222-2222\",\"url\":\"example.com," +
         "example2.com,example3.com\"}],\"tools\":[{\"type\":\"application\",\"name\":\"Tool\",\"version\"" +
         ":\"1.0-RELEASE\"}]}";
+  }
+
+  private void mockValidSbomManagerLicense() {
+    when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
+    when(productLicense.getStageTypes()).thenReturn(new HashSet<>(Arrays.asList(StageTypes.COMPLIANCE)));
+    when(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).thenReturn(false);
   }
 }

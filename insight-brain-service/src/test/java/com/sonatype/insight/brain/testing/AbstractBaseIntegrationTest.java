@@ -20,8 +20,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -62,6 +64,8 @@ import com.sonatype.insight.brain.jira.JiraClientFactory;
 import com.sonatype.insight.brain.model.PerpetualLock;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.TestProductLicenseRule;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -100,6 +104,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -633,7 +638,22 @@ public abstract class AbstractBaseIntegrationTest
 
   protected void setFeatures(LicensedFeature... features) throws Exception {
     licenseManager.setFeatures(features);
+    includeSbomManagerStagesIfNeeded(features);
     installLicense();
+  }
+
+  private static void includeSbomManagerStagesIfNeeded(final LicensedFeature[] features) {
+    if (ArrayUtils.contains(features, LicensedFeature.SBOM_MANAGER)) {
+      Set<StageType> stageTypes = licenseManager.getStageTypes();
+      if (stageTypes == null) {
+        licenseManager.setStageTypes(StageTypes.COMPLIANCE);
+      }
+      else {
+        stageTypes = new LinkedHashSet<>(stageTypes);
+        stageTypes.add(StageTypes.COMPLIANCE);
+        licenseManager.setStageTypes(stageTypes.toArray(new StageType[0]));
+      }
+    }
   }
 
   protected void setMissingFeature(LicensedFeature feature) throws Exception {

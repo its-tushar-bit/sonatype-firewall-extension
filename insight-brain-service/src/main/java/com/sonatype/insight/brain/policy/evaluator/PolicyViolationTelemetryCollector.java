@@ -59,7 +59,7 @@ public class PolicyViolationTelemetryCollector
 
   static final String WAIVER_EXPIRATION = "waiver_expiration";
 
-  static final String POLICY_WAIVER_ID = "POLICY_WAIVER_ID";
+  static final String POLICY_WAIVER_ID = "policy_waiver_id";
 
   static final String FIX_BY_VERSION_CHANGE = "fix_by_version_change";
 

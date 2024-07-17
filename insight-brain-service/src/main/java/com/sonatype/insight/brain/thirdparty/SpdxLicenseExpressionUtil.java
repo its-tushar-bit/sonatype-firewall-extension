@@ -88,26 +88,24 @@ public class SpdxLicenseExpressionUtil
     }
   }
 
-  private void processExtractedLicenseInfo(ExtractedLicenseInfo license, Map<String, String> processedLicenses)
-      throws InvalidSPDXAnalysisException
-  {
-    String licenceId = StringUtils.remove(license.getId(), "LicenseRef-");
-    if (!processedLicenses.containsKey(licenceId)) {
-      processedLicenses.put(licenceId, license.getExtractedText());
+  private void processExtractedLicenseInfo(ExtractedLicenseInfo license, Map<String, String> processedLicenses) {
+    if (StringUtils.isEmpty(license.getId())) {
+      return;
+    }
+    String licenseId = StringUtils.remove(license.getId(), "LicenseRef-");
+    MultiLicense multiLicense = multiLicenseDAO.getById(licenseId);
+    if (multiLicense != null && !processedLicenses.containsKey(licenseId)) {
+      processedLicenses.put(licenseId, multiLicense.getShortDisplayName());
     }
   }
 
   private void processSpdxListedLicense(SpdxListedLicense listedLicense, Map<String, String> processedLicenses) {
     MultiLicense sonatypeLicense = getSonatypeLicense(listedLicense.getLicenseId());
-    if (sonatypeLicense != null) {
-      if (!processedLicenses.containsKey(sonatypeLicense.getId())) {
-        processedLicenses.put(sonatypeLicense.getId(), sonatypeLicense.getShortDisplayName());
-      }
+    if (sonatypeLicense != null && !processedLicenses.containsKey(sonatypeLicense.getId())) {
+      processedLicenses.put(sonatypeLicense.getId(), sonatypeLicense.getShortDisplayName());
     }
-    else {
-      if (!processedLicenses.containsKey(listedLicense.getId())) {
-        processedLicenses.put(listedLicense.getId(), listedLicense.getLicenseId());
-      }
+    else if (!processedLicenses.containsKey(listedLicense.getId())) {
+      processedLicenses.put(listedLicense.getId(), listedLicense.getLicenseId());
     }
   }
 

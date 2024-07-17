@@ -267,13 +267,13 @@ public class SpdxResultHandlerTest
     FilteredThirdPartyContent filteredContent =
         spdxResultHandler.handleAndFilterContents(content, thirdPartyFile);
     String sbomXml = filteredContent.getContent();
-    Bom bom = assertFilteredSbomFile(sbomXml, 9);
+    Bom bom = assertFilteredSbomFile(sbomXml, 10);
     assertThat(bom.getMetadata().getComponent().getPurl()).isEqualTo(
         "pkg:maven/com.sonatype.testing/pr-comment-02@1.0-SNAPSHOT?type=jar");
 
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
-    assertThat(coordinates).hasSize(9);
+    assertThat(coordinates).hasSize(10);
     List<String> coordinateIds = coordinates.stream().map(ThirdPartyFileCoordinate::getId).collect(Collectors.toList());
 
     try (TransactionContext tx = thirdPartyCoordinateLicenseDAO.createTransactionContext()) {
@@ -285,6 +285,9 @@ public class SpdxResultHandlerTest
       }
       Set<String> licenseIdSet =
           coordinatesLicenses.stream().map(ThirdPartyCoordinateLicense::getLicenseId).collect(Collectors.toSet());
+      Set<String> licenseNameSet =
+          coordinatesLicenses.stream().map(ThirdPartyCoordinateLicense::getName).collect(Collectors.toSet());
+
       assertThat(licenseIdSet).containsExactlyInAnyOrder(
           "Apache-2.0",
           "Apache-2.0-EPL-1.0",
@@ -296,7 +299,23 @@ public class SpdxResultHandlerTest
           "MIT",
           "MPL-1.1",
           "COMMERCIAL",
-          "PUBLIC-DOMAIN"
+          "PUBLIC-DOMAIN",
+          "UNSPECIFIED"
+      );
+
+      assertThat(licenseNameSet).containsExactlyInAnyOrder(
+          "Apache-2.0",
+          "Apache-2.0 or EPL-1.0",
+          "CC0-1.0",
+          "EPL-1.0",
+          "GPL-2.0-with-classpath-exception",
+          "LGPL-2.1",
+          "LGPL-3.0",
+          "MIT",
+          "MPL-1.1",
+          "COMMERCIAL",
+          "Public Domain",
+          "Not Provided"
       );
     }
   }

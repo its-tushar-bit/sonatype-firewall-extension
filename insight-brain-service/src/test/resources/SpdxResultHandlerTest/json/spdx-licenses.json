@@ -135,6 +135,19 @@
     "licenseDeclared" : "Apache-2.0",
     "name" : "org.apache.logging.log4j:log4j-api",
     "versionInfo" : "2.16.0"
+  }, {
+    "SPDXID" : "SPDXRef-maven-org.apache.commons.apache-commons-1.0",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/org.apache.commons.apache-commons/apache-commons@1.0?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "LicenseRef-UNSPECIFIED",
+    "licenseDeclared" : "LicenseRef-UNSPECIFIED",
+    "name" : "org.apache.commons:apache-commons",
+    "versionInfo" : "1.0"
   } ],
   "relationships" : [ {
     "spdxElementId" : "SPDXRef-DOCUMENT",

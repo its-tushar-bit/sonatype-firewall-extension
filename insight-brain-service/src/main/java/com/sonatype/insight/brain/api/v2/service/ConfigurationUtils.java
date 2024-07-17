@@ -79,7 +79,8 @@ public class ConfigurationUtils
 
   private static SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
-  private ConfigurationUtils() { }
+  private ConfigurationUtils() {
+  }
 
   @Inject
   public static void injectDependencies(final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO) {

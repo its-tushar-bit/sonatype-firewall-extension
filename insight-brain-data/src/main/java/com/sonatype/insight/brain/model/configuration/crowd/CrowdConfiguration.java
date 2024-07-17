@@ -33,7 +33,8 @@ public class CrowdConfiguration
   @Column(name = "application_password")
   private char[] applicationPassword;
 
-  public CrowdConfiguration() { }
+  public CrowdConfiguration() {
+  }
 
   public CrowdConfiguration(String serverUrl, String applicationName, char[] applicationPassword) {
     this.serverUrl = serverUrl;

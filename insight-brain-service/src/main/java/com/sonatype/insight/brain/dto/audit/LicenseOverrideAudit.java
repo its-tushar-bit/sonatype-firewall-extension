@@ -29,8 +29,7 @@ public class LicenseOverrideAudit
 
   private String comment;
 
-  public LicenseOverrideAudit(){
-
+  public LicenseOverrideAudit() {
   }
 
   public LicenseOverrideAudit(LicenseOverride licenseOverride, LicenseDAO licenseDAO) {

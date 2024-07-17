@@ -47,7 +47,8 @@ public class OidcConfiguration
   @Column(name = "token_request_custom_params_json")
   private String tokenRequestCustomParamsJson;
 
-  public OidcConfiguration() { }
+  public OidcConfiguration() {
+  }
 
   public OidcConfiguration(
       final String id,

@@ -34,7 +34,8 @@ public class ImportRepositoriesRequest
   /**
    * empty constructor for JSON serialization
    */
-  public ImportRepositoriesRequest() { }
+  public ImportRepositoriesRequest() {
+  }
 
   public ImportRepositoriesRequest(
       final List<SCMRepository> scmRepositories,

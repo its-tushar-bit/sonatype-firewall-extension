@@ -25,7 +25,8 @@ public class SbomComponentInfoTelemetry
 
   private int coordinateCount = 0;
 
-  public SbomComponentInfoTelemetry() {}
+  public SbomComponentInfoTelemetry() {
+  }
 
   public SbomComponentInfoTelemetry(
       int purlCount,

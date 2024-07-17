@@ -20,7 +20,8 @@ import static com.codeborne.selenide.Selenide.$;
 
 public final class ComponentLicenseFileDetailsPage
 {
-  private ComponentLicenseFileDetailsPage() {}
+  private ComponentLicenseFileDetailsPage() {
+  }
 
   public static String urlToApplicationScopeByHash(String publicAppId, String componentHash, int licenseIndex) {
     return BaseUrl.resolvePageUrl(String.format("/legal/application/%s/component/%s/licenseFiles/%d",

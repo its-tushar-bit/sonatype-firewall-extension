@@ -20,7 +20,8 @@ public class ApiSourceControlEventFilterDTO
 
   private int offset;
 
-  public ApiSourceControlEventFilterDTO() {}
+  public ApiSourceControlEventFilterDTO() {
+  }
 
   public ApiSourceControlEventFilterDTO(
       Set<String> applicationIds,

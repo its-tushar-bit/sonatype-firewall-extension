@@ -465,8 +465,8 @@ public class ApiConfigurationServiceTest
   public void testGetConfiguration_DbBackupDirNotSet_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.DB_BACKUP_DIR))).containsEntry(
-        SystemConfigurationProperty.DB_BACKUP_DIR,
-        new File(insightConfig.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR).getAbsolutePath());
+            SystemConfigurationProperty.DB_BACKUP_DIR,
+            new File(insightConfig.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR).getAbsolutePath());
   }
 
   @Test
@@ -1351,8 +1351,8 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.DB_BACKUP_DIR)).isNull();
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.DB_BACKUP_DIR))).containsEntry(
-        SystemConfigurationProperty.DB_BACKUP_DIR,
-        new File(insightConfig.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR).getAbsolutePath());
+          SystemConfigurationProperty.DB_BACKUP_DIR,
+          new File(insightConfig.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR).getAbsolutePath());
   }
 
   @Test
@@ -1363,8 +1363,8 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(SystemConfigurationProperty.DB_BACKUP_DIR)).isEqualTo(dbBackupDir);
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.DB_BACKUP_DIR))).containsEntry(
-        SystemConfigurationProperty.DB_BACKUP_DIR,
-        new File(insightConfig.getSonatypeWork(), dbBackupDir).getAbsolutePath());
+          SystemConfigurationProperty.DB_BACKUP_DIR,
+          new File(insightConfig.getSonatypeWork(), dbBackupDir).getAbsolutePath());
 
     String absolutePath = tempDir.newFolder().getAbsolutePath();
     service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.DB_BACKUP_DIR, absolutePath));

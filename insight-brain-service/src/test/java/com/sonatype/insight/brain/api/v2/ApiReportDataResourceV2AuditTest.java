@@ -60,11 +60,11 @@ public class ApiReportDataResourceV2AuditTest
     mockReport(SCAN_ID, "/ReportResourceTest/report");
 
     restRequest()
-      .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
-      .path(SCAN_PATH)
-      .path(ApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
-      .parameter(app.getPublicId(), SCAN_ID)
-      .get();
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
+        .parameter(app.getPublicId(), SCAN_ID)
+        .get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT, "not-found");
     assertApplicationData(auditDTO, app);
@@ -74,12 +74,12 @@ public class ApiReportDataResourceV2AuditTest
   @Test
   public void getDependencyTree_Unauthorized() throws Exception {
     restRequest()
-      .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
-      .path(SCAN_PATH)
-      .path(ApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
-      .parameter(app.getPublicId(), SCAN_ID)
-      .with(unauthorizedUser())
-      .get();
+        .path(PublicApiPaths.REPORT_DATA_RESOURCE_PATH_V2)
+        .path(SCAN_PATH)
+        .path(ApiReportDataResourceV2.DEPENDENCY_TREE_PATH)
+        .parameter(app.getPublicId(), SCAN_ID)
+        .with(unauthorizedUser())
+        .get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_APPLICATION_COMPOSITION_REPORT, "unauthorized");
     assertApplicationData(auditDTO, app);

@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2;
 
 import org.apache.shiro.aop.AnnotationHandler;
 
-
 /**
  * Supports {@link HasFeatureMethodInterceptor} and only fulfills demands of the Shiro API.
  *

@@ -1529,7 +1529,7 @@ public class ApiLicenseLegalServiceTest
     assertThat(sourceLinkComponents).containsExactlyInAnyOrder(expectedComponentIdentifiers);
     assertThat(licenseMetadataReport.components.stream().flatMap(c -> c.licenseLegalData.sourceLinks.stream())
         .collect(Collectors.toSet())).hasSize(3).map(sl -> sl.status).areExactly(3,
-        new Condition<>(status -> status == ComponentLegalPartStatus.ENABLED, "All source links are enabled"));
+          new Condition<>(status -> status == ComponentLegalPartStatus.ENABLED, "All source links are enabled"));
 
     if (includeInnerSource) {
       assertThat(licenseMetadataReport.components)

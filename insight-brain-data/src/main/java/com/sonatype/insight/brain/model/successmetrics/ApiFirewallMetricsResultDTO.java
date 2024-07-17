@@ -27,7 +27,8 @@ public class ApiFirewallMetricsResultDTO
     this.latestUpdatedTime = latestUpdatedTime;
   }
 
-  public ApiFirewallMetricsResultDTO(){}
+  public ApiFirewallMetricsResultDTO() {
+  }
 
   public int getFirewallMetricsValue() {
     return firewallMetricsValue;

@@ -37,7 +37,8 @@ public class BlockEndpointsContainerRequestFilter
   @Context
   private ResourceInfo resInfo;
 
-  public BlockEndpointsContainerRequestFilter() { }
+  public BlockEndpointsContainerRequestFilter() {
+  }
 
   @VisibleForTesting
   public BlockEndpointsContainerRequestFilter(ResourceInfo resInfo) {

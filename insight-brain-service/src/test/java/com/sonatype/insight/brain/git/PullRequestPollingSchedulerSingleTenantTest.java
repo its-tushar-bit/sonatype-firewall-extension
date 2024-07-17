@@ -216,11 +216,11 @@ public class PullRequestPollingSchedulerSingleTenantTest
     // Note: the whole URL gets passed through due to the mocked implementation of projectUri.getNamespace().
     // The important part here is that it's the URL of appWithParentScmConf and not the other ones
     verify(pullRequestInfoProviderMock)
-      .getPullRequestsSince(eq("https://localhost:12347/bar/qwerty"), any(), anyInt());
+        .getPullRequestsSince(eq("https://localhost:12347/bar/qwerty"), any(), anyInt());
 
     // check that the call checked above is the only one
     verify(pullRequestInfoProviderMock, times(1))
-      .getPullRequestsSince(any(), any(), anyInt());
+        .getPullRequestsSince(any(), any(), anyInt());
 
     logOutput.assertThat().atErrorLevel().isEmpty();
   }

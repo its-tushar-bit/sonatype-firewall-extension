@@ -27,7 +27,8 @@ public class ApiIntegrationsCiCdStatIncrementDto
     this.totalNumberOfAppsWithCiCdEnabled = totalNumberOfAppsWithCiCdEnabled;
   }
 
-  public ApiIntegrationsCiCdStatIncrementDto() {}
+  public ApiIntegrationsCiCdStatIncrementDto() {
+  }
 
   public Long getDateTimeMillis() {
     return dateTimeMillis;

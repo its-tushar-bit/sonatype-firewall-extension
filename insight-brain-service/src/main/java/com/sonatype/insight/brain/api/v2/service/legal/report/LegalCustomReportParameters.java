@@ -119,7 +119,8 @@ public final class LegalCustomReportParameters
 
     private boolean includeInnerSource = false;
 
-    private Builder() { }
+    private Builder() {
+    }
 
     public Builder withTitle(final String title) {
       this.title = title;

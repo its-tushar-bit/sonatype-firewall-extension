@@ -26,7 +26,8 @@ public class ApiRepositoryComponentEvaluationRequestList
     @JsonAlias({"purl"})
     public String packageUrl;
 
-    public ApiRepositoryComponentEvaluationRequest() { }
+    public ApiRepositoryComponentEvaluationRequest() {
+    }
 
     public ApiRepositoryComponentEvaluationRequest(final String pathname, final String hash) {
       this.pathname = pathname;

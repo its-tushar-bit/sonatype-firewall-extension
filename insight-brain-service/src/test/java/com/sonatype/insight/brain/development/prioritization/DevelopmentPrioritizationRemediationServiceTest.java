@@ -121,8 +121,7 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
             tuple(scanId, componentIdentifiers1.toSyntheticHash(),
                 ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, "2.1.1"),
             tuple(scanId, componentIdentifiers2.toSyntheticHash(),
-                ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, "3.2.2")
-      );
+                ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, "3.2.2"));
   }
 
   @Test

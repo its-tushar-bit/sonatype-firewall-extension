@@ -97,9 +97,8 @@ public class IntegrationServiceAuthzTest
     final Policy orgPolicy = tempEntity.newPolicy(org1.getId(), "org owned policy", 3);
     final Policy app1Policy = tempEntity.newPolicy(app1.getId(), "app1 owned policy", 5);
 
-    final PolicyEvaluation
-        app1PolicyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scan-id-1",
-        new Date(0L));
+    final PolicyEvaluation app1PolicyEvaluation =
+        tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scan-id-1", new Date(0L));
     final PolicyEvaluation app2PolicyEvaluation =
         tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scan-id-2", new Date(0L));
 

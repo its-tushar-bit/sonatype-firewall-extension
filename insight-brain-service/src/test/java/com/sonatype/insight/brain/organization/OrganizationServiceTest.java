@@ -138,8 +138,8 @@ public class OrganizationServiceTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> organizationService.deleteOrganization(organizationId))
         .withMessageContaining(
-        "Cannot delete the parent organization for automatic application creation: " + organization.getName() + "."
-      );
+            "Cannot delete the parent organization for automatic application creation: " + organization.getName() + "."
+        );
     assertThat(organizationDAO.getById(organizationId)).isNotNull();
   }
 
@@ -158,7 +158,7 @@ public class OrganizationServiceTest
             " while some failed with error(s) below." +
             "\n" + "Cannot delete the parent organization for automatic application creation: " +
             organization.getName() + "."
-      );
+        );
 
     for (Organization currentOrg : testList.subList(0, 4)) {
       assertThat(organizationDAO.getById(currentOrg.getId())).isNull();

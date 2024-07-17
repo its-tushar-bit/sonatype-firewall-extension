@@ -21,7 +21,8 @@ public class LegalApplicationDetailsPage
 {
   private static final String BASE_URL_CDP_ORIGIN = "/applicationReport/%s/%s";
 
-  private LegalApplicationDetailsPage() {}
+  private LegalApplicationDetailsPage() {
+  }
 
   public static String urlToApplicationScope(String publicAppId, String stage) {
     return BaseUrl.resolvePageUrl(String.format("/legal/application/%s/stage/%s",

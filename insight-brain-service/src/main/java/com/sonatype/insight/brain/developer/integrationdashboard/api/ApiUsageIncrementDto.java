@@ -44,7 +44,8 @@ public class ApiUsageIncrementDto
     this.totalNumberOfAppsUsingCiCd = totalNumberOfAppsUsingCiCd;
   }
 
-  public ApiUsageIncrementDto() {}
+  public ApiUsageIncrementDto() {
+  }
 
   public long getDateTimeMillis() {
     return dateTimeMillis;

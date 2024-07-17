@@ -23,7 +23,8 @@ public class LoginErrorResponseHandler
 {
   private static final ErrorResponseGenerator errorResponseGenerator = new ErrorResponseGenerator();
 
-  private LoginErrorResponseHandler() {}
+  private LoginErrorResponseHandler() {
+  }
 
   public static void sendError(final HttpServletResponse httpResponse, final AuthenticationException e) {
     sendError(httpResponse, errorResponseGenerator.mapExceptionAndLog(e));

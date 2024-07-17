@@ -213,7 +213,7 @@ public class OrganizationSummaryViewTest
             "An error occurred saving data. The file you selected failed to upload correctly, are you certain it " +
             "is a properly formatted policy import json file?"
           )
-      );
+        );
 
     // Clear file selection
     ImportPolicyModal.fileInputClearButton().click();

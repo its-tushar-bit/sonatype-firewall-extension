@@ -579,7 +579,6 @@ public class Configuration
     return configCache.get(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED);
   }
 
-
   /**
    * Configuration map is encapsulated so that access can be controlled. As we can guarantee that config requests must
    * come through this implementation we only need to implement the tenant awareness inside ConfigurationMap rather than

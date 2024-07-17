@@ -27,7 +27,8 @@ public class ComponentCategory
   private String path;
 
   // for JPA
-  public ComponentCategory() { }
+  public ComponentCategory() {
+  }
 
   public ComponentCategory(String id, String path) {
     this.id = id;

@@ -47,7 +47,8 @@ public class JiraConfiguration
   @Transient
   private Map<String, Object> customFields;
 
-  public JiraConfiguration() { }
+  public JiraConfiguration() {
+  }
 
   public JiraConfiguration(
       final String url,

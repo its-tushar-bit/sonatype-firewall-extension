@@ -21,7 +21,8 @@ import static com.codeborne.selenide.Selenide.$;
 
 public final class ComponentCopyrightDetailsPage
 {
-  private ComponentCopyrightDetailsPage() {}
+  private ComponentCopyrightDetailsPage() {
+  }
 
   public static String urlToApplicationScopeByHash(String publicAppId, String componentHash, int copyrightIndex) {
     return BaseUrl.resolvePageUrl(String.format("/legal/application/%s/component/%s/copyrights/%d",

@@ -56,7 +56,8 @@ public class OAuth2Configuration
   @Column(name = "exact_match_claims_json")
   private String exactMatchClaimsJson;
 
-  public OAuth2Configuration() { }
+  public OAuth2Configuration() {
+  }
 
   public OAuth2Configuration(
       final String idpIssuer,

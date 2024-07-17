@@ -82,7 +82,7 @@ public class ApiDependencyTreeSearcherTest
                 new ComponentIdentifier("maven", generateCoordinate("child7", "child7"))),
             ApiComponentIdentifierDTOV2.fromComponentIdentifier(
                 new ComponentIdentifier("maven", generateCoordinate("rootChild3", "rootChild3")))
-      );
+        );
   }
 
   public ApiDependencyTreeNodeDTO generateTestTree() {
@@ -110,7 +110,8 @@ public class ApiDependencyTreeSearcherTest
     ApiDependencyTreeNodeDTO rootChild3 = new ApiDependencyTreeNodeDTO();
     rootChild3.setComponentIdentifier(
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(
-            new ComponentIdentifier("maven", generateCoordinate("rootChild3", "rootChild3"))));
+            new ComponentIdentifier("maven", generateCoordinate("rootChild3", "rootChild3")))
+    );
     rootChild3.setChildren(new ArrayList<>());
     rootChild3.setDirect(true);
 

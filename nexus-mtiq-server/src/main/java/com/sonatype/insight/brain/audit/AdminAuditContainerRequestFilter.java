@@ -29,7 +29,8 @@ public class AdminAuditContainerRequestFilter
   @Context
   private ResourceInfo resInfo;
 
-  public AdminAuditContainerRequestFilter() { }
+  public AdminAuditContainerRequestFilter() {
+  }
 
   @VisibleForTesting
   public AdminAuditContainerRequestFilter(ResourceInfo resInfo) {

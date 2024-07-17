@@ -73,7 +73,8 @@ public class ScmStatusHelperTest
   @InjectMocks
   private ScmStatusHelper scmStatusHelper;
 
-  public ScmStatusHelperTest() {  }
+  public ScmStatusHelperTest() {
+  }
 
   @Before
   public void setup() {

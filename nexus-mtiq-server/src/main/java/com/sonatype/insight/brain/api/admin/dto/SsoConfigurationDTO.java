@@ -11,7 +11,8 @@ public class SsoConfigurationDTO
 
   private OidcConfigurationDTO oidcConfiguration;
 
-  public SsoConfigurationDTO() { }
+  public SsoConfigurationDTO() {
+  }
 
   public SsoConfigurationDTO(
       final OAuth2ConfigurationDTO oAuth2Configuration,

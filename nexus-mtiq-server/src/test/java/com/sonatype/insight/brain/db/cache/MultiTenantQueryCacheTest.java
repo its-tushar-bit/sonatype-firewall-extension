@@ -91,12 +91,15 @@ public class MultiTenantQueryCacheTest
 
   @DataCache
   private static class EntityWithCache
-  { }
+  {
+  }
 
   @DataCache(enabled = false)
   private static class EntityWithCacheButDisabled
-  { }
+  {
+  }
 
   private static class EntityWithoutCache
-  { }
+  {
+  }
 }

@@ -41,7 +41,8 @@ public class CSVMessageBodyWriterTest
    */
   @SuppressWarnings("serial")
   private static class DTOArrayListTypeHelper extends ArrayList<DTO>
-  {}
+  {
+  }
 
   @Before
   public void setup() {

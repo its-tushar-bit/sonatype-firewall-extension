@@ -183,15 +183,15 @@ public class ComponentObligationAttributionDAOTest
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
         Organization.ROOT_ORGANIZATION_ID, componentIdentifier, Collections.singleton(obligationName)))
         .usingRecursiveFieldByFieldElementComparator().containsExactly(
-        componentObligationAttributionForRootOrganization);
+            componentObligationAttributionForRootOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
         organization.getId(), componentIdentifier, Collections.singleton(obligationName)))
         .usingRecursiveFieldByFieldElementComparator().containsExactly(
-        componentObligationAttributionForRootOrganization);
+            componentObligationAttributionForRootOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
         application.getId(), componentIdentifier, Collections.singleton(obligationName)))
         .usingRecursiveFieldByFieldElementComparator().containsExactly(
-        componentObligationAttributionForRootOrganization);
+            componentObligationAttributionForRootOrganization);
 
     // Add another component obligation attribution at the org level
     ComponentObligationAttribution componentObligationAttributionForOrganization =
@@ -201,15 +201,15 @@ public class ComponentObligationAttributionDAOTest
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
         Organization.ROOT_ORGANIZATION_ID, componentIdentifier, Collections.singleton(obligationName)))
         .usingRecursiveFieldByFieldElementComparator().containsExactly(
-        componentObligationAttributionForRootOrganization);
+            componentObligationAttributionForRootOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
         organization.getId(), componentIdentifier, Collections.singleton(obligationName)))
         .usingRecursiveFieldByFieldElementComparator().containsExactly(
-        componentObligationAttributionForOrganization);
+            componentObligationAttributionForOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
         application.getId(), componentIdentifier, Collections.singleton(obligationName)))
         .usingRecursiveFieldByFieldElementComparator().containsExactly(
-        componentObligationAttributionForOrganization);
+            componentObligationAttributionForOrganization);
 
     // Add another component obligation attribution at the app level
     ComponentObligationAttribution componentObligationAttributionForApplication =
@@ -219,15 +219,15 @@ public class ComponentObligationAttributionDAOTest
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
         Organization.ROOT_ORGANIZATION_ID, componentIdentifier, Collections.singleton(obligationName)))
         .usingRecursiveFieldByFieldElementComparator().containsExactly(
-        componentObligationAttributionForRootOrganization);
+            componentObligationAttributionForRootOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
         organization.getId(), componentIdentifier, Collections.singleton(obligationName)))
         .usingRecursiveFieldByFieldElementComparator().containsExactly(
-        componentObligationAttributionForOrganization);
+            componentObligationAttributionForOrganization);
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
         application.getId(), componentIdentifier, Collections.singleton(obligationName)))
         .usingRecursiveFieldByFieldElementComparator().containsExactly(
-        componentObligationAttributionForApplication);
+            componentObligationAttributionForApplication);
   }
 
   @Test

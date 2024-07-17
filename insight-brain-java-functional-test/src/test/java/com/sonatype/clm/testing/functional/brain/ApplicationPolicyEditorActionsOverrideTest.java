@@ -174,10 +174,10 @@ public class ApplicationPolicyEditorActionsOverrideTest
             .getPolicyActionsOverrides().entrySet().iterator().next().getValue();
 
     assertThat(policyActionsOverrides)
-      .containsEntry(Stage.ID_BUILD, Action.ID_WARN)
-      .containsEntry(Stage.ID_DEVELOP, Action.ID_WARN)
-      .containsEntry(Stage.ID_PROXY, Action.ID_WARN)
-      .containsEntry(Stage.ID_OPERATE, Action.ID_FAIL);
+        .containsEntry(Stage.ID_BUILD, Action.ID_WARN)
+        .containsEntry(Stage.ID_DEVELOP, Action.ID_WARN)
+        .containsEntry(Stage.ID_PROXY, Action.ID_WARN)
+        .containsEntry(Stage.ID_OPERATE, Action.ID_FAIL);
 
     assertThat(actions.get(Stage.ID_STAGE_RELEASE)).isNull();
     assertThat(actions.get(Stage.ID_RELEASE)).isNull();
@@ -209,7 +209,7 @@ public class ApplicationPolicyEditorActionsOverrideTest
     ScrollUtil.scrollIntoView(actionsTable.title());
 
     assertThat(actionsTable.paragraph().text())
-      .isEqualTo("Action overrides have been disabled for this policy.");
+        .isEqualTo("Action overrides have been disabled for this policy.");
 
     actionsTable.actionsOverrideSection().shouldBe(visible);
 

@@ -29,7 +29,8 @@ public class OAuth2ConfigurationDTO
 
   private String exactMatchClaimsJson;
 
-  public OAuth2ConfigurationDTO() { }
+  public OAuth2ConfigurationDTO() {
+  }
 
   public OAuth2ConfigurationDTO(
       final String idpIssuer,

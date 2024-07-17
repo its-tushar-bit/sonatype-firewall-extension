@@ -202,7 +202,7 @@ public class ApiComponentReleaseQuarantineServiceTest
 
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> service.releaseQuarantineWithoutReEval(repositoryComponent.getId(), "comment")).withMessage(
-        "Component with quarantineId " + repositoryComponent.getId() + " is not quarantined.");
+          "Component with quarantineId " + repositoryComponent.getId() + " is not quarantined.");
     verifyNoInteractions(policyWaiverTelemetryCreator);
     verifyNoInteractions(repositoryComponentTelemetryCreator);
   }
@@ -255,7 +255,7 @@ public class ApiComponentReleaseQuarantineServiceTest
   public void testReleaseQuarantineWithoutReEval_UnknownQuarantineId() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> service.releaseQuarantineWithoutReEval("unknownId", "comment")).withMessage(
-        "Cannot find a component with quarantineId unknownId.");
+            "Cannot find a component with quarantineId unknownId.");
     verifyNoInteractions(policyWaiverTelemetryCreator);
     verifyNoInteractions(repositoryComponentTelemetryCreator);
   }

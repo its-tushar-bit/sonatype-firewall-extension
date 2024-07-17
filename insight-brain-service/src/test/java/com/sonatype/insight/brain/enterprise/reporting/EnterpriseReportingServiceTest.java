@@ -484,7 +484,7 @@ public class EnterpriseReportingServiceTest
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));
     when(mockHdsClient.get(DashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(
-        new DashboardMetadataListDTO(Collections.emptyList()));
+            new DashboardMetadataListDTO(Collections.emptyList()));
 
     assertThatThrownBy(() -> enterpriseReportingService.getIcon("rolling-recap1.svg"))
         .isInstanceOf(NotFoundException.class);

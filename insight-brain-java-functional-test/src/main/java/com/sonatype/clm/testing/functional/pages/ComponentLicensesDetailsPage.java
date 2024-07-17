@@ -22,7 +22,8 @@ import static com.codeborne.selenide.Selenide.$;
 
 public final class ComponentLicensesDetailsPage
 {
-  private ComponentLicensesDetailsPage() {}
+  private ComponentLicensesDetailsPage() {
+  }
 
   public static String urlToApplicationScopeByHash(String publicAppId, String componentHash, int licenseIndex) {
     return BaseUrl.resolvePageUrl(String.format("/legal/application/%s/component/%s/licenses/%d",

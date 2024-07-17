@@ -11,7 +11,8 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 
 public final class ApiSourceControlEventAdapterDTO
 {
-  private ApiSourceControlEventAdapterDTO() {}
+  private ApiSourceControlEventAdapterDTO() {
+  }
 
   public static ApiSourceControlEventDTO convert(SourceControlEvent sourceControlEvent) {
     ApiSourceControlEventDTO result = new ApiSourceControlEventDTO();

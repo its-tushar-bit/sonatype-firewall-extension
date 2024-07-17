@@ -17,7 +17,8 @@ public class ApiSbomStatusDTO
 
   public String errorMessage;
 
-  public ApiSbomStatusDTO() { }
+  public ApiSbomStatusDTO() {
+  }
 
   public ApiSbomStatusDTO(String errorMessage) {
     this.isError = true;

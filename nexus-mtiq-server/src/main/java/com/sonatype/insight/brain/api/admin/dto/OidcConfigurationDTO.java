@@ -23,7 +23,8 @@ public class OidcConfigurationDTO
 
   private String tokenRequestCustomParamsJson;
 
-  public OidcConfigurationDTO() { }
+  public OidcConfigurationDTO() {
+  }
 
   public OidcConfigurationDTO(
       final String idpIssuer,

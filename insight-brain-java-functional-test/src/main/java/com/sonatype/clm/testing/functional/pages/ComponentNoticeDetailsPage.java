@@ -21,7 +21,8 @@ import static com.codeborne.selenide.Selenide.$;
 
 public final class ComponentNoticeDetailsPage
 {
-  private ComponentNoticeDetailsPage() {}
+  private ComponentNoticeDetailsPage() {
+  }
 
   public static String urlToApplicationScopeByHash(String publicAppId, String componentHash, int noticeIndex) {
     return BaseUrl.resolvePageUrl(String.format("/legal/application/%s/component/%s/notices/%d",

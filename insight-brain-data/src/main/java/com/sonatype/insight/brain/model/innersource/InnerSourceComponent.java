@@ -34,7 +34,8 @@ public class InnerSourceComponent
   private String latestVersion;
 
   // for JPA
-  public InnerSourceComponent() { }
+  public InnerSourceComponent() {
+  }
 
   public InnerSourceComponent(String applicationId, String packageUrl) {
     this.applicationId = applicationId;

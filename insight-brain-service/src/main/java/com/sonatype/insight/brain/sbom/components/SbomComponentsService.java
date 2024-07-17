@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.sbom.components;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -14,44 +17,34 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import java.util.List;
-import java.io.IOException;
-import java.util.ArrayList;
 
 import com.sonatype.insight.IdentificationSource;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
-
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.thirdpartyscans.BomPageSbomSummaryDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomDependencyTypeDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
-import com.sonatype.insight.brain.model.component.DependencyType;
-
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.sbom.SbomDependencyType;
-
-import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.brain.security.AuthzContext;
-
-import com.sonatype.insight.error.exception.NotFoundException;
-
 import com.sonatype.insight.brain.sbom.utils.SbomCreationDetails;
 import com.sonatype.insight.brain.sbom.utils.SbomCreationDetails.Creator;
-
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
-
-import com.sonatype.insight.brain.audit.AuditData;
 
 import org.apache.commons.collections.CollectionUtils;
 
@@ -133,9 +126,9 @@ public class SbomComponentsService
     componentDetailsDTO.setVulnerabilitySummary(getVulnerabilitySummary(vulnerabilityList));
 
     componentDetailsDTO.setDisclosedVulnerabilities(
-        getVulnerabilitiesDetails(vulnerabilityList, vexAnnotationsMap, true));
+        getVulnerabilitiesDetails(sbomMetadata, vulnerabilityList, vexAnnotationsMap, true));
     componentDetailsDTO.setSonatypeIdentifiedVulnerabilities(
-        getVulnerabilitiesDetails(vulnerabilityList, vexAnnotationsMap, false));
+        getVulnerabilitiesDetails(sbomMetadata, vulnerabilityList, vexAnnotationsMap, false));
     return componentDetailsDTO;
   }
 
@@ -188,6 +181,7 @@ public class SbomComponentsService
   }
 
   private List<VulnerabilityDetailsDTO> getVulnerabilitiesDetails(
+      ThirdPartySbomMetadata sbomMetadata,
       List<ThirdPartyCoordinateSecurity> vulnerabilityList,
       Map<String, ThirdPartyVulnerabilityExploitabilityExchange> vexAnnotationsMap,
       boolean disclosedVulnerabilities)
@@ -203,8 +197,7 @@ public class SbomComponentsService
     return vulnerabilityList.stream()
         .filter(disclosedVulnerabilities ? isDisclosedVulnerability : isSonatypeIdentifiedVulnerability)
         .map(vulnerability -> {
-          ThirdPartyVulnerabilityExploitabilityExchange vex =
-              vexAnnotationsMap.get(vulnerability.getId());
+          ThirdPartyVulnerabilityExploitabilityExchange vex = vexAnnotationsMap.get(vulnerability.getId());
 
           VulnerabilityDetailsDTO vulnerabilityDetailsDTO =
               new VulnerabilityDetailsDTO(vulnerability.getSeverity(), vulnerability.getRefId(),
@@ -218,6 +211,12 @@ public class SbomComponentsService
             vulnerabilityDetailsDTO.setDetails(vex.getDetail());
             vulnerabilityDetailsDTO.setUpdatedAt(vex.getUpdatedAt());
             vulnerabilityDetailsDTO.setLastUpdatedBy(vex.getLastUpdatedByWithoutRealm());
+          }
+          else {
+            // get vex of vulnerability that was previously annotated in an earlier, most recent, SBOM version
+            vulnerabilityDetailsDTO.setLatestPreviousAnnotation(
+                vexDAO.getLatestVulnerabilityAnalysisByApplicationIdAndRefId(vulnerability.getRefId(),
+                    sbomMetadata.getApplicationId(), sbomMetadata.getCreatedAt()));
           }
 
           return vulnerabilityDetailsDTO;

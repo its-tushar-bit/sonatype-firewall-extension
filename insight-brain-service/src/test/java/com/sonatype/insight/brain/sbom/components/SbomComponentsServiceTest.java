@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
+import com.sonatype.insight.brain.model.thirdpartyscans.VulnerabilityAnalysisForSbomVersion;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -77,13 +78,13 @@ public class SbomComponentsServiceTest
 
     ThirdPartyVulnerabilityExploitabilityExchange vexA =
         tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityA, "cve1", "resolved",
-            "code_not_reachable", "response", "details");
+            "code_not_reachable", "response", "detail");
     ThirdPartyVulnerabilityExploitabilityExchange vexB =
         tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityB, "cve2", "resolved",
-            "code_not_reachable", "response", "details");
+            "code_not_reachable", "response", "detail");
     ThirdPartyVulnerabilityExploitabilityExchange vexE =
         tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityE, "cve2", "resolved",
-            "code_not_reachable", "response", "details");
+            "code_not_reachable", "response", "detail");
 
     CDPSbomComponentDetailsDTO actualA =
         service.getSbomComponentDetails(app.getId(), sbomMetadata.getSbomVersion(), componentA.getHash());
@@ -112,6 +113,93 @@ public class SbomComponentsServiceTest
     assertVulnerabilities(actualB.getDisclosedVulnerabilities().get(1), vulnerabilityE, vexE.getState(),
         vexE.getJustification(), vexE.getResponse(), vexE.getDetail(), vexE.getUpdatedAt(),
         vexE.getLastUpdatedByWithoutRealm());
+    assertThat(actualB.getSonatypeIdentifiedVulnerabilities()).isEmpty();
+  }
+
+  @Test
+  public void testGetSbomComponentDetails_LatestPreviousAnnotation() {
+    ThirdPartyFile thirdPartyFilePrevious = tempEntity.newThirdPartyFile();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata sbomMetadataPrevious =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFilePrevious.getId(), app.getId(), "ACTIVE",
+            thirdPartyFilePrevious.getFilename());
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
+            thirdPartyFile.getFilename());
+    ThirdPartyFileCoordinate previousComponentA =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFilePrevious, "s1", "f1", "n1", "v1", "h1",
+            "pkg:f1/group/n1@v1?type=jar");
+    ThirdPartyFileCoordinate componentA =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1", "h1",
+            "pkg:f1/group/n1@v1?type=jar");
+    ThirdPartyFileCoordinate componentB =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s2", "f2", "n2", "v2", "h2",
+            "pkg:f2/group/n2@v2?type=jar");
+    ThirdPartyCoordinateSecurity previousVulnerabilityA =
+        tempEntity.newThirdPartyCoordinateSecurity(previousComponentA, "cve1", "d1", "l1", 9, "f1", "v1", "cvs1", "sd1",
+            "cwes1", "m1", "r1", "ad1", "SBOM");
+    ThirdPartyCoordinateSecurity vulnerabilityA =
+        tempEntity.newThirdPartyCoordinateSecurity(componentA, "cve1", "d1", "l1", 9, "f1", "v1", "cvs1", "sd1",
+            "cwes1", "m1", "r1", "ad1", "SBOM");
+    ThirdPartyCoordinateSecurity vulnerabilityB =
+        tempEntity.newThirdPartyCoordinateSecurity(componentA, "cve2", "d2", "l2", 7, "f2", "v2", "cvs2", "sd2",
+            "cwes2", "m2", "r2", "ad2", "SBOM,Sonatype");
+    tempEntity.newThirdPartyCoordinateSecurity(previousComponentA, "cve3", "d3", "l3", 5, "f3", "v3", "cvs3", "sd3",
+        "cwes3", "m3", "r3", "ad3", "Sonatype");
+    tempEntity.newThirdPartyCoordinateSecurity(componentA, "cve3", "d3", "l3", 5, "f3", "v3", "cvs3", "sd3",
+        "cwes3", "m3", "r3", "ad3", "Sonatype");
+    tempEntity.newThirdPartyCoordinateSecurity(componentB, "cve1", "d1", "l1", 6, "f1", "v1", "cvs1", "sd1",
+        "cwes1", "m1", "r1", "ad1", "SBOM");
+    ThirdPartyCoordinateSecurity vulnerabilityE =
+        tempEntity.newThirdPartyCoordinateSecurity(componentB, "cve2", "d2", "l2", 7, "f2", "v2", "cvs2", "sd2",
+            "cwes2", "m2", "r2", "ad2", "SBOM,Sonatype");
+
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(previousVulnerabilityA, "cve1", "resolved1a",
+        "code_not_reachable1a", "response1a", "detail1a");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityA, "cve1", "resolved1b",
+        "code_not_reachable1b", "response1b", "detail1b");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityB, "cve2", "resolved2a",
+        "code_not_reachable2a", "response2a", "detail2a");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(previousVulnerabilityA, "cve3", "resolved3a",
+        "code_not_reachable3a", "response3a", "detail3a");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityE, "cve2", "resolved2b",
+        "code_not_reachable2b", "response2b", "detail2b");
+
+    CDPSbomComponentDetailsDTO actualA =
+        service.getSbomComponentDetails(app.getId(), sbomMetadata.getSbomVersion(), componentA.getHash());
+
+    CDPSbomComponentDetailsDTO actualB =
+        service.getSbomComponentDetails(app.getId(), sbomMetadata.getSbomVersion(), componentB.getHash());
+
+    VulnerabilityAnalysisForSbomVersion previousAnnotation1a =
+        new VulnerabilityAnalysisForSbomVersion(sbomMetadataPrevious.getSbomVersion(), "resolved1a",
+            "code_not_reachable1a", "response1a", null);
+
+    VulnerabilityAnalysisForSbomVersion previousAnnotation3a =
+        new VulnerabilityAnalysisForSbomVersion(sbomMetadataPrevious.getSbomVersion(), "resolved3a",
+            "code_not_reachable3a", "response3a", null);
+
+    assertThat(actualA.getDisclosedVulnerabilities()).hasSize(2);
+    assertThat(actualA.getDisclosedVulnerabilities().get(0).getLatestPreviousAnnotation()).isNull();
+    assertThat(actualA.getDisclosedVulnerabilities().get(1).getLatestPreviousAnnotation()).isNull();
+
+    assertThat(actualA.getSonatypeIdentifiedVulnerabilities()).hasSize(1);
+    assertThat(actualA.getSonatypeIdentifiedVulnerabilities().get(0).getLatestPreviousAnnotation()).isNotNull()
+        .usingRecursiveComparison()
+        .ignoringFields("detail")
+        .isEqualTo(previousAnnotation3a);
+    assertThat(actualA.getSonatypeIdentifiedVulnerabilities().get(0).getLatestPreviousAnnotation().getDetail())
+        .endsWith("'detail3a'");
+
+    assertThat(actualB.getDisclosedVulnerabilities()).hasSize(2);
+    assertThat(actualB.getDisclosedVulnerabilities().get(0).getLatestPreviousAnnotation()).isNotNull()
+        .usingRecursiveComparison()
+        .ignoringFields("detail")
+        .isEqualTo(previousAnnotation1a);
+    assertThat(actualB.getDisclosedVulnerabilities().get(0).getLatestPreviousAnnotation().getDetail())
+        .contains("'detail1a'");
+    assertThat(actualB.getDisclosedVulnerabilities().get(1).getLatestPreviousAnnotation()).isNull();
+
     assertThat(actualB.getSonatypeIdentifiedVulnerabilities()).isEmpty();
   }
 

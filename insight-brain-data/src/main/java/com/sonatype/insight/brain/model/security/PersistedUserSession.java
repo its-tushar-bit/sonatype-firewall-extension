@@ -12,7 +12,6 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.GregorianCalendar;
 import java.util.List;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -149,6 +148,7 @@ public class PersistedUserSession
     return objectMapper;
   }
 
+  @JsonAutoDetect(fieldVisibility = Visibility.ANY)
   abstract static class SamlSessionMixIn
   {
     @JsonDeserialize(using = XMLGregorianCalendarDeserializer.class)

@@ -20,6 +20,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.utils.AutoDeletingTempFile;
 import com.sonatype.insight.scan.file.InvalidSbomException;
@@ -175,8 +176,24 @@ public class SbomFileDetector
   private SbomDetectionResult tryDetectingAsCycloneDx(final String fileContent, final SbomDetectionResult sbomResult) {
     try {
       SbomFormat sbomFormat = SbomFormat.forMimeType(sbomResult.mimeType);
-      Bom bom = ThirdPartyUtils.parseAndValidateCycloneDx(fileContent,
-          Objects.requireNonNull(sbomFormat));
+
+      Bom bom;
+      try {
+        bom = ThirdPartyUtils.parseAndValidateCycloneDx(fileContent,
+            Objects.requireNonNull(sbomFormat));
+      }
+      catch (InvalidSbomException ex) {
+        if (SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled()) {
+          log.info("Validation was skipped due to system property skipSbomImportValidation being enabled.");
+          bom = ThirdPartyUtils.parseCycloneDxWithNoValidation(fileContent,
+              Objects.requireNonNull(sbomFormat));
+          log.info("SBOM validation skipped per configuration");
+        }
+        else {
+          throw ex;
+        }
+      }
+
       sbomResult.isSbom = true;
       populateCycloneDxResult(sbomResult, sbomFormat, bom);
     }

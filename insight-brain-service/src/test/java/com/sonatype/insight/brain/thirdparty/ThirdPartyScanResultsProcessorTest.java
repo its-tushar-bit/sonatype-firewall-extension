@@ -28,6 +28,8 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
@@ -35,8 +37,12 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
@@ -109,6 +115,12 @@ public class ThirdPartyScanResultsProcessorTest
   private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
   @Inject
+  private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
+
+  @Inject
+  private ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
+
+  @Inject
   private ThirdPartyResultHandlerFactory thirdPartyResultHandlerFactory;
 
   @Mock
@@ -173,6 +185,9 @@ public class ThirdPartyScanResultsProcessorTest
         .withNodeFilter(getSonatypeIdentifierNodeFilter())
         .ignoreWhitespace()
         .areIdentical();
+
+    String hasErrorAttr = getSbomNodeAsString(actualScan, "/scan/item[4]/@hasError");
+    assertThat(hasErrorAttr).isEmpty();
   }
 
   @Test
@@ -749,6 +764,84 @@ public class ThirdPartyScanResultsProcessorTest
     File sbomDir = insightWork.getSbomDir(application.getId());
     assertThat(sbomDir).isEmptyDirectory();
     verify(thirdPartyScanResultsProcessorSpy, times(0)).getSbomMetadataEntity(any(), any());
+  }
+
+  @Test
+  public void testHandle_cdx_invalidFile_skipSbomValidationEnabled() throws Exception {
+    SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
+
+    final Organization organization = tempEntity.newOrganization("Test Org");
+    final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
+    File scanFile = getScanFile("scan-invalid-cdx.xml");
+    String scanId = TemporaryEntity.uuid();
+    File tempScanFile = tempDir.newFile();
+
+    String scanRequestId =
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
+            application.getId(), StageTypes.RELEASE.getName());
+    thirdPartyScanResultsProcessorSpy.postHandle(scanId, scanRequestId);
+    List<ThirdPartyFile> thirdPartyFiles = thirdPartyFileDAO.getByScanId(scanId);
+    assertThirdPartyFile(thirdPartyFiles, 1, "third-party-simple-invalid-bom.xml");
+    List<ThirdPartyFileCoordinate> fileCoordinate =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFiles.get(0).getId());
+    assertThat(fileCoordinate).isNotEmpty();
+    List<ThirdPartyCoordinateSecurity> coordinateSecurities =
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(fileCoordinate.get(0).getId());
+    List<ThirdPartyCoordinateLicense> coordinateLicenses =
+        thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(fileCoordinate.get(0).getId());
+    assertThat(coordinateSecurities).isEmpty();
+    assertThat(coordinateLicenses).isEmpty();
+
+    DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+    Document actualScan = db.parse(getScanXMLFile(tempScanFile));
+    String hasErrorProperty = getSbomNodeAsString(actualScan, "/scan/item[1]/@hasError");
+    assertThat(hasErrorProperty).isEqualTo("true");
+  }
+
+  @Test
+  public void testHandle_cdx_invalidFile_skipSbomValidationDisabled() throws Exception {
+    final Organization organization = tempEntity.newOrganization("Test Org");
+    final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
+    File scanFile = getScanFile("scan-invalid-cdx.xml");
+    String scanId = TemporaryEntity.uuid();
+    File tempScanFile = tempDir.newFile();
+
+    String scanRequestId =
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
+            application.getId(), StageTypes.RELEASE.getName());
+    thirdPartyScanResultsProcessorSpy.postHandle(scanId, scanRequestId);
+    List<ThirdPartyFile> thirdPartyFiles = thirdPartyFileDAO.getByScanId(scanId);
+    assertThirdPartyFile(thirdPartyFiles, 1, "third-party-simple-invalid-bom.xml");
+    List<ThirdPartyFileCoordinate> fileCoordinate =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFiles.get(0).getId());
+    assertThat(fileCoordinate).isEmpty();
+  }
+
+  @Test
+  public void testHandle_cdx_validFile_skipSbomValidationEnabled() throws Exception {
+    SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
+
+    final Organization organization = tempEntity.newOrganization("Test Org");
+    final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
+    File scanFile = getScanFile("scan-valid-cdx.xml");
+    String scanId = TemporaryEntity.uuid();
+    File tempScanFile = tempDir.newFile();
+
+    String scanRequestId =
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
+            application.getId(), StageTypes.RELEASE.getName());
+    thirdPartyScanResultsProcessorSpy.postHandle(scanId, scanRequestId);
+    List<ThirdPartyFile> thirdPartyFiles = thirdPartyFileDAO.getByScanId(scanId);
+    assertThirdPartyFile(thirdPartyFiles, 1, "third-party-simple-bom.xml");
+    List<ThirdPartyFileCoordinate> fileCoordinate =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFiles.get(0).getId());
+    assertThat(fileCoordinate).isNotEmpty();
+    List<ThirdPartyCoordinateSecurity> coordinateSecurities =
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(fileCoordinate.get(0).getId());
+    List<ThirdPartyCoordinateLicense> coordinateLicenses =
+        thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(fileCoordinate.get(0).getId());
+    assertThat(coordinateSecurities).isNotEmpty().hasSize(1);
+    assertThat(coordinateLicenses).isNotEmpty().hasSize(2);
   }
 
   private void assertLogOutput(final String message) {

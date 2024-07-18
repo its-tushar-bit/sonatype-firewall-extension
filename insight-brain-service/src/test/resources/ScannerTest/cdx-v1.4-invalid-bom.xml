@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom serialNumber="urn:uuid:33dfc2b6-6d6f-4174-8f4f-2b09cd3ba363" version="1"
+     xmlns="http://cyclonedx.org/schema/bom/1.4">
+  <metadata>
+    <timestamp>2022-10-10T16:50:51Z</timestamp>
+    <component type="application"
+               bom-ref="pkg:maven/com.sonatype.insight.scan/insight-scanner@2.36.19-SNAPSHOT?type=pom">
+      <group>com.sonatype.insight.scan</group>
+      <name>insight-scanner</name>
+      <version>2.36.19-SNAPSHOT</version>
+      <purl>pkg:maven/com.sonatype.insight.scan/insight-scanner@2.36.19-SNAPSHOT?type=pom</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="Match State"/>
+        <property name="Identification Source"/>
+      </properties>
+    </component>
+  </metadata>
+  <components>
+    <component type="library" bom-ref="pkg:fake/com.google.guava/guava@30.1-jre?type=jar">
+      <group>com.google.guava</group>
+      <version>30.1-jre</version>
+      <licenses>
+        <license>
+          <name>Public Domain</name>
+        </license>
+        <license>
+          <id>Apache-2.0</id>
+        </license>
+      </licenses>
+      <purl>pkg:fake/com.google.guava/guava@30.1-jre?type=jar</purl>
+      <modified>false</modified>
+    </component>
+  </components>
+  <dependencies>
+    <dependency ref="pkg:fake/com.google.guava/guava@30.1-jre?type=jar">
+      <dependency ref="pkg:maven/com.google.guava/failureaccess@1.0.1?type=jar"/>
+      <dependency ref="pkg:maven/com.google.guava/listenablefuture@9999.0-empty-to-avoid-conflict-with-guava?type=jar"/>
+      <dependency ref="pkg:maven/com.google.code.findbugs/jsr305@3.0.2?type=jar"/>
+      <dependency ref="pkg:maven/org.checkerframework/checker-qual@3.5.0?type=jar"/>
+      <dependency ref="pkg:maven/com.google.errorprone/error_prone_annotations@2.3.4?type=jar"/>
+      <dependency ref="pkg:maven/com.google.j2objc/j2objc-annotations@1.3?type=jar"/>
+    </dependency>
+  </dependencies>
+  <vulnerabilities>
+    <vulnerability>
+      <id>sonatype-2020-0926</id>
+      <source>
+        <name>SONATYPE</name>
+        <url>http://localhost:8072/ui/links/vln/sonatype-2020-0926</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>SONATYPE</name>
+          </source>
+          <score>6.2</score>
+          <severity>high</severity>
+          <method>CVSSv3</method>
+          <vector>CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>379</cwe>
+      </cwes>
+      <affects>
+        <target>
+          <ref>pkg:fake/com.google.guava/guava@30.1-jre?type=jar</ref>
+        </target>
+      </affects>
+    </vulnerability>
+  </vulnerabilities>
+</bom>

@@ -64,7 +64,8 @@ public class TelemetryUtilsTest
     componentInfoTelemetry.incrementSwidCount();
     componentInfoTelemetry.incrementHashCount();
     componentInfoTelemetry.incrementCoordinateCount();
-    TelemetryData telemetryData = telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry);
+    TelemetryData telemetryData =
+        telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry, true, false);
     SbomComponentInfoTelemetry componentIdCounts =
         (SbomComponentInfoTelemetry) telemetryData.getAttributes().get("sbom_data_summary");
     assertThat(componentIdCounts.getPurlCount()).isEqualTo(1);
@@ -72,6 +73,8 @@ public class TelemetryUtilsTest
     assertThat(componentIdCounts.getSwidCount()).isEqualTo(3);
     assertThat(componentIdCounts.getHashCount()).isEqualTo(4);
     assertThat(componentIdCounts.getCoordinateCount()).isEqualTo(5);
+    assertThat(telemetryData.getAttributes().get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(true);
+    assertThat(telemetryData.getAttributes().get("is_sbom_valid")).isEqualTo(false);
   }
 
   @Test

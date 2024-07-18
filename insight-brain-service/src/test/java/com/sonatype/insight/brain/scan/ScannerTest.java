@@ -175,6 +175,39 @@ public class ScannerTest
   }
 
   @Test
+  public void testScanContent_invalidSbom_skipSbomValidationDisabled() throws Exception {
+    File sbom = new File("src/test/resources/ScannerTest/cdx-v1.4-invalid-bom.xml");
+
+    ScanResult scanResult =
+        scanner.scan(sbom, "test-sbom.xml", new File(tempDir.getRoot(), "not-yet-existent"),
+            new ProprietaryConfig());
+    assertThat(scanResult.getScanFile()).isFile();
+    Scan scan = scanReader.read(scanResult.getScanFile());
+    assertThat(scan).isNotNull();
+    assertThat(scan.getItems()).hasSize(1);
+    ScanItem item = scan.getItems().get(0);
+    assertThat(item.getContentType()).isNull();
+    assertThat(item.getHasError()).isTrue();
+  }
+
+  @Test
+  public void testScanContent_invalidSbom_skipSbomValidationEnabled() throws Exception {
+    SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
+    File sbom = new File("src/test/resources/ScannerTest/cdx-v1.4-invalid-bom.xml");
+
+    ScanResult scanResult =
+        scanner.scan(sbom, "test-sbom.xml", new File(tempDir.getRoot(), "not-yet-existent"),
+            new ProprietaryConfig());
+    assertThat(scanResult.getScanFile()).isFile();
+    Scan scan = scanReader.read(scanResult.getScanFile());
+    assertThat(scan).isNotNull();
+    assertThat(scan.getItems()).hasSize(1);
+    ScanItem item = scan.getItems().get(0);
+    assertThat(item.getContentType()).isNull();
+    assertThat(item.getHasError()).isTrue();
+  }
+  
+  @Test
   public void testScan_SourceControl() throws Exception {
     // given: setup and configs what would be used by a client for a source control scan
     File scanDir = new File("src/test/resources/ScannerTest/sourceControlScan");

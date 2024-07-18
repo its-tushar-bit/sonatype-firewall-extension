@@ -12,7 +12,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -30,6 +29,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiThirdPartyScanService.ApiPolicyAction;
 import com.sonatype.insight.brain.dataaccess.NotAcceptableException;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
@@ -93,6 +93,12 @@ public class ApiThirdPartyScanServiceTest
   @Test
   public void testScanComponents_bom_v1_3() throws Exception {
     testScanComponents("valid_bom_1_3.xml", SbomFormat.XML);
+  }
+
+  @Test
+  public void testScanComponents_invalidBom_v1_3_skipSbomValidationEnabled() throws Exception {
+    SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
+    testScanComponents("invalid_bom_1_3.xml", SbomFormat.XML);
   }
 
   @Test

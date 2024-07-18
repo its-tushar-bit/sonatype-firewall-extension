@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -50,8 +51,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.application.ScannerDriver;
 import com.sonatype.insight.scan.file.InvalidSbomException;
-import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.UnsupportedSbomException;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.ItemContentType;
@@ -149,7 +150,7 @@ public class ApiThirdPartyScanService
     }
     try {
       if (format == SbomFormat.XML && (sbom.contains("<spdxVersion>") || sbom.contains("<SPDXID>")) &&
-              !sbom.contains("<bom") ||
+          !sbom.contains("<bom") ||
           format == SbomFormat.JSON && (sbom.contains("\"spdxVersion\"") || sbom.contains("\"SPDXID\"")) &&
               !sbom.contains("\"bomFormat\"")
       ) {
@@ -157,7 +158,19 @@ public class ApiThirdPartyScanService
         return ItemContentType.SPDX;
       }
       else {
-        ThirdPartyUtils.parseAndValidateCycloneDx(sbom, format);
+        try {
+          ThirdPartyUtils.parseAndValidateCycloneDx(sbom, format);
+        }
+        catch (InvalidSbomException ex) {
+          if (SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled()) {
+            ThirdPartyUtils.parseCycloneDxWithNoValidation(sbom, format);
+            log.info("SBOM validation skipped per configuration");
+          }
+          else {
+            throw ex;
+          }
+        }
+
         return ItemContentType.SBOM;
       }
     }

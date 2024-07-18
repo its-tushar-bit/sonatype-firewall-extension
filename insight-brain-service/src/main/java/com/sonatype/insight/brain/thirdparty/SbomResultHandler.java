@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.scan.file.InvalidSbomException;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.model.ProjectScanItem;
@@ -135,6 +136,10 @@ public class SbomResultHandler
 
   protected final SbomComponentInfoTelemetry componentInfoTelemetry;
 
+  private boolean sbomValidationSkipped;
+
+  private boolean isSbomValid = true;
+
   public SbomResultHandler(
       final ThirdPartyFileDAO thirdPartyFileDAO,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
@@ -152,7 +157,7 @@ public class SbomResultHandler
     this.multiLicenseDAO = multiLicenseDAO;
     this.thirdPartyVexDAO = thirdPartyVexDAO;
     this.telemetryUtils = telemetryUtils;
-    this.telemetrySender = telemetrySender;;
+    this.telemetrySender = telemetrySender;
     this.componentInfoTelemetry = new SbomComponentInfoTelemetry();
     spdxLicenseExpressionUtil = new SpdxLicenseExpressionUtil(multiLicenseDAO);
   }
@@ -173,16 +178,18 @@ public class SbomResultHandler
         componentInfoTelemetry.setSpec(CYCLONEDX.name());
         componentInfoTelemetry.setSpecVersion(sourceBom.getSpecVersion());
         TelemetryData thirdPartyScanComponentInfoTelemetryData =
-            telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry);
+            telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry,
+                SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled(), !sbomValidationSkipped);
         telemetrySender.send(thirdPartyScanComponentInfoTelemetryData);
         if (targetBom.getComponents() != null && targetBom.getComponents().isEmpty()) {
-          return new FilteredThirdPartyContent(content.getContent(), moduleDependencies);
+          return new FilteredThirdPartyContent(content.getContent(), moduleDependencies, !isSbomValid);
         }
         else {
-          return new FilteredThirdPartyContent(generateFilteredSbom(targetBom), moduleDependencies);
+          return new FilteredThirdPartyContent(generateFilteredSbom(targetBom), moduleDependencies,
+              !isSbomValid);
         }
       }
-      return new FilteredThirdPartyContent(content.getContent());
+      return new FilteredThirdPartyContent(content.getContent(), !isSbomValid);
     }
     catch (Exception e) {
       throw new RuntimeException("Error filtering sbom file " + content.getPath(), e);
@@ -194,7 +201,21 @@ public class SbomResultHandler
     String extension = FilenameUtils.getExtension(content.getPath());
     SbomFormat sbomFormat = SbomFormat.forString(extension.toLowerCase(Locale.ROOT));
     componentInfoTelemetry.setContentType(sbomFormat.name());
-    return ThirdPartyUtils.parseAndValidateCycloneDx(content.getContent(), sbomFormat);
+
+    try {
+      return ThirdPartyUtils.parseAndValidateCycloneDx(content.getContent(), sbomFormat);
+    }
+    catch (InvalidSbomException ex) {
+      isSbomValid = false;
+      if (SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled()) {
+        log.info("SBOM validation skipped per configuration");
+        sbomValidationSkipped = true;
+        return ThirdPartyUtils.parseCycloneDxWithNoValidation(content.getContent(), sbomFormat);
+      }
+      else {
+        throw ex;
+      }
+    }
   }
 
   void processSbom(
@@ -212,10 +233,14 @@ public class SbomResultHandler
 
       Map<String, String> componentRefs = new HashMap<>();
       processComponents(sourceBom, targetBom, componentRefs, thirdPartyIdentificationSource, thirdPartyFile, tx);
-      processVulnerabilities(sourceBom, targetBom, componentRefs, tx);
+      if (!sbomValidationSkipped) {
+        processVulnerabilities(sourceBom, targetBom, componentRefs, tx);
+      }
       tx.commit();
     }
-    processDependencyGraph(sourceBom, targetBom, dependencyGraph, thirdPartyFile);
+    if (!sbomValidationSkipped) {
+      processDependencyGraph(sourceBom, targetBom, dependencyGraph, thirdPartyFile);
+    }
   }
 
   private void processComponents(
@@ -254,7 +279,7 @@ public class SbomResultHandler
             }
             else {
               log.debug("Vulnerability with ID {} does not have a " + (StringUtils.isBlank(affect.getRef()) ? "ref" :
-                      "matching component") + " so it can't be parsed", vulnerability.getId());
+                  "matching component") + " so it can't be parsed", vulnerability.getId());
             }
           }
         }
@@ -539,8 +564,10 @@ public class SbomResultHandler
     }
     fileCoordinate.setIdentificationSources(SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE);
     thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
-    saveLicenses(sourceComponent.getLicenseChoice(), fileCoordinate.getId(), component.getPurl(), tx);
-    saveVulnerabilitiesExtension(sourceComponent.getExtensions(), fileCoordinate.getId(), schemaVersion, tx);
+    if (!sbomValidationSkipped) {
+      saveLicenses(sourceComponent.getLicenseChoice(), fileCoordinate.getId(), component.getPurl(), tx);
+      saveVulnerabilitiesExtension(sourceComponent.getExtensions(), fileCoordinate.getId(), schemaVersion, tx);
+    }
     return fileCoordinate.getId();
   }
 
@@ -967,7 +994,7 @@ public class SbomResultHandler
       if (dependency.getRef().equalsIgnoreCase(metadataComponent.getBomRef())) {
         // Return the metadata component purl if it exists
         if (StringUtils.isNotBlank(metadataComponent.getPurl())) {
-          return Pair.of(dependency,resolvePackageUrl(metadataComponent.getPurl()).getPackageUrl());
+          return Pair.of(dependency, resolvePackageUrl(metadataComponent.getPurl()).getPackageUrl());
         }
         // Otherwise, just return the dep ref
         if (isPurl(dependency.getRef())) {

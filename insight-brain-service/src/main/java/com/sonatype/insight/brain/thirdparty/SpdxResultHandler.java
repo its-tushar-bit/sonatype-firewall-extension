@@ -122,7 +122,8 @@ public class SpdxResultHandler
         componentInfoTelemetry.setSpec(SPDX.name());
         componentInfoTelemetry.setSpecVersion(spdxDocument.getSpecVersion());
         TelemetryData thirdPartyScanComponentInfoTelemetryData =
-            telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry);
+            telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry,
+                SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled(), true);
         telemetrySender.send(thirdPartyScanComponentInfoTelemetryData);
         if (CollectionUtils.isEmpty(targetBom.getComponents())) {
           return new FilteredThirdPartyContent(content.getContent(), moduleDependencies);

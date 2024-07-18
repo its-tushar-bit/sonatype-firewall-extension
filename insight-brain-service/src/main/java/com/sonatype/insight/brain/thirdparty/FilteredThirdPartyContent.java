@@ -25,13 +25,24 @@ public class FilteredThirdPartyContent
    */
   private final List<ProjectScanItem> moduleDependencies;
 
+  private final boolean hasErrors;
+
   public FilteredThirdPartyContent(String content) {
-    this(content, Collections.emptyList());
+    this(content, Collections.emptyList(), false);
+  }
+
+  public FilteredThirdPartyContent(String content, boolean hasErrors) {
+    this(content, Collections.emptyList(), hasErrors);
   }
 
   public FilteredThirdPartyContent(String content, List<ProjectScanItem> moduleDependencies) {
+    this(content, moduleDependencies, false);
+  }
+
+  public FilteredThirdPartyContent(String content, List<ProjectScanItem> moduleDependencies, boolean hasErrors) {
     this.content = content;
     this.moduleDependencies = moduleDependencies;
+    this.hasErrors = hasErrors;
   }
 
   public String getContent() {
@@ -40,5 +51,9 @@ public class FilteredThirdPartyContent
 
   public List<ProjectScanItem> getModuleDependencies() {
     return moduleDependencies;
+  }
+
+  public boolean hasErrors() {
+    return hasErrors;
   }
 }

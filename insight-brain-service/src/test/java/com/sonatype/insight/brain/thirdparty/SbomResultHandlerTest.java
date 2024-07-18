@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.scan.file.InvalidSbomException;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.UnsupportedSbomException;
@@ -2027,6 +2028,128 @@ public class SbomResultHandlerTest
     assertThat(componentInfoTelemetry.getSpec()).isEqualTo("CYCLONEDX");
     assertThat(componentInfoTelemetry.getSpecVersion()).isEqualTo("1.5");
     assertThat(componentInfoTelemetry.getCpeCount()).isEqualTo(1);
+  }
+
+  @Test
+  public void testParseBom_invalidSbom_skipSbomValidationDisabled() throws Exception {
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-v1_4-invalid-bom.xml", null, null, null,
+            getSbomXmlFile("sbom-v1_4-invalid-bom.xml"));
+    assertThatExceptionOfType(InvalidSbomException.class)
+        .isThrownBy(() -> sbomResultHandler.parseBom(content));
+  }
+
+  @Test
+  public void testParseBom_invalidSbom_skipSbomValidationEnabled() throws Exception {
+    SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-v1_4-invalid-bom.xml", null, null, null,
+            getSbomXmlFile("sbom-v1_4-invalid-bom.xml"));
+
+    Bom bom = sbomResultHandler.parseBom(content);
+
+    assertThat(bom).isNotNull();
+    List<Component> components = bom.getComponents();
+    assertThat(components).isNotEmpty().hasSize(1);
+    Component component = components.get(0);
+    assertThat(component.getBomRef()).isEqualTo("pkg:fake/com.google.guava/guava@30.1-jre?type=jar");
+    assertThat(component.getName()).isNull();
+    assertThat(component.getGroup()).isEqualTo("com.google.guava");
+    assertThat(component.getVersion()).isEqualTo("30.1-jre");
+    assertThat(component.getPurl()).isEqualTo("pkg:fake/com.google.guava/guava@30.1-jre?type=jar");
+  }
+
+  @Test
+  public void testHandleAndFilterContents_validSbom_skipSbomVaidationDisabled() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-v1_4.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-v1_4.xml", null, null, null,
+            sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    FilteredThirdPartyContent filteredThirdPartyContent =
+        sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredThirdPartyContent.hasErrors()).isFalse();
+  }
+
+  @Test
+  public void testHandleAndFilterContents_invalidSbom_skipSbomVaidationEnabled() throws Exception {
+    SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
+    String sbomContent = getSbomXmlFile("sbom-v1_4-invalid-bom.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-v1_4-invalid-bom.xml", null, null, null,
+            sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    FilteredThirdPartyContent filteredThirdPartyContent =
+        sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredThirdPartyContent.hasErrors()).isTrue();
+  }
+
+  @Test
+  public void testHandleAndFilterContents_invalidSbom_skipValidationEnabled_telemetryData() throws Exception {
+    SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
+    String sbomContent = getSbomXmlFile("sbom-v1_4-invalid-bom.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-v1_4-invalid-bom.xml", null, null, null,
+            sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
+
+    Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    assertThat(telemetryAttributes).isNotNull();
+    assertThat(telemetryAttributes.get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(true);
+    assertThat(telemetryAttributes.get("is_sbom_valid")).isEqualTo(false);
+  }
+
+  @Test
+  public void testHandleAndFilterContents_validSbom_skipValidationEnabled_telemetryData() throws Exception {
+    SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
+    String sbomContent = getSbomXmlFile("sbom-v1_4.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-v1_4-invalid-bom.xml", null, null, null,
+            sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
+
+    Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    assertThat(telemetryAttributes).isNotNull();
+    assertThat(telemetryAttributes.get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(true);
+    assertThat(telemetryAttributes.get("is_sbom_valid")).isEqualTo(true);
+  }
+
+  @Test
+  public void testHandleAndFilterContents_validSbom_skipValidationDisabled_telemetryData() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-v1_4.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-v1_4-invalid-bom.xml", null, null, null,
+            sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
+
+    Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    assertThat(telemetryAttributes).isNotNull();
+    assertThat(telemetryAttributes.get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(false);
+    assertThat(telemetryAttributes.get("is_sbom_valid")).isEqualTo(true);
   }
 
   private void assertExtensionVulnerabilities(Component component) {

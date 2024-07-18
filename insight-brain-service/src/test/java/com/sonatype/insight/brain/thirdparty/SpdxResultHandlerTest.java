@@ -508,6 +508,9 @@ public class SpdxResultHandlerTest
     assertThat(componentInfoTelemetry.getPurlCount()).isEqualTo(2);
     assertThat(componentInfoTelemetry.getHashCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getCoordinateCount()).isEqualTo(1);
+
+    assertThat(telemetryAttributes.get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(false);
+    assertThat(telemetryAttributes.get("is_sbom_valid")).isEqualTo(true);
   }
 
   @Test

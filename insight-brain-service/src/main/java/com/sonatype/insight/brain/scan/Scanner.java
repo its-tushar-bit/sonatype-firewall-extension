@@ -256,6 +256,7 @@ public class Scanner
     if (SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.isEnabled()) {
       props.put("includeSha256", "true");
     }
+    
     configLoader.loadDefaults(props, null);
     configLoader.resolveAliases(props);
     

@@ -240,7 +240,7 @@ public class ThirdPartyScanResultsProcessor
         if (contentElement != null) {
           FilteredThirdPartyContent filteredThirdPartyContent =
               handleContent(itemElement, contentElement.getValue(), contentType, scanContext);
-          writeFilteredInformation(writer, filteredThirdPartyContent.getContent());
+          writeFilteredInformation(writer, filteredThirdPartyContent);
           Optional.of(filteredThirdPartyContent.getModuleDependencies())
               .ifPresent(moduleDependencies::addAll);
           storeSbomFileIfApplicable(contentType, itemElement, contentElement, scanContext);
@@ -307,7 +307,19 @@ public class ThirdPartyScanResultsProcessor
     }
   }
 
-  private void writeFilteredInformation(XMLEventWriter writer, String filteredInformation) throws XMLStreamException {
+  private void writeFilteredInformation(XMLEventWriter writer, FilteredThirdPartyContent filteredThirdPartyContent)
+      throws XMLStreamException
+  {
+    if (filteredThirdPartyContent.hasErrors()) {
+      try {
+        writer.add(EVENT_FACTORY.createAttribute("hasError", "true"));
+      }
+      catch (XMLStreamException e) {
+        log.debug("Could not add the hasError attribute to the item tag", e);
+      }
+    }
+
+    String filteredInformation = filteredThirdPartyContent.getContent();
     writer.add(EVENT_FACTORY.createCharacters("\n"));
     QName name = new QName("content");
     writer.add(EVENT_FACTORY.createStartElement(name, null, null));

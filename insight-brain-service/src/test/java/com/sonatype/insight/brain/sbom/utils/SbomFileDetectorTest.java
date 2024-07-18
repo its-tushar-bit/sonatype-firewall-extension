@@ -12,8 +12,15 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
+import com.sonatype.insight.brain.dataaccess.DAOFactory;
+import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
+import com.sonatype.insight.brain.db.rule.DatabaseRule;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.policy.evaluator.AbstractPolicyEvaluationTest;
+
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,9 +29,17 @@ public class SbomFileDetectorTest
 {
   private SbomFileDetector detector;
 
+  @Rule(order = 1)
+  public DatabaseRule databaseRule = DatabaseRule.getInstance(AbstractPolicyEvaluationTest.class);
+
+  protected DAOFactory daoFactory;
+
   @Before
   public void before() {
     detector = new SbomFileDetector();
+    daoFactory = new TestDAOFactory(databaseRule);
+
+    SystemConfigurationPropertyFeature.injectDependencies(daoFactory.createSystemConfigurationPropertyDAO());
   }
 
   @Test
@@ -84,6 +99,22 @@ public class SbomFileDetectorTest
 
   @Test
   public void testGetSbomMetadata_CycloneDx_XML_Valid_1_5() {
+    SbomDetectionResult expected =
+        createExpectedResult(true, "application/xml", null, "1.5", "CycloneDx", "xml", 1, 1, null, null);
+    getSbomMetadata("cyclonedx-valid-v1_5-xml.tmp", expected);
+  }
+
+  @Test
+  public void testGetSbomMetadata_CycloneDx_XML_Invalid_1_5_skipSbomValidationDisabled() {
+    SbomDetectionResult expected =
+        createExpectedResult(false, "application/xml", "not a valid CycloneDx SBOM file", "1.5", "CycloneDx", "xml", 1,
+            1, null, null);
+    getSbomMetadata("cyclonedx-invalid-v1_5-xml.tmp", expected);
+  }
+
+  @Test
+  public void testGetSbomMetadata_CycloneDx_XML_Invalid_1_5_skipSbomValidationEnabled() {
+    SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
     SbomDetectionResult expected =
         createExpectedResult(true, "application/xml", null, "1.5", "CycloneDx", "xml", 1, 1, null, null);
     getSbomMetadata("cyclonedx-valid-v1_5-xml.tmp", expected);

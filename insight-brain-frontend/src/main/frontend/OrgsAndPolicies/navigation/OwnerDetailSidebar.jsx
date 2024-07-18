@@ -200,10 +200,9 @@ export default function OwnerDetailSidebar() {
     <div id="owner-detail-sidebar">
       <MenuBarStatefulBreadcrumb />
       <NxH3>{owner.name}</NxH3>
-      <NxH4>Policy Management</NxH4>
 
       {/* Categories */}
-      {!isRepositoriesRelated && isOrgsAndAppsEnabled && (
+      {!isRepositoriesRelated && isOrgsAndAppsEnabled && !isSbomManager && (
         <NxCollapsibleItems
           id="application-category-group"
           role="menu"
@@ -243,35 +242,37 @@ export default function OwnerDetailSidebar() {
         </NxCollapsibleItems>
       )}
       {/* Policies */}
-      <NxCollapsibleItems
-        id="policy-group"
-        role="menu"
-        onToggleCollapse={onPoliciesCollapse}
-        isOpen={policiesOpen}
-        triggerContent="Policies"
-        className={isPolicy ? 'active' : ''}
-      >
-        <NxCollapsibleItems.Child role="menuitem">
-          <NxTextLink className={isPolicy && !policyId ? 'selected' : ''} href={`${linkMainHref}/policy`}>
-            <NxFontAwesomeIcon icon={faPlus} />
-            New Policy
-          </NxTextLink>
-        </NxCollapsibleItems.Child>
-        {policies &&
-          sort((a, b) => b.threatLevel - a.threatLevel, policies).map(({ name, id, threatLevel }) => (
-            <NxOverflowTooltip key={name}>
-              <NxCollapsibleItems.Child role="menuitem">
-                <NxTextLink className={id === policyId ? 'selected' : ''} href={`${linkMainHref}/policy/${id}`}>
-                  <NxThreatIndicator policyThreatLevel={threatLevel} />
-                  {name}
-                </NxTextLink>
-              </NxCollapsibleItems.Child>
-            </NxOverflowTooltip>
-          ))}
-      </NxCollapsibleItems>
+      {!isSbomManager && (
+        <NxCollapsibleItems
+          id="policy-group"
+          role="menu"
+          onToggleCollapse={onPoliciesCollapse}
+          isOpen={policiesOpen}
+          triggerContent="Policies"
+          className={isPolicy ? 'active' : ''}
+        >
+          <NxCollapsibleItems.Child role="menuitem">
+            <NxTextLink className={isPolicy && !policyId ? 'selected' : ''} href={`${linkMainHref}/policy`}>
+              <NxFontAwesomeIcon icon={faPlus} />
+              New Policy
+            </NxTextLink>
+          </NxCollapsibleItems.Child>
+          {policies &&
+            sort((a, b) => b.threatLevel - a.threatLevel, policies).map(({ name, id, threatLevel }) => (
+              <NxOverflowTooltip key={name}>
+                <NxCollapsibleItems.Child role="menuitem">
+                  <NxTextLink className={id === policyId ? 'selected' : ''} href={`${linkMainHref}/policy/${id}`}>
+                    <NxThreatIndicator policyThreatLevel={threatLevel} />
+                    {name}
+                  </NxTextLink>
+                </NxCollapsibleItems.Child>
+              </NxOverflowTooltip>
+            ))}
+        </NxCollapsibleItems>
+      )}
 
       {/* Legacy Violations */}
-      {!isRepositoriesRelated && isLegacyViolationsSupported && (
+      {!isRepositoriesRelated && isLegacyViolationsSupported && !isSbomManager && (
         <NxCollapsibleItems.Child>
           <NxTextLink
             id="legacy-violations-link"
@@ -283,7 +284,7 @@ export default function OwnerDetailSidebar() {
         </NxCollapsibleItems.Child>
       )}
       {/* Monitoring */}
-      {!isRepositoriesRelated && isMonitoringSupported && (
+      {!isRepositoriesRelated && isMonitoringSupported && !isSbomManager && (
         <NxCollapsibleItems.Child role="menuitem">
           <NxTextLink
             id="continous-monitoring-link"
@@ -295,7 +296,7 @@ export default function OwnerDetailSidebar() {
         </NxCollapsibleItems.Child>
       )}
       {/* Proprietary */}
-      {!isRepositoriesRelated && isProprietaryComponentsEnabled && (
+      {!isRepositoriesRelated && isProprietaryComponentsEnabled && !isSbomManager && (
         <NxCollapsibleItems.Child role="menuitem">
           <NxTextLink
             id="proprietary-components-link"
@@ -307,7 +308,7 @@ export default function OwnerDetailSidebar() {
         </NxCollapsibleItems.Child>
       )}
       {/* Labels */}
-      {!isRepositoriesRelated && (
+      {!isRepositoriesRelated && !isSbomManager && (
         <NxCollapsibleItems
           id="label-group"
           role="menu"
@@ -338,7 +339,7 @@ export default function OwnerDetailSidebar() {
         </NxCollapsibleItems>
       )}
       {/* License Threat Groups */}
-      {!isRepositoriesRelated && !isApp && (
+      {!isRepositoriesRelated && !isSbomManager && !isApp && (
         <NxCollapsibleItems
           id="license-threat-group-group"
           role="menu"
@@ -373,7 +374,7 @@ export default function OwnerDetailSidebar() {
         </NxCollapsibleItems>
       )}
       {/* Source Control */}
-      {!isRepositoriesRelated && isSourceControlForSourceTileSupported && isScmEnabled && (
+      {!isRepositoriesRelated && isSourceControlForSourceTileSupported && isScmEnabled && !isSbomManager && (
         <NxCollapsibleItems.Child role="menuitem">
           <NxTextLink
             className={`iq-noncollapsible ${isSourceControl ? 'selected' : ''}`}

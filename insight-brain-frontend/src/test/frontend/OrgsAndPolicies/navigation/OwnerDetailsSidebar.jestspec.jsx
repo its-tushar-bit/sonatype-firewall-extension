@@ -126,6 +126,28 @@ const ownerDetailMockData = {
   },
 };
 
+const appsLevelState = {
+  ...defaultPreloadedState,
+  router: {
+    currentState: {
+      name: 'management.edit.application.category',
+      url: '/category',
+    },
+    currentParams: {
+      applicationPublicId: 'applicationOnePublicID',
+    },
+  },
+  orgsAndPolicies: {
+    root: {
+      selectedOwner: {
+        id: 'app1',
+        publicId: 'applicationOnePublicID',
+        name: 'App 1',
+      },
+    },
+  },
+};
+
 const repositoryState = {
   ...defaultPreloadedState,
   router: {
@@ -139,12 +161,25 @@ const repositoryState = {
   },
 };
 
-const appsLevelState = {
+const sbomPreloadedState = {
   ...defaultPreloadedState,
   router: {
     currentState: {
-      name: 'management.edit.application.category',
-      url: '/category',
+      name: 'sbomManager.management.edit.organization.access',
+      url: '/access',
+    },
+    currentParams: {
+      organizationId: 'ROOT_ORGANIZATION_ID',
+    },
+  },
+};
+
+const sbomAppsLevelState = {
+  ...defaultPreloadedState,
+  router: {
+    currentState: {
+      name: 'sbomManager.management.edit.application.access',
+      url: '/access',
     },
     currentParams: {
       applicationPublicId: 'applicationOnePublicID',
@@ -328,6 +363,38 @@ describe('OwnerDetailSidebar', () => {
     });
 
     expect(screen.queryByRole('link', { name: 'Source Control' })).not.toBeInTheDocument();
+  });
+
+  it('renders correct sidebar with correct list open at Organization levels when SBOM Manager', async () => {
+    mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
+
+    renderComponent(sbomPreloadedState);
+
+    expect(await screen.findByText('Access')).toBeVisible();
+
+    expect(screen.queryByText('Policies')).not.toBeInTheDocument();
+    expect(screen.queryByText('Component Labels')).not.toBeInTheDocument();
+    expect(screen.queryByText('License Threat Groups')).not.toBeInTheDocument();
+    expect(screen.queryByText('Legacy Violations')).not.toBeInTheDocument();
+    expect(screen.queryByText('Application Categories')).not.toBeInTheDocument();
+    expect(screen.queryByText('Continuous Monitoring')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Source Control' })).not.toBeInTheDocument();
+    expect(screen.queryAllByText('License Threat Groups').length).toBe(0);
+  });
+
+  it('renders correct sidebar with correct list open at Application level when SBOM Manager', async () => {
+    renderComponent(sbomAppsLevelState);
+
+    expect(await screen.findByText('Access')).toBeVisible();
+
+    expect(screen.queryByText('Policies')).not.toBeInTheDocument();
+    expect(screen.queryByText('Component Labels')).not.toBeInTheDocument();
+    expect(screen.queryByText('License Threat Groups')).not.toBeInTheDocument();
+    expect(screen.queryByText('Legacy Violations')).not.toBeInTheDocument();
+    expect(screen.queryByText('Application Categories')).not.toBeInTheDocument();
+    expect(screen.queryByText('Continuous Monitoring')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Source Control' })).not.toBeInTheDocument();
+    expect(screen.queryAllByText('License Threat Groups').length).toBe(0);
   });
 
   it('has correct collapse menu behavior', () => {

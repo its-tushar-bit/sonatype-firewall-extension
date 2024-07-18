@@ -988,6 +988,62 @@ public class RepositoryPolicyEvaluatorTest
   }
 
   @Test
+  public void testEvaluate_PyPI_ForPCCS() {
+    int requestIndexForVersion1 = 0;
+    int requestIndexForVersion2 = 1;
+
+    Repository repository = tempEntity.newRepository();
+
+    RepositoryComponent component1 =
+        tempEntity.newRepositoryComponent(repository.getId(), "scipy-1.0.0.tar.gz", new Date());
+    RepositoryComponent component2 =
+        tempEntity.newRepositoryComponent(repository.getId(), "scipy-2.0.0.tar.gz", new Date());
+
+    // State that a component has been un-quarantine
+    component1.setQuarantineTime(new Date());
+    component1.setUnquarantineTimeForManualRelease(new Date());
+    repositoryComponentDAO.update(component1);
+    component2.setQuarantineTime(new Date());
+    repositoryComponentDAO.update(component2);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("pypi", "scipy-1.0.0.tar.gz", "hash"));
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("pypi", "scipy-2.0.0.tar.gz", "hash"));
+
+    hdsResult.components
+        .add(createComponentEvaluationData(
+            ComponentIdentifier.createPypiCoordinates("scipy", "1.0.0", null, "tar.gz"),
+            null, MatchState.EXACT, requestIndexForVersion1, null /* declaredLicenseSet */,
+            null /* observedLicenseSet */, createSecurityVulnerabilities(), 2 /* popularity */));
+    hdsResult.components
+        .add(createComponentEvaluationData(
+            ComponentIdentifier.createPypiCoordinates("scipy", "2.0.0", null, "tar.gz"),
+            null, MatchState.EXACT, requestIndexForVersion2, null /* declaredLicenseSet */,
+            null /* observedLicenseSet */, createSecurityVulnerabilities(), 2 /* popularity */));
+
+    // Evaluate policies. The component that has been un-quarantined should have the quarantined flag set to false.
+    RepositoryComponentEvaluationDataList repositoryComponentEvaluationResult =
+        repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, hdsResult,
+            true /* withQuarantine */, false /* persistEvaluationResults */, false /* forMonitoring */);
+    assertThat(
+        getQuarantineStatusOfRequestIndex(repositoryComponentEvaluationResult, requestIndexForVersion1)).isFalse();
+    assertThat(
+        getQuarantineStatusOfRequestIndex(repositoryComponentEvaluationResult, requestIndexForVersion2)).isTrue();
+  }
+
+  private boolean getQuarantineStatusOfRequestIndex(
+      RepositoryComponentEvaluationDataList repositoryComponentEvaluationResult, int requestIndex)
+  {
+    return repositoryComponentEvaluationResult.componentEvalResults.stream()
+        .filter(component -> component.requestIndex == requestIndex).findFirst().get().quarantine;
+  }
+
+  @Test
   public void testEvaluate_UnquarantinesComponent() {
     Repository repository = tempEntity.newRepository();
 

@@ -354,7 +354,8 @@ public class RepositoryPolicyEvaluator
       RepositoryComponent repositoryComponent,
       Component component)
   {
-    if (repositoryComponent != null && repositoryComponent.getHash().equals(component.getHash())) {
+    if (repositoryComponent != null &&
+        (component.getHash() == null || repositoryComponent.getHash().equals(component.getHash()))) {
       return repositoryComponent.isQuarantined();
     }
     return shouldQuarantine(policyAlerts, component);

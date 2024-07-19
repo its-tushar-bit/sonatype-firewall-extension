@@ -101,10 +101,12 @@ public class SpdxResultHandler
       final MultiLicenseDAO multiLicenseDAO,
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO,
       final TelemetryUtils telemetryUtils,
-      final TelemetrySender telemetrySender)
+      final TelemetrySender telemetrySender,
+      final ThirdPartyScanContext thirdPartyScanContext)
   {
     super(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-        thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender);
+        thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
+        thirdPartyScanContext);
   }
 
   @Override
@@ -278,6 +280,9 @@ public class SpdxResultHandler
       if (externalRef.getReferenceCategory() == ReferenceCategory.SECURITY) {
         ThirdPartyCoordinateSecurity coordinateSecurity = parseVulnerability(externalRef, fileCoordinateId);
         if (coordinateSecurity != null) {
+          if (thirdPartyScanContext != null) {
+            coordinateSecurity.setSbomMetadataId(thirdPartyScanContext.getSbomMetadataId());
+          }
           if (processedVulnerabilityIds.add(coordinateSecurity.getRefId())) {
             thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
           }
@@ -311,7 +316,7 @@ public class SpdxResultHandler
       final String source)
   {
     ThirdPartyCoordinateSecurity coordinateSecurity =
-        new ThirdPartyCoordinateSecurity(fileCoordinateId, refId, null, link, 0.0f, null);
+        new ThirdPartyCoordinateSecurity(fileCoordinateId, refId, null, null, link, 0.0f, null);
     coordinateSecurity.setVulnerabilitySource(source);
     coordinateSecurity.setIdentificationSources(IdentificationSource.SBOM.getId());
     return coordinateSecurity;

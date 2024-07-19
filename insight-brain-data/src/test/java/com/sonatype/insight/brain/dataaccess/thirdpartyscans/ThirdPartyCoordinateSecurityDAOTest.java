@@ -26,8 +26,8 @@ import com.sonatype.insight.brain.model.thirdpartyscans.RecentImportedSbomsDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.RecentVulnerabilitiesDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.model.thirdpartyscans.VulnerabilitiesThreadLevelMetricDTO;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
@@ -70,14 +70,14 @@ public class ThirdPartyCoordinateSecurityDAOTest
     ThirdPartyFileCoordinate coordinateFile = tempEntity.newThirdPartyFileCoordinate();
 
     ThirdPartyCoordinateSecurity entity =
-        new ThirdPartyCoordinateSecurity(coordinateFile.getId(), "refid", "description",
+        new ThirdPartyCoordinateSecurity(coordinateFile.getId(), "refid", "metadataId", "description",
             "link", 6.8f, null);
     dao.insert(entity);
     assertThat(entity.getId()).isNotNull();
 
     // Get
     ThirdPartyCoordinateSecurity retrievedCoordinateSecurity = dao.getById(entity.getId());
-    assertThirdPartyCoordinateSecurity("refid", "description", "link", 6.8f, null, coordinateFile.getId(),
+    assertThirdPartyCoordinateSecurity("refid", "metadataId", "description", "link", 6.8f, null, coordinateFile.getId(),
         retrievedCoordinateSecurity);
 
     // Update
@@ -98,7 +98,7 @@ public class ThirdPartyCoordinateSecurityDAOTest
     ThirdPartyCoordinateSecurity retrievedCoordinateSecurity =
         dao.getByCoordinateFileIdAndRefId(coordinateSecurity.getFileCoordinateId(), coordinateSecurity.getRefId());
 
-    assertThirdPartyCoordinateSecurity(coordinateSecurity.getRefId(), coordinateSecurity.getDescription(),
+    assertThirdPartyCoordinateSecurity(coordinateSecurity.getRefId(), null, coordinateSecurity.getDescription(),
         coordinateSecurity.getLink(), coordinateSecurity.getSeverity(), coordinateSecurity.getFixedBy(),
         coordinateSecurity.getFileCoordinateId(), retrievedCoordinateSecurity);
   }
@@ -110,7 +110,7 @@ public class ThirdPartyCoordinateSecurityDAOTest
         dao.getByCoordinateFileIdAndRefId(coordinateSecurity.getFileCoordinateId(),
             coordinateSecurity.getRefId().toUpperCase());
 
-    assertThirdPartyCoordinateSecurity(coordinateSecurity.getRefId(), coordinateSecurity.getDescription(),
+    assertThirdPartyCoordinateSecurity(coordinateSecurity.getRefId(), null, coordinateSecurity.getDescription(),
         coordinateSecurity.getLink(), coordinateSecurity.getSeverity(), coordinateSecurity.getFixedBy(),
         coordinateSecurity.getFileCoordinateId(), retrievedCoordinateSecurity);
   }
@@ -235,56 +235,64 @@ public class ThirdPartyCoordinateSecurityDAOTest
     ThirdPartyFileCoordinate coordinate1 =
         tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(), "s1", "f1", "n1", "v1", "", "");
 
-    ThirdPartyCoordinateSecurity coordinateSecurity1 = tempEntity.newThirdPartyCoordinateSecurity(coordinate1, "r1",
-        "d1", "l1", CvssV3Severity.LOW.getStartScoreRange(), CvssV3Severity.LOW.getDisplayName(), "f1");
+    ThirdPartyCoordinateSecurity coordinateSecurity1 = tempEntity.newThirdPartyCoordinateSecurity(coordinate1,
+        "r1", sbomMetadata.getId(), "d1", "l1", CvssV3Severity.LOW.getStartScoreRange(),
+        CvssV3Severity.LOW.getDisplayName(), "f1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity1, coordinateSecurity1.getRefId(),
         "state", "justification", "response", "detail");
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate1, "r2", "d2", "l2", CvssV3Severity.LOW.getEndScoreRange(),
+    tempEntity.newThirdPartyCoordinateSecurity(coordinate1, "r2", sbomMetadata.getId(), "d2", "l2",
+        CvssV3Severity.LOW.getEndScoreRange(),
         CvssV3Severity.LOW.getDisplayName(), "f2");
 
     ThirdPartyFileCoordinate coordinate2 =
         tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(), "s2", "f2", "n2", "v2", "", "");
 
-    ThirdPartyCoordinateSecurity coordinateSecurity3 = tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "r3",
-        "d3", "l3", CvssV3Severity.MEDIUM.getStartScoreRange(), CvssV3Severity.MEDIUM.getDisplayName(), "f3");
+    ThirdPartyCoordinateSecurity coordinateSecurity3 = tempEntity.newThirdPartyCoordinateSecurity(coordinate2,
+        "r3", sbomMetadata.getId(), "d3", "l3", CvssV3Severity.MEDIUM.getStartScoreRange(),
+        CvssV3Severity.MEDIUM.getDisplayName(), "f3");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity3, coordinateSecurity3.getRefId(),
         "state", "justification", "response", "detail");
 
-    ThirdPartyCoordinateSecurity coordinateSecurity4 = tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "r4",
-        "d4", "l4", CvssV3Severity.HIGH.getEndScoreRange(), CvssV3Severity.HIGH.getDisplayName(), "f4");
+    ThirdPartyCoordinateSecurity coordinateSecurity4 = tempEntity.newThirdPartyCoordinateSecurity(coordinate2,
+        "r4", sbomMetadata.getId(), "d4", "l4", CvssV3Severity.HIGH.getEndScoreRange(),
+        CvssV3Severity.HIGH.getDisplayName(), "f4");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity4, coordinateSecurity4.getRefId(),
         "state", "justification", "response", "detail");
 
-    ThirdPartyCoordinateSecurity coordinateSecurity5 = tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "r5",
-        "d5", "l5", CvssV3Severity.HIGH.getEndScoreRange(), CvssV3Severity.HIGH.getDisplayName(), "f5");
+    ThirdPartyCoordinateSecurity coordinateSecurity5 = tempEntity.newThirdPartyCoordinateSecurity(coordinate2,
+        "r5", sbomMetadata.getId(), "d5", "l5", CvssV3Severity.HIGH.getEndScoreRange(),
+        CvssV3Severity.HIGH.getDisplayName(), "f5");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity5, coordinateSecurity5.getRefId(),
         "state", "justification", "response", "detail");
 
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "r6", "d6", "l6", CvssV3Severity.HIGH.getEndScoreRange(),
-        CvssV3Severity.HIGH.getDisplayName(), "f6");
+    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "r6", sbomMetadata.getId(), "d6",
+        "l6", CvssV3Severity.HIGH.getEndScoreRange(), CvssV3Severity.HIGH.getDisplayName(), "f6");
 
     ThirdPartyFileCoordinate coordinate3 =
-        tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(), "s3", "f3", "n3", "v3", "", "");
+        tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(), "s3", "f3",
+            "n3", "v3", "", "");
 
-    ThirdPartyCoordinateSecurity coordinateSecurity7 = tempEntity.newThirdPartyCoordinateSecurity(coordinate3, "r7",
-        "d7", "l7", CvssV3Severity.CRITICAL.getStartScoreRange(), CvssV3Severity.CRITICAL.getDisplayName(), "f7");
+    ThirdPartyCoordinateSecurity coordinateSecurity7 = tempEntity.newThirdPartyCoordinateSecurity(coordinate3,
+        "r7", sbomMetadata.getId(), "d7", "l7", CvssV3Severity.CRITICAL.getStartScoreRange(),
+        CvssV3Severity.CRITICAL.getDisplayName(), "f7");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity7, coordinateSecurity7.getRefId(),
         "state", "justification", "response", "detail");
 
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate3, "r8", "d8", "l8",
+    tempEntity.newThirdPartyCoordinateSecurity(coordinate3, "r8", sbomMetadata.getId(), "d8", "l8",
         CvssV3Severity.CRITICAL.getStartScoreRange(), CvssV3Severity.CRITICAL.getDisplayName(), "f8");
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate3, "r9", "d9", "l9",
+    tempEntity.newThirdPartyCoordinateSecurity(coordinate3, "r9", sbomMetadata.getId(), "d9", "l9",
         CvssV3Severity.CRITICAL.getStartScoreRange(), CvssV3Severity.CRITICAL.getDisplayName(), "f9");
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate3, "r10", "d10", "l10",
+    tempEntity.newThirdPartyCoordinateSecurity(coordinate3, "r10", sbomMetadata.getId(), "d10", "l10",
         CvssV3Severity.CRITICAL.getStartScoreRange(), CvssV3Severity.CRITICAL.getDisplayName(), "f10");
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate3, "r11", "d11", "l11",
+    tempEntity.newThirdPartyCoordinateSecurity(coordinate3, "r11", sbomMetadata.getId(), "d11", "l11",
         CvssV3Severity.CRITICAL.getStartScoreRange(), CvssV3Severity.CRITICAL.getDisplayName(), "f11");
 
     // Should not have any impact on counters as NONE is not included in the query
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate3, "r12", "d12", "l12",
+    tempEntity.newThirdPartyCoordinateSecurity(coordinate3, "r12", sbomMetadata.getId(), "d12", "l12",
         CvssV3Severity.NONE.getStartScoreRange(), CvssV3Severity.NONE.getDisplayName(), "f12");
     ThirdPartyCoordinateSecurity coordinateSecurity13 = tempEntity.newThirdPartyCoordinateSecurity(coordinate3, "r13",
-        "d13", "l13", CvssV3Severity.NONE.getStartScoreRange(), CvssV3Severity.NONE.getDisplayName(), "f13");
+        sbomMetadata.getId(), "d13", "l13", CvssV3Severity.NONE.getStartScoreRange(),
+        CvssV3Severity.NONE.getDisplayName(), "f13");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity13, coordinateSecurity13.getRefId(),
         "state", "justification", "response", "detail");
 
@@ -296,8 +304,9 @@ public class ThirdPartyCoordinateSecurityDAOTest
     ThirdPartyFileCoordinate coordinate4 = tempEntity.newThirdPartyFileCoordinate(
         sbomMetadataFromOtherApplication.getThirdPartyFileId(), "s4", "f4", "n4", "v4", "", "");
 
-    ThirdPartyCoordinateSecurity coordinateSecurity14 = tempEntity.newThirdPartyCoordinateSecurity(coordinate4, "r14",
-        "d14", "l14", CvssV3Severity.LOW.getStartScoreRange(), CvssV3Severity.LOW.getDisplayName(), "f14");
+    ThirdPartyCoordinateSecurity coordinateSecurity14 = tempEntity.newThirdPartyCoordinateSecurity(coordinate4,
+        "r14", sbomMetadataFromOtherApplication.getId(), "d14", "l14",
+        CvssV3Severity.LOW.getStartScoreRange(), CvssV3Severity.LOW.getDisplayName(), "f14");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity14, coordinateSecurity14.getRefId(),
         "state", "justification", "response", "detail");
 
@@ -342,8 +351,9 @@ public class ThirdPartyCoordinateSecurityDAOTest
     ThirdPartyFileCoordinate coordinate1 =
         tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(), "s1", "f1", "n1", "v1", "", "");
 
-    ThirdPartyCoordinateSecurity coordinateSecurity1 = tempEntity.newThirdPartyCoordinateSecurity(coordinate1, "r1",
-        "d1", "l1", CvssV3Severity.LOW.getStartScoreRange(), CvssV3Severity.LOW.getDisplayName(), "f1");
+    ThirdPartyCoordinateSecurity coordinateSecurity1 = tempEntity.newThirdPartyCoordinateSecurity(coordinate1,
+        "r1", sbomMetadata.getId(), "d1", "l1", CvssV3Severity.LOW.getStartScoreRange(),
+        CvssV3Severity.LOW.getDisplayName(), "f1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity1, coordinateSecurity1.getRefId(),
         "state", "justification", "response", "detail");
 
@@ -354,7 +364,7 @@ public class ThirdPartyCoordinateSecurityDAOTest
     ThirdPartyFileCoordinate coordinate2 =
         tempEntity.newThirdPartyFileCoordinate(sbomMetadata2.getThirdPartyFileId(), "s2", "f2", "n2", "v2", "", "");
 
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "r2", "d2", "l2",
+    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "r2", sbomMetadata2.getId(), "d2", "l2",
         CvssV3Severity.CRITICAL.getStartScoreRange(), CvssV3Severity.CRITICAL.getDisplayName(), "f2");
 
     VulnerabilitiesThreadLevelMetricDTO result = dao.getVulnerabilitiesByThreatLevel(null);
@@ -396,8 +406,8 @@ public class ThirdPartyCoordinateSecurityDAOTest
 
     ThirdPartyFileCoordinate coordinate1 = tempEntity
         .newThirdPartyFileCoordinate(sbomMetadataActive.getThirdPartyFileId(), "s1", "f1", "n1", "v1", "", "");
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate1, "r1", "d1", "l1", severity.getStartScoreRange(),
-        severity.getDisplayName(), "f1");
+    tempEntity.newThirdPartyCoordinateSecurity(coordinate1, "r1", sbomMetadataActive.getId(), "d1",
+        "l1", severity.getStartScoreRange(), severity.getDisplayName(), "f1");
 
     ThirdPartySbomMetadata sbomMetadataPending = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(application.getId())
@@ -406,8 +416,8 @@ public class ThirdPartyCoordinateSecurityDAOTest
 
     ThirdPartyFileCoordinate coordinate2 = tempEntity
         .newThirdPartyFileCoordinate(sbomMetadataPending.getThirdPartyFileId(), "s2", "f2", "n2", "v2", "", "");
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "r2", "d2", "l2", severity.getStartScoreRange(),
-        severity.getDisplayName(), "f2");
+    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "r2", sbomMetadataPending.getId(), "d2",
+        "l2", severity.getStartScoreRange(), severity.getDisplayName(), "f2");
 
     VulnerabilitiesThreadLevelMetricDTO result = dao.getVulnerabilitiesByThreatLevel(null);
     assertThat(result).isNotNull();
@@ -422,6 +432,7 @@ public class ThirdPartyCoordinateSecurityDAOTest
 
   private void assertThirdPartyCoordinateSecurity(
       final String refId,
+      final String sbomMetadataId,
       final String description,
       final String link,
       final double score,
@@ -429,6 +440,7 @@ public class ThirdPartyCoordinateSecurityDAOTest
       final String cooedinateFileId, final ThirdPartyCoordinateSecurity actual)
   {
     assertThat(actual.getRefId()).isEqualTo(refId);
+    assertThat(actual.getSbomMetadataId()).isEqualTo(sbomMetadataId);
     assertThat(actual.getDescription()).isEqualTo(description);
     assertThat(actual.getLink()).isEqualTo(link);
     assertThat(actual.getSeverity()).isEqualTo(score);

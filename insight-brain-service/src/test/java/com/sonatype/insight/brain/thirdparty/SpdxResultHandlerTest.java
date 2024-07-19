@@ -106,7 +106,7 @@ public class SpdxResultHandlerTest
 
     spdxResultHandler =
         new SpdxResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender);
+            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender, null);
   }
 
   @Test
@@ -325,6 +325,12 @@ public class SpdxResultHandlerTest
     String sbomContent = getSbomJsonFile("spdx-v2_3.json");
     ThirdPartyScanContent content = new ThirdPartyScanContent("spdx-v2_3.json", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null);
+    thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
+    spdxResultHandler =
+        new SpdxResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
+            thirdPartyScanContext);
     FilteredThirdPartyContent filteredContent =
         spdxResultHandler.handleAndFilterContents(content, thirdPartyFile);
     String sbomXml = filteredContent.getContent();
@@ -348,6 +354,8 @@ public class SpdxResultHandlerTest
       assertThat(refIdSet).containsExactlyInAnyOrder(
           "CVE-2021-45046", "CVE-2021-45105", "CVE-2020-15250", "sonatype-2021-4560", "GHSA-5469-c5p2-xv5g"
       );
+      assertThat(allSecurityRecords).allMatch(
+          s -> s.getSbomMetadataId().equals(thirdPartyScanContext.getSbomMetadataId()));
     }
   }
 

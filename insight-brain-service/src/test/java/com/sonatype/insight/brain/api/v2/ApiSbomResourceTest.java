@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
@@ -33,7 +34,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequest
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomComponentSortableField;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
@@ -543,6 +546,7 @@ public class ApiSbomResourceTest
     ApiSbomStatusDTO resultDTO = getSbomStatusDTO(apiThirdPartyScanTicketDTO.statusUrl);
     assertThat(resultDTO.errorMessage).isNull();
     assertThat(resultDTO.isError).isFalse();
+    assertSbomMetadataIdIsSetOnThirdPartyCoordinateSecurityEntities(resultDTO);
   }
 
   @Test
@@ -568,6 +572,7 @@ public class ApiSbomResourceTest
     ApiSbomStatusDTO resultDTO = getSbomStatusDTO(apiThirdPartyScanTicketDTO.statusUrl);
     assertThat(resultDTO.errorMessage).isNull();
     assertThat(resultDTO.isError).isFalse();
+    assertSbomMetadataIdIsSetOnThirdPartyCoordinateSecurityEntities(resultDTO);
   }
 
   @Test
@@ -676,5 +681,23 @@ public class ApiSbomResourceTest
     String contentHeader = response.getHeader("Content-Disposition");
     String actualFilename = contentHeader.substring(contentHeader.indexOf("=") + 1).split(";")[0].replaceAll("\"", "");
     assertThat(actualFilename).isEqualTo(app.getName() + "_" + sbomVersion + x);
+  }
+
+  private void assertSbomMetadataIdIsSetOnThirdPartyCoordinateSecurityEntities(ApiSbomStatusDTO resultDTO) {
+    ThirdPartySbomMetadata thirdPartySbomMetadata = getCLMServer()
+        .getInstance(ThirdPartySbomMetadataDAO.class)
+        .getByApplicationIdAndSbomVersion(resultDTO.applicationId, resultDTO.version);
+    assertThat(thirdPartySbomMetadata).isNotNull();
+    List<ThirdPartyFileCoordinate> thirdPartyFileCoordinates = getCLMServer()
+        .getInstance(ThirdPartyFileCoordinateDAO.class)
+        .getByThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId());
+    List<String> thirdPartyFileCoordinateIds = thirdPartyFileCoordinates.stream()
+        .map(ThirdPartyFileCoordinate::getId)
+        .collect(Collectors.toList());
+    List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurities = getCLMServer()
+        .getInstance(ThirdPartyCoordinateSecurityDAO.class)
+        .getByFileCoordinateIds(thirdPartyFileCoordinateIds);
+    assertThat(thirdPartyCoordinateSecurities)
+        .allMatch(s -> s.getSbomMetadataId().equals(thirdPartySbomMetadata.getId()));
   }
 }

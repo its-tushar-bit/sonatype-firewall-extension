@@ -494,13 +494,13 @@ public class ThirdPartyDataService
 
     if (!resultsConsideringSonatypeId.isEmpty()) {
       mergeResultsConsideringSonatypeIdentifier(scanId, componentDependencyTypeMap, resultsConsideringSonatypeId,
-          sonatypeVulnerabilityResults, sonatypeLicenseResults);
+          sonatypeVulnerabilityResults, sonatypeLicenseResults, sbomMetadata);
     }
     //fallback here only until we are certain all results must contain sonatypeIdentifier
     else if (!resultsNotConsideringSonatypeId.isEmpty()) {
       mergeResultsNotConsideringSonatypeIdentifier(scanId, componentDependencyTypeMap, resultsNotConsideringSonatypeId,
           sonatypeVulnerabilityResults,
-          sonatypeLicenseResults);
+          sonatypeLicenseResults, sbomMetadata);
     }
     makeSbomActive(sbomMetadata);
   }
@@ -510,7 +510,8 @@ public class ThirdPartyDataService
       final Map<ComponentIdentifier, String> componentDependencyTypeMap,
       final Map<ComponentIdentifier, JsonNode> resultsWithNoSonatypeId,
       final Map<ComponentIdentifier, List<String>> sonatypeVulnerabilityResults,
-      final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults)
+      final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
+      final ThirdPartySbomMetadata thirdPartySbomMetadata)
   {
     for (Entry<ComponentIdentifier, JsonNode> resultEntry : resultsWithNoSonatypeId.entrySet()) {
       ComponentIdentifier bomComponentIdentifier = resultEntry.getKey();
@@ -525,7 +526,8 @@ public class ThirdPartyDataService
                 bomPurl.getVersion(), scanId);
       }
       mergeResultComponentToDatabase(scanId, componentDependencyTypeMap, bomNode, bomPurl.getPackageUrl(),
-          sbomComponent, bomComponentIdentifier, sonatypeVulnerabilityResults, sonatypeLicenseResults);
+          sbomComponent, bomComponentIdentifier, sonatypeVulnerabilityResults, sonatypeLicenseResults,
+          thirdPartySbomMetadata);
     }
   }
 
@@ -534,7 +536,8 @@ public class ThirdPartyDataService
       final Map<ComponentIdentifier, String> componentDependencyTypeMap,
       final MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> resultsWithSonatypeId,
       final Map<ComponentIdentifier, List<String>> sonatypeVulnerabilityResults,
-      final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults)
+      final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
+      final ThirdPartySbomMetadata thirdPartySbomMetadata)
   {
     for (String sonatypeId : resultsWithSonatypeId.keySet()) {
       ThirdPartyFileCoordinate sbomComponent = thirdPartyFileCoordinateDAO.getById(sonatypeId);
@@ -551,7 +554,8 @@ public class ThirdPartyDataService
         ComponentIdentifier bomComponentIdentifier = idResult.getKey();
         PackageUrlIdentifier bomPurl = PackageUrlIdentifier.fromComponentIdentifier(bomComponentIdentifier);
         mergeResultComponentToDatabase(scanId, componentDependencyTypeMap, bomNode, bomPurl.getPackageUrl(),
-            sbomComponent, bomComponentIdentifier, sonatypeVulnerabilityResults, sonatypeLicenseResults);
+            sbomComponent, bomComponentIdentifier, sonatypeVulnerabilityResults, sonatypeLicenseResults,
+            thirdPartySbomMetadata);
       }
       else {
         SbomResultsMatcherTelemetry telemetry = new SbomResultsMatcherTelemetry();
@@ -563,7 +567,7 @@ public class ThirdPartyDataService
         ComponentIdentifier bomComponentIdentifier = idResult.getKey();
         mergeResultComponentToDatabase(scanId, componentDependencyTypeMap, bomNode,
             getBomPurl(bomNode, bomComponentIdentifier), sbomComponent, bomComponentIdentifier,
-            sonatypeVulnerabilityResults, sonatypeLicenseResults);
+            sonatypeVulnerabilityResults, sonatypeLicenseResults, thirdPartySbomMetadata);
       }
     }
   }
@@ -589,7 +593,8 @@ public class ThirdPartyDataService
       final ThirdPartyFileCoordinate sbomComponent,
       final ComponentIdentifier bomComponentIdentifier,
       final Map<ComponentIdentifier, List<String>> sonatypeVulnerabilityResults,
-      final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults)
+      final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
+      final ThirdPartySbomMetadata thirdPartySbomMetadata)
   {
     if (sbomComponent == null) {
       log.debug("Could not locate matching third party coordinate entry for component identifier {} and scanId {}",
@@ -609,7 +614,7 @@ public class ThirdPartyDataService
       sbomComponent.setPackageUrl(bomPurl);
     }
     updateComponentIdentifiedAsSonatype(sbomComponent);
-    mergeSecurityData(sonatypeVulnerabilityResults, bomComponentIdentifier, sbomComponent);
+    mergeSecurityData(sonatypeVulnerabilityResults, bomComponentIdentifier, sbomComponent, thirdPartySbomMetadata);
     mergeLicenseData(sonatypeLicenseResults, bomComponentIdentifier, sbomComponent);
   }
 
@@ -693,7 +698,8 @@ public class ThirdPartyDataService
   private void mergeSecurityData(
       final Map<ComponentIdentifier, List<String>> sonatypeSecResults,
       final ComponentIdentifier bomComponentIdentifier,
-      final ThirdPartyFileCoordinate sbomComponent)
+      final ThirdPartyFileCoordinate sbomComponent,
+      final ThirdPartySbomMetadata thirdPartySbomMetadata)
   {
     List<String> sonatypeVulns = sonatypeSecResults.get(bomComponentIdentifier);
     if (CollectionUtils.isNotEmpty(sonatypeVulns)) {
@@ -717,6 +723,7 @@ public class ThirdPartyDataService
             ThirdPartyCoordinateSecurity newThirdPartySecurity = new ThirdPartyCoordinateSecurity();
             newThirdPartySecurity.setFileCoordinateId(sbomComponent.getId());
             newThirdPartySecurity.setRefId(sonatypeVuln);
+            newThirdPartySecurity.setSbomMetadataId(thirdPartySbomMetadata.getId());
             populateMissingThirdPartyCoordinateSecurityWithSonatypeData(newThirdPartySecurity,
                 sonatypeVulnerabilityData);
             thirdPartyCoordinateSecurityDAO.insert(newThirdPartySecurity);

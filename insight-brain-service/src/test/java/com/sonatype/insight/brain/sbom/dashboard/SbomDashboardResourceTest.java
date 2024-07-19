@@ -506,8 +506,9 @@ public class SbomDashboardResourceTest extends AbstractResourceTest
     ThirdPartyFileCoordinate coordinate =
         tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(), "s", "f", "n", "v", "", "");
 
-    ThirdPartyCoordinateSecurity coordinateSecurity = tempEntity.newThirdPartyCoordinateSecurity(coordinate, "r", "d",
-        "l", CvssV3Severity.LOW.getStartScoreRange(), CvssV3Severity.LOW.getDisplayName(), "f");
+    ThirdPartyCoordinateSecurity coordinateSecurity = tempEntity.newThirdPartyCoordinateSecurity(coordinate, "r",
+        sbomMetadata.getId(), "d","l", CvssV3Severity.LOW.getStartScoreRange(),
+        CvssV3Severity.LOW.getDisplayName(), "f");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity, coordinateSecurity.getRefId(),
         "state", "justification", "response", "detail");
 

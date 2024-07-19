@@ -149,7 +149,7 @@ public class ClairScannerResultHandler
     String severityDescription = getTruncatedSeverityDescription(vulnerability.getSeverity());
 
     ThirdPartyCoordinateSecurity coordinateSecurity =
-        new ThirdPartyCoordinateSecurity(fileCoordinateId, refId,
+        new ThirdPartyCoordinateSecurity(fileCoordinateId, refId, null,
             vulnerability.getDescription(), link, severity, fixedBy);
     coordinateSecurity.setVulnerabilitySource(vulnerabilitySource);
     coordinateSecurity.setSeverityDescription(severityDescription);

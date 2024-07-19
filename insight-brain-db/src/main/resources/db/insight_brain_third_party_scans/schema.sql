@@ -58,6 +58,7 @@ CREATE TABLE coordinate_security (
   recommendations TEXT,
   advisories TEXT,
   identification_sources VARCHAR(100) NULL,
+  sbom_metadata_id VARCHAR(50),
   CONSTRAINT coordinate_security_pk PRIMARY KEY (coordinate_security_id),
   CONSTRAINT coordinate_security_uk UNIQUE (file_coordinate_id, ref_id),
   CONSTRAINT coordinate_security_fk FOREIGN KEY (file_coordinate_id) REFERENCES file_coordinate(file_coordinate_id)
@@ -131,6 +132,7 @@ CREATE TABLE sbom_metadata (
 );
 CREATE INDEX application_id_idx ON sbom_metadata(application_id);
 CREATE INDEX sbom_metadata_status_idx ON sbom_metadata (status);
+CREATE INDEX sbom_metadata_third_party_file_id_idx ON sbom_metadata(third_party_file_id);
 
 CREATE TABLE IF NOT EXISTS schema_version (
   data_store_id varchar(32) NOT NULL,

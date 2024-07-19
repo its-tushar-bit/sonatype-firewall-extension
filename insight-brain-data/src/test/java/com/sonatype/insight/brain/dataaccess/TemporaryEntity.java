@@ -3945,14 +3945,30 @@ public class TemporaryEntity
   public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity(
       ThirdPartyFileCoordinate fileCoordinate,
       String refId,
+      String metadataId,
       String description,
       String link,
       double severity,
       String severityDescription,
       String fixedBy)
   {
-    return newThirdPartyCoordinateSecurity(fileCoordinate, refId, description, link, severity, fixedBy, "source",
-        "v:1", severityDescription, "<dd>1234</dd>", "m1", "<dd>r1<dd/>", "<dd>a1<dd/>", "SBOM");
+    return newThirdPartyCoordinateSecurity(fileCoordinate, refId, metadataId, description,
+        link, severity, fixedBy, "source", "v:1", severityDescription,
+        "<dd>1234</dd>", "m1", "<dd>r1<dd/>", "<dd>a1<dd/>",
+        "SBOM");
+  }
+
+  public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity(
+      ThirdPartyFileCoordinate fileCoordinate,
+      String refId,
+      String description,
+      String link,
+      double severity,
+      String severityDescription,
+      String fixedBy)
+  {
+    return newThirdPartyCoordinateSecurity(fileCoordinate, refId, null, description,
+        link, severity, severityDescription, fixedBy);
   }
 
   public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity(
@@ -3971,8 +3987,32 @@ public class TemporaryEntity
       String advisories,
       String identificationSources)
   {
+    return
+        this.newThirdPartyCoordinateSecurity(fileCoordinate, refId, null, description, link, severity,
+            fixedBy, vulnerabilitySource, cvssVectorString, severityDescription, cwes, ratingMethod, recommendations,
+            advisories, identificationSources);
+  }
+
+  public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity(
+      ThirdPartyFileCoordinate fileCoordinate,
+      String refId,
+      String metadataId,
+      String description,
+      String link,
+      double severity,
+      String fixedBy,
+      String vulnerabilitySource,
+      String cvssVectorString,
+      String severityDescription,
+      String cwes,
+      String ratingMethod,
+      String recommendations,
+      String advisories,
+      String identificationSources)
+  {
     ThirdPartyCoordinateSecurity coordinateSecurity =
-        new ThirdPartyCoordinateSecurity(fileCoordinate.getId(), refId, description, link, severity, fixedBy);
+        new ThirdPartyCoordinateSecurity(fileCoordinate.getId(), refId, metadataId, description, link, severity,
+            fixedBy);
     coordinateSecurity.setVulnerabilitySource(vulnerabilitySource);
     coordinateSecurity.setAttackVector(cvssVectorString);
     coordinateSecurity.setSeverityDescription(severityDescription);
@@ -3986,8 +4026,10 @@ public class TemporaryEntity
   }
 
   public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity() {
-    return newThirdPartyCoordinateSecurity(newThirdPartyFileCoordinate(), "r1", "d1", "l1", 5.5d, "1.1", "source",
-        "v:1", "Medium", "<dd>1234</dd>", "m1", "<dd>r1<dd/>", "<dd>a1<dd/>", "SBOM");
+    return newThirdPartyCoordinateSecurity(newThirdPartyFileCoordinate(), "r1", null, "d1",
+        "l1", 5.5d, "1.1", "source", "v:1", "Medium",
+        "<dd>1234</dd>", "m1", "<dd>r1<dd/>", "<dd>a1<dd/>",
+        "SBOM");
   }
 
   public ThirdPartyCoordinateLicense newThirdPartyCoordinateLicense() {
@@ -4941,9 +4983,11 @@ public class TemporaryEntity
             componentPackageUrl.getName(), componentPackageUrl.getVersion(), hash, componentPackageUrl.getPackageUrl());
     thirdPartyFileCoordinateDAO.update(thirdPartyFileCoordinate);
     if (isVulnerable) {
-      newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "someRefId", "someDescription", "someLink",
-          5.5d, "someFixedBy", "someVulSource", "someCvssVectorString", "someSevDesc", "someCwes",
-          "aRMethod", "someRecommendations", "someAdvisories", "SBOM");
+      newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "someRefId", sbomMetadata.getId(),
+          "someDescription", "someLink", 5.5d, "someFixedBy",
+          "someVulSource", "someCvssVectorString", "someSevDesc",
+          "someCwes", "aRMethod", "someRecommendations", "someAdvisories",
+          "SBOM");
     }
 
     return sbomMetadata;

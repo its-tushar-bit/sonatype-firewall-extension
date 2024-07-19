@@ -25,6 +25,7 @@ public class ThirdPartyCoordinateSecurity
   public ThirdPartyCoordinateSecurity(
       String fileCoordinateId,
       String refId,
+      String sbomMetadataId,
       String description,
       String link,
       double severity,
@@ -33,6 +34,7 @@ public class ThirdPartyCoordinateSecurity
 
     this.fileCoordinateId = fileCoordinateId;
     this.refId = refId;
+    this.sbomMetadataId = sbomMetadataId;
     this.description = description;
     this.link = link;
     this.severity = severity;
@@ -45,6 +47,10 @@ public class ThirdPartyCoordinateSecurity
 
   @Column(name = "file_coordinate_id")
   private String fileCoordinateId;
+
+  // This column was denormalized because of a performance issue see SBOM-272.
+  @Column(name = "sbom_metadata_id")
+  private String sbomMetadataId;
 
   @Column(name = "ref_id")
   private String refId;
@@ -101,6 +107,14 @@ public class ThirdPartyCoordinateSecurity
 
   public void setFileCoordinateId(String fileCoordinateId) {
     this.fileCoordinateId = fileCoordinateId;
+  }
+
+  public String getSbomMetadataId() {
+    return sbomMetadataId;
+  }
+
+  public void setSbomMetadataId(final String sbomMetadataId) {
+    this.sbomMetadataId = sbomMetadataId;
   }
 
   public String getRefId() {

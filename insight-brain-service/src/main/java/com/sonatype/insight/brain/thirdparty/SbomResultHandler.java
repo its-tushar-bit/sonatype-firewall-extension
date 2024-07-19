@@ -135,6 +135,8 @@ public class SbomResultHandler
   protected final SpdxLicenseExpressionUtil spdxLicenseExpressionUtil;
 
   protected final SbomComponentInfoTelemetry componentInfoTelemetry;
+  
+  protected final ThirdPartyScanContext thirdPartyScanContext;
 
   private boolean sbomValidationSkipped;
 
@@ -148,7 +150,8 @@ public class SbomResultHandler
       final MultiLicenseDAO multiLicenseDAO,
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO,
       final TelemetryUtils telemetryUtils,
-      final TelemetrySender telemetrySender)
+      final TelemetrySender telemetrySender,
+      final ThirdPartyScanContext thirdPartyScanContext)
   {
     this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
@@ -160,6 +163,7 @@ public class SbomResultHandler
     this.telemetrySender = telemetrySender;
     this.componentInfoTelemetry = new SbomComponentInfoTelemetry();
     spdxLicenseExpressionUtil = new SpdxLicenseExpressionUtil(multiLicenseDAO);
+    this.thirdPartyScanContext = thirdPartyScanContext;
   }
 
   @Override
@@ -297,6 +301,9 @@ public class SbomResultHandler
   {
     ThirdPartyCoordinateSecurity coordinateSecurity = parseVulnerability(vulnerability, fileCoordinateId);
     if (coordinateSecurity != null) {
+      if (thirdPartyScanContext != null) {
+        coordinateSecurity.setSbomMetadataId(thirdPartyScanContext.getSbomMetadataId());
+      }
       thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
       vulnerabilityExploitabilityExchangeSave(vulnerability, coordinateSecurity, tx);
     }
@@ -624,6 +631,9 @@ public class SbomResultHandler
   {
     ThirdPartyCoordinateSecurity coordinateSecurity = parseVulnerabilityExtension(vulnerability, fileCoordinateId);
     if (coordinateSecurity != null) {
+      if (thirdPartyScanContext != null) {
+        coordinateSecurity.setSbomMetadataId(thirdPartyScanContext.getSbomMetadataId());
+      }
       thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
     }
   }

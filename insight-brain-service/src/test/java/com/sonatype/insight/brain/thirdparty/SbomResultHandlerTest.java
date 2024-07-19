@@ -134,7 +134,7 @@ public class SbomResultHandlerTest
   public void before() {
     sbomResultHandler =
         new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender);
+            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender, null);
   }
 
   @Test
@@ -311,6 +311,12 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-vulnerabilities.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null);
+    thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
+    sbomResultHandler =
+        new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
+            thirdPartyScanContext);
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 7);
@@ -326,7 +332,7 @@ public class SbomResultHandlerTest
       actualVuln.addAll(coordinatesSecurity);
       assertThat(coordinatesSecurity).hasSize(1);
     }
-    assertThirdPartyCoordinateSecurities(sbomContent, actualVuln);
+    assertThirdPartyCoordinateSecurities(sbomContent, actualVuln, thirdPartyScanContext);
   }
 
   @Test
@@ -355,6 +361,12 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-vulnerabilities-no-purl.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null);
+    thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
+    sbomResultHandler =
+        new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
+            thirdPartyScanContext);
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
@@ -371,7 +383,7 @@ public class SbomResultHandlerTest
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate.getId());
     assertThat(coordinatesSecurity).hasSize(1);
     assertThirdPartyCoordinateSecurity(sbomContent, thirdPartyFileCoordinate.getId(), coordinatesSecurity.get(0),
-        SbomFormat.XML, true);
+        SbomFormat.XML, true, thirdPartyScanContext.getSbomMetadataId());
   }
 
   @Test
@@ -380,6 +392,12 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-vulnerabilities-no-purl-with-hash.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null);
+    thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
+    sbomResultHandler =
+        new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
+            thirdPartyScanContext);
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
@@ -396,7 +414,7 @@ public class SbomResultHandlerTest
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate.getId());
     assertThat(coordinatesSecurity).hasSize(1);
     assertThirdPartyCoordinateSecurity(sbomContent, thirdPartyFileCoordinate.getId(), coordinatesSecurity.get(0),
-        SbomFormat.XML, true);
+        SbomFormat.XML, true, thirdPartyScanContext.getSbomMetadataId());
   }
 
   @Test
@@ -628,6 +646,12 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-vulnerabilities-optional-values.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null);
+    thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
+    sbomResultHandler =
+        new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
+            thirdPartyScanContext);
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
@@ -645,7 +669,7 @@ public class SbomResultHandlerTest
           thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
       assertThat(coordinatesSecurity).hasSize(1);
       assertThirdPartyCoordinateSecurity(sbomContent, thirdPartyFileCoordinate.getId(), coordinatesSecurity.get(0),
-          SbomFormat.XML, false);
+          SbomFormat.XML, false, thirdPartyScanContext.getSbomMetadataId());
     }
   }
 
@@ -707,6 +731,12 @@ public class SbomResultHandlerTest
   private void testHandleFilterContents(String sbomContent, String path, SbomFormat sbomFormat) throws Exception {
     ThirdPartyScanContent content = new ThirdPartyScanContent(path, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null);
+    thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
+    sbomResultHandler =
+        new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
+            thirdPartyScanContext);
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
@@ -724,7 +754,7 @@ public class SbomResultHandlerTest
           thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
       assertThat(coordinatesSecurity).hasSize(1);
       assertThirdPartyCoordinateSecurity(sbomContent, thirdPartyFileCoordinate.getId(), coordinatesSecurity.get(0),
-          sbomFormat, true, false);
+          sbomFormat, true, false, thirdPartyScanContext.getSbomMetadataId());
     }
   }
 
@@ -2188,13 +2218,15 @@ public class SbomResultHandlerTest
       ThirdPartyCoordinateSecurity coordinateSecurity,
       Vulnerability vulnerability,
       String coordinateId,
-      boolean optionalValuesPresent)
+      boolean optionalValuesPresent,
+      String sbomMetadataId)
   {
     assertThat(coordinateSecurity).isNotNull();
     assertThat(coordinateSecurity.getFileCoordinateId()).isEqualTo(coordinateId);
     assertThat(coordinateSecurity.getFixedBy()).isNull();
 
     assertThat(coordinateSecurity.getRefId()).isEqualTo(vulnerability.getId());
+    assertThat(coordinateSecurity.getSbomMetadataId()).isEqualTo(sbomMetadataId);
 
     Vulnerability.Rating rating = sbomResultHandler.getValidRating(vulnerability.getRatings());
     double severityExpected = BigDecimal.valueOf(rating.getScore()).setScale(2, RoundingMode.UNNECESSARY).doubleValue();
@@ -2316,9 +2348,11 @@ public class SbomResultHandlerTest
       String coordinateId,
       ThirdPartyCoordinateSecurity coordinateSecurity,
       SbomFormat format,
-      boolean optionalValuesPresent) throws Exception
+      boolean optionalValuesPresent,
+      String sbomMetadataId) throws Exception
   {
-    assertThirdPartyCoordinateSecurity(content, coordinateId, coordinateSecurity, format, optionalValuesPresent, true);
+    assertThirdPartyCoordinateSecurity(content, coordinateId, coordinateSecurity, format, optionalValuesPresent, true,
+        sbomMetadataId);
   }
 
   private void assertThirdPartyCoordinateSecurity(
@@ -2326,24 +2360,27 @@ public class SbomResultHandlerTest
       String coordinateId,
       ThirdPartyCoordinateSecurity coordinateSecurity,
       SbomFormat format,
-      boolean optionalValuesPresent, boolean extensionVulnerability) throws Exception
+      boolean optionalValuesPresent,
+      boolean extensionVulnerability,
+      String sbomMetadataId) throws Exception
   {
     Bom expectedBom = ThirdPartyUtils.parseAndValidateCycloneDx(content, format);
 
     if (extensionVulnerability) {
       assertExtensionVulnerability(coordinateSecurity,
           (Vulnerability10) expectedBom.getComponents().get(0).getExtensions().get("vulnerabilities").getExtensions()
-              .get(0), coordinateId, optionalValuesPresent);
+              .get(0), coordinateId, optionalValuesPresent, sbomMetadataId);
     }
     else {
       assertVulnerability(coordinateSecurity, expectedBom.getVulnerabilities().get(0), coordinateId,
-          optionalValuesPresent);
+          optionalValuesPresent, sbomMetadataId);
     }
   }
 
   private void assertThirdPartyCoordinateSecurities(
       String content,
-      List<ThirdPartyCoordinateSecurity> actualVulnerabilities) throws Exception
+      List<ThirdPartyCoordinateSecurity> actualVulnerabilities,
+      ThirdPartyScanContext thirdPartyScanContext) throws Exception
   {
     Bom expectedBom = ThirdPartyUtils.parseAndValidateCycloneDx(content, SbomFormat.XML);
 
@@ -2352,8 +2389,10 @@ public class SbomResultHandlerTest
     for (Component component : expectedBom.getComponents()) {
       List<ExtensibleType> vulnerabilitiesSbom = component.getExtensions().get("vulnerabilities").getExtensions();
       for (ExtensibleType vulnerabilities : vulnerabilitiesSbom) {
-        expectedVulnerabilities.add(
-            sbomResultHandler.parseVulnerabilityExtension((Vulnerability10) vulnerabilities, null));
+        ThirdPartyCoordinateSecurity expectedVulnerability =
+            sbomResultHandler.parseVulnerabilityExtension((Vulnerability10) vulnerabilities, null);
+        expectedVulnerability.setSbomMetadataId(thirdPartyScanContext.getSbomMetadataId());
+        expectedVulnerabilities.add(expectedVulnerability);
       }
     }
     assertThat(expectedVulnerabilities)
@@ -2390,7 +2429,8 @@ public class SbomResultHandlerTest
       ThirdPartyCoordinateSecurity coordinateSecurity,
       Vulnerability10 vulnerability,
       String coordinateId,
-      boolean optionalValuesPresent)
+      boolean optionalValuesPresent,
+      String sbomMetadataId)
   {
     assertThat(coordinateSecurity).isNotNull();
     assertThat(coordinateSecurity.getFileCoordinateId()).isNotNull();
@@ -2398,6 +2438,7 @@ public class SbomResultHandlerTest
     assertThat(coordinateSecurity.getFixedBy()).isNull();
 
     assertThat(coordinateSecurity.getRefId()).isEqualTo(vulnerability.getId());
+    assertThat(coordinateSecurity.getSbomMetadataId()).isEqualTo(sbomMetadataId);
 
     Rating rating = vulnerability.getRatings().get(0);
     double severityExpected =

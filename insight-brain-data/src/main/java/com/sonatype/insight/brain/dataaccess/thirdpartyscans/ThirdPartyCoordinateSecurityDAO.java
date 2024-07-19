@@ -150,13 +150,11 @@ public class ThirdPartyCoordinateSecurityDAO
         "       COUNT(CASE WHEN (cs.severity BETWEEN ?7 AND ?8" + //
         "                  AND ve.vulnerability_exploitability_id IS NOT NULL)" + //
         "             THEN 1 END) AS critical_annotated " + //
-        " FROM " + databaseSchema + ".sbom_metadata sm" + //
-        "   JOIN " + databaseSchema + ".file_coordinate fc" + //
-        "     ON fc.third_party_file_id = sm.third_party_file_id" + //
-        "   JOIN " + databaseSchema + ".coordinate_security cs" + //
-        "     ON cs.file_coordinate_id = fc.file_coordinate_id" + //
+        " FROM " + databaseSchema + ".coordinate_security cs" + //
         "   LEFT JOIN " + databaseSchema + ".vulnerability_exploitability ve" + //
         "     ON cs.coordinate_security_id = ve.coordinate_security_id" + //
+        "   INNER JOIN " + databaseSchema + ".sbom_metadata sm" + //
+        "     ON cs.sbom_metadata_id = sm.sbom_metadata_id" + //
         " WHERE sm.status = ?9";
 
     if (isNotEmpty(applicationIds)) {

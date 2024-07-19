@@ -66,10 +66,12 @@ public class ContainerResultHandler
       final MultiLicenseDAO multiLicenseDAO,
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO,
       final TelemetryUtils telemetryUtils,
-      final TelemetrySender telemetrySender)
+      final TelemetrySender telemetrySender,
+      final ThirdPartyScanContext thirdPartyScanContext)
   {
     super(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-        thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender);
+        thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
+        thirdPartyScanContext);
   }
 
   @Override

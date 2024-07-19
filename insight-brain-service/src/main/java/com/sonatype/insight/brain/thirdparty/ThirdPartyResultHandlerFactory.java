@@ -58,22 +58,28 @@ public class ThirdPartyResultHandlerFactory
     this.telemetrySender = telemetrySender;
   }
 
-  public ThirdPartyScanResultHandler newHandler(ItemContentType itemContentType) {
+  public ThirdPartyScanResultHandler newHandler(
+      ItemContentType itemContentType,
+      ThirdPartyScanContext thirdPartyScanContext)
+  {
     if (ItemContentType.CLAIR_SCANNER.equals(itemContentType)) {
       return new ClairScannerResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO,
           thirdPartyCoordinateSecurityDAO);
     }
     else if (ItemContentType.SBOM.equals(itemContentType)) {
       return new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-          thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender);
+          thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
+          thirdPartyScanContext);
     }
     else if (ItemContentType.SPDX.equals(itemContentType)) {
       return new SpdxResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-          thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender);
+          thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
+          thirdPartyScanContext);
     }
     else if (ItemContentType.CONTAINER_URI.equals(itemContentType)) {
       return new ContainerResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-          thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender);
+          thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
+          thirdPartyScanContext);
     }
     throw new IllegalArgumentException("unsupported third party content type " + itemContentType);
   }

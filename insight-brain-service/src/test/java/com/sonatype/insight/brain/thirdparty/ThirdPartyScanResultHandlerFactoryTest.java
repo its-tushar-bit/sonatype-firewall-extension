@@ -23,20 +23,45 @@ public class ThirdPartyScanResultHandlerFactoryTest
 
   @Test
   public void testGetHandler_ClairScanner() {
-    ThirdPartyScanResultHandler handler = thirdPartyResultHandlerFactory.newHandler(ItemContentType.CLAIR_SCANNER);
+    ThirdPartyScanResultHandler handler =
+        thirdPartyResultHandlerFactory.newHandler(ItemContentType.CLAIR_SCANNER, null);
     assertThat(handler).isInstanceOf(ClairScannerResultHandler.class);
   }
 
   @Test
   public void testGetHandler_Sbom() {
-    ThirdPartyScanResultHandler handler = thirdPartyResultHandlerFactory.newHandler(ItemContentType.SBOM);
+    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null);
+    ThirdPartyScanResultHandler handler =
+        thirdPartyResultHandlerFactory.newHandler(ItemContentType.SBOM, thirdPartyScanContext);
     assertThat(handler).isInstanceOf(SbomResultHandler.class);
+    SbomResultHandler sbomResultHandler = (SbomResultHandler) handler;
+    assertThat(sbomResultHandler.thirdPartyScanContext).isEqualTo(thirdPartyScanContext);
+  }
+
+  @Test
+  public void testGetHandler_Spdx() {
+    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null);
+    ThirdPartyScanResultHandler handler =
+        thirdPartyResultHandlerFactory.newHandler(ItemContentType.SPDX, thirdPartyScanContext);
+    assertThat(handler).isInstanceOf(SpdxResultHandler.class);
+    SpdxResultHandler spdxResultHandler = (SpdxResultHandler) handler;
+    assertThat(spdxResultHandler.thirdPartyScanContext).isEqualTo(thirdPartyScanContext);
+  }
+
+  @Test
+  public void testGetHandler_Container() {
+    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null);
+    ThirdPartyScanResultHandler handler =
+        thirdPartyResultHandlerFactory.newHandler(ItemContentType.CONTAINER_URI, thirdPartyScanContext);
+    assertThat(handler).isInstanceOf(ContainerResultHandler.class);
+    ContainerResultHandler containerResultHandler = (ContainerResultHandler) handler;
+    assertThat(containerResultHandler.thirdPartyScanContext).isEqualTo(thirdPartyScanContext);
   }
 
   @Test
   public void testGetHandler_UnsupportedType() {
     assertThatExceptionOfType(IllegalArgumentException.class)
-        .isThrownBy(() -> thirdPartyResultHandlerFactory.newHandler(ItemContentType.GO_MODULE))
+        .isThrownBy(() -> thirdPartyResultHandlerFactory.newHandler(ItemContentType.GO_MODULE, null))
         .withMessage("unsupported third party content type GO_MODULE");
   }
 }

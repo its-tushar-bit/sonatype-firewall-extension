@@ -23,6 +23,8 @@ public class ThirdPartyScanContext
 
   private String stageType;
 
+  private String sbomMetadataId;
+
   public ThirdPartyScanContext(final String scanRequestId,
                                final String applicationId,
                                final File scanFile,
@@ -76,5 +78,13 @@ public class ThirdPartyScanContext
 
   public void setStageType(final String stageType) {
     this.stageType = stageType;
+  }
+
+  public String getSbomMetadataId() {
+    return sbomMetadataId;
+  }
+
+  public void setSbomMetadataId(final String sbomMetadataId) {
+    this.sbomMetadataId = sbomMetadataId;
   }
 }

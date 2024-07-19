@@ -239,11 +239,10 @@ public class ThirdPartyScanResultsProcessor
         Xpp3Dom contentElement = itemElement.getChild("content");
         if (contentElement != null) {
           FilteredThirdPartyContent filteredThirdPartyContent =
-              handleContent(itemElement, contentElement.getValue(), contentType, scanContext);
+              handleContent(itemElement, contentElement, contentType, scanContext);
           writeFilteredInformation(writer, filteredThirdPartyContent);
           Optional.of(filteredThirdPartyContent.getModuleDependencies())
               .ifPresent(moduleDependencies::addAll);
-          storeSbomFileIfApplicable(contentType, itemElement, contentElement, scanContext);
         }
         else {
           log.error("scan file {} contained a third party scan item {} without any content",
@@ -257,7 +256,7 @@ public class ThirdPartyScanResultsProcessor
 
   private FilteredThirdPartyContent handleContent(
       Xpp3Dom itemElement,
-      String contentElement,
+      Xpp3Dom contentElement,
       String contentType,
       ThirdPartyScanContext scanContext)
   {
@@ -268,11 +267,13 @@ public class ThirdPartyScanResultsProcessor
     ThirdPartyFile thirdPartyFile = saveFile(path);
     scanContext.setThirdPartyFileId(thirdPartyFile.getId());
     saveScan(thirdPartyFile, scanContext.getScanRequestId());
+    storeSbomFileIfApplicable(contentType, itemElement, contentElement, scanContext);
 
     ItemContentType contentItemType = ItemContentType.valueOf(contentType);
-    ThirdPartyScanResultHandler handler = createHandler(contentItemType);
+    ThirdPartyScanResultHandler handler = createHandler(contentItemType, scanContext);
     return handler.handleAndFilterContents(
-        new ThirdPartyScanContent(path, contentItemType, lastModified, sha1, contentElement), thirdPartyFile);
+        new ThirdPartyScanContent(path, contentItemType, lastModified, sha1, contentElement.getValue()),
+        thirdPartyFile);
   }
 
   private ThirdPartyFile saveFile(String path) {
@@ -366,8 +367,11 @@ public class ThirdPartyScanResultsProcessor
     return factory.createXMLEventReader(new StringReader(xml));
   }
 
-  ThirdPartyScanResultHandler createHandler(ItemContentType contentItemType) {
-    return thirdPartyResultHandlerFactory.newHandler(contentItemType);
+  ThirdPartyScanResultHandler createHandler(
+      ItemContentType contentItemType,
+      ThirdPartyScanContext thirdPartyScanContext)
+  {
+    return thirdPartyResultHandlerFactory.newHandler(contentItemType, thirdPartyScanContext);
   }
 
   private void storeSbomFileIfApplicable(
@@ -440,6 +444,8 @@ public class ThirdPartyScanResultsProcessor
       }
       ThirdPartySbomMetadata thirdPartySbomMetadata = getSbomMetadataEntity(scanContext, sbomResult);
       thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
+      scanContext.setSbomMetadataId(thirdPartySbomMetadata.getId());
+
       AuditData.get().setSbomVersion(thirdPartySbomMetadata, SbomAction.CREATE);
     }
     catch (InvalidSbomException | UnsupportedSbomException ex) {

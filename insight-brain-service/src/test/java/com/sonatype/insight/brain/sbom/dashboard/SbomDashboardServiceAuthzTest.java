@@ -251,8 +251,9 @@ public class SbomDashboardServiceAuthzTest extends AbstractServiceAuthzTest
     ThirdPartyFileCoordinate coordinate1 =
         tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(), "s1", "f1", "n1", "v1", "", "");
 
-    ThirdPartyCoordinateSecurity coordinateSecurity1 = tempEntity.newThirdPartyCoordinateSecurity(coordinate1, "r1",
-        "d1", "l1", CvssV3Severity.LOW.getStartScoreRange(), CvssV3Severity.LOW.getDisplayName(), "f1");
+    ThirdPartyCoordinateSecurity coordinateSecurity1 = tempEntity.newThirdPartyCoordinateSecurity(coordinate1,
+        "r1", sbomMetadata.getId(),"d1", "l1", CvssV3Severity.LOW.getStartScoreRange(),
+        CvssV3Severity.LOW.getDisplayName(), "f1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity1, coordinateSecurity1.getRefId(),
         "state", "justification", "response", "detail");
 
@@ -266,7 +267,7 @@ public class SbomDashboardServiceAuthzTest extends AbstractServiceAuthzTest
     ThirdPartyFileCoordinate coordinate2 =
         tempEntity.newThirdPartyFileCoordinate(sbomMetadata2.getThirdPartyFileId(), "s2", "f2", "n2", "v2", "", "");
 
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "r2", "d2", "l2",
+    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "r2", sbomMetadata2.getId(), "d2", "l2",
         CvssV3Severity.HIGH.getStartScoreRange(), CvssV3Severity.HIGH.getDisplayName(), "f2");
 
     VulnerabilitiesThreadLevelMetricDTO result = service.getVulnerabilitiesByThreatLevel();

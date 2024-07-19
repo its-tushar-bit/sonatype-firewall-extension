@@ -33,16 +33,6 @@ describe('SonatypeDeveloperPage', () => {
       render(<SonatypeDeveloperPage />, { preloadedState: preloadedState || defaultPreloadedState });
   });
 
-  it('renders an alert', () => {
-    renderComponent();
-    const infoIcon = screen.getByRole('img', { name: /info/i });
-    const alertContainer = infoIcon.parentElement;
-    expect(infoIcon).toBeInTheDocument();
-    expect(alertContainer).toHaveTextContent(
-      'Sonatype Developer is available for free in the Product Preview Program (PPP). Innovate with us by submitting your feedback to sonatype-developer@sonatype.com.'
-    );
-  });
-
   it('renders a heading "Sonatype Developer"', () => {
     renderComponent();
     expect(screen.getByRole('heading', { name: 'Sonatype Developer' })).toBeInTheDocument();

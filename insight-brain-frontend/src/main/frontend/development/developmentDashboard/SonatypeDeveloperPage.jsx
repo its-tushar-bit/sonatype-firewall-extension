@@ -95,18 +95,6 @@ function SonatypeDeveloperPageContents() {
 
   return (
     <>
-      <NxInfoAlert className="iq-integrations-page-top-level-alert">
-        Sonatype Developer is available for free in the <strong>Product Preview Program (PPP)</strong>. Innovate with us
-        by submitting your feedback to{' '}
-        <NxTextLink
-          external
-          href="mailto:sonatype-developer@sonatype.com"
-          data-analytics-id="sonatype-developer-feedback-mailto"
-        >
-          sonatype-developer@sonatype.com
-        </NxTextLink>
-        .
-      </NxInfoAlert>
       <NxPageTitle>
         <NxH1>Sonatype Developer</NxH1>
       </NxPageTitle>

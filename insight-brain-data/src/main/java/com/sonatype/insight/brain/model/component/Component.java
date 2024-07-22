@@ -13,9 +13,11 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.AggregateFile;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
@@ -497,6 +499,16 @@ public class Component
 
   public Set<String> getParentComponentPurls() {
     return parentComponentPurls;
+  }
+
+  public Set<String> getInnerComponentPurls() {
+    return Optional.ofNullable(innerSourceData)
+        .map(innerSourceElement -> innerSourceElement
+            .stream()
+            .map(InnerSourceData::getInnerSourceComponentPurl)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet()))
+        .orElse(Collections.emptySet());
   }
 
   public void setParentComponentPurls(final Set<String> parentComponentPurls) {

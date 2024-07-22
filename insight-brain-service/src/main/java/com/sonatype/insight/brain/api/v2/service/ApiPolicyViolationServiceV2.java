@@ -516,6 +516,23 @@ public class ApiPolicyViolationServiceV2
     return null;
   }
 
+  List<Component> getInnerComponentsByParentComponentIdentifier(
+      List<Component> components,
+      ComponentIdentifier parentComponentIdentifier)
+  {
+    if (parentComponentIdentifier == null) {
+      return Collections.emptyList();
+    }
+    return components.stream()
+        .filter(component -> component.getInnerComponentPurls()
+            .stream()
+            .map(ComponentIdentifierAdapter::toComponentIdentifier)
+            .map(this::getComplete)
+            .collect(toSet())
+            .contains(parentComponentIdentifier))
+        .toList();
+  }
+  
   private List<Component> getComponentsByParentComponentIdentifier(
       List<Component> components,
       ComponentIdentifier parentComponentIdentifier)
@@ -555,6 +572,9 @@ public class ApiPolicyViolationServiceV2
       ComponentIdentifier currentDependency = queue.remove();
       List<Component> childComponents = getComponentsByParentComponentIdentifier(components, currentDependency);
       transitiveComponents.addAll(childComponents);
+      List<Component> innerChildComponents =
+          getInnerComponentsByParentComponentIdentifier(components, currentDependency);
+      transitiveComponents.addAll(innerChildComponents);
 
       List<ComponentIdentifier> childIdentifierList = childComponents.stream()
           .map(Component::getComponentIdentifier)

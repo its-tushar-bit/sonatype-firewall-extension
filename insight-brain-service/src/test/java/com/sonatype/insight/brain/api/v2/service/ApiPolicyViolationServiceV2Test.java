@@ -25,11 +25,13 @@ import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationReasonDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiStagePolicyViolationComponentDTO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.InnerSourceData;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -980,6 +982,64 @@ public class ApiPolicyViolationServiceV2Test
   {
     testGetTransitiveComponentsByAppScanComponent_ComponentWithTransitiveComponents(
         null, null, "hash2");
+  }
+
+  @Test
+  public void testGetInnerComponentsByParentComponentIdentifier_NoComponents() {
+    List<Component> innerComponentsByParentComponentIdentifier =
+        apiPolicyViolationService.getInnerComponentsByParentComponentIdentifier(null, null);
+    assertThat(innerComponentsByParentComponentIdentifier).isEmpty();
+  }
+
+  @Test
+  public void testGetInnerComponentsByParentComponentIdentifier_SingleInnerComponents() {
+    Set<InnerSourceData> innerSourceData =
+        Set.of(new InnerSourceData(null, null, PACKAGE_URL_MAVEN_V1 + "?type=jar&classifier=javadoc"));
+    Component component = new Component();
+    component.setInnerSourceData(innerSourceData);
+
+    ComponentIdentifier parentComponentIdentifier =
+        ComponentIdentifierAdapter.toComponentIdentifier(PACKAGE_URL_MAVEN_V1 + "?type=jar&classifier=javadoc");
+    List<Component> components = List.of(component);
+
+    List<Component> innerComponentsByParentComponentIdentifier =
+        apiPolicyViolationService.getInnerComponentsByParentComponentIdentifier(components, parentComponentIdentifier);
+    assertThat(innerComponentsByParentComponentIdentifier)
+        .hasSize(1)
+        .containsOnly(component);
+  }
+
+  @Test
+  public void testGetInnerComponentsByParentComponentIdentifier_MultipleInnerComponents() {
+    Set<InnerSourceData> innerSourceData =
+        Set.of(new InnerSourceData(null, null, PACKAGE_URL_MAVEN_V1 + "?type=jar&classifier=javadoc"),
+            new InnerSourceData(null, null, PACKAGE_URL_MAVEN_V1 + "?type=jar&classifier="));
+    Component component = new Component();
+    component.setInnerSourceData(innerSourceData);
+
+    Set<InnerSourceData> innerSourceData1 =
+        Set.of(new InnerSourceData(null, null, PACKAGE_URL_MAVEN_V1 + "?type=jar&classifier=javadoc"),
+            new InnerSourceData(null, null, PACKAGE_URL_MAVEN_V2 + "?type=jar"),
+            new InnerSourceData(null, null, "pkg:maven/org.apache.commons/commons-lang3@3.12.0?type=jar"));
+    Component component1 = new Component();
+    component1.setInnerSourceData(innerSourceData1);
+
+    Set<InnerSourceData> innerSourceData2 =
+        Set.of(new InnerSourceData(null, null, PACKAGE_URL_NUGET + "?type=test"),
+            new InnerSourceData(null, null, "pkg:gem/rails@6.1.4?type=test"),
+            new InnerSourceData(null, null, "pkg:npm/lodash@4.17.21?type=test"));
+    Component component2 = new Component();
+    component2.setInnerSourceData(innerSourceData2);
+
+    List<Component> components = List.of(component, component1, component2);
+    ComponentIdentifier parentComponentIdentifier =
+        ComponentIdentifierAdapter.toComponentIdentifier(PACKAGE_URL_MAVEN_V1 + "?type=jar&classifier=javadoc");
+
+    List<Component> innerComponentsByParentComponentIdentifier =
+        apiPolicyViolationService.getInnerComponentsByParentComponentIdentifier(components, parentComponentIdentifier);
+    assertThat(innerComponentsByParentComponentIdentifier)
+        .hasSize(2)
+        .containsExactlyInAnyOrder(component, component1);
   }
 
   private void testGetTransitiveComponentsByAppScanComponent_ComponentWithTransitiveComponents(

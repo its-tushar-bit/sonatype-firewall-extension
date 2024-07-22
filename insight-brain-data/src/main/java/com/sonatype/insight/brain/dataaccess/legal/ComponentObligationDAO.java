@@ -131,17 +131,17 @@ public class ComponentObligationDAO
     }
   }
 
-  public List<ComponentObligation> getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
-      TransactionContext tx,
-      String ownerId,
+  public List<ComponentObligation> getByOwnerIdsAndComponentIdentifierAndObligationNames(
+      final TransactionContext tx,
+      final List<String> ownerIds,
       ComponentIdentifier componentIdentifier,
       Set<String> obligationNames)
   {
     List<ComponentObligation> results = new ArrayList<>();
     Set<String> missingObligations = new HashSet<>(obligationNames);
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
+    for (String currentOwnerId : ownerIds) {
       List<ComponentObligation> componentObligations =
-          getByOwnerIdAndComponentIdentifierAndObligationNames(tx, owner.getId(), componentIdentifier,
+          getByOwnerIdAndComponentIdentifierAndObligationNames(tx, currentOwnerId, componentIdentifier,
               missingObligations);
       results.addAll(componentObligations);
       missingObligations.removeAll(componentObligations.stream()
@@ -151,6 +151,7 @@ public class ComponentObligationDAO
         break;
       }
     }
+
     return results;
   }
 
@@ -171,17 +172,6 @@ public class ComponentObligationDAO
     }
 
     return new ArrayList<>(nameToObligationMap.values());
-  }
-
-  public List<ComponentObligation> getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
-      String ownerId,
-      ComponentIdentifier componentIdentifier,
-      Set<String> obligationNames)
-  {
-    try (TransactionContext tx = createTransactionContext()) {
-      return getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(tx, ownerId, componentIdentifier,
-          obligationNames);
-    }
   }
 
   public Map<ComponentIdentifier, Set<String>> getAddressedObligationsByOwnerIdWithHierarchy(String ownerId) {

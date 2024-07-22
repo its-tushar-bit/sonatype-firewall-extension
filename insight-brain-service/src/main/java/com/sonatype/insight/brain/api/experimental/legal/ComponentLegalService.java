@@ -423,11 +423,17 @@ public class ComponentLegalService
     LegalServiceUtil.checkLicense(productLicense, log);
     ComponentIdentifierValidator.validate(componentIdentifier);
     Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
-    return componentObligationDAO.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
-        owner.getId(),
-        componentIdentifier,
-        Collections.singleton(obligationName)
-    ).stream().map(ApiLicenseLegalObligationDTO::new).findFirst().orElse(null);
+    List<String> ownerIds = ownerDAO.getOwnerIds(owner.getId());
+    try (TransactionContext tx = componentObligationDAO.createTransactionContext()) {
+      return componentObligationDAO.getByOwnerIdsAndComponentIdentifierAndObligationNames(tx,
+              ownerIds,
+              componentIdentifier,
+              Set.of(obligationName))
+          .stream()
+          .map(ApiLicenseLegalObligationDTO::new)
+          .findFirst()
+          .orElse(null);
+    }
   }
 
   /**

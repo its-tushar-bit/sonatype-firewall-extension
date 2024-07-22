@@ -83,18 +83,18 @@ public class LicenseThreatGroupDAO
   }
 
   /**
-   * Queries the {@link LicenseThreatGroup}s for a given set of license IDs for a given owner ID and its hierarchy.
-   * 
-   * @param tx          Current transaction.
-   * @param ownerId     Owner id in which the hierarchical query should start from.
-   * @param licenseIds  License IDs to check.
-   * @return A {@link Map} where the the key is each license ID and as the value is the list of
-   *         {@link LicenseThreatGroup} containing that license ID.
+   * Queries the {@link LicenseThreatGroup}s for a given set of license IDs for a given list of owner IDs and its
+   * hierarchy.
+   *
+   * @param tx         Current transaction.
+   * @param ownerIds   Owner IDs in which the hierarchical query should start from.
+   * @param licenseIds License IDs to check.
+   * @return A {@link Map} where the key is each license ID and as the value is the list of {@link LicenseThreatGroup}
+   * containing that license ID.
    */
-  @SuppressWarnings("unchecked")
-  public Map<String, List<LicenseThreatGroup>> getLicenseIdThreatGroupsByOwnerIdAndLicenseIdsWithHierarchy(
+  public Map<String, List<LicenseThreatGroup>> getLicenseIdThreatGroupsByOwnerIdsAndLicenseIds(
       TransactionContext tx,
-      String ownerId,
+      List<String> ownerIds,
       Set<String> licenseIds)
   {
     Map<String, List<LicenseThreatGroup>> result = new HashMap<>();
@@ -104,9 +104,9 @@ public class LicenseThreatGroupDAO
         " WHERE licenseThreatGroup.id=licenseThreatGroupLicense.licenseThreatGroupId" + //
         " AND licenseThreatGroup.ownerId=?1 AND licenseThreatGroupLicense.licenseId IN (?2)";
 
-    for (Owner currentOwner : ownerDAO.walkHierarchy(tx, ownerId)) {
+    for (String currentOwnerId : ownerIds) {
       javax.persistence.Query query = tx.createQuery(sQuery);
-      query.setParameter(1, currentOwner.getId());
+      query.setParameter(1, currentOwnerId);
       query.setParameter(2, licenseIds);
 
       ((List<Object[]>) query.getResultList()).forEach(array -> {

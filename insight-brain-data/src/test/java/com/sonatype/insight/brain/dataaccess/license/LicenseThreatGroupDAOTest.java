@@ -391,16 +391,17 @@ public class LicenseThreatGroupDAOTest extends NameableDAOTest<LicenseThreatGrou
   }
 
   @Test
-  public void testGetLicenseIdThreatGroupsByOwnerIdAndLicenseIdsWithHierarchy() {
+  public void testGetLicenseIdThreatGroupsByOwnerIdsAndLicenseIds() {
     tempEntity.newLicenseThreatGroup(application.getId(), "Group 1", 0, "GPL-1.0", "GPL-2.0");
     tempEntity.newLicenseThreatGroup(organization.getId(), "Group 2", 5, "MIT");
     tempEntity.newLicenseThreatGroup(organization.getParentOrganizationId(), "Group 3", 9, "GPL-1.0", "GPL-3.0");
 
+    List<String> ownerIds = List.of(application.getId(), organization.getId(), organization.getParentOrganizationId());
     Set<String> licenseIds = Sets.newHashSet("GPL-1.0", "GPL-2.0", "MIT", "GPL-3.0", "Apache-2.0");
 
     try (TransactionContext tx = licenseThreatGroupDAO.createTransactionContext()) {
       Map<String, List<LicenseThreatGroup>> result = licenseThreatGroupDAO
-          .getLicenseIdThreatGroupsByOwnerIdAndLicenseIdsWithHierarchy(tx, application.getId(), licenseIds);
+          .getLicenseIdThreatGroupsByOwnerIdsAndLicenseIds(tx, ownerIds, licenseIds);
 
       assertThat(result.keySet()).containsExactlyInAnyOrder("GPL-1.0", "GPL-2.0", "MIT", "GPL-3.0");
 

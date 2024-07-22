@@ -16,9 +16,11 @@ import java.util.Set;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -33,11 +35,14 @@ public class ComponentObligationDAOTest
 {
   private ComponentObligationDAO dao;
 
+  private OwnerDAO ownerDAO;
+
   @Before
   @Override
   public void setup() {
     super.setup();
     dao = daoFactory.createComponentObligationDAO();
+    ownerDAO = daoFactory.createOwnerDAO();
   }
 
   @Test
@@ -174,58 +179,56 @@ public class ComponentObligationDAOTest
   }
 
   @Test
-  public void testGetByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy_Single() {
+  public void testGetByOwnerIdsAndComponentIdentifierAndObligationNames_Single() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     String obligationName = "name";
+    Set<String> obligationNames = Collections.singleton(obligationName);
 
     // Start with a component obligation at just the root org level
     ComponentObligation componentObligationForRootOrganization =
         tempEntity.newComponentObligation(componentIdentifier, Organization.ROOT_ORGANIZATION_ID,
             obligationName, "comment1", ObligationStatus.FULFILLED, "legalContentHash1");
-
-    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
-        Organization.ROOT_ORGANIZATION_ID, componentIdentifier, Collections.singleton(obligationName)))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(componentObligationForRootOrganization);
-    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
-        organization.getId(), componentIdentifier, Collections.singleton(obligationName)))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(componentObligationForRootOrganization);
-    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
-        application.getId(), componentIdentifier, Collections.singleton(obligationName)))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(componentObligationForRootOrganization);
+    assertGetByOwnerIdsAndComponentIdentifierAndObligationNames(
+        Organization.ROOT_ORGANIZATION_ID, componentIdentifier, obligationNames,
+        componentObligationForRootOrganization);
+    assertGetByOwnerIdsAndComponentIdentifierAndObligationNames(
+        organization.getId(), componentIdentifier, obligationNames,
+        componentObligationForRootOrganization);
+    assertGetByOwnerIdsAndComponentIdentifierAndObligationNames(
+        application.getId(), componentIdentifier, obligationNames,
+        componentObligationForRootOrganization);
 
     // Add another component obligation at the org level
     ComponentObligation componentObligationForOrganization =
         tempEntity.newComponentObligation(componentIdentifier, organization.getId(),
             obligationName, "comment2", ObligationStatus.FULFILLED, "legalContentHash2");
-
-    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
-        Organization.ROOT_ORGANIZATION_ID, componentIdentifier, Collections.singleton(obligationName)))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(componentObligationForRootOrganization);
-    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
-        organization.getId(), componentIdentifier, Collections.singleton(obligationName)))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(componentObligationForOrganization);
-    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
-        application.getId(), componentIdentifier, Collections.singleton(obligationName)))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(componentObligationForOrganization);
+    assertGetByOwnerIdsAndComponentIdentifierAndObligationNames(
+        Organization.ROOT_ORGANIZATION_ID, componentIdentifier, obligationNames,
+        componentObligationForRootOrganization);
+    assertGetByOwnerIdsAndComponentIdentifierAndObligationNames(
+        organization.getId(), componentIdentifier, obligationNames,
+        componentObligationForOrganization);
+    assertGetByOwnerIdsAndComponentIdentifierAndObligationNames(
+        application.getId(), componentIdentifier, obligationNames,
+        componentObligationForOrganization);
 
     // Add another component obligation at the app level
     ComponentObligation componentObligationForApplication =
         tempEntity.newComponentObligation(componentIdentifier, application.getId(),
             obligationName, "comment3", ObligationStatus.FULFILLED, "legalContentHash3");
-
-    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
-        Organization.ROOT_ORGANIZATION_ID, componentIdentifier, Collections.singleton(obligationName)))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(componentObligationForRootOrganization);
-    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
-        organization.getId(), componentIdentifier, Collections.singleton(obligationName)))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(componentObligationForOrganization);
-    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
-        application.getId(), componentIdentifier, Collections.singleton(obligationName)))
-        .usingRecursiveFieldByFieldElementComparator().containsExactly(componentObligationForApplication);
+    assertGetByOwnerIdsAndComponentIdentifierAndObligationNames(
+        Organization.ROOT_ORGANIZATION_ID, componentIdentifier, obligationNames,
+        componentObligationForRootOrganization);
+    assertGetByOwnerIdsAndComponentIdentifierAndObligationNames(
+        organization.getId(), componentIdentifier, obligationNames,
+        componentObligationForOrganization);
+    assertGetByOwnerIdsAndComponentIdentifierAndObligationNames(
+        application.getId(), componentIdentifier, obligationNames,
+        componentObligationForApplication);
   }
 
   @Test
-  public void testGetByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy() {
+  public void testGetByOwnerIdsAndComponentIdentifierAndObligationNames() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     String obligationName1 = "name1";
     String obligationName2 = "name2";
@@ -244,41 +247,58 @@ public class ComponentObligationDAOTest
         obligationName3, "comment3", ObligationStatus.IGNORED, "legalContentHash3");
 
     // Try to get all obligations at different scopes
-    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(Organization.ROOT_ORGANIZATION_ID,
-        componentIdentifier, obligationNames)).usingRecursiveFieldByFieldElementComparator()
-        .containsExactlyInAnyOrder(c1Root);
-    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(organization.getId(),
-        componentIdentifier, obligationNames)).usingRecursiveFieldByFieldElementComparator()
-        .containsExactlyInAnyOrder(c1Root, c2Org);
-    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(application.getId(),
-        componentIdentifier, obligationNames)).usingRecursiveFieldByFieldElementComparator()
-        .containsExactlyInAnyOrder(c1Root, c2Org, c3App);
+    assertGetByOwnerIdsAndComponentIdentifierAndObligationNames(
+        Organization.ROOT_ORGANIZATION_ID, componentIdentifier, obligationNames,
+        c1Root);
+    assertGetByOwnerIdsAndComponentIdentifierAndObligationNames(
+        organization.getId(), componentIdentifier, obligationNames,
+        c1Root, c2Org);
+    assertGetByOwnerIdsAndComponentIdentifierAndObligationNames(
+        application.getId(), componentIdentifier, obligationNames,
+        c1Root, c2Org, c3App);
 
     // Add c1 at org scope
     ComponentObligation c1Org = tempEntity.newComponentObligation(componentIdentifier, organization.getId(),
         obligationName1, "comment4", ObligationStatus.FLAGGED, "legalContentHash4");
-    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(Organization.ROOT_ORGANIZATION_ID,
-        componentIdentifier, obligationNames)).usingRecursiveFieldByFieldElementComparator()
-        .containsExactlyInAnyOrder(c1Root);
-    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(organization.getId(),
-        componentIdentifier, obligationNames)).usingRecursiveFieldByFieldElementComparator()
-        .containsExactlyInAnyOrder(c1Org, c2Org);
-    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(application.getId(),
-        componentIdentifier, obligationNames)).usingRecursiveFieldByFieldElementComparator()
-        .containsExactlyInAnyOrder(c1Org, c2Org, c3App);
+    assertGetByOwnerIdsAndComponentIdentifierAndObligationNames(
+        Organization.ROOT_ORGANIZATION_ID, componentIdentifier, obligationNames,
+        c1Root);
+    assertGetByOwnerIdsAndComponentIdentifierAndObligationNames(
+        organization.getId(), componentIdentifier, obligationNames,
+        c1Org, c2Org);
+    assertGetByOwnerIdsAndComponentIdentifierAndObligationNames(
+        application.getId(), componentIdentifier, obligationNames,
+        c1Org, c2Org, c3App);
 
     // Add c1 at app scope
     ComponentObligation c1App = tempEntity.newComponentObligation(componentIdentifier, application.getId(),
         obligationName1, "comment5", ObligationStatus.IGNORED, "legalContentHash5");
-    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(Organization.ROOT_ORGANIZATION_ID,
-        componentIdentifier, obligationNames)).usingRecursiveFieldByFieldElementComparator()
-        .containsExactlyInAnyOrder(c1Root);
-    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(organization.getId(),
-        componentIdentifier, obligationNames)).usingRecursiveFieldByFieldElementComparator()
-        .containsExactlyInAnyOrder(c1Org, c2Org);
-    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(application.getId(),
-        componentIdentifier, obligationNames)).usingRecursiveFieldByFieldElementComparator()
-        .containsExactlyInAnyOrder(c1App, c2Org, c3App);
+    assertGetByOwnerIdsAndComponentIdentifierAndObligationNames(
+        Organization.ROOT_ORGANIZATION_ID, componentIdentifier, obligationNames,
+        c1Root);
+    assertGetByOwnerIdsAndComponentIdentifierAndObligationNames(
+        organization.getId(), componentIdentifier, obligationNames,
+        c1Org, c2Org);
+    assertGetByOwnerIdsAndComponentIdentifierAndObligationNames(
+        application.getId(), componentIdentifier, obligationNames,
+        c1App, c2Org, c3App);
+  }
+
+  private void assertGetByOwnerIdsAndComponentIdentifierAndObligationNames(
+      final String ownerId,
+      final ComponentIdentifier componentIdentifier,
+      final Set<String> obligationNames,
+      final ComponentObligation... componentObligation)
+  {
+    List<String> ownerIds = ownerDAO.getOwnerIds(ownerId);
+    List<ComponentObligation> actual;
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      actual = dao.getByOwnerIdsAndComponentIdentifierAndObligationNames(tx,
+          ownerIds, componentIdentifier, obligationNames);
+    }
+
+    assertThat(actual)
+        .usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(componentObligation);
   }
 
   @Test

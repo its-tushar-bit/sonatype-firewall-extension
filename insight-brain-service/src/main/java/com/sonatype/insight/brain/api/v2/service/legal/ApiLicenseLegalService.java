@@ -32,7 +32,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -1582,8 +1581,8 @@ public class ApiLicenseLegalService
         .collect(Collectors.toSet());
 
     List<ComponentObligation> componentObligationsNames =
-        componentObligationDAO.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(tx,
-            Organization.ROOT_ORGANIZATION_ID, dto.componentIdentifier, allObligationsNames);
+        componentObligationDAO.getByOwnerIdsAndComponentIdentifierAndObligationNames(tx,
+            List.of(Organization.ROOT_ORGANIZATION_ID), dto.componentIdentifier, allObligationsNames);
 
     Map<String, Integer> countMap =
         legalDashboardService.countObligations(componentObligationsNames, allObligationsNames);
@@ -1635,8 +1634,8 @@ public class ApiLicenseLegalService
         .collect(Collectors.toSet());
 
     Map<String, List<LicenseThreatGroup>> threatGroupsByLicenseId =
-        licenseThreatGroupDAO.getLicenseIdThreatGroupsByOwnerIdAndLicenseIdsWithHierarchy(tx,
-            Organization.ROOT_ORGANIZATION_ID, singleLicensesInComponent);
+        licenseThreatGroupDAO.getLicenseIdThreatGroupsByOwnerIdsAndLicenseIds(tx,
+            List.of(Organization.ROOT_ORGANIZATION_ID), singleLicensesInComponent);
 
     ApiLicenseDataAdapter licenseDataAdapter = new ApiLicenseDataAdapter(multiLicenseDAO);
 

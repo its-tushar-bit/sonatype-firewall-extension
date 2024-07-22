@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
 import com.sonatype.insight.brain.api.v2.service.legal.LegalDashboardsService;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -58,6 +59,7 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.collections4.CollectionUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,6 +94,8 @@ public class LegalApplicationDashboardService
 
   private final LegalDashboardsService legalDashboardService;
 
+  private final OwnerDAO ownerDAO;
+
   @Inject
   public LegalApplicationDashboardService(
       ProductLicense productLicense,
@@ -102,7 +106,8 @@ public class LegalApplicationDashboardService
       LicenseThreatGroupDAO licenseThreatGroupDAO,
       MultiLicenseDAO multiLicenseDAO,
       InnerSourceComponentDAO innerSourceComponentDAO,
-      LegalDashboardsService legalDashboardService)
+      LegalDashboardsService legalDashboardService,
+      OwnerDAO ownerDAO)
   {
     this.productLicense = productLicense;
     this.apiLicenseLegalHdsService = apiLicenseLegalHdsService;
@@ -113,6 +118,7 @@ public class LegalApplicationDashboardService
     this.multiLicenseDAO = multiLicenseDAO;
     this.innerSourceComponentDAO = innerSourceComponentDAO;
     this.legalDashboardService = legalDashboardService;
+    this.ownerDAO = ownerDAO;
   }
 
   @Authorize(permission = Permission.LEGAL_REVIEWER)
@@ -155,6 +161,8 @@ public class LegalApplicationDashboardService
     Map<String, String> licenseNamesByLicenseId = getLicenseNames(licenseIdsFound);
     List<ApiLicenseLegalApplicationComponentDTO> result = new ArrayList<>(applicationComponentLicensesDTOS.size());
 
+    List<String> ownerIds = ownerDAO.getOwnerIds(application.getId());
+
     try (TransactionContext tx = componentObligationDAO.createTransactionContext()) {
       for (ApplicationComponentLicensesDTO componentLicensesDTO : applicationComponentLicensesDTOS) {
         if (componentLicensesDTO.getComponentIdentifier() == null) {
@@ -171,7 +179,7 @@ public class LegalApplicationDashboardService
             .collect(Collectors.toSet());
 
         Map<String, List<LicenseThreatGroup>> threatGroupsByLicenseId = licenseThreatGroupDAO
-            .getLicenseIdThreatGroupsByOwnerIdAndLicenseIdsWithHierarchy(tx, application.getId(), singleLicenseIds);
+            .getLicenseIdThreatGroupsByOwnerIdsAndLicenseIds(tx, ownerIds, singleLicenseIds);
 
         if (isNotEmpty(licenseThreatGroupNames)) {
           singleLicenseIds =
@@ -186,9 +194,9 @@ public class LegalApplicationDashboardService
             .flatMap(licenseId -> obligationNamesByLicenseId.get(licenseId).stream())
             .collect(Collectors.toSet());
 
-        List<ComponentObligation> obligations =
-            componentObligationDAO.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(tx,
-                application.getId(), componentLicensesDTO.getComponentIdentifier(), allObligationNames);
+        List<ComponentObligation> obligations = componentObligationDAO
+            .getByOwnerIdsAndComponentIdentifierAndObligationNames(tx, ownerIds,
+                componentLicensesDTO.getComponentIdentifier(), allObligationNames);
 
         Map<String, Integer> countMap = legalDashboardService.countObligations(obligations, allObligationNames);
 

@@ -80,7 +80,7 @@ function routes($stateProvider) {
       abstract: true,
     })
     .state('sbomManager.management.view.bom', {
-      url: '/application/{applicationPublicId}/bom/{versionId}',
+      url: '/application/{applicationPublicId}/bom/{versionId}/overview',
       component: 'billOfMaterials',
       data: {
         title: 'SBOM Manager - Bill Of Materials',
@@ -89,7 +89,7 @@ function routes($stateProvider) {
       },
     })
     .state('sbomManager.component', {
-      url: '/application/{applicationPublicId}/bom/{sbomVersion}/{componentHash}/overview',
+      url: '/application/{applicationPublicId}/bom/{sbomVersion}/componentDetails/{componentHash}/overview',
       component: 'sbomManagerComponentDetails',
       data: {
         title: 'SBOM Manager - Component Details',

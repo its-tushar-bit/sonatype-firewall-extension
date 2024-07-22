@@ -50,8 +50,10 @@ public class SbomManagerComponentDetailsPage
   }
 
   public static String url(String applicationId, String versionId, String componentHash ) {
-    return BaseUrl.resolvePageUrl("/sbomManager/application/{applicationId}/bom/{versionId}/{componentHash}/overview",
-        applicationId, versionId, componentHash);
+    return BaseUrl.resolvePageUrl(
+      "/sbomManager/application/{applicationId}/bom/{versionId}/componentDetails/{componentHash}/overview",
+      applicationId, versionId, componentHash
+    );
   }
 
   public ElementsCollection reportInfoItems() {

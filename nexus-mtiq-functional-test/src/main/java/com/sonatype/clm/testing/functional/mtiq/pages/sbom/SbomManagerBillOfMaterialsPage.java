@@ -14,7 +14,7 @@ public class SbomManagerBillOfMaterialsPage
     extends BasicElement<SbomManagerBillOfMaterialsPage>
 {
   public static String url(String applicationId, String versionId) {
-    return BaseUrl.resolvePageUrl("/sbomManager/management/view/application/{applicationId}/bom/{versionId}",
+    return BaseUrl.resolvePageUrl("/sbomManager/management/view/application/{applicationId}/bom/{versionId}/overview",
         applicationId, versionId);
   }
 

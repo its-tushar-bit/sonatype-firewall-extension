@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.sbom.export;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -48,7 +47,6 @@ import org.spdx.library.model.SpdxDocument;
 import org.spdx.library.model.SpdxModelFactory;
 import org.spdx.library.model.SpdxPackage;
 import org.spdx.library.model.enumerations.ReferenceCategory;
-import org.spdx.library.model.enumerations.RelationshipType;
 import org.spdx.library.model.license.AnyLicenseInfo;
 import org.spdx.library.model.license.ExtractedLicenseInfo;
 import org.spdx.library.model.license.InvalidLicenseStringException;
@@ -100,8 +98,7 @@ public abstract class AbstractSpdxExporter
     SpdxDocument newDocument =
         SpdxModelFactory.createSpdxDocument(multiFormatStore, getBillOfMaterialsPath(), copyManager);
     setMetadata(newDocument);
-    SpdxPackage rootPackage = SbomSpdxUtils.getRootPackage(originalDocument);
-    copyComponents(originalDocument, newDocument, rootPackage);
+    copyComponents(originalDocument, newDocument);
     newDocument.setExternalDocumentRefs(originalDocument.getExternalDocumentRefs());
     return newDocument;
   }
@@ -152,13 +149,11 @@ public abstract class AbstractSpdxExporter
 
   private void copyComponents(
       final SpdxDocument originalDocument,
-      final SpdxDocument newDocument,
-      final SpdxPackage originalRootPkg)
+      final SpdxDocument newDocument)
       throws InvalidSPDXAnalysisException
   {
-    SpdxPackage newRootPkg = null;
-    List<SpdxPackage> potentialDirects = new ArrayList<>();
-    List<String> transitives = new ArrayList<>();
+
+    SpdxPackage originalRootPkg = SbomSpdxUtils.getRootPackage(originalDocument);
     Map<String, ExtractedLicenseInfo> extractedLicenses = originalDocument.getExtractedLicenseInfos()
         .stream().collect(Collectors.toMap(l -> StringUtils.lowerCase(l.getLicenseId()), l -> l));
 
@@ -205,49 +200,16 @@ public abstract class AbstractSpdxExporter
           newPkg.getAttributionText().add("Evidence license text for: " + spdxLicenseEvidence);
         }
       }
-      //pre-process relationships
       if (originalRootPkg != null && StringUtils.equals(originalRootPkg.getId(), pkg.getId())) {
-        newRootPkg = newPkg;
-      }
-      else {
-        Collection<Relationship> relationships = pkg.getRelationships();
-        if (CollectionUtils.isNotEmpty(relationships)) {
-          for (Relationship relationship : relationships) {
-            pkgBuilder.addRelationship(relationship);
-          }
-          potentialDirects.add(newPkg);
-        }
-        else {
-          transitives.add(newPkg.getId());
-        }
+        newDocument.getDocumentDescribes().add(newPkg);;
       }
     }
 
-    //any non-SPDX licenses added from DB (extracted) needs to be referenced at document level too.
+    copyDependencyRelationships(originalDocument, newDocument);
+
+    // any non-SPDX licenses added from DB (extracted) needs to be referenced at document level too.
     // Otherwise the document is considered invalid.
     newDocument.getExtractedLicenseInfos().addAll(extractedLicenses.values());
-    //For some (weird) reason, copying the original dependency graph as is to the new document does not generate the
-    // same dependency graph by the SDK. Hence, the creation of the graph manually.
-    addDependencyRelationships(newDocument, newRootPkg, potentialDirects, transitives);
-  }
-
-  private static void addDependencyRelationships(
-      final SpdxDocument newDocument,
-      final SpdxPackage newRootPkg,
-      final List<SpdxPackage> potentialDirects,
-      final List<String> transitives) throws InvalidSPDXAnalysisException
-  {
-    if (newRootPkg != null) {
-      newDocument.getDocumentDescribes().add(newRootPkg);
-      for (SpdxPackage potentialDirect : potentialDirects) {
-        if (!transitives.contains(potentialDirect.getId())) {
-          //true direct
-          Relationship relationship =
-              newDocument.createRelationship(potentialDirect, RelationshipType.DEPENDS_ON, null);
-          newRootPkg.addRelationship(relationship);
-        }
-      }
-    }
   }
 
   private SpdxPackage buildPackage(final SpdxPackage.SpdxPackageBuilder pkgBuilder)
@@ -348,5 +310,28 @@ public abstract class AbstractSpdxExporter
       }
     }
     return anyLicenseInfo;
+  }
+
+  private void copyDependencyRelationships(
+      final SpdxDocument originalDocument,
+      final SpdxDocument newDocument)
+      throws InvalidSPDXAnalysisException
+  {
+    for (SpdxPackage pkg : SbomSpdxUtils.getAllPackages(originalDocument)) {
+      SpdxPackage newPackage = SbomSpdxUtils.getPackageById(newDocument, pkg.getId());
+      if (newPackage != null) {
+        for (Relationship relationship : pkg.getRelationships()) {
+          if (relationship.getRelatedSpdxElement().isPresent()) {
+            SpdxPackage relatedPackage = SbomSpdxUtils.getPackageById(newDocument,
+                relationship.getRelatedSpdxElement().get().getId());
+            if (relatedPackage != null) {
+              Relationship newDocumentRelationship = newDocument.createRelationship(relatedPackage,
+                  relationship.getRelationshipType(), relationship.getComment().orElse(null));
+              newPackage.addRelationship(newDocumentRelationship);
+            }
+          }
+        }
+      }
+    }
   }
 }

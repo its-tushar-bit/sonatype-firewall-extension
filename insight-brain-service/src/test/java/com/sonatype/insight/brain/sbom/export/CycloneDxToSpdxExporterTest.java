@@ -113,7 +113,6 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
   public void exportTest_withJsonInputFormat_toXmlOutputFormat() throws Exception {
     File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom(TEST_JSON_SBOM));
     String exportedBomStr = setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.XML);
-    System.out.println("exportedBomStr: \n" + exportedBomStr);
     XmlAssert.assertThat(exportedBomStr).and(readFileToString("outputs/webgoat-from-json-to-spdx.xml"))
         .withNodeFilter(spdxDxIgnoreNodesFilter())
         .ignoreWhitespace()
@@ -154,7 +153,6 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
     File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom("missing-metadata-bom.json"));
     String exportedBomStr = setupExportSbomScenarioWithNullDbVulnerabilityField(testBomFile,
         SbomFormat.JSON, "");
-    System.out.println("exportedBomStr: \n" + exportedBomStr);
     assertThatJson(exportedBomStr)
         .whenIgnoringPaths("creationInfo.created", "creationInfo.creators[0]")
         .isEqualTo(readFileToString("outputs/missing-metadata-from-json-to-spdx.json"));

@@ -36,6 +36,7 @@ import org.mockito.Mock;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 import org.xmlunit.assertj.XmlAssert;
 
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreAttributesFilter;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreNodesFilter;
 import static com.sonatype.insight.brain.sbom.export.CycloneDxDocumentAssert.assertThatCycloneDx;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
@@ -110,6 +111,7 @@ public class SpdxToCycloneDxExporterTest
     String actual = spdxToCycloneDxExporter.export();
     XmlAssert.assertThat(actual).and(readFileToString("outputs/output_cdx-v1_5.xml"))
         .withNodeFilter(cycloneDxIgnoreNodesFilter())
+        .withAttributeFilter(cycloneDxIgnoreAttributesFilter())
         .ignoreWhitespace()
         .areIdentical();
   }

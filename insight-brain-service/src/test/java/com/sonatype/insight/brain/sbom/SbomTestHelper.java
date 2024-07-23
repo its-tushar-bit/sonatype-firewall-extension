@@ -25,7 +25,9 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.scan.file.SbomFormat;
 
 import org.apache.commons.io.FileUtils;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xmlunit.util.Predicate;
 
 public class SbomTestHelper
@@ -83,6 +85,34 @@ public class SbomTestHelper
               return false;
             }
           }
+        }
+      }
+      return true;
+    };
+  }
+
+  public static Predicate<Attr> cycloneDxIgnoreAttributesFilter() {
+    return attr -> {
+      if (CYCLONEDX_IGNORE_ATTRIBS.contains(attr.getName())) {
+        return false;
+      }
+      if ("bom-ref".equals(attr.getName()) && "component".equals(attr.getOwnerElement().getNodeName())) {
+        Node p = attr.getOwnerElement().getParentNode();
+        if (p != null && "metadata".equals(p.getNodeName())) {
+          return false;
+        }
+      }
+      if ("ref".equals(attr.getName()) && "dependency".equals(attr.getOwnerElement().getNodeName())) {
+        NodeList elementsWithTagNameComponent = attr.getOwnerDocument().getElementsByTagName("component");
+        Node bomComponent = null;
+        for (int i = 0; i < elementsWithTagNameComponent.getLength(); i++) {
+          if (elementsWithTagNameComponent.item(i).getParentNode().getNodeName().equals("metadata")) {
+            bomComponent = elementsWithTagNameComponent.item(i);
+          }
+        }
+        if (bomComponent != null &&
+            attr.getValue().equals(bomComponent.getAttributes().getNamedItem("bom-ref").getNodeValue())) {
+          return false;
         }
       }
       return true;

@@ -19,11 +19,6 @@
       "referenceLocator" : "pkg:maven/log4j/log4j@1.2.8?type=jar",
       "referenceType" : "purl"
     }, {
-      "comment" : "source: NVD",
-      "referenceCategory" : "SECURITY",
-      "referenceLocator" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23307",
-      "referenceType" : "advisory"
-    }, {
       "comment" : "source: SONATYPE",
       "referenceCategory" : "SECURITY",
       "referenceLocator" : "http://localhost:8070/ui/links/vln/sonatype-2010-0053",
@@ -32,6 +27,11 @@
       "comment" : "source: SOURCE",
       "referenceCategory" : "SECURITY",
       "referenceLocator" : "http://www.source.com/abc-123",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23307",
       "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
@@ -128,11 +128,11 @@
   }, {
     "spdxElementId" : "SPDXRef-333584e5-0101-4a21-8f5b-61b10926cf3c",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-e6a49891-d1d5-4358-8688-b5a03a546f90"
+    "relatedSpdxElement" : "SPDXRef-0cd0109c-4389-4c65-b95a-1d3b552d902a"
   }, {
     "spdxElementId" : "SPDXRef-333584e5-0101-4a21-8f5b-61b10926cf3c",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-0cd0109c-4389-4c65-b95a-1d3b552d902a"
+    "relatedSpdxElement" : "SPDXRef-e6a49891-d1d5-4358-8688-b5a03a546f90"
   }, {
     "spdxElementId" : "SPDXRef-85e600ff-6842-4b60-bbc5-56a45e3a357c",
     "relationshipType" : "DEPENDS_ON",
@@ -140,10 +140,14 @@
   }, {
     "spdxElementId" : "SPDXRef-c9f3c210-670e-41c0-993b-af8a7768f25b",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-85e600ff-6842-4b60-bbc5-56a45e3a357c"
+    "relatedSpdxElement" : "SPDXRef-32dd9982-7edc-4cde-85f6-8946cabca003"
   }, {
     "spdxElementId" : "SPDXRef-c9f3c210-670e-41c0-993b-af8a7768f25b",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-333584e5-0101-4a21-8f5b-61b10926cf3c"
+  }, {
+    "spdxElementId" : "SPDXRef-c9f3c210-670e-41c0-993b-af8a7768f25b",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-85e600ff-6842-4b60-bbc5-56a45e3a357c"
   } ]
 }

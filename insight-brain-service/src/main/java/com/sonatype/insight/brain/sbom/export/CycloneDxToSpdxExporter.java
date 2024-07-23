@@ -209,9 +209,9 @@ public class CycloneDxToSpdxExporter
       SpdxDocument newDocument = SpdxModelFactory.createSpdxDocument(spdxModelStore, documentUri, copyManager);
       setMetadata(newDocument);
       setComponents(baseBom, newDocument);
+      setDescribes(baseBom, newDocument);
       setDependencies(baseBom.getDependencies());
       setVulnerabilities(baseBom);
-      setDescribes(baseBom, newDocument);
       setCompositions(baseBom.getCompositions());
       return newDocument;
     }

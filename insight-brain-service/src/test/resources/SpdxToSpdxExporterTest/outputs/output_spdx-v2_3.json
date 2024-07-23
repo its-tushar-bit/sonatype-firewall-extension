@@ -123,12 +123,24 @@
     "relationshipType" : "DESCRIBES",
     "relatedSpdxElement" : "SPDXRef-generic-sonatype-iq-application-SCM-Test"
   }, {
-    "spdxElementId" : "SPDXRef-generic-sonatype-iq-application-SCM-Test",
+    "spdxElementId" : "SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2"
+    "relatedSpdxElement" : "SPDXRef-maven-org.apache.logging.log4j-log4j-api-2.13.2"
+  }, {
+    "spdxElementId" : "SPDXRef-maven-junit-junit-4.12",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-maven-org.hamcrest-hamcrest-core-1.3"
   }, {
     "spdxElementId" : "SPDXRef-generic-sonatype-iq-application-SCM-Test",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-maven-junit-junit-4.12"
+  }, {
+    "spdxElementId" : "SPDXRef-generic-sonatype-iq-application-SCM-Test",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-maven-org.yaml-snakeyaml-1.29"
+  }, {
+    "spdxElementId" : "SPDXRef-generic-sonatype-iq-application-SCM-Test",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2"
   } ]
 }

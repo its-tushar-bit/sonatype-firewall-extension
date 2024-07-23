@@ -11,11 +11,10 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
+import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -26,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -41,10 +41,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.exception.GeneratorException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
+import org.cyclonedx.model.Component.Type;
 import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
+import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.Property;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.spdx.library.InvalidSPDXAnalysisException;
@@ -103,6 +105,7 @@ public class SpdxToCycloneDxExporter
 
   public Bom generateCycloneDxBomFromSpdxDocument(SpdxDocument base) {
     Bom target = new Bom();
+    setComponentMetadata(target);
     try {
       List<SpdxPackage> packages = SbomSpdxUtils.getAllPackages(base);
       if (CollectionUtils.isNotEmpty(packages)) {
@@ -273,20 +276,41 @@ public class SpdxToCycloneDxExporter
                                final Bom target)
       throws InvalidSPDXAnalysisException
   {
-    Set<SpdxPackage> directDependencies = new HashSet<>();
     SpdxPackage rootPackage = SbomSpdxUtils.getRootPackage(base);
-    List<Relationship> relationships = SbomSpdxUtils.getDependenciesBySpdxPackage(rootPackage);
-    for (Relationship relationship : relationships) {
-      relationship.getRelatedSpdxElement().ifPresent( it -> directDependencies.add((SpdxPackage) it));
-    }
-    for (SpdxPackage directDependency : directDependencies) {
-      Dependency dependency = new Dependency(spdxPackageIdsToCdxBomRefs.get(directDependency.getId()));
-      dependency.setDependencies(new ArrayList<>());
-      for (Relationship relationship : SbomSpdxUtils.getDependenciesBySpdxPackage(directDependency)) {
-        relationship.getRelatedSpdxElement().ifPresent(it ->
-            dependency.getDependencies().add(new Dependency(spdxPackageIdsToCdxBomRefs.get(it.getId()))));
-      }
+    // Set root of dependency tree first referencing the Bom Component ref
+    // A random UUID will be used as the bom-ref of the new Bom Component
+    String bomComponentRef = target.getMetadata().getComponent().getBomRef();
+    Dependency rootDependency = new Dependency(bomComponentRef);
+    addChildDependencies(rootDependency, rootPackage);
+    target.addDependency(rootDependency);
+    List<SpdxPackage> directAndTransitiveDependencies = SbomSpdxUtils.getAllPackages(base).stream()
+        .filter(pkg -> !pkg.getId().equals(rootPackage.getId())).toList();
+    for (SpdxPackage spdxPackage : directAndTransitiveDependencies) {
+      Dependency dependency = new Dependency(spdxPackageIdsToCdxBomRefs.get(spdxPackage.getId()));
+      addChildDependencies(dependency, spdxPackage);
       target.addDependency(dependency);
     }
+  }
+
+  private void addChildDependencies(final Dependency dependency, final SpdxPackage spdxPackage)
+      throws InvalidSPDXAnalysisException
+  {
+    dependency.setDependencies(new ArrayList<>());
+    for (Relationship relationship : spdxPackage.getRelationships()) {
+      relationship.getRelatedSpdxElement().ifPresent(pkg ->
+          dependency.getDependencies().add(new Dependency(spdxPackageIdsToCdxBomRefs.get(pkg.getId()))));
+    }
+  }
+
+  private void setComponentMetadata(Bom bom) {
+    Metadata bomMetadata = new Metadata();
+    Component bomComponent = new Component();
+    bomComponent.setType(Type.APPLICATION);
+    bomComponent.setName(idUtils.getPublicOwnerId(OwnerType.APPLICATION, exportParams.sbomMetadata
+        .getApplicationId()));
+    bomComponent.setVersion(exportParams.sbomMetadata.getSbomVersion());
+    bomComponent.setBomRef(UUID.randomUUID().toString());
+    bomMetadata.setComponent(bomComponent);
+    bom.setMetadata(bomMetadata);
   }
 }

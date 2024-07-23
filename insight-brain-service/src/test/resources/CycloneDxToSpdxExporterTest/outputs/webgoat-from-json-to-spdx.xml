@@ -20,9 +20,9 @@
             <referenceType>purl</referenceType>
         </externalRefs>
         <externalRefs>
-            <comment>source: SOURCE</comment>
+            <comment>source: NVD</comment>
             <referenceCategory>SECURITY</referenceCategory>
-            <referenceLocator>http://www.source.com/abc-123</referenceLocator>
+            <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23307</referenceLocator>
             <referenceType>advisory</referenceType>
         </externalRefs>
         <externalRefs>
@@ -32,9 +32,9 @@
             <referenceType>advisory</referenceType>
         </externalRefs>
         <externalRefs>
-            <comment>source: NVD</comment>
+            <comment>source: SOURCE</comment>
             <referenceCategory>SECURITY</referenceCategory>
-            <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23307</referenceLocator>
+            <referenceLocator>http://www.source.com/abc-123</referenceLocator>
             <referenceType>advisory</referenceType>
         </externalRefs>
         <filesAnalyzed>false</filesAnalyzed>
@@ -153,11 +153,16 @@
     <relationships>
         <spdxElementId>SPDXRef-c9f3c210-670e-41c0-993b-af8a7768f25b</spdxElementId>
         <relationshipType>DEPENDS_ON</relationshipType>
-        <relatedSpdxElement>SPDXRef-85e600ff-6842-4b60-bbc5-56a45e3a357c</relatedSpdxElement>
+        <relatedSpdxElement>SPDXRef-333584e5-0101-4a21-8f5b-61b10926cf3c</relatedSpdxElement>
     </relationships>
     <relationships>
         <spdxElementId>SPDXRef-c9f3c210-670e-41c0-993b-af8a7768f25b</spdxElementId>
         <relationshipType>DEPENDS_ON</relationshipType>
-        <relatedSpdxElement>SPDXRef-333584e5-0101-4a21-8f5b-61b10926cf3c</relatedSpdxElement>
+        <relatedSpdxElement>SPDXRef-32dd9982-7edc-4cde-85f6-8946cabca003</relatedSpdxElement>
+    </relationships>
+    <relationships>
+        <spdxElementId>SPDXRef-c9f3c210-670e-41c0-993b-af8a7768f25b</spdxElementId>
+        <relationshipType>DEPENDS_ON</relationshipType>
+        <relatedSpdxElement>SPDXRef-85e600ff-6842-4b60-bbc5-56a45e3a357c</relatedSpdxElement>
     </relationships>
 </Document>

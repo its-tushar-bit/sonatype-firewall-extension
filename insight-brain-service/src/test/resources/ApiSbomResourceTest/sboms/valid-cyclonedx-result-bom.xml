@@ -10,7 +10,7 @@
         </component>
       </components>
     </tools>
-    <component type="application">
+    <component type="application" bom-ref="ba4775b3-9ff0-42f0-865f-3bf2d95fff3f">
       <name>DUMMY-PUBLIC-ID-d0516b48c4c1432f936eafac413f6b40</name>
       <version>30c3ee1d127e484e9d41</version>
     </component>

@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -34,10 +35,12 @@ import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Component.Type;
+import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
@@ -88,7 +91,14 @@ public abstract class AbstractCycloneDxExporter
   }
 
   protected Bom mergeCurrentDatabaseState(Bom bom) {
-    bom.setMetadata(generateNewBomMetadata());
+    String oldBomComponentRef = "";
+    if (ObjectUtils.allNotNull(bom.getMetadata(), bom.getMetadata().getComponent(),
+        bom.getMetadata().getComponent().getBomRef())) {
+      oldBomComponentRef = bom.getMetadata().getComponent().getBomRef();
+    }
+    generateNewBomMetadata(bom);
+    updateDependenciesWithNewBomComponentRef(bom, oldBomComponentRef);
+
     List<ThirdPartyFileCoordinate> sonatypeComponents = thirdPartyFileCoordinateDAO.getByThirdPartyFileId(
         exportParams.sbomMetadata.getThirdPartyFileId());
 
@@ -440,7 +450,7 @@ public abstract class AbstractCycloneDxExporter
     return updateVexAnalysisWithSonatypeData(new Analysis(), sonatypeVexInformation);
   }
 
-  private Metadata generateNewBomMetadata() {
+  private void generateNewBomMetadata(Bom bom) {
     Metadata newBomMetadata = new Metadata();
     newBomMetadata.setTimestamp(new Date());
 
@@ -461,7 +471,27 @@ public abstract class AbstractCycloneDxExporter
     bomComponentInfo.setName(idUtils.getPublicOwnerId(OwnerType.APPLICATION, exportParams.sbomMetadata
         .getApplicationId()));
     bomComponentInfo.setVersion(exportParams.sbomMetadata.getSbomVersion());
+    bomComponentInfo.setBomRef(UUID.randomUUID().toString());
     newBomMetadata.setComponent(bomComponentInfo);
-    return newBomMetadata;
+    bom.setMetadata(newBomMetadata);
+  }
+
+  // Since we overwrote the original metadata and set a new parent component
+  // we need to update the dependency tree with the new parent component ref
+  private void updateDependenciesWithNewBomComponentRef(Bom bom, String oldBomComponentRef) {
+    if (StringUtils.isNotEmpty(oldBomComponentRef)) {
+      String newBomComponentRef = bom.getMetadata().getComponent().getBomRef();
+      if (CollectionUtils.isNotEmpty(bom.getDependencies())) {
+        Optional<Dependency> rootDependencyOptional = bom.getDependencies().stream()
+            .filter(it -> it.getRef().equals(oldBomComponentRef)).findFirst();
+        if (rootDependencyOptional.isPresent()) {
+          Dependency rootDependency = rootDependencyOptional.get();
+          int rootDependencyIndex = bom.getDependencies().indexOf(rootDependency);
+          Dependency newRootDependency = new Dependency(newBomComponentRef);
+          newRootDependency.setDependencies(rootDependency.getDependencies());
+          bom.getDependencies().set(rootDependencyIndex, newRootDependency);
+        }
+      }
+    }
   }
 }

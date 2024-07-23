@@ -127,37 +127,25 @@
         <externalRefs>
             <comment>source: NVD</comment>
             <referenceCategory>SECURITY</referenceCategory>
-            <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-1471</referenceLocator>
-            <referenceType>advisory</referenceType>
-        </externalRefs>
-        <externalRefs>
-            <comment>source: NVD</comment>
-            <referenceCategory>SECURITY</referenceCategory>
             <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38750</referenceLocator>
             <referenceType>advisory</referenceType>
         </externalRefs>
         <externalRefs>
             <comment>source: NVD</comment>
             <referenceCategory>SECURITY</referenceCategory>
-            <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38752</referenceLocator>
+            <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-41854</referenceLocator>
             <referenceType>advisory</referenceType>
         </externalRefs>
         <externalRefs>
             <comment>source: NVD</comment>
             <referenceCategory>SECURITY</referenceCategory>
-            <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38749</referenceLocator>
+            <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-1471</referenceLocator>
             <referenceType>advisory</referenceType>
         </externalRefs>
         <externalRefs>
             <comment>source: NVD</comment>
             <referenceCategory>SECURITY</referenceCategory>
             <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-25857</referenceLocator>
-            <referenceType>advisory</referenceType>
-        </externalRefs>
-        <externalRefs>
-            <comment>source: NVD</comment>
-            <referenceCategory>SECURITY</referenceCategory>
-            <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-41854</referenceLocator>
             <referenceType>advisory</referenceType>
         </externalRefs>
         <externalRefs>
@@ -168,7 +156,19 @@
         <externalRefs>
             <comment>source: NVD</comment>
             <referenceCategory>SECURITY</referenceCategory>
+            <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38749</referenceLocator>
+            <referenceType>advisory</referenceType>
+        </externalRefs>
+        <externalRefs>
+            <comment>source: NVD</comment>
+            <referenceCategory>SECURITY</referenceCategory>
             <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38751</referenceLocator>
+            <referenceType>advisory</referenceType>
+        </externalRefs>
+        <externalRefs>
+            <comment>source: NVD</comment>
+            <referenceCategory>SECURITY</referenceCategory>
+            <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38752</referenceLocator>
             <referenceType>advisory</referenceType>
         </externalRefs>
         <filesAnalyzed>false</filesAnalyzed>
@@ -183,13 +183,28 @@
         <relatedSpdxElement>SPDXRef-generic-sonatype-iq-application-SCM-Test</relatedSpdxElement>
     </relationships>
     <relationships>
+        <spdxElementId>SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2</spdxElementId>
+        <relationshipType>DEPENDS_ON</relationshipType>
+        <relatedSpdxElement>SPDXRef-maven-org.apache.logging.log4j-log4j-api-2.13.2</relatedSpdxElement>
+    </relationships>
+    <relationships>
+        <spdxElementId>SPDXRef-maven-junit-junit-4.12</spdxElementId>
+        <relationshipType>DEPENDS_ON</relationshipType>
+        <relatedSpdxElement>SPDXRef-maven-org.hamcrest-hamcrest-core-1.3</relatedSpdxElement>
+    </relationships>
+    <relationships>
         <spdxElementId>SPDXRef-generic-sonatype-iq-application-SCM-Test</spdxElementId>
         <relationshipType>DEPENDS_ON</relationshipType>
-        <relatedSpdxElement>SPDXRef-maven-junit-junit-4.12</relatedSpdxElement>
+        <relatedSpdxElement>SPDXRef-maven-org.yaml-snakeyaml-1.29</relatedSpdxElement>
     </relationships>
     <relationships>
         <spdxElementId>SPDXRef-generic-sonatype-iq-application-SCM-Test</spdxElementId>
         <relationshipType>DEPENDS_ON</relationshipType>
         <relatedSpdxElement>SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2</relatedSpdxElement>
+    </relationships>
+    <relationships>
+        <spdxElementId>SPDXRef-generic-sonatype-iq-application-SCM-Test</spdxElementId>
+        <relationshipType>DEPENDS_ON</relationshipType>
+        <relatedSpdxElement>SPDXRef-maven-junit-junit-4.12</relatedSpdxElement>
     </relationships>
 </Document>

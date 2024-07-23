@@ -45,7 +45,6 @@ import org.spdx.jacksonstore.MultiFormatStore.Verbose;
 import org.spdx.library.DefaultModelStore;
 import org.spdx.library.InvalidSPDXAnalysisException;
 import org.spdx.library.Read;
-import org.spdx.library.SpdxConstants;
 import org.spdx.library.model.Checksum;
 import org.spdx.library.model.ExternalRef;
 import org.spdx.library.model.ReferenceType;
@@ -176,8 +175,17 @@ public final class SbomSpdxUtils
       throws InvalidSPDXAnalysisException
   {
     if (document != null) {
-      return Read.getAllItems(document.getModelStore(), document.getDocumentUri(), SpdxConstants.CLASS_SPDX_PACKAGE)
-          .map(modelObject -> (SpdxPackage) modelObject).collect(Collectors.toList());
+      return Read.getAllPackages(document.getModelStore(), document.getDocumentUri()).collect(Collectors.toList());
+    }
+    return null;
+  }
+
+  public static SpdxPackage getPackageById(SpdxDocument document, String packageId)
+      throws InvalidSPDXAnalysisException
+  {
+    if (document != null) {
+      return Read.getAllPackages(document.getModelStore(), document.getDocumentUri()).filter(it -> it.getId()
+          .equals(packageId)).findAny().orElse(null);
     }
     return null;
   }

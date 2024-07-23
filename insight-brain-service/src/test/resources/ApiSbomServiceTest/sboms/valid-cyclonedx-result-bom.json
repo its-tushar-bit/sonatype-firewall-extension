@@ -17,7 +17,8 @@
     "component" : {
       "name" : "${json-unit.ignore}",
       "type" : "application",
-      "version" : "${json-unit.ignore}"
+      "version" : "${json-unit.ignore}",
+      "bom-ref" : "${json-unit.ignore}"
     }
   },
   "components" : [

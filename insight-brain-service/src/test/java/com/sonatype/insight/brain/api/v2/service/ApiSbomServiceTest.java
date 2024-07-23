@@ -67,7 +67,7 @@ import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDe
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.TRANSITIVE;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.UNSPECIFIED;
 import static com.sonatype.insight.brain.api.v2.service.ApiSbomService.SBOM_VALIDATED_HEADER;
-import static com.sonatype.insight.brain.sbom.SbomTestHelper.CYCLONEDX_IGNORE_ATTRIBS;
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreAttributesFilter;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreNodesFilter;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.readFileToString;
@@ -243,7 +243,7 @@ public class ApiSbomServiceTest
     String sbomContent = new String((byte []) response.getEntity());
     XmlAssert.assertThat(sbomContent).and(expectedContentIn("sboms/valid-cyclonedx-result-bom.xml"))
         .withNodeFilter(cycloneDxIgnoreNodesFilter())
-        .withAttributeFilter(attr -> !CYCLONEDX_IGNORE_ATTRIBS.contains(attr.getName()))
+        .withAttributeFilter(cycloneDxIgnoreAttributesFilter())
         .ignoreWhitespace()
         .areIdentical();
   }

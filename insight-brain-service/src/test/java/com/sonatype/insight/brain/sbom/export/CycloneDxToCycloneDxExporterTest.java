@@ -160,7 +160,8 @@ public class CycloneDxToCycloneDxExporterTest
         "m1", "<dd>r1<dd/>", "<dd>a1<dd/>", "G,F");
     String export = exporter.export();
     assertThatJson(export)
-        .whenIgnoringPaths("metadata.timestamp", "metadata.tools.components[0].version")
+        .whenIgnoringPaths("metadata.timestamp",
+            "metadata.tools.components[0].version", "metadata.component.bom-ref")
         .isEqualTo(readFileToString("outputs/output-test-bom.json"));
   }
 
@@ -185,7 +186,8 @@ public class CycloneDxToCycloneDxExporterTest
         "cvSSv3", "<dd>r1<dd/>", "<dd>a1<dd/>", "G,F");
     String export = exporter.export();
     assertThatJson(export)
-        .whenIgnoringPaths("metadata.timestamp", "metadata.tools.components[0].version")
+        .whenIgnoringPaths("metadata.timestamp", "metadata.tools.components[0].version",
+            "metadata.component.bom-ref")
         .isEqualTo(readFileToString("outputs/output-test-bom-2.json"));
   }
 

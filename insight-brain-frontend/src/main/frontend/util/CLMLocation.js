@@ -879,6 +879,10 @@ export function getLatestReportUrl(applicationId, stageTypeId) {
   return uriTemplate`/ui/links/application/${applicationId}/latestReport/${stageTypeId}`;
 }
 
+export function getLatestReportInformation(applicationPublicId, stageTypeId) {
+  return uriTemplate`/rest/application/${applicationPublicId}/${stageTypeId}/latestReportInformation`;
+}
+
 export function getRoleByIdUrl(roleId) {
   return uriTemplate`/rest/security/roles/${roleId}`;
 }

@@ -7,10 +7,13 @@ package com.sonatype.insight.brain.organization;
 
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -425,5 +428,84 @@ public class ApplicationServiceTest
     assertThat(result).isNotNull();
     assertThat(result.getId()).isEqualTo(application.getId());
     assertThat(result.getPublicId()).isEqualTo(application.getPublicId());
+  }
+
+  @Test
+  public void testGetLatestReportInformation_ShouldReturnTheLatestReportWhenAReportExists() {
+    // === Given ===
+    // === App 1 Evaluations
+    final String buildEval1ForApp1ScanId = UUID.randomUUID().toString();
+    final Date buildEval1ForApp1Date = new GregorianCalendar(2024, Calendar.JANUARY, 2).getTime();
+
+    final String buildEval2ForApp1ScanId = UUID.randomUUID().toString();
+    final Date buildEval2ForApp1Date = new GregorianCalendar(2024, Calendar.JANUARY, 3).getTime();
+
+    // build stage 1st evaluation for app1 (this should not get returned because it's not latest)
+    tempEntity.newPolicyEvaluation(
+        app1.getId(),
+        "build",
+        buildEval1ForApp1ScanId,
+        buildEval1ForApp1Date
+    );
+
+    // build stage 2nd evaluation for app1 (this should be returned for app1/build)
+    tempEntity.newPolicyEvaluation(
+        app1.getId(),
+        "build",
+        buildEval2ForApp1ScanId,
+        buildEval2ForApp1Date
+    );
+
+    final String releaseEvalForApp1ScanId = UUID.randomUUID().toString();
+    final Date reeleaseEvalForApp1Date = new GregorianCalendar(2024, Calendar.JANUARY, 3).getTime();
+
+    // a single release stage evaluation for app 1 (this should be returned for app1/release)
+    tempEntity.newPolicyEvaluation(
+        app1.getId(),
+        "release",
+        releaseEvalForApp1ScanId,
+        reeleaseEvalForApp1Date
+    );
+
+    // a re-evaluation newer than our latest eval, this should be filtered out and not returned
+    final String releaseReEvalForApp1ScanId = UUID.randomUUID().toString();
+    final Date reeleaseReEvalForApp1Date = new GregorianCalendar(2024, Calendar.JANUARY, 20).getTime();
+    tempEntity.newPolicyReEvaluation(
+        app1.getId(),
+        "release",
+        releaseReEvalForApp1ScanId,
+        reeleaseReEvalForApp1Date
+    );
+
+    // === App 2 Evaluations
+    final String releaseEvalForApp2ScanId = UUID.randomUUID().toString();
+    final Date reeleaseEvalForApp2Date = new GregorianCalendar(2024, Calendar.JANUARY, 3).getTime();
+
+    // release stage 1st evaluation (this should be returned for app 2/release)
+    tempEntity.newPolicyEvaluation(
+        app2.getId(),
+        "release",
+        releaseEvalForApp2ScanId,
+        reeleaseEvalForApp2Date
+    );
+
+    // === Then ===
+    var results = applicationService.getLatestReportInformation(app1.getPublicId(), "build");
+    assertThat(results).isEqualTo(new LatestReportInformation(buildEval2ForApp1ScanId, true));
+
+    results = applicationService.getLatestReportInformation(app1.getPublicId(), "release");
+    assertThat(results).isEqualTo(new LatestReportInformation(releaseEvalForApp1ScanId, true));
+
+    results = applicationService.getLatestReportInformation(app1.getPublicId(), "release");
+    assertThat(results).isEqualTo(new LatestReportInformation(releaseEvalForApp1ScanId, true));
+
+    results = applicationService.getLatestReportInformation(app2.getPublicId(), "release");
+    assertThat(results).isEqualTo(new LatestReportInformation(releaseEvalForApp2ScanId, true));
+  }
+
+  @Test
+  public void testGetLatestReportInformation_ShouldReturnEntityIndicatingThereIsNoReportWhenNoneExists() {
+    var results = applicationService.getLatestReportInformation(app1.getPublicId(), "build");
+    assertThat(results).isEqualTo(new LatestReportInformation(null, false));
   }
 }

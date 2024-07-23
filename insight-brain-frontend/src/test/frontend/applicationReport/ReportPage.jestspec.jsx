@@ -11,8 +11,17 @@ import * as applicationReportSelectors from 'MainRoot/applicationReport/applicat
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
-import { fireEvent, render, screen, within, setupPortalContainer, removePortalContainer } from 'TestRoot/SpecUtil';
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+  setupPortalContainer,
+  removePortalContainer,
+  axiosMockAdapter,
+} from 'TestRoot/SpecUtil';
 import ReportPage from 'MainRoot/applicationReport/ReportPage';
+import { getLatestReportInformation } from 'MainRoot/util/CLMLocation';
 
 describe('Report Page component', () => {
   let loadReportIfNeededSpy,
@@ -24,7 +33,8 @@ describe('Report Page component', () => {
     displayedEntries,
     selectedReport,
     metadata,
-    router;
+    router,
+    axiosMock;
 
   beforeAll(() => {
     moment.tz.setDefault('America/New_York');
@@ -35,6 +45,7 @@ describe('Report Page component', () => {
   });
 
   beforeEach(() => {
+    axiosMock = axiosMockAdapter();
     displayedEntries = getDefaultDisplayEntriesDataForTest();
     selectedReport = getDefaultSelectedReportForTest(displayedEntries);
     metadata = getDefaultMetadataForTest();
@@ -54,6 +65,7 @@ describe('Report Page component', () => {
     jest.spyOn(applicationReportSelectors, 'selectIsPolicyTypeFilterEnabled').mockReturnValue(true);
     jest.spyOn(applicationReportSelectors, 'selectDependencyTreeUnavailableMessage').mockReturnValue('');
     jest.spyOn(applicationReportSelectors, 'selectDependencyTreeIsOldReport').mockReturnValue(false);
+    jest.spyOn(applicationReportSelectors, 'selectApplicationReportLoading').mockReturnValue(false);
 
     selectHasUnscannedComponentsSpy = jest
       .spyOn(applicationReportSelectors, 'selectHasUnscannedComponents')
@@ -388,6 +400,31 @@ describe('Report Page component', () => {
 
       expect(screen.queryByText('Unscannable Components')).toBeNull();
     });
+  });
+
+  it('should make request for latest report information', async () => {
+    jest.spyOn(applicationReportSelectors, 'selectReportStageId').mockReturnValue('build');
+
+    axiosMock.onGet(getLatestReportInformation('publicId', 'build')).reply(200, {
+      id: 'some-other-scan-id',
+      link: 'http://www.example.com/some-link',
+      exists: true,
+    });
+
+    renderComponent();
+
+    // initially not rendered while loading
+    let warning = screen.queryAllByTestId('new-report-available-warning');
+    expect(warning.length).toBe(0);
+
+    expect(axiosMock.history.get.length).toEqual(1);
+    expect(axiosMock.history.get[0].url).toEqual('/rest/application/publicId/build/latestReportInformation');
+
+    warning = await screen.findByTestId('new-report-available-warning');
+    expect(warning).toBeVisible();
+    expect(warning.textContent).toEqual(
+      'A new version of this report is available. Click here to navigate to the latest report.'
+    );
   });
 
   function renderComponent() {

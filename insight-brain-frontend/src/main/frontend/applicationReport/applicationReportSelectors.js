@@ -7,6 +7,7 @@ import { prop, isNil, isEmpty } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 import { selectRouterCurrentParams } from '../reduxUiRouter/routerSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
+import { selectIsLatestReportForStageRequestPending } from 'MainRoot/applicationReport/latestReportForStageSelectors';
 
 export const selectApplicationReportSlice = prop('applicationReport');
 export const selectExactValueFilters = createSelector(selectApplicationReportSlice, prop('exactValueFilters'));
@@ -84,3 +85,15 @@ export const selectDisplayedDependencyTree = createSelector(
 export const selectIsAggregated = createSelector(selectApplicationReportSlice, prop('aggregate'));
 export const selectSubstringFilters = createSelector(selectApplicationReportSlice, prop('substringFilters'));
 export const selectSortConfiguration = createSelector(selectApplicationReportSlice, prop('sortConfiguration'));
+
+export const selectReportStageId = (state) => selectApplicationReportSlice(state)?.metadata?.stageId;
+
+export const selectApplicationReportLoading = createSelector(
+  [selectApplicationReportSlice, selectIsLatestReportForStageRequestPending],
+  (appReportRequests, latestReportRequestLoading) => {
+    return (
+      (!appReportRequests.loadError && (!!appReportRequests.pendingLoads.size || !appReportRequests.metadata)) ||
+      latestReportRequestLoading
+    );
+  }
+);

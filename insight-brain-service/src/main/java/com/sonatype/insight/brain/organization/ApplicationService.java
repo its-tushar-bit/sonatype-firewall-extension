@@ -23,8 +23,10 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.security.Authorize;
@@ -68,6 +70,8 @@ public class ApplicationService
 
   private final OrganizationApplicationManagementEventService organizationApplicationManagementEventService;
 
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
   @Inject
   public ApplicationService(
       ApplicationDAO applicationDAO,
@@ -77,7 +81,8 @@ public class ApplicationService
       final OrganizationDAO organizationDAO,
       final PolicyViolationLoggerFactory policyViolationLoggerFactory,
       final OrganizationApplicationManagementEventService organizationApplicationManagementEventService,
-      final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator)
+      final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator,
+      final PolicyEvaluationDAO policyEvaluationDAO)
   {
     this.applicationDAO = applicationDAO;
     this.applicationCleaner = applicationCleaner;
@@ -87,6 +92,7 @@ public class ApplicationService
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.organizationApplicationManagementEventService = organizationApplicationManagementEventService;
     this.ownerMaintenanceTelemetryCreator = ownerMaintenanceTelemetryCreator;
+    this.policyEvaluationDAO = policyEvaluationDAO;
   }
 
   public String validateApplicationPublicId(final String applicationPublicId) {
@@ -129,6 +135,26 @@ public class ApplicationService
     }
 
     return applicationPublicIDNamePairs;
+  }
+
+  @Authorize(permission = Permission.READ)
+  public LatestReportInformation getLatestReportInformation(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
+      final String stageTypeId)
+  {
+    final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    final PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(
+        application.getId(),
+        stageTypeId);
+
+    if (lastPrimaryPolicyEvaluation != null) {
+      return new LatestReportInformation(
+          lastPrimaryPolicyEvaluation.getScanId(),
+          true);
+    }
+    else {
+      return new LatestReportInformation(null, false);
+    }
   }
 
   @Authorize(permission = Permission.READ)

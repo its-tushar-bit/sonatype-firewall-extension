@@ -22,10 +22,12 @@ import ReportTitle from './ReportTitle';
 import UnscannedComponentsTable from './unscannedComponentsTable/UnscannedComponentsTable';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import {
+  selectApplicationReportLoading,
   selectApplicationReportSlice,
   selectDependencyTreeIsOldReport,
   selectHasUnscannedComponents,
   selectIsPolicyTypeFilterEnabled,
+  selectReportStageId,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 import {
   selectRouterCurrentParams,
@@ -34,10 +36,12 @@ import {
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsDeveloperDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as applicationReportActions from './applicationReportActions';
+import { actions as latestReportForStageActions } from './latestReportForStageSlice';
 import { selectSelectedReport } from './applicationReportSelectors';
 import { NxStatefulErrorAlert } from '@sonatype/react-shared-components';
 import { isNilOrEmpty } from '../util/jsUtil';
 import { useRouterState } from '../react/RouterStateContext';
+import { NewerReportAvailable } from 'MainRoot/applicationReport/NewerReportAvailable';
 
 export default function ReportPage() {
   const applicationReport = useSelector(selectApplicationReportSlice);
@@ -52,12 +56,15 @@ export default function ReportPage() {
   const modalCloseHandler = () => setShowUnscannedComponentsModal(false);
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
 
+  const stageId = useSelector(selectReportStageId);
+
   const { publicId, scanId, unknownjs, embeddable, policyViolationId } = routerCurrentParams;
-  const loading =
-    !applicationReport.loadError && (!!applicationReport.pendingLoads.size || !applicationReport.metadata);
+
+  const loading = useSelector(selectApplicationReportLoading);
 
   const dispatch = useDispatch();
   const loadReport = () => dispatch(applicationReportActions.loadReportIfNeeded());
+
   const setReportParameters = (appId, scanId, isUnknownJs, embeddable, policyViolationId, componentHash, tabId) =>
     dispatch(
       applicationReportActions.setReportParameters(
@@ -83,6 +90,14 @@ export default function ReportPage() {
       loadReport();
     }
   }, [publicId, scanId]);
+
+  useEffect(() => {
+    if (publicId && stageId) {
+      dispatch(
+        latestReportForStageActions.loadLatestReportForStage({ applicationPublicId: publicId, stageTypeId: stageId })
+      );
+    }
+  }, [publicId, stageId]);
 
   return (
     <Fragment>
@@ -120,7 +135,11 @@ export default function ReportPage() {
               </NxFooter>
             </NxModal>
           )}
+
           <ReportTitle />
+
+          <NewerReportAvailable />
+
           {!isPolicyTypeFilterEnabled && (
             <NxWarningAlert id="application-report-policy-type-filter-warning">
               This report has not been upgraded for the new Policy Types filter introduced in release 61. Re-evaluate in

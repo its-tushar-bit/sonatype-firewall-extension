@@ -430,6 +430,22 @@ public class ApplicationResourceTest
     assertThat(dto.getPublicId()).isEqualTo(application.getPublicId());
   }
 
+  @Test
+  public void testGetLatestReportInformation() throws Exception {
+    final Application application = tempEntity.newApplicationWithParent();
+
+    final HttpResponse response = restRequest()
+        .path(ApplicationResource.GET_LATEST_REPORT_INFO_PATH)
+        .parameter(application.getPublicId(), "build")
+        .get();
+
+    assertResponseStatus(200, response);
+
+    final LatestReportInformation latestReportInformation = response.getBody(LatestReportInformation.class);
+    assertThat(latestReportInformation).isNotNull();
+    assertThat(latestReportInformation).isEqualTo(new LatestReportInformation(null, false));
+  }
+
   private void makeScanReceipt() {
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId("f75365d9d93b4f1ea2dd8457a25dc44d");

@@ -30,6 +30,10 @@ import { reevaluateReport as reevaluateR } from './applicationReportActions';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 import { getDownloadPdfUrl, getExportCycloneDxUrl, getExportSpdxUrl } from 'MainRoot/util/CLMLocation';
+import {
+  selectIsLatestReportForStageRequestPending,
+  selectLatestReportForStageId,
+} from 'MainRoot/applicationReport/latestReportForStageSelectors';
 
 const renderDescription = (metadataDetails) => {
   const { scanTriggerType, forMonitoring, reevaluation, reportTime, commitHash } = metadataDetails;
@@ -47,12 +51,11 @@ const renderDescription = (metadataDetails) => {
 };
 
 export default function ReportTitle() {
-  const dispatch = useDispatch();
   const metadataDetails = useSelector(selectApplicationReportMetaData);
   const { publicId, scanId } = useSelector(selectRouterCurrentParams);
   const selectedReport = useSelector(selectSelectedReport);
   const uiRouterState = useRouterState();
-  const reevaluateReport = (...args) => dispatch(reevaluateR(...args));
+
   const isPrioritiesPageContainer = useSelector(selectIsPrioritiesPageContainer);
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
 
@@ -86,10 +89,8 @@ export default function ReportTitle() {
   return (
     <div className="nx-page-title">
       <div className="nx-btn-bar">
-        <NxButton id="reevaluate-report-button" className="nx-btn--tertiary" onClick={reevaluateReport}>
-          <NxFontAwesomeIcon icon={faSync} />
-          <span>Re-Evaluate Report</span>
-        </NxButton>
+        <ReEvaluationButton />
+
         <NxStatefulDropdown
           id="iq-report-options-dropdown"
           label="Options"
@@ -150,4 +151,46 @@ export default function ReportTitle() {
       <div className="nx-page-title__description">{renderDescription(metadataDetails)}</div>
     </div>
   );
+}
+
+function ReEvaluationButton() {
+  const { scanId } = useSelector(selectRouterCurrentParams);
+  const isLatestReportForStageRequestPending = useSelector(selectIsLatestReportForStageRequestPending);
+  const latestReportId = useSelector(selectLatestReportForStageId);
+
+  const dispatch = useDispatch();
+
+  const reevaluateReport = (...args) => dispatch(reevaluateR(...args));
+
+  return (
+    <NxTooltip title={getTooltipMessage()}>
+      <span>
+        <NxButton
+          id="reevaluate-report-button"
+          className="nx-btn--tertiary"
+          onClick={reevaluateReport}
+          disabled={shouldDisableReevaluation()}
+        >
+          <NxFontAwesomeIcon icon={faSync} />
+          <span>Re-Evaluate Report</span>
+        </NxButton>
+      </span>
+    </NxTooltip>
+  );
+
+  function isSameAsCurrentScan() {
+    return latestReportId === scanId;
+  }
+
+  function shouldDisableReevaluation() {
+    return isLatestReportForStageRequestPending || !isSameAsCurrentScan();
+  }
+
+  function getTooltipMessage() {
+    if (shouldDisableReevaluation()) {
+      return 'Re-Evaluation is only allowed on the latest scan of a given stage.';
+    } else {
+      return null;
+    }
+  }
 }

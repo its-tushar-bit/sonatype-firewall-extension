@@ -99,4 +99,24 @@ public class ApplicationResourceAuthzTest
         restRequest().path(ApplicationResource.GET_APPLICATION_LEGAL_REVIEWER_PATH).parameter(app.getPublicId());
     testAuthcGet(request);
   }
+
+  @Test()
+  public void testGetLatestReportInformation_Authorized() throws Exception {
+    grantPermission(app.getId(), Permission.READ);
+
+    final HttpRequest request = restRequest()
+        .path(ApplicationResource.GET_LATEST_REPORT_INFO_PATH)
+        .parameter(app.getPublicId(), "build");
+
+    testAuthcGet(request);
+  }
+
+  @Test()
+  public void testGetLatestReportInformation_Unauthorized() throws Exception {
+    final HttpRequest request = restRequest()
+        .path(ApplicationResource.GET_LATEST_REPORT_INFO_PATH)
+        .parameter(app.getPublicId(), "build");
+
+    testAuthzGet(request, 403);
+  }
 }

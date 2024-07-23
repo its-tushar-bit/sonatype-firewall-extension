@@ -69,6 +69,9 @@ public class ApplicationResource
 
   public static final String VALIDATE_PATH = "validate/{applicationPublicId}";
 
+  public static final String GET_LATEST_REPORT_INFO_PATH =
+      "{applicationPublicId}/{stageTypeId}/latestReportInformation";
+
   private final InsightWork work;
 
   private ApplicationService applicationService;
@@ -133,11 +136,24 @@ public class ApplicationResource
     return applicationManagementService.getApplicationManagementSummaries(nameFilter, order, page, pageSize);
   }
 
+  /**
+   * @since 1.179.0
+   */
   @GET
   @Path(GET_APPLICATION_NAMES)
   @Produces(MediaType.APPLICATION_JSON)
   public Map<String, String> getApplicationNamesForEvaluateComponent() {
     return applicationService.getApplicationNamesForEvaluateComponent();
+  }
+
+  @GET
+  @Path(GET_LATEST_REPORT_INFO_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public LatestReportInformation getLatestReportIdentifier(
+      @PathParam("applicationPublicId") final String applicationPublicId,
+      @PathParam("stageTypeId") final String stageTypeId)
+  {
+    return applicationService.getLatestReportInformation(applicationPublicId, stageTypeId);
   }
 
   /**

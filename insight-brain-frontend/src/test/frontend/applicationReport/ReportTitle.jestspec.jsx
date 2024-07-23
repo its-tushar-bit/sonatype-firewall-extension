@@ -14,14 +14,20 @@ import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeatu
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
+import * as latestReportSelectors from 'MainRoot/applicationReport/latestReportForStageSelectors';
 
 describe('ReportTitle', () => {
+  const givenScanIdForReport = 'scanId';
+  const givenPublicId = 'publicId';
+
   let renderComponent,
     routerContextMock,
     mockedReevaluateReport,
     metadataDetails,
     selectApplicationReportMetaDataSpy,
-    selectSelectedReportSpy;
+    selectSelectedReportSpy,
+    selectIsLatestReportForStageRequestPendingSpy,
+    selectLatestReportForStageIdSpy;
 
   beforeAll(() => {
     moment.tz.setDefault('America/New_York');
@@ -46,6 +52,14 @@ describe('ReportTitle', () => {
       .spyOn(applicationReportSelectors, 'selectApplicationReportMetaData')
       .mockReturnValue(metadataDetails);
 
+    selectIsLatestReportForStageRequestPendingSpy = jest
+      .spyOn(latestReportSelectors, 'selectIsLatestReportForStageRequestPending')
+      .mockReturnValue(false);
+
+    selectLatestReportForStageIdSpy = jest
+      .spyOn(latestReportSelectors, 'selectLatestReportForStageId')
+      .mockReturnValue(givenScanIdForReport);
+
     selectSelectedReportSpy = jest.spyOn(applicationReportSelectors, 'selectSelectedReport').mockReturnValue({
       reportVersion: 3,
     });
@@ -53,13 +67,13 @@ describe('ReportTitle', () => {
     mockedReevaluateReport = jest.spyOn(applicationReportActions, 'reevaluateReport');
 
     jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({
-      publicId: 'publicId',
-      scanId: 'scanId',
+      publicId: givenPublicId,
+      scanId: givenScanIdForReport,
     });
 
     jest.spyOn(applicationReportSelectors, 'selectReportParameters').mockReturnValue({
       appId: 'appId',
-      scanId: 'scanId',
+      scanId: givenScanIdForReport,
     });
 
     jest.spyOn(productFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').mockReturnValue(false);
@@ -185,9 +199,36 @@ describe('ReportTitle', () => {
     renderComponent();
     const reevaluateReport = screen.getByRole('button', { name: 'Re-Evaluate Report' });
     expect(reevaluateReport).toBeVisible();
+    expect(reevaluateReport).not.toBeDisabled();
 
     fireEvent.click(reevaluateReport);
     expect(mockedReevaluateReport).toHaveBeenCalled();
+  });
+
+  it('should disable reevaluateReport button when there is a newer report for the same stage', () => {
+    selectIsLatestReportForStageRequestPendingSpy.mockReturnValue(false);
+    selectLatestReportForStageIdSpy.mockReturnValue('some-other-report-id');
+    renderComponent();
+    const reevaluateReport = screen.getByRole('button', { name: 'Re-Evaluate Report' });
+
+    expect(reevaluateReport).toBeVisible();
+    expect(reevaluateReport).toBeDisabled();
+  });
+
+  it('should have a tooltip when reevaluateReport button is disabled', async () => {
+    selectIsLatestReportForStageRequestPendingSpy.mockReturnValue(false);
+    selectLatestReportForStageIdSpy.mockReturnValue('some-other-report-id');
+    renderComponent();
+
+    const reevaluateReport = screen.getByRole('button', { name: 'Re-Evaluate Report' });
+
+    fireEvent.mouseOver(reevaluateReport.firstElementChild);
+
+    const tooltip = await screen.findByRole('tooltip', {
+      name: 'Re-Evaluation is only allowed on the latest scan of a given stage.',
+    });
+
+    expect(tooltip).toBeInTheDocument();
   });
 
   it('renders a description with time value and triggered by scan type', () => {

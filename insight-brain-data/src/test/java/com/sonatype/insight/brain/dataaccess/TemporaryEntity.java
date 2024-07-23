@@ -2056,6 +2056,15 @@ public class TemporaryEntity
     return policyEvaluation;
   }
 
+  public PolicyEvaluation newPolicyReEvaluation(String applicationId, String stageTypeId, String scanId, Date time) {
+    PolicyEvaluation policyEvaluation =
+        new PolicyEvaluation(applicationId, stageTypeId, scanId, "system", ScanTriggerType.CLI);
+    policyEvaluation.setReevaluation(true);
+    policyEvaluation.setTime(time);
+    policyEvaluationDAO.insert(policyEvaluation);
+    return policyEvaluation;
+  }
+
   public void insertPolicyEvaluation(PolicyEvaluation policyEvaluation) {
     policyEvaluationDAO.insert(policyEvaluation);
   }

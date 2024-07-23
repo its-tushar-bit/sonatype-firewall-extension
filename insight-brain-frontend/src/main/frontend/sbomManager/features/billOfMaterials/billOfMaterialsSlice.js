@@ -91,7 +91,7 @@ export const EXPORT_SBOM_FILE_FORMAT = Object.freeze({
 });
 
 export const EXPORT_SBOM_SPECIFICATION = Object.freeze({
-  cyclonedx: 'cyclonedx1.5',
+  cyclonedx: 'cyclonedx1.6',
   spdx: 'spdx2.3',
 });
 

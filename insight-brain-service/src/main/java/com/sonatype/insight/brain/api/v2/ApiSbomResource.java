@@ -68,7 +68,7 @@ public class ApiSbomResource
 {
   static final String DEFAULT_SBOM_STATE = "current";
 
-  static final String DEFAULT_SBOM_SPECIFICATION = "cyclonedx1.5";
+  static final String DEFAULT_SBOM_SPECIFICATION = "cyclonedx1.6";
 
   public static final String SBOMS_APPLICATIONS_PATH = "/applications";
 
@@ -145,8 +145,8 @@ public class ApiSbomResource
       @Parameter(description = "The state of the sbom version. Allowed values [original|current]. default = current")
       @DefaultValue(DEFAULT_SBOM_STATE) @QueryParam("state") String sbomState,
 
-      @Parameter(description = "Target specification of the sbom. Allowed values [cyclonedx1.5|spdx2.3]. " +
-          "default = cyclonedx1.5")
+      @Parameter(description = "Target specification of the sbom. Allowed values " +
+          "[cyclonedx1.6|cyclonedx1.5|spdx2.3]. default = cyclonedx1.6")
       @DefaultValue(DEFAULT_SBOM_SPECIFICATION) @QueryParam("specification") String targetSpecification,
 
       @Parameter(in = ParameterIn.HEADER, name = "Accept", description = "Output format(json/xml) of the sbom. " +

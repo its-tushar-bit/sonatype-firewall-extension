@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -77,6 +78,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.cyclonedx.Version;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -191,6 +193,7 @@ public class ApiSbomService
   {
     final ThirdPartySbomMetadata thirdPartySbomMetadata = findSbomMetadataRecord(applicationId, version);
     ExportSpecification exportSpec = ExportSpecification.getSpecificationForRequest(targetSpecification);
+    validateCycloneDxAllowedForwardSpecVersionsOnly(thirdPartySbomMetadata, exportSpec);
     SbomFormat sbomFormat = SbomFormat.forMimeType(acceptType);
     SbomExportParams params = SbomExportParams.newSbomExporterParams(thirdPartySbomMetadata)
         .withExportSpecification(exportSpec)
@@ -204,6 +207,28 @@ public class ApiSbomService
         .header(SBOM_VALIDATED_HEADER, String.valueOf(validity))
         .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(fileName))
         .build();
+  }
+
+  private void validateCycloneDxAllowedForwardSpecVersionsOnly(
+       ThirdPartySbomMetadata thirdPartySbomMetadata,
+       ExportSpecification requestedSpecification)
+  {
+    if (requestedSpecification.getSpecification().equals(SbomSpecification.CYCLONEDX)) {
+      String dbSpecVersion = thirdPartySbomMetadata.getSpecVersion();
+      Version dbVersion = Arrays.stream(Version.values()).filter(v -> v.getVersionString()
+          .equalsIgnoreCase(dbSpecVersion)).findFirst().orElseThrow(
+              () -> new InternalServerException("Unable to determine the original SBOM specification version"));
+      String requestedVersionString = requestedSpecification.getVersion();
+      Version requestedVersion = Arrays.stream(Version.values()).filter(v -> v.getVersionString()
+              .equalsIgnoreCase(requestedVersionString)).findFirst()
+          .orElseThrow(() -> new BadRequestException(String.format("requested output SBOM version %s not supported",
+              requestedVersionString)));
+
+      if (requestedVersion.getVersion() < dbVersion.getVersion()) {
+        throw new BadRequestException("Unable to export lower SBOM specification version" + requestedVersionString +
+            ". The original SBOM was already in version " + dbSpecVersion);
+      }
+    }
   }
 
   @VisibleForTesting

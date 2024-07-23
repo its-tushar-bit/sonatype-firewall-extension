@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.brain.report.ReportResource;
+import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightBrainService;
@@ -57,6 +58,8 @@ import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.*;
 public class UserInterfaceLinksResource
 {
   public static final String ASSET_INDEX_PATH = InsightBrainService.BRAIN_ASSET_PATH + "index.html";
+
+  public static final String DEFAULT_CDX_BOM_SPECIFICATION = ExportSpecification.DEFAULT.getVersion();
 
   private final BaseUrl baseUrl;
 
@@ -299,7 +302,8 @@ public class UserInterfaceLinksResource
   @Path(LATEST_VERSION_SBOM_REPORT_PATH)
   public Response linkToSbom(@PathParam("applicationId") String applicationId, @PathParam("scanId") String scanId) {
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(PublicApiPaths.CYCLONE_DX_RESOURCE_PATH).path("1.5/{applicationId}/reports/{reportId}");
+    uriBuilder.path(PublicApiPaths.CYCLONE_DX_RESOURCE_PATH).path(DEFAULT_CDX_BOM_SPECIFICATION +
+        "/{applicationId}/reports/{reportId}");
     return redirect(uriBuilder, applicationId, scanId);
   }
 

@@ -8,17 +8,14 @@ import React, { useMemo } from 'react';
 import * as PropTypes from 'prop-types';
 import {
   allThreatLevelNumbers,
-  NxErrorStatusIndicator,
   NxFontAwesomeIcon,
   NxH2,
   NxIconDropdown,
-  NxIntermediateStatusIndicator,
-  NxNegativeStatusIndicator,
-  NxPositiveStatusIndicator,
   NxTable,
   NxTextLink,
   NxThreatIndicator,
   NxTile,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 import { faCheckCircle, faEllipsisV, faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
 import {
@@ -35,7 +32,6 @@ import {
   propSatisfies,
   sortWith,
   T,
-  toUpper,
   when,
 } from 'ramda';
 
@@ -45,9 +41,7 @@ import { actions, SORT_BY_FIELDS, SORT_DIRECTION } from './componentDetailsSlice
 import './VulnerabilitiesTile.scss';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectIssueForActions } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSelector';
-
-const transformJustification = (justification) =>
-  justification ? justification.replace(/_/g, ' ').replace(/^\w/, toUpper) : '';
+import { analysisStatusIndicator, transformJustification } from './componentDetailsUtils';
 
 export const isVulnerabilityAnnotated = (vulnerabilityRow, vulnerabilityValidAnalysisStates) =>
   vulnerabilityValidAnalysisStates.map((entry) => entry.key).indexOf(vulnerabilityRow?.analysisStatus) > -1;
@@ -76,6 +70,7 @@ export default function VulnerabilitiesTile(props) {
     sortConfiguration,
     toggleSortDirection,
     onDeleteOptionClick,
+    onCopyOptionClick,
   } = props;
 
   const dispatch = useDispatch();
@@ -96,29 +91,6 @@ export default function VulnerabilitiesTile(props) {
         : sortVulnerabilities(augmentVulnerabilitiesAnalysisStatusUnannotated(vulnerabilities), sortConfiguration),
     [vulnerabilities, sortConfiguration, isEmpty]
   );
-
-  const analysisStatusIndicator = (status) => {
-    switch (status) {
-      case 'resolved':
-        return <NxPositiveStatusIndicator>Resolved</NxPositiveStatusIndicator>;
-      case 'resolved_with_pedigree':
-        return <NxPositiveStatusIndicator>Resolved with Pedigree</NxPositiveStatusIndicator>;
-      case 'exploitable':
-        return <NxErrorStatusIndicator>Exploitable</NxErrorStatusIndicator>;
-      case 'in_triage':
-        return (
-          <NxNegativeStatusIndicator className="sbom-manager-cdp-vulnerabilities-tile__intriage-status">
-            In Triage
-          </NxNegativeStatusIndicator>
-        );
-      case 'false_positive':
-        return <NxNegativeStatusIndicator>False Positive</NxNegativeStatusIndicator>;
-      case 'not_affected':
-        return <NxIntermediateStatusIndicator>Not Affected</NxIntermediateStatusIndicator>;
-      default:
-        return <span>Unannotated</span>;
-    }
-  };
 
   const isRowAnnotated = (vulnRow, states) => isVulnerabilityAnnotated(vulnRow, states);
 
@@ -151,10 +123,37 @@ export default function VulnerabilitiesTile(props) {
             </NxTable.Cell>
           )}
 
-          <NxTable.Cell>{analysisStatusIndicator(vulnerability.analysisStatus)}</NxTable.Cell>
+          <NxTable.Cell>
+            {analysisStatusIndicator(vulnerability.analysisStatus)}{' '}
+            {vulnerability.latestPreviousAnnotation && (
+              <NxTooltip
+                title={'Annotated in previous version (' + vulnerability.latestPreviousAnnotation.sbomVersion + ')'}
+              >
+                {analysisStatusIndicator(vulnerability.latestPreviousAnnotation.analysisStatus, true)}
+              </NxTooltip>
+            )}
+          </NxTable.Cell>
 
           <NxTable.Cell>
-            <span>{transformJustification(vulnerability.justification)}</span>
+            <NxTooltip
+              title={
+                vulnerability.latestPreviousAnnotation
+                  ? 'Annotated in previous version (' + vulnerability.latestPreviousAnnotation.sbomVersion + ')'
+                  : ''
+              }
+            >
+              <span
+                className={
+                  vulnerability.latestPreviousAnnotation && 'sbom-manager-cdp-vulnerabilities-tile__justification-copy'
+                }
+              >
+                {transformJustification(
+                  vulnerability.latestPreviousAnnotation
+                    ? vulnerability.latestPreviousAnnotation.justification
+                    : transformJustification(vulnerability.justification)
+                )}
+              </span>
+            </NxTooltip>
           </NxTable.Cell>
 
           <NxTable.Cell>
@@ -176,6 +175,11 @@ export default function VulnerabilitiesTile(props) {
               >
                 {isRowAnnotated(vulnerability, analysisStatusesOptions) ? 'Edit Annotation' : 'Add Annotation'}
               </button>
+              {vulnerability.latestPreviousAnnotation && (
+                <button onClick={() => onCopyOptionClick(vulnerability)} className="nx-dropdown-button copy-annotation">
+                  Copy Annotation
+                </button>
+              )}
               {isRowAnnotated(vulnerability, analysisStatusesOptions) && (
                 <button
                   onClick={() => onDeleteOptionClick(vulnerability)}
@@ -252,4 +256,5 @@ VulnerabilitiesTile.propTypes = {
   }).isRequired,
   toggleSortDirection: PropTypes.func.isRequired,
   onDeleteOptionClick: PropTypes.func,
+  onCopyOptionClick: PropTypes.func,
 };

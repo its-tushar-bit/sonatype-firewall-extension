@@ -7,10 +7,11 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.ComponentDetailsSummaryTile;
+import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.CopyAnnotationModal;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.DeleteAnnotationModal;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.DependencyTreeTile;
-import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VulnerabilitiesTableTile;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VexAnnotationDrawer;
+import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VulnerabilitiesTableTile;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VulnerabilityDetailsPopover;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
@@ -34,11 +35,14 @@ public class SbomManagerComponentDetailsPage
 
   DeleteAnnotationModal deleteAnnotationModal;
 
+  CopyAnnotationModal copyAnnotationModal;
+
   public SbomManagerComponentDetailsPage(
       final ComponentDetailsSummaryTile componentDetailsSummaryTile, final VulnerabilitiesTableTile
       vulnerabilitiesTableTile, final VulnerabilitiesTableTile sonatypeVulnerabilitiesTile,
       final DependencyTreeTile dependencyTreeTile, final VulnerabilityDetailsPopover vulnerabilityDetailsPopover,
-      final VexAnnotationDrawer vexAnnotationDrawer, final DeleteAnnotationModal deleteAnnotationModal)
+      final VexAnnotationDrawer vexAnnotationDrawer, final DeleteAnnotationModal deleteAnnotationModal,
+      final CopyAnnotationModal copyAnnotationModal)
   {
     this.componentDetailsSummaryTile = componentDetailsSummaryTile;
     this.vulnerabilitiesTableTile = vulnerabilitiesTableTile;
@@ -47,6 +51,7 @@ public class SbomManagerComponentDetailsPage
     this.vulnerabilityDetailsPopover = vulnerabilityDetailsPopover;
     this.vexAnnotationDrawer = vexAnnotationDrawer;
     this.deleteAnnotationModal = deleteAnnotationModal;
+    this.copyAnnotationModal = copyAnnotationModal;
   }
 
   public static String url(String applicationId, String versionId, String componentHash ) {
@@ -94,5 +99,9 @@ public class SbomManagerComponentDetailsPage
 
   public DeleteAnnotationModal deleteAnnotationModal() {
     return deleteAnnotationModal;
+  }
+
+  public CopyAnnotationModal copyAnnotationModal() {
+    return copyAnnotationModal;
   }
 }

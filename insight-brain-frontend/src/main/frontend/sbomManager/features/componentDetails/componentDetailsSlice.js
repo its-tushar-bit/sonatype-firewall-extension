@@ -12,9 +12,9 @@ import {
   getSbomComponentDependencyTreeUrl,
   getSbomComponentDetailsUrl,
   getSbomVulnerabibilityAnalysisReferenceData,
+  getSbomVulnerabilityAnnotationUrl,
   getVulnerabilityJsonDetailUrl,
   getVulnerabilityOverrideUrl,
-  getSbomVulnerabilityAnnotationUrl,
 } from 'MainRoot/util/CLMLocation';
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
@@ -156,6 +156,21 @@ const deleteVexAnnotationFulfilled = function (state) {
   state.deleteError = null;
 };
 
+const copyVexAnnotationRequested = function (state) {
+  state.copyMaskState = false;
+  state.copyError = null;
+};
+
+const copyVexAnnotationRejected = function (state, { payload }) {
+  state.copyMaskState = null;
+  state.copyError = payload.message;
+};
+
+const copyVexAnnotationFulfilled = function (state) {
+  state.copyMaskState = true;
+  state.copyError = null;
+};
+
 const getVulnerabilityAnalysisReferenceDataRequested = function (state) {
   state.loadingVulnerabilityAnalysisReferenceData = true;
   state.loadVulnerabilityAnalysisReferenceDataError = null;
@@ -239,7 +254,12 @@ const loadVulnerabilityDetails = createAsyncThunk(
         } else {
           return checkPermissions(['WRITE'], 'repository', ownerId)
             .then((_) => {
-              return { ...vulnerabilityDetails, comment: vulnerabilityOverride.comment, hasEditIqPermission: true, _ };
+              return {
+                ...vulnerabilityDetails,
+                comment: vulnerabilityOverride.comment,
+                hasEditIqPermission: true,
+                _,
+              };
             })
             .catch(() => {
               return { ...vulnerabilityDetails, comment: vulnerabilityOverride.comment };
@@ -274,6 +294,28 @@ const deleteVexAnnotation = createAsyncThunk(
           dispatch(actions.setShowDeleteModal(false))
         );
         dispatch(actions.loadComponentDetails({ internalAppId, sbomVersion, componentHash: componentLocator.hash }));
+      })
+      .catch((err) => rejectWithValue(err));
+  }
+);
+
+const copyVexAnnotation = createAsyncThunk(
+  `${REDUCER_NAME}/copyVexAnnotation`,
+  async ({ internalAppId, sbomVersion, vulnerabilityRefId, vexAnnotationFormData }, { rejectWithValue, dispatch }) => {
+    const urlSaveUpdate = getSbomVulnerabilityAnnotationUrl(internalAppId, sbomVersion, vulnerabilityRefId);
+    return axios
+      .put(urlSaveUpdate, vexAnnotationFormData)
+      .then(() => {
+        startMaskSuccessTimer(dispatch, actions.copyMaskTimerDone).then(() =>
+          dispatch(actions.setShowCopyModal(false))
+        );
+        dispatch(
+          actions.loadComponentDetails({
+            internalAppId,
+            sbomVersion,
+            componentHash: vexAnnotationFormData.componentLocator.hash,
+          })
+        );
       })
       .catch((err) => rejectWithValue(err));
   }
@@ -351,6 +393,8 @@ const sbomComponentDetailsSlice = createSlice({
     setSelectedIssueForActions,
     setShowDeleteModal: compose(propSetConst('deleteError', null), propSet('showDeleteModal')),
     deleteMaskTimerDone: propSetConst('deleteMaskState', null),
+    setShowCopyModal: compose(propSetConst('copyError', null), propSet('showCopyModal')),
+    copyMaskTimerDone: propSetConst('copyMaskState', null),
   },
   extraReducers: {
     [loadComponentDetails.pending]: loadComponentDetailsRequested,
@@ -368,6 +412,9 @@ const sbomComponentDetailsSlice = createSlice({
     [deleteVexAnnotation.pending]: deleteVexAnnotationRequested,
     [deleteVexAnnotation.fulfilled]: deleteVexAnnotationFulfilled,
     [deleteVexAnnotation.rejected]: deleteVexAnnotationRejected,
+    [copyVexAnnotation.pending]: copyVexAnnotationRequested,
+    [copyVexAnnotation.fulfilled]: copyVexAnnotationFulfilled,
+    [copyVexAnnotation.rejected]: copyVexAnnotationRejected,
     [getVulnerabilityAnalysisReferenceData.pending]: getVulnerabilityAnalysisReferenceDataRequested,
     [getVulnerabilityAnalysisReferenceData.fulfilled]: getVulnerabilityAnalysisReferenceDataFulfilled,
     [getVulnerabilityAnalysisReferenceData.rejected]: getVulnerabilityAnalysisReferenceDataRejected,
@@ -383,6 +430,7 @@ export const actions = {
   getVulnerabilityAnalysisReferenceData,
   saveVexAnnotation,
   deleteVexAnnotation,
+  copyVexAnnotation,
 };
 
 export default sbomComponentDetailsSlice.reducer;

@@ -68,3 +68,6 @@ export const selectIssueForActions = createSelector(selectSbomComponentDetails, 
 export const selectShowDeleteModal = createSelector(selectSbomComponentDetails, prop('showDeleteModal'));
 export const selectDeleteError = createSelector(selectSbomComponentDetails, prop('deleteError'));
 export const selectDeleteMaskState = createSelector(selectSbomComponentDetails, prop('deleteMaskState'));
+export const selectShowCopyModal = createSelector(selectSbomComponentDetails, prop('showCopyModal'));
+export const selectCopyError = createSelector(selectSbomComponentDetails, prop('copyError'));
+export const selectCopyMaskState = createSelector(selectSbomComponentDetails, prop('copyMaskState'));

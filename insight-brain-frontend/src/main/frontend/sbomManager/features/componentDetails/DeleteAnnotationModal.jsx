@@ -6,6 +6,7 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import { NxStatefulForm, NxModal } from '@sonatype/react-shared-components';
+import { transformAnalysisStatus } from './componentDetailsUtils';
 
 export default function DeleteAnnotationModal({
   vulnerability,
@@ -28,8 +29,8 @@ export default function DeleteAnnotationModal({
           <h2 className="nx-h2">Delete annotation for {vulnerability.issue}</h2>
         </header>
         <div className="nx-modal-content">
-          Are you sure you want to delete &quot;{vulnerability.analysisStatus}&quot; annotation for{' '}
-          {vulnerability.issue}?
+          Are you sure you want to delete &quot;{transformAnalysisStatus(vulnerability.analysisStatus)}&quot; annotation
+          for {vulnerability.issue}?
         </div>
       </NxStatefulForm>
     </NxModal>

@@ -56,6 +56,13 @@ describe('Vulnerabilities Tile', () => {
       justification: null,
       details: null,
       verified: true,
+      latestPreviousAnnotation: {
+        sbomVersion: '1.0',
+        analysisStatus: 'exploitable',
+        justification: 'requires_dependency',
+        response: 'can_not_fix',
+        detail: 'some details',
+      },
     },
     {
       cvssScore: 2,
@@ -146,11 +153,13 @@ describe('Vulnerabilities Tile', () => {
     expect(rowCells[1]).toHaveTextContent('CVE-2019-10247');
     expect(rowCells[2]).toHaveTextContent('Sonatype Verified');
     expect(rowCells[3]).toHaveTextContent('Unannotated');
-    expect(rowCells[4]).toHaveTextContent('');
+    expect(rowCells[3]).toHaveTextContent('Exploitable');
+    expect(rowCells[4]).toHaveTextContent('Requires dependency');
     const dropdownSecondRow = within(secondRow).getByRole('button');
     fireEvent.click(dropdownSecondRow);
     expect(screen.getByRole('button', { name: 'Add Annotation' })).toBeVisible();
     expect(screen.queryByRole('button', { name: 'Delete Annotation' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Copy Annotation' })).toBeVisible();
     fireEvent.click(dropdownSecondRow);
 
     const thirdRow = tableRows[3];

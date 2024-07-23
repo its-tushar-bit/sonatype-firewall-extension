@@ -7,25 +7,28 @@ package com.sonatype.clm.testing.functional.sbom.manager;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.ComponentDetailsSummaryTile;
+import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.CopyAnnotationModal;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.DeleteAnnotationModal;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.DependencyTreeTile;
-import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VulnerabilitiesTableTile;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VexAnnotationDrawer;
+import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VulnerabilitiesTableTile;
 import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VulnerabilityDetailsPopover;
 import com.sonatype.clm.testing.functional.pages.SbomManagerComponentDetailsPage;
+import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.sbom.components.SbomComponentsService;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.CollectionCondition;
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
-import com.codeborne.selenide.ElementsCollection;
 import org.eclipse.jgit.util.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -34,7 +37,8 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
-public class ComponentDetailsPageTest extends AbstractFunctionalTest
+public class ComponentDetailsPageTest
+    extends AbstractFunctionalTest
 {
   public static final String TEST_SBOM_VERSION_ID = "mockVersionId";
 
@@ -52,6 +56,8 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
 
   private ThirdPartyFileCoordinate thirdPartyFileCoordinate;
 
+  ApiSbomService apiSbomService;
+
   @BeforeClass
   public static void beforeClass() {
     sbomManagerComponentDetailsPage = new SbomManagerComponentDetailsPage(
@@ -61,7 +67,8 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
         new DependencyTreeTile(),
         new VulnerabilityDetailsPopover(),
         new VexAnnotationDrawer(),
-        new DeleteAnnotationModal());
+        new DeleteAnnotationModal(),
+        new CopyAnnotationModal());
 
     Selenide.open("/#");
     loginAsAdmin();
@@ -72,6 +79,8 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
     setFeatures(LicensedFeature.SBOM_MANAGER);
     refreshOrOpen("/#");
+
+    apiSbomService = lookup(ApiSbomService.class);
   }
 
   @Test
@@ -310,6 +319,54 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
   }
 
   @Test
+  public void testFeatureEnabled_opensCopyAnnotationModal_cancelAndSubmitButtons() {
+    setTestData();
+    setSecondaryTestData();
+
+    lookup(SbomComponentsService.class).getSbomComponentDetails(
+        testApplication.getId(),
+        thirdPartySbomMetadata.getSbomVersion(),
+        thirdPartyFileCoordinate.getHash()
+    );
+
+    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
+        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+
+    SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
+        .getColumnData(1, 5);
+    actionButtonFirstRowColumn.shouldBe(visible);
+    ElementsCollection rowButtons = actionButtonFirstRowColumn.findAll("button");
+    SelenideElement ellipsisButton = rowButtons.get(0);
+    ellipsisButton.shouldBe(visible);
+    ellipsisButton.click();
+
+    SelenideElement deleteAnnotationButton = rowButtons.find(text("Delete Annotation"));
+    deleteAnnotationButton.shouldNotBe(visible);
+
+    SelenideElement copyAnnotationButton = rowButtons.get(2);
+    copyAnnotationButton.shouldBe(visible);
+    copyAnnotationButton.shouldHave(text("Copy Annotation"));
+
+    copyAnnotationButton.click();
+
+    CopyAnnotationModal copyModal = sbomManagerComponentDetailsPage.copyAnnotationModal();
+    copyModal.shouldBe(visible);
+
+    copyModal.header().shouldBe(visible).shouldHave(text("Copy annotation for DEF-456"));
+    copyModal.body().shouldBe(visible).shouldHave(text(
+        "Are you sure you want to copy \"Exploitable\" annotation for DEF-456 from previous version mockVersionId?"));
+    copyModal.cancelButton().shouldBe(visible).shouldHave(text("Cancel"));
+    copyModal.submitButton().shouldBe(visible).shouldHave(text("Copy"));
+    copyModal.cancelButton().click();
+    copyModal.shouldNotBe(visible);
+    ellipsisButton.click();
+    copyAnnotationButton.click();
+    copyModal.submitButton().click();
+    copyModal.successModal().shouldBe(visible);
+    copyModal.shouldNotBe(visible);
+  }
+
+  @Test
   public void testFeatureDisabled_Error() {
     setTestData();
     setMissingFeature(LicensedFeature.SBOM_MANAGER);
@@ -320,7 +377,7 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
   }
 
   private void setTestData() {
-    setVulnerabilityTablesData(minimumDataSet());
+    setVulnerabilityTablesData(minimumDataSet(), true);
   }
 
   private ThirdPartyFileCoordinate minimumDataSet() {
@@ -344,14 +401,19 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
     return thirdPartyFileCoordinate;
   }
 
-  private void setVulnerabilityTablesData(ThirdPartyFileCoordinate thirdPartyFileCoordinate) {
+  private void setVulnerabilityTablesData(
+      ThirdPartyFileCoordinate thirdPartyFileCoordinate,
+      boolean withVexAnnotations)
+  {
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "ABC-123", "test vulnerability",
         "http://123.xyz", 5.6d, "testSeverity", "testUser");
     ThirdPartyCoordinateSecurity vulnerabilityDEF456 = tempEntity.newThirdPartyCoordinateSecurity(
         thirdPartyFileCoordinate, "DEF-456", "test vulnerability2",
         "http://1234.xyz", 1.6d, "testSeverity", "testUser");
-    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityDEF456, "DEF-456", "exploitable",
-        "code_not_present", "rollback", "test vex detail");
+    if (withVexAnnotations) {
+      tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityDEF456, "DEF-456", "exploitable",
+          "code_not_present", "rollback", "test vex detail");
+    }
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "CVE-4812", "test vulnerability",
         "http://12345.xyz", 1.5d, "testSeverity", "testUser");
 
@@ -365,8 +427,30 @@ public class ComponentDetailsPageTest extends AbstractFunctionalTest
         "http://sonatype2.com", 4.6d, "testUser", "SONATYPE",
         "CVSS:1/1/1", "testSeverity", "a", "b", "c",
         "d", "Sonatype");
-    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilitySona456, "sonatype-456",
-        "exploitable", "code_not_present", "rollback", "test vex detail");
+    if (withVexAnnotations) {
+      tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilitySona456, "sonatype-456",
+          "exploitable", "code_not_present", "rollback", "test vex detail");
+    }
+  }
+
+  private void setSecondaryTestData() {
+    ThirdPartyFile file = tempEntity.newThirdPartyFile();
+
+    thirdPartySbomMetadata = tempEntity.newThirdPartySbomMetadata(
+        file.getId(),
+        testApplication.getId(),
+        TEST_SBOM_VERSION_ID + "_2",
+        "ACTIVE",
+        file.getFilename(),
+        "cycloneDX",
+        "json",
+        "1.5"
+    );
+
+    thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(file, "SBOM", "maven",
+        "testComponent", "1.2", TEST_COMPONENT_HASH, TEST_COMPONENT_PURL);
+
+    setVulnerabilityTablesData(thirdPartyFileCoordinate, false);
   }
 
   private void checkDisclosedVulnerabilitiesTableHeader() {

@@ -160,6 +160,22 @@ describe('ComponentDetailsPage', () => {
         details: 'Unreachable code',
         verified: true,
       },
+      {
+        cvssScore: 7,
+        issue: 'sonatype-2018-9999',
+        description: 'short description',
+        analysisStatus: null,
+        justification: null,
+        details: null,
+        verified: true,
+        latestPreviousAnnotation: {
+          sbomVersion: '1.0',
+          analysisStatus: 'exploitable',
+          justification: 'requires_dependency',
+          response: 'can_not_fix',
+          detail: 'some details',
+        },
+      },
     ],
     sonatypeIdentifiedVulnerabilities: [
       {
@@ -190,7 +206,31 @@ describe('ComponentDetailsPage', () => {
     const header = within(dialog).getByRole('heading', { level: 2 });
     expect(header).toHaveTextContent('Delete annotation for sonatype-2018-0863');
     const body = within(dialog).getByText(
-      'Are you sure you want to delete "resolved" annotation for sonatype-2018-0863?'
+      'Are you sure you want to delete "Resolved" annotation for sonatype-2018-0863?'
+    );
+    expect(body).toBeInTheDocument();
+
+    return dialog;
+  };
+
+  const openCopyAnnotationModal = async () => {
+    renderPage();
+
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+    const vulnerabilityRows = screen.getAllByRole('row');
+    const dropdownFirstRow = within(vulnerabilityRows[2]).getByRole('button');
+    fireEvent.click(dropdownFirstRow);
+    const cooyButton = screen.getByRole('button', { name: 'Copy Annotation' });
+    expect(cooyButton).toBeVisible();
+    fireEvent.click(cooyButton);
+
+    const dialog = screen.queryByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+    const header = within(dialog).getByRole('heading', { level: 2 });
+    expect(header).toHaveTextContent('Copy annotation for sonatype-2018-9999');
+    const body = within(dialog).getByText(
+      'Are you sure you want to copy "Exploitable" annotation for sonatype-2018-9999 from previous version 1.0?'
     );
     expect(body).toBeInTheDocument();
 
@@ -273,7 +313,7 @@ describe('ComponentDetailsPage', () => {
       screen.getByText('Additional vulnerabilities in this SBOM, detected by Sonatype vulnerability detection system.')
     ).toBeVisible();
     const tableRows = await screen.findAllByRole('row');
-    expect(tableRows.length).toBe(4); // Including the header
+    expect(tableRows.length).toBe(5); // Including the header
     const link = screen.getByText('sonatype-2018-0863');
     fireEvent.click(link);
 
@@ -423,6 +463,71 @@ describe('ComponentDetailsPage', () => {
 
       const dialog = await openDeleteAnnotationModal();
       const submitButton = queryByText(dialog.querySelector('.nx-form__submit-btn'), 'Delete');
+      expect(submitButton).toBeInTheDocument();
+      fireEvent.click(submitButton);
+      await waitFor(() =>
+        expect(
+          screen.getByText(/An error occurred saving data. Request failed with status code 500/)
+        ).toBeInTheDocument()
+      );
+    });
+  });
+
+  describe('should open Copy Annotation modal', () => {
+    it('and should close it when cancel', async () => {
+      axiosMock
+        .onGet(getApplicationSummaryUrl(applicationPublicId))
+        .reply(200, { id: applicationInternalId, name: 'test-app' });
+      axiosMock
+        .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
+        .reply(200, mockComponentDetails);
+
+      axiosMock.onGet(getSbomVulnerabibilityAnalysisReferenceData()).reply(200, vulnerabilityAnalysisReferenceData);
+      axiosMock
+        .onPut(getSbomVulnerabilityAnnotationUrl(applicationInternalId, sbomVersion, 'sonatype-2018-0863'))
+        .reply(200, {});
+      const dialog = await openCopyAnnotationModal();
+      const cancelButton = queryByText(dialog.querySelector('.nx-form__cancel-btn'), 'Cancel');
+      expect(cancelButton).toBeInTheDocument();
+      fireEvent.click(cancelButton);
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    });
+
+    it('and should copy data when submit', async () => {
+      axiosMock
+        .onGet(getApplicationSummaryUrl(applicationPublicId))
+        .reply(200, { id: applicationInternalId, name: 'test-app' });
+      axiosMock
+        .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
+        .reply(200, mockComponentDetails);
+
+      axiosMock.onGet(getSbomVulnerabibilityAnalysisReferenceData()).reply(200, vulnerabilityAnalysisReferenceData);
+      axiosMock
+        .onPut(getSbomVulnerabilityAnnotationUrl(applicationInternalId, sbomVersion, 'sonatype-2018-9999'))
+        .reply(200, {});
+
+      const dialog = await openCopyAnnotationModal();
+      const submitButton = queryByText(dialog.querySelector('.nx-form__submit-btn'), 'Copy');
+      expect(submitButton).toBeInTheDocument();
+      fireEvent.click(submitButton);
+      await waitFor(() => expect(screen.getByText(/Success/)).toBeInTheDocument());
+    });
+
+    it('and should display retry button when errors', async () => {
+      axiosMock
+        .onGet(getApplicationSummaryUrl(applicationPublicId))
+        .reply(200, { id: applicationInternalId, name: 'test-app' });
+      axiosMock
+        .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
+        .reply(200, mockComponentDetails);
+
+      axiosMock.onGet(getSbomVulnerabibilityAnalysisReferenceData()).reply(200, vulnerabilityAnalysisReferenceData);
+      axiosMock
+        .onPut(getSbomVulnerabilityAnnotationUrl(applicationInternalId, sbomVersion, 'sonatype-2018-9999'))
+        .reply(500, {});
+
+      const dialog = await openCopyAnnotationModal();
+      const submitButton = queryByText(dialog.querySelector('.nx-form__submit-btn'), 'Copy');
       expect(submitButton).toBeInTheDocument();
       fireEvent.click(submitButton);
       await waitFor(() =>

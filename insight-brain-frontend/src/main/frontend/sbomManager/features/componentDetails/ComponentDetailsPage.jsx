@@ -18,16 +18,19 @@ import { ComponentDetailsHeader, ComponentDetailsTags, Title } from 'MainRoot/co
 import VulnerabilitiesTile from 'MainRoot/sbomManager/features/componentDetails/VulnerabilitiesTile';
 import { faCopy } from '@fortawesome/pro-regular-svg-icons';
 import {
-  selectSbomComponentDetails,
   selectComponentDetails,
+  selectCopyError,
+  selectCopyMaskState,
+  selectDeleteError,
+  selectDeleteMaskState,
   selectIsLoading,
   selectJustificationsReferenceData,
   selectLoadError,
   selectResponsesReferenceData,
-  selectStatesReferenceData,
+  selectSbomComponentDetails,
+  selectShowCopyModal,
   selectShowDeleteModal,
-  selectDeleteError,
-  selectDeleteMaskState,
+  selectStatesReferenceData,
 } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSelector';
 import { actions } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
 import { actions as billOfMaterialsActions } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
@@ -41,6 +44,7 @@ import SbomVulnerabilityDetailsPopover from 'MainRoot/sbomManager/features/compo
 import VexAnnotationDrawer from 'MainRoot/sbomManager/features/componentDetails/vexAnnotationsDrawer/VexAnnotationDrawer';
 import { isNil } from 'ramda';
 import DeleteAnnotationModal from 'MainRoot/sbomManager/features/componentDetails/DeleteAnnotationModal';
+import CopyAnnotationModal from 'MainRoot/sbomManager/features/componentDetails/CopyAnnotationModal';
 
 export default function ComponentDetailsPage() {
   const dispatch = useDispatch();
@@ -60,6 +64,9 @@ export default function ComponentDetailsPage() {
   const showDeleteModal = useSelector(selectShowDeleteModal);
   const deleteError = useSelector(selectDeleteError);
   const deleteMaskState = useSelector(selectDeleteMaskState);
+  const showCopyModal = useSelector(selectShowCopyModal);
+  const copyError = useSelector(selectCopyError);
+  const copyMaskState = useSelector(selectCopyMaskState);
 
   const uiRouterState = useRouterState();
   const { applicationPublicId, sbomVersion, componentHash } = routerParams;
@@ -98,6 +105,29 @@ export default function ComponentDetailsPage() {
         componentLocator: { hash: componentDetails?.hash, packageUrl: componentDetails?.packageUrl },
       })
     );
+  };
+
+  const copyVexAnnotation = () => {
+    const copyRequestObject = {
+      componentLocator: {
+        hash: componentDetails?.hash,
+      },
+      vulnerabilityAnalysis: {
+        state: selectedVulnerability.latestPreviousAnnotation.analysisStatus,
+        justification: selectedVulnerability.latestPreviousAnnotation.justification,
+        response: selectedVulnerability.latestPreviousAnnotation.response,
+        detail: selectedVulnerability.latestPreviousAnnotation.detail,
+      },
+    };
+
+    const copyPayload = {
+      internalAppId,
+      sbomVersion,
+      vulnerabilityRefId: selectedVulnerability.issue,
+      vexAnnotationFormData: copyRequestObject,
+    };
+
+    dispatch(actions.copyVexAnnotation(copyPayload));
   };
 
   const loadVexReferenceData = () => {
@@ -174,6 +204,16 @@ export default function ComponentDetailsPage() {
     setSelectedVulnerability({});
   };
 
+  const openCopyModal = (vulnerability) => {
+    dispatch(actions.setShowCopyModal(true));
+    setSelectedVulnerability(vulnerability);
+  };
+
+  const cancelCopyModal = () => {
+    dispatch(actions.setShowCopyModal(false));
+    setSelectedVulnerability({});
+  };
+
   return (
     <>
       {!isNil(selectedVulnerability) && (
@@ -242,6 +282,7 @@ export default function ComponentDetailsPage() {
                 sortConfiguration={disclosedVulnerabilitiesSortConfiguration}
                 toggleSortDirection={cycleDisclosedVulnerabilitiesSortDirection}
                 onDeleteOptionClick={openDeleteModal}
+                onCopyOptionClick={openCopyModal}
               ></VulnerabilitiesTile>
               <VulnerabilitiesTile
                 tableUniqueIdentifier={'sonatypeIdentifiedVulnerabilities'}
@@ -253,6 +294,7 @@ export default function ComponentDetailsPage() {
                 sortConfiguration={additionalVulnerabilitiesSortConfiguration}
                 toggleSortDirection={cycleAdditionalVulnerabilitiesSortDirection}
                 onDeleteOptionClick={openDeleteModal}
+                onCopyOptionClick={openCopyModal}
               ></VulnerabilitiesTile>
               <ComponentDetailsDependencyTreeTile
                 componentDetails={componentDetails}
@@ -275,6 +317,15 @@ export default function ComponentDetailsPage() {
             deleteMaskState={deleteMaskState}
             onCancel={cancelDeleteModal}
           ></DeleteAnnotationModal>
+        )}
+        {showCopyModal && (
+          <CopyAnnotationModal
+            vulnerability={selectedVulnerability}
+            copyAnnotationFromTable={copyVexAnnotation}
+            copyError={copyError}
+            copyMaskState={copyMaskState}
+            onCancel={cancelCopyModal}
+          ></CopyAnnotationModal>
         )}
       </NxPageMain>
     </>

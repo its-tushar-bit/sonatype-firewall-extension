@@ -93,7 +93,7 @@ public class SpdxLicenseExpressionUtil
       return;
     }
     String licenseId = StringUtils.remove(license.getId(), "LicenseRef-");
-    MultiLicense multiLicense = multiLicenseDAO.getById(licenseId);
+    MultiLicense multiLicense = multiLicenseDAO.getByIdNoReload(licenseId);
     if (multiLicense != null && !processedLicenses.containsKey(licenseId)) {
       processedLicenses.put(licenseId, multiLicense.getShortDisplayName());
     }

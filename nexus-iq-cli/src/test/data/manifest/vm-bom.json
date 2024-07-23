@@ -1,0 +1,4204 @@
+{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.5",
+  "serialNumber" : "urn:uuid:908329b9-0123-4668-81bd-49f47a954ea3",
+  "version" : 1,
+  "metadata" : {
+    "timestamp" : "2024-07-22T05:16:05Z",
+    "tools" : [
+      {
+        "vendor" : "Sonatype Inc.",
+        "name" : "Nexus IQ Server",
+        "version" : "10495"
+      }
+    ],
+    "component" : {
+      "type" : "application",
+      "bom-ref" : "ad4d9740-cad1-44d4-b590-70f6db001d26",
+      "group" : "com.sonatype.iq.integration.fortify",
+      "name" : "SonatypeFortifyBundle",
+      "version" : "5.0.2-SNAPSHOT",
+      "purl" : "pkg:maven/com.sonatype.iq.integration.fortify/SonatypeFortifyBundle@5.0.2-SNAPSHOT?type=pom"
+    },
+    "properties" : [
+      {
+        "name" : "Scan ID",
+        "value" : "908329b90123466881bd49f47a954ea3"
+      }
+    ]
+  },
+  "components" : [
+    {
+      "type" : "library",
+      "bom-ref" : "8b8b60eb-6adc-445d-a839-c1f0b12df483",
+      "group" : "org.springframework.boot",
+      "name" : "spring-boot-starter-jetty",
+      "version" : "2.5.6",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.springframework.boot/spring-boot-starter-jetty@2.5.6?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "026e1ee4692426736eba"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.springframework.boot:spring-boot-starter-jetty:jar:2.5.6"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "d0a64cf0-c2f1-48fb-b86d-b308572ae31b",
+      "group" : "org.eclipse.jetty.websocket",
+      "name" : "websocket-common",
+      "version" : "9.4.48.v20220622",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty.websocket/websocket-common@9.4.48.v20220622?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "03953122cd495f64ff72"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty.websocket:websocket-common:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty.websocket:websocket-common:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/websocket-common-9.4.48.v20220622.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "43ab0776-7c19-4ef6-99a2-487772e65969",
+      "group" : "org.springframework",
+      "name" : "spring-webmvc",
+      "version" : "5.3.26",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "BSD-3-Clause"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.springframework/spring-webmvc@5.3.26?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "0539e1d03decbec523b7"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.springframework:spring-webmvc:jar:5.3.26"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.springframework:spring-webmvc:jar:5.3.26"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/spring-webmvc-5.3.26.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "fc685791-38cb-4e4f-a3ee-0105e705681c",
+      "group" : "org.eclipse.jetty",
+      "name" : "jetty-annotations",
+      "version" : "9.4.48.v20220622",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty/jetty-annotations@9.4.48.v20220622?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "0e58dd2726205186aa0a"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-annotations:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-annotations:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jetty-annotations-9.4.48.v20220622.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "80a1751d-f85d-47bc-b28e-9747e2f3276c",
+      "group" : "com.google.guava",
+      "name" : "failureaccess",
+      "version" : "1.0.1",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/com.google.guava/failureaccess@1.0.1?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "1dcf1de382a0bf95a3d8"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/com.google.guava:failureaccess:jar:1.0.1"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/com.google.guava:failureaccess:jar:1.0.1"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/failureaccess-1.0.1.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "b360ea3b-7747-4636-9be2-e8317749a578",
+      "group" : "org.ow2.asm",
+      "name" : "asm-commons",
+      "version" : "9.3",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "BSD-3-Clause"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.ow2.asm/asm-commons@9.3?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "1f2a432d1212f5c352ae"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.ow2.asm:asm-commons:jar:9.3"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.ow2.asm:asm-commons:jar:9.3"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/asm-commons-9.3.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "fc8d4cd7-202f-463d-91cb-2ab3a086fea2",
+      "group" : "com.google.code.findbugs",
+      "name" : "jsr305",
+      "version" : "3.0.2",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "CC-BY-2.5"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/com.google.code.findbugs/jsr305@3.0.2?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "25ea2e8b0c338a877313"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/com.google.code.findbugs:jsr305:jar:3.0.2"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/com.google.code.findbugs:jsr305:jar:3.0.2"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jsr305-3.0.2.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "944f6c99-9856-4711-872f-771309457617",
+      "group" : "com.fasterxml.jackson.core",
+      "name" : "jackson-databind",
+      "version" : "2.14.1",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.14.1?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "268524b9056cae1211b9"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/com.fasterxml.jackson.core:jackson-databind:jar:2.14.1"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/com.fasterxml.jackson.core:jackson-databind:jar:2.14.1"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:sonatype-fortify-model:jar:5.0.2-SNAPSHOT/com.fasterxml.jackson.core:jackson-databind:jar:2.14.1"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:sonatype-plugin:jar:5.0.2-SNAPSHOT/com.fasterxml.jackson.core:jackson-databind:jar:2.14.1"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jackson-databind-2.14.1.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "073720f9-528f-4371-8e6d-32ac67fa34af",
+      "group" : "org.eclipse.jetty",
+      "name" : "jetty-xml",
+      "version" : "9.4.48.v20220622",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty/jetty-xml@9.4.48.v20220622?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "2c8b7ad6b64437a693cd"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-xml:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-xml:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jetty-xml-9.4.48.v20220622.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "f4e9c36f-9605-4604-8a33-76562812ccee",
+      "group" : "org.eclipse.jetty",
+      "name" : "jetty-continuation",
+      "version" : "9.4.48.v20220622",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty/jetty-continuation@9.4.48.v20220622?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "2da1287dfc76d01418cc"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-continuation:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-continuation:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jetty-continuation-9.4.48.v20220622.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "5243a35d-1e25-4054-9b3a-bbce2751c796",
+      "group" : "org.springframework",
+      "name" : "spring-aop",
+      "version" : "5.3.22",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "BSD-3-Clause"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.springframework/spring-aop@5.3.22?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "2f9f00efbff8432f145c"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.springframework:spring-aop:jar:5.3.22"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.springframework:spring-aop:jar:5.3.22"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/spring-aop-5.3.22.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "728d7d69-1878-44da-97ca-869975d2141a",
+      "group" : "org.eclipse.jetty.websocket",
+      "name" : "websocket-server",
+      "version" : "9.4.48.v20220622",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty.websocket/websocket-server@9.4.48.v20220622?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "317d5fcb9f4a11265201"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty.websocket:websocket-server:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty.websocket:websocket-server:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/websocket-server-9.4.48.v20220622.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "e0a77a1a-59ea-4ecb-943a-e4c5cf0cb7f7",
+      "group" : "net.minidev",
+      "name" : "accessors-smart",
+      "version" : "2.4.9",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/net.minidev/accessors-smart@2.4.9?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "32e540749224c22c9b17"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/net.minidev:accessors-smart:jar:2.4.9"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/net.minidev:accessors-smart:jar:2.4.9"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/accessors-smart-2.4.9.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "9998d349-7148-40c1-af22-c0f80a42d572",
+      "group" : "com.jayway.jsonpath",
+      "name" : "json-path",
+      "version" : "2.9.0",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/com.jayway.jsonpath/json-path@2.9.0?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "37fe2217f577b0b68b18"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/com.jayway.jsonpath:json-path:jar:2.9.0"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/com.jayway.jsonpath:json-path:jar:2.9.0"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/json-path-2.9.0.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "185f18f3-dd79-46d4-b0da-f19bffb70e6d",
+      "group" : "org.springframework.boot",
+      "name" : "spring-boot-starter-json",
+      "version" : "2.7.3",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.springframework.boot/spring-boot-starter-json@2.7.3?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "38c88404d68926aaf6c0"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.springframework.boot:spring-boot-starter-json:jar:2.7.3"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.springframework.boot:spring-boot-starter-json:jar:2.7.3"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "5a5b6d51-6106-4747-a073-0dae4ccc33ba",
+      "group" : "org.springframework.boot",
+      "name" : "spring-boot",
+      "version" : "2.7.3",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.springframework.boot/spring-boot@2.7.3?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "3a8d641077565b7eaec3"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.springframework.boot:spring-boot:jar:2.7.3"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.springframework.boot:spring-boot:jar:2.7.3"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/spring-boot-2.7.3.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "b7a94b27-954a-4f4a-93bd-c53394527bcb",
+      "group" : "com.fasterxml",
+      "name" : "classmate",
+      "version" : "1.5.1",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/com.fasterxml/classmate@1.5.1?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "3fe0bed568c62df5e89f"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/com.fasterxml:classmate:jar:1.5.1"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/com.fasterxml:classmate:jar:1.5.1"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/classmate-1.5.1.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "c9424fe4-feb5-4fdb-9566-714fbd623630",
+      "group" : "org.apache.tomcat.embed",
+      "name" : "tomcat-embed-websocket",
+      "version" : "9.0.86",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.apache.tomcat.embed/tomcat-embed-websocket@9.0.86?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "401357d862973dbe5389"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.apache.tomcat.embed:tomcat-embed-websocket:jar:9.0.86"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.apache.tomcat.embed:tomcat-embed-websocket:jar:9.0.86"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/tomcat-embed-websocket-9.0.86.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "45a5bbb0-7396-4a5b-bed2-4bd21efb5e29",
+      "group" : "org.ow2.asm",
+      "name" : "asm-analysis",
+      "version" : "9.3",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "BSD-3-Clause"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.ow2.asm/asm-analysis@9.3?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "4b071f211b37c38e0e9f"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.ow2.asm:asm-analysis:jar:9.3"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.ow2.asm:asm-analysis:jar:9.3"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/asm-analysis-9.3.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "290334a1-6d1f-4315-9b5a-b0fcccbcb151",
+      "group" : "org.hibernate.validator",
+      "name" : "hibernate-validator",
+      "version" : "6.2.4.Final",
+      "licenses" : [
+        {
+          "license" : {
+            "name" : "Public Domain"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.hibernate.validator/hibernate-validator@6.2.4.Final?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "5acf6de251d9e29102a1"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.hibernate.validator:hibernate-validator:jar:6.2.4.Final"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.hibernate.validator:hibernate-validator:jar:6.2.4.Final"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/hibernate-validator-6.2.4.Final.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "56fa07f7-bd88-46f9-a7ab-82b115ec7878",
+      "group" : "org.springframework.boot",
+      "name" : "spring-boot-starter-log4j2",
+      "version" : "2.7.3",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.springframework.boot/spring-boot-starter-log4j2@2.7.3?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "5b0cd1d1b5c21fa1a612"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.springframework.boot:spring-boot-starter-log4j2:jar:2.7.3"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.springframework.boot:spring-boot-starter-log4j2:jar:2.7.3"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "f1686f5f-0344-43c8-b210-b7560143f156",
+      "group" : "org.springframework.boot",
+      "name" : "spring-boot-autoconfigure",
+      "version" : "2.7.12",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.springframework.boot/spring-boot-autoconfigure@2.7.12?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "5bb8661bba72f7ca353a"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.springframework.boot:spring-boot-autoconfigure:jar:2.7.12"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.springframework.boot:spring-boot-autoconfigure:jar:2.7.12"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/spring-boot-autoconfigure-2.7.12.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "9534782f-56dd-4e40-82cf-94e6935cb0ec",
+      "group" : "com.google.guava",
+      "name" : "guava",
+      "version" : "32.1.2-jre",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "CC0-1.0"
+          }
+        },
+        {
+          "license" : {
+            "name" : "Public Domain"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/com.google.guava/guava@32.1.2-jre?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "5e64ec7e056456bef3a4"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/com.google.guava:guava:jar:32.1.2-jre"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/com.google.guava:guava:jar:32.1.2-jre"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/guava-32.1.2-jre.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "1874738c-d052-459c-ae30-89e72a72f1d6",
+      "group" : "jakarta.validation",
+      "name" : "jakarta.validation-api",
+      "version" : "2.0.2",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/jakarta.validation/jakarta.validation-api@2.0.2?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "5eacc6522521f7eacb08"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/jakarta.validation:jakarta.validation-api:jar:2.0.2"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/jakarta.validation:jakarta.validation-api:jar:2.0.2"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jakarta.validation-api-2.0.2.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "0a4a19f0-53da-4328-a670-0904fd361399",
+      "group" : "org.eclipse.jetty",
+      "name" : "jetty-security",
+      "version" : "9.4.48.v20220622",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty/jetty-security@9.4.48.v20220622?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "6114f92529e9cff48952"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-security:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-security:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jetty-security-9.4.48.v20220622.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "ffb8213a-e498-4285-b342-db8ea24ee1e8",
+      "group" : "org.eclipse.jetty.websocket",
+      "name" : "websocket-servlet",
+      "version" : "9.4.48.v20220622",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty.websocket/websocket-servlet@9.4.48.v20220622?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "6216200152965667066d"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty.websocket:websocket-servlet:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty.websocket:websocket-servlet:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/websocket-servlet-9.4.48.v20220622.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "0e68865c-9289-4776-87aa-cfa0901373d6",
+      "group" : "org.springframework",
+      "name" : "spring-expression",
+      "version" : "5.3.27",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "BSD-3-Clause"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.springframework/spring-expression@5.3.27?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "6225619970e8376df5c3"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.springframework:spring-expression:jar:5.3.27"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.springframework:spring-expression:jar:5.3.27"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/spring-expression-5.3.27.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "510cc264-9561-4722-b8d7-c572b48994c0",
+      "group" : "org.springframework",
+      "name" : "spring-core",
+      "version" : "5.3.22",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "BSD-3-Clause"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.springframework/spring-core@5.3.22?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "661fc01832716c7eedeb"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.springframework:spring-core:jar:5.3.22"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.springframework:spring-core:jar:5.3.22"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/spring-core-5.3.22.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "ff187988-8bb7-4500-aa5c-48e97b34adec",
+      "group" : "org.apache.logging.log4j",
+      "name" : "log4j-jul",
+      "version" : "2.17.2",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.apache.logging.log4j/log4j-jul@2.17.2?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "6a479ffc13d5f0ca3df8"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.apache.logging.log4j:log4j-jul:jar:2.17.2"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.apache.logging.log4j:log4j-jul:jar:2.17.2"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/log4j-jul-2.17.2.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "b730eddb-a6a3-44aa-baf1-5f8afa2c04f9",
+      "group" : "org.springframework.boot",
+      "name" : "spring-boot-starter",
+      "version" : "2.7.3",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.springframework.boot/spring-boot-starter@2.7.3?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "6b0c093af667bf645cd5"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.springframework.boot:spring-boot-starter:jar:2.7.3"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.springframework.boot:spring-boot-starter:jar:2.7.3"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "db5f972e-612f-4d44-99e0-d0415a912cee",
+      "group" : "org.slf4j",
+      "name" : "slf4j-api",
+      "version" : "1.7.36",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "MIT"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "6c62681a2f655b49963a"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.36"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.36"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/slf4j-api-1.7.36.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "15516045-b368-4536-8f09-fced745729c0",
+      "group" : "com.fasterxml.jackson.core",
+      "name" : "jackson-annotations",
+      "version" : "2.13.3",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.3?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "7198b3aac15285a49e21"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/com.fasterxml.jackson.core:jackson-annotations:jar:2.13.3"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/com.fasterxml.jackson.core:jackson-annotations:jar:2.13.3"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:sonatype-fortify-model:jar:5.0.2-SNAPSHOT/com.fasterxml.jackson.core:jackson-annotations:jar:2.13.3"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:sonatype-plugin:jar:5.0.2-SNAPSHOT/com.fasterxml.jackson.core:jackson-annotations:jar:2.13.3"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jackson-annotations-2.13.3.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "60d446b8-3dd7-48b0-b528-e4742146fb18",
+      "group" : "org.eclipse.jetty.websocket",
+      "name" : "websocket-api",
+      "version" : "9.4.48.v20220622",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty.websocket/websocket-api@9.4.48.v20220622?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "76523923d4a5efabe05c"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty.websocket:websocket-api:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty.websocket:websocket-api:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/websocket-api-9.4.48.v20220622.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "0017ecc1-af92-451e-ad1e-f2f741e0d0f4",
+      "group" : "org.apache.logging.log4j",
+      "name" : "log4j-core",
+      "version" : "2.17.1",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.apache.logging.log4j/log4j-core@2.17.1?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "779f60f3844dadc3ef59"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.apache.logging.log4j:log4j-core:jar:2.17.1"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.apache.logging.log4j:log4j-core:jar:2.17.1"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/log4j-core-2.17.1.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "f301c5ec-3dc2-4c2f-8bad-c8a7126166ab",
+      "group" : "org.ow2.asm",
+      "name" : "asm-tree",
+      "version" : "9.3",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "BSD-3-Clause"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.ow2.asm/asm-tree@9.3?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "78d2ecd61318b5a58cd0"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.ow2.asm:asm-tree:jar:9.3"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.ow2.asm:asm-tree:jar:9.3"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/asm-tree-9.3.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "c1cb36e5-c2dd-491d-83b8-dc63ff8ce7e3",
+      "group" : "com.fasterxml.jackson.core",
+      "name" : "jackson-core",
+      "version" : "2.14.1",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "MIT"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.14.1?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "7a07bc535ccf0b7f6929"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/com.fasterxml.jackson.core:jackson-core:jar:2.14.1"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/com.fasterxml.jackson.core:jackson-core:jar:2.14.1"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:sonatype-fortify-model:jar:5.0.2-SNAPSHOT/com.fasterxml.jackson.core:jackson-core:jar:2.14.1"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:sonatype-plugin:jar:5.0.2-SNAPSHOT/com.fasterxml.jackson.core:jackson-core:jar:2.14.1"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jackson-core-2.14.1.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "5d06d162-e111-457d-8833-5a914a68589e",
+      "group" : "org.springframework.boot",
+      "name" : "spring-boot-starter-tomcat",
+      "version" : "2.7.3",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.springframework.boot/spring-boot-starter-tomcat@2.7.3?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "7a5998baaa05d5e7a9af"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.springframework.boot:spring-boot-starter-tomcat:jar:2.7.3"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.springframework.boot:spring-boot-starter-tomcat:jar:2.7.3"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "70777554-2b8f-4e18-86b0-a4bff6f5b3ed",
+      "group" : "org.springframework",
+      "name" : "spring-jcl",
+      "version" : "5.3.22",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "BSD-3-Clause"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.springframework/spring-jcl@5.3.22?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "811ace5e5eb379654ed9"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.springframework:spring-jcl:jar:5.3.22"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.springframework:spring-jcl:jar:5.3.22"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/spring-jcl-5.3.22.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "5731e424-0591-47b9-9270-f6e95c4f7719",
+      "group" : "org.eclipse.jetty",
+      "name" : "jetty-plus",
+      "version" : "9.4.48.v20220622",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty/jetty-plus@9.4.48.v20220622?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "828d37f0e8d18efe39ed"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-plus:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-plus:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jetty-plus-9.4.48.v20220622.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "73431b37-793d-46a1-a28e-bdf51ba4706a",
+      "group" : "org.eclipse.jetty.websocket",
+      "name" : "javax-websocket-client-impl",
+      "version" : "9.4.48.v20220622",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty.websocket/javax-websocket-client-impl@9.4.48.v20220622?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "83d55a5fa4e0558402d7"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty.websocket:javax-websocket-client-impl:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty.websocket:javax-websocket-client-impl:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/javax-websocket-client-impl-9.4.48.v20220622.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "a3d80ac5-7e31-4cc2-aef9-3e674960de42",
+      "group" : "org.apache.logging.log4j",
+      "name" : "log4j-slf4j-impl",
+      "version" : "2.17.1",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.apache.logging.log4j/log4j-slf4j-impl@2.17.1?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "84692d456bcce689355d"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.apache.logging.log4j:log4j-slf4j-impl:jar:2.17.1"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.apache.logging.log4j:log4j-slf4j-impl:jar:2.17.1"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/log4j-slf4j-impl-2.17.1.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "44218237-0998-4924-b3e4-12c2e9d134c8",
+      "group" : "org.springframework",
+      "name" : "spring-beans",
+      "version" : "5.3.22",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "BSD-3-Clause"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.springframework/spring-beans@5.3.22?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "866c2022b5fef05b1702"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.springframework:spring-beans:jar:5.3.22"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.springframework:spring-beans:jar:5.3.22"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/spring-beans-5.3.22.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "ba4877d4-1a0c-4616-ba4e-6bb2c53ed568",
+      "group" : "org.eclipse.jetty",
+      "name" : "jetty-http",
+      "version" : "9.4.53.v20231009",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty/jetty-http@9.4.53.v20231009?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "87faf21eb322753f0527"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-http:jar:9.4.53.v20231009"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-http:jar:9.4.53.v20231009"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jetty-http-9.4.53.v20231009.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "0b6c4585-5ed3-45e7-95f2-efe4a922da14",
+      "group" : "com.google.errorprone",
+      "name" : "error_prone_annotations",
+      "version" : "2.18.0",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/com.google.errorprone/error_prone_annotations@2.18.0?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "89b684257096f548fa39"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/com.google.errorprone:error_prone_annotations:jar:2.18.0"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/com.google.errorprone:error_prone_annotations:jar:2.18.0"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/error_prone_annotations-2.18.0.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "10b78375-6100-44e2-8cf1-2a54eab30f72",
+      "group" : "org.eclipse.jetty",
+      "name" : "jetty-servlet",
+      "version" : "9.4.48.v20220622",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty/jetty-servlet@9.4.48.v20220622?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "8a9a53e0aad3f194a4cc"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-servlet:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-servlet:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jetty-servlet-9.4.48.v20220622.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "c8761186-5403-4eae-8c53-265ab480ca37",
+      "group" : "org.ow2.asm",
+      "name" : "asm",
+      "version" : "9.3",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "BSD-3-Clause"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.ow2.asm/asm@9.3?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "8e6300ef51c1d801a7ed"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.ow2.asm:asm:jar:9.3"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.ow2.asm:asm:jar:9.3"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/asm-9.3.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "4eab4057-dbdd-434c-94a8-935bad0d199f",
+      "group" : "org.eclipse.jetty",
+      "name" : "jetty-webapp",
+      "version" : "9.4.48.v20220622",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty/jetty-webapp@9.4.48.v20220622?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "9317a8518674c54b5ed9"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-webapp:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-webapp:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jetty-webapp-9.4.48.v20220622.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "b08a9830-589d-4dec-9f07-41e83bbe9c4c",
+      "group" : "org.springframework.boot",
+      "name" : "spring-boot-starter-web",
+      "version" : "2.7.3",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.springframework.boot/spring-boot-starter-web@2.7.3?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "9e36c7517c4f872b69d0"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.springframework.boot:spring-boot-starter-web:jar:2.7.3"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.springframework.boot:spring-boot-starter-web:jar:2.7.3"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "ae8b6c88-b7ab-4f6e-9d7a-6848f80aecc2",
+      "group" : "org.eclipse.jetty",
+      "name" : "jetty-util",
+      "version" : "9.4.51.v20230217",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "MIT"
+          }
+        },
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty/jetty-util@9.4.51.v20230217?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "a11df06530a3a28c9af7"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-util:jar:9.4.51.v20230217"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-util:jar:9.4.51.v20230217"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jetty-util-9.4.51.v20230217.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "2c65f5e2-fd2c-430a-9e15-65bd346c931e",
+      "group" : "org.codehaus.woodstox",
+      "name" : "stax2-api",
+      "version" : "4.2.1",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "BSD-2-Clause"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.codehaus.woodstox/stax2-api@4.2.1?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "a3f7325c52240418c2ba"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.codehaus.woodstox:stax2-api:jar:4.2.1"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.codehaus.woodstox:stax2-api:jar:4.2.1"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/stax2-api-4.2.1.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "985c3681-98ed-45c5-830b-fec0422c35e3",
+      "group" : "com.fasterxml.jackson.datatype",
+      "name" : "jackson-datatype-jsr310",
+      "version" : "2.13.3",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jsr310@2.13.3?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "ad2f4c61aeb9e2a8bb5e"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/com.fasterxml.jackson.datatype:jackson-datatype-jsr310:jar:2.13.3"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/com.fasterxml.jackson.datatype:jackson-datatype-jsr310:jar:2.13.3"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jackson-datatype-jsr310-2.13.3.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "17c9abae-99ed-4735-9ef9-242fa9368524",
+      "group" : "org.eclipse.jetty",
+      "name" : "jetty-io",
+      "version" : "9.4.48.v20220622",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty/jetty-io@9.4.48.v20220622?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "b09b55209d0a304e542f"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-io:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-io:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jetty-io-9.4.48.v20220622.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "68aea9b0-522d-4397-84f1-dc826ac91d8b",
+      "group" : "org.eclipse.jetty",
+      "name" : "jetty-servlets",
+      "version" : "9.4.48.v20220622",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty/jetty-servlets@9.4.48.v20220622?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "b113da58158c96d6dd8d"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-servlets:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-servlets:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jetty-servlets-9.4.48.v20220622.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "4da27e2d-19c2-4db5-b24f-4534b77d32af",
+      "group" : "com.google.guava",
+      "name" : "listenablefuture",
+      "version" : "9999.0-empty-to-avoid-conflict-with-guava",
+      "licenses" : [
+        {
+          "license" : {
+            "name" : "No Source License"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/com.google.guava/listenablefuture@9999.0-empty-to-avoid-conflict-with-guava?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "b421526c5f297295adef"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/com.google.guava:listenablefuture:jar:9999.0-empty-to-avoid-conflict-with-guava"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/com.google.guava:listenablefuture:jar:9999.0-empty-to-avoid-conflict-with-guava"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "f213ac1f-dae7-46f9-bb7e-0993b84eb3f1",
+      "group" : "jakarta.servlet",
+      "name" : "jakarta.servlet-api",
+      "version" : "4.0.4",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-2.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/jakarta.servlet/jakarta.servlet-api@4.0.4?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "b8a1142e04838fe54194"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/jakarta.servlet:jakarta.servlet-api:jar:4.0.4"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/jakarta.servlet:jakarta.servlet-api:jar:4.0.4"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jakarta.servlet-api-4.0.4.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "a92ec403-6276-4f3c-8f8d-b07739797066",
+      "group" : "org.springframework.boot",
+      "name" : "spring-boot-starter-validation",
+      "version" : "2.7.3",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.springframework.boot/spring-boot-starter-validation@2.7.3?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "c2e59c8d4df01dfecbde"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.springframework.boot:spring-boot-starter-validation:jar:2.7.3"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.springframework.boot:spring-boot-starter-validation:jar:2.7.3"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "6308654f-3b19-4205-be54-8c741215f1aa",
+      "group" : "com.fasterxml.woodstox",
+      "name" : "woodstox-core",
+      "version" : "6.4.0",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/com.fasterxml.woodstox/woodstox-core@6.4.0?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "c47579857bbf12c85499"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/com.fasterxml.woodstox:woodstox-core:jar:6.4.0"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/com.fasterxml.woodstox:woodstox-core:jar:6.4.0"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/woodstox-core-6.4.0.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "2c18eff5-afd2-4a8d-9ffd-ba14c4b20aef",
+      "group" : "org.jboss.logging",
+      "name" : "jboss-logging",
+      "version" : "3.4.3.Final",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.jboss.logging/jboss-logging@3.4.3.Final?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "c4bd7e12a745c0e7f6cf"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.jboss.logging:jboss-logging:jar:3.4.3.Final"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.jboss.logging:jboss-logging:jar:3.4.3.Final"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jboss-logging-3.4.3.Final.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "54e0c7c7-f4b8-4225-bfb3-6be22fff227e",
+      "group" : "org.apache.commons",
+      "name" : "commons-lang3",
+      "version" : "3.12.0",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.apache.commons/commons-lang3@3.12.0?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "c6842c86792ff03b9f1d"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.apache.commons:commons-lang3:jar:3.12.0"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.apache.commons:commons-lang3:jar:3.12.0"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/commons-lang3-3.12.0.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "69141099-eaf8-4bdc-8dd5-395f3730aefd",
+      "group" : "com.google.j2objc",
+      "name" : "j2objc-annotations",
+      "version" : "2.8",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/com.google.j2objc/j2objc-annotations@2.8?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "c85270e307e7b822f108"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/com.google.j2objc:j2objc-annotations:jar:2.8"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/com.google.j2objc:j2objc-annotations:jar:2.8"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/j2objc-annotations-2.8.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "54ac2b9a-27ec-4059-8b1b-94d7bcd0b61a",
+      "group" : "net.minidev",
+      "name" : "json-smart",
+      "version" : "2.4.9",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/net.minidev/json-smart@2.4.9?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "c8b7bd0067300bd6ca64"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/net.minidev:json-smart:jar:2.4.9"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/net.minidev:json-smart:jar:2.4.9"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/json-smart-2.4.9.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "2ee3132d-35ad-4b4c-b0f9-b399794ef169",
+      "group" : "com.fasterxml.jackson.dataformat",
+      "name" : "jackson-dataformat-xml",
+      "version" : "2.14.1",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/com.fasterxml.jackson.dataformat/jackson-dataformat-xml@2.14.1?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "ccd98bd674080338a6ca"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/com.fasterxml.jackson.dataformat:jackson-dataformat-xml:jar:2.14.1"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/com.fasterxml.jackson.dataformat:jackson-dataformat-xml:jar:2.14.1"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jackson-dataformat-xml-2.14.1.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "d123bca9-7daa-47f4-ab61-ac279e567447",
+      "group" : "org.eclipse.jetty",
+      "name" : "jetty-server",
+      "version" : "9.4.51.v20230217",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty/jetty-server@9.4.51.v20230217?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "d0572c8460eb26adf842"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-server:jar:9.4.51.v20230217"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-server:jar:9.4.51.v20230217"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jetty-server-9.4.51.v20230217.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "63753f04-3a31-4e93-a0c8-0cd40777bedd",
+      "group" : "org.apache.tomcat.embed",
+      "name" : "tomcat-embed-el",
+      "version" : "9.0.65",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.apache.tomcat.embed/tomcat-embed-el@9.0.65?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "d278157387e59a5f9b48"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.apache.tomcat.embed:tomcat-embed-el:jar:9.0.65"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.apache.tomcat.embed:tomcat-embed-el:jar:9.0.65"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/tomcat-embed-el-9.0.65.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "32596cbf-f727-4caf-abaa-f4f334b5737a",
+      "group" : "com.fasterxml.jackson.datatype",
+      "name" : "jackson-datatype-jdk8",
+      "version" : "2.13.3",
+      "licenses" : [
+        {
+          "license" : {
+            "name" : "No Source License"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/com.fasterxml.jackson.datatype/jackson-datatype-jdk8@2.13.3?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "d4884595d5aab5babdb0"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/com.fasterxml.jackson.datatype:jackson-datatype-jdk8:jar:2.13.3"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/com.fasterxml.jackson.datatype:jackson-datatype-jdk8:jar:2.13.3"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jackson-datatype-jdk8-2.13.3.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "62083c59-af3d-4ebb-adb0-9741ab6e707b",
+      "group" : "org.apache.logging.log4j",
+      "name" : "log4j-api",
+      "version" : "2.17.1",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.apache.logging.log4j/log4j-api@2.17.1?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "d771af8e336e372fb539"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.apache.logging.log4j:log4j-api:jar:2.17.1"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.apache.logging.log4j:log4j-api:jar:2.17.1"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/log4j-api-2.17.1.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "b6d24eec-8206-4e1b-8f5f-3e93c421ec13",
+      "group" : "org.checkerframework",
+      "name" : "checker-qual",
+      "version" : "3.33.0",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "MIT"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.checkerframework/checker-qual@3.33.0?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "de2b60b62da487644fc1"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.checkerframework:checker-qual:jar:3.33.0"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.checkerframework:checker-qual:jar:3.33.0"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/checker-qual-3.33.0.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "a0bf15f0-78e1-4216-a746-3ad0fb5e96f4",
+      "group" : "org.eclipse.jetty",
+      "name" : "jetty-util-ajax",
+      "version" : "9.4.48.v20220622",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty/jetty-util-ajax@9.4.48.v20220622?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "def39454993d094df10b"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-util-ajax:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-util-ajax:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jetty-util-ajax-9.4.48.v20220622.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "9a7b59b4-3e17-4a9f-af4f-875ddc80814a",
+      "group" : "org.eclipse.jetty.websocket",
+      "name" : "websocket-client",
+      "version" : "9.4.48.v20220622",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty.websocket/websocket-client@9.4.48.v20220622?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "e5536fc714ab049505f9"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty.websocket:websocket-client:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty.websocket:websocket-client:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/websocket-client-9.4.48.v20220622.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "4685bafc-592d-4eae-b89a-98c6474921ef",
+      "group" : "org.slf4j",
+      "name" : "jul-to-slf4j",
+      "version" : "1.7.36",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "MIT"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.slf4j/jul-to-slf4j@1.7.36?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "ed46d81cef9c412a88ca"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.slf4j:jul-to-slf4j:jar:1.7.36"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.slf4j:jul-to-slf4j:jar:1.7.36"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jul-to-slf4j-1.7.36.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "1c7ea5bd-714e-499f-a205-37d48159dc8a",
+      "group" : "org.springframework.boot",
+      "name" : "spring-boot-starter-jetty",
+      "version" : "2.7.3",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.springframework.boot/spring-boot-starter-jetty@2.7.3?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "f6a27059c4232a56493e"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.springframework.boot:spring-boot-starter-jetty:jar:2.7.3"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "acad131b-d8c4-4e23-b142-ee612f927221",
+      "group" : "com.fasterxml.jackson.module",
+      "name" : "jackson-module-parameter-names",
+      "version" : "2.13.3",
+      "licenses" : [
+        {
+          "license" : {
+            "name" : "No Source License"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/com.fasterxml.jackson.module/jackson-module-parameter-names@2.13.3?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "f71c4ecc1a403787c963"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/com.fasterxml.jackson.module:jackson-module-parameter-names:jar:2.13.3"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/com.fasterxml.jackson.module:jackson-module-parameter-names:jar:2.13.3"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jackson-module-parameter-names-2.13.3.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "4c8d41cc-91f0-4853-9bc3-b221cf44585a",
+      "group" : "org.eclipse.jetty.websocket",
+      "name" : "javax-websocket-server-impl",
+      "version" : "9.4.48.v20220622",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty.websocket/javax-websocket-server-impl@9.4.48.v20220622?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "fad05717d1aaefb547bd"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty.websocket:javax-websocket-server-impl:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty.websocket:javax-websocket-server-impl:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/javax-websocket-server-impl-9.4.48.v20220622.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "70c9ffc5-f9b0-4036-873a-f89cf9dd25dd",
+      "group" : "org.eclipse.jetty",
+      "name" : "jetty-client",
+      "version" : "9.4.48.v20220622",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "EPL-1.0"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.eclipse.jetty/jetty-client@9.4.48.v20220622?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "fc2e953a7030045e1ca4"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-client:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.eclipse.jetty:jetty-client:jar:9.4.48.v20220622"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/jetty-client-9.4.48.v20220622.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "2ce9b7e5-9b0e-4570-a5f0-96130a064447",
+      "group" : "org.springframework",
+      "name" : "spring-web",
+      "version" : "5.3.22",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "BSD-3-Clause"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.springframework/spring-web@5.3.22?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "fdab9b8d8df2e6a8fb90"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.springframework:spring-web:jar:5.3.22"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.springframework:spring-web:jar:5.3.22"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/spring-web-5.3.22.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "7ee340cf-9a1f-4131-a8cd-d4a4d2b2a324",
+      "group" : "org.springframework",
+      "name" : "spring-context",
+      "version" : "5.3.22",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "BSD-3-Clause"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/org.springframework/spring-context@5.3.22?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "fdd59bb4795c7a399e95"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/org.springframework:spring-context:jar:5.3.22"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/org.springframework:spring-context:jar:5.3.22"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/spring-context-5.3.22.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "c3312fae-ae52-49bd-9aa7-de2ff24d3f56",
+      "group" : "io.github.landuo",
+      "name" : "l4d2-query",
+      "version" : "0.0.3",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "MIT"
+          }
+        },
+        {
+          "license" : {
+            "id" : "Apache-2.0"
+          }
+        }
+      ],
+      "purl" : "pkg:maven/io.github.landuo/l4d2-query@0.0.3?type=jar",
+      "modified" : true,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "2dbb1785a62fda1084f0"
+        },
+        {
+          "name" : "Match State",
+          "value" : "similar"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/com.sonatype.iq.integration.fortify:sonatype-plugin:jar:5.0.2-SNAPSHOT"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "7f69b4bc-2259-4a5f-98ac-3adc605cf3de",
+      "group" : "com.sonatype.iq.integration.fortify",
+      "name" : "sonatype-fortify-model",
+      "version" : "5.0.2-SNAPSHOT",
+      "purl" : "pkg:maven/com.sonatype.iq.integration.fortify/sonatype-fortify-model@5.0.2-SNAPSHOT?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "973ba92f85079f564036"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Package Manifest"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/com.sonatype.iq.integration.fortify:sonatype-fortify-model:jar:5.0.2-SNAPSHOT"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT/com.sonatype.iq.integration.fortify:sonatype-fortify-model:jar:5.0.2-SNAPSHOT"
+          },
+          {
+            "location" : "com.sonatype.iq.integration.fortify:sonatype-plugin:jar:5.0.2-SNAPSHOT/com.sonatype.iq.integration.fortify:sonatype-fortify-model:jar:5.0.2-SNAPSHOT"
+          },
+          {
+            "location" : "sonatype-fortify-bundle/SonatypeFortifyIntegration-5.0.2-SNAPSHOT.jar/BOOT-INF/lib/sonatype-fortify-model-5.0.2-SNAPSHOT.jar"
+          }
+        ]
+      }
+    },
+    {
+      "type" : "library",
+      "bom-ref" : "27a6f97b-3424-4ab9-a7c3-96ca17e1cc49",
+      "group" : "com.sonatype.iq.integration.fortify",
+      "name" : "SonatypeFortifyIntegration",
+      "version" : "5.0.2-SNAPSHOT",
+      "purl" : "pkg:maven/com.sonatype.iq.integration.fortify/SonatypeFortifyIntegration@5.0.2-SNAPSHOT?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "cf0f42d36ae754919580"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Package Manifest"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "com.sonatype.iq.integration.fortify:SonatypeFortifyBundle:pom:5.0.2-SNAPSHOT/com.sonatype.iq.integration.fortify:SonatypeFortifyIntegration:jar:5.0.2-SNAPSHOT"
+          }
+        ]
+      }
+    }
+  ],
+  "externalReferences" : [
+    {
+      "type" : "bom",
+      "url" : "https://sonatype.sonatype.app/platform/ui/links/application/nexus-iq-fortify/report/908329b90123466881bd49f47a954ea3",
+      "comment" : "IQ Report"
+    }
+  ],
+  "dependencies" : [
+    {
+      "ref" : "ad4d9740-cad1-44d4-b590-70f6db001d26",
+      "dependsOn" : [
+        "27a6f97b-3424-4ab9-a7c3-96ca17e1cc49",
+        "c3312fae-ae52-49bd-9aa7-de2ff24d3f56",
+        "7f69b4bc-2259-4a5f-98ac-3adc605cf3de"
+      ]
+    },
+    {
+      "ref" : "27a6f97b-3424-4ab9-a7c3-96ca17e1cc49",
+      "dependsOn" : [
+        "b08a9830-589d-4dec-9f07-41e83bbe9c4c",
+        "56fa07f7-bd88-46f9-a7ab-82b115ec7878",
+        "1c7ea5bd-714e-499f-a205-37d48159dc8a",
+        "a92ec403-6276-4f3c-8f8d-b07739797066",
+        "54e0c7c7-f4b8-4225-bfb3-6be22fff227e",
+        "9998d349-7148-40c1-af22-c0f80a42d572",
+        "9534782f-56dd-4e40-82cf-94e6935cb0ec",
+        "2ee3132d-35ad-4b4c-b0f9-b399794ef169",
+        "c1cb36e5-c2dd-491d-83b8-dc63ff8ce7e3",
+        "8b8b60eb-6adc-445d-a839-c1f0b12df483",
+        "944f6c99-9856-4711-872f-771309457617",
+        "7f69b4bc-2259-4a5f-98ac-3adc605cf3de"
+      ]
+    },
+    {
+      "ref" : "b08a9830-589d-4dec-9f07-41e83bbe9c4c",
+      "dependsOn" : [
+        "b730eddb-a6a3-44aa-baf1-5f8afa2c04f9",
+        "185f18f3-dd79-46d4-b0da-f19bffb70e6d",
+        "5d06d162-e111-457d-8833-5a914a68589e",
+        "2ce9b7e5-9b0e-4570-a5f0-96130a064447",
+        "43ab0776-7c19-4ef6-99a2-487772e65969"
+      ]
+    },
+    {
+      "ref" : "b730eddb-a6a3-44aa-baf1-5f8afa2c04f9",
+      "dependsOn" : [
+        "5a5b6d51-6106-4747-a073-0dae4ccc33ba",
+        "f1686f5f-0344-43c8-b210-b7560143f156",
+        "510cc264-9561-4722-b8d7-c572b48994c0"
+      ]
+    },
+    {
+      "ref" : "5a5b6d51-6106-4747-a073-0dae4ccc33ba",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "f1686f5f-0344-43c8-b210-b7560143f156",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "510cc264-9561-4722-b8d7-c572b48994c0",
+      "dependsOn" : [
+        "70777554-2b8f-4e18-86b0-a4bff6f5b3ed"
+      ]
+    },
+    {
+      "ref" : "70777554-2b8f-4e18-86b0-a4bff6f5b3ed",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "185f18f3-dd79-46d4-b0da-f19bffb70e6d",
+      "dependsOn" : [
+        "32596cbf-f727-4caf-abaa-f4f334b5737a",
+        "985c3681-98ed-45c5-830b-fec0422c35e3",
+        "acad131b-d8c4-4e23-b142-ee612f927221"
+      ]
+    },
+    {
+      "ref" : "32596cbf-f727-4caf-abaa-f4f334b5737a",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "985c3681-98ed-45c5-830b-fec0422c35e3",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "acad131b-d8c4-4e23-b142-ee612f927221",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "5d06d162-e111-457d-8833-5a914a68589e",
+      "dependsOn" : [
+        "c9424fe4-feb5-4fdb-9566-714fbd623630"
+      ]
+    },
+    {
+      "ref" : "c9424fe4-feb5-4fdb-9566-714fbd623630",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "2ce9b7e5-9b0e-4570-a5f0-96130a064447",
+      "dependsOn" : [
+        "44218237-0998-4924-b3e4-12c2e9d134c8"
+      ]
+    },
+    {
+      "ref" : "44218237-0998-4924-b3e4-12c2e9d134c8",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "43ab0776-7c19-4ef6-99a2-487772e65969",
+      "dependsOn" : [
+        "5243a35d-1e25-4054-9b3a-bbce2751c796",
+        "7ee340cf-9a1f-4131-a8cd-d4a4d2b2a324",
+        "0e68865c-9289-4776-87aa-cfa0901373d6"
+      ]
+    },
+    {
+      "ref" : "5243a35d-1e25-4054-9b3a-bbce2751c796",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "7ee340cf-9a1f-4131-a8cd-d4a4d2b2a324",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "0e68865c-9289-4776-87aa-cfa0901373d6",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "56fa07f7-bd88-46f9-a7ab-82b115ec7878",
+      "dependsOn" : [
+        "a3d80ac5-7e31-4cc2-aef9-3e674960de42",
+        "0017ecc1-af92-451e-ad1e-f2f741e0d0f4",
+        "ff187988-8bb7-4500-aa5c-48e97b34adec",
+        "4685bafc-592d-4eae-b89a-98c6474921ef"
+      ]
+    },
+    {
+      "ref" : "a3d80ac5-7e31-4cc2-aef9-3e674960de42",
+      "dependsOn" : [
+        "62083c59-af3d-4ebb-adb0-9741ab6e707b"
+      ]
+    },
+    {
+      "ref" : "62083c59-af3d-4ebb-adb0-9741ab6e707b",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "0017ecc1-af92-451e-ad1e-f2f741e0d0f4",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "ff187988-8bb7-4500-aa5c-48e97b34adec",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "4685bafc-592d-4eae-b89a-98c6474921ef",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "1c7ea5bd-714e-499f-a205-37d48159dc8a",
+      "dependsOn" : [
+        "f213ac1f-dae7-46f9-bb7e-0993b84eb3f1",
+        "63753f04-3a31-4e93-a0c8-0cd40777bedd",
+        "68aea9b0-522d-4397-84f1-dc826ac91d8b",
+        "4eab4057-dbdd-434c-94a8-935bad0d199f",
+        "728d7d69-1878-44da-97ca-869975d2141a",
+        "4c8d41cc-91f0-4853-9bc3-b221cf44585a"
+      ]
+    },
+    {
+      "ref" : "f213ac1f-dae7-46f9-bb7e-0993b84eb3f1",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "63753f04-3a31-4e93-a0c8-0cd40777bedd",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "68aea9b0-522d-4397-84f1-dc826ac91d8b",
+      "dependsOn" : [
+        "f4e9c36f-9605-4604-8a33-76562812ccee",
+        "ba4877d4-1a0c-4616-ba4e-6bb2c53ed568",
+        "ae8b6c88-b7ab-4f6e-9d7a-6848f80aecc2",
+        "17c9abae-99ed-4735-9ef9-242fa9368524"
+      ]
+    },
+    {
+      "ref" : "f4e9c36f-9605-4604-8a33-76562812ccee",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "ba4877d4-1a0c-4616-ba4e-6bb2c53ed568",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "ae8b6c88-b7ab-4f6e-9d7a-6848f80aecc2",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "17c9abae-99ed-4735-9ef9-242fa9368524",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "4eab4057-dbdd-434c-94a8-935bad0d199f",
+      "dependsOn" : [
+        "073720f9-528f-4371-8e6d-32ac67fa34af",
+        "10b78375-6100-44e2-8cf1-2a54eab30f72"
+      ]
+    },
+    {
+      "ref" : "073720f9-528f-4371-8e6d-32ac67fa34af",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "10b78375-6100-44e2-8cf1-2a54eab30f72",
+      "dependsOn" : [
+        "0a4a19f0-53da-4328-a670-0904fd361399",
+        "a0bf15f0-78e1-4216-a746-3ad0fb5e96f4"
+      ]
+    },
+    {
+      "ref" : "0a4a19f0-53da-4328-a670-0904fd361399",
+      "dependsOn" : [
+        "d123bca9-7daa-47f4-ab61-ac279e567447"
+      ]
+    },
+    {
+      "ref" : "d123bca9-7daa-47f4-ab61-ac279e567447",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "a0bf15f0-78e1-4216-a746-3ad0fb5e96f4",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "728d7d69-1878-44da-97ca-869975d2141a",
+      "dependsOn" : [
+        "d0a64cf0-c2f1-48fb-b86d-b308572ae31b",
+        "9a7b59b4-3e17-4a9f-af4f-875ddc80814a",
+        "ffb8213a-e498-4285-b342-db8ea24ee1e8"
+      ]
+    },
+    {
+      "ref" : "d0a64cf0-c2f1-48fb-b86d-b308572ae31b",
+      "dependsOn" : [
+        "60d446b8-3dd7-48b0-b528-e4742146fb18"
+      ]
+    },
+    {
+      "ref" : "60d446b8-3dd7-48b0-b528-e4742146fb18",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "9a7b59b4-3e17-4a9f-af4f-875ddc80814a",
+      "dependsOn" : [
+        "70c9ffc5-f9b0-4036-873a-f89cf9dd25dd"
+      ]
+    },
+    {
+      "ref" : "70c9ffc5-f9b0-4036-873a-f89cf9dd25dd",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "ffb8213a-e498-4285-b342-db8ea24ee1e8",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "4c8d41cc-91f0-4853-9bc3-b221cf44585a",
+      "dependsOn" : [
+        "fc685791-38cb-4e4f-a3ee-0105e705681c",
+        "73431b37-793d-46a1-a28e-bdf51ba4706a"
+      ]
+    },
+    {
+      "ref" : "fc685791-38cb-4e4f-a3ee-0105e705681c",
+      "dependsOn" : [
+        "5731e424-0591-47b9-9270-f6e95c4f7719",
+        "c8761186-5403-4eae-8c53-265ab480ca37",
+        "b360ea3b-7747-4636-9be2-e8317749a578"
+      ]
+    },
+    {
+      "ref" : "5731e424-0591-47b9-9270-f6e95c4f7719",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "c8761186-5403-4eae-8c53-265ab480ca37",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "b360ea3b-7747-4636-9be2-e8317749a578",
+      "dependsOn" : [
+        "f301c5ec-3dc2-4c2f-8bad-c8a7126166ab",
+        "45a5bbb0-7396-4a5b-bed2-4bd21efb5e29"
+      ]
+    },
+    {
+      "ref" : "f301c5ec-3dc2-4c2f-8bad-c8a7126166ab",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "45a5bbb0-7396-4a5b-bed2-4bd21efb5e29",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "73431b37-793d-46a1-a28e-bdf51ba4706a",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "a92ec403-6276-4f3c-8f8d-b07739797066",
+      "dependsOn" : [
+        "290334a1-6d1f-4315-9b5a-b0fcccbcb151"
+      ]
+    },
+    {
+      "ref" : "290334a1-6d1f-4315-9b5a-b0fcccbcb151",
+      "dependsOn" : [
+        "1874738c-d052-459c-ae30-89e72a72f1d6",
+        "2c18eff5-afd2-4a8d-9ffd-ba14c4b20aef",
+        "b7a94b27-954a-4f4a-93bd-c53394527bcb"
+      ]
+    },
+    {
+      "ref" : "1874738c-d052-459c-ae30-89e72a72f1d6",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "2c18eff5-afd2-4a8d-9ffd-ba14c4b20aef",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "b7a94b27-954a-4f4a-93bd-c53394527bcb",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "54e0c7c7-f4b8-4225-bfb3-6be22fff227e",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "9998d349-7148-40c1-af22-c0f80a42d572",
+      "dependsOn" : [
+        "54ac2b9a-27ec-4059-8b1b-94d7bcd0b61a",
+        "db5f972e-612f-4d44-99e0-d0415a912cee"
+      ]
+    },
+    {
+      "ref" : "54ac2b9a-27ec-4059-8b1b-94d7bcd0b61a",
+      "dependsOn" : [
+        "e0a77a1a-59ea-4ecb-943a-e4c5cf0cb7f7"
+      ]
+    },
+    {
+      "ref" : "e0a77a1a-59ea-4ecb-943a-e4c5cf0cb7f7",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "db5f972e-612f-4d44-99e0-d0415a912cee",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "9534782f-56dd-4e40-82cf-94e6935cb0ec",
+      "dependsOn" : [
+        "80a1751d-f85d-47bc-b28e-9747e2f3276c",
+        "4da27e2d-19c2-4db5-b24f-4534b77d32af",
+        "fc8d4cd7-202f-463d-91cb-2ab3a086fea2",
+        "b6d24eec-8206-4e1b-8f5f-3e93c421ec13",
+        "0b6c4585-5ed3-45e7-95f2-efe4a922da14",
+        "69141099-eaf8-4bdc-8dd5-395f3730aefd"
+      ]
+    },
+    {
+      "ref" : "80a1751d-f85d-47bc-b28e-9747e2f3276c",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "4da27e2d-19c2-4db5-b24f-4534b77d32af",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "fc8d4cd7-202f-463d-91cb-2ab3a086fea2",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "b6d24eec-8206-4e1b-8f5f-3e93c421ec13",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "0b6c4585-5ed3-45e7-95f2-efe4a922da14",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "69141099-eaf8-4bdc-8dd5-395f3730aefd",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "2ee3132d-35ad-4b4c-b0f9-b399794ef169",
+      "dependsOn" : [
+        "2c65f5e2-fd2c-430a-9e15-65bd346c931e",
+        "6308654f-3b19-4205-be54-8c741215f1aa"
+      ]
+    },
+    {
+      "ref" : "2c65f5e2-fd2c-430a-9e15-65bd346c931e",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "6308654f-3b19-4205-be54-8c741215f1aa",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "c1cb36e5-c2dd-491d-83b8-dc63ff8ce7e3",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "8b8b60eb-6adc-445d-a839-c1f0b12df483",
+      "dependsOn" : [
+        "f213ac1f-dae7-46f9-bb7e-0993b84eb3f1",
+        "63753f04-3a31-4e93-a0c8-0cd40777bedd",
+        "68aea9b0-522d-4397-84f1-dc826ac91d8b",
+        "4eab4057-dbdd-434c-94a8-935bad0d199f",
+        "728d7d69-1878-44da-97ca-869975d2141a",
+        "4c8d41cc-91f0-4853-9bc3-b221cf44585a"
+      ]
+    },
+    {
+      "ref" : "944f6c99-9856-4711-872f-771309457617",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "7f69b4bc-2259-4a5f-98ac-3adc605cf3de",
+      "dependsOn" : [
+        "15516045-b368-4536-8f09-fced745729c0"
+      ]
+    },
+    {
+      "ref" : "15516045-b368-4536-8f09-fced745729c0",
+      "dependsOn" : [ ]
+    },
+    {
+      "ref" : "c3312fae-ae52-49bd-9aa7-de2ff24d3f56",
+      "dependsOn" : [
+        "7f69b4bc-2259-4a5f-98ac-3adc605cf3de",
+        "c1cb36e5-c2dd-491d-83b8-dc63ff8ce7e3",
+        "944f6c99-9856-4711-872f-771309457617"
+      ]
+    }
+  ],
+  "vulnerabilities" : [
+    {
+      "id" : "sonatype-2022-6438",
+      "source" : {
+        "name" : "SONATYPE",
+        "url" : "https://sonatype.sonatype.app/platform/ui/links/vln/sonatype-2022-6438"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "SONATYPE"
+          },
+          "score" : 7.5,
+          "severity" : "critical",
+          "method" : "other",
+          "vector" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+        }
+      ],
+      "cwes" : [
+        400
+      ],
+      "affects" : [
+        {
+          "ref" : "c1cb36e5-c2dd-491d-83b8-dc63ff8ce7e3"
+        },
+        {
+          "ref" : "c3312fae-ae52-49bd-9aa7-de2ff24d3f56"
+        }
+      ]
+    },
+    {
+      "id" : "sonatype-2023-3025",
+      "source" : {
+        "name" : "SONATYPE",
+        "url" : "https://sonatype.sonatype.app/platform/ui/links/vln/sonatype-2023-3025"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "SONATYPE"
+          },
+          "score" : 3.9,
+          "severity" : "medium",
+          "method" : "other",
+          "vector" : "CVSS:3.1/AV:L/AC:H/PR:H/UI:N/S:U/C:L/I:L/A:L"
+        }
+      ],
+      "cwes" : [
+        611
+      ],
+      "affects" : [
+        {
+          "ref" : "073720f9-528f-4371-8e6d-32ac67fa34af"
+        }
+      ]
+    },
+    {
+      "id" : "CVE-2016-1000027",
+      "source" : {
+        "name" : "NVD",
+        "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-1000027"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "NVD"
+          },
+          "score" : 9.8,
+          "severity" : "critical",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+        }
+      ],
+      "cwes" : [
+        502
+      ],
+      "affects" : [
+        {
+          "ref" : "2ce9b7e5-9b0e-4570-a5f0-96130a064447"
+        }
+      ]
+    },
+    {
+      "id" : "CVE-2023-36479",
+      "source" : {
+        "name" : "NVD",
+        "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-36479"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "NVD"
+          },
+          "score" : 4.3,
+          "severity" : "high",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:L/A:N"
+        }
+      ],
+      "cwes" : [
+        149
+      ],
+      "affects" : [
+        {
+          "ref" : "68aea9b0-522d-4397-84f1-dc826ac91d8b"
+        }
+      ]
+    },
+    {
+      "id" : "CVE-2024-22243",
+      "source" : {
+        "name" : "NVD",
+        "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-22243"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "NVD"
+          },
+          "score" : 8.1,
+          "severity" : "critical",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:N"
+        }
+      ],
+      "cwes" : [
+        20
+      ],
+      "affects" : [
+        {
+          "ref" : "2ce9b7e5-9b0e-4570-a5f0-96130a064447"
+        }
+      ]
+    },
+    {
+      "id" : "CVE-2024-22262",
+      "source" : {
+        "name" : "NVD",
+        "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-22262"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "NVD"
+          },
+          "score" : 8.1,
+          "severity" : "critical",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:N"
+        }
+      ],
+      "cwes" : [
+        20
+      ],
+      "affects" : [
+        {
+          "ref" : "2ce9b7e5-9b0e-4570-a5f0-96130a064447"
+        }
+      ]
+    }
+  ]
+}

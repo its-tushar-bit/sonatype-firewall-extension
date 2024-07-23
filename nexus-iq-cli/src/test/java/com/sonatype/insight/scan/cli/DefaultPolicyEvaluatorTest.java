@@ -417,7 +417,7 @@ public abstract class DefaultPolicyEvaluatorTest
     Scan scan = scanReader.read(scanFile);
     assertThat(scan).isNotNull();
 
-    assertThat(scan.getItems()).hasSize(22).allSatisfy(item -> {
+    assertThat(scan.getItems()).hasSize(23).allSatisfy(item -> {
           assertThat(item.getPath()).isNotNull();
           assertThat(item.getSha1()).isNotNull();
           assertThat(item.getContentType()).isNotNull();

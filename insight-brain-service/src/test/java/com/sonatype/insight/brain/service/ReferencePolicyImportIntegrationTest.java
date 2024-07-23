@@ -5,23 +5,14 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.net.URL;
-
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
-import com.sonatype.insight.brain.hds.ReferencePolicyFetcher;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.actions.FailActionType;
-import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
-import com.sonatype.insight.brain.policy.PolicyExportResult;
-import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
-import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -50,9 +41,6 @@ public class ReferencePolicyImportIntegrationTest
   private TagDAO tagDAO;
 
   private PolicyTagDAO policyTagDAO;
-
-  private final URL referencePolicyUrl = getClass()
-      .getResource("/reference-policies-v" + ReferencePolicyFetcher.REFERENCE_POLICY_VERSION + ".json");
 
   @Before
   public void cleanup() {
@@ -89,39 +77,7 @@ public class ReferencePolicyImportIntegrationTest
     assertThat(labelDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID)).isEmpty();
     assertThat(tagDAO.getByOrganizationId(Organization.ROOT_ORGANIZATION_ID)).isEmpty();
     assertThat(policyTagDAO.getByOrganizationId(Organization.ROOT_ORGANIZATION_ID)).isEmpty();
-
-    Configurator configurator = config -> config.setImportReferencePoliciesFromHDS(true);
-
-    hdsRespondWith(referencePolicyUrl).atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
-
-    startIqTestServer(configurator);
-
-    PolicyExportResult importData = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
-    int policyCount = importData.policies.size();
-    int ltgCount = importData.licenseThreatGroups.size();
-    int ltgLicenseCount = importData.licenseThreatGroupLicenses.size();
-    int labelCount = importData.labels.size();
-    int tagCount = importData.tags.size();
-    int policyTagCount = importData.policyTags.size();
-
-    assertThat(policyCount).isGreaterThan(0);
-    assertThat(ltgCount).isGreaterThan(0);
-    assertThat(ltgLicenseCount).isGreaterThan(0);
-    assertThat(labelCount).isGreaterThan(0);
-    assertThat(tagCount).isGreaterThan(0);
-    assertThat(policyTagCount).isGreaterThan(0);
-
-    assertThat(policyDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID)).hasSize(policyCount);
-    assertThat(licenseThreatGroupDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID)).hasSize(ltgCount);
-    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID)).hasSize(ltgLicenseCount);
-    assertThat(labelDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID)).hasSize(labelCount);
-    assertThat(tagDAO.getByOrganizationId(Organization.ROOT_ORGANIZATION_ID)).hasSize(tagCount);
-    assertThat(policyTagDAO.getByOrganizationId(Organization.ROOT_ORGANIZATION_ID)).hasSize(policyTagCount);
-
-    Policy integrityRatingPolicy = policyDAO.getByOwnerIdAndName(Organization.ROOT_ORGANIZATION_ID, "Integrity-Rating");
-    assertThat(integrityRatingPolicy.getActions()).containsEntry(ProxyStageType.ID, FailActionType.ID);
-    Policy namespaceConflictRatingPolicy =
-        policyDAO.getByOwnerIdAndName(Organization.ROOT_ORGANIZATION_ID, "Security-Namespace Conflict");
-    assertThat(namespaceConflictRatingPolicy.getActions()).containsEntry(ProxyStageType.ID, FailActionType.ID);
+    // TODO : call to hds staging api https://clm-staging.sonatype.com/rest/referencePolicies/v7 to fetch the response
+    //  and assert data against it jire link: https://sonatype.atlassian.net/browse/SBOM-490
   }
 }

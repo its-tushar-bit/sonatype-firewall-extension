@@ -75,7 +75,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
 
   @Test
   public void testNotLicensed() {
-    setFeatures(LicensedFeature.NOTIFICATIONS, LicensedFeature.POLICY_MANAGEMENT);
+    setFeatures(LicensedFeature.NOTIFICATIONS, LicensedFeature.POLICY_MANAGEMENT, LicensedFeature.POLICY_READ_ONLY);
     assertNotLicensed(false);
   }
 

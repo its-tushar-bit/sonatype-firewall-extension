@@ -104,6 +104,7 @@ public class FirewallPageTest
 
     setFeatures(
         LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.POLICY_READ_ONLY,
         LicensedFeature.COMPONENT_EVALUATION,
         LicensedFeature.REPOSITORY_REPORTS,
         LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,

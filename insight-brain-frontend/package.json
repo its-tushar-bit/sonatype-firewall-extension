@@ -100,7 +100,7 @@
     "babel-loader": "^8.3.0",
     "copy-modules-webpack-plugin": "^2.2.1",
     "copy-webpack-plugin": "^9.0.1",
-    "css-loader": "^6.2.0",
+    "css-loader": "^6.11.0",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.6",
     "eslint": "^7.32.0",

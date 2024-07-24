@@ -253,7 +253,7 @@ describe('axiosConfig', () => {
             const errorFromRequest = {
               response: {
                 status: 401,
-                headers: () => '',
+                headers: {},
               },
             };
 
@@ -267,38 +267,38 @@ describe('axiosConfig', () => {
           describe('when there is a single request in the queue', () => {
             it('requests the opening of the login modal without SSO if the appropriate header is not present', (done) => {
               // Spy on the opening of the login modal but don't resolve or reject the promise yet
-              const loginModalOpenSpy = spyOn(loginModalService, 'open').and.callThrough();
+              const loginModalAuthenticateSpy = spyOn(loginModalService, 'authenticate').and.callThrough();
               const authenticationInterceptor = getAuthenticationInterceptor();
               const errorFromRequest = {
                 response: {
                   status: 401,
-                  headers: () => '',
+                  headers: {},
                 },
               };
 
               const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
               interceptorResolution.then(promiseShouldNotBeResolvedFailure, () => {
                 expect(queueService.getRequests().length).toBe(1);
-                expect(loginModalOpenSpy).toHaveBeenCalledOnceWith(false);
+                expect(loginModalAuthenticateSpy).toHaveBeenCalledOnceWith(false);
                 done();
               });
             });
 
             it('requests the opening of the login modal with SSO if the appropriate header is present', (done) => {
               // Spy on the opening of the login modal but don't resolve or reject the promise yet
-              const loginModalOpenSpy = spyOn(loginModalService, 'open').and.callThrough();
+              const loginModalAuthenticateSpy = spyOn(loginModalService, 'authenticate').and.callThrough();
               const authenticationInterceptor = getAuthenticationInterceptor();
               const errorFromRequest = {
                 response: {
                   status: 401,
-                  headers: () => 'SAML',
+                  headers: { 'www-authenticate': 'SAML' },
                 },
               };
 
               const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
               interceptorResolution.then(promiseShouldNotBeResolvedFailure, () => {
                 expect(queueService.getRequests().length).toBe(1);
-                expect(loginModalOpenSpy).toHaveBeenCalledOnceWith(true);
+                expect(loginModalAuthenticateSpy).toHaveBeenCalledOnceWith(true);
                 done();
               });
             });
@@ -311,7 +311,7 @@ describe('axiosConfig', () => {
                   return resolve();
                 }, 50);
               });
-              spyOn(loginModalService, 'open').and.callFake(() => {
+              spyOn(loginModalService, 'authenticate').and.callFake(() => {
                 queueService.addRequest(() => newRequestedPromise);
                 return Promise.resolve();
               });
@@ -321,7 +321,7 @@ describe('axiosConfig', () => {
                 response: {
                   config: { url: 'dummyUrl', method: 'get' },
                   status: 401,
-                  headers: () => '',
+                  headers: {},
                 },
               };
 
@@ -340,13 +340,13 @@ describe('axiosConfig', () => {
             });
 
             it('clears any remaining requests if authentication is not successful or cancelled', (done) => {
-              spyOn(loginModalService, 'open').and.rejectWith('canceled login modal');
+              spyOn(loginModalService, 'authenticate').and.rejectWith('canceled login modal');
               const authenticationInterceptor = getAuthenticationInterceptor();
               const errorFromRequest = {
                 response: {
                   config: { url: 'dummyUrl' },
                   status: 401,
-                  headers: () => '',
+                  headers: {},
                 },
               };
 

@@ -3,18 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { selectProducts } from 'MainRoot/productFeatures/productLicenseSelectors';
-import { selectIsSbomManagerEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { equals, length } from 'ramda';
 
-export function checkSbomManagerIsOnlyProductEnabled(state) {
-  const products = selectProducts(state);
-  const isSbomManagerEnabled = selectIsSbomManagerEnabled(state);
+export const nameStartsWithSbomManager = (stringToSearch = '') => stringToSearch.startsWith('sbomManager');
 
-  return (
-    products &&
-    Array.isArray(products) &&
-    products.length === 1 &&
-    (products[0] === 'Sonatype SBOM Manager' || products[0] === 'Sonatype SBOM Manager SaaS') &&
-    isSbomManagerEnabled
-  );
-}
+export const isSbomManagerOnlyLicenseProduct = (products) =>
+  length(products) === 1 &&
+  (equals(products[0], 'Sonatype SBOM Manager SaaS') || equals(products[0], 'Sonatype SBOM Manager'));

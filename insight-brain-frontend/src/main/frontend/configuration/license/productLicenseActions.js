@@ -7,12 +7,12 @@
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import axios from 'axios';
 import { compose } from 'ramda';
-import { getPermissions } from '../../util/authorizationUtil';
-import { getLicenseSummaryUrl, getLicenseDetailsUrl, getLicenseUploadUrl } from '../../util/CLMLocation';
+import { getLicenseUploadUrl } from '../../util/CLMLocation';
 import { Messages } from '../../utilAngular/CommonServices';
 import { getDaysFromNow } from '../../util/jsUtil';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
+import { loadIfNotYetLoaded } from 'MainRoot/utility/services/ProductLicense';
 
 export const PRODUCT_LICENSE_LOAD_REQUESTED = 'PRODUCT_LICENSE_LOAD_REQUESTED';
 export const PRODUCT_LICENSE_LOAD_FULFILLED = 'PRODUCT_LICENSE_LOAD_FULFILLED';
@@ -53,27 +53,25 @@ export function load() {
   return async (dispatch) => {
     dispatch(loadRequested());
 
+    let licenseInfo;
     try {
-      const hasConfigureSystemPermission = (await getPermissions(['CONFIGURE_SYSTEM'])).length;
-
-      const { data: licenseInfo } = await axios.get(
-        hasConfigureSystemPermission ? getLicenseDetailsUrl() : getLicenseSummaryUrl()
-      );
-
-      dispatch(
-        loadFulfilled({
-          ...licenseInfo,
-          ...(licenseInfo.expiryTimestamp && { daysToExpiration: getDaysFromNow(licenseInfo.expiryTimestamp) }),
-        })
-      );
+      licenseInfo = await loadIfNotYetLoaded();
     } catch (error) {
-      const licenseIsInvalid = (error.response || {}).status === 402;
+      const licenseIsInvalid = error?.response?.status === 402;
       if (licenseIsInvalid) {
         dispatch(invalidLicense());
       } else {
         dispatch(loadFailed(Messages.getHttpErrorMessage(error)));
       }
+      return;
     }
+
+    return dispatch(
+      loadFulfilled({
+        ...licenseInfo,
+        ...(licenseInfo.expiryTimestamp && { daysToExpiration: getDaysFromNow(licenseInfo.expiryTimestamp) }),
+      })
+    );
   };
 }
 

@@ -7,6 +7,8 @@
 import { prop, path, propOr, propEq } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 
+import { nameStartsWithSbomManager } from 'MainRoot/sbomManager/sbomManagerUtil';
+
 export const selectRouterSlice = prop('router');
 export const selectRouterCurrentParams = createSelector(selectRouterSlice, prop('currentParams'));
 export const selectRouterState = createSelector(selectRouterSlice, prop('currentState'));
@@ -23,14 +25,12 @@ export const selectPreviousRouteName = createSelector(selectRouterPrevState, pro
 
 const includesNamePart = (part) => (stringToSearch = '') => stringToSearch.includes(part);
 const includesNamePartSeparateByDot = (part) => (stringToSearch = '') => stringToSearch.split('.').includes(part);
-const startsWithNamePart = (part) => (stringToSearch = '') => stringToSearch.startsWith(part);
 const nameIncludesOrganization = includesNamePart('organization');
 const nameIncludesTransitiveViolations = includesNamePart('transitiveViolations');
 const nameIncludesApplication = includesNamePart('application');
 const nameIncludesRepositories = includesNamePart('repositories');
 const nameIncludesRepository = includesNamePartSeparateByDot('repository');
 const nameIncludesFirewall = includesNamePart('firewall');
-const nameStartsWithSbomManager = startsWithNamePart('sbomManager');
 const nameIncludesRepositoryContainer = includesNamePart('repository_container');
 const nameIncludesRepositoryManager = includesNamePart('repository_manager');
 const nameIncludesCategory = includesNamePart('category');

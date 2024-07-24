@@ -23,6 +23,7 @@ import navigationContainer from './navigationContainer/module';
 import ReportModule from './ReportApp';
 import dashboardModule from './dashboard/dashboard.module';
 import Report from './report/ReportController';
+import routeProductLicenseValidator from './routeProductLicenseValidator/module';
 import pendoModule from './pendo/module';
 import externalLinkModule from './externalLink/module';
 import utilityServicesModule from './utility/services/utility.services.module';
@@ -41,6 +42,7 @@ import {
   selectIsDashboardWaiversSupported,
   selectIsFirewallSupported,
   selectIsReportListSupported,
+  selectIsSbomManagerEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { actions as toastSliceActions } from 'MainRoot/toastContainer/toastSlice';
@@ -50,7 +52,7 @@ import { selectUnconfiguredRepoManager } from 'MainRoot/firewallOnboarding/firew
 import { actions as firewallOnboardingActions } from 'MainRoot/firewallOnboarding/firewallOnboardingSlice';
 import { fab } from '@fortawesome/free-brands-svg-icons';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { checkSbomManagerIsOnlyProductEnabled } from 'MainRoot/sbomManager/sbomManagerUtil';
+import { selectIsSbomManagerOnlyLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function () {
@@ -94,6 +96,7 @@ export const InitModule = angular
       configurationModule.name,
       loginModalModule.name,
       toastContainerModule.name,
+      routeProductLicenseValidator.name,
     ],
     [
       '$stateProvider',
@@ -105,7 +108,6 @@ export const InitModule = angular
             url: '^',
             redirectTo: function (transition) {
               const injector = transition.injector(),
-                ProductLicense = injector.get('ProductLicense'),
                 CurrentUser = injector.get('CurrentUser'),
                 $rootScope = injector.get('$rootScope'),
                 $q = injector.get('$q'),
@@ -116,24 +118,23 @@ export const InitModule = angular
                   $ngRedux.dispatch(actions.fetchProductFeaturesIfNeeded()),
                   $ngRedux.dispatch(loadProductLicense()),
                   $ngRedux.dispatch(firewallOnboardingActions.loadUnconfiguredRepoManagers()),
-                  ProductLicense.load(),
                   CurrentUser.waitForLogin(),
                 ])
                 .then((results) => {
                   unwrapResult(results[0]);
                   const state = $ngRedux.getState();
                   const isDashboardAvailable = selectIsDashboardSupported(state);
-                  const isWaiversDashboardAvailable = selectIsDashboardWaiversSupported(state);
-                  const isReportsListAvailable = selectIsReportListSupported(state);
-                  const unconfiguredRepoManager = selectUnconfiguredRepoManager(state);
                   const isFirewallAvailable = selectIsFirewallSupported(state);
                   const isFirewallEnabled = selectIsFirewallSupportedForNavigationContainer(state);
+                  const isReportsListAvailable = selectIsReportListSupported(state);
+                  const isSbomManagerEnabled = selectIsSbomManagerEnabled(state);
+                  const isSbomManagerOnlyLicense = selectIsSbomManagerOnlyLicense(state);
+                  const isWaiversDashboardAvailable = selectIsDashboardWaiversSupported(state);
+                  const unconfiguredRepoManager = selectUnconfiguredRepoManager(state);
 
-                  if (checkSbomManagerIsOnlyProductEnabled(state)) {
+                  if (isSbomManagerEnabled && isSbomManagerOnlyLicense) {
                     return 'sbomManager.dashboard';
-                  }
-
-                  if (isFirewallAvailable && unconfiguredRepoManager && isFirewallEnabled) {
+                  } else if (isFirewallAvailable && unconfiguredRepoManager && isFirewallEnabled) {
                     return 'firewallOnboarding.firewallOnboardingPage';
                   } else if (isDashboardAvailable) {
                     return 'dashboard.overview.violations';
@@ -281,7 +282,7 @@ export const InitModule = angular
         SessionSecurityService.setServerDate,
         $rootScope,
         $window,
-        LoginModalService.open,
+        LoginModalService,
         UnauthenticatedRequestQueueService
       );
 
@@ -310,7 +311,7 @@ export const InitModule = angular
           $rootScope.licensed = true;
           $rootScope.productEdition = productEdition;
 
-          // replay state transtion caught while license was loading so that preLoginStateHandler can process it
+          // replay state transition caught while license was loading so that preLoginStateHandler can process it
           if (savedStateDuringLicenseFetch) {
             $state.go(savedStateDuringLicenseFetch.state, savedStateDuringLicenseFetch.params);
           }
@@ -324,8 +325,7 @@ export const InitModule = angular
 
         function onLicenseFailure(err) {
           cancelUnlicensedStateChangeHandler = $transitions.onStart({}, unlicensedStateChangeHandler);
-
-          if (err.status === 402) {
+          if (err?.response?.status === 402) {
             $state.go('productlicense');
           } else {
             return $q.reject(err);
@@ -419,6 +419,7 @@ export const InitModule = angular
 
         $q.all([currentUser.waitForLogin(), checkLicenseInfo()])
           .then(function ([authenticationStatus]) {
+            $ngRedux.dispatch(loadProductLicense());
             $rootScope.username = authenticationStatus.username;
             cancelLoginDismissListener();
             // This was already called at the bottom of `doStart`, but call it again here now that the user is

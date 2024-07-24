@@ -54,8 +54,8 @@ export function checkPermissions(permissions, ownerType = 'global', ownerId = 'g
  * @param permissions - list of permissions to verify
  * @returns {Promise}
  */
-export function getPermissions(permissions, ownerType = 'global', ownerId = 'global') {
-  return axios.put(getPermissionContextTestUrl(ownerType, ownerId), permissions).then(({ data }) => {
+export function getPermissions(permissions, ownerType = 'global', ownerId = 'global', waitForLogin = true) {
+  return axios.put(getPermissionContextTestUrl(ownerType, ownerId), permissions, { waitForLogin }).then(({ data }) => {
     return data;
   });
 }

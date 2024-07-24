@@ -4,15 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createSelector } from '@reduxjs/toolkit';
-import { prop, propOr, equals, length } from 'ramda';
+import { prop, propOr } from 'ramda';
+
+import { isSbomManagerOnlyLicenseProduct } from 'MainRoot/sbomManager/sbomManagerUtil';
 
 export const selectProductLicenseSlice = prop('productLicense');
 export const selectLoadingProducts = createSelector(selectProductLicenseSlice, prop('loading'));
 export const selectProductLicense = createSelector(selectProductLicenseSlice, prop('license'));
 export const selectProducts = createSelector(selectProductLicense, propOr([], 'products'));
-export const selectIsSbomManagerOnlyLicense = createSelector(
-  selectProducts,
-  (products) =>
-    length(products) === 1 &&
-    (equals(products[0], 'Sonatype SBOM Manager SaaS') || equals(products[0], 'Sonatype SBOM Manager'))
-);
+
+export const selectIsSbomManagerOnlyLicense = createSelector(selectProducts, isSbomManagerOnlyLicenseProduct);

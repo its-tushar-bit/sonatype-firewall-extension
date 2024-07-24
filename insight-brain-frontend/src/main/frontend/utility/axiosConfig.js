@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
 import axios from 'axios';
 import isIqIframe from '../utilAngular/isIqFrame';
 
@@ -45,14 +44,12 @@ export const attachAxiosInterceptors = (
               // simply replay the request
               axios(error.response.config);
             });
-
-            const authenticate = (showSamlSso) => {
-              return loginModalService.open(showSamlSso);
-            };
-
+            // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
+            // the other messages, the data will be added to the queue, but the dialog portion will be ignored
             if (UnauthenticatedRequestQueueService.getRequests().length === 1) {
-              authenticate(error.response.headers('WWW-Authenticate') === 'SAML').then(
+              loginModalService.authenticate(error.response.headers['www-authenticate'] === 'SAML').then(
                 () => {
+                  // retry failed requests and then clear the queue
                   Promise.all(UnauthenticatedRequestQueueService.getPromises()).finally(() =>
                     UnauthenticatedRequestQueueService.clearRequests()
                   );

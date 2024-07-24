@@ -7,10 +7,8 @@ import angularCommonModule from './AngularCommon';
 import CLMLocationModule from '../util/CLMLocation';
 import utilityServicesModule from '../utility/services/utility.services.module';
 import loginModalModule from 'MainRoot/user/LoginModal/module';
-import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
 import isIqIframe from './isIqFrame';
-import { unwrapResult } from '@reduxjs/toolkit';
 
 export var httpInterceptors = angular.module('HttpInterceptors', []);
 
@@ -95,26 +93,6 @@ export var unauthenticatedResponseHttpInterceptor = angular
     'UnauthenticatedRequestQueueService',
     'LoginModalService',
     function ($rootScope, $q, $http, $ngRedux, UnauthenticatedRequestQueueService, LoginModalService) {
-      const loadIsSsoOnlyEnabled = () => {
-        return $ngRedux.dispatch(productFeaturesActions.loadIsSsoOnlyEnabled()).then(unwrapResult);
-      };
-
-      const loadOAuth2Enabled = () => {
-        return $ngRedux.dispatch(productFeaturesActions.loadIsOauth2Enabled()).then(unwrapResult);
-      };
-
-      async function authenticate(showSamlSso) {
-        const isSsoOnlyEnabled = await loadIsSsoOnlyEnabled();
-        const isOAuth2Enabled = await loadOAuth2Enabled();
-
-        if (isSsoOnlyEnabled && (showSamlSso || isOAuth2Enabled)) {
-          UnauthenticatedRequestQueueService.clearRequests();
-          return await LoginModalService.redirectToIdP(isOAuth2Enabled);
-        }
-
-        return await LoginModalService.open(showSamlSso, isOAuth2Enabled);
-      }
-
       $rootScope.$on('userNeedsAuthentication', function (event, response, deferred) {
         if (response.config && response.config.waitForLogin === false) {
           deferred.reject(response);
@@ -134,7 +112,7 @@ export var unauthenticatedResponseHttpInterceptor = angular
           // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
           // the other messages, the data will be added to the queue, but the dialog portion will be ignored
           if (UnauthenticatedRequestQueueService.getRequests().length === 1) {
-            authenticate(response.headers('WWW-Authenticate') === 'SAML').then(
+            LoginModalService.authenticate(response.headers('WWW-Authenticate') === 'SAML').then(
               function () {
                 // retry failed requests and then clear the queue
                 $q.all(UnauthenticatedRequestQueueService.getPromises()).finally(function () {

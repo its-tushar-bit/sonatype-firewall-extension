@@ -8,22 +8,26 @@ import {
   GETTING_STARTED_LOAD_REQUESTED,
   GETTING_STARTED_LOAD_FULFILLED,
   GETTING_STARTED_LOAD_FAILED,
-} from '../../../../main/frontend/configuration/gettingStarted/gettingStartedActions';
+} from 'MainRoot/configuration/gettingStarted/gettingStartedActions';
 import axios from 'axios';
-import { getIsHdsReachable, getLicenseDetailsUrl } from '../../../../main/frontend/util/CLMLocation';
+import { getIsHdsReachable } from 'MainRoot/util/CLMLocation';
+import * as productLicenseActions from 'MainRoot/configuration/license/productLicenseActions';
 
 describe('gettingStartedReducerActions', () => {
-  let getPermissionsSpy, load, store;
+  let getPermissionsSpy, loadIfNotYetLoadedSpy, load, store;
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
-  const licenseDetailsUrl = getLicenseDetailsUrl();
   const isHdsReachable = getIsHdsReachable();
 
   beforeEach(() => {
     getPermissionsSpy = jasmine.createSpy('getPermissions');
+    loadIfNotYetLoadedSpy = spyOn(productLicenseActions, 'load');
     const actionsModule = require('inject-loader!../../../../../src/main/frontend/configuration/gettingStarted/gettingStartedActions')(
       {
         '../../util/authorizationUtil': {
           getPermissions: getPermissionsSpy,
+        },
+        'MainRoot/configuration/license/productLicenseActions': {
+          load: loadIfNotYetLoadedSpy,
         },
       }
     );
@@ -33,8 +37,12 @@ describe('gettingStartedReducerActions', () => {
 
   describe('load', () => {
     describe('success', () => {
+      let mockLicenseResponse;
+
       beforeEach(() => {
+        mockLicenseResponse = { payload: { expiryTimestamp: '' } };
         getPermissionsSpy.and.returnValue(Promise.resolve(['CONFIGURE_SYSTEM', 'ADD_APPLICATION']));
+        loadIfNotYetLoadedSpy.and.callFake(() => () => Promise.resolve(mockLicenseResponse));
       });
 
       it(`dispatches a ${GETTING_STARTED_LOAD_REQUESTED} action`, (done) => {
@@ -49,11 +57,10 @@ describe('gettingStartedReducerActions', () => {
       });
 
       it(`dispatches a ${GETTING_STARTED_LOAD_FULFILLED} action`, (done) => {
-        const mockResponse = { data: { expiryTimestamp: '' } };
+        const mockHdsResponse = { data: {} };
         mockAxiosCalls({
           get: {
-            [licenseDetailsUrl]: Promise.resolve(mockResponse),
-            [isHdsReachable]: Promise.resolve(mockResponse),
+            [isHdsReachable]: Promise.resolve(mockHdsResponse),
           },
         });
         store = SpecUtil.mockReduxStore();
@@ -61,7 +68,7 @@ describe('gettingStartedReducerActions', () => {
           const actions = store.getActions();
           const { type, payload } = actions[1];
           expect(type).toBe(GETTING_STARTED_LOAD_FULFILLED);
-          expect(payload.license).toEqual({ ...mockResponse.data });
+          expect(payload.license).toEqual({ ...mockLicenseResponse.payload });
           done();
         });
       });
@@ -94,11 +101,7 @@ describe('gettingStartedReducerActions', () => {
 
       it(`dispatches a ${GETTING_STARTED_LOAD_FAILED} action because of service failures`, (done) => {
         getPermissionsSpy.and.returnValue(Promise.resolve(['CONFIGURE_SYSTEM', 'ADD_APPLICATION']));
-        mockAxiosCalls({
-          get: {
-            [licenseDetailsUrl]: () => Promise.reject({ response: {} }),
-          },
-        });
+        loadIfNotYetLoadedSpy.and.callFake(() => () => Promise.reject({ response: {} }));
         store = SpecUtil.mockReduxStore();
         store.dispatch(load()).then(() => {
           const [, { type }] = store.getActions();

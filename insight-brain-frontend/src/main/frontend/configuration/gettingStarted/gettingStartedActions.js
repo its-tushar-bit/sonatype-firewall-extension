@@ -7,9 +7,10 @@ import axios from 'axios';
 import { compose } from 'ramda';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
-import { getIsHdsReachable, getLicenseDetailsUrl } from '../../util/CLMLocation';
+import { getIsHdsReachable } from '../../util/CLMLocation';
 import { Messages } from '../../utilAngular/CommonServices';
 import { getPermissions } from '../../util/authorizationUtil';
+import { load as loadProductLicense } from 'MainRoot/configuration/license/productLicenseActions';
 
 export const GETTING_STARTED_LOAD_REQUESTED = 'GETTING_STARTED_LOAD_REQUESTED';
 export const GETTING_STARTED_LOAD_FULFILLED = 'GETTING_STARTED_LOAD_FULFILLED';
@@ -30,12 +31,11 @@ export function load() {
       .then((validPermissions) => {
         const payload = {};
         const loadIsHdsReachable = axios.get(getIsHdsReachable());
-        const loadLicenseSummaryUrl = axios.get(getLicenseDetailsUrl());
 
         const promises = [loadIsHdsReachable];
 
         if (validPermissions.indexOf('CONFIGURE_SYSTEM') >= 0) {
-          promises.push(loadLicenseSummaryUrl);
+          promises.push(dispatch(loadProductLicense()));
         }
 
         payload.validPermissions = validPermissions;
@@ -50,9 +50,8 @@ export function load() {
           payload.hdsUnreachableErrorMessage = errorMessage;
           payload.hdsUnreachableIncidentId = incidentId;
 
-          if (licenseResult) {
-            const license = licenseResult.data;
-            payload.license = license;
+          if (licenseResult?.payload) {
+            payload.license = licenseResult.payload;
             payload.isAdmin = isAdmin(validPermissions);
           }
 

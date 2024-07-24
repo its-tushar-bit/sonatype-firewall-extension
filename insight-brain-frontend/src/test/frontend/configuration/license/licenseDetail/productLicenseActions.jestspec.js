@@ -16,36 +16,26 @@ import {
   PRODUCT_LICENSE_UNINSTALL_LICENSE_FULFILLED,
   PRODUCT_LICENSE_UNINSTALL_LICENSE_REQUESTED,
   PRODUCT_LICENSE_UNINSTALL_MASK_TIMER_DONE,
-} from '../../../../../main/frontend/configuration/license/productLicenseActions';
-import * as authorizationUtil from '../../../../../main/frontend/util/authorizationUtil';
-import * as actionsModule from '../../../../../main/frontend/configuration/license/productLicenseActions';
-import * as jsUtil from '../../../../../main/frontend/util/jsUtil';
-import {
-  getLicenseDetailsUrl,
-  getLicenseSummaryUrl,
-  getLicenseUploadUrl,
-} from '../../../../../main/frontend/util/CLMLocation';
+} from 'MainRoot/configuration/license/productLicenseActions';
+import * as actionsModule from 'MainRoot/configuration/license/productLicenseActions';
+import * as jsUtil from 'MainRoot/util/jsUtil';
+import * as productLicense from 'MainRoot/utility/services/ProductLicense';
+import { getLicenseUploadUrl } from 'MainRoot/util/CLMLocation';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 
 describe('productLicenseActions', () => {
   let load, store, updateLicense, uninstallLicense;
   const axiosMock = axiosMockAdapter();
-  const licenseSummaryUrl = getLicenseSummaryUrl();
-  const licenseDetailsUrl = getLicenseDetailsUrl();
   const licenseUploadUrl = getLicenseUploadUrl();
 
   beforeEach(() => {
-    jest.spyOn(authorizationUtil, 'getPermissions');
+    jest.spyOn(productLicense, 'loadIfNotYetLoaded');
     jest.spyOn(jsUtil, 'getDaysFromNow').mockReturnValue(1);
     ({ load: load, updateLicense: updateLicense, uninstallLicense: uninstallLicense } = actionsModule);
   });
 
   describe('load', () => {
     describe('success', () => {
-      beforeEach(() => {
-        authorizationUtil.getPermissions.mockReturnValue({ length: 0 });
-      });
-
       it(`dispatches a ${PRODUCT_LICENSE_LOAD_REQUESTED} action`, () => {
         store = SpecUtil.mockReduxStore();
         store.dispatch(load());
@@ -57,7 +47,7 @@ describe('productLicenseActions', () => {
 
       it(`dispatches a ${PRODUCT_LICENSE_LOAD_FULFILLED} action`, (done) => {
         const mockResponse = {};
-        axiosMock.onGet(licenseSummaryUrl).reply(200, mockResponse);
+        productLicense.loadIfNotYetLoaded.mockReturnValue(mockResponse);
         store = SpecUtil.mockReduxStore();
         store.dispatch(load()).then(() => {
           const [, { type, payload }] = store.getActions();
@@ -68,39 +58,7 @@ describe('productLicenseActions', () => {
       });
     });
 
-    describe('success as admin', () => {
-      beforeEach(() => {
-        authorizationUtil.getPermissions.mockReturnValue({ length: 1 });
-      });
-
-      it(`dispatches a PRODUCT_LICENSE_LOAD_REQUESTED action`, () => {
-        store = SpecUtil.mockReduxStore();
-        store.dispatch(load());
-        const actions = store.getActions();
-        expect(actions).toHaveAction({
-          type: PRODUCT_LICENSE_LOAD_REQUESTED,
-        });
-      });
-
-      it(`dispatches a PRODUCT_LICENSE_LOAD_FULFILLED action`, (done) => {
-        const mockResponse = { expiryTimestamp: 1 };
-
-        axiosMock.onGet(licenseDetailsUrl).reply(200, mockResponse);
-        store = SpecUtil.mockReduxStore();
-        store.dispatch(load()).then(() => {
-          const [, { type, payload }] = store.getActions();
-          expect(type).toBe(PRODUCT_LICENSE_LOAD_FULFILLED);
-          expect(payload).toEqual({ ...mockResponse, daysToExpiration: 1 });
-          done();
-        });
-      });
-    });
-
     describe('fail', () => {
-      beforeEach(() => {
-        authorizationUtil.getPermissions.mockReturnValue({ length: 0 });
-      });
-
       it(`dispatches a ${PRODUCT_LICENSE_LOAD_REQUESTED} action`, () => {
         store = SpecUtil.mockReduxStore();
         store.dispatch(load());
@@ -111,6 +69,7 @@ describe('productLicenseActions', () => {
       });
 
       it(`dispatches a ${PRODUCT_LICENSE_LOAD_FAILED} action because of insufficient permissions`, (done) => {
+        productLicense.loadIfNotYetLoaded.mockReturnValue(Promise.reject());
         store = SpecUtil.mockReduxStore();
         store.dispatch(load()).then(() => {
           const [, { type }] = store.getActions();
@@ -120,7 +79,7 @@ describe('productLicenseActions', () => {
       });
 
       it(`dispatches a ${PRODUCT_LICENSE_LOAD_FAILED} action because of service failures`, (done) => {
-        axiosMock.onGet(licenseSummaryUrl).reply(500);
+        productLicense.loadIfNotYetLoaded.mockReturnValue(Promise.reject({ response: { status: 500 } }));
         store = SpecUtil.mockReduxStore();
         store.dispatch(load()).then(() => {
           const [, { type }] = store.getActions();
@@ -130,52 +89,7 @@ describe('productLicenseActions', () => {
       });
 
       it(`dispatches a ${PRODUCT_LICENSE_INVALID} action`, (done) => {
-        axiosMock.onGet(licenseSummaryUrl).reply(402);
-        store = SpecUtil.mockReduxStore();
-        store.dispatch(load()).then(() => {
-          const [, { type }] = store.getActions();
-          expect(type).toBe(PRODUCT_LICENSE_INVALID);
-          done();
-        });
-      });
-    });
-
-    describe('fail as admin', () => {
-      beforeEach(() => {
-        authorizationUtil.getPermissions.mockImplementation(() => Promise.reject('some error'));
-      });
-
-      it(`dispatches a ${PRODUCT_LICENSE_LOAD_REQUESTED} action`, () => {
-        store = SpecUtil.mockReduxStore();
-        store.dispatch(load());
-        const actions = store.getActions();
-        expect(actions).toHaveAction({
-          type: PRODUCT_LICENSE_LOAD_REQUESTED,
-        });
-      });
-
-      it(`dispatches a ${PRODUCT_LICENSE_LOAD_FAILED} action because of insufficient permissions`, (done) => {
-        store = SpecUtil.mockReduxStore();
-        store.dispatch(load()).then(() => {
-          const [, { type }] = store.getActions();
-          expect(type).toBe(PRODUCT_LICENSE_LOAD_FAILED);
-          done();
-        });
-      });
-
-      it(`dispatches a ${PRODUCT_LICENSE_LOAD_FAILED} action because of service failures`, (done) => {
-        axiosMock.onGet(licenseSummaryUrl).reply(500);
-        store = SpecUtil.mockReduxStore();
-        store.dispatch(load()).then(() => {
-          const [, { type }] = store.getActions();
-          expect(type).toBe(PRODUCT_LICENSE_LOAD_FAILED);
-          done();
-        });
-      });
-
-      it(`dispatches a ${PRODUCT_LICENSE_INVALID} action`, (done) => {
-        axiosMock.onGet(licenseDetailsUrl).reply(402);
-        authorizationUtil.getPermissions.mockReturnValue({ length: 1 });
+        productLicense.loadIfNotYetLoaded.mockReturnValue(Promise.reject({ response: { status: 402 } }));
         store = SpecUtil.mockReduxStore();
         store.dispatch(load()).then(() => {
           const [, { type }] = store.getActions();

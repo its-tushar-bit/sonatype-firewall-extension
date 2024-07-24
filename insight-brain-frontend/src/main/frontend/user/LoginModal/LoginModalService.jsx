@@ -10,7 +10,7 @@ import { assign } from 'MainRoot/util/CLMLocation';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { unwrapResult } from '@reduxjs/toolkit';
 
-export default function LoginModalService(rootScope, ngRedux) {
+export default function LoginModalService(rootScope, ngRedux, UnauthenticatedRequestQueueService) {
   let modalPromise = null;
   let resolveModalPromise;
   let rejectModalPromise;
@@ -38,8 +38,24 @@ export default function LoginModalService(rootScope, ngRedux) {
     await redirectToIdP(isOAuth2Enabled);
   };
 
+  async function authenticate(showSamlSso) {
+    const isSsoOnlyEnabled = await loadIsSsoOnlyEnabled();
+    const isOAuth2Enabled = await loadOAuth2Enabled();
+
+    if (isSsoOnlyEnabled && (showSamlSso || isOAuth2Enabled)) {
+      UnauthenticatedRequestQueueService.clearRequests();
+      return await redirectToIdP(isOAuth2Enabled);
+    }
+
+    return await open(showSamlSso, isOAuth2Enabled);
+  }
+
   const loadOAuth2Enabled = () => {
     return ngRedux.dispatch(productFeaturesActions.loadIsOauth2Enabled()).then(unwrapResult);
+  };
+
+  const loadIsSsoOnlyEnabled = () => {
+    return ngRedux.dispatch(productFeaturesActions.loadIsSsoOnlyEnabled()).then(unwrapResult);
   };
 
   async function redirectToIdP(isOAuth2Enabled) {
@@ -81,7 +97,7 @@ export default function LoginModalService(rootScope, ngRedux) {
     }
   }
 
-  return { onClickSSO, onSubmit, dismiss, open, redirectToIdP };
+  return { onClickSSO, onSubmit, dismiss, open, redirectToIdP, authenticate };
 }
 
-LoginModalService.$inject = ['$rootScope', '$ngRedux'];
+LoginModalService.$inject = ['$rootScope', '$ngRedux', 'UnauthenticatedRequestQueueService'];

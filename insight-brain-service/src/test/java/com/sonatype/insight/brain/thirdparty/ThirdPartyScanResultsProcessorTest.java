@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
@@ -229,6 +230,7 @@ public class ThirdPartyScanResultsProcessorTest
     File scanFile = getScanFile("scan-with-spdx-data-api.xml");
     String scanId = TemporaryEntity.uuid();
     File tempScanFile = tempDir.newFile();
+    Files.createDirectories(insightWork.getScanDir(application.getId()).toPath());
 
     String scanRequestId =
         thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
@@ -383,6 +385,7 @@ public class ThirdPartyScanResultsProcessorTest
     File scanFile = getScanFile("sbom/scan-with-sbom-data-cli.xml");
     String scanId = TemporaryEntity.uuid();
     File tempScanFile = tempDir.newFile();
+    Files.createDirectories(insightWork.getScanDir(application.getId()).toPath());
 
     String scanRequestId =
         thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
@@ -415,6 +418,7 @@ public class ThirdPartyScanResultsProcessorTest
         new Date(), null);
     assertThirdPartySbomMetadata(thirdPartyFileList.get(0), true, sbomMetadata);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).getSbomMetadataEntity(any(), any());
+    assertFilteredScanFile(thirdPartyFileList.get(1).getId(), application.getId());
   }
 
   @Test
@@ -642,6 +646,7 @@ public class ThirdPartyScanResultsProcessorTest
     File scanFile = getScanFile("sbom/scan-with-sbom-data-creation-details.xml");
     String scanId = TemporaryEntity.uuid();
     File tempScanFile = tempDir.newFile();
+    Files.createDirectories(insightWork.getScanDir(application.getId()).toPath());
 
     String scanRequestId =
         thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
@@ -653,6 +658,7 @@ public class ThirdPartyScanResultsProcessorTest
 
     List<ThirdPartyFile> thirdPartyFileList = thirdPartyFileDAO.getByScanId(scanId);
 
+    String thirdPartyFileId = thirdPartyFileList.get(0).getId();
     File sbomDir = insightWork.getSbomDir(application.getId());
     assertThat(sbomDir).exists();
 
@@ -661,7 +667,7 @@ public class ThirdPartyScanResultsProcessorTest
         .isNotEmpty()
         .hasSize(1);
     assertThat(sboms[0].getName()).endsWith("xml.gz");
-    ThirdPartySbomMetadata sbomMetadata = new ThirdPartySbomMetadata(thirdPartyFileList.get(0).getId(),
+    ThirdPartySbomMetadata sbomMetadata = new ThirdPartySbomMetadata(thirdPartyFileId,
         application.getId(),
         "",
         sboms[0].getName(),
@@ -673,6 +679,15 @@ public class ThirdPartyScanResultsProcessorTest
         new Date(), creationDetailsJson());
     assertThirdPartySbomMetadata(thirdPartyFileList.get(0), true, sbomMetadata);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).getSbomMetadataEntity(any(), any());
+    assertFilteredScanFile(thirdPartyFileId, application.getId());
+  }
+
+  private void assertFilteredScanFile(final String thirdPartyFileId, final String applicationId) {
+    ThirdPartyScan tpScan = thirdPartyScanDAO.getSingleByThirdPartyFileId(thirdPartyFileId);
+    String filteredScanFile = tpScan.getFilteredScanFile();
+    assertThat(filteredScanFile).isNotNull();
+    File filteredScan = new File(insightWork.getScanDir(applicationId), filteredScanFile);
+    assertThat(filteredScan).exists();
   }
 
   private void testHandle_SbomDependencyTree(final String s, final String s2) throws Exception {

@@ -44,6 +44,9 @@ public class ThirdPartyScan
   @Column(name = "create_time")
   private Date createTime;
 
+  @Column(name = "filtered_scan_file")
+  private String filteredScanFile;
+
   @Override
   public String getId() {
     return id;
@@ -84,5 +87,13 @@ public class ThirdPartyScan
 
   public void setCreateTime(final Date createTime) {
     this.createTime = createTime;
+  }
+
+  public String getFilteredScanFile() {
+    return filteredScanFile;
+  }
+
+  public void setFilteredScanFile(final String filteredScanFile) {
+    this.filteredScanFile = filteredScanFile;
   }
 }

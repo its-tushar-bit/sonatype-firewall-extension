@@ -82,18 +82,23 @@ public class PolicyInternalDAO
         "WHERE oa.id = ?1 AND oa.ancestorId = policy.ownerId " +
         "AND (" +
         "  (" +
-        //   if owner is an application, policies attached to parent orgs only apply if the app has all
-        //   of the tags that the policy has
+        //   if owner is an application
         "    oa.ownerType = com.sonatype.insight.brain.model.OwnerType.APPLICATION " +
-        "    AND oa.id <> oa.ancestorId AND NOT EXISTS (" +
-        "      SELECT policyTag " +
-        "      FROM PolicyTag policyTag " +
-        "      WHERE policyTag.policyId = policy.id " +
-        "      AND policyTag.tagId NOT IN (" +
-        "        SELECT appTag.tagId " +
-        "        FROM ApplicationTag appTag " +
-        "        WHERE appTag.applicationId = oa.id" +
-        "      )" +
+        ///  and the policy is attached to the parent org (not directly to an app)
+        "    AND oa.id <> oa.ancestorId" +
+        //   and the policy has tags (categories) attached, then only include the policy if the app also has at least
+        //   one of the tags
+        "    AND (EXISTS (" +
+        "            SELECT appTag.tagId" +
+        "            FROM ApplicationTag appTag, PolicyTag pTag" +
+        "            WHERE appTag.tagId = pTag.tagId" +
+        "              AND appTag.applicationId = oa.id" +
+        "              AND pTag.policyId = policy.id" +
+        "       )" +
+        //      or the policy does not have any tags
+        "       OR NOT EXISTS(" +
+        "           SELECT policyTag FROM PolicyTag policyTag WHERE policyTag.policyId = policy.id" +
+        "       )" +
         "    )" +
         "  ) " +
         "  OR " +

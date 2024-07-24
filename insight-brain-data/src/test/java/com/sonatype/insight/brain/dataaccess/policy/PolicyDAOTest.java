@@ -433,6 +433,48 @@ public class PolicyDAOTest
     assertThat(policies).extracting(Policy::getName).containsExactly(policyNameRootOrg);
   }
 
+  // does not apply to apps with no tags
+  // does apply to policy with no tags
+  @Test
+  public void testGetApplicableByOwnerIdWithHierarchy_ReturnsPoliciesIfAnyAppTagMatchesAnyPolicyTag() {
+    final var appWithNoTags = tempEntity.newApplication(
+        "appWithNoTags",
+        "appWithNoTags-AppPublicId",
+        organization.getId());
+
+    final var appWithTag1 = tempEntity.newApplication(
+        "appWithTag1",
+        "appWithTag1-AppPublicId",
+        organization.getId());
+
+    final var appWithTag2 = tempEntity.newApplication(
+        "appWithTag2",
+        "appWithTag2-AppPublicId",
+        organization.getId());
+
+    final var tag1 = tempEntity.newTag(organization.getId());
+    final var tag2 = tempEntity.newTag(organization.getId());
+
+    // given the policy has two tags associated
+    final var policyWithTwoTags = tempEntity.newPolicy(organization.getId(), "policyWithMultipleTags");
+    tempEntity.newPolicyTag(policyWithTwoTags.getId(), tag1.getId());
+    tempEntity.newPolicyTag(policyWithTwoTags.getId(), tag2.getId());
+
+    // associate the tags to apps
+    tempEntity.newApplicationTag(appWithTag1.getId(), tag1.getId());
+    tempEntity.newApplicationTag(appWithTag2.getId(), tag2.getId());
+
+    // should return the policy for an app that has at least one of the tags applied
+    var results = policyDAO.getApplicableByOwnerIdWithHierarchy(appWithTag1.getId());
+    assertThat(results).extracting(Policy::getName).containsExactly("policyWithMultipleTags");
+    results = policyDAO.getApplicableByOwnerIdWithHierarchy(appWithTag2.getId());
+    assertThat(results).extracting(Policy::getName).containsExactly("policyWithMultipleTags");
+
+    // should not return the policy if an app has none of the tags
+    results = policyDAO.getApplicableByOwnerIdWithHierarchy(appWithNoTags.getId());
+    assertThat(results).extracting(Policy::getName).isEmpty();
+  }
+
   @Test
   public void testGetApplicableByOwnerIdWithHierarchy_WithTags() {
     Policy policyOrg1 = tempEntity.newPolicy(organization.getId(), "policyOrg1");

@@ -136,6 +136,8 @@ describe('VexAnnotationDrawer', () => {
     lastUpdatedBy: 'testAuthor',
 
     isRowAnnotated: false,
+    isJustificationSet: false,
+    isResponseSet: false,
 
     responsesOptions,
     analysisStatusesOptions,
@@ -426,7 +428,7 @@ describe('VexAnnotationDrawer', () => {
       expect(getByText(updateButton, 'Update')).toBeInTheDocument();
     });
 
-    it('will not render SELECT text in dropdown controls', () => {
+    it('will not render SELECT text in analysis dropdown but will render SELECT text in the other dropdowns', () => {
       const { container } = renderAnnotatedForm();
       const formContainer = getFormContainer(container);
 
@@ -435,13 +437,11 @@ describe('VexAnnotationDrawer', () => {
         formContainer.querySelector('#vex-annotation-drawer__form__analysis-status-select')
       );
 
-      assertDropdownDidNotRenderedSelectOption(
+      assertDropdownRenderedSelectOption(
         formContainer.querySelector('#vex-annotation-drawer__form__justification-select')
       );
 
-      assertDropdownDidNotRenderedSelectOption(
-        formContainer.querySelector('#vex-annotation-drawer__form__response-select')
-      );
+      assertDropdownRenderedSelectOption(formContainer.querySelector('#vex-annotation-drawer__form__response-select'));
     });
 
     it('renders annotation description with preloaded details', () => {

@@ -279,6 +279,8 @@ export default function ComponentDetailsPage() {
                 openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
                 openVexAnnotationModal={openVexAnnotationModal}
                 analysisStatusesOptions={analysisStatusesOptions}
+                justificationsOptions={justificationsOptions}
+                responsesOptions={responsesOptions}
                 sortConfiguration={disclosedVulnerabilitiesSortConfiguration}
                 toggleSortDirection={cycleDisclosedVulnerabilitiesSortDirection}
                 onDeleteOptionClick={openDeleteModal}
@@ -291,6 +293,8 @@ export default function ComponentDetailsPage() {
                 openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
                 openVexAnnotationModal={openVexAnnotationModal}
                 analysisStatusesOptions={analysisStatusesOptions}
+                justificationsOptions={justificationsOptions}
+                responsesOptions={responsesOptions}
                 sortConfiguration={additionalVulnerabilitiesSortConfiguration}
                 toggleSortDirection={cycleAdditionalVulnerabilitiesSortDirection}
                 onDeleteOptionClick={openDeleteModal}

@@ -43,8 +43,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { selectIssueForActions } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSelector';
 import { analysisStatusIndicator, transformJustification } from './componentDetailsUtils';
 
-export const isVulnerabilityAnnotated = (vulnerabilityRow, vulnerabilityValidAnalysisStates) =>
-  vulnerabilityValidAnalysisStates.map((entry) => entry.key).indexOf(vulnerabilityRow?.analysisStatus) > -1;
+export const isVexFieldAnnotated = (vexFieldAnnotation, vulnerabilityValidVexFieldStates) =>
+  vulnerabilityValidVexFieldStates.map((entry) => entry.key).indexOf(vexFieldAnnotation) > -1;
 
 const sortVulnerabilities = (vulnerabilites, { sortBy, sortDirection }) => {
   const sortConfig = cond([
@@ -67,6 +67,8 @@ export default function VulnerabilitiesTile(props) {
     openVulnerabilityDetailsModal,
     openVexAnnotationModal,
     analysisStatusesOptions,
+    justificationsOptions,
+    responsesOptions,
     sortConfiguration,
     toggleSortDirection,
     onDeleteOptionClick,
@@ -92,7 +94,11 @@ export default function VulnerabilitiesTile(props) {
     [vulnerabilities, sortConfiguration, isEmpty]
   );
 
-  const isRowAnnotated = (vulnRow, states) => isVulnerabilityAnnotated(vulnRow, states);
+  const isRowAnnotated = (vulnRow, states) => isVexFieldAnnotated(vulnRow?.analysisStatus, states);
+
+  const isJustificationSet = (vulnRow, states) => isVexFieldAnnotated(vulnRow?.justification, states);
+
+  const isResponseSet = (vulnRow, states) => isVexFieldAnnotated(vulnRow?.response, states);
 
   const tableBodyRows = !isEmpty
     ? sortedVulnerabilities.map((vulnerability) => (
@@ -169,6 +175,8 @@ export default function VulnerabilitiesTile(props) {
                   openVexAnnotationModal({
                     ...vulnerability,
                     isRowAnnotated: isRowAnnotated(vulnerability, analysisStatusesOptions),
+                    isJustificationSet: isJustificationSet(vulnerability, justificationsOptions),
+                    isResponseSet: isResponseSet(vulnerability, responsesOptions),
                   })
                 }
                 className="nx-dropdown-button"
@@ -250,6 +258,8 @@ VulnerabilitiesTile.propTypes = {
   openVulnerabilityDetailsModal: PropTypes.func,
   openVexAnnotationModal: PropTypes.func,
   analysisStatusesOptions: PropTypes.array.isRequired,
+  justificationsOptions: PropTypes.array.isRequired,
+  responsesOptions: PropTypes.array.isRequired,
   sortConfiguration: PropTypes.shape({
     sortBy: PropTypes.string.isRequired,
     sortDirection: PropTypes.string,

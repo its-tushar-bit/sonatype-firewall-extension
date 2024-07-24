@@ -62,6 +62,8 @@ export default function VexAnnotationDrawer(props) {
     lastUpdatedBy,
 
     isRowAnnotated,
+    isJustificationSet,
+    isResponseSet,
 
     responsesOptions,
     analysisStatusesOptions,
@@ -119,9 +121,29 @@ export default function VexAnnotationDrawer(props) {
     initialState(isRowAnnotated ? (isNilOrEmpty(details) ? '' : details) : '')
   );
 
-  const getDefaultStateForDropdown = (initialValue, options, validator) =>
+  const getDefaultStateForAnalysisDropdown = (initialValue, options, validator) =>
     nxFormSelectStateHelpers.useNxFormSelectState(
       isRowAnnotated
+        ? isNil(initialValue)
+          ? options[0]?.key
+          : filterCommaSeparatedValues(initialValue)
+        : DROPDOWN_SELECT_OPTION,
+      validator
+    );
+
+  const getDefaultStateForJustificationDropdown = (initialValue, options, validator) =>
+    nxFormSelectStateHelpers.useNxFormSelectState(
+      isJustificationSet
+        ? isNil(initialValue)
+          ? options[0]?.key
+          : filterCommaSeparatedValues(initialValue)
+        : DROPDOWN_SELECT_OPTION,
+      validator
+    );
+
+  const getDefaultStateForResponseDropdown = (initialValue, options, validator) =>
+    nxFormSelectStateHelpers.useNxFormSelectState(
+      isResponseSet
         ? isNil(initialValue)
           ? options[0]?.key
           : filterCommaSeparatedValues(initialValue)
@@ -132,17 +154,20 @@ export default function VexAnnotationDrawer(props) {
   const filterCommaSeparatedValues = (commaSeparatedValue) =>
     commaSeparatedValue.includes(',') ? commaSeparatedValue.split(',')[0] : commaSeparatedValue;
 
-  const [analysisStatusControlState, setAnalysisStatusControlState] = getDefaultStateForDropdown(
+  const [analysisStatusControlState, setAnalysisStatusControlState] = getDefaultStateForAnalysisDropdown(
     analysisStatus,
     analysisStatusesOptions
   );
 
-  const [justificationControlState, setJustificationControlState] = getDefaultStateForDropdown(
+  const [justificationControlState, setJustificationControlState] = getDefaultStateForJustificationDropdown(
     justification,
     justificationsOptions
   );
 
-  const [responseControlState, setResponseControlState] = getDefaultStateForDropdown(response, responsesOptions);
+  const [responseControlState, setResponseControlState] = getDefaultStateForResponseDropdown(
+    response,
+    responsesOptions
+  );
 
   // Define validators for controls here
 
@@ -175,8 +200,24 @@ export default function VexAnnotationDrawer(props) {
       ? dropdownControlState.value
       : validOptions[0].key;
 
-  const getValidValueForDropdown = (dropdownControlState, validOptions) => {
+  const getValidValueForAnalysisDropdown = (dropdownControlState, validOptions) => {
     if (isRowAnnotated) {
+      return getValidValueForDropdownForAnnotatedRow(dropdownControlState, validOptions);
+    } else {
+      return dropdownControlState.value;
+    }
+  };
+
+  const getValidValueForJustificationDropdown = (dropdownControlState, validOptions) => {
+    if (isJustificationSet) {
+      return getValidValueForDropdownForAnnotatedRow(dropdownControlState, validOptions);
+    } else {
+      return dropdownControlState.value;
+    }
+  };
+
+  const getValidValueForResponseDropdown = (dropdownControlState, validOptions) => {
+    if (isResponseSet) {
       return getValidValueForDropdownForAnnotatedRow(dropdownControlState, validOptions);
     } else {
       return dropdownControlState.value;
@@ -237,9 +278,9 @@ export default function VexAnnotationDrawer(props) {
 
     // Validate if dropdown control values are invalid, if so, pick the
     // first one from their respective valid list to avoid errors
-    const validJustification = getValidValueForDropdown(justificationControlState, justificationsOptions);
-    const validResponse = getValidValueForDropdown(responseControlState, responsesOptions);
-    const validState = getValidValueForDropdown(analysisStatusControlState, analysisStatusesOptions);
+    const validJustification = getValidValueForJustificationDropdown(justificationControlState, justificationsOptions);
+    const validResponse = getValidValueForResponseDropdown(responseControlState, responsesOptions);
+    const validState = getValidValueForAnalysisDropdown(analysisStatusControlState, analysisStatusesOptions);
 
     // Craft proper request payload data. In non-annotated rows, if SELECT is selected, that property
     // should not be included in the payload
@@ -388,8 +429,8 @@ export default function VexAnnotationDrawer(props) {
     </>
   );
 
-  const dropDownOptions = (isRowAnnotated, options) => {
-    const optionsForRender = isRowAnnotated ? options : getDropdownOptionsWithSelect(options);
+  const dropDownOptions = (isVexFieldAnnotated, options) => {
+    const optionsForRender = isVexFieldAnnotated ? options : getDropdownOptionsWithSelect(options);
     return optionsForRender.map((optionEntry) => {
       return (
         <option key={optionEntry.key} value={optionEntry.key}>
@@ -418,7 +459,7 @@ export default function VexAnnotationDrawer(props) {
             onChange={onChangeJustification}
             {...justificationControlState}
           >
-            {dropDownOptions(isRowAnnotated, justificationsOptions)}
+            {dropDownOptions(isJustificationSet, justificationsOptions)}
           </NxFormSelect>
         </NxFieldset>
 
@@ -428,7 +469,7 @@ export default function VexAnnotationDrawer(props) {
             onChange={onChangeResponse}
             {...responseControlState}
           >
-            {dropDownOptions(isRowAnnotated, responsesOptions)}
+            {dropDownOptions(isResponseSet, responsesOptions)}
           </NxFormSelect>
         </NxFieldset>
 
@@ -539,6 +580,8 @@ VexAnnotationDrawer.propTypes = {
   updatedAt: PropTypes.number,
   lastUpdatedBy: PropTypes.string,
   isRowAnnotated: PropTypes.bool,
+  isJustificationSet: PropTypes.bool,
+  isResponseSet: PropTypes.bool,
 
   // Functions
   preSaveMaskActions: PropTypes.func,

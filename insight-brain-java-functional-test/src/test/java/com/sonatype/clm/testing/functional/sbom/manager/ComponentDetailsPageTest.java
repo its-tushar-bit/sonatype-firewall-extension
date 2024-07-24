@@ -212,8 +212,16 @@ public class ComponentDetailsPageTest
     vexDrawer.submitButton().click();
     vexDrawer.successModal().shouldBe(visible);
     vexDrawer.shouldNotBe(visible);
+
     ellipsisButton.click();
-    actionButtonFirstRowColumn.findAll("button").get(1).shouldHave(text("Edit Annotation"));
+    SelenideElement editAnnotationButton =  actionButtonFirstRowColumn.findAll("button").get(1);
+    editAnnotationButton.shouldHave(text("Edit Annotation"));
+    editAnnotationButton.click();
+
+    vexDrawer.shouldBe(visible);
+    assertVexAnnotationForm(vexDrawer, "ABC-123", TEST_COMPONENT_PURL, "5.6", "Unverified",
+        "test vulnerability", "Exploitable", "SELECT",
+        "SELECT", "Update", "");
   }
 
   @Test

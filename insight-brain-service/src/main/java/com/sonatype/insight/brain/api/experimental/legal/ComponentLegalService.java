@@ -430,8 +430,8 @@ public class ComponentLegalService
               componentIdentifier,
               Set.of(obligationName))
           .stream()
-          .map(ApiLicenseLegalObligationDTO::new)
           .findFirst()
+          .map(ApiLicenseLegalObligationDTO::new)
           .orElse(null);
     }
   }

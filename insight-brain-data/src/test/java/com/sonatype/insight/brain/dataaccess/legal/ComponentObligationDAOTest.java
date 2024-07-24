@@ -171,9 +171,9 @@ public class ComponentObligationDAOTest
     tempEntity.newComponentObligation(componentIdentifier, organization.getId(), "name2", "comment1",
         ObligationStatus.OPEN, "legalContentHash1");
 
-    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNames(organization.getId(), componentIdentifier,
-        Collections.singleton(obligationName))).usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(componentObligation);
+    assertGetByOwnerIdsAndComponentIdentifierAndObligationNames(
+        organization.getId(), componentIdentifier, Collections.singleton(obligationName),
+        componentObligation);
     assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationName(organization.getId(), componentIdentifier,
         obligationName)).usingRecursiveComparison().isEqualTo(componentObligation);
   }

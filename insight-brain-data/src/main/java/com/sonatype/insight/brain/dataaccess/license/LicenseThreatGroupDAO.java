@@ -97,25 +97,24 @@ public class LicenseThreatGroupDAO
       List<String> ownerIds,
       Set<String> licenseIds)
   {
-    Map<String, List<LicenseThreatGroup>> result = new HashMap<>();
-
     String sQuery = "SELECT licenseThreatGroupLicense.licenseId, licenseThreatGroup" + //
         " FROM LicenseThreatGroup licenseThreatGroup, LicenseThreatGroupLicense licenseThreatGroupLicense" + //
         " WHERE licenseThreatGroup.id=licenseThreatGroupLicense.licenseThreatGroupId" + //
-        " AND licenseThreatGroup.ownerId=?1 AND licenseThreatGroupLicense.licenseId IN (?2)";
+        " AND licenseThreatGroup.ownerId IN (?1) AND licenseThreatGroupLicense.licenseId IN (?2)";
 
-    for (String currentOwnerId : ownerIds) {
-      javax.persistence.Query query = tx.createQuery(sQuery);
-      query.setParameter(1, currentOwnerId);
-      query.setParameter(2, licenseIds);
+    javax.persistence.Query query = tx.createQuery(sQuery);
+    query.setParameter(1, ownerIds);
+    query.setParameter(2, licenseIds);
 
-      ((List<Object[]>) query.getResultList()).forEach(array -> {
-        List<LicenseThreatGroup> list = result.computeIfAbsent((String) array[0], licenseId -> new ArrayList<>());
-        list.add((LicenseThreatGroup) array[1]);
-      });
+    List<Object[]> resultList = query.getResultList();
+    Map<String, List<LicenseThreatGroup>> licenseIdAndThreatGroups = new HashMap<>();
+    for (Object[] object : resultList) {
+      List<LicenseThreatGroup> listFromKey = licenseIdAndThreatGroups
+          .computeIfAbsent((String) object[0], licenseId -> new ArrayList<>());
+      listFromKey.add((LicenseThreatGroup) object[1]);
     }
 
-    return result;
+    return licenseIdAndThreatGroups;
   }
 
   public List<LicenseThreatGroup> getByIds(Set<String> licenseThreatGroupIds) {

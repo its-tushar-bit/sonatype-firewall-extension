@@ -91,6 +91,8 @@ public class ThirdPartyScanResultsProcessor
 
   private static final XMLEventFactory EVENT_FACTORY = XMLEventFactory.newInstance();
 
+  private static final String CONTENT_TYPE_LIST_ATTRIBUTE = "content_type_list";
+
   private final ThirdPartyScanDAO thirdPartyScanDAO;
 
   private final ThirdPartyFileDAO thirdPartyFileDAO;
@@ -167,6 +169,7 @@ public class ThirdPartyScanResultsProcessor
         writer.close();
         compressScanFile(filteredFile, tempScanFile);
         saveFilteredScanFileIfNeeded(scanContext, tempScanFile);
+        telemetrySender.send(thirdPartyScanTelemetryData);
         log.info("Completed processing third party content in file {}", scanFile.getName());
         return scanRequestId;
       }
@@ -255,9 +258,7 @@ public class ThirdPartyScanResultsProcessor
   {
     String contentType = parser.getAttributeValue(null, "contentType");
     if (contentType != null && thirdPartyItemContentTypes.contains(contentType)) {
-      if (thirdPartyScanTelemetryData != null) {
-        telemetrySender.send(thirdPartyScanTelemetryData);
-      }
+      addContentTypeToTelemetry(thirdPartyScanTelemetryData, contentType);
       List<ProjectScanItem> moduleDependencies = new ArrayList<>();
       if (!contentType.equals(ItemContentType.IAC_FILE.name())) {
         Xpp3Dom itemElement = Xpp3Util.loadElement("item", parser);
@@ -275,6 +276,22 @@ public class ThirdPartyScanResultsProcessor
         }
         writer.add(EVENT_FACTORY.createEndElement(new QName(parser.getName()), null));
         writeDependencyGraph(writer, moduleDependencies);
+      }
+    }
+  }
+
+  private static void addContentTypeToTelemetry(
+      final TelemetryData tpScanTelemetryData,
+      final String contentType)
+  {
+    if (tpScanTelemetryData != null) {
+      Object contentTypeList = tpScanTelemetryData.getAttributes().get(CONTENT_TYPE_LIST_ATTRIBUTE);
+      if (contentTypeList instanceof List) {
+        //noinspection unchecked
+        ((List<String>) contentTypeList).add(contentType);
+      }
+      else {
+        tpScanTelemetryData.getAttributes().put(CONTENT_TYPE_LIST_ATTRIBUTE, new ArrayList<>(asList(contentType)));
       }
     }
   }

@@ -8,6 +8,13 @@ package com.sonatype.clm.testing.functional.mtiq.pages.sbom;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
+import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.ApplicationsHistoryTile;
+import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.HighPriorityVulnerabilitiesTile;
+import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.RecentlyImportedSBOMsTile;
+import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.SbomReleaseStatusTile;
+import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.TotalSBOMsStoredTile;
+import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.VulnerabilitiesThreatLevelTile;
+
 import com.codeborne.selenide.SelenideElement;
 
 public class SbomManagerDashboardPage extends BasicElement<SbomManagerDashboardPage>
@@ -26,5 +33,33 @@ public class SbomManagerDashboardPage extends BasicElement<SbomManagerDashboardP
 
   public SelenideElement errorAlert() {
     return child(".nx-alert--error");
+  }
+  
+  public SelenideElement toolTip() {
+    return child(".nx-tooltip");
+  }
+  
+  public static RecentlyImportedSBOMsTile recentlyImportedSBOMsTile() {
+    return new RecentlyImportedSBOMsTile();
+  }
+
+  public static TotalSBOMsStoredTile totalSBOMsStoredTile() {
+    return new TotalSBOMsStoredTile();
+  }
+  
+  public static ApplicationsHistoryTile applicationsHistoryTile() {
+    return new ApplicationsHistoryTile();
+  }
+  
+  public static HighPriorityVulnerabilitiesTile highPriorityVulnerabilitiesTile() {
+    return new HighPriorityVulnerabilitiesTile();
+  }
+  
+  public static VulnerabilitiesThreatLevelTile vulnerabilitiesThreatLevelTile() {
+    return new VulnerabilitiesThreatLevelTile();
+  }
+  
+  public static SbomReleaseStatusTile sbomReleaseStatusTile() {
+    return new SbomReleaseStatusTile();
   }
 }

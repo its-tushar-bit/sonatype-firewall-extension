@@ -10,6 +10,10 @@ public class SelectorUtils
   public static String nthChild(int num) {
     return ":nth-child(" + num + ")";
   }
+  
+  public static String nthOfType(int num) {
+    return ":nth-of-type(" + num + ")";
+  }
 
   // pseudo-classes are assumed to apply to the previous class
   public static String createSelector(String... selectors) {

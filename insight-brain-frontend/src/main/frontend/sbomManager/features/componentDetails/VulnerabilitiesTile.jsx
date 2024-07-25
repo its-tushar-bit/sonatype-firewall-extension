@@ -239,7 +239,7 @@ export default function VulnerabilitiesTile(props) {
               <NxTable.Cell {...sortableConfigCreator(SORT_BY_FIELDS.cvssScore)}>CVSS Score</NxTable.Cell>
               <NxTable.Cell>Issue</NxTable.Cell>
               {isDisclosedVulnerabilities && <NxTable.Cell>Verified Status</NxTable.Cell>}
-              <NxTable.Cell {...sortableConfigCreator(SORT_BY_FIELDS.analysisStatus)}>Analysis Status</NxTable.Cell>
+              <NxTable.Cell {...sortableConfigCreator(SORT_BY_FIELDS.analysisStatus)}>Analysis State</NxTable.Cell>
               <NxTable.Cell>Justification</NxTable.Cell>
               <NxTable.Cell>Actions</NxTable.Cell>
             </NxTable.Row>

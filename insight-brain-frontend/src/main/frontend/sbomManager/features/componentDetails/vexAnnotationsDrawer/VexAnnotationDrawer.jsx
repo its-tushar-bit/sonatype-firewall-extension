@@ -88,7 +88,7 @@ export default function VexAnnotationDrawer(props) {
   }
 
   const analysisStatusDropdownIsRequiredErrorMessage =
-    'Analysis status field is required. Please select a value from the dropdown list';
+    'Analysis state field is required. Please select a value from the dropdown list';
 
   const isVulnerabilityReferenceDataLoading = useSelector(selectLoadingVulnerabilityAnalysisReferenceData);
   const errorLoadingAnalysisReferenceData = useSelector(selectLoadVulnerabilityAnalysisReferenceDataError);
@@ -443,7 +443,7 @@ export default function VexAnnotationDrawer(props) {
   const vexAnnotationFormFragment = function () {
     return (
       <>
-        <NxFieldset className="vex-annotation-drawer__form__analysis-status" label="Analysis status" isRequired>
+        <NxFieldset className="vex-annotation-drawer__form__analysis-status" label="Analysis state" isRequired>
           <NxFormSelect
             id="vex-annotation-drawer__form__analysis-status-select"
             onChange={onChangeAnalysisStatus}

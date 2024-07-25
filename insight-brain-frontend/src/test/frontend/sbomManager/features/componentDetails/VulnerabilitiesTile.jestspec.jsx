@@ -130,7 +130,7 @@ describe('Vulnerabilities Tile', () => {
     expect(rowCells[0]).toHaveTextContent('CVSS Score');
     expect(rowCells[1]).toHaveTextContent('Issue');
     expect(rowCells[2]).toHaveTextContent('Verified Status');
-    expect(rowCells[3]).toHaveTextContent('Analysis Status');
+    expect(rowCells[3]).toHaveTextContent('Analysis State');
     expect(rowCells[4]).toHaveTextContent('Justification');
     expect(rowCells[5]).toHaveTextContent('Action');
 
@@ -189,7 +189,7 @@ describe('Vulnerabilities Tile', () => {
     let rowCells = within(headersRow).getAllByRole('columnheader');
     expect(rowCells[0]).toHaveTextContent('CVSS Score');
     expect(rowCells[1]).toHaveTextContent('Issue');
-    expect(rowCells[2]).toHaveTextContent('Analysis Status');
+    expect(rowCells[2]).toHaveTextContent('Analysis State');
     expect(rowCells[3]).toHaveTextContent('Justification');
     expect(rowCells[4]).toHaveTextContent('Action');
 
@@ -230,7 +230,7 @@ describe('Vulnerabilities Tile', () => {
     let rowCells = within(headersRow).getAllByRole('columnheader');
     expect(rowCells[0]).toHaveTextContent('CVSS Score');
     expect(rowCells[1]).toHaveTextContent('Issue');
-    expect(rowCells[2]).toHaveTextContent('Analysis Status');
+    expect(rowCells[2]).toHaveTextContent('Analysis State');
     expect(rowCells[3]).toHaveTextContent('Justification');
     expect(rowCells[4]).toHaveTextContent('Action');
 

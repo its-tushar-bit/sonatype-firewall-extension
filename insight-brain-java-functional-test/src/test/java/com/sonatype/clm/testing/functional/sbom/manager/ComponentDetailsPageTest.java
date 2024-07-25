@@ -471,7 +471,7 @@ public class ComponentDetailsPageTest
     sbomManagerComponentDetailsPage.disclosedVulnerabilities().getColumnHeader(2).shouldHave(
         text("VERIFIED STATUS"));
     sbomManagerComponentDetailsPage.disclosedVulnerabilities().getColumnHeader(3).shouldHave(
-        text("ANALYSIS STATUS"));
+        text("ANALYSIS STATE"));
     sbomManagerComponentDetailsPage.disclosedVulnerabilities().getColumnHeader(4).shouldHave(
         text("JUSTIFICATION"));
     sbomManagerComponentDetailsPage.disclosedVulnerabilities().getColumnHeader(5).shouldHave(
@@ -486,7 +486,7 @@ public class ComponentDetailsPageTest
     table.getColumnHeader(1).shouldHave(
         text("ISSUE"));
     table.getColumnHeader(2).shouldHave(
-        text("ANALYSIS STATUS"));
+        text("ANALYSIS STATE"));
     table.getColumnHeader(3).shouldHave(
         text("JUSTIFICATION"));
     table.getColumnHeader(4).shouldHave(

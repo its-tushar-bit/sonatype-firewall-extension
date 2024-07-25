@@ -271,19 +271,19 @@ describe('VexAnnotationDrawer', () => {
     });
 
     describe('Annotation Vulnerability Form section', () => {
-      it('renders Analysis Status dropdown', () => {
+      it('renders Analysis State dropdown', () => {
         const { container } = renderDefaultComponent();
 
         const formContainer = getFormContainer(container);
 
-        expect(getByText(formContainer, 'Analysis status')).toBeInTheDocument();
+        expect(getByText(formContainer, 'Analysis state')).toBeInTheDocument();
         assertDropdownRenderedWithOptions(analysisStatusesOptions, formContainer);
         assertDropdownRenderedSelectOption(
           formContainer.querySelector('#vex-annotation-drawer__form__analysis-status-select')
         );
       });
 
-      it('renders empty Analysis Status dropdown', () => {
+      it('renders empty Analysis State dropdown', () => {
         const { container } = renderWithOverriddenData({ ...mockVexAnnotationDrawer, analysisStatusesOptions: [] });
 
         const formContainer = getFormContainer(container);
@@ -356,7 +356,7 @@ describe('VexAnnotationDrawer', () => {
     });
 
     describe('Render form validation errors', () => {
-      it('renders error message because no Analysis Status was selected in dropdown before saving', () => {
+      it('renders error message because no Analysis State was selected in dropdown before saving', () => {
         const { container } = renderWithOverriddenData({
           ...mockVexAnnotationDrawer,
           analysisStatus: undefined,
@@ -371,18 +371,18 @@ describe('VexAnnotationDrawer', () => {
         expect(saveButton.getAttribute('class')).toContain('vex-annotation-popover__footer-hidden');
 
         expect(
-          getByText(footerContainer, /Analysis status field is required. Please select a value from the dropdown list/)
+          getByText(footerContainer, /Analysis state field is required. Please select a value from the dropdown list/)
         ).toBeInTheDocument();
       });
 
-      it('hides save button when required analysis status field error triggers and show back button when is valid', () => {
+      it('hides save button when required analysis state field error triggers and show back button when is valid', () => {
         const { container } = renderWithOverriddenData({
           ...mockVexAnnotationDrawer,
           analysisStatus: 'SELECT',
         });
 
         const dropdown = container.querySelector('#vex-annotation-drawer__form__analysis-status-select');
-        const requiredValidationErrorMatcher = /Analysis status field is required./;
+        const requiredValidationErrorMatcher = /Analysis state field is required./;
         const requiredValidationErrorMatcher2ndLine = /Please select a value from the dropdown list/;
 
         const footerContainer = container.querySelector('.vex-annotation-popover__footer-nx-drawer');

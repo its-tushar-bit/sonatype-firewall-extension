@@ -350,6 +350,7 @@ describe('applicationReportReducer', function () {
           allEntries: entries,
           displayedEntries: sortedEntries,
           aggregatedEntries,
+          unfilteredAggregatedEntries: aggregatedEntries,
           moderateViolationCount: 1,
           severeViolationCount: 1,
           criticalViolationCount: 1,
@@ -455,6 +456,7 @@ describe('applicationReportReducer', function () {
         selectedReport: {
           allEntries: entries,
           aggregatedEntries,
+          unfilteredAggregatedEntries: aggregatedEntries,
           displayedEntries: [
             {
               hash: 'a',

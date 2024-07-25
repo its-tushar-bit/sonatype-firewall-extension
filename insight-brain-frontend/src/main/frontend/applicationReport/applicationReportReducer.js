@@ -428,18 +428,24 @@ function updateDisplayedEntries(state) {
   let { selectedReport, sortFields, aggregate, exactValueFilters, substringFilters } = state;
 
   if (selectedReport) {
-    const { allEntries } = selectedReport,
-      filterAndSortEntries = pipe(
-        filterReportEntries(exactValueFilters, substringFilters, null),
-        sortItemsByFields(sortFields),
-        reject(propEq('scanError', true))
-      ),
-      processAggregatedEntries = pipe(aggregateReportEntries, filterAndSortEntries),
-      aggregatedEntries = processAggregatedEntries(allEntries),
-      newDisplayedEntries = aggregate ? aggregatedEntries : filterAndSortEntries(allEntries),
-      // create `aggregatedEntries` prop to be used for navigation
-      stateWithAggregatedEntries = set(lensPath(['selectedReport', 'aggregatedEntries']), aggregatedEntries, state);
-    return set(lensPath(['selectedReport', 'displayedEntries']), newDisplayedEntries, stateWithAggregatedEntries);
+    const { allEntries } = selectedReport;
+    const filterEntries = filterReportEntries(exactValueFilters, substringFilters, null);
+    const sortEntries = pipe(sortItemsByFields(sortFields), reject(propEq('scanError', true)));
+    const filteredEntries = filterEntries(allEntries);
+    const unfilteredAggregatedEntries = pipe(aggregateReportEntries, sortEntries)(allEntries);
+    const aggregatedEntries = filterEntries(unfilteredAggregatedEntries);
+    const newDisplayedEntries = aggregate ? sortEntries(aggregatedEntries) : sortEntries(filteredEntries);
+    // create `aggregatedEntries` prop to be used for navigation and `unfilteredAggregatedEntries` for report reloading
+    return set(
+      lensPath(['selectedReport']),
+      {
+        ...selectedReport,
+        unfilteredAggregatedEntries,
+        aggregatedEntries,
+        displayedEntries: newDisplayedEntries,
+      },
+      state
+    );
   } else {
     return state;
   }
@@ -487,7 +493,7 @@ function setExtendedTreeData(state, dependencies) {
     return { ...state, dependencyTree: [] };
   }
 
-  const entriesByKey = map(populateEntryNodeKeys, state.selectedReport?.aggregatedEntries);
+  const entriesByKey = map(populateEntryNodeKeys, state.selectedReport?.unfilteredAggregatedEntries);
   const indexedEntries = indexBy(getKey, entriesByKey);
   // In a multi-module project direct dependencies can be modules without corresponding bom entries, so we flatten them
   const dependencyTree = flattenModuleDirectDependencies(dependencies.dependencyTree);

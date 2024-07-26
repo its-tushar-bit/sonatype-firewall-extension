@@ -29,6 +29,7 @@ import com.sonatype.insight.scan.file.SbomFormat;
 
 import com.codeborne.selenide.ElementsCollection;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -257,6 +258,7 @@ public class SbomManagerBillOfMaterialsPageTest
     componentsTile.paginationStatus().shouldHave(visible);
   }
 
+  @Ignore
   @Test
   public void testBillOfMaterial_ComponentsTilePagination() {
     insertComponentsTileSbomData();

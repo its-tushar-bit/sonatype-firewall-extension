@@ -9,7 +9,22 @@ import reducer, {
   defaultSortConfiguration,
 } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
 
-describe('sbomComponentDetailsPage reducers have the correct state when the following reducer is dispatched', function () {
+describe('SBOM Manager componentDetailsSlice', function () {
+  describe('sbomComponentDetailsPage/setActiveTabIndex', function () {
+    it('sets activeTabIndex', () => {
+      const state = {
+        activeTabIndex: 0,
+      };
+
+      const newState = reducer(state, {
+        type: 'sbomComponentDetailsPage/setActiveTabIndex',
+        payload: 1,
+      });
+
+      expect(newState.activeTabIndex).toBe(1);
+    });
+  });
+
   describe('sbomComponentDetailsPage/loadComponentDetails', function () {
     it('/pending', () => {
       const state = {

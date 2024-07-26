@@ -259,6 +259,7 @@ describe('ComponentDetailsPage', () => {
         loadError: null,
         publicAppId: null,
         componentDetails: null,
+        activeTabIndex: 0,
 
         disclosedVulnerabilitiesSortConfiguration: { ...defaultSortConfiguration },
         additionalVulnerabilitiesSortConfiguration: { ...defaultSortConfiguration },

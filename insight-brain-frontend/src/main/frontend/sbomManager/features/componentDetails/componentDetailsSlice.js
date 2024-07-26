@@ -34,6 +34,10 @@ export const SORT_DIRECTION = Object.freeze({
   DEFAULT: null,
 });
 
+export const TAB_INDICES = Object.freeze({
+  VULNERABILTIY: 0,
+});
+
 export const defaultSortConfiguration = Object.freeze({
   sortBy: SORT_BY_FIELDS.cvssScore,
   sortDirection: SORT_DIRECTION.DESC,
@@ -50,6 +54,7 @@ export const initialState = {
   loadSaveVexAnnotationFormError: null,
   loadingVulnerabilityAnalysisReferenceData: false,
   loadVulnerabilityAnalysisReferenceDataError: null,
+  activeTabIndex: TAB_INDICES.VULNERABILTIY,
   publicAppId: null,
   componentDetails: null,
   disclosedVulnerabilitiesSortConfiguration: { ...defaultSortConfiguration },
@@ -65,6 +70,10 @@ export const initialState = {
   deleteMaskState: null,
   deleteError: null,
   showDeleteModal: false,
+};
+
+const setActiveTabIndex = (state, { payload }) => {
+  state.activeTabIndex = payload;
 };
 
 const setSelectedIssueForActions = (state, { payload }) => {
@@ -382,6 +391,7 @@ const sbomComponentDetailsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
+    setActiveTabIndex,
     clearFormSubmitMask: function (state) {
       state.submitMaskStateForVexAnnotationForm = null;
     },

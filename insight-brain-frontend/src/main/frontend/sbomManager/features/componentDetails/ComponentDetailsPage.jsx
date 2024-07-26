@@ -5,7 +5,16 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { NxFontAwesomeIcon, NxLoadWrapper, NxPageMain, NxTag } from '@sonatype/react-shared-components';
+import {
+  NxFontAwesomeIcon,
+  NxLoadWrapper,
+  NxPageMain,
+  NxTab,
+  NxTabList,
+  NxTabPanel,
+  NxTabs,
+  NxTag,
+} from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectLoadErrorFeatures,
@@ -58,9 +67,11 @@ export default function ComponentDetailsPage() {
   const justificationsOptions = useSelector(selectJustificationsReferenceData);
   const responsesOptions = useSelector(selectResponsesReferenceData);
   const analysisStatusesOptions = useSelector(selectStatesReferenceData);
-  const { disclosedVulnerabilitiesSortConfiguration, additionalVulnerabilitiesSortConfiguration } = useSelector(
-    selectSbomComponentDetails
-  );
+  const {
+    activeTabIndex,
+    disclosedVulnerabilitiesSortConfiguration,
+    additionalVulnerabilitiesSortConfiguration,
+  } = useSelector(selectSbomComponentDetails);
   const showDeleteModal = useSelector(selectShowDeleteModal);
   const deleteError = useSelector(selectDeleteError);
   const deleteMaskState = useSelector(selectDeleteMaskState);
@@ -82,6 +93,7 @@ export default function ComponentDetailsPage() {
   const vulnerability = {};
   const [selectedVulnerability, setSelectedVulnerability] = useState(vulnerability);
   const load = () => dispatch(actions.loadComponentDetails({ internalAppId, sbomVersion, componentHash }));
+  const setActiveTabIndex = (index) => dispatch(actions.setActiveTabIndex(index));
 
   const loadSbomComponentVulnerabilities = (vulnerability) =>
     dispatch(
@@ -268,41 +280,48 @@ export default function ComponentDetailsPage() {
                   </NxTag>
                 )}
               </ComponentDetailsHeader>
-              {componentDetails.vulnerabilitySummary && (
-                <VulnerabilitiesSummary
-                  vulnerabilitySummary={componentDetails.vulnerabilitySummary}
-                ></VulnerabilitiesSummary>
-              )}
-              <VulnerabilitiesTile
-                tableUniqueIdentifier={'disclosedVulnerabilities'}
-                vulnerabilities={componentDetails?.disclosedVulnerabilities}
-                openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
-                openVexAnnotationModal={openVexAnnotationModal}
-                analysisStatusesOptions={analysisStatusesOptions}
-                justificationsOptions={justificationsOptions}
-                responsesOptions={responsesOptions}
-                sortConfiguration={disclosedVulnerabilitiesSortConfiguration}
-                toggleSortDirection={cycleDisclosedVulnerabilitiesSortDirection}
-                onDeleteOptionClick={openDeleteModal}
-                onCopyOptionClick={openCopyModal}
-              ></VulnerabilitiesTile>
-              <VulnerabilitiesTile
-                tableUniqueIdentifier={'sonatypeIdentifiedVulnerabilities'}
-                vulnerabilities={componentDetails?.sonatypeIdentifiedVulnerabilities}
-                isDisclosedVulnerabilities={false}
-                openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
-                openVexAnnotationModal={openVexAnnotationModal}
-                analysisStatusesOptions={analysisStatusesOptions}
-                justificationsOptions={justificationsOptions}
-                responsesOptions={responsesOptions}
-                sortConfiguration={additionalVulnerabilitiesSortConfiguration}
-                toggleSortDirection={cycleAdditionalVulnerabilitiesSortDirection}
-                onDeleteOptionClick={openDeleteModal}
-                onCopyOptionClick={openCopyModal}
-              ></VulnerabilitiesTile>
-              <ComponentDetailsDependencyTreeTile
-                componentDetails={componentDetails}
-              ></ComponentDetailsDependencyTreeTile>
+              <NxTabs activeTab={activeTabIndex} onTabSelect={setActiveTabIndex}>
+                <NxTabList>
+                  <NxTab>Vulnerability</NxTab>
+                </NxTabList>
+                <NxTabPanel>
+                  {componentDetails.vulnerabilitySummary && (
+                    <VulnerabilitiesSummary
+                      vulnerabilitySummary={componentDetails.vulnerabilitySummary}
+                    ></VulnerabilitiesSummary>
+                  )}
+                  <VulnerabilitiesTile
+                    tableUniqueIdentifier={'disclosedVulnerabilities'}
+                    vulnerabilities={componentDetails?.disclosedVulnerabilities}
+                    openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
+                    openVexAnnotationModal={openVexAnnotationModal}
+                    analysisStatusesOptions={analysisStatusesOptions}
+                    justificationsOptions={justificationsOptions}
+                    responsesOptions={responsesOptions}
+                    sortConfiguration={disclosedVulnerabilitiesSortConfiguration}
+                    toggleSortDirection={cycleDisclosedVulnerabilitiesSortDirection}
+                    onDeleteOptionClick={openDeleteModal}
+                    onCopyOptionClick={openCopyModal}
+                  ></VulnerabilitiesTile>
+                  <VulnerabilitiesTile
+                    tableUniqueIdentifier={'sonatypeIdentifiedVulnerabilities'}
+                    vulnerabilities={componentDetails?.sonatypeIdentifiedVulnerabilities}
+                    isDisclosedVulnerabilities={false}
+                    openVulnerabilityDetailsModal={openVulnerabilityDetailsModal}
+                    openVexAnnotationModal={openVexAnnotationModal}
+                    analysisStatusesOptions={analysisStatusesOptions}
+                    justificationsOptions={justificationsOptions}
+                    responsesOptions={responsesOptions}
+                    sortConfiguration={additionalVulnerabilitiesSortConfiguration}
+                    toggleSortDirection={cycleAdditionalVulnerabilitiesSortDirection}
+                    onDeleteOptionClick={openDeleteModal}
+                    onCopyOptionClick={openCopyModal}
+                  ></VulnerabilitiesTile>
+                  <ComponentDetailsDependencyTreeTile
+                    componentDetails={componentDetails}
+                  ></ComponentDetailsDependencyTreeTile>
+                </NxTabPanel>
+              </NxTabs>
             </div>
           )}
         </NxLoadWrapper>

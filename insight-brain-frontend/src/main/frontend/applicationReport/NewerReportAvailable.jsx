@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { NxTextLink, NxWarningAlert } from '@sonatype/react-shared-components';
@@ -12,6 +12,7 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectLatestReportForStageId } from 'MainRoot/applicationReport/latestReportForStageSelectors';
 import { selectReportStageId } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { createSelector } from '@reduxjs/toolkit';
+import { sendGainsightCustomEvent } from 'MainRoot/util/gainsightUtils';
 
 const selectShouldShowNewReportMessage = createSelector(
   [selectRouterCurrentParams, selectLatestReportForStageId, selectReportStageId],
@@ -22,10 +23,17 @@ const selectShouldShowNewReportMessage = createSelector(
 );
 
 export function NewerReportAvailable() {
+  const EXPIRED_APP_REPORT_BANNER_SHOWN = 'EXPIRED_APP_REPORT_BANNER_SHOWN';
   const uiRouterState = useRouterState();
   const { publicId } = useSelector(selectRouterCurrentParams);
   const newScanId = useSelector(selectLatestReportForStageId);
   const shouldShowNewReportMessage = useSelector(selectShouldShowNewReportMessage);
+
+  useEffect(() => {
+    if (shouldShowNewReportMessage) {
+      sendGainsightCustomEvent(EXPIRED_APP_REPORT_BANNER_SHOWN);
+    }
+  }, [shouldShowNewReportMessage]);
 
   if (!shouldShowNewReportMessage) {
     return null;

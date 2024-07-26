@@ -21,6 +21,8 @@ describe('NewerReportAvailable', () => {
 
   let hrefSpy;
 
+  let aptrinsicSpy;
+
   const defaultState = {
     router: {
       currentParams: {
@@ -35,6 +37,9 @@ describe('NewerReportAvailable', () => {
   beforeEach(() => {
     hrefSpy = jest.fn().mockReturnValue(givenLatestReportLink);
     jest.spyOn(routerStateContext, 'useRouterState').mockReturnValue({ href: hrefSpy });
+
+    aptrinsicSpy = jest.fn();
+    window.aptrinsic = aptrinsicSpy;
   });
 
   it('should render when data is loaded and the scanId returned is not the same as the report being viewed', () => {
@@ -55,6 +60,8 @@ describe('NewerReportAvailable', () => {
     const link = screen.getByRole('link', { name: 'Click here' });
     expect(link).toBeVisible();
     expect(link).toHaveAttribute('href', givenLatestReportLink);
+
+    expect(aptrinsicSpy).toHaveBeenCalledWith('track', 'EXPIRED_APP_REPORT_BANNER_SHOWN', {});
   });
 
   it('should not show for developer stage reports', () => {
@@ -65,6 +72,7 @@ describe('NewerReportAvailable', () => {
 
     const warning = screen.queryAllByTestId('new-report-available-warning');
     expect(warning.length).toBe(0);
+    expect(aptrinsicSpy).not.toHaveBeenCalled();
   });
 
   function renderComponent(stateOverrides = {}) {

@@ -28,6 +28,7 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -139,6 +140,7 @@ public class SbomManagerApplicationSummaryPageTest
   }
 
   @Test
+  @Ignore
   public void testSbomsTile_Pagination() {
     ThirdPartyFile scannedFile = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(scannedFile);

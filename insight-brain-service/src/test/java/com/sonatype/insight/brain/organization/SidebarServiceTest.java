@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyApplicationDTO;
 import com.sonatype.insight.brain.organization.OwnerHierarchyDTO.OwnerHierarchyOrganizationDTO;
@@ -87,7 +88,15 @@ public class SidebarServiceTest
     assertThat(ownerDetailsDTO.licenseThreatGroups).hasSize(1);
     assertThat(ownerDetailsDTO.licenseThreatGroups.get(0).getId()).isEqualTo(licenseThreatGroup.getId());
 
-    assertThat(ownerDetailsDTO.roles.membersByRole).hasSameSizeAs(roleDAO.getApplicationRoles());
+    assertThat(ownerDetailsDTO.roles.membersByRole)
+        .extracting(m -> m.roleId)
+        .containsExactlyInAnyOrder(
+            Role.APPLICATION_EVALUATOR_ROLE_ID, 
+            Role.COMPONENT_EVALUATOR_ROLE_ID, 
+            Role.DEVELOPER_ROLE_ID, 
+            Role.LEGAL_REVIEWER_ROLE_ID, 
+            Role.OWNER_ROLE_ID
+        );
   }
 
   @Test
@@ -110,7 +119,15 @@ public class SidebarServiceTest
     assertThat(ownerDetailsDTO.licenseThreatGroups).hasSize(1);
     assertThat(ownerDetailsDTO.licenseThreatGroups.get(0).getId()).isEqualTo(licenseThreatGroup.getId());
 
-    assertThat(ownerDetailsDTO.roles.membersByRole).hasSameSizeAs(roleDAO.getApplicationRoles());
+    assertThat(ownerDetailsDTO.roles.membersByRole)
+        .extracting(m -> m.roleId)
+        .containsExactlyInAnyOrder(
+            Role.APPLICATION_EVALUATOR_ROLE_ID, 
+            Role.COMPONENT_EVALUATOR_ROLE_ID, 
+            Role.DEVELOPER_ROLE_ID, 
+            Role.LEGAL_REVIEWER_ROLE_ID, 
+            Role.OWNER_ROLE_ID
+        );
   }
 
   @Test
@@ -128,7 +145,15 @@ public class SidebarServiceTest
 
     assertThat(ownerDetailsDTO.licenseThreatGroups).isEmpty();
 
-    assertThat(ownerDetailsDTO.roles.membersByRole).hasSameSizeAs(roleDAO.getApplicationRoles());
+    assertThat(ownerDetailsDTO.roles.membersByRole)
+        .extracting(m -> m.roleId)
+        .containsExactlyInAnyOrder(
+            Role.APPLICATION_EVALUATOR_ROLE_ID, 
+            Role.COMPONENT_EVALUATOR_ROLE_ID, 
+            Role.DEVELOPER_ROLE_ID, 
+            Role.LEGAL_REVIEWER_ROLE_ID, 
+            Role.OWNER_ROLE_ID
+        );
   }
 
   @Test
@@ -147,7 +172,15 @@ public class SidebarServiceTest
 
     assertThat(ownerDetailsDTO.licenseThreatGroups).isEmpty();
 
-    assertThat(ownerDetailsDTO.roles.membersByRole).hasSameSizeAs(roleDAO.getApplicationRoles());
+    assertThat(ownerDetailsDTO.roles.membersByRole)
+        .extracting(m -> m.roleId)
+        .containsExactlyInAnyOrder(
+            Role.APPLICATION_EVALUATOR_ROLE_ID, 
+            Role.COMPONENT_EVALUATOR_ROLE_ID, 
+            Role.DEVELOPER_ROLE_ID, 
+            Role.LEGAL_REVIEWER_ROLE_ID, 
+            Role.OWNER_ROLE_ID
+        );
   }
 
   @Test
@@ -166,7 +199,15 @@ public class SidebarServiceTest
 
     assertThat(ownerDetailsDTO.licenseThreatGroups).isEmpty();
 
-    assertThat(ownerDetailsDTO.roles.membersByRole).hasSameSizeAs(roleDAO.getApplicationRoles());
+    assertThat(ownerDetailsDTO.roles.membersByRole)
+        .extracting(m -> m.roleId)
+        .containsExactlyInAnyOrder(
+            Role.APPLICATION_EVALUATOR_ROLE_ID, 
+            Role.COMPONENT_EVALUATOR_ROLE_ID, 
+            Role.DEVELOPER_ROLE_ID, 
+            Role.LEGAL_REVIEWER_ROLE_ID, 
+            Role.OWNER_ROLE_ID
+        );
   }
 
   @Test

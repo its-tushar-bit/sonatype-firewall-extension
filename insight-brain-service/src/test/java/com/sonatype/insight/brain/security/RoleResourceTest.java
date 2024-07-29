@@ -40,7 +40,7 @@ public class RoleResourceTest
   }
 
   @Test
-  public void testGetAllRoles() throws Exception {
+  public void testGetRoles() throws Exception {
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
     RoleDTO[] roles = response.getBody(RoleDTO[].class);

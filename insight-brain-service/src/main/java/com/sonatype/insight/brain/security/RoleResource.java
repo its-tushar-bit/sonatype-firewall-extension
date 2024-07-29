@@ -47,8 +47,8 @@ public class RoleResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public List<RoleDTO> getAllRoles() {
-    return roleService.getAllRoles();
+  public List<RoleDTO> getRoles() {
+    return roleService.getRoles();
   }
 
   @Path(ROLE_ID_PATH)

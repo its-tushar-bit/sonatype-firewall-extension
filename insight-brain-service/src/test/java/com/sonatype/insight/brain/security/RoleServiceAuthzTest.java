@@ -27,16 +27,16 @@ public class RoleServiceAuthzTest
   private RoleService roleService;
 
   @Test
-  public void testGetAllRoles_Authorized() {
+  public void testGetRoles_Authorized() {
     grantGlobalPermission(Permission.VIEW_ROLES);
-    List<RoleDTO> roles = roleService.getAllRoles();
+    List<RoleDTO> roles = roleService.getRoles();
     assertThat(roles).isNotEmpty();
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetAllRoles_Unauthorized() {
+  public void testGetRoles_Unauthorized() {
     login();
-    roleService.getAllRoles();
+    roleService.getRoles();
   }
 
   @Test
@@ -58,8 +58,8 @@ public class RoleServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetAllRoles_Unauthenticated() {
-    roleService.getAllRoles();
+  public void testGetRoles_Unauthenticated() {
+    roleService.getRoles();
   }
 
   @Test

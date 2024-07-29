@@ -91,7 +91,7 @@ public class RoleDAOTest extends NameableDAOTest<Role>
   public void testGetApplicationRoles() {
     List<Role> roles = roleDAO.getApplicationRoles();
     assertThat(roles).noneMatch(Role::isGlobal).extracting(Role::getName).containsExactly("Application Evaluator",
-        "Component Evaluator", "Developer", "Legal Reviewer", "Owner");
+        "Component Evaluator", "Developer", "Legal Reviewer", "Owner", "SBOM Exporter", "SBOM Importer");
   }
 
   @Test
@@ -198,7 +198,7 @@ public class RoleDAOTest extends NameableDAOTest<Role>
   @Test
   public void testBuiltInRoles() {
     List<Role> roles = roleDAO.getAll();
-    assertThat(roles).hasSize(7).allMatch(Role::isBuiltIn);
+    assertThat(roles).hasSize(9).allMatch(Role::isBuiltIn);
   }
 
   @Test

@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
@@ -67,7 +68,11 @@ public abstract class AbstractAccessEditorTest
     membershipMappingDAO = lookup(MembershipMappingDAO.class);
     roleDAO = lookup(RoleDAO.class);
     ldapUserMappingDAO = lookup(LdapUserMappingDAO.class);
-    applicationRoles = roleDAO.getApplicationRoles();
+    applicationRoles = Stream.of(Role.APPLICATION_EVALUATOR_ROLE_ID,
+        Role.COMPONENT_EVALUATOR_ROLE_ID,
+        Role.DEVELOPER_ROLE_ID,
+        Role.LEGAL_REVIEWER_ROLE_ID,
+        Role.OWNER_ROLE_ID).map(roleDAO::getById).toList();
   }
 
   protected void init(Owner owner) {

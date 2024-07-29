@@ -33,11 +33,13 @@ import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.webhook.EventAction;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
@@ -74,6 +76,10 @@ public class MembershipMappingService
 
   private final ApiMemberMappingAdapter apiMemberMappingAdapter;
 
+  private final ProductLicense productLicense;
+
+  private final RoleService roleService;
+
   @Inject
   public MembershipMappingService(
       final ApplicationDAO appDAO,
@@ -84,7 +90,9 @@ public class MembershipMappingService
       final OwnerDAO ownerDAO,
       final UserDirectory userDirectory,
       final ManagementEventService managementEventService,
-      final ApiMemberMappingAdapter apiMemberMappingAdapter)
+      final ApiMemberMappingAdapter apiMemberMappingAdapter,
+      final ProductLicense productLicense,
+      final RoleService roleService)
   {
     this.appDAO = appDAO;
     this.orgDAO = orgDAO;
@@ -95,6 +103,8 @@ public class MembershipMappingService
     this.userDirectory = userDirectory;
     this.managementEventService = managementEventService;
     this.apiMemberMappingAdapter = apiMemberMappingAdapter;
+    this.productLicense = productLicense;
+    this.roleService = roleService;
   }
 
   // Authorization is checked in loadMembersByRoleForGlobalContext and loadMembersByRoleForNonGlobalContext
@@ -130,6 +140,8 @@ public class MembershipMappingService
 
     final ApplicableMembershipMappings result = new ApplicableMembershipMappings();
     result.membersByRole.addAll(membersByRoleByRoleId.values());
+    result.membersByRole = roleService.filterOutSecureSharingRolesIfNeeded(result.membersByRole,
+        membersByRole -> membersByRole.roleId);
     result.groupSearchEnabled = !userDirectory.isGroupSearchDisabled();
     return result;
   }
@@ -322,10 +334,12 @@ public class MembershipMappingService
   }
 
   public Set<String> getPermissionsForUserPrincipal(String username, Set<String> userMembership) {
+    boolean isSecureSharingEnabled = SystemConfigurationPropertyFeature.SECURE_SHARING.isEnabled();
     return membershipMappingDAO.getByUserCaseInsensitiveAndGroups(username, userMembership).stream()
         .map(it -> rolePermissionDAO.getPermissionsForRole(it.getRoleId()))
         .filter(Objects::nonNull)
         .flatMap(Collection::stream)
+        .filter(permission -> roleService.isPermissionEnabled(isSecureSharingEnabled, permission))
         .map(Permission::getDisplayName)
         .collect(Collectors.toSet());
   }

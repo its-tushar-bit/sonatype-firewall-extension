@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -60,6 +61,8 @@ public class MembershipMappingResourceTest
   @Rule
   public TestLdapServer embeddedLdapServer = new TestLdapServer();
 
+  private List<Role> nonGlobalRoles;
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(MembershipMappingResource.RESOURCE_PATH);
@@ -92,6 +95,13 @@ public class MembershipMappingResourceTest
     organizationDAO = lookup(OrganizationDAO.class);
     userDAO = lookup(UserDAO.class);
     roleDAO = lookup(RoleDAO.class);
+    nonGlobalRoles = Stream.of(
+        Role.APPLICATION_EVALUATOR_ROLE_ID,
+        Role.COMPONENT_EVALUATOR_ROLE_ID,
+        Role.DEVELOPER_ROLE_ID,
+        Role.LEGAL_REVIEWER_ROLE_ID,
+        Role.OWNER_ROLE_ID
+    ).map(roleDAO::getById).toList();
     org = tempEntity.newOrganization("test-org");
     app = tempEntity.newApplication("test-app", "test-app", org.getId());
     userA = tempEntity.newUser("user-a", "John", "Doe", "void@void.com");
@@ -111,7 +121,6 @@ public class MembershipMappingResourceTest
     assertThat(applicable).isNotNull();
     assertThat(applicable.membersByRole).isNotNull();
 
-    List<Role> nonGlobalRoles = roleDAO.getApplicationRoles();
     assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
     for (int i = 0; i < nonGlobalRoles.size(); i++) {
       MembersByRole membersByRole = applicable.membersByRole.get(i);
@@ -207,7 +216,6 @@ public class MembershipMappingResourceTest
     assertThat(applicable).isNotNull();
     assertThat(applicable.membersByRole).isNotNull();
 
-    List<Role> nonGlobalRoles = roleDAO.getApplicationRoles();
     assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
     for (int i = 0; i < nonGlobalRoles.size(); i++) {
       MembersByRole membersByRole = applicable.membersByRole.get(i);
@@ -298,7 +306,6 @@ public class MembershipMappingResourceTest
     assertThat(applicable).isNotNull();
     assertThat(applicable.membersByRole).isNotNull();
 
-    List<Role> nonGlobalRoles = roleDAO.getApplicationRoles();
     assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
     for (int i = 0; i < nonGlobalRoles.size(); i++) {
       MembersByRole membersByRole = applicable.membersByRole.get(i);
@@ -403,7 +410,6 @@ public class MembershipMappingResourceTest
     assertThat(applicable).isNotNull();
     assertThat(applicable.membersByRole).isNotNull();
 
-    List<Role> nonGlobalRoles = roleDAO.getApplicationRoles();
     assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
     for (int i = 0; i < nonGlobalRoles.size(); i++) {
       MembersByRole membersByRole = applicable.membersByRole.get(i);
@@ -499,7 +505,6 @@ public class MembershipMappingResourceTest
     assertThat(applicable).isNotNull();
     assertThat(applicable.membersByRole).isNotNull();
 
-    List<Role> nonGlobalRoles = roleDAO.getApplicationRoles();
     assertThat(applicable.membersByRole).hasSameSizeAs(nonGlobalRoles);
     for (int i = 0; i < nonGlobalRoles.size(); i++) {
       MembersByRole membersByRole = applicable.membersByRole.get(i);

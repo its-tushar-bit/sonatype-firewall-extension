@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -32,6 +31,9 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.joda.time.DateTime;
 
 /**
@@ -62,6 +64,18 @@ public class ApiMetricsReportingResourceV2
   @POST
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EXPORT_SUCCESS_METRICS)
+  @Operation(description = "Use this method to retrieve metrics data such as policy evaluation metrics, " +
+      "violation and remediation metrics aggregated monthly or weekly." +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "Select the media type JSON or csv for the preferred output format.",
+              content = {@Content(mediaType = "text/csv"), @Content(mediaType = MediaType.APPLICATION_JSON)}
+          )
+      }
+  )
   public Response getMetrics(ApiMetricsReportingQueryDTOV2 queryDTO) {
     metricsReportingService.validate(queryDTO);
     List<Application> applications = metricsReportingService.getApplications(queryDTO);

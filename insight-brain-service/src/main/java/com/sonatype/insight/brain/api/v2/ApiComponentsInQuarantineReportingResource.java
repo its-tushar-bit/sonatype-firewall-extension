@@ -21,6 +21,8 @@ import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 /**
  * @since 1.77
@@ -43,6 +45,21 @@ public class ApiComponentsInQuarantineReportingResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_QUARANTINED_COMPONENTS)
+  @Operation(description = "Use this method to retrieve all repository components that are quarantined. " +
+      "The response contains violation details and the quarantine Id of the component. Use the quarantine Id,  " +
+      "to release the component from quarantine, using the Release from Quarantine REST API. " +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements and access to the specific repository.",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "The JSON response returns the component details and policy violation details that are " +
+                  "triggering the quarantine. If a quarantined component does not show any policy violation," +
+                  " it implies that " +
+                  "the policy violations have been waived, but the component has not been released from quarantine. ",
+              useReturnTypeSchema = true)
+      })
   public ApiComponentsInQuarantineDTO getComponentsInQuarantine() {
     return service.getComponentsInQuarantine();
   }

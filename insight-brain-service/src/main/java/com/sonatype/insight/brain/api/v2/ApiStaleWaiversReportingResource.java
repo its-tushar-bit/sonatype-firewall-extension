@@ -22,6 +22,8 @@ import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 /**
  * @since 1.81
@@ -45,6 +47,30 @@ public class ApiStaleWaiversReportingResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_STALE_WAIVERS)
+  @Operation(description = "Stale waivers pose a risk because they could be applied unintentionally. " +
+      "Use this method to retrieve stale waivers to eliminate this risk for future application evaluations. " +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements. You can view stale waivers only for applications/repositories " +
+      " to which you have access. ",
+      responses = {
+          @ApiResponse(
+              responseCode = "409",
+              description = "Found waivers for applications/repositories that have not been evaluated since IQ " +
+                  "Server version 76. Re-evaluating the repository is recommended."),
+          @ApiResponse(
+              responseCode = "200",
+              description =
+                  "The response contains waiverId of the stale waiver, policyId and policyName of the policy " +
+                      "being waived, comment, waiver scope, time created, expiry time and the waiver " +
+                      "creator details. " +
+                      "The response field staleEvaluations contains a list of applications or repositories " +
+                      "that have not " +
+                      "been evaluated since the waiver was created. ",
+              useReturnTypeSchema = true
+          )
+      }
+  )
   public ApiStaleWaiversResponseDTO getStaleWaivers() {
     ApiStaleWaiversResponseDTO staleWaiversResponseDTO = new ApiStaleWaiversResponseDTO();
     staleWaiversResponseDTO.staleWaivers = staleWaiverService.getStaleWaivers();

@@ -60,6 +60,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.ReferenceLink;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilitySeverity;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.VulnerabilitySource;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.Binder;
@@ -624,6 +625,9 @@ public class ThirdPartyDataServiceTest
     assertThat(thirdPartyCoordinateSecurity.getLink()).isNull();
     assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isEqualTo("<dd>r1<dd/>");
     assertThat(thirdPartyCoordinateSecurity.getSeverity()).isZero();
+    assertThat(thirdPartyCoordinateSecurity.getSeverityDescription()).isNull();
+    assertThat(thirdPartyCoordinateSecurity.getVulnerabilitySource()).isEqualTo("source");
+    assertThat(thirdPartyCoordinateSecurity.getRatingMethod()).isEqualTo("m1");
 
     //Update Scenario 2
     thirdPartyCoordinateSecurity =
@@ -636,6 +640,9 @@ public class ThirdPartyDataServiceTest
     assertThat(thirdPartyCoordinateSecurity.getLink()).isEqualTo("new.link1");
     assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isEqualTo("new recommendations1");
     assertThat(thirdPartyCoordinateSecurity.getSeverity()).isEqualTo(1.1d);
+    assertThat(thirdPartyCoordinateSecurity.getSeverityDescription()).isEqualTo("LOW");
+    assertThat(thirdPartyCoordinateSecurity.getVulnerabilitySource()).isEqualTo("NEW SOURCE1");
+    assertThat(thirdPartyCoordinateSecurity.getRatingMethod()).isEqualTo("OTHER");
 
     //Insert Scenario 1
     thirdPartyCoordinateSecurity =
@@ -648,6 +655,9 @@ public class ThirdPartyDataServiceTest
     assertThat(thirdPartyCoordinateSecurity.getLink()).isNull();
     assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isNull();
     assertThat(thirdPartyCoordinateSecurity.getSeverity()).isZero();
+    assertThat(thirdPartyCoordinateSecurity.getSeverityDescription()).isNull();
+    assertThat(thirdPartyCoordinateSecurity.getVulnerabilitySource()).isNull();
+    assertThat(thirdPartyCoordinateSecurity.getRatingMethod()).isNull();
 
     //Insert Scenario 2
     thirdPartyCoordinateSecurity =
@@ -659,7 +669,10 @@ public class ThirdPartyDataServiceTest
     assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("new description5");
     assertThat(thirdPartyCoordinateSecurity.getLink()).isEqualTo("new.link5");
     assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isEqualTo("new recommendations5");
-    assertThat(thirdPartyCoordinateSecurity.getSeverity()).isEqualTo(5d);
+    assertThat(thirdPartyCoordinateSecurity.getSeverity()).isEqualTo(8.3d);
+    assertThat(thirdPartyCoordinateSecurity.getSeverityDescription()).isEqualTo("HIGH");
+    assertThat(thirdPartyCoordinateSecurity.getVulnerabilitySource()).isEqualTo("NVD");
+    assertThat(thirdPartyCoordinateSecurity.getRatingMethod()).isEqualTo("CVSSV3");
 
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(sbomMetadata).isNotNull();
@@ -1035,6 +1048,7 @@ public class ThirdPartyDataServiceTest
     securityVulnerabilityData1.description = "new description1";
     securityVulnerabilityData1.vulnerabilityLink = new URI("new.link1");
     securityVulnerabilityData1.mainSeverity = new SecurityVulnerabilitySeverity("new source1", "new label1", 1.1f);
+    securityVulnerabilityData1.source = new VulnerabilitySource("new source1", "new source1");
     securityVulnerabilityData1.advisories =
         Collections.singletonList(new ReferenceLink("new referenceType1", "new.url1"));
     securityVulnerabilityData1.customData = new SecurityVulnerabilityData.SecurityVulnerabilityCustomData();
@@ -1052,7 +1066,8 @@ public class ThirdPartyDataServiceTest
     SecurityVulnerabilityData securityVulnerabilityData5 = new SecurityVulnerabilityData("FG-R00275");
     securityVulnerabilityData5.description = "new description5";
     securityVulnerabilityData5.vulnerabilityLink = new URI("new.link5");
-    securityVulnerabilityData5.mainSeverity = new SecurityVulnerabilitySeverity("new source5", "new label5", 5.0f);
+    securityVulnerabilityData5.mainSeverity = new SecurityVulnerabilitySeverity("cve_cvss_3", "CVE", 8.3f);
+    securityVulnerabilityData5.source = new VulnerabilitySource("CVE", "CVE");
     securityVulnerabilityData5.advisories =
         Collections.singletonList(new ReferenceLink("new referenceType5", "new.url5"));
     securityVulnerabilityData5.customData = new SecurityVulnerabilityData.SecurityVulnerabilityCustomData();

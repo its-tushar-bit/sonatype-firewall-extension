@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.utils;
 
+import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Severity;
+
 public enum CvssV3Severity
 {
   NONE(0f, 0f, "None"),
@@ -37,5 +39,29 @@ public enum CvssV3Severity
 
   public String getDisplayName() {
     return displayName;
+  }
+
+  public static Severity resolveRatingSeverity(float severityScore) {
+    Severity ratingSeverity = null;
+
+    if (severityScore == NONE.getStartScoreRange()) {
+      ratingSeverity = Severity.NONE;
+    }
+    else if (severityScore >= LOW.getStartScoreRange() && severityScore <= LOW.getEndScoreRange()) {
+      ratingSeverity = Severity.LOW;
+    }
+    else if (severityScore >= MEDIUM.getStartScoreRange() && severityScore <= MEDIUM.getEndScoreRange()) {
+      ratingSeverity = Severity.MEDIUM;
+    }
+    else if (severityScore >= HIGH.getStartScoreRange() && severityScore <= HIGH.getEndScoreRange()) {
+      ratingSeverity = Severity.HIGH;
+    }
+    else if (severityScore >= CRITICAL.getStartScoreRange() && severityScore <= CRITICAL.getEndScoreRange()) {
+      ratingSeverity = Severity.CRITICAL;
+    }
+    else {
+      ratingSeverity = Severity.UNKNOWN;
+    }
+    return ratingSeverity;
   }
 }

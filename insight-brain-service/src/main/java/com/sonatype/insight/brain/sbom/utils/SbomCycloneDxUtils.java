@@ -25,6 +25,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.io.IOUtils;
+import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Method;
 import org.cyclonedx.parsers.BomParserFactory;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
@@ -35,7 +36,6 @@ import org.cyclonedx.model.OrganizationalEntity;
 import org.cyclonedx.model.Property;
 import org.cyclonedx.model.Service;
 import org.cyclonedx.model.Tool;
-import org.cyclonedx.model.vulnerability.Vulnerability.Rating;
 import org.cyclonedx.parsers.Parser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -302,12 +302,22 @@ public class SbomCycloneDxUtils
     resolvedComponent.getRight().addProperty(prop);
   }
 
-  public static Rating.Method resolveRatingMethod(String text) {
-    for (Rating.Method method : Rating.Method.values()) {
+  public static Method resolveRatingMethod(String text) {
+    for (Method method : Method.values()) {
       if (StringUtils.equalsIgnoreCase(method.getMethodName(), text)) {
         return method;
       }
     }
     return null;
+  }
+
+  public static Method resolveRatingMethodFromSeveritySource(String severitySource) {
+    return switch (severitySource) {
+      case "cve_cvss_2" -> Method.CVSSV2;
+      case "cve_cvss_3" -> Method.CVSSV3;
+      case "cve_cvss_31" -> Method.CVSSV31;
+      case "cve_cvss_4" -> Method.CVSSV4;
+      default -> Method.OTHER;
+    };
   }
 }

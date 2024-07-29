@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -94,11 +95,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.report.DependencyResolver.MATCH_STATE;
+import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.resolveRatingMethodFromSeveritySource;
+import static com.sonatype.insight.brain.utils.CvssV3Severity.resolveRatingSeverity;
 
 @Named
 public class ThirdPartyDataService
 {
   private static final Logger log = LoggerFactory.getLogger(ThirdPartyDataService.class);
+
+  public static final String NVD = "NVD";
+
+  public static final String CVE = "CVE";
 
   public static final String FIELD_EFFECTIVE_LICENSES = "effectiveLicenses";
 
@@ -846,8 +853,21 @@ public class ThirdPartyDataService
     }
     if (sonatypeVulnerabilityData.mainSeverity != null && sonatypeVulnerabilityData.mainSeverity.score > 0) {
       thirdPartySecurity.setSeverity(sonatypeVulnerabilityData.mainSeverity.score);
+      thirdPartySecurity.setSeverityDescription(
+          resolveRatingSeverity(sonatypeVulnerabilityData.mainSeverity.score).name());
     }
-
+    if (sonatypeVulnerabilityData.source != null) {
+      if (CVE.equals(sonatypeVulnerabilityData.source.shortName)) {
+        thirdPartySecurity.setVulnerabilitySource(NVD);
+      }
+      else {
+        thirdPartySecurity.setVulnerabilitySource(sonatypeVulnerabilityData.source.shortName.toUpperCase(Locale.ROOT));
+      }
+    }
+    if (sonatypeVulnerabilityData.mainSeverity != null && sonatypeVulnerabilityData.mainSeverity.source != null) {
+      thirdPartySecurity.setRatingMethod(
+          resolveRatingMethodFromSeveritySource(sonatypeVulnerabilityData.mainSeverity.source).name());
+    }
     thirdPartySecurity.addIdentificationSource(IdentificationSource.SONATYPE.getId());
   }
 

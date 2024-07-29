@@ -1120,6 +1120,19 @@ public class ScanPolicyEvaluator
         .collect(toList());
   }
 
+  /**
+   * @since 1.180
+   */
+  private void sendStaleReportEvaluationTelemetryData(final String privateAppId, final String scanId) {
+    TelemetryData telemetryData = new TelemetryData(
+            TelemetryPurpose.STALE_REPORT_REEVALUATION);
+    Map<String, Object> attributes = new HashMap<>();
+    attributes.put("application_id", HdsClientAnalytics.obfuscate(privateAppId));
+    attributes.put("scan_id", HdsClientAnalytics.obfuscate(scanId));
+    telemetryData.setAttributes(attributes);
+    telemetrySender.send(telemetryData);
+  }
+
   private void throwErrorIfReEvaluatingAnOldScan(
       final String privateAppId,
       final String scanId,
@@ -1135,6 +1148,7 @@ public class ScanPolicyEvaluator
       final boolean isNotForLatestScan = !lastPrimaryPolicyEvaluation.getScanId().equals(scanId);
 
       if (isNotForLatestScan) {
+        sendStaleReportEvaluationTelemetryData(privateAppId, scanId);
         throw new BadRequestException(REEVALUATE_NOT_ALLOWED_FOR_OUT_OF_DATE_SCAN_MESSAGE);
       }
     }

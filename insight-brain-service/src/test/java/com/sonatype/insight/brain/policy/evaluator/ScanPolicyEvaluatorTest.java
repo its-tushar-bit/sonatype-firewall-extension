@@ -1043,6 +1043,14 @@ public class ScanPolicyEvaluatorTest
     assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
   }
 
+  private void assertStaleScanAttributes(TelemetryData telemetryData, Map<String, Object> expectedAttributes) {
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose())
+        .isEqualTo(TelemetryPurpose.STALE_REPORT_REEVALUATION);
+    assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
+    assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
+  }
+
   @Test
   public void testEvaluate_BeforeAndAfterAddingConditionTriggerData() throws Exception {
     // Add a policy
@@ -1934,9 +1942,19 @@ public class ScanPolicyEvaluatorTest
         ScanTriggerType.CLI, ClientScanType.SONATYPE);
     newSecurityPolicy();
 
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    clearInvocations(mockTelemetrySender);
+
     assertThatThrownBy(() ->
         scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE))
         .hasMessage(REEVALUATE_NOT_ALLOWED_FOR_OUT_OF_DATE_SCAN_MESSAGE);
+
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(application.getId()));
+    expectedAttributes.put("scan_id", HdsClientAnalytics.obfuscate(scanId));
+    assertStaleScanAttributes(telemetryDataArgumentCaptor.getValue(), expectedAttributes);
+    clearInvocations(mockTelemetrySender);
   }
 
   @Test

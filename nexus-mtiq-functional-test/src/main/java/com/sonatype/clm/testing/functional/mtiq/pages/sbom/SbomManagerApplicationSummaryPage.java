@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.mtiq.pages.sbom;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.mtiq.elements.sbom.ImportSbomModal;
 import com.sonatype.clm.testing.functional.mtiq.elements.sbom.SbomsTile;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
@@ -24,5 +25,9 @@ public class SbomManagerApplicationSummaryPage
 
   public static SbomsTile sbomsTile() {
     return new SbomsTile();
+  }
+
+  public ImportSbomModal importSbomModal() {
+    return new ImportSbomModal();
   }
 }

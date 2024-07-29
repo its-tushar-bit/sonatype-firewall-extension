@@ -88,7 +88,7 @@ export default function ImportSbomModal() {
   const summaryContent =
     importState === IMPORT_STATE.SUMMARY ? (
       <>
-        <dl className="sbom-manager-import-sbom-modal__application-name">
+        <dl className="import-sbom-modal__application-name">
           <dt>Application Name</dt>
           <dd>{applicationName}</dd>
         </dl>
@@ -109,13 +109,19 @@ export default function ImportSbomModal() {
         <NxDescriptionList>
           <NxDescriptionList.Item>
             <NxDescriptionList.Term>Total Components:</NxDescriptionList.Term>
-            <NxDescriptionList.Description data-testid="import-sbom-modal-total-components">
+            <NxDescriptionList.Description
+              id="import-sbom-modal-summary-total-components"
+              data-testid="import-sbom-modal-total-components"
+            >
               {sbomSummary.totalComponents}
             </NxDescriptionList.Description>
           </NxDescriptionList.Item>
           <NxDescriptionList.Item>
             <NxDescriptionList.Term>Total Vulnerabilities:</NxDescriptionList.Term>
-            <NxDescriptionList.Description data-testid="import-sbom-modal-total-vulnerabilities">
+            <NxDescriptionList.Description
+              id="import-sbom-modal-summary-total-vulnerabilities"
+              data-testid="import-sbom-modal-total-vulnerabilities"
+            >
               {sbomSummary.totalVulnerabilities}
             </NxDescriptionList.Description>
           </NxDescriptionList.Item>

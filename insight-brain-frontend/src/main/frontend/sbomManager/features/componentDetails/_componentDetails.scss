@@ -10,6 +10,22 @@
 
 .nx-tag.sbom-nx-tag {
   max-width: 100%;
+  border-radius: 8px;
+  padding-right: 0;
+  border-right: 0;
+
+  .nx-tag__text {
+    display: flex;
+
+    .copy-icon-container {
+      margin: 0 0 0 var(--nx-spacing-2x);
+      background-color: var(--nx-swatch-indigo-90);
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  }
 }
 
 .sbom-component-details {

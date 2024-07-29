@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import { screen, fireEvent, queryByText } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { axiosMockAdapter, render, waitFor, within } from 'TestRoot/SpecUtil';
 import {
@@ -271,58 +272,122 @@ describe('ComponentDetailsPage', () => {
       render(<ComponentDetailsPage />, { preloadedState: { ...preloadedState, ...additionalPreloadedState } });
   });
 
-  it('Renders page content', async () => {
-    axiosMock
-      .onGet(getApplicationSummaryUrl(applicationPublicId))
-      .reply(200, { id: applicationInternalId, name: 'test-app' });
-    axiosMock
-      .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
-      .reply(200, mockComponentDetails);
-    renderPage();
-    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
-    expect(await screen.findByText(mockComponentDetails.displayName)).toBeVisible();
-    expect(screen.getByText(mockComponentDetails.metadata.organizationName)).toBeVisible();
-    expect(screen.getByText(mockComponentDetails.metadata.applicationName)).toBeVisible();
-    expect(screen.getByText('Maven')).toBeVisible();
-    expect(screen.getByText('Direct Dependency')).toBeVisible();
-    expect(screen.getByText('pkg:maven/net.sf.jason/jason-schema@1.2.11')).toBeVisible();
-    expect(screen.getByText('Component Summary')).toBeVisible();
-    expect(screen.getByText('Highest CVSS Score')).toBeVisible();
+  describe('Page Content', () => {
+    it('should render page content successfully', async () => {
+      axiosMock
+        .onGet(getApplicationSummaryUrl(applicationPublicId))
+        .reply(200, { id: applicationInternalId, name: 'test-app' });
+      axiosMock
+        .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
+        .reply(200, mockComponentDetails);
+      renderPage();
+      await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+      expect(await screen.findByText(mockComponentDetails.displayName)).toBeVisible();
+      expect(screen.getByText(mockComponentDetails.metadata.organizationName)).toBeVisible();
+      expect(screen.getByText(mockComponentDetails.metadata.applicationName)).toBeVisible();
+      expect(screen.getByText('Maven')).toBeVisible();
+      expect(screen.getByText('Direct Dependency')).toBeVisible();
+      expect(screen.getByText('pkg:maven/net.sf.jason/jason-schema@1.2.11')).toBeVisible();
+      expect(screen.getByText('Component Summary')).toBeVisible();
+      expect(screen.getByText('Highest CVSS Score')).toBeVisible();
 
-    const highestCvssScoreContainer = await screen.findByTestId('highestCvssScore');
-    expect(highestCvssScoreContainer).toBeInTheDocument();
-    expect(highestCvssScoreContainer.textContent).toEqual(
-      mockComponentDetails.vulnerabilitySummary.highestCvssScore.toString()
-    );
+      const highestCvssScoreContainer = await screen.findByTestId('highestCvssScore');
+      expect(highestCvssScoreContainer).toBeInTheDocument();
+      expect(highestCvssScoreContainer.textContent).toEqual(
+        mockComponentDetails.vulnerabilitySummary.highestCvssScore.toString()
+      );
 
-    expect(screen.getByText('Vulnerabilities Verified')).toBeVisible();
-    const verifiedContainer = await screen.findByTestId('verified');
-    expect(verifiedContainer).toBeInTheDocument();
-    expect(verifiedContainer.textContent).toEqual(
-      mockComponentDetails.vulnerabilitySummary.verifiedVulnerabilitiesCount + ' Sonatype Verified'
-    );
+      expect(screen.getByText('Vulnerabilities Verified')).toBeVisible();
+      const verifiedContainer = await screen.findByTestId('verified');
+      expect(verifiedContainer).toBeInTheDocument();
+      expect(verifiedContainer.textContent).toEqual(
+        mockComponentDetails.vulnerabilitySummary.verifiedVulnerabilitiesCount + ' Sonatype Verified'
+      );
 
-    const unverifiedContainer = await screen.findByTestId('unverified');
-    expect(unverifiedContainer).toBeInTheDocument();
-    expect(unverifiedContainer.textContent).toEqual(
-      mockComponentDetails.vulnerabilitySummary.unverifiedVulnerabilitiesCount + ' Unverified'
-    );
+      const unverifiedContainer = await screen.findByTestId('unverified');
+      expect(unverifiedContainer).toBeInTheDocument();
+      expect(unverifiedContainer.textContent).toEqual(
+        mockComponentDetails.vulnerabilitySummary.unverifiedVulnerabilitiesCount + ' Unverified'
+      );
 
-    expect(screen.getByText('Disclosed Vulnerabilities')).toBeVisible();
-    expect(screen.getByText('Additional Sonatype Identified Vulnerabilities')).toBeVisible();
-    expect(
-      screen.getByText('Additional vulnerabilities in this SBOM, detected by Sonatype vulnerability detection system.')
-    ).toBeVisible();
-    const tableRows = await screen.findAllByRole('row');
-    expect(tableRows.length).toBe(5); // Including the header
-    const link = screen.getByText('sonatype-2018-0863');
-    fireEvent.click(link);
+      expect(screen.getByText('Disclosed Vulnerabilities')).toBeVisible();
+      expect(screen.getByText('Additional Sonatype Identified Vulnerabilities')).toBeVisible();
+      expect(
+        screen.getByText(
+          'Additional vulnerabilities in this SBOM, detected by Sonatype vulnerability detection system.'
+        )
+      ).toBeVisible();
+      const tableRows = await screen.findAllByRole('row');
+      expect(tableRows.length).toBe(5); // Including the header
+      const link = screen.getByText('sonatype-2018-0863');
+      fireEvent.click(link);
 
-    expect(screen.getByRole('complementary')).toBeInTheDocument();
-    expect(screen.getByRole('complementary')).toHaveTextContent('Vulnerability Details sonatype-2018-0863');
+      expect(screen.getByRole('complementary')).toBeInTheDocument();
+      expect(screen.getByRole('complementary')).toHaveTextContent('Vulnerability Details sonatype-2018-0863');
 
-    expect(screen.getByText('Dependency Tree')).toBeVisible();
-    expect(screen.getByText('Dependency tree not available')).toBeVisible();
+      expect(screen.getByText('Dependency Tree')).toBeVisible();
+      expect(screen.getByText('Dependency tree not available')).toBeVisible();
+    });
+
+    it('should render the tooltip on hovering over the copy icon', async () => {
+      axiosMock
+        .onGet(getApplicationSummaryUrl(applicationPublicId))
+        .reply(200, { id: applicationInternalId, name: 'test-app' });
+      axiosMock
+        .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
+        .reply(200, mockComponentDetails);
+      renderPage();
+      await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+      const copyIconContainer = await screen.findByTestId('copyIconContainer');
+      expect(copyIconContainer).toBeInTheDocument();
+
+      fireEvent.mouseOver(copyIconContainer);
+      const tooltip = await screen.findByRole('tooltip');
+      expect(tooltip).toHaveTextContent('Copy PackageURL to clipboard');
+    });
+
+    it('and it should change the text from the tooltip when clicking the copy icon', async () => {
+      const user = userEvent.setup();
+
+      axiosMock
+        .onGet(getApplicationSummaryUrl(applicationPublicId))
+        .reply(200, { id: applicationInternalId, name: 'test-app' });
+      axiosMock
+        .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
+        .reply(200, mockComponentDetails);
+      renderPage();
+      await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+      const copyIconContainer = await screen.findByTestId('copyIconContainer');
+      expect(copyIconContainer).toBeInTheDocument();
+
+      await user.click(copyIconContainer);
+      const tooltip = await screen.findByRole('tooltip');
+      expect(tooltip).toHaveTextContent('Copied');
+    });
+
+    it('and it should change the text back after 2 seconds', async () => {
+      const user = userEvent.setup();
+
+      axiosMock
+        .onGet(getApplicationSummaryUrl(applicationPublicId))
+        .reply(200, { id: applicationInternalId, name: 'test-app' });
+      axiosMock
+        .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
+        .reply(200, mockComponentDetails);
+      renderPage();
+      await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+      const copyIconContainer = await screen.findByTestId('copyIconContainer');
+      expect(copyIconContainer).toBeInTheDocument();
+
+      await user.click(copyIconContainer);
+      let tooltip = await screen.findByRole('tooltip');
+      expect(tooltip).toHaveTextContent('Copied');
+
+      await waitFor(() => expect(tooltip).toHaveTextContent('Copy PackageURL to clipboard'), { timeout: 3000 });
+    });
   });
 
   it('should close Vulnerability details drawer when close button is clicked', async () => {

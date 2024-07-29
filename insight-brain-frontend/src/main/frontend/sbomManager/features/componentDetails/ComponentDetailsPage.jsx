@@ -14,6 +14,7 @@ import {
   NxTabPanel,
   NxTabs,
   NxTag,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -89,6 +90,7 @@ export default function ComponentDetailsPage() {
   const internalAppId = useSelector(selectInternalAppId);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isVexAnnotationPopoverOpen, setIsVexAnnotationPopoverOpen] = useState(false);
+  const [isPurlCopied, setIsPurlCopied] = useState(false);
 
   const vulnerability = {};
   const [selectedVulnerability, setSelectedVulnerability] = useState(vulnerability);
@@ -171,6 +173,10 @@ export default function ComponentDetailsPage() {
   const copyToClipboard = async (value) => {
     try {
       await navigator.clipboard.writeText(value);
+      setIsPurlCopied(true);
+      setTimeout(() => {
+        setIsPurlCopied(false);
+      }, 2000);
     } catch (err) {}
   };
 
@@ -270,13 +276,21 @@ export default function ComponentDetailsPage() {
                 />
                 {componentDetails.packageUrl && (
                   <NxTag className="nx-tag sbom-nx-tag" color="sky">
-                    {componentDetails.packageUrl}
+                    <span className="purl-container">{componentDetails.packageUrl}</span>
                     {'  '}
-                    <NxFontAwesomeIcon
-                      className={'sbom-copy-icon'}
-                      icon={faCopy}
-                      onClick={() => copyToClipboard(componentDetails.packageUrl)}
-                    />
+                    <NxTooltip title={!isPurlCopied ? 'Copy PackageURL to clipboard' : 'Copied'}>
+                      <span
+                        className="copy-icon-container"
+                        data-testid="copyIconContainer"
+                        onClick={() => copyToClipboard(componentDetails.packageUrl)}
+                      >
+                        <NxFontAwesomeIcon
+                          className={'sbom-copy-icon'}
+                          icon={faCopy}
+                          onClick={() => copyToClipboard(componentDetails.packageUrl)}
+                        />
+                      </span>
+                    </NxTooltip>
                   </NxTag>
                 )}
               </ComponentDetailsHeader>

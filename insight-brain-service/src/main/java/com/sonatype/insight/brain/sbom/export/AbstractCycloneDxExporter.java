@@ -46,6 +46,7 @@ import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.OrganizationalEntity;
 import org.cyclonedx.model.Property;
+import org.cyclonedx.model.license.Expression;
 import org.cyclonedx.model.metadata.ToolInformation;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
@@ -214,21 +215,21 @@ public abstract class AbstractCycloneDxExporter
   }
 
   private LicenseChoice getBomComponentLicenses(Component bomComponent) {
-    if (bomComponent.getLicenseChoice() == null) {
+    if (bomComponent.getLicenses() == null) {
       // Initialize proper empty data structures for holding licenses to avoid null exceptions
       LicenseChoice licenseChoice = new LicenseChoice();
       licenseChoice.setLicenses(Collections.emptyList());
-      bomComponent.setLicenseChoice(licenseChoice);
+      bomComponent.setLicenses(licenseChoice);
     }
-    else if (bomComponent.getLicenseChoice().getExpression() != null &&
-        StringUtils.isNotEmpty(bomComponent.getLicenseChoice().getExpression().getValue())) {
-      bomComponent.getLicenseChoice().setLicenses(new ArrayList<>());
+    else if (bomComponent.getLicenses().getExpression() != null &&
+        StringUtils.isNotEmpty(bomComponent.getLicenses().getExpression().getValue())) {
+      Expression bomComponentLicenseExpression = bomComponent.getLicenses().getExpression();
+      bomComponent.getLicenses().setLicenses(new ArrayList<>());
       String purl = bomComponent.getPurl() != null ? bomComponent.getPurl() : "";
-      bomComponent.getLicenseChoice().getLicenses().addAll(
-          parseLicenseChoiceExpression(bomComponent.getLicenseChoice().getExpression().getValue(), purl,
-              bomComponent.getBomRef()));
+      bomComponent.getLicenses().getLicenses().addAll(
+          parseLicenseChoiceExpression(bomComponentLicenseExpression.getValue(), purl, bomComponent.getBomRef()));
     }
-    return bomComponent.getLicenseChoice();
+    return bomComponent.getLicenses();
   }
 
   protected List<License> parseLicenseChoiceExpression(String expression, String purl, String bomRef) {

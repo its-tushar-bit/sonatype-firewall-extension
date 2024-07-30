@@ -243,7 +243,7 @@ public class SpdxToCycloneDxExporter
     }
     else
     {
-      component.setLicenseChoice(licenseChoice);
+      component.setLicenses(licenseChoice);
     }
   }
 

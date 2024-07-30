@@ -250,7 +250,7 @@ public class ApiCycloneDxServiceV2Test
     assertThat(bom.getComponents()).hasSize(1);
     Component component = bom.getComponents().get(0);
     assertThat(component.getPurl()).isEqualTo("pkg:npm/lodash@4.17.19");
-    List<String> licenseNames = component.getLicenseChoice().getLicenses().stream()
+    List<String> licenseNames = component.getLicenses().getLicenses().stream()
         .map(l -> StringUtils.isEmpty(l.getId()) ? l.getName() : l.getId()).collect(Collectors.toList());
     assertThat(licenseNames).containsExactlyInAnyOrder("MIT", "Not Supported");
   }
@@ -848,7 +848,7 @@ public class ApiCycloneDxServiceV2Test
       licenseChoice.addLicense(license);
     }
     if (licenseChoice.getLicenses() != null) {
-      component.setLicenseChoice(licenseChoice);
+      component.setLicenses(licenseChoice);
     }
 
     return component;

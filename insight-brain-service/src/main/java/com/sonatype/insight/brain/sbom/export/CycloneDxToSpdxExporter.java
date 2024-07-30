@@ -447,7 +447,7 @@ public class CycloneDxToSpdxExporter
       }
     }
     spdxPackage.setLicenseDeclared(
-        listToLicenseSet(spdxPackage, convertCycloneLicenseInfo(spdxPackage, component.getLicenseChoice())));
+        listToLicenseSet(spdxPackage, convertCycloneLicenseInfo(spdxPackage, component.getLicenses())));
     List<Hash> hashes = component.getHashes();
     if (CollectionUtils.isNotEmpty(hashes)) {
       for (Hash hash : hashes) {
@@ -535,8 +535,8 @@ public class CycloneDxToSpdxExporter
           }
         }
       }
-      if (evidence.getLicenseChoice() != null) {
-        AnyLicenseInfo spdxLicenseEvidence = licenseChoiceToSpdxLicense(spdxPackage, evidence.getLicenseChoice());
+      if (evidence.getLicenses() != null) {
+        AnyLicenseInfo spdxLicenseEvidence = licenseChoiceToSpdxLicense(spdxPackage, evidence.getLicenses());
         if (Objects.nonNull(spdxLicenseEvidence) && !(spdxLicenseEvidence instanceof SpdxNoAssertionLicense)) {
           spdxPackage.getAttributionText().add("Evidence license text for: " + spdxLicenseEvidence.toString());
         }
@@ -575,7 +575,7 @@ public class CycloneDxToSpdxExporter
       SpdxFile spdxFile,
       Component component) throws InvalidSPDXAnalysisException
   {
-    spdxFile.getLicenseInfoFromFiles().addAll(convertCycloneLicenseInfo(spdxFile, component.getLicenseChoice()));
+    spdxFile.getLicenseInfoFromFiles().addAll(convertCycloneLicenseInfo(spdxFile, component.getLicenses()));
     List<Hash> hashes = component.getHashes();
     if (CollectionUtils.isNotEmpty(hashes)) {
       for (Hash hash : hashes) {

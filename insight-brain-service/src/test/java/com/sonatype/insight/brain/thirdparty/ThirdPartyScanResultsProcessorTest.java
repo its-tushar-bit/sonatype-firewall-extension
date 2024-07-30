@@ -1005,7 +1005,7 @@ public class ThirdPartyScanResultsProcessorTest
       else {
         assertThat(component.getGroup()).isNotNull();
       }
-      assertThat(component.getLicenseChoice()).isNull();
+      assertThat(component.getLicenses()).isNull();
       assertThat(component.getPedigree()).isNull();
       assertThat(component.getPublisher()).isNull();
     }

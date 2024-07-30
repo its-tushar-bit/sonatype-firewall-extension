@@ -452,10 +452,10 @@ public class SbomResultHandlerTest
       List<ThirdPartyCoordinateLicense> coordinatesLicense =
           thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
       assertThat(coordinatesLicense).hasSize(2);
-      assertThirdPartyCoordinateLicense(unfilteredSbom.getComponents().get(0).getLicenseChoice().getLicenses().get(0),
+      assertThirdPartyCoordinateLicense(unfilteredSbom.getComponents().get(0).getLicenses().getLicenses().get(0),
           thirdPartyFileCoordinate.getId(),
           coordinatesLicense.get(0));
-      assertThirdPartyCoordinateLicense(unfilteredSbom.getComponents().get(0).getLicenseChoice().getLicenses().get(1),
+      assertThirdPartyCoordinateLicense(unfilteredSbom.getComponents().get(0).getLicenses().getLicenses().get(1),
           thirdPartyFileCoordinate.getId(),
           coordinatesLicense.get(1));
     }
@@ -521,7 +521,7 @@ public class SbomResultHandlerTest
       List<ThirdPartyCoordinateLicense> coordinatesLicense =
           thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
       assertThat(coordinatesLicense).hasSize(1);
-      assertThirdPartyCoordinateLicense(unfilteredSbom.getComponents().get(0).getLicenseChoice().getLicenses().get(0),
+      assertThirdPartyCoordinateLicense(unfilteredSbom.getComponents().get(0).getLicenses().getLicenses().get(0),
           thirdPartyFileCoordinate.getId(),
           coordinatesLicense.get(0));
     }
@@ -1702,7 +1702,7 @@ public class SbomResultHandlerTest
       }
       assertThat(component.getType()).isNotNull();
 
-      assertThat(component.getLicenseChoice()).isNull();
+      assertThat(component.getLicenses()).isNull();
       assertThat(component.getAuthor()).isNull();
       assertThat(component.getCopyright()).isNull();
       assertThat(component.getEvidence()).isNull();
@@ -1826,7 +1826,7 @@ public class SbomResultHandlerTest
     assertThat(components).hasSize(3)
         .allSatisfy(component -> {
           assertThat(component.getExtensions()).isNull();
-          assertThat(component.getLicenseChoice()).isNull();
+          assertThat(component.getLicenses()).isNull();
           assertThat(component.getName()).isNotNull();
           assertThat(component.getVersion()).isNotNull();
           assertThat(component.getType()).isNotNull();

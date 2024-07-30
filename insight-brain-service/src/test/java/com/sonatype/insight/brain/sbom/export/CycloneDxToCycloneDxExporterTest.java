@@ -422,12 +422,12 @@ public class CycloneDxToCycloneDxExporterTest
     Component exportedLog4j = findBomComponent(
         "pkg:maven/log4j/log4j@1.2.8?type=jar", exportedComponents);
     assertThat(exportedLog4j).isNotNull()
-        .extracting(Component::getLicenseChoice)
+        .extracting(Component::getLicenses)
         .extracting(LicenseChoice::getLicenses)
         .extracting(List::size).isEqualTo(4);
 
     // Licenses
-    List<License> log4JExportedLicenses = exportedLog4j.getLicenseChoice().getLicenses();
+    List<License> log4JExportedLicenses = exportedLog4j.getLicenses().getLicenses();
 
     // New License added
     License exportedAladdinLicense = findBomLicense("Aladdin", log4JExportedLicenses);

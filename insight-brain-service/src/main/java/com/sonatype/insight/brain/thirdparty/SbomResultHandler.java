@@ -572,7 +572,7 @@ public class SbomResultHandler
     fileCoordinate.setIdentificationSources(SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE);
     thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
     if (!sbomValidationSkipped) {
-      saveLicenses(sourceComponent.getLicenseChoice(), fileCoordinate.getId(), component.getPurl(), tx);
+      saveLicenses(sourceComponent.getLicenses(), fileCoordinate.getId(), component.getPurl(), tx);
       saveVulnerabilitiesExtension(sourceComponent.getExtensions(), fileCoordinate.getId(), schemaVersion, tx);
     }
     return fileCoordinate.getId();

@@ -35,15 +35,15 @@ public class CycloneDxComponentAssert
 
   public CycloneDxComponentAssert hasLicenseCount(Integer expected) {
     isNotNull();
-    if (actual.getLicenseChoice() == null) {
+    if (actual.getLicenses() == null) {
       failWithMessage("Expected license choice to be non-null");
     }
-    if (CollectionUtils.isEmpty(actual.getLicenseChoice().getLicenses())) {
+    if (CollectionUtils.isEmpty(actual.getLicenses().getLicenses())) {
       failWithMessage("Expected license choice to be not empty");
     }
-    if (!expected.equals(actual.getLicenseChoice().getLicenses().size())) {
+    if (!expected.equals(actual.getLicenses().getLicenses().size())) {
       failWithMessage("Expected license choice count to be %s but was %s", expected,
-          actual.getLicenseChoice().getLicenses().size());
+          actual.getLicenses().getLicenses().size());
     }
     return this;
   }
@@ -62,7 +62,7 @@ public class CycloneDxComponentAssert
 
   public CycloneDxComponentAssert containsLicenses(final String... licenseIds) {
     isNotNull();
-    List<String> actuals = actual.getLicenseChoice().getLicenses().stream().map(License::getId)
+    List<String> actuals = actual.getLicenses().getLicenses().stream().map(License::getId)
         .collect(Collectors.toList());
     List<String> expected = Arrays.asList(licenseIds);
     if (!CollectionUtils.isSubCollection(expected, actuals)) {
@@ -73,7 +73,7 @@ public class CycloneDxComponentAssert
 
   public CycloneDxComponentAssert containsNotListedLicenses(final String... licenseNames) {
     isNotNull();
-    List<String> actuals = actual.getLicenseChoice().getLicenses().stream().map(License::getName)
+    List<String> actuals = actual.getLicenses().getLicenses().stream().map(License::getName)
         .collect(Collectors.toList());
     List<String> expected = Arrays.asList(licenseNames);
     if (!CollectionUtils.isSubCollection(expected, actuals)) {

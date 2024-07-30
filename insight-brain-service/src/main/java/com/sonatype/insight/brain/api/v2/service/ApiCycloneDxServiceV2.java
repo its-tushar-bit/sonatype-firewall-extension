@@ -745,8 +745,8 @@ public class ApiCycloneDxServiceV2
             .forEach(licenses::addAll);
       }
       if (!licenses.isEmpty()) {
-        bomComponent.setLicenseChoice(new LicenseChoice());
-        bomComponent.getLicenseChoice().setLicenses(new ArrayList<>(licenses));
+        bomComponent.setLicenses(new LicenseChoice());
+        bomComponent.getLicenses().setLicenses(new ArrayList<>(licenses));
       }
     }
   }

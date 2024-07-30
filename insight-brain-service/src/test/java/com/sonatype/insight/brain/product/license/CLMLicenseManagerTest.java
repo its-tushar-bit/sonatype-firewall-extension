@@ -761,6 +761,7 @@ public class CLMLicenseManagerTest
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
         LicensedFeature.SBOM_MANAGER,
         LicensedFeature.POLICY_MONITORING,
+        LicensedFeature.POLICY_READ_ONLY,
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS,
         LicensedFeature.CLI_INTEGRATION,
         LicensedFeature.NOTIFICATIONS,
@@ -777,6 +778,7 @@ public class CLMLicenseManagerTest
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
         LicensedFeature.SBOM_MANAGER,
         LicensedFeature.POLICY_MONITORING,
+        LicensedFeature.POLICY_READ_ONLY,
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS,
         LicensedFeature.CLI_INTEGRATION,
         LicensedFeature.NOTIFICATIONS,

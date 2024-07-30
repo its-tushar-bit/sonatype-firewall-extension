@@ -849,6 +849,7 @@ public class CLMLicenseManager
         products.contains(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS)) {
       features.add(LicensedFeature.SBOM_MANAGER);
       features.add(LicensedFeature.POLICY_MONITORING);
+      features.add(LicensedFeature.POLICY_READ_ONLY);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
       features.add(LicensedFeature.CLI_INTEGRATION);
       features.add(LicensedFeature.NOTIFICATIONS);

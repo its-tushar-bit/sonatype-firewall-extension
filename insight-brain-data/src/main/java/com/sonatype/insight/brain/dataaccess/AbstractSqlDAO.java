@@ -5,9 +5,11 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.dataaccess.search.EmptySearchIndexManager;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
@@ -120,17 +122,49 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
    * @param getter Function to be used to query the values.
    * @param dataStore A related set of data/tables
    */
-  protected <E> List<T> getListWithSqlInClause(List<E> inClauseValues, Function<Collection<E>, List<T>> getter,
-                                               DataStore dataStore)
+  protected <E, U> List<U> getListWithSqlInClause(
+      Collection<E> inClauseValues,
+      Function<Collection<E>, List<U>> getter,
+      DataStore dataStore)
   {
     int inOperatorThreshold = getInOperatorThreshold(dataStore);
     if (inClauseValues.size() >= inOperatorThreshold) {
-      List<List<E>> inClauseValuesPartitions = Lists.partition(inClauseValues, inOperatorThreshold);
+      List<E> inClauseValuesList;
+      if (inClauseValues instanceof List<E>) {
+        inClauseValuesList = (List<E>) inClauseValues;
+      }
+      else {
+        inClauseValuesList = new ArrayList<>(inClauseValues);
+      }
+
+      List<List<E>> inClauseValuesPartitions = Lists.partition(inClauseValuesList, inOperatorThreshold);
 
       return inClauseValuesPartitions.stream().map(getter).flatMap(Collection::stream).collect(toList());
     }
     else {
       return getter.apply(inClauseValues);
     }
+  }
+
+  protected abstract DataStore getDataStore();
+
+  protected <C> List<C> getScalars(Class<C> type, String sQuery, Object... parameters) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getScalars(tx, type, sQuery, parameters);
+    }
+  }
+
+  protected <C> List<C> getScalars(TransactionContext tx, Class<C> type, String sQuery, Object... parameters) {
+    try (Stream<C> resultStream = getScalarsStream(tx, type, sQuery, parameters)) {
+      return resultStream.toList();
+    }
+  }
+
+  /**
+   * Note: This stream should be closed after use
+   */
+  protected <C> Stream<C> getScalarsStream(TransactionContext tx, Class<C> type, String sQuery, Object... parameters) {
+    Stream<?> resultStream = createQuery(tx, sQuery, parameters).getResultStream();
+    return resultStream.map(type::cast);
   }
 }

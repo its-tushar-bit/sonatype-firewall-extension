@@ -23,7 +23,8 @@ public abstract class AbstractDatamartSqlDAO<T extends HasStringId>
     return new TransactionContext(dataMartDataStore.getJPAEntityManagerFactory().createEntityManager());
   }
 
-  protected DataMartDataStore getDataMartDataStore() {
+  @Override
+  protected DataMartDataStore getDataStore() {
     return dataMartDataStore;
   }
 }

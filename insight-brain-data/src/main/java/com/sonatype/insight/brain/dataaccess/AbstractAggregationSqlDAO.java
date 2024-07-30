@@ -25,4 +25,9 @@ public abstract class AbstractAggregationSqlDAO<T extends HasStringId>
   public TransactionContext createTransactionContext() {
     return new TransactionContext(aggregationDataStore.getJPAEntityManagerFactory().createEntityManager());
   }
+
+  @Override
+  protected AggregationDataStore getDataStore() {
+    return aggregationDataStore;
+  }
 }

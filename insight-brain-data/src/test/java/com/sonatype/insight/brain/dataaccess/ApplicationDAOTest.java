@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -64,7 +65,6 @@ import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
-import com.sonatype.insight.brain.model.sast.SastFindingSeverity;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.label.Label;
@@ -81,6 +81,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.sast.SastFinding;
 import com.sonatype.insight.brain.model.sast.SastFindingConfidence;
+import com.sonatype.insight.brain.model.sast.SastFindingSeverity;
 import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -1357,6 +1358,281 @@ public class ApplicationDAOTest
 
     // querying directly by app id should not return that app nor anything else
     assertThat(applicationDAO.getByAncestorId(app11.getId())).isEmpty();
+  }
+
+  @Test
+  public void testGetIdsByAncestorIds() {
+    Organization org0 = tempEntity.newOrganization();
+
+    Organization org1 = tempEntity.newOrganization();
+    Application app11 = tempEntity.newApplication("app11", org1.getId());
+    Application app12 = tempEntity.newApplication("app12", org1.getId());
+
+    Organization org2 = tempEntity.newOrganization();
+    Organization org21 = tempEntity.newOrganization(org2);
+    Application app211 = tempEntity.newApplication("app211", org21.getId());
+    Application app212 = tempEntity.newApplication("app212", org21.getId());
+
+    Organization org3 = tempEntity.newOrganization();
+    Application app31 = tempEntity.newApplication("app31", org3.getId());
+    Application app32 = tempEntity.newApplication("app32", org3.getId());
+    Organization org31 = tempEntity.newOrganization(org3);
+    Application app311 = tempEntity.newApplication("app311", org31.getId());
+    Application app312 = tempEntity.newApplication("app312", org31.getId());
+
+    assertThat(applicationDAO.getIdsByAncestorIds(Collections.emptySet()))
+        .isEmpty();
+    
+    assertThat(applicationDAO.getIdsByAncestorIds(Collections.singleton(org0.getId())))
+        .isEmpty();
+
+    assertThat(applicationDAO.getIdsByAncestorIds(Collections.singleton(org1.getId())))
+        .containsExactlyInAnyOrder(app11.getId(), app12.getId());
+
+    assertThat(applicationDAO.getIdsByAncestorIds(Collections.singleton(org2.getId())))
+        .containsExactlyInAnyOrder(app211.getId(), app212.getId());
+
+    assertThat(applicationDAO.getIdsByAncestorIds(Collections.singleton(org3.getId())))
+        .containsExactlyInAnyOrder(app31.getId(), app311.getId(), app312.getId(), app32.getId());
+
+    assertThat(applicationDAO.getIdsByAncestorIds(new HashSet<>(Arrays.asList(org3.getId(), org31.getId()))))
+        .containsExactlyInAnyOrder(app31.getId(), app311.getId(), app312.getId(), app32.getId());
+
+    assertThat(applicationDAO.getIdsByAncestorIds(
+        new HashSet<>(Arrays.asList(org3.getId(), org31.getId(), app11.getId(), app31.getId(), app311.getId()))))
+        .containsExactlyInAnyOrder(app11.getId(), app31.getId(), app311.getId(), app312.getId(), app32.getId());
+
+    applicationDAO.delete(application);
+
+    assertThat(applicationDAO.getIdsByAncestorIds(Collections.singleton(ROOT_ORGANIZATION_ID)))
+        .containsExactlyInAnyOrder(app11.getId(), app12.getId(), app211.getId(), app212.getId(), app31.getId(),
+            app311.getId(), app312.getId(), app32.getId());
+
+    assertThat(applicationDAO.getIdsByAncestorIds(
+        new HashSet<>(Arrays.asList(ROOT_ORGANIZATION_ID, org31.getId(), app11.getId()))))
+        .containsExactlyInAnyOrder(app11.getId(), app12.getId(), app211.getId(), app212.getId(), app31.getId(),
+            app311.getId(), app312.getId(), app32.getId());
+  }
+
+  @Test
+  public void testGetIdsByAncestorIds_Limit_H2() {
+    testGetIdsByAncestorIds_Limit();
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetIdsByAncestorIds_Limit_Postgres() {
+    testGetIdsByAncestorIds_Limit();
+  }
+
+  private void testGetIdsByAncestorIds_Limit() {
+    Set<String> ids = new HashSet<>();
+    // Go above both H2 (2,000) and postgres (65,535) limits
+    // (Short.MAX_VALUE * 2) + 2 = 65,536
+    for (int i = 1; i <= (Short.MAX_VALUE * 2) + 2; i++) {
+      ids.add(TemporaryEntity.uuid());
+    }
+
+    Application app1 = tempEntity.newApplicationWithParent("app1", "app1");
+    Application app2 = tempEntity.newApplicationWithParent("app2", "app2");
+    Application app3 = tempEntity.newApplicationWithParent("app3", "app3");
+
+    assertThat(applicationDAO.getIdsByAncestorIds(ids))
+        .isEmpty();
+
+    assertThat(applicationDAO.getIdsByAncestorIds(Sets.union(Collections.singleton(app1.getId()), ids)))
+        .containsExactly(app1.getId());
+
+    assertThat(applicationDAO.getIdsByAncestorIds(Sets.union(new LinkedHashSet<>(
+        Arrays.asList(app2.getId(), app3.getId(), app1.getId())), ids)))
+        .containsExactlyInAnyOrder(app1.getId(), app2.getId(), app3.getId());
+  }
+
+  @Test
+  public void testGetAll_Paged() {
+    applicationDAO.delete(application);
+    Application app1 = tempEntity.newApplicationWithParent("app1", "app1");
+    Application app2 = tempEntity.newApplicationWithParent("app2", "app2");
+    Application app3 = tempEntity.newApplicationWithParent("app3", "app3");
+
+    assertThat(applicationDAO.getAll(1, 0)).isEmpty();
+
+    assertThat(applicationDAO.getAll(1, 10))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(app1, app2, app3);
+
+    assertThat(applicationDAO.getAll(1, 2))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(app1, app2);
+    assertThat(applicationDAO.getAll(2, 2))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(app3);
+    assertThat(applicationDAO.getAll(3, 2)).isEmpty();
+  }
+
+  @Test
+  public void testGetByAncestorIds_Paged_H2() {
+    testGetByAncestorIds_Paged();
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetByAncestorIds_Paged_Postgres() {
+    testGetByAncestorIds_Paged();
+  }
+
+  private void testGetByAncestorIds_Paged() {
+    Application app1 = tempEntity.newApplicationWithParent("app1", "app1");
+    Application app2 = tempEntity.newApplicationWithParent("app2", "app2");
+    Application app3 = tempEntity.newApplicationWithParent("app3", "app3");
+
+    assertThat(applicationDAO.getByAncestorIds(Collections.emptySet(), 1, 10)).isEmpty();
+    assertThat(applicationDAO.getByAncestorIds(Collections.singleton(app1.getId()), 1, 0))
+        .isEmpty();
+
+    assertThat(applicationDAO.getByAncestorIds(Collections.singleton(app1.getId()), 1, 10))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(app1);
+
+    assertThat(applicationDAO.getByAncestorIds(new LinkedHashSet<>(
+        Arrays.asList(app2.getId(), app3.getId(), app1.getId())), 1, 10))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(app1, app2, app3);
+
+    assertThat(applicationDAO.getByAncestorIds(new LinkedHashSet<>(
+        Arrays.asList(app2.getId(), app3.getId(), app1.getId())), 1, 2))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(app1, app2);
+    assertThat(applicationDAO.getByAncestorIds(new LinkedHashSet<>(
+        Arrays.asList(app2.getId(), app3.getId(), app1.getId())), 2, 2))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(app3);
+    assertThat(applicationDAO.getByAncestorIds(new LinkedHashSet<>(
+        Arrays.asList(app2.getId(), app3.getId(), app1.getId())), 3, 2))
+        .isEmpty();
+  }
+
+  @Test
+  public void testGetByAncestorIds_Hierarchy_H2() {
+    testGetByAncestorIds_Hierarchy();
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetByAncestorIds_Hierarchy_Postgres() {
+    testGetByAncestorIds_Hierarchy();
+  }
+
+  private void testGetByAncestorIds_Hierarchy() {
+    Organization org0 = tempEntity.newOrganization();
+
+    Organization org1 = tempEntity.newOrganization();
+    Application app11 = tempEntity.newApplication("app11", org1.getId());
+    Application app12 = tempEntity.newApplication("app12", org1.getId());
+
+    Organization org2 = tempEntity.newOrganization();
+    Organization org21 = tempEntity.newOrganization(org2);
+    Application app211 = tempEntity.newApplication("app211", org21.getId());
+    Application app212 = tempEntity.newApplication("app212", org21.getId());
+
+    Organization org3 = tempEntity.newOrganization();
+    Application app31 = tempEntity.newApplication("app31", org3.getId());
+    Application app32 = tempEntity.newApplication("app32", org3.getId());
+    Organization org31 = tempEntity.newOrganization(org3);
+    Application app311 = tempEntity.newApplication("app311", org31.getId());
+    Application app312 = tempEntity.newApplication("app312", org31.getId());
+
+    assertThat(applicationDAO.getByAncestorIds(Collections.emptySet(), 1, 10))
+        .isEmpty();
+
+    assertThat(applicationDAO.getByAncestorIds(Collections.singleton(org0.getId()), 1, 10))
+        .isEmpty();
+
+    assertThat(applicationDAO.getByAncestorIds(Collections.singleton(org1.getId()), 1, 10))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(app11, app12);
+
+    assertThat(applicationDAO.getByAncestorIds(Collections.singleton(org2.getId()), 1, 10))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(app211, app212);
+
+    assertThat(applicationDAO.getByAncestorIds(Collections.singleton(org3.getId()), 1, 10))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(app31, app311, app312, app32);
+
+    assertThat(applicationDAO.getByAncestorIds(new LinkedHashSet<>(Arrays.asList(org3.getId(), org31.getId())), 1, 10))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(app31, app311, app312, app32);
+
+    assertThat(applicationDAO.getByAncestorIds(
+        new HashSet<>(Arrays.asList(org3.getId(), org31.getId(), app11.getId(), app31.getId(), app311.getId())), 1, 10))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(app11, app31, app311, app312, app32);
+
+    applicationDAO.delete(application);
+
+    assertThat(applicationDAO.getByAncestorIds(Collections.singleton(ROOT_ORGANIZATION_ID), 1, 10))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(app11, app12, app211, app212, app31, app311, app312, app32);
+
+    assertThat(
+        applicationDAO.getByAncestorIds(
+            new HashSet<>(Arrays.asList(ROOT_ORGANIZATION_ID, org31.getId(), app11.getId())), 1, 10))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(app11, app12, app211, app212, app31, app311, app312, app32);
+  }
+
+  @Test
+  public void testGetByAncestorIds_Limit_H2() {
+    testGetByAncestorIds_Limit();
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetByAncestorIds_Limit_Postgres() {
+    testGetByAncestorIds_Limit();
+  }
+
+  // For postgres, this is to show we will avoid
+  // <openjpa-3.2.2-re5933d6 fatal general error> org.apache.openjpa.persistence.PersistenceException: PreparedStatement
+  // can have at most 65,535 parameters. Please consider using arrays, or splitting the query in several ones, or using
+  // COPY. Given query has 65,536 parameters
+  private void testGetByAncestorIds_Limit() {
+    Set<String> ids = new HashSet<>();
+    // Go above both H2 (2,000) and postgres (65,535) limits
+    // (Short.MAX_VALUE * 2) + 2 = 65,536
+    for (int i = 1; i <= (Short.MAX_VALUE * 2) + 2; i++) {
+      ids.add(TemporaryEntity.uuid());
+    }
+
+    Application app1 = tempEntity.newApplicationWithParent("app1", "app1");
+    Application app2 = tempEntity.newApplicationWithParent("app2", "app2");
+    Application app3 = tempEntity.newApplicationWithParent("app3", "app3");
+
+    assertThat(applicationDAO.getByAncestorIds(ids, 1, 10)).isEmpty();
+    assertThat(applicationDAO.getByAncestorIds(Sets.union(Collections.singleton(app1.getId()), ids), 1, 0))
+        .isEmpty();
+
+    assertThat(applicationDAO.getByAncestorIds(Sets.union(Collections.singleton(app1.getId()), ids), 1, 10))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(app1);
+
+    assertThat(applicationDAO.getByAncestorIds(Sets.union(new LinkedHashSet<>(
+        Arrays.asList(app2.getId(), app3.getId(), app1.getId())), ids), 1, 10))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(app1, app2, app3);
+
+    assertThat(applicationDAO.getByAncestorIds(Sets.union(new LinkedHashSet<>(
+        Arrays.asList(app2.getId(), app3.getId(), app1.getId())), ids), 1, 2))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(app1, app2);
+    assertThat(applicationDAO.getByAncestorIds(Sets.union(new LinkedHashSet<>(
+        Arrays.asList(app2.getId(), app3.getId(), app1.getId())), ids), 2, 2))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(app3);
+    assertThat(applicationDAO.getByAncestorIds(Sets.union(new LinkedHashSet<>(
+        Arrays.asList(app2.getId(), app3.getId(), app1.getId())), ids), 3, 2))
+        .isEmpty();
   }
 
   private void validateApplication(Application actualApp, Application expectedApp) {

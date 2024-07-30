@@ -5,8 +5,14 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.sql.Connection;
+import java.sql.JDBCType;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -231,6 +237,28 @@ public class ApplicationDAO
     }
   }
 
+  public List<Application> getAll(
+      final int page,
+      final int pageSize)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getAll(tx, page, pageSize);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  public List<Application> getAll(
+      final TransactionContext tx,
+      final int page,
+      final int pageSize)
+  {
+    String sQuery = "SELECT app FROM Application app" +
+        " ORDER BY app.publicIdLowercase";
+    int offset = (page - 1) * pageSize;
+    javax.persistence.Query paginationQuery = createPaginationQuery(tx, sQuery, offset, pageSize);
+    return paginationQuery.getResultList();
+  }
+
   public List<Application> getAllOrderedByName(TransactionContext tx) {
     String sQuery = "SELECT entity FROM Application entity" + //
         " ORDER BY entity.name";
@@ -272,6 +300,21 @@ public class ApplicationDAO
         "WHERE aa.ancestorId = ?1 AND aa.id = app.id AND aa.id <> aa.ancestorId";
 
     return getList(tx, sQuery, organizationId);
+  }
+
+  public Set<String> getIdsByAncestorIds(final Set<String> ancestorIds) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getIdsByAncestorIds(tx, ancestorIds);
+    }
+  }
+
+  public Set<String> getIdsByAncestorIds(final TransactionContext tx, final Set<String> ancestorIds) {
+    if (ancestorIds.isEmpty()) {
+      return Collections.emptySet();
+    }
+    String sQuery = "SELECT DISTINCT aa.id FROM ApplicationAncestor aa" +
+        " WHERE aa.ancestorId IN (?1)";
+    return new HashSet<>(getListWithSqlInClause(ancestorIds, l -> getScalars(tx, String.class, sQuery, l)));
   }
 
   public List<Application> getByIdsAndTagIds(Set<String> applicationIds, Set<String> tagIds) {
@@ -334,6 +377,88 @@ public class ApplicationDAO
     String sQuery = "SELECT entity FROM Application entity" + //
         " WHERE entity.id IN (?1)";
     return getList(sQuery, applicationIds);
+  }
+
+  public List<Application> getByAncestorIds(
+      final Set<String> ancestorIds,
+      final int page,
+      final int pageSize)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByAncestorIds(tx, ancestorIds, page, pageSize);
+    }
+  }
+
+  public List<Application> getByAncestorIds(
+      final TransactionContext tx,
+      final Set<String> ancestorIds,
+      final int page,
+      final int pageSize)
+  {
+    if (ancestorIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    if (isDatabaseEmbedded()) {
+      return getByAncestorIdsH2(tx, ancestorIds, page, pageSize);
+    }
+    else {
+      return getByAncestorIdsPostgres(tx, ancestorIds, page, pageSize);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private List<Application> getByAncestorIdsH2(
+      final TransactionContext tx,
+      final Set<String> ancestorIds,
+      final int page,
+      final int pageSize)
+  {
+    int offset = (page - 1) * pageSize;
+    boolean splitQuery = ancestorIds.size() > getInOperatorThreshold();
+    String sQuery = "SELECT DISTINCT app FROM Application app, ApplicationAncestor aa" +
+        " WHERE app.id = aa.id" +
+        " AND aa.ancestorId IN (?1)" + (splitQuery ? "" : " ORDER BY app.publicIdLowercase");
+    if (splitQuery) {
+      return getListWithSqlInClause(ancestorIds, l -> getList(tx, sQuery, l)).stream()
+          .distinct()
+          .sorted(Comparator.comparing(Application::getPublicIdLowercase))
+          .skip(offset)
+          .limit(pageSize)
+          .toList();
+    }
+    else {
+      javax.persistence.Query paginationQuery = createPaginationQuery(tx, sQuery, offset, pageSize);
+      paginationQuery.setParameter(1, ancestorIds);
+      return paginationQuery.getResultList();
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private List<Application> getByAncestorIdsPostgres(
+      final TransactionContext tx,
+      final Set<String> ancestorIds,
+      final int page,
+      final int pageSize)
+  {
+    int offset = (page - 1) * pageSize;
+    String sQuery = "SELECT DISTINCT app.* FROM " + getDatabaseSchema() + ".application app" +
+        " INNER JOIN " + getDatabaseSchema() + ".application_ancestor aa" +
+        " ON app.application_id = aa.application_id" +
+        " WHERE aa.ancestor_id = ANY(?)" +
+        " ORDER BY app.public_id_lowercase";
+    javax.persistence.Query paginationQuery =
+        createPaginationNativeQuery(tx, Application.class, sQuery, offset, pageSize);
+    java.sql.Array array;
+    // Creating an sql Array to pass to the postgres specific ANY function
+    // This avoids the 65,535 parameter limit for postgres
+    try (Connection connection = getDataStore().getDataSource().getConnection()) {
+      array = connection.createArrayOf(JDBCType.VARCHAR.name(), ancestorIds.toArray());
+    }
+    catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+    paginationQuery.setParameter(1, array);
+    return paginationQuery.getResultList();
   }
 
   @Override

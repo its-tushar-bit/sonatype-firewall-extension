@@ -41,7 +41,15 @@ public abstract class AbstractThirdPartyScansSqlDAO<T extends HasStringId>
     }
   }
 
-  protected <E> List<T> getListWithSqlInClause(List<E> inClauseValues, Function<Collection<E>, List<T>> getter) {
+  protected <E, U> List<U> getListWithSqlInClause(
+      Collection<E> inClauseValues,
+      Function<Collection<E>, List<U>> getter)
+  {
     return super.getListWithSqlInClause(inClauseValues, getter, thirdPartyScansDataStore);
+  }
+
+  @Override
+  protected ThirdPartyScansDataStore getDataStore() {
+    return thirdPartyScansDataStore;
   }
 }

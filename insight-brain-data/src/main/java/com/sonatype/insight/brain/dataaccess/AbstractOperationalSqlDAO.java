@@ -115,6 +115,18 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     return query;
   }
 
+  public static <T> javax.persistence.Query createPaginationNativeQuery(
+      TransactionContext tx,
+      Class<T> resultClass,
+      String sQuery,
+      int offset,
+      int pageSize)
+  {
+    javax.persistence.Query query = tx.createNativeQuery(sQuery, resultClass);
+    query.setFirstResult(offset).setMaxResults(pageSize);
+    return query;
+  }
+
   protected String buildPositionalParameters(Collection<?> collection, int startFrom) {
     StringJoiner joiner = new StringJoiner(",");
     for (int i = 0; i < collection.size(); i++) {
@@ -177,7 +189,10 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     return super.getInOperatorThreshold(operationalDataStore);
   }
 
-  protected <E> List<T> getListWithSqlInClause(List<E> inClauseValues, Function<Collection<E>, List<T>> getter) {
+  protected <E, U> List<U> getListWithSqlInClause(
+      Collection<E> inClauseValues,
+      Function<Collection<E>, List<U>> getter)
+  {
     return super.getListWithSqlInClause(inClauseValues, getter, operationalDataStore);
   }
 
@@ -210,5 +225,10 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     public AbstractOperationalSqlDAO<?> getDAO() {
       return dao;
     }
+  }
+
+  @Override
+  protected OperationalDataStore getDataStore() {
+    return operationalDataStore;
   }
 }

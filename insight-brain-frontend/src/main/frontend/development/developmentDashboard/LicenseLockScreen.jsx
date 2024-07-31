@@ -4,19 +4,19 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { NxErrorAlert, NxH1, NxPageMain, NxPageTitle } from '@sonatype/react-shared-components';
+import { NxErrorAlert, NxH1, NxPageTitle } from '@sonatype/react-shared-components';
 import React from 'react';
 
-export const DEVELOPER_FEATURE_DISABLED_MESSAGE = 'Sonatype Developer Product Preview is not enabled.';
+export const DEVELOPER_FEATURE_DISABLED_MESSAGE = 'Sonatype Developer is not enabled.';
 
 export default function LicenseLockScreen() {
   return (
-    <NxPageMain>
+    <>
       <NxPageTitle>
         <NxH1>Sonatype Developer</NxH1>
       </NxPageTitle>
 
       <NxErrorAlert data-testid="iq-integrations__missing-license">{DEVELOPER_FEATURE_DISABLED_MESSAGE}</NxErrorAlert>
-    </NxPageMain>
+    </>
   );
 }

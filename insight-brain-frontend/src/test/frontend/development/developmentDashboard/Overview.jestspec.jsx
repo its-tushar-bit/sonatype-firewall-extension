@@ -6,15 +6,38 @@
 
 import React from 'react';
 import { axiosMockAdapter, render, screen, fireEvent } from 'TestRoot/SpecUtil';
-import Overview from 'MainRoot/development/developmentDashboard/sections/overview/Overview';
+import Overview, {
+  DEVELOPER_SUMMARY_TABLE_DISABLED_MESSAGE,
+} from 'MainRoot/development/developmentDashboard/sections/overview/Overview';
 import { getAppIntegrationsAndRisk } from 'MainRoot/util/CLMLocation';
 import { map, range } from 'ramda';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('Overview', () => {
-  let axiosMock;
+  let axiosMock, selectIsDeveloperSummaryTableEnabledSpy;
 
   beforeEach(() => {
     axiosMock = axiosMockAdapter();
+    selectIsDeveloperSummaryTableEnabledSpy = jest
+      .spyOn(productFeaturesSelectors, 'selectIsDeveloperSummaryTableEnabled')
+      .mockReturnValue(true);
+  });
+
+  describe('when feature developer-summary-table is disabled', () => {
+    beforeEach(() => {
+      selectIsDeveloperSummaryTableEnabledSpy.mockReturnValue(false);
+    });
+
+    it('does not render the Application Configuration Summary table', () => {
+      renderComponent();
+      expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    });
+
+    it('renders an info alert with disabled text', () => {
+      renderComponent();
+      expect(screen.getByRole('img')).toHaveAccessibleName('Info');
+      expect(screen.getByText(DEVELOPER_SUMMARY_TABLE_DISABLED_MESSAGE)).toBeInTheDocument();
+    });
   });
 
   describe('Overview component contains filtering button for Application Configuration Summary table', () => {

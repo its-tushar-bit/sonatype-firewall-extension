@@ -248,3 +248,8 @@ export const selectIsDeveloperBulkRecommendationsEnabled = createSelector(
   selectProductFeatures,
   propOr(false, 'developer-bulk-recommendations')
 );
+
+export const selectIsDeveloperSummaryTableEnabled = createSelector(
+  selectProductFeatures,
+  propOr(false, 'developer-summary-table')
+);

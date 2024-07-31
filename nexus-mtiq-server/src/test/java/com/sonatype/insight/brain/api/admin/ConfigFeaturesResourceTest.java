@@ -60,6 +60,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.getId(),
       SystemConfigurationPropertyFeature.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION.getId(),
       SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT.getId(),
+      SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE.getId(),
       };
 
   /**
@@ -87,6 +88,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.getId(),
       SystemConfigurationPropertyFeature.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION.getId(),
       SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT.getId(),
+      SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE.getId(),
       };
 
   /**

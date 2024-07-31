@@ -852,6 +852,36 @@ public class ApiConfigFeaturesServiceTest
   }
 
   @Test
+  public void testEnabledByDefaultFeature_DeveloperSummaryTable() {
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE
+        .getPropertyName(), "true");
+    assertThat(systemConfigurationPropertyDAO.getByName(DEVELOPER_SUMMARY_TABLE)
+        .getValue()).isEqualTo("true");
+  }
+
+  @Test
+  public void testEnableFeature_DeveloperSummaryTable_AlreadyEnabled() {
+    assertThatThrownBy(() -> service.enableFeature(DEVELOPER_SUMMARY_TABLE))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisabledFeature_DeveloperSummaryTable() {
+    service.disableFeature(DEVELOPER_SUMMARY_TABLE);
+    assertThat(systemConfigurationPropertyDAO.getByName(DEVELOPER_SUMMARY_TABLE)
+        .getValue()).isEqualTo("false");
+  }
+
+  @Test
+  public void testDisableFeature_DeveloperSummaryTable_AlreadyDisabled() {
+    service.disableFeature(DEVELOPER_SUMMARY_TABLE);
+    assertThatThrownBy(() -> service.disableFeature(DEVELOPER_SUMMARY_TABLE))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
+  }
+
+  @Test
   public void testDisableFeature_DeveloperBulkRecommendations() {
     tempEntity.newSystemConfigurationProperty(SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS
         .getPropertyName(), "true");

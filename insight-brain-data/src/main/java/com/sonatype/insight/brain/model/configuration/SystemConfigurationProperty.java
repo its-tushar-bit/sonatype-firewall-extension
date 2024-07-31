@@ -231,6 +231,8 @@ public class SystemConfigurationProperty
 
   public static final String SECURE_SHARING = "secureSharing";
 
+  public static final String DEVELOPER_SUMMARY_TABLE = "developerSummaryTable";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

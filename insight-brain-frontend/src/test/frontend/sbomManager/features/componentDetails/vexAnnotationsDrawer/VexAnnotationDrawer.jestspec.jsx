@@ -276,7 +276,7 @@ describe('VexAnnotationDrawer', () => {
 
         const formContainer = getFormContainer(container);
 
-        expect(getByText(formContainer, 'Analysis state')).toBeInTheDocument();
+        expect(getByText(formContainer, 'Analysis State')).toBeInTheDocument();
         assertDropdownRenderedWithOptions(analysisStatusesOptions, formContainer);
         assertDropdownRenderedSelectOption(
           formContainer.querySelector('#vex-annotation-drawer__form__analysis-status-select')
@@ -371,7 +371,7 @@ describe('VexAnnotationDrawer', () => {
         expect(saveButton.getAttribute('class')).toContain('vex-annotation-popover__footer-hidden');
 
         expect(
-          getByText(footerContainer, /Analysis state field is required. Please select a value from the dropdown list/)
+          getByText(footerContainer, /Analysis State field is required. Please select a value from the dropdown list/)
         ).toBeInTheDocument();
       });
 
@@ -382,7 +382,7 @@ describe('VexAnnotationDrawer', () => {
         });
 
         const dropdown = container.querySelector('#vex-annotation-drawer__form__analysis-status-select');
-        const requiredValidationErrorMatcher = /Analysis state field is required./;
+        const requiredValidationErrorMatcher = /Analysis State field is required./;
         const requiredValidationErrorMatcher2ndLine = /Please select a value from the dropdown list/;
 
         const footerContainer = container.querySelector('.vex-annotation-popover__footer-nx-drawer');

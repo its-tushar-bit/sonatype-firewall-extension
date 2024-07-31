@@ -29,7 +29,7 @@ import { faCheckCircle, faExclamationTriangle } from '@fortawesome/pro-solid-svg
 import './_vexAnnotationDrawer.scss';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import RenderDetail from 'MainRoot/react/IqVulnerabilityDetails/details/RenderDetail';
-import { userInput, initialState } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
+import { initialState, userInput } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import { isNil } from 'ramda';
 import { actions } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
 import { useDispatch, useSelector } from 'react-redux';
@@ -88,7 +88,7 @@ export default function VexAnnotationDrawer(props) {
   }
 
   const analysisStatusDropdownIsRequiredErrorMessage =
-    'Analysis state field is required. Please select a value from the dropdown list';
+    'Analysis State field is required. Please select a value from the dropdown list';
 
   const isVulnerabilityReferenceDataLoading = useSelector(selectLoadingVulnerabilityAnalysisReferenceData);
   const errorLoadingAnalysisReferenceData = useSelector(selectLoadVulnerabilityAnalysisReferenceDataError);
@@ -443,7 +443,7 @@ export default function VexAnnotationDrawer(props) {
   const vexAnnotationFormFragment = function () {
     return (
       <>
-        <NxFieldset className="vex-annotation-drawer__form__analysis-status" label="Analysis state" isRequired>
+        <NxFieldset className="vex-annotation-drawer__form__analysis-status" label="Analysis State" isRequired>
           <NxFormSelect
             id="vex-annotation-drawer__form__analysis-status-select"
             onChange={onChangeAnalysisStatus}

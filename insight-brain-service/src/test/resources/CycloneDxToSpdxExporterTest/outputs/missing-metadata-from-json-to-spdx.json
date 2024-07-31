@@ -7,7 +7,6 @@
   },
   "name" : "webgoat",
   "dataLicense" : "CC0-1.0",
-  "hasExtractedLicensingInfos" : [ ],
   "documentNamespace" : "nullui/links/sbomManager/management/view/application/webgoat/bom/v1",
   "packages" : [ {
     "SPDXID" : "SPDXRef-pkg-pypi-pip-24.0-package-id-ec032e427ce8872c",

@@ -3,8 +3,8 @@
     <SPDXID>SPDXRef-DOCUMENT</SPDXID>
     <spdxVersion>SPDX-2.3</spdxVersion>
     <creationInfo>
-        <created>2024-06-05T00:48:54Z</created>
-        <creators>Tool: Sonatype SBOM Manager - 1.178.0-SNAPSHOT</creators>
+        <created>2024-07-29T17:35:35Z</created>
+        <creators>Tool: Sonatype SBOM Manager - 1.180.0-SNAPSHOT</creators>
     </creationInfo>
     <name>webgoat</name>
     <dataLicense>CC0-1.0</dataLicense>
@@ -138,17 +138,22 @@
     <relationships>
         <spdxElementId>SPDXRef-333584e5-0101-4a21-8f5b-61b10926cf3c</spdxElementId>
         <relationshipType>DEPENDS_ON</relationshipType>
-        <relatedSpdxElement>SPDXRef-e6a49891-d1d5-4358-8688-b5a03a546f90</relatedSpdxElement>
+        <relatedSpdxElement>SPDXRef-0cd0109c-4389-4c65-b95a-1d3b552d902a</relatedSpdxElement>
     </relationships>
     <relationships>
         <spdxElementId>SPDXRef-333584e5-0101-4a21-8f5b-61b10926cf3c</spdxElementId>
         <relationshipType>DEPENDS_ON</relationshipType>
-        <relatedSpdxElement>SPDXRef-0cd0109c-4389-4c65-b95a-1d3b552d902a</relatedSpdxElement>
+        <relatedSpdxElement>SPDXRef-e6a49891-d1d5-4358-8688-b5a03a546f90</relatedSpdxElement>
     </relationships>
     <relationships>
         <spdxElementId>SPDXRef-85e600ff-6842-4b60-bbc5-56a45e3a357c</spdxElementId>
         <relationshipType>DEPENDS_ON</relationshipType>
         <relatedSpdxElement>SPDXRef-0cd0109c-4389-4c65-b95a-1d3b552d902a</relatedSpdxElement>
+    </relationships>
+    <relationships>
+        <spdxElementId>SPDXRef-c9f3c210-670e-41c0-993b-af8a7768f25b</spdxElementId>
+        <relationshipType>DEPENDS_ON</relationshipType>
+        <relatedSpdxElement>SPDXRef-85e600ff-6842-4b60-bbc5-56a45e3a357c</relatedSpdxElement>
     </relationships>
     <relationships>
         <spdxElementId>SPDXRef-c9f3c210-670e-41c0-993b-af8a7768f25b</spdxElementId>
@@ -159,10 +164,5 @@
         <spdxElementId>SPDXRef-c9f3c210-670e-41c0-993b-af8a7768f25b</spdxElementId>
         <relationshipType>DEPENDS_ON</relationshipType>
         <relatedSpdxElement>SPDXRef-32dd9982-7edc-4cde-85f6-8946cabca003</relatedSpdxElement>
-    </relationships>
-    <relationships>
-        <spdxElementId>SPDXRef-c9f3c210-670e-41c0-993b-af8a7768f25b</spdxElementId>
-        <relationshipType>DEPENDS_ON</relationshipType>
-        <relatedSpdxElement>SPDXRef-85e600ff-6842-4b60-bbc5-56a45e3a357c</relatedSpdxElement>
     </relationships>
 </Document>

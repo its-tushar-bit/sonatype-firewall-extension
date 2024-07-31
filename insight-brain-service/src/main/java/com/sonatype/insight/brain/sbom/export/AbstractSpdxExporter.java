@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -48,6 +47,7 @@ import org.spdx.library.model.SpdxModelFactory;
 import org.spdx.library.model.SpdxPackage;
 import org.spdx.library.model.enumerations.ReferenceCategory;
 import org.spdx.library.model.license.AnyLicenseInfo;
+import org.spdx.library.model.license.ConjunctiveLicenseSet;
 import org.spdx.library.model.license.ExtractedLicenseInfo;
 import org.spdx.library.model.license.InvalidLicenseStringException;
 import org.spdx.library.model.license.LicenseInfoFactory;
@@ -100,6 +100,7 @@ public abstract class AbstractSpdxExporter
     setMetadata(newDocument);
     copyComponents(originalDocument, newDocument);
     newDocument.setExternalDocumentRefs(originalDocument.getExternalDocumentRefs());
+    finalizeExtractedLicensingInfo(newDocument);
     return newDocument;
   }
 
@@ -154,8 +155,6 @@ public abstract class AbstractSpdxExporter
   {
 
     SpdxPackage originalRootPkg = SbomSpdxUtils.getRootPackage(originalDocument);
-    Map<String, ExtractedLicenseInfo> extractedLicenses = originalDocument.getExtractedLicenseInfos()
-        .stream().collect(Collectors.toMap(l -> StringUtils.lowerCase(l.getLicenseId()), l -> l));
 
     for (SpdxPackage pkg : SbomSpdxUtils.getAllPackages(originalDocument)) {
       // a valid existing package will always have a name. It is unlikely to have this "unknown package" to get called
@@ -172,9 +171,10 @@ public abstract class AbstractSpdxExporter
 
       Collection<AnyLicenseInfo> licenseInfoFromDb = null;
       if (matchingDbComponent != null) {
-        licenseInfoFromDb = getAllLicenseInfoFromDb(matchingDbComponent, extractedLicenses);
+        licenseInfoFromDb = getAllLicenseInfoFromDb(matchingDbComponent, newDocument);
         addVulnerabilityDiffsFromDatabase(newDocument, pkgBuilder, externalRefs, matchingDbComponent);
       }
+
       externalRefs.forEach(pkgBuilder::addExternalRef);
 
       pkg.getVersionInfo().ifPresent(pkgBuilder::setVersionInfo);
@@ -195,21 +195,45 @@ public abstract class AbstractSpdxExporter
 
       SpdxPackage newPkg = buildPackage(pkgBuilder);
       if (CollectionUtils.isNotEmpty(licenseInfoFromDb)) {
-        AnyLicenseInfo spdxLicenseEvidence = newPkg.createConjunctiveLicenseSet(licenseInfoFromDb);
-        if (Objects.nonNull(spdxLicenseEvidence)) {
-          newPkg.getAttributionText().add("Evidence license text for: " + spdxLicenseEvidence);
+        ConjunctiveLicenseSet licenseSetForSpdxPackage = newPkg.createConjunctiveLicenseSet(licenseInfoFromDb);
+        if (Objects.nonNull(licenseSetForSpdxPackage)) {
+          newPkg.getAttributionText().add("Evidence license text for: " + licenseSetForSpdxPackage);
         }
       }
       if (originalRootPkg != null && StringUtils.equals(originalRootPkg.getId(), pkg.getId())) {
         newDocument.getDocumentDescribes().add(newPkg);;
       }
     }
-
     copyDependencyRelationships(originalDocument, newDocument);
+  }
 
-    // any non-SPDX licenses added from DB (extracted) needs to be referenced at document level too.
-    // Otherwise the document is considered invalid.
-    newDocument.getExtractedLicenseInfos().addAll(extractedLicenses.values());
+  private void finalizeExtractedLicensingInfo(SpdxDocument spdxDocument) {
+    try {
+      List<SpdxPackage> spdxPackages = SbomSpdxUtils.getAllPackages(spdxDocument);
+      for (SpdxPackage spdxPackage : spdxPackages) {
+        AnyLicenseInfo licenseDeclared = spdxPackage.getLicenseDeclared();
+        checkForExtractedLicenses(spdxDocument, licenseDeclared);
+        AnyLicenseInfo licenseConcluded = spdxPackage.getLicenseConcluded();
+        checkForExtractedLicenses(spdxDocument, licenseConcluded);
+      }
+    }
+    catch (InvalidSPDXAnalysisException e) {
+      log.debug("Failed to finalize extracted licensing info", e);
+    }
+  }
+
+  private void checkForExtractedLicenses(SpdxDocument spdxDocument,
+                                         AnyLicenseInfo licenseInfo) throws InvalidSPDXAnalysisException
+  {
+    if (licenseInfo instanceof ConjunctiveLicenseSet conjunctiveLicenseSet) {
+      List<AnyLicenseInfo> licenseMembers = conjunctiveLicenseSet.getFlattenedMembers();
+      for (AnyLicenseInfo license : licenseMembers ) {
+        conditionallyAddLicenseToExtractedLicensingInfos(spdxDocument, license.getId());
+      }
+    }
+    else if (licenseInfo instanceof ExtractedLicenseInfo extractedLicenseInfo) {
+      conditionallyAddLicenseToExtractedLicensingInfos(spdxDocument, extractedLicenseInfo.getId());
+    }
   }
 
   private SpdxPackage buildPackage(final SpdxPackage.SpdxPackageBuilder pkgBuilder)
@@ -251,14 +275,25 @@ public abstract class AbstractSpdxExporter
 
   private Collection<AnyLicenseInfo> getAllLicenseInfoFromDb(
       final ThirdPartyFileCoordinate dbComponent,
-      final Map<String, ExtractedLicenseInfo> extractedLicenses)
+      final SpdxDocument newDocument) throws InvalidSPDXAnalysisException
   {
     List<ThirdPartyCoordinateLicense> licenses =
         thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(dbComponent.getId());
     Map<String, AnyLicenseInfo> collect = new HashMap<>();
     for (ThirdPartyCoordinateLicense license : licenses) {
-      AnyLicenseInfo licenseObject = createLicenseObject(license.getLicenseId(), extractedLicenses);
-      collect.put(StringUtils.lowerCase(licenseObject.getId()), licenseObject);
+      try {
+        AnyLicenseInfo licenseObject = LicenseInfoFactory.parseSPDXLicenseString(license.getLicenseId(),
+            newDocument.getModelStore(), newDocument.getDocumentUri(), newDocument.getCopyManager());
+        collect.put(StringUtils.lowerCase(licenseObject.getId()), licenseObject);
+      }
+      catch (InvalidLicenseStringException e) {
+        log.debug("Attempting to parse non-listed SPDX license string {} as a extracted license", license.getId());
+        ExtractedLicenseInfo extractedLicenseInfo =
+            conditionallyAddLicenseToExtractedLicensingInfos(newDocument, license.getId());
+        if (extractedLicenseInfo != null) {
+          collect.put(extractedLicenseInfo.getLicenseId(), extractedLicenseInfo);
+        }
+      }
     }
     return collect.values();
   }
@@ -272,44 +307,6 @@ public abstract class AbstractSpdxExporter
     catch (InvalidSPDXAnalysisException e) {
       throw new SbomExportException("error determining purl for pkg", e);
     }
-  }
-
-  private AnyLicenseInfo createLicenseObject(
-      String licenseId,
-      final Map<String, ExtractedLicenseInfo> extractedLicenses)
-  {
-    AnyLicenseInfo anyLicenseInfo = null;
-    try {
-      anyLicenseInfo = LicenseInfoFactory.parseSPDXLicenseString(licenseId);
-    }
-    catch (InvalidLicenseStringException e) {
-      log.debug("Failed to parse spdx license string: {}.", licenseId);
-    }
-    if (anyLicenseInfo == null) {
-      try {
-        if (ListedLicenses.getListedLicenses().isSpdxListedLicenseId(licenseId)) {
-          return ListedLicenses.getListedLicenses().getListedLicenseById(licenseId);
-        }
-
-        if (!licenseId.startsWith(NON_STD_LICENSE_ID_PRENUM)) {
-          licenseId = NON_STD_LICENSE_ID_PRENUM + licenseId.replaceAll(INVALID_REF_REGEX, "-");
-        }
-        String lowerLicenseId = StringUtils.lowerCase(licenseId, Locale.ROOT);
-        if (extractedLicenses.containsKey(lowerLicenseId)) {
-          return extractedLicenses.get(lowerLicenseId);
-        }
-        else {
-          ExtractedLicenseInfo extractedLicenseInfo = new ExtractedLicenseInfo(licenseId, licenseId);
-          extractedLicenses.put(StringUtils.lowerCase(extractedLicenseInfo.getLicenseId(), Locale.ROOT),
-              extractedLicenseInfo);
-          return extractedLicenseInfo;
-        }
-      }
-      catch (InvalidSPDXAnalysisException e) {
-        throw new SbomExportException("Internal error extracting license information for " + licenseId, e);
-      }
-    }
-    return anyLicenseInfo;
   }
 
   private void copyDependencyRelationships(
@@ -333,5 +330,33 @@ public abstract class AbstractSpdxExporter
         }
       }
     }
+  }
+
+  private String generateSpdxValidExternalLicenseInfoId(String licenseId) {
+    return (!licenseId.startsWith(NON_STD_LICENSE_ID_PRENUM)) ?
+        NON_STD_LICENSE_ID_PRENUM + licenseId.replaceAll(INVALID_REF_REGEX, "-") : licenseId;
+  }
+
+  private ExtractedLicenseInfo conditionallyAddLicenseToExtractedLicensingInfos(final SpdxDocument spdxDocument,
+                                                                final String originalLicense)
+      throws InvalidSPDXAnalysisException
+  {
+    if (licenseCanBeAddedToExtractedLicensingInfos(spdxDocument, originalLicense)) {
+      ExtractedLicenseInfo extractedLicenseInfo =
+          spdxDocument.createExtractedLicense(generateSpdxValidExternalLicenseInfoId(originalLicense),
+          "Extracted license created by Sonatype SBOM Manager");
+      spdxDocument.addExtractedLicenseInfos(extractedLicenseInfo);
+      return extractedLicenseInfo;
+    }
+    return null;
+  }
+
+  private boolean licenseCanBeAddedToExtractedLicensingInfos(final SpdxDocument spdxDocument,
+                                                             final String originalLicense)
+      throws InvalidSPDXAnalysisException
+  {
+    return !ListedLicenses.getListedLicenses().isSpdxListedLicenseId(originalLicense) &&
+        spdxDocument.getExtractedLicenseInfos().stream().noneMatch(license ->
+                license.getId().equalsIgnoreCase(generateSpdxValidExternalLicenseInfoId(originalLicense)));
   }
 }

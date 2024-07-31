@@ -3,23 +3,17 @@
     <SPDXID>SPDXRef-DOCUMENT</SPDXID>
     <spdxVersion>SPDX-2.3</spdxVersion>
     <creationInfo>
-        <created>2024-06-12T18:25:28Z</created>
-        <creators>Tool: Sonatype SBOM Manager - 1.178.0-SNAPSHOT</creators>
+        <created>2024-07-29T19:06:15Z</created>
+        <creators>Tool: Sonatype SBOM Manager - 1.180.0-SNAPSHOT</creators>
     </creationInfo>
-    <name>DUMMY-PUBLIC-ID-647842dc3ea64a4eacb9193af4b72297</name>
+    <name>DUMMY-PUBLIC-ID-3b72fc3cf2c64fec8b67afebb629208e</name>
     <dataLicense>CC0-1.0</dataLicense>
-    <documentNamespace>http://localhost:8070/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-647842dc3ea64a4eacb9193af4b72297/bom/198d512731004a5e9fc0</documentNamespace>
+    <documentNamespace>http://localhost:8070/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-3b72fc3cf2c64fec8b67afebb629208e/bom/f9eab7e06c7e4c929ffe</documentNamespace>
     <packages>
         <SPDXID>SPDXRef-maven-apache-axis-1.0</SPDXID>
         <attributionTexts>Evidence license text for: (Apache-2.0 AND MIT)</attributionTexts>
         <copyrightText></copyrightText>
         <downloadLocation>NOASSERTION</downloadLocation>
-        <externalRefs>
-            <comment>source: NVD</comment>
-            <referenceCategory>SECURITY</referenceCategory>
-            <referenceLocator>https://nvd.nist.gov/vuln/detail/CVE-2007-2353</referenceLocator>
-            <referenceType>advisory</referenceType>
-        </externalRefs>
         <externalRefs>
             <comment>source: SONATYPE</comment>
             <referenceCategory>SECURITY</referenceCategory>
@@ -30,6 +24,12 @@
             <referenceCategory>PACKAGE-MANAGER</referenceCategory>
             <referenceLocator>pkg:maven/apache/axis@1.0?type=jar</referenceLocator>
             <referenceType>purl</referenceType>
+        </externalRefs>
+        <externalRefs>
+            <comment>source: NVD</comment>
+            <referenceCategory>SECURITY</referenceCategory>
+            <referenceLocator>https://nvd.nist.gov/vuln/detail/CVE-2007-2353</referenceLocator>
+            <referenceType>advisory</referenceType>
         </externalRefs>
         <filesAnalyzed>false</filesAnalyzed>
         <licenseConcluded>Apache-2.0</licenseConcluded>

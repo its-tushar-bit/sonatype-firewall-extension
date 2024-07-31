@@ -7,7 +7,6 @@
   },
   "name" : "webgoat",
   "dataLicense" : "CC0-1.0",
-  "hasExtractedLicensingInfos" : [ ],
   "documentNamespace" : "nullui/links/sbomManager/management/view/application/webgoat/bom/v1",
   "packages" : [ {
     "SPDXID" : "SPDXRef-32dd9982-7edc-4cde-85f6-8946cabca003",
@@ -128,15 +127,19 @@
   }, {
     "spdxElementId" : "SPDXRef-333584e5-0101-4a21-8f5b-61b10926cf3c",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-e6a49891-d1d5-4358-8688-b5a03a546f90"
+    "relatedSpdxElement" : "SPDXRef-0cd0109c-4389-4c65-b95a-1d3b552d902a"
   }, {
     "spdxElementId" : "SPDXRef-333584e5-0101-4a21-8f5b-61b10926cf3c",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-0cd0109c-4389-4c65-b95a-1d3b552d902a"
+    "relatedSpdxElement" : "SPDXRef-e6a49891-d1d5-4358-8688-b5a03a546f90"
   }, {
     "spdxElementId" : "SPDXRef-85e600ff-6842-4b60-bbc5-56a45e3a357c",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-0cd0109c-4389-4c65-b95a-1d3b552d902a"
+  }, {
+    "spdxElementId" : "SPDXRef-c9f3c210-670e-41c0-993b-af8a7768f25b",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-85e600ff-6842-4b60-bbc5-56a45e3a357c"
   }, {
     "spdxElementId" : "SPDXRef-c9f3c210-670e-41c0-993b-af8a7768f25b",
     "relationshipType" : "DEPENDS_ON",
@@ -145,9 +148,5 @@
     "spdxElementId" : "SPDXRef-c9f3c210-670e-41c0-993b-af8a7768f25b",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-32dd9982-7edc-4cde-85f6-8946cabca003"
-  }, {
-    "spdxElementId" : "SPDXRef-c9f3c210-670e-41c0-993b-af8a7768f25b",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-85e600ff-6842-4b60-bbc5-56a45e3a357c"
   } ]
 }

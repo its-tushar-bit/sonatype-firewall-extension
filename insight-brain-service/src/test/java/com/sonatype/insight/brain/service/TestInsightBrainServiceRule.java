@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.testing.InsightBrainServiceFactory;
+import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
 import com.google.inject.Injector;
@@ -136,6 +137,10 @@ public class TestInsightBrainServiceRule
 
     // refresh license details from the new HDS
     getInstance(CLMLicenseManager.class).loadLicense();
+  }
+
+  public void setVersion(final String version) {
+    getInstance(VersionService.class).setVersion(version);
   }
 
   public void setProxyConfiguration() {

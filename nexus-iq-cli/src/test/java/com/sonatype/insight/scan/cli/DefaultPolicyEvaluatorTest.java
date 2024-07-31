@@ -340,6 +340,7 @@ public abstract class DefaultPolicyEvaluatorTest
   @Test
   public void testRun_ReportUrl() throws Exception {
     tempEntity.newApplicationWithParent("the-app-id");
+    SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT.setEnabled(false);
 
     List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //

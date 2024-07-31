@@ -66,6 +66,8 @@ public class DevelopmentPrioritiesRestResourceTest
 
   @Test
   public void testGetPriorities_returnsCorrectErrorWhenLicenseDoesNotIncludeDevelopment() throws Exception {
+    getTestProductLicenseManager().setFeatures(LicensedFeature.DASHBOARD);
+
     final HttpResponse response = restRequest()
         .path(GET_PRIORITIES_PATH)
         .get();

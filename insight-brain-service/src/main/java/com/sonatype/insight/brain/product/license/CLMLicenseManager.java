@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -33,6 +34,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
@@ -49,9 +52,11 @@ import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.tenancy.GlobalTenantJob;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
+import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
+import org.apache.commons.lang3.StringUtils;
 import org.sonatype.licensing.LicensingException;
 import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -108,7 +113,7 @@ public class CLMLicenseManager
 
   public static final String PRODUCT_SBOM_MANAGER_SAAS = "SBOM Manager SaaS";
 
-  public static final String PRODUCT_SONATYPE_DEVELOPMENT = "Development";
+  public static final String PRODUCT_SONATYPE_DEVELOPMENT = "Developer";
 
   public static final String PRODUCT_TEAMS_EDITION = "Teams Edition";
 
@@ -116,6 +121,8 @@ public class CLMLicenseManager
   static final String TASK_NAME = "ProductLicenseLoad";
 
   private static final String LICENSE_LOADING_ERROR = "Error when loading the product license";
+
+  private static final String MIN_DEVELOPER_COMPATIBLE_VERSION = "1.180.0";
 
   private final InsightConfig config;
 
@@ -143,6 +150,8 @@ public class CLMLicenseManager
 
   private final TaskScheduler taskScheduler;
 
+  private final VersionService versionService;
+
   @Inject
   public CLMLicenseManager(
       final InsightConfig config,
@@ -155,7 +164,8 @@ public class CLMLicenseManager
       final LicenseContent licenseContent,
       final HdsClient hdsClient,
       final AuditRecorder auditRecorder,
-      final TaskScheduler taskScheduler)
+      final TaskScheduler taskScheduler,
+      final VersionService versionService)
   {
     this.config = config;
     this.migrationTrackerDAO = migrationTrackerDAO;
@@ -168,14 +178,17 @@ public class CLMLicenseManager
     this.hdsClient = hdsClient;
     this.auditRecorder = auditRecorder;
     this.taskScheduler = taskScheduler;
+    this.versionService = versionService;
   }
 
   public void loadLicense() {
     SignedProductLicenseDetailsDTO licenseDetails;
     try {
       ProductLicenseKey licenseKey = licenseManager.getLicenseDetails();
+      updateLicenceKeyWithDeveloperProduct(licenseKey);
       String licenseFingerprint = licenseFingerprinter.calculate(licenseKey);
       byte[] licenseData = licenseContent.raw();
+
       try {
         licenseDetails = queryLicenseDetailsFromHds(licenseData, licenseFingerprint);
         productLicenseDetailsCache.setProductLicenseDetails(licenseDetails);
@@ -216,6 +229,54 @@ public class CLMLicenseManager
       throw new ExternalDatabaseNotSupportedException(
           "SBOM Manager feature requires use of an external database, please retry using an external database.");
     }
+  }
+
+  private void updateLicenceKeyWithDeveloperProduct(final ProductLicenseKey productLicenseKey) {
+    final Properties properties = productLicenseKey.getProperties();
+    updatePropertiesWithDeveloperProduct(properties);
+    productLicenseKey.setProperties(properties);
+  }
+
+  private void updatePropertiesWithDeveloperProduct(final Properties properties) {
+    if (properties == null) {
+      return;
+    }
+
+    final String productsString = properties.getProperty(ProductLicenseDetails.PROPERTY_PRODUCTS);
+    if (StringUtils.isEmpty(productsString)) {
+      return;
+    }
+
+    final List<String> products = Arrays.asList(productsString.split(","));
+    if (shouldAddDeveloperProduct(products)) {
+      final String productsProperty = properties.getProperty(ProductLicenseDetails.PROPERTY_PRODUCTS) +
+          "," + ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT;
+      properties.setProperty(ProductLicenseDetails.PROPERTY_PRODUCTS, productsProperty);
+    }
+  }
+
+  private boolean shouldAddDeveloperProduct(final List<String> products) {
+    return hasDeveloperEligibleLifecycleProduct(products) &&
+        !products.contains(ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT);
+  }
+
+  private boolean hasDeveloperEligibleLifecycleProduct(final List<String> products) {
+    final Set<String> lifecycleProducts = Set.of(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
+        ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS, ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD,
+        ProductLicenseDetails.PRODUCT_TEAMS_EDITION);
+    final boolean hasLifecycleProduct = products.stream().anyMatch(lifecycleProducts::contains);
+    final String version = versionService.getVersion();
+    final boolean isEligibleVersion =
+        version != null && versionService.compare(version, MIN_DEVELOPER_COMPATIBLE_VERSION) >= 0;
+    return hasLifecycleProduct && isEligibleVersion;
+  }
+
+  private Set<String> getProducts() {
+    final List<String> productList = Lists.newArrayList(productLicense.getProducts());
+    if (shouldAddDeveloperProduct(productList)) {
+      productList.add(ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT);
+    }
+    return Sets.newHashSet(productList);
   }
 
   //visible for testing
@@ -267,6 +328,7 @@ public class CLMLicenseManager
   public synchronized void installLicense(InputStream is) throws IOException {
     byte[] licenseData = ByteStreams.toByteArray(is);
     ProductLicenseKey licenseKey = licenseManager.getLicenseDetails(new ByteArrayInputStream(licenseData));
+    updateLicenceKeyWithDeveloperProduct(licenseKey);
     String licenseFingerprint = licenseFingerprinter.calculate(licenseKey);
     SignedProductLicenseDetailsDTO licenseDetails = queryLicenseDetailsFromHds(licenseData, licenseFingerprint);
     if (!config.isDatabaseEmbedded() && !licenseDetails.features.contains(LicensedFeature.EXTERNAL_DATABASE.name())
@@ -491,6 +553,7 @@ public class CLMLicenseManager
     }
 
     Properties properties = productLicense.isValid() ? licenseManager.getLicenseDetails().getProperties() : null;
+    updatePropertiesWithDeveloperProduct(properties);
 
     return new LicenseInfo(productLicense.getFingerprint(), productLicense.getExpirationTimestamp(),
         licensedUsersToDisplay, firewallUsersToDisplay, applicationLimitToDisplay, applicationCountToDisplay,
@@ -499,14 +562,14 @@ public class CLMLicenseManager
   }
 
   private String[] getProductLicenseProductsMarketingNames() {
-    return productLicense.getProducts().stream()
+    return getProducts().stream()
         .map(CLMLicenseManager::getProductMarketingName)
         .filter(Objects::nonNull)
         .toArray(String[]::new);
   }
 
   private String getProductEdition() {
-    Set<String> products = productLicense.getProducts();
+    Set<String> products = getProducts();
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION)) {
       return PRODUCT_LIFECYCLE;
     }

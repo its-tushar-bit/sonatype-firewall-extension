@@ -54,7 +54,7 @@ export default function ProductLicenseInfo({ license }) {
             <dt className="nx-read-only__label">License Type(s)</dt>
             {(license.products || []).map((product, index) => (
               <dd className="nx-read-only__data license-product" key={index}>
-                {product === 'Sonatype Development' ? 'Sonatype Developer' : product}
+                {product}
               </dd>
             ))}
           </div>

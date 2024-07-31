@@ -66,6 +66,8 @@ public class DevelopmentPrioritiesApiResourceTest
 
   @Test
   public void testGetPriorities_returnsCorrectErrorWhenLicenseDoesNotIncludeDevelopment() throws Exception {
+    getTestProductLicenseManager().setFeatures(LicensedFeature.DASHBOARD);
+
     final HttpResponse response = restRequest()
         .auth()
         .path(GET_PRIORITIES_PATH)

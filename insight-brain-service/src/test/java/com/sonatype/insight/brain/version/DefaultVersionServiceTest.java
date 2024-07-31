@@ -73,4 +73,18 @@ public class DefaultVersionServiceTest
       versionService.setVersion(version);
     }
   }
+
+  @Test
+  public void testCompare() {
+    // Version to compare against
+    final String targetVersion = "1.180.0";
+    final String olderVersion = "1.176.0";
+    final String newerVersion = "1.182.0";
+    final String snapshotVersion = targetVersion + "-SNAPSHOT";
+
+    assertThat(versionService.compare(olderVersion, targetVersion)).isEqualTo(-1);
+    assertThat(versionService.compare(newerVersion, targetVersion)).isEqualTo(1);
+    assertThat(versionService.compare(targetVersion, targetVersion)).isZero();
+    assertThat(versionService.compare(snapshotVersion, targetVersion)).isEqualTo(-1);
+  }
 }

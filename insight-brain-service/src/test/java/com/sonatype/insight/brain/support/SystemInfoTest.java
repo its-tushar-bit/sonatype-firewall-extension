@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.support.SystemInfo.NetworkInterfaceWrapper;
 import com.sonatype.insight.brain.support.SystemInfo.SamlInfo;
+import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.productlicense.ProductLicenseConfig;
@@ -74,6 +75,8 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -113,6 +116,9 @@ public class SystemInfoTest
   @Mock
   private TaskScheduler taskSchedulerMock;
 
+  @Mock
+  private VersionService versionService;
+
   private final String lineSeparator = System.lineSeparator();
 
   private static final String SERVER_LOG_FILENAME = "myServerLogFilename";
@@ -141,6 +147,7 @@ public class SystemInfoTest
     productLicenseConfig.setKeyStoreAliasGroup("licensing-key-test");
     binder.bind(ProductLicenseConfig.class).toInstance(productLicenseConfig);
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
+    binder.bind(VersionService.class).toInstance(versionService);
     super.configure(binder);
   }
 
@@ -547,6 +554,13 @@ public class SystemInfoTest
 
   @Test
   public void testGetProductLicense() throws IOException {
+    doReturn("1.180.0")
+        .when(versionService)
+        .getVersion();
+    doReturn(0)
+        .when(versionService)
+        .compare(anyString(), anyString());
+
     final String json = systemInfo.getProductLicense();
 
     ObjectMapper objectMapper = new ObjectMapper();
@@ -565,7 +579,7 @@ public class SystemInfoTest
     assertThat(supportZipLicenseInfo.licenseInfo.products).containsExactlyInAnyOrder("Sonatype Lifecycle",
         "Sonatype Repository Firewall", "Sonatype Firewall for Artifactory", "Sonatype Lifecycle Cloud",
         "Sonatype Lifecycle Firewall Cloud", "Sonatype Lifecycle SaaS", "Sonatype Lifecycle Firewall SaaS",
-        "Sonatype Lifecycle Foundation SaaS", "Sonatype Auditor SaaS");
+        "Sonatype Lifecycle Foundation SaaS", "Sonatype Auditor SaaS", "Sonatype Developer");
     assertThat(supportZipLicenseInfo.licenseInfo.expiryTimestamp).isPositive();
 
     Collection<String> features = supportZipLicenseInfo.features;
@@ -578,6 +592,12 @@ public class SystemInfoTest
 
   @Test
   public void testGetProductLicense_multipleLicenseModels() throws IOException {
+    doReturn("1.180.0")
+        .when(versionService)
+        .getVersion();
+    doReturn(0)
+        .when(versionService)
+        .compare(anyString(), anyString());
 
     List<String> licensingModels = Arrays.asList(
         ProductLicenseDetails.LICENSING_SBOM_BASED,
@@ -610,7 +630,7 @@ public class SystemInfoTest
     assertThat(supportZipLicenseInfo.licenseInfo.products).containsExactlyInAnyOrder("Sonatype Lifecycle",
         "Sonatype Repository Firewall", "Sonatype Firewall for Artifactory", "Sonatype Lifecycle Cloud",
         "Sonatype Lifecycle Firewall Cloud", "Sonatype Lifecycle SaaS", "Sonatype Lifecycle Firewall SaaS",
-        "Sonatype Lifecycle Foundation SaaS", "Sonatype Auditor SaaS");
+        "Sonatype Lifecycle Foundation SaaS", "Sonatype Auditor SaaS", "Sonatype Developer");
     assertThat(supportZipLicenseInfo.licenseInfo.expiryTimestamp).isPositive();
 
     Collection<String> features = supportZipLicenseInfo.features;

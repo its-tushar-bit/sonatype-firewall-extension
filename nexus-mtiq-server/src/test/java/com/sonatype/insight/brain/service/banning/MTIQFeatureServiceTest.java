@@ -90,7 +90,6 @@ public class MTIQFeatureServiceTest
   @Test
   public void testGetFeatures_onlyIncludesAllowedFeatures() {
     Set<Feature> features = underTest.getFeatures();
-
     Feature[] expectedFeatures = getFeatureSet();
 
     assertThat(features).containsExactlyInAnyOrder(expectedFeatures);
@@ -212,7 +211,6 @@ public class MTIQFeatureServiceTest
             .filter(f -> !f.equals(LicensedFeature.ADVANCED_LEGAL_PACK))
             .filter(f -> !f.equals(LicensedFeature.API_PAGE))
             .filter(f -> !f.equals(LicensedFeature.DATA_INSIGHTS))
-            .filter(f -> !f.equals(LicensedFeature.DEVELOPER_DASHBOARD))
             .filter(f -> !f.equals(LicensedFeature.FIREWALL_FOR_ARTIFACTORY))
             .filter(f -> !f.equals(LicensedFeature.INFRASTRUCTURE_AS_CODE_PACK))
             .filter(f -> !f.equals(LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING))

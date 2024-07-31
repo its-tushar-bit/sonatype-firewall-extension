@@ -279,6 +279,10 @@ public abstract class AbstractBaseIntegrationTest
   }
 
   protected void startIqTestServer(Configurator configurator) throws Exception {
+    startIqTestServer(configurator, false);
+  }
+
+  protected void startIqTestServer(Configurator configurator, boolean overrideVersion) throws Exception {
     if (configurator == null) {
       configurator = DEFAULT_CONFIGURATOR;
     }
@@ -295,6 +299,10 @@ public abstract class AbstractBaseIntegrationTest
 
     setBaseUrl("http://localhost");
     testCLMServer.getCLMServer().setProxyConfiguration();
+    if (overrideVersion) {
+      // While true version is below 1.180.0, allow Developer product to be included when loading license in setHdsUrl
+      testCLMServer.getCLMServer().setVersion("1.180.0");
+    }
     testCLMServer.getCLMServer().setHdsUrl();
   }
 

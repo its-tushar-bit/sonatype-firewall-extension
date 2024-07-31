@@ -7,6 +7,10 @@ package com.sonatype.insight.brain.version;
 
 import java.util.Properties;
 
+import org.eclipse.aether.util.version.GenericVersionScheme;
+import org.eclipse.aether.version.InvalidVersionSpecificationException;
+import org.eclipse.aether.version.Version;
+
 public interface VersionService
 {
   String getBuild();
@@ -40,4 +44,17 @@ public interface VersionService
   String getShortVersion();
 
   String getFullVersion();
+
+  default int compare(final String version1, final String version2) {
+    try {
+      final GenericVersionScheme scheme = new GenericVersionScheme();
+      final Version ver1 = scheme.parseVersion(version1);
+      final Version ver2 = scheme.parseVersion(version2);
+      return ver1.compareTo(ver2);
+    }
+    catch (final InvalidVersionSpecificationException e) {
+      // the generic version scheme should accept anything
+      throw new IllegalStateException(e);
+    }
+  }
 }

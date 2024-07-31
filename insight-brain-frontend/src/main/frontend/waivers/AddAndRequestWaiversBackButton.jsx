@@ -38,10 +38,15 @@ const firewallParamsExtractor = (props) => ({
   tabId: props?.prevParams?.tabId,
 });
 
-const getDefaultNavigationId = (props) =>
-  props?.isFirewallOrRepositoryComponent
-    ? originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS
-    : originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW;
+const getDefaultNavigationId = (props) => {
+  if (props?.isFirewallOrRepositoryComponent) {
+    return originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS;
+  }
+  if (props?.isStandaloneDeveloper) {
+    return originNamesForAddRequestPages.DASHBOARD_PRIORITIES_PAGE;
+  }
+  return originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW;
+};
 
 /**
  * This rules define the navigation id (key), the back button title and a params
@@ -53,6 +58,10 @@ const getDefaultNavigationId = (props) =>
 const NAVIGATION_RULES = {
   [originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW]: {
     backButtonTitle: 'Back to Violation Details',
+    paramsExtractor: dashboardParamsExtractor,
+  },
+  [originNamesForAddRequestPages.DASHBOARD_PRIORITIES_PAGE]: {
+    backButtonTitle: 'Back to Developer Dashboard',
     paramsExtractor: dashboardParamsExtractor,
   },
   ...setValueForMultipleKeys(
@@ -89,6 +98,23 @@ const NAVIGATION_RULES = {
     {
       backButtonTitle: 'Back to Component Details',
       paramsExtractor: (props) => props,
+    }
+  ),
+  ...setValueForMultipleKeys(
+    [
+      originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_REPORTS,
+      originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT,
+      originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD,
+      originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_REPORTS_SECURITY,
+      originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT_SECURITY,
+      originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD_SECURITY,
+      originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_REPORTS_LEGAL,
+      originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT_LEGAL,
+      originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD_LEGAL,
+    ],
+    {
+      backButtonTitle: 'Back to Component Details',
+      paramsExtractor: appReportParamsExtractor,
     }
   ),
 };
@@ -137,4 +163,5 @@ AddAndRequestWaiversBackButton.propTypes = {
   }),
   isFirewall: PropTypes.bool,
   isFirewallOrRepositoryComponent: PropTypes.bool,
+  isStandaloneDeveloper: PropTypes.bool,
 };

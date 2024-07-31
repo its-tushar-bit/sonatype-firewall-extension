@@ -34,6 +34,7 @@ import ReportPageViolationCell from './ReportsPageViolationCell';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { extractSortFieldName } from '../../util/sortUtils';
 import { equals } from 'ramda';
+import { selectIsDeveloper } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 // supported stages
 const allStages = ['source', 'build', 'stage-release', 'release'];
@@ -53,6 +54,7 @@ export default function ReportsPage() {
   const appFilter = useSelector(selectReportsFilter);
   const loadingPublicIds = useSelector(selectLoadingPublicIds);
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
+  const isDeveloper = useSelector(selectIsDeveloper);
 
   // Actions
   const loadStagesAndReports = () => dispatch(actions.loadStagesAndReports());
@@ -136,6 +138,7 @@ export default function ReportsPage() {
             app: report,
             hrefUiRouterState: uiRouterState.href,
             isDeveloperDashboardEnabled,
+            isDeveloper,
           })
         : null
     );

@@ -18,7 +18,11 @@ const claimedComponentAlert = (isEffective, len) => {
 
 const renderOneLicense = (licenseItem) => {
   return (
-    <div key={licenseItem.license.licenseId} className="license-list-item__license">
+    <div
+      key={licenseItem.license.licenseId}
+      className="license-list-item__license"
+      data-testid="single-license-list-item__license"
+    >
       <NxThreatIndicator policyThreatLevel={licenseItem.threatLevel} />
       <span>{licenseItem.license.licenseName}</span>
     </div>
@@ -33,7 +37,7 @@ export const renderLicensesList = (list, claimed, isEffective = false) =>
       return multiLicenses.map((licenseItem, index) => (
         <Fragment key={index}>
           {index !== 0 && <span> or </span>}
-          <span className="license-list-item__license">
+          <span className="license-list-item__license" data-testid="multi-license-list-item__license">
             <NxThreatIndicator policyThreatLevel={licenseItem.threatLevel} />
             <span>{licenseItem.license.licenseName}</span>
           </span>
@@ -42,7 +46,7 @@ export const renderLicensesList = (list, claimed, isEffective = false) =>
     };
 
     return (
-      <li className="iq-legal-item" key={licenseKey}>
+      <li className="iq-legal-item" key={licenseKey} data-testid="iq-legal-item">
         <span className="license-list-item">
           {licenses.length > 1 ? multiDisplay(licenses) : renderOneLicense(licenses[0])}
           {claimed && claimedComponentAlert(isEffective, list.length)}

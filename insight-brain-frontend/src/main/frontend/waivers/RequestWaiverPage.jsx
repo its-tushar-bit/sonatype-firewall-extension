@@ -37,6 +37,7 @@ import {
   selectPreviousRouteName,
   selectRouterPrevParams,
   selectViolationId,
+  selectIsStandaloneDeveloper,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { loadViolation as loadViolationAction } from 'MainRoot/violation/violationActions';
 import { actions } from './requestWaiverSlice';
@@ -74,6 +75,7 @@ const RequestWaiversPage = () => {
   const { loading: webhookInfoLoading, error: webhookInfoError, waiverRequestWebhookAvailable } = useSelector(
     selectWaiverRequestWebhookState
   );
+  const isStandaloneDeveloper = useSelector(selectIsStandaloneDeveloper);
 
   const loadViolation = (id) => dispatch(loadViolationAction(id));
   const getWaiverRequestWebhooks = () => dispatch(actions.getWaiverRequestWebhooks());
@@ -97,6 +99,7 @@ const RequestWaiversPage = () => {
     violationId,
     prevStateName: name,
     prevParams,
+    isStandaloneDeveloper,
   };
 
   const error = violationId

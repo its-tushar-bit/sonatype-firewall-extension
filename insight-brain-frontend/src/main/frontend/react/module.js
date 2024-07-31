@@ -65,6 +65,7 @@ export default angular
         'isProductFeaturesLoading',
         'isSbomManagerOnlyLicense',
         'isProductsLoading',
+        'isStandaloneDeveloper',
       ],
       ['$state']
     )

@@ -9,11 +9,10 @@ import { NxCard, NxTextLink, NxH3, NxLoadWrapper } from '@sonatype/react-shared-
 import { useDispatch, useSelector } from 'react-redux';
 import { actions } from 'MainRoot/development/developmentDashboard/slices/ideIntegrationsSlice';
 import { selectIdeIntegrationsSlice } from 'MainRoot/development/developmentDashboard/selectors/integrationsSelectors';
-import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { SECTIONS } from 'MainRoot/development/developmentDashboard/sections';
+import useGetIntegrationsLink from 'MainRoot/development/developmentDashboard/useGetIntegrationsLink';
 
 export default function IdeIntegrationsCard() {
-  const uiRouterState = useRouterState();
   const dispatch = useDispatch();
   const doLoad = () => {
     dispatch(actions.loadIdeIntegratedUserCount());
@@ -23,7 +22,7 @@ export default function IdeIntegrationsCard() {
     ideIntegratedUserCount === 1
       ? 'member of your team uses an IDE integration'
       : 'members of your team use an IDE integration';
-  const ideHref = uiRouterState.href(`integrations.${SECTIONS.IDE}`);
+  const ideHref = useGetIntegrationsLink(SECTIONS.IDE);
 
   useEffect(() => {
     doLoad();

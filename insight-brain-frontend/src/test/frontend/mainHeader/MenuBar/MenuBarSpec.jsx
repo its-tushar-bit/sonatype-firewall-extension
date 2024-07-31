@@ -7,6 +7,7 @@ import * as enzymeUtils from '../../enzymeUtils';
 import MenuBar from '../../../../main/frontend/mainHeader/MenuBar/MenuBar';
 import SystemPreferencesMenu from '../../../../main/frontend/mainHeader/MenuBar/SystemPreferencesMenu/SystemPreferencesMenu';
 import HelpMenu from '../../../../main/frontend/mainHeader/MenuBar/HelpMenu/HelpMenu';
+import NotificationsMenuContainer from '../../../../main/frontend/mainHeader/MenuBar/NotificationsMenu/NotificationsMenuContainer';
 
 describe('MenuBar', function () {
   let getShallowComponent;
@@ -47,5 +48,17 @@ describe('MenuBar', function () {
   it('should render the back button container if isLoggedIn is false', () => {
     const componentWithPermissions = getShallowComponent({ isLoggedIn: false });
     expect(componentWithPermissions.find('div#menu-bar__back-button-container')).toExist();
+  });
+
+  describe('if isStandaloneDeveloper is true', () => {
+    it('should not render SystemPreferencesMenu', () => {
+      const component = getShallowComponent({ permissions: { SOME_PERMISSION: true }, isStandaloneDeveloper: true });
+      expect(component.find(SystemPreferencesMenu)).not.toExist();
+    });
+
+    it('should not render NotificationsMenuContainer', () => {
+      const component = getShallowComponent({ isStandaloneDeveloper: true, isShowNotificationMenuEnabled: true });
+      expect(component.find(NotificationsMenuContainer)).not.toExist();
+    });
   });
 });

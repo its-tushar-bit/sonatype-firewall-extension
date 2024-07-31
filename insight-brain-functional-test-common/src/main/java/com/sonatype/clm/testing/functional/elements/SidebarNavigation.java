@@ -93,10 +93,6 @@ public class SidebarNavigation
     return new MainHeaderNavigationButton("#data-insights-button");
   }
 
-  public static MainHeaderNavigationButton integrationsNavigationButton() {
-    return new MainHeaderNavigationButton("#integrations-navigation-button");
-  }
-
   public static MainHeaderNavigationButton sbomManagerDashboardNavigationButton() {
     return new MainHeaderNavigationButton("#sbom-manager-dashboard-navigation-button");
   }

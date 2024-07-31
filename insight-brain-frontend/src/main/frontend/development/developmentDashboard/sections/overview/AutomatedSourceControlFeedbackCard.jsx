@@ -19,7 +19,10 @@ export default function AutomatedSourceControlFeedbackCard() {
       <NxCard.Content>
         <NxCard.Text>
           Inform Developers of unnecessary risk as they introduce it. Enable{' '}
-          <NxTextLink href="https://links.sonatype.com/products/nxiq/doc/integrations/scm/automatic-source-control-feedback">
+          <NxTextLink
+            external
+            href="https://links.sonatype.com/products/nxiq/doc/integrations/scm/automatic-source-control-feedback"
+          >
             Automated Feedback
           </NxTextLink>{' '}
           by turning on &quot;Pull Request Commenting&quot; and &quot;Automated Commit Feedback&quot;.

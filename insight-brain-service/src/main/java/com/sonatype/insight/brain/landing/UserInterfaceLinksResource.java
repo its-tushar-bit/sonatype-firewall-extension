@@ -101,7 +101,7 @@ public class UserInterfaceLinksResource
   public Response linkToDeveloperHome() {
     UriBuilder uriBuilder = baseUrl.redirect()
         .path(ASSET_INDEX_PATH)
-        .fragment("/integrations/overview");
+        .fragment("/developer/dashboard");
     return redirect(uriBuilder);
   }
 

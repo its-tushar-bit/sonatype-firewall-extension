@@ -131,11 +131,11 @@ function DataRows({ dataset }) {
 
   const getCurrentPrioritiesContainer = () => {
     if (currentRouteName === 'prioritiesPageFromDashboard') {
-      return 'appReportPageWithinPrioritiesPageContainerFromDashboard';
+      return 'componentDetailsPageWithinPrioritiesPageContainerFromDashboard';
     } else if (currentRouteName === 'prioritiesPageFromReports') {
-      return 'appReportPageWithinPrioritiesPageContainerFromReports';
+      return 'componentDetailsPageWithinPrioritiesPageContainerFromReports';
     } else if (currentRouteName === 'prioritiesPageFromAppReport') {
-      return 'appReportPageWithinPrioritiesPageContainerFromAppReport';
+      return 'componentDetailsPageWithinPrioritiesPageContainerFromAppReport';
     }
     return 'prioritiesPageContainer';
   };

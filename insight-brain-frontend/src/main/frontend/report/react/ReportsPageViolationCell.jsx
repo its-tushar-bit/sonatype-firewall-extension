@@ -9,7 +9,7 @@ import { NxSmallThreatCounter, NxTable, NxTextLink, NxFontAwesomeIcon } from '@s
 import { faHourglassHalf } from '@fortawesome/pro-regular-svg-icons';
 import { formatTimeAgo } from 'MainRoot/util/dateUtils';
 
-const ReportsPageViolationCell = ({ stage, app, hrefUiRouterState, isDeveloperDashboardEnabled }) => {
+const ReportsPageViolationCell = ({ stage, app, hrefUiRouterState, isDeveloperDashboardEnabled, isDeveloper }) => {
   const results = app.policyEvaluationsResults[stage],
     evaluation = app.policyEvaluations[stage],
     publicAppId = app.publicId,
@@ -36,6 +36,14 @@ const ReportsPageViolationCell = ({ stage, app, hrefUiRouterState, isDeveloperDa
     results.moderateComponentCount
   );
 
+  const reportLinkProps = {
+    hrefUiRouterState,
+    isDeveloperDashboardEnabled,
+    isDeveloper,
+    publicAppId,
+    scanId: evaluation.scanId,
+  };
+
   return (
     <NxTable.Cell key={`${stage}${app.publicId}`}>
       {!hasViolations && <div>No violations</div>}
@@ -47,35 +55,57 @@ const ReportsPageViolationCell = ({ stage, app, hrefUiRouterState, isDeveloperDa
         />
       )}
       <div className="iq-report-age">{formatTimeAgo(evaluation.time)}</div>
-      <div className="iq-report-links-container">
-        <NxTextLink
-          id="iq-report-link"
-          href={hrefUiRouterState('applicationReport.policy', {
-            publicId: publicAppId,
-            scanId: evaluation.scanId,
-          })}
-        >
-          {isDeveloperDashboardEnabled ? 'Report' : 'View Report'}
-        </NxTextLink>
-        {isDeveloperDashboardEnabled && (
-          <>
-            <span>|</span>
-            <NxTextLink
-              id="iq-developer-priorities-link-from-reports-pag"
-              data-analytics-id="iq-developer-priorities-link-from-reports-page"
-              href={hrefUiRouterState('prioritiesPageFromReports', {
-                publicAppId,
-                scanId: evaluation.scanId,
-              })}
-            >
-              Priorities
-            </NxTextLink>
-          </>
-        )}
-      </div>
+      <ReportLink {...reportLinkProps} />
     </NxTable.Cell>
   );
 };
+
+function ReportLink({ hrefUiRouterState, isDeveloperDashboardEnabled, isDeveloper, publicAppId, scanId }) {
+  if (isDeveloperDashboardEnabled && isDeveloper) {
+    return (
+      <NxTextLink
+        id="iq-developer-priorities-link-from-reports-page"
+        data-analytics-id="iq-developer-priorities-link-from-reports-page"
+        href={hrefUiRouterState('prioritiesPageFromReports', {
+          publicAppId,
+          scanId,
+        })}
+      >
+        View Priorities
+      </NxTextLink>
+    );
+  }
+  return (
+    <div className="iq-report-links-container">
+      <NxTextLink
+        id="iq-report-link"
+        newTab={isDeveloper}
+        href={hrefUiRouterState('applicationReport.policy', {
+          publicId: publicAppId,
+          scanId,
+        })}
+      >
+        {isDeveloperDashboardEnabled ? 'Report' : 'View Report'}
+      </NxTextLink>
+      {isDeveloperDashboardEnabled && (
+        <>
+          <span>|</span>
+          <NxTextLink
+            id="iq-developer-priorities-link-from-lifecycle-reports-page"
+            newTab
+            data-analytics-id="iq-developer-priorities-link-from-lifecycle-reports-page"
+            href={hrefUiRouterState('prioritiesPageFromReports', {
+              publicAppId,
+              scanId: scanId,
+            })}
+          >
+            Priorities
+          </NxTextLink>
+        </>
+      )}
+    </div>
+  );
+}
 
 ReportsPageViolationCell.propTypes = {
   stage: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -89,6 +119,15 @@ ReportsPageViolationCell.propTypes = {
   ).isRequired,
   hrefUiRouterState: PropTypes.func.isRequired,
   isDeveloperDashboardEnabled: PropTypes.bool.isRequired,
+  isDeveloper: PropTypes.bool,
+};
+
+ReportLink.propTypes = {
+  hrefUiRouterState: PropTypes.func.isRequired,
+  isDeveloperDashboardEnabled: PropTypes.bool.isRequired,
+  isDeveloper: PropTypes.bool,
+  publicAppId: PropTypes.string,
+  scanId: PropTypes.string,
 };
 
 export default ReportsPageViolationCell;

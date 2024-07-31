@@ -155,6 +155,49 @@ describe('ReportsPageViolationCell', () => {
     expect(screen.queryByRole('link', { name: /priorities/i })).not.toBeInTheDocument();
   });
 
+  it('it renders a "View Report" link that opens in the same tab when isDeveloperDashboardEnabled is false and isDeveloper is false', () => {
+    const newProps = {
+      ...props,
+      isDeveloper: false,
+      isDeveloperDashboardEnabled: false,
+    };
+    renderComponent(newProps);
+
+    const prioritiesLink = screen.queryByRole('link', { name: /view report/i });
+    expect(prioritiesLink).toBeVisible();
+    expect(prioritiesLink).toHaveAttribute('target', '');
+  });
+
+  it('it renders a "View Priorities" link that opens in the same tab when isDeveloperDashboardEnabled is true and isDeveloper is true', () => {
+    const newProps = {
+      ...props,
+      isDeveloper: true,
+      isDeveloperDashboardEnabled: true,
+    };
+    renderComponent(newProps);
+
+    const prioritiesLink = screen.queryByRole('link', { name: /priorities/i });
+    expect(prioritiesLink).toBeVisible();
+    expect(prioritiesLink).toHaveAttribute('target', '');
+  });
+
+  it('it renders "Report" link that opens in the same tab and "Priorities" link that opens in a new tab when isDeveloperDashboardEnabled is true and isDeveloper is false', () => {
+    const newProps = {
+      ...props,
+      isDeveloper: false,
+      isDeveloperDashboardEnabled: true,
+    };
+    renderComponent(newProps);
+
+    const viewReport = screen.getByRole('link', { name: /report/i });
+    expect(viewReport).toBeVisible();
+    expect(viewReport).toHaveAttribute('target', '');
+
+    const prioritiesLink = screen.queryByRole('link', { name: /priorities/i });
+    expect(prioritiesLink).toBeVisible();
+    expect(prioritiesLink).toHaveAttribute('target', '_blank');
+  });
+
   it('Renders the component with priorities link if development dashboard is enabled', () => {
     renderComponent({ ...props, isDeveloperDashboardEnabled: true });
 

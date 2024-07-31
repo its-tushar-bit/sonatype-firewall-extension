@@ -45,6 +45,7 @@ import {
   isClaimedComponent,
 } from './componentDetailsUtils';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { selectIsStandaloneDeveloper } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export function getTabsConfiguration(isUnknown, isExact, isClaimed) {
   let tabsConfiguration = [
@@ -82,6 +83,7 @@ export default function ComponentDetails() {
   const isProprietary = useSelector(selectIsProprietary);
   const pathnames = useSelector(selectFilteredPathnames);
   const dependencyTreeRouterParams = useSelector(selectDependencyTreeRouterParams);
+  const isStandaloneDeveloper = useSelector(selectIsStandaloneDeveloper);
   const loadComponentDetails = () => dispatch(actions.loadComponentDetails());
   const onTabChange = (tabId) => dispatch(actions.onTabChange(tabId));
   const toggleShowMatchersPopover = () => dispatch(actions.toggleShowMatchersPopover());
@@ -160,7 +162,9 @@ export default function ComponentDetails() {
             tabsConfiguration={tabsConfiguration}
           />
         </div>
-        {!dependencyTreeRouterParams && pagination && <ComponentDetailsFooter {...pagination} />}
+        {!dependencyTreeRouterParams && !isStandaloneDeveloper && pagination && (
+          <ComponentDetailsFooter {...pagination} />
+        )}
       </main>
     </>
   );

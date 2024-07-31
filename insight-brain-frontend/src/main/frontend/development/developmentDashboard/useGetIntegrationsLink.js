@@ -9,5 +9,5 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 export default function useGetIntegrationsLink(sectionName) {
   const uiRouterState = useRouterState();
 
-  return uiRouterState.href(`integrations.${sectionName}`);
+  return uiRouterState.href(`developer.dashboard.${sectionName}`);
 }

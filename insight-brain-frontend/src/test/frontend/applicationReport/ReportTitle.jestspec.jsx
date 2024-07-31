@@ -141,6 +141,17 @@ describe('ReportTitle', () => {
     expect(screen.getByRole('link', { name: 'View legacy report' })).toBeVisible();
   });
 
+  it('options dropdown priorities link redirects to an external tab', async () => {
+    productFeaturesSelectors.selectIsDeveloperDashboardEnabled.mockReturnValue(true);
+
+    renderComponent();
+    const options = screen.getByRole('button', { name: 'Options' });
+
+    fireEvent.click(options);
+
+    expect(screen.getByRole('link', { name: 'Priorities' })).toHaveAttribute('target', '_blank');
+  });
+
   it('renders a disabled view vulnerabilities link if report version is less than 5', async () => {
     renderComponent();
     const options = screen.getByRole('button', { name: 'Options' });

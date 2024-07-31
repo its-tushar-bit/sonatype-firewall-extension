@@ -8,6 +8,7 @@ import { bindActionCreators } from 'redux';
 import PropTypes from 'prop-types';
 import UserMenu from './UserMenu';
 import { showUserTokenModal } from './UserToken/userTokenActions';
+import { selectIsStandaloneDeveloper } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const mapDispatchToProps = (dispatch, { userActions }) =>
   bindActionCreators(
@@ -32,6 +33,7 @@ const mapStateToProps = (state) => {
     canChangePassword: user.canChangePassword,
     changePasswordStatus: user.changePasswordStatus,
     changePasswordErrorMessage: user.changePasswordErrorMessage,
+    isStandaloneDeveloper: selectIsStandaloneDeveloper(state),
   };
 };
 

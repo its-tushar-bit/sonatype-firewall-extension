@@ -12,7 +12,6 @@ import {
   useToggle,
 } from '@sonatype/react-shared-components';
 import { faArrowToLeft, faBars, faStars } from '@fortawesome/pro-regular-svg-icons';
-import { faWrench } from '@fortawesome/pro-solid-svg-icons';
 import {
   faChartArea,
   faFileChartLine,
@@ -31,6 +30,7 @@ import IqSidebarNavFooter from './IqSidebarNavFooter';
 import { getProductLogo } from '../../util/productLogoUtils';
 import { isLeftNavigationOpen, setLeftNavigationOpen } from '../../util/preferenceStore';
 import SbomManagerSidebar from 'MainRoot/sbomManager/sidebar/SbomManagerSidebar';
+import SonatypeDeveloperSidebar from 'MainRoot/development/SonatypeDeveloperSidebar';
 import DefaultEmptyIqSidebar from 'MainRoot/react/iqSidebarNav/DefaultEmptyIqSidebar';
 
 function IqSidebarNav(props) {
@@ -51,7 +51,6 @@ function IqSidebarNav(props) {
     isLegalEnabled,
     isApiPageEnabled,
     isShowVersionEnabled,
-    isDeveloperDashboardEnabled,
     isOrgsAndAppsEnabled,
     isSbomManagerEnabled,
     isIntegratedEnterpriseReportingSupported,
@@ -59,6 +58,7 @@ function IqSidebarNav(props) {
     isProductFeaturesLoading,
     isSbomManagerOnlyLicense,
     isProductsLoading,
+    isStandaloneDeveloper,
   } = props;
   const logo = getProductLogo(productEdition);
 
@@ -75,7 +75,6 @@ function IqSidebarNav(props) {
   const advSearchHref = uiRouterState.href('advancedSearch');
   const firewallHref = uiRouterState.href('firewall.firewallPage');
   const legalHref = uiRouterState.href('legal.dashboard');
-  const integrationsHref = uiRouterState.href('integrations');
 
   const isSelected = (entryName) => {
     return uiRouterState.includes(entryName);
@@ -96,6 +95,7 @@ function IqSidebarNav(props) {
   }, [isOpen]);
 
   const sbomManagerSidebar = <SbomManagerSidebar isLoggedIn={isLoggedIn} isSbomManagerEnabled={isSbomManagerEnabled} />;
+  const sonatypeDeveloperSidebar = <SonatypeDeveloperSidebar isLoggedIn={isLoggedIn} />;
   const iqSidebar = (
     <NxGlobalSidebar
       isOpen={isOpen}
@@ -209,20 +209,6 @@ function IqSidebarNav(props) {
               href={enterpriseReportingHref}
             />
           )}
-          {isDeveloperDashboardEnabled && (
-            <NxGlobalSidebarNavigationLink
-              isSelected={isSelected('integrations')}
-              id="integrations-navigation-button"
-              className="iq-integrations-nav-link"
-              icon={faWrench}
-              text={
-                <>
-                  <span>Developer</span>
-                </>
-              }
-              href={integrationsHref}
-            />
-          )}
         </NxGlobalSidebarNavigation>
       )}
       {productEdition && releaseVersion && (
@@ -235,7 +221,14 @@ function IqSidebarNav(props) {
     // Empty sidebar until product info is fully loaded
     return <DefaultEmptyIqSidebar />;
   }
-  return isSbomManagerOnlyLicense || isSbomManager ? sbomManagerSidebar : iqSidebar;
+
+  if (isSbomManagerOnlyLicense || isSbomManager) {
+    return sbomManagerSidebar;
+  } else if (isStandaloneDeveloper) {
+    return sonatypeDeveloperSidebar;
+  }
+
+  return iqSidebar;
 }
 
 IqSidebarNav.propTypes = {
@@ -261,5 +254,6 @@ IqSidebarNav.propTypes = {
   isProductFeaturesLoading: PropTypes.bool,
   isSbomManagerOnlyLicense: PropTypes.bool,
   isProductsLoading: PropTypes.bool,
+  isStandaloneDeveloper: PropTypes.bool,
 };
 export default IqSidebarNav;

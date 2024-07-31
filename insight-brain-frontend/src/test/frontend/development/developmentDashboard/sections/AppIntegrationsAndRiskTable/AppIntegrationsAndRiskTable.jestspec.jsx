@@ -757,6 +757,7 @@ describe('AppIntegrationsAndRiskTable', () => {
       'href',
       `#/management/view/application/${applicationPublicId}`
     );
+    expect(within(appNameCell).getByRole('link')).toHaveAttribute('target', '_blank');
     expect(within(appNameCell).getByRole('link')).toHaveAttribute(
       'data-analytics-id',
       'sonatype-developer-dashboard-app-management'

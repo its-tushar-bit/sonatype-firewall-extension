@@ -15,6 +15,7 @@ import {
   NxButton,
   NxTooltip,
   NxFontAwesomeIcon,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
 import faFilterList from '../../frontend/img/icon-filter-list.svg';
 
@@ -109,14 +110,15 @@ export default function ReportTitle() {
             <span>Export SPDX</span>
           </a>
           {isDeveloperDashboardEnabled && (
-            <a
+            <NxTextLink
               className="nx-dropdown-button iq-developer-priorities-link-from-options-dropdown"
+              newTab
               href={prioritiesUrl}
               data-analytics-id="iq-developer-priorities-link-from-options-dropdown"
             >
               <img src={faFilterList} className="iq-priorities-icon" />
               <span>Priorities</span>
-            </a>
+            </NxTextLink>
           )}
           <NxDropdownDivider />
           <a className="nx-dropdown-link" href={rawDataUrl}>

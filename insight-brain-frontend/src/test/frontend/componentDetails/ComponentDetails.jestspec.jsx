@@ -118,6 +118,21 @@ describe('ComponentDetails', () => {
       const footer = screen.queryByRole('contentinfo');
       expect(footer).not.toBeInTheDocument();
     });
+
+    it('does not render pagination if it comes from the priorities page', async () => {
+      const currentStateNameLens = lensPath(['router', 'currentState', 'name']);
+      const newState = set(
+        currentStateNameLens,
+        'componentDetailsPageWithinPrioritiesPageContainerFromDashboards',
+        defaultPreloadedState
+      );
+      renderComponent(newState);
+      const titles = await screen.findAllByText('org.seleniumhq.selenium : selenium-chrome-driver : 3.141.59');
+      const title = titles[0];
+      expect(title).toBeVisible();
+      const footer = screen.queryByRole('contentinfo');
+      expect(footer).not.toBeInTheDocument();
+    });
   });
 
   describe('Tags', () => {

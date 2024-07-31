@@ -54,7 +54,7 @@ describe('ComponentDetailsBackButton', () => {
       const routerPreloadedState = {
         router: {
           currentState: {
-            name: 'appReportPageWithinPrioritiesPageContainerFromDashboard.componentDetails.overview',
+            name: 'componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.overview',
           },
           currentParams: {
             publicId: 'testPublicAppId',
@@ -65,25 +65,6 @@ describe('ComponentDetailsBackButton', () => {
       renderComponent(null, routerPreloadedState);
 
       const backBtn = screen.getByRole('link', { name: 'Back to Priorities' });
-
-      expect(backBtn).toBeInTheDocument();
-    });
-
-    it('renders "Back to Application Report" if navigated from App Report -> Priorities Page -> View Full Report -> Component Details', () => {
-      const routerPreloadedState = {
-        router: {
-          currentState: {
-            name: 'appReportPageWithinPrioritiesPageContainerFromAppReport.componentDetailsFromReport.overview',
-          },
-          currentParams: {
-            publicId: 'testPublicAppId',
-            scanId: 'testScanId',
-          },
-        },
-      };
-      renderComponent(null, routerPreloadedState);
-
-      const backBtn = screen.getByRole('link', { name: 'Back to Application Report' });
 
       expect(backBtn).toBeInTheDocument();
     });

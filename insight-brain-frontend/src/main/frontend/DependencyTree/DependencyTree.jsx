@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Fragment } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { equals } from 'ramda';
 import { faTerminal } from '@fortawesome/pro-solid-svg-icons';
@@ -13,15 +13,25 @@ import { NxFontAwesomeIcon, NxTree, NxThreatIndicator, NxTextLink } from '@sonat
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import DependencyIndicator from './DependencyIndicator';
 import { renderDisplayName } from './dependencyTreeUtil';
+import {
+  selectIsPrioritiesPageContainer,
+  selectPrioritiesPageContainerName,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const MemoizedTreeNode = React.memo(TreeNode);
 
 function TreeNode({ items, treePathToggleAction, hashToMatch, searchTerm }) {
   const dispatch = useDispatch();
 
+  const isPrioritiesPageContainer = useSelector(selectIsPrioritiesPageContainer);
+  const prioritiesPageContainerName = useSelector(selectPrioritiesPageContainerName);
+
   const matchesHash = equals(hashToMatch);
   const dispatchToggleTreeAtPath = (payload) => dispatch(treePathToggleAction(payload));
   const goToCDP = (hash) => {
+    if (isPrioritiesPageContainer) {
+      return dispatch(stateGo(`${prioritiesPageContainerName}.componentDetails`, { hash }));
+    }
     return dispatch(stateGo('applicationReport.componentDetails', { hash }));
   };
 

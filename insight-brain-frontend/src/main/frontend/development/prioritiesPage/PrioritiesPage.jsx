@@ -6,7 +6,13 @@
 
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { NxLoadingSpinner, NxLoadWrapper, NxPageMain, NxPageTitle, NxButton } from '@sonatype/react-shared-components';
+import {
+  NxLoadingSpinner,
+  NxLoadWrapper,
+  NxPageMain,
+  NxPageTitle,
+  NxTextLink,
+} from '@sonatype/react-shared-components';
 import LicenseLockScreen from 'MainRoot/development/developmentDashboard/LicenseLockScreen';
 import PrioritiesPageHeader from 'MainRoot/development/prioritiesPage/PrioritiesPageHeader';
 import PrioritiesPageTable from 'MainRoot/development/prioritiesPage/PrioritiesPageTable';
@@ -17,7 +23,6 @@ import {
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions } from 'MainRoot/development/prioritiesPage/slices/prioritiesPageSlice';
 import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
-import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import { selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
@@ -25,31 +30,21 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 export default function PrioritiesPage() {
   const currentRouteName = useSelector(selectCurrentRouteName);
   const uiRouterState = useRouterState();
-  const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
-
   const getHref = () => {
     if (currentRouteName === 'prioritiesPageFromDashboard') {
       return {
-        href: uiRouterState.href('integrations'),
+        href: uiRouterState.href('developer.dashboard'),
         text: 'Back to Developer Dashboard',
       };
-    } else if (currentRouteName === 'prioritiesPageFromReports') {
+    } else if (currentRouteName === 'prioritiesPageFromReports' || currentRouteName === 'prioritiesPageFromAppReport') {
       return {
-        href: uiRouterState.href('violations'),
+        href: uiRouterState.href('developer.reports'),
         text: 'Back to Reports',
-      };
-    } else if (currentRouteName === 'prioritiesPageFromAppReport') {
-      return {
-        href: uiRouterState.href('applicationReport.policy', {
-          publicId: publicAppId,
-          scanId,
-        }),
-        text: 'Back to Application Report',
       };
     }
     return {
-      href: uiRouterState.href('violations'),
-      text: 'Back to Reports',
+      href: uiRouterState.href('developer.dashboard'),
+      text: 'Back to Developer Dashboard',
     };
   };
 
@@ -79,19 +74,7 @@ function PrioritiesPageContents() {
   const dispatch = useDispatch();
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
   const { loadingMetadata, loadErrorMetadata, metadata } = useSelector(selectPrioritiesPageSlice);
-  const currentRouteName = useSelector(selectCurrentRouteName);
-
-  const getPrioritiesPageStateName = () => {
-    if (currentRouteName === 'prioritiesPageFromReports') {
-      return 'appReportPageWithinPrioritiesPageContainerFromReports.policy';
-    } else if (currentRouteName === 'prioritiesPageFromDashboard') {
-      return 'appReportPageWithinPrioritiesPageContainerFromDashboard.policy';
-    } else if (currentRouteName === 'prioritiesPageFromAppReport') {
-      return 'appReportPageWithinPrioritiesPageContainerFromAppReport.policy';
-    }
-  };
-
-  const goToFullReport = () => dispatch(stateGo(getPrioritiesPageStateName(), { scanId, publicId: publicAppId }));
+  const uiRouterState = useRouterState();
 
   const doLoad = () => {
     dispatch(actions.loadMetadata());
@@ -103,6 +86,13 @@ function PrioritiesPageContents() {
     return () => dispatch(actions.resetState());
   }, []);
 
+  const getApplicationReportHref = () => {
+    return uiRouterState.href('applicationReport.policy', {
+      publicId: publicAppId,
+      scanId: scanId,
+    });
+  };
+
   return (
     <NxLoadWrapper loading={loadingMetadata} error={loadErrorMetadata} retryHandler={doLoad}>
       {metadata && (
@@ -112,9 +102,13 @@ function PrioritiesPageContents() {
           </NxPageTitle>
           <PrioritiesPageTable />
           <div className="nx-btn-bar">
-            <NxButton variant="primary" onClick={goToFullReport}>
+            <NxTextLink
+              className="nx-btn nx-btn--primary iq-priorities-page-view-full-report-btn"
+              href={getApplicationReportHref()}
+              newTab
+            >
               View Full Report
-            </NxButton>
+            </NxTextLink>
           </div>
         </>
       )}

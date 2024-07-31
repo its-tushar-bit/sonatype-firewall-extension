@@ -29,6 +29,7 @@ describe('UserMenu', function () {
       changePasswordStatus: 'idle',
       changePasswordErrorMessage: undefined,
       onManageUserToken: jasmine.createSpy(),
+      isStandaloneDeveloper: false,
     };
 
     mountPoints = [];
@@ -202,6 +203,15 @@ describe('UserMenu', function () {
       expect(changePasswordModal).not.toExist();
 
       expect(resetPasswordStatus).toHaveBeenCalledTimes(3); // change password modal unmount
+    });
+
+    it('does not show the change password link if ifStandaloneDeveloper prop is true', () => {
+      const component = getMountedComponent({ canChangePassword: true, isStandaloneDeveloper: true });
+      const button = component.find('button');
+      button.simulate('click');
+      expect(component.find('#change-password')).not.toExist();
+
+      component.unmount();
     });
   });
 });

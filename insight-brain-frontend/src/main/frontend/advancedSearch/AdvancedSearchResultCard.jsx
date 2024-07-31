@@ -17,7 +17,9 @@ import {
 } from '@fortawesome/pro-regular-svg-icons';
 import { faHexagon, faTag } from '@fortawesome/pro-solid-svg-icons';
 import { faTableTree } from '@fortawesome/pro-light-svg-icons';
-import { NxFontAwesomeIcon, NxThreatIndicator } from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxTextLink, NxThreatIndicator } from '@sonatype/react-shared-components';
+import { useSelector } from 'react-redux';
+import { selectIsDeveloper } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function AdvancedSearchResultCard({ searchResultItem, groupIdentifier, isSbomManager, $state }) {
   // The following constants are conditions whether this particular row should be presented in result card or not
@@ -41,6 +43,8 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
       searchResultItem.policyName &&
       searchResultItem.policyThreatLevel !== undefined &&
       searchResultItem.policyThreatCategory;
+
+  const isDeveloper = useSelector(selectIsDeveloper);
 
   // generator functions for the various links that can appear in the results
   const getOrgHref = () =>
@@ -96,7 +100,9 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
             </td>
             <td className="nx-cell">Organization</td>
             <td className="nx-cell">
-              <a href={getOrgHref()}>{searchResultItem.organizationName}</a>
+              <NxTextLink newTab={isDeveloper} href={getOrgHref()}>
+                {searchResultItem.organizationName}
+              </NxTextLink>
             </td>
           </tr>
         )}
@@ -108,7 +114,9 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
             </td>
             <td className="nx-cell">Application</td>
             <td className="nx-cell">
-              <a href={getAppHref()}>{searchResultItem.applicationName}</a>
+              <NxTextLink newTab={isDeveloper} href={getAppHref()}>
+                {searchResultItem.applicationName}
+              </NxTextLink>
             </td>
           </tr>
         )}
@@ -130,7 +138,9 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
             </td>
             <td className="nx-cell">Application Category</td>
             <td className="nx-cell">
-              <a href={getCategoryHref()}>{searchResultItem.applicationCategoryName}</a>
+              <NxTextLink newTab={isDeveloper} href={getCategoryHref()}>
+                {searchResultItem.applicationCategoryName}
+              </NxTextLink>
               {searchResultItem.applicationCategoryDescription &&
                 ` - ${searchResultItem.applicationCategoryDescription}`}
             </td>
@@ -154,9 +164,15 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
             </td>
             <td className="nx-cell">Component Label</td>
             <td className="nx-cell">
-              {searchResultItem.organizationId && <a href={getOrgLabelHref()}>{searchResultItem.componentLabelName}</a>}
+              {searchResultItem.organizationId && (
+                <NxTextLink newTab={isDeveloper} href={getOrgLabelHref()}>
+                  {searchResultItem.componentLabelName}
+                </NxTextLink>
+              )}
               {searchResultItem.applicationPublicId && (
-                <a href={getAppLabelHref()}>{searchResultItem.componentLabelName}</a>
+                <NxTextLink newTab={isDeveloper} href={getAppLabelHref()}>
+                  {searchResultItem.componentLabelName}
+                </NxTextLink>
               )}
               {searchResultItem.componentLabelDescription && ` - ${searchResultItem.componentLabelDescription}`}
             </td>
@@ -170,7 +186,9 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
             </td>
             <td className="nx-cell">Report</td>
             <td className="nx-cell">
-              <a href={getReportHref()}>{searchResultItem.policyEvaluationStage}</a>
+              <NxTextLink newTab={isDeveloper} href={getReportHref()}>
+                {searchResultItem.policyEvaluationStage}
+              </NxTextLink>
             </td>
           </tr>
         )}
@@ -185,7 +203,9 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
               {isSbomManager ? (
                 searchResultItem.vulnerabilityId
               ) : (
-                <a href={getVulnHref()}>{searchResultItem.vulnerabilityId}</a>
+                <NxTextLink newTab={isDeveloper} href={getVulnHref()}>
+                  {searchResultItem.vulnerabilityId}
+                </NxTextLink>
               )}
             </td>
           </tr>
@@ -210,8 +230,16 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
             <td className="nx-cell">
               <NxThreatIndicator policyThreatLevel={searchResultItem.policyThreatLevel} />
               {searchResultItem.policyThreatLevel} - {searchResultItem.policyThreatCategory} -{' '}
-              {searchResultItem.organizationId && <a href={getOrgPolicyHref()}>{searchResultItem.policyName}</a>}
-              {searchResultItem.applicationPublicId && <a href={getAppPolicyHref()}>{searchResultItem.policyName}</a>}
+              {searchResultItem.organizationId && (
+                <NxTextLink newTab={isDeveloper} href={getOrgPolicyHref()}>
+                  {searchResultItem.policyName}
+                </NxTextLink>
+              )}
+              {searchResultItem.applicationPublicId && (
+                <NxTextLink newTab={isDeveloper} href={getAppPolicyHref()}>
+                  {searchResultItem.policyName}
+                </NxTextLink>
+              )}
             </td>
           </tr>
         )}

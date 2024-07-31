@@ -5,21 +5,25 @@
  */
 import React from 'react';
 
-import { render, screen, within } from '../SpecUtil';
+import { render, screen, within, fireEvent } from '../SpecUtil';
 
 import DependencyTree from 'MainRoot/DependencyTree/DependencyTree';
 import { dependencyTreeData } from './dependencyTreeMockData';
+import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('DependencyTree', () => {
-  let minimalProps, renderComponent, treePathToggleAction;
+  let minimalProps, renderComponent, treePathToggleAction, stateGoSpy;
   beforeEach(() => {
-    treePathToggleAction = jasmine.createSpy('treePathToggleAction');
+    treePathToggleAction = jest.fn('treePathToggleAction');
     minimalProps = {
       items: dependencyTreeData,
       treePathToggleAction,
       rootName: 'Root Name',
       searchTerm: '',
     };
+    stateGoSpy = jest.spyOn(RouterActions, 'stateGo');
+
     renderComponent = (additionalProps) => render(<DependencyTree {...minimalProps} {...additionalProps} />);
   });
 
@@ -35,19 +39,45 @@ describe('DependencyTree', () => {
 
   it('show children when branch is not collapsed', () => {
     renderComponent();
-    expect(screen.getAllByRole('treeitem')[0]).toHaveClassName('open');
+    expect(screen.getAllByRole('treeitem')[0]).toHaveClass('open');
   });
 
   it('hides children when branch is collapsed', () => {
     renderComponent();
-    expect(screen.getAllByRole('treeitem')[3]).not.toHaveClassName('open');
+    expect(screen.getAllByRole('treeitem')[3]).not.toHaveClass('open');
   });
 
   it('renders the clickable tree item', () => {
     renderComponent();
     const clickableTreeNode = screen.getByText('net.sourceforge.jtds : jtds : 1.2.2').closest('a');
 
-    expect(clickableTreeNode).toHaveClassName('nx-text-link');
+    expect(clickableTreeNode).toHaveClass('nx-text-link');
+  });
+
+  describe('when clickable tree item is clicked', () => {
+    it('navigates to the applicationReport component details page when isPrioritiesPageContainer is false', () => {
+      renderComponent();
+      const clickableTreeNode = screen.getByText('net.sourceforge.jtds : jtds : 1.2.2').closest('a');
+
+      fireEvent.click(clickableTreeNode);
+
+      expect(stateGoSpy).toHaveBeenCalledWith('applicationReport.componentDetails', { hash: 'qwert32143' });
+    });
+
+    it('navigates to the priorities page component details page when isPrioritiesPageContainer is true', () => {
+      const prioritiesPageContainerName = 'prioritiesPageFromReports';
+      jest.spyOn(routerSelectors, 'selectIsPrioritiesPageContainer').mockReturnValue(true);
+      jest.spyOn(routerSelectors, 'selectPrioritiesPageContainerName').mockReturnValue(prioritiesPageContainerName);
+
+      renderComponent();
+      const clickableTreeNode = screen.getByText('net.sourceforge.jtds : jtds : 1.2.2').closest('a');
+
+      fireEvent.click(clickableTreeNode);
+
+      expect(stateGoSpy).toHaveBeenCalledWith(`${prioritiesPageContainerName}.componentDetails`, {
+        hash: 'qwert32143',
+      });
+    });
   });
 
   it('renders non clickable tree item', () => {
@@ -86,7 +116,7 @@ describe('DependencyTree', () => {
         policyThreatLevel: 1,
       },
     ];
-    SpecUtil.requestIdleCallbackInvokeImmediate();
+    SpecUtil.requestIdleCallbackInvokeImmediateJest();
 
     renderComponent({ items: tree });
 
@@ -122,13 +152,14 @@ describe('DependencyTree', () => {
       searchTerm,
     });
 
-    const firstItem = screen.getByRole('treeitem', { name: /org.apache.commons : commons-lang3 : 3.3.2/i });
-    expect(firstItem).toBeVisible();
+    const firstItem = screen.getByRole('treeitem', { name: /org.apache. commons : commons -lang3 : 3.3.2/i });
+
+    expect(firstItem).toBeInTheDocument();
 
     const highlightedTerms = within(firstItem).getAllByText(searchTerm);
 
-    expect(highlightedTerms).toHaveSize(2);
-    expect(highlightedTerms[0]).toHaveClassName('iq-dependency-tree-page__search-match');
-    expect(highlightedTerms[1]).toHaveClassName('iq-dependency-tree-page__search-match');
+    expect(highlightedTerms.length).toBe(2);
+    expect(highlightedTerms[0]).toHaveClass('iq-dependency-tree-page__search-match');
+    expect(highlightedTerms[1]).toHaveClass('iq-dependency-tree-page__search-match');
   });
 });

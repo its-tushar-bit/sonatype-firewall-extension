@@ -31,6 +31,7 @@ const nameIncludesApplication = includesNamePart('application');
 const nameIncludesRepositories = includesNamePart('repositories');
 const nameIncludesRepository = includesNamePartSeparateByDot('repository');
 const nameIncludesFirewall = includesNamePart('firewall');
+const nameStartsWithDeveloper = (stringToSearch = '') => stringToSearch.startsWith('developer');
 const nameIncludesRepositoryContainer = includesNamePart('repository_container');
 const nameIncludesRepositoryManager = includesNamePart('repository_manager');
 const nameIncludesCategory = includesNamePart('category');
@@ -43,7 +44,8 @@ const nameIncludesLicenseThreatGroup = includesNamePart('licenseThreatGroup');
 const nameIncludesSourceControl = includesNamePart('source-control');
 const nameIncludesOnboarding = includesNamePart('onboarding');
 const nameIncludesAccess = includesNamePart('access');
-const nameIncludesPrioritiesPageContainer = includesNamePart('PageWithinPrioritiesPageContainer');
+const nameIncludesPrioritiesPageContainer = includesNamePart('WithinPrioritiesPageContainer');
+const nameIncludesPrioritiesPage = includesNamePart('prioritiesPage');
 
 export const selectIsOrganization = createSelector(selectCurrentRouteName, nameIncludesOrganization);
 export const selectIsTransitiveViolations = createSelector(selectCurrentRouteName, nameIncludesTransitiveViolations);
@@ -65,10 +67,9 @@ export const selectIsSourceControl = createSelector(selectRouterStateUrl, nameIn
 export const selectIsScmOnboarding = createSelector(selectRouterStateUrl, nameIncludesOnboarding);
 export const selectIsAccess = createSelector(selectRouterStateUrl, nameIncludesAccess);
 export const selectIsPrevFirewall = createSelector(selectPreviousRouteName, nameIncludesFirewall);
-export const selectIsPrioritiesPageContainer = createSelector(
-  selectCurrentRouteName,
-  nameIncludesPrioritiesPageContainer
-);
+export const selectIsPrioritiesPageContainer = createSelector(selectCurrentRouteName, (routeName) => {
+  return nameIncludesPrioritiesPageContainer(routeName) || nameIncludesPrioritiesPage(routeName);
+});
 export const selectPrioritiesPageContainerName = createSelector(
   selectIsPrioritiesPageContainer,
   selectCurrentRouteName,
@@ -84,16 +85,22 @@ export const selectPrioritiesPageName = createSelector(
   (isPrioritiesPageContainer, currentRouteName) => {
     if (isPrioritiesPageContainer) {
       const prioritiesPageContainerName = currentRouteName.split('.')[0];
-      if (prioritiesPageContainerName === 'appReportPageWithinPrioritiesPageContainerFromDashboard') {
+      if (prioritiesPageContainerName === 'componentDetailsPageWithinPrioritiesPageContainerFromDashboard') {
         return 'prioritiesPageFromDashboard';
-      } else if (prioritiesPageContainerName === 'appReportPageWithinPrioritiesPageContainerFromReports') {
+      } else if (prioritiesPageContainerName === 'componentDetailsPageWithinPrioritiesPageContainerFromReports') {
         return 'prioritiesPageFromReports';
-      } else if (prioritiesPageContainerName === 'appReportPageWithinPrioritiesPageContainerFromAppReport') {
+      } else if (prioritiesPageContainerName === 'componentDetailsPageWithinPrioritiesPageContainerFromAppReport') {
         return 'prioritiesPageFromAppReport';
       }
     }
     return '';
   }
+);
+export const selectIsDeveloper = createSelector(selectCurrentRouteName, nameStartsWithDeveloper);
+export const selectIsStandaloneDeveloper = createSelector(
+  selectIsDeveloper,
+  selectIsPrioritiesPageContainer,
+  (isDeveloper, isPrioritiesPageContainer) => isDeveloper || isPrioritiesPageContainer
 );
 
 // we can access to component details page from application report but also from firewall or repository results view,

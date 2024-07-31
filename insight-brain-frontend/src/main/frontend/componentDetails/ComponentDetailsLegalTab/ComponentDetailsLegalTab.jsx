@@ -21,6 +21,7 @@ import {
 } from 'MainRoot/componentDetails/componentDetailsSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectReportParameters } from 'MainRoot/applicationReport/applicationReportSelectors';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function ComponentDetailsLegalTab() {
   const LEGAL = policyTypes[1].id;
@@ -32,6 +33,7 @@ export default function ComponentDetailsLegalTab() {
   const identificationSource = useSelector(selectComponentIdentificationSource);
   const componentDetails = useSelector(selectComponentDetails);
   const dispatch = useDispatch();
+  const uiRouterState = useRouterState();
 
   const reviewObligationsClickHandler = () =>
     dispatch(
@@ -49,6 +51,21 @@ export default function ComponentDetailsLegalTab() {
           })
     );
 
+  const getReviewObligationsHref = () => {
+    return componentDetails.componentIdentifier
+      ? uiRouterState.href(uiRouterState.get('legal.appicationComponentOverviewByComponentIdentifier'), {
+          componentIdentifier: JSON.stringify(componentDetails.componentIdentifier),
+          applicationPublicId: applicationId,
+        })
+      : uiRouterState.href(uiRouterState.get('applicationReport.applicationStageTypeComponentOverview'), {
+          applicationPublicId: applicationId,
+          stageTypeId: stageId,
+          hash: hash,
+          tabId: 'legal',
+          scanId,
+        });
+  };
+
   return (
     <Fragment>
       <LicenseDetectionsTile
@@ -61,6 +78,7 @@ export default function ComponentDetailsLegalTab() {
           stageId,
           componentHash: hash,
           reviewObligationsClickHandler,
+          getReviewObligationsHref,
           loadComponentDetails: () => dispatch(componentDetailsActions.loadComponentDetails()),
           loadLicenses: () => dispatch(actions.load()),
           toggleShowEditLicensesPopover: () => dispatch(actions.toggleShowEditLicensesPopover()),

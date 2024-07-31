@@ -216,6 +216,53 @@ export function returnToAddWaiverOriginPage() {
       case originNamesForAddRequestPages.REPOSITORY_VIOLATION_WAIVERS:
         return dispatch(stateGo(originNamesForAddRequestPages.REPOSITORY_VIOLATION_WAIVERS, prevParams));
 
+      //Priorities Page Origin -> Component Details -> Policy Violations Tab
+      case originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT:
+        return dispatch(stateGo(originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT, prevParams));
+
+      case originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD:
+        return dispatch(
+          stateGo(originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD, prevParams)
+        );
+
+      case originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_REPORTS:
+        return dispatch(stateGo(originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_REPORTS, prevParams));
+
+      //Priorities Page Origin -> Component Details -> Security Tab
+      case originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT_SECURITY:
+        return dispatch(
+          stateGo(originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT_SECURITY, prevParams)
+        );
+
+      case originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD_SECURITY:
+        return dispatch(
+          stateGo(
+            originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD_SECURITY,
+            prevParams
+          )
+        );
+
+      case originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_REPORTS_SECURITY:
+        return dispatch(
+          stateGo(originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_REPORTS_SECURITY, prevParams)
+        );
+
+      //Priorities Page Origin -> Component Details -> Legal Tab
+      case originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT_LEGAL:
+        return dispatch(
+          stateGo(originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT_LEGAL, prevParams)
+        );
+
+      case originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD_LEGAL:
+        return dispatch(
+          stateGo(originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD_LEGAL, prevParams)
+        );
+
+      case originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_REPORTS_LEGAL:
+        return dispatch(
+          stateGo(originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_REPORTS_LEGAL, prevParams)
+        );
+
       // Came from a direct link to the Add Waiver Page or some other origin
       default:
         return dispatch(

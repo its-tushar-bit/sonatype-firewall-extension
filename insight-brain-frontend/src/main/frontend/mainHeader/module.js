@@ -65,6 +65,7 @@ export default angular
         'isSsoIdpManagedBySonatype',
         'isSingleTenant',
         'isSbomManagerOnlyLicense',
+        'isStandaloneDeveloper',
       ],
       ['$ngRedux', 'userActions', '$state']
     )

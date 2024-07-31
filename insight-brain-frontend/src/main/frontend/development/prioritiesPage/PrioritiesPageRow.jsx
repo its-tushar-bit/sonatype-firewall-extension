@@ -107,7 +107,7 @@ export default function PrioritiesPageRow({ component, onClick }) {
   }, [isDeveloperBulkRecommendationsEnabled]);
 
   return (
-    <NxTable.Row isClickable onClick={onClick}>
+    <NxTable.Row isClickable onClick={onClick} data-analytics-id="sonatype-developer-priorities-page-component-row">
       <NxTable.Cell className="iq-priorities-page-priority">{priority}</NxTable.Cell>
       <NxTable.Cell>
         <div className="iq-priorities-page-components">

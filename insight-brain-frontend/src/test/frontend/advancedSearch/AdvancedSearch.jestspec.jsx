@@ -8,6 +8,7 @@ import React from 'react';
 import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import AdvancedSearchContainer from 'MainRoot/advancedSearch/AdvancedSearchContainer';
 import { assocPath, mergeDeepRight } from 'ramda';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 /**
  * Note: this file currently only holds more-recently written tests for the page as a whole. See
@@ -146,46 +147,86 @@ describe('AdvancedSearch', function () {
   });
 
   describe('search result group', function () {
-    it(
-      'renders a vulnerability link if the group is of VULNERABILITY_ID or ' + 'VULNERABILITY_DESCRIPTION types',
-      function () {
-        const state = assocPath(
-          ['advancedSearch', 'formState', 'searchResult', 'groupingByDTOS'],
-          [
-            {
-              groupIdentifier: 'VULNERABILITY_ID',
-              groupBy: 'CVE-111-1111',
-              searchResultItemDTOS: [],
-            },
-            {
-              groupIdentifier: 'VULNERABILITY_DESCRIPTION',
-              groupBy: 'Foo bar baz.',
-              searchResultItemDTOS: [],
-            },
-            {
-              groupIdentifier: 'SOMETHING_ELSE',
-              groupBy: 'asdf',
-              searchResultItemDTOS: [],
-            },
-          ],
-          initialState
-        );
+    it('renders a vulnerability link that opens in same tab by default if the group is of VULNERABILITY_ID or VULNERABILITY_DESCRIPTION types', function () {
+      const state = assocPath(
+        ['advancedSearch', 'formState', 'searchResult', 'groupingByDTOS'],
+        [
+          {
+            groupIdentifier: 'VULNERABILITY_ID',
+            groupBy: 'CVE-111-1111',
+            searchResultItemDTOS: [],
+          },
+          {
+            groupIdentifier: 'VULNERABILITY_DESCRIPTION',
+            groupBy: 'Foo bar baz.',
+            searchResultItemDTOS: [],
+          },
+          {
+            groupIdentifier: 'SOMETHING_ELSE',
+            groupBy: 'asdf',
+            searchResultItemDTOS: [],
+          },
+        ],
+        initialState
+      );
 
-        renderComponent(state);
+      renderComponent(state);
 
-        const vulnResult = screen.getByRole('region', { name: 'CVE-111-1111' });
-        const vulnDescriptionResult = screen.getByRole('region', { name: 'Foo bar baz.' });
-        const otherResult = screen.getByRole('region', { name: 'asdf' });
+      const vulnResult = screen.getByRole('region', { name: 'CVE-111-1111' });
+      const vulnDescriptionResult = screen.getByRole('region', { name: 'Foo bar baz.' });
+      const otherResult = screen.getByRole('region', { name: 'asdf' });
 
-        expect(
-          within(vulnResult).getByRole('link', { name: 'Click here for detailed information.' })
-        ).toBeInTheDocument();
-        expect(
-          within(vulnDescriptionResult).getByRole('link', { name: 'Click here for detailed information.' })
-        ).toBeInTheDocument();
-        expect(within(otherResult).queryByRole('link')).not.toBeInTheDocument();
-      }
-    );
+      const vulnResultLink = within(vulnResult).getByRole('link', { name: 'Click here for detailed information.' });
+      const vulnDescriptionResultLink = within(vulnDescriptionResult).getByRole('link', {
+        name: 'Click here for detailed information.',
+      });
+      expect(vulnResultLink).toBeInTheDocument();
+      expect(vulnResultLink).toHaveAttribute('target', '');
+      expect(vulnDescriptionResultLink).toBeInTheDocument();
+      expect(vulnDescriptionResultLink).toHaveAttribute('target', '');
+      expect(within(otherResult).queryByRole('link')).not.toBeInTheDocument();
+    });
+
+    it('renders a vulnerability link that opens in a new tab if isDeveloper is true', function () {
+      jest.spyOn(routerSelectors, 'selectIsDeveloper').mockReturnValue(true);
+      const state = assocPath(
+        ['advancedSearch', 'formState', 'searchResult', 'groupingByDTOS'],
+        [
+          {
+            groupIdentifier: 'VULNERABILITY_ID',
+            groupBy: 'CVE-111-1111',
+            searchResultItemDTOS: [],
+          },
+          {
+            groupIdentifier: 'VULNERABILITY_DESCRIPTION',
+            groupBy: 'Foo bar baz.',
+            searchResultItemDTOS: [],
+          },
+          {
+            groupIdentifier: 'SOMETHING_ELSE',
+            groupBy: 'asdf',
+            searchResultItemDTOS: [],
+          },
+        ],
+        initialState
+      );
+
+      renderComponent(state);
+
+      const vulnResult = screen.getByRole('region', { name: 'CVE-111-1111' });
+      const vulnDescriptionResult = screen.getByRole('region', { name: 'Foo bar baz.' });
+      const otherResult = screen.getByRole('region', { name: 'asdf' });
+
+      const vulnResultLink = within(vulnResult).getByRole('link', { name: 'Click here for detailed information.' });
+      const vulnDescriptionResultLink = within(vulnDescriptionResult).getByRole('link', {
+        name: 'Click here for detailed information.',
+      });
+      expect(vulnResultLink).toBeInTheDocument();
+      expect(vulnResultLink).toHaveAttribute('target', '_blank');
+      expect(vulnDescriptionResultLink).toBeInTheDocument();
+      expect(vulnDescriptionResultLink).toHaveAttribute('target', '_blank');
+      expect(within(otherResult).queryByRole('link')).not.toBeInTheDocument();
+    });
 
     it('renders no vulnerability link if in SBOM Manager Mode', function () {
       const state = mergeDeepRight(initialState, {

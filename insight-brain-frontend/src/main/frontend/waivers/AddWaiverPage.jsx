@@ -56,6 +56,8 @@ export default function AddWaiverPage(props) {
     pathname,
     tabId,
     componentDisplayName,
+    // Priorities Page
+    isStandaloneDeveloper,
   } = props;
 
   const backButtonProps = {
@@ -73,6 +75,7 @@ export default function AddWaiverPage(props) {
     pathname,
     tabId,
     componentDisplayName,
+    isStandaloneDeveloper,
   };
 
   function load() {
@@ -186,4 +189,5 @@ AddWaiverPage.propTypes = {
   pathname: PropTypes.string,
   tabId: PropTypes.string,
   componentDisplayName: PropTypes.string,
+  isStandaloneDeveloper: PropTypes.bool,
 };

@@ -32,6 +32,7 @@ import {
   selectHasPermissionForAppWaivers,
 } from 'MainRoot/violation/violationSelectors';
 import ViolationName from './ViolationName';
+import { selectIsStandaloneDeveloper } from '../../reduxUiRouter/routerSelectors';
 
 export default function PolicyViolationDetailsPopover() {
   const dispatch = useDispatch();
@@ -47,10 +48,20 @@ export default function PolicyViolationDetailsPopover() {
   const { activeWaivers } = useSelector(selectApplicableWaivers);
   const violationDetails = useSelector(selectViolationDetails);
   const hasPermissionForAppWaivers = useSelector(selectHasPermissionForAppWaivers);
-  const redirectToAddWaiver = () =>
-    dispatch(stateGo('addWaiver', { violationId: selectedPolicyViolation.policyViolationId }));
-  const redirectToRequestWaiver = () =>
-    dispatch(stateGo('requestWaiver', { violationId: selectedPolicyViolation.policyViolationId }));
+  const isStandaloneDeveloper = useSelector(selectIsStandaloneDeveloper);
+
+  const redirectToAddWaiver = () => {
+    if (isStandaloneDeveloper) {
+      return dispatch(stateGo('developer.addWaiver', { violationId: selectedPolicyViolation.policyViolationId }));
+    }
+    return dispatch(stateGo('addWaiver', { violationId: selectedPolicyViolation.policyViolationId }));
+  };
+  const redirectToRequestWaiver = () => {
+    if (isStandaloneDeveloper) {
+      return dispatch(stateGo('developer.requestWaiver', { violationId: selectedPolicyViolation.policyViolationId }));
+    }
+    return dispatch(stateGo('requestWaiver', { violationId: selectedPolicyViolation.policyViolationId }));
+  };
 
   const titleThreatLevelCategory =
     categoryByPolicyThreatLevel[selectedPolicyViolation?.policyThreatLevel || selectedPolicyViolation?.threatLevel];

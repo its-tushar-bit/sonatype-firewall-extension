@@ -5,10 +5,12 @@
  */
 import React, { Fragment, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { NxButton, NxFontAwesomeIcon, NxLoadWrapper } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon, NxLoadWrapper, NxTextLink } from '@sonatype/react-shared-components';
 import { faPen } from '@fortawesome/pro-solid-svg-icons';
 
 import { renderLicensesList, renderObservedLicenses } from '../LegalTabUtils';
+import { useSelector } from 'react-redux';
+import { selectIsPrioritiesPageContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function LicenseDetections({
   licenseOverride,
@@ -23,11 +25,14 @@ export default function LicenseDetections({
   toggleShowEditLicensesPopover,
   identificationSource,
   reviewObligationsClickHandler,
+  getReviewObligationsHref,
   isAdvancedLegalPackSupported,
 }) {
   useEffect(() => {
     loadLicenses();
   }, []);
+
+  const isPrioritiesPageContainer = useSelector(selectIsPrioritiesPageContainer);
 
   const isClaimed = identificationSource === 'Manual';
 
@@ -36,6 +41,24 @@ export default function LicenseDetections({
       ?.find((override) => !!override.licenseOverride?.status)
       ?.licenseOverride.status.toLowerCase();
     return status ?? 'open';
+  };
+
+  const getExternalLinkOrButton = () => {
+    return isPrioritiesPageContainer ? (
+      <NxTextLink
+        id="component-details-review-obligations"
+        className="nx-btn nx-btn--primary"
+        newTab
+        variant="primary"
+        href={getReviewObligationsHref()}
+      >
+        <span>Review Obligations</span>
+      </NxTextLink>
+    ) : (
+      <NxButton id="component-details-review-obligations" variant="primary" onClick={reviewObligationsClickHandler}>
+        <span>Review Obligations</span>
+      </NxButton>
+    );
   };
 
   return (
@@ -59,19 +82,11 @@ export default function LicenseDetections({
                   <span>Edit</span>
                 </NxButton>
 
-                {isAdvancedLegalPackSupported && (
-                  <NxButton
-                    id="component-details-review-obligations"
-                    variant="primary"
-                    onClick={reviewObligationsClickHandler}
-                  >
-                    <span>Review Obligations</span>
-                  </NxButton>
-                )}
+                {isAdvancedLegalPackSupported && getExternalLinkOrButton()}
               </div>
               <h3 className="nx-tile-header__subtitle" id="status-container">
                 Status:{' '}
-                <span className="status-subtitle" id="status-subtitle">
+                <span className="status-subtitle" id="status-subtitle" data-testid="status-subtitle">
                   {getLicenseOverrideStatus()}
                 </span>
               </h3>
@@ -83,7 +98,11 @@ export default function LicenseDetections({
                 <dl className="nx-read-only nx-read-only--grid">
                   <div>
                     <dt className="nx-read-only__label">Effective Licenses</dt>
-                    <dd className="nx-read-only__data" id="effective-licenses-container">
+                    <dd
+                      className="nx-read-only__data"
+                      id="effective-licenses-container"
+                      data-testid="effective-licenses-container"
+                    >
                       <ul className="iq-legal-list">{renderLicensesList(effectiveLicenses, isClaimed, true)}</ul>
                     </dd>
                   </div>
@@ -93,7 +112,11 @@ export default function LicenseDetections({
                 <dl className="nx-read-only nx-read-only--grid">
                   <div>
                     <dt className="nx-read-only__label">Declared Licenses</dt>
-                    <dd className="nx-read-only__data" id="declared-licenses-container">
+                    <dd
+                      className="nx-read-only__data"
+                      id="declared-licenses-container"
+                      data-testid="declared-licenses-container"
+                    >
                       <ul className="iq-legal-list">{renderLicensesList(declaredLicenses, isClaimed)}</ul>
                     </dd>
                   </div>
@@ -103,7 +126,11 @@ export default function LicenseDetections({
                 <dl className="nx-read-only nx-read-only--grid">
                   <div>
                     <dt className="nx-read-only__label">Observed Licenses</dt>
-                    <dd className="nx-read-only__data" id="observed-licenses-container">
+                    <dd
+                      className="nx-read-only__data"
+                      id="observed-licenses-container"
+                      data-testid="observed-licenses-container"
+                    >
                       <ul className="iq-legal-list">
                         {renderObservedLicenses(
                           observedLicenses,
@@ -181,5 +208,6 @@ LicenseDetections.propTypes = {
   identificationSource: PropTypes.string,
 
   reviewObligationsClickHandler: PropTypes.func,
+  getReviewObligationsHref: PropTypes.func,
   isAdvancedLegalPackSupported: PropTypes.bool,
 };

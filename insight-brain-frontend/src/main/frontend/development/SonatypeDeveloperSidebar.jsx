@@ -1,0 +1,79 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+import React from 'react';
+import {
+  NxGlobalSidebar,
+  NxGlobalSidebarNavigation,
+  useToggle,
+  NxGlobalSidebarNavigationLink,
+} from '@sonatype/react-shared-components';
+import { faHome, faFileChartLine } from '@fortawesome/pro-solid-svg-icons';
+import { faArrowToLeft, faBars, faSearch } from '@fortawesome/pro-regular-svg-icons';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import * as PropTypes from 'prop-types';
+import IqSidebarNavFooter from 'MainRoot/react/iqSidebarNav/IqSidebarNavFooter';
+
+const logoImg = require('./assets/sonatype-developer-logo-white.svg');
+
+export default function SonatypeDeveloperSidebar(props) {
+  const { isLoggedIn } = props;
+  const uiRouterState = useRouterState();
+  const dashboardState = 'developer.dashboard';
+  const reportsState = 'developer.reports';
+  const advancedSearchState = 'developer.advancedSearch';
+
+  const [sidebarOpen, onToggleCollapse] = useToggle(true);
+
+  const dashboardHref = uiRouterState.href(dashboardState);
+  const reportsHref = uiRouterState.href(reportsState);
+  const advancedSearchHref = uiRouterState.href(advancedSearchState);
+
+  const isSelected = (entryName) => uiRouterState.includes(entryName);
+
+  return (
+    <NxGlobalSidebar
+      isOpen={sidebarOpen}
+      toggleOpenIcon={faArrowToLeft}
+      toggleCloseIcon={faBars}
+      onToggleClick={onToggleCollapse}
+      logoImg={logoImg}
+      logoAltText="sonatype developer"
+      logoLink={dashboardHref}
+    >
+      {isLoggedIn && (
+        <NxGlobalSidebarNavigation>
+          <NxGlobalSidebarNavigationLink
+            isSelected={isSelected(dashboardState)}
+            id="sonatype-developer-dashboard-navigation-button"
+            icon={faHome}
+            text="Dashboard"
+            href={dashboardHref}
+          />
+          <NxGlobalSidebarNavigationLink
+            isSelected={isSelected(reportsState)}
+            id="sonatype-developer-reports-navigation-button"
+            icon={faFileChartLine}
+            text="Reports"
+            href={reportsHref}
+          />
+          <NxGlobalSidebarNavigationLink
+            isSelected={isSelected(advancedSearchState)}
+            id="sonatype-developer-search-navigation-button"
+            icon={faSearch}
+            text="Advanced Search"
+            href={advancedSearchHref}
+          />
+        </NxGlobalSidebarNavigation>
+      )}
+      <IqSidebarNavFooter />
+    </NxGlobalSidebar>
+  );
+}
+
+SonatypeDeveloperSidebar.propTypes = {
+  isLoggedIn: PropTypes.bool,
+};

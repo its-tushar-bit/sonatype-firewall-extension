@@ -16,7 +16,6 @@ import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
 import com.sonatype.clm.testing.functional.pages.ApiPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
-import com.sonatype.clm.testing.functional.pages.IntegrationsPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -255,26 +254,6 @@ public class SidebarNavigationTest
     refresh();
     SidebarNavigation.apiNavigationButton().click();
     waitUntilUrl(ApiPage.url());
-  }
-
-  @Test
-  public void testIntegrationsNavigation_ShowWhenEnabled() {
-    setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
-    refresh();
-    SidebarNavigation.integrationsNavigationButton().shouldBe(visible);
-  }
-
-  @Test
-  public void testIntegrationsNavigation_HiddenWhenDisabled() {
-    SidebarNavigation.integrationsNavigationButton().shouldBe(hidden);
-  }
-
-  @Test
-  public void testIntegrationsNavigation_toDataInsights() {
-    setFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
-    refresh();
-    SidebarNavigation.integrationsNavigationButton().shouldBe(visible).click();
-    waitUntilUrl(IntegrationsPage.urlOverview());
   }
 
   @Test

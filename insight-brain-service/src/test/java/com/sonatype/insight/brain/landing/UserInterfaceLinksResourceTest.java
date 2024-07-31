@@ -56,7 +56,7 @@ public class UserInterfaceLinksResourceTest
   @Test
   public void testLinkToDeveloperHome() throws Exception {
     HttpResponse response = get(UserInterfaceLinksHelper.DEVELOPER_HOME_PATH);
-    assertRedirect(response, ASSET_INDEX_PATH_NO_SLASH + "#/integrations/overview");
+    assertRedirect(response, ASSET_INDEX_PATH_NO_SLASH + "#/developer/dashboard");
   }
 
   @Test

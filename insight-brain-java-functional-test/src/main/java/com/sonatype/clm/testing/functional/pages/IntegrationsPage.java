@@ -12,22 +12,22 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 public class IntegrationsPage extends BasicElement<IntegrationsPage>
 {
   public static String urlOverview() {
-    return BaseUrl.resolvePageUrl("/integrations/overview");
+    return BaseUrl.resolvePageUrl("/developer/dashboard/overview");
   }
 
   public static String urlCiCd() {
-    return BaseUrl.resolvePageUrl("/integrations/ci-cd");
+    return BaseUrl.resolvePageUrl("/developer/dashboard/ci-cd");
   }
 
   public static String urlScm() {
-    return BaseUrl.resolvePageUrl("/integrations/scm");
+    return BaseUrl.resolvePageUrl("/developer/dashboard/scm");
   }
 
   public static String urlIssueTracking() {
-    return BaseUrl.resolvePageUrl("/integrations/issue-tracking");
+    return BaseUrl.resolvePageUrl("/developer/dashboard/issue-tracking");
   }
 
   public static String urlIde() {
-    return BaseUrl.resolvePageUrl("/integrations/ide");
+    return BaseUrl.resolvePageUrl("/developer/dashboard/ide");
   }
 }

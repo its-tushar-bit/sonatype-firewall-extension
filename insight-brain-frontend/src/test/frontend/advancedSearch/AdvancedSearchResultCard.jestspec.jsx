@@ -6,6 +6,7 @@
 import React from 'react';
 import { render, screen } from 'TestRoot/SpecUtil';
 import AdvancedSearchResultCard from 'MainRoot/advancedSearch/AdvancedSearchResultCard';
+import * as routeSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('AdvancedSearchResultCard', () => {
   let renderComponent, minimalProps;
@@ -174,5 +175,34 @@ describe('AdvancedSearchResultCard', () => {
     expect(screen.queryByRole('cell', { name: 'Component Name' })).not.toBeInTheDocument();
     expect(screen.queryByRole('cell', { name: 'Organization' })).not.toBeInTheDocument();
     expect(screen.queryByRole('cell', { name: 'Policy' })).not.toBeInTheDocument();
+  });
+
+  it('Results links in standalone developer app redirects to an external tab', () => {
+    jest.spyOn(routeSelectors, 'selectIsDeveloper').mockReturnValue(true);
+
+    const componentTypeResult = {
+      organizationName: 'orgName',
+      itemType: 'ORGANIZATION',
+      applicationName: 'testApp',
+      policyEvaluationStage: 'testStage',
+      groupIdentifier: 'testGroupIdentifier',
+      applicationVersion: 'testApplicationVersion',
+      vulnerabilityId: 'testVulnerabilityId',
+      vulnerabilityDescription: 'testVulnerabilityDescription',
+    };
+
+    renderComponent({ searchResultItem: componentTypeResult, isSbomManager: false });
+
+    expect(screen.getByRole('link', { name: 'orgName' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'orgName' })).toHaveAttribute('target', '_blank');
+
+    expect(screen.getByRole('link', { name: 'testApp' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'testApp' })).toHaveAttribute('target', '_blank');
+
+    expect(screen.getByRole('link', { name: 'testStage' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'testStage' })).toHaveAttribute('target', '_blank');
+
+    expect(screen.getByRole('link', { name: 'testVulnerabilityId' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'testVulnerabilityId' })).toHaveAttribute('target', '_blank');
   });
 });

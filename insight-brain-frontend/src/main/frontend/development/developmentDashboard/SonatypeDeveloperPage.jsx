@@ -36,31 +36,31 @@ import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
 const tabStates = [
   {
-    state: `integrations.${SECTIONS.OVERVIEW}`,
+    state: `developer.dashboard.${SECTIONS.OVERVIEW}`,
     ndx: 0,
     tabName: 'Overview',
     dataAnalyticsId: 'sonatype-developer-nav-tab-overview',
   },
   {
-    state: `integrations.${SECTIONS.CICD}`,
+    state: `developer.dashboard.${SECTIONS.CICD}`,
     ndx: 1,
     tabName: 'CI/CD Integrations',
     dataAnalyticsId: 'sonatype-developer-nav-tab-cicd',
   },
   {
-    state: `integrations.${SECTIONS.SCM}`,
+    state: `developer.dashboard.${SECTIONS.SCM}`,
     ndx: 2,
     tabName: 'SCM Integrations',
     dataAnalyticsId: 'sonatype-developer-nav-tab-scm',
   },
   {
-    state: `integrations.${SECTIONS.ISSUE_TRACKING}`,
+    state: `developer.dashboard.${SECTIONS.ISSUE_TRACKING}`,
     tabName: 'Issue Tracking Integrations',
     ndx: 3,
     dataAnalyticsId: 'sonatype-developer-nav-tab-issue-tracking',
   },
   {
-    state: `integrations.${SECTIONS.IDE}`,
+    state: `developer.dashboard.${SECTIONS.IDE}`,
     ndx: 4,
     tabName: 'IDE Integrations',
     dataAnalyticsId: 'sonatype-developer-nav-tab-ide',

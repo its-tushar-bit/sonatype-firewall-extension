@@ -24,6 +24,7 @@ const UserMenu = ({
   changePasswordStatus,
   changePasswordErrorMessage,
   onManageUserToken,
+  isStandaloneDeveloper,
 }) => {
   useEffect(() => void loadUser(), []);
   const [isChangePasswordModalVisible, setIsChangePasswordModalVisible] = useState(false);
@@ -47,7 +48,7 @@ const UserMenu = ({
             {user ? user.displayName : ''}
           </span>
         </MenuTitle>
-        {canChangePassword && (
+        {canChangePassword && !isStandaloneDeveloper && (
           <a
             id="change-password"
             tabIndex="0"
@@ -111,6 +112,7 @@ UserMenu.propTypes = {
   resetPasswordStatus: PropTypes.func,
   changePasswordStatus: PropTypes.oneOf(['idle', 'pending', 'success', 'failure']),
   changePasswordErrorMessage: PropTypes.string,
+  isStandaloneDeveloper: PropTypes.bool,
 };
 
 export default UserMenu;

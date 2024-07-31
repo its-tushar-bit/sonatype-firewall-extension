@@ -39,6 +39,7 @@ export const MenuBar = ({
   isSsoIdpManagedBySonatype,
   isSingleTenant,
   isSbomManagerOnlyLicense,
+  isStandaloneDeveloper,
 }) => {
   const hasAnyPermissions = Object.values(permissions).filter(Boolean).length > 0;
 
@@ -63,8 +64,8 @@ export const MenuBar = ({
       {breadcrumbPortalContainer}
       <div id="menu-bar" className="nx-global-header__actions menu-bar">
         <HelpMenu majorMinorVersion={majorMinorVersion} />
-        {isShowNotificationMenuEnabled && <NotificationsMenuContainer />}
-        {hasAnyPermissions && (
+        {isShowNotificationMenuEnabled && !isStandaloneDeveloper && <NotificationsMenuContainer />}
+        {hasAnyPermissions && !isStandaloneDeveloper && (
           <SystemPreferencesMenu
             permissions={permissions}
             isWebhooksSupported={isWebhooksSupported}
@@ -127,6 +128,7 @@ MenuBar.propTypes = {
   isSsoIdpManagedBySonatype: PropTypes.bool,
   isSingleTenant: PropTypes.bool,
   isSbomManagerOnlyLicense: PropTypes.bool,
+  isStandaloneDeveloper: PropTypes.bool,
 };
 
 export default MenuBar;

@@ -12,9 +12,7 @@ import { useSelector } from 'react-redux';
 import {
   selectRouterCurrentParams,
   selectIsPrioritiesPageContainer,
-  selectPrioritiesPageContainerName,
   selectPrioritiesPageName,
-  selectCurrentRouteName,
 } from '../reduxUiRouter/routerSelectors';
 
 export default function ComponentDetailsBackButton(props) {
@@ -22,10 +20,8 @@ export default function ComponentDetailsBackButton(props) {
   const dependencyTreePropsPresent = scanId && publicId;
 
   const isPrioritiesPageContainer = useSelector(selectIsPrioritiesPageContainer);
-  const prioritiesPageContainerName = useSelector(selectPrioritiesPageContainerName);
   const prioritiesPageName = useSelector(selectPrioritiesPageName);
   const currentParams = useSelector(selectRouterCurrentParams);
-  const currentRouteName = useSelector(selectCurrentRouteName);
   const uiRouterState = useRouterState();
 
   if (dependencyTreePropsPresent) {
@@ -36,14 +32,6 @@ export default function ComponentDetailsBackButton(props) {
   }
 
   if (isPrioritiesPageContainer) {
-    if (currentRouteName.includes('componentDetailsFromReport')) {
-      const href = uiRouterState.href(`${prioritiesPageContainerName}.policy`, {
-        scanId: currentParams.scanId,
-        publicId: currentParams.publicId,
-      });
-      return <MenuBarBackButton href={href} text="Back to Application Report" />;
-    }
-
     const href = uiRouterState.href(prioritiesPageName, {
       scanId: currentParams.scanId,
       publicAppId: currentParams.publicId,

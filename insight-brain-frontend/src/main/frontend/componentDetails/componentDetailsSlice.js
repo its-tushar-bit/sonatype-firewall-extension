@@ -36,7 +36,7 @@ import {
   selectIsLabelsLoading,
 } from './componentDetailsSelectors';
 import { getDependencyTreeSubset } from 'MainRoot/DependencyTree/dependencyTreeUtil';
-import { selectCurrentRouteName, selectPrioritiesPageContainerName } from '../reduxUiRouter/routerSelectors';
+import { selectPrioritiesPageContainerName } from '../reduxUiRouter/routerSelectors';
 
 const HTTP_CLIENT_CLOSED_REQUEST = 499;
 
@@ -100,13 +100,9 @@ const onTabChange = (tabId) => {
   return (dispatch, getState) => {
     const { hash } = selectRouterCurrentParams(getState());
     const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(getState());
-    const currentRouteName = selectCurrentRouteName(getState());
     const prioritiesPageContainerName = selectPrioritiesPageContainerName(getState());
 
     if (isPrioritiesPageContainer) {
-      if (currentRouteName.includes('componentDetailsFromReport')) {
-        return dispatch(stateGo(`${prioritiesPageContainerName}.componentDetailsFromReport.${tabId}`, { hash }));
-      }
       return dispatch(stateGo(`${prioritiesPageContainerName}.componentDetails.${tabId}`, { hash }));
     }
     return dispatch(stateGo(`applicationReport.componentDetails.${tabId}`, { hash }));

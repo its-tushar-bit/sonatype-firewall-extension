@@ -19,7 +19,7 @@ describe('SonatypeDeveloperPage', () => {
   const defaultPreloadedState = {
     router: {
       currentState: {
-        name: `integrations.${SECTIONS.OVERVIEW}`,
+        name: `developer.dashboard.${SECTIONS.OVERVIEW}`,
       },
     },
   };
@@ -96,7 +96,7 @@ describe('SonatypeDeveloperPage', () => {
         const cicdState = {
           router: {
             currentState: {
-              name: `integrations.${SECTIONS.CICD}`,
+              name: `developer.dashboard.${SECTIONS.CICD}`,
             },
           },
         };
@@ -110,7 +110,7 @@ describe('SonatypeDeveloperPage', () => {
         const scmState = {
           router: {
             currentState: {
-              name: `integrations.${SECTIONS.SCM}`,
+              name: `developer.dashboard.${SECTIONS.SCM}`,
             },
           },
         };
@@ -124,7 +124,7 @@ describe('SonatypeDeveloperPage', () => {
         const issueTrackingState = {
           router: {
             currentState: {
-              name: `integrations.${SECTIONS.ISSUE_TRACKING}`,
+              name: `developer.dashboard.${SECTIONS.ISSUE_TRACKING}`,
             },
           },
         };
@@ -140,7 +140,7 @@ describe('SonatypeDeveloperPage', () => {
         const ideState = {
           router: {
             currentState: {
-              name: `integrations.${SECTIONS.IDE}`,
+              name: `developer.dashboard.${SECTIONS.IDE}`,
             },
           },
         };

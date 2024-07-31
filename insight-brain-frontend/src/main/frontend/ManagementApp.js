@@ -35,12 +35,12 @@ import apiModule from './api/module';
 import baseUrlConfigurationModule from './configuration/baseUrl/module';
 import baseUrlNotSetNoticeModule from 'MainRoot/configuration/baseUrl/baseUrlNotSetNotice/module';
 import sourceControlRateLimitsModule from 'MainRoot/OrgsAndPolicies/sourceControlRateLimits/module';
-import integrationsModule from 'MainRoot/development/developmentDashboard/integrations.module';
 import enterpriseReportingModule from 'MainRoot/enterpriseReporting/module';
 import sastScanModule from 'MainRoot/sastScan/module';
 import prioritiesPageModule from 'MainRoot/development/prioritiesPage/priorities.page.module';
 import sbomManagerModule from 'MainRoot/sbomManager/sbom.manager.module';
 import advancedSearchModule from 'MainRoot/advancedSearch/module';
+import developerModule from 'MainRoot/development/developer.module';
 
 export default angular
   .module('managementApp', [
@@ -74,11 +74,11 @@ export default angular
     baseUrlConfigurationModule.name,
     baseUrlNotSetNoticeModule.name,
     sourceControlRateLimitsModule.name,
-    integrationsModule.name,
     enterpriseReportingModule.name,
     sastScanModule.name,
     sbomManagerModule.name,
     prioritiesPageModule.name,
     advancedSearchModule.name,
+    developerModule.name,
   ])
   .component('systemNotice', iqReact2Angular(SystemNoticeContainer, [], ['$ngRedux']));

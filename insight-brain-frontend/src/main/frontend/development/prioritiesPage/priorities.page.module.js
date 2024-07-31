@@ -16,6 +16,7 @@ const url = 'dashboard/developer/priorities/{publicAppId}/{scanId}';
 
 function routes($stateProvider, $urlRouterProvider) {
   $stateProvider
+    // Standalone Developer Dashboard -> Priorities Page
     .state('prioritiesPageFromDashboard', {
       url: '/dashboard/developer/priorities/{publicAppId}/{scanId}',
       component: 'prioritiesPage',
@@ -23,6 +24,8 @@ function routes($stateProvider, $urlRouterProvider) {
         title: 'Priorities',
       },
     })
+
+    // Standalone Developer Reports Page -> Priorities Page
     .state('prioritiesPageFromReports', {
       url: '/developer/priorities/{publicAppId}/{scanId}',
       component: 'prioritiesPage',
@@ -30,6 +33,8 @@ function routes($stateProvider, $urlRouterProvider) {
         title: 'Priorities',
       },
     })
+
+    // Lifecycle Reports Page -> Priorities Page
     .state('prioritiesPageFromAppReport', {
       url: '/appReport/developer/priorities/{publicAppId}/{scanId}',
       component: 'prioritiesPage',
@@ -37,7 +42,9 @@ function routes($stateProvider, $urlRouterProvider) {
         title: 'Priorities',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard', {
+
+    // Standalone Developer Dashboard -> Priorities Page -> Component Details Page
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard', {
       url: '/dashboard/developer/priorities/report/{publicId}/{scanId}',
       abstract: true,
       component: 'applicationReportRoot',
@@ -45,35 +52,7 @@ function routes($stateProvider, $urlRouterProvider) {
         policyViolationId: { dynamic: true },
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.dependencyTree', {
-      url: '/dependencyTree',
-      component: 'dependencyTree',
-      data: {
-        title: 'Dependency Tree',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.policy', {
-      url: '/policy?roarelSaysCip&componentHash&tabId',
-      component: 'applicationReport',
-      data: {
-        title: 'Application Report',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.rawData', {
-      url: '/raw',
-      component: 'applicationReportRawData',
-      data: {
-        title: 'Application Report',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.vulnerabilities', {
-      url: '/vulnerabilities',
-      component: 'applicationReportVulnerabilities',
-      data: {
-        title: 'Application Report Vulnerabilities List',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.componentDetails', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails', {
       url: '/componentDetails/{hash}',
       component: 'componentDetails',
       data: {
@@ -83,113 +62,60 @@ function routes($stateProvider, $urlRouterProvider) {
         tabId: 'overview',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.componentDetails.overview', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.overview', {
       url: '/overview',
       params: {
         tabId: 'overview',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.componentDetails.violations', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.violations', {
       url: '/violations',
       params: {
         tabId: 'violations',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.componentDetails.security', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.security', {
       url: '/security',
       params: {
         tabId: 'security',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.componentDetails.legal', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.legal', {
       url: '/legal',
       params: {
         tabId: 'legal',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.componentDetails.audit', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.audit', {
       url: '/audit',
       params: {
         tabId: 'audit',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.componentDetails.claim', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.claim', {
       url: '/claim',
       params: {
         tabId: 'claim',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.componentDetails.labels', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.labels', {
       url: '/labels',
       params: {
         tabId: 'labels',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.componentDetailsFromReport', {
-      url: '/componentDetailsFromReport/{hash}',
-      component: 'componentDetails',
-      data: {
-        title: 'Component Details',
-      },
-      params: {
-        tabId: 'overview',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.componentDetailsFromReport.overview', {
-      url: '/overview',
-      params: {
-        tabId: 'overview',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.componentDetailsFromReport.violations', {
-      url: '/violations',
-      params: {
-        tabId: 'violations',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.componentDetailsFromReport.security', {
-      url: '/security',
-      params: {
-        tabId: 'security',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.componentDetailsFromReport.legal', {
-      url: '/legal',
-      params: {
-        tabId: 'legal',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.componentDetailsFromReport.audit', {
-      url: '/audit',
-      params: {
-        tabId: 'audit',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.componentDetailsFromReport.claim', {
-      url: '/claim',
-      params: {
-        tabId: 'claim',
-      },
-    })
-
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.componentDetailsFromReport.labels', {
-      url: '/labels',
-      params: {
-        tabId: 'labels',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.violationWaivers', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.violationWaivers', {
       url: '/{hash}/waivers/{violationId}',
       component: 'listWaiversPage',
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.vulnerabilityCustomize', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.vulnerabilityCustomize', {
       url: '/vulnerabilities/{ownerType}/{ownerId}/customize/{refId}?componentIdentifier&componentHash&tabId',
       component: 'vulnerabilityCustomize',
       data: {
         title: 'Customize Vulnerability Details',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromDashboard.applicationStageTypeComponentOverview', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.applicationStageTypeComponentOverview', {
       url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}/component/' + '{hash}?scanId&tabId',
       component: 'componentLegalOverview',
       data: {
@@ -197,7 +123,8 @@ function routes($stateProvider, $urlRouterProvider) {
       },
     })
 
-    .state('appReportPageWithinPrioritiesPageContainerFromReports', {
+    // Standalone Developer Reports Page -> Priorities Page -> Component Details Page
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports', {
       url: '/developer/priorities/report/{publicId}/{scanId}',
       abstract: true,
       component: 'applicationReportRoot',
@@ -205,35 +132,7 @@ function routes($stateProvider, $urlRouterProvider) {
         policyViolationId: { dynamic: true },
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.dependencyTree', {
-      url: '/dependencyTree',
-      component: 'dependencyTree',
-      data: {
-        title: 'Dependency Tree',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.policy', {
-      url: '/policy?roarelSaysCip&componentHash&tabId',
-      component: 'applicationReport',
-      data: {
-        title: 'Application Report',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.rawData', {
-      url: '/raw',
-      component: 'applicationReportRawData',
-      data: {
-        title: 'Application Report',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.vulnerabilities', {
-      url: '/vulnerabilities',
-      component: 'applicationReportVulnerabilities',
-      data: {
-        title: 'Application Report Vulnerabilities List',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.componentDetails', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails', {
       url: '/componentDetails/{hash}',
       component: 'componentDetails',
       data: {
@@ -243,112 +142,60 @@ function routes($stateProvider, $urlRouterProvider) {
         tabId: 'overview',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.componentDetails.overview', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails.overview', {
       url: '/overview',
       params: {
         tabId: 'overview',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.componentDetails.violations', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails.violations', {
       url: '/violations',
       params: {
         tabId: 'violations',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.componentDetails.security', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails.security', {
       url: '/security',
       params: {
         tabId: 'security',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.componentDetails.legal', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails.legal', {
       url: '/legal',
       params: {
         tabId: 'legal',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.componentDetails.claim', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails.claim', {
       url: '/claim',
       params: {
         tabId: 'claim',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.componentDetails.audit', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails.audit', {
       url: '/audit',
       params: {
         tabId: 'audit',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.componentDetails.labels', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails.labels', {
       url: '/labels',
       params: {
         tabId: 'labels',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.componentDetailsFromReport', {
-      url: '/componentDetailsFromReport/{hash}',
-      component: 'componentDetails',
-      data: {
-        title: 'Component Details',
-      },
-      params: {
-        tabId: 'overview',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.componentDetailsFromReport.overview', {
-      url: '/overview',
-      params: {
-        tabId: 'overview',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.componentDetailsFromReport.violations', {
-      url: '/violations',
-      params: {
-        tabId: 'violations',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.componentDetailsFromReport.security', {
-      url: '/security',
-      params: {
-        tabId: 'security',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.componentDetailsFromReport.legal', {
-      url: '/legal',
-      params: {
-        tabId: 'legal',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.componentDetailsFromReport.claim', {
-      url: '/claim',
-      params: {
-        tabId: 'claim',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.componentDetailsFromReport.audit', {
-      url: '/audit',
-      params: {
-        tabId: 'audit',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.componentDetailsFromReport.labels', {
-      url: '/labels',
-      params: {
-        tabId: 'labels',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.violationWaivers', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.violationWaivers', {
       url: '/{hash}/waivers/{violationId}',
       component: 'listWaiversPage',
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.vulnerabilityCustomize', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.vulnerabilityCustomize', {
       url: '/vulnerabilities/{ownerType}/{ownerId}/customize/{refId}?componentIdentifier&componentHash&tabId',
       component: 'vulnerabilityCustomize',
       data: {
         title: 'Customize Vulnerability Details',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromReports.applicationStageTypeComponentOverview', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.applicationStageTypeComponentOverview', {
       url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}/component/' + '{hash}?scanId&tabId',
       component: 'componentLegalOverview',
       data: {
@@ -356,7 +203,8 @@ function routes($stateProvider, $urlRouterProvider) {
       },
     })
 
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport', {
+    // Lifecycle App Report Page -> Priorities Page -> Component Details Page
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromAppReport', {
       url: '/appReport/developer/priorities/report/{publicId}/{scanId}',
       abstract: true,
       component: 'applicationReportRoot',
@@ -364,35 +212,7 @@ function routes($stateProvider, $urlRouterProvider) {
         policyViolationId: { dynamic: true },
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.dependencyTree', {
-      url: '/dependencyTree',
-      component: 'dependencyTree',
-      data: {
-        title: 'Dependency Tree',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.policy', {
-      url: '/policy?roarelSaysCip&componentHash&tabId',
-      component: 'applicationReport',
-      data: {
-        title: 'Application Report',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.rawData', {
-      url: '/raw',
-      component: 'applicationReportRawData',
-      data: {
-        title: 'Application Report',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.vulnerabilities', {
-      url: '/vulnerabilities',
-      component: 'applicationReportVulnerabilities',
-      data: {
-        title: 'Application Report Vulnerabilities List',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.componentDetails', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromAppReport.componentDetails', {
       url: '/componentDetails/{hash}',
       component: 'componentDetails',
       data: {
@@ -402,112 +222,60 @@ function routes($stateProvider, $urlRouterProvider) {
         tabId: 'overview',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.componentDetails.overview', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromAppReport.componentDetails.overview', {
       url: '/overview',
       params: {
         tabId: 'overview',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.componentDetails.violations', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromAppReport.componentDetails.violations', {
       url: '/violations',
       params: {
         tabId: 'violations',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.componentDetails.security', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromAppReport.componentDetails.security', {
       url: '/security',
       params: {
         tabId: 'security',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.componentDetails.legal', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromAppReport.componentDetails.legal', {
       url: '/legal',
       params: {
         tabId: 'legal',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.componentDetails.claim', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromAppReport.componentDetails.claim', {
       url: '/claim',
       params: {
         tabId: 'claim',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.componentDetails.audit', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromAppReport.componentDetails.audit', {
       url: '/audit',
       params: {
         tabId: 'audit',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.componentDetails.labels', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromAppReport.componentDetails.labels', {
       url: '/labels',
       params: {
         tabId: 'labels',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.componentDetailsFromReport', {
-      url: '/componentDetailsFromReport/{hash}',
-      component: 'componentDetails',
-      data: {
-        title: 'Component Details',
-      },
-      params: {
-        tabId: 'overview',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.componentDetailsFromReport.overview', {
-      url: '/overview',
-      params: {
-        tabId: 'overview',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.componentDetailsFromReport.violations', {
-      url: '/violations',
-      params: {
-        tabId: 'violations',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.componentDetailsFromReport.security', {
-      url: '/security',
-      params: {
-        tabId: 'security',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.componentDetailsFromReport.legal', {
-      url: '/legal',
-      params: {
-        tabId: 'legal',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.componentDetailsFromReport.claim', {
-      url: '/claim',
-      params: {
-        tabId: 'claim',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.componentDetailsFromReport.audit', {
-      url: '/audit',
-      params: {
-        tabId: 'audit',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.componentDetailsFromReport.labels', {
-      url: '/labels',
-      params: {
-        tabId: 'labels',
-      },
-    })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.violationWaivers', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromAppReport.violationWaivers', {
       url: '/{hash}/waivers/{violationId}',
       component: 'listWaiversPage',
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.vulnerabilityCustomize', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromAppReport.vulnerabilityCustomize', {
       url: '/vulnerabilities/{ownerType}/{ownerId}/customize/{refId}?componentIdentifier&componentHash&tabId',
       component: 'vulnerabilityCustomize',
       data: {
         title: 'Customize Vulnerability Details',
       },
     })
-    .state('appReportPageWithinPrioritiesPageContainerFromAppReport.applicationStageTypeComponentOverview', {
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromAppReport.applicationStageTypeComponentOverview', {
       url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}/component/' + '{hash}?scanId&tabId',
       component: 'componentLegalOverview',
       data: {

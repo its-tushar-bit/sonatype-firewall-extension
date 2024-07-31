@@ -13,6 +13,8 @@ import AdvancedSearchForm from './AdvancedSearchForm';
 import AdvancedSearchResultCard from './AdvancedSearchResultCard';
 import AdvancedSearchExportButton from 'MainRoot/advancedSearch/AdvancedSearchExportButton';
 import { includes } from 'ramda';
+import { selectIsDeveloper } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { useSelector } from 'react-redux';
 
 export default function AdvancedSearch(props) {
   // Actions
@@ -47,6 +49,8 @@ export default function AdvancedSearch(props) {
   const { $state } = props;
 
   const loadError = isEnabled ? loadErrorProp || noSbomManagerEnabledError : 'Advanced Search is not turned on!';
+
+  const isDeveloper = useSelector(selectIsDeveloper);
 
   useEffect(() => {
     load();
@@ -97,7 +101,9 @@ export default function AdvancedSearch(props) {
           {additionalInfo && <p className="nx-p">{additionalInfo}</p>}
           {showVulnLink && (
             <p className="nx-p">
-              <NxTextLink href={detailedInfoHref}>Click here for detailed information.</NxTextLink>
+              <NxTextLink href={detailedInfoHref} newTab={isDeveloper}>
+                Click here for detailed information.
+              </NxTextLink>
             </p>
           )}
           {searchResultItemDTOS.map((searchResultItem) => (

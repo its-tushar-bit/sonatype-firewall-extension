@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { faArrowToLeft, faBars, faStars } from '@fortawesome/pro-regular-svg-icons';
-import { faWrench } from '@fortawesome/pro-solid-svg-icons';
 import {
   faChartArea,
   faChartPieAlt,
@@ -161,33 +160,6 @@ describe('IqSidebarNav', function () {
       expect(navLink).toHaveProp('text', 'API');
       expect(navLink).toHaveProp('href', 'href-api');
       expect(navLink).toHaveProp('isSelected', false);
-    });
-
-    it('does not render NxGlobalSidebarNavigationLink for Developer if it is not enabled', function () {
-      expect(
-        getShallowComponent({
-          isLoggedIn: true,
-          isLicensed: true,
-          isDeveloperDashboardEnabled: false,
-        }).find('#integrations-navigation-button')
-      ).not.toExist();
-    });
-
-    it('renders an NxGlobalSidebarNavigationLink for Developers with "Preview" badge if allowed', function () {
-      const component = getMountedComponent({
-        isLoggedIn: true,
-        isLicensed: true,
-        isDeveloperDashboardEnabled: true,
-      });
-
-      const navLink = component.find('#integrations-navigation-button').at(0);
-
-      expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
-      expect(navLink).toHaveProp('icon', faWrench);
-      expect(navLink).toHaveProp('href', 'href-integrations');
-      expect(navLink).toHaveProp('isSelected', false);
-
-      expect(navLink.find('a').getDOMNode().textContent).toBe('Developer');
     });
 
     it('renders an NxGlobalSidebarNavigationLink for the dashboard if allowed when is firewall only license', function () {
@@ -393,7 +365,6 @@ describe('IqSidebarNav', function () {
           isFirewallEnabled: true,
           isLegalEnabled: true,
           isApiPageEnabled: true,
-          isDeveloperDashboardEnabled: true,
           isOrgsAndAppsEnabled: true,
         });
       });
@@ -424,7 +395,6 @@ describe('IqSidebarNav', function () {
           isFirewallEnabled: true,
           isLegalEnabled: true,
           isApiPageEnabled: true,
-          isDeveloperDashboardEnabled: true,
           isOrgsAndAppsEnabled: true,
         });
         includesSpy.and.callFake((state) => state === 'violations');
@@ -442,7 +412,6 @@ describe('IqSidebarNav', function () {
           isFirewallEnabled: true,
           isLegalEnabled: true,
           isApiPageEnabled: true,
-          isDeveloperDashboardEnabled: true,
           isOrgsAndAppsEnabled: true,
         });
         includesSpy.and.callFake((state) => state === 'labs');
@@ -485,7 +454,6 @@ describe('IqSidebarNav', function () {
           isFirewallEnabled: true,
           isLegalEnabled: true,
           isApiPageEnabled: true,
-          isDeveloperDashboardEnabled: true,
           isOrgsAndAppsEnabled: true,
         });
         includesSpy.and.callFake((state) => state === 'legal');

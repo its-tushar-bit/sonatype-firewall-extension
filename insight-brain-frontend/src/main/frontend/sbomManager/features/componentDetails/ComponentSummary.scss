@@ -9,8 +9,19 @@
     display: flex;
   }
 
-  &__highest-cvss-score,
-  &__vulnerabilities-verified,
+  &__highest-cvss-score {
+    flex-grow: 0.1;
+  }
+  &__vulnerabilities-verified {
+    flex-grow: 0.1;
+    margin-top: 0;
+    &__content {
+      display: flex;
+      width: 60%;
+      flex-wrap: wrap;
+      column-gap: var(--nx-spacing-4x);
+    }
+  }
   &__category,
   &__website {
     margin: 0 var(--nx-spacing-6x) 0 0;

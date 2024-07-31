@@ -54,22 +54,24 @@ export default function VulnerabilitiesSummary({ vulnerabilitySummary }) {
             <div>
               <b>Vulnerabilities Verified</b>
             </div>
-            {verifiedVulnerabilitiesCount !== undefined && (
-              <div>
-                <NxFontAwesomeIcon className="sbom-verified-icon" icon={faCheckCircle} />
-                <span data-testid="verified">
-                  <b>{verifiedVulnerabilitiesCount}</b> Sonatype Verified
-                </span>
-              </div>
-            )}
-            {unverifiedVulnerabilitiesCount !== undefined && (
-              <div>
-                <NxFontAwesomeIcon className="sbom-unverified-icon" icon={faExclamationTriangle} />
-                <span data-testid="unverified">
-                  <b>{unverifiedVulnerabilitiesCount}</b> Unverified
-                </span>
-              </div>
-            )}
+            <div className="sbom-manager-component-detail-tile__vulnerabilities-verified__content">
+              {verifiedVulnerabilitiesCount !== undefined && (
+                <div>
+                  <NxFontAwesomeIcon className="sbom-verified-icon" icon={faCheckCircle} />
+                  <span data-testid="verified">
+                    <b>{verifiedVulnerabilitiesCount}</b> Sonatype Verified
+                  </span>
+                </div>
+              )}
+              {unverifiedVulnerabilitiesCount !== undefined && (
+                <div>
+                  <NxFontAwesomeIcon className="sbom-unverified-icon" icon={faExclamationTriangle} />
+                  <span data-testid="unverified">
+                    <b>{unverifiedVulnerabilitiesCount}</b> Unverified
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         )}
         {category && (

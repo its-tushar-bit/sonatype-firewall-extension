@@ -710,10 +710,14 @@ public class ThirdPartyDataService
   {
     List<String> sonatypeVulns = sonatypeSecResults.get(bomComponentIdentifier);
     if (CollectionUtils.isNotEmpty(sonatypeVulns)) {
+      // Get all the coordinate securities from the DB for all the vulnerabilities. This list wil
+      Map<String, ThirdPartyCoordinateSecurity> coordinateSecuritiesFromDBForComponentMap =
+          thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(sbomComponent.getId()).stream()
+              .collect(Collectors.toMap(ThirdPartyCoordinateSecurity::getRefId, t -> t));
+
       for (String sonatypeVuln : sonatypeVulns) {
         try {
-          ThirdPartyCoordinateSecurity sbomVulnerability =
-              thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(sbomComponent.getId(), sonatypeVuln);
+          ThirdPartyCoordinateSecurity sbomVulnerability = coordinateSecuritiesFromDBForComponentMap.get(sonatypeVuln);
           SecurityVulnerabilityData sonatypeVulnerabilityData =
               securityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(sonatypeVuln,
                   bomComponentIdentifier, true);
@@ -723,6 +727,7 @@ public class ThirdPartyDataService
                 sonatypeVulnerabilityData.mainSeverity.score > 0) {
               populateMissingThirdPartyCoordinateSecurityWithSonatypeData(sbomVulnerability, sonatypeVulnerabilityData);
               thirdPartyCoordinateSecurityDAO.update(sbomVulnerability);
+              coordinateSecuritiesFromDBForComponentMap.remove(sonatypeVuln);
             }
           }
           else {
@@ -740,6 +745,22 @@ public class ThirdPartyDataService
           log.warn("Vulnerability {} not found", sonatypeVuln);
         }
       }
+
+      // Walk through the remaining coordinate securities in this list. These are the orphan ones.
+      for (String refId : coordinateSecuritiesFromDBForComponentMap.keySet()) {
+        ThirdPartyCoordinateSecurity coordinateSecurity = coordinateSecuritiesFromDBForComponentMap.get(refId);
+        if (coordinateSecurity.getIdentificationSources().contains(IdentificationSource.SONATYPE.getId()) &&
+            coordinateSecurity.getIdentificationSources().contains(IdentificationSource.SBOM.getId())) {
+          // if the vulnerability is found in DB but no HDS result, and has both identification sources,
+          // SBOM and SONATYPE, remove SONATYPE.
+          coordinateSecurity.setIdentificationSources(IdentificationSource.SBOM.getId());
+          thirdPartyCoordinateSecurityDAO.update(coordinateSecurity);
+        }
+        else if (coordinateSecurity.getIdentificationSources().equals(IdentificationSource.SONATYPE.getId())) {
+          // else if it only has SONATYPE, delete it from the DB along with any VEX annotation associated with it.
+          thirdPartyCoordinateSecurityDAO.delete(coordinateSecurity);
+        }
+      }
     }
   }
 
@@ -752,6 +773,7 @@ public class ThirdPartyDataService
     if (MapUtils.isNotEmpty(sonatypeLicenses)) {
       List<ThirdPartyCoordinateLicense> sbomComponentLicenses =
           thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(sbomComponent.getId());
+      ArrayList<ThirdPartyCoordinateLicense> allLicensesFromDBForComponent = new ArrayList<>(sbomComponentLicenses);
       Map<String, ThirdPartyCoordinateLicense> byLicenseIds =
           sbomComponentLicenses.stream().collect(Collectors.toMap(ThirdPartyCoordinateLicense::getLicenseId, cl -> cl));
       Map<String, ThirdPartyCoordinateLicense> byLicenseNames = sbomComponentLicenses.stream().collect(
@@ -768,18 +790,36 @@ public class ThirdPartyDataService
         }
 
         if (sbomLicense != null) {
-          //matching sbom license found, update record
+          // SBOM license found in DB and in json file, update record.
           populateMissingThirdPartyCoordinateLicenseWithSonatypeData(sbomLicense, sonatypeLicenseEntry.getValue());
           thirdPartyCoordinateLicenseDAO.update(sbomLicense);
+          // Remove from list so I know which ones from the DB were not in the json file.
+          allLicensesFromDBForComponent.remove(sbomLicense);
         }
         else {
-          //no matching sbom license, insert sonatype data
+          // No SBOM license found in DB, add new record with Sonatype identification sources.
           ThirdPartyCoordinateLicense newThirdPartyLicense = new ThirdPartyCoordinateLicense();
           newThirdPartyLicense.setFileCoordinateId(sbomComponent.getId());
           newThirdPartyLicense.setLicenseId(resultEntryLicense);
           populateMissingThirdPartyCoordinateLicenseWithSonatypeData(newThirdPartyLicense,
               sonatypeLicenseEntry.getValue());
           thirdPartyCoordinateLicenseDAO.insert(newThirdPartyLicense);
+        }
+      }
+
+      // Walk through the licenses that were left in this list. These are the orphan ones.
+      for (ThirdPartyCoordinateLicense licenseFromDB : allLicensesFromDBForComponent) {
+        if (licenseFromDB.getIdentificationSources().contains(IdentificationSource.SONATYPE.getId()) &&
+            licenseFromDB.getIdentificationSources().contains(IdentificationSource.SBOM.getId())) {
+          // If the license was found in the DB but NOT in the json file, and the identification source is
+          // SBOM,Sonatype, remove Sonatype.
+          licenseFromDB.setIdentificationSources(IdentificationSource.SBOM.getId());
+          thirdPartyCoordinateLicenseDAO.update(licenseFromDB);
+        }
+        else if (licenseFromDB.getIdentificationSources().equals(IdentificationSource.SONATYPE.getId())) {
+          // If the license was found in the DB but NOT in the json file, and the identification source is only SBOM,
+          // delete it from the DB.
+          thirdPartyCoordinateLicenseDAO.delete(licenseFromDB);
         }
       }
     }

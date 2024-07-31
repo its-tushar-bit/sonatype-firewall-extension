@@ -1,0 +1,115 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "terraform",
+      "coordinates" : {
+        "name" : "aws_s3_bucket.test02",
+        "plan" : "plan.tfplan",
+        "version" : "current"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:terraform/plan.tfplan/aws_s3_bucket.test02@current" ],
+    "pathnames" : [ "dependency:/pkg:terraform\\plan.tfplan\\aws_s3_bucket.test02@current" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0b21d00434253711ca98",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "IaC",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "aws_s3_bucket.test02"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Plan",
+        "value" : "plan.tfplan"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "current"
+      } ],
+      "name" : "aws_s3_bucket.test02 : plan.tfplan : current"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "terraform",
+      "coordinates" : {
+        "name" : "aws_s3_bucket.test01",
+        "plan" : "plan.tfplan",
+        "version" : "current"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:terraform/plan.tfplan/aws_s3_bucket.test01@current" ],
+    "pathnames" : [ "dependency:/pkg:terraform\\plan.tfplan\\aws_s3_bucket.test01@current" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0d8e3bd6ee4e6d50557a",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "IaC",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "cli",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "aws_s3_bucket.test01"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Plan",
+        "value" : "plan.tfplan"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "current"
+      } ],
+      "name" : "aws_s3_bucket.test01 : plan.tfplan : current"
+    }
+  } ]
+}

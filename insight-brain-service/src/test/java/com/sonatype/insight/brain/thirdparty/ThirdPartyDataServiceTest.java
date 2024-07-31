@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
@@ -32,6 +33,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.SearchIndexChange;
@@ -104,6 +106,9 @@ public class ThirdPartyDataServiceTest
 
   @Inject
   private SearchIndexChangeDAO searchIndexChangeDAO;
+
+  @Inject
+  private ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO;
 
   @Inject
   private TestProductLicense productLicense;
@@ -680,12 +685,10 @@ public class ThirdPartyDataServiceTest
   }
 
   @Test
-  public void testMergeSonatypeDataWithSbomData_SecurityVulnerabilityDescription()
+  public void testMergeSonatypeDataWithSbomData_vulnerabilities_mergeLogicForCM()
       throws URISyntaxException, IOException
   {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-
-    mockSecurityVulnerabilityDataHdsResponse();
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
@@ -694,16 +697,65 @@ public class ThirdPartyDataServiceTest
         tempEntity.newThirdPartyFileCoordinate(file, "IaC", "terraform", "aws_s3_bucket.test01", "current",
             "0d8e3bd6ee4e6d50557a", "pkg:terraform/plan.tfplan/aws_s3_bucket.test01@current");
 
+    // Vulnerability not in DB - FG-R00229
+    SecurityVulnerabilityData securityVulnerabilityData1 = mockSecurityVulnerabilityDataForMergeLogic("FG-R00229", "1");
+
+    // Vulnerability in DB - FG-R00230 - Only SBOM source identifier, Sonatype should be added.
+    SecurityVulnerabilityData securityVulnerabilityData2 = mockSecurityVulnerabilityDataForMergeLogic("FG-R00230", "2");
     ThirdPartyCoordinateSecurity tpVuln1 =
-        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00100", "", null, 1f, null, null);
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00230", "description2", "link2", 1.0f,
+            "deepdive2", "fixedby2");
     tpVuln1.setIdentificationSources("SBOM");
     thirdPartyCoordinateSecurityDAO.update(tpVuln1);
+
+    // Vulnerability in DB - FG-R00231 - With both SBOM and Sonatype source identifiers. Nothing added.
+    SecurityVulnerabilityData securityVulnerabilityData3 = mockSecurityVulnerabilityDataForMergeLogic("FG-R00231", "3");
+    ThirdPartyCoordinateSecurity tpVuln2 =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00231", "description3", "link3", 1.0f,
+            "deepdive3", "fixedby3");
+    tpVuln2.setIdentificationSources("SBOM,Sonatype");
+    thirdPartyCoordinateSecurityDAO.update(tpVuln2);
+
+    // Vulnerability in DB - FG-R00232 - With both SBOM and Sonatype source identifiers. No HDS results. Sonatype
+    // source should be removed.
+    ThirdPartyCoordinateSecurity tpVuln3 =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00232", "description4", "link4", 1.0f,
+            "deepdive4", "fixedby4");
+    tpVuln3.setIdentificationSources("SBOM,Sonatype");
+    thirdPartyCoordinateSecurityDAO.update(tpVuln3);
+
+    // Vulnerability in DB - FG-R00233 - With only Sonatype source identifiers. No HDS results. Record should be
+    // deleted from DB along with VEX annotations if any.
+    ThirdPartyCoordinateSecurity tpVuln4 =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00233", "description5", "link5", 1.0f,
+            "deepdive5", "fixedby5");
+    tpVuln4.setIdentificationSources("Sonatype");
+    thirdPartyCoordinateSecurityDAO.update(tpVuln4);
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(tpVuln4, "FG-R00233", "resolved",
+        "code_not_reachable", "will_not_fix,update", null);
+
+    // Extra vulnerability in DB not in the file. It should be deleted.
+    ThirdPartyCoordinateSecurity tpVuln5 =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00234", "description6", "link6", 1.0f,
+            "deepdive6", "fixedby6");
+    tpVuln5.setIdentificationSources("Sonatype");
+    thirdPartyCoordinateSecurityDAO.update(tpVuln5);
+
+    // Extra vulnerability in DB not in the file. It should be deleted.
+    ThirdPartyCoordinateSecurity tpVuln6 =
+        tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00235", "description7", "link7", 1.0f,
+            "deepdive7", "fixedby7");
+    tpVuln6.setIdentificationSources("Sonatype");
+    thirdPartyCoordinateSecurityDAO.update(tpVuln6);
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(tpVuln4, "FG-R00235", "resolved",
+        "code_not_reachable", "will_not_fix,update", null);
 
     tempEntity.createSbomMetadata("appId", "1", file);
 
     final File reportZip =
-        Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-security-data", tempDir).toURI())
-            .toFile();
+        Paths.get(ReportHelper
+            .zipReport("/ThirdPartyDataServiceTest/report-with-third-party-security-data",
+                tempDir).toURI()).toFile();
 
     handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
 
@@ -712,23 +764,103 @@ public class ThirdPartyDataServiceTest
 
     List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList =
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate.getId());
-    assertThat(thirdPartyCoordinateSecurityList).hasSize(6);
+    assertThat(thirdPartyCoordinateSecurityList).hasSize(4);
 
-    //Update Scenario
+    // Vulnerability not in DB - FG-R00229 - It should have Source Identifier = Sonatype
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
-        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00100");
-    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
-    assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("some explanation markdown");
+        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00229");
+    assertForVulnerabilityMergeLogic(thirdPartyCoordinateSecurity, securityVulnerabilityData1,
+        IdentificationSource.SONATYPE.getId());
 
-    //Insert Scenario
+    // Vulnerability not in DB - FG-R00230 - It should have Source Identifier = SBOM,Sonatype
     thirdPartyCoordinateSecurity =
-        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00101");
-    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
-    assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("some other explanation markdown");
+        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00230");
+    assertForVulnerabilityMergeLogic(thirdPartyCoordinateSecurity, securityVulnerabilityData2,
+        IdentificationSource.SBOM.getId() + "," + IdentificationSource.SONATYPE.getId());
+
+    // Vulnerability not in DB - FG-R00231 - It should have Source Identifier = SBOM,Sonatype
+    thirdPartyCoordinateSecurity =
+        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00231");
+    assertForVulnerabilityMergeLogic(thirdPartyCoordinateSecurity, securityVulnerabilityData3,
+        IdentificationSource.SBOM.getId() + "," + IdentificationSource.SONATYPE.getId());
+
+    // Vulnerability not in DB - FG-R00232 - It should have Source Identifier = SBOM
+    thirdPartyCoordinateSecurity =
+        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00232");
+    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM");
+    assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isEqualTo(tpVuln3.getAdvisories());
+    assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo(tpVuln3.getAttackVector());
+    assertThat(thirdPartyCoordinateSecurity.getCwes()).isEqualTo(tpVuln3.getCwes());
+    assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo(tpVuln3.getDescription());
+    assertThat(thirdPartyCoordinateSecurity.getLink()).isEqualTo("link4");
+    assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isEqualTo(tpVuln3.getRecommendations());
+    assertThat(thirdPartyCoordinateSecurity.getSeverity()).isEqualTo(1.0d);
+
+    // Vulnerability not in DB - FG-R00233 - It should have been deleted from DB.
+    thirdPartyCoordinateSecurity =
+        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00233");
+    assertThat(thirdPartyCoordinateSecurity).isNull();
+    ThirdPartyVulnerabilityExploitabilityExchange vexFromDB =
+        thirdPartyVulnerabilityExploitabilityExchangeDAO.getByCoordinateSecurityIdAndRefId(tpVuln5.getId(),
+            "FG-R00233");
+    assertThat(vexFromDB).isNull();
+
+    // Vulnerability in DB not in file - FG-R00234 - It should have been deleted from DB.
+    thirdPartyCoordinateSecurity =
+        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00234");
+    assertThat(thirdPartyCoordinateSecurity).isNull();
+
+    // Vulnerability in DB not in file - FG-R00234 - It should have been deleted from DB along with its VEX annotation.
+    thirdPartyCoordinateSecurity =
+        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00235");
+    assertThat(thirdPartyCoordinateSecurity).isNull();
+    vexFromDB = thirdPartyVulnerabilityExploitabilityExchangeDAO.getByCoordinateSecurityIdAndRefId(tpVuln6.getId(),
+        "FG-R00235");
+    assertThat(vexFromDB).isNull();
+
+    ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
+    assertThat(sbomMetadata).isNotNull();
+    assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
+  }
+
+  private SecurityVulnerabilityData mockSecurityVulnerabilityDataForMergeLogic(String identifier, String index)
+      throws URISyntaxException
+  {
+    SecurityVulnerabilityData securityVulnerabilityData = new SecurityVulnerabilityData(identifier);
+    securityVulnerabilityData.description = "new description" + index;
+    securityVulnerabilityData.vulnerabilityLink = new URI("new.link" + index);
+    securityVulnerabilityData.mainSeverity =
+        new SecurityVulnerabilitySeverity("new source" + index, "new label" + index, 1.1f);
+    securityVulnerabilityData.advisories =
+        Collections.singletonList(new ReferenceLink("new referenceType" + index, "new.url" + index));
+    securityVulnerabilityData.customData = new SecurityVulnerabilityData.SecurityVulnerabilityCustomData();
+    securityVulnerabilityData.customData.cvssVector = "new vectorString" + index;
+    securityVulnerabilityData.customData.cweId = "new cwes" + index;
+    securityVulnerabilityData.recommendationMarkdown = "new recommendations" + index;
+    when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
+        eq(identifier), any(), eq(true))).thenReturn(securityVulnerabilityData);
+
+    return securityVulnerabilityData;
+  }
+
+  private void assertForVulnerabilityMergeLogic(
+      ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity,
+      SecurityVulnerabilityData securityVulnerabilityData, String expectedIdentificationSources)
+  {
+    assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo(expectedIdentificationSources);
+    assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isEqualTo(securityVulnerabilityData.advisories.get(0).url);
+    assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo(
+        securityVulnerabilityData.customData.cvssVector);
+    assertThat(thirdPartyCoordinateSecurity.getCwes()).isEqualTo(securityVulnerabilityData.customData.cweId);
+    assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo(securityVulnerabilityData.description);
+    assertThat(thirdPartyCoordinateSecurity.getLink()).isEqualTo(
+        securityVulnerabilityData.vulnerabilityLink.toString());
+    assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isEqualTo(
+        securityVulnerabilityData.recommendationMarkdown);
   }
 
   @Test
-  public void testMergeSonatypeDataWithSbomData_VerifyLicenseUpdatesAndInserts()
+  public void testMergeSonatypeDataWithSbomData_licenses_mergeLogicForCM()
       throws URISyntaxException, IOException
   {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
@@ -740,20 +872,20 @@ public class ThirdPartyDataServiceTest
         tempEntity.newThirdPartyFileCoordinate(file, "tp", "maven", "commons-httpclient", "3.1",
             "964cd74171f427720480", "pkg:maven/apache-httpclient/commons-httpclient@3.1?type=jar");
 
-    //purposely using a different license id so that the looks up should fallback to name
-    tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "Apache", "Apache-2.0", "link1");
-
-    tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "AGPL-2.0", "AGPL-2.0", "link2");
-
-    ThirdPartyCoordinateLicense thirdPartyCoordinateLicense1 =
-        tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "AGPL-3.0", "AGPL-3.0", "link3");
-    thirdPartyCoordinateLicenseDAO.update(thirdPartyCoordinateLicense1);
+    // License from the json file, only with SBOM identification sources, so it should get Sonatype added to it.
+    tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "Apache", "Apache-2.0", "link1", "SBOM");
+    // License only in DB with both SBOM and Sonatype identification sources, so Sonatype should be removed.
+    tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "AGPL-2.0", "AGPL-2.0", "link2",
+        "SBOM,Sonatype");
+    // License only in DB with both SBOM and Sonatype identification sources, so it should be deleted from the DB.
+    tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "AGPL-3.0", "AGPL-3.0", "link3", "Sonatype");
 
     tempEntity.createSbomMetadata("appId", "1", file);
 
     final File reportZip =
-        Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-license-data", tempDir).toURI())
-            .toFile();
+        Paths.get(ReportHelper
+            .zipReport("/ThirdPartyDataServiceTest/report-with-third-party-license-data",
+                tempDir).toURI()).toFile();
 
     handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
 
@@ -762,35 +894,32 @@ public class ThirdPartyDataServiceTest
 
     List<ThirdPartyCoordinateLicense> thirdPartyCoordinateLicenseList = thirdPartyCoordinateLicenseDAO
         .getByFileCoordinateId(thirdPartyFileCoordinate.getId());
-    assertThat(thirdPartyCoordinateLicenseList).hasSize(4);
+    assertThat(thirdPartyCoordinateLicenseList).hasSize(3);
 
     ThirdPartyCoordinateLicense thirdPartyCoordinateLicense = thirdPartyCoordinateLicenseDAO
+        .getByFileCoordinateIdAndLicenseId(thirdPartyFileCoordinate.getId(), "Apache");
+    assertThat(thirdPartyCoordinateLicense.getLicenseId()).isEqualTo("Apache");
+    assertThat(thirdPartyCoordinateLicense.getName()).isEqualTo("Apache-2.0");
+    assertThat(thirdPartyCoordinateLicense.getUrl()).isEqualTo("link1");
+    assertThat(thirdPartyCoordinateLicense.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+
+    thirdPartyCoordinateLicense = thirdPartyCoordinateLicenseDAO
         .getByFileCoordinateIdAndLicenseId(thirdPartyFileCoordinate.getId(), "AGPL-2.0");
     assertThat(thirdPartyCoordinateLicense.getLicenseId()).isEqualTo("AGPL-2.0");
     assertThat(thirdPartyCoordinateLicense.getName()).isEqualTo("AGPL-2.0");
     assertThat(thirdPartyCoordinateLicense.getUrl()).isEqualTo("link2");
+    assertThat(thirdPartyCoordinateLicense.getIdentificationSources()).isEqualTo("SBOM");
 
     thirdPartyCoordinateLicense = thirdPartyCoordinateLicenseDAO
         .getByFileCoordinateIdAndLicenseId(thirdPartyFileCoordinate.getId(), "AGPL-3.0");
-    assertThat(thirdPartyCoordinateLicense.getLicenseId()).isEqualTo("AGPL-3.0");
-    assertThat(thirdPartyCoordinateLicense.getName()).isEqualTo("AGPL-3.0");
-    assertThat(thirdPartyCoordinateLicense.getUrl()).isEqualTo("link3");
-    assertThat(thirdPartyCoordinateLicense.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+    assertThat(thirdPartyCoordinateLicense).isNull();
 
-    //Insert
     thirdPartyCoordinateLicense = thirdPartyCoordinateLicenseDAO
         .getByFileCoordinateIdAndLicenseId(thirdPartyFileCoordinate.getId(), "AGPL-1.0");
     assertThat(thirdPartyCoordinateLicense.getLicenseId()).isEqualTo("AGPL-1.0");
     assertThat(thirdPartyCoordinateLicense.getName()).isEqualTo("AGPL-1.0");
     assertThat(thirdPartyCoordinateLicense.getUrl()).isEqualTo("url.1");
     assertThat(thirdPartyCoordinateLicense.getIdentificationSources()).isEqualTo("Sonatype");
-
-    thirdPartyCoordinateLicense = thirdPartyCoordinateLicenseDAO
-        .getByFileCoordinateIdAndLicenseId(thirdPartyFileCoordinate.getId(), "Apache");
-    assertThat(thirdPartyCoordinateLicense.getLicenseId()).isEqualTo("Apache");
-    assertThat(thirdPartyCoordinateLicense.getName()).isEqualTo("Apache-2.0");
-    assertThat(thirdPartyCoordinateLicense.getUrl()).isEqualTo("link1");
-    assertThat(thirdPartyCoordinateLicense.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
 
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(sbomMetadata).isNotNull();
@@ -813,7 +942,7 @@ public class ThirdPartyDataServiceTest
 
     ThirdPartyCoordinateLicense license =
         tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "GPL-2.0", "GPL-2.0", null);
-    license.setIdentificationSources("SBOM");
+    license.setIdentificationSources("Sonatype");
 
     thirdPartyCoordinateLicenseDAO.update(license);
 
@@ -831,15 +960,12 @@ public class ThirdPartyDataServiceTest
     List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList = thirdPartyCoordinateSecurityDAO
         .getByFileCoordinateId(thirdPartyFileCoordinate.getId());
 
-    assertThat(thirdPartyCoordinateLicenseList).hasSize(2);
+    assertThat(thirdPartyCoordinateLicenseList).hasSize(1);
     assertThat(thirdPartyCoordinateSecurityList).hasSize(3);
 
     ThirdPartyCoordinateLicense thirdPartyCoordinateLicense = thirdPartyCoordinateLicenseDAO
         .getByFileCoordinateIdAndLicenseId(thirdPartyFileCoordinate.getId(), "GPL-2.0");
-    assertThat(thirdPartyCoordinateLicense.getLicenseId()).isEqualTo("GPL-2.0");
-    assertThat(thirdPartyCoordinateLicense.getName()).isEqualTo("GPL-2.0");
-    assertThat(thirdPartyCoordinateLicense.getUrl()).isNull();
-    assertThat(thirdPartyCoordinateLicense.getIdentificationSources()).isEqualTo("SBOM");
+    assertThat(thirdPartyCoordinateLicense).isNull();
 
     thirdPartyCoordinateLicense = thirdPartyCoordinateLicenseDAO
         .getByFileCoordinateIdAndLicenseId(thirdPartyFileCoordinate.getId(), "MIT");

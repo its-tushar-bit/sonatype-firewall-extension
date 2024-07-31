@@ -283,6 +283,7 @@ public class DevelopmentPrioritiesService
         .filter(policyThreatComponent -> policyThreatComponent.hash.equals(component.hash))
         .map(comp -> comp.activeViolations)
         .flatMap(Collection::stream)
+        .filter(violation -> !violation.legacyViolation)
         .collect(Collectors.toList());
   }
 

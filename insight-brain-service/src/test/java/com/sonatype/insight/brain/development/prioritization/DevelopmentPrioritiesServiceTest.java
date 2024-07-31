@@ -6,13 +6,13 @@
 
 package com.sonatype.insight.brain.development.prioritization;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.experimental.development.prioritization.PrioritizedComponent;
@@ -149,6 +149,58 @@ public class DevelopmentPrioritiesServiceTest
         Lists.newArrayList(
             toPrioritizedComponent(component2, 10, "policy-f", null, 1),
             toPrioritizedComponent(component1, 6, "policy-b", null, 2)));
+
+    // should be no additional priorities, everything is in top 3
+    assertPaginationResultCorrect(results.getAdditionalPriorities(), 0, 0, 0, 1);
+
+    verifyServiceCallsInvokedWithExpectedArguments();
+  }
+
+  @Test
+  public void testGetPrioritizedFindings_shouldExtractTheNonLegacyHighestThreatPolicyViolation() {
+    final ApiReportComponentDTOV2 component1 = createComponent("aaa", "component1");
+    final List<PolicyViolation> component1Violations = Lists.newArrayList(
+        createPolicyViolation(2, "a", "policy-a"),
+        makeLegacy(createPolicyViolation(6, "b", "policy-b")),
+        createPolicyViolation(5, "c", "policy-c"),
+        makeLegacy(createPolicyViolation(6, "d", "policy-d")),
+        makeLegacy(createPolicyViolation(6, "e", "policy-e")));
+    Collections.shuffle(component1Violations);
+    final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
+        component1,
+        component1Violations,
+        // add a violation that's not active, it should not affect our results
+        Lists.newArrayList(createPolicyViolation(9, "z", "policy-z"))
+    );
+
+    // has the highest threat level of all the components
+    final ApiReportComponentDTOV2 component2 = createComponent("bbb", "component2");
+    final List<PolicyViolation> component2Violations = Lists.newArrayList(
+        makeLegacy(createPolicyViolation(10, "f", "policy-f")),
+        createPolicyViolation(7, "g", "policy-g"));
+    Collections.shuffle(component2Violations);
+    final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(component2, component2Violations);
+
+    // no violations
+    final ApiReportComponentDTOV2 component3 = createComponent("ccc", "component3");
+
+    // === WHEN ===
+    when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
+        createApiReportRawDataDTOV2(Lists.newArrayList(component1, component2, component3)));
+    when(developmentPrioritiesReportService.getPolicyThreatsNoAuth(anyString(), anyString())).thenReturn(
+        createPolicyThreats(Lists.newArrayList(component1Threats, component2Threats)));
+    when(featuresService.getFeatures()).thenReturn(Sets.newHashSet(DEVELOPER_DASHBOARD));
+
+    // === Then ===
+    final DevelopmentPrioritizationResults results = developmentPrioritiesService
+        .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10);
+
+    assertThat(results.getTopPriorities()).containsExactlyInAnyOrder(
+        // "policy-f" of threat level 10 is a legacy violation, so not in the priority list.
+        toPrioritizedComponent(component2, 7, "policy-g", null, 1),
+        // "policy-b,d,e" of threat level 6 are a legacy violations, so not in the priority list.
+        toPrioritizedComponent(component1, 5, "policy-c", null, 2)
+    );
 
     // should be no additional priorities, everything is in top 3
     assertPaginationResultCorrect(results.getAdditionalPriorities(), 0, 0, 0, 1);
@@ -1235,6 +1287,11 @@ public class DevelopmentPrioritiesServiceTest
   )
   {
     return createPolicyViolation(threatLevel, policyViolationId, policyName, Lists.newArrayList());
+  }
+
+  private PolicyViolation makeLegacy(PolicyViolation policyViolation) {
+    policyViolation.legacyViolation = true;
+    return policyViolation;
   }
 
   private PolicyViolation createPolicyViolation(

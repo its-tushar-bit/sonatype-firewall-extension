@@ -5,19 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import javax.inject.Inject;
-
+import com.google.common.annotations.VisibleForTesting;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -55,10 +43,22 @@ import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools.ThreadPools;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.toList;
 
@@ -108,7 +108,13 @@ public class ApiComponentsWithWaiversReportingService
   }
 
   public ApiComponentWaiversDTO getComponentsWithWaivers(String format) {
+    return getComponentsWithWaivers(format, 1000);
+  }
+
+  @VisibleForTesting
+  ApiComponentWaiversDTO getComponentsWithWaivers(String format, int appBatchSize) {
     final AtomicInteger componentsWithWaiversCount = new AtomicInteger(0);
+    final AtomicInteger applicationComponentsWithWaiversCount = new AtomicInteger(0);
 
     Predicate<AbstractPolicyViolation> statePredicate =
         new PolicyViolationStateFilter(PolicyViolationState.WAIVED).asPolicyViolationPredicate();
@@ -121,29 +127,39 @@ public class ApiComponentsWithWaiversReportingService
     Predicate<AbstractPolicyViolation> overallPredicate =
         format == null ? statePredicate : statePredicate.and(formatPredicate);
 
-    List<Application> applications = applicationService.getApplications();
-    Collection<ApplicationView> appViews =
-        policyViolationLoader.getViolations(applications, null, false, overallPredicate);
-
-    List<RepositoryDTO> repositoryDTOs = repositoryService.getRepositories().repositories;
-
+    final List<List<Application>> applicationBatches =
+            ListUtils.partition(applicationService.getApplications(), appBatchSize);
     ApiComponentWaiversDTO componentWaiversDTO = new ApiComponentWaiversDTO();
-    componentWaiversDTO.applicationWaivers = buildApplicationWaiverDTOs(appViews, componentsWithWaiversCount);
+    componentWaiversDTO.applicationWaivers = new ArrayList<>();
+
+    for (List<Application> applications : applicationBatches) {
+      Collection<ApplicationView> appViews =
+          policyViolationLoader.getViolations(applications, null, false, overallPredicate);
+
+      componentWaiversDTO.applicationWaivers
+              .addAll(buildApplicationWaiverDTOs(appViews, componentsWithWaiversCount,
+                      applicationComponentsWithWaiversCount));
+    }
+
+    final List<RepositoryDTO> repositoryDTOs = repositoryService.getRepositories().repositories;
+
     componentWaiversDTO.repositoryWaivers =
-        buildRepositoryWaiverDTOs(repositoryDTOs, overallPredicate, componentsWithWaiversCount);
+            buildRepositoryWaiverDTOs(repositoryDTOs, overallPredicate, componentsWithWaiversCount);
 
     log.debug("getComponentsWithWaivers: Processed {} components with waived policy violations.",
         componentsWithWaiversCount);
+
+    AuditData.get().setData(APPLICATION_COMPONENTS_AUDIT_KEY, applicationComponentsWithWaiversCount);
 
     return componentWaiversDTO;
   }
 
   private List<ApiApplicationWaiverDTO> buildApplicationWaiverDTOs(
       Collection<ApplicationView> appViews,
-      final AtomicInteger componentsWithWaiversCount)
+      final AtomicInteger componentsWithWaiversCount,
+      final AtomicInteger applicationComponentsWithWaiversCount)
   {
     List<ApiApplicationWaiverDTO> applicationWaiverDTOs = new ArrayList<>();
-    final AtomicInteger applicationComponentsWithWaiversCount = new AtomicInteger(0);
 
     List<CompletableFuture<List<ApiApplicationWaiverDTO>>> dtoFutures = appViews.stream()
         .map(appView -> {
@@ -214,7 +230,6 @@ public class ApiComponentsWithWaiversReportingService
 
     dtoFutures.stream().map(CompletableFuture::join).forEach(applicationWaiverDTOs::addAll);
 
-    AuditData.get().setData(APPLICATION_COMPONENTS_AUDIT_KEY, applicationComponentsWithWaiversCount);
     componentsWithWaiversCount.addAndGet(applicationComponentsWithWaiversCount.get());
 
     return applicationWaiverDTOs;

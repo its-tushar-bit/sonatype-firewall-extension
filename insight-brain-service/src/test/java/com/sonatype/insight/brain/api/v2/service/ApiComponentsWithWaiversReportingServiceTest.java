@@ -5,9 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -504,6 +502,54 @@ public class ApiComponentsWithWaiversReportingServiceTest
         ScopeOwnerUtils.SCOPE_OWNER_TYPE_ROOT_ORGANIZATION, "Root Organization");
 
     assertApplicationWaiverDTO(applicationWaiverDTO, app3);
+  }
+
+  @Test
+  public void testGetComponentsWithWaivers_Applications_AppBatchSize() {
+    TriggerReference triggerReference =
+        new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "triggerReference refId");
+    ConstraintFact constraintFact1 =
+        new ConstraintFact("constraintFact1", "aa c", "OR");
+    constraintFact1.addConditionFact(new ConditionFact("MatchState", 0,
+        "Match State is exact", "Match State was exact", triggerReference));
+    List<ConstraintFact> constraintFacts1 = Collections.singletonList(constraintFact1);
+
+    for (int i = 0; i < 28; i++) {
+      Application app = tempEntity.newApplication("appBatch" + String.format("%02d", i), org1.getId());
+      PolicyEvaluation appPolicyEvaluation =
+              tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "test scan appBatch " + i + " id (build)",
+                      new Date(System.currentTimeMillis() - 1000));
+
+      PolicyWaiver policyWaiver1 =
+          tempEntity.newWaiver("h1", policy1.getId(), app.getId(), constraintFacts1,  "Some comments here");
+      PolicyWaiver policyWaiver2 = tempEntity.newWaiver("h2", policy1.getId(), app.getId(), "Some comments here2");
+
+      tempEntity.newWaivedPolicyViolation(appPolicyEvaluation, policy1,
+          ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), "h1", policyWaiver1);
+      tempEntity.newWaivedPolicyViolation(appPolicyEvaluation, policy1,
+          ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), "h2", policyWaiver2);
+    }
+
+    // add a policy violation that we should not pickup
+    tempEntity.newPolicyViolation(app2PolicyEvaluationOperate, policy1,
+        ComponentIdentifier.createMavenCoordinates("g5", "a5", "v5"), "h5");
+
+    ApiComponentWaiversDTO result = service.getComponentsWithWaivers(null, 10);
+    assertThat(result.applicationWaivers).hasSize(28);
+    assertThat(result.repositoryWaivers).hasSize(0);
+
+    result.applicationWaivers.sort(
+            Comparator.comparing(apiApplicationWaiverDTO -> apiApplicationWaiverDTO.application.publicId));
+
+    for (int i = 0; i < result.applicationWaivers.size(); i++) {
+      ApiApplicationWaiverDTO applicationWaiverDTO = result.applicationWaivers.get(i);
+      assertThat(applicationWaiverDTO.application.publicId).isEqualTo("appBatch" + String.format("%02d", i));
+      assertThat(applicationWaiverDTO.stages.get(0).stageId).isEqualTo(BuildStageType.ID);
+      assertThat(applicationWaiverDTO.stages.get(0).componentPolicyViolations).hasSize(2);
+      applicationWaiverDTO.stages.get(0).componentPolicyViolations.forEach(apiComponentPolicyViolationDTO -> {
+        assertThat(apiComponentPolicyViolationDTO.waivedPolicyViolations).hasSize(1);
+      });
+    }
   }
 
   @Test

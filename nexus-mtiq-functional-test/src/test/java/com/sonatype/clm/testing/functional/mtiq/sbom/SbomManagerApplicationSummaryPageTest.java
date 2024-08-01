@@ -27,8 +27,8 @@ import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
+import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -140,12 +140,12 @@ public class SbomManagerApplicationSummaryPageTest
   }
 
   @Test
-  @Ignore
   public void testSbomsTile_Pagination() {
     ThirdPartyFile scannedFile = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(scannedFile);
+    Date initialDate = DateUtils.addMonths(new Date(), -1);
     for (int i = 0; i < 50; i++) {
-      tempEntity.newThirdPartySbomMetadata(
+      ThirdPartySbomMetadata sbom = tempEntity.newThirdPartySbomMetadata(
           scannedFile.getId(),
           application.getId(),
           "test-version-" + i,
@@ -155,6 +155,8 @@ public class SbomManagerApplicationSummaryPageTest
           SbomFormat.XML.name(),
           "0.0"
       );
+      sbom.setCreatedAt(DateUtils.addHours(initialDate, i));
+      thirdPartySbomMetadataDAO.update(sbom);
     }
     setLicenseAndAdminLogin();
     refreshOrOpen(SbomManagerApplicationSummaryPage.url(application.getPublicId()));

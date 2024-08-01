@@ -169,7 +169,9 @@ public class MultiTenantTaskScheduler
   public Scheduler createScheduler(String schedulerName, QuartzJobStoreTX jobStoreTX) {
     try {
       Scheduler scheduler = super.createScheduler(schedulerName, jobStoreTX);
-      scheduler.getListenerManager().addJobListener(tenantContextJobListener);
+      if (scheduler != null) {
+        scheduler.getListenerManager().addJobListener(tenantContextJobListener);
+      }
       return scheduler;
     }
     catch (SchedulerException e) {

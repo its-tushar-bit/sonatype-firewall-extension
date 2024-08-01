@@ -109,6 +109,9 @@ public class TaskScheduler
   }
 
   protected Scheduler createScheduler(String schedulerName, QuartzJobStoreTX jobStoreTX) {
+    if (shutdownHandler.isTriggered()) {
+      return null;
+    }
     try {
       String schedulerInstanceId = UUID.randomUUID().toString().replace("-", "");
       // This reuses the schedulerName and schedulerInstanceId for the Scheduler, ThreadPool, and JobStore
@@ -147,7 +150,7 @@ public class TaskScheduler
   }
 
   public void startScheduler(Scheduler scheduler) throws SchedulerException {
-    if (scheduler != null && (!scheduler.isStarted() || scheduler.isInStandbyMode())) {
+    if (scheduler != null && !scheduler.isShutdown() && (!scheduler.isStarted() || scheduler.isInStandbyMode())) {
       scheduler.start();
       log.info("Started task scheduler {}", scheduler.getSchedulerName());
     }
@@ -387,7 +390,7 @@ public class TaskScheduler
     shutdownScheduler(scheduler);
   }
 
-  protected void shutdownScheduler(Scheduler scheduler) throws SchedulerException {
+  public void shutdownScheduler(Scheduler scheduler) throws SchedulerException {
     if (scheduler != null && !scheduler.isShutdown()) {
       scheduler.shutdown();
       log.info("Stopped task scheduler {}", scheduler.getSchedulerName());
@@ -440,8 +443,8 @@ public class TaskScheduler
     standbyScheduler(getScheduler());
   }
 
-  protected void standbyScheduler(Scheduler scheduler) throws SchedulerException {
-    if (scheduler != null && !scheduler.isInStandbyMode()) {
+  public void standbyScheduler(Scheduler scheduler) throws SchedulerException {
+    if (scheduler != null && !scheduler.isShutdown() && !scheduler.isInStandbyMode()) {
       scheduler.standby();
       log.info("Standby task scheduler {}", scheduler.getSchedulerName());
     }

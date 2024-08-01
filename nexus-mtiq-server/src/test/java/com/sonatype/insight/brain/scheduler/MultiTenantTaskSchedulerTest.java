@@ -122,6 +122,25 @@ public class MultiTenantTaskSchedulerTest
   }
 
   @Test
+  public void testCreateScheduler_DoesCreateSchedulerIfShutdownIsNotTriggered() {
+    assertThat(spyUnderTest.getScheduler()).isNull();
+
+    spyUnderTest.createScheduler(spyUnderTest.schedulerName, mockMultiTenantQuartzJobStoreTX);
+
+    assertThat(spyUnderTest.getScheduler()).isNotNull();
+  }
+
+  @Test
+  public void testCreateScheduler_DoesNotCreateSchedulerIfShutdownIsTriggered() {
+    assertThat(spyUnderTest.getScheduler()).isNull();
+    when(mockShutdownHandler.isTriggered()).thenReturn(true);
+
+    spyUnderTest.createScheduler(spyUnderTest.schedulerName, mockMultiTenantQuartzJobStoreTX);
+
+    assertThat(spyUnderTest.getScheduler()).isNull();
+  }
+
+  @Test
   public void shouldLoadPoolSizeFromConfig() {
     int poolSize = 300;
 

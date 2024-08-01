@@ -34,6 +34,7 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.quartz.CronTrigger;
 import org.quartz.DailyTimeIntervalTrigger;
 import org.quartz.Job;
@@ -54,6 +55,8 @@ import org.quartz.utils.DBConnectionManager;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -537,6 +540,82 @@ public class TaskSchedulerTest
     taskScheduler.start();
 
     assertThat(taskScheduler.getScheduler().isInStandbyMode()).isFalse();
+  }
+
+  @Test
+  public void testCreateScheduler_DoesCreateSchedulerIfShutdownIsNotTriggered() {
+    assertThat(taskScheduler.getScheduler()).isNull();
+
+    taskScheduler.createScheduler(taskScheduler.schedulerName, quartzJobStoreTX);
+
+    assertThat(taskScheduler.getScheduler()).isNotNull();
+  }
+
+  @Test
+  public void testCreateScheduler_DoesNotCreateSchedulerIfShutdownIsTriggered() {
+    assertThat(taskScheduler.getScheduler()).isNull();
+    when(mockShutdownHandler.isTriggered()).thenReturn(true);
+
+    taskScheduler.createScheduler(taskScheduler.schedulerName, quartzJobStoreTX);
+
+    assertThat(taskScheduler.getScheduler()).isNull();
+  }
+
+  @Test
+  public void testStartScheduler() throws Exception {
+    Scheduler mockScheduler = mock(Scheduler.class);
+    taskScheduler.startScheduler(mockScheduler);
+    verify(mockScheduler).start();
+
+    Mockito.reset(mockScheduler);
+    when(mockScheduler.isStarted()).thenReturn(true);
+    when(mockScheduler.isInStandbyMode()).thenReturn(true);
+    taskScheduler.startScheduler(mockScheduler);
+    verify(mockScheduler).start();
+
+    Mockito.reset(mockScheduler);
+    when(mockScheduler.isShutdown()).thenReturn(true);
+    taskScheduler.startScheduler(mockScheduler);
+    verify(mockScheduler, never()).start();
+
+    Mockito.reset(mockScheduler);
+    when(mockScheduler.isStarted()).thenReturn(true);
+    taskScheduler.startScheduler(mockScheduler);
+    verify(mockScheduler, never()).start();
+  }
+
+  @Test
+  public void testStandbyScheduler() throws Exception {
+    Scheduler mockScheduler = mock(Scheduler.class);
+    taskScheduler.standbyScheduler(mockScheduler);
+    verify(mockScheduler).standby();
+
+    Mockito.reset(mockScheduler);
+    when(mockScheduler.isStarted()).thenReturn(true);
+    taskScheduler.standbyScheduler(mockScheduler);
+    verify(mockScheduler).standby();
+
+    Mockito.reset(mockScheduler);
+    when(mockScheduler.isInStandbyMode()).thenReturn(true);
+    taskScheduler.standbyScheduler(mockScheduler);
+    verify(mockScheduler, never()).standby();
+
+    Mockito.reset(mockScheduler);
+    when(mockScheduler.isShutdown()).thenReturn(true);
+    taskScheduler.standbyScheduler(mockScheduler);
+    verify(mockScheduler, never()).standby();
+  }
+
+  @Test
+  public void testShutdownScheduler() throws Exception {
+    Scheduler mockScheduler = mock(Scheduler.class);
+    taskScheduler.shutdownScheduler(mockScheduler);
+    verify(mockScheduler).shutdown();
+
+    Mockito.reset(mockScheduler);
+    when(mockScheduler.isShutdown()).thenReturn(true);
+    taskScheduler.shutdownScheduler(mockScheduler);
+    verify(mockScheduler, never()).shutdown();
   }
 
   private JobDetail createJobDetail() {

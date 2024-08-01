@@ -79,8 +79,6 @@ public class IntegrationServiceAuthzTest
         .isEqualTo(app1.getId());
     assertThat(app1Dto.getOrganizationId())
         .isEqualTo(org1.getId());
-    assertThat(app1Dto.getTotalRiskScore())
-        .isEqualTo(8);
   }
 
   private void setUpAppsWithRisk() {

@@ -71,8 +71,8 @@ export default function AppIntegrationsAndRiskTable() {
             <NxTable.Cell isSortable onClick={() => handleSort(COLUMNS.NAME)} sortDir={getSortDir(COLUMNS.NAME)}>
               APPLICATIONS
             </NxTable.Cell>
-            <NxTable.Cell>CI/CD</NxTable.Cell>
-            <NxTable.Cell>SCM Feedback</NxTable.Cell>
+            <NxTable.Cell className="iq-developer-app-integrations-header">CI/CD</NxTable.Cell>
+            <NxTable.Cell className="iq-developer-app-integrations-header">SCM Feedback</NxTable.Cell>
             <NxTable.Cell isSortable onClick={() => handleSort(COLUMNS.COMMIT)} sortDir={getSortDir(COLUMNS.COMMIT)}>
               LAST COMMIT
             </NxTable.Cell>
@@ -82,13 +82,6 @@ export default function AppIntegrationsAndRiskTable() {
               sortDir={getSortDir(COLUMNS.EVALUATION)}
             >
               LAST EVALUATION
-            </NxTable.Cell>
-            <NxTable.Cell
-              isSortable
-              onClick={() => handleSort(COLUMNS.TOTAL_RISK)}
-              sortDir={getSortDir(COLUMNS.TOTAL_RISK)}
-            >
-              TOTAL RISK
             </NxTable.Cell>
             <NxTable.Cell>
               <span>Priorities</span>
@@ -112,7 +105,6 @@ export default function AppIntegrationsAndRiskTable() {
             <NxTable.Cell />
             <NxTable.Cell />
             <NxTable.Cell />
-            <NxTable.Cell />
           </NxTable.Row>
         </NxTable.Head>
         <NxTable.Body
@@ -129,7 +121,6 @@ export default function AppIntegrationsAndRiskTable() {
               automatedSourceControlFeedbackEnabled,
               lastCommitTimestamp,
               lastEvaluationTimestamp,
-              totalRiskScore,
               hasPrioritiesReport,
               lastScanId,
             }) => {
@@ -137,13 +128,12 @@ export default function AppIntegrationsAndRiskTable() {
                 return { applicationPublicId, hasPrioritiesReport, lastScanId };
               }
 
-              const totalRiskScoreValue = totalRiskScore === -1 ? 'N/A' : totalRiskScore;
               const appManagementHref = uiRouterState.href('management.view.application', {
                 applicationPublicId,
               });
 
               return (
-                <NxTable.Row key={applicationName.concat(totalRiskScore)}>
+                <NxTable.Row key={applicationName}>
                   <NxTable.Cell className="iq-integrations-applications-table__name-cell">
                     <NxTextLink
                       newTab
@@ -202,18 +192,6 @@ export default function AppIntegrationsAndRiskTable() {
                   </NxTable.Cell>
                   <NxTable.Cell>{formatTimestampToDate(lastCommitTimestamp)}</NxTable.Cell>
                   <NxTable.Cell>{formatTimestampToDate(lastEvaluationTimestamp)}</NxTable.Cell>
-                  <NxTable.Cell>
-                    <NxTooltip
-                      title={
-                        totalRiskScore === -1
-                          ? 'Evaluate this application at the build stage to see its risk score'
-                          : ''
-                      }
-                      placement="top-middle"
-                    >
-                      <span>{totalRiskScoreValue}</span>
-                    </NxTooltip>
-                  </NxTable.Cell>
                   <NxTable.Cell>
                     <PrioritiesReportCell {...getPrioritiesReportCellProps()} />
                   </NxTable.Cell>

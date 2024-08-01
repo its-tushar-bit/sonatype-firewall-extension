@@ -125,7 +125,7 @@ public class ApplicationRiskService
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  List<Application> getApplicationsWithReadPermission() {
+  public List<Application> getApplicationsWithReadPermission() {
     return applicationDAO.getAll();
   }
 

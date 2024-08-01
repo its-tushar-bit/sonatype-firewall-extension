@@ -111,7 +111,7 @@ function initialState() {
     pageCount: 0,
     pageSize: PAGE_SIZE,
     currentPage: 0,
-    sort: `-${COLUMNS.TOTAL_RISK}`,
+    sort: `-${COLUMNS.EVALUATION}`,
     nameFilter: '',
     scmFilter: null,
     ciCdFilter: null,

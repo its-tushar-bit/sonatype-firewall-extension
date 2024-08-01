@@ -610,91 +610,6 @@ public class IntegrationServiceTest
   }
 
   @Test
-  public void testGetIntegrationSummaries_OrderByTotalRisk_h2() {
-    setUpAppsWithBuildStageRisk();
-
-    // App 1 = 8 total risk
-    // App 2 = 3 total risk
-    // App 3 = 0 total risk
-    // App 4 = 0 total risk
-
-    // ASC
-    final ApiPageResult<IntegrationStatusDTO> ascResult =
-        integrationService.getIntegrationStatuses(1, 100, "TOTAL_RISK", null, null, null);
-    final List<IntegrationStatusDTO> ascAppSummaries = ascResult.getResults();
-    assertThat(ascAppSummaries)
-        .hasSize(4);
-    assertThat(ascAppSummaries.get(0).getApplicationId())
-        .isEqualTo(app3.getId());
-    assertThat(ascAppSummaries.get(1).getApplicationId())
-        .isEqualTo(app4.getId());
-    assertThat(ascAppSummaries.get(2).getApplicationId())
-        .isEqualTo(app2.getId());
-    assertThat(ascAppSummaries.get(3).getApplicationId())
-        .isEqualTo(app1.getId());
-
-    // DESC
-    final ApiPageResult<IntegrationStatusDTO> descResult =
-        integrationService.getIntegrationStatuses(1, 100, "-TOTAL_RISK", null, null, null);
-    final List<IntegrationStatusDTO> descAppSummaries = descResult.getResults();
-    assertThat(descAppSummaries)
-        .hasSize(4);
-
-    assertThat(descAppSummaries.get(0).getApplicationId())
-        .isEqualTo(app1.getId());
-    assertThat(descAppSummaries.get(1).getApplicationId())
-        .isEqualTo(app2.getId());
-    assertThat(descAppSummaries.get(2).getApplicationId())
-        .isEqualTo(app3.getId());
-    assertThat(descAppSummaries.get(3).getApplicationId())
-        .isEqualTo(app4.getId());
-
-  }
-
-  @Test
-  @PostgresTest
-  public void testGetIntegrationSummaries_OrderByTotalRisk_postgres() {
-    setUpAppsWithBuildStageRisk();
-
-    // App 1 = 8 total risk
-    // App 2 = 3 total risk
-    // App 3 = 0 total risk
-    // App 4 = 0 total risk
-
-    // ASC
-    final ApiPageResult<IntegrationStatusDTO> ascResult =
-        integrationService.getIntegrationStatuses(1, 100, "TOTAL_RISK", null, null, null);
-    final List<IntegrationStatusDTO> ascAppSummaries = ascResult.getResults();
-    assertThat(ascAppSummaries)
-        .hasSize(4);
-    assertThat(ascAppSummaries.get(0).getApplicationId())
-        .isEqualTo(app3.getId());
-    assertThat(ascAppSummaries.get(1).getApplicationId())
-        .isEqualTo(app4.getId());
-    assertThat(ascAppSummaries.get(2).getApplicationId())
-        .isEqualTo(app2.getId());
-    assertThat(ascAppSummaries.get(3).getApplicationId())
-        .isEqualTo(app1.getId());
-
-    // DESC
-    final ApiPageResult<IntegrationStatusDTO> descResult =
-        integrationService.getIntegrationStatuses(1, 100, "-TOTAL_RISK", null, null, null);
-    final List<IntegrationStatusDTO> descAppSummaries = descResult.getResults();
-    assertThat(descAppSummaries)
-        .hasSize(4);
-
-    assertThat(descAppSummaries.get(0).getApplicationId())
-        .isEqualTo(app1.getId());
-    assertThat(descAppSummaries.get(1).getApplicationId())
-        .isEqualTo(app2.getId());
-    assertThat(descAppSummaries.get(2).getApplicationId())
-        .isEqualTo(app3.getId());
-    assertThat(descAppSummaries.get(3).getApplicationId())
-        .isEqualTo(app4.getId());
-
-  }
-
-  @Test
   public void testGetIntegrationSummaries_FilterOnName_h2() {
     final Organization org = tempEntity.newOrganization();
     app1 = tempEntity.newApplication("SeaL", "app1", org.getId());
@@ -1439,48 +1354,36 @@ public class IntegrationServiceTest
         .isEqualTo(app1.getId());
     assertThat(app1Dto.getOrganizationId())
         .isEqualTo(org1.getId());
-    assertThat(app1Dto.getTotalRiskScore())
-        .isEqualTo(8);
 
     final IntegrationStatusDTO app2Dto = appSummaries.get(1);
     assertThat(app2Dto.getApplicationId())
         .isEqualTo(app2.getId());
     assertThat(app2Dto.getOrganizationId())
         .isEqualTo(org1.getId());
-    assertThat(app2Dto.getTotalRiskScore())
-        .isEqualTo(3);
 
     final IntegrationStatusDTO app3Dto = appSummaries.get(2);
     assertThat(app3Dto.getApplicationId())
         .isEqualTo(app3.getId());
     assertThat(app3Dto.getOrganizationId())
         .isEqualTo(org2.getId());
-    assertThat(app3Dto.getTotalRiskScore())
-        .isEqualTo(-1);
 
     final IntegrationStatusDTO app4Dto = appSummaries.get(3);
     assertThat(app4Dto.getApplicationId())
         .isEqualTo(app4.getId());
     assertThat(app4Dto.getOrganizationId())
         .isEqualTo(org3.getId());
-    assertThat(app4Dto.getTotalRiskScore())
-        .isEqualTo(-1);
 
     final IntegrationStatusDTO app5Dto = appSummaries.get(4);
     assertThat(app5Dto.getApplicationId())
         .isEqualTo(app5.getId());
     assertThat(app5Dto.getOrganizationId())
         .isEqualTo(org3.getId());
-    assertThat(app5Dto.getTotalRiskScore())
-        .isEqualTo(-1);
 
     final IntegrationStatusDTO app6Dto = appSummaries.get(5);
     assertThat(app6Dto.getApplicationId())
         .isEqualTo(app6.getId());
     assertThat(app6Dto.getOrganizationId())
         .isEqualTo(org3.getId());
-    assertThat(app6Dto.getTotalRiskScore())
-        .isZero();
   }
 
   @Test
@@ -1521,48 +1424,36 @@ public class IntegrationServiceTest
         .isEqualTo(app1.getId());
     assertThat(app1Dto.getOrganizationId())
         .isEqualTo(org1.getId());
-    assertThat(app1Dto.getTotalRiskScore())
-        .isEqualTo(8);
 
     final IntegrationStatusDTO app2Dto = appSummaries.get(1);
     assertThat(app2Dto.getApplicationId())
         .isEqualTo(app2.getId());
     assertThat(app2Dto.getOrganizationId())
         .isEqualTo(org1.getId());
-    assertThat(app2Dto.getTotalRiskScore())
-        .isEqualTo(3);
 
     final IntegrationStatusDTO app3Dto = appSummaries.get(2);
     assertThat(app3Dto.getApplicationId())
         .isEqualTo(app3.getId());
     assertThat(app3Dto.getOrganizationId())
         .isEqualTo(org2.getId());
-    assertThat(app3Dto.getTotalRiskScore())
-        .isEqualTo(-1);
 
     final IntegrationStatusDTO app4Dto = appSummaries.get(3);
     assertThat(app4Dto.getApplicationId())
         .isEqualTo(app4.getId());
     assertThat(app4Dto.getOrganizationId())
         .isEqualTo(org3.getId());
-    assertThat(app4Dto.getTotalRiskScore())
-        .isEqualTo(-1);
 
     final IntegrationStatusDTO app5Dto = appSummaries.get(4);
     assertThat(app5Dto.getApplicationId())
         .isEqualTo(app5.getId());
     assertThat(app5Dto.getOrganizationId())
         .isEqualTo(org3.getId());
-    assertThat(app5Dto.getTotalRiskScore())
-        .isEqualTo(-1);
 
     final IntegrationStatusDTO app6Dto = appSummaries.get(5);
     assertThat(app6Dto.getApplicationId())
         .isEqualTo(app6.getId());
     assertThat(app6Dto.getOrganizationId())
         .isEqualTo(org3.getId());
-    assertThat(app6Dto.getTotalRiskScore())
-        .isZero();
   }
 
   @Test

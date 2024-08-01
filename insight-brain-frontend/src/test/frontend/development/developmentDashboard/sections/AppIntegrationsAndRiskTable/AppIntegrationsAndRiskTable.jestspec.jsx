@@ -104,7 +104,6 @@ describe('AppIntegrationsAndRiskTable', () => {
           applicationPublicId: `App1`,
           lastCommitTimestamp: timestamp,
           lastEvaluationTimestamp: timestamp,
-          totalRiskScore: 404,
           ciIntegrationEnabled: true,
           automatedSourceControlFeedbackEnabled: true,
           hasPrioritiesReport: true,
@@ -133,51 +132,6 @@ describe('AppIntegrationsAndRiskTable', () => {
       expect(within(cells[2]).getByRole('img', { hidden: true })).toBeInTheDocument();
       expect(cells[3]).toHaveTextContent('January 1, 2023');
       expect(cells[4]).toHaveTextContent('January 1, 2023');
-      expect(cells[5]).toHaveTextContent('404');
-    });
-
-    it('renders total risk tooltip correctly', async () => {
-      const date = new Date('January 1, 2023');
-      const timestamp = date.getTime();
-
-      const results = [
-        {
-          applicationName: `App1`,
-          applicationId: `AppId1`,
-          applicationPublicId: `App1`,
-          lastCommitTimestamp: timestamp,
-          lastEvaluationTimestamp: timestamp,
-          totalRiskScore: -1,
-          ciIntegrationEnabled: true,
-          automatedSourceControlFeedbackEnabled: true,
-          hasPrioritiesReport: true,
-          lastScanId: 'lastScanId',
-        },
-      ];
-      axiosMock.onGet(getAppIntegrationsAndRisk()).reply(200, {
-        results: results,
-        total: 1,
-        page: 1,
-        pageSize: 10,
-        pageCount: 1,
-      });
-
-      render(<AppIntegrationsAndRiskTable />);
-
-      expect(await screen.findByRole('table')).toBeInTheDocument();
-
-      const rows = await screen.findAllByRole('row');
-      expect(rows.length).toBe(3);
-
-      const cells = within(rows[2]).getAllByRole('cell');
-      expect(cells[5]).toHaveTextContent('N/A');
-
-      fireEvent.mouseOver(screen.getByText('N/A'));
-      const tooltip = await screen.findByRole('tooltip');
-
-      expect(
-        within(tooltip).getByText('Evaluate this application at the build stage to see its risk score')
-      ).toBeInTheDocument();
     });
   });
 
@@ -201,7 +155,7 @@ describe('AppIntegrationsAndRiskTable', () => {
         optionalFilterApplicationNamesBy: '',
         optionalFilterCiCdIsIntegrated: null,
         optionalFilterScmIsIntegrated: null,
-        optionalOrderBy: '-TOTAL_RISK',
+        optionalOrderBy: '-EVALUATION',
         page: 1,
         pageSize: 10,
       });
@@ -217,7 +171,7 @@ describe('AppIntegrationsAndRiskTable', () => {
         optionalFilterApplicationNamesBy: '',
         optionalFilterCiCdIsIntegrated: null,
         optionalFilterScmIsIntegrated: null,
-        optionalOrderBy: '-TOTAL_RISK',
+        optionalOrderBy: '-EVALUATION',
         page: 2,
         pageSize: 10,
       });
@@ -231,7 +185,7 @@ describe('AppIntegrationsAndRiskTable', () => {
         optionalFilterApplicationNamesBy: '',
         optionalFilterCiCdIsIntegrated: null,
         optionalFilterScmIsIntegrated: null,
-        optionalOrderBy: '-TOTAL_RISK',
+        optionalOrderBy: '-EVALUATION',
         page: 3,
         pageSize: 10,
       });
@@ -254,7 +208,6 @@ describe('AppIntegrationsAndRiskTable', () => {
 
       expect(rows.length).toBe(12);
       expect(within(rows[2]).getAllByRole('cell')[0]).toHaveTextContent('App0');
-      expect(within(rows[2]).getAllByRole('cell')[5]).toHaveTextContent('0');
 
       axiosMock.reset();
 
@@ -273,84 +226,11 @@ describe('AppIntegrationsAndRiskTable', () => {
 
       expect(rows.length).toBe(12);
       expect(within(rows[2]).getAllByRole('cell')[0]).toHaveTextContent('App20');
-      expect(within(rows[2]).getAllByRole('cell')[5]).toHaveTextContent('20');
+      expect(within(rows[2]).getAllByRole('cell')[4]).toHaveTextContent('20');
     });
   });
 
   describe('sorting', () => {
-    it('TOTAL RISK is sortable and sorted descending by default', async () => {
-      const totalDataRows = 10;
-      axiosMock.onGet(getAppIntegrationsAndRisk()).reply(200, {
-        results: createAppArrayWithLength(totalDataRows).reverse(),
-        numResults: 10,
-        total: 10,
-        page: 1,
-        pageSize: 10,
-        pageCount: 1,
-      });
-
-      render(<AppIntegrationsAndRiskTable />);
-
-      expect(await screen.findByRole('table')).toBeInTheDocument();
-
-      expect(axiosMock.history.get.length).toBe(1);
-      expect(axiosMock.history.get[0].params).toEqual({
-        optionalFilterApplicationNamesBy: '',
-        optionalFilterCiCdIsIntegrated: null,
-        optionalFilterScmIsIntegrated: null,
-        optionalOrderBy: '-TOTAL_RISK',
-        page: 1,
-        pageSize: 10,
-      });
-
-      let rows = await screen.findAllByRole('row');
-      expect(rows.length).toBe(totalDataRows + 2); //10 data rows, 1 filter row and 1 header
-
-      let totalRiskHeader = await screen.findByRole('columnheader', { name: /total risk/i });
-      expect(totalRiskHeader).toBeInTheDocument();
-      expect(totalRiskHeader).toHaveAttribute('aria-sort', 'descending');
-
-      for (let i = 0; i < totalDataRows; i++) {
-        expect(within(rows[i + 2]).getAllByRole('cell')[5]).toHaveTextContent((totalDataRows - 1 - i).toString());
-      }
-
-      axiosMock.reset();
-
-      axiosMock.onGet(getAppIntegrationsAndRisk()).reply(200, {
-        results: createAppArrayWithLength(totalDataRows),
-        numResults: 10,
-        total: 10,
-        page: 1,
-        pageSize: 10,
-        pageCount: 1,
-      });
-
-      fireEvent.click(totalRiskHeader);
-
-      expect(await screen.findByRole('table')).toBeInTheDocument();
-
-      expect(axiosMock.history.get[0].params).toEqual({
-        optionalFilterApplicationNamesBy: '',
-        optionalFilterCiCdIsIntegrated: null,
-        optionalFilterScmIsIntegrated: null,
-        optionalOrderBy: 'TOTAL_RISK',
-        page: 1,
-        pageSize: 10,
-      });
-
-      rows = await screen.findAllByRole('row');
-
-      expect(rows.length).toBe(totalDataRows + 2); //10 data rows, 1 filter row and 1 header
-
-      totalRiskHeader = await screen.findByRole('columnheader', { name: /total risk/i });
-      expect(totalRiskHeader).toBeInTheDocument();
-      expect(totalRiskHeader).toHaveAttribute('aria-sort', 'ascending');
-
-      for (let i = 0; i < totalDataRows; i++) {
-        expect(within(rows[i + 2]).getAllByRole('cell')[5]).toHaveTextContent(i.toString());
-      }
-    });
-
     it('APPLICATIONS is sortable and unsorted by default', async () => {
       const totalDataRows = 10;
       axiosMock.onGet(getAppIntegrationsAndRisk()).reply(200, {
@@ -491,7 +371,7 @@ describe('AppIntegrationsAndRiskTable', () => {
       expect(within(rows[11]).getAllByRole('cell')[3]).toHaveTextContent('January 10, 2023');
     });
 
-    it('LAST EVALUATION is sortable and unsorted by default', async () => {
+    it('LAST EVALUATION is sortable and sorted by default', async () => {
       const totalDataRows = 10;
       axiosMock.onGet(getAppIntegrationsAndRisk()).reply(200, {
         results: createAppArrayWithLength(totalDataRows).reverse(),
@@ -511,7 +391,7 @@ describe('AppIntegrationsAndRiskTable', () => {
 
       let lastEvaluationHeader = await screen.findByRole('columnheader', { name: /last evaluation/i });
       expect(lastEvaluationHeader).toBeInTheDocument();
-      expect(lastEvaluationHeader).toHaveAttribute('aria-sort', 'none');
+      expect(lastEvaluationHeader).toHaveAttribute('aria-sort', 'descending');
 
       expect(within(rows[2]).getAllByRole('cell')[4]).toHaveTextContent('January 10, 2023');
       expect(within(rows[3]).getAllByRole('cell')[4]).toHaveTextContent('January 9, 2023');
@@ -602,7 +482,7 @@ describe('AppIntegrationsAndRiskTable', () => {
         optionalFilterApplicationNamesBy: 'App5',
         optionalFilterCiCdIsIntegrated: null,
         optionalFilterScmIsIntegrated: null,
-        optionalOrderBy: '-TOTAL_RISK',
+        optionalOrderBy: '-EVALUATION',
         page: 1,
         pageSize: 10,
       });
@@ -667,7 +547,7 @@ describe('AppIntegrationsAndRiskTable', () => {
 
       let rows = await screen.findAllByRole('row');
       for (let i = 0; i < totalDataRows; i++) {
-        const prioritiesReportCell = within(rows[i + 2]).queryAllByRole('cell')[6];
+        const prioritiesReportCell = within(rows[i + 2]).queryAllByRole('cell')[5];
         expect(prioritiesReportCell).toBeInTheDocument();
         expect(prioritiesReportCell).toHaveTextContent('N/A');
 
@@ -698,7 +578,7 @@ describe('AppIntegrationsAndRiskTable', () => {
 
       let rows = await screen.findAllByRole('row');
       for (let i = 0; i < totalDataRows; i++) {
-        const prioritiesReportCell = within(rows[i + 2]).queryAllByRole('cell')[6];
+        const prioritiesReportCell = within(rows[i + 2]).queryAllByRole('cell')[5];
         expect(prioritiesReportCell).toBeInTheDocument();
 
         const prioritiesReportLink = within(prioritiesReportCell).getByRole('link', { name: /view/i });
@@ -731,7 +611,6 @@ describe('AppIntegrationsAndRiskTable', () => {
         applicationPublicId,
         lastCommitTimestamp: timestamp,
         lastEvaluationTimestamp: timestamp,
-        totalRiskScore: 404,
         ciIntegrationEnabled: true,
         automatedSourceControlFeedbackEnabled: true,
         hasPrioritiesReport: true,
@@ -786,7 +665,6 @@ describe('AppIntegrationsAndRiskTable', () => {
         applicationPublicId: `App${i}`,
         lastCommitTimestamp: timestamp + i * oneDayMilliseconds,
         lastEvaluationTimestamp: timestamp + i * oneDayMilliseconds,
-        totalRiskScore: i,
         ciIntegrationEnabled: cicdEnabled,
         automatedSourceControlFeedbackEnabled: scmEnabled,
         organizationId: `OrgId${i}`,
@@ -814,19 +692,15 @@ describe('AppIntegrationsAndRiskTable', () => {
     const lastEvaluationHeader = screen.getByRole('columnheader', {
       name: /last evaluation/i,
     });
-    const totalRiskHeader = screen.getByRole('columnheader', {
-      name: /total risk/i,
-    });
     const prioritiesHeader = screen.getByRole('columnheader', {
       name: /priorities/i,
     });
-    expect(allHeaders.length).toBe(7);
+    expect(allHeaders.length).toBe(6);
     expect(applicationsHeader).toBeInTheDocument();
     expect(cicdHeader).toBeInTheDocument();
     expect(scmFeedbackHeader).toBeInTheDocument();
     expect(lastCommitHeader).toBeInTheDocument();
     expect(lastEvaluationHeader).toBeInTheDocument();
-    expect(totalRiskHeader).toBeInTheDocument();
     expect(prioritiesHeader).toBeInTheDocument();
   }
 });

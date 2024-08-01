@@ -140,23 +140,21 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     scrollIntoView(appIntegrationsAndRiskTable());
     appIntegrationsAndRiskTableDataRows().shouldHave(size(TOTAL_APPS_PER_PAGE));
 
-    applicationName(0).shouldHave(text("appName10"));
-    appIntegrationsCicdConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
-    appIntegrationsScmConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
-    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 3, 2023"));
-    lastEvaluationDate(0).shouldBe(visible).shouldHave(text(oldEvaluationDateString));
-    totalRisk(0).shouldHave(text("10"));
+    applicationName(9).shouldHave(text("appName9"));
+    appIntegrationsCicdConfigureButton(9).shouldHave(visible).shouldHave(text("Configure"));
+    appIntegrationsScmConfigureButton(9).shouldHave(visible).shouldHave(text("Configure"));
+    lastCommitDate(9).shouldBe(visible).shouldHave(text("February 2, 2023"));
+    lastEvaluationDate(9).shouldBe(visible).shouldHave(text(oldEvaluationDateString));
     prioritiesReport(9).shouldNotHave(text("N/A"));
     prioritiesReportViewLink(9).shouldBe(visible).shouldHave(text("View"));
 
-    applicationName(9).shouldHave(text("appName1"));
-    cicdEnabledIcon(9).shouldBe(visible).shouldHave(cssClass("iq-integrations-and-risk-enabled"));
+    applicationName(0).shouldHave(text("appName19"));
+    appIntegrationsCicdConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
     appIntegrationsScmConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
-    lastCommitDate(9).shouldBe(visible).shouldHave(text("February 12, 2023"));
-    lastEvaluationDate(9).shouldBe(visible).shouldHave(text(lastEvaluationDateString));
-    totalRisk(9).shouldHave(text("1"));
-    prioritiesReport(9).shouldNotHave(text("N/A"));
-    prioritiesReportViewLink(9).shouldBe(visible).shouldHave(text("View"));
+    lastCommitDate(0).shouldBe(visible).shouldHave(text("January 24, 2023"));
+    lastEvaluationDate(0).shouldBe(visible).shouldHave(text(lastEvaluationDateString));
+    prioritiesReport(0).shouldNotHave(text("N/A"));
+    prioritiesReportViewLink(0).shouldBe(visible).shouldHave(text("View"));
 
     Selenide.sleep(1000);
     //eyesWatcher.eyesCheck(); https://sonatype.atlassian.net/browse/CLM-30559
@@ -177,12 +175,11 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     appIntegrationPageButton(2).click();
     appIntegrationsAndRiskTableDataRows().shouldHave(size(10));
 
-    applicationName(0).shouldHave(text("appName11"));
+    applicationName(0).shouldHave(text("appName9"));
     appIntegrationsCicdConfigureButton(0).shouldNotBe(visible);
     appIntegrationsScmConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
     lastCommitDate(0).shouldBe(visible).shouldHave(text("February 2, 2023"));
     lastEvaluationDate(0).shouldBe(visible).shouldHave(text(lastEvaluationDateString));
-    totalRisk(0).shouldHave(text("0"));
     prioritiesReport(0).shouldNotHave(text("N/A"));
     prioritiesReportViewLink(0).shouldBe(visible).shouldHave(text("View"));
 
@@ -191,7 +188,6 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     appIntegrationsScmConfigureButton(9).shouldHave(visible).shouldHave(text("Configure"));
     lastCommitDate(9).shouldBe(visible).shouldHave(text("N/A"));
     lastEvaluationDate(9).shouldBe(visible).shouldHave(text("N/A"));
-    totalRisk(9).shouldHave(text("N/A"));
     prioritiesReport(9).shouldHave(text("N/A"));
   }
 
@@ -315,25 +311,17 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     refreshOrOpen(IntegrationsPage.urlOverview());
     scrollIntoView(appIntegrationsAndRiskTable());
 
-    // Sorting by total risk
-    totalRiskColumnHeader().click();
-    totalRisk(0).shouldHave(text("0"));
-
     // Sorting by app name
     applicationColumnHeader().click();
-    applicationName(0).shouldHave(text("appName9"));
-
-    totalRiskColumnHeader().click();
+    applicationName(0).shouldHave(text("appName0"));
 
     // Sorting by last commit
     lastCommitColumnHeader().click();
     lastCommitDate(0).shouldBe(visible).shouldHave(text("February 12, 2023"));
 
-    totalRiskColumnHeader().click();
-
     // Sorting by last evaluation
     lastEvaluationColumnHeader().click();
-    lastEvaluationDate(0).shouldBe(visible).shouldHave(text("March 15, 2023"));
+    lastEvaluationDate(0).shouldBe(visible).shouldHave(text("February 24, 2023"));
 
     // Searching for application
     applicationFilterInput().sendKeys("appName5");
@@ -637,12 +625,8 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     return appIntegrationsAndRiskTableDataRows().get(rowNum).$(".nx-cell:nth-child(5)");
   }
 
-  private SelenideElement totalRisk(int rowNum) {
-    return appIntegrationsAndRiskTableDataRows().get(rowNum).$(".nx-cell:nth-child(6)");
-  }
-
   private SelenideElement prioritiesReport(int rowNum) {
-    return appIntegrationsAndRiskTableDataRows().get(rowNum).$(".nx-cell:nth-child(7)");
+    return appIntegrationsAndRiskTableDataRows().get(rowNum).$(".nx-cell:nth-child(6)");
   }
 
   private SelenideElement prioritiesReportViewLink(int rowNum) {
@@ -663,10 +647,6 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
 
   private SelenideElement lastEvaluationColumnHeader() {
     return appIntegrationsAndRiskTable().$(".nx-cell--header:nth-child(5)");
-  }
-
-  private SelenideElement totalRiskColumnHeader() {
-    return appIntegrationsAndRiskTable().$(".nx-cell--header:nth-child(6)");
   }
 
   private SelenideElement licenseFeatureMissingAlert() {

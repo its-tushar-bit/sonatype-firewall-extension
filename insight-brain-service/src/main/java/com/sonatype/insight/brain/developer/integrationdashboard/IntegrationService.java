@@ -20,16 +20,17 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
-import com.sonatype.insight.brain.dashboard.StageRiskScoreDTO;
-import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
-import com.sonatype.insight.brain.developer.integrationdashboard.api.IntegrationStatusDTO;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskScoreDTO;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
-import com.sonatype.insight.brain.developer.integrationdashboard.api.IntegrationStatusFilter;
+import com.sonatype.insight.brain.dashboard.StageRiskScoreDTO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.IntegrationStatusDTO;
+import com.sonatype.insight.brain.developer.integrationdashboard.api.IntegrationStatusFilter;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -115,41 +116,41 @@ public class IntegrationService
 
     final boolean paginateEarly = optionalFilterAppsByScmIntegration == null;
     final int skipCount = (filter.getPage() - 1) * filter.getPageSize();
-    final List<ApplicationRiskScoreDTO> apps = applicationRiskService.getRiskForApplicationsWithReadPermissions();
-    final List<ApplicationRiskScoreDTO> filteredApps =
-        StringUtils.isNotEmpty(filter.getOptionalFilterApplicationNamesBy()) ? apps.stream()
-            .filter(
-                riskScoreDTO -> matchesFilter(riskScoreDTO.applicationName,
-                    filter.getOptionalFilterApplicationNamesBy()))
-            .collect(Collectors.toList()) : apps;
 
-    final List<IntegrationStatusDTO> minimalSummaries = filteredApps.stream()
-        // Set application and total risk (build stage)
-        .map(riskScoreDTO -> new IntegrationStatusDTO().setApplicationName(riskScoreDTO.applicationName)
-            .setApplicationId(riskScoreDTO.id).setApplicationPublicId(riskScoreDTO.applicationId)
-            .setTotalRiskScore(getBuildStageTotalRisk(riskScoreDTO))
-            .setOrganizationId(riskScoreDTO.organizationId))
+    final List<Application> applications = applicationRiskService.getApplicationsWithReadPermission();
+
+    final List<Application> filteredApps =
+        StringUtils.isNotEmpty(filter.getOptionalFilterApplicationNamesBy()) ? applications.stream()
+            .filter(
+                application -> matchesFilter(application.getName(),
+                    filter.getOptionalFilterApplicationNamesBy()))
+            .toList() : applications;
+
+    final List<IntegrationStatusDTO> minimalAppSummaries = filteredApps.stream()
+        // Set application
+        .map(application -> new IntegrationStatusDTO()
+            .setApplicationName(application.getName())
+            .setApplicationId(application.getId())
+            .setApplicationPublicId(application.getPublicId())
+            .setOrganizationId(application.getOrganizationId()))
+        // Set last policy evaluation time (build stage), priorities report status and scan ID
+        .map(statusDTO -> {
+          final PolicyEvaluation latestBuildStageEvaluation =
+              policyEvaluationDAO.getLastByApplicationIdAndStageIdNoMonitoringNoReeval(statusDTO.getApplicationId(),
+                  Stage.ID_BUILD);
+          if (Objects.isNull(latestBuildStageEvaluation)) {
+            return statusDTO.setHasPrioritiesReport(false);
+          }
+          return statusDTO.setLastEvaluationTimestamp(latestBuildStageEvaluation.getTime().getTime())
+              .setHasPrioritiesReport(true)
+              .setLastScanId(latestBuildStageEvaluation.getScanId());
+        })
         // Set last commit time
         .map(statusDTO -> {
           final SourceControlDefaultBranchCommitHistory commitHistory =
               sourceControlDefaultBranchCommitHistoryDAO.getLatestCommitForApplicationId(statusDTO.getApplicationId());
           return statusDTO.setLastCommitTimestamp(
               commitHistory != null ? commitHistory.getCommitTime().getTime() : 0L);
-        })
-        // Set last policy evaluation time (build stage), priorities report status and scan ID
-        .map(statusDTO -> {
-          final PolicyEvaluation latestBuildStageEvaluation =
-              policyEvaluationDAO.getLastByApplicationIdAndStageIdNoMonitoringNoReeval(statusDTO.getApplicationId(),
-                  Stage.ID_BUILD);
-          // Update the risk score if there is no latest build stage evaluation so that we can differentiate
-          // between apps with 0 risk and apps with no risk data
-          if (Objects.isNull(latestBuildStageEvaluation)) {
-            return statusDTO.setTotalRiskScore(-1)
-                .setHasPrioritiesReport(false);
-          }
-          return statusDTO.setLastEvaluationTimestamp(latestBuildStageEvaluation.getTime().getTime())
-              .setHasPrioritiesReport(true)
-              .setLastScanId(latestBuildStageEvaluation.getScanId());
         })
         // Set CI/CD Integration status
         .map(statusDTO -> {
@@ -159,20 +160,20 @@ public class IntegrationService
           final Date sinceUtcDate = new Date(System.currentTimeMillis() - lookBackWindowMs);
 
           return statusDTO.setCiIntegrationEnabled(
-            policyEvaluationDAO.hasCIIntegrationEvaluation(statusDTO.getApplicationId(), sinceUtcDate));
+              policyEvaluationDAO.hasCIIntegrationEvaluation(statusDTO.getApplicationId(), sinceUtcDate));
         })
         .filter(statusDTO ->
             // Optionally filter on CI/CD Integration status
             optionalFilterAppsByCiCdIntegration == null ||
                 statusDTO.isCiIntegrationEnabled() == optionalFilterAppsByCiCdIntegration)
-        .collect(Collectors.toList());
+        .toList();
 
     final List<IntegrationStatusDTO> possiblyPaginatedSummaries = paginateEarly ?
-        minimalSummaries.stream()
-        .sorted(new IntegrationStatusDTOComparator(filter.getOptionalOrderBy()))
-        .skip(skipCount)
-        .limit(filter.getPageSize())
-        .collect(Collectors.toList()) : minimalSummaries;
+        minimalAppSummaries.stream()
+            .sorted(new IntegrationStatusDTOComparator(filter.getOptionalOrderBy()))
+            .skip(skipCount)
+            .limit(filter.getPageSize())
+            .toList() : minimalAppSummaries;
 
     final List<IntegrationStatusDTO> enrichedSummaries = possiblyPaginatedSummaries.stream()
         // Set Automated Source Control Feedback status
@@ -187,12 +188,12 @@ public class IntegrationService
 
     final List<IntegrationStatusDTO> completeSummaries = paginateEarly ? enrichedSummaries :
         enrichedSummaries.stream()
-        .sorted(new IntegrationStatusDTOComparator(filter.getOptionalOrderBy()))
-        .skip(skipCount)
-        .limit(filter.getPageSize())
-        .collect(Collectors.toList());
+            .sorted(new IntegrationStatusDTOComparator(filter.getOptionalOrderBy()))
+            .skip(skipCount)
+            .limit(filter.getPageSize())
+            .collect(Collectors.toList());
 
-    final int totalSize = paginateEarly ? minimalSummaries.size() : enrichedSummaries.size();
+    final int totalSize = paginateEarly ? minimalAppSummaries.size() : enrichedSummaries.size();
     return new ApiPageResult<>(totalSize, filter.getPage(), filter.getPageSize(), completeSummaries);
   }
 
@@ -233,8 +234,8 @@ public class IntegrationService
   private Optional<SastScan> getLatestSastScan(final String applicationId) {
     final Optional<SastScan> latestSastScanByBaseBranch =
         sastScanDAO.getByApplicationIdAndBranchName(applicationId, getBaseBranch(applicationId))
-          .stream()
-          .max(Comparator.comparing(SastScan::getCreatedAt));
+            .stream()
+            .max(Comparator.comparing(SastScan::getCreatedAt));
 
     if (latestSastScanByBaseBranch.isPresent()) {
       return latestSastScanByBaseBranch;

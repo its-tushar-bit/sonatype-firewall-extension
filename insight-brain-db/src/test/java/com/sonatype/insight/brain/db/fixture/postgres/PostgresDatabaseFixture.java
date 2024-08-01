@@ -33,16 +33,20 @@ public class PostgresDatabaseFixture
   private PostgresDataSourceProvider dataSourceProvider;
 
   public PostgresDatabaseFixture(final String testName, final PostgresTest postgresTest) {
+    this(testName, postgresTest.suppressMigrations(), postgresTest.maxConnections());
+  }
+
+  public PostgresDatabaseFixture(final String testName, final boolean suppressMigrations, final int maxConnections) {
     databaseName = getDatabaseNameFromTestName(testName);
 
     log.info("Creating new Postgres database fixture with name '{}' for test '{}'", databaseName, testName);
 
-    assertConfigurationIsTheExpected(postgresTest);
+    assertMaxConnectionsIsValid(maxConnections);
 
     postgresTestCluster = getPostgresTestCluster();
 
     // If `suppressMigrations` is on then all that is needed is an empty databased. Else clone the template database.
-    if (postgresTest.suppressMigrations()) {
+    if (suppressMigrations) {
       postgresTestCluster.createNewDatabase(databaseName);
     }
     else {
@@ -50,7 +54,7 @@ public class PostgresDatabaseFixture
     }
 
     databaseConfig = postgresTestCluster.getDatabaseConfig(databaseName);
-    databaseConfig.setMaxConnections(postgresTest.maxConnections());
+    databaseConfig.setMaxConnections(maxConnections);
   }
 
   private String getDatabaseNameFromTestName(final String testName) {
@@ -61,8 +65,8 @@ public class PostgresDatabaseFixture
     return PostgresTestCluster.getInstance();
   }
 
-  private void assertConfigurationIsTheExpected(final PostgresTest postgresTest) {
-    if (postgresTest.maxConnections() <= 0) {
+  private void assertMaxConnectionsIsValid(final int maxConnections) {
+    if (maxConnections <= 0) {
       throw new UnsupportedOperationException(
           "Configuration Error: maxConnections configuration should be greater than 0");
     }

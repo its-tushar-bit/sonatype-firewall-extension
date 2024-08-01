@@ -399,7 +399,7 @@ public class DatabaseRule
     }
   }
 
-  protected enum DatabaseType
+  public enum DatabaseType
   {
     H2_IN_MEMORY_DB, H2_DISK_DB, POSTGRES_DB
   }

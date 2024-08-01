@@ -44,20 +44,27 @@ public class H2DiskDatabaseFixture
   private H2DiskDataSourceProvider dataSourceProvider;
 
   public H2DiskDatabaseFixture(final H2DiskTest h2DiskTest) {
+    this(h2DiskTest.maxConnections(), h2DiskTest.copyExistingDatabase(), h2DiskTest.customSettings());
+  }
+
+  public H2DiskDatabaseFixture(
+      final int maxConnections,
+      final String copyExistingDatabase,
+      final String customSettings)
+  {
     log.info("Creating new H2-disk test database");
 
-    assertConfigurationIsTheExpected(h2DiskTest);
-
-    this.customSettings = h2DiskTest.customSettings();
-    this.maxConnections = h2DiskTest.maxConnections();
+    assertMaxConnectionsIsValid(maxConnections);
+    this.maxConnections = maxConnections;
+    this.customSettings = customSettings;
 
     try {
       tempDir.create();
       databaseDir = tempDir.newFolder("data");
 
-      if (StringUtils.isNotEmpty(h2DiskTest.copyExistingDatabase())) {
+      if (StringUtils.isNotEmpty(copyExistingDatabase)) {
         ClassLoader classLoader = getClass().getClassLoader();
-        File source = new File(classLoader.getResource(h2DiskTest.copyExistingDatabase()).getPath());
+        File source = new File(classLoader.getResource(copyExistingDatabase).getPath());
         FileUtils.copyDirectory(source, databaseDir);
       }
     }
@@ -66,8 +73,8 @@ public class H2DiskDatabaseFixture
     }
   }
 
-  private void assertConfigurationIsTheExpected(final H2DiskTest h2DiskTest) {
-    if (h2DiskTest.maxConnections() <= 0) {
+  private void assertMaxConnectionsIsValid(final int maxConnections) {
+    if (maxConnections <= 0) {
       throw new UnsupportedOperationException(
           "Configuration Error: maxConnections configuration should be greater than 0");
     }

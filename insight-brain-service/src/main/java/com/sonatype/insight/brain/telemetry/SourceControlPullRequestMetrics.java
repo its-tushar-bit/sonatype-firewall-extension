@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +69,7 @@ public class SourceControlPullRequestMetrics
     return sourceControlPullRequestResultDAO.getByApplicationId(applicationId).stream()
         .map(this::convert)
         .filter(Objects::nonNull)
+        .sorted(Comparator.comparing(EnhancedPullRequestResult::getStartTime))
         .collect(Collectors.toList());
   }
 

@@ -1086,8 +1086,9 @@ public class ApplicationSourceControlEditorTest
     PullRequestResult success = new PullRequestResult();
     success.setSuccessful(true);
     metrics.addResult(application.getId(),
-        new EnhancedPullRequestResult(success, new Date(), ComponentIdentifier
+        new EnhancedPullRequestResult(success, new Date(System.currentTimeMillis() - 1000), ComponentIdentifier
             .createMavenCoordinates("foo", "bar", "1.0"), "Bump bar to 1.1", false));
+
     PullRequestResult failure = new PullRequestResult();
     failure.setSuccessful(false);
     metrics.addResult(application.getId(),

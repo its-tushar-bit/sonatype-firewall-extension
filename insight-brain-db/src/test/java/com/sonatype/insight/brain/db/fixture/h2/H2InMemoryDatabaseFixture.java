@@ -35,17 +35,25 @@ public class H2InMemoryDatabaseFixture
   private boolean useTemporaryDatabase;
 
   public H2InMemoryDatabaseFixture(final H2InMemoryTest h2InMemoryTest) {
+    this(h2InMemoryTest != null && h2InMemoryTest.cleanDatabase(),
+        h2InMemoryTest != null && h2InMemoryTest.suppressMigrations(),
+        h2InMemoryTest != null ? h2InMemoryTest.customSettings() : null);
+  }
+
+  public H2InMemoryDatabaseFixture(
+      final boolean cleanDatabase,
+      final boolean suppressMigrations,
+      final String customSettings)
+  {
     log.info("Creating new H2 in-memory test database");
 
-    this.useTemporaryDatabase = useTemporalDatabase(h2InMemoryTest);
+    useTemporaryDatabase = useTemporalDatabase(cleanDatabase, suppressMigrations, customSettings);
     if (useTemporaryDatabase) {
       // Database created with custom settings should not be re-used, so creating this DB with a different name.
       // This DB will be closed once the close() method is called
       // This NOT re-usable DB will have the name tempInMemoryDatabase
-      String customSettings =
-          StringUtils.isBlank(h2InMemoryTest.customSettings()) ? DEFAULT_SETTINGS : h2InMemoryTest.customSettings();
-
-      databaseConfig = createDBConfig("tempInMemoryDatabase", customSettings);
+      String settings = StringUtils.isBlank(customSettings) ? DEFAULT_SETTINGS : customSettings;
+      databaseConfig = createDBConfig("tempInMemoryDatabase", settings);
     }
     else {
       // Database created with default settings will be re-used on different tests, note the DB_CLOSE_DELAY=-1.
@@ -54,9 +62,12 @@ public class H2InMemoryDatabaseFixture
     }
   }
 
-  private boolean useTemporalDatabase(final H2InMemoryTest h2InMemoryTest) {
-    return h2InMemoryTest != null && (StringUtils.isNotBlank(h2InMemoryTest.customSettings()) ||
-        h2InMemoryTest.cleanDatabase() || h2InMemoryTest.suppressMigrations());
+  private boolean useTemporalDatabase(
+      final boolean cleanDatabase,
+      final boolean suppressMigrations,
+      final String customSettings)
+  {
+    return cleanDatabase || suppressMigrations || StringUtils.isNotBlank(customSettings);
   }
 
   private DatabaseConfig createDBConfig(String name, String customSettings) {

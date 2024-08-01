@@ -33,13 +33,11 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
-import com.sonatype.insight.brain.db.DatabaseConfigProvider;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.db.DefaultDatabaseContainer;
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
-import com.sonatype.insight.brain.db.datasource.H2InMemoryTestDataSourceProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
@@ -50,7 +48,12 @@ import com.sonatype.insight.brain.db.datastore.DefaultThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.SimpleDataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.db.fixture.DatabaseFixture;
+import com.sonatype.insight.brain.db.fixture.h2.H2DiskDatabaseFixture;
+import com.sonatype.insight.brain.db.fixture.h2.H2InMemoryDatabaseFixture;
+import com.sonatype.insight.brain.db.fixture.postgres.PostgresDatabaseFixture;
 import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
+import com.sonatype.insight.brain.db.rule.DatabaseRule.DatabaseType;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.jira.JiraService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -72,7 +75,6 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.testing.DefaultInsightBrainServiceFactory;
-import com.sonatype.insight.brain.testing.H2InMemoryDatabaseConfigProvider;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.reverseproxy.ReverseProxyServer;
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -123,6 +125,7 @@ import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.sonatype.clm.testing.functional.utils.BaseUrl.resolveBaseUrl;
 import static com.sonatype.clm.testing.functional.utils.SeleniumChromeOptions.chromeOptions;
+import static com.sonatype.insight.brain.db.rule.DatabaseRule.DatabaseType.POSTGRES_DB;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -212,20 +215,34 @@ public abstract class AbstractFunctionalTest
   }
 
   private static DatabaseContainer createDatabaseContainer() {
-    DataSourceProvider dataSourceProvider = new H2InMemoryTestDataSourceProvider();
-    DatabaseConfigProvider databaseConfigProvider = new H2InMemoryDatabaseConfigProvider();
+    String functionalTestDatabase =
+        System.getProperty("functionalTestDatabase", System.getenv("FUNCTIONAL_TESTS_DATABASE"));
+
+    DatabaseType databaseType = POSTGRES_DB;
+    if (functionalTestDatabase != null) {
+      databaseType = DatabaseType.valueOf(functionalTestDatabase.toUpperCase());
+    }
+
+    DatabaseFixture fixture = switch (databaseType) {
+      case H2_IN_MEMORY_DB -> new H2InMemoryDatabaseFixture(false, false, null);
+      case H2_DISK_DB -> new H2DiskDatabaseFixture(50, null, null);
+      case POSTGRES_DB -> new PostgresDatabaseFixture("testPostgresFixture", false, 50);
+    };
+
+    DataSourceProvider dataSourceProvider = fixture.getDataSourceProvider();
 
     OperationalDataStore operationalDataStore =
-        new DefaultOperationalDataStore(dataSourceProvider, databaseConfigProvider.getDatabaseConfig(DatabaseName.ods));
-    AggregationDataStore aggregationDataStore = new DefaultAggregationDataStore(dataSourceProvider,
-        databaseConfigProvider.getDatabaseConfig(DatabaseName.aggregation));
+        new DefaultOperationalDataStore(dataSourceProvider, fixture.getDatabaseConfig(DatabaseName.ods.name()));
+    AggregationDataStore aggregationDataStore =
+        new DefaultAggregationDataStore(dataSourceProvider, fixture.getDatabaseConfig(DatabaseName.aggregation.name()));
     DataMartDataStore dataMartDataStore =
-        new DefaultDataMartDataStore(dataSourceProvider, databaseConfigProvider.getDatabaseConfig(DatabaseName.dm));
+        new DefaultDataMartDataStore(dataSourceProvider, fixture.getDatabaseConfig(DatabaseName.dm.name()));
     ThirdPartyScansDataStore thirdPartyScansDataStore = new DefaultThirdPartyScansDataStore(dataSourceProvider,
-        databaseConfigProvider.getDatabaseConfig(DatabaseName.third_party_scans));
+        fixture.getDatabaseConfig(DatabaseName.third_party_scans.name()));
 
-    DataStoreProvider dataStoreProvider = new SimpleDataStoreProvider(operationalDataStore, aggregationDataStore,
-        dataMartDataStore, thirdPartyScansDataStore);
+    DataStoreProvider dataStoreProvider =
+        new SimpleDataStoreProvider(operationalDataStore, aggregationDataStore, dataMartDataStore,
+            thirdPartyScansDataStore);
 
     DatabaseMigrations databaseMigrations = new DatabaseMigrations(dataStoreProvider);
     DatabaseProvisioner databaseProvisioner = new DatabaseProvisioner(dataStoreProvider, databaseMigrations);

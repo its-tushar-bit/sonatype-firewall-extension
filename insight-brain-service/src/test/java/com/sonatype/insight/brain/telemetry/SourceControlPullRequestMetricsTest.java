@@ -122,19 +122,39 @@ public class SourceControlPullRequestMetricsTest
     success.setPushTime(1L);
     success.setPullRequestCreationTime(1L);
     success.setSuccessful(true);
-    Date start = new Date();
+    Date start = new Date(System.currentTimeMillis() - 1000);
     EnhancedPullRequestResult enhancedSuccess = new EnhancedPullRequestResult(success, start,
         MAVEN_COORDINATES, "Bump bar to 1.1", false);
     String applicationId = tempEntity.newApplicationWithParent().getId();
     metrics.addResult(applicationId, enhancedSuccess);
 
+    PullRequestResult fail = new PullRequestResult();
+    fail.setCheckoutTime(1L);
+    fail.setRemediationTime(1L);
+    fail.setPushTime(1L);
+    fail.setPullRequestCreationTime(1L);
+    fail.setSuccessful(false);
+    Date failStart = new Date();
+    EnhancedPullRequestResult enhancedFail = new EnhancedPullRequestResult(success, failStart,
+        MAVEN_COORDINATES, "Bump bar to 1.2", true);
+    metrics.addResult(applicationId, enhancedFail);
+
     //when: we request metrics for that application
     List<EnhancedPullRequestResult> results = metrics.metricsForApplication(applicationId);
 
     //then: results are returned as expected
-    assertThat(results).hasSize(1);
+    assertThat(results).hasSize(2);
     assertThat(results.get(0)).extracting(EnhancedPullRequestResult::getTarget).isEqualTo(MAVEN_COORDINATES);
     assertThat(results.get(0)).extracting(EnhancedPullRequestResult::getStartTime).isEqualTo(start);
+    assertThat(results.get(0)).extracting(EnhancedPullRequestResult::getTitle).isEqualTo("Bump bar to 1.1");
+    assertThat(results.get(0)).extracting(EnhancedPullRequestResult::getReasoning).isEqualTo(
+        "A pull request was successfully created to remediate policy violations related to \"foo : bar : 1.0\".");
+
+    assertThat(results.get(1)).extracting(EnhancedPullRequestResult::getTarget).isEqualTo(MAVEN_COORDINATES);
+    assertThat(results.get(1)).extracting(EnhancedPullRequestResult::getStartTime).isEqualTo(failStart);
+    assertThat(results.get(1)).extracting(EnhancedPullRequestResult::getTitle).isEqualTo("Bump bar to 1.2");
+    assertThat(results.get(1)).extracting(EnhancedPullRequestResult::getReasoning).isEqualTo(
+        "An error happened trying to create this PR, look in server logs for more information.");
   }
 
   @Test

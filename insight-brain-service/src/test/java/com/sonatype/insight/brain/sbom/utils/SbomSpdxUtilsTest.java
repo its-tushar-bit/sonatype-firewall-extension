@@ -158,6 +158,13 @@ public class SbomSpdxUtilsTest
   }
 
   @Test
+  public void testGetSbomCreationDetailsJson_NoDescribes() throws Exception {
+    SpdxDocument spdxDocument = getSpdxDocument("spdx-no-relationship-describe.json", Format.JSON);
+    String actual = SbomSpdxUtils.getSbomCreationDetailsJson(spdxDocument);
+    assertThat(actual).isEqualTo(expectedSbomMetadataJsonNoDescribes());
+  }
+
+  @Test
   public void testGetRefIdAndSourceForVulnerability() {
     assertThat(SbomSpdxUtils
         .getRefIdAndSourceForVulnerability("http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-27088"))
@@ -222,5 +229,11 @@ public class SbomSpdxUtilsTest
         "\"name\":\"John Doe\",\"email\":\"john.doe@example.com\"},{\"type\":\"Person\",\"name\":\"Jane Doe\"}," +
         "{\"type\":\"Person\",\"name\":\"Joe Smith\"},{\"type\":\"Organization\",\"name\":\"Example Organization\"," +
         "\"email\":\"example@example.com\"},{\"type\":\"Organization\",\"name\":\"Example Organization2\"}]}";
+  }
+
+  private String expectedSbomMetadataJsonNoDescribes() {
+    return "{\"type\":\"SOURCE\",\"created\":\"2010-01-29T18:30:22Z\",\"creators\":[{\"type\":\"Organization\"," +
+        "\"name\":\"ExampleCodeInspect\"},{\"type\":\"Person\",\"name\":\"Jane Doe\"}]," +
+        "\"tools\":[{\"name\":\"LicenseFind\",\"version\":\"1.0\"}]}";
   }
 }

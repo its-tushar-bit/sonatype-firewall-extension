@@ -315,7 +315,12 @@ public final class SbomSpdxUtils
     if (document != null) {
       SbomCreationDetails sbomCreationDetails = new SbomCreationDetails();
       sbomCreationDetails.created = document.getCreationInfo() != null ? document.getCreationInfo().getCreated() : null;
-      sbomCreationDetails.type = getRootPackage(document).getPrimaryPurpose().map(Enum::name).orElse(null);
+      SpdxPackage spdxPackage = getRootPackage(document);
+
+      if (spdxPackage != null) {
+        sbomCreationDetails.type = spdxPackage.getPrimaryPurpose().map(Enum::name).orElse(null);
+      }
+
       if (document.getCreationInfo() != null) {
         document.getCreationInfo().getCreators().forEach(it -> classifyAndExtractMetadata(sbomCreationDetails, it));
       }

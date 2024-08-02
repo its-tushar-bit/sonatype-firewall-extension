@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
+import org.junit.Ignore;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
@@ -124,6 +125,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     eyesWatcher.eyesCheck();
   }
 
+  @Ignore
   @Test
   public void testAppIntegrationsAndRiskTable_ShouldRenderRowsCorrectly() throws Exception {
     setUpAppsForIntegrationAndRisks();

@@ -99,17 +99,17 @@ function PrioritiesPageContents() {
         <>
           <NxPageTitle>
             <PrioritiesPageHeader />
+            <div className="nx-btn-bar">
+              <NxTextLink
+                className="nx-btn iq-priorities-page-view-full-report-btn"
+                href={getApplicationReportHref()}
+                newTab
+              >
+                View Full Report
+              </NxTextLink>
+            </div>
           </NxPageTitle>
           <PrioritiesPageTable />
-          <div className="nx-btn-bar">
-            <NxTextLink
-              className="nx-btn nx-btn--primary iq-priorities-page-view-full-report-btn"
-              href={getApplicationReportHref()}
-              newTab
-            >
-              View Full Report
-            </NxTextLink>
-          </div>
         </>
       )}
     </NxLoadWrapper>

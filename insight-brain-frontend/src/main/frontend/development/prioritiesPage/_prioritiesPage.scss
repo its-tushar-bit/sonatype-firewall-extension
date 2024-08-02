@@ -136,10 +136,8 @@ priorities-page {
   }
 
   .nx-btn-bar {
-    justify-content: center;
-
     .iq-priorities-page-view-full-report-btn {
-      color: white;
+      color: var(--nx-color-secondary-button-text);
     }
   }
 }

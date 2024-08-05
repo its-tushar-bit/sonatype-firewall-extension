@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -223,102 +224,103 @@ public class ApiSbomServiceTest
 
   @Test
   public void testGetSbomVersion_Current_CycloneDxToCycloneDx_Xml() throws Exception {
-    Application app = tempEntity.newApplicationWithParent();
-    Path zippedBom = mockOriginalSbom(this.getClass(), "sboms/valid-cyclonedx-bom.xml",
-        insightWork.getSbomDir(app.getId()).toPath());
-
-    String sbomVersion = tempEntity.newRandomHash();
-    setupScenarioWithMetadataComponentSecurityLicenseAndVex(tempEntity, app, zippedBom, sbomVersion,
-        "CycloneDx", "1.5", SbomFormat.XML);
-
-    Response response =
-        service.getSbomVersion(app.getId(), sbomVersion, ApiSbomService.SBOM_STATE_CURRENT,
-            "cyclonedx1.5", MediaType.APPLICATION_XML);
-
-    assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
-    assertThat(response.getMediaType().toString()).isEqualTo(MediaType.APPLICATION_XML);
-    assertThat(response.getHeaderString(SBOM_VALIDATED_HEADER)).isEqualTo("true");
-
-    assertContentHeader(response, app, sbomVersion, ".xml");
-    String sbomContent = new String((byte []) response.getEntity());
-    XmlAssert.assertThat(sbomContent).and(expectedContentIn("sboms/valid-cyclonedx-result-bom.xml"))
-        .withNodeFilter(cycloneDxIgnoreNodesFilter())
-        .withAttributeFilter(cycloneDxIgnoreAttributesFilter())
-        .ignoreWhitespace()
-        .areIdentical();
+    testExportingSbomWithInputAndOutputSpecsAndFormats(SbomSpecification.CYCLONEDX, SbomFormat.XML,
+        SbomSpecification.CYCLONEDX, SbomFormat.XML);
   }
 
   @Test
   public void testGetSbomVersion_Current_CycloneDxToCycloneDx_Json() throws Exception {
-    Application app = tempEntity.newApplicationWithParent();
-    Path zippedBom = mockOriginalSbom(this.getClass(), "sboms/valid-cyclonedx-bom.xml",
-        insightWork.getSbomDir(app.getId()).toPath());
-
-    String sbomVersion = tempEntity.newRandomHash();
-    setupScenarioWithMetadataComponentSecurityLicenseAndVex(tempEntity, app, zippedBom, sbomVersion,
-        "CycloneDx", "1.5", SbomFormat.XML);
-
-    Response response =
-        service.getSbomVersion(app.getId(), sbomVersion, ApiSbomService.SBOM_STATE_CURRENT,
-            "cyclonedx1.5", MediaType.APPLICATION_JSON);
-
-    assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
-    assertThat(response.getMediaType().toString()).isEqualTo(MediaType.APPLICATION_JSON);
-    assertThat(response.getHeaderString(SBOM_VALIDATED_HEADER)).isEqualTo("true");
-
-    String sbomContent = new String((byte []) response.getEntity());
-    assertContentHeader(response, app, sbomVersion, ".json");
-    assertThatJson(sbomContent)
-        .isEqualTo(expectedContentIn("sboms/valid-cyclonedx-result-bom.json"));
+    testExportingSbomWithInputAndOutputSpecsAndFormats(SbomSpecification.CYCLONEDX, SbomFormat.XML,
+        SbomSpecification.CYCLONEDX, SbomFormat.JSON);
   }
 
   @Test
   public void testGetSbomVersion_Current_SpdxToSpdx_Xml() throws Exception {
-    Application app = tempEntity.newApplicationWithParent();
-    Path zippedBom = mockOriginalSbom(this.getClass(), "sboms/valid-spdx-bom.xml",
-        insightWork.getSbomDir(app.getId()).toPath());
-    String sbomVersion = tempEntity.newRandomHash();
-    setupScenarioWithMetadataComponentSecurityLicenseAndVex(tempEntity, app, zippedBom, sbomVersion,
-        "SPDX", "2.3", SbomFormat.XML);
-
-    Response response =
-        service.getSbomVersion(app.getId(), sbomVersion, ApiSbomService.SBOM_STATE_CURRENT,
-            "spdx2.3", MediaType.APPLICATION_XML);
-
-    assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
-    assertThat(response.getMediaType().toString()).isEqualTo(MediaType.APPLICATION_XML);
-    assertThat(response.getHeaderString(SBOM_VALIDATED_HEADER)).isEqualTo("true");
-
-    String sbomContent = new String((byte[]) response.getEntity());
-    assertContentHeader(response, app, sbomVersion, ".xml");
-    XmlAssert.assertThat(sbomContent).and(expectedContentIn("sboms/valid-spdx-result-bom.xml"))
-        .withNodeFilter(spdxDxIgnoreNodesFilter())
-        .ignoreWhitespace()
-        .areIdentical();
+    testExportingSbomWithInputAndOutputSpecsAndFormats(SbomSpecification.SPDX, SbomFormat.XML,
+        SbomSpecification.SPDX, SbomFormat.XML);
   }
 
   @Test
   public void testGetSbomVersion_Current_SpdxToSpdx_Json() throws Exception {
-    Application app = tempEntity.newApplicationWithParent();
-    Path zippedBom = mockOriginalSbom(this.getClass(), "sboms/valid-spdx-bom.xml",
-        insightWork.getSbomDir(app.getId()).toPath());
-    String sbomVersion = tempEntity.newRandomHash();
-    setupScenarioWithMetadataComponentSecurityLicenseAndVex(tempEntity, app, zippedBom, sbomVersion,
-        "SPDX", "2.3", SbomFormat.XML);
+    testExportingSbomWithInputAndOutputSpecsAndFormats(SbomSpecification.SPDX, SbomFormat.XML,
+        SbomSpecification.SPDX, SbomFormat.JSON);
+  }
 
+  @Test
+  public void testGetSbomVersion_Current_SpdxToCycloneDx_Xml() throws Exception {
+    testExportingSbomWithInputAndOutputSpecsAndFormats(SbomSpecification.SPDX, SbomFormat.XML,
+        SbomSpecification.CYCLONEDX, SbomFormat.XML);
+  }
+
+  @Test
+  public void testGetSbomVersion_Current_SpdxToCycloneDx_Json() throws Exception {
+    testExportingSbomWithInputAndOutputSpecsAndFormats(SbomSpecification.SPDX, SbomFormat.XML,
+        SbomSpecification.CYCLONEDX, SbomFormat.JSON);
+  }
+
+  @Test
+  public void testGetSbomVersion_Current_CycloneDxToSpdx_Xml() throws Exception {
+    testExportingSbomWithInputAndOutputSpecsAndFormats(SbomSpecification.CYCLONEDX, SbomFormat.XML,
+        SbomSpecification.SPDX, SbomFormat.XML);
+  }
+
+  @Test
+  public void testGetSbomVersion_Current_CycloneDxToSpdx_Json() throws Exception {
+    testExportingSbomWithInputAndOutputSpecsAndFormats(SbomSpecification.CYCLONEDX, SbomFormat.XML,
+        SbomSpecification.SPDX, SbomFormat.JSON);
+  }
+
+  private void testExportingSbomWithInputAndOutputSpecsAndFormats(
+      SbomSpecification inputSpec,
+      SbomFormat inputFormat,
+      SbomSpecification outputSpec,
+      SbomFormat outputFormat)
+      throws Exception
+  {
+    Application app = tempEntity.newApplicationWithParent();
+    String inputFileName = "sboms/valid-" + inputSpec.name().toLowerCase() + "-bom." + inputFormat.name().toLowerCase();
+    Path zippedBom = mockOriginalSbom(this.getClass(), inputFileName, insightWork.getSbomDir(app.getId()).toPath());
+
+    String sbomVersion = tempEntity.newRandomHash();
+    String inputSpecVersion = inputSpec == SbomSpecification.CYCLONEDX ? "1.6" : "2.3";
+    setupScenarioWithMetadataComponentSecurityLicenseAndVex(tempEntity, app, zippedBom, sbomVersion,
+        inputSpec.toString(), inputSpecVersion, inputFormat);
+
+    String targetSpecification = outputSpec == SbomSpecification.CYCLONEDX ? "cyclonedx1.6" : "spdx2.3";
+    String acceptType = outputFormat == SbomFormat.JSON ? MediaType.APPLICATION_JSON : MediaType.APPLICATION_XML;
     Response response =
         service.getSbomVersion(app.getId(), sbomVersion, ApiSbomService.SBOM_STATE_CURRENT,
-            "spdx2.3", MediaType.APPLICATION_JSON);
+            targetSpecification, acceptType);
 
     assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
-    assertThat(response.getMediaType().toString()).isEqualTo(MediaType.APPLICATION_JSON);
+    assertThat(response.getMediaType().toString()).isEqualTo(acceptType);
     assertThat(response.getHeaderString(SBOM_VALIDATED_HEADER)).isEqualTo("true");
 
+    assertContentHeader(response, app, sbomVersion, "." + outputFormat.name().toLowerCase());
     String sbomContent = new String((byte []) response.getEntity());
-    assertContentHeader(response, app, sbomVersion, ".json");
-    assertThatJson(sbomContent)
-        .whenIgnoringPaths("creationInfo.created", "creationInfo.creators[0]", "documentNamespace", "name")
-        .isEqualTo(expectedContentIn("sboms/valid-spdx-result-bom.json"));
+
+    String outputFileName = "sboms/valid-" + inputSpec.name().toLowerCase() + "-to-" + outputSpec.name().toLowerCase() +
+        "-result-bom." + outputFormat.name().toLowerCase();
+    if (outputFormat == SbomFormat.JSON) {
+      assertThatJson(sbomContent)
+          .whenIgnoringPaths("creationInfo.created", "creationInfo.creators[0]", "documentNamespace", "name")
+          .isEqualTo(expectedContentIn(outputFileName));
+    }
+    else {
+      if (outputSpec == SbomSpecification.CYCLONEDX) {
+        XmlAssert.assertThat(sbomContent).and(expectedContentIn(outputFileName))
+            .withNodeFilter(cycloneDxIgnoreNodesFilter())
+            .withAttributeFilter(cycloneDxIgnoreAttributesFilter())
+            .ignoreWhitespace()
+            .areIdentical();
+      }
+      else {
+        XmlAssert.assertThat(sbomContent).and(expectedContentIn(outputFileName))
+            .withNodeFilter(spdxDxIgnoreNodesFilter())
+            .ignoreWhitespace()
+            .areIdentical();
+      }
+    }
   }
 
   @Test

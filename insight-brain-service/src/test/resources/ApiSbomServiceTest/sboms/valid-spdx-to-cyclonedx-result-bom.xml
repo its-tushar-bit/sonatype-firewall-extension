@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bom serialNumber="urn:uuid:a140fd3c-3ded-4bb0-a640-dc31e2904dc9" version="1" xmlns="http://cyclonedx.org/schema/bom/1.5">
+<bom version="1" xmlns="http://cyclonedx.org/schema/bom/1.6">
   <metadata>
-    <timestamp>2024-05-09T10:59:53Z</timestamp>
+    <timestamp>2024-08-01T21:01:52Z</timestamp>
     <tools>
       <components>
         <component type="application">
           <name>Sonatype SBOM Manager</name>
-          <version>1.176.0-SNAPSHOT</version>
+          <version>1.180.0-SNAPSHOT</version>
         </component>
       </components>
     </tools>
-    <component type="application" bom-ref="43a08ea0-c264-41d6-892a-6cfc7762aded">
-      <name>DUMMY-PUBLIC-ID-d0516b48c4c1432f936eafac413f6b40</name>
-      <version>30c3ee1d127e484e9d41</version>
+    <component type="application" bom-ref="dbc12d5a-dd53-4c8a-8ed9-1a2ff42e3fa1">
+      <name>DUMMY-PUBLIC-ID-460ffa4c002e4b45afe6cd9a2c3d245e</name>
+      <version>5874eeffbd0d40088be8</version>
     </component>
   </metadata>
   <components>
-    <component type="library" bom-ref="435d9efa-2c0c-4078-91fb-7fdec24fcad0">
+    <component type="library" bom-ref="6f637a49c8be00b17132243dbc46085807e9e08b">
       <group>apache</group>
       <name>axis</name>
       <version>1.0</version>
@@ -35,17 +35,18 @@
         </license>
       </licenses>
       <purl>pkg:maven/apache/axis@1.0?type=jar</purl>
-      <modified>false</modified>
-      <evidence>
-        <occurrences>
-          <occurrence>
-            <location>h2-2.2.224.jar</location>
-          </occurrence>
-        </occurrences>
-      </evidence>
+    </component>
+    <component type="application" bom-ref="16652f86eb91de1d17dcad1db99bbc9253af7c72">
+      <group>sonatype</group>
+      <name>iq_application_SBOMTests</name>
+      <version>4daddd64a281411cb9ba2e6eabe12fa1</version>
+      <purl>pkg:generic/sonatype/iq_application_SBOMTests@4daddd64a281411cb9ba2e6eabe12fa1</purl>
     </component>
   </components>
-  <externalReferences><reference type="bom"><url>http://localhost:8070/ui/links/application/vuln/report/a140fd3c3ded4bb0a640dc31e2904dc9</url><comment>IQ Report</comment></reference></externalReferences>
+  <dependencies>
+    <dependency ref="dbc12d5a-dd53-4c8a-8ed9-1a2ff42e3fa1"/>
+    <dependency ref="6f637a49c8be00b17132243dbc46085807e9e08b"/>
+  </dependencies>
   <vulnerabilities>
     <vulnerability>
       <id>CVE-2007-2353</id>
@@ -76,11 +77,12 @@
           <response>workaround_available</response>
         </responses>
         <detail>vex detail</detail>
-        <firstIssued>2024-05-16T15:30:39Z</firstIssued>
+        <firstIssued>2024-08-01T21:01:51Z</firstIssued>
+        <lastUpdated>2024-08-01T21:01:51Z</lastUpdated>
       </analysis>
       <affects>
         <target>
-          <ref>435d9efa-2c0c-4078-91fb-7fdec24fcad0</ref>
+          <ref>6f637a49c8be00b17132243dbc46085807e9e08b</ref>
         </target>
       </affects>
       <properties>
@@ -111,10 +113,12 @@
       <analysis>
         <state>in_triage</state>
         <detail></detail>
+        <firstIssued>2024-08-01T21:01:51Z</firstIssued>
+        <lastUpdated>2024-08-01T21:01:51Z</lastUpdated>
       </analysis>
       <affects>
         <target>
-          <ref>435d9efa-2c0c-4078-91fb-7fdec24fcad0</ref>
+          <ref>6f637a49c8be00b17132243dbc46085807e9e08b</ref>
         </target>
       </affects>
       <properties>

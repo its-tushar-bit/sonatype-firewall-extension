@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.repository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -198,6 +199,8 @@ public class RepositoryPolicyEvaluator
       boolean persistEvaluationResults,
       boolean forMonitoring)
   {
+    long start = System.currentTimeMillis();
+
     RepositoryComponentEvaluationDataList componentEvaluationResultList = new RepositoryComponentEvaluationDataList();
 
     Date now = new Date();
@@ -249,6 +252,9 @@ public class RepositoryPolicyEvaluator
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(repository.getId(), new Stage(ProxyStageType.ID),
         policies, components.stream().filter(Objects::nonNull).collect(Collectors.toList()), false /* forMonitoring */);
 
+    Map<Component, List<PolicyAlert>> policyAlertsByComponent =
+        groupPolicyAlertsByComponent(policyResults, components);
+
     // Only notify new component evaluation policy violations
     boolean shouldSendNotifications =
         RepositoryComponentEvaluationDataRequestList.NEW_COMPONENT.equals(componentEvaluationDataRequestList.cause);
@@ -285,7 +291,8 @@ public class RepositoryPolicyEvaluator
           repositoryComponentEvaluationResult.quarantine = repositoryComponent.isQuarantined();
         }
         else {
-          repositoryComponentEvaluationResult.policyAlerts = getPolicyAlerts(policyResults, component);
+          repositoryComponentEvaluationResult.policyAlerts =
+              policyAlertsByComponent.getOrDefault(component, Collections.emptyList());
           if (withQuarantine) {
             RepositoryComponent repositoryComponent =
                 repositoryComponents.getOrDefault(component.getPathnames().get(0), null);
@@ -305,7 +312,33 @@ public class RepositoryPolicyEvaluator
     if (shouldSendNotifications) {
       repositoryPolicyAlertEmailer.sendNotifications(repository, policyResults.getActiveNotifications());
     }
+    log.trace("Evaluated {} components with quarantine {} for repository {} in {} ms.",
+        componentEvaluationDataRequestList.components.size(), withQuarantine,
+        repository.getPublicId(), System.currentTimeMillis() - start);
     return componentEvaluationResultList;
+  }
+
+  private Map<Component, List<PolicyAlert>> groupPolicyAlertsByComponent(
+      final PolicyResults policyResults,
+      final List<Component> components)
+  {
+    Map<Component, List<PolicyAlert>> policyAlertsByComponent = new HashMap<>();
+
+    for (PolicyAlert policyAlert : policyResults.getActiveAlerts()) {
+      Component component = findComponentForAlert(policyAlert, components);
+      if (component != null) {
+        policyAlertsByComponent.computeIfAbsent(component, k -> new ArrayList<>()).add(policyAlert);
+      }
+    }
+    return policyAlertsByComponent;
+  }
+
+  private Component findComponentForAlert(final PolicyAlert policyAlert, final List<Component> components) {
+    return components.stream()
+        .filter(Objects::nonNull)
+        .filter(component -> getComponentFact(policyAlert, component) != null)
+        .findFirst()
+        .orElse(null);
   }
 
   private Map<String, RepositoryComponent> getRepositoryComponents(
@@ -358,13 +391,8 @@ public class RepositoryPolicyEvaluator
         (component.getHash() == null || repositoryComponent.getHash().equals(component.getHash()))) {
       return repositoryComponent.isQuarantined();
     }
-    return shouldQuarantine(policyAlerts, component);
-  }
 
-  private List<PolicyAlert> getPolicyAlerts(final PolicyResults policyResults, final Component component) {
-    return policyResults.getActiveAlerts().stream()
-        .filter(policyAlert -> getComponentFact(policyAlert, component) != null)
-        .collect(Collectors.toList());
+    return shouldQuarantine(policyAlerts, component);
   }
 
   private RepositoryComponent persistEvaluationResults(

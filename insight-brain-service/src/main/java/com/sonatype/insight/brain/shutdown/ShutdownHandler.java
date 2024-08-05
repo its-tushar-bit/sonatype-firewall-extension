@@ -10,11 +10,10 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BooleanSupplier;
@@ -72,7 +71,7 @@ public class ShutdownHandler
 
   private final ThreadFactory threadFactory;
 
-  private final ThreadPoolExecutor threadPoolExecutor;
+  private final ExecutorService executorService;
 
   private final PriorityBlockingQueue<FIFOEntry<ShutdownRequest<?>>> shutdownRequests;
 
@@ -83,14 +82,13 @@ public class ShutdownHandler
   }
 
   private ShutdownHandler(final ThreadFactory threadFactory) {
-    this(threadFactory, new ThreadPoolExecutor(0, Integer.MAX_VALUE, 0,
-        TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), threadFactory));
+    this(threadFactory, Executors.newCachedThreadPool(threadFactory));
   }
 
   // Visible for testing
-  ShutdownHandler(final ThreadFactory threadFactory, final ThreadPoolExecutor threadPoolExecutor) {
+  ShutdownHandler(final ThreadFactory threadFactory, final ExecutorService executorService) {
     this.threadFactory = threadFactory;
-    this.threadPoolExecutor = threadPoolExecutor;
+    this.executorService = executorService;
     shutdownRequests = new PriorityBlockingQueue<>();
   }
 
@@ -176,13 +174,13 @@ public class ShutdownHandler
               String.format("shutdown for order '%s', origin '%s', item '%s'", shutdownRequest.getOrder(),
                   shutdownRequest.getOrigin(), shutdownRequest.getItemToString());
           log.debug("Initiating {}.", description);
-          futures.add(shutdownRequest.execute(threadPoolExecutor));
+          futures.add(shutdownRequest.execute(executorService));
           descriptions.add(description);
         }
 
         // Wait for the shutdowns for this group to complete, but do not wait beyond the timeout
         // use a separate thread to enforce a timeout in case Future#get(long, TimeUnit) is unsupported
-        Future<?> groupFuture = threadPoolExecutor.submit(() -> tryCheckedRunnable(() -> {
+        Future<?> groupFuture = executorService.submit(() -> tryCheckedRunnable(() -> {
           for (int i = 0; i < futures.size(); i++) {
             log.debug("Waiting for {}.", descriptions.get(i));
             futures.get(i).get();
@@ -191,7 +189,7 @@ public class ShutdownHandler
         groupFuture.get(end - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
       }
 
-      threadPoolExecutor.shutdownNow();
+      executorService.shutdownNow();
 
       log.info("Completed graceful shutdown in {} ms.", System.currentTimeMillis() - start);
     }

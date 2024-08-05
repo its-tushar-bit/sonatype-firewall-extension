@@ -8,10 +8,9 @@ package com.sonatype.insight.brain.shutdown;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -48,7 +47,7 @@ public class ShutdownHandlerTest
 
   private ThreadFactory spyThreadFactory;
 
-  private ThreadPoolExecutor spyThreadPoolExecutor;
+  private ExecutorService spyExecutorService;
 
   @Captor
   private ArgumentCaptor<Runnable> runnableArgumentCaptor;
@@ -59,9 +58,8 @@ public class ShutdownHandlerTest
   public void before() {
     spyThreadFactory =
         spy(new ThreadFactoryBuilder().setNameFormat(ShutdownHandlerTest.class.getSimpleName() + "-%d").build());
-    spyThreadPoolExecutor = spy(new ThreadPoolExecutor(0, Integer.MAX_VALUE, 0,
-        TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), spyThreadFactory));
-    spyShutdownHandler = spy(new ShutdownHandler(spyThreadFactory, spyThreadPoolExecutor));
+    spyExecutorService = spy(Executors.newCachedThreadPool(spyThreadFactory));
+    spyShutdownHandler = spy(new ShutdownHandler(spyThreadFactory, spyExecutorService));
     doNothing().when(spyShutdownHandler).exit(anyInt());
     executeCounter = new AtomicInteger(0);
     getCounter = new AtomicInteger(0);
@@ -69,7 +67,7 @@ public class ShutdownHandlerTest
 
   @After
   public void after() {
-    spyThreadPoolExecutor.shutdownNow();
+    spyExecutorService.shutdownNow();
   }
 
   @Test
@@ -145,7 +143,7 @@ public class ShutdownHandlerTest
     assertThat(shutdownRequest6.getExecuteCount()).isEqualTo(4);
 
     // Check we haven't tried to shut down yet
-    verify(spyThreadPoolExecutor, never()).shutdownNow();
+    verify(spyExecutorService, never()).shutdownNow();
     verify(spyShutdownHandler, never()).exitInNewThread(anyInt());
 
     // Let group 2 finish
@@ -155,7 +153,7 @@ public class ShutdownHandlerTest
     thread.join(timeout.toMillis());
 
     // We should shut down by the end of the request
-    verify(spyThreadPoolExecutor).shutdownNow();
+    verify(spyExecutorService).shutdownNow();
     verify(spyShutdownHandler).exitInNewThread(0);
   }
 

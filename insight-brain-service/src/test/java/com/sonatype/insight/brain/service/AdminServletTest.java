@@ -23,8 +23,10 @@ import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.TestShutdownHandler;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.brain.utils.CheckedRunnable;
+import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
+import org.junit.Rule;
 import org.junit.Test;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -38,6 +40,9 @@ import static org.mockito.Mockito.verify;
 public class AdminServletTest
     extends AbstractBrainServiceIntegrationTest
 {
+  @Rule
+  public LogOutput logOutput = new LogOutput(ShutdownHandler.class);
+
   @Override
   public void configure(final Binder binder) {
     super.configure(binder);
@@ -57,6 +62,7 @@ public class AdminServletTest
         () -> tryCheckedRunnable(() -> blockResponse.set(restRequest().path("test", "block").post())),
         testBlockResource.blocker,
         Duration.ofMinutes(1),
+        "[^']*ActiveRequestCounterFilter[^']*",
         () -> assertThat(restRequest().path("rest", "product", "version").get().getStatusCode()).isEqualTo(503)
     );
     assertThat(blockResponse.get().getStatusCode()).isEqualTo(204);
@@ -72,7 +78,8 @@ public class AdminServletTest
       testTasksShutdown_WaitsFor(
           () -> taskScheduler.scheduleOneTimeTask(testBlockJob),
           testBlockJob.blocker,
-          Duration.ofMinutes(1)
+          Duration.ofMinutes(1),
+          "[^']*StdScheduler[^']*"
       );
       assertThat(taskScheduler.getScheduler()).isNull();
     }
@@ -90,7 +97,8 @@ public class AdminServletTest
     testTasksShutdown_WaitsFor(
         thread::start,
         blocker,
-        Duration.ofMinutes(1)
+        Duration.ofMinutes(1),
+        "[^']*" + Integer.toHexString(thread.hashCode()) + "[^']*"
     );
     assertThat(thread.isAlive()).isFalse();
   }
@@ -104,7 +112,8 @@ public class AdminServletTest
     testTasksShutdown_WaitsFor(
         () -> executorService.submit(() -> tryCheckedRunnable(blocker::block)),
         blocker,
-        Duration.ofMinutes(1)
+        Duration.ofMinutes(1),
+        "[^']*" + Integer.toHexString(executorService.hashCode()) + "[^']*"
     );
   }
 
@@ -112,6 +121,7 @@ public class AdminServletTest
       final Runnable blockerTrigger,
       final Blocker blocker,
       final Duration timeout,
+      final String itemDescriptionRegex,
       final CheckedRunnable... assertions) throws Exception
   {
     long extraMillisToWait = 1000;
@@ -126,6 +136,13 @@ public class AdminServletTest
       Thread shutdownTaskThread = new Thread(
           () -> tryCheckedRunnable(() -> shutdownResponse.set(adminRequest().path("tasks", "shutdown").post())));
       shutdownTaskThread.start();
+      await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> assertThat(logOutput)
+          .atDebugLevel()
+          .containsPattern(
+              String.format("Initiating shutdown for order '[^']*', origin '[^']*', item '%s'.", itemDescriptionRegex)
+          ).containsPattern(
+              String.format("Waiting for shutdown for order '[^']*', origin '[^']*', item '%s'.", itemDescriptionRegex)
+          ));
 
       // Wait some time
       Thread.sleep(extraMillisToWait);

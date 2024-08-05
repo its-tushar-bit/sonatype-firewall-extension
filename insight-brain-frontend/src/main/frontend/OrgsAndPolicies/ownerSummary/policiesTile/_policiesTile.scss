@@ -64,6 +64,7 @@
       minmax(70px, $stagesMaxWidth)
       minmax(70px, $stagesMaxWidth)
       minmax(70px, $stagesMaxWidth)
+      minmax(70px, $stagesMaxWidth)
       max-content;
 
     .nx-threat-indicator {
@@ -154,7 +155,7 @@
     font-size: 14px;
   }
 
-  $actionColumns: 6;
+  $actionColumns: 7;
   @for $i from 1 through $actionColumns {
     .policy-tile__stages-num--#{$i} {
       .nx-table tr {

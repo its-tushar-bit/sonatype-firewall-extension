@@ -693,7 +693,7 @@ public class ThirdPartyScanResultsProcessorTest
   }
 
   private void assertFilteredScanFile(final String thirdPartyFileId, final String applicationId) {
-    ThirdPartyScan tpScan = thirdPartyScanDAO.getByThirdPartyFileId(thirdPartyFileId);
+    ThirdPartyScan tpScan = thirdPartyScanDAO.getSingleByThirdPartyFileId(thirdPartyFileId);
     String filteredScanFile = tpScan.getFilteredScanFile();
     assertThat(filteredScanFile).isNotNull();
     File filteredScan = new File(insightWork.getScanDir(applicationId), filteredScanFile);

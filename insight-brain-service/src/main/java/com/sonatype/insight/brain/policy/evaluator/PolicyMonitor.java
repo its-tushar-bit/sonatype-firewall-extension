@@ -28,17 +28,11 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
-import com.sonatype.insight.brain.model.policy.ScanTriggerType;
-import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.Configuration;
@@ -47,7 +41,6 @@ import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
@@ -93,10 +86,6 @@ public class PolicyMonitor
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
-  private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
-
-  private final ThirdPartyScanDAO thirdPartyScanDAO;
-
   @Inject
   public PolicyMonitor(
       final InsightWork work,
@@ -110,8 +99,6 @@ public class PolicyMonitor
       final OwnerDAO ownerDAO,
       final ApplicationDAO applicationDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
-      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
-      final ThirdPartyScanDAO thirdPartyScanDAO,
       final Configuration configuration,
       final ShutdownHandler shutdownHandler)
   {
@@ -126,8 +113,6 @@ public class PolicyMonitor
     this.ownerDAO = ownerDAO;
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
-    this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
-    this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.applicationMonitorForkJoinPool = initThreadPool(configuration);
     shutdownHandler.add(this.applicationMonitorForkJoinPool);
   }
@@ -227,17 +212,13 @@ public class PolicyMonitor
 
   @VisibleForTesting
   void evaluate(Application app, PolicyMonitoring policyMonitoring) throws IOException, InterruptedException {
-    if (ComplianceStageType.ID.equals(policyMonitoring.getStageTypeId())) {
-      evaluateSbomManagerComplianceStage(app, policyMonitoring);
-      return;
-    }
-
     long start = System.currentTimeMillis();
+
     log.info("Policy monitoring is enabled for application '{}' and stage '{}'", app.getName(),
         policyMonitoring.getStageTypeId());
 
-    PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(
-        app.getId(), policyMonitoring.getStageTypeId());
+    PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO
+        .getLastPrimaryByApplicationIdAndStageId(app.getId(), policyMonitoring.getStageTypeId());
     if (lastPrimaryPolicyEvaluation == null) {
       AuditData.get().setEvent(null);
       log.info("There is nothing to monitor for application '{}' because there is no scan for stage '{}'",
@@ -278,69 +259,6 @@ public class PolicyMonitor
         System.currentTimeMillis() - start);
   }
 
-  @VisibleForTesting
-  void evaluateSbomManagerComplianceStage(Application app, PolicyMonitoring policyMonitoring)
-      throws IOException, InterruptedException
-  {
-    long start = System.currentTimeMillis();
-    log.info("SBOM Manager Policy Monitoring is enabled for application '{}' and stage '{}'", app.getName(),
-        policyMonitoring.getStageTypeId());
-
-    ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getLatestActiveByApplicationId(app.getId());
-    if (sbomMetadata == null) {
-      AuditData.get().setEvent(null);
-      log.debug("No monitorable sbom version for application id {}", app.getId());
-      return;
-    }
-    AuditData.get().setSbomVersion(sbomMetadata, null);
-
-    ThirdPartyScan latestSbomVersionScan = thirdPartyScanDAO.getByThirdPartyFileId(sbomMetadata.getThirdPartyFileId());
-    if (latestSbomVersionScan == null || latestSbomVersionScan.getFilteredScanFile() == null) {
-      AuditData.get().setEvent(null);
-      log.debug("No filtered scan file for application id {} and sbom version {}", app.getId(),
-          sbomMetadata.getSbomVersion());
-      return;
-    }
-
-    File filteredScanFile = new File(work.getScanDir(app.getId()), latestSbomVersionScan.getFilteredScanFile());
-    if (!filteredScanFile.exists()) {
-      AuditData.get().setEvent(null);
-      log.debug("Missing filtered scan file {} for application id {} and sbom version {}",
-          latestSbomVersionScan.getFilteredScanFile(), app.getId(), sbomMetadata.getSbomVersion());
-      return;
-    }
-
-    latestSbomVersionScan.setPreviousScanId(latestSbomVersionScan.getScanId());
-    String newScanId = uploadFilteredScanForComplianceStage(filteredScanFile, app);
-
-    // Update scanId on third party scan table so we can associate the scan with the new evaluation/report
-    latestSbomVersionScan.setScanId(newScanId);
-    thirdPartyScanDAO.update(latestSbomVersionScan);
-
-    // Evaluate policies and send notifications
-    Stage stage = new Stage(policyMonitoring.getStageTypeId());
-    PolicyEvaluation lastPolicyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(),
-        latestSbomVersionScan.getPreviousScanId());
-    ScanTriggerType scanTriggerType;
-    ClientScanType clientScanType;
-    if (lastPolicyEvaluation != null) {
-      scanTriggerType = lastPolicyEvaluation.getScanTriggerType();
-      clientScanType = lastPolicyEvaluation.getClientScanType();
-    }
-    else {
-      log.debug("No latest policy evaluation for appId {}, scanId {}", app.getId(),
-          latestSbomVersionScan.getPreviousScanId());
-      scanTriggerType = ScanTriggerType.SBOM_UI;
-      clientScanType = ClientScanType.SONATYPE_THIRD_PARTY;
-    }
-    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluateForMonitoring(app, newScanId, stage,
-        scanTriggerType, clientScanType);
-    policyAlertNotifier.sendNotifications(app, results);
-
-    log.debug("SBOM Manager Policy Monitoring evaluated for application '{}' in {} ms", app.getName(),
-        System.currentTimeMillis() - start);
-  }
-
   private void cloneScanFile(
       File tempScanFile,
       Application app,
@@ -368,14 +286,6 @@ public class PolicyMonitor
       }
     }
     while (true);
-  }
-
-  private String uploadFilteredScanForComplianceStage(File filteredScanFile, Application app)
-      throws IOException, InterruptedException
-  {
-    ScanReceipt scanReceipt = uploader.upload(filteredScanFile, app, ComplianceStageType.ID, null /*clientUserAgent*/);
-    scanReceipt.waitForReport();
-    return scanReceipt.getScanId();
   }
 
   private String uploadScan(File tempScanFile, Application app, String stageTypeId, boolean hasThirdPartyContent)

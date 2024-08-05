@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.model.thirdpartyscans;
 
 import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -45,9 +46,6 @@ public class ThirdPartyScan
 
   @Column(name = "filtered_scan_file")
   private String filteredScanFile;
-
-  @Column(name = "previous_scan_id")
-  private String previousScanId;
 
   @Override
   public String getId() {
@@ -97,13 +95,5 @@ public class ThirdPartyScan
 
   public void setFilteredScanFile(final String filteredScanFile) {
     this.filteredScanFile = filteredScanFile;
-  }
-
-  public String getPreviousScanId() {
-    return previousScanId;
-  }
-
-  public void setPreviousScanId(String previousScanId) {
-    this.previousScanId = previousScanId;
   }
 }

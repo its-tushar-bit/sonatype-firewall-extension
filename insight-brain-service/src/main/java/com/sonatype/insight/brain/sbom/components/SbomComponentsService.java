@@ -252,7 +252,7 @@ public class SbomComponentsService
     }
 
     ThirdPartyScan scanEntity =
-        thirdPartyScanDAO.getByThirdPartyFileId(metadataEntity.getThirdPartyFileId());
+        thirdPartyScanDAO.getSingleByThirdPartyFileId(metadataEntity.getThirdPartyFileId());
 
     return buildSbomMetadataDTO(
         new SbomMetadataDTO(metadataEntity.getSpec(), metadataEntity.getSpecVersion(), metadataEntity.getSpecFormat(),

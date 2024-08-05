@@ -169,21 +169,6 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   @Test
-  public void testGetLatestActiveByApplicationId() {
-    ThirdPartySbomMetadata entity1 = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory).withApplicationId("appId")
-        .build();
-    ThirdPartySbomMetadata entity2 = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory).withApplicationId("appId")
-        .build();
-    assertThat(entity1.getId()).isNotNull();
-    assertThat(entity2.getId()).isNotNull();
-
-    final ThirdPartySbomMetadata sbomMetadata = dao.getLatestActiveByApplicationId("appId");
-    assertThat(sbomMetadata).isNotNull();
-    assertThat(sbomMetadata.getCreatedAt()).isAfter(entity1.getCreatedAt());
-    assertThirdPartySbomMetadata(sbomMetadata, entity2);
-  }
-
-  @Test
   public void testGetByApplicationIdAndSbomVersion() {
     Application app = tempEntity.newApplicationWithParent();
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)

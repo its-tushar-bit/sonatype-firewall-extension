@@ -7,5 +7,5 @@ package com.sonatype.insight.brain.thirdparty;
 
 public enum SbomAction
 {
-  CREATE, DELETE;
+  CREATE, READ, DELETE;
 }

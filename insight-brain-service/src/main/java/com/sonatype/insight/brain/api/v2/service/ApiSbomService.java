@@ -198,12 +198,30 @@ public class ApiSbomService
     SbomExportParams params = SbomExportParams.newSbomExporterParams(thirdPartySbomMetadata)
         .withExportSpecification(exportSpec)
         .withTargetFormat(sbomFormat);
+    return buildSbomResponse(params, applicationId, version, acceptType);
+  }
 
-    String content = sbomExporterProvider.get(params).export();
-    boolean validity = validateAndLogAnyErrors(content, applicationId, version, exportSpec, sbomFormat);
+  public Response buildSbomResponse(
+      final SbomExportParams sbomExportParams,
+      final String applicationId,
+      final String sbomVersion,
+      final String type)
+  {
+    String content = sbomExporterProvider.get(sbomExportParams).export();
+    boolean validity = validateAndLogAnyErrors(
+        content,
+        applicationId,
+        sbomVersion,
+        sbomExportParams.getExportSpecification(),
+        sbomExportParams.getTargetFormat()
+    );
     content = content != null ? content : "";
-    String fileName = getExportFileName(applicationId, version, sbomFormat.toString());
-    return Response.ok(content.getBytes(StandardCharsets.UTF_8), acceptType)
+    String fileName = getExportFileName(
+        applicationId,
+        sbomVersion,
+        sbomExportParams.getTargetFormat().toString()
+    );
+    return Response.ok(content.getBytes(StandardCharsets.UTF_8), type)
         .header(SBOM_VALIDATED_HEADER, String.valueOf(validity))
         .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(fileName))
         .build();
@@ -305,7 +323,7 @@ public class ApiSbomService
   }
 
   @NotNull
-  private ThirdPartySbomMetadata findSbomMetadataRecord(final String applicationId, final String version) {
+  public ThirdPartySbomMetadata findSbomMetadataRecord(final String applicationId, final String version) {
     final ThirdPartySbomMetadata thirdPartySbomMetadata =
         dao.getByApplicationIdAndSbomVersionAndStatus(applicationId, version, SbomStatus.ACTIVE.name());
     if (thirdPartySbomMetadata == null) {

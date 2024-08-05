@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.sbom.export;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -16,6 +17,7 @@ import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.scan.file.SbomFormat;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 
 import static com.sonatype.insight.brain.sbom.SbomSpecification.CYCLONEDX;
 import static com.sonatype.insight.brain.sbom.SbomSpecification.SPDX;
@@ -37,15 +39,22 @@ public class SbomExportParams
 
     private final String version;
 
+    private final ComparableVersion comparableVersion;
+
     private final SbomSpecification specification;
 
     ExportSpecification(final String version, SbomSpecification specification) {
       this.version = version;
+      this.comparableVersion = new ComparableVersion(version);
       this.specification = specification;
     }
 
     public String getVersion() {
       return version;
+    }
+
+    public ComparableVersion getComparableVersion() {
+      return comparableVersion;
     }
 
     public SbomSpecification getSpecification() {
@@ -54,6 +63,13 @@ public class SbomExportParams
 
     public static ExportSpecification getSpecificationForRequest(String requestSpecification) {
       return SUPPORTED_EXPORT_SPECIFICATIONS.get(requestSpecification);
+    }
+
+    public static ExportSpecification getLatestVersionForSbomSpecification(final SbomSpecification sbomSpecification) {
+      return Arrays.stream(values())
+          .filter(e -> sbomSpecification == e.specification)
+          .max(Comparator.comparing(ExportSpecification::getComparableVersion))
+          .orElse(null);
     }
   }
 
@@ -67,6 +83,14 @@ public class SbomExportParams
 
   private SbomExportParams(final ThirdPartySbomMetadata sbomMetadata) {
     this.sbomMetadata = sbomMetadata;
+  }
+
+  public ExportSpecification getExportSpecification() {
+    return exportSpecification;
+  }
+
+  public SbomFormat getTargetFormat() {
+    return targetFormat;
   }
 
   public static SbomExportParams newSbomExporterParams(ThirdPartySbomMetadata sbomMetadata) {

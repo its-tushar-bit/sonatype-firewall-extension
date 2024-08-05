@@ -596,6 +596,31 @@ public class ApplicationDAO
     }
   }
 
+  public Application getByIdOrPublicIdNotNull(final String idOrPublicId) {
+    Application application = getByIdOrPublicId(idOrPublicId);
+    if (application == null) {
+      throw new NotFoundException("Cannot find an application with id/public id '" + idOrPublicId + "'.");
+    }
+    return application;
+  }
+
+  public Application getByIdOrPublicId(final String idOrPublicId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByIdOrPublicId(tx, idOrPublicId);
+    }
+  }
+
+  private Application getByIdOrPublicId(final TransactionContext tx, final String idOrPublicId) {
+    if (StringUtils.isBlank(idOrPublicId)) {
+      return null;
+    }
+    String normalizedIdOrPublicId = normalizePublicId(idOrPublicId);
+    String sQuery = "SELECT app FROM Application app" +
+        " WHERE app.id=?1" +
+        " OR app.publicIdLowercase=?2";
+    return get(tx, sQuery, idOrPublicId, normalizedIdOrPublicId);
+  }
+
   @Override
   protected SearchIndexChange newSearchIndexChange(Application entity) {
     return new SearchIndexChange(ChangeType.APPLICATION, entity.getId());

@@ -5,13 +5,20 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.lang.reflect.Modifier;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 import javax.inject.Inject;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.api.SpdxMediaType;
 import com.sonatype.insight.brain.api.v2.dto.securesharing.ApiSecureSharingApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.securesharing.ApiSecureSharingApplicationListDTO;
+import com.sonatype.insight.brain.dataaccess.NotAcceptableException;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -20,14 +27,35 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.brain.sbom.export.SbomExportParams;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.scan.file.SbomFormat;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.inject.Binder;
+import com.google.inject.matcher.Matchers;
+import org.cyclonedx.CycloneDxMediaType;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.setupScenarioWithMetadataComponentSecurityLicenseAndVex;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ApiSecureSharingServiceTest
@@ -39,6 +67,26 @@ public class ApiSecureSharingServiceTest
 
   @Inject
   private ApiSecureSharingService service;
+
+  @Inject
+  private InsightWork insightWork;
+
+  @Mock
+  private ApiSbomService mockApiSbomService;
+
+  @Captor
+  private ArgumentCaptor<SbomExportParams> sbomExportParamsArgumentCaptor;
+
+  @Override
+  public void configure(final Binder binder) {
+    super.configure(binder);
+    binder.bindInterceptor(Matchers.subclassesOf(ApiSbomService.class), Matchers.any(), invocation -> {
+      if (invocation.getMethod().getModifiers() == Modifier.PUBLIC) {
+        invocation.getMethod().invoke(mockApiSbomService, invocation.getArguments());
+      }
+      return invocation.proceed();
+    });
+  }
 
   @Test
   public void testGetApplicationsWithPermissions_NegativePage() {
@@ -390,6 +438,178 @@ public class ApiSecureSharingServiceTest
     assertThat(page3PageSize2).isNotNull();
     assertThat(page3PageSize2.applications).isEmpty();
     assertThat(page3PageSize2.total).isEqualTo(3);
+  }
+
+  @Test
+  public void testExportSbom_ApplicationDoesNotExist() {
+    ThirdPartySbomMetadata thirdPartySbomMetadata =
+        tempEntity.newThirdPartySbomMetadata("doesNotExist", SbomStatus.ACTIVE.name(), "bom.xml");
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.exportSbom(thirdPartySbomMetadata.getApplicationId(),
+            thirdPartySbomMetadata.getSbomVersion(), null))
+        .withMessageContaining("Cannot find an application with id/public id 'doesNotExist'.");
+  }
+
+  @Test
+  public void testExportSbom_WrongOwnerType() {
+    Organization organization = tempEntity.newOrganization();
+    ThirdPartySbomMetadata thirdPartySbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(organization.getId(), SbomStatus.ACTIVE.name(), "bom.xml");
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.exportSbom(thirdPartySbomMetadata.getApplicationId(),
+            thirdPartySbomMetadata.getSbomVersion(), null))
+        .withMessageContaining("Cannot find an application with id/public id '" + organization.getId() + "'.");
+  }
+
+  @Test
+  public void testExportSbom_SbomNotFound() {
+    Application application = tempEntity.newApplicationWithParent();
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.exportSbom(application.getId(), "doesNotExist", null))
+        .withMessageContaining("Cannot find version doesNotExist for application with ID " + application.getId() + ".");
+  }
+
+  @Test
+  public void testExportSbom_SbomNotActive() {
+    Application application = tempEntity.newApplicationWithParent();
+    ThirdPartySbomMetadata thirdPartySbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(application.getId(), SbomStatus.PENDING.name(), "bom.xml");
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.exportSbom(application.getId(), thirdPartySbomMetadata.getSbomVersion(), null))
+        .withMessageContaining(
+            "Cannot find version " + thirdPartySbomMetadata.getSbomVersion() + " for application with ID " +
+                application.getId() + ".");
+  }
+
+  @Test
+  public void testExportSbom_UnacceptableType() {
+    Application application = tempEntity.newApplicationWithParent();
+    ThirdPartySbomMetadata thirdPartySbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(application.getId(), SbomStatus.ACTIVE.name(), "bom.xml");
+
+    assertThatExceptionOfType(NotAcceptableException.class)
+        .isThrownBy(() -> service.exportSbom(application.getId(), thirdPartySbomMetadata.getSbomVersion(),
+            MediaType.APPLICATION_SVG_XML))
+        .withMessageContaining("Media type 'application/svg+xml' is unacceptable, expected one of " +
+            "['application/vnd.cyclonedx+json', 'application/vnd.cyclonedx+xml', 'application/spdx+json', " +
+            "'application/spdx+xml']");
+  }
+
+  @Test
+  public void testExportSbom_ApplicationPublicId() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    Path zippedBom = mockOriginalSbom(this.getClass(), "valid-cyclonedx-result-bom.xml",
+        insightWork.getSbomDir(application.getId()).toPath());
+    String sbomVersion = tempEntity.newRandomHash();
+    setupScenarioWithMetadataComponentSecurityLicenseAndVex(tempEntity, application, zippedBom, sbomVersion,
+        "CycloneDx", "1.5", SbomFormat.XML);
+
+    assertThatNoException().isThrownBy(() -> service.exportSbom(application.getPublicId(), sbomVersion, null));
+  }
+
+  @Test
+  public void testExportSbom_NullAccept() throws Exception {
+    testExportSbom(
+        null,
+        CycloneDxMediaType.APPLICATION_CYCLONEDX_XML,
+        SbomSpecification.CYCLONEDX,
+        "1.6",
+        SbomFormat.XML
+    );
+  }
+
+  @Test
+  public void testExportSbom_WildcardAccept() throws Exception {
+    testExportSbom(
+        MediaType.WILDCARD,
+        CycloneDxMediaType.APPLICATION_CYCLONEDX_XML,
+        SbomSpecification.CYCLONEDX,
+        "1.6",
+        SbomFormat.XML
+    );
+  }
+
+  @Test
+  public void testExportSbom_CycloneDX_Json_Accept() throws Exception {
+    testExportSbom(
+        CycloneDxMediaType.APPLICATION_CYCLONEDX_JSON,
+        CycloneDxMediaType.APPLICATION_CYCLONEDX_JSON,
+        SbomSpecification.CYCLONEDX,
+        "1.6",
+        SbomFormat.JSON
+    );
+  }
+
+  @Test
+  public void testExportSbom_CycloneDX_Xml_Accept() throws Exception {
+    testExportSbom(
+        CycloneDxMediaType.APPLICATION_CYCLONEDX_XML,
+        CycloneDxMediaType.APPLICATION_CYCLONEDX_XML,
+        SbomSpecification.CYCLONEDX,
+        "1.6",
+        SbomFormat.XML
+    );
+  }
+
+  @Test
+  public void testExportSbom_Spdx_Json_Accept() throws Exception {
+    testExportSbom(
+        SpdxMediaType.APPLICATION_SPDX_JSON,
+        SpdxMediaType.APPLICATION_SPDX_JSON,
+        SbomSpecification.SPDX,
+        "2.3",
+        SbomFormat.JSON
+    );
+  }
+
+  @Test
+  public void testExportSbom_Spdx_Xml_Accept() throws Exception {
+    testExportSbom(
+        SpdxMediaType.APPLICATION_SPDX_XML,
+        SpdxMediaType.APPLICATION_SPDX_XML,
+        SbomSpecification.SPDX,
+        "2.3",
+        SbomFormat.XML
+    );
+  }
+
+  private void testExportSbom(
+      final String accept,
+      final String expectedAccept,
+      final SbomSpecification expectedSbomSpecification,
+      final String expectedVersion,
+      final SbomFormat expectedFormat) throws Exception
+  {
+    Application application = tempEntity.newApplicationWithParent();
+    Path zippedBom = mockOriginalSbom(this.getClass(), "valid-cyclonedx-result-bom.xml",
+        insightWork.getSbomDir(application.getId()).toPath());
+    String sbomVersion = tempEntity.newRandomHash();
+    setupScenarioWithMetadataComponentSecurityLicenseAndVex(tempEntity, application, zippedBom, sbomVersion,
+        "CycloneDx", "1.5", SbomFormat.XML);
+
+    Response response = service.exportSbom(application.getId(), sbomVersion, accept);
+
+    assertThat(response).isNotNull();
+    assertThat(response.getStatus()).isEqualTo(200);
+    String content = new String((byte[]) response.getEntity(), StandardCharsets.UTF_8);
+    assertThat(content).isNotEmpty();
+    ObjectMapper objectMapper = expectedFormat == SbomFormat.JSON ? new ObjectMapper() : new XmlMapper();
+    JsonNode jsonNode = objectMapper.readTree(content);
+    assertThat(jsonNode).isNotNull();
+    verify(mockApiSbomService).buildSbomResponse(
+        sbomExportParamsArgumentCaptor.capture(),
+        eq(application.getId()),
+        eq(sbomVersion),
+        eq(expectedAccept)
+    );
+    SbomExportParams sbomExportParams = sbomExportParamsArgumentCaptor.getValue();
+    assertThat(sbomExportParams.getExportSpecification().getSpecification()).isEqualTo(expectedSbomSpecification);
+    assertThat(sbomExportParams.getExportSpecification().getVersion()).isEqualTo(expectedVersion);
+    assertThat(sbomExportParams.getTargetFormat()).isEqualTo(expectedFormat);
   }
 
   private void assertApplicationDTO(

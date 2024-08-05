@@ -103,6 +103,7 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVec
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -114,6 +115,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ApplicationDAOTest
@@ -1633,6 +1635,56 @@ public class ApplicationDAOTest
     assertThat(applicationDAO.getByAncestorIds(Sets.union(new LinkedHashSet<>(
         Arrays.asList(app2.getId(), app3.getId(), app1.getId())), ids), 3, 2))
         .isEmpty();
+  }
+
+  @Test
+  public void testGetByIdOrPublicId() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newApplicationWithParent();
+    
+    assertThat(applicationDAO.getByIdOrPublicId(null)).isNull();
+    assertThat(applicationDAO.getByIdOrPublicId("")).isNull();
+    assertThat(applicationDAO.getByIdOrPublicId(" ")).isNull();
+    assertThat(applicationDAO.getByIdOrPublicId(application.getId()))
+        .usingRecursiveComparison()
+        .isEqualTo(application);
+    assertThat(applicationDAO.getByIdOrPublicId(application.getPublicId()))
+        .usingRecursiveComparison()
+        .isEqualTo(application);
+    assertThat(applicationDAO.getByIdOrPublicId(application.getPublicId().toLowerCase(Locale.ENGLISH)))
+        .usingRecursiveComparison()
+        .isEqualTo(application);
+    assertThat(applicationDAO.getByIdOrPublicId(application.getPublicId().toUpperCase(Locale.ENGLISH)))
+        .usingRecursiveComparison()
+        .isEqualTo(application);
+    assertThat(applicationDAO.getByIdOrPublicId(" " + application.getPublicId() + " "))
+        .usingRecursiveComparison()
+        .isEqualTo(application);
+  }
+
+  @Test
+  public void testGetByIdOrPublicIdNotNull() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newApplicationWithParent();
+
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> applicationDAO.getByIdOrPublicIdNotNull(null));
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> applicationDAO.getByIdOrPublicIdNotNull(""));
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> applicationDAO.getByIdOrPublicIdNotNull(" "));
+    assertThat(applicationDAO.getByIdOrPublicIdNotNull(application.getId()))
+        .usingRecursiveComparison()
+        .isEqualTo(application);
+    assertThat(applicationDAO.getByIdOrPublicIdNotNull(application.getPublicId()))
+        .usingRecursiveComparison()
+        .isEqualTo(application);
+    assertThat(applicationDAO.getByIdOrPublicIdNotNull(application.getPublicId().toLowerCase(Locale.ENGLISH)))
+        .usingRecursiveComparison()
+        .isEqualTo(application);
+    assertThat(applicationDAO.getByIdOrPublicIdNotNull(application.getPublicId().toUpperCase(Locale.ENGLISH)))
+        .usingRecursiveComparison()
+        .isEqualTo(application);
+    assertThat(applicationDAO.getByIdOrPublicIdNotNull(" " + application.getPublicId() + " "))
+        .usingRecursiveComparison()
+        .isEqualTo(application);
   }
 
   private void validateApplication(Application actualApp, Application expectedApp) {

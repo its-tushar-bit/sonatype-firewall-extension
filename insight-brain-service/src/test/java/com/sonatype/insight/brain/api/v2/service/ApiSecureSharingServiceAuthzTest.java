@@ -7,11 +7,15 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Collections;
 import javax.inject.Inject;
+import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,5 +44,23 @@ public class ApiSecureSharingServiceAuthzTest
     // Note that Authorized tests are in the corresponding service and resource class
     // This is because authorization is part of the service / dao methods instead of via annotations
     assertThat(service.getApplicationsWithPermissions(Collections.emptySet(), 1, 10)).isNotNull();
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testExportSbom_Unauthenticated() {
+    Response response = service.exportSbom(app.getId(), "sbomVersion", null);
+    assertThat(response).isNotNull();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testExportSbom_Unauthorized() {
+    login();
+    service.exportSbom(app.getId(), "sbomVersion", null);
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testExportSbom_Authorized() {
+    grantPermission(app.getId(), Permission.EXPORT_SBOM);
+    service.exportSbom(app.getId(), "sbomVersion", null);
   }
 }

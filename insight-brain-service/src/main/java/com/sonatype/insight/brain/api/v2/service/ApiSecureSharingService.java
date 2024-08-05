@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -17,23 +18,39 @@ import java.util.TreeSet;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.api.SpdxMediaType;
 import com.sonatype.insight.brain.api.v2.dto.securesharing.ApiSecureSharingApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.securesharing.ApiSecureSharingApplicationListDTO;
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.NotAcceptableException;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.brain.sbom.export.SbomExportParams;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.PermissionService;
+import com.sonatype.insight.brain.thirdparty.SbomAction;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.scan.file.SbomFormat;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.util.CollectionUtils;
+import org.cyclonedx.CycloneDxMediaType;
+
+import static com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification.getLatestVersionForSbomSpecification;
 
 @Named
 @Singleton
@@ -50,15 +67,19 @@ public class ApiSecureSharingService
 
   private final ApplicationDAO applicationDAO;
 
+  private final ApiSbomService apiSbomService;
+
   @Inject
   public ApiSecureSharingService(
       final PermissionService permissionService,
       final CurrentUser currentUser,
-      final ApplicationDAO applicationDAO)
+      final ApplicationDAO applicationDAO,
+      final ApiSbomService apiSbomService)
   {
     this.permissionService = permissionService;
     this.currentUser = currentUser;
     this.applicationDAO = applicationDAO;
+    this.apiSbomService = apiSbomService;
   }
 
   public ApiSecureSharingApplicationListDTO getApplicationsWithPermissions(
@@ -168,5 +189,71 @@ public class ApiSecureSharingService
     }).toList();
     dto.total = total;
     return dto;
+  }
+
+  public Response exportSbom(
+      final String applicationIdOrPublicId,
+      final String sbomVersion,
+      final String accept)
+  {
+    return exportSbom(applicationDAO.getByIdOrPublicIdNotNull(applicationIdOrPublicId), sbomVersion, accept);
+  }
+
+  @Authorize(permission = Permission.EXPORT_SBOM)
+  Response exportSbom(
+      @AuthzContext(Key.APPLICATION) final Application application,
+      final String sbomVersion,
+      final String accept)
+  {
+    ThirdPartySbomMetadata thirdPartySbomMetadata =
+        apiSbomService.findSbomMetadataRecord(application.getId(), sbomVersion);
+    AuditData.get().setSbomVersion(thirdPartySbomMetadata, SbomAction.READ);
+    String resolvedAccept = resolveAccept(accept);
+    SbomExportParams sbomExportParams = buildSbomExportParams(resolvedAccept, thirdPartySbomMetadata);
+    return apiSbomService.buildSbomResponse(sbomExportParams, application.getId(), sbomVersion, resolvedAccept);
+  }
+
+  private static String resolveAccept(final String accept) {
+    if (accept == null || MediaType.WILDCARD.equalsIgnoreCase(accept)) {
+      return CycloneDxMediaType.APPLICATION_CYCLONEDX_XML;
+    }
+    return accept;
+  }
+
+  private static SbomExportParams buildSbomExportParams(
+      final String accept,
+      final ThirdPartySbomMetadata thirdPartySbomMetadata)
+  {
+    if (CycloneDxMediaType.APPLICATION_CYCLONEDX_JSON.equalsIgnoreCase(accept)) {
+      return SbomExportParams.newSbomExporterParams(thirdPartySbomMetadata)
+          .withExportSpecification(getLatestVersionForSbomSpecification(SbomSpecification.CYCLONEDX))
+          .withTargetFormat(SbomFormat.JSON);
+    }
+    if (CycloneDxMediaType.APPLICATION_CYCLONEDX_XML.equalsIgnoreCase(accept)) {
+      return SbomExportParams.newSbomExporterParams(thirdPartySbomMetadata)
+          .withExportSpecification(getLatestVersionForSbomSpecification(SbomSpecification.CYCLONEDX))
+          .withTargetFormat(SbomFormat.XML);
+    }
+    if (SpdxMediaType.APPLICATION_SPDX_JSON.equalsIgnoreCase(accept)) {
+      return SbomExportParams.newSbomExporterParams(thirdPartySbomMetadata)
+          .withExportSpecification(getLatestVersionForSbomSpecification(SbomSpecification.SPDX))
+          .withTargetFormat(SbomFormat.JSON);
+    }
+    if (SpdxMediaType.APPLICATION_SPDX_XML.equalsIgnoreCase(accept)) {
+      return SbomExportParams.newSbomExporterParams(thirdPartySbomMetadata)
+          .withExportSpecification(getLatestVersionForSbomSpecification(SbomSpecification.SPDX))
+          .withTargetFormat(SbomFormat.XML);
+    }
+    List<String> supportedMediaTypes = Arrays.asList(
+        CycloneDxMediaType.APPLICATION_CYCLONEDX_JSON,
+        CycloneDxMediaType.APPLICATION_CYCLONEDX_XML,
+        SpdxMediaType.APPLICATION_SPDX_JSON,
+        SpdxMediaType.APPLICATION_SPDX_XML
+    );
+    throw new NotAcceptableException(String.format(
+        "Media type '%s' is unacceptable, expected one of ['%s']",
+        accept,
+        String.join("', '", supportedMediaTypes)
+    ));
   }
 }

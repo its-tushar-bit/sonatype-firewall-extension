@@ -411,7 +411,8 @@ public class IndexSearchingTest
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     tempEntity.newSbomEvaluation(app, appVersion, sbomSpec,
-        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345deadbeef", false);
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"),
+        "12345deadbeef", false, "PENDING");
     index();
     List<SearchResultItemDTO> results = sbomManagerSearch(FieldIdentifier.APPLICATION_VERSION, appVersion);
     assertThat(results).hasSize(1);
@@ -490,7 +491,9 @@ public class IndexSearchingTest
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     tempEntity.newSbomEvaluation(app, appVersion, sbomSpecification,
-        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345", "deadbeef", true);
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345", "deadbeef", true,
+        "PENDING"
+    );
 
     index();
     List<SearchResultItemDTO> results = sbomManagerSearch(FieldIdentifier.VULNERABILITY_ID, "someRefId");
@@ -510,7 +513,8 @@ public class IndexSearchingTest
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     tempEntity.newSbomEvaluation(app, appVersion, sbomSpecification,
-        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345", "deadbeef", false);
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345", "deadbeef", false,
+        "PENDING");
 
     index();
     List<SearchResultItemDTO> results = sbomManagerSearchInAllComponents(FieldIdentifier.COMPONENT_HASH, "12345");
@@ -605,7 +609,8 @@ public class IndexSearchingTest
     Application app = tempEntity.newApplicationWithParent("a_SEARCH-test", "App Name 1");
     tempEntity.newApplicationWithParent("a_search-test2", "App Name 2");
     tempEntity.newSbomEvaluation(app, "1.2.3", "spdx",
-        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345deadbeef", true);
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345deadbeef", true,
+        "PENDING");
     index();
 
     // not SBOM Mgr mode; this should not be returned
@@ -616,7 +621,8 @@ public class IndexSearchingTest
   public void testSearchByField_Sbom_ApplicationVersion() throws Exception {
     Application app = tempEntity.newApplicationWithParent("a_SEARCH-test", "App Name 1");
     tempEntity.newSbomEvaluation(app, "1.2.3", "spdx",
-        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345deadbeef", true);
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345deadbeef", true,
+        "PENDING");
     index();
 
     assertThat(sbomManagerSearch(FieldIdentifier.APPLICATION_VERSION, "1.2.3")).satisfiesExactly(
@@ -642,7 +648,8 @@ public class IndexSearchingTest
   public void testSearchByField_Sbom_SbomSpecification() throws Exception {
     Application app = tempEntity.newApplicationWithParent("a_SEARCH-test", "App Name 1");
     tempEntity.newSbomEvaluation(app, "1.2.3", "spdx",
-        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345deadbeef", true);
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345deadbeef", true,
+        "PENDING");
     index();
 
     assertThat(sbomManagerSearch(FieldIdentifier.SBOM_SPECIFICATION, "spdx")).satisfiesExactly(

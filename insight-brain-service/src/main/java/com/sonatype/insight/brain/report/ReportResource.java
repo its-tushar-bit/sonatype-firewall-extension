@@ -23,7 +23,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -73,6 +72,7 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphService;
 import com.sonatype.insight.brain.report.pdf.PdfGeneratorService;
+import com.sonatype.insight.brain.sbom.policy.SbomPolicyService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -99,17 +99,19 @@ import org.slf4j.LoggerFactory;
 @Timed
 public class ReportResource
 {
-  public static final String RESOURCE_PATH = "rest/report/{applicationPublicId}/{scanId}";
+  public static final String RESOURCE_PATH = "rest/report/{applicationPublicId}";
 
-  public static final String BROWSE_PATH = "browseReport";
+  public static final String BROWSE_PATH = "{scanId}/browseReport";
 
-  public static final String PRINT_PATH = "printReport";
+  public  static final String SBOM_POLICY_VIOLATION_REPORT = "sbom/{sbomVersion}/sbomPolicyViolationReport";
 
-  public static final String DOWNLOAD_BUNDLE_PATH = "downloadBundle";
+  public static final String PRINT_PATH = "{scanId}/printReport";
 
-  public static final String PREPARE_PATH = "prepareReport";
+  public static final String DOWNLOAD_BUNDLE_PATH = "{scanId}/downloadBundle";
 
-  public static final String METADATA_PATH = "metadata";
+  public static final String PREPARE_PATH = "{scanId}/prepareReport";
+
+  public static final String METADATA_PATH = "{scanId}/metadata";
 
   private static final Logger log = LoggerFactory.getLogger(ReportResource.class);
 
@@ -134,6 +136,8 @@ public class ReportResource
   private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
 
   private final ApiReportDataServiceV2 reportDataService;
+
+  private final SbomPolicyService sbomPolicyService;
 
   private final ReleaseGraphService releaseGraphService;
 
@@ -163,6 +167,7 @@ public class ReportResource
       final BaseUrl baseUrl,
       final PolicyEvaluationDAO policyEvaluationDAO,
       final ApiReportDataServiceV2 reportDataService,
+      final SbomPolicyService sbomPolicyService,
       final ReleaseGraphService releaseGraphService,
       final VersionService versionService,
       final PdfGeneratorService pdfGeneratorService,
@@ -176,6 +181,7 @@ public class ReportResource
     this.baseUrl = baseUrl;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.reportDataService = reportDataService;
+    this.sbomPolicyService = sbomPolicyService;
     this.releaseGraphService = releaseGraphService;
     this.versionService = versionService;
     this.pdfGeneratorService = pdfGeneratorService;
@@ -198,12 +204,35 @@ public class ReportResource
       @PathParam("path") final String path,
       @Context final HttpServletRequest httpRequest)
   {
-    Application application = applicationDAO.getByPublicIdNotNull(appPublicId);
-    String appId = application.getId();
+    return processBrowseReport(appPublicId, scanId, path, httpRequest);
+  }
+
+  @GET
+  @Path(SBOM_POLICY_VIOLATION_REPORT)
+  @Authorize(permission = Permission.READ)
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  public Response getSbomPolicyViolationReport(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId")
+      final String applicationPublicId,
+      @PathParam("sbomVersion") final String sbomVersion,
+      @Context final HttpServletRequest httpRequest)
+  {
+    String applicationInternalId = findApplicationInternalId(applicationPublicId);
+    String scanId = sbomPolicyService.getScanIdForPolicyViolation(applicationInternalId, sbomVersion);
+
+    return processBrowseReport(applicationPublicId, scanId, "policythreats.json", httpRequest);
+  }
+
+  private Response processBrowseReport(String appPublicId,
+                           String scanId,
+                           String path,
+                           @Context final HttpServletRequest httpRequest)
+  {
+    String applicationInternalId = findApplicationInternalId(appPublicId);
 
     final String name = Report.toEntryName(path);
     auditBrowseReport(scanId, name);
-    final File reportFile = reportService.getReport(appId, scanId);
+    final File reportFile = reportService.getReport(applicationInternalId, scanId);
     ReportEntry reportEntry = null;
     try {
       reportEntry = Report.getEntry(reportFile, name);
@@ -254,6 +283,11 @@ public class ReportResource
     return Response.status(Status.NOT_FOUND).build();
   }
 
+  private String findApplicationInternalId(String applicationPublicId) {
+    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    return application.getId();
+  }
+
   private ReportEntry loadCombinedSecurityData(ReportEntry reportEntry, File reportFile) throws IOException {
     ReportEntry thirdPartyReportEntry =
         Report.getEntry(reportFile, ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME);
@@ -301,7 +335,7 @@ public class ReportResource
    * method should not send policy evaluation notifications.
    */
   @POST
-  @Path("reevaluatePolicy")
+  @Path("{scanId}/reevaluatePolicy")
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
   @Audited(AuditEvent.EVALUATE_APPLICATION)
   @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION)
@@ -633,7 +667,7 @@ public class ReportResource
   }
 
   @GET
-  @Path("auditLog/{path}")
+  @Path("{scanId}/auditLog/{path}")
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
   public Response auditLog(
@@ -655,31 +689,31 @@ public class ReportResource
   }
 
   @GET
-  @Path("brain/policy-assets/js/{path:.*}")
+  @Path("{scanId}/brain/policy-assets/js/{path:.*}")
   public Response brainGetJs(final @PathParam("path") String path) {
     return redirectToBrainJs(baseUrl, path);
   }
 
   @GET
-  @Path("brain/{path:.*}")
+  @Path("{scanId}/brain/{path:.*}")
   public Response brainGet(final @PathParam("path") String path) {
     return redirectToBrain(baseUrl, path);
   }
 
   @POST
-  @Path("brain/{path:.*}")
+  @Path("{scanId}/brain/{path:.*}")
   public Response brainPost(final @PathParam("path") String path) {
     return redirectToBrain(baseUrl, path);
   }
 
   @PUT
-  @Path("brain/{path:.*}")
+  @Path("{scanId}/brain/{path:.*}")
   public Response brainPut(final @PathParam("path") String path) {
     return redirectToBrain(baseUrl, path);
   }
 
   @DELETE
-  @Path("brain/{path:.*}")
+  @Path("{scanId}/brain/{path:.*}")
   public Response brainDelete(final @PathParam("path") String path) {
     return redirectToBrain(baseUrl, path);
   }

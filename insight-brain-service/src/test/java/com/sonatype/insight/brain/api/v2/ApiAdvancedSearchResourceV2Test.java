@@ -102,7 +102,8 @@ public class ApiAdvancedSearchResourceV2Test
         SbomSpecification.SPDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
         "someScanId1",
-        true);
+        true,
+        "PENDING");
     restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
     awaitIndexCompletion();
 
@@ -153,7 +154,8 @@ public class ApiAdvancedSearchResourceV2Test
         SbomSpecification.SPDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
         "someScanId1",
-        true);
+        true,
+        "PENDING");
     restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
     awaitIndexCompletion();
 

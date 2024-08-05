@@ -63,6 +63,8 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -112,7 +114,7 @@ public class ReportResourceTest
   @Test
   public void testBrowseReportEntryExpirationDate() throws Exception {
     final String scanId = "ReportResourceTest_ScanId";
-    HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
+    HttpRequest request = restRequest(app.getPublicId(), scanId).path("{scanId}/browseReport");
 
     createReportFile(app.getId(), scanId, "/ReportResourceTest/report");
 
@@ -165,7 +167,7 @@ public class ReportResourceTest
   @Test
   public void testBrowseReport() throws Exception {
     final String scanId = "ReportResourceTest_ScanId";
-    HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
+    HttpRequest request = restRequest(app.getPublicId(), scanId).path("{scanId}/browseReport");
 
     String reportResource = "/ReportResourceTest/report";
     mockReport(scanId, reportResource);
@@ -280,7 +282,7 @@ public class ReportResourceTest
     ReportResource.FILE_SIZE_THRESHOLD = 1L;
     try {
       final String scanId = "ReportResourceTest_ScanId";
-      HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
+      HttpRequest request = restRequest(app.getPublicId(), scanId).path("{scanId}/browseReport");
 
       String reportResource = "/ReportResourceTest/report";
       mockReport(scanId, reportResource);
@@ -302,7 +304,7 @@ public class ReportResourceTest
   @Test
   public void testBrowseReport_SharedResources() throws Exception {
     final String scanId = "ReportResourceTest_ScanId";
-    HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
+    HttpRequest request = restRequest(app.getPublicId(), scanId).path("{scanId}/browseReport");
 
     String reportResource = "/ReportResourceTest/report_sharedResources";
     mockReport(scanId, reportResource);
@@ -419,7 +421,7 @@ public class ReportResourceTest
     reportDir.mkdirs();
     new File(reportDir, "restricted.txt").createNewFile();
 
-    HttpRequest request = restRequest(app.getPublicId(), scanId).path("browseReport");
+    HttpRequest request = restRequest(app.getPublicId(), scanId).path("{scanId}/browseReport");
 
     // In the latest version of async-http-client they implemented their own UriParser which strips out any dots by
     // default. There is no way to customize this behaviour so we are forced to override using a static mock
@@ -451,7 +453,7 @@ public class ReportResourceTest
     createReportFile(app.getId(), scanId, "/ReportResourceTest/sample-report");
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
 
-    HttpResponse response = restRequest(app.getPublicId(), scanId).path("printReport").get();
+    HttpResponse response = restRequest(app.getPublicId(), scanId).path("{scanId}/printReport").get();
     assertResponseStatus(200, response);
     assertThat(response.getHeader(HttpHeaders.CONTENT_DISPOSITION))
         .containsSubsequence("attachment; filename=\"" + app.getName() + "-Build-", ".pdf\"");
@@ -459,6 +461,33 @@ public class ReportResourceTest
     // validate content type and check the actual content is really a PDF
     assertThat(response.getContentType()).isEqualTo("application/pdf;charset=UTF-8");
     assertThat(new String(response.getBodyBytes(), 0, 1024, "US-ASCII")).contains("%PDF-");
+  }
+
+  @Test
+  public void testGetSbomPolicyViolationReport() throws Exception {
+
+    final String scanId = "ReportResourceTest_ScanId";
+
+    String reportResource = "/ReportResourceTest/report";
+    mockReport(scanId, reportResource);
+    createScanFile(app.getId(), scanId);
+
+    HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).query("scanId", scanId)
+        .parameter(app.getPublicId()).body(new Stage(Stage.ID_COMPLIANCE)).post();
+    assertResponseStatus(200, response);
+
+    String sbomVersion = "sbomVersion1";
+    tempEntity.newSbomEvaluation(app, sbomVersion, "spec1",
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"),
+        "hash1", scanId, true,
+        "ACTIVE");
+
+    setFeatures(LicensedFeature.SBOM_MANAGER);
+    response = restRequest()
+        .path(ReportResource.RESOURCE_PATH + "/sbom/{sbomVersion}/sbomPolicyViolationReport")
+        .parameter(app.getPublicId(), sbomVersion)
+        .get();
+    assertResponseStatus(200, response);
   }
 
   private void configureMail() {
@@ -514,7 +543,7 @@ public class ReportResourceTest
     // ReEvaluate
     policy.setThreatLevel(policy.getThreatLevel() - 1);
     policyDAO.update(policy);
-    response = restRequest(app.getPublicId(), scanId).path("reevaluatePolicy").post();
+    response = restRequest(app.getPublicId(), scanId).path("{scanId}/reevaluatePolicy").post();
     assertResponseStatus(200, response);
 
     PolicyEvaluation policyReEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(),
@@ -549,7 +578,7 @@ public class ReportResourceTest
   @Test
   public void testRedirection() throws Exception {
     String path = "index.html?x=y&a=b";
-    HttpResponse response = restRequest("appId", "scanId").path("brain", "index.html").query("x=y&a=b").get();
+    HttpResponse response = restRequest("appId", "scanId").path("{scanId}/brain", "index.html").query("x=y&a=b").get();
     assertResponseStatus(307, response);
     assertThat(response.getHeader("Location")).isEqualTo(getRestBaseUrl() + path);
   }

@@ -4928,7 +4928,8 @@ public class TemporaryEntity
 
   public ThirdPartySbomMetadata createSbomMetadata(
       final String applicationId, final String sbomVersion,
-      final ThirdPartyFile thirdPartyFile)
+      final ThirdPartyFile thirdPartyFile,
+      final String sbomStatus)
   {
     ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata();
     thirdPartySbomMetadata.setCreatedAt(new Date());
@@ -4938,7 +4939,7 @@ public class TemporaryEntity
     thirdPartySbomMetadata.setSpec(RandomStringUtils.random(10, true, true));
     thirdPartySbomMetadata.setSpecFormat(RandomStringUtils.random(10, true, true));
     thirdPartySbomMetadata.setSpecVersion(RandomStringUtils.random(10, true, true));
-    thirdPartySbomMetadata.setStatus("PENDING");
+    thirdPartySbomMetadata.setStatus(sbomStatus);
 
     if (applicationId != null) {
       thirdPartySbomMetadata.setApplicationId(applicationId);
@@ -4965,10 +4966,11 @@ public class TemporaryEntity
       String sbomSpecification,
       PackageUrlIdentifier componentPackageUrl,
       String scanId,
-      boolean isVulnerable)
+      boolean isVulnerable,
+      String sbomStatus)
   {
     return newSbomEvaluation(application, applicationVersion, sbomSpecification, componentPackageUrl,
-        newRandomHash(), scanId, isVulnerable);
+        newRandomHash(), scanId, isVulnerable, sbomStatus);
   }
 
   public ThirdPartySbomMetadata newSbomEvaluation(
@@ -4978,10 +4980,14 @@ public class TemporaryEntity
       PackageUrlIdentifier componentPackageUrl,
       String hash,
       String scanId,
-      boolean isVulnerable)
+      boolean isVulnerable,
+      String sbomStatus)
   {
     ThirdPartyFile thirdPartyFile = newThirdPartyFile("bom.xml");
-    ThirdPartySbomMetadata sbomMetadata = createSbomMetadata(application.getId(), applicationVersion, thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = createSbomMetadata(application.getId(),
+        applicationVersion,
+        thirdPartyFile,
+        sbomStatus);
     sbomMetadata.setSpec(sbomSpecification);
     thirdPartySbomMetadataDAO.update(sbomMetadata);
     ThirdPartyScan thirdPartyScan = newThirdPartyScan(thirdPartyFile);

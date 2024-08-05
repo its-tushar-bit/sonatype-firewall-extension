@@ -678,13 +678,15 @@ public class SearchServiceTest
         SbomSpecification.CYCLONEDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
         "someScanId1",
-        true);
+        true,
+        "PENDING");
     tempEntity.newSbomEvaluation(app,
         "1.1",
         SbomSpecification.SPDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v2")),
         "someScanId2",
-        false);
+        false,
+        "PENDING");
     tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID); // Should not be returned
     tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID); // Should not be returned
     tempEntity.newPolicy(); // Should not be returned
@@ -742,13 +744,15 @@ public class SearchServiceTest
         SbomSpecification.CYCLONEDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
         "someScanId1",
-        true);
+        true,
+        "PENDING");
     tempEntity.newSbomEvaluation(app,
         "1.1",
         SbomSpecification.SPDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v2")),
         "someScanId2",
-        false);
+        false,
+        "PENDING");
     newAppReport(app.getId(), Stage.ID_BUILD, "someScanId3", "/SearchServiceTest/report-3");
     Tag tag = tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID);
     Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
@@ -792,13 +796,15 @@ public class SearchServiceTest
         SbomSpecification.CYCLONEDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
         "someScanId1",
-        true);
+        true,
+        "PENDING");
     tempEntity.newSbomEvaluation(app,
         "1.1",
         SbomSpecification.SPDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v2")),
         "someScanId2",
-        false);
+        false,
+        "PENDING");
     tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID); // Should not be returned
     tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID); // Should not be returned
     tempEntity.newPolicy(); // Should not be returned
@@ -868,13 +874,15 @@ public class SearchServiceTest
         SbomSpecification.CYCLONEDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v1")),
         "someScanId1",
-        true);
+        true,
+        "PENDING");
     tempEntity.newSbomEvaluation(app,
         "1.1",
         SbomSpecification.SPDX.toString(),
         PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", null, "v2")),
         "someScanId2",
-        false);
+        false,
+        "PENDING");
     Tag tag = tempEntity.newTag(Organization.ROOT_ORGANIZATION_ID);
     Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
     Policy policy = tempEntity.newPolicy();

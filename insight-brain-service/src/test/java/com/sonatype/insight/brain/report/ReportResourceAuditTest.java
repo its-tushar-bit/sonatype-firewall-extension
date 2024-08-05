@@ -52,7 +52,7 @@ public class ReportResourceAuditTest
     assertResponseStatus(200, response);
 
     // Re-evaluate
-    response = restRequest(app.getPublicId(), SCAN_ID).path("reevaluatePolicy").post();
+    response = restRequest(app.getPublicId(), SCAN_ID).path("{scanId}/reevaluatePolicy").post();
     assertResponseStatus(200, response);
 
     assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 2).get(1), null, app.getId(),
@@ -62,7 +62,9 @@ public class ReportResourceAuditTest
   @Test
   public void testReevaluatePolicy_Unauthorized() throws Exception {
     // Attempt to re-evaluate with a user that doesn't have permissions
-    HttpResponse response = restRequest(app.getPublicId(), SCAN_ID).with(unauthorizedUser()).path("reevaluatePolicy")
+    HttpResponse response = restRequest(app.getPublicId(), SCAN_ID)
+        .with(unauthorizedUser())
+        .path("{scanId}/reevaluatePolicy")
         .post();
     assertResponseStatus(403, response);
 
@@ -74,7 +76,7 @@ public class ReportResourceAuditTest
   public void testReevaluatePolicy_NonExistentScanId() throws Exception {
     String scanId = "unknown-scan-id";
     // Attempt to re-evaluate a scanId that doesn't exist
-    HttpResponse response = restRequest(app.getPublicId(), scanId).path("reevaluatePolicy").post();
+    HttpResponse response = restRequest(app.getPublicId(), scanId).path("{scanId}/reevaluatePolicy").post();
     assertResponseStatus(400, response);
 
     assertEvaluationAuditLog("bad-request", app.getId(), app.getPublicId(), app.getName(), null, scanId, null);
@@ -83,7 +85,9 @@ public class ReportResourceAuditTest
   @Test
   public void testReevaluatePolicy_BadApplicationId() throws Exception {
     String appId = "unknown-app-public-id";
-    HttpResponse response = restRequest(appId, SCAN_ID).path("reevaluatePolicy").post();
+    HttpResponse response = restRequest(appId, SCAN_ID)
+        .path("{scanId}/reevaluatePolicy")
+        .post();
     assertResponseStatus(404, response);
 
     assertEvaluationAuditLog("not-found", null, appId, null, null, null, null);

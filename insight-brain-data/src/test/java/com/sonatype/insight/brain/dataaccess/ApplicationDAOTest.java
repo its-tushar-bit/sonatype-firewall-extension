@@ -1285,7 +1285,8 @@ public class ApplicationDAOTest
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     ThirdPartySbomMetadata thirdPartySbomMetadata = tempEntity.newSbomEvaluation(app, appVersion, sbomSpec,
-        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345deadbeef", false);
+        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"), "12345deadbeef",
+        false, "PENDING");
 
     ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO = daoFactory.createThirdPartyFileCoordinateDAO();
     ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO = daoFactory.createThirdPartySbomMetadataDAO();

@@ -348,7 +348,7 @@ public class ThirdPartyDataServiceTest
 
     ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(TemporaryEntity.uuid(), scanId, thirdPartyFile1);
-    tempEntity.createSbomMetadata("appId", "1", thirdPartyFile1);
+    tempEntity.createSbomMetadata("appId", "1", thirdPartyFile1, "PENDING");
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByScanId(scanId);
     String sbomApplicationPath = tempDir.getRoot().toPath()
         .relativize(insightWork.getSbomDir(sbomMetadata.getApplicationId()).toPath()).normalize().toString();
@@ -449,7 +449,7 @@ public class ThirdPartyDataServiceTest
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
-    tempEntity.createSbomMetadata("appId", "1", file);
+    tempEntity.createSbomMetadata("appId", "1", file, "PENDING");
 
     final File reportZip =
         Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-iac", tempDir).toURI()).toFile();
@@ -469,7 +469,7 @@ public class ThirdPartyDataServiceTest
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
-    tempEntity.createSbomMetadata("appId", "1", file);
+    tempEntity.createSbomMetadata("appId", "1", file, "PENDING");
 
     final File reportZip =
         Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-iac", tempDir).toURI()).toFile();
@@ -488,7 +488,7 @@ public class ThirdPartyDataServiceTest
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
     final ThirdPartyFile file = tempEntity.newThirdPartyFile();
-    tempEntity.createSbomMetadata("appId", "1", file);
+    tempEntity.createSbomMetadata("appId", "1", file, "PENDING");
 
     final File reportZip =
         Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-iac", tempDir).toURI()).toFile();
@@ -507,7 +507,7 @@ public class ThirdPartyDataServiceTest
     Application app = tempEntity.newApplicationWithParent();
     ThirdPartyFile file = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
-    tempEntity.createSbomMetadata(app.getId(), "1", file);
+    tempEntity.createSbomMetadata(app.getId(), "1", file, "PENDING");
 
     ThirdPartyFileCoordinate sbomComponent = null;
     try {
@@ -604,7 +604,7 @@ public class ThirdPartyDataServiceTest
     //FG-R00275 with no third party vulnerability data in report zip or db
     //Complete Sonatype vulnerability data returned from HDS mock call
 
-    tempEntity.createSbomMetadata("appId", "1", file);
+    tempEntity.createSbomMetadata("appId", "1", file, "PENDING");
 
     final File reportZip =
         Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-third-party-security-data", tempDir).toURI())
@@ -750,7 +750,7 @@ public class ThirdPartyDataServiceTest
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(tpVuln4, "FG-R00235", "resolved",
         "code_not_reachable", "will_not_fix,update", null);
 
-    tempEntity.createSbomMetadata("appId", "1", file);
+    tempEntity.createSbomMetadata("appId", "1", file, "PENDING");
 
     final File reportZip =
         Paths.get(ReportHelper
@@ -880,7 +880,7 @@ public class ThirdPartyDataServiceTest
     // License only in DB with both SBOM and Sonatype identification sources, so it should be deleted from the DB.
     tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "AGPL-3.0", "AGPL-3.0", "link3", "Sonatype");
 
-    tempEntity.createSbomMetadata("appId", "1", file);
+    tempEntity.createSbomMetadata("appId", "1", file, "PENDING");
 
     final File reportZip =
         Paths.get(ReportHelper
@@ -946,7 +946,7 @@ public class ThirdPartyDataServiceTest
 
     thirdPartyCoordinateLicenseDAO.update(license);
 
-    tempEntity.createSbomMetadata("appId", "1", file);
+    tempEntity.createSbomMetadata("appId", "1", file, "PENDING");
 
     final File reportZip =
         Paths.get(ReportHelper.zipReport("/ThirdPartyDataServiceTest/report-with-python-components", tempDir).toURI())
@@ -1043,7 +1043,7 @@ public class ThirdPartyDataServiceTest
         1.0f, "fixedBy1", "vulnSource1", "vectorString1", "high1", "cwes1", "deepdive1", "recommendations1",
         "advisories1", "SBOM");
 
-    tempEntity.createSbomMetadata("appId", "1", file);
+    tempEntity.createSbomMetadata("appId", "1", file, "PENDING");
 
     final File reportZip =
         Paths.get(ReportHelper.zipReport("/ReportServiceTest/report-with-dependencies", tempDir).toURI()).toFile();
@@ -1159,7 +1159,7 @@ public class ThirdPartyDataServiceTest
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(true);
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.setEnabled(true);
     ThirdPartySbomMetadata sbomMetadata = tempEntity.newSbomEvaluation(app, "1.2.3", "spdx",
-        new PackageUrlIdentifier("pkg:npm/jquery@1.1.1"), "deadbeef", false);
+        new PackageUrlIdentifier("pkg:npm/jquery@1.1.1"), "deadbeef", false, "PENDING");
     handler.indexSbomForSearch(sbomMetadata);
 
     List<SearchIndexChange> searchIndexChanges = searchIndexChangeDAO.getAll();

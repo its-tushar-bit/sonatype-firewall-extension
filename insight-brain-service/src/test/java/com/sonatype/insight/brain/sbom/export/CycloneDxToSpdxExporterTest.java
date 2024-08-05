@@ -217,7 +217,7 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
 
   private ThirdPartySbomMetadata insertTestData(String testBomFile, ThirdPartyFile thirdPartyFile) {
     ThirdPartySbomMetadata dbRecord = tempEntity.createSbomMetadata(APP_ID, SBOM_VERSION,
-        thirdPartyFile);
+        thirdPartyFile, "PENDING");
     dbRecord.setFilename(testBomFile);
     dbRecord.setStatus(SbomStatus.ACTIVE.toString());
     thirdPartySbomMetadataDAO.update(dbRecord);

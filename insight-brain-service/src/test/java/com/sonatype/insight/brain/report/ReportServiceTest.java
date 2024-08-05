@@ -621,7 +621,8 @@ public class ReportServiceTest
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan("scanRequestId", scanId, thirdPartyFile);
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(app.getId(), "1", thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.createSbomMetadata(app.getId(), "1", thirdPartyFile, "PENDING");
     String sbomApplicationPath = tempDir.getRoot().toPath()
         .relativize(insightWork.getSbomDir(sbomMetadata.getApplicationId()).toPath()).normalize().toString();
     File sbomFile = tempDir.newFile(sbomApplicationPath + File.separator + sbomMetadata.getFilename());
@@ -653,7 +654,7 @@ public class ReportServiceTest
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan("scanRequestId", scanId, thirdPartyFile);
-    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(app.getId(), "1", thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(app.getId(), "1", thirdPartyFile, "PENDING");
     String sbomApplicationPath = tempDir.getRoot().toPath()
         .relativize(insightWork.getSbomDir(sbomMetadata.getApplicationId()).toPath()).normalize().toString();
     File sbomFile = tempDir.newFile(sbomApplicationPath + File.separator + sbomMetadata.getFilename());

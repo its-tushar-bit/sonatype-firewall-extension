@@ -35,7 +35,6 @@ import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
@@ -93,8 +92,8 @@ public abstract class AbstractCycloneDxExporter
 
   protected Bom mergeCurrentDatabaseState(Bom bom) {
     String oldBomComponentRef = "";
-    if (ObjectUtils.allNotNull(bom.getMetadata(), bom.getMetadata().getComponent(),
-        bom.getMetadata().getComponent().getBomRef())) {
+    if (bom.getMetadata() != null && bom.getMetadata().getComponent() != null &&
+        bom.getMetadata().getComponent().getBomRef() != null) {
       oldBomComponentRef = bom.getMetadata().getComponent().getBomRef();
     }
     generateNewBomMetadata(bom);

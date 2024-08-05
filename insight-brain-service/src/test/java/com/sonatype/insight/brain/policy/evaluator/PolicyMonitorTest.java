@@ -49,9 +49,11 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
+import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -610,6 +612,117 @@ public class PolicyMonitorTest
     // Verify there are no temp scan files left behind.
     File[] scanFiles = insightWork.getScanDir(app.getId()).listFiles();
     assertThat(scanFiles).containsExactly(scanFile);
+  }
+
+  @Test
+  public void testApplicationMonitored_SbomManagerComplianceStage() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication("MonitoredApp", org.getId());
+    Stage stage = new Stage(ComplianceStageType.ID);
+
+    // Simulate first scan
+    String scanId1 = "PolicyMonitorTest_scanId";
+    tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId1);
+
+    File scanZip = createScanFileZip(app, scanId1, "scan/scan-third-party.xml");
+    createReportFile(app.getId(), scanId1, "/PolicyMonitorTest/report-third-party");
+
+    tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
+
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE", "xyz");
+    tempEntity.newThirdPartyScan(scanId1, scanId1, thirdPartyFile, scanZip.getName());
+
+    String newScanId = "PolicyMonitorTest_scanId2";
+    mockScanReceiptAndReport(newScanId);
+    policyMonitor.run();
+
+    File reportFile = insightWork.getReportFile(app.getId(), newScanId);
+    assertThat(reportFile).isFile();
+    File parentDir = new File(reportFile.getParentFile() + "/report.cache");
+
+    assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME);
+    assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME);
+    assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME);
+  }
+
+  @Test
+  public void testApplicationMonitored_SbomManagerComplianceStage_NoMonitorableSbomVersion() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication("MonitoredApp", org.getId());
+    Stage stage = new Stage(ComplianceStageType.ID);
+
+    // Simulate first scan
+    String scanId1 = "PolicyMonitorTest_scanId";
+    tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId1);
+
+    File scanZip = createScanFileZip(app, scanId1, "scan/scan-third-party.xml");
+    createReportFile(app.getId(), scanId1, "/PolicyMonitorTest/report-third-party");
+
+    tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
+
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(scanId1, scanId1, thirdPartyFile, scanZip.getName());
+
+    String newScanId = "PolicyMonitorTest_scanId2";
+    mockScanReceiptAndReport(newScanId);
+    policyMonitor.run();
+
+    File reportFile = insightWork.getReportFile(app.getId(), newScanId);
+    assertThat(reportFile).doesNotExist();
+  }
+
+  @Test
+  public void testApplicationMonitored_SbomManagerComplianceStage_NoFilteredScanFile() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication("MonitoredApp", org.getId());
+    Stage stage = new Stage(ComplianceStageType.ID);
+
+    // Simulate first scan
+    String scanId1 = "PolicyMonitorTest_scanId";
+    tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId1);
+
+    createScanFileZip(app, scanId1, "scan/scan-third-party.xml");
+    createReportFile(app.getId(), scanId1, "/PolicyMonitorTest/report-third-party");
+
+    tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
+
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE", "xyz");
+
+    String newScanId = "PolicyMonitorTest_scanId2";
+    mockScanReceiptAndReport(newScanId);
+    policyMonitor.run();
+
+    File reportFile = insightWork.getReportFile(app.getId(), newScanId);
+    assertThat(reportFile).doesNotExist();
+  }
+
+  @Test
+  public void testApplicationMonitored_SbomManagerComplianceStage_MissingFilteredScanFile() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication("MonitoredApp", org.getId());
+    Stage stage = new Stage(ComplianceStageType.ID);
+
+    // Simulate first scan
+    String scanId1 = "PolicyMonitorTest_scanId";
+    tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId1);
+
+    createScanFileZip(app, scanId1, "scan/scan-third-party.xml");
+    createReportFile(app.getId(), scanId1, "/PolicyMonitorTest/report-third-party");
+
+    tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
+
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE", "xyz");
+    tempEntity.newThirdPartyScan(scanId1, scanId1, thirdPartyFile, "scan/deleted.gz");
+
+    String newScanId = "PolicyMonitorTest_scanId2";
+    mockScanReceiptAndReport(newScanId);
+    policyMonitor.run();
+
+    File reportFile = insightWork.getReportFile(app.getId(), newScanId);
+    assertThat(reportFile).doesNotExist();
   }
 
   @Test

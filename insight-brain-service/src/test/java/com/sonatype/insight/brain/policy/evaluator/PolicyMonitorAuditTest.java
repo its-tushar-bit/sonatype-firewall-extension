@@ -5,14 +5,25 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.io.File;
+import java.net.URL;
+import java.nio.file.Files;
+import java.util.zip.GZIPOutputStream;
+
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.mock.hds.HdsMockServer.RestHandler;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -23,14 +34,24 @@ public class PolicyMonitorAuditTest
 
   private Application app;
 
+  private Application app2;
+
   private Stage stage;
+
+  private Stage complianceStage;
+
+  private InsightWork insightWork;
 
   @Before
   public void setup() {
     policyMonitor = getCLMServer().getInstance(PolicyMonitor.class);
     app = tempEntity.newApplicationWithParent("MonitoredApp");
+    app2 = tempEntity.newApplicationWithParent("MonitoredApp2");
     stage = new Stage(ReleaseStageType.ID);
+    complianceStage = new Stage(ComplianceStageType.ID);
     tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
+    tempEntity.newPolicyMonitoring(app2.getId(), complianceStage.getStageTypeId());
+    insightWork = getCLMServer().getInstance(InsightWork.class);
   }
 
   @Test
@@ -64,11 +85,59 @@ public class PolicyMonitorAuditTest
         app.getPublicId(), app.getName(), null, null, null, SYSTEM_USER);
   }
 
+  @Test
+  public void testRunEvaluation_SbomManagerComplianceStage_AppWithMonitoring() throws Exception {
+    createScanFile(app2.getId(), RestHandler.SCAN_ID);
+    tempEntity.newPolicyEvaluation(app2.getId(), complianceStage.getStageTypeId(), RestHandler.SCAN_ID);
+    String scanId2 = "PolicyMonitorTest_scanId2";
+    mockScanReceiptAndReport(scanId2);
+    File scanZip = createScanFileZip(app2, scanId2, "scan/scan-third-party.xml");
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app2.getId(),
+        "ACTIVE", "xyz");
+    tempEntity.newThirdPartyScan(scanId2, scanId2, thirdPartyFile, scanZip.getName());
+
+    policyMonitor.run();
+
+    assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), null, app2.getId(),
+        app2.getPublicId(), app2.getName(), ComplianceStageType.ID, scanId2, false, SYSTEM_USER);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.EVALUATE_APPLICATION, null, SYSTEM_USER);
+    assertCustomData(auditDTO, "sbomVersion", sbomMetadata.getSbomVersion());
+  }
+
+  @Test
+  public void testRunEvaluation_SbomManagerComplianceStage_AppWithMonitoring_MissingFilteredScanFile() {
+    createScanFile(app2.getId(), RestHandler.SCAN_ID);
+    tempEntity.newPolicyEvaluation(app2.getId(), complianceStage.getStageTypeId(), RestHandler.SCAN_ID);
+    String scanId2 = "PolicyMonitorTest_scanId2";
+    mockScanReceiptAndReport(scanId2);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app2.getId(), "ACTIVE", "xyz");
+    tempEntity.newThirdPartyScan(scanId2, scanId2, thirdPartyFile, "scan/deleted.gz");
+
+    policyMonitor.run();
+
+    awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 0);
+  }
+
   private void mockScanReceiptAndReport(String scanId) {
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
     scanReceipt.setTimeToReport(1L);
     mockScanReceipt(scanReceipt);
     mockReport(scanId, "/PolicyMonitorTest/report");
+  }
+
+  private File createScanFileZip(Application app, String scanId, final String fileName) throws Exception {
+    URL resource = getClass().getResource("/PolicyMonitorTest/" + fileName);
+    File scanXml = new File(resource.toURI());
+
+    File scanFile = insightWork.getScanFile(app.getId(), scanId);
+    Files.createDirectories(scanFile.getParentFile().toPath());
+
+    try (GZIPOutputStream gzipStream = new GZIPOutputStream(Files.newOutputStream(scanFile.toPath()))) {
+      FileUtils.copyFile(scanXml, gzipStream);
+    }
+    return scanFile;
   }
 }

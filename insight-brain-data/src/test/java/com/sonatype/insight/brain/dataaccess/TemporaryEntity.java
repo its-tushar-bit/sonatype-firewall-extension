@@ -3868,6 +3868,20 @@ public class TemporaryEntity
     return scan;
   }
 
+  public ThirdPartyScan newThirdPartyScan(
+      String scanRequestId,
+      String scanId,
+      ThirdPartyFile thirdPartyFile,
+      String filteredScanFile)
+  {
+    ThirdPartyScan scan = new ThirdPartyScan(thirdPartyFile.getId(), scanRequestId, new Date());
+    scan.setScanId(scanId);
+    scan.setThirdPartyFileId(thirdPartyFile.getId());
+    scan.setFilteredScanFile(filteredScanFile);
+    thirdPartyScanDAO.insert(scan);
+    return scan;
+  }
+
   public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
       ThirdPartyFile thirdPartyFile,
       String source,

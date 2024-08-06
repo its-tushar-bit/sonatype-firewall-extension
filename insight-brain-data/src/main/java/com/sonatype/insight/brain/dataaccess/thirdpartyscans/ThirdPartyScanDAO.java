@@ -47,24 +47,11 @@ public class ThirdPartyScanDAO
     return getList(sQuery, scanId);
   }
 
-  public ThirdPartyScan getSingleByThirdPartyFileId(String thirdPartyFileId) {
+  public ThirdPartyScan getByThirdPartyFileId(String thirdPartyFileId) {
     try (TransactionContext tx = createTransactionContext()) {
-      String sQuery = "SELECT entity FROM ThirdPartyScan entity" + //
-          " WHERE entity.thirdPartyFileId=?1";
-      return getSingle(tx, ThirdPartyScan.class, sQuery, thirdPartyFileId);
+      String sQuery = "SELECT entity FROM ThirdPartyScan entity WHERE entity.thirdPartyFileId=?1";
+      return get(tx, sQuery, thirdPartyFileId);
     }
-  }
-
-  public List<ThirdPartyScan> getByThirdPartyFileId(TransactionContext tx, String thirdPartyFileId) {
-    String sQuery = "SELECT entity FROM ThirdPartyScan entity" + //
-        " WHERE entity.thirdPartyFileId=?1";
-    return getList(tx, sQuery, thirdPartyFileId);
-  }
-
-  public List<ThirdPartyScan> getByThirdPartyFileId(String thirdPartyFileId) {
-    String sQuery = "SELECT entity FROM ThirdPartyScan entity" + //
-        " WHERE entity.thirdPartyFileId=?1";
-    return getList(sQuery, thirdPartyFileId);
   }
 
   public List<ThirdPartyScan> getByScanRequestId(String scanRequestId) {

@@ -40,7 +40,7 @@ public class SbomPolicyService
           String.format("Cannot find version %s for application with ID %s.", sbomVersion, applicationId));
     }
     ThirdPartyScan thirdPartyScan =
-        thirdPartyScanDAO.getSingleByThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId());
+        thirdPartyScanDAO.getByThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId());
     return thirdPartyScan.getScanId();
   }
 }

@@ -479,8 +479,10 @@ public abstract class AuditData
   public AuditData setSbomVersion(final ThirdPartySbomMetadata sbomMetadata, final SbomAction action) {
     setData("applicationId", sbomMetadata.getApplicationId());
     setData("sbomVersion", sbomMetadata.getSbomVersion());
-    setData("status", sbomMetadata.getStatus());
-    setData("operation", action);
+    if (action != null) {
+      setData("status", sbomMetadata.getStatus());
+      setData("operation", action);
+    }
     return this;
   }
 

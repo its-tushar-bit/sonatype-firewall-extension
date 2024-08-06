@@ -83,6 +83,14 @@ public class ThirdPartySbomMetadataDAO
     return getList(sQuery, applicationId, ACTIVE_STATUS);
   }
 
+  public ThirdPartySbomMetadata getLatestActiveByApplicationId(String applicationId) {
+    String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity " + //
+        " WHERE entity.applicationId=?1" +
+        " AND entity.status=?2" +
+        " ORDER BY entity.createdAt DESC";
+    return createQuery(sQuery, applicationId, ACTIVE_STATUS).forceSingleResult().get();
+  }
+
   public ThirdPartySbomMetadata getByApplicationIdAndSbomVersion(String applicationId, String sbomVersion) {
     String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity " + //
         " WHERE entity.applicationId = ?1 AND entity.sbomVersion=?2";

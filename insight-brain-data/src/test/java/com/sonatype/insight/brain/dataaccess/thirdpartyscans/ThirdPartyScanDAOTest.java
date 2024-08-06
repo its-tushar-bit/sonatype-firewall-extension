@@ -113,9 +113,9 @@ public class ThirdPartyScanDAOTest
   }
 
   @Test
-  public void testGetSingleByThirdPartyFileId() {
+  public void testGetByThirdPartyFileId() {
     ThirdPartyScan expected = tempEntity.newThirdPartyScan();
-    ThirdPartyScan result = dao.getSingleByThirdPartyFileId(expected.getThirdPartyFileId());
+    ThirdPartyScan result = dao.getByThirdPartyFileId(expected.getThirdPartyFileId());
     assertThat(result).isNotNull();
     assertThat(result.getScanId()).isEqualTo(expected.getScanId());
     assertThat(result.getScanRequestId()).isEqualTo(expected.getScanRequestId());

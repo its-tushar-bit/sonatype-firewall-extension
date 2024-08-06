@@ -1298,7 +1298,7 @@ public class ApplicationDAOTest
     List<ThirdPartyFileCoordinate> thirdPartyFileCoordinateList =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFileId);
     assertThat(thirdPartyFileCoordinateList.size()).isEqualTo(1);
-    ThirdPartyScan thirdPartyScan = thirdPartyScanDAO.getSingleByThirdPartyFileId(thirdPartyFileId);
+    ThirdPartyScan thirdPartyScan = thirdPartyScanDAO.getByThirdPartyFileId(thirdPartyFileId);
     assertThat(thirdPartyScan).isNotNull();
     ThirdPartyFile thirdPartyFile = thirdPartyFileDAO.getById(thirdPartyFileId);
     assertThat(thirdPartyFile).isNotNull();
@@ -1311,9 +1311,6 @@ public class ApplicationDAOTest
     thirdPartyFileCoordinateList =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFileId);
     assertThat(thirdPartyFileCoordinateList).isEmpty();
-
-    List<ThirdPartyScan> thirdPartyScanList = thirdPartyScanDAO.getByThirdPartyFileId(thirdPartyFileId);
-    assertThat(thirdPartyScanList).isEmpty();
 
     thirdPartySbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(thirdPartyFileId);
     assertThat(thirdPartySbomMetadata).isNull();

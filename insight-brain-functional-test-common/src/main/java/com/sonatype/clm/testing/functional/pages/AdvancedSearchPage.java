@@ -25,6 +25,10 @@ public class AdvancedSearchPage
     return BaseUrl.resolvePageUrl("/advancedSearch");
   }
 
+  public static String sbomManagerUrl() {
+    return BaseUrl.resolvePageUrl("/sbomManager/advancedSearch");
+  }
+
   public SelenideElement advancedSearchPageTitle() {
     return child("#advanced-search-page-title");
   }

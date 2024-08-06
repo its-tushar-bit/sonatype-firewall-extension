@@ -9,9 +9,9 @@ import java.nio.file.Path;
 import java.util.Date;
 
 import com.sonatype.clm.testing.functional.mtiq.AbstractMtiqFunctionalTest;
-import com.sonatype.clm.testing.functional.mtiq.elements.sbom.SbomsTile;
-import com.sonatype.clm.testing.functional.mtiq.pages.sbom.SbomManagerApplicationSummaryPage;
-import com.sonatype.clm.testing.functional.mtiq.pages.sbom.SbomManagerBillOfMaterialsPage;
+import com.sonatype.clm.testing.functional.elements.sbom.SbomsTile;
+import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerApplicationSummaryPage;
+import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerBillOfMaterialsPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;

@@ -11,18 +11,17 @@ import java.util.concurrent.TimeUnit;
 
 import com.sonatype.clm.testing.functional.elements.NxSortingHeader;
 import com.sonatype.clm.testing.functional.mtiq.AbstractMtiqFunctionalTest;
-import com.sonatype.clm.testing.functional.mtiq.pages.sbom.SbomManagerDashboardPage;
-import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.ApplicationsHistoryTile;
-import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.HighPriorityVulnerabilitiesTile;
-import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.HighPriorityVulnerabilitiesTile.VulnerabilityList;
-import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.RecentlyImportedSBOMsTile;
-import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.SbomReleaseStatusTile;
-import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.RecentlyImportedSBOMsTile.SbomTable;
-import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.RecentlyImportedSBOMsTile.TableRow;
-import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.VulnerabilitiesThreatLevelTile.TileLabels;
-import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.VulnerabilitiesThreatLevelTile.TileTable;
-import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.TotalSBOMsStoredTile;
-import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.VulnerabilitiesThreatLevelTile;
+import com.sonatype.clm.testing.functional.elements.sbom.dashboard.ApplicationsHistoryTile;
+import com.sonatype.clm.testing.functional.elements.sbom.dashboard.HighPriorityVulnerabilitiesTile;
+import com.sonatype.clm.testing.functional.elements.sbom.dashboard.HighPriorityVulnerabilitiesTile.VulnerabilityList;
+import com.sonatype.clm.testing.functional.elements.sbom.dashboard.RecentlyImportedSBOMsTile;
+import com.sonatype.clm.testing.functional.elements.sbom.dashboard.SbomReleaseStatusTile;
+import com.sonatype.clm.testing.functional.elements.sbom.dashboard.RecentlyImportedSBOMsTile.SbomTable;
+import com.sonatype.clm.testing.functional.elements.sbom.dashboard.RecentlyImportedSBOMsTile.TableRow;
+import com.sonatype.clm.testing.functional.elements.sbom.dashboard.VulnerabilitiesThreatLevelTile.TileLabels;
+import com.sonatype.clm.testing.functional.elements.sbom.dashboard.VulnerabilitiesThreatLevelTile.TileTable;
+import com.sonatype.clm.testing.functional.elements.sbom.dashboard.TotalSBOMsStoredTile;
+import com.sonatype.clm.testing.functional.elements.sbom.dashboard.VulnerabilitiesThreatLevelTile;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
@@ -33,6 +32,9 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerDashboardPage;
+import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.scan.file.SbomFormat;
 
@@ -79,7 +81,18 @@ public class SbomManagerDashboardPageTest
 
     sbomManagerDashboardPage.title()
         .shouldBe(visible)
-        .shouldHave(text("Dashboard"));
+        .shouldHave(text("SBOM Manager Dashboard"));
+  }
+
+  @Test
+  public void testDashboard_NavigateToNonSbomPages() {
+    Application application = tempEntity.newApplicationWithParent("test-app");
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+    waitUntilUrl(SbomManagerDashboardPage.url());
+
+    sbomManagerDashboardPage.title()
+        .shouldBe(visible)
+        .shouldHave(text("SBOM Manager Dashboard"));
   }
 
   @Test

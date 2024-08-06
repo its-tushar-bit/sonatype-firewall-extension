@@ -9,8 +9,8 @@ import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar.OwnerItem;
 import com.sonatype.clm.testing.functional.elements.OwnerSummaryTile;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
+import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerDashboardPage;
 import com.sonatype.clm.testing.functional.mtiq.AbstractMtiqFunctionalTest;
-import com.sonatype.clm.testing.functional.mtiq.pages.sbom.SbomManagerDashboardPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.model.Application;
@@ -71,6 +71,28 @@ public class SbomManagerOwnerSummaryPageTest
     checkEntityVisibility(orgsAndPoliciesSidebar.getOrganizationLink(0), parentOrganization, 0, 2);
     checkEntityVisibility(orgsAndPoliciesSidebar.getOrganizationLink(1), childOrganization2, 1, 0);
     checkEntityVisibility(orgsAndPoliciesSidebar.getApplicationLink(0), childApplication2, 1, 0);
+  }
+
+  @Test
+  public void testNavigateToOrganizations_sbomOnlyLicense_onlyOrgsAndAppsVisible() {
+    refreshOrOpen(SbomManagerDashboardPage.url());
+    SidebarNavigation.sbomManagerOrganizationsNavigationButton().click();
+
+    OwnerSummaryTile ownerSummaryTile = OwnerSummaryPage.summaryTile();
+    ownerSummaryTile.shouldBe(visible);
+    isSbomManagerPage();
+
+    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
+    checkEntityVisibility(orgsAndPoliciesSidebar.getOrganizationLink(0), parentOrganization, 0, 2);
+    checkEntityVisibility(orgsAndPoliciesSidebar.getOrganizationLink(0), childOrganization, 1, 0);
+    checkEntityVisibility(orgsAndPoliciesSidebar.getApplicationLink(0), childApplication1, 1, 0);
+    SidebarNavigation.sbomManagerOrganizationsNavigationButton().click();
+    checkEntityVisibility(orgsAndPoliciesSidebar.getOrganizationLink(0), parentOrganization, 0, 2);
+    checkEntityVisibility(orgsAndPoliciesSidebar.getOrganizationLink(1), childOrganization2, 1, 0);
+    checkEntityVisibility(orgsAndPoliciesSidebar.getApplicationLink(0), childApplication2, 1, 0);
+
+    orgsAndPoliciesSidebar.getRepositoryList().shouldNotBe(visible);
+    orgsAndPoliciesSidebar.getRepoManagerList().shouldNotBe(visible);
   }
 
   private void isSbomManagerPage() {

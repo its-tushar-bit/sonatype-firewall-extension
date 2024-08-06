@@ -6,13 +6,13 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.ComponentDetailsSummaryTile;
-import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.CopyAnnotationModal;
-import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.DeleteAnnotationModal;
-import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.DependencyTreeTile;
-import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VexAnnotationDrawer;
-import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VulnerabilitiesTableTile;
-import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VulnerabilityDetailsPopover;
+import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.ComponentDetailsSummaryTile;
+import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.CopyAnnotationModal;
+import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.DeleteAnnotationModal;
+import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.DependencyTreeTile;
+import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.VexAnnotationDrawer;
+import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.VulnerabilitiesTableTile;
+import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.VulnerabilityDetailsPopover;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.ElementsCollection;

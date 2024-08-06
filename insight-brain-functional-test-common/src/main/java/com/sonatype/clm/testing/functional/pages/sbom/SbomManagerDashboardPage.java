@@ -3,21 +3,22 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.clm.testing.functional.mtiq.pages.sbom;
+package com.sonatype.clm.testing.functional.pages.sbom;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
-import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.ApplicationsHistoryTile;
-import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.HighPriorityVulnerabilitiesTile;
-import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.RecentlyImportedSBOMsTile;
-import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.SbomReleaseStatusTile;
-import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.TotalSBOMsStoredTile;
-import com.sonatype.clm.testing.functional.mtiq.elements.sbom.dashboard.VulnerabilitiesThreatLevelTile;
+import com.sonatype.clm.testing.functional.elements.sbom.dashboard.ApplicationsHistoryTile;
+import com.sonatype.clm.testing.functional.elements.sbom.dashboard.HighPriorityVulnerabilitiesTile;
+import com.sonatype.clm.testing.functional.elements.sbom.dashboard.RecentlyImportedSBOMsTile;
+import com.sonatype.clm.testing.functional.elements.sbom.dashboard.SbomReleaseStatusTile;
+import com.sonatype.clm.testing.functional.elements.sbom.dashboard.TotalSBOMsStoredTile;
+import com.sonatype.clm.testing.functional.elements.sbom.dashboard.VulnerabilitiesThreatLevelTile;
 
 import com.codeborne.selenide.SelenideElement;
 
-public class SbomManagerDashboardPage extends BasicElement<SbomManagerDashboardPage>
+public class SbomManagerDashboardPage
+    extends BasicElement<SbomManagerDashboardPage>
 {
   public static String url() {
     return BaseUrl.resolvePageUrl("/sbomManager/dashboard");

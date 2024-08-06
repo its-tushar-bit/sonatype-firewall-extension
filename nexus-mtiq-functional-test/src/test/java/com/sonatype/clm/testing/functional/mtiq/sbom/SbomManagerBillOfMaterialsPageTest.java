@@ -9,9 +9,9 @@ import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.mtiq.AbstractMtiqFunctionalTest;
-import com.sonatype.clm.testing.functional.mtiq.pages.sbom.BillOfMaterialsPageSummaryTile;
-import com.sonatype.clm.testing.functional.mtiq.elements.sbom.ComponentsTile;
-import com.sonatype.clm.testing.functional.mtiq.pages.sbom.SbomManagerBillOfMaterialsPage;
+import com.sonatype.clm.testing.functional.pages.sbom.BillOfMaterialsPageSummaryTile;
+import com.sonatype.clm.testing.functional.elements.sbom.ComponentsTile;
+import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerBillOfMaterialsPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;

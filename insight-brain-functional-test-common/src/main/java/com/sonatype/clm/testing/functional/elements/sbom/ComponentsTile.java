@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.clm.testing.functional.mtiq.elements.sbom;
+package com.sonatype.clm.testing.functional.elements.sbom;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 
@@ -12,11 +12,11 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$$;
 
-public class SbomsTile
-    extends BasicElement<SbomsTile>
+public class ComponentsTile
+    extends BasicElement<ComponentsTile>
 {
-  public SbomsTile() {
-    super("#owner-pill-sboms");
+  public ComponentsTile() {
+    super(".sbom-manager-bill-of-materials-components-tile");
   }
 
   public ElementsCollection rows() {
@@ -29,6 +29,15 @@ public class SbomsTile
 
   public ElementsCollection tableBodyRows() {
     return children("table tbody tr");
+  }
+
+  public ElementsCollection vulnerabilitiesColumns(int row) {
+    return tableBodyRows().get(row).findAll(".nx-small-threat-counter__count");
+  }
+
+  public SelenideElement percentageAnnotatedColumn(int row) {
+    return tableBodyRows().get(row)
+        .find(".sbom-manager-bill-of-materials-components-tile__percentage-annotated");
   }
 
   public ElementsCollection tableBodyRowsColumns(int row) {
@@ -47,35 +56,19 @@ public class SbomsTile
     return child("nav.nx-btn-bar--pagination");
   }
 
+  public SelenideElement paginationStatus() {
+    return child(".sbom-manager-bill-of-materials-components-tile__pagination-status");
+  }
+
   public ElementsCollection paginationButtons() {
     return footer().findAll("button.nx-btn--pagination");
   }
 
-  public SelenideElement importButton() {
-    return child("#import-sbom-button");
+  public SelenideElement filterByButton() {
+    return child("button.nx-btn.nx-btn--tertiary");
   }
 
   public ElementsCollection tableRows() {
     return $$(".nx-table .nx-table-row");
-  }
-
-  public ElementsCollection actionsSbomOptions() {
-    return $$(".nx-dropdown-menu .nx-dropdown-button");
-  }
-
-  public SelenideElement actions(int row) {
-    return tableRows().get(row).find("button.nx-icon-dropdown__toggle");
-  }
-
-  public SelenideElement deleteSbomModal() {
-    return child("#delete-sbom-version-modal");
-  }
-
-  public SelenideElement deleteSbomModalPrimaryButton() {
-    return deleteSbomModal().find("button.nx-btn--primary");
-  }
-
-  public SelenideElement billOfMaterialsLink(int row) {
-    return tableRows().get(row).find("a.sbom-manager-owner-summary-sboms-tile-table__version-link");
   }
 }

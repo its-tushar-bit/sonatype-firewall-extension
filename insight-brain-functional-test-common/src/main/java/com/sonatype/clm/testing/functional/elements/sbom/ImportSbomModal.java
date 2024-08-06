@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.clm.testing.functional.mtiq.elements.sbom;
+package com.sonatype.clm.testing.functional.elements.sbom;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.codeborne.selenide.SelenideElement;
 

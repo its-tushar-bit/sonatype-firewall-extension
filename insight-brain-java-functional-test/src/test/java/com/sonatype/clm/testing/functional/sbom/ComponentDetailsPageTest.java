@@ -3,16 +3,16 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.clm.testing.functional.sbom.manager;
+package com.sonatype.clm.testing.functional.sbom;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.ComponentDetailsSummaryTile;
-import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.CopyAnnotationModal;
-import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.DeleteAnnotationModal;
-import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.DependencyTreeTile;
-import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VexAnnotationDrawer;
-import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VulnerabilitiesTableTile;
-import com.sonatype.clm.testing.functional.elements.sbommanager.componentdetails.VulnerabilityDetailsPopover;
+import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.ComponentDetailsSummaryTile;
+import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.CopyAnnotationModal;
+import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.DeleteAnnotationModal;
+import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.DependencyTreeTile;
+import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.VexAnnotationDrawer;
+import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.VulnerabilitiesTableTile;
+import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.VulnerabilityDetailsPopover;
 import com.sonatype.clm.testing.functional.pages.SbomManagerComponentDetailsPage;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.model.Application;

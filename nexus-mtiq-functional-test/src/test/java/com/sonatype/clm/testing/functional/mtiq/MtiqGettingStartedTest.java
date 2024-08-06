@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.mtiq;
 
+import com.codeborne.selenide.Selenide;
 import com.sonatype.clm.testing.functional.mtiq.pages.MtiqGettingStartedPage;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -36,6 +37,7 @@ public class MtiqGettingStartedTest
     testCLMServer.getHdsServer().respondWith("").andStatus(503).atUri("ping");
     refreshOrOpen(MtiqGettingStartedPage.url());
 
+    Selenide.sleep(1000);
     // non-admin user only sees the HDS connectivity warning and learning topics tile
     mtiqGettingStartedPage.hdsConnectivityWarning().shouldBe(visible);
     mtiqGettingStartedPage.productLicenseSummary().shouldNotBe(visible);
@@ -46,6 +48,8 @@ public class MtiqGettingStartedTest
     grantPermissions(getUsername(), GLOBAL_CONTEXT_ID, Permission.ADD_APPLICATION);
     refresh();
 
+    Selenide.sleep(1000);
+
     // non-admin user that can add applications sees the HDS connectivity, system setup and learning topics tiles
     mtiqGettingStartedPage.hdsConnectivityWarning().shouldBe(visible);
     mtiqGettingStartedPage.productLicenseSummary().shouldNotBe(visible);
@@ -55,6 +59,8 @@ public class MtiqGettingStartedTest
 
     grantPermissions(getUsername(), GLOBAL_CONTEXT_ID, Permission.CONFIGURE_SYSTEM);
     refresh();
+
+    Selenide.sleep(1000);
 
     // non-default admin user sees all tiles
     mtiqGettingStartedPage.hdsConnectivityWarning().shouldBe(visible);
@@ -68,6 +74,8 @@ public class MtiqGettingStartedTest
     testCLMServer.getHdsServer().respondWith("alive").atUri("ping");
     refresh();
 
+    Selenide.sleep(1000);
+
     // just check that the HDS connectivity warning is gone
     mtiqGettingStartedPage.hdsConnectivityWarning().shouldNotBe(visible);
   }
@@ -78,7 +86,9 @@ public class MtiqGettingStartedTest
     licenseTile.expiryDate().shouldBe(visible).should(matchText("[a-zA-Z]+ [0-9]+, 2[0-9]{3}"));
     licenseTile.daysToExpiration().shouldBe(visible).shouldHave(matchText("[0-1]"));
     licenseTile.products()
-        .shouldHave(texts("Sonatype Lifecycle Cloud", "Sonatype Lifecycle", "Sonatype Repository Firewall"));
+        .shouldHave(texts("Sonatype Lifecycle Cloud", "Sonatype Developer", "Sonatype Lifecycle",
+            "Sonatype Repository Firewall"
+            ));
     // NOTE: the emdashes are added in CSS and apparently don't show up here
     licenseTile.licensedDevelopersRows().shouldHave(texts("Lifecycle50", "Firewall45"));
   }

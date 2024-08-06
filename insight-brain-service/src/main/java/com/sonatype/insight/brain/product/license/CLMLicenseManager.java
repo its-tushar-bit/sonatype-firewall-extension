@@ -122,7 +122,7 @@ public class CLMLicenseManager
 
   private static final String LICENSE_LOADING_ERROR = "Error when loading the product license";
 
-  private static final String MIN_DEVELOPER_COMPATIBLE_VERSION = "1.180.0";
+  private static final String MIN_DEVELOPER_COMPATIBLE_VERSION = "1.180.0-min";
 
   private final InsightConfig config;
 

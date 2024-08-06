@@ -81,7 +81,8 @@ public class DefaultProductLicenseTest
         .shouldHave(texts("Lifecycle — 50", "Lifecycle Cloud — 50", "Firewall — 45"));
     ProductLicensePage.licensedApplications().shouldBe(hidden);
     ProductLicensePage.products()
-        .shouldHave(texts("Sonatype Lifecycle Cloud", "Sonatype Lifecycle", "Sonatype Repository Firewall"));
+        .shouldHave(texts("Sonatype Lifecycle Cloud", "Sonatype Developer",
+            "Sonatype Lifecycle", "Sonatype Repository Firewall"));
     ProductLicensePage.fingerprint().shouldBe(visible).should(matchText(FINGERPRINT_PATTERN));
 
     eyesWatcher.eyesCheck();
@@ -129,7 +130,7 @@ public class DefaultProductLicenseTest
     ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("50"));
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
     ProductLicensePage.licensedSboms().shouldNotBe(visible);
-    ProductLicensePage.products().shouldHave(texts("Sonatype Lifecycle"));
+    ProductLicensePage.products().shouldHave(texts("Sonatype Developer", "Sonatype Lifecycle"));
 
     SidebarNavigation.openNavigationSidebar();
     SidebarNavigation.productLogo().shouldHave(attribute("alt", "Lifecycle"));
@@ -146,7 +147,7 @@ public class DefaultProductLicenseTest
     ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("50"));
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
     ProductLicensePage.licensedSboms().shouldNotBe(visible);
-    ProductLicensePage.products().shouldHave(texts("Sonatype Lifecycle Cloud"));
+    ProductLicensePage.products().shouldHave(texts("Sonatype Lifecycle Cloud", "Sonatype Developer"));
 
     SidebarNavigation.openNavigationSidebar();
     SidebarNavigation.productLogo().shouldHave(attribute("alt", "Lifecycle Cloud"));
@@ -205,8 +206,8 @@ public class DefaultProductLicenseTest
         .shouldHave(texts("Lifecycle — 8765", "Lifecycle Cloud — 8765", "Firewall — 4321"));
     ProductLicensePage.licensedApplications().shouldBe(visible).shouldHave(text("100"));
     ProductLicensePage.licensedSboms().shouldBe(visible).shouldHave(text("99"));
-    ProductLicensePage.products().shouldHave(texts("Sonatype Lifecycle Cloud", "Sonatype Lifecycle",
-        "Sonatype Repository Firewall"));
+    ProductLicensePage.products().shouldHave(texts("Sonatype Lifecycle Cloud", "Sonatype Developer",
+        "Sonatype Lifecycle", "Sonatype Repository Firewall"));
 
     SidebarNavigation.openNavigationSidebar();
     SidebarNavigation.productLogo().shouldHave(attribute("alt", "Lifecycle"));

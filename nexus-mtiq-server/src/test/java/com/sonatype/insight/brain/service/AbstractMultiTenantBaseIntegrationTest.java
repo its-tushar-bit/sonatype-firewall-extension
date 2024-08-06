@@ -141,7 +141,7 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
     if (configurator == null) {
       configurator = MTIQ_DATABASE_CONFIGURATOR;
     }
-    super.startIqTestServer(configurator, true);
+    super.startIqTestServer(configurator);
 
     systemConfigurationPropertyDAO = getCLMServer().getInstance(SystemConfigurationPropertyDAO.class);
 

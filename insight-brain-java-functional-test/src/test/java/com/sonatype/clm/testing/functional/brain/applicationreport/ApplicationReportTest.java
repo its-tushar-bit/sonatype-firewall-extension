@@ -153,7 +153,7 @@ public class ApplicationReportTest
     reportPage.policyTypeFilterWarning().shouldNot(exist);
 
     reportPage.optionsDropdown().shouldBe(visible).menu().shouldNotBe(visible);
-    reportPage.reportApplicationRiskScore().shouldNotBe(visible);
+    reportPage.reportApplicationRiskScore().shouldBe(visible);
     reportPage.threatIndicators().critical().shouldHave(text("22"));
     reportPage.threatIndicators().severe().shouldHave(text("39"));
     reportPage.threatIndicators().moderate().shouldHave(text("4"));
@@ -296,7 +296,7 @@ public class ApplicationReportTest
     NxDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.shouldBe(visible).menu().shouldNotBe(visible);
     optionsDropdown.button().shouldHave(text("Options")).click();
-    optionsDropdown.menu().shouldBe(visible).entries().shouldHave(size(6));
+    optionsDropdown.menu().shouldBe(visible).entries().shouldHave(size(7));
 
     eyesWatcher.eyesCheck();
   }
@@ -347,7 +347,7 @@ public class ApplicationReportTest
   public void testRawDataLink() {
     NxDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.button().click();
-    optionsDropdown.menu().entries().get(3).shouldHave(text("View raw data")).click();
+    optionsDropdown.menu().entries().get(4).shouldHave(text("View raw data")).click();
 
     waitUntilUrl(ApplicationReportRawDataPage.url(app, SCAN_ID));
     new ApplicationReportRawDataPage().reportTitle().shouldHave(text(app.getName()));
@@ -357,7 +357,7 @@ public class ApplicationReportTest
   public void testVulnerabilitiesLink() {
     NxDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.button().click();
-    optionsDropdown.menu().entries().get(4).shouldHave(text("View vulnerabilities")).click();
+    optionsDropdown.menu().entries().get(5).shouldHave(text("View vulnerabilities")).click();
 
     waitUntilUrl(ApplicationReportVulnerabilitiesPage.url(app, SCAN_ID));
     new ApplicationReportVulnerabilitiesPage().title().shouldHave(text(app.getName()));
@@ -911,7 +911,7 @@ public class ApplicationReportTest
     // Assertions
     NxDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.button().click();
-    optionsDropdown.menu().entries().get(4).shouldHave(DISABLED).click();
+    optionsDropdown.menu().entries().get(5).shouldHave(DISABLED).click();
     // should remain on report page
     reportPage.shouldBe(visible);
   }

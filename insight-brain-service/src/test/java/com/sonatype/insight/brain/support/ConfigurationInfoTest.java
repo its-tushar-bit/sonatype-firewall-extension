@@ -258,7 +258,8 @@ public class ConfigurationInfoTest
         "quarantinedItemCustomMessage",
         "enterpriseReportingVersionCacheExpirationInMinutes",
         "SAAS_POLICY_MONITOR_POOL_SIZE",
-        "skipSbomImportValidation");
+        "skipSbomImportValidation",
+        "cleanUpSbomContinuousMonitoringReport");
 
     // Properties included in the config.json in support zip
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());

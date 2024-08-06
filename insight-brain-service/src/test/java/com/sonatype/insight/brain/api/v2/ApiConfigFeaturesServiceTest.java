@@ -946,4 +946,43 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.SECURE_SHARING)).isInstanceOf(
         BadRequestException.class).hasMessage("Feature is already disabled.");
   }
+
+  @Test
+  public void testGetSystemConfigurationPropertyFeature_CleanUpContinuousMonitoringReport() {
+    assertThat(service.getSystemConfigurationPropertyFeature("clean-up-sbom-continuous-monitoring-report")).isEqualTo(
+        SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT);
+    assertThat(service.getSystemConfigurationPropertyFeature("Clean-Up-Sbom-Continuous-Monitoring-Report")).isEqualTo(
+        SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT);
+    assertThat(service.getSystemConfigurationPropertyFeature("CLEAN-UP-SBOM-CONTINUOUS-MONITORING-REPORT")).isEqualTo(
+        SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT);
+    assertThat(service.getSystemConfigurationPropertyFeature("cleanUpSbomContinuousMonitoringReport")).isEqualTo(
+        SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT);
+  }
+
+  @Test
+  public void testDisableFeature_CleanUpContinuousMonitoringReport() {
+    service.disableFeature(SystemConfigurationProperty.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT);
+
+    assertThat(
+        systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT)
+            .getValue())
+        .isEqualTo("false");
+  }
+
+  @Test
+  public void testEnableFeature_CleanUpContinuousMonitoringReport_AlreadyEnabled() {
+    assertThatThrownBy(
+        () -> service.enableFeature(
+            SystemConfigurationProperty.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_CleanUpContinuousMonitoringReport_AlreadyDisabled() {
+    service.disableFeature(SystemConfigurationProperty.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT);
+    assertThatThrownBy(
+        () -> service.disableFeature(
+            SystemConfigurationProperty.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
 }

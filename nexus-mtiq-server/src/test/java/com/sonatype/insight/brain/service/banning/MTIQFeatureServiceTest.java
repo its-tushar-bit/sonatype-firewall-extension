@@ -200,7 +200,8 @@ public class MTIQFeatureServiceTest
         SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED,
         SystemConfigurationPropertyFeature.WEBHOOK_CONFIGURATION,
         SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT,
-        SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE
+        SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE,
+        SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT
     ).collect(toSet()).toArray(new SystemConfigurationPropertyFeature[]{});
   }
 

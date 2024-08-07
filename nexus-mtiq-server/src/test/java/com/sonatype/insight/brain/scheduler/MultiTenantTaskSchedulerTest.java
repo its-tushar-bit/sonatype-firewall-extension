@@ -243,7 +243,7 @@ public class MultiTenantTaskSchedulerTest
   @Test
   public void testStart_Active() throws Exception {
     String mtiqBatchSchedulerName = spyUnderTest.getMtiqBatchSchedulerName();
-    when(mockMultiTenantInsightConfig.getCloudyClusterConfigFilePath()).thenReturn(
+    lenient().when(mockMultiTenantInsightConfig.getCloudyClusterConfigFilePath()).thenReturn(
         createClusterConfigFile(CloudyClusterState.ACTIVE).getAbsolutePath());
     when(mockTenantUtil.isMtiqBatchMode()).thenReturn(true);
 
@@ -258,7 +258,7 @@ public class MultiTenantTaskSchedulerTest
   @Test
   public void testStart_Filling() throws Exception {
     String mtiqBatchSchedulerName = spyUnderTest.getMtiqBatchSchedulerName();
-    when(mockMultiTenantInsightConfig.getCloudyClusterConfigFilePath()).thenReturn(
+    lenient().when(mockMultiTenantInsightConfig.getCloudyClusterConfigFilePath()).thenReturn(
         createClusterConfigFile(CloudyClusterState.FILLING).getAbsolutePath());
     when(mockTenantUtil.isMtiqBatchMode()).thenReturn(true);
 
@@ -273,33 +273,33 @@ public class MultiTenantTaskSchedulerTest
   @Test
   public void testStart_Draining() throws Exception {
     String mtiqBatchSchedulerName = spyUnderTest.getMtiqBatchSchedulerName();
-    when(mockMultiTenantInsightConfig.getCloudyClusterConfigFilePath()).thenReturn(
+    lenient().when(mockMultiTenantInsightConfig.getCloudyClusterConfigFilePath()).thenReturn(
         createClusterConfigFile(CloudyClusterState.DRAINING).getAbsolutePath());
     lenient().when(mockTenantUtil.isMtiqBatchMode()).thenReturn(true);
     spyUnderTest.initialize();
 
     spyUnderTest.start();
 
-    assertThat(spyUnderTest.getScheduler().isStarted()).isFalse();
-    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isStarted()).isFalse();
-    assertThat(spyUnderTest.getScheduler().isInStandbyMode()).isTrue();
-    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isInStandbyMode()).isTrue();
+    assertThat(spyUnderTest.getScheduler().isStarted()).isTrue();
+    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isStarted()).isTrue();
+    assertThat(spyUnderTest.getScheduler().isInStandbyMode()).isFalse();
+    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isInStandbyMode()).isFalse();
   }
 
   @Test
   public void testStart_Inactive() throws Exception {
     String mtiqBatchSchedulerName = spyUnderTest.getMtiqBatchSchedulerName();
-    when(mockMultiTenantInsightConfig.getCloudyClusterConfigFilePath()).thenReturn(
+    lenient().when(mockMultiTenantInsightConfig.getCloudyClusterConfigFilePath()).thenReturn(
         createClusterConfigFile(CloudyClusterState.INACTIVE).getAbsolutePath());
     lenient().when(mockTenantUtil.isMtiqBatchMode()).thenReturn(true);
     spyUnderTest.initialize();
 
     spyUnderTest.start();
 
-    assertThat(spyUnderTest.getScheduler().isStarted()).isFalse();
-    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isStarted()).isFalse();
-    assertThat(spyUnderTest.getScheduler().isInStandbyMode()).isTrue();
-    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isInStandbyMode()).isTrue();
+    assertThat(spyUnderTest.getScheduler().isStarted()).isTrue();
+    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isStarted()).isTrue();
+    assertThat(spyUnderTest.getScheduler().isInStandbyMode()).isFalse();
+    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isInStandbyMode()).isFalse();
   }
 
   private File createClusterConfigFile(final CloudyClusterState cloudyClusterState) throws Exception {

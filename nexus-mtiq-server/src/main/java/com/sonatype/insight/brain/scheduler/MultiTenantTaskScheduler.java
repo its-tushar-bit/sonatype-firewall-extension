@@ -97,7 +97,7 @@ public class MultiTenantTaskScheduler
   public void start() throws Exception {
     assertTenantsArePreRegistered();
 
-    startOrStandbyTaskSchedulers();
+    doStart();
   }
 
   private void assertTenantsArePreRegistered() {
@@ -122,11 +122,11 @@ public class MultiTenantTaskScheduler
     switch (cloudyClusterState) {
       case UNKNOWN:
       case ACTIVE:
-      case FILLING: {
+      case FILLING: 
+      case DRAINING: {
         log.trace("Starting the task schedulers if needed due to the cluster state {}.", cloudyClusterState);
         return true;
       }
-      case DRAINING:
       case INACTIVE: {
         log.trace("Standby the task schedulers if needed due to the cluster state {}.", cloudyClusterState);
         return false;

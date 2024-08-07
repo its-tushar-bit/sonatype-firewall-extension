@@ -54,6 +54,7 @@ import com.sonatype.insight.brain.scheduler.MultiTenantQuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.scheduler.TaskSchedulerClusterStateMonitor;
 import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.EncryptionKeyStore;
 import com.sonatype.insight.brain.security.MultiTenantEncryptionKeyStore;
@@ -390,6 +391,8 @@ public class MultiTenantInsightBrainService
           bind(DefaultEncryptionKeyStore.class).toProvider(Providers.of(null));
           extraToBan.add(DefaultEncryptionKeyStore.class);
         }
+        // Temporarily disabled since pods in an inactive cluster can currently still receive traffic - CLM-31258
+        extraToBan.add(TaskSchedulerClusterStateMonitor.class);
         bannedImplementationService.setupBannedClasses(extraToBan.toArray(new Class[0]));
       }
     };

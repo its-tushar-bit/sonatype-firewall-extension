@@ -292,8 +292,8 @@ public class ComponentInfoServiceTest
     licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, application.getPublicId(), MAVEN_A1_COORDINATES,
         httpRequestMock, null, null).selectableLicenses;
     assertThat(licenses).extracting(License::getLicenseId).containsExactlyInAnyOrder("Apache-UNSPECIFIED", "Apache-1.0",
-        "Apache-1.1", "Apache-2.0", "Apache-XML-Security-License", "Apache-2.0-with-LLVM-exception",
-        "Apache-2.0-with-Commons-Clause-1.0", "Apache-2.0-with-Swift-exception",
+        "Apache-1.1", "Apache-2.0", "Apache-2.0-with-Astramind-MA", "Apache-XML-Security-License",
+        "Apache-2.0-with-LLVM-exception", "Apache-2.0-with-Commons-Clause-1.0", "Apache-2.0-with-Swift-exception",
         "Apache-2.0-with-Commercial-Use-Enforcer");
 
     // Verify that declared and observed licenses are merged

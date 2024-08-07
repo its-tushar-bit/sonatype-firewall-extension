@@ -10,11 +10,21 @@ import { NxList, NxTextLink } from '@sonatype/react-shared-components';
 import { DependencyTypeTag } from 'MainRoot/react/tag';
 import { dependencyTreeNodePropType } from 'MainRoot/DependencyTree/DependencyTree';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
-
-const COMPONENT_DETAILS_OVERVIEW_ROUTE_NAME = 'applicationReport.componentDetails.overview';
+import { useSelector } from 'react-redux';
+import {
+  selectIsPrioritiesPageContainer,
+  selectPrioritiesPageContainerName,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const AncestorsList = ({ dependencyTreeSubset, itemsToShow, expanded, toggleAncestorsList }) => {
   const uiRouterState = useRouterState();
+  const isPrioritiesPageContainer = useSelector(selectIsPrioritiesPageContainer);
+  const prioritiesPageContainerName = useSelector(selectPrioritiesPageContainerName);
+
+  const COMPONENT_DETAILS_OVERVIEW_ROUTE_NAME = isPrioritiesPageContainer
+    ? `${prioritiesPageContainerName}.componentDetails.overview`
+    : 'applicationReport.componentDetails.overview';
+
   const ancestorsElements =
     !expanded && dependencyTreeSubset.length > itemsToShow
       ? dependencyTreeSubset.slice(0, itemsToShow)

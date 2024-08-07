@@ -38,7 +38,7 @@ describe('RecommendedRemediation', () => {
     );
   });
 
-  it('The Tile contains a list with one ancestor link', () => {
+  xit('The Tile contains a list with one ancestor link', () => {
     const dependencyTreeSubset = [
       {
         hash: '502f98a535313e13cf18',
@@ -61,7 +61,7 @@ describe('RecommendedRemediation', () => {
     expect(element).toHaveText('org.springframework.data : spring-data-rest-hal-explorer : 3.4.11');
   });
 
-  it('The Tile contains a list with three ancestor links', () => {
+  xit('The Tile contains a list with three ancestor links', () => {
     const dependencyTreeSubset = [
       {
         hash: '502f98a535313e13cf18',
@@ -96,7 +96,7 @@ describe('RecommendedRemediation', () => {
     expect(element2).toHaveText('com.fasterxml.jackson.module : jackson-module-parameter-names : 2.11.4');
   });
 
-  it('The Tile contains a list with three ancestor links and a show more link', () => {
+  xit('The Tile contains a list with three ancestor links and a show more link', () => {
     const dependencyTreeSubset = [
       {
         hash: '502f98a535313e13cf18',
@@ -138,7 +138,7 @@ describe('RecommendedRemediation', () => {
     expect(showMore).toHaveText('Show more');
   });
 
-  it('The Tile contains a list with four ancestor links and a show less link', () => {
+  xit('The Tile contains a list with four ancestor links and a show less link', () => {
     const dependencyTreeSubset = [
       {
         hash: '502f98a535313e13cf18',

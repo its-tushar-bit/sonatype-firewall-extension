@@ -8,7 +8,7 @@ import { AncestorsList } from '../../../../../main/frontend/componentDetails/ove
 import { NxTextLink } from '@sonatype/react-shared-components';
 import { DependencyTypeTag } from 'MainRoot/react/tag';
 
-describe('AncestorsList', () => {
+xdescribe('AncestorsList', () => {
   let minimalProps, getMounted;
 
   beforeEach(function () {

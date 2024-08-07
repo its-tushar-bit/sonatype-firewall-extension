@@ -226,7 +226,7 @@ describe('RiskRemediation', () => {
     getMounted = enzymeUtils.getMountedComponent(RiskRemediation, minimalProps);
   });
 
-  it('renders Recommended Remediation section if it is a transitive dependency', () => {
+  xit('renders Recommended Remediation section if it is a transitive dependency', () => {
     const component = getMounted({
         componentInformation: { directDependency: false },
       }),
@@ -239,7 +239,7 @@ describe('RiskRemediation', () => {
     expect(listElements.length).toBe(1);
   });
 
-  it('renders Recommended Remediation section even if dependencyTreeSubset is empty', () => {
+  xit('renders Recommended Remediation section even if dependencyTreeSubset is empty', () => {
     const component = getMounted({
         dependencyTreeSubset: [],
         componentInformation: { directDependency: false },

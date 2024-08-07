@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
-import org.junit.Ignore;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
@@ -53,7 +52,8 @@ import static com.codeborne.selenide.Selenide.back;
 import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrollIntoView;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 
-public class IntegrationsPageTest extends AbstractFunctionalTest
+public class IntegrationsPageTest
+    extends AbstractFunctionalTest
 {
   private static final int TOTAL_APPS_FOR_INTEGRATION_AND_RISKS = 20;
 
@@ -125,7 +125,6 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     eyesWatcher.eyesCheck();
   }
 
-  @Ignore
   @Test
   public void testAppIntegrationsAndRiskTable_ShouldRenderRowsCorrectly() throws Exception {
     setUpAppsForIntegrationAndRisks();
@@ -142,21 +141,21 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     scrollIntoView(appIntegrationsAndRiskTable());
     appIntegrationsAndRiskTableDataRows().shouldHave(size(TOTAL_APPS_PER_PAGE));
 
-    applicationName(9).shouldHave(text("appName9"));
-    appIntegrationsCicdConfigureButton(9).shouldHave(visible).shouldHave(text("Configure"));
-    appIntegrationsScmConfigureButton(9).shouldHave(visible).shouldHave(text("Configure"));
-    lastCommitDate(9).shouldBe(visible).shouldHave(text("February 2, 2023"));
-    lastEvaluationDate(9).shouldBe(visible).shouldHave(text(oldEvaluationDateString));
-    prioritiesReport(9).shouldNotHave(text("N/A"));
-    prioritiesReportViewLink(9).shouldBe(visible).shouldHave(text("View"));
-
     applicationName(0).shouldHave(text("appName19"));
-    appIntegrationsCicdConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
+    appIntegrationsCicdConfigureButton(0).shouldNotBe(visible);
     appIntegrationsScmConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
-    lastCommitDate(0).shouldBe(visible).shouldHave(text("January 24, 2023"));
+    lastCommitDate(0).shouldBe(visible).shouldHave(text("January 25, 2023"));
     lastEvaluationDate(0).shouldBe(visible).shouldHave(text(lastEvaluationDateString));
     prioritiesReport(0).shouldNotHave(text("N/A"));
     prioritiesReportViewLink(0).shouldBe(visible).shouldHave(text("View"));
+
+    applicationName(7).shouldHave(text("appName12"));
+    appIntegrationsCicdConfigureButton(7).shouldNotBe(visible);
+    appIntegrationsScmConfigureButton(7).shouldHave(visible).shouldHave(text("Configure"));
+    lastCommitDate(7).shouldBe(visible).shouldHave(text("February 1, 2023"));
+    lastEvaluationDate(7).shouldBe(visible).shouldHave(text(lastEvaluationDateString));
+    prioritiesReport(7).shouldNotHave(text("N/A"));
+    prioritiesReportViewLink(7).shouldBe(visible).shouldHave(text("View"));
 
     Selenide.sleep(1000);
     //eyesWatcher.eyesCheck(); https://sonatype.atlassian.net/browse/CLM-30559
@@ -171,19 +170,28 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
     // Showing all rows
     applicationFilterInput().clear();
     applicationFilterInput().sendKeys("a");
+    Selenide.sleep(1000);
     appIntegrationsAndRiskTableDataRows().shouldHave(size(10));
 
     // Going to the second page
     appIntegrationPageButton(2).click();
     appIntegrationsAndRiskTableDataRows().shouldHave(size(10));
 
-    applicationName(0).shouldHave(text("appName9"));
+    applicationName(0).shouldHave(text("appName8"));
     appIntegrationsCicdConfigureButton(0).shouldNotBe(visible);
     appIntegrationsScmConfigureButton(0).shouldHave(visible).shouldHave(text("Configure"));
-    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 2, 2023"));
+    lastCommitDate(0).shouldBe(visible).shouldHave(text("February 5, 2023"));
     lastEvaluationDate(0).shouldBe(visible).shouldHave(text(lastEvaluationDateString));
     prioritiesReport(0).shouldNotHave(text("N/A"));
     prioritiesReportViewLink(0).shouldBe(visible).shouldHave(text("View"));
+
+    applicationName(8).shouldHave(text("appName10"));
+    appIntegrationsCicdConfigureButton(8).shouldHave(visible).shouldHave(text("Configure"));
+    appIntegrationsScmConfigureButton(8).shouldHave(visible).shouldHave(text("Configure"));
+    lastCommitDate(8).shouldBe(visible).shouldHave(text("February 3, 2023"));
+    lastEvaluationDate(8).shouldBe(visible).shouldHave(text(oldEvaluationDateString));
+    prioritiesReport(8).shouldNotHave(text("N/A"));
+    prioritiesReportViewLink(8).shouldBe(visible).shouldHave(text("View"));
 
     applicationName(9).shouldHave(text("appName0"));
     appIntegrationsCicdConfigureButton(9).shouldHave(visible).shouldHave(text("Configure"));
@@ -240,7 +248,7 @@ public class IntegrationsPageTest extends AbstractFunctionalTest
   }
 
   @Test
-  public  void testAppIntegrationsAndRiskTable_shouldCorrectlyShowScmAsConfiguredWhenConfiguredFully()
+  public void testAppIntegrationsAndRiskTable_shouldCorrectlyShowScmAsConfiguredWhenConfiguredFully()
       throws PlexusCipherException
   {
     final Application applicationWithScmConfigured = tempEntity.newApplicationWithParent("app1", "app1");

@@ -500,8 +500,12 @@ public class ApiPolicyWaiverService
 
       if (policyViolationSecurityVulnerabilityId.isPresent()) {
         securityWaiverAppliesToSameVulnerabilityId = policyWaiver -> {
-          Optional<String> firstTriggerReference =
-              findFirstTriggerReference(policyWaiver.getConstraintFacts().stream());
+          final List<ConstraintFact> constraintFacts = policyWaiver.getConstraintFacts();
+
+          final Optional<String> firstTriggerReference = Objects.nonNull(constraintFacts)
+              ? findFirstTriggerReference(policyWaiver.getConstraintFacts().stream())
+              : Optional.empty();
+
           return policyViolationSecurityVulnerabilityId.equals(firstTriggerReference);
         };
       }

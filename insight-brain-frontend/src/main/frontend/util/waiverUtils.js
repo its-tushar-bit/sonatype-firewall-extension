@@ -217,7 +217,7 @@ export const formatWaiverDetails = (waiver) => {
     componentUpgradeAvailable,
   } = waiver;
 
-  const { constraintName, conditionFacts } = constraintFacts[0],
+  const { constraintName, conditionFacts } = constraintFacts?.[0] ?? {},
     waiverScope = displayWaiverScope(waiver),
     expiration = formatDate(expiryTime, STANDARD_DATE_FORMAT) || 'Does not expire',
     dateCreated = formatDate(createTime, STANDARD_DATE_FORMAT),
@@ -227,10 +227,11 @@ export const formatWaiverDetails = (waiver) => {
       displayName,
       matcherStrategy,
     };
+
   return {
     policyName,
     constraintName,
-    reasons: map(prop('reason'), conditionFacts),
+    reasons: map(prop('reason'), conditionFacts || []),
     waiverScope,
     expiration,
     comment: comment || 'None',

@@ -1745,6 +1745,17 @@ public class ApiPolicyWaiverServiceTest
     assertThat(similarWaivers).isEmpty();
   }
 
+  @Test
+  public void testGetSimilarWaivers_shouldHandleNullConstraintFactJsonPolicyWaiver() {
+    tempEntity.newWaiverWithNoConstraintFact(policyViolation.getHash(),
+        policyViolation.getPolicyId(),
+        policyViolation.getOwnerId());
+
+    List<ApiPolicyWaiverDTO> similarWaivers = apiPolicyWaiverService.getSimilarWaivers(policyViolation.getId());
+
+    assertThat(similarWaivers).isEmpty();
+  }
+
   private void assertWaivers(ApiPolicyWaiverDTO savedWaiver, PolicyWaiver policyWaiver, Policy policy, Owner owner) {
     assertThat(savedWaiver.policyWaiverId).isEqualTo(policyWaiver.getId());
     assertThat(savedWaiver.comment).isEqualTo(policyWaiver.getComment());

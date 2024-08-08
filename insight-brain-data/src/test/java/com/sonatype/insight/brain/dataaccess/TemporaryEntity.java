@@ -1813,6 +1813,13 @@ public class TemporaryEntity
     return waiver;
   }
 
+  public PolicyWaiver newWaiverWithNoConstraintFact(String hash, String policyId, String ownerId) {
+    PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, null /* comment */);
+    addCreatorDataToWaiver(waiver);
+    waiverDAO.insert(waiver);
+    return waiver;
+  }
+
   public PolicyWaiver newWaiver(
       String hash,
       String policyId,

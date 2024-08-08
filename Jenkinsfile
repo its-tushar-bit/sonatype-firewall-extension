@@ -77,7 +77,23 @@ make(
               iqScanPatterns: [[scanPattern: 'insight-brain-frontend/target/webpack-modules']],
               //Test files inside the maven modules are excluded from the scan
               iqModuleExcludes: [[moduleExclude: '**/test/**'], [moduleExclude: '**/test-classes/**/module.xml']],
-              failBuildOnNetworkError: true
+              failBuildOnNetworkError: true,
+              callflow: [
+                enable: true,
+                includes: [
+                  'nexus-iq-server/target/*.zip'
+                ],
+                entrypointStrategy: [
+                  $class: 'NamedStrategy',
+                  name: 'JAVA_MAIN',
+                  namespaces:['com.sonatype.insight']
+                ],
+                java: [
+                  options: [
+                    '-Xmx12G'
+                  ]
+                ]
+              ]
 
           if (stage == 'release') {
             build(job: 'bnr/lifecycle-for-sonatype/generate-attribution-report',

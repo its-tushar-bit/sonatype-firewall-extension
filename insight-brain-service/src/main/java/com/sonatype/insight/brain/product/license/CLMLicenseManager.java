@@ -232,9 +232,13 @@ public class CLMLicenseManager
   }
 
   private void updateLicenceKeyWithDeveloperProduct(final ProductLicenseKey productLicenseKey) {
+    log.info("Updating product license key with Developer product. Products: {}",
+        productLicenseKey.getProperties().get("clm.products"));
     final Properties properties = productLicenseKey.getProperties();
     updatePropertiesWithDeveloperProduct(properties);
     productLicenseKey.setProperties(properties);
+    log.info("Finished updating product license key with Developer product. Products: {}",
+        productLicenseKey.getProperties().get("clm.products"));
   }
 
   private void updatePropertiesWithDeveloperProduct(final Properties properties) {
@@ -268,6 +272,8 @@ public class CLMLicenseManager
     final String version = versionService.getVersion();
     final boolean isEligibleVersion =
         version != null && versionService.compare(version, MIN_DEVELOPER_COMPATIBLE_VERSION) >= 0;
+    log.info("Has Lifecycle product = {} ; Has eligible version = {}, version = {}", hasLifecycleProduct,
+        isEligibleVersion, version);
     return hasLifecycleProduct && isEligibleVersion;
   }
 

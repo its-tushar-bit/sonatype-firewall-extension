@@ -33,7 +33,6 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -81,13 +80,13 @@ public class RouteProductLicenseValidatorTest
         .shouldHave(text("SBOM Manager Dashboard"));
   }
 
-  @Ignore("CLM-31101")
   @Test
   public void testRouteProductLicenseValidator_nonSbomOnlyPermittedPath_isAllowedWithNonSbomOnlyLicense() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER, ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD);
     setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.SOURCE_CONTROL);
     Application application = tempEntity.newApplicationWithParent("test-app");
 
+    refresh(); // Force page reload to ensure the app is fully reloaded
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
 
     SourceControlEditorPage.title()

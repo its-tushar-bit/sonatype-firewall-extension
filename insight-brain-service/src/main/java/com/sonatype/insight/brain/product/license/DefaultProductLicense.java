@@ -168,7 +168,9 @@ public class DefaultProductLicense
    */
   @Override
   public Set<String> getProducts() {
-    return getProductLicenseData().products;
+    final Set<String> products = getProductLicenseData().products;
+    log.info("Fetched license products: [{}]", products);
+    return products;
   }
 
   @Override

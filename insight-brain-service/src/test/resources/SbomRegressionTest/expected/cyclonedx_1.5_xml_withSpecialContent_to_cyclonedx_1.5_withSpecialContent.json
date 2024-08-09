@@ -1,0 +1,144 @@
+{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.5",
+  "serialNumber" : "urn:uuid:a140fd3c-3ded-4bb0-a640-dc31e2904dc9",
+  "version" : 1,
+  "metadata" : {
+    "timestamp" : "2024-08-07T11:48:04Z",
+    "tools" : {
+      "components" : [
+        {
+          "type" : "application",
+          "name" : "Sonatype SBOM Manager",
+          "version" : "1.180.0-SNAPSHOT"
+        }
+      ]
+    },
+    "component" : {
+      "type" : "application",
+      "bom-ref" : "8f136917-ab6d-4340-b71b-5103ab740dcc",
+      "name" : "DUMMY-PUBLIC-ID-1c87a70892c7487db71691e6c7cddd55",
+      "version" : "a140fd3c3ded4bb0a640dc31e2904dc9"
+    }
+  },
+  "components" : [
+    {
+      "type" : "library",
+      "bom-ref" : "435d9efa-2c0c-4078-91fb-7fdec24fcad0",
+      "group" : "com.h2database",
+      "name" : "h2",
+      "version" : "2.2.224",
+      "licenses" : [
+        {
+          "license" : {
+            "id" : "MPL-2.0",
+            "properties" : [
+              {
+                "name" : "identificationSources",
+                "value" : "SBOM"
+              }
+            ]
+          }
+        },
+        {
+          "license" : {
+            "id" : "LGPL-3.0",
+            "properties" : [
+              {
+                "name" : "identificationSources",
+                "value" : "SBOM"
+              }
+            ]
+          }
+        },
+        {
+          "license" : {
+            "id" : "BSD-3-Clause",
+            "properties" : [
+              {
+                "name" : "identificationSources",
+                "value" : "SBOM"
+              }
+            ]
+          }
+        },
+        {
+          "license" : {
+            "id" : "EPL-1.0",
+            "properties" : [
+              {
+                "name" : "identificationSources",
+                "value" : "SBOM"
+              }
+            ]
+          }
+        }
+      ],
+      "purl" : "pkg:maven/com.h2database/h2@2.2.224?type=jar",
+      "modified" : false,
+      "properties" : [
+        {
+          "name" : "Sonatype truncated SHA1",
+          "value" : "7bdade27d8cd197d9b5c"
+        },
+        {
+          "name" : "Match State",
+          "value" : "exact"
+        },
+        {
+          "name" : "Identification Source",
+          "value" : "Sonatype"
+        }
+      ],
+      "evidence" : {
+        "occurrences" : [
+          {
+            "location" : "h2-2.2.224.jar"
+          }
+        ]
+      }
+    }
+  ],
+  "externalReferences" : [
+    {
+      "type" : "bom",
+      "url" : "http://localhost:8070/ui/links/application/vuln/report/a140fd3c3ded4bb0a640dc31e2904dc9",
+      "comment" : "IQ Report"
+    }
+  ],
+  "vulnerabilities" : [
+    {
+      "id" : "sonatype-2018-0863",
+      "source" : {
+        "name" : "SONATYPE",
+        "url" : "http://localhost:8070/ui/links/vln/sonatype-2018-0863"
+      },
+      "ratings" : [
+        {
+          "source" : {
+            "name" : "SONATYPE",
+            "url" : "http://localhost:8070/ui/links/vln/sonatype-2018-0863"
+          },
+          "score" : 6.0,
+          "severity" : "high",
+          "method" : "other",
+          "vector" : "CVSS:3.1/AV:L/AC:L/PR:H/UI:N/S:C/C:H/I:N/A:N"
+        }
+      ],
+      "cwes" : [
+        59
+      ],
+      "affects" : [
+        {
+          "ref" : "435d9efa-2c0c-4078-91fb-7fdec24fcad0"
+        }
+      ],
+      "properties" : [
+        {
+          "name" : "identificationSources",
+          "value" : "SBOM"
+        }
+      ]
+    }
+  ]
+}

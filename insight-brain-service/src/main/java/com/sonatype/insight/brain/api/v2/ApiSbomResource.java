@@ -80,7 +80,7 @@ public class ApiSbomResource
 
   static final String SBOM_COMPONENTS_PATH = SBOM_VERSION_PATH + "/components";
 
-  static final String SBOM_IMPORT_PATH = "/import";
+  public static final String SBOM_IMPORT_PATH = "/import";
 
   public static final String SBOM_STATUS_PATH = SBOMS_APPLICATION_PATH + "/status/{importRequestId}";
 

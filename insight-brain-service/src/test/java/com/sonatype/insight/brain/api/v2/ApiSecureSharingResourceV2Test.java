@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.SpdxMediaType;
 import com.sonatype.insight.brain.api.v2.dto.securesharing.ApiSecureSharingApplicationListDTO;
+import com.sonatype.insight.brain.api.v2.dto.securesharing.ApiSecureSharingSbomListDTO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -45,13 +46,15 @@ public class ApiSecureSharingResourceV2Test
 
   private User user;
 
+  private Application app1;
+
   @Before
   public void before() throws Exception {
     setFeatures(LicensedFeature.SBOM_MANAGER);
     SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
 
     tempEntity.newApplicationWithParent("app0");
-    Application app1 = tempEntity.newApplicationWithParent("app1");
+    app1 = tempEntity.newApplicationWithParent("app1");
     Application app2 = tempEntity.newApplicationWithParent("app2");
     Application app3 = tempEntity.newApplicationWithParent("app3");
     Application app4 = tempEntity.newApplicationWithParent("app4");
@@ -216,7 +219,7 @@ public class ApiSecureSharingResourceV2Test
     assertThat(dto).isNotNull();
     assertThat(dto.applications).extracting(app -> app.publicId).containsExactly("app6", "app7");
   }
-  
+
   @Test
   public void testExportSbom_MissingSbomManager() throws Exception {
     setFeatures();
@@ -383,5 +386,86 @@ public class ApiSecureSharingResourceV2Test
     JsonNode jsonNode = new XmlMapper().readTree(body);
     assertThat(jsonNode).isNotNull();
     assertThat(jsonNode.get("spdxVersion").asText()).isEqualTo("SPDX-2.3");
+  }
+
+  @Test
+  public void testGetAllSbomMetadataByApplication_Success() throws Exception {
+    String applicationIdOrPublicId = app1.getId();
+
+    HttpResponse response = restRequest()
+        .auth(user)
+        .path(PublicApiPaths.DISTRIBUTE_PATH)
+        .path(ApiSecureSharingResourceV2.SBOMS_PATH)
+        .parameter(applicationIdOrPublicId)
+        .get();
+
+    assertResponseStatus(200, response);
+    ApiSecureSharingSbomListDTO dto = response.getBody(ApiSecureSharingSbomListDTO.class);
+    assertThat(dto).isNotNull();
+  }
+
+  @Test
+  public void testGetAllSbomMetadataByApplication_InvalidApplicationId() throws Exception {
+    String invalidapplicationIdOrPublicId = "invalidApp";
+
+    HttpResponse response = restRequest()
+        .auth(user)
+        .path(PublicApiPaths.DISTRIBUTE_PATH)
+        .path(ApiSecureSharingResourceV2.SBOMS_PATH)
+        .parameter(invalidapplicationIdOrPublicId)
+        .get();
+
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).isEqualTo("Cannot find an application with id/public id 'invalidApp'.");
+  }
+
+  @Test
+  public void testGetAllSbomMetadataByApplication_Paged() throws Exception {
+    String applicationIdOrPublicId = app1.getId();
+
+    HttpResponse response = restRequest()
+        .auth(user)
+        .path(PublicApiPaths.DISTRIBUTE_PATH)
+        .path(ApiSecureSharingResourceV2.SBOMS_PATH)
+        .parameter(applicationIdOrPublicId)
+        .query("page", 2)
+        .query("pageSize", 1)
+        .get();
+
+    assertResponseStatus(200, response);
+    ApiSecureSharingSbomListDTO dto = response.getBody(ApiSecureSharingSbomListDTO.class);
+    assertThat(dto).isNotNull();
+  }
+
+  @Test
+  public void testGetAllSbomMetadataByApplication_MissingSbomManager() throws Exception {
+    setFeatures();
+    String applicationIdOrPublicId = app1.getId();
+
+    HttpResponse response = restRequest()
+        .auth(user)
+        .path(PublicApiPaths.DISTRIBUTE_PATH)
+        .path(ApiSecureSharingResourceV2.SBOMS_PATH)
+        .parameter(applicationIdOrPublicId)
+        .get();
+
+    assertResponseStatus(402, response);
+    assertThat(response.getBodyText()).isEqualTo("Your IQ Server license does not enable this feature.");
+  }
+
+  @Test
+  public void testGetAllSbomMetadataByApplication_MissingFeature() throws Exception {
+    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
+    String applicationIdOrPublicId = app1.getId();
+
+    HttpResponse response = restRequest()
+        .auth(user)
+        .path(PublicApiPaths.DISTRIBUTE_PATH)
+        .path(ApiSecureSharingResourceV2.SBOMS_PATH)
+        .parameter(applicationIdOrPublicId)
+        .get();
+
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).isEqualTo("Feature not supported.");
   }
 }

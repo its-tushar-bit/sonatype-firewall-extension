@@ -24,9 +24,12 @@ import javax.ws.rs.core.Response;
 import com.sonatype.insight.brain.api.SpdxMediaType;
 import com.sonatype.insight.brain.api.v2.dto.securesharing.ApiSecureSharingApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.securesharing.ApiSecureSharingApplicationListDTO;
+import com.sonatype.insight.brain.api.v2.dto.securesharing.ApiSecureSharingSbomDTO;
+import com.sonatype.insight.brain.api.v2.dto.securesharing.ApiSecureSharingSbomListDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.NotAcceptableException;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -40,6 +43,7 @@ import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.thirdparty.SbomAction;
+import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.scan.file.SbomFormat;
 
@@ -69,17 +73,21 @@ public class ApiSecureSharingService
 
   private final ApiSbomService apiSbomService;
 
+  private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
   @Inject
   public ApiSecureSharingService(
       final PermissionService permissionService,
       final CurrentUser currentUser,
       final ApplicationDAO applicationDAO,
-      final ApiSbomService apiSbomService)
+      final ApiSbomService apiSbomService,
+      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO)
   {
     this.permissionService = permissionService;
     this.currentUser = currentUser;
     this.applicationDAO = applicationDAO;
     this.apiSbomService = apiSbomService;
+    this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
   }
 
   public ApiSecureSharingApplicationListDTO getApplicationsWithPermissions(
@@ -88,7 +96,7 @@ public class ApiSecureSharingService
       final int pageSize)
   {
     checkAuthenticated();
-    validate(page, pageSize);
+    validatePaginationParameters(page, pageSize);
 
     Set<Permission> permissionsWithGlobalOrRootOrgContexts = new HashSet<>();
     Map<Permission, Set<String>> contextIdsByPermission = new HashMap<>();
@@ -156,7 +164,7 @@ public class ApiSecureSharingService
     return permissionValues;
   }
 
-  private static void validate(final int page, final int pageSize) {
+  private static void validatePaginationParameters(final int page, final int pageSize) {
     if (page < 1) {
       throw new BadRequestException("page must be at least 1.");
     }
@@ -255,5 +263,43 @@ public class ApiSecureSharingService
         accept,
         String.join("', '", supportedMediaTypes)
     ));
+  }
+
+  public ApiSecureSharingSbomListDTO getSbomMetadataByApplication(
+      final String applicationIdOrPublicId,
+      final int page,
+      final int pageSize)
+  {
+    validatePaginationParameters(page, pageSize);
+    return getSbomMetadataByApplication(applicationDAO.getByIdOrPublicIdNotNull(applicationIdOrPublicId), page,
+        pageSize);
+  }
+
+  @Authorize(permission = Permission.EXPORT_SBOM)
+  public ApiSecureSharingSbomListDTO getSbomMetadataByApplication(
+      @AuthzContext(Key.APPLICATION) final Application application,
+      final int page,
+      final int pageSize)
+  {
+    List<ThirdPartySbomMetadata> thirdPartySbomMetadatas =
+        thirdPartySbomMetadataDAO.getByApplicationIdAndStatus(application.getId(), SbomStatus.ACTIVE.name(), page,
+            pageSize);
+    long total = thirdPartySbomMetadataDAO.getActiveSbomCount(application.getId());
+
+    return convertToDTO(thirdPartySbomMetadatas, total);
+  }
+
+  private ApiSecureSharingSbomListDTO convertToDTO(List<ThirdPartySbomMetadata> thirdPartySbomMetadatas, long total) {
+    ApiSecureSharingSbomListDTO apiSecureSharingSbomListDTO = new ApiSecureSharingSbomListDTO();
+    apiSecureSharingSbomListDTO.sboms = thirdPartySbomMetadatas.stream()
+        .map(thirdPartySbomMetadata -> new ApiSecureSharingSbomDTO(
+            thirdPartySbomMetadata.getId(),
+            thirdPartySbomMetadata.getSbomVersion(),
+            thirdPartySbomMetadata.getCreatedAt()
+        )).toList();
+
+    apiSecureSharingSbomListDTO.total = total;
+
+    return apiSecureSharingSbomListDTO;
   }
 }

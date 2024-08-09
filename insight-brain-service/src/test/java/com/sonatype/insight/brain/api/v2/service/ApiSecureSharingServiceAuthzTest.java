@@ -63,4 +63,21 @@ public class ApiSecureSharingServiceAuthzTest
     grantPermission(app.getId(), Permission.EXPORT_SBOM);
     service.exportSbom(app.getId(), "sbomVersion", null);
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetSbomMetadataByApplication_Unauthenticated() {
+    service.getSbomMetadataByApplication(app.getId(), 1, 10);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetSbomMetadataByApplication_Unauthorized() {
+    login();
+    service.getSbomMetadataByApplication(app.getId(), 1, 10);
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testGetSbomMetadataByApplication_Authorized() {
+    grantPermission(app.getId(), Permission.EXPORT_SBOM);
+    service.getSbomMetadataByApplication("otherID", 1, 10);
+  }
 }

@@ -93,17 +93,6 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     }
   }
 
-  public static javax.persistence.Query createPaginationQuery(
-      TransactionContext tx,
-      String sQuery,
-      int offset,
-      int pageSize)
-  {
-    javax.persistence.Query query = tx.createQuery(sQuery);
-    query.setFirstResult(offset).setMaxResults(pageSize);
-    return query;
-  }
-
   public static javax.persistence.Query createPaginationNativeQuery(
       TransactionContext tx,
       String sQuery,

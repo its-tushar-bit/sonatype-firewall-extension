@@ -22,6 +22,7 @@ import javax.ws.rs.core.Response;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.SpdxMediaType;
 import com.sonatype.insight.brain.api.v2.dto.securesharing.ApiSecureSharingApplicationListDTO;
+import com.sonatype.insight.brain.api.v2.dto.securesharing.ApiSecureSharingSbomListDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSecureSharingService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -49,7 +50,7 @@ public class ApiSecureSharingResourceV2
 
   private static final String APPLICATION_PATH = APPLICATIONS_PATH + "/{applicationIdOrPublicId}";
 
-  private static final String SBOMS_PATH = APPLICATION_PATH + "/sboms";
+  public static final String SBOMS_PATH = APPLICATION_PATH + "/sboms";
 
   public static final String SBOM_VERSION_PATH = SBOMS_PATH + "/{sbomVersion}";
 
@@ -122,5 +123,35 @@ public class ApiSecureSharingResourceV2
       @Parameter(hidden = true) @HeaderParam(HttpHeaders.ACCEPT) final String accept)
   {
     return apiSecureSharingService.exportSbom(applicationIdOrPublicId, sbomVersion, accept);
+  }
+
+  @GET
+  @Path(SBOMS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(
+      summary = "Lists exportable SBOMs for an application.",
+      description = "Gets a paginated list of SBOMs for the requested application that the user can export." +
+          "<p>" +
+          "Permissions Required: Export sboms.",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "A page of SBOMs for the requested application that the user can export.",
+              useReturnTypeSchema = true
+          ),
+          @ApiResponse(
+              responseCode = "404",
+              description = "The requested application is not found."
+          )
+      })
+  public ApiSecureSharingSbomListDTO getAllSbomMetadataByApplication(
+      @Parameter(description = "The application ID or public ID.", required = true)
+      @PathParam("applicationIdOrPublicId") String applicationIdOrPublicId,
+      @Parameter(description = "The page size.")
+      @DefaultValue("1000") @QueryParam("pageSize") int pageSize,
+      @Parameter(description = "The page number.")
+      @DefaultValue("1") @QueryParam("page") int page)
+  {
+    return apiSecureSharingService.getSbomMetadataByApplication(applicationIdOrPublicId, page, pageSize);
   }
 }

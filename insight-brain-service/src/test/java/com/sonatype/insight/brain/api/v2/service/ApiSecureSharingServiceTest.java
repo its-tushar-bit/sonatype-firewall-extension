@@ -10,6 +10,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
@@ -18,6 +20,7 @@ import javax.ws.rs.core.Response;
 import com.sonatype.insight.brain.api.SpdxMediaType;
 import com.sonatype.insight.brain.api.v2.dto.securesharing.ApiSecureSharingApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.securesharing.ApiSecureSharingApplicationListDTO;
+import com.sonatype.insight.brain.api.v2.dto.securesharing.ApiSecureSharingSbomListDTO;
 import com.sonatype.insight.brain.dataaccess.NotAcceptableException;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
@@ -27,6 +30,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams;
@@ -76,6 +80,8 @@ public class ApiSecureSharingServiceTest
 
   @Captor
   private ArgumentCaptor<SbomExportParams> sbomExportParamsArgumentCaptor;
+
+  private String applicationId;
 
   @Override
   public void configure(final Binder binder) {
@@ -621,5 +627,127 @@ public class ApiSecureSharingServiceTest
     assertThat(dto.publicId).isEqualTo(expectedApplication.getPublicId());
     assertThat(dto.name).isEqualTo(expectedApplication.getName());
     assertThat(dto.permissions).containsExactlyElementsOf(Arrays.asList(expectedPermissions));
+  }
+
+  @Test
+  public void testGetSbomMetadataByApplication_NegativePage() {
+    initSbomMetadata();
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.getSbomMetadataByApplication(applicationId, -1, 1))
+        .withMessageContaining("page must be at least 1.");
+  }
+
+  @Test
+  public void testGetSbomMetadataByApplication_ZeroPage() {
+    initSbomMetadata();
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.getSbomMetadataByApplication(applicationId, 0, 1))
+        .withMessageContaining("page must be at least 1.");
+  }
+
+  @Test
+  public void testGetSbomMetadataByApplication_NegativePageSize() {
+    initSbomMetadata();
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.getSbomMetadataByApplication(applicationId, 1, -1))
+        .withMessageContaining("pageSize must be at least 1.");
+  }
+
+  @Test
+  public void testGetSbomMetadataByApplication_ZeroPageSize() {
+    initSbomMetadata();
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.getSbomMetadataByApplication(applicationId, 1, 0))
+        .withMessageContaining("pageSize must be at least 1.");
+  }
+
+  @Test
+  public void testGetSbomMetadataByApplication_ValidParameters() {
+    List<ThirdPartySbomMetadata> sbomMetadataList = initSbomMetadata();
+    ApiSecureSharingSbomListDTO result = service.getSbomMetadataByApplication(applicationId, 1, 10);
+
+    assertThat(result.total).isEqualTo(2);
+    assertThat(result.sboms).hasSize(2);
+    assertThat(result.sboms.get(0))
+        .extracting("id", "sbomVersion", "created")
+        .containsExactly(
+            sbomMetadataList.get(1).getId(),
+            sbomMetadataList.get(1).getSbomVersion(),
+            sbomMetadataList.get(1).getCreatedAt()
+        );
+
+    assertThat(result.sboms.get(1))
+        .extracting("id", "sbomVersion", "created")
+        .containsExactly(
+            sbomMetadataList.get(0).getId(),
+            sbomMetadataList.get(0).getSbomVersion(),
+            sbomMetadataList.get(0).getCreatedAt()
+        );
+  }
+
+  @Test
+  public void testGetSbomMetadataByApplication_PageSize_SmallerThanResults() {
+    List<ThirdPartySbomMetadata> sbomMetadataList = initSbomMetadata();
+    ApiSecureSharingSbomListDTO result = service.getSbomMetadataByApplication(applicationId, 1, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.total).isEqualTo(2);
+    assertThat(result.sboms).hasSize(1);
+    assertThat(result.sboms.get(0))
+        .extracting("id", "sbomVersion", "created")
+        .containsExactly(
+            sbomMetadataList.get(1).getId(),
+            sbomMetadataList.get(1).getSbomVersion(),
+            sbomMetadataList.get(1).getCreatedAt()
+        );
+  }
+
+  @Test
+  public void testGetSbomMetadataByApplication_ApplicationPublicId() throws Exception {
+    initSbomMetadata();
+
+    assertThatNoException().isThrownBy(() -> service.getSbomMetadataByApplication(applicationId, 1, 1));
+  }
+
+  private List<ThirdPartySbomMetadata> initSbomMetadata() {
+    Organization organization = tempEntity.newOrganization("test-organization");
+    applicationId = tempEntity.newApplication("Test Application", "test-application", organization.getId())
+        .getId();
+
+    ThirdPartyFile scannedFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(scannedFile);
+
+    return List.of(tempEntity.newThirdPartySbomMetadata(
+            scannedFile.getId(),
+            applicationId,
+            "test-version",
+            "ACTIVE",
+            scannedFile.getFilename(),
+            SbomSpecification.CYCLONEDX.name(),
+            SbomFormat.XML.name(),
+            "0.0",
+            new Date(0)
+        ), tempEntity.newThirdPartySbomMetadata(
+            scannedFile.getId(),
+            applicationId,
+            "test-version2",
+            "ACTIVE",
+            scannedFile.getFilename(),
+            SbomSpecification.CYCLONEDX.name(),
+            SbomFormat.XML.name(),
+            "0.0",
+            new Date(1)
+        ), tempEntity.newThirdPartySbomMetadata(
+            scannedFile.getId(),
+            applicationId,
+            "test-version3",
+            "PENDING",
+            scannedFile.getFilename(),
+            SbomSpecification.CYCLONEDX.name(),
+            SbomFormat.XML.name(),
+            "0.0",
+            new Date(1)
+        )
+    );
   }
 }

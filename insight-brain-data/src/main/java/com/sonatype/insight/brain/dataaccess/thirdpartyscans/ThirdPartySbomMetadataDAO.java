@@ -119,6 +119,12 @@ public class ThirdPartySbomMetadataDAO
     createQuery(sQuery, applicationId).executeUpdate(tx);
   }
 
+  public long getActiveSbomCount(String applicationId) {
+    String sQuery = "SELECT COUNT(entity) FROM ThirdPartySbomMetadata entity"
+        + " WHERE entity.applicationId=?1 AND entity.status=?2";
+    return getSingle(Long.class, sQuery, applicationId, ACTIVE_STATUS);
+  }
+
   public long getSbomCount() {
     String sQuery = "SELECT COUNT(entity) FROM ThirdPartySbomMetadata entity";
     return getSingle(Long.class, sQuery);
@@ -184,5 +190,35 @@ public class ThirdPartySbomMetadataDAO
       Object[] result = (Object[]) query.getSingleResult();
       return new ApiSbomApplicationsHistoryMetricDTO(result);
     }
+  }
+
+  public List<ThirdPartySbomMetadata> getByApplicationIdAndStatus(
+      final String applicationId,
+      final String status,
+      final int page,
+      final int pageSize)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByApplicationIdAndStatus(tx, applicationId, status, page, pageSize);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  public List<ThirdPartySbomMetadata> getByApplicationIdAndStatus(
+      final TransactionContext tx,
+      final String applicationId,
+      final String status,
+      final int page,
+      final int pageSize)
+  {
+    String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity " +
+        "WHERE entity.applicationId = ?1 AND entity.status=?2 " +
+        "ORDER BY entity.createdAt DESC";
+
+    int offset = (page - 1) * pageSize;
+    javax.persistence.Query paginationQuery = createPaginationQuery(tx, sQuery, offset, pageSize);
+    paginationQuery.setParameter(1, applicationId);
+    paginationQuery.setParameter(2, status);
+    return paginationQuery.getResultList();
   }
 }

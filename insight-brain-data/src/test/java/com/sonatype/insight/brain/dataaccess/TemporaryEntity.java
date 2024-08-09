@@ -2632,7 +2632,6 @@ public class TemporaryEntity
 
     sourceControlEventDAO.insert(sourceControlEvent);
     return sourceControlEvent;
-
   }
 
   public SourceControlEvent newSourceControlEvaluationEvent(final Application application) {
@@ -3195,7 +3194,7 @@ public class TemporaryEntity
   {
     SecurityVulnerabilityOverride override =
         new SecurityVulnerabilityOverride(ownerId, hash, source, referenceId,
-        status, comment);
+            status, comment);
     securityVulnerabilityOverrideDAO.insert(override);
     return override;
   }
@@ -3854,6 +3853,34 @@ public class TemporaryEntity
     thirdPartySbomMetadata.setApplicationId(applicationId);
     thirdPartySbomMetadata.setFilename(fileName);
     thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFileId);
+
+    thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
+
+    return thirdPartySbomMetadata;
+  }
+
+  public ThirdPartySbomMetadata newThirdPartySbomMetadata(
+      String thirdPartyFileId,
+      String applicationId,
+      String sbomVersion,
+      String status,
+      String fileName,
+      String spec,
+      String specFormat,
+      String specVersion,
+      Date createdAt)
+  {
+    ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata();
+    thirdPartySbomMetadata.setSerialNumber(RandomStringUtils.random(10, true, true));
+    thirdPartySbomMetadata.setSpec(spec);
+    thirdPartySbomMetadata.setSpecFormat(specFormat);
+    thirdPartySbomMetadata.setSpecVersion(specVersion);
+    thirdPartySbomMetadata.setStatus(status);
+    thirdPartySbomMetadata.setSbomVersion(sbomVersion);
+    thirdPartySbomMetadata.setApplicationId(applicationId);
+    thirdPartySbomMetadata.setFilename(fileName);
+    thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFileId);
+    thirdPartySbomMetadata.setCreatedAt(createdAt);
 
     thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
 
@@ -4895,7 +4922,7 @@ public class TemporaryEntity
       final long durationToFixMs
   )
   {
-    final Date closeTime =  new Date(openTime.getTime() + durationToFixMs);
+    final Date closeTime = new Date(openTime.getTime() + durationToFixMs);
     final PolicyViolation waivedPolicyViolation = this.newPolicyViolation(policyEvaluation, policy);
 
     waivedPolicyViolation.setOpenTime(openTime);
@@ -4921,7 +4948,7 @@ public class TemporaryEntity
         openTime,
         durationToWaiveMs);
 
-    final Date fixTime =  new Date(openTime.getTime() + durationToFixMs);
+    final Date fixTime = new Date(openTime.getTime() + durationToFixMs);
     policyViolation.setFixTime(fixTime);
 
     this.updatePolicyViolation(policyViolation);

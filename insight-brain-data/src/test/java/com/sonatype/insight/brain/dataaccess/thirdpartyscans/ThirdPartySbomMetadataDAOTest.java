@@ -373,7 +373,7 @@ public class ThirdPartySbomMetadataDAOTest
         "r14", "d14", "l14", CvssV3Severity.LOW.getStartScoreRange(),
         CvssV3Severity.LOW.getDisplayName(), "f14");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity, coordinateSecurity.getRefId(),
-        "state", "justification", "response", "detail",now,now);
+        "state", "justification", "response", "detail", now, now);
 
     ThirdPartySbomMetadata sbomMetadata2 = newSbomMetadataBuilder(daoFactory).withCreatedAt(twoYearAgo)
         .withStatus(activeState).build();
@@ -384,7 +384,7 @@ public class ThirdPartySbomMetadataDAOTest
         "r14", "d14", "l14", CvssV3Severity.LOW.getStartScoreRange(),
         CvssV3Severity.LOW.getDisplayName(), "f14");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity2, coordinateSecurity2.getRefId(),
-        "state", "justification", "response", "detail",null,oneWeekAgo);
+        "state", "justification", "response", "detail", null, oneWeekAgo);
 
     ApiSbomApplicationsHistoryMetricDTO result = dao.getSbomsHistoryMetrics();
     assertThat(result).isNotNull();
@@ -463,11 +463,125 @@ public class ThirdPartySbomMetadataDAOTest
         .withCreatedAt(threeHoursAgo).build();
     assertThat(threeHoursAgoActiveMetadata.getId()).isNotNull();
 
-    assertThat(dao.getAll()).isNotNull()
+    assertThat(dao.getAll())
         .hasSize(3);
 
     List<ThirdPartySbomMetadata> sbomMetadataList = dao.getPendingSbomsOlderThanDuration(Duration.ofHours(24));
 
     assertThat(sbomMetadataList).hasSize(0);
+  }
+
+  @Test
+  public void testGetByApplicationId_withPagination() {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartySbomMetadata sbomMetadata1 = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withCreatedAt(new Date(0))
+        .withSbomVersion("version1")
+        .build();
+
+    ThirdPartySbomMetadata sbomMetadata2 = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withCreatedAt(new Date(1))
+        .withSbomVersion("version2")
+        .build();
+
+    ThirdPartySbomMetadata sbomMetadata3 = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withCreatedAt(new Date(2))
+        .withSbomVersion("version3")
+        .build();
+
+    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withCreatedAt(new Date(3))
+        .withSbomVersion("version4")
+        .withStatus("PENDING")
+        .build();
+
+    Application anotherApp = tempEntity.newApplicationWithParent();
+    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(anotherApp.getId())
+        .withCreatedAt(new Date(0))
+        .withSbomVersion("version1")
+        .build();
+
+    String applicationId = app.getId();
+    int page = 1;
+    int pageSize = 2;
+
+    List<ThirdPartySbomMetadata> results = dao.getByApplicationIdAndStatus(applicationId, "ACTIVE", page, pageSize);
+
+    assertThat(results).hasSize(2);
+    assertThat(results.get(0)).usingRecursiveComparison().isEqualTo(sbomMetadata3);
+    assertThat(results.get(1)).usingRecursiveComparison().isEqualTo(sbomMetadata2);
+
+    page = 2;
+    results = dao.getByApplicationIdAndStatus(applicationId, "ACTIVE", page, pageSize);
+
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0)).usingRecursiveComparison().isEqualTo(sbomMetadata1);
+
+    page = 3;
+    results = dao.getByApplicationIdAndStatus(applicationId, "ACTIVE", page, pageSize);
+
+    assertThat(results).isEmpty();
+
+    page = 1;
+    pageSize = 0;
+    results = dao.getByApplicationIdAndStatus(applicationId, "ACTIVE", page, pageSize);
+
+    assertThat(results).isEmpty();
+  }
+
+  @Test
+  public void testGetSbomCount() {
+    Application app1 = tempEntity.newApplicationWithParent();
+    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app1.getId())
+        .withSbomVersion("version1")
+        .build();
+
+    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app1.getId())
+        .withStatus("PENDING")
+        .withSbomVersion("version4")
+        .build();
+
+    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app1.getId())
+        .withSbomVersion("version2")
+        .build();
+
+    Application app2 = tempEntity.newApplicationWithParent();
+    SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app2.getId())
+        .withSbomVersion("version3")
+        .build();
+
+    Application app3 = tempEntity.newApplicationWithParent();
+
+    long countApp1 = dao.getActiveSbomCount(app1.getId());
+    long countApp2 = dao.getActiveSbomCount(app2.getId());
+    long countApp3 = dao.getActiveSbomCount(app3.getId());
+    long countNonExistentApp = dao.getActiveSbomCount("not_exist_id");
+
+    assertThat(countApp1).isEqualTo(2);
+    assertThat(countApp2).isEqualTo(1);
+    assertThat(countApp3).isEqualTo(0);
+    assertThat(countNonExistentApp).isEqualTo(0);
+  }
+
+  @Test
+  public void testGetByApplicationId_withPaginationEmptyResult() {
+    Application app = tempEntity.newApplicationWithParent();
+
+    String applicationId = app.getId();
+    int page = 1;
+    int pageSize = 2;
+
+    List<ThirdPartySbomMetadata> results = dao.getByApplicationIdAndStatus(applicationId, "ACTIVE", page, pageSize);
+
+    assertThat(results).isEmpty();
   }
 }

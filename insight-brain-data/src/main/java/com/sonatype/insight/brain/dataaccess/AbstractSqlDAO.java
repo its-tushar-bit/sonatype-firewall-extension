@@ -146,6 +146,17 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
     }
   }
 
+  public static javax.persistence.Query createPaginationQuery(
+      TransactionContext tx,
+      String sQuery,
+      int offset,
+      int pageSize)
+  {
+    javax.persistence.Query query = tx.createQuery(sQuery);
+    query.setFirstResult(offset).setMaxResults(pageSize);
+    return query;
+  }
+
   protected abstract DataStore getDataStore();
 
   protected <C> List<C> getScalars(Class<C> type, String sQuery, Object... parameters) {

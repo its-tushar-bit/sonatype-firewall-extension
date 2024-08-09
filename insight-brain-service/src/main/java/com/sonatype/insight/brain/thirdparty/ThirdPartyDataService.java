@@ -875,10 +875,6 @@ public class ThirdPartyDataService
         StringUtils.isNotBlank(sonatypeVulnerabilityData.customData.cvssVector)) {
       thirdPartySecurity.setAttackVector(sonatypeVulnerabilityData.customData.cvssVector);
     }
-    if (sonatypeVulnerabilityData.customData != null &&
-        StringUtils.isNotBlank(sonatypeVulnerabilityData.customData.cweId)) {
-      thirdPartySecurity.setCwes(sonatypeVulnerabilityData.customData.cweId);
-    }
     if (StringUtils.isNotBlank(sonatypeVulnerabilityData.description)) {
       thirdPartySecurity.setDescription(sonatypeVulnerabilityData.description);
     }
@@ -907,6 +903,11 @@ public class ThirdPartyDataService
     if (sonatypeVulnerabilityData.mainSeverity != null && sonatypeVulnerabilityData.mainSeverity.source != null) {
       thirdPartySecurity.setRatingMethod(
           resolveRatingMethodFromSeveritySource(sonatypeVulnerabilityData.mainSeverity.source).name());
+    }
+    if (sonatypeVulnerabilityData.weakness != null &&
+        CollectionUtils.isNotEmpty(sonatypeVulnerabilityData.weakness.cweIds)) {
+      thirdPartySecurity.setCwes(
+          sonatypeVulnerabilityData.weakness.cweIds.stream().map(c -> c.id).collect(Collectors.joining(",")));
     }
     thirdPartySecurity.addIdentificationSource(IdentificationSource.SONATYPE.getId());
   }

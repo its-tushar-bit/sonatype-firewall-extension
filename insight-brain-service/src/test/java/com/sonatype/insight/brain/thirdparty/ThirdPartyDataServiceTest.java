@@ -13,6 +13,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -61,7 +62,10 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.ReferenceLink;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilityCustomData;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilitySeverity;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilityWeakness;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilityWeakness.CweId;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.VulnerabilitySource;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -640,7 +644,7 @@ public class ThirdPartyDataServiceTest
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
     assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isEqualTo("new.url1");
     assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("new vectorString1");
-    assertThat(thirdPartyCoordinateSecurity.getCwes()).isEqualTo("new cwes1");
+    assertThat(thirdPartyCoordinateSecurity.getCwes()).isEqualTo("<dd>1234</dd>");
     assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("new description1");
     assertThat(thirdPartyCoordinateSecurity.getLink()).isEqualTo("new.link1");
     assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isEqualTo("new recommendations1");
@@ -670,7 +674,7 @@ public class ThirdPartyDataServiceTest
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
     assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isEqualTo("new.url5");
     assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("new vectorString5");
-    assertThat(thirdPartyCoordinateSecurity.getCwes()).isEqualTo("new cwes5");
+    assertThat(thirdPartyCoordinateSecurity.getCwes()).isNull();
     assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("new description5");
     assertThat(thirdPartyCoordinateSecurity.getLink()).isEqualTo("new.link5");
     assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isEqualTo("new recommendations5");
@@ -826,21 +830,12 @@ public class ThirdPartyDataServiceTest
   private SecurityVulnerabilityData mockSecurityVulnerabilityDataForMergeLogic(String identifier, String index)
       throws URISyntaxException
   {
-    SecurityVulnerabilityData securityVulnerabilityData = new SecurityVulnerabilityData(identifier);
-    securityVulnerabilityData.description = "new description" + index;
-    securityVulnerabilityData.vulnerabilityLink = new URI("new.link" + index);
-    securityVulnerabilityData.mainSeverity =
-        new SecurityVulnerabilitySeverity("new source" + index, "new label" + index, 1.1f);
-    securityVulnerabilityData.advisories =
-        Collections.singletonList(new ReferenceLink("new referenceType" + index, "new.url" + index));
-    securityVulnerabilityData.customData = new SecurityVulnerabilityData.SecurityVulnerabilityCustomData();
-    securityVulnerabilityData.customData.cvssVector = "new vectorString" + index;
-    securityVulnerabilityData.customData.cweId = "new cwes" + index;
-    securityVulnerabilityData.recommendationMarkdown = "new recommendations" + index;
+    SecurityVulnerabilityData mockedSecurityVulnerabilityData = SecurityVulnerabilityTestDataBuilder.getBuilder()
+        .withDefaultValues(index)
+        .build(identifier);
     when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
-        eq(identifier), any(), eq(true))).thenReturn(securityVulnerabilityData);
-
-    return securityVulnerabilityData;
+        eq(identifier), any(), eq(true))).thenReturn(mockedSecurityVulnerabilityData);
+    return mockedSecurityVulnerabilityData;
   }
 
   private void assertForVulnerabilityMergeLogic(
@@ -851,7 +846,6 @@ public class ThirdPartyDataServiceTest
     assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isEqualTo(securityVulnerabilityData.advisories.get(0).url);
     assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo(
         securityVulnerabilityData.customData.cvssVector);
-    assertThat(thirdPartyCoordinateSecurity.getCwes()).isEqualTo(securityVulnerabilityData.customData.cweId);
     assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo(securityVulnerabilityData.description);
     assertThat(thirdPartyCoordinateSecurity.getLink()).isEqualTo(
         securityVulnerabilityData.vulnerabilityLink.toString());
@@ -979,7 +973,7 @@ public class ThirdPartyDataServiceTest
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
     assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isEqualTo("new.url1");
     assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("new vectorString1");
-    assertThat(thirdPartyCoordinateSecurity.getCwes()).isEqualTo("new cwes1");
+    assertThat(thirdPartyCoordinateSecurity.getCwes()).isNull();
     assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("new description1");
     assertThat(thirdPartyCoordinateSecurity.getLink()).isEqualTo("new.link1");
     assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isEqualTo("new recommendations1");
@@ -990,7 +984,7 @@ public class ThirdPartyDataServiceTest
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
     assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isEqualTo("new.url2");
     assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("new vectorString2");
-    assertThat(thirdPartyCoordinateSecurity.getCwes()).isEqualTo("new cwes2");
+    assertThat(thirdPartyCoordinateSecurity.getCwes()).isNull();
     assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("new description2");
     assertThat(thirdPartyCoordinateSecurity.getLink()).isEqualTo("new.link2");
     assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isEqualTo("new recommendations2");
@@ -1001,7 +995,7 @@ public class ThirdPartyDataServiceTest
     assertThat(thirdPartyCoordinateSecurity.getIdentificationSources()).isEqualTo("Sonatype");
     assertThat(thirdPartyCoordinateSecurity.getAdvisories()).isEqualTo("new.url3");
     assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("new vectorString3");
-    assertThat(thirdPartyCoordinateSecurity.getCwes()).isEqualTo("new cwes3");
+    assertThat(thirdPartyCoordinateSecurity.getCwes()).isNull();
     assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("new description3");
     assertThat(thirdPartyCoordinateSecurity.getLink()).isEqualTo("new.link3");
     assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isEqualTo("new recommendations3");
@@ -1084,6 +1078,54 @@ public class ThirdPartyDataServiceTest
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(sbomMetadata).isNotNull();
     assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
+  }
+
+  @Test
+  public void testMergeSonatypeDataWithSbomData_CweIds() throws URISyntaxException, IOException {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate =
+        tempEntity.newThirdPartyFileCoordinate(file, "IaC", "terraform", "aws_s3_bucket.test01", "current",
+            "0d8e3bd6ee4e6d50557a", "pkg:terraform/plan.tfplan/aws_s3_bucket.test01@current");
+
+    SecurityVulnerabilityData mockedSecurityVulnerabilityData = SecurityVulnerabilityTestDataBuilder.getBuilder()
+        .withDefaultValues("1")
+        .withCweIds(Arrays.asList("508", "302"))
+        .build("FG-R00229");
+    when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
+        eq(mockedSecurityVulnerabilityData.identifier), any(), eq(true))).thenReturn(mockedSecurityVulnerabilityData);
+
+    mockedSecurityVulnerabilityData = SecurityVulnerabilityTestDataBuilder.getBuilder()
+        .withDefaultValues("2")
+        .build("FG-R00230");
+    when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
+        eq(mockedSecurityVulnerabilityData.identifier), any(), eq(true))).thenReturn(mockedSecurityVulnerabilityData);
+
+    tempEntity.createSbomMetadata("appId", "1", file, SbomStatus.ACTIVE.name());
+
+    final File reportZip =
+        Paths.get(ReportHelper
+            .zipReport("/ThirdPartyDataServiceTest/report-with-third-party-security-data",
+                tempDir).toURI()).toFile();
+
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
+
+    thirdPartyFileCoordinate = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate.getId());
+    List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList =
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate.getId());
+    assertThat(thirdPartyCoordinateSecurityList).hasSize(5);
+
+    // Vulnerability not in DB - FG-R00229 - It should have Source Identifier = Sonatype
+    ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
+        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00229");
+    assertThat(thirdPartyCoordinateSecurity.getCwes()).isEqualTo("508,302");
+
+    thirdPartyCoordinateSecurity =
+        thirdPartyCoordinateSecurityDAO.getByCoordinateFileIdAndRefId(thirdPartyFileCoordinate.getId(), "FG-R00230");
+    assertThat(thirdPartyCoordinateSecurity.getCwes()).isNull();
   }
 
   @Test
@@ -1170,108 +1212,71 @@ public class ThirdPartyDataServiceTest
   }
 
   private void mockSecurityVulnerabilityDataHdsResponse() throws URISyntaxException {
-    SecurityVulnerabilityData securityVulnerabilityData1 = new SecurityVulnerabilityData("FG-R00229");
-    securityVulnerabilityData1.description = "new description1";
-    securityVulnerabilityData1.vulnerabilityLink = new URI("new.link1");
-    securityVulnerabilityData1.mainSeverity = new SecurityVulnerabilitySeverity("new source1", "new label1", 1.1f);
-    securityVulnerabilityData1.source = new VulnerabilitySource("new source1", "new source1");
-    securityVulnerabilityData1.advisories =
-        Collections.singletonList(new ReferenceLink("new referenceType1", "new.url1"));
-    securityVulnerabilityData1.customData = new SecurityVulnerabilityData.SecurityVulnerabilityCustomData();
-    securityVulnerabilityData1.customData.cvssVector = "new vectorString1";
-    securityVulnerabilityData1.customData.cweId = "new cwes1";
-    securityVulnerabilityData1.recommendationMarkdown = "new recommendations1";
+    SecurityVulnerabilityData mockedSecurityVulnerabilityData = SecurityVulnerabilityTestDataBuilder.getBuilder()
+        .withDefaultValues("1")
+        .withMainSeverityScore(1.1f)
+        .withVulnerabilitySource("new source1")
+        .build("FG-R00229");
     when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
-        eq(securityVulnerabilityData1.identifier), any(), eq(true))).thenReturn(securityVulnerabilityData1);
+        eq(mockedSecurityVulnerabilityData.identifier), any(), eq(true))).thenReturn(mockedSecurityVulnerabilityData);
 
-    SecurityVulnerabilityData securityVulnerabilityData2 = new SecurityVulnerabilityData("FG-R00274");
-    securityVulnerabilityData2.description = "";
+    mockedSecurityVulnerabilityData = SecurityVulnerabilityTestDataBuilder.getBuilder()
+        .withDescription("")
+        .build("FG-R00274");
     when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
-        eq(securityVulnerabilityData2.identifier), any(), eq(true))).thenReturn(securityVulnerabilityData2);
+        eq(mockedSecurityVulnerabilityData.identifier), any(), eq(true))).thenReturn(mockedSecurityVulnerabilityData);
 
-    SecurityVulnerabilityData securityVulnerabilityData5 = new SecurityVulnerabilityData("FG-R00275");
-    securityVulnerabilityData5.description = "new description5";
-    securityVulnerabilityData5.vulnerabilityLink = new URI("new.link5");
-    securityVulnerabilityData5.mainSeverity = new SecurityVulnerabilitySeverity("cve_cvss_3", "CVE", 8.3f);
-    securityVulnerabilityData5.source = new VulnerabilitySource("CVE", "CVE");
-    securityVulnerabilityData5.advisories =
-        Collections.singletonList(new ReferenceLink("new referenceType5", "new.url5"));
-    securityVulnerabilityData5.customData = new SecurityVulnerabilityData.SecurityVulnerabilityCustomData();
-    securityVulnerabilityData5.customData.cvssVector = "new vectorString5";
-    securityVulnerabilityData5.customData.cweId = "new cwes5";
-    securityVulnerabilityData5.recommendationMarkdown = "new recommendations5";
+    mockedSecurityVulnerabilityData = SecurityVulnerabilityTestDataBuilder.getBuilder()
+        .withDefaultValues("5")
+        .withMainSeverity("cve_cvss_3", "CVE", 8.3f)
+        .withVulnerabilitySource("CVE")
+        .build("FG-R00275");
     when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
-        eq(securityVulnerabilityData5.identifier), any(), eq(true))).thenReturn(securityVulnerabilityData5);
+        eq(mockedSecurityVulnerabilityData.identifier), any(), eq(true))).thenReturn(mockedSecurityVulnerabilityData);
 
-    SecurityVulnerabilityData securityVulnerabilityData3 = new SecurityVulnerabilityData("FG-R00099");
-    securityVulnerabilityData3.description = "new description3";
-    securityVulnerabilityData3.vulnerabilityLink = new URI("new.link3");
-    securityVulnerabilityData3.mainSeverity = new SecurityVulnerabilitySeverity("new source3", "new label3", 3.0f);
-    securityVulnerabilityData3.advisories =
-        Collections.singletonList(new ReferenceLink("new referenceType3", "new.url3"));
+    mockedSecurityVulnerabilityData = SecurityVulnerabilityTestDataBuilder.getBuilder()
+        .withDefaultValues("3")
+        .withMainSeverityScore(3.0f)
+        .build("FG-R00099");
     when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
-        eq(securityVulnerabilityData3.identifier), any(), eq(true))).thenReturn(securityVulnerabilityData3);
+        eq(mockedSecurityVulnerabilityData.identifier), any(), eq(true))).thenReturn(mockedSecurityVulnerabilityData);
 
-    SecurityVulnerabilityData securityVulnerabilityData4 = new SecurityVulnerabilityData("FG-R00100");
-    securityVulnerabilityData4.description = "";
-    securityVulnerabilityData4.explanationMarkdown = "some explanation markdown";
-    securityVulnerabilityData4.vulnerabilityLink = new URI("new.link4");
-    securityVulnerabilityData4.mainSeverity = new SecurityVulnerabilitySeverity("new source4", "new label4", 4.0f);
-    securityVulnerabilityData4.advisories =
-        Collections.singletonList(new ReferenceLink("new referenceType4", "new.url4"));
+    mockedSecurityVulnerabilityData = SecurityVulnerabilityTestDataBuilder.getBuilder()
+        .withDefaultValues("4")
+        .withMainSeverityScore(4.0f)
+        .build("FG-R00100");
     when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
-        eq(securityVulnerabilityData4.identifier), any(), eq(true))).thenReturn(securityVulnerabilityData4);
+        eq(mockedSecurityVulnerabilityData.identifier), any(), eq(true))).thenReturn(mockedSecurityVulnerabilityData);
 
-    SecurityVulnerabilityData securityVulnerabilityData6 = new SecurityVulnerabilityData("FG-R00101");
-    securityVulnerabilityData6.description = "";
-    securityVulnerabilityData6.explanationMarkdown = "some other explanation markdown";
-    securityVulnerabilityData6.vulnerabilityLink = new URI("new.link6");
-    securityVulnerabilityData6.mainSeverity = new SecurityVulnerabilitySeverity("new source6", "new label6", 6.0f);
-    securityVulnerabilityData6.advisories =
-        Collections.singletonList(new ReferenceLink("new referenceType6", "new.url6"));
+    mockedSecurityVulnerabilityData = SecurityVulnerabilityTestDataBuilder.getBuilder()
+        .withDefaultValues("6")
+        .withMainSeverityScore(4.0f)
+        .build("FG-R00101");
     when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
-        eq(securityVulnerabilityData6.identifier), any(), eq(true))).thenReturn(securityVulnerabilityData6);
+        eq(mockedSecurityVulnerabilityData.identifier), any(), eq(true))).thenReturn(mockedSecurityVulnerabilityData);
   }
 
   private void mockSecurityVulnerabilityDataHdsResponseForPythonComponents() throws URISyntaxException {
-    SecurityVulnerabilityData securityVulnerabilityData1 = new SecurityVulnerabilityData("CVE-2018-20225");
-    securityVulnerabilityData1.description = "new description1";
-    securityVulnerabilityData1.vulnerabilityLink = new URI("new.link1");
-    securityVulnerabilityData1.mainSeverity = new SecurityVulnerabilitySeverity("new source1", "new label1", 5.5f);
-    securityVulnerabilityData1.advisories =
-        Collections.singletonList(new ReferenceLink("new referenceType1", "new.url1"));
-    securityVulnerabilityData1.customData = new SecurityVulnerabilityData.SecurityVulnerabilityCustomData();
-    securityVulnerabilityData1.customData.cvssVector = "new vectorString1";
-    securityVulnerabilityData1.customData.cweId = "new cwes1";
-    securityVulnerabilityData1.recommendationMarkdown = "new recommendations1";
+    SecurityVulnerabilityData mockedSecurityVulnerabilityData = SecurityVulnerabilityTestDataBuilder.getBuilder()
+        .withDefaultValues("1")
+        .withMainSeverityScore(5.5f)
+        .build("CVE-2018-20225");
     when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
-        eq(securityVulnerabilityData1.identifier), any(), eq(true))).thenReturn(securityVulnerabilityData1);
+        eq(mockedSecurityVulnerabilityData.identifier), any(), eq(true))).thenReturn(mockedSecurityVulnerabilityData);
 
-    SecurityVulnerabilityData securityVulnerabilityData2 = new SecurityVulnerabilityData("CVE-2023-45803");
-    securityVulnerabilityData2.description = "new description2";
-    securityVulnerabilityData2.vulnerabilityLink = new URI("new.link2");
-    securityVulnerabilityData2.mainSeverity = new SecurityVulnerabilitySeverity("new source2", "new label2", 3.6f);
-    securityVulnerabilityData2.advisories =
-        Collections.singletonList(new ReferenceLink("new referenceType2", "new.url2"));
-    securityVulnerabilityData2.customData = new SecurityVulnerabilityData.SecurityVulnerabilityCustomData();
-    securityVulnerabilityData2.customData.cvssVector = "new vectorString2";
-    securityVulnerabilityData2.customData.cweId = "new cwes2";
-    securityVulnerabilityData2.recommendationMarkdown = "new recommendations2";
+    mockedSecurityVulnerabilityData = SecurityVulnerabilityTestDataBuilder.getBuilder()
+        .withDefaultValues("2")
+        .withMainSeverityScore(3.6f)
+        .build("CVE-2023-45803");
     when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
-        eq(securityVulnerabilityData2.identifier), any(), eq(true))).thenReturn(securityVulnerabilityData2);
+        eq(mockedSecurityVulnerabilityData.identifier), any(), eq(true))).thenReturn(mockedSecurityVulnerabilityData);
 
-    SecurityVulnerabilityData securityVulnerabilityData3 = new SecurityVulnerabilityData("CVE-2024-3651");
-    securityVulnerabilityData3.description = "new description3";
-    securityVulnerabilityData3.vulnerabilityLink = new URI("new.link3");
-    securityVulnerabilityData3.mainSeverity = new SecurityVulnerabilitySeverity("new source3", "new label3", 9.0f);
-    securityVulnerabilityData3.advisories =
-        Collections.singletonList(new ReferenceLink("new referenceType3", "new.url3"));
-    securityVulnerabilityData3.customData = new SecurityVulnerabilityData.SecurityVulnerabilityCustomData();
-    securityVulnerabilityData3.customData.cvssVector = "new vectorString3";
-    securityVulnerabilityData3.customData.cweId = "new cwes3";
-    securityVulnerabilityData3.recommendationMarkdown = "new recommendations3";
+    mockedSecurityVulnerabilityData = SecurityVulnerabilityTestDataBuilder.getBuilder()
+        .withDefaultValues("3")
+        .withMainSeverityScore(9.0f)
+        .build("CVE-2024-3651");
     when(mockSecurityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(
-        eq(securityVulnerabilityData3.identifier), any(), eq(true))).thenReturn(securityVulnerabilityData3);
+        eq(mockedSecurityVulnerabilityData.identifier), any(), eq(true))).thenReturn(mockedSecurityVulnerabilityData);
   }
 
   private File zipReportDir(String reportResourceName) throws URISyntaxException {
@@ -1379,5 +1384,99 @@ public class ThirdPartyDataServiceTest
           assertThat(bomRow.matchState).isEqualTo(MatchState.EXACT.toString());
           assertThat(bomRow.packageUrl).isEqualTo(expectedPurl);
         });
+  }
+
+  public static class SecurityVulnerabilityTestDataBuilder
+  {
+    private SecurityVulnerabilityData securityVulnerabilityData;
+
+    private String index;
+
+    private String description;
+
+    private URI vulnerabilityLink;
+
+    private SecurityVulnerabilitySeverity mainSeverity;
+
+    private List<ReferenceLink> advisories;
+
+    private SecurityVulnerabilityCustomData customData;
+
+    private String recommendationMarkdown;
+
+    private SecurityVulnerabilityWeakness weakness;
+
+    private VulnerabilitySource source;
+
+    private SecurityVulnerabilityTestDataBuilder() {
+      // noop
+    }
+
+    public static SecurityVulnerabilityTestDataBuilder getBuilder() {
+      return new SecurityVulnerabilityTestDataBuilder();
+    }
+
+    public SecurityVulnerabilityTestDataBuilder withDefaultValues(String index) throws URISyntaxException {
+      this.index = index;
+      this.description = "new description" + index;
+      this.vulnerabilityLink = new URI("new.link" + index);
+      this.mainSeverity = new SecurityVulnerabilitySeverity("new source" + index, "new label" + index, 1.0f);
+      this.advisories =
+          Collections.singletonList(new ReferenceLink("new referenceType" + index, "new.url" + index));
+      this.customData = new SecurityVulnerabilityData.SecurityVulnerabilityCustomData();
+      this.customData.cvssVector = "new vectorString" + index;
+      this.recommendationMarkdown = "new recommendations" + index;
+      return this;
+    }
+
+    public SecurityVulnerabilityTestDataBuilder withMainSeverityScore(float score) {
+      this.mainSeverity.score = score;
+      return this;
+    }
+
+    public SecurityVulnerabilityTestDataBuilder withDescription(String description) {
+      this.description = description;
+      return this;
+    }
+
+    public SecurityVulnerabilityTestDataBuilder withVulnerabilitySource(String vulnerabilitySource) {
+      this.source = new VulnerabilitySource(vulnerabilitySource, vulnerabilitySource);
+      return this;
+    }
+
+    public SecurityVulnerabilityTestDataBuilder withMainSeverity(String source, String label, float score) {
+      this.mainSeverity = new SecurityVulnerabilitySeverity(source, label, score);
+      return this;
+    }
+
+    public SecurityVulnerabilityTestDataBuilder withCweIds(List<String> cweIds) throws URISyntaxException {
+      this.weakness = new SecurityVulnerabilityWeakness();
+      this.weakness.cweSource = "cweSource" + this.index;
+      this.weakness.cweIds = new ArrayList<>();
+      for (String cweId : cweIds) {
+        this.weakness.cweIds.add(new CweId(cweId, new URI("cweUri" + this.index)));
+      }
+      return this;
+    }
+
+    public SecurityVulnerabilityData build(String identifier) {
+      SecurityVulnerabilityData securityVulnerabilityData = new SecurityVulnerabilityData(identifier);
+      securityVulnerabilityData.description = this.description;
+      securityVulnerabilityData.vulnerabilityLink = this.vulnerabilityLink;
+      securityVulnerabilityData.mainSeverity = this.mainSeverity;
+      securityVulnerabilityData.advisories = this.advisories;
+      securityVulnerabilityData.customData = this.customData;
+      securityVulnerabilityData.recommendationMarkdown = this.recommendationMarkdown;
+
+      if (this.weakness != null) {
+        securityVulnerabilityData.weakness = this.weakness;
+      }
+
+      if (this.source != null) {
+        securityVulnerabilityData.source = this.source;
+      }
+
+      return securityVulnerabilityData;
+    }
   }
 }

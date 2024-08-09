@@ -11,6 +11,7 @@ import javax.annotation.Priority;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -29,6 +30,12 @@ public class MultiTenantProductLicense
 
   private final TenantReference<ProductLicenseData> productLicenseData =
       new TenantReference<>(DefaultProductLicense::initialProductLicenseData);
+
+  public MultiTenantProductLicense(
+      final DeveloperEnablementService developerEnablementService)
+  {
+    super(developerEnablementService);
+  }
 
   @Override
   public void clear() {

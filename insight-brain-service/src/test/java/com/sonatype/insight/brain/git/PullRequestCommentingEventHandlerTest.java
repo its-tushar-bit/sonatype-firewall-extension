@@ -12,6 +12,7 @@ import java.util.UUID;
 
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.git.helper.ApplicationEvaluationEventBuilder;
@@ -37,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -80,7 +82,7 @@ public class PullRequestCommentingEventHandlerTest
     super.setup();
 
     TestProductLicenseManager productLicenseManager = new TestProductLicenseManager();
-    testProductLicense = new TestProductLicense(productLicenseManager);
+    testProductLicense = new TestProductLicense(productLicenseManager, mock(DeveloperEnablementService.class));
     testProductLicense.reset();
     licenseChecker = new IqForScmLicenseChecker(testProductLicense);
   }

@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 import org.junit.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -33,7 +34,7 @@ public class ApiSastResourceTest
 
   @Test
   public void testValidate_withoutDeveloperFeature() throws Exception {
-    setFeatures(LicensedFeature.DASHBOARD);
+    setLicenseProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     final HttpResponse response = restRequest()
         .path(PublicApiPaths.EXPERIMENTAL_SAST_PATH)
         .path("validate")
@@ -46,6 +47,7 @@ public class ApiSastResourceTest
 
   @Test
   public void testValidate_withoutAnyFeature() throws Exception {
+    setLicenseProducts();
     setFeatures();
     final HttpResponse response = restRequest()
         .path(PublicApiPaths.EXPERIMENTAL_SAST_PATH)

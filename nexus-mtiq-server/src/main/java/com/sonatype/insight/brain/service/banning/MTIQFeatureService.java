@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.FeatureAlreadyDisabledException;
 import com.sonatype.insight.brain.api.v2.FeatureAlreadyEnabledException;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -88,9 +89,10 @@ public class MTIQFeatureService
       ProductLicense productLicense,
       Configuration configuration,
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
-      ApiConfigFeaturesService service)
+      ApiConfigFeaturesService service,
+      DeveloperEnablementService developerEnablementService)
   {
-    super(productLicense, configuration, systemConfigurationPropertyDAO);
+    super(productLicense, configuration, systemConfigurationPropertyDAO, developerEnablementService);
 
     this.service = service;
   }

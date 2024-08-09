@@ -11,6 +11,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritiesUtilsService;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
@@ -47,6 +48,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -79,7 +81,7 @@ public class GitCommitStatusServiceTest
     super.setup();
 
     TestProductLicenseManager productLicenseManager = new TestProductLicenseManager();
-    testProductLicense = new TestProductLicense(productLicenseManager);
+    testProductLicense = new TestProductLicense(productLicenseManager, mock(DeveloperEnablementService.class));
     testProductLicense.reset();
 
     licenseChecker = new IqForScmLicenseChecker(testProductLicense);

@@ -60,6 +60,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.scan.model.ItemContentType;
 
@@ -330,7 +331,7 @@ public class ReportServiceTest
     final String scanId2 = "ScanId2";
     String commitHash = "0b1bbd94b2edbacd441f170ecd59a178e334868f";
 
-    productLicense.setMissingFeatures(LicensedFeature.DEVELOPER_DASHBOARD);
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
 
     // ReportResource.getReport requires a report.zip to exist when evaluations exist
     createReportFile(app.getId(), scanId1, zipReportDir("/ReportResourceTest/report-expanded_coverage_false"));

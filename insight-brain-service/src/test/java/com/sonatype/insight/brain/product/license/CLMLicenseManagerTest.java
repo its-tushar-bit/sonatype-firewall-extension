@@ -34,7 +34,6 @@ import com.sonatype.insight.brain.service.DatabaseConfig;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
-import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -58,9 +57,7 @@ import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenan
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -103,9 +100,6 @@ public class CLMLicenseManagerTest
   @Mock
   private TaskScheduler taskSchedulerMock;
 
-  @Mock
-  private VersionService versionService;
-
   @Before
   public void before() throws Exception {
     try (InputStream in = getClass().getResourceAsStream("/productlicense/licensing-keystore-hds.p12")) {
@@ -123,7 +117,6 @@ public class CLMLicenseManagerTest
     productLicenseConfig.setKeyStoreAliasGroup("licensing-key-test");
     binder.bind(ProductLicenseConfig.class).toInstance(productLicenseConfig);
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
-    binder.bind(VersionService.class).toInstance(versionService);
     super.configure(binder);
   }
 
@@ -332,13 +325,6 @@ public class CLMLicenseManagerTest
   public void testGetFeatures_Lifecycle() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
 
-    doReturn("1.180.0")
-        .when(versionService)
-        .getVersion();
-    doReturn(0)
-        .when(versionService)
-        .compare(anyString(), anyString());
-
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
@@ -382,21 +368,13 @@ public class CLMLicenseManagerTest
         LicensedFeature.SOURCE_CONTROL,
         LicensedFeature.SUCCESS_METRICS,
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
-        LicensedFeature.WAIVER_REPORTS,
-        LicensedFeature.DEVELOPER_DASHBOARD
+        LicensedFeature.WAIVER_REPORTS
     );
   }
 
   @Test
   public void testGetFeatures_LifecycleCloud() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD);
-
-    doReturn("1.180.0")
-        .when(versionService)
-        .getVersion();
-    doReturn(0)
-        .when(versionService)
-        .compare(anyString(), anyString());
 
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
@@ -438,21 +416,13 @@ public class CLMLicenseManagerTest
         LicensedFeature.SOURCE_CONTROL,
         LicensedFeature.SUCCESS_METRICS,
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
-        LicensedFeature.WAIVER_REPORTS,
-        LicensedFeature.DEVELOPER_DASHBOARD
+        LicensedFeature.WAIVER_REPORTS
     );
   }
 
   @Test
   public void testGetFeatures_LifecycleSaas() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
-
-    doReturn("1.180.0")
-        .when(versionService)
-        .getVersion();
-    doReturn(0)
-        .when(versionService)
-        .compare(anyString(), anyString());
 
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
@@ -497,8 +467,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.SOURCE_CONTROL,
         LicensedFeature.SUCCESS_METRICS,
         LicensedFeature.VULNERABILITY_CUSTOMIZATION,
-        LicensedFeature.WAIVER_REPORTS,
-        LicensedFeature.DEVELOPER_DASHBOARD
+        LicensedFeature.WAIVER_REPORTS
     );
   }
 
@@ -1738,6 +1707,8 @@ public class CLMLicenseManagerTest
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info).isNotNull();
     assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_AUDITOR);
+    assertThat(info.products)
+        .containsExactlyInAnyOrder(suffix(CLMLicenseManager.PRODUCT_AUDITOR));
   }
 
   @Test
@@ -1747,6 +1718,8 @@ public class CLMLicenseManagerTest
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info).isNotNull();
     assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_PRO_PLUS);
+    assertThat(info.products)
+        .containsExactlyInAnyOrder(suffix(CLMLicenseManager.PRODUCT_PRO_PLUS));
   }
 
   @Test
@@ -1756,6 +1729,9 @@ public class CLMLicenseManagerTest
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info).isNotNull();
     assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE);
+    assertThat(info.products)
+        .containsExactlyInAnyOrder(suffix(CLMLicenseManager.PRODUCT_LIFECYCLE),
+            suffix(CLMLicenseManager.PRODUCT_SONATYPE_DEVELOPMENT));
   }
 
   @Test
@@ -1765,6 +1741,9 @@ public class CLMLicenseManagerTest
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info).isNotNull();
     assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_CLOUD);
+    assertThat(info.products)
+        .containsExactlyInAnyOrder(suffix(CLMLicenseManager.PRODUCT_LIFECYCLE_CLOUD),
+            suffix(CLMLicenseManager.PRODUCT_SONATYPE_DEVELOPMENT));
   }
 
   @Test
@@ -1774,6 +1753,9 @@ public class CLMLicenseManagerTest
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info).isNotNull();
     assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_SAAS);
+    assertThat(info.products)
+        .containsExactlyInAnyOrder(suffix(CLMLicenseManager.PRODUCT_LIFECYCLE_SAAS),
+            suffix(CLMLicenseManager.PRODUCT_SONATYPE_DEVELOPMENT));
   }
 
   @Test
@@ -1783,6 +1765,8 @@ public class CLMLicenseManagerTest
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info).isNotNull();
     assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_FIREWALL);
+    assertThat(info.products)
+        .containsExactlyInAnyOrder(suffix(CLMLicenseManager.PRODUCT_FIREWALL));
   }
 
   @Test
@@ -1792,6 +1776,8 @@ public class CLMLicenseManagerTest
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info).isNotNull();
     assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_FIREWALL);
+    assertThat(info.products)
+        .containsExactlyInAnyOrder(suffix(CLMLicenseManager.PRODUCT_FIREWALL));
   }
 
   @Test
@@ -1801,6 +1787,8 @@ public class CLMLicenseManagerTest
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info).isNotNull();
     assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_FIREWALL_CLOUD);
+    assertThat(info.products)
+        .containsExactlyInAnyOrder(suffix(CLMLicenseManager.PRODUCT_LIFECYCLE_FIREWALL_CLOUD));
   }
 
   /**
@@ -1823,6 +1811,8 @@ public class CLMLicenseManagerTest
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info).isNotNull();
     assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
+    assertThat(info.products)
+        .containsExactlyInAnyOrder(suffix(CLMLicenseManager.PRODUCT_FIREWALL_FOR_ARTIFACTORY));
   }
 
   @Test
@@ -1832,6 +1822,8 @@ public class CLMLicenseManagerTest
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info).isNotNull();
     assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_LIFECYCLE_FOUNDATION);
+    assertThat(info.products)
+        .containsExactlyInAnyOrder(suffix(CLMLicenseManager.PRODUCT_LIFECYCLE_FOUNDATION));
   }
 
   @Test
@@ -1841,6 +1833,9 @@ public class CLMLicenseManagerTest
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info).isNotNull();
     assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_TEAMS_EDITION);
+    assertThat(info.products)
+        .containsExactlyInAnyOrder(suffix(CLMLicenseManager.PRODUCT_TEAMS_EDITION),
+            suffix(CLMLicenseManager.PRODUCT_SONATYPE_DEVELOPMENT));
   }
 
   @Test
@@ -2164,13 +2159,15 @@ public class CLMLicenseManagerTest
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info).isNotNull();
     assertThat(info.products).containsExactlyInAnyOrder("Sonatype Repository Firewall", "Sonatype Auditor",
-        "Sonatype Lifecycle", "Sonatype Nexus Pro+", "Sonatype Advanced Legal Pack", "Sonatype Lifecycle Cloud");
+        "Sonatype Lifecycle", "Sonatype Nexus Pro+", "Sonatype Advanced Legal Pack", "Sonatype Lifecycle Cloud",
+        "Sonatype Developer");
     Map<String, String> expected = new HashMap<>();
     expected.put("clm.licenseVersion", "1");
     expected.put("clm.maxActiveApplications", "100");
     expected.put("clm.maxFirewallUsers", "45");
     expected.put("clm.maxUsers", "50");
-    expected.put("clm.products", "Firewall,Risk,RiskAndRemediation,foo,Nexus,AdvancedLegalPack,LifecycleCloud");
+    expected.put("clm.products",
+        "Firewall,Risk,RiskAndRemediation,foo,Nexus,AdvancedLegalPack,LifecycleCloud,Development");
     assertThat(info.properties).containsAllEntriesOf(expected);
   }
 
@@ -2358,15 +2355,8 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testGetLicenseInfo_EligibleLifecycleVersionsIncludeDeveloperProduct() throws Exception {
+  public void testGetLicenseInfo_EligibleLifecycleEditionsIncludeDeveloperProduct() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-
-    doReturn("1.180.0")
-        .when(versionService)
-            .getVersion();
-    doReturn(0)
-        .when(versionService)
-        .compare(anyString(), anyString());
 
     installLicense();
     final LicenseInfo info = clmLicenseManager.getLicenseInfo();
@@ -2377,34 +2367,8 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testGetLicenseInfo_IneligibleLifecycleVersionsDoNotIncludeDeveloperProduct() throws Exception {
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
-
-    doReturn("1.178.0")
-        .when(versionService)
-        .getVersion();
-    doReturn(-1)
-        .when(versionService)
-            .compare(anyString(), anyString());
-
-    installLicense();
-    final LicenseInfo info = clmLicenseManager.getLicenseInfo();
-    assertThat(info).isNotNull();
-    assertThat(info.products).containsExactlyInAnyOrder("Sonatype Lifecycle");
-    assertThat(info.properties.getProperty(ProductLicenseDetails.PROPERTY_PRODUCTS).split(","))
-        .containsExactlyInAnyOrder("RiskAndRemediation");
-  }
-
-  @Test
   public void testGetLicenseInfo_IneligibleLifecycleEditionsDoNotIncludeDeveloperProduct() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-
-    doReturn("1.182.0")
-        .when(versionService)
-        .getVersion();
-    doReturn(1)
-        .when(versionService)
-        .compare(anyString(), anyString());
 
     installLicense();
     final LicenseInfo info = clmLicenseManager.getLicenseInfo();
@@ -2414,167 +2378,8 @@ public class CLMLicenseManagerTest
         .containsExactlyInAnyOrder("Foundation");
   }
 
-  @Test
-  public void testInstallLicense_EligibleLifecycleVersionsIncludeDeveloperProduct() throws Exception {
-    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.DASHBOARD, LicensedFeature.DEVELOPER_DASHBOARD));
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
-
-    doReturn("1.181.0")
-        .when(versionService)
-        .getVersion();
-    doReturn(1)
-        .when(versionService)
-        .compare(anyString(), anyString());
-
-    installLicense();
-
-    // Now that the license is installed, force the mocked license manager to return no products, which will
-    // force the product license to check the *production* code for the supported products (instead of using
-    // the mock value which at this point is incorrect due to the developer license information being
-    // injected).
-    licenseManager.setProducts(null);
-
-    assertThat(productLicense.getProducts())
-        .containsExactlyInAnyOrder(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS,
-            ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT);
-    final SignedProductLicenseDetailsDTO licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
-    assertThat(licenseDetails).isNotNull();
-    assertThat(licenseDetails.features).containsExactlyInAnyOrder(LicensedFeature.DASHBOARD.name(),
-        LicensedFeature.DEVELOPER_DASHBOARD.name());
-  }
-
-  @Test
-  public void testInstallLicense_IneligibleLifecycleEditionsDoNotIncludeDeveloperProduct() throws Exception {
-    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.DASHBOARD));
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-
-    doReturn("1.181.0")
-        .when(versionService)
-        .getVersion();
-    doReturn(1)
-        .when(versionService)
-        .compare(anyString(), anyString());
-
-    installLicense();
-
-    // Now that the license is installed, force the mocked license manager to return no products, which will
-    // force the product license to check the *production* code for the supported products (instead of using
-    // the mock value which at this point is incorrect due to the developer license information being
-    // injected).
-    licenseManager.setProducts(null);
-
-    assertThat(productLicense.getProducts())
-        .containsExactlyInAnyOrder(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    final SignedProductLicenseDetailsDTO licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
-    assertThat(licenseDetails).isNotNull();
-    assertThat(licenseDetails.features).containsExactlyInAnyOrder(LicensedFeature.DASHBOARD.name());
-  }
-
-  @Test
-  public void testInstallLicense_IneligibleLifecycleVersionsDoNotIncludeDeveloperProduct() throws Exception {
-    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.DASHBOARD));
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
-
-    doReturn("1.173.0")
-        .when(versionService)
-        .getVersion();
-    doReturn(-1)
-        .when(versionService)
-        .compare(anyString(), anyString());
-
-    installLicense();
-
-    // Now that the license is installed, force the mocked license manager to return no products, which will
-    // force the product license to check the *production* code for the supported products (instead of using
-    // the mock value which at this point is incorrect due to the developer license information being
-    // injected).
-    licenseManager.setProducts(null);
-
-    assertThat(productLicense.getProducts())
-        .containsExactlyInAnyOrder(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
-    final SignedProductLicenseDetailsDTO licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
-    assertThat(licenseDetails).isNotNull();
-    assertThat(licenseDetails.features).containsExactlyInAnyOrder(LicensedFeature.DASHBOARD.name());
-  }
-
-  @Test
-  public void testLoadLicense_EligibleLifecycleVersionsIncludeDeveloperProduct() {
-    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.DASHBOARD, LicensedFeature.DEVELOPER_DASHBOARD));
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
-
-    doReturn("1.182.0")
-        .when(versionService)
-        .getVersion();
-    doReturn(1)
-        .when(versionService)
-        .compare(anyString(), anyString());
-
-    clmLicenseManager.loadLicense();
-
-    // Now that the license is loaded, force the mocked license manager to return no products, which will
-    // force the product license to check the *production* code for the supported products (instead of using
-    // the mock value which at this point is incorrect due to the developer license information being
-    // injected).
-    licenseManager.setProducts(null);
-
-    assertThat(productLicense.getProducts()).containsExactlyInAnyOrder(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS,
-        ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT);
-    final SignedProductLicenseDetailsDTO licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
-    assertThat(licenseDetails).isNotNull();
-    assertThat(licenseDetails.features).containsExactlyInAnyOrder(LicensedFeature.DASHBOARD.name(),
-        LicensedFeature.DEVELOPER_DASHBOARD.name());
-  }
-
-  @Test
-  public void testLoadLicense_IneligibleLifecycleVersionsDoNotIncludeDeveloperProduct() {
-    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.DASHBOARD));
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
-
-    doReturn("1.165.0")
-        .when(versionService)
-        .getVersion();
-    doReturn(-1)
-        .when(versionService)
-        .compare(anyString(), anyString());
-
-    clmLicenseManager.loadLicense();
-
-    // Now that the license is loaded, force the mocked license manager to return no products, which will
-    // force the product license to check the *production* code for the supported products (instead of using
-    // the mock value which at this point is incorrect due to the developer license information being
-    // injected).
-    licenseManager.setProducts(null);
-
-    assertThat(productLicense.getProducts()).containsExactlyInAnyOrder(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
-    final SignedProductLicenseDetailsDTO licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
-    assertThat(licenseDetails).isNotNull();
-    assertThat(licenseDetails.features).containsExactlyInAnyOrder(LicensedFeature.DASHBOARD.name());
-  }
-
-  @Test
-  public void testLoadLicense_IneligibleLifecycleEditionsDoNotIncludeDeveloperProduct() {
-    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.DASHBOARD));
-    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
-
-    doReturn("1.180.0")
-        .when(versionService)
-        .getVersion();
-    doReturn(0)
-        .when(versionService)
-        .compare(anyString(), anyString());
-
-    clmLicenseManager.loadLicense();
-
-    // Now that the license is loaded, force the mocked license manager to return no products, which will
-    // force the product license to check the *production* code for the supported products (instead of using
-    // the mock value which at this point is incorrect due to the developer license information being
-    // injected).
-    licenseManager.setProducts(null);
-
-    assertThat(productLicense.getProducts()).containsExactlyInAnyOrder(ProductLicenseDetails.PRODUCT_FOUNDATION);
-    final SignedProductLicenseDetailsDTO licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
-    assertThat(licenseDetails).isNotNull();
-    assertThat(licenseDetails.features).containsExactlyInAnyOrder(LicensedFeature.DASHBOARD.name());
+  private static String suffix(final String suffix) {
+    return "Sonatype " + suffix;
   }
 
   private static class TestTenantManagedProductLicenseListener

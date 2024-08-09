@@ -14,6 +14,7 @@ import java.util.Map;
 
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -46,6 +47,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 
 @RunWith(MockitoJUnitRunner.class)
 @Category(SlowTest.class)
@@ -88,7 +90,7 @@ public class MultiTenantTelemetrySenderLicenseFingerprintTest
     }).when(proxy).contextualize(any());
 
     testProductLicenseManager = new TestProductLicenseManager();
-    productLicense = new MultiTenantProductLicense();
+    productLicense = new MultiTenantProductLicense(mock(DeveloperEnablementService.class));
     HdsClient hdsClient = new HdsClient(proxy, productLicense, configuration, versionService, telemetryId);
     telemetrySender = new TelemetrySender(hdsClient, versionService, telemetryId, tenantUtil);
 

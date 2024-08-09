@@ -57,6 +57,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurat
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseContainerRule;
 import com.sonatype.insight.brain.db.rule.DatabaseRule;
+import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.jira.JiraClient;
@@ -169,7 +170,8 @@ public abstract class AbstractBaseIntegrationTest
   // by default license is always valid, to override, simply uninstall the license
   protected static final TestProductLicenseManager licenseManager = new TestProductLicenseManager();
 
-  public static final TestProductLicense testProductLicense = new TestProductLicense(licenseManager, false);
+  public static final TestProductLicense testProductLicense = new TestProductLicense(licenseManager, false, mock(
+      DeveloperEnablementService.class));
 
   private static final ObjectMapper objectMapper = new ObjectMapper();
 

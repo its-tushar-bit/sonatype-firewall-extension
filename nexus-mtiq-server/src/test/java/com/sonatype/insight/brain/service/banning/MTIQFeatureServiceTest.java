@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.features.NonLicensedFeature;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -54,6 +55,9 @@ public class MTIQFeatureServiceTest
   @Mock
   ApiConfigFeaturesService service;
 
+  @Mock
+  DeveloperEnablementService developerEnablementService;
+
   SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   MTIQFeatureService underTest;
@@ -65,7 +69,8 @@ public class MTIQFeatureServiceTest
   public void setup() {
     systemConfigurationPropertyDAO = lookup(SystemConfigurationPropertyDAO.class);
     productLicense = lookup(ProductLicense.class);
-    underTest = new MTIQFeatureService(productLicense, configuration, systemConfigurationPropertyDAO, service);
+    underTest = new MTIQFeatureService(productLicense, configuration, systemConfigurationPropertyDAO, service,
+        developerEnablementService);
   }
 
   @Test
@@ -155,7 +160,7 @@ public class MTIQFeatureServiceTest
   @Test
   public void testGetFeatures_containsMultiTenant() {
     Set<Feature> features = new MTIQFeatureService(
-        productLicense, configuration, systemConfigurationPropertyDAO, service
+        productLicense, configuration, systemConfigurationPropertyDAO, service, developerEnablementService
     ).getFeatures();
 
     assertThat(features).contains(MULTI_TENANT);
@@ -218,7 +223,8 @@ public class MTIQFeatureServiceTest
             .filter(f -> !f.equals(LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING))
             .filter(f -> !f.equals(LicensedFeature.SAML_USER_TOKENS))
             .filter(f -> !f.equals(LicensedFeature.SBOM_MANAGER))
-            .filter(f -> !f.equals(LicensedFeature.SCM_UX_IMPROVEMENTS)),
+            .filter(f -> !f.equals(LicensedFeature.SCM_UX_IMPROVEMENTS))
+            .filter(f -> !f.equals(LicensedFeature.DEVELOPER_DASHBOARD)),
         stream(NonLicensedFeature.values())
             .filter(f -> !f.equals(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS))
     ).flatMap(i -> i).map(Feature.class::cast).collect(toSet()).toArray(new Feature[]{});

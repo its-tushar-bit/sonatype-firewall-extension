@@ -54,6 +54,7 @@ import com.sonatype.insight.brain.db.fixture.h2.H2InMemoryDatabaseFixture;
 import com.sonatype.insight.brain.db.fixture.postgres.PostgresDatabaseFixture;
 import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
 import com.sonatype.insight.brain.db.rule.DatabaseRule.DatabaseType;
+import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.jira.JiraService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -177,7 +178,7 @@ public abstract class AbstractFunctionalTest
 
     productLicenseManager = new TestProductLicenseManager();
     licenseFingerprinter = new TestLicenseFingerprinter();
-    testProductLicense = new TestProductLicense(productLicenseManager);
+    testProductLicense = new TestProductLicense(productLicenseManager, mock(DeveloperEnablementService.class));
     testProductLicenseRule = new TestProductLicenseRule(databaseContainer);
     jiraService = Mockito.mock(JiraService.class);
     initMocks();

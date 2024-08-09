@@ -20,6 +20,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -38,11 +39,19 @@ public class TestProductLicense
   private Optional<Integer> maxSboms;
 
   @Inject
-  public TestProductLicense(TestProductLicenseManager testProductLicenseManager) {
-    this(testProductLicenseManager, true);
+  public TestProductLicense(
+      TestProductLicenseManager testProductLicenseManager,
+      DeveloperEnablementService developerEnablementService)
+  {
+    this(testProductLicenseManager, true, developerEnablementService);
   }
 
-  public TestProductLicense(TestProductLicenseManager testProductLicenseManager, boolean resetOnConstruct) {
+  public TestProductLicense(
+      TestProductLicenseManager testProductLicenseManager,
+      boolean resetOnConstruct,
+      DeveloperEnablementService developerEnablementService)
+  {
+    super(developerEnablementService);
     this.testProductLicenseManager = testProductLicenseManager;
     if (resetOnConstruct) {
       reset();

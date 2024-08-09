@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -40,15 +41,19 @@ public class FeaturesService
 
   private final Configuration configuration;
 
+  private final DeveloperEnablementService developerEnablementService;
+
   @Inject
   public FeaturesService(
       ProductLicense productLicense,
       Configuration configuration,
-      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
+      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
+      DeveloperEnablementService developerEnablementService)
   {
     this.productLicense = productLicense;
     this.configuration = configuration;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
+    this.developerEnablementService = developerEnablementService;
   }
 
   /**
@@ -70,6 +75,10 @@ public class FeaturesService
               .filter(SystemConfigurationPropertyFeature::isEnabled)
               .collect(Collectors.toSet())
       );
+
+      if (developerEnablementService.shouldEnableDeveloperProduct()) {
+        features.add(LicensedFeature.DEVELOPER_DASHBOARD);
+      }
 
       removeDisabledFeatures(features);
 

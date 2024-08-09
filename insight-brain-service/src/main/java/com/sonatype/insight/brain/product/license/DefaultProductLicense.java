@@ -9,12 +9,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.validation.constraints.NotNull;
 
+import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 import org.sonatype.licensing.product.ProductLicenseKey;
 
 import org.slf4j.Logger;
@@ -29,6 +32,13 @@ public class DefaultProductLicense
     implements ProductLicense
 {
   private static final Logger log = LoggerFactory.getLogger(DefaultProductLicense.class);
+
+  private final DeveloperEnablementService developerEnablementService;
+
+  @Inject
+  public DefaultProductLicense(final DeveloperEnablementService developerEnablementService) {
+    this.developerEnablementService = developerEnablementService;
+  }
 
   static class ProductLicenseData
   {
@@ -180,11 +190,17 @@ public class DefaultProductLicense
 
   @Override
   public boolean hasFeature(LicensedFeature feature) {
+    if (LicensedFeature.DEVELOPER_DASHBOARD.equals(feature)) {
+      return developerEnablementService.shouldEnableDeveloperProduct();
+    }
     return getFeatures().contains(feature);
   }
 
   @Override
   public boolean hasProduct(String product) {
+    if (ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT.equals(product)) {
+      return developerEnablementService.shouldEnableDeveloperProduct();
+    }
     return getProducts().contains(product);
   }
 

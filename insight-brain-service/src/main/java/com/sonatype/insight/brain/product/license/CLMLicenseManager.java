@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
+import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.policy.StageType;
@@ -52,7 +53,6 @@ import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.tenancy.GlobalTenantJob;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
-import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
@@ -122,8 +122,6 @@ public class CLMLicenseManager
 
   private static final String LICENSE_LOADING_ERROR = "Error when loading the product license";
 
-  private static final String MIN_DEVELOPER_COMPATIBLE_VERSION = "1.180.0-min";
-
   private final InsightConfig config;
 
   private final MigrationTrackerDAO migrationTrackerDAO;
@@ -150,7 +148,7 @@ public class CLMLicenseManager
 
   private final TaskScheduler taskScheduler;
 
-  private final VersionService versionService;
+  private final DeveloperEnablementService developerEnablementService;
 
   @Inject
   public CLMLicenseManager(
@@ -165,7 +163,7 @@ public class CLMLicenseManager
       final HdsClient hdsClient,
       final AuditRecorder auditRecorder,
       final TaskScheduler taskScheduler,
-      final VersionService versionService)
+      final DeveloperEnablementService developerEnablementService)
   {
     this.config = config;
     this.migrationTrackerDAO = migrationTrackerDAO;
@@ -178,14 +176,13 @@ public class CLMLicenseManager
     this.hdsClient = hdsClient;
     this.auditRecorder = auditRecorder;
     this.taskScheduler = taskScheduler;
-    this.versionService = versionService;
+    this.developerEnablementService = developerEnablementService;
   }
 
   public void loadLicense() {
     SignedProductLicenseDetailsDTO licenseDetails;
     try {
       ProductLicenseKey licenseKey = licenseManager.getLicenseDetails();
-      updateLicenceKeyWithDeveloperProduct(licenseKey);
       String licenseFingerprint = licenseFingerprinter.calculate(licenseKey);
       byte[] licenseData = licenseContent.raw();
 
@@ -231,16 +228,6 @@ public class CLMLicenseManager
     }
   }
 
-  private void updateLicenceKeyWithDeveloperProduct(final ProductLicenseKey productLicenseKey) {
-    log.info("Updating product license key with Developer product. Products: {}",
-        productLicenseKey.getProperties().get("clm.products"));
-    final Properties properties = productLicenseKey.getProperties();
-    updatePropertiesWithDeveloperProduct(properties);
-    productLicenseKey.setProperties(properties);
-    log.info("Finished updating product license key with Developer product. Products: {}",
-        productLicenseKey.getProperties().get("clm.products"));
-  }
-
   private void updatePropertiesWithDeveloperProduct(final Properties properties) {
     if (properties == null) {
       return;
@@ -260,21 +247,8 @@ public class CLMLicenseManager
   }
 
   private boolean shouldAddDeveloperProduct(final List<String> products) {
-    return hasDeveloperEligibleLifecycleProduct(products) &&
+    return developerEnablementService.shouldEnableDeveloperProduct() &&
         !products.contains(ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT);
-  }
-
-  private boolean hasDeveloperEligibleLifecycleProduct(final List<String> products) {
-    final Set<String> lifecycleProducts = Set.of(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
-        ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS, ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD,
-        ProductLicenseDetails.PRODUCT_TEAMS_EDITION);
-    final boolean hasLifecycleProduct = products.stream().anyMatch(lifecycleProducts::contains);
-    final String version = versionService.getVersion();
-    final boolean isEligibleVersion =
-        version != null && versionService.compare(version, MIN_DEVELOPER_COMPATIBLE_VERSION) >= 0;
-    log.info("Has Lifecycle product = {} ; Has eligible version = {}, version = {}", hasLifecycleProduct,
-        isEligibleVersion, version);
-    return hasLifecycleProduct && isEligibleVersion;
   }
 
   private Set<String> getProducts() {
@@ -334,7 +308,6 @@ public class CLMLicenseManager
   public synchronized void installLicense(InputStream is) throws IOException {
     byte[] licenseData = ByteStreams.toByteArray(is);
     ProductLicenseKey licenseKey = licenseManager.getLicenseDetails(new ByteArrayInputStream(licenseData));
-    updateLicenceKeyWithDeveloperProduct(licenseKey);
     String licenseFingerprint = licenseFingerprinter.calculate(licenseKey);
     SignedProductLicenseDetailsDTO licenseDetails = queryLicenseDetailsFromHds(licenseData, licenseFingerprint);
     if (!config.isDatabaseEmbedded() && !licenseDetails.features.contains(LicensedFeature.EXTERNAL_DATABASE.name())
@@ -624,11 +597,12 @@ public class CLMLicenseManager
     else if (products.contains(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS)) {
       return PRODUCT_SBOM_MANAGER_SAAS;
     }
-    else if (products.contains(ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT)) {
-      return PRODUCT_SONATYPE_DEVELOPMENT;
-    }
     else if (products.contains(ProductLicenseDetails.PRODUCT_TEAMS_EDITION)) {
       return PRODUCT_TEAMS_EDITION;
+    }
+    // Keep this last since we do not have a true standalone edition of Developer yet
+    else if (products.contains(ProductLicenseDetails.PRODUCT_SONATYPE_DEVELOPMENT)) {
+      return PRODUCT_SONATYPE_DEVELOPMENT;
     }
 
     return "";

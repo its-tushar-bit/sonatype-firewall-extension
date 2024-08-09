@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -66,7 +67,7 @@ public class DevelopmentPrioritiesRestResourceTest
 
   @Test
   public void testGetPriorities_returnsCorrectErrorWhenLicenseDoesNotIncludeDevelopment() throws Exception {
-    getTestProductLicenseManager().setFeatures(LicensedFeature.DASHBOARD);
+    getTestProductLicenseManager().setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
 
     final HttpResponse response = restRequest()
         .path(GET_PRIORITIES_PATH)

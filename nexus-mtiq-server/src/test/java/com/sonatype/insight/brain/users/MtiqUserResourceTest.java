@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
+import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.OAuth2User;
 import com.sonatype.insight.brain.model.security.SamlUser;
@@ -244,9 +245,10 @@ public class MtiqUserResourceTest
         final ProductLicense productLicense,
         final Configuration configuration,
         final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
-        final ApiConfigFeaturesService service)
+        final ApiConfigFeaturesService service,
+        final DeveloperEnablementService developerEnablementService)
     {
-      super(productLicense, configuration, systemConfigurationPropertyDAO, service);
+      super(productLicense, configuration, systemConfigurationPropertyDAO, service, developerEnablementService);
     }
 
     @Override

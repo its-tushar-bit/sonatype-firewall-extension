@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -162,7 +163,7 @@ public class SourceControlScanServiceTest
         spy(new SourceControlUtils(null, mockInsightWork, fileCleaner, mockGitClientFactory));
 
     TestProductLicenseManager productLicenseManager = new TestProductLicenseManager();
-    testProductLicense = new TestProductLicense(productLicenseManager);
+    testProductLicense = new TestProductLicense(productLicenseManager, mock(DeveloperEnablementService.class));
     testProductLicense.reset();
 
     licenseChecker = new IqForScmLicenseChecker(testProductLicense);

@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
@@ -394,7 +395,8 @@ public class IntegrationsPageTest
   }
 
   @Test
-  public void testShowsFeatureDisabledMessageWhenFeatureIsNotInLicense() {
+  public void testShowsFeatureDisabledMessageWhenDeveloperFeatureIsNotInLicense() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     setMissingFeature(LicensedFeature.DEVELOPER_DASHBOARD);
 
     refreshOrOpen(IntegrationsPage.urlOverview());

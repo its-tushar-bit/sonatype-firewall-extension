@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.rule.MultiTenantDatabaseContainerRule;
+import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.jira.JiraService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -177,7 +178,7 @@ public abstract class AbstractMtiqFunctionalTest
     MultiTenantInsightConfig insightConfig = startDBAndGetInsightConfig();
 
     testProductLicenseManager = new TestProductLicenseManager();
-    testProductLicense = new TestProductLicense(testProductLicenseManager);
+    testProductLicense = new TestProductLicense(testProductLicenseManager, mock(DeveloperEnablementService.class));
     licenseFingerprinter = new TestLicenseFingerprinter();
     testRestTenantUtil = new TestRestTenantUtil();
     testProductLicenseRule = new TestProductLicenseRule(multiTenantDatabaseContainerRule.getDatabaseContainer());

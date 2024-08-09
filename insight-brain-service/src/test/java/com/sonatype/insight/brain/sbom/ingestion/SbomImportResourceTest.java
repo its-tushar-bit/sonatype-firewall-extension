@@ -101,7 +101,7 @@ public class SbomImportResourceTest
     assertResponseStatus(200, response);
     assertThat(actual.getSbomSummary()).isNull();
     assertThat(actual.getRequestId()).isNotEmpty();
-    assertThat(actual.getErrorMessage()).isEqualTo("provided file type is not a supported SBOM file type");
+    assertThat(actual.getErrorMessage()).isEqualTo("Provided file type is not a supported SBOM file type.");
   }
 
   @Test

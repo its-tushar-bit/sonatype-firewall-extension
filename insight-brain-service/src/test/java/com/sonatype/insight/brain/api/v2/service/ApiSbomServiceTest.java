@@ -703,7 +703,7 @@ public class ApiSbomServiceTest
       assertThatExceptionOfType(BadRequestException.class)
           .isThrownBy(
               () -> service.importSbom(app.getId(), inputStream, DUMMY_USER_AGENT))
-          .withMessage("provided file type is not a supported SBOM file type");
+          .withMessage("Provided file type is not a supported SBOM file type.");
     }
   }
 

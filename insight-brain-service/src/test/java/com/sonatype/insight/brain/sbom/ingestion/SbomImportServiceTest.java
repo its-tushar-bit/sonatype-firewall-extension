@@ -152,7 +152,7 @@ public class SbomImportServiceTest
         new ByteArrayInputStream("{}".getBytes(StandardCharsets.UTF_8)));
     assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getSbomSummary()).isNull();
-    assertThat(actual.getErrorMessage()).isEqualTo("Not a valid/supported sbom file");
+    assertThat(actual.getErrorMessage()).isEqualTo("Not a valid/supported sbom file.");
     assertTempSbomFile(actual.getRequestId(), false);
   }
 
@@ -162,7 +162,7 @@ public class SbomImportServiceTest
         sbomImportService.detectSbom(application.getId(), new ByteArrayInputStream(new byte[0]));
     assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getSbomSummary()).isNull();
-    assertThat(actual.getErrorMessage()).isEqualTo("provided file type is not a supported SBOM file type");
+    assertThat(actual.getErrorMessage()).isEqualTo("Provided file type is not a supported SBOM file type.");
     assertTempSbomFile(actual.getRequestId(), false);
   }
 

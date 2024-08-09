@@ -115,19 +115,19 @@ public final class SbomSpdxUtils
       try {
         String specVersion = spdxDocument.getSpecVersion();
         if (StringUtils.isBlank(specVersion)) {
-          throw new UnsupportedSbomException("SPDX version is not specified");
+          throw new UnsupportedSbomException("SPDX version is not specified.");
         }
         if (!ThirdPartyUtils.SPDX_ACCEPTED_VERSIONS.containsKey(specVersion)) {
-          throw new UnsupportedSbomException("SPDX " + specVersion.replace("SPDX-", "") + " version is not supported");
+          throw new UnsupportedSbomException("SPDX " + specVersion.replace("SPDX-", "") + " version is not supported.");
         }
       }
       catch (InvalidSPDXAnalysisException e) {
-        throw new UnsupportedSbomException("SPDX version is not specified");
+        throw new UnsupportedSbomException("SPDX version is not specified.");
       }
       validateSpdx(spdxDocument);
     }
     else {
-      throw new UnsupportedSbomException("Missing SPDX encoding type");
+      throw new UnsupportedSbomException("Missing SPDX encoding type.");
     }
   }
 

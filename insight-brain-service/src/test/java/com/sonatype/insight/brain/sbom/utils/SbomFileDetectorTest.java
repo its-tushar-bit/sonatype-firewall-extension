@@ -107,7 +107,7 @@ public class SbomFileDetectorTest
   @Test
   public void testGetSbomMetadata_CycloneDx_XML_Invalid_1_5_skipSbomValidationDisabled() {
     SbomDetectionResult expected =
-        createExpectedResult(false, "application/xml", "not a valid CycloneDx SBOM file", "1.5", "CycloneDx", "xml", 1,
+        createExpectedResult(false, "application/xml", "Not a valid CycloneDx SBOM file.", "1.5", "CycloneDx", "xml", 1,
             1, null, null);
     getSbomMetadata("cyclonedx-invalid-v1_5-xml.tmp", expected);
   }
@@ -162,63 +162,63 @@ public class SbomFileDetectorTest
   @Test
   public void testGetSbomMetadata_Other_Xml() {
     SbomDetectionResult expected =
-        createExpectedResult(false, "application/xml", "Not a valid/supported sbom file");
+        createExpectedResult(false, "application/xml", "Not a valid/supported sbom file.");
     getSbomMetadata("non-sbom-xml.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_Other_Json() {
     SbomDetectionResult expected =
-        createExpectedResult(false, "application/json", "Not a valid/supported sbom file");
+        createExpectedResult(false, "application/json", "Not a valid/supported sbom file.");
     getSbomMetadata("non-sbom-json.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDx_InvalidJson() {
     SbomDetectionResult expected =
-        createExpectedResult(false, "text/plain", "provided file type is not a supported SBOM file type");
+        createExpectedResult(false, "text/plain", "Provided file type is not a supported SBOM file type.");
     getSbomMetadata("scyclonedx-invalid-json.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDx_InvalidXml() {
     SbomDetectionResult expected =
-        createExpectedResult(false, "application/xml", "not a valid CycloneDx SBOM file");
+        createExpectedResult(false, "application/xml", "Not a valid CycloneDx SBOM file.");
     getSbomMetadata("cyclonedx-invalid-xml.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDx_InvalidXml2() {
     SbomDetectionResult expected =
-        createExpectedResult(false, "application/xml", "not a valid CycloneDx SBOM file");
+        createExpectedResult(false, "application/xml", "Not a valid CycloneDx SBOM file.");
     getSbomMetadata("cyclonedx-invalid-2-xml.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_SPDX_InvalidJson() {
     SbomDetectionResult expected =
-        createExpectedResult(false, "application/json", "not a valid SPDX SBOM file");
+        createExpectedResult(false, "application/json", "Not a valid SPDX SBOM file.");
     getSbomMetadata("spdx-invalid-json.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_SPDX_InvalidXml() {
     SbomDetectionResult expected =
-        createExpectedResult(false, "application/xml", "Not a valid/supported sbom file");
+        createExpectedResult(false, "application/xml", "Not a valid/supported sbom file.");
     getSbomMetadata("spdx-invalid-xml.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_Other_Binary() {
     SbomDetectionResult expected =
-        createExpectedResult(false, "application/java-vm", "provided file type is not a supported SBOM file type");
+        createExpectedResult(false, "application/java-vm", "Provided file type is not a supported SBOM file type.");
     getSbomMetadata("test.bin", expected);
   }
 
   @Test
   public void testGetSbomMetadata_Other_Text() {
     SbomDetectionResult expected =
-        createExpectedResult(false, "text/plain", "provided file type is not a supported SBOM file type");
+        createExpectedResult(false, "text/plain", "Provided file type is not a supported SBOM file type.");
     getSbomMetadata("test.tt", expected);
   }
 

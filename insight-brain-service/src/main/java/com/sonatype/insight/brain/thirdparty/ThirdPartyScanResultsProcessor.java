@@ -67,6 +67,9 @@ import io.dropwizard.logback.shaded.guava.annotations.VisibleForTesting;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.openjpa.persistence.EntityExistsException;
+import org.apache.openjpa.persistence.RollbackException;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -486,13 +489,39 @@ public class ThirdPartyScanResultsProcessor
         throw new InvalidSbomException("SBOM metadata could not be identified.");
       }
       ThirdPartySbomMetadata thirdPartySbomMetadata = getSbomMetadataEntity(scanContext, sbomResult);
-      thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
+      insertThirdPartySbomMetadataWithRetry(thirdPartySbomMetadata, scanContext.getApplicationId(),
+          sbomResult.summary.applicationVersion);
       scanContext.setSbomMetadataId(thirdPartySbomMetadata.getId());
 
       AuditData.get().setSbomVersion(thirdPartySbomMetadata, SbomAction.CREATE);
     }
     catch (InvalidSbomException | UnsupportedSbomException ex) {
       log.debug("there was an error while trying to save sbom metadata", ex);
+    }
+  }
+
+  @VisibleForTesting
+  void insertThirdPartySbomMetadataWithRetry(ThirdPartySbomMetadata thirdPartySbomMetadata,
+                                    String applicationId,
+                                    String sbomVersion)
+  {
+    try {
+      thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
+    }
+    catch (RollbackException e) {
+      // Handles a race condition that arises if the same file gets uploaded at the same time in separate requests
+      if (e.getCause() instanceof EntityExistsException) {
+        log.debug("SBOM with version {} may already exist for application with ID {}, retrying once",
+            thirdPartySbomMetadata.getSbomVersion(), applicationId);
+        thirdPartySbomMetadata.setSbomVersion(String.join("_", thirdPartySbomMetadata.getSbomVersion(),
+            dtFormatter.format(LocalDateTime.now()), RandomStringUtils.randomAlphanumeric(3)));
+        log.debug("Updating SBOM with version {} for application with ID {}", thirdPartySbomMetadata.getSbomVersion(),
+            applicationId);
+        thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
+      }
+      else {
+        throw e;
+      }
     }
   }
 

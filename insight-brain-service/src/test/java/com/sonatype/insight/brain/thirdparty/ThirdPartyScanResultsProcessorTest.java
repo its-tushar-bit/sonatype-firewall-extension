@@ -892,6 +892,37 @@ public class ThirdPartyScanResultsProcessorTest
     assertThat(coordinateLicenses).isNotEmpty().hasSize(2);
   }
 
+  @Test
+  public void testInsertThirdPartySbomMetadataWithRetry() {
+    Organization organization = tempEntity.newOrganization("Testing Organization");
+    Application application = tempEntity.newApplication("Testing Application", "TESTING", organization.getId());
+    final ThirdPartySbomMetadata thirdPartySbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(application.getId(), "PENDING", "test-file.xml");
+    final ThirdPartySbomMetadata duplicateThirdPartySbomMetadata = new ThirdPartySbomMetadata();
+    duplicateThirdPartySbomMetadata.setApplicationId(thirdPartySbomMetadata.getApplicationId());
+    duplicateThirdPartySbomMetadata.setSbomVersion(thirdPartySbomMetadata.getSbomVersion());
+    duplicateThirdPartySbomMetadata.setThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId());
+    duplicateThirdPartySbomMetadata.setMetadataJson(thirdPartySbomMetadata.getMetadataJson());
+    duplicateThirdPartySbomMetadata.setCreatedAt(thirdPartySbomMetadata.getCreatedAt());
+    duplicateThirdPartySbomMetadata.setSerialNumber(thirdPartySbomMetadata.getSerialNumber());
+    duplicateThirdPartySbomMetadata.setSpec(thirdPartySbomMetadata.getSpec());
+    duplicateThirdPartySbomMetadata.setSpecFormat(thirdPartySbomMetadata.getSpecFormat());
+    duplicateThirdPartySbomMetadata.setSpecVersion(thirdPartySbomMetadata.getSpecVersion());
+    duplicateThirdPartySbomMetadata.setFilename(thirdPartySbomMetadata.getFilename());
+    duplicateThirdPartySbomMetadata.setStatus(thirdPartySbomMetadata.getStatus());
+    thirdPartyScanResultsProcessorSpy.insertThirdPartySbomMetadataWithRetry(duplicateThirdPartySbomMetadata,
+        application.getId(), thirdPartySbomMetadata.getSbomVersion());
+
+    List<ThirdPartySbomMetadata> thirdPartySbomMetadataList =
+        thirdPartySbomMetadataDAO.getByApplicationId(application.getId());
+    List<String> sbomVersions =
+        thirdPartySbomMetadataList.stream().map(ThirdPartySbomMetadata::getSbomVersion).toList();
+
+    assertThat(thirdPartySbomMetadataList).hasSize(2);
+    assertThat(sbomVersions).containsExactlyInAnyOrder(thirdPartySbomMetadata.getSbomVersion(),
+        duplicateThirdPartySbomMetadata.getSbomVersion());
+  }
+
   private void assertLogOutput(final String message) {
     assertThat(logOutput.getErrorMessages(loggerName)).containsOnly(message);
   }

@@ -8,13 +8,16 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -32,6 +35,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
@@ -339,6 +343,37 @@ public class PolicyMonitor
 
     log.debug("SBOM Manager Policy Monitoring evaluated for application '{}' in {} ms", app.getName(),
         System.currentTimeMillis() - start);
+
+    if (SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT.isEnabled()) {
+      cleanUpPreviousReport(app, sbomMetadata.getThirdPartyFileId(), newScanId);
+    }
+
+  }
+
+  private void cleanUpPreviousReport(Application app, String thirdPartyFileId, String scanId) {
+    ThirdPartyScan thirdPartyScan = thirdPartyScanDAO.getByThirdPartyFileIdAndScanId(thirdPartyFileId, scanId);
+    if (thirdPartyScan != null && thirdPartyScan.getPreviousScanId() != null) {
+      // Delete previous scan report folder
+      File previousReportDir = work.getReportDir(app.getId(), thirdPartyScan.getPreviousScanId());
+      if (previousReportDir.exists()) {
+        try (Stream<Path> paths = Files.walk(previousReportDir.toPath())) {
+          paths.sorted(Comparator.reverseOrder())
+              .forEach(path -> {
+                try {
+                  Files.delete(path);
+                }
+                catch (IOException e) {
+                  log.debug("Failed to delete file '{}'", path, e);
+                }
+              });
+        }
+        catch (IOException e) {
+          log.debug("Failed to walk through the directory '{}'", previousReportDir, e);
+        }
+      }
+      thirdPartyScan.setPreviousScanId(null);
+      thirdPartyScanDAO.update(thirdPartyScan);
+    }
   }
 
   private void cloneScanFile(

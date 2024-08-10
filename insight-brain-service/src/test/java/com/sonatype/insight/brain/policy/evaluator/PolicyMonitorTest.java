@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -64,6 +65,7 @@ import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -615,7 +617,19 @@ public class PolicyMonitorTest
   }
 
   @Test
-  public void testApplicationMonitored_SbomManagerComplianceStage() throws Exception {
+  public void testApplicationMonitored_SbomManagerComplianceStage_cleanUpSbomReport_Enabled() throws Exception {
+    testApplicationMonitored_SbomManagerComplianceStage(true);
+  }
+
+  @Test
+  public void testApplicationMonitored_SbomManagerComplianceStage_cleanUpSbomReport_Disabled() throws Exception {
+    SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT.setEnabled(false);
+    testApplicationMonitored_SbomManagerComplianceStage(false);
+  }
+
+  public void testApplicationMonitored_SbomManagerComplianceStage(boolean cleanUpSbomReportEnabled) throws Exception {
+    setLicenseProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication("MonitoredApp", org.getId());
     Stage stage = new Stage(ComplianceStageType.ID);
@@ -644,6 +658,15 @@ public class PolicyMonitorTest
     assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME);
     assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME);
     assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME);
+
+    // Assert cleanup previous scan report folder
+    File previousReportFile = insightWork.getReportFile(app.getId(), scanId1);
+    if (cleanUpSbomReportEnabled) {
+      assertThat(previousReportFile).doesNotExist();
+    }
+    else {
+      assertThat(previousReportFile).exists();
+    }
   }
 
   @Test

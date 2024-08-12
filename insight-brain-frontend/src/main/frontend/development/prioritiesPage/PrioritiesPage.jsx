@@ -103,7 +103,7 @@ function PrioritiesPageContents() {
               <NxTextLink
                 className="nx-btn iq-priorities-page-view-full-report-btn"
                 href={getApplicationReportHref()}
-                newTab
+                external
               >
                 View Full Report
               </NxTextLink>

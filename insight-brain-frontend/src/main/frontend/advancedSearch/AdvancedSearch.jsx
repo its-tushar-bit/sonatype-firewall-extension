@@ -101,7 +101,7 @@ export default function AdvancedSearch(props) {
           {additionalInfo && <p className="nx-p">{additionalInfo}</p>}
           {showVulnLink && (
             <p className="nx-p">
-              <NxTextLink href={detailedInfoHref} newTab={isDeveloper}>
+              <NxTextLink href={detailedInfoHref} external={isDeveloper}>
                 Click here for detailed information.
               </NxTextLink>
             </p>

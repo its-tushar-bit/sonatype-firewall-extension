@@ -112,7 +112,7 @@ export default function ReportTitle() {
           {isDeveloperDashboardEnabled && (
             <NxTextLink
               className="nx-dropdown-button iq-developer-priorities-link-from-options-dropdown"
-              newTab
+              external
               href={prioritiesUrl}
               data-analytics-id="iq-developer-priorities-link-from-options-dropdown"
             >

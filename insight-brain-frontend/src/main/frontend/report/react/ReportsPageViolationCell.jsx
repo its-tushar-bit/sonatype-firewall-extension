@@ -79,7 +79,7 @@ function ReportLink({ hrefUiRouterState, isDeveloperDashboardEnabled, isDevelope
     <div className="iq-report-links-container">
       <NxTextLink
         id="iq-report-link"
-        newTab={isDeveloper}
+        external={isDeveloper}
         href={hrefUiRouterState('applicationReport.policy', {
           publicId: publicAppId,
           scanId,
@@ -92,7 +92,7 @@ function ReportLink({ hrefUiRouterState, isDeveloperDashboardEnabled, isDevelope
           <span>|</span>
           <NxTextLink
             id="iq-developer-priorities-link-from-lifecycle-reports-page"
-            newTab
+            external
             data-analytics-id="iq-developer-priorities-link-from-lifecycle-reports-page"
             href={hrefUiRouterState('prioritiesPageFromReports', {
               publicAppId,

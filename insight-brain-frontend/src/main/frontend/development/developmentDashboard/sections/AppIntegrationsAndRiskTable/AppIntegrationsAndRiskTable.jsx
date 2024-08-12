@@ -136,7 +136,7 @@ export default function AppIntegrationsAndRiskTable() {
                 <NxTable.Row key={applicationName}>
                   <NxTable.Cell className="iq-integrations-applications-table__name-cell">
                     <NxTextLink
-                      newTab
+                      external
                       href={appManagementHref}
                       data-analytics-id="sonatype-developer-dashboard-app-management"
                     >

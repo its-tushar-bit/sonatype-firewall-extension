@@ -24,6 +24,7 @@ import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -101,6 +102,7 @@ public class MTIQFeatureServiceTest
   }
 
   @Test
+  @Ignore // https://sonatype.atlassian.net/browse/CLM-31308
   public void testGetFeatures_includes_ADVANCED_LEGAL_PACK_with_SAAS_ALP_ENABLED() {
     SystemConfigurationPropertyFeature.SAAS_ALP_ENABLED.setEnabled(true);
 

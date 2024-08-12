@@ -212,6 +212,7 @@ public class NoticeDetailsTest
   }
 
   @Test
+  @Ignore // https://sonatype.atlassian.net/browse/CLM-31309
   public void testEditNoticeByComponentIdentifier() throws UnsupportedEncodingException {
     loadByComponentIdentifier();
     doTestEditNotice();

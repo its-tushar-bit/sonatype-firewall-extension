@@ -9,6 +9,8 @@ import { mergeDeepRight } from 'ramda';
 import MenuBarStatefulBreadcrumb from 'MainRoot/mainHeader/MenuBar/MenuBarStatefulBreadcrumb';
 import { render, screen } from 'TestRoot/SpecUtil';
 import { getOwnersMap } from 'TestRoot/OrgsAndPolicies/ownerSideNav/nLevelMockData';
+import { RouterStateProvider } from 'MainRoot/react/RouterStateContext';
+import { fireEvent } from '@testing-library/react';
 
 export const setupMenuBarBreadcrumbsPortalContainer = () => {
   if (!global.document.getElementById('menu-bar__bread-crumb-container')) {
@@ -20,10 +22,27 @@ export const setupMenuBarBreadcrumbsPortalContainer = () => {
 };
 
 describe('MenuBarStatefulBreadcrumb', () => {
+  let c = 0;
+  const generateFakeLink = () => {
+    const routerUrls = '/link';
+    c++;
+    return routerUrls + c;
+  };
+  const mockUIRouterState = { href: generateFakeLink, includes: () => false, get: () => null, children: [] };
+  let mockRouter;
+  beforeEach(() => {
+    mockRouter = { ...mockUIRouterState, includes: (stateName) => stateName === 'my.state' };
+  });
+
   setupMenuBarBreadcrumbsPortalContainer();
 
   const renderComponent = (preloadedState) => {
-    return render(<MenuBarStatefulBreadcrumb />, { preloadedState });
+    return render(
+      <RouterStateProvider value={mockRouter}>
+        <MenuBarStatefulBreadcrumb />
+      </RouterStateProvider>,
+      { preloadedState }
+    );
   };
   const applicationPublicId = 'application publicId 2 at organization 2';
   const organizationsDepth = 2;
@@ -290,6 +309,52 @@ describe('MenuBarStatefulBreadcrumb', () => {
     it('does not render breadcrumbs when SBOM Manager is NOT enabled', async () => {
       renderComponent(bomStateSbomManagerNotEnabled);
       expect(screen.queryByText('Root Organization')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('When displaying on the SBOM Component Details page', () => {
+    const bomState = {
+      productFeatures: {
+        loading: false,
+        productFeatures: {
+          'sbom-manager': true,
+        },
+      },
+      router: {
+        currentParams: {
+          applicationPublicId: 'APPLICATION-PUBLIC-ID',
+          sbomVersion: 'VERSION-ID',
+          componentHash: 'abc',
+        },
+        currentState: { name: 'sbomManager.component' },
+      },
+      orgsAndPolicies: {
+        ownerSideNav: {
+          ownersMap: sbomOwnersMap,
+          displayedOrganization: sbomDisplayedOrg,
+        },
+      },
+      sbomComponentDetailsPage: {
+        componentDetails: {
+          displayName: 'COMPONENT',
+        },
+      },
+    };
+
+    it('renders the correct breadcrumbs', async () => {
+      renderComponent(bomState);
+
+      const expectedBreadCrumbsOnScreen = ['COMPONENT', 'VERSION-ID', 'Root Organization'];
+      const expectedHiddenBreadCrumbs = ['APPLICATION-PUBLIC-ID', 'ORG-TEST'];
+      expectedBreadCrumbsOnScreen.forEach((breadCrumbName) => {
+        expect(screen.getByText(breadCrumbName)).toBeVisible();
+      });
+
+      const showOtherBreadcrumsButton = screen.getByRole('button');
+      fireEvent.click(showOtherBreadcrumsButton);
+      expectedHiddenBreadCrumbs.forEach((breadCrumbName) => {
+        expect(screen.getByText(breadCrumbName)).toBeVisible();
+      });
     });
   });
 });

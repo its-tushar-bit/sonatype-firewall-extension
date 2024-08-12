@@ -7,6 +7,11 @@ import { equals, length } from 'ramda';
 
 export const nameStartsWithSbomManager = (stringToSearch = '') => stringToSearch.startsWith('sbomManager');
 
+export const nameContainsComponentDetails = (stringToSearch = '') => stringToSearch.includes('.component');
+
+export const isSbomManagerComponentDetails = (stringToSearch = '') =>
+  nameStartsWithSbomManager(stringToSearch) && nameContainsComponentDetails(stringToSearch);
+
 export const isSbomManagerOnlyLicenseProduct = (products) =>
   length(products) === 1 &&
   (equals(products[0], 'Sonatype SBOM Manager SaaS') || equals(products[0], 'Sonatype SBOM Manager'));

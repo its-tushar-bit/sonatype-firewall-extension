@@ -22,8 +22,6 @@ import {
   selectLoadingFeatures,
   selectNoSbomManagerEnabledError,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
-import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { ComponentDetailsHeader, ComponentDetailsTags, Title } from 'MainRoot/componentDetails/ComponentDetailsHeader';
 import VulnerabilitiesTile from 'MainRoot/sbomManager/features/componentDetails/VulnerabilitiesTile';
 import { faCopy } from '@fortawesome/pro-regular-svg-icons';
@@ -44,6 +42,7 @@ import {
 } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSelector';
 import { actions } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
 import { actions as billOfMaterialsActions } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
+import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import ComponentDetailsDependencyTreeTile from 'MainRoot/sbomManager/features/componentDetails/dependecyTree/ComponentDetailsDependencyTreeTile';
 import { selectInternalAppId } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSelectors';
@@ -55,6 +54,7 @@ import VexAnnotationDrawer from 'MainRoot/sbomManager/features/componentDetails/
 import { isNil } from 'ramda';
 import DeleteAnnotationModal from 'MainRoot/sbomManager/features/componentDetails/DeleteAnnotationModal';
 import CopyAnnotationModal from 'MainRoot/sbomManager/features/componentDetails/CopyAnnotationModal';
+import MenuBarStatefulBreadcrumb from 'MainRoot/mainHeader/MenuBar/MenuBarStatefulBreadcrumb';
 
 export default function ComponentDetailsPage() {
   const dispatch = useDispatch();
@@ -80,13 +80,7 @@ export default function ComponentDetailsPage() {
   const copyError = useSelector(selectCopyError);
   const copyMaskState = useSelector(selectCopyMaskState);
 
-  const uiRouterState = useRouterState();
   const { applicationPublicId, sbomVersion, componentHash } = routerParams;
-  const billOfMaterialsState = 'sbomManager.management.view.bom';
-  const billOfMaterialsHref = uiRouterState.href(billOfMaterialsState, {
-    applicationPublicId,
-    versionId: sbomVersion,
-  });
   const internalAppId = useSelector(selectInternalAppId);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isVexAnnotationPopoverOpen, setIsVexAnnotationPopoverOpen] = useState(false);
@@ -148,6 +142,8 @@ export default function ComponentDetailsPage() {
     dispatch(actions.getVulnerabilityAnalysisReferenceData());
   };
 
+  const loadStateForBreadcrum = () => dispatch(ownerSideNavActions.loadOwnerList());
+
   const loadInternalAppId = () => dispatch(billOfMaterialsActions.loadInternalAppId(applicationPublicId));
 
   const cycleDisclosedVulnerabilitiesSortDirection = (sortBy) =>
@@ -158,6 +154,7 @@ export default function ComponentDetailsPage() {
   const initialize = () => {
     loadInternalAppId();
     loadVexReferenceData();
+    loadStateForBreadcrum();
   };
 
   useEffect(() => {
@@ -254,10 +251,7 @@ export default function ComponentDetailsPage() {
         />
       )}
       <NxPageMain id="sbom-manager-component-details">
-        <MenuBarBackButton
-          text={`${applicationPublicId}:${sbomVersion}`}
-          href={billOfMaterialsHref}
-        ></MenuBarBackButton>
+        <MenuBarStatefulBreadcrumb />
         <NxLoadWrapper
           retryHandler={load}
           loading={isProductFeaturesLoading || isLoading}

@@ -19,6 +19,9 @@ import {
   selectIsRepositoryManager,
   selectIsSbomManager,
   selectSbomVersionId,
+  selectIsSbomManagerComponentDetails,
+  selectSbomComponentHash,
+  selectSbomVersionIdCdp,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { useRouterState } from '../../react/RouterStateContext';
@@ -28,6 +31,7 @@ import {
 } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import { getOwnerInfo } from 'MainRoot/OrgsAndPolicies/ownerSideNav/utils';
 import { selectNoSbomManagerEnabledError } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectComponentDetails } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSelector';
 
 const BREAD_CRUMB_CONTAINER_ID = 'menu-bar__bread-crumb-container';
 
@@ -42,9 +46,25 @@ const getBreadcrumb = (
   pageTitle,
   currentRouteName,
   isSbomManager,
-  sbomVersionId
+  sbomVersionId,
+  isSbomManagerCdp,
+  sbomComponentHash,
+  sbomManagerComponentDisplayName = ''
 ) => {
   const breadcrumb = [];
+
+  if (isSbomManagerCdp) {
+    // component cdp link
+    const sbomCdpHref = uiRouterState.href(currentRouteName, applicationPublicId, sbomVersionId, sbomComponentHash);
+    breadcrumb.unshift({ name: sbomManagerComponentDisplayName, href: sbomCdpHref });
+
+    // sbom version link
+    const sbomVersionHref = uiRouterState.href('sbomManager.management.view.bom', {
+      applicationPublicId,
+      versionId: sbomVersionId,
+    });
+    breadcrumb.unshift({ name: sbomVersionId, href: sbomVersionHref });
+  }
 
   if (currentRouteName.includes('management.edit')) {
     const id = isApplication ? ownersMap[applicationPublicId]?.publicId : displayedOrganization.id;
@@ -55,7 +75,7 @@ const getBreadcrumb = (
     breadcrumb.unshift({ name: pageTitle, href });
   }
 
-  if (isSbomManager && sbomVersionId) {
+  if (isSbomManager && sbomVersionId && !isSbomManagerCdp) {
     const href = uiRouterState.href(currentRouteName, applicationPublicId, sbomVersionId);
     breadcrumb.unshift({ name: sbomVersionId, href });
   }
@@ -114,7 +134,10 @@ const MenuBarStatefulBreadcrumb = () => {
   const repositoryId = useSelector(selectRepositoryId);
   const pageTitle = useSelector(selectCurrentRouteTitle);
   const isSbomManager = useSelector(selectIsSbomManager);
-  const sbomVersionId = useSelector(selectSbomVersionId);
+  const isSbomManagerCdp = useSelector(selectIsSbomManagerComponentDetails);
+  const sbomVersionId = isSbomManagerCdp ? useSelector(selectSbomVersionIdCdp) : useSelector(selectSbomVersionId);
+  const sbomManagerComponentDisplayName = useSelector(selectComponentDetails)?.displayName;
+  const sbomComponentHash = useSelector(selectSbomComponentHash);
   const noSbomManagerEnabledError = useSelector(selectNoSbomManagerEnabledError);
 
   if (isNilOrEmpty(ownersMap) || isNilOrEmpty(displayedOrganization) || noSbomManagerEnabledError) {
@@ -132,7 +155,10 @@ const MenuBarStatefulBreadcrumb = () => {
     pageTitle,
     routeName,
     isSbomManager,
-    sbomVersionId
+    sbomVersionId,
+    isSbomManagerCdp,
+    sbomComponentHash,
+    sbomManagerComponentDisplayName
   );
 
   const renderComponentInsidePortal = (componentToRender) =>

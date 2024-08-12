@@ -7,7 +7,7 @@
 import { prop, path, propOr, propEq } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 
-import { nameStartsWithSbomManager } from 'MainRoot/sbomManager/sbomManagerUtil';
+import { isSbomManagerComponentDetails, nameStartsWithSbomManager } from 'MainRoot/sbomManager/sbomManagerUtil';
 
 export const selectRouterSlice = prop('router');
 export const selectRouterCurrentParams = createSelector(selectRouterSlice, prop('currentParams'));
@@ -24,6 +24,7 @@ export const selectRouterPrevParams = createSelector(selectRouterSlice, prop('pr
 export const selectPreviousRouteName = createSelector(selectRouterPrevState, prop('name'));
 
 const includesNamePart = (part) => (stringToSearch = '') => stringToSearch.includes(part);
+
 const includesNamePartSeparateByDot = (part) => (stringToSearch = '') => stringToSearch.split('.').includes(part);
 const nameIncludesOrganization = includesNamePart('organization');
 const nameIncludesTransitiveViolations = includesNamePart('transitiveViolations');
@@ -54,6 +55,10 @@ export const selectIsRepositories = createSelector(selectCurrentRouteName, nameI
 export const selectIsRepository = createSelector(selectCurrentRouteName, nameIncludesRepository);
 export const selectIsFirewall = createSelector(selectCurrentRouteName, nameIncludesFirewall);
 export const selectIsSbomManager = createSelector(selectCurrentRouteName, nameStartsWithSbomManager);
+export const selectIsSbomManagerComponentDetails = createSelector(
+  selectCurrentRouteName,
+  isSbomManagerComponentDetails
+);
 export const selectIsRepositoryContainer = createSelector(selectCurrentRouteName, nameIncludesRepositoryContainer);
 export const selectIsRepositoryManager = createSelector(selectCurrentRouteName, nameIncludesRepositoryManager);
 export const selectIsCategory = createSelector(selectRouterStateUrl, nameIncludesCategory);
@@ -125,6 +130,8 @@ export const selectOrganizationId = createSelector(selectRouterCurrentParams, pr
 export const selectApplicationId = createSelector(selectRouterCurrentParams, propOr('', 'applicationPublicId'));
 export const selectRepositoryId = createSelector(selectRouterCurrentParams, propOr('', 'repositoryId'));
 export const selectSbomVersionId = createSelector(selectRouterCurrentParams, propOr('', 'versionId'));
+export const selectSbomVersionIdCdp = createSelector(selectRouterCurrentParams, propOr('', 'sbomVersion'));
+export const selectSbomComponentHash = createSelector(selectRouterCurrentParams, propOr('', 'componentHash'));
 export const selectRepositoryManagerId = createSelector(selectRouterCurrentParams, propOr('', 'repositoryManagerId'));
 export const selectRepositoryContainerId = createSelector(
   selectRouterCurrentParams,

@@ -10,7 +10,6 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.ws.rs.Path;
@@ -49,6 +48,9 @@ import com.sonatype.insight.brain.migration.MultiTenantDbMigrationCommand;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
+import com.sonatype.insight.brain.product.license.DefaultProductLicense;
+import com.sonatype.insight.brain.product.license.MultiTenantProductLicense;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.scheduler.MultiTenantQuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
@@ -378,6 +380,9 @@ public class MultiTenantInsightBrainService
         bind(MeterRegistry.class).toProvider(MultiTenantMeterRegistryProvider.class);
 
         bind(SsoUserService.class).to(MultiTenantSsoUserService.class);
+
+        bind(ProductLicense.class).to(MultiTenantProductLicense.class);
+        bind(DefaultProductLicense.class).to(MultiTenantProductLicense.class);
 
         List<Class<?>> extraToBan = new ArrayList<>();
         if (((MultiTenantInsightConfig) configuration()).isUsingDefaultEncryptionKeyStore()) {

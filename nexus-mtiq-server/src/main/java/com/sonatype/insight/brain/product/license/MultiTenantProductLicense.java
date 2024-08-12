@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.product.license;
 import java.util.Collections;
 import java.util.Set;
 import javax.annotation.Priority;
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -31,6 +32,7 @@ public class MultiTenantProductLicense
   private final TenantReference<ProductLicenseData> productLicenseData =
       new TenantReference<>(DefaultProductLicense::initialProductLicenseData);
 
+  @Inject
   public MultiTenantProductLicense(
       final DeveloperEnablementService developerEnablementService)
   {

@@ -49,6 +49,7 @@ ENTRYPOINT ["java", \
              "--add-opens=java.base/sun.security.x509=ALL-UNNAMED", \
              "--add-opens=java.base/sun.security.util=ALL-UNNAMED", \
              "--add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED", \
+             "-Dgit.without.shell=true", \
              "-Djava.util.prefs.userRoot=/sonatype-work/javaprefs", \
              "-javaagent:/opt/datadog/dd-java-agent.jar", \
              "-XX:+AlwaysPreTouch", \

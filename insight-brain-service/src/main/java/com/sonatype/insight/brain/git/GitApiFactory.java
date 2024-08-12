@@ -18,6 +18,7 @@ import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.JGitApi;
 import com.sonatype.nexus.git.utils.api.NativeGitApi;
 import com.sonatype.nexus.git.utils.api.NativeGitUtils;
+import com.sonatype.nexus.git.utils.api.NativeGitUtilsProvider;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
@@ -33,6 +34,8 @@ public class GitApiFactory
   private final Configuration configuration;
 
   private final InsightWork insightWork;
+
+  private final NativeGitUtilsProvider nativeGitUtilsProvider = new NativeGitUtilsProvider();
 
   @Inject
   public GitApiFactory(Configuration configuration, InsightWork insightWork) {
@@ -109,7 +112,8 @@ public class GitApiFactory
    */
   @VisibleForTesting
   boolean isNativeGitAvailable(String gitExecutable) {
-    return NativeGitUtils.isNativeGitAvailable(gitExecutable);
+    NativeGitUtils nativeGitUtils = nativeGitUtilsProvider.get();
+    return nativeGitUtils.isNativeGitAvailable(gitExecutable);
   }
 
   private String getCloneUrl(final GitRepositoryInfo gitRepositoryInfo) {

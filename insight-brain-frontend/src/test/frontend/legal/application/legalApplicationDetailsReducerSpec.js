@@ -7,15 +7,9 @@
 import { NO_LICENSE_THREAT_GROUP_ASSIGNED } from '../../../../main/frontend/legal/advancedLegalConstants';
 import legalApplicationDetailsReducer from '../../../../main/frontend/legal/application/legalApplicationDetailsReducer';
 import {
-  LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED,
-  LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED,
-  LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED,
-  LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED,
-  LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED,
-  LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_REQUESTED,
-  LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FAILED,
-  LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FULFILLED,
-  LEGAL_APPLICATION_DETAILS_LOAD_STAGE_REQUESTED,
+  LEGAL_APPLICATION_DETAILS_LOAD_DATA_FAILED,
+  LEGAL_APPLICATION_DETAILS_LOAD_DATA_FULFILLED,
+  LEGAL_APPLICATION_DETAILS_LOAD_DATA_REQUESTED,
 } from '../../../../main/frontend/legal/application/legalApplicationDetailsActions';
 import {
   LEGAL_APPLICATION_DETAILS_SET_COMPONENT_NAME_FILTER,
@@ -32,22 +26,14 @@ describe('legalApplicationDetailsReducer', function () {
       const action = { type: 'UNKNOWN' };
       const newState = legalApplicationDetailsReducer(undefined, action);
 
-      expect(newState.application).toEqual({
-        name: null,
-        error: null,
-        loading: false,
-      });
-      expect(newState.stageType).toEqual({
-        name: null,
-        error: null,
-        loading: false,
-      });
+      expect(newState.loading).toEqual(false);
+      expect(newState.error).toBeNull();
+      expect(newState.applicationName).toBeNull();
+      expect(newState.stageName).toBeNull();
       expect(newState.components).toEqual({
         results: [],
         filteredResults: [],
         licenseThreatGroups: [],
-        error: null,
-        loading: false,
       });
       expect(newState.componentFilter).toEqual('');
       expect(newState.licenseFilter).toEqual('');
@@ -85,205 +71,39 @@ describe('legalApplicationDetailsReducer', function () {
     });
   });
 
-  describe('LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED action', function () {
-    it('resets the application part of state when fetching an application', function () {
+  describe('LEGAL_APPLICATION_DETAILS_LOAD_DATA_REQUESTED action', function () {
+    it('updates to loading', function () {
       const state = Object.freeze({
-        application: {
-          name: 'some-app',
-          error: null,
-          loading: false,
-        },
-        stageType: {
-          name: 'some-stage',
-          error: null,
-          loading: true,
-        },
-        sort: {
-          column: 'licenses',
-          order: 'asc',
-        },
+        error: null,
+        loading: false,
         components: {
           results: [],
-          filteredResults: [],
-          error: 'some error',
-          loading: true,
         },
-        componentFilter: 'componentFilter',
-        licenseFilter: 'licenseFilter',
-        page: 13,
+        other: otherObject,
       });
-      const action = { type: LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED };
+      const action = {
+        type: LEGAL_APPLICATION_DETAILS_LOAD_DATA_REQUESTED,
+      };
       const newState = legalApplicationDetailsReducer(state, action);
-      expect(newState.application).toEqual({
-        name: null,
-        error: null,
-        loading: true,
-      });
-      expect(newState.stageType).toEqual({
-        name: 'some-stage',
-        error: null,
-        loading: true,
-      });
+      expect(newState.loading).toEqual(true);
+      expect(newState.error).toBeNull();
       expect(newState.components).toEqual({
         results: [],
-        filteredResults: [],
-        error: 'some error',
-        loading: true,
-      });
-      expect(newState.sort).toEqual({
-        column: 'licenses',
-        order: 'asc',
-      });
-      expect(newState.componentFilter).toEqual('componentFilter');
-      expect(newState.licenseFilter).toEqual('licenseFilter');
-      expect(newState.page).toEqual(13);
-    });
-  });
-
-  describe('LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED action', function () {
-    it('updates application state', function () {
-      const state = Object.freeze({
-        application: {
-          name: null,
-          error: null,
-          loading: true,
-        },
-      });
-      const action = {
-        type: LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED,
-        payload: { name: 'some app' },
-      };
-      const newState = legalApplicationDetailsReducer(state, action);
-      expect(newState.application).toEqual({
-        name: 'some app',
-        error: null,
-        loading: false,
-      });
-    });
-  });
-
-  describe('LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED action', function () {
-    it('updates application state with an error', function () {
-      const state = Object.freeze({
-        application: {
-          name: null,
-          error: null,
-          loading: true,
-        },
-      });
-      const action = {
-        type: LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED,
-        payload: 'some app error',
-      };
-      const newState = legalApplicationDetailsReducer(state, action);
-      expect(newState.application).toEqual({
-        name: null,
-        error: 'some app error',
-        loading: false,
-      });
-    });
-  });
-
-  describe('LEGAL_APPLICATION_DETAILS_LOAD_STAGE_REQUESTED action', function () {
-    it('updates stageType state to loading', function () {
-      const state = Object.freeze({
-        stageType: {
-          name: null,
-          error: null,
-          loading: false,
-        },
-        other: otherObject,
-      });
-      const action = { type: LEGAL_APPLICATION_DETAILS_LOAD_STAGE_REQUESTED };
-      const newState = legalApplicationDetailsReducer(state, action);
-      expect(newState.stageType).toEqual({
-        name: null,
-        error: null,
-        loading: true,
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
 
-  describe('LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED action', function () {
-    it('updates stageType state with data', function () {
-      const state = Object.freeze({
-        stageType: {
-          name: null,
-          error: null,
-          loading: true,
-        },
-        other: otherObject,
-      });
-      const action = {
-        type: LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FULFILLED,
-        payload: 'some stage',
-      };
-      const newState = legalApplicationDetailsReducer(state, action);
-      expect(newState.stageType).toEqual({
-        name: 'some stage',
-        error: null,
-        loading: false,
-      });
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-  });
-
-  describe('LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FAILED action', function () {
-    it('updates stageType state with an error', function () {
-      const state = Object.freeze({
-        stageType: {
-          name: null,
-          error: null,
-          loading: true,
-        },
-        other: otherObject,
-      });
-      const action = {
-        type: LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FAILED,
-        payload: 'some stageType error',
-      };
-      const newState = legalApplicationDetailsReducer(state, action);
-      expect(newState.stageType).toEqual({
-        name: null,
-        error: 'some stageType error',
-        loading: false,
-      });
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-  });
-
-  describe('LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_REQUESTED action', function () {
-    it('updates components state to loading', function () {
-      const state = Object.freeze({
-        components: {
-          results: [],
-          error: null,
-          loading: false,
-        },
-        other: otherObject,
-      });
-      const action = {
-        type: LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_REQUESTED,
-      };
-      const newState = legalApplicationDetailsReducer(state, action);
-      expect(newState.components).toEqual({
-        results: [],
-        error: null,
-        loading: true,
-      });
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-  });
-
-  describe('LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED action', function () {
+  describe('LEGAL_APPLICATION_DETAILS_LOAD_DATA_FULFILLED action', function () {
     it('updates components state with appropriate data', function () {
       const state = Object.freeze({
+        error: null,
+        loading: true,
+        applicationName: 'applicationNamevalue',
+        stageName: 'stageNameValue',
         components: {
           results: [],
           licenseThreatGroups: [],
-          error: null,
-          loading: true,
         },
         selected: {
           licenseThreatGroups: new Set(),
@@ -291,7 +111,7 @@ describe('legalApplicationDetailsReducer', function () {
         other: otherObject,
       });
 
-      const payload = Object.freeze([
+      const components = Object.freeze([
         {
           licenses: [
             {
@@ -315,18 +135,20 @@ describe('legalApplicationDetailsReducer', function () {
       ]);
 
       const action = {
-        type: LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED,
-        payload,
+        type: LEGAL_APPLICATION_DETAILS_LOAD_DATA_FULFILLED,
+        payload: { components: components, application: { name: 'applicationNamevalue' }, stageName: 'stageNameValue' },
       };
 
       const newState = legalApplicationDetailsReducer(state, action);
 
+      expect(newState.loading).toEqual(false);
+      expect(newState.error).toBeNull();
+      expect(newState.applicationName).toEqual('applicationNamevalue');
+      expect(newState.stageName).toEqual('stageNameValue');
       expect(newState.components).toEqual({
-        results: payload,
-        filteredResults: payload,
+        results: components,
+        filteredResults: components,
         licenseThreatGroups: ['a', 'b', 'c', 'd'],
-        error: null,
-        loading: false,
       });
 
       expect(newState.other).toBe(otherObject); // other properties are not modified
@@ -334,11 +156,13 @@ describe('legalApplicationDetailsReducer', function () {
 
     it('assigns licenseThreatGroups, including the "No LTG Assigned"', function () {
       const state = Object.freeze({
+        error: null,
+        loading: true,
+        applicationName: 'applicationNamevalue',
+        stageName: 'stageNameValue',
         components: {
           results: [],
           licenseThreatGroups: [],
-          error: null,
-          loading: true,
         },
         selected: {
           licenseThreatGroups: new Set(),
@@ -346,7 +170,7 @@ describe('legalApplicationDetailsReducer', function () {
         other: otherObject,
       });
 
-      const payload = Object.freeze([
+      const components = Object.freeze([
         {
           licenses: [
             {
@@ -364,18 +188,20 @@ describe('legalApplicationDetailsReducer', function () {
       ]);
 
       const action = {
-        type: LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED,
-        payload,
+        type: LEGAL_APPLICATION_DETAILS_LOAD_DATA_FULFILLED,
+        payload: { components: components, application: { name: 'applicationNamevalue' }, stageName: 'stageNameValue' },
       };
 
       const newState = legalApplicationDetailsReducer(state, action);
 
+      expect(newState.loading).toEqual(false);
+      expect(newState.error).toBeNull();
+      expect(newState.applicationName).toEqual('applicationNamevalue');
+      expect(newState.stageName).toEqual('stageNameValue');
       expect(newState.components).toEqual({
-        results: payload,
-        filteredResults: payload,
+        results: components,
+        filteredResults: components,
         licenseThreatGroups: ['a', 'b', 'No LTG Assigned'],
-        error: null,
-        loading: false,
       });
 
       expect(newState.other).toBe(otherObject); // other properties are not modified
@@ -383,11 +209,13 @@ describe('legalApplicationDetailsReducer', function () {
 
     it('filters selected licenseThreatGroups', function () {
       const state = Object.freeze({
+        error: null,
+        loading: true,
+        applicationName: 'applicationNamevalue',
+        stageName: 'stageNameValue',
         components: {
           results: [],
           licenseThreatGroups: [],
-          error: null,
-          loading: true,
         },
         selected: {
           licenseThreatGroups: new Set(['a', 'x', 'y']),
@@ -395,7 +223,7 @@ describe('legalApplicationDetailsReducer', function () {
         other: otherObject,
       });
 
-      const payload = Object.freeze([
+      const components = Object.freeze([
         {
           licenses: [
             {
@@ -416,18 +244,20 @@ describe('legalApplicationDetailsReducer', function () {
       ]);
 
       const action = {
-        type: LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED,
-        payload,
+        type: LEGAL_APPLICATION_DETAILS_LOAD_DATA_FULFILLED,
+        payload: { components: components, application: { name: 'applicationNamevalue' }, stageName: 'stageNameValue' },
       };
 
       const newState = legalApplicationDetailsReducer(state, action);
 
+      expect(newState.loading).toEqual(false);
+      expect(newState.error).toBeNull();
+      expect(newState.applicationName).toEqual('applicationNamevalue');
+      expect(newState.stageName).toEqual('stageNameValue');
       expect(newState.components).toEqual({
-        results: payload,
-        filteredResults: payload,
+        results: components,
+        filteredResults: components,
         licenseThreatGroups: ['a', 'b', 'c', 'd'],
-        error: null,
-        loading: false,
       });
 
       expect(newState.selected).toEqual({
@@ -438,25 +268,25 @@ describe('legalApplicationDetailsReducer', function () {
     });
   });
 
-  describe('LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED action', function () {
+  describe('LEGAL_APPLICATION_DETAILS_LOAD_DATA_FAILED action', function () {
     it('updates components state with an error', function () {
       const state = Object.freeze({
+        error: null,
+        loading: true,
         components: {
           results: [],
-          error: null,
-          loading: true,
         },
         other: otherObject,
       });
       const action = {
-        type: LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED,
+        type: LEGAL_APPLICATION_DETAILS_LOAD_DATA_FAILED,
         payload: 'some components error',
       };
       const newState = legalApplicationDetailsReducer(state, action);
+      expect(newState.loading).toEqual(false);
+      expect(newState.error).toEqual('some components error');
       expect(newState.components).toEqual({
         results: [],
-        error: 'some components error',
-        loading: false,
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });

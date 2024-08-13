@@ -27,8 +27,10 @@ export default function LegalApplicationDetailsPage(props) {
   const {
     applicationPublicId,
     stageTypeId,
-    application,
-    stageType,
+    error,
+    loading,
+    applicationName,
+    stageName,
     components,
     componentFilter,
     licenseFilter,
@@ -37,7 +39,7 @@ export default function LegalApplicationDetailsPage(props) {
     toggleFilterSidebar,
     sort,
     $state,
-    loadApplication,
+    fetchLegalApplicationDetailsData,
     changeComponentNameFilter,
     changeLicenseNameFilter,
     updateLegalSortOrder,
@@ -46,11 +48,9 @@ export default function LegalApplicationDetailsPage(props) {
 
   useEffect(() => {
     if (applicationPublicId && stageTypeId) {
-      loadApplication(applicationPublicId, stageTypeId);
+      fetchLegalApplicationDetailsData(applicationPublicId, stageTypeId);
     }
   }, [applicationPublicId, stageTypeId]);
-
-  const errorLoading = application.error || stageType.error;
 
   const allOrNoFilterOptionsSelected = (selectedFilter, totalOptions) =>
     selectedFilter.size === totalOptions || selectedFilter.size === 0;
@@ -90,14 +90,14 @@ export default function LegalApplicationDetailsPage(props) {
   return (
     <main id="legal-application-details-container" className="nx-page-main nx-viewport-sized">
       <LoadWrapper
-        loading={application.loading || stageType.loading}
-        error={errorLoading}
-        retryHandler={() => loadApplication(applicationPublicId, stageTypeId)}
+        loading={loading}
+        error={error}
+        retryHandler={() => fetchLegalApplicationDetailsData(applicationPublicId, stageTypeId)}
       >
         <MenuBarBackButton href={$state.href('legal.dashboard')} text="Back" />
         {filterSidebarOpen && <LegalApplicationDetailsFilterContainer />}
         <div className="nx-page-title">
-          <h1 className="nx-h1">{application.name} Obligations</h1>
+          <h1 className="nx-h1">{applicationName} Obligations</h1>
           <div className="nx-btn-bar">
             <NxButton
               variant="primary"
@@ -112,7 +112,7 @@ export default function LegalApplicationDetailsPage(props) {
             </NxButton>
           </div>
           <div className="nx-page-title__description">
-            <div className="nx-tile-header__subtitle">{stageType.name} Stage</div>
+            <div className="nx-tile-header__subtitle">{stageName} Stage</div>
           </div>
         </div>
         <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
@@ -164,11 +164,7 @@ export default function LegalApplicationDetailsPage(props) {
                     <NxTableCell chevron />
                   </NxTableRow>
                 </NxTableHead>
-                <NxTableBody
-                  emptyMessage="No components found"
-                  isLoading={components.loading}
-                  error={Messages.getHttpErrorMessage(components.error)}
-                >
+                <NxTableBody emptyMessage="No components found">
                   <NxTableRow key="__filter">
                     <NxTableCell>
                       <NxFilterInput
@@ -212,20 +208,12 @@ export default function LegalApplicationDetailsPage(props) {
 LegalApplicationDetailsPage.propTypes = {
   applicationPublicId: PropTypes.string,
   stageTypeId: PropTypes.string,
-  application: PropTypes.shape({
-    name: PropTypes.string,
-    loading: PropTypes.bool,
-    error: LoadWrapper.propTypes.error,
-  }),
-  stageType: PropTypes.shape({
-    name: PropTypes.string,
-    loading: PropTypes.bool,
-    error: LoadWrapper.propTypes.error,
-  }),
+  loading: PropTypes.bool,
+  error: LoadWrapper.propTypes.error,
+  applicationName: PropTypes.string,
+  stageName: PropTypes.string,
   components: PropTypes.shape({
     filteredResults: PropTypes.arrayOf(LegalApplicationDetailsComponentRow.propTypes.row),
-    loading: PropTypes.bool,
-    error: LoadWrapper.propTypes.error,
     licenseThreatGroups: PropTypes.array,
     results: PropTypes.arrayOf(LegalApplicationDetailsComponentRow.propTypes.row),
   }),
@@ -242,7 +230,7 @@ LegalApplicationDetailsPage.propTypes = {
     sortOrder: PropTypes.string,
   }),
   $state: PropTypes.object.isRequired,
-  loadApplication: PropTypes.func.isRequired,
+  fetchLegalApplicationDetailsData: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
   changeComponentNameFilter: PropTypes.func.isRequired,
   changeLicenseNameFilter: PropTypes.func.isRequired,

@@ -13,7 +13,7 @@ describe('LegalApplicationDetailsContainer', function () {
     state,
     vdom,
     LegalApplicationDetailsContainer,
-    loadApplicationMock,
+    fetchLegalApplicationDetailsDataMock,
     stateGoMock,
     updateLegalSortOrderMock,
     updateComponentNameFilterMock,
@@ -23,8 +23,10 @@ describe('LegalApplicationDetailsContainer', function () {
   beforeEach(function () {
     state = {
       legalApplicationDetails: {
-        application: 'application',
-        stageType: 'stageType',
+        error: 'error',
+        loading: 'loading',
+        applicationName: 'applicationName',
+        stageName: 'stageName',
         components: 'components',
         sort: 'sort',
         filterSidebarOpen: 'filterSidebarOpen',
@@ -38,7 +40,9 @@ describe('LegalApplicationDetailsContainer', function () {
       },
     };
 
-    loadApplicationMock = jasmine.createSpy('loadApplication').and.returnValue({ type: 'FOO' });
+    fetchLegalApplicationDetailsDataMock = jasmine
+      .createSpy('fetchLegalApplicationDetailsData')
+      .and.returnValue({ type: 'FOO' });
     stateGoMock = jasmine.createSpy('stateGo').and.returnValue({ type: 'BAR' });
     updateLegalSortOrderMock = jasmine
       .createSpy('updateLegalSortOrder')
@@ -57,7 +61,7 @@ describe('LegalApplicationDetailsContainer', function () {
     LegalApplicationDetailsContainer = require('inject-loader!../../../../main/frontend/legal/application/LegalApplicationDetailsContainer')(
       {
         './legalApplicationDetailsActions': {
-          loadApplication: loadApplicationMock,
+          fetchLegalApplicationDetailsData: fetchLegalApplicationDetailsDataMock,
         },
         '../../reduxUiRouter/routerActions': {
           stateGo: stateGoMock,
@@ -77,8 +81,10 @@ describe('LegalApplicationDetailsContainer', function () {
 
   it('maps the state slice to props', () => {
     const wrapper = shallow(vdom).dive();
-    expect(wrapper).toHaveProp('application', 'application');
-    expect(wrapper).toHaveProp('stageType', 'stageType');
+    expect(wrapper).toHaveProp('error', 'error');
+    expect(wrapper).toHaveProp('loading', 'loading');
+    expect(wrapper).toHaveProp('applicationName', 'applicationName');
+    expect(wrapper).toHaveProp('stageName', 'stageName');
     expect(wrapper).toHaveProp('components', 'components');
     expect(wrapper).toHaveProp('applicationPublicId', 'appId');
     expect(wrapper).toHaveProp('stageTypeId', 'develop');
@@ -89,11 +95,11 @@ describe('LegalApplicationDetailsContainer', function () {
 
   it('correctly maps the action creators to the LegalApplicationDetailsContainer props', function () {
     const wrapper = shallow(vdom).dive();
-    const loadApplicationActionCreator = wrapper.prop('loadApplication');
-    expect(loadApplicationActionCreator).toEqual(jasmine.any(Function));
+    const fetchLegalApplicationDetailsDataCreator = wrapper.prop('fetchLegalApplicationDetailsData');
+    expect(fetchLegalApplicationDetailsDataCreator).toEqual(jasmine.any(Function));
 
     expect(store.getActions()).toEqual([]);
-    loadApplicationActionCreator('test');
+    fetchLegalApplicationDetailsDataCreator('test');
     expect(store.getActions()).toEqual([{ type: 'FOO' }]);
 
     const stateGoActionCreator = wrapper.prop('stateGo');

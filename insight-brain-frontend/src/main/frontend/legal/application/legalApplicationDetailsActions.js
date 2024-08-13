@@ -13,101 +13,54 @@ import {
 } from '../../util/CLMLocation';
 import { payloadParamActionCreator, noPayloadActionCreator } from '../../util/reduxUtil';
 
-export const LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED = 'LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED';
-export const LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED = 'LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED';
-export const LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED = 'LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED';
-
-export const LEGAL_APPLICATION_DETAILS_LOAD_STAGE_REQUESTED = 'LEGAL_APPLICATION_DETAILS_LOAD_STAGE_REQUESTED';
-export const LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FULFILLED = 'LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FULFILLED';
-export const LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FAILED = 'LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FAILED';
-
-export const LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_REQUESTED =
-  'LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_REQUESTED';
-export const LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED =
-  'LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED';
-export const LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED = 'LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED';
+export const LEGAL_APPLICATION_DETAILS_LOAD_DATA_REQUESTED = 'LEGAL_APPLICATION_DETAILS_LOAD_DATA_REQUESTED';
+export const LEGAL_APPLICATION_DETAILS_LOAD_DATA_FULFILLED = 'LEGAL_APPLICATION_DETAILS_LOAD_DATA_FULFILLED';
+export const LEGAL_APPLICATION_DETAILS_LOAD_DATA_FAILED = 'LEGAL_APPLICATION_DETAILS_LOAD_DATA_FAILED';
 
 export const LEGAL_APPLICATION_DETAILS_APPLY_FILTERS = 'LEGAL_APPLICATION_DETAILS_APPLY_FILTERS';
 
-const legalApplicationDetailsLoadAppRequested = noPayloadActionCreator(LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED);
-const legalApplicationDetailsLoadAppFulfilled = payloadParamActionCreator(LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED);
-const legalApplicationDetailsLoadAppFailed = payloadParamActionCreator(LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED);
-
-const legalApplicationDetailsLoadStageRequested = noPayloadActionCreator(
-  LEGAL_APPLICATION_DETAILS_LOAD_STAGE_REQUESTED
+const legalApplicationDetailsLoadDataRequested = noPayloadActionCreator(LEGAL_APPLICATION_DETAILS_LOAD_DATA_REQUESTED);
+const legalApplicationDetailsLoadDataFulfilled = payloadParamActionCreator(
+  LEGAL_APPLICATION_DETAILS_LOAD_DATA_FULFILLED
 );
-const legalApplicationDetailsLoadStageFulfilled = payloadParamActionCreator(
-  LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FULFILLED
-);
-const legalApplicationDetailsLoadStageFailed = payloadParamActionCreator(LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FAILED);
-
-const legalApplicationDetailsLoadComponentsRequested = noPayloadActionCreator(
-  LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_REQUESTED
-);
-const legalApplicationDetailsLoadComponentsFulfilled = payloadParamActionCreator(
-  LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED
-);
-const legalApplicationDetailsLoadComponentsFailed = payloadParamActionCreator(
-  LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED
-);
+const legalApplicationDetailsLoadDataFailed = payloadParamActionCreator(LEGAL_APPLICATION_DETAILS_LOAD_DATA_FAILED);
 
 const legalApplicationDetailsApplyFilters = noPayloadActionCreator(LEGAL_APPLICATION_DETAILS_APPLY_FILTERS);
 
-export function loadApplication(applicationPublicId, stageTypeId) {
-  return (dispatch) => {
-    dispatch(legalApplicationDetailsLoadAppRequested());
-
-    return axios
-      .get(getApplicationLegalReviewerUrl(applicationPublicId))
-      .then((response) => {
-        dispatch(legalApplicationDetailsLoadAppFulfilled(response.data));
-        return dispatch(loadStageType(stageTypeId));
-      })
-      .then(() => dispatch(loadComponents(applicationPublicId, stageTypeId)))
-      .catch((error) => {
-        dispatch(legalApplicationDetailsLoadAppFailed(error));
-        return Promise.reject(error);
-      });
-  };
-}
-
-function loadStageType(stageTypeId) {
-  return (dispatch) => {
+export function fetchLegalApplicationDetailsData(applicationPublicId, stageTypeId) {
+  return async (dispatch) => {
+    dispatch(legalApplicationDetailsLoadDataRequested());
     if (!stageTypeId) {
-      dispatch(legalApplicationDetailsLoadStageFailed('stageTypeId is mandatory.'));
-      return Promise.reject('stageTypeId is mandatory.');
+      dispatch(legalApplicationDetailsLoadDataFailed('stageTypeId is mandatory.'));
+      throw 'stageTypeId is mandatory.';
     }
-    dispatch(legalApplicationDetailsLoadStageRequested());
 
-    return axios
-      .get(getActionStageUrl())
-      .then((response) => {
-        const stageType = find(propEq('stageTypeId', stageTypeId), response.data);
-        if (stageType) {
-          return dispatch(legalApplicationDetailsLoadStageFulfilled(stageType.stageName));
-        }
-        return Promise.reject(`${stageTypeId} is not a valid stage type ID.`);
-      })
-      .catch((error) => {
-        dispatch(legalApplicationDetailsLoadStageFailed(error));
-        return Promise.reject(error);
-      });
-  };
-}
-
-function loadComponents(applicationPublicId, stageTypeId) {
-  return (dispatch) => {
-    dispatch(legalApplicationDetailsLoadComponentsRequested());
-
-    return axios
-      .post(getLegalDashboardApplicationUrl(applicationPublicId), {
+    const promises = [
+      axios.get(getApplicationLegalReviewerUrl(applicationPublicId)),
+      axios.get(getActionStageUrl()),
+      axios.post(getLegalDashboardApplicationUrl(applicationPublicId), {
         stageTypeIds: [stageTypeId],
-      })
-      .then((response) => dispatch(legalApplicationDetailsLoadComponentsFulfilled(response.data)))
-      .then(() => dispatch(legalApplicationDetailsApplyFilters()))
-      .catch((error) => {
-        dispatch(legalApplicationDetailsLoadComponentsFailed(error));
-        return Promise.reject(error);
-      });
+      }),
+    ];
+
+    try {
+      const [applicationLegaRes, stagesRes, legalDashboardApplicationRes] = await Promise.all(promises);
+      const stageType = find(propEq('stageTypeId', stageTypeId), stagesRes.data);
+      if (!stageType) {
+        throw `${stageTypeId} is not a valid stage type ID.`;
+      }
+
+      await dispatch(
+        legalApplicationDetailsLoadDataFulfilled({
+          application: applicationLegaRes.data,
+          stageName: stageType.stageName,
+          components: legalDashboardApplicationRes.data,
+        })
+      );
+      await dispatch(legalApplicationDetailsApplyFilters());
+    } catch (err) {
+      dispatch(legalApplicationDetailsLoadDataFailed(err));
+      throw err;
+    }
   };
 }

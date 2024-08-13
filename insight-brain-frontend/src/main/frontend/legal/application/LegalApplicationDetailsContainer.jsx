@@ -20,8 +20,10 @@ function mapStateToProps({ legalApplicationDetails, router }) {
   return {
     ...pick(
       [
-        'application',
-        'stageType',
+        'error',
+        'loading',
+        'applicationName',
+        'stageName',
         'components',
         'componentFilter',
         'licenseFilter',

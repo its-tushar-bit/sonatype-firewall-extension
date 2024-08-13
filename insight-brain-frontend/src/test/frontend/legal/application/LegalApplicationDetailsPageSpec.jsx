@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../enzymeUtils';
-import { NxTable, NxTableBody } from '@sonatype/react-shared-components';
+import { NxTable } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
 import LegalApplicationDetailsPage from '../../../../main/frontend/legal/application/LegalApplicationDetailsPage';
 import LegalApplicationDetailsComponentRow from '../../../../main/frontend/legal/application/LegalApplicationDetailsComponentRow';
@@ -12,10 +12,10 @@ import LegalApplicationDetailsFilterContainer from '../../../../main/frontend/le
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
 describe('LegalApplicationDetailsPage', function () {
-  let minimalProps, loadApplicationSpy, stateSpy, toggleFilterSidebarSpy, getShallowComponent;
+  let minimalProps, fetchLegalApplicationDetailsDataSpy, stateSpy, toggleFilterSidebarSpy, getShallowComponent;
 
   beforeEach(function () {
-    loadApplicationSpy = jasmine.createSpy('loadApplication');
+    fetchLegalApplicationDetailsDataSpy = jasmine.createSpy('fetchLegalApplicationDetailsData');
     stateSpy = jasmine.createSpyObj('$state', ['get', 'href']);
     stateSpy.get.and.callFake((stateName) => stateName);
     stateSpy.href.and.callFake((stateName, stateParams) => {
@@ -26,18 +26,12 @@ describe('LegalApplicationDetailsPage', function () {
     });
     toggleFilterSidebarSpy = jasmine.createSpy('toggleFilterSidebarSpy');
     minimalProps = {
+      error: null,
+      loading: false,
       applicationPublicId: 'app-id',
       stageTypeId: 'stage-id',
-      application: {
-        name: 'app-name',
-        error: null,
-        loading: false,
-      },
-      stageType: {
-        name: 'stage name',
-        error: null,
-        loading: false,
-      },
+      applicationName: 'app-name',
+      stageName: 'stage name',
       selected: {
         licenseThreatGroups: new Set(),
         progressOptions: new Set(),
@@ -137,10 +131,8 @@ describe('LegalApplicationDetailsPage', function () {
           },
         ],
         licenseThreatGroups: ['ltg1a', 'ltg1b', 'ltg2', 'ltg1c', 'newLtg', 'filteredOutLTG'],
-        error: null,
-        loading: false,
       },
-      loadApplication: loadApplicationSpy,
+      fetchLegalApplicationDetailsData: fetchLegalApplicationDetailsDataSpy,
       sort: {},
       toggleFilterSidebar: toggleFilterSidebarSpy,
       $state: stateSpy,
@@ -157,43 +149,23 @@ describe('LegalApplicationDetailsPage', function () {
     expect(loadWrapper).toHaveProp('loading', false);
     expect(loadWrapper).toHaveProp('error', null);
     loadWrapper.prop('retryHandler')();
-    expect(loadApplicationSpy).toHaveBeenCalledWith('app-id', 'stage-id');
+    expect(fetchLegalApplicationDetailsDataSpy).toHaveBeenCalledWith('app-id', 'stage-id');
   });
 
-  it('is wrapped by a LoadWrapper with appropriate parameters when loading application data', function () {
-    const application = { ...minimalProps.application, loading: true };
-    minimalProps = { ...minimalProps, application: application };
+  it('is wrapped by a LoadWrapper with appropriate parameters when loading', function () {
+    minimalProps = { ...minimalProps, loading: true };
 
     const loadWrapper = getShallowComponent(minimalProps).find(LoadWrapper);
     expect(loadWrapper).toHaveProp('loading', true);
     expect(loadWrapper).toHaveProp('error', null);
   });
 
-  it('is wrapped by a LoadWrapper with appropriate parameters when error in application data', function () {
-    const application = { ...minimalProps.application, error: 'some error' };
-    minimalProps = { ...minimalProps, application: application };
+  it('is wrapped by a LoadWrapper with appropriate parameters when error', function () {
+    minimalProps = { ...minimalProps, error: 'some error' };
 
     const loadWrapper = getShallowComponent(minimalProps).find(LoadWrapper);
     expect(loadWrapper).toHaveProp('loading', false);
     expect(loadWrapper).toHaveProp('error', 'some error');
-  });
-
-  it('is wrapped by a LoadWrapper with appropriate parameters when loading stage type data', function () {
-    const stageType = { ...minimalProps.stageType, loading: true };
-    minimalProps = { ...minimalProps, stageType: stageType };
-
-    const loadWrapper = getShallowComponent(minimalProps).find(LoadWrapper);
-    expect(loadWrapper).toHaveProp('loading', true);
-    expect(loadWrapper).toHaveProp('error', null);
-  });
-
-  it('is wrapped by a LoadWrapper with appropriate parameters when error in stage type data', function () {
-    const stageType = { ...minimalProps.stageType, error: 'some other error' };
-    minimalProps = { ...minimalProps, stageType: stageType };
-
-    const loadWrapper = getShallowComponent(minimalProps).find(LoadWrapper);
-    expect(loadWrapper).toHaveProp('loading', false);
-    expect(loadWrapper).toHaveProp('error', 'some other error');
   });
 
   it('does not render a LegalApplicationDetailsFilterContainer if filterSidebarOpen is false, ', function () {
@@ -263,27 +235,6 @@ describe('LegalApplicationDetailsPage', function () {
     let table = wrapper.find(NxTable);
     expect(table).toExist();
     expect(table).toHaveProp('id', 'legal-application-details-table');
-  });
-
-  it('renders a table with a loading property when fetching components', function () {
-    const components = { ...minimalProps.components, loading: true };
-    minimalProps = { ...minimalProps, components: components };
-
-    const wrapper = getShallowComponent(minimalProps);
-    let tableBody = wrapper.find(NxTableBody);
-    expect(tableBody).toHaveProp('isLoading', true);
-  });
-
-  it('renders a table with an error message when fetching components failed', function () {
-    const components = {
-      ...minimalProps.components,
-      error: 'components error',
-    };
-    minimalProps = { ...minimalProps, components: components };
-
-    const wrapper = getShallowComponent(minimalProps);
-    let tableBody = wrapper.find(NxTableBody);
-    expect(tableBody).toHaveProp('error', 'components error');
   });
 
   it('renders LegalApplicationDetailsComponentRow for each component passed in', function () {

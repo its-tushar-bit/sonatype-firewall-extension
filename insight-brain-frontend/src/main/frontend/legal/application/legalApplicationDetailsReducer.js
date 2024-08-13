@@ -16,35 +16,21 @@ import {
 } from './filter/legalApplicationDetailsFilterActions';
 import {
   LEGAL_APPLICATION_DETAILS_APPLY_FILTERS,
-  LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED,
-  LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED,
-  LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED,
-  LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED,
-  LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED,
-  LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_REQUESTED,
-  LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FAILED,
-  LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FULFILLED,
-  LEGAL_APPLICATION_DETAILS_LOAD_STAGE_REQUESTED,
+  LEGAL_APPLICATION_DETAILS_LOAD_DATA_FAILED,
+  LEGAL_APPLICATION_DETAILS_LOAD_DATA_FULFILLED,
+  LEGAL_APPLICATION_DETAILS_LOAD_DATA_REQUESTED,
 } from './legalApplicationDetailsActions';
 import { statusRanking } from '../dashboard/legalDashboardConstants';
 
 const initState = {
-  application: {
-    name: null,
-    error: null,
-    loading: false,
-  },
-  stageType: {
-    name: null,
-    error: null,
-    loading: false,
-  },
+  error: null,
+  loading: false,
+  applicationName: null,
+  stageName: null,
   components: {
     results: Object.freeze([]),
     filteredResults: Object.freeze([]),
     licenseThreatGroups: Object.freeze([]),
-    error: null,
-    loading: false,
   },
   componentFilter: '',
   licenseFilter: '',
@@ -61,63 +47,39 @@ const initState = {
 
 export default function (state = initState, { type, payload }) {
   switch (type) {
-    case LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED: {
-      const application = { ...initState.application, loading: true };
-      return { ...state, application };
+    case LEGAL_APPLICATION_DETAILS_LOAD_DATA_REQUESTED: {
+      return { ...state, loading: true };
     }
-    case LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED: {
-      const application = { ...initState.application, name: payload.name };
-      return { ...state, application };
-    }
-    case LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED: {
-      const application = { ...initState.application, error: payload };
-      return { ...state, application };
-    }
-    case LEGAL_APPLICATION_DETAILS_LOAD_STAGE_REQUESTED: {
-      const stageType = { ...state.stageType, loading: true };
-      return { ...state, stageType };
-    }
-    case LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FULFILLED: {
-      const stageType = { ...state.stageType, loading: false, name: payload };
-      return { ...state, stageType };
-    }
-    case LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FAILED: {
-      const stageType = { ...state.stageType, loading: false, error: payload };
-      return { ...state, stageType };
-    }
-    case LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_REQUESTED: {
-      const components = { ...state.components, loading: true };
-      return { ...state, components };
-    }
-    case LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED: {
-      const licenseThreatGroups = getLicenseThreatGroupsFromComponentsResults(payload);
+    case LEGAL_APPLICATION_DETAILS_LOAD_DATA_FULFILLED: {
+      const licenseThreatGroups = getLicenseThreatGroupsFromComponentsResults(payload.components);
       const components = {
-        ...state.components,
-        loading: false,
-        results: payload,
-        filteredResults: payload,
+        results: payload.components,
+        filteredResults: payload.components,
         licenseThreatGroups,
       };
+
       const selectedLicenseThreatGroups = new Set(
         intersection([...state.selected.licenseThreatGroups], licenseThreatGroups)
       );
 
       return {
         ...state,
+        applicationName: payload.application.name,
+        stageName: payload.stageName,
         components,
         selected: {
           ...state.selected,
           licenseThreatGroups: selectedLicenseThreatGroups,
         },
+        loading: false,
       };
     }
-    case LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED: {
-      const components = {
-        ...state.components,
+    case LEGAL_APPLICATION_DETAILS_LOAD_DATA_FAILED: {
+      return {
+        ...state,
         loading: false,
         error: payload,
       };
-      return { ...state, components };
     }
     case LEGAL_APPLICATION_DETAILS_TOGGLE_FILTER:
       return applyFilters(toggleFilter(payload)(state));

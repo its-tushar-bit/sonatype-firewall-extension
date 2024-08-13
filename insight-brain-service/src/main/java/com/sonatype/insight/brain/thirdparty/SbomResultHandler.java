@@ -64,10 +64,10 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.cyclonedx.generators.BomGeneratorFactory;
 import org.cyclonedx.Version;
 import org.cyclonedx.exception.GeneratorException;
 import org.cyclonedx.exception.ParseException;
+import org.cyclonedx.generators.BomGeneratorFactory;
 import org.cyclonedx.generators.xml.BomXmlGenerator;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
@@ -135,7 +135,7 @@ public class SbomResultHandler
   protected final SpdxLicenseExpressionUtil spdxLicenseExpressionUtil;
 
   protected final SbomComponentInfoTelemetry componentInfoTelemetry;
-  
+
   protected final ThirdPartyScanContext thirdPartyScanContext;
 
   private boolean sbomValidationSkipped;
@@ -317,6 +317,7 @@ public class SbomResultHandler
     ThirdPartyVulnerabilityExploitabilityExchange vex =
         parseVulnerabilityExploitability(vulnerability, coordinateSecurity.getId());
     if (vex != null) {
+      componentInfoTelemetry.incrementVulnerabilitiesWithVexInfoCount();
       thirdPartyVexDAO.saveOrUpdate(tx, vex);
     }
   }

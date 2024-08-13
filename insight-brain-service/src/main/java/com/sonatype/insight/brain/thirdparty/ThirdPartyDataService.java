@@ -58,6 +58,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityE
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.sbom.SbomImportMetricsTelemetry;
 import com.sonatype.insight.brain.sbom.SbomResultsMatcher;
 import com.sonatype.insight.brain.sbom.SbomResultsMatcherTelemetry;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -145,6 +146,8 @@ public class ThirdPartyDataService
 
   private final TelemetryUtils telemetryUtils;
 
+  protected final SbomImportMetricsTelemetry sbomImportMetricsTelemetry;
+
   private final SearchIndexManager searchIndexManager;
 
   private final SecurityVulnerabilityDataService securityVulnerabilityDataService;
@@ -184,6 +187,7 @@ public class ThirdPartyDataService
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.telemetrySender = telemetrySender;
     this.telemetryUtils = telemetryUtils;
+    this.sbomImportMetricsTelemetry = new SbomImportMetricsTelemetry();
     this.searchIndexManager = searchIndexManager;
     this.securityVulnerabilityDataService = securityVulnerabilityDataService;
     this.productLicense = productLicense;
@@ -728,6 +732,7 @@ public class ThirdPartyDataService
               populateMissingThirdPartyCoordinateSecurityWithSonatypeData(sbomVulnerability, sonatypeVulnerabilityData);
               thirdPartyCoordinateSecurityDAO.update(sbomVulnerability);
               coordinateSecuritiesFromDBForComponentMap.remove(sonatypeVuln);
+              sbomImportMetricsTelemetry.incrementVerifiedVulnerabilityCount();
             }
           }
           else {
@@ -739,6 +744,7 @@ public class ThirdPartyDataService
             populateMissingThirdPartyCoordinateSecurityWithSonatypeData(newThirdPartySecurity,
                 sonatypeVulnerabilityData);
             thirdPartyCoordinateSecurityDAO.insert(newThirdPartySecurity);
+            sbomImportMetricsTelemetry.incrementUnverifiedVulnerabilityCount();
           }
         }
         catch (NotFoundException exception) {
@@ -761,6 +767,7 @@ public class ThirdPartyDataService
           thirdPartyCoordinateSecurityDAO.delete(coordinateSecurity);
         }
       }
+      telemetrySender.send(telemetryUtils.buildThirdPartyScanSbomImportTelemetryData(sbomImportMetricsTelemetry));
     }
   }
 

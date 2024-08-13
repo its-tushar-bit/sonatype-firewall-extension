@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
+import com.sonatype.insight.brain.sbom.SbomImportMetricsTelemetry;
 import com.sonatype.insight.brain.telemetry.ClientUserAgentUtil.UserAgent;
 import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -67,6 +68,14 @@ public final class TelemetryUtils
     telemetryData.put("is_skip_sbom_validation_feature_flag_enabled", isFeatureFlagEnabled);
     telemetryData.put("is_sbom_valid", isSbomValid);
 
+    return telemetryData;
+  }
+
+  public TelemetryData buildThirdPartyScanSbomImportTelemetryData(
+      final SbomImportMetricsTelemetry sbomImportMetricsTelemetry)
+  {
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SBOM_IMPORT_METRICS);
+    telemetryData.put(SbomImportMetricsTelemetry.ATTRIBUTE_NAME, sbomImportMetricsTelemetry);
     return telemetryData;
   }
 

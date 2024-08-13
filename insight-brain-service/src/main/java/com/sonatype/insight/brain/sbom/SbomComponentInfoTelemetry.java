@@ -25,6 +25,8 @@ public class SbomComponentInfoTelemetry
 
   private int coordinateCount = 0;
 
+  private int vulnerabilitiesWithVexInfoCount;
+
   public SbomComponentInfoTelemetry() {
   }
 
@@ -66,43 +68,51 @@ public class SbomComponentInfoTelemetry
     this.specVersion = specVersion;
   }
 
-  public void incrementPurlCount() {
-    purlCount++;
-  }
-
-  public void incrementCpeCount() {
-    cpeCount++;
-  }
-
-  public void incrementSwidCount() {
-    swidCount++;
-  }
-
-  public void incrementHashCount() {
-    hashCount++;
-  }
-
-  public void incrementCoordinateCount() {
-    coordinateCount++;
-  }
-
   public int getPurlCount() {
     return purlCount;
+  }
+
+  public void incrementPurlCount() {
+    purlCount++;
   }
 
   public int getCpeCount() {
     return cpeCount;
   }
 
+  public void incrementCpeCount() {
+    cpeCount++;
+  }
+
   public int getSwidCount() {
     return swidCount;
+  }
+
+  public void incrementSwidCount() {
+    swidCount++;
   }
 
   public int getHashCount() {
     return hashCount;
   }
 
+  public void incrementHashCount() {
+    hashCount++;
+  }
+
   public int getCoordinateCount() {
     return coordinateCount;
+  }
+
+  public void incrementCoordinateCount() {
+    coordinateCount++;
+  }
+
+  public int getVulnerabilitiesWithVexInfoCount() {
+    return vulnerabilitiesWithVexInfoCount;
+  }
+
+  public void incrementVulnerabilitiesWithVexInfoCount() {
+    this.vulnerabilitiesWithVexInfoCount++;
   }
 }

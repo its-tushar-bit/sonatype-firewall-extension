@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.sbom.SbomImportMetricsTelemetry;
 import com.sonatype.insight.brain.sbom.SbomResultsMatcherTelemetry;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -82,6 +83,7 @@ import static org.assertj.core.api.Assertions.withinPercentage;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -545,21 +547,31 @@ public class ThirdPartyDataServiceTest
       List<ThirdPartyCoordinateLicense> licenses =
           thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(sbomComponent.getId());
       assertThat(licenses).hasSize(1);
-      verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
-      TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+      verify(mockTelemetrySender, times(2)).send(telemetryDataArgumentCaptor.capture());
+      List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getAllValues();
+      TelemetryData telemetryData = telemetryDataList.get(0);
 
       assertThat(telemetryData).isNotNull();
       assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_RESULT_BEST_MATCH_METRICS);
       assertThat(telemetryData.getAttributes()).hasSize(1).containsKey("sbom_results_matcher_stats");
-      SbomResultsMatcherTelemetry telemetry =
+      SbomResultsMatcherTelemetry resultsMatcherTelemetry =
           (SbomResultsMatcherTelemetry) telemetryData.getAttributes().get("sbom_results_matcher_stats");
-      assertThat(telemetry.getWinnerStat())
+      assertThat(resultsMatcherTelemetry.getWinnerStat())
           .extracting(s -> s.purlMatchScore, s -> s.hashMatchScore, s -> s.coordMatchScore)
           .containsExactly(20.0f, 0.0f, 15.0f);
-      assertThat(telemetry.getMatchStats()).hasSize(4)
+      assertThat(resultsMatcherTelemetry.getMatchStats()).hasSize(4)
           .extracting(s -> s.purlMatchScore, s -> s.hashMatchScore, s -> s.coordMatchScore)
           .containsExactly(tuple(17.5f, 0.0f, 15.0f), tuple(16.25f, 0.0f, 15.0f),
               tuple(18.75f, 0.0f, 15.0f), tuple(20.0f, 0.0f, 15.0f));
+
+      telemetryData = telemetryDataList.get(1);
+      assertThat(telemetryData).isNotNull();
+      assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_IMPORT_METRICS);
+      assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
+      SbomImportMetricsTelemetry importMetricsTelemetry = (SbomImportMetricsTelemetry) telemetryData.getAttributes()
+          .get("sbom_import_metrics");
+      assertThat(importMetricsTelemetry.getVerifiedVulnerabilityCount()).isEqualTo(0);
+      assertThat(importMetricsTelemetry.getUnverifiedVulnerabilityCount()).isEqualTo(2);
     }
     finally {
       if (sbomComponent != null) {
@@ -569,7 +581,7 @@ public class ThirdPartyDataServiceTest
   }
 
   @Test
-  public void testMergeSonatypeDataWithSbomData_VerifySecurityVulnerabilityUpdatesAndInserts()
+  public void testMergeSonatypeDataWithSbomData_VerifySecurityVulnerabilityUpdatesAndInsertsAndTelemetry()
       throws URISyntaxException, IOException
   {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
@@ -686,10 +698,22 @@ public class ThirdPartyDataServiceTest
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(sbomMetadata).isNotNull();
     assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_IMPORT_METRICS);
+    assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
+    SbomImportMetricsTelemetry telemetry = (SbomImportMetricsTelemetry) telemetryData.getAttributes()
+        .get("sbom_import_metrics");
+    assertThat(telemetry.getVerifiedVulnerabilityCount()).isEqualTo(1);
+    assertThat(telemetry.getUnverifiedVulnerabilityCount()).isEqualTo(5);
   }
 
   @Test
-  public void testMergeSonatypeDataWithSbomData_vulnerabilities_mergeLogicForCM()
+  public void testMergeSonatypeDataWithSbomData_vulnerabilities_mergeLogicForCMAndTelemetry()
       throws URISyntaxException, IOException
   {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
@@ -825,6 +849,18 @@ public class ThirdPartyDataServiceTest
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(sbomMetadata).isNotNull();
     assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_IMPORT_METRICS);
+    assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
+    SbomImportMetricsTelemetry telemetry = (SbomImportMetricsTelemetry) telemetryData.getAttributes()
+        .get("sbom_import_metrics");
+    assertThat(telemetry.getVerifiedVulnerabilityCount()).isEqualTo(2);
+    assertThat(telemetry.getUnverifiedVulnerabilityCount()).isEqualTo(1);
   }
 
   private SecurityVulnerabilityData mockSecurityVulnerabilityDataForMergeLogic(String identifier, String index)

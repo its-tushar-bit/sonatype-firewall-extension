@@ -2061,6 +2061,33 @@ public class SbomResultHandlerTest
   }
 
   @Test
+  public void testComponentInfoTelemetry_VexCount() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-vulnerabilities-v1_4-vex-data.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("bom.json", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    assertFilteredSbomFile(filteredContent, 1);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
+
+    Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    SbomComponentInfoTelemetry componentInfoTelemetry =
+        (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
+
+    assertThat(componentInfoTelemetry.getContentType()).isEqualTo("JSON");
+    assertThat(componentInfoTelemetry.getSpec()).isEqualTo("CYCLONEDX");
+    assertThat(componentInfoTelemetry.getSpecVersion()).isEqualTo("1.4");
+    assertThat(componentInfoTelemetry.getVulnerabilitiesWithVexInfoCount()).isEqualTo(1);
+  }
+
+  @Test
   public void testParseBom_invalidSbom_skipSbomValidationDisabled() throws Exception {
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-v1_4-invalid-bom.xml", null, null, null,

@@ -9,7 +9,6 @@ import java.io.PrintWriter;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.policy.PolicyMonitoringTask;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
@@ -66,6 +65,7 @@ public class AutomaticQuarantineReleaseTaskTest
 
   @Test
   public void testDisallowConcurrentExecution() {
-    assertThat(JobBuilder.newJob(PolicyMonitoringTask.class).build().isConcurrentExectionDisallowed()).isTrue();
+    assertThat(JobBuilder.newJob(AutomaticQuarantineReleaseTask.class).build().isConcurrentExectionDisallowed())
+        .isTrue();
   }
 }

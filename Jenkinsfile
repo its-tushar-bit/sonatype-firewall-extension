@@ -81,7 +81,7 @@ make(
               callflow: [
                 enable: true,
                 includes: [
-                  'nexus-iq-server/target/*.zip'
+                  'nexus-iq-server/target/insight-brain-service-*.jar'
                 ],
                 entrypointStrategy: [
                   $class: 'NamedStrategy',

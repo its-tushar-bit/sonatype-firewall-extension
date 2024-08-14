@@ -1346,6 +1346,7 @@
               <exclude>**/rst/**</exclude>
               <exclude>**/src/test/data/manifest/*</exclude>
               <exclude>**/src/test/data/module/**/*</exclude>
+              <exclude>nexus-iq-cli/releasenotes/assets/css/style.scss</exclude>
             </excludes>
           </configuration>
         </plugin>

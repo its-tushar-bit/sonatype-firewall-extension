@@ -55,6 +55,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -89,6 +90,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclonedx.model.Swid;
@@ -479,7 +481,26 @@ public class ThirdPartyDataService
     }
     mergeSonatypeDataWithSbomData(sbomMetadata, scanId, bomJsonData, securityJsonData, licensesJsonData,
         componentDependencyTypeMap);
+
+    cleanUpPreviousReport(sbomMetadata.getApplicationId(), sbomMetadata.getThirdPartyFileId(), scanId);
+
     indexSbomForSearch(sbomMetadata);
+  }
+
+  @VisibleForTesting
+  void cleanUpPreviousReport(String applicationId, String thirdPartyFileId, String scanId) throws IOException {
+    ThirdPartyScan thirdPartyScan = thirdPartyScanDAO.getByThirdPartyFileIdAndScanId(thirdPartyFileId, scanId);
+    if (thirdPartyScan != null && thirdPartyScan.getPreviousScanId() != null) {
+      if (SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT.isEnabled()) {
+        // Delete previous scan report folder
+        log.debug("Deleting previous scan report folder for applicationId {}, previousScanId {}. The new scan id is {}",
+            applicationId, thirdPartyScan.getPreviousScanId(), scanId);
+        File previousReportDir = insightWork.getReportDir(applicationId, thirdPartyScan.getPreviousScanId());
+        FileUtils.deleteDirectory(previousReportDir);
+      }
+      thirdPartyScan.setPreviousScanId(null);
+      thirdPartyScanDAO.update(thirdPartyScan);
+    }
   }
 
   private void mergeSonatypeDataWithSbomData(

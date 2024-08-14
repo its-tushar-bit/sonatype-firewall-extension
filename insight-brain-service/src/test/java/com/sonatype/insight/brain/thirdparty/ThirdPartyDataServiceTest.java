@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoord
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.SearchIndexChange;
@@ -48,6 +49,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.sbom.SbomImportMetricsTelemetry;
 import com.sonatype.insight.brain.sbom.SbomResultsMatcherTelemetry;
@@ -109,6 +111,9 @@ public class ThirdPartyDataServiceTest
 
   @Inject
   private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
+  @Inject
+  private ThirdPartyScanDAO thirdPartyScanDAO;
 
   @Inject
   private SearchIndexChangeDAO searchIndexChangeDAO;
@@ -1245,6 +1250,44 @@ public class ThirdPartyDataServiceTest
       assertThat(searchIndexChange.getChangeType()).isEqualTo(ChangeType.SBOM);
       assertThat(searchIndexChange.getChangeData()).isEqualTo(app.getId() + ":1.2.3");
     });
+  }
+
+  @Test
+  public void testCleanUpPreviousReport() throws IOException {
+    executeCleanUpPreviousReportTest(true, false);
+  }
+
+  @Test
+  public void testCleanUpPreviousReport_FeatureDisabled() throws IOException {
+    executeCleanUpPreviousReportTest(false, true);
+  }
+
+  private void executeCleanUpPreviousReportTest(
+      boolean featureEnabled,
+      boolean expectedPreviousReportDirExists) throws IOException
+  {
+    String appId = "appId";
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan("scanRequestId", "scanId", file);
+    thirdPartyScan.setPreviousScanId("previousScanId");
+    thirdPartyScanDAO.update(thirdPartyScan);
+
+    String applicationReportPath = tempDir.getRoot().toPath()
+        .relativize(insightWork.getReportDir(appId).toPath()).normalize().toString().concat("/");
+    tempDir.newFolder(applicationReportPath + thirdPartyScan.getPreviousScanId());
+    tempDir.newFolder(applicationReportPath + thirdPartyScan.getScanId());
+
+    if (!featureEnabled) {
+      SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT.setEnabled(false);
+    }
+    handler.cleanUpPreviousReport(appId, file.getId(), thirdPartyScan.getScanId());
+
+    ThirdPartyScan updatedThirdPartyScan = thirdPartyScanDAO.getById(thirdPartyScan.getId());
+
+    assertThat(insightWork.getReportDir(appId, "previousScanId").exists()).isEqualTo(expectedPreviousReportDirExists);
+    assertThat(insightWork.getReportDir(appId, thirdPartyScan.getScanId()).exists()).isTrue();
+    assertThat(updatedThirdPartyScan.getPreviousScanId()).isNull();
+    assertThat(thirdPartyScanDAO.getById(thirdPartyScan.getId())).isNotNull();
   }
 
   private void mockSecurityVulnerabilityDataHdsResponse() throws URISyntaxException {

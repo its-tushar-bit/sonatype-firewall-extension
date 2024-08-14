@@ -370,10 +370,7 @@ public class RepositoryPolicyViolationDAO
           " ELSE NULL END AS policy_name," +
           " quarantine_time," +
           " display_name" +
-          " FROM (" + select1 + ") AS t1" +
-          validateAndAddSortFields(detailsFilter.sortFields) +
-          " LIMIT " + pageSize +
-          " OFFSET " + offset;
+          " FROM (" + select1 + ") AS t1";
 
       String select3 = "SELECT" +
           " threat_level," +
@@ -390,7 +387,10 @@ public class RepositoryPolicyViolationDAO
           " THEN component.quarantine_time END AS quarantine_time" +
           " FROM " + getDatabaseSchema() + ".repository_component component" +
           " INNER JOIN (" + select2 + ") AS t2" +
-          " ON t2.pathname = component.pathname AND t2.repository_id = component.repository_id";
+          " ON t2.pathname = component.pathname AND t2.repository_id = component.repository_id" +
+          validateAndAddSortFields(detailsFilter.sortFields) +
+          " LIMIT " + pageSize +
+          " OFFSET " + offset;
 
       javax.persistence.Query query = tx.createNativeQuery(select3);
       addPositionalParameters(query, repositoryIds, repositoryIdsParamStartPosition);

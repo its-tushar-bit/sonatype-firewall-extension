@@ -12,9 +12,7 @@ const prioritiesPageModule = angular
   .component('prioritiesPage', iqReact2Angular(PrioritiesPage, [], ['$ngRedux', '$state']))
   .config(routes);
 
-const url = 'dashboard/developer/priorities/{publicAppId}/{scanId}';
-
-function routes($stateProvider, $urlRouterProvider) {
+function routes($stateProvider, $urlServiceProvider) {
   $stateProvider
     // Standalone Developer Dashboard -> Priorities Page
     .state('prioritiesPageFromDashboard', {
@@ -283,9 +281,12 @@ function routes($stateProvider, $urlRouterProvider) {
       },
     });
 
-  $urlRouterProvider.when(`${url}/`, url);
+  $urlServiceProvider.rules.when(
+    '/dashboard/developer/priorities/{publicAppId}/{scanId}/',
+    (matchValues, _urlParts, router) => router.stateService.go('prioritiesPageFromDashboard', matchValues)
+  );
 }
 
-routes.$inject = ['$stateProvider', '$urlRouterProvider'];
+routes.$inject = ['$stateProvider', '$urlServiceProvider'];
 
 export default prioritiesPageModule;

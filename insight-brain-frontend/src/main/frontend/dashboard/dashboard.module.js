@@ -41,8 +41,8 @@ export default dashboardModule;
 // Fixed https://github.com/angular-ui/ui-router/pull/492
 dashboardModule.config([
   '$stateProvider',
-  '$urlRouterProvider',
-  function ($stateProvider, $urlRouterProvider) {
+  '$urlServiceProvider',
+  function ($stateProvider, $urlServiceProvider) {
     $stateProvider
       .state('dashboard', {
         url: '/dashboard',
@@ -97,6 +97,8 @@ dashboardModule.config([
         },
       });
 
-    $urlRouterProvider.when('/dashboard/newest-risk', '/dashboard/violations');
+    $urlServiceProvider.rules.when('/dashboard/newest-risk', (matchValues, _urlParts, router) =>
+      router.stateService.go('dashboard.overview.violations', matchValues)
+    );
   },
 ]);

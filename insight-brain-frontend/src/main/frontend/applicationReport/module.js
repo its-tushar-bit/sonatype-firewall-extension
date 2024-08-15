@@ -40,7 +40,7 @@ export default angular
   .factory('applicationReportActions', applicationReportActions)
   .config(routes);
 
-function routes($stateProvider, $urlRouterProvider) {
+function routes($stateProvider, $urlServiceProvider) {
   $stateProvider
     .state('applicationReport', {
       url: '/applicationReport/{publicId}/{scanId}?unknownjs&embeddable&policyViolationId',
@@ -142,19 +142,21 @@ function routes($stateProvider, $urlRouterProvider) {
       },
     })
     .state('applicationReport.applicationStageTypeComponentOverview', {
-      url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}/component/' + '{hash}?scanId&tabId',
+      url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}/component/{hash}?scanId&tabId',
       component: 'componentLegalOverview',
       data: {
         title: 'Component - Legal Overview',
       },
     });
 
-  $urlRouterProvider
-    .when('/applicationReport/{publicId}/{scanId}?unknownjs', '/applicationReport/{publicId}/{scanId}/policy?unknownjs')
-    .when(
-      '/applicationReport/{publicId}/{scanId}/componentDetails/{hash}',
-      '/applicationReport/{publicId}/{scanId}/componentDetails/{hash}/overview'
-    );
+  $urlServiceProvider.rules.when('/applicationReport/{publicId}/{scanId}?unknownjs', (matchValues, _urlParts, router) =>
+    router.stateService.go('applicationReport.policy', matchValues)
+  );
+  $urlServiceProvider.rules.when(
+    '/applicationReport/{publicId}/{scanId}/componentDetails/{hash}',
+    (matchValues, _urlParts, router) =>
+      router.stateService.go('applicationReport.componentDetails.overview', matchValues)
+  );
 }
 
-routes.$inject = ['$stateProvider', '$urlRouterProvider'];
+routes.$inject = ['$stateProvider', '$urlServiceProvider'];

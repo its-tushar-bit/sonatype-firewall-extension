@@ -98,17 +98,6 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
-  public void testGetBySourceFormatNameVersionAndScannedFileId() {
-    List<ThirdPartyFileCoordinate> retrievedCoordinateFile = thirdPartyFileCoordinateDAO
-        .getBySourceFormatNameVersionAndThirdPartyFileId(fileCoordinate.getSource(), fileCoordinate.getFormat(),
-            fileCoordinate.getName(), fileCoordinate.getVersion(), fileCoordinate.getThirdPartyFileId());
-
-    assertThirdPartyCoordinateFile(fileCoordinate.getHash(), fileCoordinate.getSource(), fileCoordinate.getFormat(),
-        fileCoordinate.getName(), fileCoordinate.getVersion(), fileCoordinate.getThirdPartyFileId(),
-        retrievedCoordinateFile.get(0));
-  }
-
-  @Test
   public void testGetByThirdPartyFileId() {
     List<ThirdPartyFileCoordinate> results =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(fileCoordinate.getThirdPartyFileId());
@@ -129,23 +118,6 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(result).isNotNull();
     assertThirdPartyCoordinateFile(fileCoordinate.getHash(), fileCoordinate.getSource(), fileCoordinate.getFormat(),
         fileCoordinate.getName(), fileCoordinate.getVersion(), fileCoordinate.getThirdPartyFileId(), result);
-  }
-
-  @Test
-  public void testGetByHashAndScanId() {
-    String scanId = TemporaryEntity.uuid();
-    String hash = tempEntity.newRandomHash();
-    List<ThirdPartyFileCoordinate> fileCoordinateList = createThirdPartyScans(scanId, hash);
-    List<ThirdPartyFileCoordinate> results =
-        thirdPartyFileCoordinateDAO.getByHashAndScanId(hash, scanId);
-
-    assertThat(results).hasSize(2);
-
-    Comparator<ThirdPartyFileCoordinate> thirdPartySecurityComparator =
-        Comparator.comparing(ThirdPartyFileCoordinate::getHash);
-
-    assertThat(results).usingElementComparator(thirdPartySecurityComparator)
-        .containsAnyElementsOf(fileCoordinateList);
   }
 
   @Test

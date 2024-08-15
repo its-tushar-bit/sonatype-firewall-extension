@@ -15,7 +15,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -69,23 +68,6 @@ public class ThirdPartyFileCoordinateDAO
     return get(sQuery, id);
   }
 
-  public List<ThirdPartyFileCoordinate> getBySourceFormatNameVersionAndThirdPartyFileId(
-      String source,
-      String format,
-      String name,
-      String version,
-      String thirdPartyFileId)
-  {
-    String sQuery = "SELECT entity FROM ThirdPartyFileCoordinate entity" + //
-        " WHERE entity.source=?1 AND entity.format=?2 AND entity.name=?3" + //
-        " AND entity.version=?4 AND entity.thirdPartyFileId=?5";
-    return getList(sQuery, source, format, name, version, thirdPartyFileId);
-  }
-
-  public List<ThirdPartyFileCoordinate> getAll() {
-    return getList("SELECT entity FROM ThirdPartyFileCoordinate entity");
-  }
-
   public List<ThirdPartyFileCoordinate> getByThirdPartyFileId(String thirdPartyFileId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByThirdPartyFileId(tx, thirdPartyFileId);
@@ -109,13 +91,6 @@ public class ThirdPartyFileCoordinateDAO
         " WHERE TPS.thirdPartyFileId=TPF.thirdPartyFileId" + //
         " AND TPF.format=?1 AND TPF.name=?2 AND TPF.version=?3 AND TPS.scanId=?4";
     return get(sQuery, format, name, version, scanId);
-  }
-
-  public List<ThirdPartyFileCoordinate> getByHashAndScanId(String hash, String scanId) {
-    String sQuery = "SELECT TPF FROM ThirdPartyScan TPS," + //
-        " ThirdPartyFileCoordinate TPF" + //
-        " WHERE TPS.thirdPartyFileId=TPF.thirdPartyFileId AND TPF.hash=?1 AND TPS.scanId=?2";
-    return getList(sQuery, hash, scanId);
   }
 
   public List<ThirdPartyFileCoordinate> getByScanId(String scanId) {

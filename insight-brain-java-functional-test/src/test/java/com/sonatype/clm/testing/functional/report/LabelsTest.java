@@ -26,7 +26,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.codeborne.selenide.Configuration;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -67,7 +66,7 @@ public class LabelsTest
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
 
     TestReportEvaluator evaluatorBuild = new TestReportEvaluator(app, BUILD_SCAN_ID, zippedSmallReport,
-        Configuration.baseUrl, work);
+        baseUrlFromTest, work);
     evaluatorBuild.evaluatePolicy();
   }
 

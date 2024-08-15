@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
@@ -22,7 +23,7 @@ public class AddSuccessMetricsModal
 
   private static final String ROOT_SELECTOR = "#add-success-metrics-report";
 
-  public static final Condition ON_LOAD_WARNING_TEXT = Condition
+  public static final WebElementCondition ON_LOAD_WARNING_TEXT = Condition
       .text("Data for incomplete months and weeks will skew averages. May be slow for large data sets.");
 
   public AddSuccessMetricsModal() {

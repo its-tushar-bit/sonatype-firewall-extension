@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.WebElementCondition;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -93,7 +93,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
 
   public void assertNotLicensed(boolean notificationsReadOnly) {
     refresh();
-    Condition notLicensedText = MonitoredStageEditorPage.unsupportedLicenseText();
+    WebElementCondition notLicensedText = MonitoredStageEditorPage.unsupportedLicenseText();
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
     policyTile.shouldBe(visible);
     OwnerSummaryPage.monitoredStage()

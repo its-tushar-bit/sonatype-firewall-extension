@@ -1632,7 +1632,8 @@ public abstract class AbstractPolicyEditorTest
     summary.policyName().inputWrapper().shouldHave(CLM.RSC_PRISTINE);
     assertThreatDropdownSelectorState(policy.getThreatLevel(), isReadOnly);
 
-    com.codeborne.selenide.Condition disabledOrEnabled = isReadOnly || legacyViolationReadOnly ? disabled : enabled;
+    com.codeborne.selenide.WebElementCondition disabledOrEnabled =
+        isReadOnly || legacyViolationReadOnly ? disabled : enabled;
     summary.legacyViolationCheckbox().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
     if (legacyViolationReadOnly) {
       String expectedText = "Legacy Violations are not supported by your license";
@@ -1650,7 +1651,7 @@ public abstract class AbstractPolicyEditorTest
   {
     ScrollUtil.scrollIntoView(PolicyEditorPage.actionsSection().header());
 
-    com.codeborne.selenide.Condition disabledOrEnabled;
+    com.codeborne.selenide.WebElementCondition disabledOrEnabled;
     if (OwnerType.REPOSITORY_CONTAINER.equals(currentOwner.getType())) {
       disabledOrEnabled = enabled;
     }
@@ -1710,7 +1711,8 @@ public abstract class AbstractPolicyEditorTest
     addNotificationItem.role().shouldNot(exist);
     addNotificationItem.addButton().shouldBe(disabled);
 
-    com.codeborne.selenide.Condition disabledOrEnabled = isReadOnly || notificationsReadOnly ? disabled : enabled;
+    com.codeborne.selenide.WebElementCondition disabledOrEnabled =
+        isReadOnly || notificationsReadOnly ? disabled : enabled;
 
     // Uncomment when fixing CLM-18677
     //NotificationsSection.notifications().shouldHave(size(2)

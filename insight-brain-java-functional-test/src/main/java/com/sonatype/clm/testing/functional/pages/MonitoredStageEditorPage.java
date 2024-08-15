@@ -9,8 +9,8 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
@@ -34,7 +34,7 @@ public class MonitoredStageEditorPage
     return "Inherit from " + parentsName + " (Do not monitor)";
   }
 
-  public static Condition unsupportedLicenseText() {
+  public static WebElementCondition unsupportedLicenseText() {
     return text("Your IQ Server license does not enable this feature.");
   }
 

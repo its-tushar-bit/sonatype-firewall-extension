@@ -7,9 +7,9 @@ package com.sonatype.clm.testing.functional.elements;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Selenide.$$;
@@ -53,15 +53,15 @@ public abstract class GreedyTable<RowElementT>
 
   public static class HeaderColumn
   {
-    public static final Condition UP_SELECTED = cssClass("up");
+    public static final WebElementCondition UP_SELECTED = cssClass("up");
 
     public static final String NX_UP_SELECTED = ".fa-sort-up";
 
-    public static final Condition DOWN_SELECTED = cssClass("down");
+    public static final WebElementCondition DOWN_SELECTED = cssClass("down");
 
     public static final String NX_DOWN_SELECTED = ".fa-sort-down";
 
-    public static final Condition COLUMN_SELECTED = cssClass("selected-column");
+    public static final WebElementCondition COLUMN_SELECTED = cssClass("selected-column");
 
     public SelenideElement root;
 

@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
@@ -30,7 +31,7 @@ public class ProprietaryConfigInheritedTile
     return children(CONFIG_HIERARCHY_SELECTOR);
   }
 
-  public static Condition inheritedText(String parent) {
+  public static WebElementCondition inheritedText(String parent) {
     return Condition.text("INHERITED FROM " + parent);
   }
 }

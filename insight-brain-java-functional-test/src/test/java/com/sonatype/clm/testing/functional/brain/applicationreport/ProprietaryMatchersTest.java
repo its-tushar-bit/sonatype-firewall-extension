@@ -71,7 +71,7 @@ public class ProprietaryMatchersTest
 
     app = tempEntity.newApplicationWithParent("AddProprietaryMatchersTest", "AddProprietaryMatchersTest");
     URL zippedReport = ReportHelper.zipReport(CANNED_TEST_REPORT, tempDir);
-    TestReportEvaluator evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, WORK);
+    TestReportEvaluator evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, baseUrlFromTest, WORK);
     createGavViolatingPolicy(app.getOrganizationId());
     evaluator.evaluatePolicy();
   }

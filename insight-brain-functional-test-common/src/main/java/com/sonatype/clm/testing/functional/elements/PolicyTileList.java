@@ -8,8 +8,8 @@ package com.sonatype.clm.testing.functional.elements;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
@@ -17,7 +17,7 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class PolicyTileList
     extends GreedyTable<PolicyTileListElement>
 {
-  public static final Condition CELL_DISABLED = cssClass("policy-tile__cell--disabled");
+  public static final WebElementCondition CELL_DISABLED = cssClass("policy-tile__cell--disabled");
 
   public PolicyTileList(String... selectors) {
     super(selectors);
@@ -75,15 +75,15 @@ public class PolicyTileList
   public static class PolicyTileListElement
       extends BasicElement<PolicyTileListElement>
   {
-    public static final Condition WARN_ICON = cssClass("fa-exclamation-triangle");
+    public static final WebElementCondition WARN_ICON = cssClass("fa-exclamation-triangle");
 
-    public static final Condition WARN = cssClass("warn");
+    public static final WebElementCondition WARN = cssClass("warn");
 
-    public static final Condition FAIL_ICON = cssClass("fa-exclamation-circle");
+    public static final WebElementCondition FAIL_ICON = cssClass("fa-exclamation-circle");
 
-    public static final Condition FAIL = cssClass("fail");
+    public static final WebElementCondition FAIL = cssClass("fail");
 
-    public static final Condition CHEVRON = cssClass("fa-chevron-right");
+    public static final WebElementCondition CHEVRON = cssClass("fa-chevron-right");
 
     public PolicyTileListElement(String... selectors) {
       super(selectors);

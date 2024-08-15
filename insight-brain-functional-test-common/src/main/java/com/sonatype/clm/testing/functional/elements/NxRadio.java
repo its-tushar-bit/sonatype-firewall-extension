@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.elements;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.selected;
 
@@ -34,7 +35,7 @@ public class NxRadio
     label().click();
   }
 
-  private SelenideElement elementFor(Condition condition) {
+  private SelenideElement elementFor(WebElementCondition condition) {
     if (selected.equals(condition) ||
         Condition.enabled.equals(condition) ||
         Condition.disabled.equals(condition)) {
@@ -49,8 +50,8 @@ public class NxRadio
    * {@link #label()} is the only visible element therefore most conditions should be processed on it.
    * Condition.selected should still be tested against the input element
    */
-  public NxRadio shouldBe(Condition... conditions) {
-    for (Condition condition : conditions) {
+  public NxRadio shouldBe(WebElementCondition... conditions) {
+    for (WebElementCondition condition : conditions) {
       elementFor(condition).shouldBe(condition);
     }
     return this;
@@ -60,8 +61,8 @@ public class NxRadio
    * {@link #label()} is the only visible element therefore most conditions should be processed on it.
    * Condition.selected should still be tested against the input element
    */
-  public NxRadio shouldNotBe(Condition... conditions) {
-    for (Condition condition : conditions) {
+  public NxRadio shouldNotBe(WebElementCondition... conditions) {
+    for (WebElementCondition condition : conditions) {
       elementFor(condition).shouldNotBe(condition);
     }
     return this;
@@ -71,8 +72,8 @@ public class NxRadio
    * {@link #label()} is the only visible element therefore most conditions should be processed on it.
    * Condition.selected should still be tested against the input element
    */
-  public NxRadio shouldHave(Condition... conditions) {
-    for (Condition condition : conditions) {
+  public NxRadio shouldHave(WebElementCondition... conditions) {
+    for (WebElementCondition condition : conditions) {
       elementFor(condition).shouldHave(condition);
     }
     return this;

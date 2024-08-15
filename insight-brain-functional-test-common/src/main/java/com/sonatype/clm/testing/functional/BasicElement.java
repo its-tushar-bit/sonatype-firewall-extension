@@ -5,9 +5,9 @@
  */
 package com.sonatype.clm.testing.functional;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
@@ -32,32 +32,32 @@ public abstract class BasicElement<T extends BasicElement<T>>
     return getElement().parent();
   }
 
-  public T should(Condition... conditions) {
+  public T should(WebElementCondition... conditions) {
     getElement().should(conditions);
     return me();
   }
 
-  public T shouldNot(Condition... conditions) {
+  public T shouldNot(WebElementCondition... conditions) {
     getElement().shouldNot(conditions);
     return me();
   }
 
-  public T shouldBe(Condition... conditions) {
+  public T shouldBe(WebElementCondition... conditions) {
     getElement().shouldBe(conditions);
     return me();
   }
 
-  public T shouldNotBe(Condition... conditions) {
+  public T shouldNotBe(WebElementCondition... conditions) {
     getElement().shouldNotBe(conditions);
     return me();
   }
 
-  public T shouldHave(Condition... conditions) {
+  public T shouldHave(WebElementCondition... conditions) {
     getElement().shouldHave(conditions);
     return me();
   }
 
-  public T shouldNotHave(Condition... conditions) {
+  public T shouldNotHave(WebElementCondition... conditions) {
     getElement().shouldNotHave(conditions);
     return me();
   }

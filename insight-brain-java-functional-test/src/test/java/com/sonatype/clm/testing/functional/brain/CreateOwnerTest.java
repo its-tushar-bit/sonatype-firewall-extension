@@ -24,6 +24,7 @@ import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNo
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.IconDAO;
@@ -32,11 +33,12 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.service.InsightWork;
-
-import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.CheckResult;
 import com.codeborne.selenide.Driver;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -353,7 +355,7 @@ public class CreateOwnerTest
 
     OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
 
-    assertThat(orgsAndPoliciesSidebar.getChildOrganizations()).hasSize(1);
+    orgsAndPoliciesSidebar.getChildOrganizations().shouldHave(size(1));
     selectAddOrganizationIcon(orgsAndPoliciesSidebar);
 
     // select a robot image
@@ -490,7 +492,7 @@ public class CreateOwnerTest
 
     // check frontend - no redirect to newly created organization
     OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(parentOrg.getName()));
-    assertThat(orgsAndPoliciesSidebar.getChildOrganizations()).hasSize(2);
+    orgsAndPoliciesSidebar.getChildOrganizations().shouldHave(size(2));
 
     orgsAndPoliciesSidebar.getChildOrganizations().get(1).click();
     waitUntilUrl(OwnerSummaryPage.url(org));
@@ -500,8 +502,7 @@ public class CreateOwnerTest
 
   private void selectAddOrganizationIcon(OrgsAndPoliciesSidebar orgsAndPoliciesSidebar) {
     SelenideElement organizationActionButton = orgsAndPoliciesSidebar.getOrganizationPlusIcon();
-    assertThat(organizationActionButton).isNotNull();
-    assertThat(organizationActionButton.is(visible)).isTrue();
+    organizationActionButton.shouldBe(visible);
     organizationActionButton.click();
   }
 
@@ -549,7 +550,7 @@ public class CreateOwnerTest
 
   private BufferedImage fetchImage(String urlString) throws IOException {
     HttpClient client = HttpClientBuilder.create().build();
-    HttpGet get = new HttpGet(urlString);
+    HttpGet get = new HttpGet(BaseUrl.convertContainerUrlToHostUrl(urlString));
     get.setHeader("Authorization",
         "Basic " + Base64.getEncoder().encodeToString("admin:admin123".getBytes(StandardCharsets.UTF_8)));
     HttpResponse response = client.execute(get);
@@ -564,11 +565,12 @@ public class CreateOwnerTest
   }
 
   private void assertImage(SelenideElement element) {
-    element.shouldBe(new Condition("image")
+    element.shouldBe(new WebElementCondition("image")
     {
       @Override
-      public boolean apply(Driver driver, WebElement ignored) {
-        return element.isImage();
+      public CheckResult check(Driver driver, WebElement ignored) {
+        boolean isImage = element.isImage();
+        return new CheckResult(isImage, element);
       }
     });
   }
@@ -576,13 +578,12 @@ public class CreateOwnerTest
   private void selectAddApplicationOption() {
     OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
     SelenideElement applicationsActionButton = orgsAndPoliciesSidebar.getApplicationPlusIcon();
-    assertThat(applicationsActionButton).isNotNull();
-    assertThat(applicationsActionButton.is(visible)).isTrue();
-    assertThat(applicationsActionButton.isEnabled()).isTrue();
+    applicationsActionButton.shouldBe(visible);
+    applicationsActionButton.shouldBe(enabled);
     applicationsActionButton.click();
     SelenideElement newApplicationButton = orgsAndPoliciesSidebar.getNewApplicationButton();
-    assertThat(newApplicationButton.is(visible)).isTrue();
-    assertThat(newApplicationButton.isEnabled()).isTrue();
+    newApplicationButton.shouldBe(visible);
+    newApplicationButton.shouldBe(enabled);
     newApplicationButton.click();
   }
 }

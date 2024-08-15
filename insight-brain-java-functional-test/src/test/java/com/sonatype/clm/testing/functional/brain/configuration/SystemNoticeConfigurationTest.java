@@ -11,8 +11,8 @@ import com.sonatype.clm.testing.functional.pages.SystemNoticeConfigurationPage;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -198,21 +198,24 @@ public class SystemNoticeConfigurationTest
     systemNoticeConfigurationPage.displayMatches(display);
   }
 
-  private void elementDisabled_WhenTextReverted(SelenideElement element, Condition disabledCondition) {
+  private void elementDisabled_WhenTextReverted(SelenideElement element, WebElementCondition disabledCondition) {
     systemNoticeConfigurationPage.setText(text + " updated");
     element.shouldNotHave(disabledCondition);
     systemNoticeConfigurationPage.setText(text);
     element.shouldHave(disabledCondition);
   }
 
-  private void elementDisabled_WhenDisplayReverted(SelenideElement element, Condition disabledCondition) {
+  private void elementDisabled_WhenDisplayReverted(SelenideElement element, WebElementCondition disabledCondition) {
     systemNoticeConfigurationPage.toggleDisplay();
     element.shouldNotHave(disabledCondition);
     systemNoticeConfigurationPage.toggleDisplay();
     element.shouldHave(disabledCondition);
   }
 
-  private void elementDisabled_WhenTextAndDisplayReverted(SelenideElement element, Condition disabledCondition) {
+  private void elementDisabled_WhenTextAndDisplayReverted(
+      SelenideElement element,
+      WebElementCondition disabledCondition)
+  {
     systemNoticeConfigurationPage.setTextAndToggleDisplay(text + " updated");
     element.shouldNotHave(disabledCondition);
     systemNoticeConfigurationPage.setTextAndToggleDisplay(text);

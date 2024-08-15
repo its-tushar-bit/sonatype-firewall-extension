@@ -8,13 +8,14 @@ package com.sonatype.clm.testing.functional.elements;
 import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.WebElementCondition;
 
 public class IqSortingHeader
     extends BasicElement<IqSortingHeader>
 {
-  private static Condition UP = Condition.cssClass("up");
+  private static WebElementCondition UP = Condition.cssClass("up");
 
-  private static Condition DOWN = Condition.cssClass("down");
+  private static WebElementCondition DOWN = Condition.cssClass("down");
 
   public IqSortingHeader(String selector) {
     super(selector);
@@ -31,9 +32,9 @@ public class IqSortingHeader
   public static class SortArrow
       extends BasicElement<SortArrow>
   {
-    private Condition selectedCondition;
+    private WebElementCondition selectedCondition;
 
-    SortArrow(String selector, Condition selectedCondition) {
+    SortArrow(String selector, WebElementCondition selectedCondition) {
       super(selector);
       this.selectedCondition = selectedCondition;
     }

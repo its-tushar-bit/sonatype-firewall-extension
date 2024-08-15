@@ -14,10 +14,11 @@ import com.sonatype.clm.testing.functional.elements.NxToggle;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
 
-import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.CheckResult;
 import com.codeborne.selenide.Driver;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
@@ -29,11 +30,11 @@ public class ApplicationReportPage
 {
   public static final String ROOT = "#app-report";
 
-  public static final Condition DIRECT_DEPENDENCY_CLASS = cssClass("direct");
+  public static final WebElementCondition DIRECT_DEPENDENCY_CLASS = cssClass("direct");
 
-  public static final Condition TRANSITIVE_DEPENDENCY_CLASS = cssClass("transitive");
+  public static final WebElementCondition TRANSITIVE_DEPENDENCY_CLASS = cssClass("transitive");
 
-  public static final Condition INNER_SOURCE_DEPENDENCY_CLASS = cssClass("inner-source");
+  public static final WebElementCondition INNER_SOURCE_DEPENDENCY_CLASS = cssClass("inner-source");
 
   private static final String DEPENDENCY_INDICATOR_SELECTOR = ".iq-dependency-indicator";
 
@@ -120,10 +121,13 @@ public class ApplicationReportPage
   }
 
   public ElementsCollection rowsWithDependencyInfo() {
-    return children(ROW_SELECTOR).filter(new Condition("hasDependencyIndicator") {
+    return children(ROW_SELECTOR).filter(new WebElementCondition("hasDependencyIndicator") {
       @Override
-      public boolean apply(Driver driver, WebElement webElement) {
-        return !webElement.findElements(By.cssSelector(DEPENDENCY_INDICATOR_SELECTOR)).isEmpty();
+      public CheckResult check(Driver driver, WebElement webElement) {
+        return new CheckResult(
+            !webElement.findElements(By.cssSelector(DEPENDENCY_INDICATOR_SELECTOR)).isEmpty(),
+            webElement
+        );
       }
     });
   }
@@ -271,7 +275,7 @@ public class ApplicationReportPage
   public static class CipModal
       extends BasicElement<CipModal>
   {
-    public static final Condition ACTIVE_CLASS = cssClass("active");
+    public static final WebElementCondition ACTIVE_CLASS = cssClass("active");
 
     CipModal(String selector) {
       super(selector);

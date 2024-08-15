@@ -13,6 +13,18 @@ If you are looking for IQ (Not Multi-tenant version) functional tests those are 
 
 `insight-brain-functional-test-common` module contains common resources used in both IQ and MTIQ functional tests.
 
+## Running
+
+The functional tests run against a Chrome browser instance, which can be managed two different ways:
+* Chrome can be run within a Docker container via testcontainers. This is the default mode and matches the way the
+  tests are run in the CI/CD pipeline.
+* The path to a locally installed chromedriver binary can be specified, in which case that chromedriver will be used
+  to drive a locally installed Chrome instance. This mode can be useful while debugging, as the Chrome browser will
+  visibly appear on the screen, allowing one to watch the test interact with the UI. To use this mode, set the
+  `webdriver.chrome.driver` system property to the path of the chromedriver binary. Example:
+  `-Dwebdriver.chrome.driver=/user/bin/chromedriver`. You must manage the installation of the chromedriver binary
+  yourself.
+
 ## Troubleshooting
 
 ### Can't run tests from intelliJ

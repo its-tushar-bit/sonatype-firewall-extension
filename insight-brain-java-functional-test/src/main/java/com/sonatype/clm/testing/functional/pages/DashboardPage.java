@@ -13,9 +13,9 @@ import com.sonatype.clm.testing.functional.elements.DashboardViolations;
 import com.sonatype.clm.testing.functional.elements.DashboardWaivers;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Selenide.$;
@@ -24,7 +24,7 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class DashboardPage extends BasicElement<DashboardPage>
 {
-  public static final Condition ACTIVE = cssClass("active");
+  public static final WebElementCondition ACTIVE = cssClass("active");
 
   public static String url() {
     return urlToViolations();

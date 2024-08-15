@@ -9,9 +9,9 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
@@ -92,7 +92,7 @@ public class LegacyViolationsEditorPage
     return $(".nx-alert.nx-alert--error");
   }
 
-  public static Condition unsupportedLicenseText() {
+  public static WebElementCondition unsupportedLicenseText() {
     return text("Legacy Violations are not supported by your license");
   }
 }

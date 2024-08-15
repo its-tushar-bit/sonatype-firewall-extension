@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.elements;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
@@ -60,11 +61,11 @@ public class ActionsSection
     return new Stage(ACTIONS_TABLE_ROOT_SELECTOR, "operate");
   }
 
-  public static Condition warnClass() {
+  public static WebElementCondition warnClass() {
     return Condition.cssClass("warn");
   }
 
-  public static Condition activeClass() {
+  public static WebElementCondition activeClass() {
     return Condition.cssClass("active");
   }
 

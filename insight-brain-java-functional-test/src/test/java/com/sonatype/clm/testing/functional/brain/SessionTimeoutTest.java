@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
-import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.junit.After;
@@ -107,7 +106,7 @@ public class SessionTimeoutTest
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     TestReportEvaluator evaluator = new TestReportEvaluator(app, scanId,
-        ReportHelper.zipReport("/canned-reports/small-report", tempDir), Configuration.baseUrl,
+        ReportHelper.zipReport("/canned-reports/small-report", tempDir), baseUrlFromTest,
         new InsightWork(testCLMServer.getCLMServer().getConfiguration()));
 
     evaluator.evaluatePolicy();

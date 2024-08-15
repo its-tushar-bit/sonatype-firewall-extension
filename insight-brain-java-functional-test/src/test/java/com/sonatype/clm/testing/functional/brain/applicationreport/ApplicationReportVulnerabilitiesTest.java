@@ -31,7 +31,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
 import org.joda.time.DateTime;
@@ -87,7 +86,7 @@ public class ApplicationReportVulnerabilitiesTest
     app = tempEntity.newApplication("ApplicationReportVulnerabilitiesTest", "ApplicationReportVulnerabilitiesTest",
         org.getId());
     URL zippedReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
-    TestReportEvaluator evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
+    TestReportEvaluator evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, baseUrlFromTest, work);
 
     Policy securityLow = policyDAO.getByName("Security-Low").get(0);
     Policy securityHigh = policyDAO.getByName("Security-High").get(0);
@@ -162,7 +161,7 @@ public class ApplicationReportVulnerabilitiesTest
         "ApplicationReportVulnerabilitiesTest-testEmptyResults", org.getId());
     URL zippedReport = ReportHelper.zipReport("/canned-reports/empty-report", tempDir);
     TestReportEvaluator evaluator = new TestReportEvaluator(emptyResultsApp, EMPTY_RESULTS_SCAN_ID, zippedReport,
-        Configuration.baseUrl, work);
+        baseUrlFromTest, work);
 
     evaluator.evaluatePolicy();
     refreshOrOpen(ApplicationReportVulnerabilitiesPage.url(emptyResultsApp, EMPTY_RESULTS_SCAN_ID));

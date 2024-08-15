@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
@@ -16,9 +17,9 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class NxSortingHeader
     extends BasicElement<NxSortingHeader>
 {
-  private static final Condition UP = Condition.cssClass("fa-sort-up");
+  private static final WebElementCondition UP = Condition.cssClass("fa-sort-up");
 
-  private static final Condition DOWN = Condition.cssClass("fa-sort-down");
+  private static final WebElementCondition DOWN = Condition.cssClass("fa-sort-down");
 
   public NxSortingHeader(String selector) {
     super(selector);

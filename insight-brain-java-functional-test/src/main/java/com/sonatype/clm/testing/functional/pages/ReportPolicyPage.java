@@ -5,10 +5,12 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
-import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.CheckResult;
 import com.codeborne.selenide.Driver;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
+
 import org.openqa.selenium.WebElement;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -61,12 +63,12 @@ public class ReportPolicyPage
   }
 
   public static ElementsCollection resultsWithNoScore() {
-    return rows().filterBy(new Condition("resultsWithNoScore")
+    return rows().filterBy(new WebElementCondition("resultsWithNoScore")
     {
 
       @Override
-      public boolean apply(Driver driver, WebElement element) {
-        return $(element).find(".noScore").exists();
+      public CheckResult check(Driver driver, WebElement element) {
+        return $(element).find(".noScore").exists() ? CheckResult.accepted() : CheckResult.rejected("", null);
       }
     });
   }

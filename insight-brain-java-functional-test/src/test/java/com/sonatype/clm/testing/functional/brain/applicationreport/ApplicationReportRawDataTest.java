@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.SelenideElement;
 import org.joda.time.format.DateTimeFormat;
 import org.junit.Before;
@@ -82,7 +81,7 @@ public class ApplicationReportRawDataTest
     app = tempEntity.newApplication("ApplicationReportRawDataTest", "ApplicationReportRawDataTest", org.getId());
     URL zippedReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
-    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
+    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, baseUrlFromTest, work);
     evaluator.evaluatePolicy();
     refreshOrOpen(ApplicationReportRawDataPage.url(app, SCAN_ID));
   }

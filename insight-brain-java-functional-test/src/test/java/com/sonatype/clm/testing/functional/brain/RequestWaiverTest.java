@@ -37,7 +37,6 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
-import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
@@ -85,7 +84,7 @@ public class RequestWaiverTest
 
     URL zippedReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
-    evaluator = new TestReportEvaluator(application, SCAN_ID, zippedReport, Configuration.baseUrl, work);
+    evaluator = new TestReportEvaluator(application, SCAN_ID, zippedReport, baseUrlFromTest, work);
     evaluator.evaluatePolicy();
 
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application.getId(),

@@ -11,6 +11,7 @@ import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileLis
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
@@ -25,11 +26,11 @@ public class AccessTile
     super(root);
   }
 
-  public static Condition inheritedText(String parent) {
+  public static WebElementCondition inheritedText(String parent) {
     return Condition.text("inherited from " + parent);
   }
 
-  public static Condition subHeaderText(String ownerName) {
+  public static WebElementCondition subHeaderText(String ownerName) {
     return Condition.text(ownerName + " users by role");
   }
 

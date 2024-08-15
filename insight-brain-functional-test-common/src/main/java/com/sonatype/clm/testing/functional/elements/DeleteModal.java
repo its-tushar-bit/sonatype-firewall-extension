@@ -5,19 +5,19 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 
 public class DeleteModal
 {
-  public static Condition headerText(String resourceType) {
+  public static WebElementCondition headerText(String resourceType) {
     return text("Delete " + resourceType);
   }
 
-  public static Condition bodyText(String resourceName) {
+  public static WebElementCondition bodyText(String resourceName) {
     return text("You are about to permanently remove " + resourceName + ". This action cannot be undone.");
   }
 

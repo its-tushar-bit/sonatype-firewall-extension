@@ -70,7 +70,7 @@
     <aether-util.version>1.13.1</aether-util.version>
     <!-- drools 8.x requires Java 11 -->
     <drools.version>7.74.1.Final</drools.version>
-    <selenium.version>4.13.0</selenium.version>
+    <selenium.version>4.23.1</selenium.version>
     <httpcomponents.version>4.5.14</httpcomponents.version>
     <nexus-scm-client.version>1.57.0-01</nexus-scm-client.version>
     <nexus-dependency-management.version>2.1.0-01</nexus-dependency-management.version>
@@ -85,7 +85,14 @@
       and insight-brain-functional-test
     -->
     <docker.image.registry></docker.image.registry>
-    <docker.image.version>4.21.0-20240517</docker.image.version>
+
+    <!--
+      Note: at time of writing, this is not the latest version. However, newer versions have a bug that breaks
+      file download tests using Selenide's FOLDER download mode - the "crdownload" extension is never removed from the
+      downloaded file and so Selenide never thinks the download is complete. The closest documented Issue for this is
+      https://github.com/SeleniumHQ/docker-selenium/issues/2032
+    -->
+    <docker.image.version>120.0-20240123</docker.image.version>
     <docker.image>standalone-chrome:${docker.image.version}</docker.image>
     <webdriver.chrome.driver>${project.build.directory}/chromedriver</webdriver.chrome.driver>
     <test.group>all</test.group>
@@ -1158,19 +1165,14 @@
         <version>5.68.5</version>
       </dependency>
       <dependency>
+        <!--
+          selenide-grid is very similar to the regular selenide artifact except with extra code
+          for better handling file downloads from selenium-grid servers (such as what runs within the
+          selenium docker containers)
+        -->
         <groupId>com.codeborne</groupId>
-        <artifactId>selenide</artifactId>
-        <version>6.17.0</version>
-        <exclusions>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm</artifactId>
-          </exclusion>
-        </exclusions>
+        <artifactId>selenide-grid</artifactId>
+        <version>7.4.1</version>
       </dependency>
 
       <dependency>
@@ -1288,13 +1290,6 @@
         <artifactId>postgresql</artifactId>
         <version>${testcontainers.version}</version>
       </dependency>
-      <!-- Avoid old version brought in by selenide
-      <dependency>
-        <groupId>org.junit.platform</groupId>
-        <artifactId>junit-platform-commons</artifactId>
-        <version>1.9.1</version>
-        <scope>test</scope>
-      </dependency> -->
       <dependency>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>bom</artifactId>

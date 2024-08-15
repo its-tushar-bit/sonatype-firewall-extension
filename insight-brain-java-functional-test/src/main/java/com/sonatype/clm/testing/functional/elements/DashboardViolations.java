@@ -10,6 +10,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
@@ -20,13 +21,13 @@ public class DashboardViolations
 {
   private static final String ROOT = "#dashboard-violations";
 
-  public static final Condition CRITICAL = Condition.cssClass("nx-threat-indicator--critical");
+  public static final WebElementCondition CRITICAL = Condition.cssClass("nx-threat-indicator--critical");
 
-  public static final Condition SEVERE = Condition.cssClass("nx-threat-indicator--severe");
+  public static final WebElementCondition SEVERE = Condition.cssClass("nx-threat-indicator--severe");
 
-  public static final Condition MODERATE = Condition.cssClass("nx-threat-indicator--moderate");
+  public static final WebElementCondition MODERATE = Condition.cssClass("nx-threat-indicator--moderate");
 
-  public static final Condition LOW = Condition.cssClass("nx-threat-indicator--low");
+  public static final WebElementCondition LOW = Condition.cssClass("nx-threat-indicator--low");
 
   public ViolationsHeaders headers() {
     return new ViolationsHeaders();

@@ -7,12 +7,13 @@ package com.sonatype.clm.testing.functional.elements;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Selenide.$;
 
 public class RoutingErrorBox
 {
-  public static Condition errorText(String error) {
+  public static WebElementCondition errorText(String error) {
     return Condition.text("Please try to reload the page, if the problem persists contact your server administrator. ("
         + error + ")");
   }

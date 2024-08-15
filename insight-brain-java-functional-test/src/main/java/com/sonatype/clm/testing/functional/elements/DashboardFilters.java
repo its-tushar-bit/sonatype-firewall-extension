@@ -8,9 +8,9 @@ package com.sonatype.clm.testing.functional.elements;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
@@ -21,11 +21,12 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class DashboardFilters
     extends BasicElement<DashboardFilters>
 {
-  public static final Condition ACTIVE = cssClass("nx-counter--active");
+  public static final WebElementCondition ACTIVE = cssClass("nx-counter--active");
 
-  public static final Condition NO_CHANGES_MESSAGE = text("There are no changes to update.");
+  public static final WebElementCondition NO_CHANGES_MESSAGE = text("There are no changes to update.");
 
-  public static final Condition SELECTED_SAVED_FILTER_OPTION = cssClass("iq-manage-filters-dropdown__option--selected");
+  public static final WebElementCondition SELECTED_SAVED_FILTER_OPTION =
+      cssClass("iq-manage-filters-dropdown__option--selected");
 
   public static SelenideElement filterContainer() {
     return $("#dashboard-filter-container");

@@ -427,7 +427,7 @@ public class ApplicationPolicyEditorActionsOverrideTest
     return Arrays.asList(constraint1, constraint2, constraint3);
   }
 
-  public void testActionsState(ActionsSection actionsTable, com.codeborne.selenide.Condition condition) {
+  public void testActionsState(ActionsSection actionsTable, com.codeborne.selenide.WebElementCondition condition) {
     actionsTable.proxy().failRadio().shouldBe(condition);
     actionsTable.proxy().noActionRadio().shouldBe(condition);
     actionsTable.proxy().warnRadio().shouldBe(condition);

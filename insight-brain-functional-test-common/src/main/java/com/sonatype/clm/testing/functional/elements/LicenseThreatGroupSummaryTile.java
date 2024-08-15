@@ -11,6 +11,7 @@ import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
@@ -56,7 +57,7 @@ public class LicenseThreatGroupSummaryTile
     return child(TABLE_SELECTOR);
   }
 
-  public static Condition inheritedText(String parent) {
+  public static WebElementCondition inheritedText(String parent) {
     return Condition.text("inherited from " + parent);
   }
 
@@ -142,7 +143,7 @@ public class LicenseThreatGroupSummaryTile
       return threatLevel.find(".nx-icon");
     }
 
-    public static Condition threatLevel(int threatLevel) {
+    public static WebElementCondition threatLevel(int threatLevel) {
       return Condition.cssClass("nx-threat-indicator--" + convertToCssClass(threatLevel));
     }
 

@@ -5,9 +5,9 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
@@ -77,7 +77,7 @@ public class ActionDropDown
     return $(createSelector(ROOT, "button"));
   }
 
-  public static Condition reportLinkText(String stageName) {
+  public static WebElementCondition reportLinkText(String stageName) {
     stageName = stageName.equals("Stage Release") ? "stage" : stageName;
     return text("View " + stageName + " report");
   }

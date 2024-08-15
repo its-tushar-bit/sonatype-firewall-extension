@@ -18,8 +18,8 @@ import com.sonatype.clm.testing.functional.pages.ManageTemplatesPage.UnsavedChan
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -47,7 +47,7 @@ public class AttributionReportManageTemplateTest
 
   private static final String EMPTY_TEMPLATE_NAME_MSG = "Template Name cannot be empty";
 
-  private static final Condition SELECTED_CLASS = cssClass("selected");
+  private static final WebElementCondition SELECTED_CLASS = cssClass("selected");
 
   private static Application app;
 

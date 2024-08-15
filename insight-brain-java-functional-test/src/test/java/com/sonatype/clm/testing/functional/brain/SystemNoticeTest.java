@@ -20,7 +20,7 @@ import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
 import com.sonatype.insight.brain.model.configuration.SystemNotice;
 
-import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.WebElementCondition;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -113,13 +113,19 @@ public class SystemNoticeTest
     loginAsAdmin();
   }
 
-  private void checkSystemNoticeVisibilityOnLogin(final SystemNotice systemNotice, final Condition visibility) {
+  private void checkSystemNoticeVisibilityOnLogin(
+      final SystemNotice systemNotice,
+      final WebElementCondition visibility)
+  {
     systemNoticeDAO.update(systemNotice);
     refreshOrOpen(DashboardPage.url());
     new LoginModal().systemNotice().shouldBe(visibility);
   }
 
-  private void checkSystemNoticeVisibilityAfterLogin(final SystemNotice systemNotice, final Condition visibility) {
+  private void checkSystemNoticeVisibilityAfterLogin(
+      final SystemNotice systemNotice,
+      final WebElementCondition visibility)
+  {
     systemNoticeDAO.update(systemNotice);
     refresh();
     for (String url : PAGE_URLS) {

@@ -7,9 +7,9 @@ package com.sonatype.clm.testing.functional.elements;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
@@ -55,7 +55,7 @@ public class ConstraintSection
     @SuppressWarnings("hiding")
     private String rootSelector;
 
-    public static Condition subheaderText(int numConstraints, String operator) {
+    public static WebElementCondition subheaderText(int numConstraints, String operator) {
       if (numConstraints > 1) {
         return text("is in violation if " + (operator.equals("OR") ? "any" : "all") + " of the following are true:");
       }

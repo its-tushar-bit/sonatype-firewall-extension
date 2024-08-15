@@ -10,6 +10,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 
@@ -38,7 +39,7 @@ public class MultiSelect
     return entries().get(row).find("input");
   }
 
-  public static final Condition checked = Condition.cssClass(".selected");
+  public static final WebElementCondition checked = Condition.cssClass(".selected");
 
-  public static final Condition open = Condition.cssClass(".btn-group.open");
+  public static final WebElementCondition open = Condition.cssClass(".btn-group.open");
 }

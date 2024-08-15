@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.functional.brain.configuration;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -1229,10 +1228,12 @@ public class ScmOnboardingTest
         "associated with the target organization"));
 
     // when we pull down the list
+    scmOnboardingPage.organizationsDropdown().click();
     OrganizationsDropdownMenu menu = scmOnboardingPage.organizationsDropdown().dropdownMenu();
 
     // then the org list is complete
-    menu.options().containsAll(Arrays.asList(org, org2, org3, org4, org5));
+    menu.options().shouldHave(
+        texts(level1ChildOrg.getName(), org.getName(), org2.getName(), org3.getName(), org4.getName(), org5.getName()));
   }
 
   @Test

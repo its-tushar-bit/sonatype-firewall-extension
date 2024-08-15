@@ -237,6 +237,7 @@ public abstract class AbstractAccessEditorTest
     refreshOrOpen(AccessEditorPage.urlToEdit(currentOwner, role.getId()));
 
     AccessEditorPage accessEditorPage = new AccessEditorPage();
+    accessEditorPage.title().shouldHave(text(role.getName()));
     AccessEditorPage.AddMembersForm addMembersForm = accessEditorPage.addMembersForm();
 
     accessEditorPage.title().shouldBe(visible);

@@ -18,6 +18,7 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Selenide.$$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
@@ -112,15 +113,15 @@ public class FirewallOnboardingPage
     return new NxCheckbox(child("#firewall-rule-namespace-confusion"));
   }
 
-  public static Condition protectionRulesSelectorTitle() {
+  public static WebElementCondition protectionRulesSelectorTitle() {
     return Condition.text("Enable Repository Firewall features");
   }
 
-  public static Condition proxyRepositoriesSelectorNoProtectionRulesTitle() {
+  public static WebElementCondition proxyRepositoriesSelectorNoProtectionRulesTitle() {
     return Condition.text("You have not enabled recommended protection");
   }
 
-  public static Condition proxyRepositoriesSelectorTitle() {
+  public static WebElementCondition proxyRepositoriesSelectorTitle() {
     return Condition.text("Enable protection from malicious components");
   }
 

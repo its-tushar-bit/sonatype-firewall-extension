@@ -12,9 +12,9 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.text;
 
@@ -27,11 +27,11 @@ public class AccessEditorPage
     super(ROOT_SELECTOR);
   }
 
-  public static final Condition NEW_TITLE_TEXT = text("New Role");
+  public static final WebElementCondition NEW_TITLE_TEXT = text("New Role");
 
-  public static final Condition DROPDOWN_DEFAULT_TEXT = text("Select Role");
+  public static final WebElementCondition DROPDOWN_DEFAULT_TEXT = text("Select Role");
 
-  public static final Condition CONFIRM_REMOVAL_HEADER_TEXT = text("Delete Role");
+  public static final WebElementCondition CONFIRM_REMOVAL_HEADER_TEXT = text("Delete Role");
 
   public static final String DISABLED_GROUP_SEARCH_WARNING =
       "One or more LDAP servers have group search disabled, which will affect your results";

@@ -14,8 +14,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.TestCLMServer;
 
-import com.codeborne.selenide.Configuration;
-
 public class SimilarWaiverCreator
 {
   private static final String SCAN_ID = "5e4dc847bd4ca679aeca6af41c87af5e";
@@ -30,12 +28,13 @@ public class SimilarWaiverCreator
       URL zippedReport,
       Application app,
       TestCLMServer testCLMServer,
-      Consumer<String> refreshOrOpen) throws IOException
+      Consumer<String> refreshOrOpen,
+      String baseUrl) throws IOException
   {
     this.app = app;
     this.refreshOrOpen = refreshOrOpen;
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
-    TestReportEvaluator evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
+    TestReportEvaluator evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, baseUrl, work);
     evaluator.evaluatePolicy();
   }
 

@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import java.io.IOException;
 import java.net.URL;
 import java.util.LinkedList;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
@@ -26,7 +27,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
@@ -77,7 +77,7 @@ public class DependencyTreeTest
     app = tempEntity.newApplication("ApplicationReportTest", "ApplicationReportTest", org.getId());
     URL zippedReport = ReportHelper.zipReport("/canned-reports/report-with-dependency-tree", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
-    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
+    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, baseUrlFromTest, work);
     evaluator.evaluatePolicy();
 
     refreshOrOpen(DependencyTreePage.url(app, SCAN_ID));
@@ -313,7 +313,9 @@ public class DependencyTreeTest
     ElementsCollection treeItems = dependencyTreePage.tree().treeItems();
     treeItems.shouldHave(size(36));
 
-    LinkedList<SelenideElement> collapseIcons = new LinkedList<>(dependencyTreePage.tree().collapseIcons());
+    LinkedList<SelenideElement> collapseIcons = dependencyTreePage.tree().collapseIcons().asFixedIterable().stream()
+        .collect(Collectors.toCollection(LinkedList::new));
+
     collapseIcons.descendingIterator().forEachRemaining(SelenideElement::click);
 
     SelenideElement filterInput = dependencyTreePage.componentNameFilterInput();
@@ -363,7 +365,7 @@ public class DependencyTreeTest
   public void testDependencyTree_EmptyMessage() throws IOException {
     URL zippedReport = ReportHelper.zipReport("/canned-reports/empty-report", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
-    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
+    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, baseUrlFromTest, work);
     evaluator.evaluatePolicy();
 
     refreshOrOpen(DependencyTreePage.url(app, SCAN_ID));

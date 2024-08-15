@@ -5,9 +5,9 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
@@ -99,7 +99,7 @@ public class NotificationsSection
 
   public static class AddNotificationItem
   {
-    public static Condition ISSUE_TYPE_NEEDS_PROJECT = text("-- Select JIRA Project --");
+    public static WebElementCondition ISSUE_TYPE_NEEDS_PROJECT = text("-- Select JIRA Project --");
 
     private final String rootSelector;
 

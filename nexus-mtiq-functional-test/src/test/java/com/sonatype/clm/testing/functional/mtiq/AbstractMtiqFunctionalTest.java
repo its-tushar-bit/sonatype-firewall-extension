@@ -21,7 +21,6 @@ import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.UserMenu;
-import com.sonatype.clm.testing.functional.utils.PageTweakingWebDriver;
 import com.sonatype.clm.testing.functional.utils.SeleniumTestContainer;
 import com.sonatype.insight.brain.StaticInjectionTestHelper;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
@@ -78,6 +77,7 @@ import com.auth0.json.auth.TokenHolder;
 import com.auth0.net.TokenRequest;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.FileDownloadMode;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
@@ -157,6 +157,11 @@ public abstract class AbstractMtiqFunctionalTest
 
   private static final TestProductLicenseRule testProductLicenseRule;
 
+  // The base URL of the IQ server usable from the test code, not from the containerized browser.
+  // in contrast, Configuration.baseUrl is the URL of the IQ server as seen from the containerized browser and should
+  // not be used to reference the server from the test code.
+  protected static String baseUrlFromTest;
+
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
 
@@ -213,12 +218,22 @@ public abstract class AbstractMtiqFunctionalTest
       testCLMServer.start();
       reverseProxyServer.start();
 
+      baseUrlFromTest = resolveBaseUrl(getBaseUrl(contextPath));
+
       if ("docker".equals(System.getProperty("run-functional-tests"))) {
-        SeleniumTestContainer.start();
+        Configuration.baseUrl = SeleniumTestContainer.start(baseUrlFromTest);
+      }
+      else {
+        Configuration.baseUrl = baseUrlFromTest;
       }
 
-      Configuration.baseUrl = resolveBaseUrl(getBaseUrl(contextPath));
       Configuration.reportsFolder = "target/selenide-reports";
+      Configuration.downloadsFolder = "target/selenide-downloads";
+
+      // Use the actual browser file-download-to-folder mechanism rather than the default mode of Selenide grabbing
+      // and fetching the href URL of a link. The FOLDER mode works in more situations, such as downloads triggered
+      // by a <button> and javascript
+      Configuration.fileDownload = FileDownloadMode.FOLDER;
       setBaseUrl(Configuration.baseUrl);
     }
     catch (Throwable e) {
@@ -361,10 +376,6 @@ public abstract class AbstractMtiqFunctionalTest
 
     // Enforcing specific view port size for stable applitools validations.
     setViewportSize(driver);
-
-    if (!(driver instanceof PageTweakingWebDriver)) {
-      WebDriverRunner.setWebDriver(new PageTweakingWebDriver(driver));
-    }
   }
 
   @AfterClass

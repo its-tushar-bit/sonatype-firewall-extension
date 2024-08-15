@@ -7,19 +7,19 @@ package com.sonatype.clm.testing.functional.utils;
 
 import java.util.Iterator;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 public class ConditionUtils
 {
-  public static void shouldHave(final ElementsCollection elements, final Condition condition) {
+  public static void shouldHave(final ElementsCollection elements, final WebElementCondition condition) {
     for (Iterator<SelenideElement> iterator = elements.iterator(); iterator.hasNext();) {
       iterator.next().shouldHave(condition);
     }
   }
 
-  public static void shouldNotHave(final ElementsCollection elements, final Condition condition) {
+  public static void shouldNotHave(final ElementsCollection elements, final WebElementCondition condition) {
     for (Iterator<SelenideElement> iterator = elements.iterator(); iterator.hasNext();) {
       iterator.next().shouldNotHave(condition);
     }

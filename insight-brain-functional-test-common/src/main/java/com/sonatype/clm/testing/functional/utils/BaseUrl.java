@@ -92,6 +92,14 @@ public class BaseUrl
     return baseUrl;
   }
 
+  /**
+   * @param containerUrl a URL suitable for reaching the IQ server from within the selenium docker container
+   * @return a URL suitable for reaching the IQ server from the host machine
+   */
+  public static String convertContainerUrlToHostUrl(String containerUrl) {
+    return UriBuilder.fromUri(containerUrl).host("localhost").build().toString();
+  }
+
   private static boolean isReachable(String url) {
     HttpURLConnection connection = null;
 

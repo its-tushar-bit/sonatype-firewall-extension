@@ -9,8 +9,8 @@ import com.sonatype.clm.testing.functional.elements.NxColorPicker;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 import com.google.common.base.Joiner;
 
 import static com.codeborne.selenide.Condition.text;
@@ -72,17 +72,17 @@ public class CategoryEditorPage
     return new NxDeleteModal("#category-delete-modal");
   }
 
-  public static Condition deleteWarningText() {
+  public static WebElementCondition deleteWarningText() {
     return deleteWarningText(null);
   }
 
-  public static Condition deleteWarningText(String applicationNames) {
+  public static WebElementCondition deleteWarningText(String applicationNames) {
     String baseMessage = "Are you sure you want to delete this application category?";
     return text(applicationNames == null ? baseMessage :
         baseMessage + " It is in use by the following applications: " + applicationNames + ".");
   }
 
-  public static Condition associatedPoliciesText(String... policyNames) {
+  public static WebElementCondition associatedPoliciesText(String... policyNames) {
     return text("You cannot delete this application category because it is associated with the following policies: " +
             Joiner.on(", ").join(policyNames));
   }

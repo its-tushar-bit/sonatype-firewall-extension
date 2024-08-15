@@ -45,6 +45,8 @@ public class SeleniumChromeOptions
     prefs.put("profile.password_manager_enabled", false);
     options.setExperimentalOption("prefs", prefs);
 
+    options.setEnableDownloads(true);
+
     return options;
   }
 }

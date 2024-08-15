@@ -21,7 +21,7 @@
   <dependencies>
     <dependency>
       <groupId>com.codeborne</groupId>
-      <artifactId>selenide</artifactId>
+      <artifactId>selenide-grid</artifactId>
     </dependency>
     <dependency>
       <groupId>javax.ws.rs</groupId>

@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionTyp
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
-import com.codeborne.selenide.Configuration;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -54,7 +53,7 @@ public class UnknownJsTest
   @Test
   public void testViewWaivedPolicyViolations() throws Exception {
     evaluator = new TestReportEvaluator(app, scanId, ReportHelper.zipReport("/UnknownJsTest", tempDir),
-        Configuration.baseUrl, work);
+        baseUrlFromTest, work);
     evaluator.evaluatePolicy();
     refreshOrOpen(ReportPage.url(app, scanId));
 

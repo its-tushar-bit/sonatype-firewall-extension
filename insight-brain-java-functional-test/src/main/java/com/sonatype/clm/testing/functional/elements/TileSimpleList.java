@@ -5,15 +5,15 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.cssClass;
 
 public class TileSimpleList
 {
-  public static final Condition CLICKABLE = cssClass("iq-list--clickable");
+  public static final WebElementCondition CLICKABLE = cssClass("iq-list--clickable");
   
   public SelenideElement root;
 

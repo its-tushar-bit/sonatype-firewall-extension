@@ -8,9 +8,9 @@ package com.sonatype.clm.testing.functional.elements;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.insight.brain.model.Color;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Selenide.$;
@@ -60,7 +60,7 @@ public class LabelsCIP
   public static class Label
       extends BasicElement<Label>
   {
-    public static Condition color(Color color) {
+    public static WebElementCondition color(Color color) {
       return cssClass(color.toValue());
     }
 

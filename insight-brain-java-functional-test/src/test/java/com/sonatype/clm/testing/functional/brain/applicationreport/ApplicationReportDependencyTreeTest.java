@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -66,7 +65,7 @@ public class ApplicationReportDependencyTreeTest
   public void testNoDependencyTreeAvailable() throws IOException {
     URL zippedReport = ReportHelper.zipReport("/canned-reports/empty-report", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
-    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
+    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, baseUrlFromTest, work);
     evaluator.evaluatePolicy();
 
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
@@ -91,7 +90,7 @@ public class ApplicationReportDependencyTreeTest
   public void testNavigateToDependencyTree() throws IOException {
     URL zippedReport = ReportHelper.zipReport("/canned-reports/report-with-dependency-tree", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
-    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
+    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, baseUrlFromTest, work);
     evaluator.evaluatePolicy();
 
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));

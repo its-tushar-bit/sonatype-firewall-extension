@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.policy.LegacyViolationService;
 import com.sonatype.insight.brain.policy.LegacyViolationService.LegacyViolationStatusDTO;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
-import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.WebElementCondition;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -185,7 +185,7 @@ public abstract class AbstractLegacyViolationsEditorTest
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     refresh();
 
-    Condition notLicensedText = LegacyViolationsEditorPage.unsupportedLicenseText();
+    WebElementCondition notLicensedText = LegacyViolationsEditorPage.unsupportedLicenseText();
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
 

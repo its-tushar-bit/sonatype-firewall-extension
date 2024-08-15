@@ -11,6 +11,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 public class IqAssociationEditor
     extends BasicElement<IqAssociationEditor>
@@ -18,7 +19,7 @@ public class IqAssociationEditor
   private static final String ROOT_SELECTOR = ".iq-association-editor";
 
   // The CSS class present when the editor is using CSS multi-column display
-  public static final Condition MULTI_COLUMN = Condition.cssClass("iq-association-editor--multi-column");
+  public static final WebElementCondition MULTI_COLUMN = Condition.cssClass("iq-association-editor--multi-column");
 
   public IqAssociationEditor(String selector) {
     super(selector, ROOT_SELECTOR);

@@ -405,7 +405,6 @@ Map<String, Closure> createFunctionalTests(
         try {
           copyRepo(zipFiles)
           String mavenOptions = "'-Dit.test=%regex[${regex}]'"
-          mavenOptions += ' -Drun-functional-tests=docker'
           mavenOptions += " -Dbrowser=chrome"
           mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
           mavenOptions += " -DdetectTestEntityLeaks"

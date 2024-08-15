@@ -52,7 +52,7 @@ public class AddProprietaryMatchersTest
 
   private static final String CANNED_TEST_REPORT = "/canned-reports/report-with-unknown-and-proprietary";
 
-  private static final com.codeborne.selenide.Condition ERROR = cssClass("error");
+  private static final com.codeborne.selenide.WebElementCondition ERROR = cssClass("error");
 
   private ProprietaryConfigDAO proprietaryConfigDAO;
 
@@ -70,7 +70,7 @@ public class AddProprietaryMatchersTest
 
     app = tempEntity.newApplicationWithParent("AddProprietaryMatchersTest", "AddProprietaryMatchersTest");
     URL zippedReport = ReportHelper.zipReport(CANNED_TEST_REPORT, tempDir);
-    TestReportEvaluator evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, WORK);
+    TestReportEvaluator evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, baseUrlFromTest, WORK);
     createGavViolatingPolicy(app.getOrganizationId());
     evaluator.evaluatePolicy();
   }

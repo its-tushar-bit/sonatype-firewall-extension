@@ -39,12 +39,13 @@ import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportScopeDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.CheckResult;
 import com.codeborne.selenide.Driver;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
+import com.codeborne.selenide.WebElementCondition;
 import com.google.common.collect.Ordering;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
@@ -101,6 +102,8 @@ public class SuccessMetricsChartsTest
   private final String browserName = System.getProperty("browser");
 
   private PolicyViolationDAO policyViolationDAO;
+
+  private SuccessMetricsReport successMetricsReport;
 
   private void fixViolations(
       PolicyEvaluation evaluation,
@@ -201,15 +204,13 @@ public class SuccessMetricsChartsTest
     successMetricsScope.applicationIds = new HashSet<>(Arrays.asList(app1.getId(), app2.getId()));
 
     // Include app2 using its app id and app1 using its parent org id. Do not include app3.
-    SuccessMetricsReport successMetricsReport =
-        tempEntity.newSuccessMetricsReport("admin", "Test",
-        JsonUtils.format(successMetricsScope));
-
-    refreshOrOpen(SuccessMetricsReportPage.url(successMetricsReport.getId()));
+    successMetricsReport = tempEntity.newSuccessMetricsReport("admin", "Test", JsonUtils.format(successMetricsScope));
   }
 
   @Test
   public void testHeader() {
+    refreshOrOpen(SuccessMetricsReportPage.url(successMetricsReport.getId()));
+
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     successMetricsChartsPage.should(appear);
@@ -226,6 +227,8 @@ public class SuccessMetricsChartsTest
 
   @Test
   public void testViolationTrendTile() {
+    refreshOrOpen(SuccessMetricsReportPage.url(successMetricsReport.getId()));
+
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
     successMetricsChartsPage.should(appear);
 
@@ -429,6 +432,8 @@ public class SuccessMetricsChartsTest
 
   @Test
   public void testViolationsByCategoryTile() {
+    refreshOrOpen(SuccessMetricsReportPage.url(successMetricsReport.getId()));
+
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     successMetricsChartsPage.should(appear);
@@ -474,6 +479,8 @@ public class SuccessMetricsChartsTest
 
   @Test
   public void testViolationAveragesTile() {
+    refreshOrOpen(SuccessMetricsReportPage.url(successMetricsReport.getId()));
+
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     ScrollUtil.scrollIntoView(ViolationAveragesTile.root());
@@ -490,6 +497,8 @@ public class SuccessMetricsChartsTest
 
   @Test
   public void testApplicationCountsTile() {
+    refreshOrOpen(SuccessMetricsReportPage.url(successMetricsReport.getId()));
+
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     ScrollUtil.scrollIntoView(ApplicationCountsTile.root());
@@ -511,6 +520,8 @@ public class SuccessMetricsChartsTest
 
   @Test
   public void testMttrTile() {
+    refreshOrOpen(SuccessMetricsReportPage.url(successMetricsReport.getId()));
+
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     ScrollUtil.scrollIntoView(MttrTile.root());
@@ -543,6 +554,8 @@ public class SuccessMetricsChartsTest
 
   @Test
   public void testComponentCountsTile() {
+    refreshOrOpen(SuccessMetricsReportPage.url(successMetricsReport.getId()));
+
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     ScrollUtil.scrollIntoView(ComponentCountsTile.root());
@@ -600,6 +613,7 @@ public class SuccessMetricsChartsTest
 
     refreshOrOpen(SuccessMetricsReportPage.url(successMetricsReport.getId()));
 
+    SuccessMetricsReportPage.Header.title().shouldHave(text("invalid metrics"));
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
     successMetricsChartsPage.should(appear);
     successMetricsChartsPage.noDataInfoPane().shouldBe(visible).shouldHave(NO_DATA_INFO_TEXT_MONTHLY);
@@ -613,16 +627,13 @@ public class SuccessMetricsChartsTest
     DateTimeUtils.setCurrentMillisSystem();
   }
 
-  private static Condition heightAttrStartingWith(final String value) {
-    return new Condition("heightAttrStartingWith") {
+  private static WebElementCondition heightAttrStartingWith(final String value) {
+    return new WebElementCondition("heightAttrStartingWith") {
       @Override
-      public boolean apply(Driver driver, WebElement element) {
-        return element.getAttribute(HEIGHT_ATTR).startsWith(value);
-      }
-
-      @Override
-      public String actualValue(Driver driver, WebElement element) {
-        return element.getAttribute(HEIGHT_ATTR);
+      public CheckResult check(Driver driver, WebElement element) {
+        var actual = element.getAttribute(HEIGHT_ATTR);
+        return actual.startsWith(value) ? CheckResult.accepted(actual) :
+          CheckResult.rejected("height attribute did not start with " + value, actual);
       }
     };
   }

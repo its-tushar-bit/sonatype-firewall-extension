@@ -5,18 +5,18 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.text;
 
 public class RemoveModal
     extends DeleteModal
 {
-  public static Condition headerText(String resourceType) {
+  public static WebElementCondition headerText(String resourceType) {
     return text("Clear " + resourceType);
   }
 
-  public static Condition bodyText(String resourceName) {
+  public static WebElementCondition bodyText(String resourceName) {
     return text("You are about to remove " + resourceName + ".");
   }
 }

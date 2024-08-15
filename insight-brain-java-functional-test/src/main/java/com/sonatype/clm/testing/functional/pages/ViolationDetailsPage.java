@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
@@ -205,7 +206,7 @@ public class ViolationDetailsPage
       return child("a");
     }
 
-    public static Condition unused() {
+    public static WebElementCondition unused() {
       return Condition.cssClass("iq-violation-details__stage--unused");
     }
   }

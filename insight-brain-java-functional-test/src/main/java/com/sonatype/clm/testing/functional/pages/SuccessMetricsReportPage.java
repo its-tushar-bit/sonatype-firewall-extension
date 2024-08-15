@@ -16,6 +16,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Selenide.$;
@@ -26,13 +27,13 @@ public class SuccessMetricsReportPage
 {
   private static final String ROOT_SELECTOR = "success-metrics-report";
 
-  public static final Condition NO_DATA_INFO_TEXT_MONTHLY = Condition.text(
+  public static final WebElementCondition NO_DATA_INFO_TEXT_MONTHLY = Condition.text(
       "There's not enough data to generate Success Metrics. Run some evaluations and check again next month.");
 
-  public static final Condition NO_DATA_INFO_TEXT_LATEST = Condition.text(
+  public static final WebElementCondition NO_DATA_INFO_TEXT_LATEST = Condition.text(
       "There's not enough data to generate Success Metrics. Run some evaluations and check again.");
 
-  public static final Condition CONFIRM_REMOVAL_HEADER_TEXT = Condition.text("Delete Report");
+  public static final WebElementCondition CONFIRM_REMOVAL_HEADER_TEXT = Condition.text("Delete Report");
 
   public static final String ALL_CLASS = "iq-chart__dataset--overall";
 
@@ -88,7 +89,7 @@ public class SuccessMetricsReportPage
     return BaseUrl.resolvePageUrl("/labs/successMetrics/{successMetricsId}", successMetricsId);
   }
 
-  public static Condition confirmRemovalText(String successMetricsName) {
+  public static WebElementCondition confirmRemovalText(String successMetricsName) {
     return Condition.text("You are about to delete " + successMetricsName + ". This action cannot be undone.");
   }
 
@@ -285,18 +286,21 @@ public class SuccessMetricsReportPage
       "Week of August 6th"
     };
 
-    public static final Condition TITLE_TEXT = Condition.text("12 Week Policy Violation Activity");
+    public static final WebElementCondition TITLE_TEXT = Condition.text("12 Week Policy Violation Activity");
 
-    public static final Condition DESCRIPTION_TEXT = Condition
+    public static final WebElementCondition DESCRIPTION_TEXT = Condition
         .text("Violations and remediation over the past 12 weeks.");
 
-    public static final Condition TRENDS_DELTA_UP_CLASS = Condition.cssClass("iq-violation-trends__bar--delta-up");
+    public static final WebElementCondition TRENDS_DELTA_UP_CLASS =
+        Condition.cssClass("iq-violation-trends__bar--delta-up");
 
-    public static final Condition TRENDS_DELTA_DOWN_CLASS = Condition.cssClass("iq-violation-trends__bar--delta-down");
+    public static final WebElementCondition TRENDS_DELTA_DOWN_CLASS =
+        Condition.cssClass("iq-violation-trends__bar--delta-down");
 
-    public static final Condition TRENDS_DISCOVERED_CLASS = Condition.cssClass("iq-violation-trends__bar--discovered");
+    public static final WebElementCondition TRENDS_DISCOVERED_CLASS =
+        Condition.cssClass("iq-violation-trends__bar--discovered");
 
-    public static final Condition TRENDS_FIXED_CLASS = Condition.cssClass("iq-violation-trends__bar--fixed");
+    public static final WebElementCondition TRENDS_FIXED_CLASS = Condition.cssClass("iq-violation-trends__bar--fixed");
 
     public static SelenideElement guidelineTooltip = $("#guidelineTooltip");
 

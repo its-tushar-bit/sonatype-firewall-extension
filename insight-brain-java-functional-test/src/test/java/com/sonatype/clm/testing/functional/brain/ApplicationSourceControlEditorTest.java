@@ -29,6 +29,7 @@ import com.sonatype.nexus.iq.manager.PullRequestResult;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.codeborne.selenide.CollectionCondition;
+import com.codeborne.selenide.WebElementsCondition;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.http.HttpHeaders;
 import org.junit.After;
@@ -52,12 +53,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApplicationSourceControlEditorTest
     extends AbstractSourceControlEditorTest
 {
-  private static final CollectionCondition CONFIG_TEST_NAMES = texts(
+  private static final WebElementsCondition CONFIG_TEST_NAMES = texts(
       "Configuration complete",
       "Private repository",
       "Sufficient token permissions");
 
-  private static final CollectionCondition CONFIG_TEST_SSH_NAMES = texts(
+  private static final WebElementsCondition CONFIG_TEST_SSH_NAMES = texts(
       "Configuration complete",
       "Private repository",
       "Sufficient token permissions",

@@ -50,6 +50,7 @@ import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultsSummaryPage;
+import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.IconDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -70,11 +71,13 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.InsightWork;
-
+import com.codeborne.selenide.CheckResult;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Driver;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
+import com.codeborne.selenide.WebElementCondition;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -1758,7 +1761,7 @@ public class RepositoriesSummaryViewTest
 
   private BufferedImage fetchImage(String urlString) throws IOException {
     HttpClient client = HttpClientBuilder.create().build();
-    HttpGet get = new HttpGet(urlString);
+    HttpGet get = new HttpGet(BaseUrl.convertContainerUrlToHostUrl(urlString));
     get.setHeader("Authorization",
             "Basic " + Base64.getEncoder().encodeToString("admin:admin123".getBytes(StandardCharsets.UTF_8)));
     HttpResponse response = client.execute(get);
@@ -1771,11 +1774,12 @@ public class RepositoriesSummaryViewTest
   }
 
   private void assertImage(SelenideElement element) {
-    element.shouldBe(new Condition("image")
+    element.shouldBe(new WebElementCondition("image")
     {
       @Override
-      public boolean apply(Driver driver, WebElement ignored) {
-        return element.isImage();
+      public CheckResult check(Driver driver, WebElement ignored) {
+        boolean isImage = element.isImage();
+        return new CheckResult(isImage, element);
       }
     });
   }

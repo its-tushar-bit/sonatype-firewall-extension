@@ -13,8 +13,8 @@ import java.util.stream.Collectors;
 
 import com.codeborne.selenide.CheckResult;
 import com.codeborne.selenide.CheckResult.Verdict;
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.WebDriverRunner;
+import com.codeborne.selenide.WebElementsCondition;
 import com.codeborne.selenide.ex.UIAssertionError;
 import com.codeborne.selenide.impl.CollectionSource;
 import org.jetbrains.annotations.NotNull;
@@ -27,16 +27,16 @@ import static java.util.stream.Collectors.toList;
 
 public class IqConditions
 {
-  public static CollectionCondition cssValues(String propertyName, String... values) {
+  public static WebElementsCondition cssValues(String propertyName, String... values) {
     return new Css(propertyName, values);
   }
 
-  public static CollectionCondition allHaveClass(String className) {
+  public static WebElementsCondition allHaveClass(String className) {
     return new AllHaveClass(className);
   }
 
   private static class AllHaveClass
-      extends CollectionCondition
+      extends WebElementsCondition
   {
     private final String className;
 
@@ -70,13 +70,18 @@ public class IqConditions
     }
 
     @Override
-    public boolean missingElementSatisfiesCondition() {
+    public boolean missingElementsSatisfyCondition() {
       return false;
+    }
+
+    @Override
+    public String toString() {
+      return "AllHaveClass" + className;
     }
   }
 
   private static class Css
-      extends CollectionCondition
+      extends WebElementsCondition
   {
     private final String propertyName;
 
@@ -137,7 +142,7 @@ public class IqConditions
     }
 
     @Override
-    public boolean missingElementSatisfiesCondition() {
+    public boolean missingElementsSatisfyCondition() {
       return false;
     }
 

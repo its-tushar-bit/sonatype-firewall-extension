@@ -5,8 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
@@ -18,7 +18,7 @@ import static com.codeborne.selenide.Condition.selected;
  */
 public class NxCheckbox
 {
-  private static final Condition LABEL_DISABLED = cssClass("nx-radio-checkbox--disabled");
+  private static final WebElementCondition LABEL_DISABLED = cssClass("nx-radio-checkbox--disabled");
 
   protected SelenideElement element;
 
@@ -47,8 +47,8 @@ public class NxCheckbox
    * {@link #label()} is the only visible element therefore most conditions should be processed on it.
    * Condition.selected should still be tested against the input element
    */
-  public NxCheckbox shouldBe(Condition... conditions) {
-    for (Condition condition : conditions) {
+  public NxCheckbox shouldBe(WebElementCondition... conditions) {
+    for (WebElementCondition condition : conditions) {
       if (selected.equals(condition)) {
         input().shouldBe(condition);
       }
@@ -68,8 +68,8 @@ public class NxCheckbox
    * {@link #label()} is the only visible element therefore most conditions should be processed on it.
    * Condition.selected should still be tested against the input element
    */
-  public NxCheckbox shouldNotBe(Condition... conditions) {
-    for (Condition condition : conditions) {
+  public NxCheckbox shouldNotBe(WebElementCondition... conditions) {
+    for (WebElementCondition condition : conditions) {
       if (selected.equals(condition)) {
         input().shouldNotBe(condition);
       }
@@ -86,11 +86,11 @@ public class NxCheckbox
   }
 
   // grammatical convenience methods
-  public NxCheckbox shouldHave(Condition... conditions) {
+  public NxCheckbox shouldHave(WebElementCondition... conditions) {
     return shouldBe(conditions);
   }
 
-  public NxCheckbox shouldNotHave(Condition... conditions) {
+  public NxCheckbox shouldNotHave(WebElementCondition... conditions) {
     return shouldNotBe(conditions);
   }
 }

@@ -33,7 +33,6 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
@@ -103,7 +102,7 @@ public class ReportListTest
     URL zippedReport = ReportHelper.zipReport(reportDir, tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
 
-    new TestReportEvaluator(app, scanId, zippedReport, Configuration.baseUrl, work, stageId)
+    new TestReportEvaluator(app, scanId, zippedReport, baseUrlFromTest, work, stageId)
         .evaluatePolicy();
   }
 

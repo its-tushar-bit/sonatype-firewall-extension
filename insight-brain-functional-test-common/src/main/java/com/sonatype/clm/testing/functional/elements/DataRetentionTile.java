@@ -5,9 +5,12 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import java.util.List;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.exactText;
 
@@ -32,7 +35,7 @@ public class DataRetentionTile
     return child("#edit-retention-button");
   }
 
-  public Condition subHeaderText(String ownerName) {
+  public WebElementCondition subHeaderText(String ownerName) {
     return Condition.text("applying to " + ownerName);
   }
 
@@ -45,8 +48,15 @@ public class DataRetentionTile
   }
 
   private int column(String contextId) {
-    ElementsCollection rowHeaders = rowHeaders();
-    return rowHeaders.indexOf(rowHeaders.find(exactText(contextId)));
+    List<SelenideElement> rowHeaders = rowHeaders().asFixedIterable().stream().toList();
+
+    for (int i = 0; i < rowHeaders.size(); i++) {
+      if (rowHeaders.get(i).has(exactText(contextId))) {
+        return i;
+      }
+    }
+
+    return -1;
   }
 
   public ElementsCollection maxAges() {

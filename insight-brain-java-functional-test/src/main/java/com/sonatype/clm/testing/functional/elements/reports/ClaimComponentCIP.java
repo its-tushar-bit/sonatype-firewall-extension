@@ -7,9 +7,9 @@ package com.sonatype.clm.testing.functional.elements.reports;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Selenide.$$;
@@ -19,7 +19,7 @@ public class ClaimComponentCIP
 {
   private static final String ROOT_ID = "#claim-component-editor";
 
-  public static Condition ERROR_CLASS = cssClass("error");
+  public static WebElementCondition ERROR_CLASS = cssClass("error");
 
   public ClaimComponentCIP() {
     super(ROOT_ID);

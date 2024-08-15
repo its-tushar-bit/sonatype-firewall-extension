@@ -10,13 +10,14 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Selenide.$;
 
 public class PolicyInheritsToSection
     extends BasicElement<PolicyInheritsToSection>
 {
-  public static final Condition ALL_TEXT_ROOT_ORG = Condition.text("All Applications and Repositories");
+  public static final WebElementCondition ALL_TEXT_ROOT_ORG = Condition.text("All Applications and Repositories");
 
   private static final String ROOT = "#policy-edit-inheritance";
 
@@ -28,7 +29,7 @@ public class PolicyInheritsToSection
     return $(ROOT + " .nx-h2");
   }
 
-  public static Condition allRadioText(String ownerName) {
+  public static WebElementCondition allRadioText(String ownerName) {
     if ("Root Organization".equals(ownerName)) {
       return Condition.text("All Applications and Repositories");
     }
@@ -36,7 +37,7 @@ public class PolicyInheritsToSection
     return Condition.text("All Applications in " + ownerName);
   }
 
-  public static Condition specifiedRadioText(String ownerName) {
+  public static WebElementCondition specifiedRadioText(String ownerName) {
     return Condition.text("Applications of the specified Application Categories in " + ownerName);
   }
 

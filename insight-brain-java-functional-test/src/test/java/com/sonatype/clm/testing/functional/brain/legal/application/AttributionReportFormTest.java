@@ -20,8 +20,8 @@ import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -90,8 +90,8 @@ public class AttributionReportFormTest
     AttributionReportFormPage attrReportFormPage = new AttributionReportFormPage();
     refreshOrOpen(AttributionReportFormPage.url(app.getPublicId(), BuildStageType.ID));
 
-    Condition valueTrue = value("true");
-    Condition valueFalse = value("false");
+    WebElementCondition valueTrue = value("true");
+    WebElementCondition valueFalse = value("false");
 
     attrReportFormPage.getTableOfContentsHiddenInput().shouldHave(valueTrue);
     attrReportFormPage.getTableOfContentsCheck().click();
@@ -142,9 +142,9 @@ public class AttributionReportFormTest
     Path file3 = Files.createTempFile("file3", ".txt");
     file3.toFile().deleteOnExit();
 
-    Condition innerText1 = text(file1.getFileName().toString());
-    Condition innerText2 = text(file2.getFileName().toString());
-    Condition innerText3 = text(file3.getFileName().toString());
+    WebElementCondition innerText1 = text(file1.getFileName().toString());
+    WebElementCondition innerText2 = text(file2.getFileName().toString());
+    WebElementCondition innerText3 = text(file3.getFileName().toString());
 
     SelenideElement deleteFileModalConfirmationButton = attrReportFormPage.getDeleteFileModalConfirmationButton();
 
@@ -195,7 +195,7 @@ public class AttributionReportFormTest
     refreshOrOpen(AttributionReportFormPage.url(app.getPublicId(), BuildStageType.ID));
     Path file1 = Files.createTempFile("file1", ".txt");
     file1.toFile().deleteOnExit();
-    Condition innerText1 = text(file1.getFileName().toString());
+    WebElementCondition innerText1 = text(file1.getFileName().toString());
     attrReportFormPage.getFileInputs().get(0).uploadFile(file1.toFile());
     SelenideElement firstListItem = attrReportFormPage.getUploadedFileListItems().get(0);
     firstListItem.has(innerText1);

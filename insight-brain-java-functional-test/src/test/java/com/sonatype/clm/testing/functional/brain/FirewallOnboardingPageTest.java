@@ -45,6 +45,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -1212,7 +1213,7 @@ public class FirewallOnboardingPageTest
   {
     firewallRepositoryList.checkAllHeaderColumn().selectAllCheckbox().click();
     for (int i = 0; i < firewallRepositoryList.rows().size(); i++) {
-      Condition expectedCondition = supportedFormats.contains(otherRepositories.get(i).getFormat())
+      WebElementCondition expectedCondition = supportedFormats.contains(otherRepositories.get(i).getFormat())
           ? selected
           : disabled;
       firewallRepositoryList.row(i).checkbox().input().shouldBe(expectedCondition);
@@ -1220,7 +1221,7 @@ public class FirewallOnboardingPageTest
 
     firewallRepositoryList.checkAllHeaderColumn().selectAllCheckbox().click();
     for (int i = 0; i < firewallRepositoryList.rows().size(); i++) {
-      Condition expectedCondition = supportedFormats.contains(otherRepositories.get(i).getFormat())
+      WebElementCondition expectedCondition = supportedFormats.contains(otherRepositories.get(i).getFormat())
           ? not(selected)
           : disabled;
       firewallRepositoryList.row(i).checkbox().input().shouldBe(expectedCondition);

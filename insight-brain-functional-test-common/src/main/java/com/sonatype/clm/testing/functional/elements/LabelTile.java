@@ -10,6 +10,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
@@ -22,11 +23,11 @@ public class LabelTile
     super("#owner-pill-comp-labels");
   }
 
-  public static Condition inheritedText(String parent) {
+  public static WebElementCondition inheritedText(String parent) {
     return Condition.text("inherited from " + parent);
   }
 
-  public static Condition subHeaderText(String ownerName) {
+  public static WebElementCondition subHeaderText(String ownerName) {
     return Condition.text("available to " + ownerName + " policies");
   }
 

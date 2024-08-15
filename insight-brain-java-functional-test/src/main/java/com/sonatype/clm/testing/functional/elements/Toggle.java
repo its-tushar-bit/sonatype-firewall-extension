@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 public class Toggle
     extends BasicElement<Toggle>
@@ -25,21 +26,21 @@ public class Toggle
     return child(".toggle");
   }
 
-  private SelenideElement conditionTarget(Condition condition) {
+  private SelenideElement conditionTarget(WebElementCondition condition) {
     return Condition.checked.equals(condition) ? input() : toggleButton();
   }
 
   @Override
-  public Toggle shouldBe(Condition... conditions) {
-    for (Condition condition : conditions) {
+  public Toggle shouldBe(WebElementCondition... conditions) {
+    for (WebElementCondition condition : conditions) {
       conditionTarget(condition).shouldBe(condition);
     }
     return this;
   }
 
   @Override
-  public Toggle shouldNotBe(Condition... conditions) {
-    for (Condition condition : conditions) {
+  public Toggle shouldNotBe(WebElementCondition... conditions) {
+    for (WebElementCondition condition : conditions) {
       conditionTarget(condition).shouldNotBe(condition);
     }
     return this;

@@ -8,14 +8,14 @@ package com.sonatype.clm.testing.functional.elements;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 
-import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.cssClass;
 
 public class MainHeaderNavigationButton
     extends BasicElement<MainHeaderNavigationButton>
 {
-  public static final Condition CLASS_ACTIVE = cssClass("selected");
+  public static final WebElementCondition CLASS_ACTIVE = cssClass("selected");
 
   public MainHeaderNavigationButton(String selector) {
     super(".nx-global-sidebar__navigation", selector);

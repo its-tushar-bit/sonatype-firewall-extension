@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.model.Owner;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -19,7 +20,7 @@ public class ApplicationCategoryEditorPage
 {
   private static final String ROOT_ID = "#application-category-editor";
 
-  public static final Condition NO_CATEGORIES_DEFINED = Condition.text("There are no items configured");
+  public static final WebElementCondition NO_CATEGORIES_DEFINED = Condition.text("There are no items configured");
 
   public static String urlToEdit(Owner owner) {
     return urlToEdit(owner.getPublicId());
@@ -41,7 +42,7 @@ public class ApplicationCategoryEditorPage
     return $("h1");
   }
 
-  public static Condition titleText() {
+  public static WebElementCondition titleText() {
     return Condition.text("Assign Application Categories");
   }
 
@@ -49,7 +50,7 @@ public class ApplicationCategoryEditorPage
     return $(".nx-legend > span");
   }
 
-  public static Condition subtitleText(String ownerName) {
+  public static WebElementCondition subtitleText(String ownerName) {
     return Condition.text("Application Categories Assigned to " + ownerName);
   }
 

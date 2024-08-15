@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
-import com.codeborne.selenide.Configuration;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -45,7 +44,7 @@ public class LegacyReportViewTest
   public void start() {
     app = tempEntity.newApplicationWithParent();
     evaluator = new TestReportEvaluator(app, scanId,
-        ReportHelper.zipReport("/canned-reports/report-without-resources", tempDir), Configuration.baseUrl, work);
+        ReportHelper.zipReport("/canned-reports/report-without-resources", tempDir), baseUrlFromTest, work);
   }
 
   @Test

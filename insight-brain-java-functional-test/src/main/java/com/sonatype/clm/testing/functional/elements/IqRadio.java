@@ -5,10 +5,12 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.selected;
+
+import com.codeborne.selenide.Condition;
 
 /**
  * CLM Radio Widget. Uses a pseudo element for the radio therefore clicks cannot be processed by the
@@ -34,7 +36,7 @@ public class IqRadio
     label().click();
   }
 
-  private SelenideElement elementFor(Condition condition) {
+  private SelenideElement elementFor(WebElementCondition condition) {
     if (selected.equals(condition) ||
         Condition.enabled.equals(condition) ||
         Condition.disabled.equals(condition)) {
@@ -49,8 +51,8 @@ public class IqRadio
    * {@link #label()} is the only visible element therefore most conditions should be processed on it.
    * Condition.selected should still be tested against the input element
    */
-  public IqRadio shouldBe(Condition... conditions) {
-    for (Condition condition : conditions) {
+  public IqRadio shouldBe(WebElementCondition... conditions) {
+    for (WebElementCondition condition : conditions) {
       elementFor(condition).shouldBe(condition);
     }
     return this;
@@ -60,8 +62,8 @@ public class IqRadio
    * {@link #label()} is the only visible element therefore most conditions should be processed on it.
    * Condition.selected should still be tested against the input element
    */
-  public IqRadio shouldNotBe(Condition... conditions) {
-    for (Condition condition : conditions) {
+  public IqRadio shouldNotBe(WebElementCondition... conditions) {
+    for (WebElementCondition condition : conditions) {
       elementFor(condition).shouldNotBe(condition);
     }
     return this;
@@ -71,8 +73,8 @@ public class IqRadio
    * {@link #label()} is the only visible element therefore most conditions should be processed on it.
    * Condition.selected should still be tested against the input element
    */
-  public IqRadio shouldHave(Condition... conditions) {
-    for (Condition condition : conditions) {
+  public IqRadio shouldHave(WebElementCondition... conditions) {
+    for (WebElementCondition condition : conditions) {
       elementFor(condition).shouldHave(condition);
     }
     return this;

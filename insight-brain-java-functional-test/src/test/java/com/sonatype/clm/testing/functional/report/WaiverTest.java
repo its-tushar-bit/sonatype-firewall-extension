@@ -32,7 +32,6 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
-import com.codeborne.selenide.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -81,7 +80,7 @@ public class WaiverTest
 
     app = tempEntity.newApplicationWithParent(WaiverTest.class.getSimpleName(), "Waiver Test App", "Waiver Test Org");
     evaluator = new TestReportEvaluator(app, scanId, ReportHelper.zipReport("/canned-reports/small-report", tempDir),
-        Configuration.baseUrl, work);
+        baseUrlFromTest, work);
   }
 
   @Test

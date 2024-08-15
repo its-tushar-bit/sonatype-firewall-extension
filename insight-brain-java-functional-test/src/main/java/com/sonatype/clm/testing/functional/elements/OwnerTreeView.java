@@ -7,9 +7,9 @@ package com.sonatype.clm.testing.functional.elements;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
@@ -55,11 +55,12 @@ public class OwnerTreeView
   public static class OrganizationNode
       extends BasicElement<OrganizationNode>
   {
-    public static final Condition CHILD_SELECTED = cssClass("child-selected");
+    public static final WebElementCondition CHILD_SELECTED = cssClass("child-selected");
 
     public static final String DISABLED_TOOLTIP_CONTENT = "You do not have permission to view this organization.";
 
-    public static final Condition DISABLED_TOOLTIP_ATTRIBUTE = attribute("tooltip-text", DISABLED_TOOLTIP_CONTENT);
+    public static final WebElementCondition DISABLED_TOOLTIP_ATTRIBUTE =
+        attribute("tooltip-text", DISABLED_TOOLTIP_CONTENT);
 
     public OrganizationNode(String... selectors) {
       super(selectors);

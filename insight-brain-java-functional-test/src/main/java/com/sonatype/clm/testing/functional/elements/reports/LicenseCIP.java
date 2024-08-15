@@ -10,14 +10,12 @@ import java.util.List;
 import com.sonatype.clm.testing.functional.widget.MultiSelect;
 
 import com.codeborne.selenide.CheckResult;
-import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Driver;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
-import com.codeborne.selenide.ex.UIAssertionError;
-import com.codeborne.selenide.impl.CollectionSource;
+import com.codeborne.selenide.WebElementsCondition;
 import com.codeborne.selenide.impl.Describe;
 import org.openqa.selenium.WebElement;
 
@@ -77,52 +75,34 @@ public class LicenseCIP
     return $(createSelector(ROOT_ID, "button[type=submit]"));
   }
 
-  public static CollectionCondition licenseThreats(final Integer... expectedThreats) {
-    return new CollectionCondition()
+  public static WebElementsCondition licenseThreats(final Integer... expectedThreats) {
+    return new WebElementsCondition()
     {
       @Override
-      public boolean missingElementSatisfiesCondition() {
+      public boolean missingElementsSatisfyCondition() {
         return false;
       }
 
-      private Integer missingClassIndex;
-
       @Override
-      public boolean test(List<WebElement> elements) {
-        missingClassIndex = null;
+      public CheckResult check(Driver driver, List<WebElement> elements) {
         if (elements.size() != expectedThreats.length) {
-          return false;
+          String message = "Unexpected number of elements " + elements.size() + ", Expected " + expectedThreats.length;
+          return CheckResult.rejected(message, elements);
         }
 
         for (int i = 0; i < expectedThreats.length; i++) {
           WebElement element = elements.get(i);
-          if (!Condition.cssClass(convertToCssClass(expectedThreats[i])).apply(WebDriverRunner.driver(), element)) {
-            missingClassIndex = i;
-            return false;
+          var cssClass = convertToCssClass(expectedThreats[i]);
+          var verdict = Condition.cssClass(cssClass).check(WebDriverRunner.driver(), element).verdict();
+
+          if (verdict == CheckResult.Verdict.REJECT) {
+            var description = new Describe(driver, elements.get(i)).toString();
+            var message = "Failed to locate CSS class: " + cssClass + " on " + description;
+
+            return CheckResult.rejected(message, elements);
           }
         }
-        return true;
-      }
-
-      @Override
-      public void fail(
-          final CollectionSource collection,
-          final CheckResult lastCheckResult,
-          final Exception cause,
-          final long timeoutMs)
-      {
-        if (missingClassIndex != null) {
-          Driver driver = WebDriverRunner.driver();
-
-          String description = new Describe(driver, collection.getElements().get(missingClassIndex))
-              .toString();
-
-          throw new UIAssertionError(driver, "Failed to locate CSS class: "
-              + convertToCssClass(expectedThreats[missingClassIndex]) + " on "
-              + description)
-          {
-          };
-        }
+        return CheckResult.accepted(elements);
       }
 
       private String convertToCssClass(Integer threatLevel) {
@@ -141,6 +121,11 @@ public class LicenseCIP
         else {
           return "none";
         }
+      }
+
+      @Override
+      public String toString() {
+        return "licenseThreats";
       }
     };
   }

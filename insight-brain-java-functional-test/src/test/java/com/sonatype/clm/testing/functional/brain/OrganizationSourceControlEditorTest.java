@@ -19,7 +19,9 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.openqa.selenium.WebElement;
 
+import static com.codeborne.selenide.CollectionCondition.allMatch;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
@@ -353,7 +355,8 @@ public class OrganizationSourceControlEditorTest
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITHUB, true, true, "master");
     refresh();
 
-    SourceControlEditorPage.baseBranchFieldset().radioInputs().forEach(input -> input.shouldBe(enabled));
+    SourceControlEditorPage.baseBranchFieldset().radioInputs()
+        .should(allMatch("is enabled", WebElement::isEnabled));
     SourceControlEditorPage.baseBranchFieldset().radioInputs().get(0).shouldBe(selected);
     SourceControlEditorPage.baseBranchFieldset().labels()
         .shouldHave(texts(String.format("Inherit from %s", rootOrganization.getName()), "Override"));

@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.elements;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
@@ -27,11 +28,11 @@ public class PolicyTile
     super("#owner-pill-policy");
   }
 
-  public static Condition inheritedText(String parent) {
+  public static WebElementCondition inheritedText(String parent) {
     return Condition.text("inherited from " + parent);
   }
 
-  public static Condition noActionText() {
+  public static WebElementCondition noActionText() {
     return Condition.text("—");
   }
 

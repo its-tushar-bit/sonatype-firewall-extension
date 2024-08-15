@@ -7,12 +7,13 @@ package com.sonatype.clm.testing.functional.utils;
 
 import java.time.Duration;
 
-import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.CheckResult;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Driver;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
+import com.codeborne.selenide.WebElementCondition;
 import com.codeborne.selenide.ex.UIAssertionError;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Point;
@@ -51,7 +52,7 @@ public class ScrollUtil
     }
   }
 
-  public static final Condition scrolledOffTop = new ScrolledOffTop();
+  public static final WebElementCondition scrolledOffTop = new ScrolledOffTop();
 
   /**
    * Selenide's typical `visible` condition doesn't consider whether or not the element is scrolled into view.
@@ -59,7 +60,7 @@ public class ScrollUtil
    * scrolled above the visible area of its parent, even partially
    */
   public static class ScrolledOffTop
-      extends Condition
+      extends WebElementCondition
   {
     private JavascriptExecutor executor = getExecutor();
 
@@ -68,9 +69,11 @@ public class ScrollUtil
     }
 
     @Override
-    public boolean apply(Driver driver, WebElement element) {
-      return (Boolean) executor
+    public CheckResult check(Driver driver, WebElement element) {
+      Boolean scrolledOffTop = (Boolean) executor
           .executeScript(JS_LOCAL_VARS + "return parent[0].scrollTop > el[0].offsetTop - parentPadding;", element);
+
+      return new CheckResult(scrolledOffTop, element);
     }
   }
 
@@ -107,22 +110,18 @@ public class ScrollUtil
    * Waits for any scrolling affecting the given element to finish to ensure later clicks don't miss their target.
    */
   public static SelenideElement awaitEndOfScrolling(final SelenideElement element) {
-    SelenideElement selenideElement = element.shouldBe(new Condition("done scrolling")
+    SelenideElement selenideElement = element.shouldBe(new WebElementCondition("done scrolling")
     {
       Point previousLocation;
 
       Point currentLocation;
 
       @Override
-      public boolean apply(Driver driver, WebElement element) {
+      public CheckResult check(Driver driver, WebElement element) {
         previousLocation = currentLocation;
         currentLocation = element.getLocation();
-        return currentLocation.equals(previousLocation);
-      }
-
-      @Override
-      public String actualValue(Driver driver, WebElement element) {
-        return previousLocation + " vs " + currentLocation;
+        boolean doneScrolling = currentLocation.equals(previousLocation);
+        return new CheckResult(doneScrolling, element);
       }
     }, Duration.ofMillis(Configuration.timeout * 2));
 

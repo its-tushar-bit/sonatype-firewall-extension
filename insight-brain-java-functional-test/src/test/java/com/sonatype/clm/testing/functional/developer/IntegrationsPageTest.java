@@ -34,7 +34,6 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
-import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
@@ -481,7 +480,7 @@ public class IntegrationsPageTest
     final URL zippedReport = ReportHelper.zipReport("/canned-reports/small-report", tempDir);
     final InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     final TestReportEvaluator evaluator =
-        new TestReportEvaluator(application, "scan-" + scanNum, zippedReport, Configuration.baseUrl, work, stageId);
+        new TestReportEvaluator(application, "scan-" + scanNum, zippedReport, baseUrlFromTest, work, stageId);
     try {
       evaluator.evaluatePolicy();
     }

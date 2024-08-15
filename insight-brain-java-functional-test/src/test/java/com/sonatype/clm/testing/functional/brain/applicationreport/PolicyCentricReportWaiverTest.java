@@ -29,7 +29,6 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
-import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.Before;
@@ -79,7 +78,7 @@ public class PolicyCentricReportWaiverTest
     app = tempEntity.newApplicationWithParent(PolicyCentricReportWaiverTest.class.getSimpleName(), "Waiver Test App",
         "Waiver Test Org");
     evaluator = new TestReportEvaluator(app, scanId, ReportHelper.zipReport("/canned-reports/small-report", tempDir),
-        Configuration.baseUrl, work);
+        baseUrlFromTest, work);
   }
 
   @Test

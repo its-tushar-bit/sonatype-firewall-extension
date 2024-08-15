@@ -5,7 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.WebElementCondition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
@@ -17,7 +17,7 @@ public class SelectContactModal
 {
   private static final String ROOT = "#select-contact-modal";
 
-  public static Condition headerText() {
+  public static WebElementCondition headerText() {
     return text("Select Contact");
   }
 

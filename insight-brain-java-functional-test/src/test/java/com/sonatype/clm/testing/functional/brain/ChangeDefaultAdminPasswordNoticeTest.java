@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 
-import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.WebElementCondition;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -94,7 +94,7 @@ public class ChangeDefaultAdminPasswordNoticeTest
     assertNotice(hidden);
   }
 
-  private void assertNotice(Condition... conditions) {
+  private void assertNotice(WebElementCondition... conditions) {
     ChangeDefaultAdminPasswordNotice notice = new ChangeDefaultAdminPasswordNotice();
     for (String url : URLs) {
       refreshOrOpen(url);

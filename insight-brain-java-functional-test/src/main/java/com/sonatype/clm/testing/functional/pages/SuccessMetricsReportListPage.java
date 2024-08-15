@@ -11,6 +11,7 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
@@ -23,7 +24,7 @@ public class SuccessMetricsReportListPage
 
   private static final String ROOT_SELECTOR = "#success-metrics-report-list";
 
-  public static final Condition EMPTY_TEXT = Condition.text("No reports have been created.");
+  public static final WebElementCondition EMPTY_TEXT = Condition.text("No reports have been created.");
 
   public SuccessMetricsReportListPage() {
     super(ROOT_SELECTOR);

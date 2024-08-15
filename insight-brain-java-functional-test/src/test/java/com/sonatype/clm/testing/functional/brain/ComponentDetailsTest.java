@@ -94,7 +94,6 @@ import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.Securi
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilityWeakness;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilityWeakness.CweId;
 
-import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
@@ -182,11 +181,11 @@ public class ComponentDetailsTest
     otherApp = tempEntity.newApplication("OtherApplicationReportTest", "OtherApplicationReportTest", org.getId());
     URL zippedReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
-    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
+    evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, baseUrlFromTest, work);
     evaluator.evaluatePolicy();
 
     similarWaiverCreator = new SimilarWaiverCreator(zippedReport, otherApp, testCLMServer,
-        AbstractFunctionalTest::refreshOrOpen);
+        AbstractFunctionalTest::refreshOrOpen, baseUrlFromTest);
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
   }
 

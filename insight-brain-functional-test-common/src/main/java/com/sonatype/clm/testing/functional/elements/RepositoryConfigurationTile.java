@@ -7,9 +7,9 @@ package com.sonatype.clm.testing.functional.elements;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
@@ -22,7 +22,8 @@ public class RepositoryConfigurationTile
 {
   private static final String CONFIGURATION_TILE_SELECTOR = "#repositories-pill-configuration";
 
-  public static final Condition EMPTY_LIST_TEXT = text("There are no repositories registered with the server.");
+  public static final WebElementCondition EMPTY_LIST_TEXT =
+      text("There are no repositories registered with the server.");
 
   public RepositoryConfigurationTile() {
     super(CONFIGURATION_TILE_SELECTOR);
@@ -72,9 +73,9 @@ public class RepositoryConfigurationTile
     public static class ConfigurationTableRow
         extends BasicElement<ConfigurationTableRow>
     {
-      public static final Condition ENABLED_ICON = cssClass("fa-check-circle");
+      public static final WebElementCondition ENABLED_ICON = cssClass("fa-check-circle");
 
-      public static final Condition DISABLED_ICON = cssClass("fa-times-circle");
+      public static final WebElementCondition DISABLED_ICON = cssClass("fa-times-circle");
 
       public ConfigurationTableRow(String... selectors) {
         super(selectors);
@@ -116,7 +117,7 @@ public class RepositoryConfigurationTile
         return child("td", nthChild(5));
       }
 
-      public static Condition deleteRepositoryText(String publicId) {
+      public static WebElementCondition deleteRepositoryText(String publicId) {
         return text("Are you sure you want to remove the Repository with ID \"" + publicId
             + "\"? This action is not reversible.");
       }

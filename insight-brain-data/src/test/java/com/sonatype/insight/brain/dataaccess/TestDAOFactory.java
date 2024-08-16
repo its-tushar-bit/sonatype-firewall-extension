@@ -70,6 +70,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyInternalDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
@@ -658,6 +659,11 @@ public class TestDAOFactory
   public PolicyWaiverDAO createPolicyWaiverDAO() {
     OwnerDAO ownerDAO = createOwnerDAO();
     return new PolicyWaiverDAO(dataStoreProvider.getOperationalDataStore(), ownerDAO);
+  }
+
+  @Override
+  public PolicyWaiverReasonDAO createPolicyWaiverReasonDAO() {
+    return new PolicyWaiverReasonDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override

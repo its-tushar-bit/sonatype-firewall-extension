@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.utils.ScopeOwnerUtils;
 import com.sonatype.insight.json.store.ApiDateFormat;
 
@@ -156,7 +157,17 @@ public class ApiPolicyWaiverDTO
   @JsonInclude(Include.NON_NULL)
   public Boolean componentUpgradeAvailable;
 
-  public static ApiPolicyWaiverDTO toDto(PolicyWaiver policyWaiver, Owner owner) {
+  /**
+   * @since 1.181
+   */
+  @JsonInclude(Include.NON_NULL)
+  public String reasonText;
+
+  public static ApiPolicyWaiverDTO toDto(
+      PolicyWaiver policyWaiver,
+      PolicyWaiverReason policyWaiverReason,
+      Owner owner)
+  {
     ApiPolicyWaiverDTO dto = new ApiPolicyWaiverDTO();
 
     dto.policyWaiverId = policyWaiver.getId();
@@ -197,7 +208,15 @@ public class ApiPolicyWaiverDTO
               .ifPresent(vulnerabilityId -> dto.vulnerabilityId = vulnerabilityId);
     }
 
+    if (policyWaiverReason != null) {
+      dto.reasonText = policyWaiverReason.getReasonText();
+    }
+
     return dto;
+  }
+
+  public static ApiPolicyWaiverDTO toDto(PolicyWaiver policyWaiver, Owner owner) {
+    return toDto(policyWaiver, null, owner);
   }
 
   public static ApiPolicyWaiverDTO toDto(PolicyWaiver policyWaiver, Owner owner, String policyViolationId) {

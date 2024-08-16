@@ -66,6 +66,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyInternalDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
@@ -269,6 +270,8 @@ public interface DAOFactory
   PolicyViolationDAO createPolicyViolationDAO();
 
   PolicyWaiverDAO createPolicyWaiverDAO();
+
+  PolicyWaiverReasonDAO createPolicyWaiverReasonDAO();
 
   RepositoryPolicyViolationDAO createRepositoryPolicyViolationDAO();
 

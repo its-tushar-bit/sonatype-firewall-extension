@@ -103,6 +103,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
@@ -240,6 +241,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
@@ -412,6 +414,8 @@ public class TemporaryEntity
   private LicenseOverrideDAO licenseOverrideDAO;
 
   private PolicyWaiverDAO waiverDAO;
+
+  private PolicyWaiverReasonDAO waiverReasonDAO;
 
   private LdapServerDAO ldapServerDAO;
 
@@ -619,6 +623,8 @@ public class TemporaryEntity
 
   private static List<User> initialUsers;
 
+  private static List<PolicyWaiverReason> initialWaiverReasons;
+
   private DataStoreProvider dataStoreProvider;
 
   private DAOFactory daoFactory;
@@ -639,6 +645,7 @@ public class TemporaryEntity
     saveInitialMembershipMappingsIfNeeded();
     saveInitialMigrationTrackersIfNeeded();
     saveInitialUsersIfNeeded();
+    saveInitialWaiverReasonsIfNeeded();
     initializePersistedUserSessions();
     deletedTenants = new ArrayList<>();
 
@@ -727,6 +734,18 @@ public class TemporaryEntity
       detachEntity(user);
       userDAO.update(user);
     }
+  }
+
+  private void saveInitialWaiverReasonsIfNeeded() {
+    if (initialWaiverReasons == null) {
+      initialWaiverReasons = waiverReasonDAO.getAll();
+    }
+  }
+
+  private void restoreInitialWaiverReasons() {
+    waiverReasonDAO.getAll().forEach(waiverReason -> waiverReasonDAO.delete(waiverReason));
+    initialWaiverReasons.forEach(this::detachEntity);
+    initialWaiverReasons.forEach(waiverReason -> waiverReasonDAO.insert(waiverReason));
   }
 
   public List<Organization> sortNLevelOrgsWithLeafNodesOnTop(Collection<Organization> orgs) {
@@ -859,6 +878,7 @@ public class TemporaryEntity
       delete(repositoryIdentifiedComponentDAO.getAll(), repositoryIdentifiedComponentDAO);
       delete(deletedTenants, deletedTenantDAO);
       delete(callFlowAnalysisConfigDAO.getAll(), callFlowAnalysisConfigDAO);
+      restoreInitialWaiverReasons();
       productLicenseDAO.delete();
       firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
       persistedPolicyEvaluationPollingResultDAO.deleteAll();
@@ -1696,6 +1716,29 @@ public class TemporaryEntity
     fillAdditionalFixedData(hash, waiver);
     waiverDAO.insert(waiver);
     return waiver;
+  }
+
+  public PolicyWaiver newWaiverWithReason(
+      String hash,
+      String policyId,
+      String ownerId,
+      List<ConstraintFact> constraintFacts,
+      String comment,
+      String reasonType,
+      String reasonText)
+  {
+    PolicyWaiverReason policyWaiverReason = newWaiverReason(reasonType, reasonText);
+    PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, constraintFacts, comment);
+    waiver.setWaiverReasonId(policyWaiverReason.getId());
+    fillAdditionalFixedData(hash, waiver);
+    waiverDAO.insert(waiver);
+    return waiver;
+  }
+
+  public PolicyWaiverReason newWaiverReason(String type, String reasonText) {
+    PolicyWaiverReason policyWaiverReason = new PolicyWaiverReason(type, reasonText);
+    waiverReasonDAO.insert(policyWaiverReason);
+    return policyWaiverReason;
   }
 
   public CallFlowAnalysisConfig newCallFlowAnalysisConfig(String ownerId, int threadCount) {
@@ -5165,6 +5208,7 @@ public class TemporaryEntity
     licenseThreatGroupLicenseDAO = daoFactory.createLicenseThreatGroupLicenseDAO();
     licenseOverrideDAO = daoFactory.createLicenseOverrideDAO();
     waiverDAO = daoFactory.createPolicyWaiverDAO();
+    waiverReasonDAO = daoFactory.createPolicyWaiverReasonDAO();
     callFlowAnalysisConfigDAO = daoFactory.createCallFlowAnalysisConfigDAO();
     ldapServerDAO = daoFactory.createLdapServerDAO();
     ldapConnectionDAO = daoFactory.createLdapConnectionDAO();

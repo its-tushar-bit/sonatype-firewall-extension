@@ -92,6 +92,12 @@ public class PolicyWaiver
   private Boolean componentUpgradeAvailable;
 
   /**
+   * @since 1.181
+   */
+  @Column(name = "waiver_reason_id")
+  private String waiverReasonId;
+
+  /**
    * @since 1.140
    */
   @Transient
@@ -276,6 +282,14 @@ public class PolicyWaiver
 
   public void setComponentUpgradeAvailable(Boolean componentUpgradeAvailable) {
     this.componentUpgradeAvailable = componentUpgradeAvailable;
+  }
+
+  public String getWaiverReasonId() {
+    return waiverReasonId;
+  }
+
+  public void setWaiverReasonId(String waiverReasonId) {
+    this.waiverReasonId = waiverReasonId;
   }
 
   public ComponentIdentifier getComponentIdentifier() {

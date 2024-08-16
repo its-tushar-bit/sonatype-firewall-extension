@@ -5,24 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.inject.Inject;
-
+import com.google.inject.Binder;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -36,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
@@ -66,8 +50,6 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
-
-import com.google.inject.Binder;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.joda.time.DateTime;
@@ -76,6 +58,23 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+
+import javax.inject.Inject;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverDTOTestUtils.assertApiPolicyWaiverDTO;
 import static com.sonatype.insight.brain.model.OwnerType.REPOSITORY_CONTAINER;
@@ -103,6 +102,9 @@ public class ApiPolicyWaiverServiceTest
 
   @Inject
   private PolicyWaiverDAO policyWaiverDAO;
+
+  @Inject
+  private PolicyWaiverReasonDAO policyWaiverReasonDAO;
 
   @Inject
   private OrganizationDAO organizationDAO;
@@ -764,6 +766,30 @@ public class ApiPolicyWaiverServiceTest
     assertThat(actual.scopeOwnerId).isEqualTo(application.getId());
     assertThat(actual.scopeOwnerName).isEqualTo(application.getName());
     assertThat(actual.scopeOwnerType).isEqualTo("application");
+  }
+
+  @Test
+  public void testGetPolicyWaivers_WithWaiverReason() {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiver policyWaiver = tempEntity.newWaiverWithReason("hash", policy.getId(), application.getId(), null,
+        "comment", "system", "because reasons"); // expiring in future
+
+    List<ApiPolicyWaiverDTO> policyWaiverDtoList =
+        apiPolicyWaiverService.getPolicyWaivers(OwnerType.APPLICATION, application.getId());
+
+    assertThat(policyWaiverDtoList).hasSize(1);
+    ApiPolicyWaiverDTO actual = policyWaiverDtoList.get(0);
+    assertThat(actual.policyWaiverId).isEqualTo(policyWaiver.getId());
+    assertThat(actual.comment).isEqualTo(policyWaiver.getComment());
+    assertThat(actual.createTime).isEqualTo(policyWaiver.getCreateTime());
+    assertThat(actual.expiryTime).isEqualTo(policyWaiver.getExpiryTime());
+    assertThat(actual.hash).isEqualTo(policyWaiver.getHash());
+    assertThat(actual.policyId).isEqualTo(policyWaiver.getPolicyId());
+    assertThat(actual.scopeOwnerId).isEqualTo(application.getId());
+    assertThat(actual.scopeOwnerName).isEqualTo(application.getName());
+    assertThat(actual.scopeOwnerType).isEqualTo("application");
+    assertThat(actual.reasonText).isEqualTo("because reasons");
   }
 
   @Test
@@ -1626,6 +1652,22 @@ public class ApiPolicyWaiverServiceTest
 
     assertThat(savedExpiredWaiver).isNotNull();
     assertThat(savedExpiredWaiver.expiryTime).isEqualTo(expirationDate);
+  }
+
+  @Test
+  public void testGetPolicyWaiver_WithWaiverReason() {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+
+    PolicyWaiver policyWaiver =
+        tempEntity.newWaiverWithReason("hash", policy.getId(), application.getId(), null, "comment",
+            "system", "because reasons");
+
+    ApiPolicyWaiverDTO savedWaiver =
+        apiPolicyWaiverService.getPolicyWaiver(OwnerType.APPLICATION, application.getId(), policyWaiver.getId());
+
+    assertWaivers(savedWaiver, policyWaiver, policy, application);
+    assertThat(savedWaiver.reasonText).isEqualTo("because reasons");
   }
 
   @Test

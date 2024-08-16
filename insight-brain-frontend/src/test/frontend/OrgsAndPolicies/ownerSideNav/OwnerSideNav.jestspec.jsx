@@ -14,6 +14,7 @@ import { PERMISSION } from 'MainRoot/util/authorizationUtil';
 import { fakeRouterState, verifyOwnersMenuSection } from './ownerSideNavTestingUtils';
 import { FILTER_DEBOUNCE } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { setupMenuBarBreadcrumbsPortalContainer } from '../../mainHeader/MenuBar/MenuBarStatefulBreadcrumb.jestspec';
+import { mergeDeepRight } from 'ramda';
 
 const { initialState: rscInitialState } = nxTextInputStateHelpers;
 
@@ -1236,7 +1237,7 @@ describe('OwnerSideNav', () => {
     });
 
     describe('Add Application dropdown', () => {
-      it('should render two options', async () => {
+      it('should render two options if not sbom manager', async () => {
         renderComponent();
 
         const buttons = await screen.findAllByRole('button');
@@ -1248,6 +1249,28 @@ describe('OwnerSideNav', () => {
         const importAppLink = await screen.findByRole('link', { name: 'Import Applications' });
         expect(importAppLink).toBeVisible();
         expect(importAppLink).toHaveAttribute('href', '#/onboarding/organization id 1');
+      });
+
+      it('should render one option if sbom manager', async () => {
+        const preloadedState = mergeDeepRight(state, {
+          productFeatures: {
+            productFeatures: {
+              'sbom-manager': true,
+            },
+          },
+          router: {
+            currentState: { name: 'sbomManager.management.view.organization' },
+          },
+        });
+        renderComponent(preloadedState);
+
+        const buttons = await screen.findAllByRole('button');
+        const applicationPlusButton = buttons[4];
+
+        fireEvent.click(applicationPlusButton);
+
+        expect(await screen.findByRole('button', { name: 'New Application' })).toBeVisible();
+        expect(screen.queryByRole('link', { name: 'Import Applications' })).not.toBeInTheDocument();
       });
 
       it('should open owner modal when user clicks on New Application button', async () => {

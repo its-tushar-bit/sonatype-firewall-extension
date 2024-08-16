@@ -9,10 +9,10 @@ import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar.OwnerItem;
 import com.sonatype.clm.testing.functional.elements.OwnerSummaryTile;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
-import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerDashboardPage;
 import com.sonatype.clm.testing.functional.mtiq.AbstractMtiqFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerDashboardPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -93,6 +93,16 @@ public class SbomManagerOwnerSummaryPageTest
 
     orgsAndPoliciesSidebar.getRepositoryList().shouldNotBe(visible);
     orgsAndPoliciesSidebar.getRepoManagerList().shouldNotBe(visible);
+  }
+
+  @Test
+  public void testSbomManager_ImportApplications_NotVisible() {
+    refreshOrOpen(SbomManagerDashboardPage.url());
+    SidebarNavigation.sbomManagerOrganizationsNavigationButton().click();
+    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
+    orgsAndPoliciesSidebar.getOrganizationLink(0).click();
+    orgsAndPoliciesSidebar.getApplicationPlusIcon().click();
+    orgsAndPoliciesSidebar.getImportApplicationsButton().shouldNotBe(visible);
   }
 
   private void isSbomManagerPage() {

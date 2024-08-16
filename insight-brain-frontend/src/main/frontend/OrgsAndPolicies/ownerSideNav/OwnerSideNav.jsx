@@ -330,7 +330,7 @@ export default function OwnerSideNav() {
         <button onClick={() => openOwnerEditorModal(true)} className="nx-dropdown-button">
           New Application
         </button>
-        {isScmEnabled && (
+        {!isSbomManager && isScmEnabled && (
           <a href={scmOnboardingHref} className="nx-dropdown-button">
             Import Applications
           </a>

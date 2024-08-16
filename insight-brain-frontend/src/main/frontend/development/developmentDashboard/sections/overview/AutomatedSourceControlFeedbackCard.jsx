@@ -14,22 +14,12 @@ export default function AutomatedSourceControlFeedbackCard() {
   return (
     <NxCard className="iq-integrations-card-ascf nx-card--equal" aria-label="SCM Feedback">
       <NxCard.Header>
-        <NxH3>SCM Feedback</NxH3>
+        <NxH3>Sync with SCM</NxH3>
       </NxCard.Header>
       <NxCard.Content>
         <NxCard.Text>
-          Inform Developers of unnecessary risk as they introduce it. Enable{' '}
-          <NxTextLink
-            external
-            href="https://links.sonatype.com/products/nxiq/doc/integrations/scm/automatic-source-control-feedback"
-          >
-            Automated Feedback
-          </NxTextLink>{' '}
-          by turning on &quot;Pull Request Commenting&quot; and &quot;Automated Commit Feedback&quot;.
-        </NxCard.Text>
-
-        <NxCard.Text>
-          We recommend this combination of settings to help developers get the most out of Lifecycle.
+          Integrate with your SCM environment to monitor your codebase and detect policy violations. Get automatic
+          feedback during the development process by enabling Automated Source Control Feedback features.
         </NxCard.Text>
       </NxCard.Content>
       <NxCard.Footer>

@@ -196,8 +196,8 @@ public class IntegrationsPageTest
     applicationName(9).shouldHave(text("appName0"));
     appIntegrationsCicdConfigureButton(9).shouldHave(visible).shouldHave(text("Configure"));
     appIntegrationsScmConfigureButton(9).shouldHave(visible).shouldHave(text("Configure"));
-    lastCommitDate(9).shouldBe(visible).shouldHave(text("N/A"));
-    lastEvaluationDate(9).shouldBe(visible).shouldHave(text("N/A"));
+    lastCommitDate(9).shouldBe(visible).shouldHave(text("None"));
+    lastEvaluationDate(9).shouldBe(visible).shouldHave(text("None"));
     prioritiesReport(9).shouldHave(text("N/A"));
   }
 

@@ -38,7 +38,7 @@ export default function Overview() {
       {isDeveloperSummaryTableEnabled ? (
         <>
           <div className="nx-page-title nx-page-title__actions">
-            <NxH2>Applications Configuration Build Stage Summary</NxH2>
+            <NxH2>Build Stage Risk Monitoring Summary</NxH2>
             <div className="nx-btn-bar">
               <NxButton id="filter-toggle" variant="tertiary" className="btn" onClick={toggleFilterSideBar}>
                 <NxFontAwesomeIcon icon={faFilter} />

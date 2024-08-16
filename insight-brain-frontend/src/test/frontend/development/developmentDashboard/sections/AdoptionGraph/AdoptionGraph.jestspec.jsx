@@ -129,7 +129,7 @@ describe('AdoptionGraph', () => {
   it('should render a graph', async () => {
     renderComponent();
 
-    const header = await screen.findByRole('heading', { name: /integration adoption/i });
+    const header = await screen.findByRole('heading', { name: /adoption profile/i });
     expect(header).toBeInTheDocument();
 
     act(() => {

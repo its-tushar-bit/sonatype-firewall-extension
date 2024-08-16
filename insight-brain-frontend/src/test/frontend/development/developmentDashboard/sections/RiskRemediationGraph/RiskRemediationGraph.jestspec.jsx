@@ -133,7 +133,7 @@ describe('RiskRemediationGraph', () => {
   it('should render a graph', async () => {
     renderComponent();
 
-    const header = await screen.findByRole('heading', { name: /risk & remediation timeline/i });
+    const header = await screen.findByRole('heading', { name: /risk and remediation/i });
     expect(header).toBeInTheDocument();
 
     act(() => {

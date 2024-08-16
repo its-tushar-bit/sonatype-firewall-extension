@@ -245,7 +245,7 @@ export default function AppIntegrationsAndRiskTable() {
 
 function formatTimestampToDate(timestamp) {
   if (timestamp === 0) {
-    return 'N/A';
+    return 'None';
   }
 
   return new Date(timestamp).toLocaleDateString('en-US', {

@@ -7,7 +7,6 @@
 import React from 'react';
 import {
   NxH1,
-  NxInfoAlert,
   NxLoadWrapper,
   NxP,
   NxPageMain,
@@ -16,7 +15,6 @@ import {
   NxTabList,
   NxTabPanel,
   NxTabs,
-  NxTextLink,
 } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -100,9 +98,8 @@ function SonatypeDeveloperPageContents() {
       </NxPageTitle>
       <div className="iq-integrations-content">
         <NxP className="iq-integrations__full-width-text">
-          <strong>Integrate Sonatype Developer</strong> in your development pipeline to automate open-source risk
-          management, with real-time feedback, early in your development process. Sonatype integrations help you take
-          immediate action to avoid surprise compliance issues when changes are pushed to production.
+          Sonatype Developer seamlessly automates open-source risk management within your development pipelines. Use
+          Sonatype Developer to receive real-time feedback on risk and remediation suggestions.
         </NxP>
         <NxTabs activeTab={activeTabId} onTabSelect={(index) => setTab(index)}>
           <NxTabList>

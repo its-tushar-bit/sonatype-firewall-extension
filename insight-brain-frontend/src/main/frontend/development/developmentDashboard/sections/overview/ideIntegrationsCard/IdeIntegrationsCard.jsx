@@ -19,9 +19,7 @@ export default function IdeIntegrationsCard() {
   };
   const { loading, loadError, ideIntegratedUserCount } = useSelector(selectIdeIntegrationsSlice);
   const ideUserCountMessage =
-    ideIntegratedUserCount === 1
-      ? 'member of your team uses an IDE integration'
-      : 'members of your team use an IDE integration';
+    ideIntegratedUserCount === 1 ? 'developer is using an IDE integration' : 'developers are using IDE integrations';
   const ideHref = useGetIntegrationsLink(SECTIONS.IDE);
 
   useEffect(() => {
@@ -31,7 +29,7 @@ export default function IdeIntegrationsCard() {
   return (
     <NxCard className="iq-integrations-card-ide nx-card--equal" aria-label="Integrate using IDEs">
       <NxCard.Header>
-        <NxH3>Integrate using IDEs</NxH3>
+        <NxH3>Sync with IDEs</NxH3>
       </NxCard.Header>
       <NxCard.Content className={loadError ? 'nx-card__content--row' : ''}>
         <div className="iq-integrations-card-callout">
@@ -42,9 +40,9 @@ export default function IdeIntegrationsCard() {
         </div>
 
         <NxCard.Text>
-          IDE integrations give you immediate visibility into open-source issues that do not meet AppSec requirements.
+          Integrate with your IDE to monitor your codebase. Remediate policy violations faster by analyzing the root
+          cause within the context of your IDE and upgrade to safer component versions.
         </NxCard.Text>
-        <NxCard.Text>Prevent frustrating rework by discovering issues before committing any code.</NxCard.Text>
       </NxCard.Content>
       <NxCard.Footer>
         <NxTextLink href={ideHref} data-analytics-id="sonatype-developer-overview-ide-integration">

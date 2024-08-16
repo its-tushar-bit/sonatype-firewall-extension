@@ -21,7 +21,7 @@ export default function AdoptionGraph() {
 
   return (
     <div className="iq-developer-dashboard-adoption-graph">
-      <NxH3>Integration Adoption Report</NxH3>
+      <NxH3>Adoption Profile</NxH3>
       <NxLoadWrapper error={loadError} retryHandler={doLoad} loading={loading}>
         <div className="iq-developer-dashboard-graph-wrapper">
           <ResponsiveLine
@@ -30,7 +30,7 @@ export default function AdoptionGraph() {
             colors={graphColors['adoptionGraph']}
             tooltip={(tooltip) => getTooltip(tooltip)}
             axisLeft={{
-              legend: 'Developer Adoption',
+              legend: 'Onboarded Apps',
               legendOffset: -50,
               legendPosition: 'middle',
               format: (value) => `${Math.round(value * 100)}%`,

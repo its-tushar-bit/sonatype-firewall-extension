@@ -22,7 +22,7 @@ export default function RiskAndRemediationGraph() {
 
   return (
     <div className="iq-developer-dashboard-risk-remediation-graph">
-      <NxH3>Risk & Remediation Timeline</NxH3>
+      <NxH3>Risk and Remediation</NxH3>
       <NxLoadWrapper error={loadError} retryHandler={doLoad} loading={loading}>
         <div className="iq-developer-dashboard-graph-wrapper">
           <ResponsiveLine

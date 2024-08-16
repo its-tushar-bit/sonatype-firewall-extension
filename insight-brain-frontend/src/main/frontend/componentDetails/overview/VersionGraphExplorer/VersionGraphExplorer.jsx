@@ -38,7 +38,7 @@ const VersionGraphExplorer = ({
   }, [selectedVersionError]);
 
   return (
-    <div id="aiVersionChartContainer">
+    <div id="aiVersionChartContainer" data-testid="aiVersionChartContainer">
       <div id="aiVersionChartLabels"></div>
       <div id="aiVersionChartViz"></div>
     </div>

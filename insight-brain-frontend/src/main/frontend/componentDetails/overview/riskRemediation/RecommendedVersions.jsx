@@ -14,7 +14,7 @@ export const RecommendedVersions = ({ actualVersion, stageId, remediation, handl
   const versionChanges = setRemediations(remediation, actualVersion, stageId);
 
   return (
-    <section className="iq-recommended-version nx-grid-col__section">
+    <section className="iq-recommended-version nx-grid-col__section" data-testid="iq-recommended-version">
       <header className="nx-grid-header">
         <h3 className="nx-h3 nx-grid-header__title">Recommended Versions</h3>
       </header>

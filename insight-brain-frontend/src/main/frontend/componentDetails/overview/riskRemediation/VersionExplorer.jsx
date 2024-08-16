@@ -11,7 +11,7 @@ import VersionGraphExplorer from '../VersionGraphExplorer/VersionGraphExplorer';
 export const VersionExplorer = (props) => {
   const { versions, currentVersion, source } = props;
   return (
-    <section className="iq-version-explorer nx-grid-col__section">
+    <section className="iq-version-explorer nx-grid-col__section" data-testid="iq-version-explorer">
       <header className="nx-grid-header">
         <h3 className="nx-h3 nx-grid-header__title">Version Explorer</h3>
       </header>
@@ -19,7 +19,11 @@ export const VersionExplorer = (props) => {
         {currentVersion && versions && (
           <div>
             <VersionGraphExplorer {...props} />
-            {source && <div id="iq-version-explorer-repository-source">Repository Source: {source}</div>}
+            {source && (
+              <div id="iq-version-explorer-repository-source" data-testid="iq-version-explorer-repository-source">
+                Repository Source: {source}
+              </div>
+            )}
           </div>
         )}
       </div>

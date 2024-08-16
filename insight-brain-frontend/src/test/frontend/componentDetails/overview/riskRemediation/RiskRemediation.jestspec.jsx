@@ -3,12 +3,17 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as enzymeUtils from '../../../enzymeUtils';
-import VersionGraphExplorer from 'MainRoot/componentDetails/overview/VersionGraphExplorer/VersionGraphExplorer';
+import React from 'react';
 import { RiskRemediation } from 'MainRoot/componentDetails/overview/riskRemediation/RiskRemediation';
+import { screen, render, within, fireEvent } from 'TestRoot/SpecUtil';
+
+jest.mock('@sonatype/version-graph', () => ({
+  renderVersionGraph: jest.fn(),
+  selectVersion: jest.fn(),
+}));
 
 describe('RiskRemediation', () => {
-  let minimalProps, getMounted;
+  let renderComponent, loadVersionExplorerDataSpy;
 
   const allVersions = [
     {
@@ -194,85 +199,92 @@ describe('RiskRemediation', () => {
     ],
   };
 
+  loadVersionExplorerDataSpy = jest.fn('loadVersionExplorerData').mockImplementation(() => {});
+
+  const minimalProps = {
+    currentVersion: '123',
+    dependencyTreeSubset: [
+      {
+        hash: '502f98a535313e13cf18',
+        displayName: 'org.springframework.data : spring-data-rest-hal-explorer : 3.4.11',
+      },
+    ],
+    actualVersion: '2.4.19',
+    stageId: 'build',
+    routeName: 'applicationReport.componentDetails.overview',
+    loadVersionExplorerData: loadVersionExplorerDataSpy,
+    versionExplorerData: {
+      loading: false,
+      loadError: null,
+      versions: null,
+      remediation,
+      sourceResponse: null,
+    },
+    selectedVersionData: {
+      loading: false,
+      loadError: null,
+      selectedVersionDetails: null,
+      selectedVersion: null,
+    },
+    componentInformation: {},
+  };
+
   beforeEach(function () {
-    minimalProps = {
-      currentVersion: '123',
-      dependencyTreeSubset: [
-        {
-          hash: '502f98a535313e13cf18',
-          displayName: 'org.springframework.data : spring-data-rest-hal-explorer : 3.4.11',
-        },
-      ],
-      actualVersion: '2.4.19',
-      stageId: 'build',
-      routeName: 'applicationReport.componentDetails.overview',
-      loadVersionExplorerData: jasmine.createSpy('loadVersionExplorerData'),
-      versionExplorerData: {
-        loading: false,
-        loadError: null,
-        versions: null,
-        remediation: remediation,
-        sourceResponse: null,
-      },
-      selectedVersionData: {
-        loading: false,
-        loadError: null,
-        selectedVersionDetails: null,
-        selectedVersion: null,
-      },
-      componentInformation: {},
-    };
-
-    getMounted = enzymeUtils.getMountedComponent(RiskRemediation, minimalProps);
+    renderComponent = (props = minimalProps) => render(<RiskRemediation {...props} />);
   });
 
-  xit('renders Recommended Remediation section if it is a transitive dependency', () => {
-    const component = getMounted({
-        componentInformation: { directDependency: false },
-      }),
-      dependencyInfoTile = component.find('.iq-dependency-information');
+  it('renders Recommended Remediation section if it is a transitive dependency', () => {
+    renderComponent({
+      ...minimalProps,
+      componentInformation: { directDependency: false },
+    });
 
-    expect(dependencyInfoTile.length).toBe(1);
-    const ancestorsList = dependencyInfoTile.find('.nx-list');
-    expect(ancestorsList.length).toBe(1);
-    const listElements = ancestorsList.find('li');
-    expect(listElements.length).toBe(1);
+    const dependencyInfoTile = screen.getByTestId('iq-dependency-information');
+    expect(dependencyInfoTile).toBeInTheDocument();
+    expect(within(dependencyInfoTile).getByRole('heading', { name: /recommended remediation/i })).toBeInTheDocument();
+
+    const ancestorsList = within(dependencyInfoTile).getAllByRole('list');
+    expect(ancestorsList).toHaveLength(1);
+    const ancestorsListItems = within(dependencyInfoTile).getAllByRole('listitem');
+    expect(ancestorsListItems).toHaveLength(1);
   });
 
-  xit('renders Recommended Remediation section even if dependencyTreeSubset is empty', () => {
-    const component = getMounted({
-        dependencyTreeSubset: [],
-        componentInformation: { directDependency: false },
-      }),
-      dependencyInfoTile = component.find('.iq-dependency-information');
+  it('renders Recommended Remediation section even if dependencyTreeSubset is empty', () => {
+    renderComponent({
+      ...minimalProps,
+      dependencyTreeSubset: [],
+      componentInformation: { directDependency: false },
+    });
 
-    expect(dependencyInfoTile.length).toBe(1);
+    const dependencyInfoTile = screen.getByTestId('iq-dependency-information');
+    expect(dependencyInfoTile).toBeInTheDocument();
   });
 
   it('does not render Recommended Remediation section if it is a direct dependency', () => {
-    const component = getMounted({
-        componentInformation: { directDependency: true },
-      }),
-      dependencyInfoTile = component.find('.iq-dependency-information');
+    renderComponent({
+      ...minimalProps,
+      componentInformation: { directDependency: true },
+    });
 
-    expect(dependencyInfoTile.length).toBe(0);
+    expect(screen.queryByTestId('iq-dependency-information')).not.toBeInTheDocument();
   });
 
   it('does not render Recommended Remediation section if it has no dependencyInfo', () => {
-    const component = getMounted(),
-      dependencyInfoTile = component.find('.iq-dependency-information');
+    renderComponent();
 
-    expect(dependencyInfoTile.length).toBe(0);
+    expect(screen.queryByTestId('iq-dependency-information')).not.toBeInTheDocument();
   });
 
   it('calls the loadVersionExplorerData method when mounted and VersionGraphExplorer not to exists', () => {
-    const component = getMounted().find(VersionGraphExplorer);
-    expect(component).not.toExist();
-    expect(minimalProps.loadVersionExplorerData).toHaveBeenCalledTimes(1);
+    renderComponent();
+    expect(screen.queryByTestId('VersionGraphExplorer')).not.toBeInTheDocument();
+
+    expect(loadVersionExplorerDataSpy).toHaveBeenCalledTimes(1);
   });
 
   it('renders the VersionGraphExplorer', () => {
-    const component = getMounted({
+    renderComponent({
+      ...minimalProps,
       versionExplorerData: {
         loading: false,
         loadError: null,
@@ -281,18 +293,16 @@ describe('RiskRemediation', () => {
       },
     });
 
-    const versionExplorerTile = component.find('iq-version-explorer');
-    const content = versionExplorerTile.find('#aiVersionChartContainer');
-    expect(content).not.toBeNull();
-    const versionExplorerComponent = component.find(VersionGraphExplorer);
-    expect(versionExplorerComponent).toHaveProp('versions', allVersions);
-    expect(versionExplorerComponent).toHaveProp('currentVersion', '123');
-    const versionExplorerRepositorySource = component.find('#iq-version-explorer-repository-source');
-    expect(versionExplorerRepositorySource).toHaveSize(0);
+    const versionExplorerTile = screen.getByTestId('iq-version-explorer');
+    expect(versionExplorerTile).toBeInTheDocument();
+    const content = within(versionExplorerTile).getByTestId('aiVersionChartContainer');
+    expect(content).toBeInTheDocument();
+    expect(screen.queryByTestId('iq-version-explorer-repository-source')).not.toBeInTheDocument();
   });
 
   it('renders the VersionGraphExplorer with the Repository Source', () => {
-    const component = getMounted({
+    renderComponent({
+      ...minimalProps,
       versionExplorerData: {
         loading: false,
         loadError: null,
@@ -301,54 +311,61 @@ describe('RiskRemediation', () => {
       },
     });
 
-    const versionExplorerTile = component.find('iq-version-explorer');
-    const content = versionExplorerTile.find('#aiVersionChartContainer');
-    expect(content).not.toBeNull();
-    const versionExplorerComponent = component.find(VersionGraphExplorer);
-    expect(versionExplorerComponent).toHaveProp('versions', allVersions);
-    expect(versionExplorerComponent).toHaveProp('currentVersion', '123');
-    const versionExplorerRepositorySource = component.find('#iq-version-explorer-repository-source');
-    expect(versionExplorerRepositorySource).toHaveSize(1);
-    expect(versionExplorerRepositorySource).toHaveText('Repository Source: https://repo.sonatype.com/');
+    const versionExplorerTile = screen.getByTestId('iq-version-explorer');
+    expect(versionExplorerTile).toBeInTheDocument();
+    const content = within(versionExplorerTile).getByTestId('aiVersionChartContainer');
+    expect(content).toBeInTheDocument();
+    const versionExplorerRepositorySource = screen.getByTestId('iq-version-explorer-repository-source');
+    expect(versionExplorerRepositorySource).toBeInTheDocument();
+    expect(versionExplorerRepositorySource).toHaveTextContent('Repository Source: https://repo.sonatype.com/');
   });
 
   it('renders the Recommended Versions tile', () => {
-    const component = getMounted(),
-      recommendedVersionTile = component.find('.iq-recommended-version');
-    expect(recommendedVersionTile).not.toBeNull();
-    const recommendedVersionsList = recommendedVersionTile.find('.nx-list');
+    renderComponent();
+    const recommendedVersionTile = screen.getByTestId('iq-recommended-version');
+    expect(recommendedVersionTile).toBeInTheDocument();
+    const recommendedVersionsList = within(recommendedVersionTile).getAllByRole('list');
     expect(recommendedVersionsList.length).toBe(1);
-    const listElements = recommendedVersionsList.find('li');
+    const listElements = within(recommendedVersionTile).getAllByRole('listitem');
     expect(listElements.length).toBe(2);
   });
 
   describe('selected version load error modal', () => {
-    let minProps, getShallow, cancelMock;
-
-    beforeEach(() => {
-      cancelMock = jasmine.createSpy('resetSelectedVersionData');
-      minProps = {
-        ...minimalProps,
-        selectedVersionData: {
-          loadError: 'error',
-          selectedVersion: '2.3',
-        },
-        resetSelectedVersionData: cancelMock,
-      };
-
-      getShallow = enzymeUtils.getShallowComponent(RiskRemediation, minProps);
-    });
+    const cancelMock = jest.fn('resetSelectedVersionData');
+    const minProps = {
+      ...minimalProps,
+      selectedVersionData: {
+        loadError: 'error',
+        selectedVersion: '2.3',
+      },
+      resetSelectedVersionData: cancelMock,
+    };
 
     it('renders selected version load error modal', () => {
-      const modal = getShallow().find('#selected-version-error-modal');
-      expect(modal).toExist();
+      renderComponent(minProps);
+      const modal = screen.getByRole('dialog');
+      expect(modal).toBeInTheDocument();
+      expect(
+        within(modal).getByRole('heading', { name: 'Error loading component details for version 2.3' })
+      ).toBeInTheDocument();
     });
 
-    it('calls resetSelectedVersionData handler on modal close action', () => {
-      const modal = getShallow().find('#selected-version-error-modal');
+    it('calls resetSelectedVersionData handler on modal close action using Esc key', () => {
+      renderComponent(minProps);
+      const modal = screen.getByRole('dialog');
+      expect(modal).toBeInTheDocument();
 
-      modal.simulate('cancel');
+      fireEvent.keyDown(modal, { key: 'Escape' });
+      expect(cancelMock).toHaveBeenCalledTimes(1);
+    });
 
+    it('calls resetSelectedVersionData handler on modal close action using cancel button', () => {
+      renderComponent(minProps);
+      const modal = screen.getByRole('dialog');
+      expect(modal).toBeInTheDocument();
+
+      const closeButton = screen.getByRole('button', { name: 'Close' });
+      fireEvent.click(closeButton);
       expect(cancelMock).toHaveBeenCalledTimes(1);
     });
   });

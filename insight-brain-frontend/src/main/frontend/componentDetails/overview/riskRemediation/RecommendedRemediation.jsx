@@ -16,7 +16,7 @@ export const RecommendedRemediation = ({
   dependencyTreeIsNotSupported,
 }) => {
   return (
-    <section className="iq-dependency-information nx-grid-col__section">
+    <section className="iq-dependency-information nx-grid-col__section" data-testid="iq-dependency-information">
       <header className="nx-grid-header">
         <h3 className="nx-h3 nx-grid-header__title">Recommended Remediation</h3>
       </header>

@@ -11,8 +11,10 @@ import { useSelector } from 'react-redux';
 import { selectShouldDisplayNotice } from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSelectors';
 import './scmWizard.scss';
 import { formatSCMProvider, getSCMProviderTokenDocUrl, getSCMProviderTokenUrl } from './scmWizardUtil';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function ScmWizard({ scmProvider, applicationPublicId }) {
+  const uiRouterState = useRouterState();
   const formattedScmProvider = formatSCMProvider(scmProvider);
   const tokenUrl = getSCMProviderTokenUrl(scmProvider);
   const tokenDocUrl = getSCMProviderTokenDocUrl(scmProvider);
@@ -20,8 +22,10 @@ export default function ScmWizard({ scmProvider, applicationPublicId }) {
   const shouldDisplayNotice = useSelector(selectShouldDisplayNotice);
 
   const permissionUrl = 'https://links.sonatype.com/products/nxiq/doc/scm-token-permissions';
-  const applicationSourceControlPage = `/assets/#/management/edit/application/${applicationPublicId}/source-control`;
-  const automaticSourceControlConfigurationPage = '/assets/#/automaticSourceControlConfiguration';
+  const applicationSourceControlPage = uiRouterState.href('management.edit.application.edit-source-control', {
+    applicationPublicId,
+  });
+  const automaticSourceControlConfigurationPage = uiRouterState.href('automaticSourceControlConfiguration');
   const configureSourceControlHelpLink = 'https://links.sonatype.com/products/nxiq/doc/scm-connect-iq';
 
   const dataAnalyticsIdToken = `sonatype-developer-scm-${scmProvider}-token`;

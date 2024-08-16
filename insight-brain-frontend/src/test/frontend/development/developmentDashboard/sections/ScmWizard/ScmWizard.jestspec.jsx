@@ -12,9 +12,10 @@ import {
   getSCMProviderTokenDocUrl,
   getSCMProviderTokenUrl,
 } from 'MainRoot/development/developmentDashboard/sections/scmWizard/scmWizardUtil';
+import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 
 describe('ScmWizard', () => {
-  let selectShouldDisplayNotice;
+  let selectShouldDisplayNotice, hrefSpy, getSpy;
   const ScmProvider = ['github', 'gitlab', 'azure devops', 'bitbucket'];
   const mockScmProvider = 'github';
   const mockApplicationPublicId = 'test-application-1';
@@ -23,6 +24,11 @@ describe('ScmWizard', () => {
     selectShouldDisplayNotice = jest
       .spyOn(baseUrlConfigurationSelectors, 'selectShouldDisplayNotice')
       .mockReturnValue(true);
+
+    hrefSpy = jest.fn('href').mockImplementation((stateName) => stateName);
+    getSpy = jest.fn('get').mockImplementation((state) => state);
+    const routerContextMock = { href: hrefSpy, get: getSpy };
+    jest.spyOn(routerStateContext, 'useRouterState').mockReturnValue(routerContextMock);
   });
 
   ScmProvider.forEach((scmProvider) => {
@@ -110,7 +116,7 @@ describe('ScmWizard', () => {
   });
 
   it('renders the correct application source control configuration page base on publicId', () => {
-    const expectedApplicationSourceControlPage = `/assets/#/management/edit/application/${mockApplicationPublicId}/source-control`;
+    const expectedApplicationSourceControlPage = 'management.edit.application.edit-source-control';
     renderComponent(mockScmProvider, mockApplicationPublicId);
     expect(screen.getAllByRole('link', { name: 'click here' })[0]).toHaveAttribute(
       'href',
@@ -122,7 +128,7 @@ describe('ScmWizard', () => {
     renderComponent(mockScmProvider, mockApplicationPublicId);
     expect(screen.getByRole('link', { name: 'Automatic Source Control' })).toHaveAttribute(
       'href',
-      '/assets/#/automaticSourceControlConfiguration'
+      'automaticSourceControlConfiguration'
     );
   });
 

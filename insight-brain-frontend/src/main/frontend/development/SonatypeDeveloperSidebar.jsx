@@ -20,7 +20,7 @@ import IqSidebarNavFooter from 'MainRoot/react/iqSidebarNav/IqSidebarNavFooter';
 const logoImg = require('./assets/sonatype-developer-logo-white.svg');
 
 export default function SonatypeDeveloperSidebar(props) {
-  const { isLoggedIn } = props;
+  const { isLoggedIn, isAdvancedSearchEnabled } = props;
   const uiRouterState = useRouterState();
   const dashboardState = 'developer.dashboard';
   const reportsState = 'developer.reports';
@@ -60,13 +60,15 @@ export default function SonatypeDeveloperSidebar(props) {
             text="Reports"
             href={reportsHref}
           />
-          <NxGlobalSidebarNavigationLink
-            isSelected={isSelected(advancedSearchState)}
-            id="sonatype-developer-search-navigation-button"
-            icon={faSearch}
-            text="Advanced Search"
-            href={advancedSearchHref}
-          />
+          {isAdvancedSearchEnabled && (
+            <NxGlobalSidebarNavigationLink
+              isSelected={isSelected(advancedSearchState)}
+              id="sonatype-developer-search-navigation-button"
+              icon={faSearch}
+              text="Advanced Search"
+              href={advancedSearchHref}
+            />
+          )}
         </NxGlobalSidebarNavigation>
       )}
       <IqSidebarNavFooter />
@@ -76,4 +78,5 @@ export default function SonatypeDeveloperSidebar(props) {
 
 SonatypeDeveloperSidebar.propTypes = {
   isLoggedIn: PropTypes.bool,
+  isAdvancedSearchEnabled: PropTypes.bool,
 };

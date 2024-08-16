@@ -37,7 +37,7 @@ describe('SonatypeDeveloperSidebar', () => {
     };
     jest.spyOn(RouterStateContextModule, 'useRouterState').mockImplementation(() => mockRouterState);
 
-    const props = { isLoggedIn: true };
+    const props = { isLoggedIn: true, isAdvancedSearchEnabled: true };
     renderComponent = (additionalProps, preloadedState) =>
       render(<SonatypeDeveloperSidebar {...props} {...additionalProps} />, {
         preloadedState: { ...defaultPreloadedState, ...preloadedState },
@@ -59,6 +59,20 @@ describe('SonatypeDeveloperSidebar', () => {
     expect(reportsLink).toHaveAttribute('href', '#/developer/reports');
     expect(searchLink).toHaveTextContent('Advanced Search');
     expect(searchLink).toHaveAttribute('href', '#/developer/advancedSearch');
+  });
+
+  it('does not render advanced search link when isAdvancedSearchEnabled is false', () => {
+    renderComponent({ isAdvancedSearchEnabled: false });
+    const sidebarLinks = screen.getAllByRole('link');
+    const mainLink = sidebarLinks[0];
+    const dashboardLink = sidebarLinks[1];
+    const reportsLink = sidebarLinks[2];
+    expect(mainLink).toHaveAttribute('href', '#/developer/dashboard');
+    expect(dashboardLink).toHaveTextContent('Dashboard');
+    expect(dashboardLink).toHaveAttribute('href', '#/developer/dashboard');
+    expect(reportsLink).toHaveTextContent('Reports');
+    expect(reportsLink).toHaveAttribute('href', '#/developer/reports');
+    expect(screen.queryByRole('link', { name: 'Advanced Search' })).not.toBeInTheDocument();
   });
 
   it('does not render the sidebar when the user is not logged in', () => {

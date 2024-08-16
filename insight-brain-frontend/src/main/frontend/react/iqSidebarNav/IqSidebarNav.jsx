@@ -95,7 +95,9 @@ function IqSidebarNav(props) {
   }, [isOpen]);
 
   const sbomManagerSidebar = <SbomManagerSidebar isLoggedIn={isLoggedIn} isSbomManagerEnabled={isSbomManagerEnabled} />;
-  const sonatypeDeveloperSidebar = <SonatypeDeveloperSidebar isLoggedIn={isLoggedIn} />;
+  const sonatypeDeveloperSidebar = (
+    <SonatypeDeveloperSidebar isLoggedIn={isLoggedIn} isAdvancedSearchEnabled={isAdvancedSearchEnabled} />
+  );
   const iqSidebar = (
     <NxGlobalSidebar
       isOpen={isOpen}

@@ -73,27 +73,28 @@ make(
     runFeatureBranchPolicyEvaluations: true,
     iqPolicyEvaluation: { stage ->
         if (shouldRunPolicyEvaluation()) {
+          def callflowConfig = isDeployBranch(env, 'main') ? [
+              enable: true,
+              includes: [
+                  'nexus-iq-server/target/insight-brain-service-*.jar'
+              ],
+              entrypointStrategy: [
+                  $class: 'NamedStrategy',
+                  name: 'JAVA_MAIN',
+                  namespaces:['com.sonatype.insight']
+              ],
+              java: [
+                  options: [
+                      '-Xmx12G'
+                  ]
+              ]
+          ] : null
           nexusPolicyEvaluation iqStage: stage, iqApplication: 'insight-brain',
               iqScanPatterns: [[scanPattern: 'insight-brain-frontend/target/webpack-modules']],
               //Test files inside the maven modules are excluded from the scan
               iqModuleExcludes: [[moduleExclude: '**/test/**'], [moduleExclude: '**/test-classes/**/module.xml']],
               failBuildOnNetworkError: true,
-              callflow: [
-                enable: true,
-                includes: [
-                  'nexus-iq-server/target/insight-brain-service-*.jar'
-                ],
-                entrypointStrategy: [
-                  $class: 'NamedStrategy',
-                  name: 'JAVA_MAIN',
-                  namespaces:['com.sonatype.insight']
-                ],
-                java: [
-                  options: [
-                    '-Xmx12G'
-                  ]
-                ]
-              ]
+              callflow: callflowConfig
 
           if (stage == 'release') {
             build(job: 'bnr/lifecycle-for-sonatype/generate-attribution-report',
@@ -515,20 +516,6 @@ boolean isFastBuild() {
 }
 
 boolean shouldRunPolicyEvaluation() {
-  return !isFastBuild() || hasDependenciesChanged()
+  return !isFastBuild() || haveDependenciesChanged(['pom.xml', 'package.json', 'yarn.lock'])
 }
 
-boolean hasDependenciesChanged() {
-  return currentBuild.changeSets?.find() { ChangeLogSet<? extends Entry> changeSet ->
-    changeSet.items.find() { GitChangeSet item ->
-      item.getAffectedPaths().find() { String path ->
-        if (!path.contains('/test/data/') &&
-            (path.contains('pom.xml')
-            || path.contains('package.json')
-            || path.contains('yarn.lock'))) {
-          return true
-        }
-      }
-    }
-  }
-}

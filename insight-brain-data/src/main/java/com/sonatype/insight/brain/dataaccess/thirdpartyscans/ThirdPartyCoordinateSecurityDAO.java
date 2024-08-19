@@ -182,16 +182,14 @@ public class ThirdPartyCoordinateSecurityDAO
     String sQuery = "" + //
         "SELECT COUNT(DISTINCT sm.third_party_file_id)" + //
         " FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
-        " JOIN " + getDatabaseSchema() + ".file_coordinate fc" + //
-        " ON fc.third_party_file_id = sm.third_party_file_id" + //
         " JOIN " + getDatabaseSchema() + ".coordinate_security cs" + //
-        " ON cs.file_coordinate_id = fc.file_coordinate_id" + //
+        " ON sm.sbom_metadata_id = cs.sbom_metadata_id" + //
         " LEFT JOIN " + getDatabaseSchema() + ".vulnerability_exploitability vex" + //
         " ON cs.coordinate_security_id = vex.coordinate_security_id" + //
-        " WHERE cs.severity >= ?1" + //
+        " WHERE sm.application_id = ANY(array[?2])" + //
+        " AND cs.severity >= ?1" + //
         " AND sm.status = 'ACTIVE'" + //
-        " AND vex.vulnerability_exploitability_id IS NULL" + //
-        " AND sm.application_id = ANY(array[?2])";
+        " AND vex.vulnerability_exploitability_id IS NULL";
 
     try (TransactionContext tx = createTransactionContext()) {
       javax.persistence.Query query = createNativeQuery(tx, sQuery, HIGH.getStartScoreRange(),
@@ -207,31 +205,24 @@ public class ThirdPartyCoordinateSecurityDAO
     String sQuery = "" + //
         "SELECT COUNT(DISTINCT sm.third_party_file_id)" + //
         " FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
-        " JOIN " + getDatabaseSchema() + ".file_coordinate fc" + //
-        " ON fc.third_party_file_id = sm.third_party_file_id" + //
-        " JOIN " + getDatabaseSchema() + ".coordinate_security cs" + //
-        " ON cs.file_coordinate_id = fc.file_coordinate_id" + //
-        " WHERE cs.severity >= ?1" + //
-        " AND sm.application_id = ANY(array[?2])" + //
+        " WHERE sm.application_id = ANY(array[?2])" + //
         " AND sm.status = 'ACTIVE'" + //
-        " AND sm.third_party_file_id IN (" + //
-        "   SELECT third_party_file_id" + //
-        "   FROM " + getDatabaseSchema() + ".file_coordinate fc" + //
-        "   JOIN " + getDatabaseSchema() + ".coordinate_security cs" + //
-        "   ON fc.file_coordinate_id = cs.file_coordinate_id" + //
+        " AND EXISTS (" + //
+        "   SELECT cs.sbom_metadata_id" + //
+        "   FROM " + getDatabaseSchema() + ".coordinate_security cs" + //
         "   LEFT JOIN " + getDatabaseSchema() + ".vulnerability_exploitability vex" +
         "   ON cs.coordinate_security_id = vex.coordinate_security_id" + //
-        "   WHERE cs.severity > ?1" +
+        "   WHERE cs.severity >= ?1" +
         "   AND vex.vulnerability_exploitability_id IS NULL" + //
+        "   AND cs.sbom_metadata_id = sm.sbom_metadata_id" + //
         " )" + //
-        " AND sm.third_party_file_id IN (" + //
-        "    SELECT third_party_file_id" + //
-        "    FROM " + getDatabaseSchema() + ".file_coordinate fc" + //
-        "    JOIN " + getDatabaseSchema() + ".coordinate_security cs" + //
-        "    ON fc.file_coordinate_id = cs.file_coordinate_id" + //
+        " AND EXISTS (" + //
+        "    SELECT cs.sbom_metadata_id" + //
+        "    FROM " + getDatabaseSchema() + ".coordinate_security cs" + //
         "    JOIN " + getDatabaseSchema() + ".vulnerability_exploitability vex" + //
         "    ON cs.coordinate_security_id = vex.coordinate_security_id" + //
-        "    WHERE cs.severity > ?1" + //
+        "    WHERE cs.severity >= ?1" + //
+        "    AND cs.sbom_metadata_id = sm.sbom_metadata_id" + //
         " )";
 
     try (TransactionContext tx = createTransactionContext()) {
@@ -250,17 +241,14 @@ public class ThirdPartyCoordinateSecurityDAO
         " FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
         " WHERE sm.status = 'ACTIVE'" + //
         " AND sm.application_id = ANY(array[?2])" + //
-        " AND sm.third_party_file_id NOT IN (" + //
-        "   SELECT DISTINCT metadata.third_party_file_id" + //
-        "   FROM " + getDatabaseSchema() + ".sbom_metadata metadata" + //
-        "   JOIN " + getDatabaseSchema() + ".file_coordinate component" + //
-        "   ON metadata.third_party_file_id = component.third_party_file_id" + //
-        "   JOIN " + getDatabaseSchema() + ".coordinate_security vulnerability " + //
-        "   ON component.file_coordinate_id = vulnerability.file_coordinate_id" + //
+        " AND NOT EXISTS (" + //
+        "   SELECT vulnerability.sbom_metadata_id" + //
+        "   FROM " + getDatabaseSchema() + ".coordinate_security vulnerability " + //
         "   LEFT JOIN " + getDatabaseSchema() + ".vulnerability_exploitability vex " + //
         "   ON vulnerability.coordinate_security_id = vex.coordinate_security_id" + //
         "   WHERE vulnerability.severity > ?1 " + //
         "   AND vex.coordinate_security_id is NULL" + //
+        "   AND vulnerability.sbom_metadata_id = sm.sbom_metadata_id" + //
         " )";
 
     try (TransactionContext tx = createTransactionContext()) {

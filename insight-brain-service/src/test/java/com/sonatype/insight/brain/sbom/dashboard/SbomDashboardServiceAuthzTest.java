@@ -119,12 +119,10 @@ public class SbomDashboardServiceAuthzTest extends AbstractServiceAuthzTest
     grantReadPermission(app.getId());
 
     Date now = new Date();
-    Date oneYearAgo = DateUtils.addYears(now, -1);
-    Date sixMonthsAgo = DateUtils.addMonths(now, -6);
 
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(app.getId())
-        .withCreatedAt(sixMonthsAgo)
+        .withCreatedAt(now)
         .build();
 
     ThirdPartyFileCoordinate coordinate1 =
@@ -132,7 +130,7 @@ public class SbomDashboardServiceAuthzTest extends AbstractServiceAuthzTest
             "n1", "v1", "", "");
 
     ThirdPartyCoordinateSecurity coordinateSecurity1 = tempEntity.newThirdPartyCoordinateSecurity(coordinate1,
-        "r1", "d1", "l1", CvssV3Severity.CRITICAL.getStartScoreRange(),
+        sbomMetadata.getId(), "r1", "d1", "l1", CvssV3Severity.CRITICAL.getStartScoreRange(),
         CvssV3Severity.CRITICAL.getDisplayName(), "f1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity1, coordinateSecurity1.getRefId(),
         "state", "justification", "response", "detail");
@@ -142,15 +140,16 @@ public class SbomDashboardServiceAuthzTest extends AbstractServiceAuthzTest
 
     ThirdPartySbomMetadata sbomMetadata2 = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(newApplication.getId())
-        .withCreatedAt(oneYearAgo)
+        .withCreatedAt(now)
         .build();
 
     ThirdPartyFileCoordinate coordinate2 =
         tempEntity.newThirdPartyFileCoordinate(sbomMetadata2.getThirdPartyFileId(), "s2", "f2",
             "n2", "v2", "", "");
 
-    tempEntity.newThirdPartyCoordinateSecurity(coordinate2, "r2", "d2", "l2",
-        CvssV3Severity.HIGH.getStartScoreRange(), CvssV3Severity.HIGH.getDisplayName(), "f2");
+    tempEntity
+        .newThirdPartyCoordinateSecurity(coordinate2, "r2", sbomMetadata2.getId(), "d2", "l2",
+        10, CvssV3Severity.HIGH.getDisplayName(), "f2");
 
     ReleaseStatusDTO results = service.getSbomReleaseStatus();
 
@@ -162,7 +161,7 @@ public class SbomDashboardServiceAuthzTest extends AbstractServiceAuthzTest
 
     results = service.getSbomReleaseStatus();
 
-    assertThat(results.getReleaseReadyCount()).isEqualTo(2L);
+    assertThat(results.getReleaseReadyCount()).isEqualTo(1L);
     assertThat(results.getNeedsAttentionCount()).isEqualTo(1L);
     assertThat(results.getPartiallyReadyCount()).isEqualTo(0L);
   }

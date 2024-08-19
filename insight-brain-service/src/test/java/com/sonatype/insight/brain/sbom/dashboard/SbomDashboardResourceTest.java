@@ -10,7 +10,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -285,133 +284,128 @@ public class SbomDashboardResourceTest extends AbstractResourceTest
     Date twoDaysAgo = DateUtils.addDays(now, -2);
     Date fourHoursAgo = DateUtils.addHours(now, -4);
 
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(now).withApplicationId(app.getId())
+    ThirdPartySbomMetadata thirdPartySbomMetadata1 = newSbomMetadataBuilder(daoFactory)
+        .withCreatedAt(now).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan1.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneYearAgo).withApplicationId(app.getId())
+    ThirdPartySbomMetadata thirdPartySbomMetadata2 = newSbomMetadataBuilder(daoFactory)
+        .withCreatedAt(oneYearAgo).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan2.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(sixMonthsAgo).withApplicationId(app.getId())
+    ThirdPartySbomMetadata thirdPartySbomMetadata3 = newSbomMetadataBuilder(daoFactory)
+        .withCreatedAt(sixMonthsAgo).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan3.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(twoMonthsAgo).withApplicationId(app.getId())
+    ThirdPartySbomMetadata thirdPartySbomMetadata4 = newSbomMetadataBuilder(daoFactory)
+        .withCreatedAt(twoMonthsAgo).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan4.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneMonthAgo).withApplicationId(app.getId())
+    ThirdPartySbomMetadata thirdPartySbomMetadata5 = newSbomMetadataBuilder(daoFactory)
+        .withCreatedAt(oneMonthAgo).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan5.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneWeekAgo).withApplicationId(app.getId())
+    ThirdPartySbomMetadata thirdPartySbomMetadata6 = newSbomMetadataBuilder(daoFactory)
+        .withCreatedAt(oneWeekAgo).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan6.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withApplicationId(app.getId())
+    ThirdPartySbomMetadata thirdPartySbomMetadata7 = newSbomMetadataBuilder(daoFactory)
+        .withCreatedAt(yesterday).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan7.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(yesterday).withStatus("PENDING").withApplicationId(app.getId())
+    ThirdPartySbomMetadata thirdPartySbomMetadata8 = newSbomMetadataBuilder(daoFactory)
+        .withCreatedAt(yesterday).withStatus("PENDING").withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan8.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(twoDaysAgo).withApplicationId(app.getId())
+    ThirdPartySbomMetadata thirdPartySbomMetadata9 = newSbomMetadataBuilder(daoFactory)
+        .withCreatedAt(twoDaysAgo).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan9.getThirdPartyFileId()).build();
-    newSbomMetadataBuilder(daoFactory).withCreatedAt(fourHoursAgo).withApplicationId(app.getId())
+    ThirdPartySbomMetadata thirdPartySbomMetadata10 = newSbomMetadataBuilder(daoFactory)
+        .withCreatedAt(fourHoursAgo).withApplicationId(app.getId())
         .withThirdPartyFileId(thirdPartyScan10.getThirdPartyFileId()).build();
 
     ThirdPartyFileCoordinate thirdPartyFileCoordinate1 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyScan1.getThirdPartyFileId(),
-            "s", "SPDX", "n1", "v1", "h1", "u1",
-            ThirdPartyDependencyType.DIRECT);
+            "s", "SPDX", "n1", "v1", "h1", "u1", ThirdPartyDependencyType.DIRECT);
     ThirdPartyFileCoordinate thirdPartyFileCoordinate2 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyScan1.getThirdPartyFileId(),
-            "s", "SPDX", "n2", "v1", "h2", "u1",
-            ThirdPartyDependencyType.TRANSITIVE);
+            "s", "SPDX", "n2", "v1", "h2", "u1", ThirdPartyDependencyType.TRANSITIVE);
     ThirdPartyFileCoordinate thirdPartyFileCoordinate3 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyScan2.getThirdPartyFileId(),
-            "s", "SPDX", "n1", "v1", "h3", "u1",
-            ThirdPartyDependencyType.TRANSITIVE);
+            "s", "SPDX", "n1", "v1", "h3", "u1", ThirdPartyDependencyType.TRANSITIVE);
     ThirdPartyFileCoordinate thirdPartyFileCoordinate4 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyScan3.getThirdPartyFileId(),
-            "s", "SPDX", "n1", "v1", "h4", "u1",
-            ThirdPartyDependencyType.DIRECT);
+            "s", "SPDX", "n1", "v1", "h4", "u1", ThirdPartyDependencyType.DIRECT);
     ThirdPartyFileCoordinate thirdPartyFileCoordinate5 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyScan3.getThirdPartyFileId(),
-            "s", "SPDX", "n1", "v1", "h5", "u1",
-            ThirdPartyDependencyType.TRANSITIVE);
+            "s", "SPDX", "n1", "v1", "h5", "u1", ThirdPartyDependencyType.TRANSITIVE);
     ThirdPartyFileCoordinate thirdPartyFileCoordinate6 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyScan3.getThirdPartyFileId(),
-            "s", "SPDX", "n1", "v1", "h6", "u1",
-            ThirdPartyDependencyType.TRANSITIVE);
+            "s", "SPDX", "n1", "v1", "h6", "u1", ThirdPartyDependencyType.TRANSITIVE);
     ThirdPartyFileCoordinate thirdPartyFileCoordinate7 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyScan4.getThirdPartyFileId(),
-            "s", "SPDX", "n1", "v1", "h7", "u1",
-            ThirdPartyDependencyType.TRANSITIVE);
+            "s", "SPDX", "n1", "v1", "h7", "u1", ThirdPartyDependencyType.TRANSITIVE);
     ThirdPartyFileCoordinate thirdPartyFileCoordinate8 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyScan4.getThirdPartyFileId(),
-            "s", "SPDX", "n1", "v1", "h8", "u1",
-            ThirdPartyDependencyType.TRANSITIVE);
+            "s", "SPDX", "n1", "v1", "h8", "u1", ThirdPartyDependencyType.TRANSITIVE);
     ThirdPartyFileCoordinate thirdPartyFileCoordinate9 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyScan5.getThirdPartyFileId(),
-            "s", "SPDX", "n1", "v1", "h9", "u1",
-            ThirdPartyDependencyType.TRANSITIVE);
+            "s", "SPDX", "n1", "v1", "h9", "u1", ThirdPartyDependencyType.TRANSITIVE);
     ThirdPartyFileCoordinate thirdPartyFileCoordinate10 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyScan6.getThirdPartyFileId(),
-            "s", "SPDX", "n1", "v1", "h10", "u1",
-            ThirdPartyDependencyType.TRANSITIVE);
+            "s", "SPDX", "n1", "v1", "h10", "u1", ThirdPartyDependencyType.TRANSITIVE);
     ThirdPartyFileCoordinate thirdPartyFileCoordinate11 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyScan7.getThirdPartyFileId(),
-            "s", "SPDX", "n1", "v1", "h11", "u1",
-            ThirdPartyDependencyType.TRANSITIVE);
+            "s", "SPDX", "n1", "v1", "h11", "u1", ThirdPartyDependencyType.TRANSITIVE);
     ThirdPartyFileCoordinate thirdPartyFileCoordinate12 =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyScan8.getThirdPartyFileId(),
-            "s", "SPDX", "n1", "v1", "h12", "u1",
-            ThirdPartyDependencyType.TRANSITIVE);
+            "s", "SPDX", "n1", "v1", "h12", "u1", ThirdPartyDependencyType.TRANSITIVE);
     tempEntity.newThirdPartyFileCoordinate(thirdPartyScan9.getThirdPartyFileId(),
-        "s", "SPDX", "n1", "v1", "h13", "u1",
-        ThirdPartyDependencyType.TRANSITIVE);
+        "s", "SPDX", "n1", "v1", "h13", "u1", ThirdPartyDependencyType.TRANSITIVE);
     tempEntity.newThirdPartyFileCoordinate(thirdPartyScan10.getThirdPartyFileId(),
-        "s", "SPDX", "n1", "v1", "h14", "u1",
-        ThirdPartyDependencyType.TRANSITIVE);
+        "s", "SPDX", "n1", "v1", "h14", "u1", ThirdPartyDependencyType.TRANSITIVE);
     tempEntity.newThirdPartyFileCoordinate(thirdPartyScan10.getThirdPartyFileId(),
-        "s", "SPDX", "n1", "v1", "h15", "u1",
-        ThirdPartyDependencyType.TRANSITIVE);
+        "s", "SPDX", "n1", "v1", "h15", "u1", ThirdPartyDependencyType.TRANSITIVE);
     tempEntity.newThirdPartyFileCoordinate(thirdPartyScan10.getThirdPartyFileId(),
         "s", "SPDX", "n1", "v1", "h16", "u1",
         ThirdPartyDependencyType.TRANSITIVE);
 
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1,
-        "r1", "d1", "l1", 5.5, "sd1", "f1");
+        "r1", thirdPartySbomMetadata1.getId(), "d1", "l1", 5.5, "sd1", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1,
-        "r2", "d2", "l2", 7.5, "sd2", "f1");
+        "r2", thirdPartySbomMetadata1.getId(), "d2", "l2", 7.5, "sd2", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1,
-        "r3", "d3", "l3", 3.5, "sd3", "f3");
+        "r3", thirdPartySbomMetadata2.getId(), "d3", "l3", 3.5, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2,
-        "r4", "d1", "l1", 5.5, "sd1", "f1");
+        "r4", thirdPartySbomMetadata2.getId(), "d1", "l1", 5.5, "sd1", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2,
-        "r5", "d2", "l2", 7.9, "sd2", "f1");
+        "r5", thirdPartySbomMetadata3.getId(), "d2", "l2", 7.9, "sd2", "f1");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate2,
-        "r6", "d3", "l3", 3.5, "sd3", "f3");
+        "r6", thirdPartySbomMetadata3.getId(), "d3", "l3", 3.5, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate3,
-        "r7", "d3", "l3", 1.5, "sd3", "f3");
+        "r7", thirdPartySbomMetadata4.getId(), "d3", "l3", 1.5, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate3,
-        "r8", "d3", "l3", 9.5, "sd4", "f3");
+        "r8", thirdPartySbomMetadata5.getId(), "d3", "l3", 9.5, "sd4", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate3,
-        "r9", "d3", "l3", 2.5, "sd3", "f3");
+        "r9", thirdPartySbomMetadata5.getId(), "d3", "l3", 2.5, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate3,
-        "r10", "d3", "l3", 5.1, "sd3", "f3");
+        "r10", thirdPartySbomMetadata6.getId(), "d3", "l3", 5.1, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate4,
-        "r11", "d3", "l3", 8.1, "sd3", "f3");
+        "r11", thirdPartySbomMetadata6.getId(), "d3", "l3", 8.1, "sd3", "f3");
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate4,
-        "r12", "d3", "l3", 10.0, "sd3", "f3");
+            "r12", thirdPartySbomMetadata7.getId(), "d3", "l3", 10.0, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate5,
-        "r13", "d3", "l3", 2.2, "sd3", "f3");
+        "r13", thirdPartySbomMetadata7.getId(), "d3", "l3", 9.2, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate6,
-        "r14", "d3", "l3", 1.2, "sd3", "f3");
+        "r14", thirdPartySbomMetadata8.getId(), "d3", "l3", 1.2, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate7,
-        "r15", "d3", "l3", 0.1, "sd3", "f3");
+        "r15", thirdPartySbomMetadata8.getId(), "d3", "l3", 0.1, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate7,
-        "r16", "d3", "l3", 0, "sd3", "f3");
+        "r16", thirdPartySbomMetadata8.getId(), "d3", "l3", 0, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate8,
-        "r17", "d3", "l3", 3.2, "sd3", "f3");
+        "r17", thirdPartySbomMetadata9.getId(), "d3", "l3", 3.2, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate9,
-        "r18", "d3", "l3", 4.2, "sd3", "f3");
+        "r18", thirdPartySbomMetadata9.getId(), "d3", "l3", 4.2, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate10,
-        "r19", "d3", "l3", 5.2, "sd3", "f3");
+        "r19", thirdPartySbomMetadata9.getId(), "d3", "l3", 5.2, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate11,
-        "r20", "d3", "l3", 6.2, "sd3", "f3");
+        "r20", thirdPartySbomMetadata10.getId(), "d3", "l3", 6.2, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate11,
-        "r21", "d3", "l3", 7.2, "sd3", "f3");
+        "r21", thirdPartySbomMetadata10.getId(), "d3", "l3", 7.2, "sd3", "f3");
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate12,
-        "r22", "d3", "l3", 8.2, "sd3", "f3");
+        "r22", thirdPartySbomMetadata10.getId(), "d3", "l3", 8.2, "sd3", "f3");
 
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity, "r1", "ACTIVE",
         "J1", "r1", "d1");
@@ -423,9 +417,9 @@ public class SbomDashboardResourceTest extends AbstractResourceTest
 
     ReleaseStatusDTO releaseStatusDTO = response.getBody(ReleaseStatusDTO.class);
 
-    assertThat(releaseStatusDTO.getNeedsAttentionCount()).isEqualTo(4);
+    assertThat(releaseStatusDTO.getNeedsAttentionCount()).isEqualTo(6);
     assertThat(releaseStatusDTO.getPartiallyReadyCount()).isEqualTo(1);
-    assertThat(releaseStatusDTO.getReleaseReadyCount()).isEqualTo(5);
+    assertThat(releaseStatusDTO.getReleaseReadyCount()).isEqualTo(3);
   }
 
   @Test

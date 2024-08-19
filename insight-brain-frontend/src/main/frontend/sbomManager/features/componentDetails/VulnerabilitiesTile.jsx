@@ -42,6 +42,7 @@ import './VulnerabilitiesTile.scss';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectIssueForActions } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSelector';
 import { analysisStatusIndicator, transformJustification } from './componentDetailsUtils';
+import cx from 'classnames';
 
 export const isVexFieldAnnotated = (vexFieldAnnotation, vulnerabilityValidVexFieldStates) =>
   vulnerabilityValidVexFieldStates.map((entry) => entry.key).indexOf(vexFieldAnnotation) > -1;
@@ -179,7 +180,10 @@ export default function VulnerabilitiesTile(props) {
                     isResponseSet: isResponseSet(vulnerability, responsesOptions),
                   })
                 }
-                className="nx-dropdown-button"
+                className={cx(
+                  'nx-dropdown-button',
+                  isRowAnnotated(vulnerability, analysisStatusesOptions) ? 'edit-annotation' : 'add-annotation'
+                )}
               >
                 {isRowAnnotated(vulnerability, analysisStatusesOptions) ? 'Edit Annotation' : 'Add Annotation'}
               </button>

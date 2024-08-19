@@ -21,6 +21,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.thirdparty.SbomIdentityUtils;
 import com.sonatype.insight.scan.file.InvalidSbomException;
@@ -73,7 +74,7 @@ public final class SbomSpdxUtils
   public static final Pattern toolSpdxPattern =
       Pattern.compile("Tool: ([\\w'. ]+)-([\\w_\\-'. ]+)");
 
-  private static final Pattern URL_REF_ID_PATTERN = Pattern.compile("([A-Za-z0-9]+(-[A-Za-z0-9]+)+)$");
+  private static final Pattern URL_REF_ID_PATTERN = Pattern.compile("([A-Za-z0-9]+(-[A-Za-z0-9]+)+(:[A-Za-z0-9]+)?)");
 
   private static final Set<String> SOURCE_NVD_DOMAINS = ImmutableSet.of("cve.mitre.org", "nvd.nist.gov", "cve.org");
 
@@ -278,7 +279,21 @@ public final class SbomSpdxUtils
       return null;
     }
 
-    Matcher matcher = URL_REF_ID_PATTERN.matcher(link);
+    String copyOfLink = link;
+    // Remove any trailing /
+    if (link.endsWith("/")) {
+      copyOfLink = copyOfLink.substring(0, link.lastIndexOf("/"));
+    }
+    // Now work with the last part of the url, after the last /,? or =
+    int questionMarkIdx = copyOfLink.lastIndexOf("?");
+    int equalsIdx = copyOfLink.lastIndexOf("=");
+    int backSlashIdx = copyOfLink.lastIndexOf("/");
+    int hashIdx = copyOfLink.lastIndexOf("#");
+    Integer maxLastSpecialCharIdx =
+        Stream.of(questionMarkIdx, equalsIdx, backSlashIdx, hashIdx).max(Integer::compareTo).orElse(null);
+    copyOfLink = copyOfLink.substring(maxLastSpecialCharIdx + 1);
+
+    Matcher matcher = URL_REF_ID_PATTERN.matcher(copyOfLink);
     if (matcher.find()) {
       String refId = matcher.group(1);
       if (StringUtils.isNotBlank(refId)) {

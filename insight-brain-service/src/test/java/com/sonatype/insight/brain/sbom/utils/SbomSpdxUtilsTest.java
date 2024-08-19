@@ -184,6 +184,24 @@ public class SbomSpdxUtilsTest
     assertThat(SbomSpdxUtils
         .getRefIdAndSourceForVulnerability("https://security.snyk.io/vuln/SNYK-PYTHON-PYMONGO-7172112"))
         .isEqualTo(Pair.of("SNYK-PYTHON-PYMONGO-7172112", "OTHER"));
+    assertThat(SbomSpdxUtils
+        .getRefIdAndSourceForVulnerability("https://github.com/advisories/GHSA-3jmm-f6jj-rcc3"))
+        .isEqualTo(Pair.of("GHSA-3jmm-f6jj-rcc3", "OTHER"));
+    assertThat(SbomSpdxUtils
+        .getRefIdAndSourceForVulnerability("https://securitylab.github.com/advisories/GHSL-2024-144_JupyterLab/"))
+        .isEqualTo(Pair.of("GHSL-2024-144", "OTHER"));
+    assertThat(SbomSpdxUtils
+        .getRefIdAndSourceForVulnerability("https://errata.almalinux.org/8/ALSA-2024-3128.html"))
+        .isEqualTo(Pair.of("ALSA-2024-3128", "OTHER"));
+    assertThat(SbomSpdxUtils
+        .getRefIdAndSourceForVulnerability("https://securitylab.github.com/advisories/GHSL-2022-097_rudder-server"))
+        .isEqualTo(Pair.of("GHSL-2022-097", "OTHER"));
+    assertThat(SbomSpdxUtils
+        .getRefIdAndSourceForVulnerability("https://securitylab.github.com/advisories#GHSL-2022-097"))
+        .isEqualTo(Pair.of("GHSL-2022-097", "OTHER"));
+    assertThat(SbomSpdxUtils
+        .getRefIdAndSourceForVulnerability("https://access.redhat.com/errata/RHSA-2024:3128"))
+        .isEqualTo(Pair.of("RHSA-2024:3128", "OTHER"));
 
     //invalid
     assertThat(SbomSpdxUtils.getRefIdAndSourceForVulnerability("invalid-url")).isNull();

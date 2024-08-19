@@ -54,7 +54,7 @@ describe('DependencyTree', () => {
     expect(clickableTreeNode).toHaveClass('nx-text-link');
   });
 
-  describe('when clickable tree item is clicked', () => {
+  describe('Clickable Tree Item', () => {
     it('navigates to the applicationReport component details page when isPrioritiesPageContainer is false', () => {
       renderComponent();
       const clickableTreeNode = screen.getByText('net.sourceforge.jtds : jtds : 1.2.2').closest('a');
@@ -78,14 +78,48 @@ describe('DependencyTree', () => {
         hash: 'qwert32143',
       });
     });
+
+    it('navigates to the SBOM CDP page when it is SBOM Manager', () => {
+      const applicationPublicId = 'APPLICATION-PUBLIC-ID';
+      const sbomVersion = 'SBOM-VERSION';
+      const componentHash = 'qwert32143';
+
+      jest.spyOn(routerSelectors, 'selectIsSbomManager').mockReturnValue(true);
+      jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({
+        applicationPublicId,
+        sbomVersion,
+      });
+
+      renderComponent();
+
+      const clickableTreeNode = screen.getByText('net.sourceforge.jtds : jtds : 1.2.2').closest('a');
+
+      fireEvent.click(clickableTreeNode);
+
+      expect(stateGoSpy).toHaveBeenCalledWith('sbomManager.component', {
+        applicationPublicId,
+        sbomVersion,
+        componentHash,
+      });
+    });
   });
 
-  it('renders non clickable tree item', () => {
-    renderComponent({ hashToMatch: 'qwert32143' });
+  describe('Non-clickable Tree Item', () => {
+    it('renders non-clickable tree item when hash matches', () => {
+      renderComponent({ hashToMatch: 'qwert32143' });
 
-    const nonClickableTreeItem = screen.getByText('net.sourceforge.jtds : jtds : 1.2.2');
+      const nonClickableTreeItem = screen.getByText('net.sourceforge.jtds : jtds : 1.2.2');
 
-    expect(nonClickableTreeItem.closest('a')).toBeNull();
+      expect(nonClickableTreeItem.closest('a')).toBeNull();
+    });
+
+    it('renders non-clickable tree item when isNonClickable is explicitly set to true', () => {
+      renderComponent({ isNonClickable: true });
+
+      const nonClickableTreeItem = screen.getByText('net.sourceforge.jtds : jtds : 1.2.2');
+
+      expect(nonClickableTreeItem.closest('a')).toBeNull();
+    });
   });
 
   it('renders threat indicator', async () => {

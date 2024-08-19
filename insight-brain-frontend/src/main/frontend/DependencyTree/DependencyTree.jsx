@@ -15,20 +15,28 @@ import DependencyIndicator from './DependencyIndicator';
 import { renderDisplayName } from './dependencyTreeUtil';
 import {
   selectIsPrioritiesPageContainer,
+  selectIsSbomManager,
   selectPrioritiesPageContainerName,
+  selectRouterCurrentParams,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const MemoizedTreeNode = React.memo(TreeNode);
 
-function TreeNode({ items, treePathToggleAction, hashToMatch, searchTerm }) {
+function TreeNode({ items, treePathToggleAction, hashToMatch, searchTerm, isNonClickable }) {
   const dispatch = useDispatch();
 
+  const isSbomManager = useSelector(selectIsSbomManager);
+  const routerParams = useSelector(selectRouterCurrentParams);
   const isPrioritiesPageContainer = useSelector(selectIsPrioritiesPageContainer);
   const prioritiesPageContainerName = useSelector(selectPrioritiesPageContainerName);
 
   const matchesHash = equals(hashToMatch);
   const dispatchToggleTreeAtPath = (payload) => dispatch(treePathToggleAction(payload));
   const goToCDP = (hash) => {
+    if (isSbomManager) {
+      const { applicationPublicId, sbomVersion } = routerParams;
+      return dispatch(stateGo('sbomManager.component', { applicationPublicId, sbomVersion, componentHash: hash }));
+    }
     if (isPrioritiesPageContainer) {
       return dispatch(stateGo(`${prioritiesPageContainerName}.componentDetails`, { hash }));
     }
@@ -52,7 +60,7 @@ function TreeNode({ items, treePathToggleAction, hashToMatch, searchTerm }) {
           <NxTree.ItemLabel>
             <NxThreatIndicator className="nx-tree__colored-icon" policyThreatLevel={item.policyThreatLevel} />
             {item.isInnerSource && <DependencyIndicator type="inner-source" />}
-            {matchesHash(item.hash) ? (
+            {isNonClickable || matchesHash(item.hash) ? (
               <span className="iq-matched-hash-tree-label">{item.displayName}</span>
             ) : (
               <NxTextLink onClick={() => goToCDP(item.hash)}>
@@ -86,11 +94,13 @@ export const dependencyTreeNodePropType = PropTypes.shape({
   policyThreatLevel: PropTypes.number,
   isInnerSource: PropTypes.bool,
 });
+
 TreeNode.propTypes = {
   hashToMatch: PropTypes.string,
   searchTerm: PropTypes.string,
   items: PropTypes.arrayOf(dependencyTreeNodePropType),
   treePathToggleAction: PropTypes.func.isRequired,
+  isNonClickable: PropTypes.bool,
 };
 
 export default function DependencyTree({ rootName, ...rest }) {

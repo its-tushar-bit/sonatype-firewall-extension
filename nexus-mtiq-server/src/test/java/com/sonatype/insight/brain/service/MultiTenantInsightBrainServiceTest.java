@@ -10,7 +10,6 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.scheduler.TaskSchedulerClusterStateMonitor;
 import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.EncryptionKeyStore;
 import com.sonatype.insight.brain.security.MultiTenantEncryptionKeyStore;
@@ -70,15 +69,6 @@ public class MultiTenantInsightBrainServiceTest
     getCLMServer().getInjector().injectMembers(this);
     assertThat(tenantLifecycles.stream().anyMatch(t -> t instanceof Configuration)).isTrue();
     assertThat(tenantLifecycles.stream().anyMatch(t -> t instanceof MultiTenantEncryptionKeyStore)).isTrue();
-  }
-
-  // Test to check that TaskSchedulerClusterStateMonitor is temporarily disabled since pods in an inactive cluster 
-  // can currently still receive traffic - CLM-31258
-  @Test
-  public void shouldExcludeTaskSchedulerClusterStateMonitor() {
-    assertThatExceptionOfType(ConfigurationException.class).isThrownBy(
-        () -> getCLMServer().getInstance(TaskSchedulerClusterStateMonitor.class)
-    ).withMessageContaining("TaskSchedulerClusterStateMonitor is not explicitly bound");
   }
 
   @Override

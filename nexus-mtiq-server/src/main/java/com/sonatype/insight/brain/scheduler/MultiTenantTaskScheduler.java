@@ -6,13 +6,12 @@
 package com.sonatype.insight.brain.scheduler;
 
 import java.util.List;
+
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.cluster.CloudyClusterConfigReader;
-import com.sonatype.insight.brain.cluster.CloudyClusterState;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.InsightJob;
@@ -32,8 +31,6 @@ import org.quartz.Trigger;
 import org.quartz.TriggerKey;
 import org.quartz.simpl.SimpleThreadPool;
 import org.quartz.spi.JobFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 
 @Named
@@ -43,8 +40,6 @@ import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 public class MultiTenantTaskScheduler
     extends TaskScheduler
 {
-  private static final Logger log = LoggerFactory.getLogger(MultiTenantTaskScheduler.class);
-
   //Visible for test
   static final String TASK_SCHEDULER_THREAD_POOL_SIZE = "TASK_SCHEDULER_THREAD_POOL_SIZE";
 
@@ -58,8 +53,6 @@ public class MultiTenantTaskScheduler
 
   private final QuartzJobStoreTX mtiqBatchJobStoreTX;
 
-  private final CloudyClusterConfigReader cloudyClusterConfigReader;
-
   @Inject
   public MultiTenantTaskScheduler(
       MultiTenantQuartzJobStoreTX quartzJobStoreTX,
@@ -71,8 +64,7 @@ public class MultiTenantTaskScheduler
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       TenantManager tenantManager,
       TenantUtil tenantUtil,
-      ShutdownHandler shutdownHandler,
-      CloudyClusterConfigReader cloudyClusterConfigReader)
+      ShutdownHandler shutdownHandler)
   {
     super(quartzJobStoreTX, jobFactory, schedulerName, quartzTriggerListener, shutdownHandler);
 
@@ -81,7 +73,6 @@ public class MultiTenantTaskScheduler
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.tenantManager = tenantManager;
     this.tenantUtil = tenantUtil;
-    this.cloudyClusterConfigReader = cloudyClusterConfigReader;
   }
 
   @Override
@@ -105,34 +96,6 @@ public class MultiTenantTaskScheduler
       // If this ever fails, ensure TenantManager is started BEFORE MultiTenantTaskScheduler
       System.err.println("Fatal error: Task scheduler is trying to start but tenants are not pre-registered yet");
       System.exit(11);
-    }
-  }
-
-  public void startOrStandbyTaskSchedulers() throws Exception {
-    if (shouldStartTaskSchedulers()) {
-      doStart();
-    }
-    else {
-      standby();
-    }
-  }
-
-  private boolean shouldStartTaskSchedulers() {
-    CloudyClusterState cloudyClusterState = cloudyClusterConfigReader.getClusterConfig().getState();
-    switch (cloudyClusterState) {
-      case UNKNOWN:
-      case ACTIVE:
-      case FILLING: 
-      case DRAINING: {
-        log.trace("Starting the task schedulers if needed due to the cluster state {}.", cloudyClusterState);
-        return true;
-      }
-      case INACTIVE: {
-        log.trace("Standby the task schedulers if needed due to the cluster state {}.", cloudyClusterState);
-        return false;
-      }
-      default:
-        throw new IllegalArgumentException(String.format("Unrecognized cluster state %s.", cloudyClusterState));
     }
   }
 

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
-import com.sonatype.insight.brain.cluster.CloudyClusterConfigReader;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantContextJobListener;
@@ -34,8 +33,7 @@ public class TaskSchedulerStartupTest
             Mockito.mock(MultiTenantBatchModeJobStoreTX.class), Mockito.mock(JobFactory.class), "schedulerName",
             Mockito.mock(QuartzTriggerListener.class), Mockito.mock(TenantContextJobListener.class),
             Mockito.mock(SystemConfigurationPropertyDAO.class), Mockito.mock(TenantManager.class),
-            Mockito.mock(TenantUtil.class), Mockito.mock(ShutdownHandler.class),
-            Mockito.mock(CloudyClusterConfigReader.class));
+            Mockito.mock(TenantUtil.class), Mockito.mock(ShutdownHandler.class));
 
     exit.expectSystemExitWithStatus(11);
     multiTenantTaskScheduler.start();

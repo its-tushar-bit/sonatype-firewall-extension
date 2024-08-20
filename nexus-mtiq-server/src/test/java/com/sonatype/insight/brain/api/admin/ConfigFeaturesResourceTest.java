@@ -52,7 +52,6 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
       SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
       SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId(),
-      SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId(),
       SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getId(),
       SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.getId(),
       SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.getId(),
@@ -81,7 +80,6 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.getId(),
       SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED.getId(),
       SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.getId(),
-      SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId(),
       SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getId(),
       SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.getId(),
       SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED.getId(),
@@ -105,7 +103,8 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.OAUTH2_ENABLED.getId(),
           SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.getId(),
           SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS.getId(),
-          SystemConfigurationPropertyFeature.SECURE_SHARING.getId()
+          SystemConfigurationPropertyFeature.SECURE_SHARING.getId(),
+          SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId()
       }
   )).toArray(String[]::new);
 

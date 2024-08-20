@@ -780,7 +780,6 @@ curl -H 'Authorization: Bearer eyJraWQiOiJsb2NhbEEx...' -X GET http://127.0.0.1:
   "pr-commenting",
   "advanced-search-configuration",
   "pr-line-commenting",
-  "internal-firewall-onboarding-enabled",
   "default-branch-monitoring"
 ]
 ```

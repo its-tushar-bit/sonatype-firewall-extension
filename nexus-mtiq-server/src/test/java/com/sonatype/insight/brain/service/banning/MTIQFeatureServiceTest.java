@@ -78,7 +78,7 @@ public class MTIQFeatureServiceTest
   public void testRegister_setsFeatureFlags() {
     underTest.register();
 
-    verify(service, times(25)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
+    verify(service, times(26)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
     List<String> disabledFlagSet = propertyKeyCaptor.getAllValues();
     assertThat(disabledFlagSet).containsExactlyInAnyOrder(getDisabledSystemConfigurationPropertyFeatures());
   }
@@ -199,7 +199,6 @@ public class MTIQFeatureServiceTest
         SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY,
         SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION,
         SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER,
-        SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED,
         SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT,
         SystemConfigurationPropertyFeature.PR_COMMENTING,
         SystemConfigurationPropertyFeature.PR_LINE_COMMENTING,

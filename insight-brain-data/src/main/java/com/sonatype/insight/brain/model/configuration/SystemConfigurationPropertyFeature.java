@@ -145,11 +145,11 @@ public enum SystemConfigurationPropertyFeature
       SystemConfigurationProperty.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS, true),
 
   /**
-   * Internal feature flag to enable Firewall Onboarding. It is enabled by default in IQ >= 167. Disabled by default in
-   * IQ < 167.
+   * Internal feature flag to enable Firewall Onboarding. Disabled by default in IQ < 167.
+   * It was enabled by default in IQ >= 167 through IQ <= 180. It is again disabled by default in IQ 182.
    */
   INTERNAL_FIREWALL_ONBOARDING_ENABLED(SystemConfigurationProperty.INTERNAL_FIREWALL_ONBOARDING_ENABLED,
-      true /* enabledWhenAbsent */),
+      false/* enabledWhenAbsent */),
 
   /**
    * If configured a logout request will be sent to Auth0 via a browser redirect when the application is logged out

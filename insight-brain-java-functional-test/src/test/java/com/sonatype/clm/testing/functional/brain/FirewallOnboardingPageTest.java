@@ -29,10 +29,12 @@ import com.sonatype.clm.testing.functional.pages.FirewallOnboardingPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.GettingStartedPage;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -71,6 +73,8 @@ public class FirewallOnboardingPageTest
 
   private PolicyDAO policyDAO;
 
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   private RepositoryManagerDAO repositoryManagerDAO;
 
   @BeforeClass
@@ -83,6 +87,12 @@ public class FirewallOnboardingPageTest
   public void setUp() {
     repositoryManagerDAO = lookup(RepositoryManagerDAO.class);
     policyDAO = lookup(PolicyDAO.class);
+    systemConfigurationPropertyDAO = lookup(SystemConfigurationPropertyDAO.class);
+    // the firewall onboarding feature has been disabled by default. In order for this test to exercise the feature
+    // we have to turn it on first
+    systemConfigurationPropertyDAO.set(
+            SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getPropertyName(),
+            Boolean.TRUE.toString());
   }
 
   @Test

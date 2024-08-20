@@ -23,6 +23,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDTO;
@@ -34,6 +35,7 @@ import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
@@ -62,12 +64,15 @@ public class RepositoryResourceTest
 
   private PolicyDAO policyDAO;
 
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   @Before
   public void setUp() {
     proprietaryComponentNamePatternDAO = lookup(ProprietaryComponentNamePatternDAO.class);
     repositoryManagerDAO = lookup(RepositoryManagerDAO.class);
     repositoryDAO = lookup(RepositoryDAO.class);
     policyDAO = lookup(PolicyDAO.class);
+    systemConfigurationPropertyDAO = lookup(SystemConfigurationPropertyDAO.class);
   }
 
   @Test
@@ -281,6 +286,10 @@ public class RepositoryResourceTest
 
   @Test
   public void testGetUnconfiguredRepositoryManagers() throws Exception {
+    systemConfigurationPropertyDAO.set(
+        SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getPropertyName(),
+        Boolean.TRUE.toString());
+
     RepositoryManager configuredRepoManager = tempEntity.newRepositoryManager();
     configuredRepoManager.setConfigured(true);
     configuredRepoManager.setConfigureTime(new Date());

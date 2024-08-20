@@ -75,6 +75,7 @@ import com.sonatype.insight.test.LogOutput;
 import com.google.inject.Binder;
 import org.apache.commons.lang3.time.DateUtils;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -158,6 +159,12 @@ public class RepositoryServiceTest extends AbstractComponentTest
     firewallIgnorePatterns.regexpsByRepositoryFormat.put("maven2", Collections.singletonList("a"));
     lenient().when(hdsClient.get(eq(FirewallIgnorePatterns.class),
         eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH))).thenReturn(firewallIgnorePatterns);
+  }
+
+  @After
+  public void after() {
+    // Restore the default value
+    SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(false);
   }
 
   @Test
@@ -902,6 +909,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
   @Test
   public void testGetUnconfiguredRepositoryManagers_ProductNameAndVersion() {
+    SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(true);
     RepositoryManager unconfiguredRepoManager = tempEntity.newRepositoryManager();
     unconfiguredRepoManager.setUserAgent("Nexus/3.60.0-SNAPSHOT (PRO; Windows 10; 10.0; amd64; 1.8.0_352)");
     repositoryManagerDAO.update(unconfiguredRepoManager);

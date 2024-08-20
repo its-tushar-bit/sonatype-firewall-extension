@@ -7,7 +7,7 @@
 -->
 # Changelog
 
-## Version 1.181.1 (August 20, 2024)
+## Version 1.181.0 (August 20, 2024)
 * Updated internal dependencies to ensure compatibility with Lifecycle 181
 
 ## Version 1.180.0 (August 8, 2024)

@@ -7,6 +7,9 @@
 -->
 # Changelog
 
+## Version 1.181.1 (August 20, 2024)
+* Updated internal dependencies to ensure compatibility with Lifecycle 181
+
 ## Version 1.180.0 (August 8, 2024)
 * Updated internal dependencies to ensure compatibility with Lifecycle 180
 * Added support for analyzing Java 21 and Java 22 bytecode

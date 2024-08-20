@@ -176,7 +176,7 @@ public class ApiUserResourceTest
       username = samlUser.getUsername();
     }
     else if (OAuth2Realm.ID.equals(expectedRealm)) {
-      username = oAuth2User.getUsername();;
+      username = oAuth2User.getUsername();
     }
 
     HttpResponse response = restRequest()

@@ -15,7 +15,6 @@ import java.util.Map.Entry;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoriesDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoriesListDTO;
@@ -34,6 +33,7 @@ import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.tag.TagService;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
@@ -262,7 +262,7 @@ public class ApiApplicationServiceTest
     ApiApplicationDTO app1 = new ApiApplicationDTO();
     app1.publicId = "app1";
     app1.name = "app1";
-    app1.organizationId = org.getId();;
+    app1.organizationId = org.getId();
     assertThatExceptionOfType(PaymentRequiredException.class)
         .isThrownBy(() -> applicationService.addApplication(app1));
 
@@ -272,7 +272,7 @@ public class ApiApplicationServiceTest
     ApiApplicationDTO app2 = new ApiApplicationDTO();
     app2.publicId = "app2";
     app2.name = "app2";
-    app2.organizationId = org.getId();;
+    app2.organizationId = org.getId();
     assertThatExceptionOfType(PaymentRequiredException.class)
         .isThrownBy(() -> applicationService.addApplication(app2));
 

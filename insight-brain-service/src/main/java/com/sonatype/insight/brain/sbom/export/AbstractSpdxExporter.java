@@ -201,7 +201,7 @@ public abstract class AbstractSpdxExporter
         }
       }
       if (originalRootPkg != null && StringUtils.equals(originalRootPkg.getId(), pkg.getId())) {
-        newDocument.getDocumentDescribes().add(newPkg);;
+        newDocument.getDocumentDescribes().add(newPkg);
       }
     }
     copyDependencyRelationships(originalDocument, newDocument);

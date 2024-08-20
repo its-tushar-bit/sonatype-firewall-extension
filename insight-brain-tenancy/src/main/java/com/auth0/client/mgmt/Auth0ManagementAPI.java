@@ -332,7 +332,7 @@ public class Auth0ManagementAPI
     }
   }
 
-  public Connection getConnectionById(String connectionId) throws Auth0Exception {
+  public Connection getConnectionById(String connectionId) {
     if (StringUtils.isBlank(connectionId)) {
       throw new IllegalArgumentException(INVALID_CONNECTION_ID);
     }
@@ -442,11 +442,11 @@ public class Auth0ManagementAPI
     }
   }
 
-  public boolean userExists(String email, String connectionName) throws Auth0Exception {
+  public boolean userExists(String email, String connectionName) {
     return getUserByEmail(email, connectionName) != null;
   }
 
-  public User getUserByEmail(String email, String connectionName) throws Auth0Exception {
+  public User getUserByEmail(String email, String connectionName) {
     if (StringUtils.isBlank(email)) {
       throw new IllegalArgumentException(INVALID_EMAIL);
     }

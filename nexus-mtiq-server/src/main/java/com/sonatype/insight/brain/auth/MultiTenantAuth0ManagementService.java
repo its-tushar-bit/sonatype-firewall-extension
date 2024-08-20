@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.auth;
 
 import java.util.Collections;
 import java.util.Date;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -71,16 +72,7 @@ public class MultiTenantAuth0ManagementService
       throw new RuntimeException("Unable to initialise Auth0 Management API");
     }
 
-    User user;
-
-    try {
-      user = auth0ManagementAPI.getUserByEmail(email, connectionName);
-    }
-    catch (Auth0Exception e) {
-      log.warn("Unable to determine if user already exists in Auth0");
-      throw new RuntimeException(e);
-    }
-
+    User user = auth0ManagementAPI.getUserByEmail(email, connectionName);
     if (user == null) {
       user = auth0ManagementAPI.createOrGetUser(email, firstName, lastName, connectionName);
       sendResetPassword(email, connectionName, connectionId, applicationId);

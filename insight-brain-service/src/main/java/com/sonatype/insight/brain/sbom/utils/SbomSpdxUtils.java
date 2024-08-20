@@ -49,13 +49,11 @@ import org.spdx.library.Read;
 import org.spdx.library.model.Checksum;
 import org.spdx.library.model.ExternalRef;
 import org.spdx.library.model.ReferenceType;
-import org.spdx.library.model.Relationship;
 import org.spdx.library.model.SpdxDocument;
 import org.spdx.library.model.SpdxElement;
 import org.spdx.library.model.SpdxPackage;
 import org.spdx.library.model.enumerations.ChecksumAlgorithm;
 import org.spdx.library.model.enumerations.ReferenceCategory;
-import org.spdx.library.model.enumerations.RelationshipType;
 import org.spdx.storage.IModelStore;
 import org.spdx.storage.simple.InMemSpdxStore;
 
@@ -463,16 +461,11 @@ public final class SbomSpdxUtils
     }
   }
 
-  public static List<Relationship> getDependenciesBySpdxPackage(SpdxPackage spdxPackage)
-      throws InvalidSPDXAnalysisException
-  {
-    return spdxPackage.getRelationships().stream().filter(it -> {
-      try {
-        return it.getRelationshipType().equals(RelationshipType.DEPENDS_ON);
-      }
-      catch (InvalidSPDXAnalysisException e) {
-        return false;
-      }
-    }).collect(Collectors.toList());
+  public static boolean looksLikeSpdxDocument(String spdxDocument) {
+    if (StringUtils.isEmpty(spdxDocument)) {
+      return false;
+    }
+    return spdxDocument.contains("SPDXRef-DOCUMENT") && 
+        (spdxDocument.contains("<SPDXID>") || spdxDocument.contains("\"SPDXID\""));
   }
 }

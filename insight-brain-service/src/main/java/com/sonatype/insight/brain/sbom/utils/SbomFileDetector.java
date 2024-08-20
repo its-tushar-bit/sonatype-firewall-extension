@@ -88,7 +88,7 @@ public class SbomFileDetector
     }
 
     try (AutoDeletingTempFile tempFile = new AutoDeletingTempFile()) {
-      Path file = Files.write(tempFile.getPath(), sbomString.getBytes(StandardCharsets.UTF_8));
+      Path file = Files.writeString(tempFile.getPath(), sbomString);
       return detect(file.toFile());
     }
     catch (IOException e) {
@@ -107,6 +107,7 @@ public class SbomFileDetector
   private SbomDetectionResult detect(File sbomFile) {
     try {
       SbomDetectionResult result = new SbomDetectionResult();
+      result.isBinary = true;
       result.mimeType = tika.detect(sbomFile);
       String sbomStringContent = getSbomStringContent(sbomFile);
       if (TEXT_PLAIN.equals(result.mimeType)) {
@@ -132,7 +133,6 @@ public class SbomFileDetector
 
   private SbomDetectionResult sbomDetectionErrorResult(String errorMessage) {
     SbomDetectionResult result = new SbomDetectionResult();
-    result.isSbom = false;
     result.errorMessage = errorMessage;
     return result;
   }
@@ -141,7 +141,7 @@ public class SbomFileDetector
     if (ThirdPartyUtils.looksLikeCycloneDX(sbom)) {
       return tryDetectingAsCycloneDx(sbom, sbomResult);
     }
-    else {
+    else if (SbomSpdxUtils.looksLikeSpdxDocument(sbom)) {
       try {
         return tryDetectingAsSpdx(sbom, sbomResult);
       }
@@ -149,6 +149,9 @@ public class SbomFileDetector
         log.error("Not a valid/supported sbom file.", e);
         sbomResult.errorMessage = "Not a valid/supported sbom file.";
       }
+    }
+    else {
+      sbomResult.errorMessage = "Not a valid/supported sbom file.";
     }
     return sbomResult;
   }

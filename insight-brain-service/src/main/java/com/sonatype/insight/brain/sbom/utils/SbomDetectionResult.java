@@ -9,6 +9,8 @@ public class SbomDetectionResult
 {
   public boolean isSbom = false;
 
+  public boolean isBinary = false;
+
   public String errorMessage;
 
   public String mimeType;

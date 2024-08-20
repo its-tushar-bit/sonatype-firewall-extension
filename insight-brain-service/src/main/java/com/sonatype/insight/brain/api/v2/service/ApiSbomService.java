@@ -389,16 +389,15 @@ public class ApiSbomService
           "You have exceeded the licensed limit of " + productLicense.getMaxSboms() + " sboms.");
     }
     String sbomContentAsString = getSbomContentAsString(fileInputStream);
-    SbomDetectionResult sbomMetadata = sbomFileDetector.getSbomDetectionResult(sbomContentAsString);
-    if (!sbomMetadata.isSbom) {
-      throw new BadRequestException(sbomMetadata.errorMessage);
+    SbomDetectionResult sbomDetectionResult = sbomFileDetector.getSbomDetectionResult(sbomContentAsString);
+    if (!sbomDetectionResult.isSbom) {
+      throw new BadRequestException(sbomDetectionResult.errorMessage);
     }
-
     Application application = applicationDAO.getById(applicationId);
     ApiThirdPartyScanTicketDTO scanTicketDTO = sbomMetadataUtils.createSbomImportTicket(applicationId);
     ScanResult scanResult = sbomMetadataUtils.scanSbomContent(application, sbomContentAsString,
-        insightWork.getScanDir(applicationId), SbomFormat.forMimeType(sbomMetadata.mimeType),
-        sbomMetadataUtils.determineItemContentType(sbomMetadata.summary.specification), ScannerDriver.SBOM_API);
+        insightWork.getScanDir(applicationId), SbomFormat.forMimeType(sbomDetectionResult.mimeType),
+        sbomMetadataUtils.determineItemContentType(sbomDetectionResult.summary.specification), ScannerDriver.SBOM_API);
 
     policyEvaluateService.evaluateWithPolling(scanTicketDTO.requestId, application,
         ClientScanType.SONATYPE_THIRD_PARTY, new Stage(StageTypes.COMPLIANCE.getId()), ScanTriggerType.SBOM_API,

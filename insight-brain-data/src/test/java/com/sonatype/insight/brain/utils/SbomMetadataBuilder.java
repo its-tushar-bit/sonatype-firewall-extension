@@ -44,6 +44,8 @@ public class SbomMetadataBuilder
 
   private String metadataJson;
 
+  private String scanType;
+
   public SbomMetadataBuilder(DAOFactory daoFactory) {
     thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
     thirdPartySbomMetadataDAO = daoFactory.createThirdPartySbomMetadataDAO();
@@ -63,6 +65,7 @@ public class SbomMetadataBuilder
     //this.status = SbomStatus.ACTIVE.toString();
     this.status = "ACTIVE";
     this.metadataJson = buildMetadataJson();
+    this.scanType = "SBOM";
   }
 
   public static SbomMetadataBuilder newSbomMetadataBuilder(DAOFactory daoFactory) {
@@ -139,7 +142,7 @@ public class SbomMetadataBuilder
   public ThirdPartySbomMetadata build() {
     ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata(
         thirdPartyFileId, applicationId, sbomVersion, filename, serialNumber, spec, specFormat, specVersion, status,
-        createdAt, metadataJson
+        createdAt, metadataJson, scanType
     );
     thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
 

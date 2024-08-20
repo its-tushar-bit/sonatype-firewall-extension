@@ -30,6 +30,7 @@ public class ThirdPartySbomMetadataTestUtil
     thirdPartySbomMetadata.setSpecVersion(RandomStringUtils.randomAscii(10));
     thirdPartySbomMetadata.setStatus(status);
     thirdPartySbomMetadata.setMetadataJson(RandomStringUtils.randomAscii(1500));
+    thirdPartySbomMetadata.setScanType("SBOM");
 
     return thirdPartySbomMetadata;
   }

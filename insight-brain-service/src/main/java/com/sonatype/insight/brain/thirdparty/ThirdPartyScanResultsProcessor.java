@@ -484,13 +484,13 @@ public class ThirdPartyScanResultsProcessor
       ThirdPartyScanContext scanContext, String sbomContent)
   {
     try {
-      SbomDetectionResult sbomResult = sbomFileDetector.getSbomDetectionResult(sbomContent);
-      if (sbomResult == null || sbomResult.summary == null) {
+      SbomDetectionResult sbomDetectionResult = sbomFileDetector.getSbomDetectionResult(sbomContent);
+      if (sbomDetectionResult == null || sbomDetectionResult.summary == null) {
         throw new InvalidSbomException("SBOM metadata could not be identified.");
       }
-      ThirdPartySbomMetadata thirdPartySbomMetadata = getSbomMetadataEntity(scanContext, sbomResult);
+      ThirdPartySbomMetadata thirdPartySbomMetadata = getSbomMetadataEntity(scanContext, sbomDetectionResult);
       insertThirdPartySbomMetadataWithRetry(thirdPartySbomMetadata, scanContext.getApplicationId(),
-          sbomResult.summary.applicationVersion);
+          sbomDetectionResult.summary.applicationVersion);
       scanContext.setSbomMetadataId(thirdPartySbomMetadata.getId());
 
       AuditData.get().setSbomVersion(thirdPartySbomMetadata, SbomAction.CREATE);
@@ -542,6 +542,7 @@ public class ThirdPartyScanResultsProcessor
     sbomMetadata.setMetadataJson(sbomDetectionResult.summary.creationDetails);
     sbomMetadata.setCreatedAt(new Date());
     sbomMetadata.setStatus(SbomStatus.PENDING.name());
+    sbomMetadata.setScanType("SBOM");
     return sbomMetadata;
   }
 

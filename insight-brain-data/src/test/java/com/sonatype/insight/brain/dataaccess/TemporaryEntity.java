@@ -3896,6 +3896,7 @@ public class TemporaryEntity
     thirdPartySbomMetadata.setApplicationId(applicationId);
     thirdPartySbomMetadata.setFilename(fileName);
     thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFileId);
+    thirdPartySbomMetadata.setScanType("SBOM");
 
     thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
 
@@ -3924,6 +3925,7 @@ public class TemporaryEntity
     thirdPartySbomMetadata.setFilename(fileName);
     thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFileId);
     thirdPartySbomMetadata.setCreatedAt(createdAt);
+    thirdPartySbomMetadata.setScanType("SBOM");
 
     thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
 
@@ -5031,6 +5033,7 @@ public class TemporaryEntity
     thirdPartySbomMetadata.setSpecFormat(RandomStringUtils.random(10, true, true));
     thirdPartySbomMetadata.setSpecVersion(RandomStringUtils.random(10, true, true));
     thirdPartySbomMetadata.setStatus(sbomStatus);
+    thirdPartySbomMetadata.setScanType("SBOM");
 
     if (applicationId != null) {
       thirdPartySbomMetadata.setApplicationId(applicationId);

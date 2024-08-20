@@ -59,6 +59,9 @@ public class ThirdPartySbomMetadata
   @Column(name = "metadata_json")
   private String metadataJson;
 
+  @Column(name = "scan_type")
+  private String scanType;
+
   public ThirdPartySbomMetadata(
       String thirdPartyFileId,
       String applicationId,
@@ -70,7 +73,8 @@ public class ThirdPartySbomMetadata
       String specVersion,
       String status,
       Date createdAt,
-      String metadataJson)
+      String metadataJson,
+      String scanType)
   {
 
     this.thirdPartyFileId = thirdPartyFileId;
@@ -84,6 +88,7 @@ public class ThirdPartySbomMetadata
     this.status = status;
     this.createdAt = createdAt;
     this.metadataJson = metadataJson;
+    this.scanType = scanType;
   }
 
   @Override
@@ -182,5 +187,13 @@ public class ThirdPartySbomMetadata
 
   public void setMetadataJson(final String metadataJson) {
     this.metadataJson = metadataJson;
+  }
+
+  public String getScanType() {
+    return scanType;
+  }
+
+  public void setScanType(final String scanType) {
+    this.scanType = scanType;
   }
 }

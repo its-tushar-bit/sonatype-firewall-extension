@@ -87,16 +87,18 @@ public class ThirdPartySbomMetadataDAOTest
             ThirdPartySbomMetadata::getSerialNumber, ThirdPartySbomMetadata::getSbomVersion,
             ThirdPartySbomMetadata::getSpec, ThirdPartySbomMetadata::getSpecFormat,
             ThirdPartySbomMetadata::getSpecVersion, ThirdPartySbomMetadata::getStatus,
-            ThirdPartySbomMetadata::getCreatedAt, ThirdPartySbomMetadata::getMetadataJson)
+            ThirdPartySbomMetadata::getCreatedAt, ThirdPartySbomMetadata::getMetadataJson,
+            ThirdPartySbomMetadata::getScanType)
         .contains(
             tuple(entity.getId(), entity.getThirdPartyFileId(), entity.getApplicationId(), entity.getFilename(),
                 entity.getSerialNumber(), entity.getSbomVersion(), entity.getSpec(),
                 entity.getSpecFormat(), entity.getSpecVersion(), entity.getStatus(), entity.getCreatedAt(),
-                entity.getMetadataJson()),
+                entity.getMetadataJson(), entity.getScanType()),
             tuple(anotherEntity.getId(), anotherEntity.getThirdPartyFileId(), anotherEntity.getApplicationId(),
                 anotherEntity.getFilename(), anotherEntity.getSerialNumber(), anotherEntity.getSbomVersion(),
                 anotherEntity.getSpec(), anotherEntity.getSpecFormat(), anotherEntity.getSpecVersion(),
-                anotherEntity.getStatus(), anotherEntity.getCreatedAt(), anotherEntity.getMetadataJson()));
+                anotherEntity.getStatus(), anotherEntity.getCreatedAt(), anotherEntity.getMetadataJson(),
+                entity.getScanType()));
   }
 
   @Test
@@ -262,6 +264,7 @@ public class ThirdPartySbomMetadataDAOTest
     assertThat(actual.getSpecVersion()).isEqualTo(expected.getSpecVersion());
     assertThat(actual.getStatus()).isEqualTo(expected.getStatus());
     assertThat(actual.getMetadataJson()).isEqualTo(expected.getMetadataJson());
+    assertThat(actual.getScanType()).isEqualTo(expected.getScanType());
   }
 
   ThirdPartySbomMetadata createSbomMetadata(boolean save, String status) {

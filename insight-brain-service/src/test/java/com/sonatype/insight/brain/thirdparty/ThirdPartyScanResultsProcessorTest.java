@@ -261,7 +261,8 @@ public class ThirdPartyScanResultsProcessorTest
         "2.3",
         "PENDING",
         new Date(),
-        creationDetailsToolsOnlyJson());
+        creationDetailsToolsOnlyJson(),
+        "SBOM");
     assertThirdPartySbomMetadata(thirdPartyFileList.get(0), true, sbomMetadata);
     ThirdPartySbomMetadata thirdPartySbomMetadata =
         thirdPartySbomMetadataDAO.getByThirdPartyFileId(thirdPartyFileList.get(0).getId());
@@ -348,7 +349,9 @@ public class ThirdPartyScanResultsProcessorTest
         "xml",
         "1.5",
         SbomStatus.PENDING.name(),
-        new Date(), null);
+        new Date(),
+        null,
+        "SBOM");
     assertThirdPartySbomMetadata(thirdPartyFileList.get(0), true, sbomMetadata);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).getSbomMetadataEntity(any(), any());
   }
@@ -415,7 +418,9 @@ public class ThirdPartyScanResultsProcessorTest
         "xml",
         "1.1",
         SbomStatus.PENDING.name(),
-        new Date(), null);
+        new Date(),
+        null,
+        "SBOM");
     assertThirdPartySbomMetadata(thirdPartyFileList.get(0), true, sbomMetadata);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).getSbomMetadataEntity(any(), any());
     assertFilteredScanFile(thirdPartyFileList.get(1).getId(), application.getId());
@@ -686,7 +691,9 @@ public class ThirdPartyScanResultsProcessorTest
         "xml",
         "1.5",
         SbomStatus.PENDING.name(),
-        new Date(), creationDetailsJson());
+        new Date(),
+        creationDetailsJson(),
+        "SBOM");
     assertThirdPartySbomMetadata(thirdPartyFileList.get(0), true, sbomMetadata);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).getSbomMetadataEntity(any(), any());
     assertFilteredScanFile(thirdPartyFileId, application.getId());
@@ -910,6 +917,7 @@ public class ThirdPartyScanResultsProcessorTest
     duplicateThirdPartySbomMetadata.setSpecVersion(thirdPartySbomMetadata.getSpecVersion());
     duplicateThirdPartySbomMetadata.setFilename(thirdPartySbomMetadata.getFilename());
     duplicateThirdPartySbomMetadata.setStatus(thirdPartySbomMetadata.getStatus());
+    duplicateThirdPartySbomMetadata.setScanType(thirdPartySbomMetadata.getScanType());
     thirdPartyScanResultsProcessorSpy.insertThirdPartySbomMetadataWithRetry(duplicateThirdPartySbomMetadata,
         application.getId(), thirdPartySbomMetadata.getSbomVersion());
 
@@ -1104,6 +1112,7 @@ public class ThirdPartyScanResultsProcessorTest
       assertThat(thirdPartySbomMetadata.getSpecFormat()).isEqualTo(expectedSbomMetadata.getSpecFormat());
       assertThat(thirdPartySbomMetadata.getSpecVersion()).isEqualTo(expectedSbomMetadata.getSpecVersion());
       assertThat(thirdPartySbomMetadata.getMetadataJson()).isEqualTo(expectedSbomMetadata.getMetadataJson());
+      assertThat(thirdPartySbomMetadata.getScanType()).isEqualTo(expectedSbomMetadata.getScanType());
     }
     else {
       assertThat(thirdPartySbomMetadata).isNull();

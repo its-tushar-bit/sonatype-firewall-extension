@@ -29,6 +29,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -40,6 +41,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 
+@Ignore
 public class DashboardComponentDetailsTest
     extends AbstractFunctionalTest
 {

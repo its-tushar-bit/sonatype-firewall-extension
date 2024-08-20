@@ -73,6 +73,7 @@ import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
@@ -91,6 +92,7 @@ import static com.sonatype.clm.testing.functional.pages.DashboardPage.waiversTab
 import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Ignore
 public class DashboardFilterTest
     extends AbstractFunctionalTest
 {

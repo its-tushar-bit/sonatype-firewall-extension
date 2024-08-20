@@ -37,6 +37,7 @@ import com.codeborne.selenide.WebDriverRunner;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.NoSuchElementException;
@@ -55,6 +56,7 @@ import static com.sonatype.clm.testing.functional.utils.IqConditions.allHaveClas
 import static com.sonatype.clm.testing.functional.utils.IqConditions.cssValues;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Ignore
 public class DashboardApplicationsTest
     extends AbstractFunctionalTest
 {

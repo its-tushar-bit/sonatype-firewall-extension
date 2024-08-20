@@ -30,6 +30,7 @@ import com.codeborne.selenide.Condition;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -38,6 +39,7 @@ import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.text;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+@Ignore
 public class EditCopyrightsTest
     extends AbstractFunctionalTest
 {

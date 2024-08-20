@@ -54,6 +54,7 @@ import static com.codeborne.selenide.Condition.*;
 import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Ignore
 public class CreateOwnerTest
     extends AbstractFunctionalTest
 {

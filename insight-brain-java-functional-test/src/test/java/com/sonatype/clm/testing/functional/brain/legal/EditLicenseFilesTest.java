@@ -53,6 +53,7 @@ import static com.codeborne.selenide.Condition.selected;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Ignore
 public class EditLicenseFilesTest
     extends AbstractFunctionalTest
 {

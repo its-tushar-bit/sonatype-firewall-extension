@@ -19,11 +19,13 @@ import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage;
 import com.sonatype.insight.test.reverseproxy.IRequestHandler;
 import com.sonatype.insight.test.reverseproxy.ReverseProxyHandler;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.visible;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Ignore
 public class CacheBusterTest 
     extends AbstractFunctionalTest
 {

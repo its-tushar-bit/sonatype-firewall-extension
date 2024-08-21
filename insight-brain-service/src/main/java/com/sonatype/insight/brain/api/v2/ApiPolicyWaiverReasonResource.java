@@ -47,6 +47,6 @@ public class ApiPolicyWaiverReasonResource
 
   @GET
   public List<ApiPolicyWaiverReasonDTO> getPolicyWaiverReasons() {
-    return this.apiPolicyWaiverReasonService.getAllPolicyWaiverReasonsWithAuthzCheck();
+    return this.apiPolicyWaiverReasonService.getAllPolicyWaiverReasons();
   }
 }

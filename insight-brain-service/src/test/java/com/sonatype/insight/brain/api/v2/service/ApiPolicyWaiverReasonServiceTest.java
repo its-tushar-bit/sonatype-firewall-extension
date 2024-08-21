@@ -24,11 +24,11 @@ public class ApiPolicyWaiverReasonServiceTest
   private ApiPolicyWaiverReasonService apiPolicyWaiverReasonService;
 
   @Test
-  public void testGetAllPolicyWaiverReasonsWithAuthzCheck_shouldReturnAllPolicyWaiverReasons() {
+  public void testGetAllPolicyWaiverReasons_shouldReturnAllPolicyWaiverReasons() {
     final String givenSomeOtherReason = TemporaryEntity.uuid();
     final PolicyWaiverReason additionalWaiverReason = tempEntity.newWaiverReason("user", givenSomeOtherReason);
 
-    final var results = apiPolicyWaiverReasonService.getAllPolicyWaiverReasonsWithAuthzCheck();
+    final var results = apiPolicyWaiverReasonService.getAllPolicyWaiverReasons();
 
     assertThat(results).containsExactlyInAnyOrder(
         new ApiPolicyWaiverReasonDTO("9b704ef5bc064fc29d7fe08a251ee9a6", "system", "Acknowledged violation"),

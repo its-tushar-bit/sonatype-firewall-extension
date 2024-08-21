@@ -13,8 +13,6 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverReasonDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.security.Authorize;
 
 @Named
 public class ApiPolicyWaiverReasonService
@@ -29,12 +27,7 @@ public class ApiPolicyWaiverReasonService
     this.policyWaiverReasonDAO = policyWaiverReasonDAO;
   }
 
-  @Authorize(permission = Permission.READ)
-  public List<ApiPolicyWaiverReasonDTO> getAllPolicyWaiverReasonsWithAuthzCheck() {
-    return this.getAllPolicyWaiverReasons();
-  }
-
-  private List<ApiPolicyWaiverReasonDTO> getAllPolicyWaiverReasons() {
+  public List<ApiPolicyWaiverReasonDTO> getAllPolicyWaiverReasons() {
     return this.policyWaiverReasonDAO.getAll()
         .stream()
         .map(ApiPolicyWaiverReasonDTO::fromPolicyWaiverReason)

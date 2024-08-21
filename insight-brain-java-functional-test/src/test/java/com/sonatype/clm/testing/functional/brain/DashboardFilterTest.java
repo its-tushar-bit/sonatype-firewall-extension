@@ -73,7 +73,6 @@ import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
@@ -92,7 +91,6 @@ import static com.sonatype.clm.testing.functional.pages.DashboardPage.waiversTab
 import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Ignore
 public class DashboardFilterTest
     extends AbstractFunctionalTest
 {
@@ -128,7 +126,9 @@ public class DashboardFilterTest
   @BeforeClass
   public static void beforeClass() {
     refreshOrOpen(DashboardPage.urlToViolations());
+    DashboardPage.waitUntilSpinnersGone();
     loginAsAdmin();
+    DashboardPage.waitUntilSpinnersGone();
   }
 
   private void setupData() {
@@ -238,6 +238,7 @@ public class DashboardFilterTest
   public void before() {
     setupData();
     refreshOrOpen(DashboardPage.urlToViolations());
+    DashboardPage.waitUntilSpinnersGone();
   }
 
   @After
@@ -256,17 +257,21 @@ public class DashboardFilterTest
   @Test
   public void testAgeFilter() {
     refreshOrOpen(DashboardPage.urlToApplications());
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.expandFilter();
     AgeFilter ageFilter = DashboardFilters.ageFilter();
     ageFilter.shouldBe(hidden);
 
     refreshOrOpen(DashboardPage.urlToComponents());
+    DashboardPage.waitUntilSpinnersGone();
     ageFilter.shouldBe(hidden);
 
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
     ageFilter.shouldBe(hidden);
 
     refreshOrOpen(DashboardPage.urlToViolations());
+    DashboardPage.waitUntilSpinnersGone();
     ageFilter.shouldBe(visible).shouldHave(text("past 30 days"));
     ageFilter.twisty().click();
     ageFilter.singleSelectList().shouldHave(size(6)).shouldHave(
@@ -283,7 +288,8 @@ public class DashboardFilterTest
     ageFilter.singleSelectList().shouldHave(size(6));
 
     refreshOrOpen(DashboardPage.urlToViolations());
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.expandFilter();
     ageFilter.twisty().click();
     ageFilter.past30days().shouldNotBe(selected).click();
     // check that revert button restores previously applied value
@@ -298,7 +304,8 @@ public class DashboardFilterTest
   @Test
   public void testNLevelHierarchy() {
     refreshOrOpen(DashboardPage.urlToApplications());
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.expandFilter();
     NxTreeViewMultiSelect appFilter = DashboardFilters.applicationFilter();
     NxTreeViewMultiSelect orgFilter = DashboardFilters.organizationFilter();
     appFilter.twisty().click();
@@ -393,17 +400,21 @@ public class DashboardFilterTest
   @Test
   public void testExpirationDateFilter() {
     refreshOrOpen(DashboardPage.urlToApplications());
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.expandFilter();
     ExpirationDateFilter expirationDateFilter = DashboardFilters.expirationDateFilter();
     expirationDateFilter.shouldBe(hidden);
 
     refreshOrOpen(DashboardPage.urlToComponents());
+    DashboardPage.waitUntilSpinnersGone();
     expirationDateFilter.shouldBe(hidden);
 
     refreshOrOpen(DashboardPage.urlToViolations());
+    DashboardPage.waitUntilSpinnersGone();
     expirationDateFilter.shouldBe(hidden);
 
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
     expirationDateFilter.shouldBe(visible).shouldHave(text("all"));
     expirationDateFilter.twisty().click();
     expirationDateFilter.singleSelectList().shouldHave(size(7)).shouldHave(
@@ -441,7 +452,8 @@ public class DashboardFilterTest
     waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
 
     refreshOrOpen(DashboardPage.urlToWaivers());
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.expandFilter();
     expirationDateFilter.twisty().click();
     expirationDateFilter.in30days().shouldNotBe(selected).click();
 
@@ -460,8 +472,9 @@ public class DashboardFilterTest
     logout();
     login();
     refreshOrOpen(DashboardPage.urlToViolations());
+    DashboardPage.waitUntilSpinnersGone();
 
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     assertFilterDisabled(DashboardFilters.applicationFilter(), "applications");
     assertStageFilterDefaultState();
     assertCategoryFilterDefaultState();
@@ -475,7 +488,7 @@ public class DashboardFilterTest
 
   @Test
   public void testFilters_defaultState() {
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     ManageFiltersDropdown manage = DashboardFilters.manageFiltersDropdown();
     manage.selectedFilterLabel().shouldHave(exactText("Default"));
     manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
@@ -495,7 +508,7 @@ public class DashboardFilterTest
 
   @Test
   public void testFilters_updateCountersWhenValuesAreSet() {
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
 
     setSomeFilterValues();
 
@@ -522,7 +535,7 @@ public class DashboardFilterTest
 
   @Test
   public void testFilters_shouldRevertFilters() {
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     ManageFiltersDropdown manage = DashboardFilters.manageFiltersDropdown();
 
     // first set some filters and assert them before revert
@@ -539,14 +552,15 @@ public class DashboardFilterTest
 
   @Test
   public void testFilters_shouldPersistFilterChanges() {
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
 
     setSomeFilterValues();
     DashboardFilters.apply();
     DashboardPage.violationsView().results().mask().shouldBe(hidden);
 
     refresh();
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.expandFilter();
     assertNewCounterState();
     DashboardPage.violationsView().results().mask().shouldBe(hidden);
 
@@ -580,7 +594,7 @@ public class DashboardFilterTest
 
   @Test
   public void testFilters_shouldShowTooltipsWhenHoveringOnAppCategoryFilter() {
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     DashboardFilters.applicationCategoryFilter().twisty().click();
 
     DashboardFilters.applicationCategoryFilter().getFilterCheckboxAt(0).hover();
@@ -598,7 +612,7 @@ public class DashboardFilterTest
 
   @Test
   public void testFilters_shouldFilterUncategorizedApplications() {
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     DashboardFilters.applicationCategoryFilter().twisty().click();
 
     // select no category option
@@ -632,7 +646,7 @@ public class DashboardFilterTest
 
   @Test
   public void testFilters_shouldFilterByApplication() {
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
 
     DashboardFilters.applicationFilter().twisty().click();
     DashboardFilters.applicationFilter().checkboxItem(2).click();
@@ -647,7 +661,7 @@ public class DashboardFilterTest
 
   @Test
   public void testFilters_filterByPolicyViolations() {
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
 
     // this sets some other filters - should help testing feature with multiple other filters
     setSomeFilterValues();
@@ -683,7 +697,7 @@ public class DashboardFilterTest
 
   @Test
   public void testFilters_shouldFilterWaivedPolicyViolations() {
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
 
     // this sets some other filters - should help testing feature with multiple other filters
     setSomeFilterValues();
@@ -724,7 +738,7 @@ public class DashboardFilterTest
   @Test
   public void testFilters_shouldFilterLegacyViolations() {
     DashboardPage.componentsTab().click();
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
 
     selectDefaultFilter();
 
@@ -756,7 +770,7 @@ public class DashboardFilterTest
 
   @Test
   public void testFilterSingleAppWithMultipleCategories() {
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     CategoryFilter categoryFilter = DashboardFilters.applicationCategoryFilter();
     categoryFilter.counter().shouldBe(visible, not(ACTIVE)).shouldHave(text("3"));
     categoryFilter.twisty().shouldBe(visible).click();
@@ -772,14 +786,15 @@ public class DashboardFilterTest
 
   @Test
   public void testFilterOutAllResults() {
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     // filter only for security policy type
     DashboardFilters.policyTypeFilter().twisty().click();
     DashboardFilters.policyTypeFilter().security().click();
     DashboardFilters.policyTypeFilter().twisty().click();
     DashboardFilters.apply();
     refresh();
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.expandFilter();
     // verify policy filter counter
     DashboardFilters.policyTypeFilter().counter().shouldBe(ACTIVE).shouldHave(text("1 of 4"));
     // verify no violations row shown
@@ -794,7 +809,7 @@ public class DashboardFilterTest
 
   @Test
   public void testApplyChangesToDefaultFilter() {
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     ManageFiltersDropdown manage = DashboardFilters.manageFiltersDropdown();
     manage.selectedFilterLabel().shouldHave(exactText("Default"));
     manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
@@ -806,7 +821,8 @@ public class DashboardFilterTest
 
     // check that the 'dirty' asterisk remains after reload
     refresh();
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.expandFilter();
     manage.selectedFilterLabel().shouldHave(exactText("Default"));
     manage.selectedFilterDirtyAsterisk().shouldBe(visible);
   }
@@ -872,6 +888,7 @@ public class DashboardFilterTest
 
     // check that the 'dirty' asterisk remains after reload
     refresh();
+    DashboardPage.waitUntilSpinnersGone();
     DashboardPage.filterToggleDirtyAsterisk().shouldBe(visible);
     DashboardPage.filterToggle().shouldBe(visible).shouldHave(text("Initial")).click();
     manage.selectedFilterLabel().shouldHave(exactText("Initial"));
@@ -899,7 +916,7 @@ public class DashboardFilterTest
     // load other filter
     ViolationsResults table = DashboardPage.violationsView().results();
     table.violations().shouldHave(size(1));
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     manage.openMenuButton().click();
     manage.dropdownMenu().option(1).selectFilterButton().click();
     manage.dropdownMenu().shouldBe(hidden);
@@ -914,6 +931,7 @@ public class DashboardFilterTest
 
     // check that refreshing doesn't change anything
     refresh();
+    DashboardPage.waitUntilSpinnersGone();
     DashboardPage.filterToggleDirtyAsterisk().shouldBe(hidden);
     DashboardPage.filterToggle().shouldBe(visible).shouldHave(text("Initial")).click();
     manage.selectedFilterLabel().shouldHave(exactText("Initial"));
@@ -946,7 +964,7 @@ public class DashboardFilterTest
 
   @Test
   public void testDeleteSavedFilter() {
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     // create filters
     saveFilter("Delete", null, false, false);
     saveFilter("Do not delete", "Delete", false, false);
@@ -961,7 +979,7 @@ public class DashboardFilterTest
     DashboardFilters.filterContainer().shouldNotBe(visible);
 
     // delete filter - cancel
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     manage.openMenuButton().click();
     manage.dropdownMenu().shouldBe(visible);
     manage.dropdownMenu().options().shouldHave(size(3));
@@ -1006,7 +1024,7 @@ public class DashboardFilterTest
     DeleteFilterDialog deleteFilterDialog = DashboardFilters.deleteFilterDialog();
     String filter1 = "Applied Filter Is Based On Me";
 
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     // save a filter
     saveFilter(filter1, null, false, false);
     // modify, apply, but don't save
@@ -1037,6 +1055,7 @@ public class DashboardFilterTest
   public void testNeedsAcknowledgement() {
     setNeedsAcknowledgementOfInitialDashboardFilter(true);
     refreshOrOpen(DashboardPage.urlToViolations());
+    DashboardPage.waitUntilSpinnersGone();
 
     DashboardFilters.filterContainer().shouldBe(visible);
 
@@ -1082,7 +1101,7 @@ public class DashboardFilterTest
 
   @Test
   public void testNeedsAcknowledgement_ExistingSavedFilter() {
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     String filterName = "Saved Filter";
     saveFilter(filterName, null, false, false);
     DashboardFilterDAO dashboardFilterDAO = this.dashboardFilterDAO;
@@ -1095,15 +1114,17 @@ public class DashboardFilterTest
 
     setNeedsAcknowledgementOfInitialDashboardFilter(true);
     refreshOrOpen(DashboardPage.urlToViolations());
+    DashboardPage.waitUntilSpinnersGone();
 
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     assertNeedsAcknowledgementPostFilterState(filterName);
   }
 
   @Test
   public void testOrgFilterIncludesNewApplications() {
     refreshOrOpen(DashboardPage.urlToApplications());
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.expandFilter();
 
     // filter by Org
     DashboardFilters.organizationFilter().twisty().click();
@@ -1122,18 +1143,21 @@ public class DashboardFilterTest
 
     // new App should be included in results
     refreshOrOpen(DashboardPage.urlToApplications());
+    DashboardPage.waitUntilSpinnersGone();
     results.applications().shouldHave(size(3));
     eyesWatcher.eyesCheck();
 
     applicationDAO.delete(thirdApp);
     refreshOrOpen(DashboardPage.urlToApplications());
+    DashboardPage.waitUntilSpinnersGone();
     results.applications().shouldHave(size(2));
   }
 
   @Test
   public void testWaiverAppFilter_specificApplicationIsSelected() {
     refreshOrOpen(DashboardPage.urlToWaivers());
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.expandFilter();
 
     // select a specific application to filter
     DashboardFilters.applicationFilter().twisty().click();
@@ -1176,7 +1200,8 @@ public class DashboardFilterTest
   @Test
   public void testWaiverAppFilter_allOptionSelected() {
     refreshOrOpen(DashboardPage.urlToWaivers());
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.expandFilter();
 
     // all waivers should be listed without filter
     waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
@@ -1193,7 +1218,8 @@ public class DashboardFilterTest
   @Test
   public void testWaiverAppCategoryFilter_allOptionSelected() {
     refreshOrOpen(DashboardPage.urlToWaivers());
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.expandFilter();
 
     // all waivers should be listed without filter
     waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
@@ -1210,7 +1236,8 @@ public class DashboardFilterTest
   @Test
   public void testWaiverAppCategoryFilter_noCategoryOptionSelected() {
     refreshOrOpen(DashboardPage.urlToWaivers());
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.expandFilter();
 
     // all waivers should be listed without filter
     waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
@@ -1236,7 +1263,9 @@ public class DashboardFilterTest
   @Test
   public void testWaiverAppCategoryFilter_specificOptionSelected() {
     refreshOrOpen(DashboardPage.urlToWaivers());
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.dashboardContainer().shouldBe(visible);
+    DashboardPage.expandFilter();
 
     // all waivers should be listed without filter
     waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
@@ -1272,7 +1301,8 @@ public class DashboardFilterTest
   @Test
   public void testWaiverAppFilter_orderEntriesByExpiryDate() {
     refreshOrOpen(DashboardPage.urlToWaivers());
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.expandFilter();
 
     // select a specific application to filter
     DashboardFilters.applicationFilter().twisty().click();
@@ -1288,7 +1318,8 @@ public class DashboardFilterTest
   @Test
   public void testWaiverAppCategoryFilter_orderEntriesByExpiryDate() {
     refreshOrOpen(DashboardPage.urlToWaivers());
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.expandFilter();
 
     // all waivers should be listed without filter
     waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
@@ -1336,7 +1367,8 @@ public class DashboardFilterTest
     tempEntity.newWaiver(policy.getId(), parentOrg.getId());
 
     refreshOrOpen(DashboardPage.urlToWaivers());
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.expandFilter();
 
     // all waivers should be listed without filter
     waiversTab().counter().shouldBe(visible).shouldHave(text("9"));
@@ -1392,7 +1424,8 @@ public class DashboardFilterTest
   @Test
   public void testWaiverReposFilterIncludesRootOrgAndAllRepositories() {
     refreshOrOpen(DashboardPage.urlToWaivers());
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.waitUntilSpinnersGone();
+    DashboardPage.expandFilter();
 
     waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
 
@@ -1438,7 +1471,7 @@ public class DashboardFilterTest
 
   @Test
   public void testNoResultsShownForEmptyOrg() {
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     // filter by Empty Org
     DashboardFilters.organizationFilter().twisty().click();
     DashboardFilters.organizationFilter().checkboxItem(3).click();
@@ -1449,11 +1482,13 @@ public class DashboardFilterTest
     violationsResults.noDataMessage().shouldBe(visible);
 
     refreshOrOpen(DashboardPage.urlToApplications());
+    DashboardPage.waitUntilSpinnersGone();
     ApplicationsResults applicationsResults = DashboardPage.applicationsView().results();
     applicationsResults.applications().shouldHave(size(0));
     applicationsResults.noDataMessage().shouldBe(visible);
 
     refreshOrOpen(DashboardPage.urlToComponents());
+    DashboardPage.waitUntilSpinnersGone();
     ComponentsResults componentsResults = DashboardPage.componentsView().results();
     componentsResults.components().shouldHave(size(0));
     componentsResults.noDataMessage().shouldBe(visible);
@@ -1462,13 +1497,13 @@ public class DashboardFilterTest
   @Test
   public void testEscEvents() {
     // filter container is open
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     DashboardFilters.filterContainer().shouldBe(visible);
     pressEscape();
     DashboardFilters.filterContainer().shouldNotBe(visible);
 
     // filters are dirty - Esc should not close filterContainer
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     setSomeFilterValues();
     DashboardFilters.filterContainer().shouldBe(visible);
     pressEscape();
@@ -1478,7 +1513,7 @@ public class DashboardFilterTest
     DashboardFilters.filterContainer().shouldNotBe(visible);
 
     // filter container and dropdown are open
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     DashboardFilters.manageFiltersDropdown().openMenuButton().click();
     DashboardFilters.manageFiltersDropdown().dropdownMenu().shouldBe(visible);
     pressEscape();
@@ -1488,7 +1523,7 @@ public class DashboardFilterTest
     DashboardFilters.filterContainer().shouldNotBe(visible);
 
     // filter container, dropdown and delete modal are open
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     saveFilter("test filter", null, false, false);
     DashboardFilters.manageFiltersDropdown().openMenuButton().click();
     DashboardFilters.manageFiltersDropdown().dropdownMenu().shouldBe(visible).option(1).deleteFilterButton().click();
@@ -1504,7 +1539,7 @@ public class DashboardFilterTest
     DashboardFilters.filterContainer().shouldNotBe(visible);
 
     // after deleting a filter
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     DashboardFilters.manageFiltersDropdown().openMenuButton().click();
     DashboardFilters.manageFiltersDropdown().dropdownMenu().shouldBe(visible).option(1).deleteFilterButton().click();
     DashboardFilters.deleteFilterDialog().shouldBe(visible).continueButton().click();
@@ -1518,7 +1553,7 @@ public class DashboardFilterTest
     DashboardFilters.filterContainer().shouldNotBe(visible);
 
     // filter container and save modal are open
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     DashboardFilters.saveButton().shouldNotBe(disabled).click();
     SaveFilterDialog saveDialog = DashboardFilters.saveFilterDialog();
     saveDialog.shouldBe(visible);
@@ -1532,7 +1567,7 @@ public class DashboardFilterTest
   @Test
   public void testOffClickEvents() {
     // clicking within filter panel should not close it
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     DashboardFilters.applyButton().shouldBe(visible).click();
     DashboardFilters.filterContainer().shouldBe(visible);
 
@@ -1542,7 +1577,7 @@ public class DashboardFilterTest
 
     // clicking within filters dropdown should not close it
     ManageFiltersDropdown manage = DashboardFilters.manageFiltersDropdown();
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     manage.openMenuButton().click();
     manage.dropdownMenu().emptyListMessage().shouldBe(visible).click();
     manage.dropdownMenu().shouldBe(visible);
@@ -1559,7 +1594,7 @@ public class DashboardFilterTest
 
     // when filter changes are not applied, clicking outside of filter panel should close filters dropdown
     // but not filter panel
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     DashboardFilters.filterContainer().shouldBe(visible);
     setSomeFilterValues();
     manage.openMenuButton().click();
@@ -1609,7 +1644,7 @@ public class DashboardFilterTest
 
   @Test
   public void testDisplayModalOverFilter() {
-    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardPage.expandFilter();
     DashboardFilters.filterContainer().shouldBe(visible);
     setSomeFilterValues();
 

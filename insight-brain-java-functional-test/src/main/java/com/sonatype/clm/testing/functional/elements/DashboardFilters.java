@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import java.time.Duration;
+
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
@@ -12,8 +14,10 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebElementCondition;
 
+import static com.codeborne.selenide.Condition.clickable;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
@@ -38,6 +42,16 @@ public class DashboardFilters
 
   public static SelenideElement closeButton() {
     return $("#dashboard-filter-close-btn");
+  }
+
+  public static void closeFilter() {
+    // make sure the close button is clickable, sometimes it is briefly not
+    DashboardFilters.closeButton().shouldBe(clickable);
+    DashboardFilters.closeButton().click();
+
+    // Make sure it's closed before continuing as the filter can obscure other elements
+    // Increasing timeout because I have seen failures here running on local due to simply not waiting quite long enough
+    DashboardFilters.filterContainer().shouldNotBe(visible, Duration.ofSeconds(10));
   }
 
   public static Tooltip closeButtonTooltip() {

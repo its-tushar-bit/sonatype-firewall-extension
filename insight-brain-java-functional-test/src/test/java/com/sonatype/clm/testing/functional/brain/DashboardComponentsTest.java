@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.time.Duration;
 import java.util.Arrays;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -119,6 +120,7 @@ public class DashboardComponentsTest
     addComponentWithViolation(4, 10);  // critical
     addComponentWithViolation(3, 7);   // severe
     refreshOrOpen(DashboardPage.urlToComponents());
+    waitUntilUrl(DashboardPage.urlToComponents());
     showLowRiskViolations();
 
     DashboardPage.dashboardContainer().shouldBe(visible);
@@ -160,20 +162,17 @@ public class DashboardComponentsTest
     table.firstComponent().name().click();
     DashboardPage.dashboardContainer().shouldBe(hidden);
     dashboardComponentDetailsPage.header().shouldHave(text("Group4 : Artifact4 : Version4"));
-    Selenide.back();
-    DashboardPage.dashboardContainer().shouldBe(visible);
+    backToViolationsTab();
 
     table.component(1).name().click();
     DashboardPage.dashboardContainer().shouldBe(hidden);
     dashboardComponentDetailsPage.header().shouldHave(text("Group3 : Artifact3 : Version3"));
-    Selenide.back();
-    DashboardPage.dashboardContainer().shouldBe(visible);
+    backToViolationsTab();
 
     table.lastComponent().name().click();
     DashboardPage.dashboardContainer().shouldBe(hidden);
     dashboardComponentDetailsPage.header().shouldHave(text("Group1 : Artifact1 : Version1"));
-    Selenide.back();
-    DashboardPage.dashboardContainer().shouldBe(visible);
+    backToViolationsTab();
 
     // check the csv export default sort order
     ResponseCopyHandler responseCopyHandler = new ResponseCopyHandler("/rest/dashboard/export/componentRisks",
@@ -269,11 +268,11 @@ public class DashboardComponentsTest
     assertComponentsCsv(exportCsv, expectedResults);
 
     // CSV export - filter out threat level 1
-    DashboardPage.filterToggle().click();
+    DashboardPage.expandFilter();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
     DashboardFilters.apply();
-    DashboardFilters.closeButton().click();
+    DashboardFilters.closeFilter();;
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
@@ -284,11 +283,11 @@ public class DashboardComponentsTest
     assertComponentsCsv(exportCsv, expectedResults);
 
     // CSV export - filter out threat level 3
-    DashboardPage.filterToggle().click();
+    DashboardPage.expandFilter();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(7, 10);
     DashboardFilters.apply();
-    DashboardFilters.closeButton().click();
+    DashboardFilters.closeFilter();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
@@ -477,14 +476,22 @@ public class DashboardComponentsTest
   }
 
   private void showLowRiskViolations() {
-    DashboardPage.filterToggle().click();
+    DashboardPage.expandFilter();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(0, 10);
     DashboardFilters.apply();
-    DashboardFilters.closeButton().click();
+    DashboardFilters.closeFilter();;
   }
 
   private void clearFilters() {
     dashboardFilterDAO.deleteByUsernameAndRealmId(User.ADMIN_USERNAME, InternalRealm.ID);
+  }
+
+  private void backToViolationsTab() {
+    Selenide.back();
+
+    // wait for load spinner to be replaced with contents so we can interact with the page again
+    DashboardPage.pageLoadSpinner().shouldNotBe(visible, Duration.ofSeconds(8));
+    DashboardPage.dashboardContainer().shouldBe(visible);
   }
 }

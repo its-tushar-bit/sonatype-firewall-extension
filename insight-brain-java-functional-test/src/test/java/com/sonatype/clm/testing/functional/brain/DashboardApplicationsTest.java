@@ -37,7 +37,6 @@ import com.codeborne.selenide.WebDriverRunner;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.NoSuchElementException;
@@ -47,6 +46,7 @@ import org.openqa.selenium.support.ui.FluentWait;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.clickable;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
@@ -56,7 +56,6 @@ import static com.sonatype.clm.testing.functional.utils.IqConditions.allHaveClas
 import static com.sonatype.clm.testing.functional.utils.IqConditions.cssValues;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Ignore
 public class DashboardApplicationsTest
     extends AbstractFunctionalTest
 {
@@ -288,13 +287,17 @@ public class DashboardApplicationsTest
     setViewportSize(WebDriverRunner.getWebDriver());
 
     // CSV export - filter out threat level 1
-    DashboardPage.filterToggle().click();
+    DashboardPage.expandFilter();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     eyesWatcher.eyesCheck("Applications tab with form-mask");
     DashboardFilters.apply();
-    DashboardFilters.closeButton().click();
+
+    DashboardFilters.closeButton().shouldBe(clickable, Duration.ofSeconds(5));
+    DashboardFilters.closeFilter();
+    DashboardFilters.filterContainer().shouldNotBe(visible, Duration.ofSeconds(5));
+
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
@@ -306,12 +309,12 @@ public class DashboardApplicationsTest
     assertApplicationsCsv(exportCsv, expectedResults);
 
     // CSV export - filter out Release violations
-    DashboardPage.filterToggle().click();
+    DashboardPage.expandFilter();
     DashboardFilters.stageFilter().twisty().click();
     DashboardFilters.stageFilter().allItems().click();
     DashboardFilters.stageFilter().release().click();
     DashboardFilters.apply();
-    DashboardFilters.closeButton().click();
+    DashboardFilters.closeFilter();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
@@ -322,12 +325,12 @@ public class DashboardApplicationsTest
     assertApplicationsCsv(exportCsv, expectedResults);
 
     // CSV export - filter out app4
-    DashboardPage.filterToggle().click();
+    DashboardPage.expandFilter();
     DashboardFilters.applicationFilter().twisty().click();
     DashboardFilters.applicationFilter().allItems().click();
     DashboardFilters.applicationFilter().checkboxItem(5).click();
     DashboardFilters.apply();
-    DashboardFilters.closeButton().click();
+    DashboardFilters.closeFilter();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
@@ -495,11 +498,11 @@ public class DashboardApplicationsTest
 
     refresh();
     DashboardPage.applicationsView().results().shouldBe(visible);
-    DashboardPage.filterToggle().click();
+    DashboardPage.expandFilter();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(3, 7);
     DashboardFilters.apply();
-    DashboardFilters.closeButton().click();
+    DashboardFilters.closeFilter();
     // should be at first page after filtering
     DashboardPage.applicationsView().paginationButtons().get(0).shouldHave(cssClass("selected"));
     DashboardPage.applicationsView().paginationButtons().shouldHave(size(1));
@@ -541,12 +544,12 @@ public class DashboardApplicationsTest
   }
 
   private void showLowRiskViolations() {
-    DashboardPage.filterToggle().click();
+    DashboardPage.expandFilter();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(0, 10);
     DashboardFilters.apply();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
-    DashboardFilters.closeButton().click();
+    DashboardFilters.closeFilter();
   }
 
   private void clearFilters() {

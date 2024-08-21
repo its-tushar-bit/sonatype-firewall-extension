@@ -5,9 +5,12 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import java.time.Duration;
+
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.DashboardApplications;
 import com.sonatype.clm.testing.functional.elements.DashboardComponents;
+import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardTab;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations;
 import com.sonatype.clm.testing.functional.elements.DashboardWaivers;
@@ -17,7 +20,9 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebElementCondition;
 
+import static com.codeborne.selenide.Condition.clickable;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
@@ -109,5 +114,24 @@ public class DashboardPage extends BasicElement<DashboardPage>
 
   public static SelenideElement needsAcknowledgementMessage() {
     return $(createSelector(ROOT, "#needs-acknowledgement"));
+  }
+
+  public static SelenideElement pageLoadSpinner() {
+    return $(".nx-loading-spinner");
+  }
+
+  public static void expandFilter() {
+    // make sure the toggle is ready before trying to click it
+    filterToggle().shouldBe(clickable);
+
+    filterToggle().click();
+
+    // make sure it's visible before we move on, increasing timeout because I've observed this taking slightly longer
+    // than the default 4 seconds
+    DashboardFilters.filterContainer().shouldBe(visible, Duration.ofSeconds(10));
+  }
+
+  public static void waitUntilSpinnersGone() {
+    pageLoadSpinner().shouldNotBe(visible, Duration.ofSeconds(10));
   }
 }

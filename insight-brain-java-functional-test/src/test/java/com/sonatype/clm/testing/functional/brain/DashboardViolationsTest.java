@@ -377,11 +377,12 @@ public class DashboardViolationsTest
     assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
     // CSV export - filter out threat level 1
-    DashboardPage.filterToggle().click();
+    DashboardPage.expandFilter();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
     DashboardFilters.apply();
-    DashboardFilters.closeButton().click();
+    DashboardFilters.closeFilter();
+
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
@@ -394,12 +395,12 @@ public class DashboardViolationsTest
     assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
     // CSV export - filter out Build violations
-    DashboardPage.filterToggle().click();
+    DashboardPage.expandFilter();
     DashboardFilters.stageFilter().twisty().click();
     DashboardFilters.stageFilter().allItems().click();
     DashboardFilters.stageFilter().build().click();
     DashboardFilters.apply();
-    DashboardFilters.closeButton().click();
+    DashboardFilters.closeFilter();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
@@ -411,12 +412,12 @@ public class DashboardViolationsTest
     assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
     // CSV export - filter out Security policy type violations
-    DashboardPage.filterToggle().click();
+    DashboardPage.expandFilter();
     DashboardFilters.policyTypeFilter().twisty().click();
     DashboardFilters.policyTypeFilter().allItems().click();
     DashboardFilters.policyTypeFilter().security().click();
     DashboardFilters.apply();
-    DashboardFilters.closeButton().click();
+    DashboardFilters.closeFilter();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
@@ -425,12 +426,12 @@ public class DashboardViolationsTest
     assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
     // CSV export - filter out App1
-    DashboardPage.filterToggle().click();
+    DashboardPage.expandFilter();
     DashboardFilters.applicationFilter().twisty().click();
     DashboardFilters.applicationFilter().allItems().click();
     DashboardFilters.applicationFilter().checkboxItem(2).click();
     DashboardFilters.apply();
-    DashboardFilters.closeButton().click();
+    DashboardFilters.closeFilter();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     assertThat(exportCsv).as("Expected empty export").isEqualTo(CSV_HEADERS);
@@ -831,11 +832,11 @@ public class DashboardViolationsTest
     table.firstViolation().policy().shouldHave(text(licensePolicy3.getName()));
     table.lastViolation().policy().shouldHave(text(licensePolicy4.getName()));
 
-    DashboardPage.filterToggle().click();
+    DashboardPage.expandFilter();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(3, 10);
     DashboardFilters.apply();
-    DashboardFilters.closeButton().click();
+    DashboardFilters.closeFilter();
 
     // should be at first page after filtering
     DashboardPage.violationsView().paginationButtons().get(0).shouldHave(cssClass("selected"));
@@ -844,11 +845,11 @@ public class DashboardViolationsTest
     changePage(1);
     table.lastViolation().policy().shouldHave(text(licensePolicy3.getName()));
 
-    DashboardPage.filterToggle().click();
+    DashboardPage.expandFilter();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(4, 10);
     DashboardFilters.apply();
-    DashboardFilters.closeButton().click();
+    DashboardFilters.closeFilter();
 
     DashboardPage.violationsView().paginationButtons().get(0).shouldHave(cssClass("selected"));
     DashboardPage.violationsView().paginationButtons().shouldHave(size(1));
@@ -928,11 +929,11 @@ public class DashboardViolationsTest
   }
 
   private void showLowRiskViolations() {
-    DashboardPage.filterToggle().click();
+    DashboardPage.expandFilter();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(0, 10);
     DashboardFilters.apply();
-    DashboardFilters.closeButton().click();
+    DashboardFilters.closeFilter();
   }
 
   private void clearFilters() {

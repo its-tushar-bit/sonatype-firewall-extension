@@ -132,7 +132,10 @@ public class DashboardWaiversTest
   @BeforeClass
   public static void beforeClass() {
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
+
     loginAsAdmin();
+    DashboardPage.waitUntilSpinnersGone();
 
     responseCopyHandler = new ResponseCopyHandler("/rest/dashboard/export/policyWaivers",
         testCLMServer.getCLMServer().getPort());
@@ -150,15 +153,19 @@ public class DashboardWaiversTest
   public void testWaiversTable_noDataMessage() {
     // no data message check
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
+
     table.noDataMessage().shouldBe(visible).shouldHave(text(NO_DATA_MSG));
   }
 
   @Test
   public void testWaiversTable_loadsAllWaiversWithoutFilters() {
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
 
     policyWaivers = createWaivers();
     refresh();
+    DashboardPage.waitUntilSpinnersGone();
 
     DashboardPage.dashboardContainer().shouldBe(visible);
     table.waivers().shouldHave(size(9));
@@ -258,9 +265,11 @@ public class DashboardWaiversTest
   public void testWaiversTable_defaultCsvExport() {
     // checks csv export when no filters are selected
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
 
     policyWaivers = createWaivers();
     refresh();
+    DashboardPage.waitUntilSpinnersGone();
 
     String exportCsvData = exportWaiversCSV();
     DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
@@ -273,9 +282,11 @@ public class DashboardWaiversTest
   @Test
   public void testWaiversTable_sortByThreat() {
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
 
     policyWaivers = createWaivers();
     refresh();
+    DashboardPage.waitUntilSpinnersGone();
 
     // sort by threat
     headers.threatHeader().click();
@@ -295,9 +306,11 @@ public class DashboardWaiversTest
   @Test
   public void testWaiversTable_sortByCreatedDate() {
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
 
     policyWaivers = createWaivers();
     refresh();
+    DashboardPage.waitUntilSpinnersGone();
 
     // sort by creation date
     headers.dateHeader().click();
@@ -317,9 +330,11 @@ public class DashboardWaiversTest
   @Test
   public void testWaiversTable_sortByPolicy() {
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
 
     policyWaivers = createWaivers();
     refresh();
+    DashboardPage.waitUntilSpinnersGone();
 
     // sort by policy
     headers.policyHeader().click();
@@ -342,9 +357,11 @@ public class DashboardWaiversTest
   @Test
   public void testWaiversTable_sortByScope() {
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
 
     policyWaivers = createWaivers();
     refresh();
+    DashboardPage.waitUntilSpinnersGone();
 
     // sort by scope
     headers.scopeHeader().click();
@@ -363,9 +380,11 @@ public class DashboardWaiversTest
   @Test
   public void testWaiversTable_sortByComponent() {
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
 
     policyWaivers = createWaivers();
     refresh();
+    DashboardPage.waitUntilSpinnersGone();
 
     // sort by component
     headers.componentHeader().click();
@@ -433,6 +452,8 @@ public class DashboardWaiversTest
             "scan1", false, false, Date.from(now.minus(29, ChronoUnit.DAYS)));
 
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
+
     showAllWaivers();
     table.waivers().shouldHave(size(100));
 
@@ -505,6 +526,8 @@ public class DashboardWaiversTest
             "scan1", false, false, Date.from(now.minus(29, ChronoUnit.DAYS)));
 
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
+
     showAllWaivers();
     table.waivers().shouldHave(size(100));
 
@@ -573,6 +596,8 @@ public class DashboardWaiversTest
             "scan1", false, false, Date.from(now.minus(29, ChronoUnit.DAYS)));
 
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
+
     showAllWaivers();
     table.waivers().shouldHave(size(100));
 
@@ -633,6 +658,8 @@ public class DashboardWaiversTest
             "scan1", false, false, Date.from(now.minus(29, ChronoUnit.DAYS)));
 
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
+
     showAllWaivers();
     table.waivers().shouldHave(size(100));
 
@@ -709,6 +736,8 @@ public class DashboardWaiversTest
             "scan1", false, false, Date.from(now.minus(29, ChronoUnit.DAYS)));
 
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
+
     showAllWaivers();
     table.waivers().shouldHave(size(100));
 
@@ -742,10 +771,14 @@ public class DashboardWaiversTest
   @Test
   public void testWaiversTableRowClick() {
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
+
     table.noDataMessage().shouldBe(visible).shouldHave(text(NO_DATA_MSG));
 
     policyWaivers = createWaivers();
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
+
     showAllWaivers();
     table.waivers().shouldHave(size(7));
 
@@ -755,6 +788,7 @@ public class DashboardWaiversTest
         organization.getId(), policyWaivers.get(0).getId(), "waiver", "filter", 1));
 
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
 
     // get second waiver row in table
     table.waiver(1).click();
@@ -762,6 +796,7 @@ public class DashboardWaiversTest
             application2.getId(), policyWaivers.get(1).getId(), "waiver", "filter", 1));
 
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
 
     // get third waiver row in table
     table.waiver(2).click();
@@ -769,6 +804,7 @@ public class DashboardWaiversTest
         organization.getId(), policyWaivers.get(3).getId(), "waiver", "filter", 1));
 
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
   }
 
   private ArrayList<PolicyWaiver> createWaivers() {
@@ -935,14 +971,15 @@ public class DashboardWaiversTest
   }
 
   private void showAllWaivers() {
-    DashboardPage.filterToggle().click();
+    DashboardPage.expandFilter();
+
     DashboardFilters.organizationFilter().twisty().click();
     DashboardFilters.organizationFilter().allItems().click();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(1, 10);
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.apply();
-    DashboardFilters.closeButton().click();
+    DashboardFilters.closeFilter();
   }
 
   private String exportWaiversCSV() {
@@ -1071,10 +1108,13 @@ public class DashboardWaiversTest
   @Test
   public void testMoreThanOnePage() {
     refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
 
     createWaiversForPagination();
 
     refresh();
+    DashboardPage.waitUntilSpinnersGone();
+
     DashboardPage.dashboardContainer().shouldBe(visible);
     DashboardPage.waiversView().paginationButtons().shouldHave(size(2));
     table.waivers().shouldHave(size(100));

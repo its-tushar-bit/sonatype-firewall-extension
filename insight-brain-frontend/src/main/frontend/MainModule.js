@@ -307,9 +307,10 @@ export const InitModule = angular
           cancelPreLoginStateHandler = $rootScope.$on('$stateChangeStart', preLoginStateHandler);
         }
 
-        function onLicenseSuccess({ productEdition }) {
+        function onLicenseSuccess({ productEdition, products }) {
           $rootScope.licensed = true;
           $rootScope.productEdition = productEdition;
+          $rootScope.products = products;
 
           // replay state transition caught while license was loading so that preLoginStateHandler can process it
           if (savedStateDuringLicenseFetch) {

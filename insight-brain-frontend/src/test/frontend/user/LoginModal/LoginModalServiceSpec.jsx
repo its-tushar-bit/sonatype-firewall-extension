@@ -100,9 +100,10 @@ describe('LoginModalService', function () {
 
     // Adding timeout to wait until all the promises for the open modal are completed
     setTimeout(() => {
-      expect($ngRedux.actions.length).toBe(3);
+      expect($ngRedux.actions.length).toBe(4);
       expect($ngRedux.actions).toHaveActionTypesInOrder([
         'userLogin/setIsLicensed',
+        'userLogin/setProducts',
         'userLogin/setShowLoginModal',
         'userLogin/setShowSamlSso',
       ]);
@@ -175,9 +176,10 @@ describe('LoginModalService', function () {
 
     // Adding timeout to wait until all the promises for the open modal are completed
     setTimeout(() => {
-      expect($ngRedux.actions.length).toBe(3);
+      expect($ngRedux.actions.length).toBe(4);
       expect($ngRedux.actions).toHaveActionTypesInOrder([
         'userLogin/setIsLicensed',
+        'userLogin/setProducts',
         'userLogin/setShowLoginModal',
         'userLogin/setShowSamlSso',
       ]);

@@ -77,6 +77,7 @@ export default function LoginModalService(rootScope, ngRedux, UnauthenticatedReq
     });
 
     ngRedux.dispatch(actions.setIsLicensed(rootScope.licensed));
+    ngRedux.dispatch(actions.setProducts(rootScope.products));
     ngRedux.dispatch(actions.setShowLoginModal(true));
     ngRedux.dispatch(actions.setShowSamlSso(showSamlSso));
 

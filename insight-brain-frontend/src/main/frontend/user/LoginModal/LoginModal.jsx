@@ -23,15 +23,22 @@ import {
 } from '@sonatype/react-shared-components';
 import { selectLoginModalState, selectLoginModalSubmitState, selectSystemNoticeServerData } from './userLoginSelectors';
 import { selectRouterState } from 'MainRoot/reduxUiRouter/routerSelectors';
+import * as sbomManagerUtil from 'MainRoot/sbomManager/sbomManagerUtil';
 
 export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
   // State selectors
   const dispatch = useDispatch();
   const routeState = useSelector(selectRouterState);
   const systemNotice = useSelector(selectSystemNoticeServerData);
-  const { isLicensed, showSamlSso, showLoginModal, username, password, isUnauthenticatedPagesEnabled } = useSelector(
-    selectLoginModalState
-  );
+  const {
+    isLicensed,
+    products,
+    showSamlSso,
+    showLoginModal,
+    username,
+    password,
+    isUnauthenticatedPagesEnabled,
+  } = useSelector(selectLoginModalState);
   const { loginSubmitError, loginSubmitMaskState } = useSelector(selectLoginModalSubmitState);
 
   const uiRouterState = useRouterState();
@@ -46,10 +53,13 @@ export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
 
   const samlSsoButtonRef = useConditionalAutoFocus(showSamlSso && isFormValid);
 
+  const isSbomManagerOnlyLicense = sbomManagerUtil.isSbomManagerOnlyLicenseProduct(products);
+
   const renderVulnerabilityLink =
     isLicensed &&
     isUnauthenticatedPagesEnabled &&
-    not(includes(routeState.name, ['vulnerabilitySearchDetail', 'vulnerabilitySearch']));
+    not(includes(routeState.name, ['vulnerabilitySearchDetail', 'vulnerabilitySearch'])) &&
+    !isSbomManagerOnlyLicense;
 
   const userInputValidator = (val) => {
     return val.length ? null : 'Required field';

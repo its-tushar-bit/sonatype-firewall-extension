@@ -20,6 +20,7 @@ import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.Selenide;
 import org.junit.After;
@@ -98,6 +99,24 @@ public class LoginTest
     loginModal.loginButton().shouldBe(enabled);
     loginModal.cancelButton().shouldBe(hidden);
     loginModal.vulnerabilityLookupLink().shouldBe(visible);
+  }
+
+  @Test
+  public void testInitialLoginFormState_NotSbomManagerOnlyLicense() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER, ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
+
+    refreshOrOpen(ReportListPage.url());
+    loginModal.shouldBe(visible);
+    loginModal.vulnerabilityLookupLink().shouldBe(visible);
+  }
+
+  @Test
+  public void testInitialLoginFormState_SbomManagerOnlyLicense() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+
+    refreshOrOpen(ReportListPage.url());
+    loginModal.shouldBe(visible);
+    loginModal.vulnerabilityLookupLink().shouldNotBe(visible);
   }
 
   @Test

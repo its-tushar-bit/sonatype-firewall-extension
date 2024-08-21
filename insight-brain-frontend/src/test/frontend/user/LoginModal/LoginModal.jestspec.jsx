@@ -147,6 +147,50 @@ describe('LoginModal', () => {
     expect(screen.queryByRole('link', { name: 'Vulnerability Lookup' })).toBeNull();
   });
 
+  it('renders Vulnerability Lookup link if not SBOM Manager only license', () => {
+    let hrefSpy = jest.fn().mockImplementation((args) => `href-${args}`);
+    jest.spyOn(routerContext, 'useRouterState').mockReturnValue({
+      href: hrefSpy,
+    });
+    jest.spyOn(routeSelectors, 'selectRouterState').mockReturnValue({ name: 'index' });
+    useSelectorLoginStateSpy.mockImplementation((state) => {
+      const originalSelection = originalLoginStateSelector(state);
+      return {
+        ...originalSelection,
+        showLoginModal: true,
+        isLicensed: true,
+        isUnauthenticatedPagesEnabled: true,
+        products: ['Sonatype SBOM Manager', 'Sonatype Lifecycle'],
+      };
+    });
+    renderComponent();
+
+    expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Vulnerability Lookup' })).toBeVisible();
+  });
+
+  it('does not render Vulnerability Lookup link if SBOM Manager only license', () => {
+    let hrefSpy = jest.fn().mockImplementation((args) => `href-${args}`);
+    jest.spyOn(routerContext, 'useRouterState').mockReturnValue({
+      href: hrefSpy,
+    });
+    jest.spyOn(routeSelectors, 'selectRouterState').mockReturnValue({ name: 'index' });
+    useSelectorLoginStateSpy.mockImplementation((state) => {
+      const originalSelection = originalLoginStateSelector(state);
+      return {
+        ...originalSelection,
+        showLoginModal: true,
+        isLicensed: true,
+        isUnauthenticatedPagesEnabled: true,
+        products: ['Sonatype SBOM Manager'],
+      };
+    });
+    renderComponent();
+
+    expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Vulnerability Lookup' })).toBeNull();
+  });
+
   it('renders a system notice alert when one is enabled', () => {
     jest.spyOn(userLoginSelectors, 'selectSystemNoticeServerData').mockReturnValue({
       enabled: true,

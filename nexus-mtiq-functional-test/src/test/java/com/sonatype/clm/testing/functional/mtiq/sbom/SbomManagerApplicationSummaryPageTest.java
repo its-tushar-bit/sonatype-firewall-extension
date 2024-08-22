@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.mtiq.sbom;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.nio.file.Path;
 import java.util.Date;
 
@@ -194,5 +196,26 @@ public class SbomManagerApplicationSummaryPageTest
     sbomsTile.tableBodyRows().shouldHave(size(1));
     sbomsTile.tableBodyRowsColumns(0).get(0).shouldNotHave(text(sbomMetadata.getSbomVersion()));
     sbomsTile.tableBodyRowsColumns(0).get(0).shouldHave(text("No SBOMs found"));
+  }
+
+  @Test
+  public void testSbomsTile_DownloadSbomReportFolder() throws Exception {
+    setLicenseAndAdminLogin();
+
+    refreshOrOpen(SbomManagerApplicationSummaryPage.url(application.getPublicId()));
+    SbomsTile sbomsTile = SbomManagerApplicationSummaryPage.sbomsTile();
+
+    sbomsTile.actions(1).click();
+
+    File downloadedSbom = sbomsTile.actionsSbomOptions()
+        .first()
+        .shouldHave(text("Download SBOM report"))
+        .download();
+
+    byte[] fileBeginning = new byte[5];
+    try (FileInputStream stream = new FileInputStream(downloadedSbom)) {
+      stream.read(fileBeginning);
+    }
+    assertThat(new String(fileBeginning)).isEqualTo("<?xml");
   }
 }

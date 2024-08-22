@@ -22,7 +22,7 @@
 
   <properties>
     <clm.server.jar>${project.artifactId}-${project.version}.jar</clm.server.jar>
-    <clm.server.demo.command>java -jar ${clm.server.jar} server config.yml 2> stderr.log</clm.server.demo.command>
+    <clm.server.demo.command>java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/sun.security.rsa=ALL-UNNAMED --add-opens=java.base/sun.security.x509=ALL-UNNAMED --add-opens=java.base/sun.security.util=ALL-UNNAMED --add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED -jar ${clm.server.jar} server config.yml 2> stderr.log</clm.server.demo.command>
   </properties>
 
   <dependencies>

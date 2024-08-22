@@ -1,0 +1,251 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+// This job allows the Business Intelligence team control what is shown on the Insight Data landing page in IQ
+// Some more technical background can be found here https://sonatype.atlassian.net/wiki/spaces/DATA/pages/227410489/Dashboard+Change+Management
+// The job can be ran here: https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/Data%20Insights%20Dasbhoard%20Configuration/job/Create%20Or%20Update%20Data%20Insights%20Dasbhoard/
+
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+import groovy.json.JsonSlurper
+
+def fileName = "enterprise-reporting.json"
+
+def s3Configuration =  [
+    account: "993883856687",
+    role: "Zion4iq-hds-stage",
+    usEast2Bucket: "hds-staging-enterprise-reporting-us-east-2",
+    usWest2Bucket: "hds-staging-enterprise-reporting-us-west-2"
+]
+
+pipeline {
+  agent {
+    node {
+      label 'zion-small'
+    }
+  }
+
+  stages {
+    stage('Create/Update Data Insights Dashboard For usEast2Bucket Staging') {
+      steps {
+        script {
+          withAWS(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account) {
+            printUserInput(params)
+
+            def bucketForStagingEast = s3Configuration.usEast2Bucket
+
+            createConfigurationFileIfNotExists(bucketForStagingEast, fileName)
+
+            def dashboardConfig = readExistingConfig(bucketForStagingEast, fileName)
+
+            validateInput(params, dashboardConfig)
+
+            def dashboardEntry = [
+              dashboardId: params.dashboardId,
+              title: params.title,
+              description: params.description,
+              dashboardPath: params.dashboardPath,
+              modelsCsv: params.modelsCsv,
+              featuresCsv: params.featuresCsv,
+              accessButtonText: params.accessButtonText,
+              previewImageFilename: params.previewImageFilename,
+              priorityOrder: params.priorityOrder.toInteger(),
+              spotlight: params.spotlight
+            ]
+
+            dashboardConfig.version = env.BUILD_NUMBER.toLong()
+            dashboardConfig.dashboards[params.dashboardId] = dashboardEntry
+
+            def newDashboardConfigJson = groovy.json.JsonOutput.toJson(dashboardConfig)
+
+            echo "saving new configuration: ${newDashboardConfigJson}"
+            saveToBucket(bucketForStagingEast, fileName, newDashboardConfigJson)
+          }
+        }
+      }
+    }
+
+    stage('Copy from usEast2Bucket Staging bucket to usWest2Bucket Staging bucket') {
+      steps {
+        script {
+          withAWS(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account) {
+            copyFromEastBucketToWestBucket(s3Configuration, fileName)
+          }
+        }
+      }
+    }
+  }
+
+  parameters {
+    string(
+        name: 'dashboardId',
+        description: ' The primary identifier used to determine which dashboard is updated. If no dashboard exists ' +
+            'with the id, a new dashboard is created (Provided by BI team).',
+        trim: true,
+        defaultValue: ''
+    )
+
+    string(
+        name: 'modelsCsv',
+        description: 'Looker data, provide as a comma separated list -- no space after commas (Provided by BI team).',
+        trim: true,
+        defaultValue: ''
+    )
+
+    string(
+        name: 'dashboardPath',
+        description: 'The Looker path to link to. It starts with "dashboards/" (Provided by BI team).',
+        trim: true,
+        defaultValue: ''
+    )
+
+    string(
+        name: 'title',
+        description: 'Dashboard title (Provided by UI/UX Design team).',
+        trim: true,
+        defaultValue: ''
+    )
+
+    string(
+        name: 'description',
+        description: 'Dashboard description (Provided by UI/UX Design team).',
+        trim: true,
+        defaultValue: ''
+    )
+
+    string(
+        name: 'featuresCsv',
+        description: 'Dashboard features, provide as a comma separated list -- no space after commas (Provided by UI/UX Design team).',
+        trim: true,
+        defaultValue: ''
+    )
+
+    string(
+        name: 'accessButtonText',
+        description: 'Dashboard access button text (Provided by UI/UX Design team).',
+        trim: true,
+        defaultValue: ''
+    )
+
+    string(
+        name: 'previewImageFilename',
+        description: 'Dashboard icon file name (Provided by UI/UX Design team).',
+        trim: true,
+        defaultValue: ''
+    )
+
+    string(
+        name: 'priorityOrder',
+        description: 'Dashboard priority, used order the dashboards on the page (Provided by UI/UX Design team).',
+        trim: true,
+        defaultValue: '0'
+    )
+
+    booleanParam(
+        name: 'spotlight',
+        description: 'Will highlight a dashboard as being “new“ (Provided by UI/UX Design team).',
+        defaultValue: false,
+    )
+  }
+}
+
+def createConfigurationFileIfNotExists(bucketName, fileName) {
+  def base_file_template = '{ \\"version\\": 1, \\"dashboards\\": {} }'
+
+  sh """
+    aws s3api head-object --bucket ${bucketName} --key ${fileName} > /dev/null 2>&1 || not_exist=true
+    if [ \$not_exist ]; then
+        echo "${fileName} does not exist and will be created for bucket ${bucketName}"
+
+        echo ${base_file_template} | aws s3 cp - s3://${bucketName}/${fileName}
+    else
+        echo "${fileName} exists ✔️"
+    fi
+    """
+}
+
+def readExistingConfig(bucketForStagingEast, fileName) {
+  def dashboardConfigJson = getFileContents(bucketForStagingEast, fileName)
+
+  echo "existing configuration: ${dashboardConfigJson}"
+
+  return new JsonSlurper().parseText(dashboardConfigJson)
+}
+
+def getFileContents(bucketName, fileName) {
+  return sh(script: "aws s3 cp s3://${bucketName}/${fileName} -", returnStdout: true).trim()
+}
+
+def saveToBucket(bucketName, fileName, contents) {
+  sh """
+cat <<EOF | aws s3 cp - s3://${bucketName}/${fileName}
+${contents}
+EOF
+  """
+}
+
+def copyFromEastBucketToWestBucket(s3Configuration, fileName) {
+  def bucketForStagingEast = s3Configuration.usEast2Bucket
+  def bucketForStagingWest = s3Configuration.usWest2Bucket
+
+  echo "copying s3://${bucketForStagingEast}/${fileName} to s3://${bucketForStagingWest}/${fileName}"
+
+  sh "aws s3 cp s3://${bucketForStagingEast}/${fileName} s3://${bucketForStagingWest}/${fileName}"
+}
+
+def printUserInput (params) {
+  echo "User Inputs ->"
+  echo "  dashboardId: ${params.dashboardId}"
+  echo "  title: ${params.title}"
+  echo "  description: ${params.description}"
+  echo "  dashboardPath: ${params.dashboardPath}"
+  echo "  modelsCsv: ${params.modelsCsv}"
+  echo "  featuresCsv: ${params.featuresCsv}"
+  echo "  accessButtonText: ${params.accessButtonText}"
+  echo "  previewImageFilename: ${params.previewImageFilename}"
+  echo "  priorityOrder: ${params.priorityOrder}"
+  echo "  spotlight: ${params.spotlight}"
+}
+
+def validateInput(params, existingConfig) {
+  validateRequiredFields(params)
+
+  if (!params.priorityOrder.isNumber()) {
+    error "Invalid input: priorityOrder must be a number."
+  }
+
+  assertThatNewPriorityOrderIsUnique(existingConfig, params.dashboardId, params.priorityOrder.toInteger())
+}
+
+def validateRequiredFields(params) {
+  validateFieldHasValue(params, 'dashboardId')
+  validateFieldHasValue(params, 'title')
+  validateFieldHasValue(params, 'description')
+  validateFieldHasValue(params, 'dashboardPath')
+  validateFieldHasValue(params, 'modelsCsv')
+  validateFieldHasValue(params, 'featuresCsv')
+  validateFieldHasValue(params, 'accessButtonText')
+  validateFieldHasValue(params, 'previewImageFilename')
+  validateFieldHasValue(params, 'priorityOrder')
+}
+
+// assume field has a value and no padding because all our parameters have defaults and trim enabled
+def validateFieldHasValue(params, fieldName) {
+  if (params[fieldName].length() == 0) {
+    error "'${fieldName}' is a required field"
+  }
+}
+
+
+def assertThatNewPriorityOrderIsUnique(existingConfig, specifiedDashboardId, newPriorityOrder) {
+  def dashboards = existingConfig.dashboards
+
+  dashboards.each { dashboardId, dashboard ->
+    if (dashboardId != specifiedDashboardId && newPriorityOrder == dashboard.priorityOrder) {
+      error "Priority orders should be unique, the provided value ${newPriorityOrder} conflicts with the priority of " +
+          "dashboardId ${dashboardId}"
+    }
+  }
+}

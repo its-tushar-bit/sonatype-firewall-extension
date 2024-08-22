@@ -27,6 +27,12 @@ public class SbomComponentInfoTelemetry
 
   private int vulnerabilitiesWithVexInfoCount;
 
+  private boolean hasDependencies;
+
+  private int invalidLicensesCount;
+
+  private int validLicensesCount;
+
   public SbomComponentInfoTelemetry() {
   }
 
@@ -114,5 +120,37 @@ public class SbomComponentInfoTelemetry
 
   public void incrementVulnerabilitiesWithVexInfoCount() {
     this.vulnerabilitiesWithVexInfoCount++;
+  }
+
+  public boolean getHasDependencies() {
+    return hasDependencies;
+  }
+
+  public void setHasDependencies(final boolean hasDependencies) {
+    this.hasDependencies = hasDependencies;
+  }
+
+  public int getInvalidLicensesCount() {
+    return invalidLicensesCount;
+  }
+
+  public void setInvalidLicensesCount(final int invalidLicensesCount) {
+    this.invalidLicensesCount = invalidLicensesCount;
+  }
+
+  public void incrementInvalidLicensesCount() {
+    this.invalidLicensesCount++;
+  }
+
+  public int getValidLicensesCount() {
+    return validLicensesCount;
+  }
+
+  public void setValidLicensesCount(final int validLicensesCount) {
+    this.validLicensesCount = validLicensesCount;
+  }
+
+  public void incrementValidLicensesCount() {
+    this.validLicensesCount++;
   }
 }

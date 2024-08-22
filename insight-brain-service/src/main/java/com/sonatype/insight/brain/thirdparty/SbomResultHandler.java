@@ -181,6 +181,7 @@ public class SbomResultHandler
         processSbom(content.getPath(), sourceBom, targetBom, thirdPartyFile, moduleDependencies);
         componentInfoTelemetry.setSpec(CYCLONEDX.name());
         componentInfoTelemetry.setSpecVersion(sourceBom.getSpecVersion());
+        componentInfoTelemetry.setHasDependencies(!moduleDependencies.isEmpty());
         TelemetryData thirdPartyScanComponentInfoTelemetryData =
             telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry,
                 SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled(), !sbomValidationSkipped);
@@ -863,6 +864,7 @@ public class SbomResultHandler
           anyLicenseInfo = LicenseInfoFactory.parseSPDXLicenseString(expression.getValue());
         }
         catch (InvalidLicenseStringException e) {
+          componentInfoTelemetry.incrementInvalidLicensesCount();
           log.debug("Failed to parse spdx license string: {} for: {}.", expression, packageUrl);
           return;
         }
@@ -871,8 +873,10 @@ public class SbomResultHandler
           spdxLicenseExpressionUtil.parseLicenses(anyLicenseInfo, processedLicenses, packageUrl);
         }
         catch (InvalidSPDXAnalysisException e) {
+          componentInfoTelemetry.incrementInvalidLicensesCount();
           throw new RuntimeException(e);
         }
+        componentInfoTelemetry.incrementValidLicensesCount();
         for (Entry<String, String> licenseEntry : processedLicenses.entrySet()) {
           ThirdPartyCoordinateLicense coordinateLicense =
               new ThirdPartyCoordinateLicense(fileCoordinateId, licenseEntry.getKey(), licenseEntry.getValue(), null);

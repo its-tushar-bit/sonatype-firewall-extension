@@ -123,6 +123,7 @@ public class SpdxResultHandler
         processSpdxDocument(content.getPath(), spdxDocument, targetBom, thirdPartyFile, moduleDependencies);
         componentInfoTelemetry.setSpec(SPDX.name());
         componentInfoTelemetry.setSpecVersion(spdxDocument.getSpecVersion());
+        componentInfoTelemetry.setHasDependencies(!moduleDependencies.isEmpty());
         TelemetryData thirdPartyScanComponentInfoTelemetryData =
             telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry,
                 SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled(), true);
@@ -341,12 +342,19 @@ public class SpdxResultHandler
       }
       else {
         Map<String, String> processedLicenses = new HashMap<>();
-        spdxLicenseExpressionUtil.parseLicenses(license, processedLicenses, packageUrl);
-        for (Entry<String, String> licenseEntry : processedLicenses.entrySet()) {
-          ThirdPartyCoordinateLicense coordinateLicense =
-              new ThirdPartyCoordinateLicense(fileCoordinateId, licenseEntry.getKey(), licenseEntry.getValue(), null);
-          coordinateLicense.setIdentificationSources(IdentificationSource.SBOM.getId());
-          thirdPartyCoordinateLicenseDAO.insert(tx, coordinateLicense);
+        try {
+          spdxLicenseExpressionUtil.parseLicenses(license, processedLicenses, packageUrl);
+          for (Entry<String, String> licenseEntry : processedLicenses.entrySet()) {
+            ThirdPartyCoordinateLicense coordinateLicense =
+                new ThirdPartyCoordinateLicense(fileCoordinateId, licenseEntry.getKey(), licenseEntry.getValue(), null);
+            coordinateLicense.setIdentificationSources(IdentificationSource.SBOM.getId());
+            thirdPartyCoordinateLicenseDAO.insert(tx, coordinateLicense);
+            componentInfoTelemetry.incrementValidLicensesCount();
+          }
+        }
+        catch (InvalidSPDXAnalysisException ex) {
+          componentInfoTelemetry.incrementInvalidLicensesCount();
+          throw ex;
         }
       }
     }

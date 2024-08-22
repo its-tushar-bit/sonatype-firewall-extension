@@ -598,6 +598,19 @@ public class SbomResultHandlerTest
       assertThat(licenses).extracting(ThirdPartyCoordinateLicense::getName)
           .containsExactlyInAnyOrder("BSD-3-Clause", "GPL-2.0", "MIT");
     }
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
+
+    Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    assertThat(telemetryAttributes).isNotNull();
+    SbomComponentInfoTelemetry componentInfoTelemetry =
+        (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
+    assertThat(componentInfoTelemetry.getValidLicensesCount()).isEqualTo(1);
   }
 
   @Test
@@ -2169,7 +2182,7 @@ public class SbomResultHandlerTest
     SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
     String sbomContent = getSbomXmlFile("sbom-v1_4.xml");
     ThirdPartyScanContent content =
-        new ThirdPartyScanContent("sbom-v1_4-invalid-bom.xml", null, null, null,
+        new ThirdPartyScanContent("sbom-v1_4-valid-bom.xml", null, null, null,
             sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
@@ -2207,6 +2220,80 @@ public class SbomResultHandlerTest
     assertThat(telemetryAttributes).isNotNull();
     assertThat(telemetryAttributes.get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(false);
     assertThat(telemetryAttributes.get("is_sbom_valid")).isEqualTo(true);
+  }
+
+  @Test
+  public void testDependencyGraph_telemetryData() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-v1_4.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-v1_4.xml", null, null, null,
+            sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
+
+    Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    assertThat(telemetryAttributes).isNotNull();
+    SbomComponentInfoTelemetry componentInfoTelemetry =
+        (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
+    assertThat(componentInfoTelemetry.getHasDependencies()).isEqualTo(true);
+    assertThat(componentInfoTelemetry.getInvalidLicensesCount()).isEqualTo(0);
+    assertThat(componentInfoTelemetry.getValidLicensesCount()).isEqualTo(0);
+  }
+
+  @Test
+  public void testDependencyGraph_noDependencies_telemetryData() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-v1_4_no_dependencies.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-v1_4_no_dependencies.xml", null, null, null,
+            sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
+
+    Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    assertThat(telemetryAttributes).isNotNull();
+    SbomComponentInfoTelemetry componentInfoTelemetry =
+        (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
+    assertThat(componentInfoTelemetry.getHasDependencies()).isEqualTo(false);
+    assertThat(componentInfoTelemetry.getInvalidLicensesCount()).isEqualTo(0);
+    assertThat(componentInfoTelemetry.getValidLicensesCount()).isEqualTo(0);
+  }
+
+  @Test
+  public void testInvalidLicenses_telemetryData() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-license-invalid-expression.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-license-invalid-expression.xml", null, null, null,
+            sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
+
+    Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    assertThat(telemetryAttributes).isNotNull();
+    SbomComponentInfoTelemetry componentInfoTelemetry =
+        (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
+    assertThat(componentInfoTelemetry.getInvalidLicensesCount()).isEqualTo(2);
+    assertThat(componentInfoTelemetry.getValidLicensesCount()).isEqualTo(0);
   }
 
   private void assertExtensionVulnerabilities(Component component) {

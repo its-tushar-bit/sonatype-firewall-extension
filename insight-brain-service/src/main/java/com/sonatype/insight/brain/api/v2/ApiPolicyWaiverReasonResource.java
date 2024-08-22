@@ -16,8 +16,6 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverReasonDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverReasonService;
-import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,7 +29,6 @@ import static com.sonatype.insight.brain.api.PublicApiPaths.POLICY_WAIVER_REASON
     name = "Policy Waiver Reasons",
     description = "Use this rest API to manage and fetch available waiver reasons"
 )
-@ProductLicenseEnforcementPoint(LicensedFeature.POLICY_WAIVERS)
 @Produces(MediaType.APPLICATION_JSON)
 public class ApiPolicyWaiverReasonResource
 {

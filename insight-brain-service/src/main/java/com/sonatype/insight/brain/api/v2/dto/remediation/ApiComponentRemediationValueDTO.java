@@ -10,9 +10,12 @@ import java.util.List;
 
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiComponentOverrideOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiPolicyWaiverOptionDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiSuggestedVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * @since 1.64
@@ -20,6 +23,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class ApiComponentRemediationValueDTO
 {
   public List<ApiVersionChangeOptionDTO> versionChanges = new ArrayList<>();
+
+  @JsonInclude(Include.NON_NULL)
+  public ApiSuggestedVersionChangeOptionDTO suggestedVersionChange;
 
   // ignoring the other fields until we release those remediation types
   @JsonIgnore

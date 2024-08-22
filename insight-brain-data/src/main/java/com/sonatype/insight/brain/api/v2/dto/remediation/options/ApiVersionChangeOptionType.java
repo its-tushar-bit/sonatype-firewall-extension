@@ -21,7 +21,13 @@ public enum ApiVersionChangeOptionType
   NEXT_NO_VIOLATIONS("next-no-violations"),
   NEXT_NON_FAILING("next-non-failing"),
   NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES("next-no-violations-with-dependencies"),
-  NEXT_NON_FAILING_WITH_DEPENDENCIES("next-non-failing-with-dependencies");
+  NEXT_NON_FAILING_WITH_DEPENDENCIES("next-non-failing-with-dependencies"),
+
+  // For backward compatibility,
+  // Do not use the following types in ApiVersionChangeOptionDTO,
+  // They should only be used in ApiSuggestedVersionChangeOptionDTO
+  RECOMMENDED_NON_BREAKING("recommended-non-breaking"),
+  RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES("recommended-non-breaking-with-dependencies");
 
   private final String displayName;
 

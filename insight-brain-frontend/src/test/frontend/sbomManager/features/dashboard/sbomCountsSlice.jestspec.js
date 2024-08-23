@@ -3,30 +3,33 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer, {
-  initialState,
-} from 'MainRoot/sbomManager/features/dashboard/sbomReleaseStatusTile/sbomReleaseStatusTileSlice';
+import reducer, { initialState } from 'MainRoot/sbomManager/features/dashboard/sbomCountsSlice';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 
-describe('sbomReleaseStatusTile reducers have the correct state when the following reducer is dispatched', function () {
-  describe('sbomReleaseStatusTile/sbomReleaseStatusTile', function () {
+describe('sbomCountsSlice reducers have the correct state when the following reducer is dispatched', function () {
+  describe('sbomCounts/load', function () {
     it('/pending', () => {
-      const state = {
+      const state = Object.freeze({
         loading: true,
         loadError: null,
         releaseReadyCount: null,
         partiallyReadyCount: null,
         needsAttentionCount: null,
-      };
+        totalSbomCount: null,
+        sbomMaxThreshold: null,
+      });
 
       const newState = reducer(state, {
-        type: 'sbomReleaseStatusTile/sbomReleaseStatusTile/pending',
+        type: 'sbomCounts/load/pending',
       });
 
       expect(newState.loading).toBe(true);
+      expect(newState.loadError).toBe(null);
       expect(newState.releaseReadyCount).toBe(null);
       expect(newState.partiallyReadyCount).toBe(null);
       expect(newState.needsAttentionCount).toBe(null);
+      expect(newState.totalSbomCount).toBe(null);
+      expect(newState.sbomMaxThreshold).toBe(null);
     });
 
     it('/failed', () => {
@@ -36,6 +39,8 @@ describe('sbomReleaseStatusTile reducers have the correct state when the followi
         releaseReadyCount: null,
         partiallyReadyCount: null,
         needsAttentionCount: null,
+        totalSbomCount: null,
+        sbomMaxThreshold: null,
       };
 
       const payload = {
@@ -45,7 +50,7 @@ describe('sbomReleaseStatusTile reducers have the correct state when the followi
       };
 
       const newState = reducer(state, {
-        type: 'sbomReleaseStatusTile/sbomReleaseStatusTile/rejected',
+        type: 'sbomCounts/load/rejected',
         payload: payload,
       });
 
@@ -54,30 +59,39 @@ describe('sbomReleaseStatusTile reducers have the correct state when the followi
       expect(newState.releaseReadyCount).toBe(null);
       expect(newState.partiallyReadyCount).toBe(null);
       expect(newState.needsAttentionCount).toBe(null);
+      expect(newState.totalSbomCount).toBe(null);
+      expect(newState.sbomMaxThreshold).toBe(null);
     });
 
     it('/fulfilled', () => {
-      const state = {
+      const state = Object.freeze({
         loading: true,
+        loadError: null,
         releaseReadyCount: null,
         partiallyReadyCount: null,
         needsAttentionCount: null,
-      };
+        totalSbomCount: null,
+        sbomMaxThreshold: null,
+      });
 
       const newState = reducer(state, {
-        type: 'sbomReleaseStatusTile/sbomReleaseStatusTile/fulfilled',
+        type: 'sbomCounts/load/fulfilled',
         payload: {
-          releaseReadyCount: 10,
-          partiallyReadyCount: 20,
-          needsAttentionCount: 30,
+          releaseReadyCount: 1,
+          partiallyReadyCount: 2,
+          needsAttentionCount: 3,
+          total: 4,
+          threshold: 5,
         },
       });
 
       expect(newState.loading).toBe(false);
       expect(newState.loadError).toBe(null);
-      expect(newState.releaseReadyCount).toBe(10);
-      expect(newState.partiallyReadyCount).toBe(20);
-      expect(newState.needsAttentionCount).toBe(30);
+      expect(newState.releaseReadyCount).toBe(1);
+      expect(newState.partiallyReadyCount).toBe(2);
+      expect(newState.needsAttentionCount).toBe(3);
+      expect(newState.totalSbomCount).toBe(4);
+      expect(newState.sbomMaxThreshold).toBe(5);
     });
   });
 
@@ -86,9 +100,11 @@ describe('sbomReleaseStatusTile reducers have the correct state when the followi
       const state = Object.freeze({
         loading: false,
         loadError: null,
-        releaseReadyCount: 10,
-        partiallyReadyCount: 20,
-        needsAttentionCount: 30,
+        releaseReadyCount: 1,
+        partiallyReadyCount: 2,
+        needsAttentionCount: 3,
+        totalSbomCount: 4,
+        sbomMaxThreshold: 5,
       });
 
       const newState = reducer(state, { type: UI_ROUTER_ON_FINISH });

@@ -17,14 +17,14 @@ public class SbomReleaseStatusTile
   }
   
   public ElementsCollection tileLabels() {
-    return children(".sbom-manager-sbom-release-status-progress-bar__status");
+    return children(".sbom-manager-sbom-release-status-meter-bar__status");
   }
   
-  public ElementsCollection tileProgressBars() {
-    return children(".nx-progress-bar__progress");
+  public ElementsCollection tileMeterBars() {
+    return children(".nx-meter");
   }
   
   public ElementsCollection tileLabelValues() {
-    return children(".sbom-manager-sbom-release-status-progress-bar__sbom-count");
+    return children(".sbom-manager-sbom-release-status-meter-bar__sbom-count");
   }
 }

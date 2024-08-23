@@ -40,14 +40,14 @@
     color: var(--nx-color-text-dark);
   }
 
-  &__progress-bars {
+  &__meter-bars {
     display: flex;
     justify-content: space-around;
     width: 100%;
   }
 }
 
-.sbom-manager-sbom-release-status-progress-bar {
+.sbom-manager-sbom-release-status-meter-bar {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -72,53 +72,48 @@
     }
   }
 
-  @mixin progressStyle() {
+  @mixin meterStyle() {
     $-height: 10px;
     $-radius: 5px;
-    progress.nx-progress-bar__progress::-webkit-progress-bar {
+    &::-webkit-meter-bar {
       height: $-height;
       border-radius: $-radius;
     }
-    progress.nx-progress-bar__progress::-moz-progress-bar {
+    &::-moz-meter-bar {
+      height: $-height;
+      border-radius: $-radius;
+    }
+    &::-webkit-meter-optimum-value {
       height: $-height;
       border-radius: $-radius;
       @content;
     }
-    progress.nx-progress-bar__progress::-webkit-progress-value {
+    &:-moz-meter-optimum::-moz-meter-bar {
       height: $-height;
       border-radius: $-radius;
       @content;
     }
   }
 
-  &__progress {
-    @include progressStyle {
+  &__meter {
+    margin: 0;
+    width: 220px;
+    height: 10px;
+
+    @include meterStyle {
       background: var(--nx-swatch-teal-30);
     }
 
     &--partially-annotated {
-      @include progressStyle {
+      @include meterStyle {
         background: var(--nx-swatch-teal-35);
       }
     }
 
     &--release-ready {
-      @include progressStyle {
+      @include meterStyle {
         background: var(--nx-swatch-teal-45);
       }
-    }
-  }
-
-  .nx-progress-bar {
-    margin: 0;
-
-    &__progress {
-      width: 220px;
-      height: 10px;
-    }
-
-    &__counter-and-label {
-      display: none;
     }
   }
 

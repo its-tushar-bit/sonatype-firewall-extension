@@ -4,19 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { combineReducers } from 'redux';
-
-import totalSbomsStoredTileSlice from './totalSbomsStoredTile/totalSbomsStoredTileSlice';
 import applicationsHistoryTileSlice from './applicationsHistoryTile/applicationsHistoryTileSlice';
 import highPriorityVulnerabilitiesTileSlice from './highPriorityVulnerabilitiesTile/highPriorityVulnerabilitiesTileSlice';
 import vulnerabilitiesByThreatLevelTileSlice from './vulnerabilitiesByThreatLevelTile/vulnerabilitiesByThreatLevelTileSlice';
-import sbomReleaseStatusTileSlice from './sbomReleaseStatusTile/sbomReleaseStatusTileSlice';
 import recentlyImportedSbomsTileSlice from './recentlyImportedSbomsTile/recentlyImportedSbomsTileSlice';
+import sbomCountsSlice from './sbomCountsSlice';
 
 export default combineReducers({
-  totalSbomsStoredTile: totalSbomsStoredTileSlice,
+  sbomCounts: sbomCountsSlice,
   applicationsHistoryTile: applicationsHistoryTileSlice,
   highPriorityVulnerabilitiesTile: highPriorityVulnerabilitiesTileSlice,
   vulnerabilitiesByThreatLevelTile: vulnerabilitiesByThreatLevelTileSlice,
-  sbomReleaseStatusTile: sbomReleaseStatusTileSlice,
   recentlyImportedSbomsTile: recentlyImportedSbomsTileSlice,
 });

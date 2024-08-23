@@ -3,30 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React from 'react';
+import * as PropTypes from 'prop-types';
 import { NxFontAwesomeIcon, NxH2, NxProgressBar, NxTile, NxTooltip } from '@sonatype/react-shared-components';
 import { faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
-import { useDispatch, useSelector } from 'react-redux';
 import classNames from 'classnames';
-
 import { formatNumberLocale } from 'MainRoot/util/formatUtils';
-import { selectTotalSbomsStoredTile } from './totalSbomsStoredTileSelectors';
-import { actions } from './totalSbomsStoredTileSlice';
-
 import LoadWrapper from 'MainRoot/react/LoadWrapper';
 
 import './TotalSbomsStoredTile.scss';
 
-export default function TotalSbomsStoredTile() {
-  const dispatch = useDispatch();
-  const { loading, total, threshold, loadError } = useSelector(selectTotalSbomsStoredTile);
-  const load = () => dispatch(actions.loadTotalSbomsStored());
-
-  useEffect(() => {
-    load();
-  }, []);
-
-  const progressBarPercentage = total && threshold ? (total / threshold) * 100 : 0;
+export default function TotalSbomsStoredTile({ load, loading, loadError, totalSbomCount, sbomMaxThreshold }) {
+  const progressBarPercentage = totalSbomCount && sbomMaxThreshold ? (totalSbomCount / sbomMaxThreshold) * 100 : 0;
   const progressBarClasses = classNames('sbom-manager-total-sboms-stored-tile-progress__progress-bar', {
     'sbom-manager-total-sboms-stored-tile-progress__progress-bar--orange':
       progressBarPercentage >= 75 && progressBarPercentage < 90,
@@ -44,9 +32,9 @@ export default function TotalSbomsStoredTile() {
         </NxTile.HeaderTitle>
       </NxTile.Header>
       <NxTile.Content>
-        <LoadWrapper retryHandler={() => load()} loading={loading} error={loadError}>
+        <LoadWrapper retryHandler={load} loading={loading} error={loadError}>
           <div className="sbom-manager-total-sboms-stored-tile__total" data-testid="total-sboms-stored-tile-total">
-            <span>{formatNumberLocale(total)}</span>
+            <span>{formatNumberLocale(totalSbomCount)}</span>
             <span>(all time)</span>
           </div>
 
@@ -73,14 +61,14 @@ export default function TotalSbomsStoredTile() {
                 className="sbom-manager-total-sboms-stored-tile-progress__total"
                 data-testid="total-sboms-stored-tile-progress-total"
               >
-                <span>{formatNumberLocale(total)}</span>
+                <span>{formatNumberLocale(totalSbomCount)}</span>
                 <span>SBOMs added</span>
               </div>
               <div
                 className="sbom-manager-total-sboms-stored-tile-progress__threshold"
                 data-testid="total-sboms-stored-tile-progress-threshold"
               >
-                <span>{formatNumberLocale(threshold)}</span>
+                <span>{formatNumberLocale(sbomMaxThreshold)}</span>
                 <span>Threshold</span>
               </div>
             </div>
@@ -90,3 +78,11 @@ export default function TotalSbomsStoredTile() {
     </NxTile>
   );
 }
+
+TotalSbomsStoredTile.propTypes = {
+  load: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired,
+  loadError: PropTypes.oneOfType([PropTypes.string, PropTypes.node, PropTypes.instanceOf(Error), PropTypes.object]),
+  totalSbomCount: PropTypes.number,
+  sbomMaxThreshold: PropTypes.number,
+};

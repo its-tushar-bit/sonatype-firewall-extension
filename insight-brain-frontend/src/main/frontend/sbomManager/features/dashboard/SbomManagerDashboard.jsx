@@ -4,9 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NxH1, NxLoadWrapper, NxPageMain, NxPageTitle } from '@sonatype/react-shared-components';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   selectLoadErrorFeatures,
   selectLoadingFeatures,
@@ -18,13 +18,25 @@ import HighPriorityVulnerabilitiesTile from './highPriorityVulnerabilitiesTile/H
 import VulnerabilitiesByThreatLevelTile from './vulnerabilitiesByThreatLevelTile/VulnerabilitiesByThreatLevelTile';
 import RecentlyImportedSbomsTile from './recentlyImportedSbomsTile/RecentlyImportedSbomsTile';
 import SbomReleaseStatusTile from './sbomReleaseStatusTile/SbomReleaseStatusTile';
+import { actions } from './sbomCountsSlice';
+import { selectSbomCounts } from 'MainRoot/sbomManager/features/dashboard/sbomManagerDashboardSelectors';
 
 import './SbomManagerDashboard.scss';
 
 export default function SbomManagerDashboard() {
+  const dispatch = useDispatch();
   const isProductFeaturesLoading = useSelector(selectLoadingFeatures);
   const errorLoadingProductFeatures = useSelector(selectLoadErrorFeatures);
   const noSbomManagerEnabledError = useSelector(selectNoSbomManagerEnabledError);
+  const sbomCounts = useSelector(selectSbomCounts);
+
+  const load = () => {
+    dispatch(actions.load());
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
 
   function retryHandler() {}
 
@@ -35,19 +47,17 @@ export default function SbomManagerDashboard() {
         loading={isProductFeaturesLoading}
         error={errorLoadingProductFeatures || noSbomManagerEnabledError}
       >
-        <>
-          <NxPageTitle>
-            <NxH1>SBOM Manager Dashboard</NxH1>
-          </NxPageTitle>
-          <div className="sbom-manager-dashboard-tiles">
-            <TotalSbomsStoredTile />
-            <ApplicationsHistoryTile />
-            <HighPriorityVulnerabilitiesTile />
-            <VulnerabilitiesByThreatLevelTile />
-            <SbomReleaseStatusTile />
-            <RecentlyImportedSbomsTile />
-          </div>
-        </>
+        <NxPageTitle>
+          <NxH1>SBOM Manager Dashboard</NxH1>
+        </NxPageTitle>
+        <div className="sbom-manager-dashboard-tiles">
+          <TotalSbomsStoredTile {...sbomCounts} load={load} />
+          <ApplicationsHistoryTile />
+          <HighPriorityVulnerabilitiesTile />
+          <VulnerabilitiesByThreatLevelTile />
+          <SbomReleaseStatusTile {...sbomCounts} load={load} />
+          <RecentlyImportedSbomsTile />
+        </div>
       </NxLoadWrapper>
     </NxPageMain>
   );

@@ -4,38 +4,23 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { axiosMockAdapter, render, screen, waitFor } from 'TestRoot/SpecUtil';
+import { render, screen } from 'TestRoot/SpecUtil';
 import TotalSbomsStoredTile from 'MainRoot/sbomManager/features/dashboard/totalSbomsStoredTile/TotalSbomsStoredTile';
-import { getTotalSbomsAnalyzedUrl } from 'MainRoot/util/CLMLocation';
 
 describe('TotalSbomsStoredTile', () => {
-  let renderTile;
-
-  beforeEach(() => {
-    const preloadedState = {
-      sbomManagerDashboard: {
-        totalSbomsStoredTile: {
-          loading: true,
-          loadError: null,
-          total: null,
-          threshold: null,
-        },
-      },
-    };
-    renderTile = (additionalPreloadedState = {}) =>
-      render(<TotalSbomsStoredTile />, { preloadedState: { ...preloadedState, ...additionalPreloadedState } });
-  });
-
   it('renders correct page content', async () => {
-    const axiosMock = axiosMockAdapter();
-    axiosMock.onGet(getTotalSbomsAnalyzedUrl()).reply(200, {
-      total: 1234,
-      threshold: 2468,
-    });
-    renderTile();
+    const props = {
+      load: () => {},
+      loading: false,
+      loadError: null,
+      totalSbomCount: 1234,
+      sbomMaxThreshold: 2468,
+    };
+
+    render(<TotalSbomsStoredTile {...props} />);
 
     expect(await screen.findByRole('heading', { name: /Total SBOMs Stored/i })).toBeVisible();
-    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+    expect(screen.queryByText('Loading…')).toBeNull();
 
     expect(screen.getByTestId('total-sboms-stored-tile-progress-label')).toHaveTextContent('SBOM License Usage');
     expect(screen.getByTestId('total-sboms-stored-tile-total')).toHaveTextContent('1,234(all time)');
@@ -43,10 +28,30 @@ describe('TotalSbomsStoredTile', () => {
     expect(screen.getByTestId('total-sboms-stored-tile-progress-threshold')).toHaveTextContent('2,468Threshold');
   });
 
+  it('renders loading when loading', async () => {
+    const props = {
+      load: () => {},
+      loading: true,
+      loadError: null,
+      totalSbomCount: 1234,
+      sbomMaxThreshold: 2468,
+    };
+
+    render(<TotalSbomsStoredTile {...props} />);
+    expect(screen.queryByText('Loading…')).toBeVisible();
+  });
+
   it('renders error message', async () => {
-    const axiosMock = axiosMockAdapter();
-    axiosMock.onGet(getTotalSbomsAnalyzedUrl()).reply(500, 'some error');
-    renderTile();
+    const props = {
+      load: () => {},
+      loading: false,
+      loadError: 'some error',
+      totalSbomCount: 1234,
+      sbomMaxThreshold: 2468,
+    };
+
+    render(<TotalSbomsStoredTile {...props} />);
+
     const error = await screen.findByText(/An error occurred loading data. some error/i);
     expect(error).toBeVisible();
   });

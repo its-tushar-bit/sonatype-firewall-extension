@@ -4,55 +4,125 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { axiosMockAdapter, render, screen, waitFor } from 'TestRoot/SpecUtil';
+import { render, screen } from 'TestRoot/SpecUtil';
 import SbomReleaseStatusTile from 'MainRoot/sbomManager/features/dashboard/sbomReleaseStatusTile/SbomReleaseStatusTile';
-import { getSbomReleaseStatusUrl } from 'MainRoot/util/CLMLocation';
+import { getByText } from '@testing-library/react';
 
 describe('SbomReleaseStatusTile', () => {
-  let renderTile;
-
-  beforeEach(() => {
-    const preloadedState = {
-      sbomManagerDashboard: {
-        sbomReleaseStatusTile: {
-          loading: true,
-          loadError: null,
-          releaseReadyCount: null,
-          partiallyReadyCount: null,
-          needsAttentionCount: null,
-        },
-      },
-    };
-    renderTile = (additionalPreloadedState = {}) =>
-      render(<SbomReleaseStatusTile />, { preloadedState: { ...preloadedState, ...additionalPreloadedState } });
-  });
-
   it('renders the correct title', async () => {
-    const axiosMock = axiosMockAdapter();
-    axiosMock.onGet(getSbomReleaseStatusUrl()).reply(200, {
+    const props = {
+      load: () => {},
+      loading: false,
+      loadError: null,
       needsAttentionCount: 10,
       partiallyReadyCount: 20,
       releaseReadyCount: 30,
-    });
-    renderTile();
+      totalSbomCount: 1234,
+      sbomMaxThreshold: 2468,
+    };
+
+    render(<SbomReleaseStatusTile {...props} />);
 
     expect(screen.getByRole('heading', { name: /SBOM Release Status/i })).toBeVisible();
-    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
-    const statuses = screen.getAllByTestId('sbom-release-status-progress-bar-status');
+    expect(screen.queryByText('Loading…')).toBeNull();
+
+    const statuses = screen.getAllByTestId('sbom-release-status-meter-bar-status');
     expect(statuses[0]).toHaveTextContent('Needs Attention');
     expect(statuses[1]).toHaveTextContent('Partially Annotated');
     expect(statuses[2]).toHaveTextContent('Release Ready');
 
-    const statusSbomCounts = screen.getAllByTestId('sbom-release-status-progress-bar-sbom-count');
+    const meters = screen.getAllByTestId('sbom-release-status-meter');
+    expect(meters[0]).toHaveAttribute('value', '10');
+    expect(meters[1]).toHaveAttribute('value', '20');
+    expect(meters[2]).toHaveAttribute('value', '30');
+
+    expect(meters[0]).toHaveAttribute('max', '1234');
+    expect(meters[1]).toHaveAttribute('max', '1234');
+    expect(meters[2]).toHaveAttribute('max', '1234');
+
+    expect(getByText(meters[0], '10 out of 1234')).toBeVisible();
+    expect(getByText(meters[1], '20 out of 1234')).toBeVisible();
+    expect(getByText(meters[2], '30 out of 1234')).toBeVisible();
+
+    const statusSbomCounts = screen.getAllByTestId('sbom-release-status-meter-bar-sbom-count');
     expect(statusSbomCounts[0]).toHaveTextContent('10');
     expect(statusSbomCounts[1]).toHaveTextContent('20');
     expect(statusSbomCounts[2]).toHaveTextContent('30');
   });
 
+  it('renders the tile with 0 values when null is passed in', async () => {
+    const props = {
+      load: () => {},
+      loading: false,
+      loadError: null,
+      needsAttentionCount: null,
+      partiallyReadyCount: null,
+      releaseReadyCount: null,
+      totalSbomCount: null,
+      sbomMaxThreshold: null,
+    };
+
+    render(<SbomReleaseStatusTile {...props} />);
+
+    expect(screen.getByRole('heading', { name: /SBOM Release Status/i })).toBeVisible();
+    expect(screen.queryByText('Loading…')).toBeNull();
+
+    const statuses = screen.getAllByTestId('sbom-release-status-meter-bar-status');
+    expect(statuses[0]).toHaveTextContent('Needs Attention');
+    expect(statuses[1]).toHaveTextContent('Partially Annotated');
+    expect(statuses[2]).toHaveTextContent('Release Ready');
+
+    const meters = screen.getAllByTestId('sbom-release-status-meter');
+    expect(meters[0]).toHaveAttribute('value', '0');
+    expect(meters[1]).toHaveAttribute('value', '0');
+    expect(meters[2]).toHaveAttribute('value', '0');
+
+    expect(meters[0]).toHaveAttribute('max', '0');
+    expect(meters[1]).toHaveAttribute('max', '0');
+    expect(meters[2]).toHaveAttribute('max', '0');
+
+    expect(getByText(meters[0], '0 out of 0')).toBeVisible();
+    expect(getByText(meters[1], '0 out of 0')).toBeVisible();
+    expect(getByText(meters[2], '0 out of 0')).toBeVisible();
+
+    const statusSbomCounts = screen.getAllByTestId('sbom-release-status-meter-bar-sbom-count');
+    expect(statusSbomCounts[0]).toHaveTextContent('0');
+    expect(statusSbomCounts[1]).toHaveTextContent('0');
+    expect(statusSbomCounts[2]).toHaveTextContent('0');
+  });
+
+  it('renders the loading panel', async () => {
+    const props = {
+      load: () => {},
+      loading: true,
+      loadError: null,
+      needsAttentionCount: 10,
+      partiallyReadyCount: 20,
+      releaseReadyCount: 30,
+      totalSbomCount: 1234,
+      sbomMaxThreshold: 2468,
+    };
+
+    render(<SbomReleaseStatusTile {...props} />);
+
+    expect(screen.getByRole('heading', { name: /SBOM Release Status/i })).toBeVisible();
+    expect(screen.queryByText('Loading…')).toBeVisible();
+  });
+
   it('renders error message', async () => {
-    const axiosMock = axiosMockAdapter();
-    axiosMock.onGet(getSbomReleaseStatusUrl()).reply(500, 'some error');
-    renderTile();
+    const props = {
+      load: () => {},
+      loading: false,
+      loadError: 'some error',
+      needsAttentionCount: 10,
+      partiallyReadyCount: 20,
+      releaseReadyCount: 30,
+      totalSbomCount: 1234,
+      sbomMaxThreshold: 2468,
+    };
+
+    render(<SbomReleaseStatusTile {...props} />);
+
     const error = await screen.findByText(/An error occurred loading data. some error/i);
     expect(error).toBeVisible();
   });

@@ -4,5 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { prop } from 'ramda';
+import { createSelector } from '@reduxjs/toolkit';
 
 export const selectSbomManagerDashboard = prop('sbomManagerDashboard');
+
+export const selectSbomCounts = createSelector(selectSbomManagerDashboard, prop('sbomCounts'));

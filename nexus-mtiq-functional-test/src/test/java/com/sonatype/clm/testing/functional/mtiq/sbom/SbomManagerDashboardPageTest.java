@@ -10,39 +10,38 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.clm.testing.functional.elements.NxSortingHeader;
-import com.sonatype.clm.testing.functional.mtiq.AbstractMtiqFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.sbom.dashboard.ApplicationsHistoryTile;
 import com.sonatype.clm.testing.functional.elements.sbom.dashboard.HighPriorityVulnerabilitiesTile;
 import com.sonatype.clm.testing.functional.elements.sbom.dashboard.HighPriorityVulnerabilitiesTile.VulnerabilityList;
 import com.sonatype.clm.testing.functional.elements.sbom.dashboard.RecentlyImportedSBOMsTile;
-import com.sonatype.clm.testing.functional.elements.sbom.dashboard.SbomReleaseStatusTile;
 import com.sonatype.clm.testing.functional.elements.sbom.dashboard.RecentlyImportedSBOMsTile.SbomTable;
 import com.sonatype.clm.testing.functional.elements.sbom.dashboard.RecentlyImportedSBOMsTile.TableRow;
-import com.sonatype.clm.testing.functional.elements.sbom.dashboard.VulnerabilitiesThreatLevelTile.TileLabels;
-import com.sonatype.clm.testing.functional.elements.sbom.dashboard.VulnerabilitiesThreatLevelTile.TileTable;
+import com.sonatype.clm.testing.functional.elements.sbom.dashboard.SbomReleaseStatusTile;
 import com.sonatype.clm.testing.functional.elements.sbom.dashboard.TotalSBOMsStoredTile;
 import com.sonatype.clm.testing.functional.elements.sbom.dashboard.VulnerabilitiesThreatLevelTile;
+import com.sonatype.clm.testing.functional.elements.sbom.dashboard.VulnerabilitiesThreatLevelTile.TileLabels;
+import com.sonatype.clm.testing.functional.elements.sbom.dashboard.VulnerabilitiesThreatLevelTile.TileTable;
+import com.sonatype.clm.testing.functional.mtiq.AbstractMtiqFunctionalTest;
+import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
+import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
+import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerDashboardPage;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
-import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
-import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerDashboardPage;
-import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.scan.file.SbomFormat;
 
-import org.junit.Before;
-import org.junit.Test;
-
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.junit.Before;
+import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -63,16 +62,18 @@ public class SbomManagerDashboardPageTest
 
   @Before
   public void before() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+    refreshOrOpen(IndexPage.url());
+    loginAsAdmin();
+
     thirdPartySbomMetadataDAO = lookup(ThirdPartySbomMetadataDAO.class);
     org = tempEntity.newOrganization("test-organization");
-    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+
     generateMockDataEntry("Z", "low_vulnerability1", 1, new Date(testDate));
     generateMockDataEntry("A", "severe_vulnerability1", 7, new Date(testDate - TimeUnit.SECONDS.toMillis(5)));
     generateMockDataEntry("B", "severe_vulnerability2", 8, new Date(testDate - TimeUnit.SECONDS.toMillis(10)));
     generateMockDataEntry("C", "critical_vulnerability1", 9, new Date(testDate - TimeUnit.SECONDS.toMillis(15)));
     generateMockDataEntry("D", "critical_vulnerability2", 10, new Date(testDate - TimeUnit.SECONDS.toMillis(20)));
-    refreshOrOpen(IndexPage.url());
-    loginAsAdmin();
   }
 
   @Test
@@ -98,6 +99,8 @@ public class SbomManagerDashboardPageTest
   @Test
   public void testDashboard_SbomManagerDisabled() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+    refresh();
+
     refreshOrOpen(SbomManagerDashboardPage.url());
 
     sbomManagerDashboardPage.title().shouldNotBe(visible);
@@ -230,16 +233,16 @@ public class SbomManagerDashboardPageTest
     SbomReleaseStatusTile sbomReleaseStatusTile = SbomManagerDashboardPage.sbomReleaseStatusTile();
     sbomReleaseStatusTile.header().shouldHave(text("SBOM Release Status (all time)"));
     sbomReleaseStatusTile.tileLabels().get(0).shouldHave(text("Needs Attention"));
-    sbomReleaseStatusTile.tileProgressBars().get(0).shouldBe(visible);
-    assertThat(sbomReleaseStatusTile.tileProgressBars().get(0).getAttribute("value")).isEqualTo("4");
+    sbomReleaseStatusTile.tileMeterBars().get(0).shouldBe(visible);
+    assertThat(sbomReleaseStatusTile.tileMeterBars().get(0).getAttribute("value")).isEqualTo("4");
     sbomReleaseStatusTile.tileLabelValues().get(0).shouldHave(text("4"));
     sbomReleaseStatusTile.tileLabels().get(1).shouldHave(text("Partially Annotated"));
-    sbomReleaseStatusTile.tileProgressBars().get(1).shouldBe(visible);
-    assertThat(sbomReleaseStatusTile.tileProgressBars().get(1).getAttribute("value")).isEqualTo("0");
+    sbomReleaseStatusTile.tileMeterBars().get(1).shouldBe(visible);
+    assertThat(sbomReleaseStatusTile.tileMeterBars().get(1).getAttribute("value")).isEqualTo("0");
     sbomReleaseStatusTile.tileLabelValues().get(1).shouldHave(text("0"));
     sbomReleaseStatusTile.tileLabels().get(2).shouldHave(text("Release Ready"));
-    sbomReleaseStatusTile.tileProgressBars().get(2).shouldBe(visible);
-    assertThat(sbomReleaseStatusTile.tileProgressBars().get(2).getAttribute("value")).isEqualTo("2");
+    sbomReleaseStatusTile.tileMeterBars().get(2).shouldBe(visible);
+    assertThat(sbomReleaseStatusTile.tileMeterBars().get(2).getAttribute("value")).isEqualTo("2");
     sbomReleaseStatusTile.tileLabelValues().get(2).shouldHave(text("2"));
   }
 

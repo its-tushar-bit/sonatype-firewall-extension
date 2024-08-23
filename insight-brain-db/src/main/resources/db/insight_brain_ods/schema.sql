@@ -436,6 +436,8 @@ CREATE TABLE policy_violation (
   -- whether the legacy violation was applied by a new evaluation or a re-evaluation of a report
   legacy_violation_applied bool NOT NULL DEFAULT false,
 
+  reachability_status varchar(20) NULL,
+
   CONSTRAINT policy_violation_pk PRIMARY KEY (policy_violation_id),
   CONSTRAINT policy_violation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
 );

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.net.URI;
+
 import javax.annotation.Nullable;
 import javax.validation.Valid;
 
@@ -51,19 +52,6 @@ public class MultiTenantInsightConfig
   @Nullable
   @JsonProperty
   private StatsdMetricsConfig statsdMetricsConfig;
-
-  @Nullable
-  @JsonProperty
-  private String cloudyClusterConfigFilePath;
-
-  @Nullable
-  public String getCloudyClusterConfigFilePath() {
-    return cloudyClusterConfigFilePath;
-  }
-
-  public void setCloudyClusterConfigFilePath(@Nullable final String cloudyClusterConfigFilePath) {
-    this.cloudyClusterConfigFilePath = cloudyClusterConfigFilePath;
-  }
 
   @Override
   public File getSonatypeWork() {

@@ -636,6 +636,7 @@ public class SbomResultHandler
       if (thirdPartyScanContext != null) {
         coordinateSecurity.setSbomMetadataId(thirdPartyScanContext.getSbomMetadataId());
       }
+      coordinateSecurity.setIdentificationSources(IdentificationSource.SBOM.getId());
       thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
     }
   }

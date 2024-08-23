@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -1592,6 +1593,21 @@ public class SbomResultHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_cyclonedx_11_vulnerabilities() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-vulnerabilities-v1_1.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-vulnerabilities-v1_1.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(1);
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate = coordinates.get(0);
+    assertThat(thirdPartyFileCoordinate.getIdentificationSources()).isEqualTo(IdentificationSource.SBOM.getId());
+  }
+
+  @Test
   public void testHandleAndFilterContents_validPurl_noMandatoryValue() throws Exception {
     String sbomContent = getSbomXmlFile("sbom-invalid-valid-purl-no-mandatory-value.xml");
     ThirdPartyScanContent content =
@@ -2506,6 +2522,7 @@ public class SbomResultHandlerTest
         ThirdPartyCoordinateSecurity expectedVulnerability =
             sbomResultHandler.parseVulnerabilityExtension((Vulnerability10) vulnerabilities, null);
         expectedVulnerability.setSbomMetadataId(thirdPartyScanContext.getSbomMetadataId());
+        expectedVulnerability.setIdentificationSources(IdentificationSource.SBOM.getId());
         expectedVulnerabilities.add(expectedVulnerability);
       }
     }

@@ -51,7 +51,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.sbom.SbomImportMetricsTelemetry;
+import com.sonatype.insight.brain.sbom.SbomPostImportMetricsTelemetry;
 import com.sonatype.insight.brain.sbom.SbomResultsMatcherTelemetry;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -571,10 +571,10 @@ public class ThirdPartyDataServiceTest
 
       telemetryData = telemetryDataList.get(1);
       assertThat(telemetryData).isNotNull();
-      assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_IMPORT_METRICS);
+      assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_POST_IMPORT_METRICS);
       assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
-      SbomImportMetricsTelemetry importMetricsTelemetry = (SbomImportMetricsTelemetry) telemetryData.getAttributes()
-          .get("sbom_import_metrics");
+      SbomPostImportMetricsTelemetry importMetricsTelemetry =
+          (SbomPostImportMetricsTelemetry) telemetryData.getAttributes().get("sbom_post_import_metrics");
       assertThat(importMetricsTelemetry.getVerifiedVulnerabilityCount()).isEqualTo(0);
       assertThat(importMetricsTelemetry.getUnverifiedVulnerabilityCount()).isEqualTo(2);
     }
@@ -709,10 +709,10 @@ public class ThirdPartyDataServiceTest
     TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
 
     assertThat(telemetryData).isNotNull();
-    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_IMPORT_METRICS);
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_POST_IMPORT_METRICS);
     assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
-    SbomImportMetricsTelemetry telemetry = (SbomImportMetricsTelemetry) telemetryData.getAttributes()
-        .get("sbom_import_metrics");
+    SbomPostImportMetricsTelemetry telemetry = (SbomPostImportMetricsTelemetry) telemetryData.getAttributes()
+        .get("sbom_post_import_metrics");
     assertThat(telemetry.getVerifiedVulnerabilityCount()).isEqualTo(1);
     assertThat(telemetry.getUnverifiedVulnerabilityCount()).isEqualTo(5);
   }
@@ -860,10 +860,10 @@ public class ThirdPartyDataServiceTest
     TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
 
     assertThat(telemetryData).isNotNull();
-    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_IMPORT_METRICS);
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_POST_IMPORT_METRICS);
     assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
-    SbomImportMetricsTelemetry telemetry = (SbomImportMetricsTelemetry) telemetryData.getAttributes()
-        .get("sbom_import_metrics");
+    SbomPostImportMetricsTelemetry telemetry = (SbomPostImportMetricsTelemetry) telemetryData.getAttributes()
+        .get("sbom_post_import_metrics");
     assertThat(telemetry.getVerifiedVulnerabilityCount()).isEqualTo(2);
     assertThat(telemetry.getUnverifiedVulnerabilityCount()).isEqualTo(1);
   }

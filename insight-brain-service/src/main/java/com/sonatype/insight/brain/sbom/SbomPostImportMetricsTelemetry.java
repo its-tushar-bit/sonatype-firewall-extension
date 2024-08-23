@@ -5,15 +5,15 @@
  */
 package com.sonatype.insight.brain.sbom;
 
-public class SbomImportMetricsTelemetry
+public class SbomPostImportMetricsTelemetry
 {
-  public static final String ATTRIBUTE_NAME = "sbom_import_metrics";
+  public static final String ATTRIBUTE_NAME = "sbom_post_import_metrics";
 
   private int verifiedVulnerabilityCount;
 
   private int unverifiedVulnerabilityCount;
 
-  public SbomImportMetricsTelemetry() {
+  public SbomPostImportMetricsTelemetry() {
   }
 
   public int getVerifiedVulnerabilityCount() {

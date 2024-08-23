@@ -16,7 +16,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
-import com.sonatype.insight.brain.sbom.SbomImportMetricsTelemetry;
+import com.sonatype.insight.brain.sbom.SbomPostImportMetricsTelemetry;
 import com.sonatype.insight.brain.telemetry.ClientUserAgentUtil.UserAgent;
 import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -72,10 +72,10 @@ public final class TelemetryUtils
   }
 
   public TelemetryData buildThirdPartyScanSbomImportTelemetryData(
-      final SbomImportMetricsTelemetry sbomImportMetricsTelemetry)
+      final SbomPostImportMetricsTelemetry sbomPostImportMetricsTelemetry)
   {
-    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SBOM_IMPORT_METRICS);
-    telemetryData.put(SbomImportMetricsTelemetry.ATTRIBUTE_NAME, sbomImportMetricsTelemetry);
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SBOM_POST_IMPORT_METRICS);
+    telemetryData.put(SbomPostImportMetricsTelemetry.ATTRIBUTE_NAME, sbomPostImportMetricsTelemetry);
     return telemetryData;
   }
 

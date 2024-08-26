@@ -712,6 +712,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BSL-1.0-MIT','BSL-1.0 or MIT','Dual License Consisting of Boost Software License 1.0 and MIT License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BSL-1.0-Zlib','BSL-1.0 or Zlib','Dual License Consisting of Boost Software License 1.0 and zlib License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BSL-UNSPECIFIED','BSL','BSL-Style License Not Identifiable by Sonatype');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BSL-UNSPECIFIED-ISC','BSL or ISC','Dual License Consisting of BSL-Style License Not Identifiable by Sonatype and ISC License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BSL-UNSPECIFIED-MIT','BSL or MIT','Dual License Consisting of BSL-Style License Not Identifiable by Sonatype and MIT');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BSL-UNSPECIFIED-Zlib','BSL or Zlib','Dual License Consisting of BSL-Style License Not Identifiable by Sonatype and zlib License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BTC-Crypto-License','BTC-Crypto-License','BTC Crypto License');
@@ -1315,6 +1316,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('EUPL-1.1-GPL-2.0+','EUPL-1.1 or GPL-2.0+','Dual License Consisting of European Union Public License 1.1 and GPL 2.0 or later');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('EUPL-1.2','EUPL-1.2','European Union Public License 1.2');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('EUPL-1.2+','EUPL-1.2+','European Union Public License 1.2 or later');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('EUPL-1.2-LGPL-3.0+','EUPL-1.2 or LGPL-3.0+','Dual License Consisting of European Union Public License 1.2 and LGPL 3.0 or later');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('EUPL-UNSPECIFIED','EUPL-UNSPECIFIED','European Union Public License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Eurosym','Eurosym','Eurosym License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Event-Store-BSD-3-Clause-License','Event-Store-BSD-3-Clause-License','Event Store BSD-3-Clause License');
@@ -1861,6 +1863,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('ISC','ISC','ISC License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('ISC-LGPL-2.1+','ISC or LGPL-2.1+','Dual License Consisting of ISC License (Bind, DHCP Server) and LGPL 2.1 or later');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('ISC-MIT','ISC or MIT','Dual License Consisting of ISC License (Bind, DHCP Server) and MIT License');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('ISC-MIT-OFL-1.1','ISC or MIT or OFL-1.1','Triple License Consisting of ISC License, MIT and SIL Open Font License 1.1');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('ISC-UNKNOWN','ISC or Non-Standard','Dual License Consisting of ISC License (Bind, DHCP Server) and Raw License String Could Not Be Mapped to a Standardized SPDX License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('ISC-Veillard','ISC-Veillard','ISC Veillard variant');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('ISC-WTFPL','ISC or WTFPL','Dual License Consisting of ISC License (Bind, DHCP Server) and Do What The F*ck You Want To Public License');
@@ -2779,6 +2782,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PolyForm-Shield-License-UNSPECIFIED','PolyForm-Shield-License','PolyForm-Shield-License-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PolyForm-Small-Business-1.0.0','PolyForm-Small-Business-1.0.0','PolyForm Small Business License 1.0.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PolyForm-Strict-License-1.0.0','PolyForm-Strict-License-1.0.0','PolyForm Strict License 1.0.0');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PolyForm-Strict-License-UNSPECIFIED','PolyForm-Strict-License','PolyForm Strict License-Style Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Positive-Technologies-Pattern-Matching-Engine-LA','Positive-Technologies-Pattern-Matching-Engine-LA','Positive Technologies Pattern Matching Engine License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PostgreSQL','PostgreSQL','PostgreSQL License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('PostgreSQL-Python-UNSPECIFIED','PostgreSQL or Python','Dual License Consisting of PostgreSQL License and Python-Style License Not Identifiable by Sonatype');

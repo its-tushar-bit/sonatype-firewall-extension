@@ -1547,6 +1547,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSL-1.0
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSL-1.0-Zlib','BSL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSL-1.0-Zlib','Zlib');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSL-UNSPECIFIED','BSL-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSL-UNSPECIFIED-ISC','BSL-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSL-UNSPECIFIED-ISC','ISC');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSL-UNSPECIFIED-MIT','BSL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSL-UNSPECIFIED-MIT','MIT');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSL-UNSPECIFIED-Zlib','BSL-UNSPECIFIED');
@@ -2330,6 +2332,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EUPL-1.
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EUPL-1.1-GPL-2.0+','GPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EUPL-1.2','EUPL-1.2');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EUPL-1.2+','EUPL-1.2');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EUPL-1.2-LGPL-3.0+','EUPL-1.2');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EUPL-1.2-LGPL-3.0+','LGPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('EUPL-UNSPECIFIED','EUPL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Eurosym','Eurosym');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Event-Store-BSD-3-Clause-License','Event-Store-BSD-3-Clause-License');
@@ -3187,6 +3191,9 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ISC-LGP
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ISC-LGPL-2.1+','LGPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ISC-MIT','ISC');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ISC-MIT','MIT');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ISC-MIT-OFL-1.1','ISC');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ISC-MIT-OFL-1.1','MIT');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ISC-MIT-OFL-1.1','OFL-1.1');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ISC-UNKNOWN','ISC');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ISC-UNKNOWN','UNKNOWN');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ISC-Veillard','ISC-Veillard');
@@ -4210,6 +4217,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('PolyFor
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('PolyForm-Shield-License-UNSPECIFIED','PolyForm-Shield-License-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('PolyForm-Small-Business-1.0.0','PolyForm-Small-Business-1.0.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('PolyForm-Strict-License-1.0.0','PolyForm-Strict-License-1.0.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('PolyForm-Strict-License-UNSPECIFIED','PolyForm-Strict-License-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Positive-Technologies-Pattern-Matching-Engine-LA','Positive-Technologies-Pattern-Matching-Engine-LA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('PostgreSQL','PostgreSQL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('PostgreSQL-Python-UNSPECIFIED','PostgreSQL');

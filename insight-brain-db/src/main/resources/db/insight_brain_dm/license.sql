@@ -2034,6 +2034,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('PolyF
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('PolyForm-Shield-License-UNSPECIFIED','PolyForm-Shield-License','PolyForm-Shield-License-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('PolyForm-Small-Business-1.0.0','PolyForm-Small-Business-1.0.0','PolyForm Small Business License 1.0.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('PolyForm-Strict-License-1.0.0','PolyForm-Strict-License-1.0.0','PolyForm Strict License 1.0.0');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('PolyForm-Strict-License-UNSPECIFIED','PolyForm-Strict-License','PolyForm Strict License-Style Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Positive-Technologies-Pattern-Matching-Engine-LA','Positive-Technologies-Pattern-Matching-Engine-LA','Positive Technologies Pattern Matching Engine License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('PostgreSQL','PostgreSQL','PostgreSQL License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('PPL-1.0','PPL-1.0','Plaxis Public License 1.0');

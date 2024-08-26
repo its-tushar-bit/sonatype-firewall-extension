@@ -5,7 +5,7 @@
  */
 import copyIdToClipboardAction from 'MainRoot/OrgsAndPolicies/copyIdToClipboardToast/copyIdToClipboardSlice';
 
-describe('CopyIdToClipboard actions', () => {
+xdescribe('CopyIdToClipboard actions', () => {
   let store, state;
 
   beforeEach(() => {

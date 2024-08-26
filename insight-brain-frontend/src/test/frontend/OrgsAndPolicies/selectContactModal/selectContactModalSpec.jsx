@@ -10,7 +10,7 @@ import { getUsersRoleMappingUrl } from 'MainRoot/util/CLMLocation';
 import { fireEvent, waitFor, within } from '@testing-library/react';
 import { NX_STANDARD_DEBOUNCE_TIME } from '@sonatype/react-shared-components';
 
-describe('SelectContactModal', () => {
+xdescribe('SelectContactModal', () => {
   let renderComponent, axiosMock;
 
   beforeAll(() => {

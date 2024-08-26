@@ -38,6 +38,9 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.BASE_URL, String.class,
           (p, s) -> s,
           (p, o) -> ConfigurationUtils.urlValueToString(o)),
+      new ConfigurationProperty(SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID, String.class,
+          (p, s) -> s,
+          (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.FORCE_BASE_URL, Boolean.class,
           (p, s) -> Boolean.parseBoolean(s),
           (p, o) -> ConfigurationUtils.forceBaseUrlToString(

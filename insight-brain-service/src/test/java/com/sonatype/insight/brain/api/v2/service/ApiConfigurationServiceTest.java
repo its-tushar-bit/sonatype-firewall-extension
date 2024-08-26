@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.migration.ScanFileCleaner;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -32,6 +33,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Binder;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -47,6 +49,7 @@ import org.slf4j.MDC;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -534,6 +537,29 @@ public class ApiConfigurationServiceTest
   }
 
   @Test
+  public void testSetConfiguration_SuccessMetricsStageId_ValidId() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID, StageTypes.BUILD.getId()));
+
+    assertThat(dao.get(SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID)).isEqualTo(StageTypes.BUILD.getId());
+  }
+
+  @Test
+  public void testSetConfiguration_SuccessMetricsStageId_NonLicensedStageType() {
+    // only allow release at the license level
+    testProductLicense.setStageTypes(Sets.newHashSet(StageTypes.RELEASE));
+
+    var exception = assertThrows(
+        BadRequestException.class,
+        () -> service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID, StageTypes.BUILD.getId())));
+
+    assertThat(exception.getMessage()).isEqualTo(
+        "Invalid property value for 'build' for 'successMetricsStageId'. " +
+            "Please use one of the following values: '[release]'.");
+  }
+
+  @Test
   public void testSetConfiguration_BfsArtifactoryAqlBatchSize() {
     Integer batchSize = 10;
     service.setConfigurationNoAuthz(
@@ -624,6 +650,13 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
         SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS)))
         .containsEntry(SystemConfigurationProperty.QUARANTINED_COMPONENT_REPORT_EXPIRATION_TIME_IN_HOURS, 12);
+  }
+
+  @Test
+  public void testGetSuccessMetricsStageId_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
+        SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID)))
+        .containsEntry(SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID, null);
   }
 
   @Test

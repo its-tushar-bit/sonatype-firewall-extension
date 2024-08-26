@@ -14,17 +14,23 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.policy.stages.SourceStageType;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.utils.ThreatLevel;
+import com.sonatype.insight.error.exception.BadRequestException;
 
+import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import com.google.common.collect.Table.Cell;
 import org.joda.time.DateTime;
@@ -35,6 +41,7 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.MONTH;
 import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.WEEK;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 
 public class PolicyViolationAggregationServiceTest
     extends AbstractComponentTest
@@ -47,6 +54,9 @@ public class PolicyViolationAggregationServiceTest
 
   @Inject
   private PolicyViolationAggregationDAO aggregationDAO;
+
+  @Inject
+  private Configuration configuration;
 
   @Test
   public void testGeneratePolicyViolationAggregations_ViolationsWithoutHash_AllResolved() {
@@ -123,6 +133,81 @@ public class PolicyViolationAggregationServiceTest
     aggregation = aggregationDAO.getMostRecentByApplicationIdAndTimePeriod(app.getId(), WEEK);
 
     assertAllResoloved(now, aggregation);
+  }
+
+  @Test
+  public void testGeneratePolicyViolationAggregations_SingleStage_SpecifiedBySystemConfiguration() {
+    // === Given ===
+    final var now = new DateTime()
+        .withDayOfMonth(1)
+        .plusWeeks(2)
+        .withDayOfWeek(4);
+
+    final var app = tempEntity.newApplicationWithParent();
+    final var policy = tempEntity.newPolicy(app.getId(), "test policy", 10);
+
+    final var evalSource1 = tempEntity.newPolicyEvaluation(app.getId(), SourceStageType.ID, "scan1",
+        now.minusHours(72).toDate());
+    final var  evalSource2 = tempEntity.newPolicyEvaluation(app.getId(), SourceStageType.ID, "scan3",
+        now.minusHours(48).toDate());
+
+    final var evalRelease1 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, "scan2",
+        now.minusHours(72).toDate());
+    final var  evalRelease2 = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, "scan4",
+        now.minusHours(24).toDate());
+
+    PolicyViolation violationStaging = tempEntity
+        .newPolicyViolation(evalSource1, policy, null, null, "unknown component");
+    PolicyViolation violationRelease = tempEntity
+        .newPolicyViolation(evalRelease1, policy, null, null, "unknown component");
+
+    // source violations resolved on second scan (24 hours)
+    violationStaging.setFixTime(evalSource2.getTime());
+    violationDAO.update(violationStaging);
+
+    // release violation resolved on secod scan (48 hours)
+    violationRelease.setFixTime(evalRelease2.getTime());
+    violationDAO.update(violationRelease);
+
+    // === When Source Stage ===
+    setSuccessMetricsStage(SourceStageType.ID);
+    service.generatePolicyViolationAggregations(Collections.singleton(app.getId()), now, true);
+
+    // === Then ===
+    PolicyViolationAggregation aggregation = aggregationDAO
+        .getMostRecentByApplicationIdAndTimePeriod(app.getId(), MONTH);
+
+    // 86400000 = 24 hours day
+    assertThat(aggregation.getMttrCriticalThreat()).isEqualTo(86400000L);
+    assertThat(aggregation.getResolvedCountCriticalThreat()).isEqualTo(1);
+
+    // === When Release Stage ===
+    tempEntity.deleteAllPolicyViolationAggregations();
+    setSuccessMetricsStage(ReleaseStageType.ID);
+    service.generatePolicyViolationAggregations(Collections.singleton(app.getId()), now, true);
+
+    // === Then ===
+    aggregation = aggregationDAO
+        .getMostRecentByApplicationIdAndTimePeriod(app.getId(), MONTH);
+
+    // 86400000 = 48 hours day
+    assertThat(aggregation.getMttrCriticalThreat()).isEqualTo(172800000L);
+    assertThat(aggregation.getResolvedCountCriticalThreat()).isEqualTo(1);
+  }
+
+  @Test
+  public void testGeneratePolicyViolationAggregations_throwsExcepctionIfConfiguredStageIsNotLicensed() {
+    final var app = tempEntity.newApplicationWithParent();
+    setSuccessMetricsStage(DevelopStageType.ID);
+
+    final var thrown = assertThrows(BadRequestException.class, () ->
+        service.generatePolicyViolationAggregations(
+            Collections.singleton(app.getId()), DateTime.now(), true));
+
+    assertThat(thrown.getMessage()).isEqualTo(
+        "Invalid property value for 'develop' for 'successMetricsStageId'. Please use one of the following " +
+            "values: '[proxy, operate, build, release, source, stage-release]'."
+    );
   }
 
   private void assertAllResoloved(DateTime now, PolicyViolationAggregation aggregation) {
@@ -538,5 +623,11 @@ public class PolicyViolationAggregationServiceTest
         assertThat(cell.getValue()).isEqualTo(0);
       }
     }
+  }
+
+  private void setSuccessMetricsStage(final String stageTypeId) {
+    tempEntity.newSystemConfigurationProperty(
+        SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID, stageTypeId);
+    configuration.configurationChanged(Sets.newHashSet(SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID));
   }
 }

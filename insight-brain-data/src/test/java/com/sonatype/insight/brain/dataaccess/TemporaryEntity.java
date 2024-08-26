@@ -986,6 +986,10 @@ public class TemporaryEntity
         .filter(id -> !persistedUserSessionIds.contains(id)).forEach(shiroSessionDAO::deleteById);
   }
 
+  public void deleteAllPolicyViolationAggregations() {
+    delete(policyViolationAggregationDAO.getAll(), policyViolationAggregationDAO);
+  }
+
   private <T extends HasStringId> void delete(Collection<T> entities, AbstractDAO<T> dao) {
     delete(entities, entity -> dao.getById(entity.getId()), dao::delete);
   }

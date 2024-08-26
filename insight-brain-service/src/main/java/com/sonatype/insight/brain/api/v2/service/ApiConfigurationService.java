@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.migration.ScanFileCleaner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -65,6 +66,9 @@ public class ApiConfigurationService
   static final String INVALID_PROPERTY_VALUE_TYPE_ERROR_MSG =
       "Invalid property value type for %s, expected %s but got %s.";
 
+  public static final String INVALID_SUCCESS_METRIC_STAGE_ID_ERROR_MSG =
+      "Invalid property value for '%s' for '%s'. Please use one of the following values: '%s'.";
+
   // Visible for testing
   public static final String NO_PROPERTIES_ERROR_MSG = "No properties were specified.";
 
@@ -93,6 +97,8 @@ public class ApiConfigurationService
 
   private final PermissionService permissionService;
 
+  private final StageTypeService stageTypeService;
+
   @Inject
   public ApiConfigurationService(
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
@@ -101,7 +107,8 @@ public class ApiConfigurationService
       TaskScheduler taskScheduler,
       ProductLicense productLicense,
       Provider<ScanFileCleaner> scanFileCleanerProvider,
-      PermissionService permissionService)
+      PermissionService permissionService,
+      StageTypeService stageTypeService)
   {
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.configurationListeners = configurationListeners;
@@ -110,6 +117,7 @@ public class ApiConfigurationService
     this.productLicense = productLicense;
     this.scanFileCleanerProvider = scanFileCleanerProvider;
     this.permissionService = permissionService;
+    this.stageTypeService = stageTypeService;
   }
 
   public Map<String, Object> getConfiguration(Set<String> propertyNames) {
@@ -309,6 +317,19 @@ public class ApiConfigurationService
     if (!ClassUtils.isAssignable(actualType, expectedType)) {
       throw new BadRequestException(
           String.format(INVALID_PROPERTY_VALUE_TYPE_ERROR_MSG, propertyName, expectedType, actualType));
+    }
+
+    if (SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID.equals(propertyName)) {
+      final var validStageIds = stageTypeService.getValidSuccessMetricsStageTypeIds();
+
+      if (!validStageIds.contains(propertyValue)) {
+        throw new BadRequestException(String.format(
+            INVALID_SUCCESS_METRIC_STAGE_ID_ERROR_MSG,
+            propertyValue,
+            SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID,
+            validStageIds
+        ));
+      }
     }
   }
 

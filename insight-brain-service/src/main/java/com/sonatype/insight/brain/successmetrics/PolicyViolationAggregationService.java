@@ -30,20 +30,22 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.model.EnumIntegerTable;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
-import com.sonatype.insight.brain.model.policy.StageType;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.successmetrics.TimePeriod;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.utils.ThreatLevel;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import com.google.common.collect.TreeMultimap;
 import org.joda.time.DateTime;
@@ -51,8 +53,11 @@ import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.api.v2.service.ApiConfigurationService.INVALID_SUCCESS_METRIC_STAGE_ID_ERROR_MSG;
 import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.MONTH;
 import static com.sonatype.insight.brain.model.successmetrics.TimePeriod.WEEK;
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 /**
  * @since 1.31
@@ -75,6 +80,8 @@ public class PolicyViolationAggregationService
 
   private final ClusterLockManager clusterLockManager;
 
+  private final Configuration configuration;
+
   @Inject
   public PolicyViolationAggregationService(
       final StageTypeService stageTypeService,
@@ -82,7 +89,8 @@ public class PolicyViolationAggregationService
       final PolicyViolationDAO policyViolationDAO,
       final PolicyViolationAggregationDAO violationAggregationDAO,
       final DashboardUtils dashboardUtils,
-      final ClusterLockManager clusterLockManager)
+      final ClusterLockManager clusterLockManager,
+      final Configuration configuration)
   {
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyViolationDAO = policyViolationDAO;
@@ -90,18 +98,11 @@ public class PolicyViolationAggregationService
     this.stageTypeService = stageTypeService;
     this.dashboardUtils = dashboardUtils;
     this.clusterLockManager = clusterLockManager;
+    this.configuration = configuration;
   }
 
-  private Set<String> getStageTypeIds() {
-    List<StageType> stageTypes = new ArrayList<>();
-
-    for (StageType stageType : stageTypeService.getLicensedStageTypes()) {
-      if (!StageTypes.isIgnoredForPolicyViolationAggregation(stageType.getId())) {
-        stageTypes.add(stageType);
-      }
-    }
-
-    return dashboardUtils.getStageTypeIds(stageTypes);
+  public Set<String> getStageTypeIds() {
+    return stageTypeService.getValidSuccessMetricsStageTypeIds();
   }
 
   /**
@@ -116,7 +117,22 @@ public class PolicyViolationAggregationService
     log.debug("Starting update of Policy Violation Aggregations for {} applications", applicationIds.size());
 
     long start = System.currentTimeMillis();
-    Set<String> stageTypeIds = getStageTypeIds();
+
+    final String configuredSuccessMetricsStageId =  configuration.getSuccessMetricsStageId();
+
+    // this is also validated when the user sets the value, but we'll check again, here, in case
+    // the licensed stages changed after it was set
+    if (nonNull(configuredSuccessMetricsStageId) && !getStageTypeIds().contains(configuredSuccessMetricsStageId)) {
+      throw new BadRequestException(String.format(
+          INVALID_SUCCESS_METRIC_STAGE_ID_ERROR_MSG,
+          configuredSuccessMetricsStageId,
+          SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID,
+          getStageTypeIds()));
+    }
+
+    final Set<String> stageTypeIds = isNull(configuredSuccessMetricsStageId)
+        ? getStageTypeIds()
+        : Sets.newHashSet(configuredSuccessMetricsStageId);
 
     for (String applicationId : applicationIds) {
       try (ClusterLock clusterLock = clusterLockManager.createForPolicyViolationAggregations(applicationId)) {

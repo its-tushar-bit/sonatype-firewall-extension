@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -87,6 +88,14 @@ public class StageTypeService
     Collection<StageType> allowed = orderStages(productLicense.getStageTypes());
     allowed = allowed.stream().filter(filter).collect(Collectors.toList());
     return Collections.unmodifiableCollection(allowed);
+  }
+
+  public Set<String> getValidSuccessMetricsStageTypeIds() {
+    return this.getLicensedStageTypes()
+        .stream()
+        .map(StageType::getId)
+        .filter(stageTypeId -> !StageTypes.isIgnoredForPolicyViolationAggregation(stageTypeId))
+        .collect(Collectors.toSet());
   }
 
   /**

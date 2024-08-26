@@ -189,7 +189,8 @@ public class Configuration
         SystemConfigurationProperty.ENTERPRISE_REPORTING_VERSION_CACHE_EXPIRATION_IN_MINUTES,
         SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED,
         SystemConfigurationProperty.API_ACCESS_ALLOW_LIST,
-        SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION)
+        SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION,
+        SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID)
     );
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
     configCache.putOrRemoveIfNull(REVERSE_PROXY_AUTHENTICATION_CONFIGURATION,
@@ -554,6 +555,10 @@ public class Configuration
       return null;
     }
     return configCache.get(SystemConfigurationProperty.SAAS_POLICY_MONITOR_POOL_SIZE);
+  }
+
+  public String getSuccessMetricsStageId() {
+    return configCache.get(SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID);
   }
 
   public Map<String, String> getMatcherConfiguration() {

@@ -8,11 +8,11 @@ package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
@@ -33,6 +33,7 @@ import com.sonatype.insight.error.exception.InternalServerException;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import static com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO.createPaginationNativeQuery;
 import static com.sonatype.insight.brain.utils.CvssV3Severity.CRITICAL;
@@ -189,9 +190,8 @@ public class ThirdPartyFileCoordinateDAO
         "  LEFT JOIN " + getDatabaseSchema() + ".vulnerability_exploitability ve" + //
         "    ON cs.coordinate_security_id = ve.coordinate_security_id" + //
         " WHERE fc.third_party_file_id = ?10";
-    if (componentName != null) {
-      sQuery += applyComponentNameFilter(componentName, 11);
-    }
+    int index = 11;
+    sQuery = generateComponentNameFilterQuery(componentName, index, sQuery);
     sQuery += generateHavingByDependencyTypes(dependencyTypes, dependencyTypesParams, 13) + //
         " GROUP BY fc.hash, fc.package_url, fc.name, fc.version, licenses_json ,fc.dependency_type " + //
         generateHavingByVulnerabilityThreatLevels(vulnerabilityThreatLevels) + //
@@ -202,16 +202,10 @@ public class ThirdPartyFileCoordinateDAO
     try (TransactionContext tx = createTransactionContext()) {
       javax.persistence.Query paginationQuery =
           createPaginationQueryWithScoreRangeParams(thirdPartyFileId, pageSize, sQuery, offset, tx);
-      if (componentName != null) {
-        componentName = URLEncoder.encode(componentName, StandardCharsets.UTF_8.toString());
-
-        String componentNameQuoted = StringUtils.containsAny(componentName, ".", "*", "?", "+")
-            ? Pattern.quote(componentName).replace("\\", "\\\\")
-            : componentName;
-
-        paginationQuery.setParameter(11, "((?<=\\/)(.*" + componentNameQuoted + ".*)(?=\\@))|((?<=@)(.*"
-            + componentNameQuoted + "[^=]*)(?=(\\?|&|$)))");
-        paginationQuery.setParameter(12,'%' + componentName + '%');
+      if (componentName != null && !componentName.isEmpty()) {
+        componentName = componentName.trim();
+        index = 11;
+        setComponentNameParameters(componentName, index, paginationQuery);
       }
       dependencyTypesParams.forEach(paginationQuery::setParameter);
 
@@ -469,6 +463,90 @@ public class ThirdPartyFileCoordinateDAO
       return query;
     }
     return "";
+  }
+
+  private String applyComponentNameFilterArray(String componentName,
+                                          int index)
+  {
+    if (!componentName.isEmpty()) {
+      return " (lower(fc.package_url) ~ lower(?" + index + "))";
+    }
+    return "";
+  }
+
+  private String generateComponentNameFilterQuery(String componentName, int index, String sQuery) {
+    if (componentName != null && !componentName.isEmpty()) {
+      if (componentName.contains(" : ") || componentName.contains(" ")) {
+        long count = Arrays.stream(componentName.split("\\s+:\\s+|\\s+"))
+                .filter(s -> !s.isEmpty())
+                .count();
+        int i = 0;
+        sQuery += " AND (";
+        while (i < count) {
+          sQuery += applyComponentNameFilterArray(componentName, index);
+          index++;
+          i++;
+          if (i < count) {
+            sQuery += " AND";
+          }
+        }
+        sQuery += " ) ";
+      }
+      else {
+        sQuery += applyComponentNameFilter(componentName, index);
+      }
+    }
+    return sQuery;
+  }
+
+  private void setComponentNameParameters(
+      String componentName,
+      int index,
+      javax.persistence.Query paginationQuery) throws UnsupportedEncodingException
+  {
+    if (StringUtils.containsAny(componentName, " : ", " ")) {
+      String[] coordinates = Arrays.stream(componentName.split("\\s+:\\s+|\\s+")) //
+          .filter(coordinate -> !coordinate.isEmpty()) //
+          .map(this::urlEncodeCoordinate)
+          .toArray(String[]::new);
+      for (int i = 0; i < coordinates.length; i++) {
+        String parameter = getCoordinateParameter(i, coordinates);
+        paginationQuery.setParameter(index, parameter);
+        index++;
+      }
+    }
+    else {
+      String componentNameQuoted = urlEncodeCoordinate(componentName);
+
+      paginationQuery.setParameter(11, "((?<=\\/)(.*" + componentNameQuoted + ".*)(?=\\@))|((?<=@)(.*"
+              + componentNameQuoted + "[^=]*)(?=(\\?|&|$)))");
+      paginationQuery.setParameter(12,'%' + componentName + '%');
+    }
+  }
+
+  private String urlEncodeCoordinate(String coordinate) {
+    try {
+      return URLEncoder.encode(coordinate, StandardCharsets.UTF_8.toString()).replace("%2F", "(/|%2F)").replace(".",
+          "\\.");
+    }
+    catch (UnsupportedEncodingException e) {
+      throw new InternalServerException(e);
+    }
+  }
+
+  private static @NotNull String getCoordinateParameter(int i, String[] coordinates) {
+    String parameter;
+    if (i == 0 || i == coordinates.length - 1) {
+      parameter = "(^.*" + coordinates[i].trim() + ".*)(?=\\@)|((?<=\\/)(.*"
+              + coordinates[i].trim() + ".*)(?=\\@))|((?<=@)(.*"
+              + coordinates[i].trim() + "[^=]*)(?=(\\?|&|$)))";
+    }
+    else {
+      parameter = "(^.*" + coordinates[i].trim() + ")(?=\\@)|((?<=\\/)(^"
+              + coordinates[i].trim() + ")(?=\\@))|((?<=@)(^"
+              + coordinates[i].trim() + ")(?=(\\?|&|$)))";
+    }
+    return parameter;
   }
 
   private String generateHavingByVulnerabilityThreatLevels(Set<CvssV3Severity> vulnerabilityThreatLevels) {

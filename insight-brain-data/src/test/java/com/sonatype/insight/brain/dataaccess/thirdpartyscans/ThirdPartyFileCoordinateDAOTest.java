@@ -985,6 +985,106 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(result).isNotNull();
     assertThat(result.getTotalResultsCount()).isZero();
     assertThat(result.getResults()).isEmpty();
+
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        sbomMetadata.getThirdPartyFileId(), null, null,
+        "com.github.jnr", null, true, 5, 1);
+    assertThat(result).isNotNull();
+    assertThat(result.getResults()).hasSize(1);
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponentsByThirdPartyFileId_ComponentNameFilter_SpecialCharacters() {
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .build();
+
+    PackageUrlIdentifier packageUrlIdentifier1 =
+        new PackageUrlIdentifier("pkg:maven/com.datadoghq/dd-java-agent@1.12.1?type=jar");
+    tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s1", packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(),
+        "h1", packageUrlIdentifier1.getPackageUrl(), UNSPECIFIED);
+
+    PackageUrlIdentifier packageUrlIdentifier2 =
+        new PackageUrlIdentifier("pkg:golang/github.com/gorilla/context@234fd47e07d1004f0aed9c");
+    tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s2", packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(),
+        "h2", packageUrlIdentifier2.getPackageUrl(), UNSPECIFIED);
+
+    PackageUrlIdentifier packageUrlIdentifier3 =
+        new PackageUrlIdentifier("pkg:maven/com.datadoghq/dd-trace-ot@1.12.1?type=jar");
+    tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s3", packageUrlIdentifier3.getFormat(), packageUrlIdentifier3.getName(), packageUrlIdentifier3.getVersion(),
+        "h3", packageUrlIdentifier3.getPackageUrl(), UNSPECIFIED);
+
+    tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s4", "npm", "com.test.org",
+        "0.29.1",
+        "h4", null, UNSPECIFIED);
+
+    PackageUrlIdentifier packageUrlIdentifier4 = new PackageUrlIdentifier(
+        "pkg:generic/ubuntu%3A22.04/cyrus-sasl2%2Flibsasl2-2@2.1.27%2Bdfsg2-3ubuntu1.2?nexustype=container");
+
+    tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(), "s4", packageUrlIdentifier4.getFormat(),
+        packageUrlIdentifier4.getName(), packageUrlIdentifier4.getVersion(), "h4",
+        packageUrlIdentifier4.getPackageUrl(), TRANSITIVE);
+
+    SbomComponentListDTO result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        sbomMetadata.getThirdPartyFileId(), null, null,
+        "com.datadoghq : dd-java-agent ", null, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isOne();
+
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        sbomMetadata.getThirdPartyFileId(), null, null,
+        "github.com/gorilla/context 234fd47e07d1004f0aed9c", null, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isOne();
+    assertThat(result.getResults())
+        .extracting(SbomComponentDTO::getPackageUrl)
+        .containsExactly(packageUrlIdentifier2.getPackageUrl());
+
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        sbomMetadata.getThirdPartyFileId(), null, null,
+        "github.com/gorilla/context", null, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isOne();
+    assertThat(result.getResults())
+        .extracting(SbomComponentDTO::getPackageUrl)
+        .containsExactly(packageUrlIdentifier2.getPackageUrl());
+
+    //testing looking for name when packageUrl null
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId(),
+        null, null, "com.test.org", null, true,
+        5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isOne();
+    assertThat(result.getResults()).extracting(SbomComponentDTO::getName)
+        .containsExactly("com.test.org");
+
+    //testing looking for version when packageUrl null
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId(),
+        null, null, "0.29.1", null, true,
+        5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isOne();
+    assertThat(result.getResults()).extracting(SbomComponentDTO::getVersion)
+        .containsExactly("0.29.1");
+
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId(), null,
+        null, "ubuntu:22.04 : cyrus-sasl2/libsasl2-2 : 2.1.27+dfsg2-3ubuntu1.2", null, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isOne();
+    assertThat(result.getResults())
+        .extracting(SbomComponentDTO::getPackageUrl)
+        .containsExactly(packageUrlIdentifier4.getPackageUrl());
   }
 
   private void insertVEXToThirdPartyCoordinateSecurity(ThirdPartyCoordinateSecurity coordinateSecurity) {

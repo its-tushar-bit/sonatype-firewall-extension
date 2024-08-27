@@ -85,6 +85,7 @@ import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatc
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 import static com.sonatype.insight.purl.PackageUrlIdentifier.toPackageUrl;
+import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.partitioningBy;
 import static java.util.stream.Collectors.toList;
 
@@ -200,7 +201,7 @@ public class ApiPolicyWaiverService
         throw new IllegalStateException("Unknown owner type: " + ownerType);
     }
 
-    addPolicyWaiver(ownerType, ownerId, policyViolation, comment, EXACT_COMPONENT, null);
+    addPolicyWaiver(ownerType, ownerId, policyViolation, comment, EXACT_COMPONENT, null, null);
   }
 
   /**
@@ -229,6 +230,8 @@ public class ApiPolicyWaiverService
 
     ComponentMatcherStrategyForWaiver matcherStrategy;
     if (waiverOptionsDTO != null) {
+      validateExistingPolicyWaiverReason(waiverOptionsDTO.waiverReasonId);
+
       if (waiverOptionsDTO.matcherStrategy != null) {
         matcherStrategy = waiverOptionsDTO.matcherStrategy;
       }
@@ -242,6 +245,7 @@ public class ApiPolicyWaiverService
 
     String comment = waiverOptionsDTO == null ? null : waiverOptionsDTO.comment;
     Date expiryTime = waiverOptionsDTO == null ? null : waiverOptionsDTO.expiryTime;
+    String waiverReasonId = waiverOptionsDTO == null ? null : waiverOptionsDTO.waiverReasonId;
 
     // validate expiry date
     if (Objects.nonNull(expiryTime) &&
@@ -249,7 +253,8 @@ public class ApiPolicyWaiverService
       throw new BadRequestException("Expiration date must be in the future.");
     }
 
-    addPolicyWaiver(ownerType, internalOwnerId, abstractPolicyViolation, comment, matcherStrategy, expiryTime);
+    addPolicyWaiver(ownerType, internalOwnerId, abstractPolicyViolation, comment, matcherStrategy, expiryTime,
+        waiverReasonId);
   }
 
   @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
@@ -260,10 +265,11 @@ public class ApiPolicyWaiverService
       final AbstractPolicyViolation abstractPolicyViolation,
       final String comment,
       final ComponentMatcherStrategyForWaiver matcherStrategy,
-      final Date expiryTime)
+      final Date expiryTime,
+      final String waiverReasonId)
   {
     PolicyWaiver policyWaiver =
-        savePolicyWaiver(ownerId, abstractPolicyViolation, comment, matcherStrategy, expiryTime, null);
+        savePolicyWaiver(ownerId, abstractPolicyViolation, comment, matcherStrategy, expiryTime, waiverReasonId);
     auditPolicyWaiver(policyWaiver);
     policyWaiverTelemetryCreator.sendWaiverTelemetryForOwnerType(policyWaiver, ownerType, abstractPolicyViolation);
     sendTelemetry(ownerType, ownerId);
@@ -297,7 +303,6 @@ public class ApiPolicyWaiverService
     try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.VIEW_WAIVER, true)) {
       policyWaivers.forEach(this::auditPolicyWaiver);
     }
-
     return apiPolicyWaiverDTOS;
   }
 
@@ -641,11 +646,14 @@ public class ApiPolicyWaiverService
   {
     try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
       tx.begin();
+
+      validateExistingPolicyWaiverReason(waiverDTO.waiverReasonId);
+
       for (PolicyViolation policyViolation : policyViolations) {
         try {
           PolicyWaiver policyWaiver =
               savePolicyWaiver(tx, owner.getId(), policyViolation, waiverDTO.comment,
-                  EXACT_COMPONENT, waiverDTO.expiryTime, null);
+                  EXACT_COMPONENT, waiverDTO.expiryTime, waiverDTO.waiverReasonId);
           policyWaiverTelemetryCreator.sendWaiverTelemetryForOwnerType(policyWaiver, owner.getType(), policyViolation);
           try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CREATE_WAIVER, false)) {
             auditPolicyWaiver(policyWaiver, tx);
@@ -661,16 +669,10 @@ public class ApiPolicyWaiverService
     }
   }
 
-  // CLM-29562 TODO use method to get and validate waiver reason
-  private PolicyWaiverReason getExistingPolicyWaiverReason(String waiverReasonId) {
-    PolicyWaiverReason policyWaiverReason = null;
-    if (waiverReasonId != null) {
-      policyWaiverReason = policyWaiverReasonDAO.getById(waiverReasonId);
-      if (policyWaiverReason == null) {
-        throw new BadRequestException("Waiver reason not found");
-      }
+  private void validateExistingPolicyWaiverReason(String waiverReasonId) {
+    if (waiverReasonId != null && isNull(policyWaiverReasonDAO.getById(waiverReasonId))) {
+      throw new BadRequestException("Waiver reason not found");
     }
-    return policyWaiverReason;
   }
 
   private boolean filterWaiverByCriteria(
@@ -708,13 +710,13 @@ public class ApiPolicyWaiverService
       String comment,
       ComponentMatcherStrategyForWaiver matcherStrategy,
       Date expiryTime,
-      PolicyWaiverReason policyWaiverReason)
+      String policyWaiverReasonId)
   {
     try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
       tx.begin();
       PolicyWaiver policyWaiver =
           savePolicyWaiver(tx, ownerId, abstractPolicyViolation, comment, matcherStrategy, expiryTime,
-              policyWaiverReason);
+              policyWaiverReasonId);
       tx.commit();
       return policyWaiver;
     }
@@ -727,7 +729,7 @@ public class ApiPolicyWaiverService
       String comment,
       ComponentMatcherStrategyForWaiver matcherStrategy,
       Date expiryTime,
-      PolicyWaiverReason policyWaiverReason)
+      String policyWaiverReasonId)
   {
     String hash =
         matcherStrategy == ALL_COMPONENTS || matcherStrategy == ALL_VERSIONS ? null : abstractPolicyViolation.getHash();
@@ -740,9 +742,7 @@ public class ApiPolicyWaiverService
     if (matcherStrategy != ALL_COMPONENTS && abstractPolicyViolation.getComponentIdentifier() != null) {
       policyWaiver.setAssociatedPackageUrl(toPackageUrl(abstractPolicyViolation.getComponentIdentifier()));
     }
-    if (policyWaiverReason != null) {
-      policyWaiver.setWaiverReasonId(policyWaiverReason.getId());
-    }
+    policyWaiver.setWaiverReasonId(policyWaiverReasonId);
 
     policyWaiverDAO.insert(tx, policyWaiver);
     return policyWaiver;

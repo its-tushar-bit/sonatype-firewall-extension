@@ -30,12 +30,20 @@ public class ApiWaiverOptionsDTO
   @ApiDateFormat
   public Date expiryTime;
 
+  public String waiverReasonId;
+
   public ApiWaiverOptionsDTO() {
   }
 
-  public ApiWaiverOptionsDTO(String comment, ComponentMatcherStrategyForWaiver matcherStrategy, Date expiryTime) {
+  public ApiWaiverOptionsDTO(
+      String comment,
+      ComponentMatcherStrategyForWaiver matcherStrategy,
+      Date expiryTime,
+      String waiverReasonId)
+  {
     this.comment = comment;
     this.matcherStrategy = matcherStrategy;
     this.expiryTime = expiryTime;
+    this.waiverReasonId = waiverReasonId;
   }
 }

@@ -22,8 +22,8 @@ LABEL vendor=Sonatype \
 
 RUN apt-get update && apt-get install -y \
   git \
-  # SBOM-298, can remove after
   libjemalloc2 \
+  tini \
 && rm -rf /var/lib/apt/lists/*
 
 # Copy JAR
@@ -41,7 +41,8 @@ EXPOSE 8071
 
 WORKDIR /opt/sonatype/nexus-iq-server
 
-ENTRYPOINT ["java", \
+# Use tini init in order to get proper orphaned process reaping
+ENTRYPOINT ["tini", "--", "java", \
              "--add-opens=java.base/java.lang=ALL-UNNAMED", \
              "--add-opens=java.base/java.util=ALL-UNNAMED", \
              "--add-opens=java.base/java.security=ALL-UNNAMED", \

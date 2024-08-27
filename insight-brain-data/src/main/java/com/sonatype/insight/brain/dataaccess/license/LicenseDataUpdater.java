@@ -31,13 +31,17 @@ public abstract class LicenseDataUpdater
     LicenseDataUpdater.updater = updater;
   }
 
-  public static synchronized void update(LicenseDAO licenseDAO, MultiLicenseDAO multiLicenseDAO) {
+  public static void update(LicenseDAO licenseDAO, MultiLicenseDAO multiLicenseDAO) {
     if (updater == null) {
       log.warn("Cannot update license data because there is no license updater.");
       return;
     }
 
-    updater.doUpdate();
+    synchronized (LicenseDataUpdater.class) {
+      // Use this class lock to update data, load methods below use their own locks so this only takes 1 lock at a time
+      updater.doUpdate();
+    }
+
     licenseDAO.load();
     multiLicenseDAO.load();
   }

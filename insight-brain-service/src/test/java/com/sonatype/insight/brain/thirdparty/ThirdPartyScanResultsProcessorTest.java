@@ -27,6 +27,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
+import com.google.inject.Binder;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -139,12 +140,18 @@ public class ThirdPartyScanResultsProcessorTest
   @Mock
   private ThirdPartyScanResultsProcessor thirdPartyScanResultsProcessorSpy;
 
-  @Mock
+  @Inject
   private SbomMetadataUtils sbomMetadataUtils;
 
   private static final Gson GSON = new Gson();
 
   private static final String DEFAULT_STAGE_TYPE = StageTypes.DEVELOP.getName();
+  
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(ProductLicense.class).toInstance(productLicense);
+    super.configure(binder);
+  }
 
   @Before
   public void before() {
@@ -508,7 +515,6 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_ClairScanner_sbomManagerEnabled() throws Exception {
     when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
-    when(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).thenReturn(false);
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
     File scanFile = getScanFile("scan-with-clair-scanner-data.xml");
@@ -784,7 +790,7 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_cyclonedx_api_sbomManagerEnabled_maxSbom_reached() throws Exception {
     when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
-    when(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).thenReturn(false);
+    when(productLicense.getMaxSboms()).thenReturn(0);
     IntStream.rangeClosed(1, 2).forEach(i -> createSbomMetadata());
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
@@ -804,7 +810,6 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_SbomManagerEnabled_BuildStage_noSbomSaved() throws Exception {
     when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
-    when(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).thenReturn(false);
     createSbomMetadata();
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
@@ -897,38 +902,6 @@ public class ThirdPartyScanResultsProcessorTest
         thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(fileCoordinate.get(0).getId());
     assertThat(coordinateSecurities).isNotEmpty().hasSize(1);
     assertThat(coordinateLicenses).isNotEmpty().hasSize(2);
-  }
-
-  @Test
-  public void testInsertThirdPartySbomMetadataWithRetry() {
-    Organization organization = tempEntity.newOrganization("Testing Organization");
-    Application application = tempEntity.newApplication("Testing Application", "TESTING", organization.getId());
-    final ThirdPartySbomMetadata thirdPartySbomMetadata =
-        tempEntity.newThirdPartySbomMetadata(application.getId(), "PENDING", "test-file.xml");
-    final ThirdPartySbomMetadata duplicateThirdPartySbomMetadata = new ThirdPartySbomMetadata();
-    duplicateThirdPartySbomMetadata.setApplicationId(thirdPartySbomMetadata.getApplicationId());
-    duplicateThirdPartySbomMetadata.setSbomVersion(thirdPartySbomMetadata.getSbomVersion());
-    duplicateThirdPartySbomMetadata.setThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId());
-    duplicateThirdPartySbomMetadata.setMetadataJson(thirdPartySbomMetadata.getMetadataJson());
-    duplicateThirdPartySbomMetadata.setCreatedAt(thirdPartySbomMetadata.getCreatedAt());
-    duplicateThirdPartySbomMetadata.setSerialNumber(thirdPartySbomMetadata.getSerialNumber());
-    duplicateThirdPartySbomMetadata.setSpec(thirdPartySbomMetadata.getSpec());
-    duplicateThirdPartySbomMetadata.setSpecFormat(thirdPartySbomMetadata.getSpecFormat());
-    duplicateThirdPartySbomMetadata.setSpecVersion(thirdPartySbomMetadata.getSpecVersion());
-    duplicateThirdPartySbomMetadata.setFilename(thirdPartySbomMetadata.getFilename());
-    duplicateThirdPartySbomMetadata.setStatus(thirdPartySbomMetadata.getStatus());
-    duplicateThirdPartySbomMetadata.setScanType(thirdPartySbomMetadata.getScanType());
-    thirdPartyScanResultsProcessorSpy.insertThirdPartySbomMetadataWithRetry(duplicateThirdPartySbomMetadata,
-        application.getId(), thirdPartySbomMetadata.getSbomVersion());
-
-    List<ThirdPartySbomMetadata> thirdPartySbomMetadataList =
-        thirdPartySbomMetadataDAO.getByApplicationId(application.getId());
-    List<String> sbomVersions =
-        thirdPartySbomMetadataList.stream().map(ThirdPartySbomMetadata::getSbomVersion).toList();
-
-    assertThat(thirdPartySbomMetadataList).hasSize(2);
-    assertThat(sbomVersions).containsExactlyInAnyOrder(thirdPartySbomMetadata.getSbomVersion(),
-        duplicateThirdPartySbomMetadata.getSbomVersion());
   }
 
   private void assertLogOutput(final String message) {
@@ -1171,7 +1144,7 @@ public class ThirdPartyScanResultsProcessorTest
 
   private void mockValidSbomManagerLicense() {
     when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
+    when(productLicense.getMaxSboms()).thenReturn(50);
     when(productLicense.getStageTypes()).thenReturn(new HashSet<>(Arrays.asList(StageTypes.COMPLIANCE)));
-    when(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).thenReturn(false);
   }
 }

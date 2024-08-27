@@ -109,18 +109,19 @@ public class SbomFileDetector
       SbomDetectionResult result = new SbomDetectionResult();
       result.isBinary = true;
       result.mimeType = tika.detect(sbomFile);
-      String sbomStringContent = getSbomStringContent(sbomFile);
       if (TEXT_PLAIN.equals(result.mimeType)) {
+        String sbomStringContent = getSbomStringContent(sbomFile);
         if (isPlainTextValidJson(sbomStringContent)) {
           result.mimeType = APPLICATION_JSON;
+          return attemptDetectingSbomFromContent(sbomStringContent, result);
         }
         else if (isPlainTextValidXml(sbomStringContent)) {
           result.mimeType = APPLICATION_XML;
+          return attemptDetectingSbomFromContent(sbomStringContent, result);
         }
       }
-
-      if (supportedSbomMimeTypes.contains(result.mimeType)) {
-        return attemptDetectingSbomFromContent(sbomStringContent, result);
+      else if (supportedSbomMimeTypes.contains(result.mimeType)) {
+        return attemptDetectingSbomFromContent(getSbomStringContent(sbomFile), result);
       }
       result.errorMessage = "Provided file type is not a supported SBOM file type.";
       return result;

@@ -124,7 +124,7 @@ public class ApiSbomServiceAuthzTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(
             () -> apiSbomService.importSbom(app.getId(), new ByteArrayInputStream(new byte[0]), DUMMY_USER_AGENT))
-        .withMessage("Provided content is not recognizable as an SBOM.");
+        .withMessage("Provided file type is not a supported SBOM file type.");
   }
 
   @Test(expected = UnauthenticatedException.class)

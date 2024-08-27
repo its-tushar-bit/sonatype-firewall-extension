@@ -9,6 +9,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -20,6 +24,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
@@ -29,7 +34,11 @@ import com.sonatype.insight.scan.application.ScannerDriver;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.model.ItemContentType;
 
+import io.dropwizard.logback.shaded.guava.annotations.VisibleForTesting;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.openjpa.persistence.EntityExistsException;
+import org.apache.openjpa.persistence.RollbackException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +47,8 @@ public class SbomMetadataUtils
 
 {
   public static final String SBOM_IDENTIFICATION_SOURCE = "SBOM";
+
+  private final DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 
   private static final Logger log = LoggerFactory.getLogger(SbomMetadataUtils.class);
 
@@ -99,6 +110,43 @@ public class SbomMetadataUtils
     catch (IOException e) {
       throw new UncheckedIOException("unable to read supplied sbom", e);
     }
+    finally {
+      try {
+        Files.delete(Path.of(sbomFile.getPath()));
+        log.debug("Deleted SBOM file at {}", sbomFile.getPath());
+        Files.delete(sbomFile.getParentFile().toPath());
+        log.debug("Deleted SBOM file directory at {}", sbomFile.getParentFile().toPath());
+      }
+      catch (IOException e) {
+        log.warn("Unable to delete file {}", sbomFile);
+      }
+    }
+  }
+
+  public ScanResult scanBinaryFile(
+      final Application app,
+      final File binaryFile,
+      final File scanDir)
+  {
+    try {
+      ProprietaryConfig proprietaryConfig =
+          proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION, app.getPublicId());
+      return scanner.scan(binaryFile, binaryFile.getName(), scanDir, proprietaryConfig);
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException("unable to read supplied file", e);
+    }
+    finally {
+      try {
+        Files.delete(Path.of(binaryFile.getPath()));
+        log.debug("Deleted binary file at {}", binaryFile.getPath());
+        Files.delete(binaryFile.getParentFile().toPath());
+        log.debug("Deleted binary file directory at {}", binaryFile.getParentFile().getPath());
+      }
+      catch (IOException e) {
+        log.warn("Unable to delete client file at {}", binaryFile.getPath(), e);
+      }
+    }
   }
 
   public ScanResult scanSbomContent(
@@ -140,6 +188,28 @@ public class SbomMetadataUtils
     }
     else {
       return null;
+    }
+  }
+
+  @VisibleForTesting
+  public void insertThirdPartySbomMetadataWithRetry(ThirdPartySbomMetadata thirdPartySbomMetadata) {
+    try {
+      thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
+    }
+    catch (RollbackException e) {
+      // Handles a race condition that arises if the same file gets uploaded at the same time in separate requests
+      if (e.getCause() instanceof EntityExistsException) {
+        log.debug("SBOM with version {} may already exist for application with ID {}, retrying once",
+            thirdPartySbomMetadata.getSbomVersion(), thirdPartySbomMetadata.getApplicationId());
+        thirdPartySbomMetadata.setSbomVersion(String.join("_", thirdPartySbomMetadata.getSbomVersion(),
+            dtFormatter.format(LocalDateTime.now()), RandomStringUtils.randomAlphanumeric(3)));
+        log.debug("Updating SBOM with version {} for application with ID {}", thirdPartySbomMetadata.getSbomVersion(),
+            thirdPartySbomMetadata.getApplicationId());
+        thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
+      }
+      else {
+        throw e;
+      }
     }
   }
 }

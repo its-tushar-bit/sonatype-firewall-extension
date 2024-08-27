@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.sbom.utils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -319,5 +320,16 @@ public class SbomCycloneDxUtils
       case "cve_cvss_4" -> Method.CVSSV4;
       default -> Method.OTHER;
     };
+  }
+
+  public static String getGenericSbomCreationDetailsAsString() {
+    SbomCreationDetails sbomCreationDetails = new SbomCreationDetails();
+    sbomCreationDetails.created = dateTimeFormatter.withZone(ZoneOffset.UTC).format(Instant.now());
+    sbomCreationDetails.tools = new ArrayList<>();
+    SbomCreationDetails.Tool sbomManagerTool = new SbomCreationDetails.Tool();
+    sbomManagerTool.type = Component.Type.APPLICATION.getTypeName();
+    sbomManagerTool.name = "Sonatype SBOM Manager";
+    sbomCreationDetails.tools.add(sbomManagerTool);
+    return gson.toJson(sbomCreationDetails);
   }
 }

@@ -25,10 +25,12 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataTestUtil;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanUploader;
@@ -38,9 +40,11 @@ import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentListDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
+import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -98,6 +102,12 @@ public class ApiSbomServiceTest
 
   @Inject
   private ThirdPartySbomMetadataDAO dao;
+
+  @Inject
+  private ThirdPartyScanDAO thirdPartyScanDao;
+
+  @Inject
+  private PolicyEvaluationDAO policyEvaluationDAO;
 
   @Inject
   private InsightWork insightWork;
@@ -704,6 +714,49 @@ public class ApiSbomServiceTest
           .isThrownBy(
               () -> service.importSbom(app.getId(), inputStream, DUMMY_USER_AGENT))
           .withMessage("Provided file type is not a supported SBOM file type.");
+    }
+  }
+
+  @Test
+  public void testScanAndEvaluateBinaryFile() throws IOException {
+    mockHdsForImportWithDelayedReportDownload(50);
+
+    Application app = tempEntity.newApplicationWithParent();
+    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
+    File inputFile;
+    try (InputStream inputStream = getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/index.html")) {
+      inputFile = service.saveInputStreamAsFile(inputStream);
+    }
+    try (Response response = service.scanAndEvaluateBinaryFile(app.getId(), DUMMY_USER_AGENT, inputFile)) {
+      ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
+      assertThat(response.getStatus()).isEqualTo(200);
+      assertThat(ticketDTO).isNotNull();
+      assertThat(ticketDTO.statusUrl).isNotEmpty()
+          .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
+
+      List<ThirdPartyScan> thirdPartyScanList = thirdPartyScanDao.getByScanRequestId(ticketDTO.requestId);
+      assertThat(thirdPartyScanList.size()).isEqualTo(1);
+      ThirdPartyScan thirdPartyScan = thirdPartyScanList.get(0);
+      assertThat(thirdPartyScan).isNotNull();
+      assertThat(thirdPartyScan.getScanRequestId()).isEqualTo(ticketDTO.requestId);
+
+      ThirdPartySbomMetadata thirdPartySbomMetadata = dao.getByThirdPartyFileId(thirdPartyScan.getThirdPartyFileId());
+
+      String expectedMetadataJson = SbomCycloneDxUtils.getGenericSbomCreationDetailsAsString();
+
+      assertThat(thirdPartySbomMetadata).isNotNull();
+      assertThat(thirdPartySbomMetadata.getApplicationId()).isEqualTo(app.getId());
+      assertThat(thirdPartySbomMetadata.getSbomVersion()).isNotNull();
+      assertThat(thirdPartySbomMetadata.getFilename()).isEqualTo(ApiSbomService.BINARY_FILE_NAME);
+      assertThat(thirdPartySbomMetadata.getSpec()).isEqualTo(SbomSpecification.CYCLONEDX.toString());
+      assertThat(thirdPartySbomMetadata.getSpecFormat()).isEqualTo(SbomFormat.JSON.toString());
+      assertThat(thirdPartySbomMetadata.getSpecVersion()).isEqualTo(ExportSpecification.DEFAULT.getVersion());
+      assertThat(thirdPartySbomMetadata.getStatus()).isEqualTo(SbomStatus.PENDING.toString());
+      assertThat(thirdPartySbomMetadata.getCreatedAt()).isNotNull();
+      assertThat(thirdPartySbomMetadata.getScanType()).isEqualTo(ApiSbomService.SCAN_TYPE_BINARY);
+      assertThat(thirdPartySbomMetadata.getMetadataJson()).isEqualTo(expectedMetadataJson);
+
+      policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
     }
   }
 

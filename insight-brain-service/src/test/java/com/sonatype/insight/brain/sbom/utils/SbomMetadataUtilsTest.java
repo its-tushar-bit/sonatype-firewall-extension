@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.sbom.utils;
 import java.io.File;
 import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -15,6 +16,8 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiSbomResource;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanResult;
@@ -37,6 +40,9 @@ public class SbomMetadataUtilsTest
     extends AbstractComponentTest
 {
   @Mock
+  private ThirdPartySbomMetadataDAO mockThirdPartySbomMetadataDAO;
+
+  @Inject
   private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
   @Mock
@@ -53,12 +59,12 @@ public class SbomMetadataUtilsTest
   @Before
   public void before() {
     sbomMetadataUtils =
-        new SbomMetadataUtils(thirdPartySbomMetadataDAO, productLicense, proprietaryConfigService, scanner);
+        new SbomMetadataUtils(mockThirdPartySbomMetadataDAO, productLicense, proprietaryConfigService, scanner);
   }
 
   @Test
   public void testHasMaxSbomLimitBeenReached_Less() {
-    when(thirdPartySbomMetadataDAO.getSbomCount()).thenReturn(1L);
+    when(mockThirdPartySbomMetadataDAO.getSbomCount()).thenReturn(1L);
     when(productLicense.getMaxSboms()).thenReturn(2);
 
     assertThat(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).isFalse();
@@ -66,7 +72,7 @@ public class SbomMetadataUtilsTest
 
   @Test
   public void testHasMaxSbomLimitBeenReached_Equal() {
-    when(thirdPartySbomMetadataDAO.getSbomCount()).thenReturn(2L);
+    when(mockThirdPartySbomMetadataDAO.getSbomCount()).thenReturn(2L);
     when(productLicense.getMaxSboms()).thenReturn(2);
 
     assertThat(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).isTrue();
@@ -74,7 +80,7 @@ public class SbomMetadataUtilsTest
 
   @Test
   public void testHasMaxSbomLimitBeenReached_More() {
-    when(thirdPartySbomMetadataDAO.getSbomCount()).thenReturn(3L);
+    when(mockThirdPartySbomMetadataDAO.getSbomCount()).thenReturn(3L);
     when(productLicense.getMaxSboms()).thenReturn(2);
 
     assertThat(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).isTrue();
@@ -82,7 +88,7 @@ public class SbomMetadataUtilsTest
 
   @Test
   public void testHasMaxSbomLimitBeenReached_NullSbomLimit() {
-    when(thirdPartySbomMetadataDAO.getSbomCount()).thenReturn(2L);
+    when(mockThirdPartySbomMetadataDAO.getSbomCount()).thenReturn(2L);
     when(productLicense.getMaxSboms()).thenReturn(null);
 
     assertThat(sbomMetadataUtils.hasMaxSbomLimitBeenReached()).isTrue();
@@ -139,5 +145,38 @@ public class SbomMetadataUtilsTest
 
   private File getSbomFile(final String fileName) throws URISyntaxException {
     return new File(SbomMetadataUtilsTest.class.getResource("/SbomMetadataUtilsTest/" + fileName).toURI());
+  }
+
+  @Test
+  public void testInsertThirdPartySbomMetadataWithRetry() {
+    SbomMetadataUtils sbomMetadataUtils =
+        new SbomMetadataUtils(thirdPartySbomMetadataDAO, productLicense, proprietaryConfigService, scanner);
+    Organization organization = tempEntity.newOrganization("Testing Organization");
+    Application application = tempEntity.newApplication("Testing Application", "TESTING", organization.getId());
+    final ThirdPartySbomMetadata thirdPartySbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(application.getId(), "PENDING", "test-file.xml");
+    final ThirdPartySbomMetadata duplicateThirdPartySbomMetadata = new ThirdPartySbomMetadata();
+    duplicateThirdPartySbomMetadata.setApplicationId(thirdPartySbomMetadata.getApplicationId());
+    duplicateThirdPartySbomMetadata.setSbomVersion(thirdPartySbomMetadata.getSbomVersion());
+    duplicateThirdPartySbomMetadata.setThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId());
+    duplicateThirdPartySbomMetadata.setMetadataJson(thirdPartySbomMetadata.getMetadataJson());
+    duplicateThirdPartySbomMetadata.setCreatedAt(thirdPartySbomMetadata.getCreatedAt());
+    duplicateThirdPartySbomMetadata.setSerialNumber(thirdPartySbomMetadata.getSerialNumber());
+    duplicateThirdPartySbomMetadata.setSpec(thirdPartySbomMetadata.getSpec());
+    duplicateThirdPartySbomMetadata.setSpecFormat(thirdPartySbomMetadata.getSpecFormat());
+    duplicateThirdPartySbomMetadata.setSpecVersion(thirdPartySbomMetadata.getSpecVersion());
+    duplicateThirdPartySbomMetadata.setFilename(thirdPartySbomMetadata.getFilename());
+    duplicateThirdPartySbomMetadata.setStatus(thirdPartySbomMetadata.getStatus());
+    duplicateThirdPartySbomMetadata.setScanType(thirdPartySbomMetadata.getScanType());
+    sbomMetadataUtils.insertThirdPartySbomMetadataWithRetry(duplicateThirdPartySbomMetadata);
+
+    List<ThirdPartySbomMetadata> thirdPartySbomMetadataList =
+        thirdPartySbomMetadataDAO.getByApplicationId(application.getId());
+    List<String> sbomVersions =
+        thirdPartySbomMetadataList.stream().map(ThirdPartySbomMetadata::getSbomVersion).toList();
+
+    assertThat(thirdPartySbomMetadataList).hasSize(2);
+    assertThat(sbomVersions).containsExactlyInAnyOrder(thirdPartySbomMetadata.getSbomVersion(),
+        duplicateThirdPartySbomMetadata.getSbomVersion());
   }
 }

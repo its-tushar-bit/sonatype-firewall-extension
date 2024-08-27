@@ -9,12 +9,19 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -44,6 +51,7 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentListDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
@@ -52,6 +60,7 @@ import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.sbom.export.SbomExporterProvider;
+import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
 import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
@@ -76,6 +85,7 @@ import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.Version;
@@ -98,6 +108,12 @@ public class ApiSbomService
   public static final String STATE_PARAM = "state";
 
   public static final String SBOM_VALIDATED_HEADER = "X-SBOM-Validated";
+
+  public static final String SCAN_TYPE_BINARY = "BINARY";
+
+  public static final String BINARY_FILE_NAME = "binary.temp";
+
+  private final DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 
   private final ThirdPartySbomMetadataDAO dao;
 
@@ -381,31 +397,19 @@ public class ApiSbomService
   @Authorize(permission = Permission.WRITE)
   public Response importSbom(
       @AuthzContext(Key.APPLICATION_ID) String applicationId,
-      InputStream fileInputStream,
+      InputStream inputStream,
       String clientUserAgent)
   {
     if (sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
       throw new PaymentRequiredException(
           "You have exceeded the licensed limit of " + productLicense.getMaxSboms() + " sboms.");
     }
-    String sbomContentAsString = getSbomContentAsString(fileInputStream);
-    SbomDetectionResult sbomDetectionResult = sbomFileDetector.getSbomDetectionResult(sbomContentAsString);
+    File userUploadedFile = saveInputStreamAsFile(inputStream);
+    SbomDetectionResult sbomDetectionResult = sbomFileDetector.getSbomDetectionResult(userUploadedFile);
     if (!sbomDetectionResult.isSbom) {
       throw new BadRequestException(sbomDetectionResult.errorMessage);
     }
-    Application application = applicationDAO.getById(applicationId);
-    ApiThirdPartyScanTicketDTO scanTicketDTO = sbomMetadataUtils.createSbomImportTicket(applicationId);
-    ScanResult scanResult = sbomMetadataUtils.scanSbomContent(application, sbomContentAsString,
-        insightWork.getScanDir(applicationId), SbomFormat.forMimeType(sbomDetectionResult.mimeType),
-        sbomMetadataUtils.determineItemContentType(sbomDetectionResult.summary.specification), ScannerDriver.SBOM_API);
-
-    policyEvaluateService.evaluateWithPolling(scanTicketDTO.requestId, application,
-        ClientScanType.SONATYPE_THIRD_PARTY, new Stage(StageTypes.COMPLIANCE.getId()), ScanTriggerType.SBOM_API,
-        scanResult.getScanFile(), ScannerDriver.SBOM_API.getValue(), clientUserAgent, null);
-
-    return Response.ok(Status.ACCEPTED)
-        .entity(scanTicketDTO)
-        .build();
+    return scanAndEvaluateSbomFile(applicationId, userUploadedFile, sbomDetectionResult, clientUserAgent);
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
@@ -462,13 +466,78 @@ public class ApiSbomService
         .collect(Collectors.toList());
   }
 
-  private static String getSbomContentAsString(final InputStream fileInputStream) {
-    try {
-      return IOUtils.toString(fileInputStream, StandardCharsets.UTF_8);
+  private Response scanAndEvaluateSbomFile(String applicationId,
+                                      File sbomFile,
+                                      SbomDetectionResult sbomDetectionResult,
+                                      String clientUserAgent)
+  {
+    Application application = applicationDAO.getById(applicationId);
+    ApiThirdPartyScanTicketDTO scanTicketDTO = sbomMetadataUtils.createSbomImportTicket(applicationId);
+    ScanResult scanResult = sbomMetadataUtils.scanSbomFile(application, sbomFile,
+        insightWork.getScanDir(applicationId), SbomFormat.forMimeType(sbomDetectionResult.mimeType),
+        sbomMetadataUtils.determineItemContentType(sbomDetectionResult.summary.specification), ScannerDriver.SBOM_API);
+    policyEvaluateService.evaluateWithPolling(scanTicketDTO.requestId, application,
+        ClientScanType.SONATYPE_THIRD_PARTY, new Stage(StageTypes.COMPLIANCE.getId()), ScanTriggerType.SBOM_API,
+        scanResult.getScanFile(), ScannerDriver.SBOM_API.getValue(), clientUserAgent, null);
+    return Response.ok(Status.ACCEPTED)
+        .entity(scanTicketDTO)
+        .build();
+  }
+
+  File saveInputStreamAsFile(InputStream inputStream) {
+    try (InputStream ignored = inputStream) {
+      Path temporaryDirectoryPath = Files.createTempDirectory(UUID.randomUUID().toString()
+          .replace("-", "").substring(0, 6));
+      File clientFile = new File(temporaryDirectoryPath.toString(), BINARY_FILE_NAME);
+      try {
+        Files.copy(inputStream, clientFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        log.debug("Saved client file at {}", clientFile.getPath());
+        return clientFile;
+      }
+      catch (IOException e) {
+        FileUtils.deleteDirectory(temporaryDirectoryPath.toFile());
+        log.debug("Failed to store client file");
+        throw e;
+      }
     }
     catch (IOException e) {
-      log.debug("error reading from provided file upload", e);
-      throw new InternalServerException("unable to read from the input sbom");
+      throw new UncheckedIOException(e);
     }
+  }
+
+  @VisibleForTesting
+  Response scanAndEvaluateBinaryFile(String applicationId, String clientUserAgent, File clientFile) {
+    Application application = applicationDAO.getById(applicationId);
+    ScanResult scanResult =
+        sbomMetadataUtils.scanBinaryFile(application, clientFile, insightWork.getScanDir(applicationId));
+    ApiThirdPartyScanTicketDTO scanTicketDTO = sbomMetadataUtils.createSbomImportTicket(applicationId);
+    createAndSaveThirdPartyData(applicationId, scanTicketDTO.requestId);
+    ClientScanType clientScanType = scanResult.getClientScanType();
+    if (clientScanType == ClientScanType.SONATYPE_THIRD_PARTY) {
+      // TODO: We need to filter and upload the scan to HDS. However, while iterating the scan file contents we need
+      // to provide context that this scan type is a binary kind and therefore only create one set of third party
+      // database records as if we were handling a single SBOM file.
+    }
+    else {
+      policyEvaluateService.evaluateWithPolling(scanTicketDTO.requestId, application,
+          clientScanType, new Stage(StageTypes.COMPLIANCE.getId()), ScanTriggerType.SBOM_API,
+          scanResult.getScanFile(), ScannerDriver.SBOM_API.getValue(), clientUserAgent, null);
+    }
+    return Response.ok(Status.ACCEPTED)
+        .entity(scanTicketDTO)
+        .build();
+  }
+
+  private void createAndSaveThirdPartyData(String applicationId, String scanRequestId) {
+    ThirdPartyFile thirdPartyFile = new ThirdPartyFile(BINARY_FILE_NAME, new Date());
+    thirdPartyFileDAO.insert(thirdPartyFile);
+    ThirdPartyScan thirdPartyScan = new ThirdPartyScan(thirdPartyFile.getId(), scanRequestId, new Date());
+    thirdPartyScanDAO.insert(thirdPartyScan);
+    ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata(thirdPartyFile.getId(), applicationId,
+        dtFormatter.format(LocalDateTime.now()), thirdPartyFile.getFilename(), UUID.randomUUID().toString(),
+        SbomSpecification.CYCLONEDX.toString(), SbomFormat.JSON.toString(), ExportSpecification.DEFAULT.getVersion(),
+        SbomStatus.PENDING.toString(), new Date(), SbomCycloneDxUtils.getGenericSbomCreationDetailsAsString(),
+        SCAN_TYPE_BINARY);
+    sbomMetadataUtils.insertThirdPartySbomMetadataWithRetry(thirdPartySbomMetadata);
   }
 }

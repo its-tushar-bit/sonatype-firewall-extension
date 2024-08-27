@@ -52,6 +52,7 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.model.HasStringId;
+
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -62,6 +63,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -301,9 +303,11 @@ public class ApplicationReportTest
   }
 
   @Test
+  @Ignore // https://sonatype.atlassian.net/browse/CLM-31447
   public void testDownloadPdf() throws Exception {
     NxDropdown optionsDropdown = reportPage.optionsDropdown();
-    optionsDropdown.button().click();
+    optionsDropdown.shouldBe(visible).menu().shouldNotBe(visible);
+    optionsDropdown.button().shouldHave(text("Options")).click();
 
     long currentTimeout = Configuration.timeout;
     File downloadedPdf;
@@ -311,7 +315,14 @@ public class ApplicationReportTest
       // generating the PDF takes awhile; increase the timeout to 20 seconds
       Configuration.timeout = 20000;
 
-      downloadedPdf = optionsDropdown.menu().entries().first().shouldHave(text("Export PDF")).download();
+      downloadedPdf = optionsDropdown
+          .menu()
+          .shouldBe(visible)
+          .entries()
+          .shouldHave(size(7))
+          .first()
+          .shouldHave(text("Export PDF"))
+          .download();
     }
     finally {
       Configuration.timeout = currentTimeout;

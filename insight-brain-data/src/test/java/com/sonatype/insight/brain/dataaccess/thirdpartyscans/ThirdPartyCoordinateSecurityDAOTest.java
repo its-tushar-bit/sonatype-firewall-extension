@@ -652,6 +652,60 @@ public class ThirdPartyCoordinateSecurityDAOTest
 
   @Test
   @PostgresTest
+  public void testGetRecentHighPriorityVulnerabilities_Duplicates() {
+    Application app1 = tempEntity.newApplicationWithParent();
+    Application app2 = tempEntity.newApplicationWithParent();
+
+    ThirdPartyScan app1Scan1 = tempEntity.newThirdPartyScan();
+    ThirdPartyScan app1Scan2 = tempEntity.newThirdPartyScan();
+    ThirdPartyScan app2Scan1 = tempEntity.newThirdPartyScan();
+    ThirdPartyScan app2Scan2 = tempEntity.newThirdPartyScan();
+
+    Date now = new Date();
+    Date oneDayAgo = DateUtils.addDays(now, -1);
+
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(now).withApplicationId(app1.getId())
+        .withThirdPartyFileId(app1Scan1.getThirdPartyFileId()).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneDayAgo).withApplicationId(app1.getId())
+        .withThirdPartyFileId(app1Scan2.getThirdPartyFileId()).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(now).withApplicationId(app2.getId())
+        .withThirdPartyFileId(app2Scan1.getThirdPartyFileId()).build();
+    newSbomMetadataBuilder(daoFactory).withCreatedAt(oneDayAgo).withApplicationId(app2.getId())
+        .withThirdPartyFileId(app2Scan2.getThirdPartyFileId()).build();
+
+    // Each SBOM scan had the same component
+    ThirdPartyFileCoordinate app1Scan1Component =
+        tempEntity.newThirdPartyFileCoordinate(app1Scan1.getThirdPartyFileId(), "s", "SPDX", "n1", "v1", "h1",
+            "u1", ThirdPartyDependencyType.DIRECT);
+    ThirdPartyFileCoordinate app1Scan2Component =
+        tempEntity.newThirdPartyFileCoordinate(app1Scan2.getThirdPartyFileId(), "s", "SPDX", "n1", "v1", "h1",
+            "u1", ThirdPartyDependencyType.DIRECT);
+    ThirdPartyFileCoordinate app2Scan1Component =
+        tempEntity.newThirdPartyFileCoordinate(app2Scan2.getThirdPartyFileId(), "s", "SPDX", "n1", "v1", "h1",
+            "u1", ThirdPartyDependencyType.DIRECT);
+    ThirdPartyFileCoordinate app2Scan2Component =
+        tempEntity.newThirdPartyFileCoordinate(app2Scan2.getThirdPartyFileId(), "s", "SPDX", "n1", "v1", "h1",
+            "u1", ThirdPartyDependencyType.DIRECT);
+
+    // This component had the same vulnerability
+    tempEntity.newThirdPartyCoordinateSecurity(app1Scan1Component, "r1", "d1", "l1", 7.0, "sd1", "f1");
+    tempEntity.newThirdPartyCoordinateSecurity(app1Scan2Component, "r1", "d1", "l1", 7.0, "sd1", "f1");
+    tempEntity.newThirdPartyCoordinateSecurity(app2Scan1Component, "r1", "d1", "l1", 7.0, "sd1", "f1");
+    tempEntity.newThirdPartyCoordinateSecurity(app2Scan2Component, "r1", "d1", "l1", 7.0, "sd1", "f1");
+
+    List<RecentVulnerabilitiesDTO> result =
+        dao.getRecentHighPriorityVulnerabilities(new HashSet<>(Arrays.asList(app1.getId(), app2.getId())));
+
+    // Results should return distinct vulnerabilities
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getRefId()).isEqualTo("r1");
+    assertThat(result.get(0).getSeverity()).isEqualTo(7.0);
+    assertThat(result.get(0).getSeverityStatus()).isEqualTo("high");
+    assertThat(result.get(0).getCreatedAt().getTime()).isEqualTo(now.getTime());
+  }
+
+  @Test
+  @PostgresTest
   public void testGetReleaseStatus() {
     Application app = application;
 

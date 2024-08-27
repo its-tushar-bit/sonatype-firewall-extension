@@ -104,7 +104,7 @@ public class ThirdPartyCoordinateSecurityDAO
         " cs.severity," + //
         " CASE WHEN (cs.severity BETWEEN ?1 AND ?2) THEN 'high'" + //
         " WHEN (cs.severity BETWEEN ?3 AND ?4) THEN 'critical' END as severityStatus," + //
-        " sm.created_at" + //
+        " MAX(sm.created_at) AS created_at" + // Use MAX since we're interested in the most recent vulnerabilities
         " FROM " + getDatabaseSchema() + ".sbom_metadata sm" + //
         " JOIN " + getDatabaseSchema() + ".file_coordinate fc" + //
         " ON fc.third_party_file_id = sm.third_party_file_id" + //
@@ -113,7 +113,8 @@ public class ThirdPartyCoordinateSecurityDAO
         " WHERE cs.severity >= ?1" + //
         " AND sm.application_id = ANY(array[?5])" + //
         " AND sm.status = 'ACTIVE'" + //
-        " ORDER BY sm.created_at desc, cs.severity desc, ref_id desc" + //
+        " GROUP BY ref_id, cs.severity" + //
+        " ORDER BY created_at desc, cs.severity desc, ref_id desc" + //
         " LIMIT 10";
 
     try (TransactionContext tx = createTransactionContext()) {

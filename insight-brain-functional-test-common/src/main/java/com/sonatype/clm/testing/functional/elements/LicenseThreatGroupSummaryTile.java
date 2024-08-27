@@ -13,6 +13,7 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebElementCondition;
 
+import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.Condition.text;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
@@ -69,7 +70,7 @@ public class LicenseThreatGroupSummaryTile
   public ApplicableLicenseThreatGroupSection getApplicableLicenseThreatGroupSection(int index) {
     SelenideElement child = child(TABLE_SELECTOR);
     ElementsCollection contentSubsections = child.findAll(TABLE_SUBSECTION_SELECTOR);
-    assert contentSubsections.size() > 0;
+    contentSubsections.shouldHave(sizeGreaterThan(index));
 
     return new ApplicableLicenseThreatGroupSection(contentSubsections.get(index), TABLE_SUBSECTION_SELECTOR);
   }

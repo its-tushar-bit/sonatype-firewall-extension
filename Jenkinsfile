@@ -431,11 +431,8 @@ Map<String, Closure> createFrontendTests(String stageName, String... zipFiles) {
           mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
           mavenOptions += " -Pbuildsupport-sonar-coverage"
           mavenOptions += " --threads 4"
-          mavenOptions = addBuildCacheOptions(mavenOptions, false)
 
           Map<String, ?> testConfig = testConfig(mavenOptions, null,  'OpenJDK 17')
-
-          mvn testConfig, "com.github.eirslett:frontend-maven-plugin:install-node-and-yarn"
 
           mvn testConfig, "com.github.eirslett:frontend-maven-plugin:yarn@jasmine " +
               "com.github.eirslett:frontend-maven-plugin:yarn@jest"

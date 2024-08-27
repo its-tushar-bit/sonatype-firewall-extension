@@ -44,11 +44,13 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils;
+import org.xmlunit.assertj.CompareAssert;
 import org.xmlunit.assertj.XmlAssert;
 
 import static com.sonatype.insight.brain.api.v2.service.ApiSbomService.SBOM_VALIDATED_HEADER;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreAttributesFilter;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreNodesFilter;
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.spdxIgnoreAttributesFilter;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -88,6 +90,8 @@ public class SbomRegressionTest
 
   private static final String VEX_DIR = "/SbomRegressionTest/vex/";
 
+  private static final String HDS_DIR = "/SbomRegressionTest/hds/";
+
   private static final String EXPECTED_DIR = "/SbomRegressionTest/expected/";
 
   private static final String IMPORT_SBOM_TEMPLATE = "%s_%s.%s";
@@ -104,15 +108,20 @@ public class SbomRegressionTest
 
   private static final String VEX_FILE_VARIANT_TEMPLATE = "%s_%s_%s_%s_to_%s_%s_%s_%s.json";
 
+  private static final String HDS_FILE_TEMPLATE = "%s_%s_%s.json";
+
+  private static final String HDS_FILE_VARIANT_TEMPLATE = "%s_%s_%s_%s.json";
+
   private static final String EXPECTED_SBOM_TEMPLATE = "%s_%s_%s_to_%s_%s.%s";
 
   private static final String EXPECTED_SBOM_VARIANT_TEMPLATE = "%s_%s_%s_%s_to_%s_%s_%s.%s";
 
   public static final String[] SBOM_JSON_IGNORE_FIELDS = {
       "metadata.timestamp", "metadata.tools.components[0].version",
-      "metadata.component.bom-ref", "metadata.component.name", "creationInfo.created",
-      "creationInfo.creators[0]", "documentNamespace", "vulnerabilities[*].analysis.lastUpdated",
-      "vulnerabilities[*].analysis.firstIssued"
+      "metadata.component.bom-ref", "metadata.component.name", "metadata.component.version",
+      "creationInfo.created", "creationInfo.creators[0]", "documentNamespace",
+      "vulnerabilities[*].analysis.lastUpdated", "vulnerabilities[*].analysis.firstIssued",
+      "name", "packages[*].name"
   };
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -159,10 +168,13 @@ public class SbomRegressionTest
   @Parameterized.Parameters(name = "from: {0}_{1}_{2} -> to: {3}_{4}_{5} {6}")
   public static Collection<Object[]> data() {
     Object[][] data = {
-        {"cyclonedx", "1.5", "xml", "cyclonedx", "1.5", "xml", ""}, //example only
-        {"cyclonedx", "1.5", "xml", "cyclonedx", "1.5", "json", ""}, //example only
-        {"cyclonedx", "1.5", "xml", "cyclonedx", "1.5", "json", "withSpecialContent"}, //example only
-    };
+        {"cyclonedx", "1.1", "xml", "cyclonedx", "1.5", "xml", ""},
+        {"cyclonedx", "1.1", "xml", "cyclonedx", "1.5", "json", ""},
+        {"cyclonedx", "1.1", "xml", "cyclonedx", "1.6", "xml", ""},
+        {"cyclonedx", "1.1", "xml", "cyclonedx", "1.6", "json", ""},
+        {"cyclonedx", "1.1", "xml", "spdx", "2.3", "xml", ""},
+        {"cyclonedx", "1.1", "xml", "spdx", "2.3", "json", ""},
+        };
     return Arrays.asList(data);
   }
 
@@ -186,6 +198,12 @@ public class SbomRegressionTest
     mockReport("SCAN-ID", getMockHdsReport());
     byte[] sbomFile = loadFileFromAssets(originalSbom);
 
+    // Mock HDS Security information
+    String hdsSecurityResponseFile = getHDSSecurityResponseFileName();
+    if (fileExists(hdsSecurityResponseFile)) {
+      mockHDSSecurityResponse(hdsSecurityResponseFile);
+    }
+
     HttpResponse importResponse = restRequest().path(ApiSbomResource.SBOM_IMPORT_PATH)
         .part("file", originalSbom, sbomFile)
         .part("applicationId", app.getId())
@@ -203,9 +221,9 @@ public class SbomRegressionTest
 
     String sbomVersion = resultDTO.version;
     //apply vex
-    String vedDataFile = getVexFileName();
-    if (fileExists(vedDataFile)) {
-      applyVex(vedDataFile, sbomVersion);
+    String vexDataFile = getVexFileName();
+    if (fileExists(vexDataFile)) {
+      applyVex(vexDataFile, sbomVersion);
     }
 
     //export flow
@@ -239,9 +257,17 @@ public class SbomRegressionTest
   private void assertExportedContentAsExpected(String sbomContent) throws Exception {
     String expectedContent = expectedContentIn(getExpectedSbomContentFile());
     if (exportSpecFormat.equals("xml")) {
-      XmlAssert.assertThat(sbomContent).and(expectedContent)
-          .withNodeFilter(cycloneDxIgnoreNodesFilter())
-          .withAttributeFilter(cycloneDxIgnoreAttributesFilter())
+      CompareAssert xmlAssert = XmlAssert.assertThat(sbomContent).and(expectedContent);
+
+      if (exportSpec.equals("spdx")) {
+        xmlAssert.withNodeFilter(spdxIgnoreAttributesFilter());
+      }
+      else if (exportSpec.equals("cyclonedx")) {
+        xmlAssert.withNodeFilter(cycloneDxIgnoreNodesFilter())
+            .withAttributeFilter(cycloneDxIgnoreAttributesFilter());
+      }
+
+      xmlAssert
           .ignoreWhitespace()
           .areIdentical();
     }
@@ -300,6 +326,12 @@ public class SbomRegressionTest
     return reportDir;
   }
 
+  private String getHDSSecurityResponseFileName() {
+    return HDS_DIR + (StringUtils.isNotEmpty(variant) ?
+        HDS_FILE_VARIANT_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat, variant) :
+        HDS_FILE_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat));
+  }
+
   private String getExpectedSbomContentFile() {
     return EXPECTED_DIR + (StringUtils.isNotEmpty(variant) ?
         EXPECTED_SBOM_VARIANT_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat, variant, exportSpec,
@@ -316,6 +348,14 @@ public class SbomRegressionTest
 
   private boolean fileExists(final String vexFileName) {
     return resourceExists(vexFileName, false);
+  }
+
+  protected void mockHDSSecurityResponse(String hdsSecurityResponseFile) throws IOException {
+    JsonNode jsonNode = MAPPER.readTree(loadFileFromAssets(hdsSecurityResponseFile)).get("aaData");
+    for (JsonNode node : jsonNode) {
+      String identifier = node.get("identifier").asText();
+      hdsRespondWith(node.toString()).atUri("rest/vulnerability/details/json/" + identifier);
+    }
   }
 
   private boolean directoryExists(final String vexFileName) {

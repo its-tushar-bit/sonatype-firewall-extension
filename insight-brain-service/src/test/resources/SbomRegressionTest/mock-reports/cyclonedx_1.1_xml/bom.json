@@ -1,0 +1,200 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "jackson-databind",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.fasterxml.jackson.core",
+          "version": "2.9.9"
+        }
+      },
+      "packageUrl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar",
+      "groupId": "com.fasterxml.jackson.core",
+      "artifactId": "jackson-databind",
+      "version": "2.9.9",
+      "filenames": [
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
+      ],
+      "pathnames": [
+        "dependency:/SBOM-bom.xml/pkg:maven\\com.fasterxml.jackson.core\\jackson-databind@2.9.9?type=jar"
+      ],
+      "aggregateFiles": [],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "d6eb9817d9c7289a91f0",
+      "relativePopularity": 0.18,
+      "createTime": 1557976205000,
+      "lastModifiedTime": null,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": {
+        "id": 0,
+        "label": "Neutral"
+      },
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "COORDINATE",
+        "scanClient": "sbomApi",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true,
+        "manifestContentType": "SBOM"
+      },
+      "integrityRating": {
+        "id": 3,
+        "label": "Not Applicable"
+      }
+    },
+    {
+      "componentIdentifier": null,
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "pkg:generic/acme-library@1.0.0?sbom_type=library"
+      ],
+      "pathnames": [
+        "dependency:/SBOM-bom.xml/pkg:generic\\acme-library@1.0.0?sbom_type=library"
+      ],
+      "aggregateFiles": [],
+      "matchState": "unknown",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "197946fb6ce45fadcb81",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": null,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": null,
+      "componentCategories": [],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "THIRD_PARTY",
+        "analysisType": "COORDINATE",
+        "scanClient": "sbomApi",
+        "hasLicense": false,
+        "hasIdentity": false,
+        "hasSecurity": false,
+        "manifestContentType": "SBOM"
+      },
+      "integrityRating": null
+    },
+    {
+      "componentIdentifier": null,
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "pkg:maven/com.example/myapplication@1.0.0?type=jar:68b78babe00a053f9e35"
+      ],
+      "pathnames": [
+        "dependency:/SBOM-bom.xml/pkg:maven\\com.example\\myapplication@1.0.0?type=jar:68b78babe00a053f9e35"
+      ],
+      "aggregateFiles": [],
+      "matchState": "unknown",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "68b78babe00a053f9e35",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": null,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": null,
+      "componentCategories": [],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "THIRD_PARTY",
+        "analysisType": "COORDINATE",
+        "scanClient": "sbomApi",
+        "hasLicense": false,
+        "hasIdentity": false,
+        "hasSecurity": false,
+        "manifestContentType": "SBOM"
+      },
+      "integrityRating": null
+    },
+    {
+      "componentIdentifier": null,
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "pkg:maven/com.acme/tomcat-catalina@9.0.14?type=jar:e6b1000b94e835ffd37f"
+      ],
+      "pathnames": [
+        "dependency:/SBOM-bom.xml/pkg:maven\\com.acme\\tomcat-catalina@9.0.14?type=jar:e6b1000b94e835ffd37f"
+      ],
+      "aggregateFiles": [],
+      "matchState": "unknown",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "e6b1000b94e835ffd37f",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": null,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": null,
+      "componentCategories": [],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "THIRD_PARTY",
+        "analysisType": "COORDINATE",
+        "scanClient": "sbomApi",
+        "hasLicense": false,
+        "hasIdentity": false,
+        "hasSecurity": false,
+        "manifestContentType": "SBOM"
+      },
+      "integrityRating": null
+    },
+    {
+      "componentIdentifier": null,
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "pkg:maven/com.example/myframework@1.0.0?type=jar:7fbeef2346c45d565c33"
+      ],
+      "pathnames": [
+        "dependency:/SBOM-bom.xml/pkg:maven\\com.example\\myframework@1.0.0?type=jar:7fbeef2346c45d565c33"
+      ],
+      "aggregateFiles": [],
+      "matchState": "unknown",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "7fbeef2346c45d565c33",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": null,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": null,
+      "componentCategories": [],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "THIRD_PARTY",
+        "analysisType": "COORDINATE",
+        "scanClient": "sbomApi",
+        "hasLicense": false,
+        "hasIdentity": false,
+        "hasSecurity": false,
+        "manifestContentType": "SBOM"
+      },
+      "integrityRating": null
+    }
+  ]
+}

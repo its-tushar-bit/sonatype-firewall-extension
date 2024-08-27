@@ -119,6 +119,34 @@ public class SbomTestHelper
     };
   }
 
+  public static Predicate<Node> spdxIgnoreAttributesFilter() {
+    return node -> {
+      if ("created".equals(node.getNodeName())) {
+        Node p = node.getParentNode();
+        if (p != null && "creationInfo".equals(p.getNodeName())) {
+          return false;
+        }
+      }
+      if ("name".equals(node.getNodeName())) {
+        Node p = node.getParentNode();
+        if (p != null && "Document".equals(p.getNodeName())) {
+          return false;
+        }
+        if (p != null && "packages".equals(p.getNodeName())) {
+          return false;
+        }
+      }
+      if ("documentNamespace".equals(node.getNodeName())) {
+        Node p = node.getParentNode();
+        if (p != null && "Document".equals(p.getNodeName())) {
+          return false;
+        }
+      }
+
+      return true;
+    };
+  }
+
   public static Predicate<Node> ignoreSonatypeIdentifierFilter() {
     return node -> {
       if ("property".equals(node.getNodeName()) &&

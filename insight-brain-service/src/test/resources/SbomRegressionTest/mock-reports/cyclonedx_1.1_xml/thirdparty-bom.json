@@ -1,0 +1,171 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "myapplication",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.example",
+        "version" : "1.0.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.example/myapplication@1.0.0?packaging=war&type=jar",
+    "groupId" : "com.example",
+    "artifactId" : "myapplication",
+    "version" : "1.0.0",
+    "filenames" : [ ],
+    "pathnames" : [ "pkg:maven/com.example/myapplication@1.0.0?packaging=war&type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "68b78babe00a053f9e35",
+    "relativePopularity" : null,
+    "createTime" : 1724329005683,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "SBOM",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : null,
+    "integrityRating" : null,
+    "cpe" : "cpe:/a:example:myapplication:1.0.0",
+    "swid" : null
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.9"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar",
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.9.9",
+    "filenames" : [ ],
+    "pathnames" : [ "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "43482bee60d253ab70b6",
+    "relativePopularity" : null,
+    "createTime" : 1724329005683,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "SBOM",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : null,
+    "integrityRating" : null,
+    "cpe" : null,
+    "swid" : null
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tomcat-catalina",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.acme",
+        "version" : "9.0.14"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.acme/tomcat-catalina@9.0.14?packaging=jar&type=jar",
+    "groupId" : "com.acme",
+    "artifactId" : "tomcat-catalina",
+    "version" : "9.0.14",
+    "filenames" : [ ],
+    "pathnames" : [ "pkg:maven/com.acme/tomcat-catalina@9.0.14?packaging=jar&type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "e6b1000b94e835ffd37f",
+    "relativePopularity" : null,
+    "createTime" : 1724329005683,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "SBOM",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : null,
+    "integrityRating" : null,
+    "cpe" : null,
+    "swid" : null
+  }, {
+    "componentIdentifier" : {
+      "format" : "generic",
+      "coordinates" : {
+        "name" : "acme-library",
+        "sbom_type" : "library",
+        "version" : "1.0.0"
+      }
+    },
+    "packageUrl" : "pkg:generic/acme-library@1.0.0?sbom_type=library",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ ],
+    "pathnames" : [ "pkg:generic/acme-library@1.0.0?sbom_type=library" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "197946fb6ce45fadcb81",
+    "relativePopularity" : null,
+    "createTime" : 1724329005683,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "SBOM",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : null,
+    "integrityRating" : null,
+    "cpe" : null,
+    "swid" : null
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "myframework",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.example",
+        "version" : "1.0.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.example/myframework@1.0.0?packaging=war&type=jar",
+    "groupId" : "com.example",
+    "artifactId" : "myframework",
+    "version" : "1.0.0",
+    "filenames" : [ ],
+    "pathnames" : [ "pkg:maven/com.example/myframework@1.0.0?packaging=war&type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "7fbeef2346c45d565c33",
+    "relativePopularity" : null,
+    "createTime" : 1724329005683,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "SBOM",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : null,
+    "integrityRating" : null,
+    "cpe" : null,
+    "swid" : null
+  } ]
+}

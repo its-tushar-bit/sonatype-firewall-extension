@@ -1,0 +1,101 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "myapplication",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.example",
+        "version" : "1.0.0"
+      }
+    },
+    "groupId" : "com.example",
+    "artifactId" : "myapplication",
+    "version" : "1.0.0",
+    "hash" : "68b78babe00a053f9e35",
+    "declaredLicenses" : [ {
+      "id" : "EPL-2.0",
+      "name" : "EPL-2.0",
+      "url" : null
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.9"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.9.9",
+    "hash" : "43482bee60d253ab70b6",
+    "declaredLicenses" : [ {
+      "id" : "UNSPECIFIED",
+      "name" : "Not Provided",
+      "url" : null
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tomcat-catalina",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.acme",
+        "version" : "9.0.14"
+      }
+    },
+    "groupId" : "com.acme",
+    "artifactId" : "tomcat-catalina",
+    "version" : "9.0.14",
+    "hash" : "e6b1000b94e835ffd37f",
+    "declaredLicenses" : [ {
+      "id" : "Apache-2.0",
+      "name" : "Apache-2.0",
+      "url" : "https://www.apache.org/licenses/LICENSE-2.0.txt"
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "generic",
+      "coordinates" : {
+        "name" : "acme-library",
+        "sbom_type" : "library",
+        "version" : "1.0.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "197946fb6ce45fadcb81",
+    "declaredLicenses" : [ {
+      "id" : "UNSPECIFIED",
+      "name" : "Not Provided",
+      "url" : null
+    } ]
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "myframework",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.example",
+        "version" : "1.0.0"
+      }
+    },
+    "groupId" : "com.example",
+    "artifactId" : "myframework",
+    "version" : "1.0.0",
+    "hash" : "7fbeef2346c45d565c33",
+    "declaredLicenses" : [ {
+      "id" : "UNSPECIFIED",
+      "name" : "Not Provided",
+      "url" : null
+    } ]
+  } ]
+}

@@ -1,0 +1,446 @@
+{
+  "aaData": [
+    {
+      "identifier": "CVE-2019-12384",
+      "vulnIds": [
+        "CVE-2019-12384"
+      ],
+      "vulnerabilityLink": "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12384",
+      "source": {
+        "shortName": "CVE",
+        "longName": "National Vulnerability Database"
+      },
+      "mainSeverity": {
+        "source": "cve_cvss_3",
+        "sourceLabel": "CVE CVSS 3",
+        "score": 5.9,
+        "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
+      },
+      "severityScores": [
+        {
+          "source": "cve_cvss_2",
+          "sourceLabel": "CVE CVSS 2.0",
+          "score": 4.3
+        },
+        {
+          "source": "sonatype_cvss_3",
+          "sourceLabel": "Sonatype CVSS 3",
+          "score": 8.5
+        }
+      ],
+      "weakness": {
+        "cweSource": "CVE",
+        "cweIds": [
+          {
+            "id": "502",
+            "uri": "https://cwe.mitre.org/data/definitions/502.html"
+          }
+        ]
+      },
+      "categories": [
+        "data"
+      ],
+      "description": "FasterXML jackson-databind 2.x before 2.9.9.1 might allow attackers to have a variety of impacts by leveraging failure to block the logback-core class from polymorphic deserialization. Depending on the classpath content, remote code execution may be possible.",
+      "explanationMarkdown": "The `jackson-databind` package is vulnerable to Remote Code Execution (RCE). The `validateSubType()` function in the `SubTypeValidator` class allows untrusted Java objects, such as `ch.qos.logback.core.db.DriverManagerConnectionSource`, to be deserialized. A remote attacker can exploit this by uploading a malicious serialized object that will result in RCE if the application attempts to deserialize it.\n\nNote: This vulnerability exists due to incomplete fixes for CVE-2018-14718, CVE-2018-14719, CVE-2018-14720, CVE-2018-14721, CVE-2019-12086, CVE-2018-19360, CVE-2018-19360, CVE-2018-19361, and CVE-2018-19362.\n\n*Advisory Deviation Notice*: The Sonatype security research team discovered that the fix for this vulnerability was introduced in version 2.9.9.1, not version 2.9.9 as stated in the advisory.",
+      "componentExplanationMarkdown": "",
+      "detectionMarkdown": "The application is vulnerable by using this component if default typing is enabled and if deserializes untrusted data.",
+      "componentDetectionMarkdown": "",
+      "recommendationMarkdown": "*Update*: As of version 2.10.0, Jackson now provides a safe default typing solution that fully mitigates this vulnerability.\n\nReference: [https://medium.com/@cowtowncoder/jackson-2-10-features-cd880674d8a2](https://medium.com/@cowtowncoder/jackson-2-10-features-cd880674d8a2)\n\nWe recommend upgrading to a version of this component that is not vulnerable to this specific issue.",
+      "componentRecommendationMarkdown": "",
+      "rootCauses": [
+        {
+          "listOfPaths": [
+            "jackson-databind-2.9.9.jar",
+            "com/fasterxml/jackson/databind/jsontype/impl/SubTypeValidator.class"
+          ],
+          "versionRange": "[2.9.9, 2.9.9.1)"
+        }
+      ],
+      "advisories": [
+        {
+          "referenceType": "PROJECT",
+          "url": "https://github.com/FasterXML/jackson-databind/issues/2334"
+        },
+        {
+          "referenceType": "THIRD_PARTY",
+          "url": "https://blog.sonatype.com/jackson-databind-remote-code-execution"
+        },
+        {
+          "referenceType": "THIRD_PARTY",
+          "url": "https://blog.sonatype.com/jackson-databind-the-end-of-the-blacklist"
+        }
+      ],
+      "vulnerableVersionRanges": [
+        "[2.6.7.2]",
+        "[2.7.9.5]",
+        "[2.8.11.3]",
+        "[2.9.8,2.9.9]"
+      ],
+      "researchType": "DEEP_DIVE",
+      "isAdvancedVulnerabilityDetection": false,
+      "detectionType": "PRIMARY"
+    },
+    {
+      "identifier": "CVE-2019-12814",
+      "vulnIds": [
+        "CVE-2019-12814"
+      ],
+      "vulnerabilityLink": "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12814",
+      "source": {
+        "shortName": "CVE",
+        "longName": "National Vulnerability Database"
+      },
+      "mainSeverity": {
+        "source": "cve_cvss_3",
+        "sourceLabel": "CVE CVSS 3",
+        "score": 5.9,
+        "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
+      },
+      "severityScores": [
+        {
+          "source": "cve_cvss_2",
+          "sourceLabel": "CVE CVSS 2.0",
+          "score": 4.3
+        },
+        {
+          "source": "sonatype_cvss_3",
+          "sourceLabel": "Sonatype CVSS 3",
+          "score": 5.9
+        }
+      ],
+      "weakness": {
+        "cweSource": "CVE",
+        "cweIds": [
+          {
+            "id": "502",
+            "uri": "https://cwe.mitre.org/data/definitions/502.html"
+          }
+        ]
+      },
+      "categories": [
+        "data"
+      ],
+      "description": "A Polymorphic Typing issue was discovered in FasterXML jackson-databind 2.x through 2.9.9. When Default Typing is enabled (either globally or for a specific property) for an externally exposed JSON endpoint and the service has JDOM 1.x or 2.x jar in the classpath, an attacker can send a specifically crafted JSON message that allows them to read arbitrary local files on the server.",
+      "explanationMarkdown": "The `jackson-databind` package is vulnerable to Information Exposure via Deserialization of Untrusted Data. The `validateSubType()` method in the `SubTypeValidator` class allows untrusted Java objects, such as `org.jdom.transform.XSLTransformer` and `org.jdom2.transform.XSLTransformer` to be deserialized. A remote attacker can exploit this vulnerability by uploading a malicious serialized object to an affected JSON endpoint which, upon deserialization, may allow the attacker to exfiltrate sensitive information from arbitrary files on the server.\n\nNote: This vulnerability exists due to incomplete fixes for CVE-2018-14718, CVE-2018-14719, CVE-2018-14720, CVE-2018-14721, CVE-2019-12086, CVE-2018-19360, CVE-2018-19360, CVE-2018-19361, and CVE-2018-19362.",
+      "componentExplanationMarkdown": "",
+      "detectionMarkdown": "The application is vulnerable by using this component to deserialize untrusted data if JDOM 1.x or 2.x exists in the classpath and Default Typing is enabled.",
+      "componentDetectionMarkdown": "",
+      "recommendationMarkdown": "*Update*: As of version 2.10.0, Jackson now provides a safe default typing solution that fully mitigates this vulnerability.\n\nReference: [https://medium.com/@cowtowncoder/jackson-2-10-features-cd880674d8a2](https://medium.com/@cowtowncoder/jackson-2-10-features-cd880674d8a2)\n\nWe recommend upgrading to a version of this component that is not vulnerable to this specific issue.",
+      "componentRecommendationMarkdown": "",
+      "rootCauses": [
+        {
+          "listOfPaths": [
+            "jackson-databind-2.9.9.jar",
+            "com/fasterxml/jackson/databind/jsontype/impl/SubTypeValidator.class"
+          ],
+          "versionRange": "[2.9.9, 2.9.9.1)"
+        }
+      ],
+      "advisories": [
+        {
+          "referenceType": "PROJECT",
+          "url": "https://github.com/FasterXML/jackson-databind/issues/2341"
+        },
+        {
+          "referenceType": "THIRD_PARTY",
+          "url": "https://blog.sonatype.com/jackson-databind-remote-code-execution"
+        },
+        {
+          "referenceType": "THIRD_PARTY",
+          "url": "https://blog.sonatype.com/jackson-databind-the-end-of-the-blacklist"
+        }
+      ],
+      "vulnerableVersionRanges": [
+        "[2.6.7.2]",
+        "[2.7.9.5]",
+        "[2.8.11.3]",
+        "[2.9.8,2.9.9]"
+      ],
+      "researchType": "DEEP_DIVE",
+      "isAdvancedVulnerabilityDetection": false,
+      "detectionType": "PRIMARY"
+    },
+    {
+      "identifier": "CVE-2020-25649",
+      "vulnIds": [
+        "CVE-2020-25649"
+      ],
+      "vulnerabilityLink": "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-25649",
+      "source": {
+        "shortName": "CVE",
+        "longName": "National Vulnerability Database"
+      },
+      "mainSeverity": {
+        "source": "cve_cvss_3",
+        "sourceLabel": "CVE CVSS 3",
+        "score": 7.5,
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      },
+      "severityScores": [
+        {
+          "source": "cve_cvss_2",
+          "sourceLabel": "CVE CVSS 2.0",
+          "score": 5.0
+        },
+        {
+          "source": "sonatype_cvss_3",
+          "sourceLabel": "Sonatype CVSS 3",
+          "score": 8.6
+        }
+      ],
+      "weakness": {
+        "cweSource": "CVE",
+        "cweIds": [
+          {
+            "id": "611",
+            "uri": "https://cwe.mitre.org/data/definitions/611.html"
+          }
+        ]
+      },
+      "categories": [
+        "data",
+        "functional"
+      ],
+      "description": "A flaw was found in FasterXML Jackson Databind, where it did not have entity expansion secured properly. This flaw allows vulnerability to XML external entity (XXE) attacks. The highest threat from this vulnerability is data integrity.",
+      "explanationMarkdown": "The `jackson-databind` package is vulnerable to XML eXternal Entity (XXE) attacks. The `DOMDeserializer` class fails to disallow malicious external entities when used with certain providers, such as Xerces. A remote attacker can exploit this vulnerability by supplying XML data with a Document Type Definition (DTD) that defines malicious external entity references. These references may be leveraged by the attacker to exfiltrate sensitive information, cause a Denial of Service (DoS) condition, or to perform other XXE-related attacks.\n\nNote: This vulnerability exists due to an incomplete fix for sonatype-2016-0593.",
+      "componentExplanationMarkdown": "",
+      "detectionMarkdown": "The application is vulnerable by using this component with a provider that depends on the `http://apache.org/xml/features/disallow-doctype-decl` or `http://apache.org/xml/features/nonvalidating/load-external-dtd` configuration options to prevent processing of untrusted DTDs.",
+      "componentDetectionMarkdown": "",
+      "recommendationMarkdown": "We recommend upgrading to a version of this component that is not vulnerable to this specific issue.\n\nNote: If this component is included as a bundled/transitive dependency of another component, there may not be an upgrade path. In this instance, we recommend contacting the maintainers who included the vulnerable package. Alternatively, we recommend investigating alternative components or a potential mitigating control.",
+      "componentRecommendationMarkdown": "",
+      "rootCauses": [
+        {
+          "listOfPaths": [
+            "jackson-databind-2.9.9.jar",
+            "com/fasterxml/jackson/databind/ext/DOMDeserializer.class"
+          ],
+          "versionRange": "[2.8.0, 2.9.10.7)"
+        }
+      ],
+      "advisories": [
+        {
+          "referenceType": "PROJECT",
+          "url": "https://github.com/FasterXML/jackson-databind/issues/2589"
+        }
+      ],
+      "vulnerableVersionRanges": [
+        "[2.7.6,2.7.9.7]",
+        "[2.8.0,2.9.10.6]",
+        "[2.10.0.pr1,2.10.5]"
+      ],
+      "researchType": "DEEP_DIVE",
+      "isAdvancedVulnerabilityDetection": false,
+      "detectionType": "PRIMARY"
+    },
+    {
+      "identifier": "CVE-2020-36518",
+      "vulnIds": [
+        "CVE-2020-36518"
+      ],
+      "vulnerabilityLink": "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-36518",
+      "source": {
+        "shortName": "CVE",
+        "longName": "National Vulnerability Database"
+      },
+      "mainSeverity": {
+        "source": "cve_cvss_3",
+        "sourceLabel": "CVE CVSS 3",
+        "score": 7.5,
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      },
+      "severityScores": [
+        {
+          "source": "cve_cvss_2",
+          "sourceLabel": "CVE CVSS 2.0",
+          "score": 5.0
+        },
+        {
+          "source": "sonatype_cvss_3",
+          "sourceLabel": "Sonatype CVSS 3",
+          "score": 7.5
+        }
+      ],
+      "weakness": {
+        "cweSource": "CVE",
+        "cweIds": [
+          {
+            "id": "787",
+            "uri": "https://cwe.mitre.org/data/definitions/787.html"
+          }
+        ]
+      },
+      "categories": [
+        "data"
+      ],
+      "description": "jackson-databind before 2.13.0 allows a Java StackOverflow exception and denial of service via a large depth of nested objects.",
+      "explanationMarkdown": "The `jackson-databind` package is vulnerable to a Denial of Service (DoS) attack. The `deserialize()` method in the `UntypedObjectDeserializer` and `UntypedObjectDeserializer$Vanilla` classes fails to restrict recursion when deserializing nested untyped or generic objects. A remote attacker who can supply data to be deserialized by an affected application can exploit this vulnerability to cause the JVM to consume all available memory, resulting in a `StackOverflow` exception and ultimately a DoS condition.\n\n*Advisory Deviation Notice*: The Sonatype security research team has discovered that this vulnerability was fixed in versions 2.13.2.1 and 2.12.6.1 and not 2.13.0 as stated in the advisory.",
+      "componentExplanationMarkdown": "",
+      "detectionMarkdown": "The application is vulnerable by using this component to deserialize nested generic or untyped objects from untrusted sources.",
+      "componentDetectionMarkdown": "",
+      "recommendationMarkdown": "We recommend upgrading to a version of this component that is not vulnerable to this specific issue.\n\nNote: If this component is included as a bundled/transitive dependency of another component, there may not be an upgrade path. In this instance, we recommend contacting the maintainers who included the vulnerable package. Alternatively, we recommend investigating alternative components or a potential mitigating control.",
+      "componentRecommendationMarkdown": "",
+      "rootCauses": [
+        {
+          "listOfPaths": [
+            "jackson-databind-2.9.9.jar",
+            "com/fasterxml/jackson/databind/deser/std/UntypedObjectDeserializer$Vanilla.class"
+          ],
+          "versionRange": "[2.4.0-rc1, 2.12.6.1)"
+        }
+      ],
+      "advisories": [
+        {
+          "referenceType": "PROJECT",
+          "url": "https://github.com/FasterXML/jackson-databind/issues/2816"
+        }
+      ],
+      "vulnerableVersionRanges": [
+        "[2.0.0-RC1,2.12.6]",
+        "[2.13.0-rc1,2.13.2]"
+      ],
+      "researchType": "DEEP_DIVE",
+      "isAdvancedVulnerabilityDetection": false,
+      "detectionType": "PRIMARY"
+    },
+    {
+      "identifier": "CVE-2022-42003",
+      "vulnIds": [
+        "CVE-2022-42003"
+      ],
+      "vulnerabilityLink": "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42003",
+      "source": {
+        "shortName": "CVE",
+        "longName": "National Vulnerability Database"
+      },
+      "mainSeverity": {
+        "source": "cve_cvss_3",
+        "sourceLabel": "CVE CVSS 3",
+        "score": 7.5,
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      },
+      "severityScores": [
+        {
+          "source": "sonatype_cvss_3",
+          "sourceLabel": "Sonatype CVSS 3",
+          "score": 5.9
+        }
+      ],
+      "weakness": {
+        "cweSource": "CVE",
+        "cweIds": [
+          {
+            "id": "502",
+            "uri": "https://cwe.mitre.org/data/definitions/502.html"
+          }
+        ]
+      },
+      "categories": [
+        "configuration",
+        "data"
+      ],
+      "description": "In FasterXML jackson-databind before versions 2.13.4.1 and 2.12.17.1, resource exhaustion can occur because of a lack of a check in primitive value deserializers to avoid deep wrapper array nesting, when the UNWRAP_SINGLE_VALUE_ARRAYS feature is enabled.",
+      "explanationMarkdown": "The `jackson-databind` package is vulnerable to Denial of Service (DoS) attacks. The methods listed below in the `StdDeserializer` class fail to properly detect deeply-nested arrays in primitive value de-serializers, which might allow malicious actors to exhaust system resources. An attacker can exploit this vulnerability by supplying an affected instance with specially-crafted data to cause a DoS condition.\n\n*Vulnerable Method(s)*:\n\ncom/fasterxml/jackson/databind/deser/std/StdDeserializer.class\n- _deserializeWrappedValue()\n- _parseBooleanPrimitive()\n- _parseBytePrimitive()\n- _parseShortPrimitive()\n- _parseIntPrimitive()\n- _parseLongPrimitive()\n- _parseFloatPrimitive()\n- _parseDoublePrimitive()\n- _parseDateFromArray()",
+      "componentExplanationMarkdown": "",
+      "detectionMarkdown": "The application is vulnerable by using this component and enabling the `UNWRAP_SINGLE_VALUE_ARRAYS` feature.",
+      "componentDetectionMarkdown": "",
+      "recommendationMarkdown": "We recommend upgrading to a version of this component that is not vulnerable to this specific issue.\n\nNote: If this component is included as a bundled/transitive dependency of another component, there may not be an upgrade path. In this instance, we recommend contacting the maintainers who included the vulnerable package. Alternatively, we recommend investigating alternative components or a potential mitigating control.",
+      "componentRecommendationMarkdown": "",
+      "rootCauses": [
+        {
+          "listOfPaths": [
+            "jackson-databind-2.9.9.jar",
+            "com/fasterxml/jackson/databind/deser/std/StdDeserializer.class"
+          ],
+          "versionRange": "[2.4.0-rc1, 2.12.7.1)"
+        }
+      ],
+      "advisories": [
+        {
+          "referenceType": "PROJECT",
+          "url": "https://github.com/FasterXML/jackson-databind/issues/3590"
+        },
+        {
+          "referenceType": "THIRD_PARTY",
+          "url": "https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=51020"
+        }
+      ],
+      "vulnerableVersionRanges": [
+        "[2.2.0-rc1,2.12.7]",
+        "[2.13.0-rc1,2.13.4]"
+      ],
+      "researchType": "DEEP_DIVE",
+      "isAdvancedVulnerabilityDetection": false,
+      "detectionType": "PRIMARY"
+    },
+    {
+      "identifier": "CVE-2022-42004",
+      "vulnIds": [
+        "CVE-2022-42004"
+      ],
+      "vulnerabilityLink": "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42004",
+      "source": {
+        "shortName": "CVE",
+        "longName": "National Vulnerability Database"
+      },
+      "mainSeverity": {
+        "source": "cve_cvss_3",
+        "sourceLabel": "CVE CVSS 3",
+        "score": 7.5,
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      },
+      "severityScores": [
+        {
+          "source": "sonatype_cvss_3",
+          "sourceLabel": "Sonatype CVSS 3",
+          "score": 7.5
+        }
+      ],
+      "weakness": {
+        "cweSource": "CVE",
+        "cweIds": [
+          {
+            "id": "502",
+            "uri": "https://cwe.mitre.org/data/definitions/502.html"
+          }
+        ]
+      },
+      "categories": [
+        "configuration",
+        "data"
+      ],
+      "description": "In FasterXML jackson-databind before 2.13.4, resource exhaustion can occur because of a lack of a check in BeanDeserializer._deserializeFromArray to prevent use of deeply nested arrays. An application is vulnerable only with certain customized choices for deserialization.",
+      "explanationMarkdown": "The `jackson-databind` package is vulnerable to Denial of Service (DoS) attacks. The `_deserializeFromArray()` method in the `BeanDeserializer` class fails to properly detect deeply-nested arrays, which might allow malicious actors to exhaust system resources. An attacker can exploit this vulnerability by supplying an affected instance with specially-crafted data to cause a DoS condition.",
+      "componentExplanationMarkdown": "",
+      "detectionMarkdown": "The application is vulnerable by using this component with certain customized choices for deserialization.",
+      "componentDetectionMarkdown": "",
+      "recommendationMarkdown": "We recommend upgrading to a version of this component that is not vulnerable to this specific issue.\n\nNote: If this component is included as a bundled/transitive dependency of another component, there may not be an upgrade path. In this instance, we recommend contacting the maintainers who included the vulnerable package. Alternatively, we recommend investigating alternative components or a potential mitigating control.",
+      "componentRecommendationMarkdown": "",
+      "rootCauses": [
+        {
+          "listOfPaths": [
+            "jackson-databind-2.9.9.jar",
+            "com/fasterxml/jackson/databind/deser/BeanDeserializerBase.class"
+          ],
+          "versionRange": "[2.2.0-rc1, 2.11.0)"
+        }
+      ],
+      "advisories": [
+        {
+          "referenceType": "PROJECT",
+          "url": "https://github.com/FasterXML/jackson-databind/issues/3582"
+        },
+        {
+          "referenceType": "THIRD_PARTY",
+          "url": "https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=50490"
+        }
+      ],
+      "vulnerableVersionRanges": [
+        "[2.0.0-RC1,2.12.7]",
+        "[2.13.0-rc1,2.13.3]"
+      ],
+      "researchType": "DEEP_DIVE",
+      "isAdvancedVulnerabilityDetection": false,
+      "detectionType": "PRIMARY"
+    }
+  ]
+}

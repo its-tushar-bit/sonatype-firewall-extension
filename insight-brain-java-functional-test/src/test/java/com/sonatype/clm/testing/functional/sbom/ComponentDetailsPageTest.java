@@ -78,7 +78,10 @@ public class ComponentDetailsPageTest
   public void beforeEachMethod() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
     setFeatures(LicensedFeature.SBOM_MANAGER);
-    refreshOrOpen("/#");
+
+    // go to an entirely different "page" (note there isn't actually an about page) between each test in order
+    // to force a new page load
+    refreshOrOpen("about");
 
     apiSbomService = lookup(ApiSbomService.class);
   }

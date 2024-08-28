@@ -5,9 +5,13 @@
  */
 package com.sonatype.clm.testing.functional.mtiq.sbom;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.nio.file.Path;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.mtiq.AbstractMtiqFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.sbom.BillOfMaterialsPageSummaryTile;
 import com.sonatype.clm.testing.functional.elements.sbom.ComponentsTile;
@@ -23,19 +27,24 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
 
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class SbomManagerBillOfMaterialsPageTest
     extends AbstractMtiqFunctionalTest
@@ -54,11 +63,15 @@ public class SbomManagerBillOfMaterialsPageTest
 
   private ThirdPartyFile scannedFile;
 
+  private final InsightWork insightWork = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+
   @Before
-  public void init() {
+  public void init() throws Exception {
     thirdPartySbomMetadataDAO = lookup(ThirdPartySbomMetadataDAO.class);
     organization = tempEntity.newOrganization("test-organization");
     application = tempEntity.newApplication("Test Application", "test-application", organization.getId());
+    Path zippedBom = mockOriginalSbom(SbomManagerApplicationSummaryPageTest.class, "simple-bom.xml",
+        insightWork.getSbomDir(application.getId()).toPath());
 
     scannedFile = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(scannedFile);
@@ -67,10 +80,10 @@ public class SbomManagerBillOfMaterialsPageTest
       application.getId(),
       "test-version",
       "ACTIVE",
-      scannedFile.getFilename(),
-      SbomSpecification.CYCLONEDX.name(),
+        zippedBom.getFileName().toString(),
+      SbomSpecification.CYCLONEDX.toString(),
       SbomFormat.XML.name(),
-      "0.0"
+        "1.6"
     );
   }
 
@@ -197,9 +210,9 @@ public class SbomManagerBillOfMaterialsPageTest
         "Supplier\n" +
         "NONE\n" +
         "Specification\n" +
-        "CYCLONEDX\n" +
+        "CycloneDx\n" +
         "Spec Version\n" +
-        "0.0\n" +
+        "1.6\n" +
         "File Format\n" +
         "XML")).shouldBe(visible);
 
@@ -215,9 +228,9 @@ public class SbomManagerBillOfMaterialsPageTest
         "Supplier\n" +
         "John Doe\n" +
         "Specification\n" +
-        "CYCLONEDX\n" +
+        "CycloneDx\n" +
         "Spec Version\n" +
-        "0.0\n" +
+        "1.6\n" +
         "File Format\n" +
         "XML")).shouldBe(visible);
   }
@@ -410,15 +423,23 @@ public class SbomManagerBillOfMaterialsPageTest
   private void insertComponentsTileSbomData() {
     ThirdPartyFile scannedFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(scannedFile);
+    Path zippedBom = null;
+    try {
+      zippedBom = mockOriginalSbom(SbomManagerApplicationSummaryPageTest.class, "simple-bom.xml",
+          insightWork.getSbomDir(application.getId()).toPath());
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
     sbomMetadata = tempEntity.newThirdPartySbomMetadata(
         thirdPartyScan.getThirdPartyFileId(),
         application.getId(),
         "t-version",
         "ACTIVE",
-        scannedFile.getFilename(),
-        SbomSpecification.CYCLONEDX.name(),
+        zippedBom.getFileName().toString(),
+        SbomSpecification.CYCLONEDX.toString(),
         SbomFormat.XML.name(),
-        "0.0"
+        "1.6"
     );
     sbomMetadata.setCreatedAt(new Date(0));
     thirdPartySbomMetadataDAO.update(sbomMetadata);
@@ -459,5 +480,106 @@ public class SbomManagerBillOfMaterialsPageTest
         componentsTile.percentageAnnotatedColumn(i).shouldHave(text(descendingExpected));
       }
     }
+  }
+
+  @Test
+  public void testBillOfMaterial_ExportSbomButton() throws Exception {
+    insertComponentsTileSbomData();
+    refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
+    sbomManagerBillOfMaterialsPage.exportButton().shouldHave(visible);
+    sbomManagerBillOfMaterialsPage.exportButton().shouldHave(text("Export SBOM")).click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    File downloadedSbom = sbomManagerBillOfMaterialsPage.exportButton().shouldHave(text("Export SBOM"))
+        .download(3000L);
+    byte[] fileBeginning = new byte[5];
+    try (FileInputStream stream = new FileInputStream(downloadedSbom)) {
+      stream.read(fileBeginning);
+    }
+
+    assertThat(new String(fileBeginning)).isEqualTo("<?xml");
+  }
+
+  @Test
+  public void testBillOfMaterial_ExportOriginalSbomOption() throws Exception {
+    insertComponentsTileSbomData();
+    refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
+    sbomManagerBillOfMaterialsPage.exportButton().shouldHave(visible);
+    sbomManagerBillOfMaterialsPage.exportButtonMenu().click();
+    sbomManagerBillOfMaterialsPage.exportButtonMenuItems().shouldBe(size(2));
+    File downloadedSbom = sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(0)
+        .shouldHave(text("Export Original SBOM"))
+        .download();
+    byte[] fileBeginning = new byte[5];
+    try (FileInputStream stream = new FileInputStream(downloadedSbom)) {
+      stream.read(fileBeginning);
+    }
+
+    assertThat(new String(fileBeginning)).isEqualTo("<?xml");
+  }
+
+  @Test
+  public void testBillOfMaterial_ExportModal_RendersCorrectly() {
+    insertComponentsTileSbomData();
+    refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
+    sbomManagerBillOfMaterialsPage.exportButton().shouldHave(visible);
+    sbomManagerBillOfMaterialsPage.exportButtonMenu().click();
+    sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(1).shouldHave(text("Additional Export Options")).click();
+
+    sbomManagerBillOfMaterialsPage.additionalExportOptionsModal().shouldBe(visible);
+    sbomManagerBillOfMaterialsPage.sbomModalOptions().shouldBe(size(2));
+    sbomManagerBillOfMaterialsPage.sbomSpecificationOptions().shouldHave(size(2))
+        .get(0).shouldHave(text("Cyclone DX"));
+    sbomManagerBillOfMaterialsPage.sbomSpecificationOptions().shouldHave(size(2))
+        .get(1).shouldHave(text("SPDX"));
+    sbomManagerBillOfMaterialsPage.sbomsFormatOptions().shouldHave(size(2))
+        .get(0).shouldHave(text("JSON"));
+    sbomManagerBillOfMaterialsPage.sbomsFormatOptions().shouldHave(size(2))
+        .get(1).shouldHave(text("XML"));
+    sbomManagerBillOfMaterialsPage.exportSbomButtonModal().shouldBe(visible);
+    sbomManagerBillOfMaterialsPage.cancelButtonModal().shouldBe(visible);
+
+    SelenideElement spdxRadioButton =  sbomManagerBillOfMaterialsPage.sbomSpecificationOptions().get(1);
+    spdxRadioButton.click();
+    spdxRadioButton.shouldHave(cssClass("tm-checked"));
+    SelenideElement cycloneDxRadioButton =  sbomManagerBillOfMaterialsPage.sbomSpecificationOptions().get(0);
+    cycloneDxRadioButton.click();
+    spdxRadioButton.shouldHave(cssClass("tm-unchecked"));
+    cycloneDxRadioButton.shouldHave(cssClass("tm-checked"));
+
+    SelenideElement jsonRadioButton =  sbomManagerBillOfMaterialsPage.sbomsFormatOptions().get(0);
+    jsonRadioButton.click();
+    jsonRadioButton.shouldHave(cssClass("tm-checked"));
+    SelenideElement xmlRadioButton =  sbomManagerBillOfMaterialsPage.sbomsFormatOptions().get(1);
+    xmlRadioButton.click();
+    jsonRadioButton.shouldHave(cssClass("tm-unchecked"));
+    xmlRadioButton.shouldHave(cssClass("tm-checked"));
+  }
+
+  @Test
+  public void testBillOfMaterial_ExportModal_DownloadOptions() {
+    insertComponentsTileSbomData();
+    refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
+    sbomManagerBillOfMaterialsPage.exportButtonMenu().click();
+    sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(1).shouldHave(text("Additional Export Options")).click();
+    sbomManagerBillOfMaterialsPage.additionalExportOptionsModal().shouldBe(visible);
+
+    SelenideElement jsonRadioButton =  sbomManagerBillOfMaterialsPage.sbomsFormatOptions().get(0);
+    jsonRadioButton.click();
+    jsonRadioButton.shouldHave(cssClass("tm-checked"));
+
+    File downloadedSbom = sbomManagerBillOfMaterialsPage.exportSbomButtonModal().shouldHave(text("Export SBOM"))
+        .download(3000L);
+    assertThat(downloadedSbom.getName()).endsWith(".json");
+
+    sbomManagerBillOfMaterialsPage.exportButtonMenu().click();
+    sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(1).shouldHave(text("Additional Export Options")).click();
+    sbomManagerBillOfMaterialsPage.additionalExportOptionsModal().shouldBe(visible);
+
+    SelenideElement xmlRadioButton =  sbomManagerBillOfMaterialsPage.sbomsFormatOptions().get(1);
+    xmlRadioButton.click();
+    xmlRadioButton.shouldHave(cssClass("tm-checked"));
+    downloadedSbom = sbomManagerBillOfMaterialsPage.exportSbomButtonModal().shouldHave(text("Export SBOM"))
+        .download(3000L);
+    assertThat(downloadedSbom.getName()).endsWith(".xml");
   }
 }

@@ -53,4 +53,40 @@ public class SbomManagerBillOfMaterialsPage
   public ElementsCollection dependencyTypeFilterChecboxes() {
     return $$(".sbom-manager-components-filter-drawer__dependency-type .nx-radio-checkbox");
   }
+
+  public SelenideElement exportButton() {
+    return child(".sbom-manager-bill-of-materials-page__export-button");
+  }
+
+  public SelenideElement exportButtonMenu() {
+    return child(".nx-segmented-btn__dropdown-btn");
+  }
+
+  public ElementsCollection exportButtonMenuItems() {
+    return $$(".nx-dropdown-button");
+  }
+
+  public SelenideElement additionalExportOptionsModal() {
+    return child("#sbom-additional-export-options-modal");
+  }
+
+  public ElementsCollection sbomModalOptions() {
+    return $$(".nx-fieldset");
+  }
+
+  public ElementsCollection sbomSpecificationOptions() {
+    return sbomModalOptions().get(0).$$(".nx-radio-checkbox");
+  }
+
+  public ElementsCollection sbomsFormatOptions() {
+    return sbomModalOptions().get(1).$$(".nx-radio-checkbox");
+  }
+
+  public SelenideElement cancelButtonModal() {
+    return child("#sbom-additional-export-options-modal .nx-btn--secondary");
+  }
+
+  public SelenideElement exportSbomButtonModal() {
+    return child("#sbom-additional-export-options-modal .nx-btn--primary");
+  }
 }

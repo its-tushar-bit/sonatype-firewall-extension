@@ -93,6 +93,10 @@ public class OrgsAndPoliciesSidebar
     return new OwnerItem(repositoryList.children().get(index));
   }
 
+  public SelenideElement getLoadingSpinner() {
+    return child(".nx-loading-spinner");
+  }
+
   public class OwnerItem
       extends BasicElement<OwnerItem>
   {

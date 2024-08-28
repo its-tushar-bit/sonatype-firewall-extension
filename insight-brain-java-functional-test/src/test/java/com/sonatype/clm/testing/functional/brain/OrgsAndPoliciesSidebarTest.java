@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.NxLoadingSpinner;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.MoveApplicationSuccessModal;
 import com.sonatype.clm.testing.functional.elements.MoveOwnerDialog;
@@ -21,6 +22,7 @@ import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 import com.sonatype.clm.testing.functional.elements.NxTooltip;
 import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPageWithLimitedVisibility;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
@@ -93,6 +95,18 @@ public class OrgsAndPoliciesSidebarTest
 
     selectedOrg = findFirstOrgChild(selectedOrg.getId(), organizations.get(0));
     testSideNavbarContent(selectedOrg, 0, 0);
+  }
+
+  @Test
+  public void testOrgsAndPoliciesSideNavbar_managementViewRedirectsToRootOrg() {
+    SidebarNavigation.openNavigationSidebar();
+    SidebarNavigation.policiesNavigationButton().click();
+
+    NxLoadingSpinner.seeAndWaitForDismissal(OwnerSummaryPage.sidebar().getElement());
+
+    //Getting ROOT_ORG
+    Owner selectedOrg = organizationDAO.getById("ROOT_ORGANIZATION_ID");
+    testSideNavbarContent(selectedOrg, 21, 6);
   }
 
   @Test

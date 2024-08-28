@@ -111,7 +111,9 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, async (_, { getState, disp
 
       const flattenEntries = flatEntries(ownersMap);
 
+      // if isManagementViewRoute keep loading while redirecting to the closest available organization
       return {
+        loading: isManagementViewRoute,
         displayedOrganization,
         flattenEntries,
       };
@@ -189,7 +191,7 @@ const loadRequested = (state) => {
 };
 
 const loadFulfilled = (state, { payload }) => {
-  state.loading = false;
+  state.loading = payload.loading;
   state.displayedOrganization = payload.displayedOrganization;
   state.toggleOrganizationsCheck = initialState.toggleOrganizationsCheck;
   state.toggleApplicationsCheck = initialState.toggleApplicationsCheck;

@@ -21,6 +21,8 @@ public class RisksFilterDTO
 
   public Set<String> organizationIds;
 
+  public Set<String> policyWaiverReasonIds;
+
   public Set<String> stageIds;
 
   public Set<String> tagIds;

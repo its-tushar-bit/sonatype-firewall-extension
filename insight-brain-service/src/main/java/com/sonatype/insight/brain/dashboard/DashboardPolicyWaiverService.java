@@ -47,6 +47,8 @@ import org.slf4j.LoggerFactory;
 import static com.sonatype.insight.brain.dashboard.ExpirationDate.ALL;
 import static com.sonatype.insight.brain.dashboard.ExpirationDate.NEVER;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 @Named
 public class DashboardPolicyWaiverService
@@ -113,6 +115,7 @@ public class DashboardPolicyWaiverService
     PolicyThreatLevelFilter policyThreatLevelRange = risksFilterDTO.policyThreatLevelRange;
     ExpirationDate expirationDate = risksFilterDTO.expirationDate;
     String orderBy = risksFilterDTO.orderBy;
+    final Set<String> policyWaiverReasonIds = risksFilterDTO.policyWaiverReasonIds;
 
     // Verify orderBy early to prevent costly operations if it fails
     DashboardPolicyWaiverDTOComparator dashboardPolicyWaiverDTOComparator = verifyOrderByAndBuildComparator(orderBy);
@@ -122,9 +125,10 @@ public class DashboardPolicyWaiverService
     DashboardPolicyWaiverDTOAdapter dtoAdapter =
         new DashboardPolicyWaiverDTOAdapter(filteredPoliciesById, owners, includeDetails);
 
-    Predicate<PolicyWaiver> filteringExpirationDate = getFilteringPredicateForExpirationDates(expirationDate);
     Predicate<PolicyWaiver> filteringPredicate =
-        getFilteringPredicateForPolicyWaivers(owners.keySet()).and(filteringExpirationDate);
+        getFilteringPredicateForPolicyWaivers(owners.keySet())
+            .and(getFilteringPredicateForExpirationDates(expirationDate))
+            .and(getFilteringPredicateForWaiverReasons(policyWaiverReasonIds));
 
     List<DashboardPolicyWaiverDTO> filteredWaiverDTOs = new ArrayList<>();
     for (Policy policy : filteredPoliciesById.values()) {
@@ -253,7 +257,8 @@ public class DashboardPolicyWaiverService
   }
 
   private Map<String, Policy> getFilteredPoliciesById(
-      final PolicyThreatCategoryFilter policyThreatCategories, final PolicyThreatLevelFilter policyThreatLevelRange)
+      final PolicyThreatCategoryFilter policyThreatCategories,
+      final PolicyThreatLevelFilter policyThreatLevelRange)
   {
     Predicate<Policy> filter = x -> true;
     if (policyThreatCategories != null) {
@@ -264,6 +269,15 @@ public class DashboardPolicyWaiverService
       filter = filter.and(policy -> policyThreatLevelRange.test(policy.getThreatLevel()));
     }
     return policyDAO.getAll().stream().filter(filter).collect(Collectors.toMap(Policy::getId, Function.identity()));
+  }
+
+  private Predicate<PolicyWaiver> getFilteringPredicateForWaiverReasons(final Set<String> policyWaiverReasonIds) {
+    final boolean shouldIncludeNoReason = nonNull(policyWaiverReasonIds) && policyWaiverReasonIds.contains("no-reason");
+
+    return policyWaiver -> isNull(policyWaiverReasonIds) ||
+        policyWaiverReasonIds.isEmpty() ||
+        (shouldIncludeNoReason && isNull(policyWaiver.getWaiverReasonId())) ||
+        policyWaiverReasonIds.contains(policyWaiver.getWaiverReasonId());
   }
 
   private Predicate<PolicyWaiver> getFilteringPredicateForPolicyWaivers(final Set<String> ownerIds) {

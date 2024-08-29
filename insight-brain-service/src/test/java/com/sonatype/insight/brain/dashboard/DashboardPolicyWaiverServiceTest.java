@@ -53,10 +53,12 @@ import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Before;
 import org.junit.Test;
+import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_GOLANG;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_MAVEN;
@@ -504,6 +506,89 @@ public class DashboardPolicyWaiverServiceTest
     assertThat(dashboardPolicyWaivers.dashboardResults.get(0).id).isEqualTo(neverExpiringWaiver.getId());
     assertThat(dashboardPolicyWaivers.dashboardResults.get(0).expiryTime).isNull();
     assertPolicyWaiverWithoutDetails(dashboardPolicyWaivers.dashboardResults.get(0), neverExpiringWaiver, app1);
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaivers_filtersByPolicyWaiverReasonIds() {
+    // === Given ===
+    final var policy = tempEntity.newPolicy(app1.getId(), "some-violation", 9);
+
+    // reason 1
+    final var policyWaiver1 = tempEntity.newWaiverWithReason(
+        "some-hash-1",
+        policy.getId(),
+        app1.getId(),
+        Lists.newArrayList(),
+        "some-comment-1",
+        "user",
+        "a-reason-for-the-waiver-1"
+    );
+
+    // reason 2
+    final var policyWaiver2 = tempEntity.newWaiverWithReason(
+        "some-hash-2",
+        policy.getId(),
+        app1.getId(),
+        Lists.newArrayList(),
+        "some-comment-2",
+        "user",
+        "a-reason-for-the-waiver-2"
+    );
+
+    // no reason given
+    final var policyWaiver3 = tempEntity.newWaiver(
+        "some-hash-3",
+        policy.getId(),
+        app1.getId(),
+        Lists.newArrayList(),
+        "some-comment-2"
+    );
+
+    // === When ===
+    final var filter = new RisksFilterDTO();
+    filter.policyWaiverReasonIds = Sets.newHashSet(policyWaiver1.getWaiverReasonId());
+    final var filteredByReason1 = dashboardPolicyWaiverService.getDashboardPolicyWaivers(filter);
+
+    filter.policyWaiverReasonIds = Sets.newHashSet(policyWaiver2.getWaiverReasonId());
+    final var filteredByReason2 = dashboardPolicyWaiverService.getDashboardPolicyWaivers(filter);
+
+    filter.policyWaiverReasonIds = Sets.newHashSet(
+        policyWaiver1.getWaiverReasonId(), policyWaiver2.getWaiverReasonId());
+    final var filteredByReasons1And2 = dashboardPolicyWaiverService.getDashboardPolicyWaivers(filter);
+
+    filter.policyWaiverReasonIds = Sets.newHashSet("no-reason");
+    final var filterByNoReasonGiven = dashboardPolicyWaiverService.getDashboardPolicyWaivers(filter);
+
+    filter.policyWaiverReasonIds = Sets.newHashSet();
+    final var filterByEmptyReasonList = dashboardPolicyWaiverService.getDashboardPolicyWaivers(filter);
+
+    filter.policyWaiverReasonIds = null;
+    final var filterByNullReasonList = dashboardPolicyWaiverService.getDashboardPolicyWaivers(filter);
+
+    // === Then ===
+    assertThat(filteredByReason1.dashboardResults.stream().map(entry -> entry.policyId))
+        .containsExactlyInAnyOrder(policyWaiver1.getPolicyId());
+
+    assertThat(filteredByReason2.dashboardResults.stream().map(entry -> entry.policyId))
+        .containsExactlyInAnyOrder(policyWaiver2.getPolicyId());
+
+    assertThat(filteredByReasons1And2.dashboardResults.stream().map(entry -> entry.policyId))
+        .containsExactlyInAnyOrder(policyWaiver1.getPolicyId(), policyWaiver2.getPolicyId());
+
+    assertThat(filterByNoReasonGiven.dashboardResults.stream().map(entry -> entry.policyId))
+        .containsExactlyInAnyOrder(policyWaiver3.getPolicyId());
+
+    assertThat(filterByEmptyReasonList.dashboardResults.stream().map(entry -> entry.policyId))
+        .containsExactlyInAnyOrder(
+            policyWaiver1.getPolicyId(),
+            policyWaiver2.getPolicyId(),
+            policyWaiver3.getPolicyId());
+
+    assertThat(filterByNullReasonList.dashboardResults.stream().map(entry -> entry.policyId))
+        .containsExactlyInAnyOrder(
+            policyWaiver1.getPolicyId(),
+            policyWaiver2.getPolicyId(),
+            policyWaiver3.getPolicyId());
   }
 
   @Test

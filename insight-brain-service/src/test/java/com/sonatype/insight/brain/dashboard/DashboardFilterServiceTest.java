@@ -42,6 +42,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import static com.sonatype.insight.brain.dashboard.DashboardFilterService.ACTIVE_FILTER_NAME;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
@@ -127,6 +128,27 @@ public class DashboardFilterServiceTest
     testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD, LicensedFeature.WAIVERS_DASHBOARD);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(null));
+  }
+
+  @Test
+  public void testCreateOrUpdateDashboardFilterForCurrentUser_persistsPolicyWaiverReason() throws IOException {
+    final var dashboardFilterDTO = new DashboardFilterDTO();
+    dashboardFilterDTO.applicationFilters = Lists.newArrayList();
+    dashboardFilterDTO.policyWaiverReasonIds = Lists.newArrayList("some-reason-id-1", "some-reason-id-2");
+
+    final var namedDashboardFilterDTO = new NamedDashboardFilterDTO();
+    namedDashboardFilterDTO.name = "";
+    namedDashboardFilterDTO.basedOnFilterName = "Filter 1";
+    namedDashboardFilterDTO.filter = dashboardFilterDTO;
+
+    final var result = dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(namedDashboardFilterDTO);
+
+    assertThat(result.filter.policyWaiverReasonIds)
+        .containsExactlyInAnyOrder("some-reason-id-1", "some-reason-id-2");
+
+    final var fetchedResult = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
+    assertThat(fetchedResult.filter.policyWaiverReasonIds)
+        .containsExactlyInAnyOrder("some-reason-id-1", "some-reason-id-2");
   }
 
   @Test

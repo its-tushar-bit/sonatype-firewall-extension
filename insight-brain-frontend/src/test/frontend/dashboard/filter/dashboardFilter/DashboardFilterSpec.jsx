@@ -489,6 +489,7 @@ describe('DashboardFilter', function () {
       minPolicyThreatLevel: 3,
       maxPolicyThreatLevel: 6,
       expirationDate: 'ALL',
+      policyWaiverReasonIds: [],
     };
 
     it('calls applyFilter action', function () {

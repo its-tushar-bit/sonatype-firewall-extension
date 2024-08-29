@@ -53,6 +53,8 @@ public class DashboardFilterDTO
    */
   public List<String> repositoryFilters = Collections.emptyList();
 
+  public List<String> policyWaiverReasonIds = Collections.emptyList();
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -94,6 +96,9 @@ public class DashboardFilterDTO
     if (!expirationDate.equals(that.expirationDate)) {
       return false;
     }
+    if (!policyWaiverReasonIds.equals(that.policyWaiverReasonIds)) {
+      return false;
+    }
     return stageTypeFilters.equals(that.stageTypeFilters);
   }
 
@@ -110,6 +115,7 @@ public class DashboardFilterDTO
     result = 31 * result + Objects.hashCode(maxDaysOld);
     result = 31 * result + policyViolationStates.hashCode();
     result = 31 * result + expirationDate.hashCode();
+    result = 31 * result + policyWaiverReasonIds.hashCode();
     return result;
   }
 }

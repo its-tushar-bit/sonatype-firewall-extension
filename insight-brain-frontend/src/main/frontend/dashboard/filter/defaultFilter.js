@@ -16,6 +16,7 @@ export default Object.freeze({
   maxDaysOld: defaultMaxDaysOld,
   expirationDate: defaultMinExpiration,
   policyThreatLevels: [2, 10],
+  policyWaiverReasonIds: [],
 });
 
 export const DEFAULT_FILTER_NAME = 'Default';

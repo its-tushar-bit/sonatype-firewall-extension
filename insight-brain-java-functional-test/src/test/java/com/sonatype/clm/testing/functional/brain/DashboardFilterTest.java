@@ -580,7 +580,8 @@ public class DashboardFilterTest
             "  \"maxDaysOld\" : 30,\n" +
             "  \"policyViolationStates\" : [ \"OPEN\", \"WAIVED\", \"LEGACY_VIOLATION\" ],\n" +
             "  \"expirationDate\" : \"ALL\",\n" +
-            "  \"repositoryFilters\" : [ ]\n" +
+            "  \"repositoryFilters\" : [ ],\n" +
+            "  \"policyWaiverReasonIds\" : [ ]\n" +
             "}");
 
     // assert applied filters

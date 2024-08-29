@@ -60,6 +60,7 @@ import org.spdx.library.model.SpdxDocument;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -516,6 +517,8 @@ public class SpdxResultHandlerTest
     assertThat(componentInfoTelemetry.getPurlCount()).isEqualTo(2);
     assertThat(componentInfoTelemetry.getHashCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getCoordinateCount()).isEqualTo(1);
+    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("generic", 1), entry("maven", 1),
+        entry("library", 1));
     assertThat(componentInfoTelemetry.getHasDependencies()).isEqualTo(true);
     assertThat(componentInfoTelemetry.getValidLicensesCount()).isEqualTo(2);
     assertThat(componentInfoTelemetry.getInvalidLicensesCount()).isEqualTo(0);
@@ -574,6 +577,7 @@ public class SpdxResultHandlerTest
     assertThat(componentInfoTelemetry.getPurlCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getSwidCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getCoordinateCount()).isEqualTo(1);
+    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("application", 1), entry("maven", 1));
   }
 
   @Test
@@ -604,6 +608,8 @@ public class SpdxResultHandlerTest
     assertThat(componentInfoTelemetry.getCpeCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getHashCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getCoordinateCount()).isEqualTo(1);
+    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("cpe", 1), entry("maven", 1),
+        entry("library", 1), entry("generic", 1));
   }
 
   private void assertCpeAndSwid(ThirdPartyScanContent content) throws Exception {

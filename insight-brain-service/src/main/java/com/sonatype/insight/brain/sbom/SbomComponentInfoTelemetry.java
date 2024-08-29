@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.sbom;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class SbomComponentInfoTelemetry
 {
   public static final String ATTRIBUTE_NAME = "sbom_data_summary";
@@ -32,6 +35,8 @@ public class SbomComponentInfoTelemetry
   private int invalidLicensesCount;
 
   private int validLicensesCount;
+
+  public Map<String, Integer> ecosystemCount = new HashMap<>();
 
   public SbomComponentInfoTelemetry() {
   }
@@ -152,5 +157,13 @@ public class SbomComponentInfoTelemetry
 
   public void incrementValidLicensesCount() {
     this.validLicensesCount++;
+  }
+
+  public Map<String, Integer> getEcosystemCount() {
+    return ecosystemCount;
+  }
+
+  public void incrementEcosystemCount(String ecosystem) {
+    ecosystemCount.put(ecosystem, ecosystemCount.getOrDefault(ecosystem, 0) + 1);
   }
 }

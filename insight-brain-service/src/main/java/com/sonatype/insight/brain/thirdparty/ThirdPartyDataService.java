@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabi
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
@@ -55,7 +56,6 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -148,8 +148,6 @@ public class ThirdPartyDataService
 
   private final TelemetryUtils telemetryUtils;
 
-  protected final SbomPostImportMetricsTelemetry sbomPostImportMetricsTelemetry;
-
   private final SearchIndexManager searchIndexManager;
 
   private final SecurityVulnerabilityDataService securityVulnerabilityDataService;
@@ -157,6 +155,8 @@ public class ThirdPartyDataService
   private final ProductLicense productLicense;
 
   private final InsightWork insightWork;
+
+  private final SbomPostImportMetricsTelemetry sbomPostImportMetricsTelemetry;
 
   @Inject
   public ThirdPartyDataService(
@@ -189,11 +189,11 @@ public class ThirdPartyDataService
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.telemetrySender = telemetrySender;
     this.telemetryUtils = telemetryUtils;
-    this.sbomPostImportMetricsTelemetry = new SbomPostImportMetricsTelemetry();
     this.searchIndexManager = searchIndexManager;
     this.securityVulnerabilityDataService = securityVulnerabilityDataService;
     this.productLicense = productLicense;
     this.insightWork = insightWork;
+    sbomPostImportMetricsTelemetry = new SbomPostImportMetricsTelemetry();
   }
 
   public ThirdPartyApplicationReportDTO getScanData(final String scanId) {
@@ -520,6 +520,10 @@ public class ThirdPartyDataService
     Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults =
         readSonatypeLicenseResults(licensesJsonData);
     if (MapUtils.isEmpty(sonatypeVulnerabilityResults) && MapUtils.isEmpty(sonatypeLicenseResults)) {
+      // Scenario: In this case no vulnerabilities or licenses were found in HDS so the merging process is skipped.
+      // We still need to gather telemetry data.
+      generateTelemetryForUnverifiedVulnerabilitiesOnlyScenario(scanId);
+      telemetrySender.send(telemetryUtils.buildThirdPartyScanSbomImportTelemetryData(sbomPostImportMetricsTelemetry));
       makeSbomActive(sbomMetadata);
       return;
     }
@@ -535,6 +539,20 @@ public class ThirdPartyDataService
           sonatypeLicenseResults, sbomMetadata);
     }
     makeSbomActive(sbomMetadata);
+    telemetrySender.send(telemetryUtils.buildThirdPartyScanSbomImportTelemetryData(sbomPostImportMetricsTelemetry));
+  }
+
+  private void generateTelemetryForUnverifiedVulnerabilitiesOnlyScenario(final String scanId) {
+    List<ThirdPartyFileCoordinate> components = thirdPartyFileCoordinateDAO.getByScanId(scanId);
+    for (ThirdPartyFileCoordinate component : components) {
+      Map<String, ThirdPartyCoordinateSecurity> coordinateSecuritiesFromDBForComponentMap =
+          thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(component.getId()).stream()
+              .collect(Collectors.toMap(ThirdPartyCoordinateSecurity::getRefId, t -> t));
+      sbomPostImportMetricsTelemetry.addToTotalVulnerabilitiesCount(
+          coordinateSecuritiesFromDBForComponentMap.size());
+      sbomPostImportMetricsTelemetry.addToUnverifiedVulnerabilityCount(
+          coordinateSecuritiesFromDBForComponentMap.size());
+    }
   }
 
   private void mergeResultsNotConsideringSonatypeIdentifier(
@@ -739,6 +757,7 @@ public class ThirdPartyDataService
       Map<String, ThirdPartyCoordinateSecurity> coordinateSecuritiesFromDBForComponentMap =
           thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(sbomComponent.getId()).stream()
               .collect(Collectors.toMap(ThirdPartyCoordinateSecurity::getRefId, t -> t));
+      sbomPostImportMetricsTelemetry.addToTotalVulnerabilitiesCount(coordinateSecuritiesFromDBForComponentMap.size());
 
       for (String sonatypeVuln : sonatypeVulns) {
         try {
@@ -765,7 +784,7 @@ public class ThirdPartyDataService
             populateMissingThirdPartyCoordinateSecurityWithSonatypeData(newThirdPartySecurity,
                 sonatypeVulnerabilityData);
             thirdPartyCoordinateSecurityDAO.insert(newThirdPartySecurity);
-            sbomPostImportMetricsTelemetry.incrementUnverifiedVulnerabilityCount();
+            sbomPostImportMetricsTelemetry.incrementAdditionalVulnerabilitiesCount();
           }
         }
         catch (NotFoundException exception) {
@@ -782,13 +801,23 @@ public class ThirdPartyDataService
           // SBOM and SONATYPE, remove SONATYPE.
           coordinateSecurity.setIdentificationSources(IdentificationSource.SBOM.getId());
           thirdPartyCoordinateSecurityDAO.update(coordinateSecurity);
+          sbomPostImportMetricsTelemetry.incrementUnverifiedVulnerabilityCount();
         }
         else if (coordinateSecurity.getIdentificationSources().equals(IdentificationSource.SONATYPE.getId())) {
           // else if it only has SONATYPE, delete it from the DB along with any VEX annotation associated with it.
           thirdPartyCoordinateSecurityDAO.delete(coordinateSecurity);
         }
       }
-      telemetrySender.send(telemetryUtils.buildThirdPartyScanSbomImportTelemetryData(sbomPostImportMetricsTelemetry));
+    }
+    else {
+      // Scenario: There are no vulnerabilities found in HDS for this component. We still have to gather telemetry data.
+      Map<String, ThirdPartyCoordinateSecurity> coordinateSecuritiesFromDBForComponentMap =
+          thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(sbomComponent.getId()).stream()
+              .collect(Collectors.toMap(ThirdPartyCoordinateSecurity::getRefId, t -> t));
+      sbomPostImportMetricsTelemetry.addToTotalVulnerabilitiesCount(
+          coordinateSecuritiesFromDBForComponentMap.size());
+      sbomPostImportMetricsTelemetry.addToUnverifiedVulnerabilityCount(
+          coordinateSecuritiesFromDBForComponentMap.size());
     }
   }
 

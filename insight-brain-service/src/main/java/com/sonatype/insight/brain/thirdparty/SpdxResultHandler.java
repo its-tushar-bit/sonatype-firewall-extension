@@ -261,6 +261,7 @@ public class SpdxResultHandler
       fileCoordinate.setSwid(ThirdPartyComponentDAO.MAPPER.writeValueAsString(component.getSwid()));
     }
     fileCoordinate.setIdentificationSources(SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE);
+    componentInfoTelemetry.incrementEcosystemCount(fileCoordinate.getFormat());
     thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
     saveLicenses(spdxPackage, fileCoordinate.getId(), component.getPurl(), tx);
     saveVulnerabilities(spdxPackage, fileCoordinate.getId(), component.getPurl(), tx);

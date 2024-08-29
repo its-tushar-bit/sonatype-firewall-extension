@@ -576,7 +576,9 @@ public class ThirdPartyDataServiceTest
       SbomPostImportMetricsTelemetry importMetricsTelemetry =
           (SbomPostImportMetricsTelemetry) telemetryData.getAttributes().get("sbom_post_import_metrics");
       assertThat(importMetricsTelemetry.getVerifiedVulnerabilityCount()).isEqualTo(0);
-      assertThat(importMetricsTelemetry.getUnverifiedVulnerabilityCount()).isEqualTo(2);
+      assertThat(importMetricsTelemetry.getUnverifiedVulnerabilityCount()).isEqualTo(0);
+      assertThat(importMetricsTelemetry.getAdditionalVulnerabilitiesCount()).isEqualTo(2);
+      assertThat(importMetricsTelemetry.getTotalVulnerabilitiesCount()).isEqualTo(0);
     }
     finally {
       if (sbomComponent != null) {
@@ -714,7 +716,9 @@ public class ThirdPartyDataServiceTest
     SbomPostImportMetricsTelemetry telemetry = (SbomPostImportMetricsTelemetry) telemetryData.getAttributes()
         .get("sbom_post_import_metrics");
     assertThat(telemetry.getVerifiedVulnerabilityCount()).isEqualTo(1);
-    assertThat(telemetry.getUnverifiedVulnerabilityCount()).isEqualTo(5);
+    assertThat(telemetry.getUnverifiedVulnerabilityCount()).isEqualTo(0);
+    assertThat(telemetry.getAdditionalVulnerabilitiesCount()).isEqualTo(5);
+    assertThat(telemetry.getTotalVulnerabilitiesCount()).isEqualTo(2);
   }
 
   @Test
@@ -866,6 +870,8 @@ public class ThirdPartyDataServiceTest
         .get("sbom_post_import_metrics");
     assertThat(telemetry.getVerifiedVulnerabilityCount()).isEqualTo(2);
     assertThat(telemetry.getUnverifiedVulnerabilityCount()).isEqualTo(1);
+    assertThat(telemetry.getAdditionalVulnerabilitiesCount()).isEqualTo(1);
+    assertThat(telemetry.getTotalVulnerabilitiesCount()).isEqualTo(6);
   }
 
   private SecurityVulnerabilityData mockSecurityVulnerabilityDataForMergeLogic(String identifier, String index)

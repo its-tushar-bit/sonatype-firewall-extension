@@ -22,6 +22,7 @@ import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
 @Named
@@ -75,7 +76,10 @@ public final class TelemetryUtils
       final SbomPostImportMetricsTelemetry sbomPostImportMetricsTelemetry)
   {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SBOM_POST_IMPORT_METRICS);
-    telemetryData.put(SbomPostImportMetricsTelemetry.ATTRIBUTE_NAME, sbomPostImportMetricsTelemetry);
+    telemetryData.put(SbomPostImportMetricsTelemetry.ATTRIBUTE_NAME,
+        SerializationUtils.clone(sbomPostImportMetricsTelemetry));
+    sbomPostImportMetricsTelemetry.reset();
+
     return telemetryData;
   }
 

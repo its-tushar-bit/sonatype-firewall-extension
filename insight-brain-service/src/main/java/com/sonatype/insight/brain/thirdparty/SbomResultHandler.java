@@ -572,6 +572,7 @@ public class SbomResultHandler
       fileCoordinate.setSwid(ThirdPartyComponentDAO.MAPPER.writeValueAsString(swid));
     }
     fileCoordinate.setIdentificationSources(SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE);
+    componentInfoTelemetry.incrementEcosystemCount(fileCoordinate.getFormat());
     thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
     if (!sbomValidationSkipped) {
       saveLicenses(sourceComponent.getLicenses(), fileCoordinate.getId(), component.getPurl(), tx);

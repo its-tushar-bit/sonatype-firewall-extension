@@ -92,6 +92,7 @@ import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VE
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VULNERABILITY_SOURCE_MAX_LENGTH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.verify;
 
 public class SbomResultHandlerTest
@@ -2005,6 +2006,8 @@ public class SbomResultHandlerTest
     assertThat(componentInfoTelemetry.getPurlCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getCpeCount()).isEqualTo(2);
     assertThat(componentInfoTelemetry.getCoordinateCount()).isEqualTo(3);
+    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("cpe", 2), entry("generic", 3),
+        entry("maven", 1));
   }
 
   @Test
@@ -2031,6 +2034,7 @@ public class SbomResultHandlerTest
     assertThat(componentInfoTelemetry.getSpec()).isEqualTo("CYCLONEDX");
     assertThat(componentInfoTelemetry.getSpecVersion()).isEqualTo("1.1");
     assertThat(componentInfoTelemetry.getHashCount()).isEqualTo(1);
+    assertThat(componentInfoTelemetry.getEcosystemCount()).isEmpty();
   }
 
   @Test
@@ -2060,6 +2064,8 @@ public class SbomResultHandlerTest
     assertThat(componentInfoTelemetry.getPurlCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getSwidCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getCoordinateCount()).isEqualTo(3);
+    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("generic", 3), entry("maven", 1),
+        entry("swid", 1));
   }
 
   @Test
@@ -2087,6 +2093,7 @@ public class SbomResultHandlerTest
     assertThat(componentInfoTelemetry.getSpec()).isEqualTo("CYCLONEDX");
     assertThat(componentInfoTelemetry.getSpecVersion()).isEqualTo("1.5");
     assertThat(componentInfoTelemetry.getCpeCount()).isEqualTo(1);
+    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("cpe", 1));
   }
 
   @Test
@@ -2114,6 +2121,7 @@ public class SbomResultHandlerTest
     assertThat(componentInfoTelemetry.getSpec()).isEqualTo("CYCLONEDX");
     assertThat(componentInfoTelemetry.getSpecVersion()).isEqualTo("1.4");
     assertThat(componentInfoTelemetry.getVulnerabilitiesWithVexInfoCount()).isEqualTo(1);
+    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("maven", 1));
   }
 
   @Test
@@ -2191,6 +2199,10 @@ public class SbomResultHandlerTest
     assertThat(telemetryAttributes).isNotNull();
     assertThat(telemetryAttributes.get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(true);
     assertThat(telemetryAttributes.get("is_sbom_valid")).isEqualTo(false);
+
+    SbomComponentInfoTelemetry componentInfoTelemetry =
+        (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
+    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("fake", 1));
   }
 
   @Test
@@ -2214,6 +2226,10 @@ public class SbomResultHandlerTest
     assertThat(telemetryAttributes).isNotNull();
     assertThat(telemetryAttributes.get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(true);
     assertThat(telemetryAttributes.get("is_sbom_valid")).isEqualTo(true);
+
+    SbomComponentInfoTelemetry componentInfoTelemetry =
+        (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
+    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("cpe", 1), entry("maven", 1));
   }
 
   @Test
@@ -2236,6 +2252,10 @@ public class SbomResultHandlerTest
     assertThat(telemetryAttributes).isNotNull();
     assertThat(telemetryAttributes.get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(false);
     assertThat(telemetryAttributes.get("is_sbom_valid")).isEqualTo(true);
+
+    SbomComponentInfoTelemetry componentInfoTelemetry =
+        (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
+    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("cpe", 1), entry("maven", 1));
   }
 
   @Test

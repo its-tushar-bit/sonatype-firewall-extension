@@ -985,4 +985,43 @@ public class ApiConfigFeaturesServiceTest
             SystemConfigurationProperty.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT)).isInstanceOf(
         BadRequestException.class).hasMessage("Feature is already disabled.");
   }
+
+  @Test
+  public void testGetSystemConfigurationPropertyFeature_SbomBinaryScanning() {
+    assertThat(service.getSystemConfigurationPropertyFeature("sbomBinaryScanning")).isEqualTo(
+        SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING);
+    assertThat(service.getSystemConfigurationPropertyFeature("sbom-binary-scanning")).isEqualTo(
+        SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING);
+    assertThat(service.getSystemConfigurationPropertyFeature("Sbom-Binary-Scanning")).isEqualTo(
+        SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING);
+    assertThat(service.getSystemConfigurationPropertyFeature("SBOM-BINARY-SCANNING")).isEqualTo(
+        SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING);
+  }
+
+  @Test
+  public void testEnableFeature_SbomBinaryScanning() {
+    service.enableFeature(SystemConfigurationProperty.SBOM_BINARY_SCANNING);
+
+    assertThat(
+        systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.SBOM_BINARY_SCANNING)
+            .getValue())
+        .isEqualTo("true");
+  }
+
+  @Test
+  public void testEnableFeature_SbomBinaryScanning_AlreadyEnabled() {
+    service.enableFeature(SystemConfigurationProperty.SBOM_BINARY_SCANNING);
+    assertThatThrownBy(
+        () -> service.enableFeature(
+            SystemConfigurationProperty.SBOM_BINARY_SCANNING)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_SbomBinaryScanning_AlreadyDisabled() {
+    assertThatThrownBy(
+        () -> service.disableFeature(
+            SystemConfigurationProperty.SBOM_BINARY_SCANNING)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
 }

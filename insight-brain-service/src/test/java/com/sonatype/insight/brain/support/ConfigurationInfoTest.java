@@ -259,7 +259,8 @@ public class ConfigurationInfoTest
         "enterpriseReportingVersionCacheExpirationInMinutes",
         "SAAS_POLICY_MONITOR_POOL_SIZE",
         "skipSbomImportValidation",
-        "cleanUpSbomContinuousMonitoringReport");
+        "cleanUpSbomContinuousMonitoringReport",
+        "sbomBinaryScanning");
 
     // Properties included in the config.json in support zip
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());

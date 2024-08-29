@@ -60,7 +60,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION.getId(),
       SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT.getId(),
       SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE.getId(),
-      SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT.getId(),
+      SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT.getId()
       };
 
   /**
@@ -88,7 +88,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION.getId(),
       SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT.getId(),
       SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE.getId(),
-      SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT.getId(),
+      SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT.getId()
       };
 
   /**
@@ -104,7 +104,8 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.getId(),
           SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS.getId(),
           SystemConfigurationPropertyFeature.SECURE_SHARING.getId(),
-          SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId()
+          SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId(),
+          SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.getId()
       }
   )).toArray(String[]::new);
 

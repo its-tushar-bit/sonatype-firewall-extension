@@ -237,6 +237,8 @@ public class SystemConfigurationProperty
 
   public static final String SUCCESS_METRICS_STAGE_ID = "successMetricsStageId";
 
+  public static final String SBOM_BINARY_SCANNING = "sbomBinaryScanning";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

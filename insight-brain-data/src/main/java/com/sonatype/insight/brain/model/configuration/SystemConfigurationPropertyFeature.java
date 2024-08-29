@@ -214,7 +214,9 @@ public enum SystemConfigurationPropertyFeature
   SECURE_SHARING(SystemConfigurationProperty.SECURE_SHARING, false),
 
   CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT(SystemConfigurationProperty.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT,
-      true);
+      true),
+
+  SBOM_BINARY_SCANNING(SystemConfigurationProperty.SBOM_BINARY_SCANNING, false);
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

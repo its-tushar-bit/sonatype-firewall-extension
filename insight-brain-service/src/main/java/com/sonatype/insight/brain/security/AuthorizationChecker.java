@@ -152,8 +152,11 @@ public class AuthorizationChecker
     Set<String> roleIds = rolePermissionDAO.getRoleIdsByPermission(permission);
     Map<String, Boolean> permitsByContextId = new HashMap<>(256);
 
-    Set<String> userContextIds = membershipMappingDAO.getByRoleIds(roleIds).stream()
-        .filter(membershipMapping -> membershipMapping.includes(user))
+    String username = user.getUsername();
+    Set<String> groups = user.getMembership();
+
+    Set<String> userContextIds =
+        membershipMappingDAO.getByUserCaseInsensitiveAndGroupsAndRoles(username, groups, roleIds).stream()
         .map(MembershipMapping::getContextId)
         .collect(Collectors.toSet());
 

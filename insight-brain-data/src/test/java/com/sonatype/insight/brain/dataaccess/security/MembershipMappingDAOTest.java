@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import com.google.common.collect.ImmutableSet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -187,6 +189,38 @@ public class MembershipMappingDAOTest
 
     List<MembershipMapping> memberships =
         membershipDAO.getByUserCaseInsensitiveAndGroups(username, Collections.singleton(groupName));
+    List<String> membershipIds = memberships.stream().map(MembershipMapping::getId).collect(Collectors.toList());
+
+    assertThat(membershipIds).containsExactlyInAnyOrder(membership1.getId(), membership2.getId(), membership3.getId(),
+        membership4.getId());
+  }
+
+  @Test
+  public void testGetByUserCaseInsensitiveAndGroupsAndRoles() {
+    String username = "uSeRnAmEiıIİ";
+    String groupName = "group";
+
+    Role userRole = tempEntity.newRole(true, Permission.CONFIGURE_SYSTEM);
+    Role groupRole = tempEntity.newRole(true, Permission.CONFIGURE_SYSTEM);
+
+    // another role that does not get associated with a mapping and which shouldn't appear in the results
+    Role unrelatedRole = tempEntity.newRole(true, Permission.CONFIGURE_SYSTEM);
+
+    MembershipMapping membership1 = tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID,
+        userRole.getId(), username);
+    MembershipMapping membership2 = tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID,
+        groupRole.getId(), groupName, MemberType.GROUP);
+    MembershipMapping membership3 =
+        tempEntity.newMembershipMapping(application.getId(), userRole.getId(), "USERNAMEIIIİ");
+    MembershipMapping membership4 =
+        tempEntity.newMembershipMapping(organization.getId(), userRole.getId(), "usernameiıii̇");
+
+    tempEntity.newMembershipMapping(organization.getId(), unrelatedRole.getId(), "usernameiıii̇");
+
+    Set<String> roleIds = ImmutableSet.of(userRole.getId(), groupRole.getId());
+
+    List<MembershipMapping> memberships =
+        membershipDAO.getByUserCaseInsensitiveAndGroupsAndRoles(username, Collections.singleton(groupName), roleIds);
     List<String> membershipIds = memberships.stream().map(MembershipMapping::getId).collect(Collectors.toList());
 
     assertThat(membershipIds).containsExactlyInAnyOrder(membership1.getId(), membership2.getId(), membership3.getId(),

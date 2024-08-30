@@ -172,4 +172,19 @@ public final class TelemetryUtils
     attributes.put("client_os_version", userAgent.osVersion);
     attributes.put("client_other", userAgent.other);
   }
+
+  public TelemetryData buildContinuousMonitoringMetricsAttributes(
+      long appsEvaluatedCount,
+      long totalExecutionTimeInSeconds,
+      String stageIds)
+  {
+    TelemetryData telemetryData = new TelemetryData(
+        TelemetryPurpose.CONTINUOUS_MONITORING_METRICS);
+    HashMap<String, Object> continuousMonitoringMetrics = new HashMap<>();
+    continuousMonitoringMetrics.put("appsEvaluatedCount", appsEvaluatedCount);
+    continuousMonitoringMetrics.put("totalExecutionTimeInSeconds", totalExecutionTimeInSeconds);
+    continuousMonitoringMetrics.put("stageIds", stageIds);
+    telemetryData.put("continuous_monitoring_metrics", continuousMonitoringMetrics);
+    return telemetryData;
+  }
 }

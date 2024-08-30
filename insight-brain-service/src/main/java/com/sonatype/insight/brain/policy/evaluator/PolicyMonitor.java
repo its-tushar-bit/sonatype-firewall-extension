@@ -9,9 +9,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
@@ -44,6 +46,8 @@ import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -97,6 +101,10 @@ public class PolicyMonitor
 
   private final ThirdPartyScanDAO thirdPartyScanDAO;
 
+  private final TelemetrySender telemetrySender;
+
+  private final TelemetryUtils telemetryUtils;
+
   @Inject
   public PolicyMonitor(
       final InsightWork work,
@@ -113,7 +121,9 @@ public class PolicyMonitor
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final ThirdPartyScanDAO thirdPartyScanDAO,
       final Configuration configuration,
-      final ShutdownHandler shutdownHandler)
+      final ShutdownHandler shutdownHandler,
+      final TelemetrySender telemetrySender,
+      final TelemetryUtils telemetryUtils)
   {
     this.work = work;
     this.uploader = uploader;
@@ -129,6 +139,8 @@ public class PolicyMonitor
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.applicationMonitorForkJoinPool = initThreadPool(configuration);
+    this.telemetrySender = telemetrySender;
+    this.telemetryUtils = telemetryUtils;
     shutdownHandler.add(this.applicationMonitorForkJoinPool);
   }
 
@@ -187,6 +199,8 @@ public class PolicyMonitor
     long start = System.currentTimeMillis();
 
     List<CompletableFuture<Void>> futures = new ArrayList<>();
+    Set<String> stagesDetectedDuringScan = new HashSet<>();
+    long appsUnderContinuousMonitoringCount = 0;
 
     for (Application app : apps) {
       PolicyMonitoring policyMonitoring = null;
@@ -200,7 +214,11 @@ public class PolicyMonitor
       if (policyMonitoring == null || !Stage.isValidStageTypeId(policyMonitoring.getStageTypeId())) {
         continue;
       }
+
+      appsUnderContinuousMonitoringCount++;
       final PolicyMonitoring finalPolicyMonitoring = policyMonitoring;
+      stagesDetectedDuringScan.add(finalPolicyMonitoring.getStageTypeId());
+
       CompletableFuture<Void> future = CompletableFuture.supplyAsync(() -> {
         try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_APPLICATION)) {
           try {
@@ -222,7 +240,10 @@ public class PolicyMonitor
     }
     futures.forEach(CompletableFuture::join);
 
-    log.info("Finished policy monitoring applications in {} ms", System.currentTimeMillis() - start);
+    long timeElapsed = System.currentTimeMillis() - start;
+    log.info("Finished policy monitoring applications in {} ms", timeElapsed);
+    telemetrySender.send(telemetryUtils.buildContinuousMonitoringMetricsAttributes(appsUnderContinuousMonitoringCount,
+        timeElapsed / 1000, String.join(",", stagesDetectedDuringScan)));
   }
 
   @VisibleForTesting

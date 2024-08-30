@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import javax.inject.Inject;
 
@@ -329,5 +330,23 @@ public class TelemetryUtilsTest
     telemetryUtils.includeRealApplicationId(telemetryAttributes, potentialApplicationId);
     assertThat(telemetryAttributes.entrySet()).extracting("key", "value")
         .containsOnlyOnce(tuple("real_application_id", potentialApplicationId));
+  }
+
+  @Test
+  public void testBuildContinuousMonitoringMetricsAttributes() {
+    HashSet<String> testStages = new HashSet<>();
+    testStages.add(Stage.ID_STAGE_RELEASE);
+    testStages.add(Stage.ID_BUILD);
+    TelemetryData telemetryData = telemetryUtils.buildContinuousMonitoringMetricsAttributes(45, 12345, String
+        .join(", ", testStages));
+
+    HashMap<String, Object> expectedContinuousMonitoringMetricsAttributes = new HashMap<>();
+    expectedContinuousMonitoringMetricsAttributes.put("appsEvaluatedCount", 45L);
+    expectedContinuousMonitoringMetricsAttributes.put("totalExecutionTimeInSeconds", 12345L);
+    expectedContinuousMonitoringMetricsAttributes.put("stageIds", "build, stage-release");
+
+    assertThat(telemetryData.getAttributes()).contains(
+        entry("continuous_monitoring_metrics", expectedContinuousMonitoringMetricsAttributes)
+    );
   }
 }

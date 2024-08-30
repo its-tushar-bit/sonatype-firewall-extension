@@ -165,6 +165,8 @@ describe('BillOfMaterialsComponentsTile', () => {
         pagination: { ...paginationInitialState },
 
         filterDrawer: { ...filterDrawerInitialState },
+
+        componentNameSearch: null,
       },
     };
 
@@ -205,6 +207,25 @@ describe('BillOfMaterialsComponentsTile', () => {
     const errorAlert = await screen.findByRole('alert');
     expect(errorAlert).toBeVisible();
     expect(errorAlert).toHaveTextContent('An error occurred loading data. Error Message');
+  });
+
+  describe('Component Name Search', () => {
+    it('should render component name search text field', async () => {
+      jest.useFakeTimers();
+
+      renderComponent(initialProps, initialState);
+
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
+
+      await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+      const searchTextBox = screen.getByRole('textbox', {
+        name: /Component Name Search/i,
+      });
+
+      expect(searchTextBox).toBeVisible();
+    });
   });
 
   describe('Filter By', () => {

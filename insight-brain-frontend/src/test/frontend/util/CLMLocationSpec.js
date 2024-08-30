@@ -1540,6 +1540,25 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getBillOfMaterialsComponentsUrl(applicationId, sbomVersion, 1, 50)).toBe(expectedURL);
     });
 
+    it('should return the correct URL with componentName only', () => {
+      const expectedParams = `?componentName=Hello`;
+      const expectedURL =
+        `/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/components` + expectedParams;
+      expect(
+        clmLocation.getBillOfMaterialsComponentsUrl(
+          applicationId,
+          sbomVersion,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          'Hello'
+        )
+      ).toBe(expectedURL);
+    });
+
     it('should return the correct URL with sortConfiguration', () => {
       const expectedParams = `?page=1&sortBy=vulnerabilities&asc=true`;
       const expectedURL =
@@ -1600,13 +1619,16 @@ describe('CLMLocation.js', function () {
       const vulnerabilityThreatLevels = ['critical', 'medium'];
       const dependencyTypes = ['direct', 'transitive'];
       const expectedParams = `?page=1&pageSize=50&sortBy=vulnerabilities&asc=false`;
+      const componentNameParam = `&componentName=component%20%2B%20%3A%20name`;
       const expectedDependencyTypesParams = `&dependencyTypes=direct&dependencyTypes=transitive`;
       const expectedVulnerabilityThreatLevelsParams = `&vulnerabilityThreatLevels=critical&vulnerabilityThreatLevels=medium`;
       const expectedURL =
         `/api/v2/sbom/applications/${applicationId}/versions/${sbomVersion}/components` +
         expectedParams +
+        componentNameParam +
         expectedVulnerabilityThreatLevelsParams +
         expectedDependencyTypesParams;
+
       expect(
         clmLocation.getBillOfMaterialsComponentsUrl(
           applicationId,
@@ -1616,7 +1638,8 @@ describe('CLMLocation.js', function () {
           'vulnerabilities',
           false,
           vulnerabilityThreatLevels,
-          dependencyTypes
+          dependencyTypes,
+          'component + : name'
         )
       ).toBe(expectedURL);
     });

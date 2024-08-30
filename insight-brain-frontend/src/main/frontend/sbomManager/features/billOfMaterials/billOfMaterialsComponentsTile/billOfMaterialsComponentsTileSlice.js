@@ -87,6 +87,8 @@ export const initialState = Object.freeze({
   pagination: { ...paginationInitialState },
 
   filterDrawer: { ...filterDrawerInitialState },
+
+  componentNameSearch: null,
 });
 
 // load-components
@@ -132,7 +134,12 @@ const loadComponents = createAsyncThunk(
   `${REDUCER_NAME}/loadComponents`,
   async ({ internalAppId, sbomVersion }, { getState, rejectWithValue }) => {
     const state = getState();
-    const { sortConfiguration, filterConfiguration, pagination } = selectBillOfMaterialsComponentsTile(state);
+    const {
+      sortConfiguration,
+      filterConfiguration,
+      pagination,
+      componentNameSearch,
+    } = selectBillOfMaterialsComponentsTile(state);
 
     const pickKeysWithTrueValue = compose(
       keys,
@@ -155,7 +162,8 @@ const loadComponents = createAsyncThunk(
           sortConfiguration.sortBy,
           sortDirection,
           pickKeysWithTrueValue(filterConfiguration.vulnerabilityThreatLevels),
-          pickKeysWithTrueValue(filterConfiguration.dependencyTypes)
+          pickKeysWithTrueValue(filterConfiguration.dependencyTypes),
+          componentNameSearch
         )
       )
       .then((response) => response.data)
@@ -227,6 +235,11 @@ const setCurrentPage = (state, { payload }) => {
   state.pagination.currentPage = payload;
 };
 
+// component-name-search
+const setComponentNameSearch = (state, { payload }) => {
+  state.componentNameSearch = payload;
+};
+
 const billOfMaterialsComponentsTileSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -240,6 +253,7 @@ const billOfMaterialsComponentsTileSlice = createSlice({
     setFilterVulnerabilityThreatLevels,
     setFilterDependencyTypes,
     setCurrentPage,
+    setComponentNameSearch,
   },
   extraReducers: {
     [loadComponents.pending]: loadComponentsRequested,

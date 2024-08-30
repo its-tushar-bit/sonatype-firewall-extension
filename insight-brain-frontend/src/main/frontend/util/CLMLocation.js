@@ -3,7 +3,22 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { always, chain, compose, filter, ifElse, is, isNil, join, map, not, pick, reject, toPairs } from 'ramda';
+import {
+  adjust,
+  always,
+  chain,
+  compose,
+  filter,
+  ifElse,
+  is,
+  isNil,
+  join,
+  map,
+  not,
+  pick,
+  reject,
+  toPairs,
+} from 'ramda';
 
 import commonServicesModule from '../utilAngular/CommonServices';
 import { toURIParams, uriTemplate } from './urlUtil';
@@ -1448,13 +1463,15 @@ export const getBillOfMaterialsComponentsUrl = (
   sortBy,
   asc,
   vulnerabilityThreatLevels,
-  dependencyTypes
+  dependencyTypes,
+  componentName
 ) => {
   const rawParams = {
     page,
     pageSize,
     sortBy,
     asc,
+    componentName,
   };
 
   const listParams = {
@@ -1462,11 +1479,16 @@ export const getBillOfMaterialsComponentsUrl = (
     dependencyTypes,
   };
 
-  const queryTerms = compose(map(join('=')), toPairs, reject(isNilOrEmpty))(rawParams);
+  const queryTerms = compose(
+    map(join('=')),
+    map(adjust(1, encodeURIComponent)),
+    toPairs,
+    reject(isNilOrEmpty)
+  )(rawParams);
   const isStringArray = ifElse(is(Array), filter(is(String)), always([]));
   const listQueryTerms = compose(
     reject(isNilOrEmpty),
-    chain(([key, values]) => map((v) => `${key}=${v}`, isStringArray(values))),
+    chain(([key, values]) => map((v) => `${key}=${encodeURIComponent(v)}`, isStringArray(values))),
     toPairs,
     reject(isNilOrEmpty)
   )(listParams);

@@ -15,6 +15,11 @@
     }
   }
 
+  &__actions {
+    display: flex;
+    align-items: flex-start;
+  }
+
   &__percentage-annotated {
     display: flex;
     gap: var(--nx-spacing-base);
@@ -46,5 +51,20 @@
     &__tooltip {
       display: none;
     }
+  }
+}
+
+.bill-of-materials-components-tile-search {
+  position: relative;
+
+  .nx-text-input__box {
+    padding-left: 36px;
+  }
+
+  .nx-icon {
+    position: absolute;
+    left: var(--nx-spacing-base);
+    top: var(--nx-spacing-3x);
+    z-index: 1;
   }
 }

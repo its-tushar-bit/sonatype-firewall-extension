@@ -472,6 +472,22 @@ describe('billOfMaterialsComponentsTileSlice', function () {
     });
   });
 
+  describe('componentNameSearch', () => {
+    it('sets the correct componentNameSearch state', () => {
+      const state = {
+        ...initialState,
+        componentNameSearch: null,
+      };
+
+      const newState = reducer(state, {
+        type: 'billOfMaterialsComponentsTile/setComponentNameSearch',
+        payload: 'Hello',
+      });
+
+      expect(newState.componentNameSearch).toBe('Hello');
+    });
+  });
+
   describe('setCurrentPage', () => {
     it('sets the correct currentPage value without changing pageCount', () => {
       const state = {

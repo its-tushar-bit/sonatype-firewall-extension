@@ -18,12 +18,14 @@ import {
   ifElse,
   inc,
   includes,
+  is,
   join,
   lt,
   map,
   min,
   prop,
   T,
+  trim,
   when,
 } from 'ramda';
 import debounce from 'debounce';
@@ -35,12 +37,13 @@ import {
   NxH2,
   NxPagination,
   NxSmallThreatCounter,
+  NxStatefulTextInput,
   NxTable,
   NxTextLink,
   NxTile,
   NxTooltip,
 } from '@sonatype/react-shared-components';
-import { faFilter } from '@fortawesome/pro-solid-svg-icons';
+import { faFilter, faSearch } from '@fortawesome/pro-solid-svg-icons';
 
 import DependencyIndicator from 'MainRoot/DependencyTree/DependencyIndicator';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
@@ -56,6 +59,25 @@ import './billOfMaterialsComponentsTile.scss';
 
 const LOAD_COMPONENTS_DEBOUNCE_TIMEOUT_MS = 300;
 
+const ComponentsTileComponentNameSearch = ({ onSearch }) => {
+  const handleOnChange = (value) => compose(onSearch, when(isNilOrEmpty, always(null)), when(is(String), trim))(value);
+  return (
+    <div className="bill-of-materials-components-tile-search">
+      <NxFontAwesomeIcon icon={faSearch} />
+      <NxStatefulTextInput
+        aria-label="Component Name Search"
+        id="component-name-search"
+        placeholder="Component Name"
+        onChange={handleOnChange}
+      />
+    </div>
+  );
+};
+
+ComponentsTileComponentNameSearch.propTypes = {
+  onSearch: PropTypes.func.isRequired,
+};
+
 export default function BillOfMaterialsComponentsTile({ internalAppId }) {
   const { applicationPublicId, versionId: sbomVersion } = useSelector(selectRouterCurrentParams);
 
@@ -69,6 +91,11 @@ export default function BillOfMaterialsComponentsTile({ internalAppId }) {
 
   const loadComponents = () => dispatch(actions.loadComponents({ internalAppId, sbomVersion }));
   const debouncedLoadComponents = useCallback(debounce(loadComponents, LOAD_COMPONENTS_DEBOUNCE_TIMEOUT_MS), []);
+  const componentNameSearch = (searchTerm) => {
+    dispatch(actions.setComponentNameSearch(searchTerm));
+    dispatch(actions.setCurrentPage(0));
+    debouncedLoadComponents();
+  };
 
   const loadSortedComponents = (sortBy) => {
     dispatch(actions.setSortByAndCycleDirection(sortBy));
@@ -227,7 +254,8 @@ export default function BillOfMaterialsComponentsTile({ internalAppId }) {
           <NxTile.HeaderTitle>
             <NxH2>Components</NxH2>
           </NxTile.HeaderTitle>
-          <NxTile.HeaderActions>
+          <NxTile.HeaderActions className="sbom-manager-bill-of-materials-components-tile__actions">
+            <ComponentsTileComponentNameSearch onSearch={componentNameSearch} />
             <NxButton variant="tertiary" onClick={toggleFilterDrawer} disabled={loadingComponents}>
               <NxFontAwesomeIcon icon={faFilter} />
               <span>Filter By</span>

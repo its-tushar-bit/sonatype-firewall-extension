@@ -112,6 +112,8 @@ public class HdsClient
 
   static final String TELEMETRY_ID_HEADER = "X-CLM-Instance-Id";
 
+  static final String CLUSTER_ID_HEADER = "X-CLM-Cluster-Id";
+
   public static final String CLIENT_INSTANCE_ID_HEADER = "X-CLM-Client-Instance-Id";
 
   // VisibleForTesting
@@ -609,8 +611,8 @@ public class HdsClient
     if (retryCount > 0) {
       wrapper.setURI(UriBuilder.fromUri(request.getURI()).queryParam("retryCount", retryCount).build());
     }
-    log.debug("Starting request: {} {}, {}", wrapper.getMethod(), wrapper.getURI(),
-        request.getFirstHeader("X-CLM-Token"));
+    log.debug("Starting request: {} {}, {}, {}", wrapper.getMethod(), wrapper.getURI(),
+        request.getFirstHeader("X-CLM-Token"), request.getFirstHeader(CLUSTER_ID_HEADER));
     long start = System.currentTimeMillis();
     StatusLine statusLine = null;
     String requestId = null;
@@ -707,6 +709,11 @@ public class HdsClient
     String telemetryIdString = telemetryId.getId();
     if (telemetryIdString != null) {
       req.setHeader(TELEMETRY_ID_HEADER, telemetryIdString);
+    }
+
+    String clusterId = telemetryId.getClusterId();
+    if (clusterId != null) {
+      req.setHeader(CLUSTER_ID_HEADER, clusterId);
     }
 
     req.setHeader("X-Brain-Version", version);

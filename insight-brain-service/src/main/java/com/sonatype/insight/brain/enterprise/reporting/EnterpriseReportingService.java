@@ -82,9 +82,7 @@ public class EnterpriseReportingService
   private static final Logger log = LoggerFactory.getLogger(EnterpriseReportingService.class);
 
   public static final String ENTERPRISE_REPORTING_BASE_PATH = "rest/enterpriseReporting";
-
-  public static final String ENTERPRISE_REPORTING_SSO_EMBED_URL_PATH = ENTERPRISE_REPORTING_BASE_PATH + "/ssoEmbedUrl";
-
+  
   public static final String ENTERPRISE_REPORTING_CONFIG_PATH = ENTERPRISE_REPORTING_BASE_PATH + "/config";
 
   public static final String ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH =

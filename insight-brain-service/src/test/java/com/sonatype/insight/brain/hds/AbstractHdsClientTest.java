@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.service.DatabaseConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
@@ -62,6 +63,7 @@ public abstract class AbstractHdsClientTest
   @Override
   public void configure(final Binder binder) {
     config = new InsightConfig();
+    config.setDatabase(new DatabaseConfig());
     binder.bind(InsightConfig.class).toInstance(config);
     super.configure(binder);
   }

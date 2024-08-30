@@ -690,6 +690,29 @@ public class DefaultHdsClientTest
   }
 
   @Test
+  public void testClusterId() throws Exception {
+    final Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
+
+    String testPath = "/rest/test";
+
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Collections.emptyList()));
+    when(request.getMethod()).thenReturn("GET");
+
+    client.relay(request, null, InputStream.class, testPath, null, new String[]{});
+    assertThat(headers).containsEntry(HdsClient.CLUSTER_ID_HEADER, telemetryId.getClusterId());
+
+    client.post(String.class, testPath, "foo", new String[]{});
+    assertThat(headers).containsEntry(HdsClient.CLUSTER_ID_HEADER, telemetryId.getClusterId());
+
+    client.post(testPath, MultipartEntityBuilder.create().build(), "test_client_user_agent");
+    assertThat(headers).containsEntry(HdsClient.CLUSTER_ID_HEADER, telemetryId.getClusterId());
+
+    client.put(null, String.class, null, testPath, tempDir.newFile(), Collections.emptyMap(), new String[]{});
+    assertThat(headers).containsEntry(HdsClient.CLUSTER_ID_HEADER, telemetryId.getClusterId());
+  }
+
+  @Test
   public void testPost_Multipart() throws Exception {
     final int[] statusCode = new int[1];
     final BodyPart[] fileBodyReceived = new BodyPart[1];

@@ -961,6 +961,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GFDL-
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Ghost-7B-License-RD04122024','Ghost-7B-License-RD04122024','Ghost 7B License - Release Date 04-12-2024');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Ghost-7B-License-UNSPECIFIED','Ghost-7B-License','Ghost-7B-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Ghost-Open-LLM-LA-RD07222024','Ghost-Open-LLM-LA-RD07222024','Ghost Open LLMs License Agreement - Release Date 07-22-2024');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Ghost-Open-LLM-LA-UNSPECIFIED','Ghost-Open-LLM-LA','Ghost-Open-LLM-LA-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Gibraltar-Loupe-EULA','Gibraltar-Loupe-EULA','Gibraltar Loupe End User License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Gimbal-Subscription-and-Product-Agreement','Gimbal-Subscription-and-Product-Agreement','Gimbal Subscription and Product Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GL2PS','GL2PS','GL2PS License');
@@ -2210,6 +2211,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('SaaS-
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Sahha-SDK-LA-1.0','Sahha-SDK-LA-1.0','Sahha SDK License Agreement v1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Sahha-SDK-LA-UNSPECIFIED','Sahha-SDK-LA','Sahha-SDK-LA-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('SAI-CLA-UD07052024','SAI-CLA-UD07052024','Stability AI Community License Agreement - Updated Date 07-05-2024');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('SAI-CLA-UNSPECIFIED','SAI-CLA','SAI-CLA-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('SAI-DeepFloyd-IF-LA','SAI-DeepFloyd-IF-LA','Stability AI - DeepFloyd IF License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('SAI-NC-RCLA-04072024','SAI-NC-RCLA-04072024','Stability AI - Non-Commercial Research Community License Agreement - Dated 04-07-2024');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('SAI-NC-RCLA-11282023','SAI-NC-RCLA-11282023','Stability AI - Non-Commercial Research Community License Agreement - Dated 11-28-2023');

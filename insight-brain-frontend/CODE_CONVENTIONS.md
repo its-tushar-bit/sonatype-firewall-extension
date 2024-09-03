@@ -12,11 +12,6 @@ A live document containing our _current_ best practices, approaches, patterns an
 
 ## Contents
 
-- [ Pull-Request Best Practices ](#pull-request-best-practices)
-  - [ Creating and Merging Pull-Requests ](#creating-and-merging-pull-requests)
-  - [ Handling and Providing Feedback ](#handling-and-providing-feedback)
-    - [ Reviewers - Providing Feedback ](#reviewers-providing-feedback)
-    - [ Authors - Responding to Feedback ](#authors-responding-to-feedback)
 - [ Code Conventions ](#code-conventions)
   - [ Helpful Utilities ](#helpful-utilities)
   - [ Directory Structure ](#directory-structure)
@@ -28,50 +23,8 @@ A live document containing our _current_ best practices, approaches, patterns an
 - [ Testing ](#testing)
   - [ Writing tests for React components ](#writing-tests-for-react-components)
   - [ Mocking Rejected Promises ](#mocking-rejected-promises)
-  - [ Notes on Applitools ](#notes-on-applitools)
 
-## Pull-Request Best Practices
 
-### Creating and Merging Pull-Requests
-
-- When creating a branch include the Jira ticket number in the name and a brief description of the goal. i.e. `CLM-666_enable-page-insights`.
-- When creating a Pull-Request include:
-  - Jira number in the ticket's name. i.e. CLM-666 Some Adjustments.
-  - Link to Jira Ticket.
-  - Screenshots if it's a visual change.
-  - Any description or context that could aid the review process.
-- Use merge instead of rebase.
-  - Do not use commands that overwrite the git history (like rebase) when your branch is shared or in review.
-  - Merge is also beneficial when it comes to automatic conflict resolution.
-- Don't trust github green checkmarks - always check the Jenkins build directly.
-- Analyze if the comments left by `sonatype-lift` have value or relevancy.
-  - Some of lift's suggestions clash with our eslint suggestions — always go with eslint.
-  - Mark the conversation as resolved when the comment has been addressed (or ignored).
-- The Pull-Request needs a minimum of TWO approvals before being merged.
-- Enable Visual Testing (Applitools) during CI if the change introduces any changes to the UI.
-- In order to be merged a PR needs the aforementioned TWO approvals and a passing CI build (Jenkins).
-  - In the event that there's a pre-existing _Policy Violation_ Jenkins will report the build as failed. In this case you need to check that each individual step of the build has passed.
-- After merging the Pull-Request verify that the [Master Snapshot Build](https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/master-snapshot/) corresponding to your merge passes.
-
-### Handling and Providing Feedback
-
-The following section details the common etiquette for dealing with both providing and responding to feedback.
-
-#### Reviewers - Providing Feedback
-
-- Feedback should be provided on the relevant line(s) of code.
-- Provide several comments with each detailing a single concern rather than a huge wall of text with several concerns.
-- If possible use the code-suggestion feature.
-- Distinguish between change-requests (code-quality changes) and minor comments (personal preferences)
-  - Change-requests are comments that should be addressed.
-  - Minor comments are suggestions that may not need to be addressed
-- Mark the comments as resolved when they have been addressed.
-
-#### Authors - Responding to Feedback
-
-- Use the "Quote Reply" feature when replying to comments, and quote the relevant part. This will make review easier for people who rely on github emails.
-- Use atomic fixes - one commit per feedback comment.
-- Reply to the comment with the commit hash — github will automatically convert this hash into a link.
 
 ## Code Conventions
 
@@ -241,12 +194,3 @@ axiosMock.onGet(url).reply(() => Promise.reject('some error'));
 ```
 
 In a nutshell: don't create the rejected promise until you need it.
-
-### Notes on Applitools
-
-- Keep screenshots at a minimum.
-  - Usually one screenshot per page of the application is enough, unless the page in question has very complex and visually-distinct states.
-- Make sure that Applitools passes _before_ merging your Pull-Request.
-- If there are any expected applitools changes, accept them, and remember to click save so the baseline is updated.
-- If the changes you are seeing are NOT expected then it is a sign that something unintended is happening in the PR and needs to be addressed.
-- If `main` branch has an Applitools failure notify the relevant person, or send a message to the Slack #IQ channel.

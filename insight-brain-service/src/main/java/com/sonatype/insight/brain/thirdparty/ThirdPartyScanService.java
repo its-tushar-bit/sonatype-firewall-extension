@@ -66,4 +66,8 @@ public class ThirdPartyScanService
     }
     return scanReceipt;
   }
+
+  public void updateThirdPartyScanDataForBinaryScans(String scanId, String scanRequestId) {
+    scanResultsProcessor.postHandle(scanId, scanRequestId);
+  }
 }

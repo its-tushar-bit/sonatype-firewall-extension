@@ -452,7 +452,7 @@ public class PolicyEvaluateService
 
       try {
         ScanReceipt scanReceipt = scanHandler.handle(tempScanFile, app, clientScanType, thirdPartyScanTelemetryData,
-            stage.getStageTypeId(), clientUserAgent);
+            stage.getStageTypeId(), clientUserAgent, persistedPolicyEvaluationPollingResult.getStatusId());
         scanId = scanReceipt.getScanId();
 
         policyEvaluationPollingResult.setScanReceipt(scanReceipt);

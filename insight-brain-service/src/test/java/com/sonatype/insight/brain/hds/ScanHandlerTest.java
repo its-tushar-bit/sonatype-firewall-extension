@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.hds;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 import javax.inject.Inject;
 import javax.servlet.ServletInputStream;
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
@@ -21,6 +23,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.google.inject.Binder;
+import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -75,6 +78,30 @@ public class ScanHandlerTest
     assertThat(scanReceipt.getScanId()).isEqualTo(scanId);
     File scanFile = work.getScanFile(app.getId(), scanId);
     assertThat(scanFile).isFile().usingCharset(StandardCharsets.UTF_8).hasContent(scanFileContent);
+  }
+
+  @Test
+  public void testHandle_SbomManagerBinaryScan() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("test-app-id");
+    ScanReceipt scanReceipt = new ScanReceipt();
+    String scanId = "test-scan-id";
+    String scanRequestId = "scan-request-id";
+    scanReceipt.setScanId(scanId);
+    File scanDir = work.getScanDir(app.getId());
+    Files.createDirectories(scanDir.toPath());
+    File scanFile = FileUtils.createTempFile("temp-", ".xml.gz", scanDir);
+    String scanFileContent = "test scan file content";
+    Files.writeString(scanFile.getAbsoluteFile().toPath(), scanFileContent);
+    
+    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
+        any(File.class), anyMap())) //
+        .thenReturn(scanReceipt);
+    scanReceipt = scanHandler.handle(scanFile, app, ClientScanType.SONATYPE, null, ComplianceStageType.ID,
+        null , scanRequestId);
+
+    assertThat(scanReceipt.getScanId()).isEqualTo(scanId);
+    verify(thirdPartyScanService, times(1))
+        .updateThirdPartyScanDataForBinaryScans(scanReceipt.getScanId(), scanRequestId);
   }
 
   @Test

@@ -38,8 +38,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -101,7 +100,7 @@ public class SourceControlScanServiceAuditTest
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
     when(mockScanHandler.handle(any(File.class), any(Application.class), any(ClientScanType.class),
-        any(TelemetryData.class), any(String.class), any(String.class))) //
+        any(TelemetryData.class), anyString(),  anyString(), anyString())) //
             .thenReturn(scanReceipt);
 
     sourceControlScanService.onSourceControlScan(sourceControlEvent);

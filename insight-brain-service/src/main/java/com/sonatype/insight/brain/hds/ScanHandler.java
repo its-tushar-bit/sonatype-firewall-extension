@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -28,6 +29,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,7 +80,19 @@ public class ScanHandler
       ClientScanType clientScanType,
       TelemetryData thirdPartyScanTelemetryData,
       String stageTypeId,
-      String clientUserAgent)
+      String clientUserAgent) throws IOException
+  {
+    return handle(tempScanFile, app, clientScanType, thirdPartyScanTelemetryData, stageTypeId, clientUserAgent, null);
+  }
+
+  public ScanReceipt handle(
+      File tempScanFile,
+      Application app,
+      ClientScanType clientScanType,
+      TelemetryData thirdPartyScanTelemetryData,
+      String stageTypeId,
+      String clientUserAgent,
+      String scanRequestId)
       throws IOException
   {
     long start = System.currentTimeMillis();
@@ -92,6 +106,9 @@ public class ScanHandler
       }
       else {
         scanReceipt = scanUploader.upload(tempScanFile, app, stageTypeId, clientUserAgent);
+        if (ComplianceStageType.ID.equals(stageTypeId) && StringUtils.isNotEmpty(scanRequestId)) {
+          thirdPartyScanService.updateThirdPartyScanDataForBinaryScans(scanReceipt.getScanId(), scanRequestId);
+        }
       }
 
       File scanFile = work.getScanFile(app.getId(), scanReceipt.getScanId());

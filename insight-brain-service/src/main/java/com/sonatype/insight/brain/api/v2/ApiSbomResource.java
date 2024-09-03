@@ -58,6 +58,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.apache.commons.lang.StringUtils;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 @Named
@@ -273,14 +274,17 @@ public class ApiSbomResource
       @Parameter(description = "The internal id of the application", required = true)
       @FormDataParam("applicationId") String applicationId,
       @FormDataParam("file") InputStream inputStream,
+      @FormDataParam("file") FormDataContentDisposition fileDetail,
+      @Parameter(description = "Enable importing as a binary file. default = false")
+      @QueryParam("enableBinaryImport") @DefaultValue("false") boolean enableBinaryImport,
       @Context final HttpServletRequest request
   )
   {
     if (StringUtils.isBlank(applicationId)) {
       throw new BadRequestException("Missing required parameter [applicationId]");
     }
-
-    return apiSbomService.importSbom(applicationId, inputStream, HdsClient.getClientUserAgent(request));
+    return apiSbomService.importSbom(applicationId, inputStream, fileDetail.getFileName(), enableBinaryImport,
+        HdsClient.getClientUserAgent(request));
   }
 
   @Operation(summary = "Get sbom import status",

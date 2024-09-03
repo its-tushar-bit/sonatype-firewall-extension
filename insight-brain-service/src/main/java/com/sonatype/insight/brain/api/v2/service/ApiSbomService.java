@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -47,6 +46,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -110,8 +110,6 @@ public class ApiSbomService
   public static final String SBOM_VALIDATED_HEADER = "X-SBOM-Validated";
 
   public static final String SCAN_TYPE_BINARY = "BINARY";
-
-  public static final String BINARY_FILE_NAME = "binary.temp";
 
   private final DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 
@@ -396,20 +394,29 @@ public class ApiSbomService
 
   @Authorize(permission = Permission.WRITE)
   public Response importSbom(
-      @AuthzContext(Key.APPLICATION_ID) String applicationId,
-      InputStream inputStream,
-      String clientUserAgent)
+      final @AuthzContext(Key.APPLICATION_ID) String applicationId,
+      final InputStream inputStream,
+      final String fileName,
+      final boolean enableBinaryImport,
+      final String clientUserAgent)
   {
     if (sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
       throw new PaymentRequiredException(
           "You have exceeded the licensed limit of " + productLicense.getMaxSboms() + " sboms.");
     }
-    File userUploadedFile = saveInputStreamAsFile(inputStream);
-    SbomDetectionResult sbomDetectionResult = sbomFileDetector.getSbomDetectionResult(userUploadedFile);
-    if (!sbomDetectionResult.isSbom) {
-      throw new BadRequestException(sbomDetectionResult.errorMessage);
+    File clientFile = saveInputStreamAsFile(inputStream, fileName);
+    SbomDetectionResult sbomDetectionResult = sbomFileDetector.getSbomDetectionResult(clientFile);
+    if (sbomDetectionResult.isSbom) {
+      return scanAndEvaluateSbomFile(applicationId, clientFile, sbomDetectionResult, clientUserAgent);
     }
-    return scanAndEvaluateSbomFile(applicationId, userUploadedFile, sbomDetectionResult, clientUserAgent);
+    else if (enableBinaryImport && sbomDetectionResult.isBinary) {
+      if (SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.isEnabled()) {
+        log.debug("Initiating binary SBOM import for application {}", applicationId);
+        return scanAndEvaluateBinaryFile(applicationId, clientUserAgent, clientFile);
+      }
+      throw new BadRequestException("Importing binary files for SBOM Manager is disabled.");
+    }
+    throw new BadRequestException(sbomDetectionResult.errorMessage);
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
@@ -484,18 +491,17 @@ public class ApiSbomService
         .build();
   }
 
-  File saveInputStreamAsFile(InputStream inputStream) {
+  private File saveInputStreamAsFile(InputStream inputStream, String fileName) {
     try (InputStream ignored = inputStream) {
-      Path temporaryDirectoryPath = Files.createTempDirectory(UUID.randomUUID().toString()
-          .replace("-", "").substring(0, 6));
-      File clientFile = new File(temporaryDirectoryPath.toString(), BINARY_FILE_NAME);
+      File clientFile = new File(Files.createTempDirectory(null).toFile(), fileName);
+      log.debug("Saving file to {}", clientFile);
       try {
         Files.copy(inputStream, clientFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         log.debug("Saved client file at {}", clientFile.getPath());
         return clientFile;
       }
       catch (IOException e) {
-        FileUtils.deleteDirectory(temporaryDirectoryPath.toFile());
+        FileUtils.deleteDirectory(clientFile.getParentFile());
         log.debug("Failed to store client file");
         throw e;
       }
@@ -505,31 +511,23 @@ public class ApiSbomService
     }
   }
 
-  @VisibleForTesting
-  Response scanAndEvaluateBinaryFile(String applicationId, String clientUserAgent, File clientFile) {
+  private Response scanAndEvaluateBinaryFile(String applicationId, String clientUserAgent, File clientFile) {
     Application application = applicationDAO.getById(applicationId);
     ScanResult scanResult =
         sbomMetadataUtils.scanBinaryFile(application, clientFile, insightWork.getScanDir(applicationId));
     ApiThirdPartyScanTicketDTO scanTicketDTO = sbomMetadataUtils.createSbomImportTicket(applicationId);
-    createAndSaveThirdPartyData(applicationId, scanTicketDTO.requestId);
+    createAndSaveThirdPartyData(applicationId, clientFile.getName(), scanTicketDTO.requestId);
     ClientScanType clientScanType = scanResult.getClientScanType();
-    if (clientScanType == ClientScanType.SONATYPE_THIRD_PARTY) {
-      // TODO: We need to filter and upload the scan to HDS. However, while iterating the scan file contents we need
-      // to provide context that this scan type is a binary kind and therefore only create one set of third party
-      // database records as if we were handling a single SBOM file.
-    }
-    else {
-      policyEvaluateService.evaluateWithPolling(scanTicketDTO.requestId, application,
-          clientScanType, new Stage(StageTypes.COMPLIANCE.getId()), ScanTriggerType.SBOM_API,
-          scanResult.getScanFile(), ScannerDriver.SBOM_API.getValue(), clientUserAgent, null);
-    }
+    policyEvaluateService.evaluateWithPolling(scanTicketDTO.requestId, application, clientScanType,
+        new Stage(StageTypes.COMPLIANCE.getId()), ScanTriggerType.SBOM_API, scanResult.getScanFile(),
+        ScannerDriver.SBOM_API.getValue(), clientUserAgent, null);
     return Response.ok(Status.ACCEPTED)
         .entity(scanTicketDTO)
         .build();
   }
 
-  private void createAndSaveThirdPartyData(String applicationId, String scanRequestId) {
-    ThirdPartyFile thirdPartyFile = new ThirdPartyFile(BINARY_FILE_NAME, new Date());
+  private void createAndSaveThirdPartyData(String applicationId, String fileName, String scanRequestId) {
+    ThirdPartyFile thirdPartyFile = new ThirdPartyFile(fileName, new Date());
     thirdPartyFileDAO.insert(thirdPartyFile);
     ThirdPartyScan thirdPartyScan = new ThirdPartyScan(thirdPartyFile.getId(), scanRequestId, new Date());
     thirdPartyScanDAO.insert(thirdPartyScan);

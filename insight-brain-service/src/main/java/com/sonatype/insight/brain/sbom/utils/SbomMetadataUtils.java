@@ -138,13 +138,11 @@ public class SbomMetadataUtils
     }
     finally {
       try {
-        Files.delete(Path.of(binaryFile.getPath()));
+        FileUtils.delete(binaryFile);
         log.debug("Deleted binary file at {}", binaryFile.getPath());
-        Files.delete(binaryFile.getParentFile().toPath());
-        log.debug("Deleted binary file directory at {}", binaryFile.getParentFile().getPath());
       }
       catch (IOException e) {
-        log.warn("Unable to delete client file at {}", binaryFile.getPath(), e);
+        log.debug("Unable to delete client file at {}", binaryFile.getPath(), e);
       }
     }
   }

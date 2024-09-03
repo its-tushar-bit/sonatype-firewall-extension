@@ -194,9 +194,9 @@ public class SbomRegressionTest
   @Test
   public void testImportAndExport() throws Exception {
     //import flow
-    String originalSbom = getOriginalSbomFileName();
+    String originalSbomFileName = getOriginalSbomFileName();
     mockReport("SCAN-ID", getMockHdsReport());
-    byte[] sbomFile = loadFileFromAssets(originalSbom);
+    byte[] sbomFile = loadFileFromAssets(getOriginalSbomFileFullPath());
 
     // Mock HDS Security information
     String hdsSecurityResponseFile = getHDSSecurityResponseFileName();
@@ -205,7 +205,7 @@ public class SbomRegressionTest
     }
 
     HttpResponse importResponse = restRequest().path(ApiSbomResource.SBOM_IMPORT_PATH)
-        .part("file", originalSbom, sbomFile)
+        .part("file", originalSbomFileName, sbomFile)
         .part("applicationId", app.getId())
         .post();
 
@@ -302,8 +302,12 @@ public class SbomRegressionTest
     }
   }
 
+  private String getOriginalSbomFileFullPath() {
+    return ORIGINALS_DIR + getOriginalSbomFileName();
+  }
+
   private String getOriginalSbomFileName() {
-    return ORIGINALS_DIR + (StringUtils.isNotEmpty(variant) ?
+    return (StringUtils.isNotEmpty(variant) ?
         IMPORT_SBOM_VARIANT_TEMPLATE.formatted(importSpec, importSpecVersion, variant, importSpecFormat) :
         IMPORT_SBOM_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat));
   }

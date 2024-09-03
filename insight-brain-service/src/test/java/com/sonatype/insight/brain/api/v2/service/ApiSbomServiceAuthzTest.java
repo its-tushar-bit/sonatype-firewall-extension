@@ -106,14 +106,14 @@ public class ApiSbomServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testImportSbomVersion_Unauthenticated() {
-    apiSbomService.importSbom(DUMMY_APP_ID, new ByteArrayInputStream(new byte[0]), DUMMY_USER_AGENT);
+    apiSbomService.importSbom(DUMMY_APP_ID, new ByteArrayInputStream(new byte[0]), "file.txt",false,  DUMMY_USER_AGENT);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testImportSbomVersion_Unauthorized() {
     Application app = tempEntity.newApplicationWithParent();
     login();
-    apiSbomService.importSbom(app.getId(), new ByteArrayInputStream(new byte[0]), DUMMY_USER_AGENT);
+    apiSbomService.importSbom(app.getId(), new ByteArrayInputStream(new byte[0]),"file.txt", false, DUMMY_USER_AGENT);
   }
 
   @Test
@@ -122,9 +122,9 @@ public class ApiSbomServiceAuthzTest
     grantWritePermission(app.getId());
 
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(
-            () -> apiSbomService.importSbom(app.getId(), new ByteArrayInputStream(new byte[0]), DUMMY_USER_AGENT))
-        .withMessage("Provided file type is not a supported SBOM file type.");
+        .isThrownBy(() -> apiSbomService.importSbom(app.getId(), new ByteArrayInputStream(new byte[0]),
+            "file.txt",false,  DUMMY_USER_AGENT))
+        .withMessage("Not a valid/supported sbom file.");
   }
 
   @Test(expected = UnauthenticatedException.class)

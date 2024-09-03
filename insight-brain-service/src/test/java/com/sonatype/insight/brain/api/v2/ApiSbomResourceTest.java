@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataTestUtil;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentListDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -59,6 +60,7 @@ import com.sonatype.insight.scan.file.SbomFormat;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -576,6 +578,34 @@ public class ApiSbomResourceTest
   }
 
   @Test
+  public void testImportSbom_Binary() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
+    SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(true);
+
+    mockReport("SCAN-ID", "/" + getClass().getSimpleName() + "/report");
+
+    byte[] sbomFile = loadFileFromAssets("/" + getClass().getSimpleName() + "/app01.zip");
+    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_IMPORT_PATH)
+        .parameter(app.getId())
+        .part("file", "app01.zip", sbomFile)
+        .part("applicationId", app.getId())
+        .query("enableBinaryImport", "true")
+        .post();
+
+    assertResponseStatus(Status.OK.getStatusCode(), response);
+    ApiThirdPartyScanTicketDTO apiThirdPartyScanTicketDTO = response.getBody(ApiThirdPartyScanTicketDTO.class);
+    assertThat(apiThirdPartyScanTicketDTO.statusUrl).startsWith(
+        String.format("%s%s/%s/status", PublicApiPaths.SBOM_RESOURCE_PATH, ApiSbomResource.SBOMS_APPLICATIONS_PATH,
+            app.getId()));
+
+    ApiSbomStatusDTO resultDTO = getSbomStatusDTO(apiThirdPartyScanTicketDTO.statusUrl);
+    assertThat(resultDTO.errorMessage).isNull();
+    assertThat(resultDTO.isError).isFalse();
+    assertSbomMetadataIdIsSetOnThirdPartyCoordinateSecurityEntities(resultDTO);
+  }
+
+  @Test
   public void testImportSbom_EmptyApplicationId() throws Exception {
     byte[] sbomFile = loadFileFromAssets("/" + getClass().getSimpleName() + "/third-party-simple-bom.xml");
     HttpResponse response = restRequest().path(ApiSbomResource.SBOM_IMPORT_PATH)
@@ -694,10 +724,12 @@ public class ApiSbomResourceTest
     List<String> thirdPartyFileCoordinateIds = thirdPartyFileCoordinates.stream()
         .map(ThirdPartyFileCoordinate::getId)
         .collect(Collectors.toList());
-    List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurities = getCLMServer()
-        .getInstance(ThirdPartyCoordinateSecurityDAO.class)
-        .getByFileCoordinateIds(thirdPartyFileCoordinateIds);
-    assertThat(thirdPartyCoordinateSecurities)
-        .allMatch(s -> s.getSbomMetadataId().equals(thirdPartySbomMetadata.getId()));
+    if (CollectionUtils.isNotEmpty(thirdPartyFileCoordinateIds)) {
+      List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurities = getCLMServer()
+          .getInstance(ThirdPartyCoordinateSecurityDAO.class)
+          .getByFileCoordinateIds(thirdPartyFileCoordinateIds);
+      assertThat(thirdPartyCoordinateSecurities)
+          .allMatch(s -> s.getSbomMetadataId().equals(thirdPartySbomMetadata.getId()));
+    }
   }
 }

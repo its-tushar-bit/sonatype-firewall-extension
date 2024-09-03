@@ -96,7 +96,7 @@ make(
               callflow: callflowConfig
 
           if (stage == 'release') {
-            build(job: 'bnr/lifecycle-for-sonatype/generate-attribution-report',
+            build(job: 'lifecycle-for-sonatype/generate-attribution-report',
                   parameters: [
                     string(name: 'applicationId', value: 'insight-brain'),
                     string(name: 'applicationName', value: 'Nexus Lifecycle'),
@@ -104,7 +104,7 @@ make(
                   ]
               )
               copyArtifacts filter: "*insight-brain-${params.version}*.html",
-                  projectName: 'bnr/lifecycle-for-sonatype/generate-attribution-report'
+                  projectName: 'lifecycle-for-sonatype/generate-attribution-report'
             }
           }
     },

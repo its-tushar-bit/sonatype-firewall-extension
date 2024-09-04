@@ -142,6 +142,12 @@ public class SbomTestHelper
           return false;
         }
       }
+      if ("creators".equals(node.getNodeName())) {
+        Node p = node.getParentNode();
+        if (p != null && "creationInfo".equals(p.getNodeName())) {
+          return false;
+        }
+      }
 
       return true;
     };

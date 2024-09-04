@@ -34,6 +34,7 @@ public class StageTypesTest
       switch (stageType.getId()) {
         case DevelopStageType.ID:
         case ComplianceStageType.ID:
+        case ProxyStageType.ID:
           assertThat(StageTypes.isIgnoredForPolicyViolationAggregation(stageType.getId())).isTrue();
           break;
         default:

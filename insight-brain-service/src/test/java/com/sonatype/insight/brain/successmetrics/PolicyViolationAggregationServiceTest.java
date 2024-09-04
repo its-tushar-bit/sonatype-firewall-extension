@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.SourceStageType;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
@@ -196,6 +197,31 @@ public class PolicyViolationAggregationServiceTest
   }
 
   @Test
+  public void testGeneratePolicyViolationAggregations_metricsDoNotIncludeProxy() {
+    // === Given ===
+    final var now = new DateTime()
+        .withDayOfMonth(1)
+        .plusWeeks(2)
+        .withDayOfWeek(4);
+
+    final var app = tempEntity.newApplicationWithParent();
+    final var policy = tempEntity.newPolicy(app.getId(), "test policy", 10);
+    final var proxyEvalWithOpenViolation = tempEntity.newPolicyEvaluation(app.getId(), ProxyStageType.ID, "scan1",
+        now.minusHours(72).toDate());
+    tempEntity
+        .newPolicyViolation(proxyEvalWithOpenViolation, policy, null, null, "unknown component");
+
+    // === When Source Stage ===
+    service.generatePolicyViolationAggregations(Collections.singleton(app.getId()), now, true);
+
+    // === Then ===
+    final var aggregation = aggregationDAO
+        .getMostRecentByApplicationIdAndTimePeriod(app.getId(), MONTH);
+
+    assertThat(aggregation.getOpenCount(PolicyThreatCategory.SECURITY, ThreatLevel.CRITICAL)).isEqualTo(0);
+  }
+
+  @Test
   public void testGeneratePolicyViolationAggregations_throwsExcepctionIfConfiguredStageIsNotLicensed() {
     final var app = tempEntity.newApplicationWithParent();
     setSuccessMetricsStage(DevelopStageType.ID);
@@ -206,7 +232,7 @@ public class PolicyViolationAggregationServiceTest
 
     assertThat(thrown.getMessage()).isEqualTo(
         "Invalid property value for 'develop' for 'successMetricsStageId'. Please use one of the following " +
-            "values: '[proxy, operate, build, release, source, stage-release]'."
+            "values: '[operate, build, release, source, stage-release]'."
     );
   }
 

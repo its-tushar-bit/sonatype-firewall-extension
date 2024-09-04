@@ -68,6 +68,8 @@ public class StageTypes
   }
 
   public static boolean isIgnoredForPolicyViolationAggregation(String stageTypeId) {
-    return DevelopStageType.ID.equals(stageTypeId) || ComplianceStageType.ID.equals(stageTypeId);
+    return DevelopStageType.ID.equals(stageTypeId) ||
+        ComplianceStageType.ID.equals(stageTypeId) ||
+        ProxyStageType.ID.equals(stageTypeId);
   }
 }

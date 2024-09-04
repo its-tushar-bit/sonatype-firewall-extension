@@ -555,7 +555,7 @@ public class ScanPolicyEvaluator
 
           policyViolationDAO.insert(tx, newPolicyViolation);
 
-          recordConditionTypeViolationTelemetry(telemetryCollector, newPolicyViolation);
+          recordConditionTypeViolationTelemetry(telemetryCollector, newPolicyViolation, components);
 
           policyViolationLogger.add(PolicyViolationLogEvent.CREATE, newPolicyViolation);
           Component component =
@@ -685,14 +685,16 @@ public class ScanPolicyEvaluator
    */
   private void recordConditionTypeViolationTelemetry(
       final PolicyViolationTelemetryCollector telemetryCollector,
-      final PolicyViolation newPolicyViolation)
+      final PolicyViolation newPolicyViolation,
+      final List<Component> components)
   {
     for (ConstraintFact constraintFact : newPolicyViolation.getConstraintFacts()) {
       for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
         String conditionTypeId = conditionFact.getConditionTypeId();
 
         if (TELEMETRY_CONDITION_TYPES.contains(conditionTypeId)) {
-          telemetryCollector.addTelemetryForConditionTypeViolation(newPolicyViolation, conditionTypeId);
+          telemetryCollector.addTelemetryForConditionTypeViolation(newPolicyViolation, conditionTypeId, components);
+
         }
       }
     }

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -22,6 +23,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
 public class PolicyViolationTelemetryCollector
@@ -33,11 +35,17 @@ public class PolicyViolationTelemetryCollector
 
   static final String COUNT = "count";
 
+  static final String ECOSYSTEM = "ecosystem";
+
   static final String FIX_TIME = "fix_time";
 
   static final String IS_SCM_ENABLED = "is_scm_enabled";
 
   static final String OPEN_TIME = "open_time";
+
+  static final String POLICY_NAME = "policy_name";
+
+  static final String POLICY_VIOLATION_ID = "policy_violation_id";
 
   static final String STAGE = "stage_id";
 
@@ -93,7 +101,7 @@ public class PolicyViolationTelemetryCollector
       TelemetryData telemetryData =
           createTelemetry(TelemetryPurpose.TIME_TO_REMEDIATE_POLICY_VIOLATION, fixedPolicyViolation);
       if (components.size() == 1) {
-        addTelemetryDependencyInfo(components.get(0), telemetryData);
+        addComponentMetadata(telemetryData, components);
       }
       else if (components.size() > 1 && components.get(0).getInnerSourceData() != null) {
         telemetryData.put(INNERSOURCE_DEPENDENCY, true);
@@ -110,7 +118,7 @@ public class PolicyViolationTelemetryCollector
       if (fixByVersionChange != null) {
         TelemetryData telemetryData =
             createTelemetry(TelemetryPurpose.TIME_TO_CHANGE_VERSION_POLICY_VIOLATION, fixedPolicyViolation);
-        addTelemetryDependencyInfo(components.get(0), telemetryData);
+        addComponentMetadata(telemetryData, components);
         telemetryData.put(FIX_BY_VERSION_CHANGE, fixByVersionChange);
 
         telemetryData.put(FIX_TIME, timeOfPolicyEvaluation.getTime());
@@ -128,9 +136,7 @@ public class PolicyViolationTelemetryCollector
     if (unwaivedPolicyViolation != null) {
       TelemetryData telemetryData =
           createTelemetry(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION, unwaivedPolicyViolation);
-      if (component != null) {
-        addTelemetryDependencyInfo(component, telemetryData);
-      }
+      addComponentMetadata(telemetryData, component);
       telemetryData.put(UNWAIVE_TIME, timeOfPolicyEvaluation.getTime());
       telemetryData.put(COUNT, -1);
       telemetryData.put(POLICY_WAIVER_ID, oldPolicyWaiverId);
@@ -146,9 +152,7 @@ public class PolicyViolationTelemetryCollector
 
       TelemetryData telemetryData =
           createTelemetry(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION, waivedPolicyViolation);
-      if (component != null) {
-        addTelemetryDependencyInfo(component, telemetryData);
-      }
+      addComponentMetadata(telemetryData, component);
       telemetryData.put(WAIVER_EXPIRATION, waiverExpirationInDays);
       telemetryData.put(WAIVE_TIME, timeOfPolicyEvaluation.getTime());
       telemetryData.put(POLICY_WAIVER_ID, policyWaiverId);
@@ -156,10 +160,16 @@ public class PolicyViolationTelemetryCollector
     }
   }
 
-  public void addTelemetryForConditionTypeViolation(PolicyViolation policyViolation, String conditionType) {
+  public void addTelemetryForConditionTypeViolation(
+      PolicyViolation policyViolation,
+      String conditionType,
+      List<Component> components)
+  {
     if (policyViolation != null) {
-      telemetryDataList.add(createTelemetry(TelemetryPurpose.CONDITION_TYPE_VIOLATION, policyViolation)
-          .put(CONDITION_TYPE, conditionType));
+      TelemetryData telemetryData = createTelemetry(TelemetryPurpose.CONDITION_TYPE_VIOLATION, policyViolation)
+          .put(CONDITION_TYPE, conditionType);
+      addComponentMetadata(telemetryData, components);
+      telemetryDataList.add(telemetryData);
     }
   }
 
@@ -168,9 +178,7 @@ public class PolicyViolationTelemetryCollector
       TelemetryData telemetryData =
           createTelemetry(TelemetryPurpose.TIME_TO_LEGACY_VIOLATION, legacyViolation);
       telemetryData.put(LEGACY_VIOLATION_TIME, timeOfPolicyEvaluation.getTime());
-      if (component != null) {
-        addTelemetryDependencyInfo(component, telemetryData);
-      }
+      addComponentMetadata(telemetryData, component);
 
       telemetryDataList.add(telemetryData);
     }
@@ -183,6 +191,26 @@ public class PolicyViolationTelemetryCollector
     this.timeOfPolicyEvaluation = timeOfPolicyEvaluation;
   }
 
+  private void addComponentMetadata(TelemetryData telemetryData, List<Component> components) {
+    if (CollectionUtils.isNotEmpty(components)) {
+      addComponentMetadata(telemetryData, components.get(0));
+    }
+  }
+
+  private void addComponentMetadata(TelemetryData telemetryData, Component component) {
+    if (component != null) {
+      telemetryData.put(INNERSOURCE_DEPENDENCY, component.getInnerSourceData() != null);
+
+      if (component.getDirectDependency() != null) {
+        telemetryData.put(DIRECT_DEPENDENCY, component.getDirectDependency());
+      }
+
+      Optional.ofNullable(component.getComponentIdentifier())
+          .map(ComponentIdentifier::getFormat)
+          .ifPresent(ecosystem -> telemetryData.put(ECOSYSTEM, ecosystem));
+    }
+  }
+
   private TelemetryData createTelemetry(TelemetryPurpose telemetryPurpose, PolicyViolation policyViolation) {
     final TelemetryData telemetryData = new TelemetryData(telemetryPurpose)
         .put(APPLICATION_ID, HdsClientAnalytics.obfuscate(policyViolation.getApplicationId()))
@@ -190,6 +218,8 @@ public class PolicyViolationTelemetryCollector
         .put(IS_SCM_ENABLED, isScmEnabled)
         .put(COUNT, 1)
         .put(OPEN_TIME, policyViolation.getOpenTime().getTime())
+        .put(POLICY_NAME, policyViolation.getPolicyName())
+        .put(POLICY_VIOLATION_ID, policyViolation.getId())
         .put(TIME, computeTimeBetween(policyViolation.getOpenTime(), timeOfPolicyEvaluation))
         .put(THREAT_CATEGORY, policyViolation.getThreatCategory().getName())
         .put(THREAT_LEVEL, policyViolation.getThreatLevel());
@@ -231,13 +261,5 @@ public class PolicyViolationTelemetryCollector
       }
     }
     return "never";
-  }
-
-  private void addTelemetryDependencyInfo(Component component, TelemetryData telemetryData) {
-    telemetryData.put(INNERSOURCE_DEPENDENCY, component.getInnerSourceData() != null);
-
-    if (component.getDirectDependency() != null) {
-      telemetryData.put(DIRECT_DEPENDENCY, component.getDirectDependency());
-    }
   }
 }

@@ -49,7 +49,7 @@ public class ScanUploader
    *
    * @since 1.8
    */
-  public ScanReceipt upload(
+  ScanReceipt upload(
       File scanFile,
       Application application,
       String stageTypeId,

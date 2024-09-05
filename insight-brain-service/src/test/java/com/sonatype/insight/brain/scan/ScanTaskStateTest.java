@@ -13,6 +13,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.hds.ScanUploadService;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
@@ -22,12 +23,13 @@ import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,12 +47,15 @@ import static org.mockito.Mockito.when;
  * 
  * Refer to {@link ScanStateToTicketTranslatorTest} for translation from state to ticket steps.
  */
+@RunWith(MockitoJUnitRunner.class)
 public class ScanTaskStateTest
     extends AbstractDataTest
 {
   Scanner scanner = mock(Scanner.class);
 
   ScanUploader uploader = mock(ScanUploader.class);
+
+  ScanUploadService scanUploadService = mock(ScanUploadService.class);
 
   ScanPolicyEvaluator scanPolicyEvaluator = mock(ScanPolicyEvaluator.class);
 
@@ -62,8 +67,6 @@ public class ScanTaskStateTest
 
   private ProprietaryConfigService proprietaryConfigService = mock(ProprietaryConfigService.class);
 
-  private ThirdPartyScanService thirdPartyScanService = mock(ThirdPartyScanService.class);
-
   private TelemetryUtils telemetryUtils = mock(TelemetryUtils.class);
 
   ScanTask task;
@@ -72,8 +75,8 @@ public class ScanTaskStateTest
 
   @Before
   public void init() throws Exception {
-    task = new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner,
-        proprietaryConfigService, thirdPartyScanService, daoFactory.createPersistedScanTicketDAO(), telemetryUtils);
+    task = new ScanTask(scanner, scanPolicyEvaluator, notifier, work, fileCleaner,
+        proprietaryConfigService, scanUploadService, daoFactory.createPersistedScanTicketDAO(), telemetryUtils);
 
     File binFile = new File("any");
     Application application = new Application("any", "MyApp", null);
@@ -100,7 +103,9 @@ public class ScanTaskStateTest
 
   @Test
   public void uploading() throws IOException {
-    when(uploader.upload(any(), any(Application.class), anyString(), eq(null))).then(captureState);
+    ScanReceipt scanReciept = mock(ScanReceipt.class);
+    when(scanUploadService.upload(any(), any(Application.class), anyString(), any(ClientScanType.class), any(), any(),
+        any())).then(captureState).thenReturn(scanReciept);
 
     task.run();
 
@@ -110,7 +115,8 @@ public class ScanTaskStateTest
   @Test
   public void waitingForReport() throws IOException, InterruptedException {
     ScanReceipt scanReciept = mock(ScanReceipt.class);
-    when(uploader.upload(any(), any(Application.class), anyString(), eq(null))).thenReturn(scanReciept);
+    when(scanUploadService.upload(any(), any(Application.class), anyString(), any(ClientScanType.class), any(), any(),
+        any())).thenReturn(scanReciept);
 
     doAnswer(captureState).when(scanReciept).waitForReport();
 
@@ -122,9 +128,10 @@ public class ScanTaskStateTest
   @Test
   public void evaluating() throws IOException {
     ScanReceipt scanReciept = mock(ScanReceipt.class);
-    when(uploader.upload((File) any(), any(Application.class), anyString(), eq(null))).thenReturn(scanReciept);
+    when(scanUploadService.upload(any(), any(Application.class), anyString(), any(ClientScanType.class), any(), any(),
+        any())).thenReturn(scanReciept);
 
-    when(scanPolicyEvaluator.evaluate(any(), (String) any(), (Stage) any(), eq(ScanTriggerType.WEB_UI),
+    when(scanPolicyEvaluator.evaluate(any(), any(), any(), eq(ScanTriggerType.WEB_UI),
         eq(ClientScanType.SONATYPE))).then(captureState);
 
     task.run();

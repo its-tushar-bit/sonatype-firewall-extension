@@ -18,7 +18,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
-import com.sonatype.insight.brain.hds.ScanUploader;
+import com.sonatype.insight.brain.hds.ScanUploadService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -76,7 +76,7 @@ public class ScanServiceTest
   private TestProductLicense testProductLicense;
 
   @Mock
-  private ScanUploader scanUploader;
+  private ScanUploadService scanUploader;
 
   @Mock
   private ReportDownloader reportDownloader;
@@ -97,7 +97,7 @@ public class ScanServiceTest
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(ScanUploader.class).toInstance(scanUploader);
+    binder.bind(ScanUploadService.class).toInstance(scanUploader);
     binder.bind(ReportDownloader.class).toInstance(reportDownloader);
     binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
     super.configure(binder);
@@ -108,7 +108,7 @@ public class ScanServiceTest
     app = tempEntity.newApplication(tempEntity.newOrganization().getId());
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scan-id");
-    lenient().when(scanUploader.upload((File) any(), any(Application.class), anyString(), eq(null)))
+    lenient().when(scanUploader.upload(any(), any(Application.class), anyString(), any(), eq(null), any(), any()))
         .thenReturn(receipt);
     lenient().when(reportDownloader.downloadReport(eq(receipt.getScanId()), (File) any(), anyInt(), anyInt())).then(
         (Answer<Boolean>) invocation -> {
@@ -179,8 +179,9 @@ public class ScanServiceTest
 
     // Setup mock scan uploader so that it blocks on tenant 1 scans
     Mockito.reset(scanUploader);
-    when(scanUploader.upload((File) any(), any(Application.class), anyString(), eq(null))).thenAnswer(
-        invocation -> {
+    when(scanUploader.upload(any(), any(Application.class), anyString(), any(ClientScanType.class), eq(null),
+        any(), any()))
+        .thenAnswer(invocation -> {
           String appPublicId = ((Application) invocation.getArgument(1)).getPublicId();
           if (appPublicId.startsWith("t1") &&
               !countDownLatch.await(5, TimeUnit.SECONDS)) {

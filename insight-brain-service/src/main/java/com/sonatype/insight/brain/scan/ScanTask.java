@@ -17,7 +17,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
-import com.sonatype.insight.brain.hds.ScanUploader;
+import com.sonatype.insight.brain.hds.ScanUploadService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
@@ -28,8 +28,6 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
-import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -78,8 +76,6 @@ class ScanTask
 
   private final Scanner scanner;
 
-  private final ScanUploader uploader;
-
   private final ScanPolicyEvaluator scanPolicyEvaluator;
 
   private final PolicyAlertNotifier policyAlertNotifier;
@@ -92,7 +88,7 @@ class ScanTask
 
   private final ProprietaryConfigService proprietaryConfigService;
 
-  private final ThirdPartyScanService thirdPartyScanService;
+  private final ScanUploadService scanUploadService;
 
   private final TelemetryUtils telemetryUtils;
 
@@ -123,24 +119,22 @@ class ScanTask
   @Inject
   public ScanTask(
       Scanner scanner,
-      ScanUploader uploader,
       ScanPolicyEvaluator scanPolicyEvaluator,
       PolicyAlertNotifier policyAlertNotifier,
       InsightWork work,
       FileCleaner fileCleaner,
       ProprietaryConfigService proprietaryConfigService,
-      ThirdPartyScanService thirdPartyScanService,
+      ScanUploadService scanUploadService,
       PersistedScanTicketDAO persistedScanTicketDAO,
       TelemetryUtils telemetryUtils)
   {
     this.scanner = scanner;
-    this.uploader = uploader;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
     this.work = work;
     this.fileCleaner = fileCleaner;
     this.proprietaryConfigService = proprietaryConfigService;
-    this.thirdPartyScanService = thirdPartyScanService;
+    this.scanUploadService = scanUploadService;
     this.persistedScanTicketDAO = persistedScanTicketDAO;
     this.telemetryUtils = telemetryUtils;
     id = UUID.randomUUID().toString().replace("-", "");
@@ -223,17 +217,11 @@ class ScanTask
       state = State.UPLOADING_SCAN;
       persistedScanTicketDAO.update(toPersistedScanTicket());
 
-      ScanReceipt scanReceipt;
-      if (ClientScanType.SONATYPE_THIRD_PARTY.equals(scanResult.getClientScanType())) {
-        scanReceipt = thirdPartyScanService.filterAndUpload(scanResult.getScanFile(), app, stage.getStageTypeId(),
-            null /* clientUserAgent */,
-            telemetryUtils.buildThirdPartyScanTelemetryData(appPublicId, stage, scanType, null /* scanTriggerType */,
-                userAgent));
-      }
-      else {
-        scanReceipt =
-            uploader.upload(scanResult.getScanFile(), app, stage.getStageTypeId(), null /* clientUserAgent */);
-      }
+      ScanReceipt scanReceipt = scanUploadService.upload(scanResult.getScanFile(), app, stage.getStageTypeId(),
+          scanResult.getClientScanType(),
+          userAgent,
+          telemetryUtils.buildThirdPartyScanTelemetryData(appPublicId, stage, scanType, null /* scanTriggerType */,
+              userAgent), null);
 
       if (StringUtils.isNotBlank(scanReceipt.getScanId())) {
         FileUtils.moveFile(scanResult.getScanFile(), work.getScanFile(app.getId(), scanReceipt.getScanId()));

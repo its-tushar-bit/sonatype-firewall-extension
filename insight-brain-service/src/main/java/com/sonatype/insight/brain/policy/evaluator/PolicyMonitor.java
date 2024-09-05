@@ -33,7 +33,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
-import com.sonatype.insight.brain.hds.ScanUploader;
+import com.sonatype.insight.brain.hds.ScanUploadService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -50,7 +50,6 @@ import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -79,8 +78,6 @@ public class PolicyMonitor
 
   private final InsightWork work;
 
-  private final ScanUploader uploader;
-
   private final ScanPolicyEvaluator scanPolicyEvaluator;
 
   private final PolicyAlertNotifier policyAlertNotifier;
@@ -89,7 +86,7 @@ public class PolicyMonitor
 
   private final AuditRecorder auditRecorder;
 
-  private final ThirdPartyScanService thirdPartyScanService;
+  private final ScanUploadService scanUploadService;
 
   private final PolicyMonitoringDAO policyMonitoringDAO;
 
@@ -114,12 +111,11 @@ public class PolicyMonitor
   @Inject
   public PolicyMonitor(
       final InsightWork work,
-      final ScanUploader uploader,
       final ScanPolicyEvaluator scanPolicyEvaluator,
       final PolicyAlertNotifier policyAlertNotifier,
       final ProductLicense productLicense,
       final AuditRecorder auditRecorder,
-      final ThirdPartyScanService thirdPartyScanService,
+      final ScanUploadService scanUploadService,
       final PolicyMonitoringDAO policyMonitoringDAO,
       final OwnerDAO ownerDAO,
       final ApplicationDAO applicationDAO,
@@ -132,12 +128,11 @@ public class PolicyMonitor
       final TelemetryUtils telemetryUtils)
   {
     this.work = work;
-    this.uploader = uploader;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
     this.productLicense = productLicense;
     this.auditRecorder = auditRecorder;
-    this.thirdPartyScanService = thirdPartyScanService;
+    this.scanUploadService = scanUploadService;
     this.policyMonitoringDAO = policyMonitoringDAO;
     this.ownerDAO = ownerDAO;
     this.applicationDAO = applicationDAO;
@@ -408,7 +403,9 @@ public class PolicyMonitor
   private String uploadFilteredScanForComplianceStage(File filteredScanFile, Application app)
       throws IOException, InterruptedException
   {
-    ScanReceipt scanReceipt = uploader.upload(filteredScanFile, app, ComplianceStageType.ID, null /*clientUserAgent*/);
+    ScanReceipt scanReceipt =
+        scanUploadService.upload(filteredScanFile, app, ComplianceStageType.ID, ClientScanType.SONATYPE, null, null,
+            null);
     scanReceipt.waitForReport();
     return scanReceipt.getScanId();
   }
@@ -416,14 +413,10 @@ public class PolicyMonitor
   private String uploadScan(File tempScanFile, Application app, String stageTypeId, boolean hasThirdPartyContent)
       throws IOException, InterruptedException
   {
-    ScanReceipt scanReceipt;
-    if (hasThirdPartyContent) {
-      scanReceipt =
-          thirdPartyScanService.filterAndUpload(tempScanFile, app, stageTypeId, null /* clientUserAgent */, null);
-    }
-    else {
-      scanReceipt = uploader.upload(tempScanFile, app, stageTypeId, null /* clientUserAgent */);
-    }
+    ClientScanType clientScanType =
+        hasThirdPartyContent ? ClientScanType.SONATYPE_THIRD_PARTY : ClientScanType.SONATYPE;
+    ScanReceipt scanReceipt =
+        scanUploadService.upload(tempScanFile, app, stageTypeId, clientScanType, null, null, null);
     scanReceipt.waitForReport();
     String scanId = scanReceipt.getScanId();
     Files.move(tempScanFile.toPath(), work.getScanFile(app.getId(), scanId).toPath());

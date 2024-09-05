@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.ServletInputStream;
@@ -18,18 +17,15 @@ import javax.servlet.http.HttpServletRequest;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,23 +39,19 @@ public class ScanHandler
 
   private final InsightWork work;
 
-  private final ScanUploader scanUploader;
-
   private final ApplicationDAO appDAO;
 
-  private final ThirdPartyScanService thirdPartyScanService;
+  private final ScanUploadService scanUploadService;
 
   @Inject
   public ScanHandler(
       InsightWork work,
-      ScanUploader scanUploader,
       ApplicationDAO appDAO,
-      ThirdPartyScanService thirdPartyScanService)
+      ScanUploadService scanUploadService)
   {
     this.work = work;
-    this.scanUploader = scanUploader;
     this.appDAO = appDAO;
-    this.thirdPartyScanService = thirdPartyScanService;
+    this.scanUploadService = scanUploadService;
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
@@ -99,18 +91,9 @@ public class ScanHandler
     log.debug("Received {} scan for application public id {}.", clientScanType, app.getPublicId());
 
     try {
-      ScanReceipt scanReceipt;
-      if (ClientScanType.SONATYPE_THIRD_PARTY.equals(clientScanType)) {
-        scanReceipt = thirdPartyScanService.filterAndUpload(tempScanFile, app, stageTypeId, clientUserAgent,
-            thirdPartyScanTelemetryData);
-      }
-      else {
-        scanReceipt = scanUploader.upload(tempScanFile, app, stageTypeId, clientUserAgent);
-        if (ComplianceStageType.ID.equals(stageTypeId) && StringUtils.isNotEmpty(scanRequestId)) {
-          thirdPartyScanService.updateThirdPartyScanDataForBinaryScans(scanReceipt.getScanId(), scanRequestId);
-        }
-      }
-
+      ScanReceipt scanReceipt =
+          scanUploadService.upload(tempScanFile, app, stageTypeId, clientScanType, clientUserAgent,
+              thirdPartyScanTelemetryData, scanRequestId);
       File scanFile = work.getScanFile(app.getId(), scanReceipt.getScanId());
       FileUtils.rename(tempScanFile, scanFile);
 

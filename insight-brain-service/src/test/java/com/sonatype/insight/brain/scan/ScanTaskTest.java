@@ -13,7 +13,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.common.io.FileCleaner;
-import com.sonatype.insight.brain.hds.ScanUploader;
+import com.sonatype.insight.brain.hds.ScanUploadService;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetryDataObfuscator;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -57,7 +56,7 @@ public class ScanTaskTest
 {
   private final Scanner scanner = mock(Scanner.class);
 
-  private final ScanUploader uploader = mock(ScanUploader.class);
+  private final ScanUploadService uploadService = mock(ScanUploadService.class);
 
   private final ScanPolicyEvaluator scanPolicyEvaluator = mock(ScanPolicyEvaluator.class);
 
@@ -68,8 +67,6 @@ public class ScanTaskTest
   final FileCleaner fileCleaner = mock(FileCleaner.class);
 
   private final ProprietaryConfigService proprietaryConfigService = mock(ProprietaryConfigService.class);
-
-  private final ThirdPartyScanService thirdPartyScanService = mock(ThirdPartyScanService.class);
 
   private final TelemetryUtils telemetryUtils =
       new TelemetryUtils(new TelemetryDataObfuscator(mock(Configuration.class)));
@@ -97,8 +94,8 @@ public class ScanTaskTest
 
   @Before
   public void init() throws Exception {
-    task = new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner, proprietaryConfigService,
-        thirdPartyScanService, daoFactory.createPersistedScanTicketDAO(), telemetryUtils);
+    task = new ScanTask(scanner, scanPolicyEvaluator, notifier, work, fileCleaner, proprietaryConfigService,
+        uploadService, daoFactory.createPersistedScanTicketDAO(), telemetryUtils);
 
     scanReceipt.setScanId("scan-id");
     bundleFile = tmpDir.newFile("app.zip");
@@ -110,12 +107,12 @@ public class ScanTaskTest
     when(work.getScanDir(eq(app.getId()))).thenReturn(scanDir);
     when(work.getScanFile(eq(app.getId()), eq(scanReceipt.getScanId()))).thenReturn(scanFile);
 
-    when(uploader.upload(eq(tmpScanFile), eq(app), anyString(), eq(null))).thenReturn(scanReceipt);
+    when(uploadService.upload(eq(tmpScanFile), eq(app), anyString(), any(ClientScanType.class), eq(null), any(),
+        any())).thenReturn(scanReceipt);
     ScanResult scanResult = new ScanResult(tmpScanFile, false);
     when(scanner.scan(eq(bundleFile), eq(bundleFilename), eq(scanDir), eq(null))).thenReturn(scanResult);
-    when(thirdPartyScanService.filterAndUpload(any(File.class), eq(app), any(String.class), eq(null),
-        any(TelemetryData.class))) //
-        .thenReturn(scanReceipt);
+    when(uploadService.upload(any(File.class), any(Application.class), any(), eq(ClientScanType.SONATYPE),
+        any(), any(), any())).thenReturn(scanReceipt);
   }
 
   private static Stage match(Stage stage) {
@@ -152,7 +149,7 @@ public class ScanTaskTest
   /**
    * The client will assemble a UI route to the functionality that displays the report. It needs the public app id and
    * the scan id to make this happen.
-   * 
+   * <p>
    * This is preferred over using the {@link UserInterfaceLinksResource} so that the UI state is not destroyed and
    * browser history is preserved. UserInterfaceLinksResource are stable links that redirect to the UI for rendering,
    * hence interrupt the app (reloading the page) and browser history.
@@ -231,17 +228,20 @@ public class ScanTaskTest
   @Test
   public void testRun_processThirdPartyScanResults() throws Exception {
     File scanBinary = new File("any");
-    when(thirdPartyScanService.filterAndUpload(scanBinary, app, stage.getStageTypeId(), null, null))
-        .thenReturn(scanReceipt);
+    ScanReceipt receipt = mock(ScanReceipt.class);
+    when(uploadService.upload(scanBinary, app, stage.getStageTypeId(), ClientScanType.SONATYPE_THIRD_PARTY,
+        null, null, null)).thenReturn(scanReceipt);
+
     task.init(app, scanBinary, bundleFilename, stage, false, "agent", "ui");
     when(scanner.scan(any(File.class), any(String.class), any(File.class), eq(null)))
         .thenReturn(new ScanResult(scanBinary, true));
 
-    when(uploader.upload(any(File.class), eq(app), anyString(), eq(null))).thenReturn(scanReceipt);
+    when(uploadService.upload(any(File.class), eq(app), anyString(), any(ClientScanType.class), any(), any(),
+        any())).thenReturn(receipt);
     task.run();
     ArgumentCaptor<TelemetryData> arg = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(thirdPartyScanService).filterAndUpload(eq(scanBinary), eq(app), eq(stage.getStageTypeId()), eq(null),
-        arg.capture());
+    verify(uploadService).upload(eq(scanBinary), eq(app), eq(stage.getStageTypeId()),
+        eq(ClientScanType.SONATYPE_THIRD_PARTY), eq("agent"), arg.capture(), eq(null));
 
     TelemetryData telemetryData = arg.getValue();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.THIRD_PARTY_SCAN_USAGE);

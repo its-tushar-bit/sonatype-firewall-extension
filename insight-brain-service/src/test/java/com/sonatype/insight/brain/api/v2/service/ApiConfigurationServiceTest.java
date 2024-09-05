@@ -555,8 +555,8 @@ public class ApiConfigurationServiceTest
         Maps.newHashMap(SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID, StageTypes.BUILD.getId())));
 
     assertThat(exception.getMessage()).isEqualTo(
-        "Invalid property value for 'build' for 'successMetricsStageId'. " +
-            "Please use one of the following values: '[release]'.");
+        "Invalid value 'build' provided for successMetricsStageId. " +
+            "Allowed values are: '[release]'");
   }
 
   @Test

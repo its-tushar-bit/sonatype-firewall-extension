@@ -231,8 +231,8 @@ public class PolicyViolationAggregationServiceTest
             Collections.singleton(app.getId()), DateTime.now(), true));
 
     assertThat(thrown.getMessage()).isEqualTo(
-        "Invalid property value for 'develop' for 'successMetricsStageId'. Please use one of the following " +
-            "values: '[operate, build, release, source, stage-release]'."
+        "Invalid value 'develop' provided for successMetricsStageId. Allowed values are: " +
+            "'[operate, build, release, source, stage-release]'"
     );
   }
 

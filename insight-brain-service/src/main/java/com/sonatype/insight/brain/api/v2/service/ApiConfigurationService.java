@@ -67,7 +67,7 @@ public class ApiConfigurationService
       "Invalid property value type for %s, expected %s but got %s.";
 
   public static final String INVALID_SUCCESS_METRIC_STAGE_ID_ERROR_MSG =
-      "Invalid property value for '%s' for '%s'. Please use one of the following values: '%s'.";
+      "Invalid value '%s' provided for %s. Allowed values are: '%s'";
 
   // Visible for testing
   public static final String NO_PROPERTIES_ERROR_MSG = "No properties were specified.";

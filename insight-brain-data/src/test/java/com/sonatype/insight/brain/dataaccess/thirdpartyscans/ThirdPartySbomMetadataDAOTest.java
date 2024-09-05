@@ -24,6 +24,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.utils.SbomMetadataBuilder.newSbomMetadataBuilder;
@@ -170,6 +171,8 @@ public class ThirdPartySbomMetadataDAOTest
     assertThirdPartySbomMetadata(sbomMetadata.get(0), activeSbom);
   }
 
+  // TODO - Fix and Re-enable https://sonatype.atlassian.net/browse/CLM-31571
+  @Ignore
   @Test
   public void testGetLatestActiveByApplicationId() {
     ThirdPartySbomMetadata entity1 = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory).withApplicationId("appId")

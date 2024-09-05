@@ -300,7 +300,7 @@ public class ApiReportDataServiceV2
     return node.get(fieldName) == null ? null : node.get(fieldName).booleanValue();
   }
 
-  private ApiApplicationBaseDTO getApplicationMetadata(Application application) {
+  private static ApiApplicationBaseDTO getApplicationMetadata(Application application) {
     ApiApplicationBaseDTO applicationDto = new ApiApplicationBaseDTO();
     applicationDto.id = application.getId();
     applicationDto.publicId = application.getPublicId();

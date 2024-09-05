@@ -52,15 +52,16 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * @since 1.76
@@ -124,21 +125,19 @@ public class ApiComponentsWithWaiversReportingService
       return componentId != null && componentId.getFormat().equals(format);
     };
 
-    Predicate<AbstractPolicyViolation> overallPredicate =
+    final Predicate<AbstractPolicyViolation> overallPredicate =
         format == null ? statePredicate : statePredicate.and(formatPredicate);
 
-    final List<List<Application>> applicationBatches =
-            ListUtils.partition(applicationService.getApplications(), appBatchSize);
     ApiComponentWaiversDTO componentWaiversDTO = new ApiComponentWaiversDTO();
-    componentWaiversDTO.applicationWaivers = new ArrayList<>();
+    componentWaiversDTO.applicationWaivers = Collections.synchronizedList(new ArrayList<>());
 
-    for (List<Application> applications : applicationBatches) {
-      Collection<ApplicationView> appViews =
-          policyViolationLoader.getViolations(applications, null, false, overallPredicate);
-
-      componentWaiversDTO.applicationWaivers
-              .addAll(buildApplicationWaiverDTOs(appViews, componentsWithWaiversCount,
-                      applicationComponentsWithWaiversCount));
+    for (List<Application> applications : ListUtils.partition(applicationService.getApplications(), appBatchSize)) {
+      buildApplicationWaiverDTOs(
+          policyViolationLoader.getViolations(applications, null, false, overallPredicate),
+          componentsWithWaiversCount,
+          applicationComponentsWithWaiversCount,
+          componentWaiversDTO.applicationWaivers::add
+      );
     }
 
     final List<RepositoryDTO> repositoryDTOs = repositoryService.getRepositories().repositories;
@@ -154,20 +153,19 @@ public class ApiComponentsWithWaiversReportingService
     return componentWaiversDTO;
   }
 
-  private List<ApiApplicationWaiverDTO> buildApplicationWaiverDTOs(
-      Collection<ApplicationView> appViews,
+  private void buildApplicationWaiverDTOs(
+      final Collection<ApplicationView> appViews,
       final AtomicInteger componentsWithWaiversCount,
-      final AtomicInteger applicationComponentsWithWaiversCount)
+      final AtomicInteger applicationComponentsWithWaiversCount,
+      final Consumer<ApiApplicationWaiverDTO> waiverConsumer)
   {
-    List<ApiApplicationWaiverDTO> applicationWaiverDTOs = new ArrayList<>();
-
-    List<CompletableFuture<List<ApiApplicationWaiverDTO>>> dtoFutures = appViews.stream()
+    appViews
+        .stream()
         .map(appView -> {
           return CompletableFuture.supplyAsync(() -> {
             Application app = appView.getApplication();
 
-            List<PolicyViolation> allAppPolicyViolations = new ArrayList<>();
-            List<ApiApplicationWaiverDTO> localDTOs = new ArrayList<>();
+            boolean anyAppPolicyViolations = false;
 
             ApiApplicationWaiverDTO applicationWaiverDTO = new ApiApplicationWaiverDTO();
             applicationWaiverDTO.application = buildApplicationBaseDTO(app);
@@ -178,12 +176,14 @@ public class ApiComponentsWithWaiversReportingService
               if (policyViolations.isEmpty()) {
                 continue;
               }
-              allAppPolicyViolations.addAll(policyViolations);
+              else {
+                anyAppPolicyViolations = true;
+              }
 
-              ApiPolicyViolationStageDTO policyViolationStageDTO =
+              final ApiPolicyViolationStageDTO policyViolationStageDTO =
                   buildPolicyViolationStageDTO(applicationWaiverDTO, appStageView.getStageType().getId());
 
-              List<ApiComponentPolicyViolationDTO> componentPolicyViolationDTOs = new ArrayList<>();
+              final List<ApiComponentPolicyViolationDTO> componentPolicyViolationDTOs = new ArrayList<>();
               policyViolationStageDTO.componentPolicyViolations = componentPolicyViolationDTOs;
 
               /*
@@ -191,48 +191,51 @@ public class ApiComponentsWithWaiversReportingService
                * component identifier, we filter and group the waived policy violations by non-null component identifier
                * and process accordingly.
                */
-              policyViolations.stream()
+              policyViolations
+                  .stream()
                   .filter(p -> p.getComponentIdentifier() != null)
                   .collect(Collectors.groupingBy(PolicyViolation::getComponentIdentifier))
                   .forEach((componentIdentifier, policyViolationsByComponent) -> {
                     applicationComponentsWithWaiversCount.incrementAndGet();
-
-                    // Grab the first hash it should be the same for all violations
-                    String hash = policyViolationsByComponent.get(0).getHash();
                     // for this component identifier create a dto list of all the waived policy violations
-                    ApiComponentPolicyViolationDTO componentPolicyViolationDTO =
-                        buildComponentPolicyViolationDTO(policyViolationsByComponent, componentIdentifier, hash,
-                            app.getId());
-
-                    componentPolicyViolationDTOs.add(componentPolicyViolationDTO);
+                    componentPolicyViolationDTOs.add(buildComponentPolicyViolationDTO(
+                        policyViolationsByComponent,
+                        componentIdentifier,
+                        policyViolationsByComponent.get(0).getHash(),
+                        app.getId()
+                    ));
                   });
 
               // Filter and group policy violations by hash where the component identifier is null but does have a hash
-              policyViolations.stream()
+              policyViolations
+                  .stream()
                   .filter(p -> p.getComponentIdentifier() == null && p.getHash() != null)
                   .collect(Collectors.groupingBy(PolicyViolation::getHash))
                   .forEach((hash, policyViolationsByHash) -> {
                     applicationComponentsWithWaiversCount.incrementAndGet();
                     // for this hash create a dto list of all the waived policy violations
-                    ApiComponentPolicyViolationDTO componentPolicyViolationDTO =
-                        buildComponentPolicyViolationDTO(policyViolationsByHash, null, hash, app.getId());
-
-                    componentPolicyViolationDTOs.add(componentPolicyViolationDTO);
+                    componentPolicyViolationDTOs.add(buildComponentPolicyViolationDTO(
+                        policyViolationsByHash,
+                        null,
+                        hash,
+                        app.getId()
+                    ));
                   });
             }
 
-            if (!allAppPolicyViolations.isEmpty()) {
-              localDTOs.add(applicationWaiverDTO);
+            if (anyAppPolicyViolations) {
+              return applicationWaiverDTO;
             }
-            return localDTOs;
+            else {
+              return null;
+            }
           }, ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.GENERAL));
-        }).collect(toList());
-
-    dtoFutures.stream().map(CompletableFuture::join).forEach(applicationWaiverDTOs::addAll);
+        })
+        .map(CompletableFuture::join)
+        .filter(Objects::nonNull)
+        .forEach(waiverConsumer);
 
     componentsWithWaiversCount.addAndGet(applicationComponentsWithWaiversCount.get());
-
-    return applicationWaiverDTOs;
   }
 
   private List<ApiRepositoryWaiverDTO> buildRepositoryWaiverDTOs(
@@ -317,7 +320,7 @@ public class ApiComponentsWithWaiversReportingService
     return componentPolicyViolationDTO;
   }
 
-  private ApiApplicationBaseDTO buildApplicationBaseDTO(Application app) {
+  private static ApiApplicationBaseDTO buildApplicationBaseDTO(Application app) {
     ApiApplicationBaseDTO application = new ApiApplicationBaseDTO();
     application.id = app.getId();
     application.publicId = app.getPublicId();
@@ -328,7 +331,7 @@ public class ApiComponentsWithWaiversReportingService
     return application;
   }
 
-  private ApiPolicyViolationStageDTO buildPolicyViolationStageDTO(
+  private static ApiPolicyViolationStageDTO buildPolicyViolationStageDTO(
       ApiApplicationWaiverDTO applicationWaiverDTO,
       String stageId)
   {
@@ -339,7 +342,7 @@ public class ApiComponentsWithWaiversReportingService
     return policyViolationStageDTO;
   }
 
-  private ApiComponentDTOV2 buildComponentDTO(ComponentIdentifier componentIdentifier, String hash) {
+  private static ApiComponentDTOV2 buildComponentDTO(ComponentIdentifier componentIdentifier, String hash) {
     ApiComponentDTOV2 componentDTOV2 = new ApiComponentDTOV2();
     if (componentIdentifier != null) {
       componentDTOV2.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);

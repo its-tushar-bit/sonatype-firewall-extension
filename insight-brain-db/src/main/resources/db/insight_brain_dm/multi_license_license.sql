@@ -928,6 +928,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-with-Astramind-MA','Apache-2.0-with-Astramind-MA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-with-Commercial-Use-Enforcer','Apache-2.0-with-Commercial-Use-Enforcer');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-with-Commons-Clause-1.0','Apache-2.0-with-Commons-Clause-1.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-with-Commons-Clause-UNSPECIFIED','Apache-2.0-with-Commons-Clause-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-with-LLVM-exception','Apache-2.0-with-LLVM-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-with-LLVM-exception-BSL-1.0','Apache-2.0-with-LLVM-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Apache-2.0-with-LLVM-exception-BSL-1.0','BSL-1.0');
@@ -2157,6 +2158,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('COMMERC
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('COMMERCIAL-GPL-3.0+','GPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('COMMERCIAL-GPL-UNSPECIFIED','COMMERCIAL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('COMMERCIAL-GPL-UNSPECIFIED','GPL-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('COMMERCIAL-IB-API-Non-Commercial-License','COMMERCIAL');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('COMMERCIAL-IB-API-Non-Commercial-License','IB-API-Non-Commercial-License');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('COMMERCIAL-LGPL-2.0+','COMMERCIAL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('COMMERCIAL-LGPL-2.0+','LGPL-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('COMMERCIAL-LGPL-2.0+','LGPL-2.1');
@@ -2172,6 +2175,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('COMMERC
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('COMMERCIAL-LGPL-3.0+','LGPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('COMMERCIAL-LGPL-UNSPECIFIED','COMMERCIAL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('COMMERCIAL-LGPL-UNSPECIFIED','LGPL-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('COMMERCIAL-MongoDB-SSPL-UNSPECIFIED','COMMERCIAL');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('COMMERCIAL-MongoDB-SSPL-UNSPECIFIED','MongoDB-SSPL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('COMMERCIAL-MPL-2.0','COMMERCIAL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('COMMERCIAL-MPL-2.0','MPL-2.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('COMMERCIAL-PolyForm-Noncommercial-1.0.0','COMMERCIAL');
@@ -2597,6 +2602,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FABRIC8
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Facebook-Audience-Network-Beta-SDK-RD08082018','Facebook-Audience-Network-Beta-SDK-RD08082018');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Facebook-SDK','Facebook-SDK');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FAFOL-0.2','FAFOL-0.2');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FAFOL-UNSPECIFIED','FAFOL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Fahd-El-Haraka-SnipeGenius-LA-FPU','Fahd-El-Haraka-SnipeGenius-LA-FPU');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FAIPL-1.0','FAIPL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FAIPL-1.0-SD','FAIPL-1.0-SD');
@@ -4182,6 +4188,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NetBeez
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Netgrif-CL-1.0','Netgrif-CL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Netgrif-CL-UNSPECIFIED','Netgrif-CL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Neural-Magic-DSCLA-UD11162022','Neural-Magic-DSCLA-UD11162022');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Neural-Magic-DSCLA-UNSPECIFIED','Neural-Magic-DSCLA-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Neural-Magic-Engine-LA-RD01282021','Neural-Magic-Engine-LA-RD01282021');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NeuralFit-TAC','NeuralFit-TAC');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NeuroSpeech-UIA-for-XF-EULA-RD-02-26-2010','NeuroSpeech-UIA-for-XF-EULA-RD-02-26-2010');
@@ -4403,6 +4410,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Oracle-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Oracle-FUTC-RD10082018','Oracle-FUTC-RD10082018');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Oracle-FUTC-UNSPECIFIED','Oracle-FUTC-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Oracle-NFTC-RD09122021','Oracle-NFTC-RD09122021');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Oracle-NFTC-UNSPECIFIED','Oracle-NFTC-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Oracle-OTN','Oracle-OTN');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Oracle-OTN-Distribution','Oracle-OTN-Distribution');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Oracle-OTN-FDL-RD07112014','Oracle-OTN-FDL-RD07112014');

@@ -129,6 +129,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Apach
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-with-Astramind-MA','Apache-2.0-with-Astramind-MA','Apache-2.0 with Astramind Modification Addendum');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-with-Commercial-Use-Enforcer','Apache-2.0-with-Commercial-Use-Enforcer','Apache 2.0 with Commercial-Use Enforcer');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-with-Commons-Clause-1.0','Apache-2.0-with-Commons-Clause-1.0','Apache-2.0 with Commons-Clause-1.0');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-with-Commons-Clause-UNSPECIFIED','Apache-2.0-with-Commons-Clause','Apache-2.0-with-Commons-Clause-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-with-LLVM-exception','Apache-2.0-with-LLVM-exception','Apache-2.0 with LLVM exception');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Apache-2.0-with-Swift-exception','Apache-2.0-with-Swift-exception','Apache-2.0 with Swift Exception');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Apache-UNSPECIFIED','Apache','Apache-Style License Not Identifiable by Sonatype');
@@ -854,6 +855,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('FABRI
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Facebook-Audience-Network-Beta-SDK-RD08082018','Facebook-Audience-Network-Beta-SDK-RD08082018','Facebook Audience Network Beta SDK Terms - Release Date 08-08-2018');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Facebook-SDK','Facebook-SDK','Facebook SDK License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('FAFOL-0.2','FAFOL-0.2','The F*ck Around and Find Out License, version 0.2');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('FAFOL-UNSPECIFIED','FAFOL','FAFOL-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Fahd-El-Haraka-SnipeGenius-LA-FPU','Fahd-El-Haraka-SnipeGenius-LA-FPU','Fahd El Haraka SnipeGenius License Agreement - Free for Personal Use');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('FAIPL-1.0','FAIPL-1.0','Fair AI Public License 1.0 - International');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('FAIPL-1.0-SD','FAIPL-1.0-SD','Fair AI Public License 1.0 - Stable Diffusion Variant');
@@ -1739,6 +1741,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('NetBe
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Netgrif-CL-1.0','Netgrif-CL-1.0','Netgrif Community License Version 1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Netgrif-CL-UNSPECIFIED','Netgrif-CL','Netgrif-CL-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Neural-Magic-DSCLA-UD11162022','Neural-Magic-DSCLA-UD11162022','Neural Magic DeepSparse Community License Agreement - Updated Date 11-16-2022');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Neural-Magic-DSCLA-UNSPECIFIED','Neural-Magic-DSCLA','Neural-Magic-DSCLA-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Neural-Magic-Engine-LA-RD01282021','Neural-Magic-Engine-LA-RD01282021','Neural Magic Engine License Agreement - Release Date 01-28-2021');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('NeuralFit-TAC','NeuralFit-TAC','NeuralFit Terms and Conditions');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('NeuroSpeech-UIA-for-XF-EULA-RD-02-26-2010','NeuroSpeech-UIA-for-XF-EULA-RD-02-26-2010','NeuroSpeech User Interface Atoms for Xamarin Forms End User License Agreement - Release Date February 26, 2010');
@@ -1958,6 +1961,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Oracl
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Oracle-FUTC-RD10082018','Oracle-FUTC-RD10082018','Oracle Free Use Terms and Conditions (FUTC) - Release Date 10-08-2018');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Oracle-FUTC-UNSPECIFIED','Oracle-FUTC','Oracle-FUTC-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Oracle-NFTC-RD09122021','Oracle-NFTC-RD09122021','Oracle No-Fee Terms and Conditions - Release Date 09-12-2021');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Oracle-NFTC-UNSPECIFIED','Oracle-NFTC','Oracle-NFTC-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Oracle-OTN','Oracle-OTN','Oracle Technology Network License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Oracle-OTN-Distribution','Oracle-OTN-Distribution','Oracle Technology Network License Agreement Distribution');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Oracle-OTN-FDL-RD07112014','Oracle-OTN-FDL-RD07112014','Oracle Technology Network Free Developer License Terms - Release Date 07-11-2014');

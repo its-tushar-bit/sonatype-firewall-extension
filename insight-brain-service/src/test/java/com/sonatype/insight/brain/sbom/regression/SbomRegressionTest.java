@@ -198,12 +198,6 @@ public class SbomRegressionTest
     mockReport("SCAN-ID", getMockHdsReport());
     byte[] sbomFile = loadFileFromAssets(getOriginalSbomFileFullPath());
 
-    // Mock HDS Security information
-    String hdsSecurityResponseFile = getHDSSecurityResponseFileName();
-    if (fileExists(hdsSecurityResponseFile)) {
-      mockHDSSecurityResponse(hdsSecurityResponseFile);
-    }
-
     HttpResponse importResponse = restRequest().path(ApiSbomResource.SBOM_IMPORT_PATH)
         .part("file", originalSbomFileName, sbomFile)
         .part("applicationId", app.getId())
@@ -330,12 +324,6 @@ public class SbomRegressionTest
     return reportDir;
   }
 
-  private String getHDSSecurityResponseFileName() {
-    return HDS_DIR + (StringUtils.isNotEmpty(variant) ?
-        HDS_FILE_VARIANT_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat, variant) :
-        HDS_FILE_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat));
-  }
-
   private String getExpectedSbomContentFile() {
     return EXPECTED_DIR + (StringUtils.isNotEmpty(variant) ?
         EXPECTED_SBOM_VARIANT_TEMPLATE.formatted(importSpec, importSpecVersion, importSpecFormat, variant, exportSpec,
@@ -352,14 +340,6 @@ public class SbomRegressionTest
 
   private boolean fileExists(final String vexFileName) {
     return resourceExists(vexFileName, false);
-  }
-
-  protected void mockHDSSecurityResponse(String hdsSecurityResponseFile) throws IOException {
-    JsonNode jsonNode = MAPPER.readTree(loadFileFromAssets(hdsSecurityResponseFile)).get("aaData");
-    for (JsonNode node : jsonNode) {
-      String identifier = node.get("identifier").asText();
-      hdsRespondWith(node.toString()).atUri("rest/vulnerability/details/json/" + identifier);
-    }
   }
 
   private boolean directoryExists(final String vexFileName) {

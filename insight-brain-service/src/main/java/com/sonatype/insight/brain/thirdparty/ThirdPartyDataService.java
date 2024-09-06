@@ -45,6 +45,8 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabi
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.component.SecurityVulnerability;
+import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCategory;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.MultiLicense;
@@ -65,7 +67,6 @@ import com.sonatype.insight.brain.sbom.SbomResultsMatcherTelemetry;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
-import com.sonatype.insight.brain.vulnerability.SecurityVulnerabilityDataService;
 import com.sonatype.insight.dependency.DependencyNode;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -76,7 +77,6 @@ import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.scan.ThirdPartyVulnerabilityExploitabilityExchangeRowDTO;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -114,8 +114,6 @@ public class ThirdPartyDataService
 
   public static final Set<String> UNSUPPORTED_LICENSE_IDS = ImmutableSet.of("Not Provided", "Non-Standard");
 
-  public static final String FIELD_REFERENCE = "reference";
-
   public static final String FIELD_MATCH_STATE = "matchState";
 
   public static final String FIELD_LICENSE_NAME = "name";
@@ -150,8 +148,6 @@ public class ThirdPartyDataService
 
   private final SearchIndexManager searchIndexManager;
 
-  private final SecurityVulnerabilityDataService securityVulnerabilityDataService;
-
   private final ProductLicense productLicense;
 
   private final InsightWork insightWork;
@@ -173,7 +169,6 @@ public class ThirdPartyDataService
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
       SearchIndexManager searchIndexManager,
-      final SecurityVulnerabilityDataService securityVulnerabilityDataService,
       final ProductLicense productLicense,
       final InsightWork insightWork)
   {
@@ -190,7 +185,6 @@ public class ThirdPartyDataService
     this.telemetrySender = telemetrySender;
     this.telemetryUtils = telemetryUtils;
     this.searchIndexManager = searchIndexManager;
-    this.securityVulnerabilityDataService = securityVulnerabilityDataService;
     this.productLicense = productLicense;
     this.insightWork = insightWork;
     sbomPostImportMetricsTelemetry = new SbomPostImportMetricsTelemetry();
@@ -516,7 +510,8 @@ public class ThirdPartyDataService
     MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> resultsConsideringSonatypeId =
         new ArrayListValuedHashMap<>();
     groupHdsResultsConsideringSonatypeId(bomJsonData, resultsConsideringSonatypeId, resultsNotConsideringSonatypeId);
-    Map<ComponentIdentifier, List<String>> sonatypeVulnerabilityResults = readSonatypeSecurityResults(securityJsonData);
+    Map<ComponentIdentifier, List<SecurityVulnerability>> sonatypeVulnerabilityResults =
+        readSonatypeSecurityResults(securityJsonData);
     Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults =
         readSonatypeLicenseResults(licensesJsonData);
     if (MapUtils.isEmpty(sonatypeVulnerabilityResults) && MapUtils.isEmpty(sonatypeLicenseResults)) {
@@ -559,7 +554,7 @@ public class ThirdPartyDataService
       final String scanId,
       final Map<ComponentIdentifier, String> componentDependencyTypeMap,
       final Map<ComponentIdentifier, JsonNode> resultsWithNoSonatypeId,
-      final Map<ComponentIdentifier, List<String>> sonatypeVulnerabilityResults,
+      final Map<ComponentIdentifier, List<SecurityVulnerability>> sonatypeVulnerabilityResults,
       final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
       final ThirdPartySbomMetadata thirdPartySbomMetadata)
   {
@@ -585,7 +580,7 @@ public class ThirdPartyDataService
       final String scanId,
       final Map<ComponentIdentifier, String> componentDependencyTypeMap,
       final MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> resultsWithSonatypeId,
-      final Map<ComponentIdentifier, List<String>> sonatypeVulnerabilityResults,
+      final Map<ComponentIdentifier, List<SecurityVulnerability>> sonatypeVulnerabilityResults,
       final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
       final ThirdPartySbomMetadata thirdPartySbomMetadata)
   {
@@ -642,7 +637,7 @@ public class ThirdPartyDataService
       final String bomPurl,
       final ThirdPartyFileCoordinate sbomComponent,
       final ComponentIdentifier bomComponentIdentifier,
-      final Map<ComponentIdentifier, List<String>> sonatypeVulnerabilityResults,
+      final Map<ComponentIdentifier, List<SecurityVulnerability>> sonatypeVulnerabilityResults,
       final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
       final ThirdPartySbomMetadata thirdPartySbomMetadata)
   {
@@ -746,12 +741,12 @@ public class ThirdPartyDataService
   }
 
   private void mergeSecurityData(
-      final Map<ComponentIdentifier, List<String>> sonatypeSecResults,
+      final Map<ComponentIdentifier, List<SecurityVulnerability>> sonatypeSecResults,
       final ComponentIdentifier bomComponentIdentifier,
       final ThirdPartyFileCoordinate sbomComponent,
       final ThirdPartySbomMetadata thirdPartySbomMetadata)
   {
-    List<String> sonatypeVulns = sonatypeSecResults.get(bomComponentIdentifier);
+    List<SecurityVulnerability> sonatypeVulns = sonatypeSecResults.get(bomComponentIdentifier);
     if (CollectionUtils.isNotEmpty(sonatypeVulns)) {
       // Get all the coordinate securities from the DB for all the vulnerabilities. This list wil
       Map<String, ThirdPartyCoordinateSecurity> coordinateSecuritiesFromDBForComponentMap =
@@ -759,19 +754,16 @@ public class ThirdPartyDataService
               .collect(Collectors.toMap(ThirdPartyCoordinateSecurity::getRefId, t -> t));
       sbomPostImportMetricsTelemetry.addToTotalVulnerabilitiesCount(coordinateSecuritiesFromDBForComponentMap.size());
 
-      for (String sonatypeVuln : sonatypeVulns) {
+      for (SecurityVulnerability sonatypeVuln : sonatypeVulns) {
         try {
-          ThirdPartyCoordinateSecurity sbomVulnerability = coordinateSecuritiesFromDBForComponentMap.get(sonatypeVuln);
-          SecurityVulnerabilityData sonatypeVulnerabilityData =
-              securityVulnerabilityDataService.getSecurityVulnerabilityDetailsFromHDS(sonatypeVuln,
-                  bomComponentIdentifier, true);
+          ThirdPartyCoordinateSecurity sbomVulnerability = coordinateSecuritiesFromDBForComponentMap
+              .get(sonatypeVuln.getRefId());
           if (sbomVulnerability != null) {
             //matching sbom vulnerability found, update record
-            if (sonatypeVulnerabilityData != null && sonatypeVulnerabilityData.mainSeverity != null &&
-                sonatypeVulnerabilityData.mainSeverity.score > 0) {
-              populateMissingThirdPartyCoordinateSecurityWithSonatypeData(sbomVulnerability, sonatypeVulnerabilityData);
+            if (sonatypeVuln.getSeverity() != null && sonatypeVuln.getSeverity() > 0) {
+              populateMissingThirdPartyCoordinateSecurityWithSonatypeData(sbomVulnerability, sonatypeVuln);
               thirdPartyCoordinateSecurityDAO.update(sbomVulnerability);
-              coordinateSecuritiesFromDBForComponentMap.remove(sonatypeVuln);
+              coordinateSecuritiesFromDBForComponentMap.remove(sonatypeVuln.getRefId());
               sbomPostImportMetricsTelemetry.incrementVerifiedVulnerabilityCount();
             }
           }
@@ -779,10 +771,9 @@ public class ThirdPartyDataService
             //no matching sbom vulnerability, insert sonatype data
             ThirdPartyCoordinateSecurity newThirdPartySecurity = new ThirdPartyCoordinateSecurity();
             newThirdPartySecurity.setFileCoordinateId(sbomComponent.getId());
-            newThirdPartySecurity.setRefId(sonatypeVuln);
+            newThirdPartySecurity.setRefId(sonatypeVuln.getRefId());
             newThirdPartySecurity.setSbomMetadataId(thirdPartySbomMetadata.getId());
-            populateMissingThirdPartyCoordinateSecurityWithSonatypeData(newThirdPartySecurity,
-                sonatypeVulnerabilityData);
+            populateMissingThirdPartyCoordinateSecurityWithSonatypeData(newThirdPartySecurity, sonatypeVuln);
             thirdPartyCoordinateSecurityDAO.insert(newThirdPartySecurity);
             sbomPostImportMetricsTelemetry.incrementAdditionalVulnerabilitiesCount();
           }
@@ -902,15 +893,20 @@ public class ThirdPartyDataService
     return licenseResults;
   }
 
-  private Map<ComponentIdentifier, List<String>> readSonatypeSecurityResults(final ContainerNode<?> securityJsonData) {
-    Map<ComponentIdentifier, List<String>> secResults = new HashMap<>();
+  private Map<ComponentIdentifier, List<SecurityVulnerability>> readSonatypeSecurityResults(
+      final ContainerNode<?> securityJsonData)
+  {
+    Map<ComponentIdentifier, List<SecurityVulnerability>> secResults = new HashMap<>();
     ArrayNode securityJsonArray = (ArrayNode) securityJsonData.get("aaData");
     for (JsonNode securityJsonNode : securityJsonArray) {
       ComponentIdentifier securityComponentIdentifier =
           ComponentIdentifierAdapter.getComponentIdentifier(securityJsonNode);
       if (JsonUtils.getNullableString(securityJsonNode.get(FIELD_MATCH_STATE)) != null) {
-        String refId = JsonUtils.getNullableString(securityJsonNode.get(FIELD_REFERENCE));
-        secResults.computeIfAbsent(securityComponentIdentifier, componentIdentifier -> new ArrayList<>()).add(refId);
+        SecurityVulnerability securityVulnerability = loadSecurityJson(securityJsonNode);
+        if (securityVulnerability != null) {
+          secResults.computeIfAbsent(securityComponentIdentifier, componentIdentifier ->
+                  new ArrayList<>()).add(securityVulnerability);
+        }
       }
     }
     return secResults;
@@ -918,53 +914,35 @@ public class ThirdPartyDataService
 
   private void populateMissingThirdPartyCoordinateSecurityWithSonatypeData(
       final ThirdPartyCoordinateSecurity thirdPartySecurity,
-      final SecurityVulnerabilityData sonatypeVulnerabilityData)
+      final SecurityVulnerability sonatypeVulnerabilityData)
   {
     if (sonatypeVulnerabilityData == null) {
       return;
     }
-
-    if (CollectionUtils.isNotEmpty(sonatypeVulnerabilityData.advisories)) {
-      thirdPartySecurity.setAdvisories(
-          sonatypeVulnerabilityData.advisories.stream().map(a -> a.url).collect(Collectors.joining(",")));
+    if (StringUtils.isNotBlank(sonatypeVulnerabilityData.getVector())) {
+      thirdPartySecurity.setAttackVector(sonatypeVulnerabilityData.getVector());
     }
-    if (sonatypeVulnerabilityData.customData != null &&
-        StringUtils.isNotBlank(sonatypeVulnerabilityData.customData.cvssVector)) {
-      thirdPartySecurity.setAttackVector(sonatypeVulnerabilityData.customData.cvssVector);
+    if (StringUtils.isNotBlank(sonatypeVulnerabilityData.getUrl())) {
+      thirdPartySecurity.setLink(sonatypeVulnerabilityData.getUrl());
     }
-    if (StringUtils.isNotBlank(sonatypeVulnerabilityData.description)) {
-      thirdPartySecurity.setDescription(sonatypeVulnerabilityData.description);
+    if (sonatypeVulnerabilityData.getSeverity() != null && sonatypeVulnerabilityData.getSeverity() > 0) {
+      thirdPartySecurity.setSeverity(sonatypeVulnerabilityData.getSeverity());
+      thirdPartySecurity.setSeverityDescription(resolveRatingSeverity(sonatypeVulnerabilityData.getSeverity()).name());
     }
-    else if (StringUtils.isNotBlank(sonatypeVulnerabilityData.explanationMarkdown)) {
-      thirdPartySecurity.setDescription(sonatypeVulnerabilityData.explanationMarkdown);
-    }
-    if (sonatypeVulnerabilityData.vulnerabilityLink != null) {
-      thirdPartySecurity.setLink(sonatypeVulnerabilityData.vulnerabilityLink.toString());
-    }
-    if (StringUtils.isNotBlank(sonatypeVulnerabilityData.recommendationMarkdown)) {
-      thirdPartySecurity.setRecommendations(sonatypeVulnerabilityData.recommendationMarkdown);
-    }
-    if (sonatypeVulnerabilityData.mainSeverity != null && sonatypeVulnerabilityData.mainSeverity.score > 0) {
-      thirdPartySecurity.setSeverity(sonatypeVulnerabilityData.mainSeverity.score);
-      thirdPartySecurity.setSeverityDescription(
-          resolveRatingSeverity(sonatypeVulnerabilityData.mainSeverity.score).name());
-    }
-    if (sonatypeVulnerabilityData.source != null) {
-      if (CVE.equals(sonatypeVulnerabilityData.source.shortName)) {
+    if (StringUtils.isNotBlank(sonatypeVulnerabilityData.getSource())) {
+      if (CVE.equals(sonatypeVulnerabilityData.getSource().toUpperCase())) {
         thirdPartySecurity.setVulnerabilitySource(NVD);
       }
       else {
-        thirdPartySecurity.setVulnerabilitySource(sonatypeVulnerabilityData.source.shortName.toUpperCase(Locale.ROOT));
+        thirdPartySecurity.setVulnerabilitySource(sonatypeVulnerabilityData.getSource().toUpperCase(Locale.ROOT));
       }
     }
-    if (sonatypeVulnerabilityData.mainSeverity != null && sonatypeVulnerabilityData.mainSeverity.source != null) {
+    if (StringUtils.isNotBlank(sonatypeVulnerabilityData.getVectorSource())) {
       thirdPartySecurity.setRatingMethod(
-          resolveRatingMethodFromSeveritySource(sonatypeVulnerabilityData.mainSeverity.source).name());
+          resolveRatingMethodFromSeveritySource(sonatypeVulnerabilityData.getVectorSource()).name());
     }
-    if (sonatypeVulnerabilityData.weakness != null &&
-        CollectionUtils.isNotEmpty(sonatypeVulnerabilityData.weakness.cweIds)) {
-      thirdPartySecurity.setCwes(
-          sonatypeVulnerabilityData.weakness.cweIds.stream().map(c -> c.id).collect(Collectors.joining(",")));
+    if (StringUtils.isNotBlank(sonatypeVulnerabilityData.getCwe())) {
+      thirdPartySecurity.setCwes(sonatypeVulnerabilityData.getCwe());
     }
     thirdPartySecurity.addIdentificationSource(IdentificationSource.SONATYPE.getId());
   }
@@ -1045,5 +1023,38 @@ public class ThirdPartyDataService
     attributes.put("number_of_iac_components", String.valueOf(numberOfIacComponents));
     telemetryData.setAttributes(attributes);
     telemetrySender.send(telemetryData);
+  }
+
+  private SecurityVulnerability loadSecurityJson(final JsonNode securityJsonNode) {
+    if (securityJsonNode != null) {
+      SecurityVulnerability securityVulnerability = new SecurityVulnerability();
+      securityVulnerability.setSource(securityJsonNode.get("source").asText());
+      securityVulnerability.setRefId(securityJsonNode.get("reference").asText());
+      securityVulnerability.setSeverity(JsonUtils.getNullableFloat(securityJsonNode.get("score")));
+      securityVulnerability.setUrl(JsonUtils.getNullableString(securityJsonNode.get("url")));
+      securityVulnerability.setCwe(JsonUtils.getNullableString(securityJsonNode.get("cwe")));
+      securityVulnerability.setVector(JsonUtils.getNullableString(securityJsonNode.get("cvssVectorString")));
+      securityVulnerability.setVectorSource(JsonUtils.getNullableString(securityJsonNode.get("cvssVectorSource")));
+
+      final List<String> aliases = JsonUtils.getStringListFromArray(securityJsonNode.get("aliases"));
+      if (aliases != null) {
+        for (String alias : aliases) {
+          securityVulnerability.addAlias(alias);
+        }
+      }
+
+      final List<String> vulnerabilityCategories =
+          JsonUtils.getStringListFromArray(securityJsonNode.get("vulnerabilityCategories"));
+      if (vulnerabilityCategories != null) {
+        for (String categoryStr : vulnerabilityCategories) {
+          SecurityVulnerabilityCategory category = SecurityVulnerabilityCategory.getById(categoryStr);
+          securityVulnerability.addVulnerabilityCategory(category);
+        }
+      }
+      return securityVulnerability;
+    }
+    else {
+      return null;
+    }
   }
 }

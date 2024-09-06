@@ -7,9 +7,10 @@ package com.sonatype.insight.brain.model.policy;
 
 import java.util.Date;
 import java.util.List;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -55,6 +56,10 @@ public class PolicyViolation
 
   @Column(name = "legacy_violation_applied")
   private boolean legacyViolationApplied;
+
+  @Column(name = "reachability_status")
+  @Enumerated(EnumType.STRING)
+  private ReachabilityStatus reachabilityStatus;
 
   public PolicyViolation() {
   }
@@ -225,6 +230,14 @@ public class PolicyViolation
 
   }
 
+  public ReachabilityStatus getReachabilityStatus() {
+    return this.reachabilityStatus;
+  }
+
+  public void setReachabilityStatus(ReachabilityStatus reachabilityStatus) {
+    this.reachabilityStatus = reachabilityStatus;
+  }
+
   @Transient
   @Override
   public String getOwnerId() {
@@ -238,6 +251,7 @@ public class PolicyViolation
         + ", fixTime=" + getFixTime() + ", policyId=" + getPolicyId() + ", policyName=" + getPolicyName()
         + ", threatLevel=" + getThreatLevel() + ", threatCategory=" + getThreatCategory() + ", hash=" + getHash()
         + ", componentIdentifier=" + getComponentIdentifier() + ", actionTypeId=" + getActionTypeId()
-        + ", legacyViolationApplied=" + isLegacyViolationApplied() + "]";
+        + ", legacyViolationApplied=" + isLegacyViolationApplied() + ", reachabilityStatus=" + getReachabilityStatus() +
+        " ]";
   }
 }

@@ -86,6 +86,7 @@ public class PolicyThreatsAdapter
     result.constraints.addAll(toPolicyThreatsPolicyConstraints(violation.getConstraintFacts()));
     result.constraintFactsJson = violation.getConstraintFactsJson();
     result.policyThreatCategory = violation.getThreatCategory().toString();
+    result.reachabilityStatus = violation.getReachabilityStatus();
     return result;
   }
 

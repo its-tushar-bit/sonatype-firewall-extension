@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -123,6 +124,11 @@ public class PolicyThreats
      * @since 1.61
      */
     public String policyThreatCategory;
+
+    /**
+     * @since 1.81
+     */
+    public ReachabilityStatus reachabilityStatus;
   }
 
   public static class PolicyAction

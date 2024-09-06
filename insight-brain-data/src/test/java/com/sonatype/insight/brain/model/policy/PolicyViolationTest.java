@@ -301,4 +301,24 @@ public class PolicyViolationTest
 
     assertThat(policyViolation.getOwnerId()).isEqualTo(policyViolation.getApplicationId());
   }
+
+  @Test
+  public void testSetReachabilityStatus() {
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
+        PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
+
+    policyViolation.setReachabilityStatus(ReachabilityStatus.REACHABLE);
+    assertThat(policyViolation.getReachabilityStatus()).isEqualTo(ReachabilityStatus.REACHABLE);
+
+    policyViolation.setReachabilityStatus(ReachabilityStatus.NON_REACHABLE);
+    assertThat(policyViolation.getReachabilityStatus()).isEqualTo(ReachabilityStatus.NON_REACHABLE);
+  }
+
+  @Test
+  public void testGetNullReachabilityStatus() {
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
+        PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
+
+    assertThat(policyViolation.getReachabilityStatus()).isNull();
+  }
 }

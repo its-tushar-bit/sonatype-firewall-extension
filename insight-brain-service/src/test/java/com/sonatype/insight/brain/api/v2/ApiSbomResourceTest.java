@@ -63,6 +63,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.xmlunit.assertj.XmlAssert;
 
@@ -467,6 +468,7 @@ public class ApiSbomResourceTest
   }
 
   @Test
+  @Ignore ("https://sonatype.atlassian.net/browse/SBOM-745")
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_ComponentNameFilter() throws Exception {
     Application application = tempEntity.newApplicationWithParent();

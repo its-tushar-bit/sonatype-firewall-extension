@@ -191,7 +191,8 @@ public class Configuration
         SystemConfigurationProperty.API_ACCESS_ALLOW_LIST,
         SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION,
         SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID,
-        SystemConfigurationProperty.SBOM_BINARY_SCANNING)
+        SystemConfigurationProperty.SBOM_BINARY_SCANNING,
+        SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI)
     );
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
     configCache.putOrRemoveIfNull(REVERSE_PROXY_AUTHENTICATION_CONFIGURATION,

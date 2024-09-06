@@ -105,7 +105,8 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS.getId(),
           SystemConfigurationPropertyFeature.SECURE_SHARING.getId(),
           SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId(),
-          SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.getId()
+          SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.getId(),
+          SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI.getId()
       }
   )).toArray(String[]::new);
 

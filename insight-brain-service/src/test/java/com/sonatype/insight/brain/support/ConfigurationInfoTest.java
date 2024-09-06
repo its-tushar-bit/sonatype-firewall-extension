@@ -260,7 +260,8 @@ public class ConfigurationInfoTest
         "SAAS_POLICY_MONITOR_POOL_SIZE",
         "skipSbomImportValidation",
         "cleanUpSbomContinuousMonitoringReport",
-        "sbomBinaryScanning");
+        "sbomBinaryScanning",
+        "sbomContinuousMonitoringUi");
 
     // Properties included in the config.json in support zip
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());

@@ -1024,4 +1024,43 @@ public class ApiConfigFeaturesServiceTest
             SystemConfigurationProperty.SBOM_BINARY_SCANNING)).isInstanceOf(
         BadRequestException.class).hasMessage("Feature is already disabled.");
   }
+
+  @Test
+  public void testGetSystemConfigurationPropertyFeature_SbomContinuousMonitoringUi() {
+    assertThat(service.getSystemConfigurationPropertyFeature("sbomContinuousMonitoringUi")).isEqualTo(
+        SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI);
+    assertThat(service.getSystemConfigurationPropertyFeature("sbom-continuous-monitoring-ui")).isEqualTo(
+        SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI);
+    assertThat(service.getSystemConfigurationPropertyFeature("Sbom-Continuous-Monitoring-Ui")).isEqualTo(
+        SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI);
+    assertThat(service.getSystemConfigurationPropertyFeature("SBOM-CONTINUOUS-MONITORING-UI")).isEqualTo(
+        SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI);
+  }
+
+  @Test
+  public void testEnableFeature_SbomContinuousMonitoringUi() {
+    service.enableFeature(SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI);
+
+    assertThat(
+        systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI)
+            .getValue())
+        .isEqualTo("true");
+  }
+
+  @Test
+  public void testEnableFeature_SbomContinuousMonitoringUi_AlreadyEnabled() {
+    service.enableFeature(SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI);
+    assertThatThrownBy(
+        () -> service.enableFeature(
+            SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_SbomContinuousMonitoringUi_AlreadyDisabled() {
+    assertThatThrownBy(
+        () -> service.disableFeature(
+            SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
 }

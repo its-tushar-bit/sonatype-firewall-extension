@@ -239,6 +239,8 @@ public class SystemConfigurationProperty
 
   public static final String SBOM_BINARY_SCANNING = "sbomBinaryScanning";
 
+  public static final String SBOM_CONTINUOUS_MONITORING_UI = "sbomContinuousMonitoringUi";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

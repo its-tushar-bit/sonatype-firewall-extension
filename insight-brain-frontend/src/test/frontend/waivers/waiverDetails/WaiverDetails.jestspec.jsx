@@ -52,12 +52,13 @@ describe('When the WaiverDetailsPage', function () {
       policyName: 'test policy',
       policyWaiverId: 'b0fb538f851d473090489436b96e7a16',
       scopeOwnerId: 'ROOT_ORGANIZATION',
-      scopeOwnerName: 'root org',
+      scopeOwnerName: 'Root Organization',
       scopeOwnerType: 'root_organization',
       vulnerabilityId: 'CVE-2013-7285',
       associatedPackageUrl: 'a/package/url',
       matcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
       componentUpgradeAvailable: true,
+      componentIdentifier: { coordinates: { version: '1.2.3', name: 'test-artifact', group: 'test-group' } },
       displayName: {
         parts: [
           {
@@ -161,10 +162,12 @@ describe('When the WaiverDetailsPage', function () {
       renderComponent();
 
       expect(screen.getByText('Loading…')).toBeVisible();
-
+      const version = await screen.findByTestId('waiver-details-version');
+      expect(version).toBeVisible();
+      expect(version).toHaveTextContent('1.2.3');
       expect(await screen.findByText('test policy')).toBeVisible();
       expect(await screen.findByText('test constraint')).toBeVisible();
-      expect(await screen.findByText('See Security Vulnerability Details')).toBeVisible();
+      expect(await screen.findByText('Vulnerability Details')).toBeVisible();
       expect(await screen.findByText('reason 1')).toBeVisible();
       expect(await screen.findByText('reason 2')).toBeVisible();
       expect(await screen.findByText('Root Organization')).toBeVisible();
@@ -181,7 +184,7 @@ describe('When the WaiverDetailsPage', function () {
       axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, waiverDetails);
       renderComponent();
 
-      const vulnerabilityLink = await screen.findByText('See Security Vulnerability Details');
+      const vulnerabilityLink = await screen.findByText('Vulnerability Details');
       fireEvent.click(vulnerabilityLink);
 
       expect(await screen.findByRole('dialog')).toBeVisible();
@@ -191,16 +194,20 @@ describe('When the WaiverDetailsPage', function () {
     it('shows disclaimer text and does not show upgrade indicator if waiver was scoped to all versions of a component', async function () {
       axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, allVersionsWaiverDetails);
       renderComponent();
+      const version = await screen.findByTestId('waiver-details-version');
+      expect(version).toBeVisible();
+      expect(version).toHaveTextContent('All Versions');
 
-      expect(await screen.findByText('*Indicates the component name when the waiver was created')).toBeVisible();
-      expect(await screen.queryByText('Upgrade Available')).not.toBeInTheDocument();
+      expect(screen.getByText('*Indicates the component name when the waiver was created')).toBeVisible();
+      expect(screen.queryByText('Upgrade Available')).not.toBeInTheDocument();
     });
 
     it('does not show disclaimer text or upgrade indicator if waiver was scoped to all components', async function () {
       axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, allComponentsWaiverDetails);
       renderComponent();
-
-      expect(await screen.findByText('All components')).toBeVisible();
+      const version = await screen.findByTestId('waiver-details-version');
+      expect(version).toBeVisible();
+      expect(version).toHaveTextContent('--');
       await waitFor(() => {
         // findByText can only be used to query for presence of an element
         expect(screen.queryByText('*Indicates the component name when the waiver was created')).not.toBeInTheDocument();
@@ -235,7 +242,7 @@ describe('When the WaiverDetailsPage', function () {
     it('should render waiver details with scope equals to Root Organization if ownerType is root_organization', async function () {
       initialState.router.currentParams.ownerType = 'root_organization';
       waiverDetails.scopeOwnerId = 'ROOT_ORGANIZATION';
-      waiverDetails.scopeOwnerName = 'root org';
+      waiverDetails.scopeOwnerName = 'Root Organization';
       waiverDetails.scopeOwnerType = 'root_organization';
 
       expectedWaiverDetailsUrl = getWaiverDetailsUrl('organization', ownerId, waiverId);

@@ -25,6 +25,7 @@ import DashboardFilterFooter from './DashboardFilterFooter';
 import SaveFilterModalContainer from '../saveFilterModal/SaveFilterModalContainer';
 import ManageFiltersDropdown from '../manageFiltersDropdown/ManageFiltersDropdown';
 import DeleteFilterModalContainer from '../deleteFilterModal/DeleteFilterModalContainer';
+
 export default function DashboardFilter(props) {
   const {
     loading,
@@ -72,6 +73,8 @@ export default function DashboardFilter(props) {
     applySavedFilter,
     selectFilterToDelete,
     toggleFilterSidebar,
+    showPolicyWaiverReasonFilter,
+    waiverReasons,
   } = props;
 
   const curriedToggleFilter = curryN(2, toggleFilter),
@@ -80,7 +83,8 @@ export default function DashboardFilter(props) {
     onRepositoriesChange = curriedToggleFilter('repositories'),
     onPolicyTypesChange = curriedToggleFilter('policyTypes'),
     onPolicyViolationStatesChange = curriedToggleFilter('policyViolationStates'),
-    onPolicyThreatChange = curriedToggleFilter('policyThreatLevels');
+    onPolicyThreatChange = curriedToggleFilter('policyThreatLevels'),
+    onPolicyWaiverReasonChange = curriedToggleFilter('policyWaiverReasonIds');
 
   /**
    * IQ uses numbers for the age filter but `NxTreeViewRadioSelect` does not
@@ -255,6 +259,18 @@ export default function DashboardFilter(props) {
               >
                 <span>Policy Threat Level</span>
               </IqTreeViewPolicyThreatSlider>
+
+              {showPolicyWaiverReasonFilter && (
+                <NxStatefulTreeViewMultiSelect
+                  id="policy-waiver-reason-filter"
+                  name={'policy waiver reason'}
+                  options={getWaiverReasonOptions()}
+                  selectedIds={selected.policyWaiverReasonIds}
+                  onChange={onPolicyWaiverReasonChange}
+                >
+                  <span>Reason</span>
+                </NxStatefulTreeViewMultiSelect>
+              )}
             </Fragment>
           )}
         </LoadWrapper>
@@ -275,6 +291,16 @@ export default function DashboardFilter(props) {
       </IqPopover.Footer>
     </IqPopover>
   );
+
+  function getWaiverReasonOptions() {
+    const waiverReasonOptions = !waiverReasons
+      ? []
+      : waiverReasons.map(({ id, reasonText }) => ({ id, name: reasonText }));
+
+    waiverReasonOptions.push({ id: 'no-reason', name: '(No reason provided)' });
+
+    return waiverReasonOptions;
+  }
 }
 
 export const dashboardFilterPropTypes = {
@@ -299,6 +325,7 @@ export const dashboardFilterPropTypes = {
   repositories: PropTypes.array,
   ages: PropTypes.array,
   policyTypes: PropTypes.array,
+  waiverReasons: PropTypes.array,
   policyViolationStates: PropTypes.array,
   selected: PropTypes.shape({
     organizations: PropTypes.instanceOf(Set).isRequired,
@@ -306,6 +333,7 @@ export const dashboardFilterPropTypes = {
     categories: PropTypes.instanceOf(Set).isRequired,
     stages: PropTypes.instanceOf(Set).isRequired,
     policyTypes: PropTypes.instanceOf(Set).isRequired,
+    policyWaiverReasonIds: PropTypes.instanceOf(Set).isRequired,
     policyViolationStates: PropTypes.instanceOf(Set).isRequired,
     maxDaysOld: PropTypes.number,
     policyThreatLevels: PropTypes.arrayOf(PropTypes.number).isRequired,
@@ -322,6 +350,7 @@ export const dashboardFilterPropTypes = {
   ...ManageFiltersDropdown.propTypes,
   ownersMap: PropTypes.object,
   topParentOrganizationId: PropTypes.string,
+  showPolicyWaiverReasonFilter: PropTypes.bool,
 };
 
 DashboardFilter.propTypes = {

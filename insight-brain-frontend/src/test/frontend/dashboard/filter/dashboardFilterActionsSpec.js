@@ -19,6 +19,7 @@ import {
   getDashboardSavedFilters,
   getNewestRisksUrl,
   getRepositoriesUrl,
+  getPolicyWaiverReasonsUrl,
 } from '../../../../main/frontend/util/CLMLocation';
 
 import defaultFilter from '../../../../main/frontend/dashboard/filter/defaultFilter';
@@ -44,6 +45,8 @@ describe('dashboardFilterActions: non-angular', function () {
     },
   };
 
+  const policyWaiverReasonsResponse = [{ id: 'some-id', type: 'system', reasonText: 'some-text' }];
+
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   const mockGetData = {
     [getApplicationsUrl()]: Promise.resolve({ data: 'applications data' }),
@@ -54,6 +57,7 @@ describe('dashboardFilterActions: non-angular', function () {
     [getDashboardSavedFilters()]: Promise.resolve({
       data: 'saved filters data',
     }),
+    [getPolicyWaiverReasonsUrl()]: Promise.resolve({ data: policyWaiverReasonsResponse }),
   };
 
   const initialState = {
@@ -71,6 +75,7 @@ describe('dashboardFilterActions: non-angular', function () {
       components: { sortFields: ['-score'] },
       applications: { sortFields: ['-totalApplicationRisk.totalRisk'] },
     },
+    waivers: { waiverReasons: { data: [] } },
   };
 
   const expectedRisksPayload = {
@@ -84,6 +89,7 @@ describe('dashboardFilterActions: non-angular', function () {
     maxDaysOld: undefined,
     policyThreatLevelRange: undefined,
     expirationDate: undefined,
+    policyWaiverReasonIds: undefined,
     pageSize: 100,
     page: 0,
   };
@@ -108,18 +114,18 @@ describe('dashboardFilterActions: non-angular', function () {
           expect(axios.get).toHaveBeenCalledWith(getDashboardSavedFilters());
 
           const actions = store.getActions();
-          expect(actions.length).toBe(5);
+          expect(actions.length).toBe(6);
 
           expect(actions[0]).toEqual({
             type: 'LOAD_FILTER_REQUESTED',
           });
 
-          expect(actions[3]).toEqual({
+          expect(actions[4]).toEqual({
             type: 'FETCH_SAVED_FILTERS_FULFILLED',
             payload: 'saved filters data',
           });
 
-          expect(actions[4]).toEqual({
+          expect(actions[5]).toEqual({
             type: 'LOAD_FILTER_FAILED',
             payload: 'failed to get applications data',
           });
@@ -146,15 +152,16 @@ describe('dashboardFilterActions: non-angular', function () {
           expect(axios.get).toHaveBeenCalledWith(getRepositoriesUrl());
           expect(axios.get).toHaveBeenCalledWith(getDashboardFilters());
           expect(axios.get).toHaveBeenCalledWith(getDashboardSavedFilters());
+          expect(axios.get).toHaveBeenCalledWith(getPolicyWaiverReasonsUrl());
 
-          expect(store.getActions().length).toBe(6);
+          expect(store.getActions().length).toBe(8);
 
-          expect(store.getActions()[3]).toEqual({
+          expect(store.getActions()[4]).toEqual({
             type: 'FETCH_SAVED_FILTERS_FULFILLED',
             payload: 'saved filters data',
           });
 
-          expect(store.getActions()[4]).toEqual({
+          expect(store.getActions()[6]).toEqual({
             type: 'FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED',
             payload: {
               organizations: 'organizations data',
@@ -165,7 +172,7 @@ describe('dashboardFilterActions: non-angular', function () {
             },
           });
 
-          expect(store.getActions()[5]).toEqual({
+          expect(store.getActions()[7]).toEqual({
             type: 'FETCH_CURRENT_FILTER_FULFILLED',
             payload: {
               name: '',
@@ -177,7 +184,7 @@ describe('dashboardFilterActions: non-angular', function () {
           done();
         });
 
-        expect(store.getActions().length).toBe(3);
+        expect(store.getActions().length).toBe(4);
         expect(store.getActions()[0]).toEqual({
           type: 'LOAD_FILTER_REQUESTED',
         });

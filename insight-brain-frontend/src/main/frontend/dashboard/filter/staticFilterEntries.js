@@ -95,6 +95,7 @@ export const dashboardFilterOptionsTab = {
     showViolationStateFilter: true,
     showExpirationDateFilter: false,
     showRepositoriesFilter: false,
+    showPolicyWaiverReasonFilter: false,
   },
   'dashboard.overview.components': {
     showAgeFilter: false,
@@ -102,6 +103,7 @@ export const dashboardFilterOptionsTab = {
     showViolationStateFilter: true,
     showExpirationDateFilter: false,
     showRepositoriesFilter: false,
+    showPolicyWaiverReasonFilter: false,
   },
   'dashboard.overview.applications': {
     showAgeFilter: false,
@@ -109,6 +111,7 @@ export const dashboardFilterOptionsTab = {
     showViolationStateFilter: true,
     showExpirationDateFilter: false,
     showRepositoriesFilter: false,
+    showPolicyWaiverReasonFilter: false,
   },
   'dashboard.overview.waivers': {
     showAgeFilter: false,
@@ -116,6 +119,7 @@ export const dashboardFilterOptionsTab = {
     showViolationStateFilter: false,
     showExpirationDateFilter: true,
     showRepositoriesFilter: true,
+    showPolicyWaiverReasonFilter: true,
   },
   default: {
     showAgeFilter: true,
@@ -123,5 +127,6 @@ export const dashboardFilterOptionsTab = {
     showViolationStateFilter: true,
     showExpirationDateFilter: true,
     showRepositoriesFilter: true,
+    showPolicyWaiverReasonFilter: false,
   },
 };

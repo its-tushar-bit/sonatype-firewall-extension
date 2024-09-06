@@ -1722,6 +1722,25 @@ public class TemporaryEntity
     return waiver;
   }
 
+  public PolicyWaiver newWaiver(
+      String hash,
+      String policyId,
+      String ownerId,
+      String comment,
+      Date expiryTime,
+      List<ConstraintFact> constraintFacts,
+      final String policyWaiverReasonId
+  )
+  {
+    PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, comment);
+    waiver.setExpiryTime(expiryTime);
+    waiver.setConstraintFacts(constraintFacts);
+    waiver.setWaiverReasonId(policyWaiverReasonId);
+    fillAdditionalFixedData(hash, waiver);
+    waiverDAO.insert(waiver);
+    return waiver;
+  }
+
   public PolicyWaiver newWaiverWithReason(
       String hash,
       String policyId,

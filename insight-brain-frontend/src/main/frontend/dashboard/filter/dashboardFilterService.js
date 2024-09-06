@@ -18,6 +18,6 @@ export function filterToJson(filter) {
     minPolicyThreatLevel: filter.policyThreatLevels[0],
     maxPolicyThreatLevel: filter.policyThreatLevels[1],
     expirationDate: filter.expirationDate,
-    policyWaiverReasonIds: [], // TODO This will be passed from filter, when are ready to connect this CLM-31418
+    policyWaiverReasonIds: setToArray(filter.policyWaiverReasonIds),
   };
 }

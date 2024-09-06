@@ -201,7 +201,7 @@ public class DashboardViolationsTest
     showLowRiskViolations();
     table.violations().shouldHave(size(4));
 
-    DashboardPage.filterToggle().click();
+    DashboardPage.expandFilter();
     AgeFilter ageFilter = DashboardFilters.ageFilter();
     ageFilter.shouldBe(visible).counter().shouldHave(text("past 30 days"));
     ageFilter.twisty().click();
@@ -853,6 +853,13 @@ public class DashboardViolationsTest
 
     DashboardPage.violationsView().paginationButtons().get(0).shouldHave(cssClass("selected"));
     DashboardPage.violationsView().paginationButtons().shouldHave(size(1));
+  }
+
+  @Test
+  public void testViolationsTabDoesNotShowReasonsFilter() {
+    DashboardPage.expandFilter();
+    DashboardFilters.filterContainer().shouldBe(visible);
+    DashboardFilters.iqPolicyWaiverReasonFilter().shouldNotBe(visible);
   }
 
   private void assertViolationsCsv(

@@ -101,6 +101,14 @@ public class AddWaiverPage
     return children("#waiver-expiration-select option");
   }
 
+  public SelenideElement waiverReasonSelect() {
+    return child("#waiver-reason-select");
+  }
+
+  public ElementsCollection waiverReasonOptions() {
+    return children("#waiver-reason-select option");
+  }
+
   public SelenideElement customExpiryTime() {
     return child(".iq-add-waiver-form__date-input .nx-text-input__input");
   }

@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -49,7 +50,7 @@ import static com.sonatype.clm.testing.functional.elements.DashboardViolations.M
 import static com.sonatype.clm.testing.functional.elements.DashboardViolations.SEVERE;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 
-public class WaiverDetailsTest extends AbstractFunctionalTest
+public class  WaiverDetailsTest extends AbstractFunctionalTest
 {
   private Organization organization;
 
@@ -73,8 +74,11 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
     Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
     Instant threeDaysAgo = now.minus(3, ChronoUnit.DAYS);
     Instant fiveDaysAgo = now.minus(5, ChronoUnit.DAYS);
+    Instant sevenFromNow = now.plus(7, ChronoUnit.DAYS);
     Instant fiveDaysFromNow = now.plus(5, ChronoUnit.DAYS);
     Instant threeDaysFromNow = now.plus(3, ChronoUnit.DAYS);
+
+    PolicyWaiverReason waiverReason = tempEntity.newWaiverReason("Reason type", "some reason text");
 
     organization = tempEntity.newOrganization("Org 1");
     application = tempEntity.newApplication("App 1", "app1", organization.getId());
@@ -82,6 +86,7 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
         this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 1", 7));
         this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 2", 9));
         this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 3", 3));
+        this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 4", 8));
       }};
 
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application.getId(),
@@ -94,6 +99,8 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
             "Artifact2", "Version2", "hash2", "sonatype-2017-8912"));
         this.add(tempEntity.newPolicyViolation(policyEvaluation1, securityPolicies.get(2), "Group3",
             "Artifact3", "Version3", "hash3", "sonatype-2017-7848"));
+        this.add(tempEntity.newPolicyViolation(policyEvaluation1, securityPolicies.get(3), "Group4",
+            "Artifact4", "Version4", "hash4", "sonatype-2017-7859"));
       }};
 
     // Component identifier for waivers
@@ -141,13 +148,28 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
         .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
         .withComment("comment")
         .withCreateTime(Date.from(fiveDaysAgo))
+        .withExpiryTime(Date.from(sevenFromNow))
+        .build());
+
+    PolicyWaiver policyWaiver4 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash3")
+        .withPolicyId(securityPolicies.get(3).getId())
+        .withOwnerId(application.getId())
+        .withAssociatedPackageUrl(purl)
+        .withConstraintFacts(policyViolations.get(3).getConstraintFacts())
+        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
+        .withComment("comment")
+        .withCreateTime(Date.from(fiveDaysAgo))
         .withExpiryTime(null)
+        .withCreatorName("Test User")
+        .withWaverReasonId(waiverReason.getId())
         .build());
 
     policyWaivers = new ArrayList<PolicyWaiver>() {{
         add(policyWaiver1);
         add(policyWaiver2);
         add(policyWaiver3);
+        add(policyWaiver4);
       }};
 
     refreshOrOpen(WaiverDetailsPage.url("ownerTypeId", "ownerId", "waiverId"));
@@ -162,7 +184,7 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
     sidebarNav.sidebarNavTitle().shouldHave(text("WAIVERS"));
 
     ElementsCollection navItems = sidebarNav.sidebarNavItems();
-    navItems.shouldHave(size(3));
+    navItems.shouldHave(size(4));
 
     SidebarNavListItem item1 = sidebarNav.navItem(0);
     item1.shouldHave(cssClass("selected"));
@@ -184,6 +206,13 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
     item3.threatIndicator().shouldHave(MODERATE);
     item3.componentName().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
     item3.organizationFullName().shouldHave(text(application.getType().toString() + " - " + application.getName()));
+
+    SidebarNavListItem item4 = sidebarNav.navItem(3);
+    item4.shouldNotHave(cssClass("selected"));
+    item4.policyName().shouldHave(text("8 Policy 4"));
+    item4.threatIndicator().shouldHave(CRITICAL);
+    item4.componentName().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
+    item4.organizationFullName().shouldHave(text(application.getType().toString() + " - " + application.getName()));
   }
 
   @Test
@@ -264,12 +293,42 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
 
     waiverDetailsPage.detailsTileHeader().shouldHave(text("Waiver Detail View"));
     waiverDetailsPage.detailsPolicy().shouldHave(text("Policy 1"));
-    waiverDetailsPage.detailsConstraint().shouldHave(text("Test Constraint"));
+    waiverDetailsPage.detailsConstraint().shouldHave(text("Test Constraint is in violation for:"));
     waiverDetailsPage.detailsConditions().shouldHave(text("sonatype-2017-0507"));
-    waiverDetailsPage.vulnerabilityDetailsLink().shouldHave(text("See Security Vulnerability Details"));
-    waiverDetailsPage.detailsScope().shouldHave(text("Application - App 1"));
+    waiverDetailsPage.vulnerabilityDetailsButton().shouldHave(text("Vulnerability Details"));
+    waiverDetailsPage.detailsScope().shouldHave(text("App 1"));
+    waiverDetailsPage.detailsReason().shouldHave(text("--"));
+    waiverDetailsPage.detailsVersion().shouldHave(text("1.2.3"));
     waiverDetailsPage.detailsComponent().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
     waiverDetailsPage.detailsExpiration().shouldHave(text(expirationDate));
+    waiverDetailsPage.detailsComment().shouldHave(text("comment"));
+    waiverDetailsPage.detailsCreatedBy().shouldHave(text("Test User"));
+    waiverDetailsPage.detailsDateCreated().shouldHave(text(createdDate));
+
+    eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testPageLayoutWithReason() {
+    Instant now = Instant.now();
+    Instant fiveDaysAgo = now.minus(5, ChronoUnit.DAYS);
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
+    String createdDate = formatter.format(fiveDaysAgo);
+
+    refreshOrOpen(WaiverDetailsPage.urlWithQueryParams(application.getType().toString().toLowerCase(Locale.ROOT),
+        application.getId(), policyWaivers.get(3).getId(), "waiver", "filter"));
+    WaiverDetailsPage waiverDetailsPage = new WaiverDetailsPage();
+
+    waiverDetailsPage.detailsTileHeader().shouldHave(text("Waiver Detail View"));
+    waiverDetailsPage.detailsPolicy().shouldHave(text("Policy 4"));
+    waiverDetailsPage.detailsConstraint().shouldHave(text("Test Constraint is in violation for:"));
+    waiverDetailsPage.detailsConditions().shouldHave(text("sonatype-2017-7859"));
+    waiverDetailsPage.vulnerabilityDetailsButton().shouldHave(text("Vulnerability Details"));
+    waiverDetailsPage.detailsScope().shouldHave(text("App 1"));
+    waiverDetailsPage.detailsReason().shouldHave(text("some reason text"));
+    waiverDetailsPage.detailsVersion().shouldHave(text("1.2.3"));
+    waiverDetailsPage.detailsComponent().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
+    waiverDetailsPage.detailsExpiration().shouldHave(text("Does not expire"));
     waiverDetailsPage.detailsComment().shouldHave(text("comment"));
     waiverDetailsPage.detailsCreatedBy().shouldHave(text("Test User"));
     waiverDetailsPage.detailsDateCreated().shouldHave(text(createdDate));
@@ -310,9 +369,9 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
     sidebarNav.sidebarNavTitle().shouldHave(text("Waivers"));
 
     ElementsCollection navItems = sidebarNav.sidebarNavItems();
-    navItems.shouldHave(size(26));
+    navItems.shouldHave(size(27));
 
-    WaiverDetailsPage.SidebarNavListItem selectedItem = sidebarNav.navItem(25);
+    WaiverDetailsPage.SidebarNavListItem selectedItem = sidebarNav.navItem(7);
     selectedItem.shouldBe(visible);
     selectedItem.shouldHave(cssClass("selected"));
   }
@@ -323,8 +382,8 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
         application.getId(), policyWaivers.get(0).getId(), "waiver", "filter"));
 
     WaiverDetailsPage waiverDetailsPage = new WaiverDetailsPage();
-    waiverDetailsPage.vulnerabilityDetailsLink().shouldHave(text("See Security Vulnerability Details"));
-    waiverDetailsPage.vulnerabilityDetailsLink().click();
+    waiverDetailsPage.vulnerabilityDetailsButton().shouldHave(text("Vulnerability Details"));
+    waiverDetailsPage.vulnerabilityDetailsButton().click();
 
     IqVulnerabilityModal detailsModal = waiverDetailsPage.detailsModal();
     detailsModal.shouldBe(visible);
@@ -343,7 +402,7 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
     waiverDetailsPage.deleteWaiverButton().click();
     deleteWaiverModal.yesButton().click();
     waitUntilUrl(WaiverDetailsPage.urlWithQueryParams(application.getType().toString().toLowerCase(Locale.ROOT),
-        application.getId(), policyWaivers.get(0).getId(), "waiver", "filter"));
+        application.getId(), policyWaivers.get(1).getId(), "waiver", "filter"));
     waiverDetailsPage.detailsPolicy().shouldHave(text("Policy 2"));
   }
 }

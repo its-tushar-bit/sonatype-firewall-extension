@@ -19,6 +19,7 @@ describe('dashboardSelectors', function () {
           categories: new Set(),
           stages: new Set(),
           policyTypes: new Set(),
+          policyWaiverReasonIds: new Set(['some-id']),
           policyViolationStates: new Set(['OPEN']),
           maxDaysOld: 30,
           policyThreatLevels: [2, 10],
@@ -47,6 +48,7 @@ describe('dashboardSelectors', function () {
         maxDaysOld: 30,
         policyThreatLevelRange: '2,10',
         expirationDate: 'ALL',
+        policyWaiverReasonIds: ['some-id'],
       };
       const actual = selectExportRequestData(state);
       expect(actual).toEqual(expected);
@@ -73,6 +75,7 @@ describe('dashboardSelectors', function () {
         stageIds: [],
         tagIds: [],
         expirationDate: 'ALL',
+        policyWaiverReasonIds: ['some-id'],
       };
 
       const actual = selectExportRequestData(state);
@@ -95,6 +98,7 @@ describe('dashboardSelectors', function () {
         stageIds: [],
         tagIds: [],
         expirationDate: 'ALL',
+        policyWaiverReasonIds: ['some-id'],
       };
 
       const actual = selectExportRequestData(state);
@@ -116,6 +120,7 @@ describe('dashboardSelectors', function () {
         stageIds: [],
         tagIds: [],
         expirationDate: 'ALL',
+        policyWaiverReasonIds: ['some-id'],
       };
 
       const actual = selectExportRequestData(state);
@@ -137,6 +142,7 @@ describe('dashboardSelectors', function () {
         stageIds: [],
         tagIds: [],
         expirationDate: 'ALL',
+        policyWaiverReasonIds: ['some-id'],
       };
 
       const actual = selectExportRequestData(state);

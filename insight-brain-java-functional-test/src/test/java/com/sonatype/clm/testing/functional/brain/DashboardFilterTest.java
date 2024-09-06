@@ -68,6 +68,7 @@ import com.sonatype.insight.brain.security.InternalRealm;
 
 import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Selenide;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.joda.time.DateTime;
 import org.junit.After;
@@ -96,6 +97,8 @@ public class DashboardFilterTest
 {
   private static final ComponentIdentifier DEFAULT_COMPONENT_IDENTIFIER = createMavenCoordinates("Group1", "Artifact1",
       "Version1");
+
+  private static final String POLICY_WAIVER_REASON_ACKNOWLEDGED_VIOLATION_ID = "9b704ef5bc064fc29d7fe08a251ee9a6";
 
   private ApplicationDAO applicationDAO;
 
@@ -223,8 +226,15 @@ public class DashboardFilterTest
         Date.from(seeDate.plus(9, ChronoUnit.DAYS)));
     tempEntity.newWaiver("hash-waived-6", policy.getId(), repository2.getId(), "",
         Date.from(seeDate.plus(9, ChronoUnit.DAYS)));
-    tempEntity.newWaiver("hash-waived-7", policy.getId(), RepositoryContainer.REPOSITORY_CONTAINER_ID, "",
-        Date.from(seeDate.plus(12, ChronoUnit.DAYS)));
+    tempEntity.newWaiver(
+        "hash-waived-7",
+        policy.getId(),
+        RepositoryContainer.REPOSITORY_CONTAINER_ID,
+        "",
+        Date.from(seeDate.plus(12, ChronoUnit.DAYS)),
+        Lists.newArrayList(),
+        POLICY_WAIVER_REASON_ACKNOWLEDGED_VIOLATION_ID);
+
     tempEntity.newWaivedPolicyViolation(secondPolicyEvaluation, policy, 3, PolicyThreatCategory.QUALITY,
         ComponentIdentifier.createMavenCoordinates("Group2", "Artifact2", "Version2"), "hash-waived", policyWaiver);
 
@@ -591,6 +601,57 @@ public class DashboardFilterTest
     violation.threatNumber().shouldHave(text("2"));
     violation.policy().shouldHave(text("DashboardTestPolicy"));
     violation.application().shouldHave(text("DashboardTestAppOne"));
+  }
+
+  @Test
+  public void testFilters_shouldPersistWaiverReasonFilterChanges() {
+    // navigate to the policy violation page
+    refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
+
+    // make sure we expand and check the acknowledged violation waiver reason under waiver reasons
+    DashboardPage.expandFilter();
+    DashboardFilters.iqPolicyWaiverReasonFilter().click();
+    DashboardFilters.iqPolicyWaiverReasonFilter().checkboxItem(2).click();
+
+    // apply the filters
+    DashboardFilters.apply();
+    DashboardPage.waiversView().mask().shouldBe(hidden);
+
+    // assert stored filter
+    List<com.sonatype.insight.brain.model.filter.DashboardFilter> filter = dashboardFilterDAO
+        .getByUsernameAndRealmId("admin", InternalRealm.ID);
+
+    assertThat(filter.get(0).getFilter().replace("\r\n", "\n"))
+        .isEqualTo("{\n" +
+            "  \"minPolicyThreatLevel\" : 2,\n" +
+            "  \"maxPolicyThreatLevel\" : 10,\n" +
+            "  \"applicationFilters\" : [ ],\n" +
+            "  \"organizationFilters\" : [ ],\n" +
+            "  \"tagFilters\" : [ ],\n" +
+            "  \"policyThreatCategoryFilters\" : [ ],\n" +
+            "  \"stageTypeFilters\" : [ ],\n" +
+            "  \"maxDaysOld\" : 30,\n" +
+            "  \"policyViolationStates\" : [ \"OPEN\" ],\n" +
+            "  \"expirationDate\" : \"ALL\",\n" +
+            "  \"repositoryFilters\" : [ ],\n" +
+            "  \"policyWaiverReasonIds\" : [ \"" + POLICY_WAIVER_REASON_ACKNOWLEDGED_VIOLATION_ID + "\" ]\n" +
+            "}");
+
+    // refresh the page and wait for it to fully re-load
+    refresh();
+    DashboardPage.dashboardContainer().shouldBe(visible);
+    DashboardPage.waitUntilSpinnersGone();
+
+    // re-expand the filter and make sure it's still checked
+    DashboardPage.expandFilter();
+    DashboardFilters.iqPolicyWaiverReasonFilter().click();
+    DashboardFilters.iqPolicyWaiverReasonFilter().checkboxItem(2).input().shouldBe(checked);
+
+    // should have filtered down to one waiver which has this reason set
+    DashboardPage.waiversView().results().waivers().shouldHave(size(1));
+    final var waiver = DashboardPage.waiversView().results().firstWaiver();
+    waiver.threatNumber().shouldHave(text("5"));
   }
 
   @Test

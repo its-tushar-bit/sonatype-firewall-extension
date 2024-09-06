@@ -15,6 +15,7 @@ import {
   setWaiverScope,
   setComponentMatcherStrategy,
   setExpiryTime,
+  setWaiverReason,
   setCustomExpiryTime,
   returnToAddWaiverOriginPage,
 } from './waiverActions';
@@ -30,7 +31,7 @@ import {
 import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
 
 function mapStateToProps(state) {
-  const { addWaiver, violation, router, user } = state;
+  const { addWaiver, violation, router, user, waivers } = state;
   const isFirewall = selectIsFirewall(state);
   const isFirewallOrRepositoryComponent = selectIsFirewallOrRepository(state);
   const isStandaloneDeveloper = selectIsStandaloneDeveloper(state);
@@ -49,6 +50,8 @@ function mapStateToProps(state) {
     ...addWaiver,
     ...pick(['violationDetails'], violation),
     ...pick(['violationId'], router.currentParams),
+    loading: addWaiver.loading || waivers.waiverReasons.loading,
+    loadError: addWaiver.loadError || waivers.waiverReasons.loadError,
     prevStateName: router.prevState.name,
     prevParams: router.prevParams,
     currentUser: user?.currentUser?.displayName,
@@ -64,6 +67,7 @@ function mapStateToProps(state) {
     tabId,
     componentDisplayName,
     isStandaloneDeveloper,
+    waiverReasons: waivers.waiverReasons.data,
   };
 }
 
@@ -76,6 +80,7 @@ const mapDispatchToProps = {
   setWaiverScope,
   setComponentMatcherStrategy,
   setExpiryTime,
+  setWaiverReason,
   setCustomExpiryTime,
   cancelAction: returnToAddWaiverOriginPage,
 };

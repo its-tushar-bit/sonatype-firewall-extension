@@ -26,6 +26,7 @@ import {
   WAIVERS_ADD_WAIVER_SET_CUSTOM_EXPIRY_TIME,
   WAIVERS_ADD_WAIVER_SET_SHOW_UNSAVED_CHANGES_MODAL,
   WAIVERS_RESET_ADD_WAIVER_DATA,
+  WAIVERS_ADD_WAIVER_SET_REASON,
 } from './waiverActions';
 
 import { isCustomExpiryTimeValid } from './AddWaiverForm';
@@ -43,6 +44,7 @@ const initState = Object.freeze({
   selectedWaiverScope: null,
   componentMatcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
   expiryTime: null,
+  waiverReasonId: null,
   customExpiryTime: nxDateInputStateHelpers.initialState(''),
   fieldsPristineState: null,
 });
@@ -52,12 +54,20 @@ const initState = Object.freeze({
  * @param {State} state the state to check if it's dirty
  */
 const isFormDirty = (state) => {
-  const { selectedWaiverScope, componentMatcherStrategy, expiryTime, waiverComments, fieldsPristineState } = state;
+  const {
+    selectedWaiverScope,
+    componentMatcherStrategy,
+    expiryTime,
+    waiverReasonId,
+    waiverComments,
+    fieldsPristineState,
+  } = state;
 
   const currentFields = {
     selectedWaiverScope,
     componentMatcherStrategy,
     expiryTime,
+    waiverReasonId,
     waiverComments: waiverComments.value,
   };
   return !equals(fieldsPristineState, currentFields);
@@ -91,6 +101,7 @@ const setLoadedData = ({ waiverTargets, comments }, state) => ({
     selectedWaiverScope: waiverTargets[0],
     componentMatcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
     expiryTime: null,
+    waiverReasonId: null,
     waiverComments: comments ? decodeURIComponent(comments) : '',
   },
 });
@@ -132,6 +143,12 @@ const setExpiryTime = (payload, state) =>
     customExpiryTime: nxDateInputStateHelpers.initialState(''),
   });
 
+const setWaiverReason = (payload, state) =>
+  setIsDirtyFlag({
+    ...state,
+    waiverReasonId: payload || null,
+  });
+
 const customDateValidator = (value) => (isCustomExpiryTimeValid(value) ? null : 'Date must be in the future');
 
 const setCustomExpiryTime = (payload, state) =>
@@ -163,6 +180,7 @@ const reducerActionMap = {
   [WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE]: setSelectedWaiverScope,
   [WAIVERS_ADD_WAIVER_SET_COMPONENT_MATCHER_STRATEGY]: setComponentMatcherStrategy,
   [WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME]: setExpiryTime,
+  [WAIVERS_ADD_WAIVER_SET_REASON]: setWaiverReason,
   [WAIVERS_ADD_WAIVER_SET_CUSTOM_EXPIRY_TIME]: setCustomExpiryTime,
   [WAIVERS_ADD_WAIVER_SET_SHOW_UNSAVED_CHANGES_MODAL]: setShowUnsavedChangesModal,
   [WAIVERS_RESET_ADD_WAIVER_DATA]: always(initState),

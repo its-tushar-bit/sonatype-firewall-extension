@@ -215,6 +215,7 @@ export const formatWaiverDetails = (waiver) => {
     displayName,
     matcherStrategy,
     componentUpgradeAvailable,
+    reasonText,
   } = waiver;
 
   const { constraintName, conditionFacts } = constraintFacts?.[0] ?? {},
@@ -240,6 +241,7 @@ export const formatWaiverDetails = (waiver) => {
     vulnerabilityId,
     component,
     componentUpgradeAvailable,
+    reasonText: reasonText || '--',
   };
 };
 

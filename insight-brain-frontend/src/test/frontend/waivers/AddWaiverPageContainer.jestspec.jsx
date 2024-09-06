@@ -109,6 +109,7 @@ describe('AddWaiverPageContainer', function () {
           displayName: 'test user',
         },
       },
+      waivers: { waiverReasons: { data: [], loading: false, loadError: null } },
     };
 
     store = configureStore()(() => state);

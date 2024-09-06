@@ -36,6 +36,7 @@ describe('AddWaiverForm', function () {
     setWaiverScopeSpy,
     setComponentMatcherStrategySpy,
     setExpiryTimeSpy,
+    setReasonSpy,
     setCustomExpiryTimeSpy,
     openVulnerabilityDetailsModalSpy,
     closeVulnerabilityDetailsModalSpy,
@@ -50,6 +51,7 @@ describe('AddWaiverForm', function () {
     closeVulnerabilityDetailsModalSpy = jest.fn();
     cancelActionSpy = jest.fn();
     setExpiryTimeSpy = jest.fn();
+    setReasonSpy = jest.fn();
     setCustomExpiryTimeSpy = jest.fn();
 
     minimalProps = {
@@ -62,6 +64,11 @@ describe('AddWaiverForm', function () {
       policyName: 'policy name',
       policyViolationId: 'violationId',
       expiryTime: '7',
+      waiverReasonId: null,
+      waiverReasons: [
+        { id: 'idReason1', reasonText: 'Reason 1', type: 'system' },
+        { id: 'idReason2', reasonText: 'Reason 2', type: 'system' },
+      ],
       customExpiryTime: nxDateInputStateHelpers.initialState(''),
       reasons: ['reason1', 'reason2'],
       threatLevelCategory: 'severe',
@@ -99,6 +106,7 @@ describe('AddWaiverForm', function () {
       setComponentMatcherStrategy: setComponentMatcherStrategySpy,
       setWaiverComment: setWaiverCommentSpy,
       setExpiryTime: setExpiryTimeSpy,
+      setWaiverReason: setReasonSpy,
       setCustomExpiryTime: setCustomExpiryTimeSpy,
       saveWaiver: saveWaiverSpy,
       openVulnerabilityDetailsModal: openVulnerabilityDetailsModalSpy,
@@ -383,7 +391,8 @@ describe('AddWaiverForm', function () {
       'id1',
       'waiver comments',
       'EXACT_COMPONENT',
-      dayAfterToday
+      dayAfterToday,
+      null
     );
   });
 
@@ -403,13 +412,23 @@ describe('AddWaiverForm', function () {
   });
 
   it('calls `setExpiryTime` when the expiry time is changed', function () {
-    const component = getShallowComponent(),
-      selectComponent = component.find(NxFormSelect),
-      mockEvent = { currentTarget: { value: '7' } };
+    const component = getShallowComponent();
+    const selectComponent = component.find(NxFormSelect).at(0);
+    const mockEvent = { currentTarget: { value: '7' } };
 
     selectComponent.simulate('change', mockEvent);
 
     expect(setExpiryTimeSpy).toHaveBeenCalledWith('7');
+  });
+
+  it('calls `setReasonSpy` when the expiry time is changed', function () {
+    const component = getShallowComponent();
+    const selectComponent = component.find(NxFormSelect).at(1);
+    const mockEvent = { currentTarget: { value: 'idReason2' } };
+
+    selectComponent.simulate('change', mockEvent);
+
+    expect(setReasonSpy).toHaveBeenCalledWith('idReason2');
   });
 
   it('renders a fieldset with a text area for the comments', function () {
@@ -458,9 +477,8 @@ describe('AddWaiverForm', function () {
     const preventDefaultSpy = jest.fn();
 
     it('passes null as expiryTime if never is chosen as expiry time', function () {
-      const component = getShallowComponent({ expiryTime: 'never' }),
+      const component = getShallowComponent({ waiverReasonId: 'idReason2' }),
         form = component.find(NxStatefulForm);
-
       form.simulate('submit', { preventDefault: preventDefaultSpy });
       expect(saveWaiverSpy).toHaveBeenCalledWith(
         'violationId',
@@ -468,7 +486,8 @@ describe('AddWaiverForm', function () {
         'id1',
         'waiver comments',
         'EXACT_COMPONENT',
-        null
+        7,
+        'idReason2'
       );
     });
 
@@ -483,7 +502,8 @@ describe('AddWaiverForm', function () {
         'id1',
         'waiver comments',
         'EXACT_COMPONENT',
-        7
+        7,
+        null
       );
 
       component = getShallowComponent({
@@ -503,7 +523,24 @@ describe('AddWaiverForm', function () {
         'idOrg',
         'waiver comments',
         'EXACT_COMPONENT',
-        30
+        30,
+        null
+      );
+    });
+
+    it('chooses a waiver reason and submits with the correct value', function () {
+      const component = getShallowComponent(),
+        form = component.find(NxStatefulForm);
+
+      form.simulate('submit', { preventDefault: preventDefaultSpy });
+      expect(saveWaiverSpy).toHaveBeenCalledWith(
+        'violationId',
+        'application',
+        'id1',
+        'waiver comments',
+        'EXACT_COMPONENT',
+        7,
+        null
       );
     });
   });

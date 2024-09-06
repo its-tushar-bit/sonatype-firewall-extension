@@ -53,6 +53,7 @@ const initState = Object.freeze({
   showExpirationDateFilter: false,
   showSaveFilterModal: false,
   isWaiversTab: false,
+  showPolicyWaiverReasonFilter: false,
 
   // available filter items
   organizations: null,
@@ -60,6 +61,8 @@ const initState = Object.freeze({
   categories: null,
   stages: null,
   repositories: null,
+  waiverReasons: null,
+
   ages,
   policyTypes,
   policyViolationStates,
@@ -226,7 +229,9 @@ function setAvailable(state, payload) {
       }))
     : [];
 
-  return { ...state, organizations, applications, categories, stages, repositories };
+  const waiverReasons = payload.waiverReasons;
+
+  return { ...state, organizations, applications, categories, stages, repositories, waiverReasons };
 }
 
 const applyFilter = ({ filter }) => (state) => {
@@ -267,6 +272,8 @@ const applyFilter = ({ filter }) => (state) => {
   const maxDaysOld = getAge(state, filter.maxDaysOld);
   const policyThreatLevels = [filter.minPolicyThreatLevel, filter.maxPolicyThreatLevel];
 
+  const policyWaiverReasonIds = new Set(filter.policyWaiverReasonIds);
+
   const selected = Object.freeze({
     organizations,
     applications,
@@ -278,6 +285,7 @@ const applyFilter = ({ filter }) => (state) => {
     maxDaysOld,
     policyThreatLevels,
     expirationDate,
+    policyWaiverReasonIds,
   });
   return {
     ...state,

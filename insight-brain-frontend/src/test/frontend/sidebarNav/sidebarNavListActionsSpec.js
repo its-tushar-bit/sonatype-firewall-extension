@@ -67,6 +67,7 @@ describe('sidebarNavListActions', function () {
         sidebarId: '333',
         sidebarReference: 'filter',
       },
+      waivers: { waiverReasons: { data: [] } },
     };
 
     beforeEach(function () {

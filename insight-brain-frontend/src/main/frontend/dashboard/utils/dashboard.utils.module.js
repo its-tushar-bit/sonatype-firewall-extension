@@ -49,6 +49,7 @@ export function createDashboardDataRequestPayload(filter, pageSize, sortFields, 
     params.maxDaysOld = filter.maxDaysOld;
     params.policyThreatLevelRange = filter.policyThreatLevels && filter.policyThreatLevels.join(',');
     params.expirationDate = filter.expirationDate;
+    params.policyWaiverReasonIds = setToArray(filter.policyWaiverReasonIds);
 
     if (filter.policyTypes && filter.policyTypes.size > 0) {
       params.policyThreatCategories = setToArray(filter.policyTypes).join(',');

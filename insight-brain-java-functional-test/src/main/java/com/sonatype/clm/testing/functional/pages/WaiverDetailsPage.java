@@ -87,11 +87,11 @@ public class WaiverDetailsPage
   }
 
   public SelenideElement detailsConditions() {
-    return child(".iq-waiver-details__conditions .nx-read-only__data");
+    return child(".iq-waiver-details__constraint .nx-read-only__data.iq-waiver-details__constrain-conditions");
   }
 
-  public SelenideElement vulnerabilityDetailsLink() {
-    return child(".iq-waiver-details__vulnerability-details-link a");
+  public SelenideElement vulnerabilityDetailsButton() {
+    return child(".iq-waiver-details__vulnerability-details-button");
   }
 
   public IqVulnerabilityModal detailsModal() {
@@ -120,6 +120,14 @@ public class WaiverDetailsPage
 
   public SelenideElement detailsDateCreated() {
     return child(".iq-waiver-details__date-created .nx-read-only__data");
+  }
+
+  public SelenideElement detailsReason() {
+    return child(".iq-waiver-details__reason .nx-read-only__data");
+  }
+
+  public SelenideElement detailsVersion() {
+    return child(".iq-waiver-details__version .nx-read-only__data");
   }
 
   public SelenideElement deleteWaiverButton() {

@@ -122,6 +122,7 @@ describe('waiverUtils', function () {
         matcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
         displayName: componentDisplayName,
         componentUpgradeAvailable: null,
+        reasonText: 'reason 1',
       };
 
       expect(formatWaiverDetails(waiverDetails)).toEqual({
@@ -141,6 +142,51 @@ describe('waiverUtils', function () {
           matcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
         },
         componentUpgradeAvailable: null,
+        reasonText: 'reason 1',
+      });
+    });
+
+    it('returns the correctly formatted data from the waiver object with no reason', function () {
+      const waiverDetails = {
+        comment: 'a comment',
+        constraintFacts: [
+          { constraintName: 'test constraint', conditionFacts: [{ reason: 'reason 1' }, { reason: 'reason 2' }] },
+        ],
+        createTime: WAIVER_CREATE_TIME,
+        creatorName: 'test creator',
+        expiryTime: WAIVER_EXPIRATION_TIME,
+        policyName: 'test policy',
+        policyWaiverId: '1234testid',
+        scopeOwnerId: 'ROOT_ORGANIZATION',
+        scopeOwnerName: 'root org',
+        scopeOwnerType: 'root_organization',
+        vulnerabilityId: 'CVE-2013-7285',
+        associatedPackageUrl: 'a/package/url',
+        componentIdentifier: null,
+        matcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
+        displayName: componentDisplayName,
+        componentUpgradeAvailable: null,
+        reasonText: null,
+      };
+
+      expect(formatWaiverDetails(waiverDetails)).toEqual({
+        policyName: 'test policy',
+        constraintName: 'test constraint',
+        reasons: ['reason 1', 'reason 2'],
+        waiverScope: 'Root Organization',
+        expiration: WAIVER_EXPIRATION_TIME,
+        comment: 'a comment',
+        creatorName: 'test creator',
+        vulnerabilityId: 'CVE-2013-7285',
+        dateCreated: WAIVER_CREATE_TIME,
+        component: {
+          associatedPackageUrl: 'a/package/url',
+          componentIdentifier: null,
+          displayName: componentDisplayName,
+          matcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
+        },
+        componentUpgradeAvailable: null,
+        reasonText: '--',
       });
     });
 
@@ -163,6 +209,7 @@ describe('waiverUtils', function () {
         matcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
         displayName: componentDisplayName,
         componentUpgradeAvailable: null,
+        reasonText: 'reason 1',
       };
 
       expect(formatWaiverDetails(waiverDetails)).toEqual({
@@ -182,6 +229,7 @@ describe('waiverUtils', function () {
           matcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
         },
         componentUpgradeAvailable: null,
+        reasonText: 'reason 1',
       });
     });
   });

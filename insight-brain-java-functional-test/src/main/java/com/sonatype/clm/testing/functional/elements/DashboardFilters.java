@@ -98,6 +98,10 @@ public class DashboardFilters
     return new PolicyThreatLevelFilter("#threat-level-filter");
   }
 
+  public static DashboardReasonsFilter iqPolicyWaiverReasonFilter() {
+    return new DashboardReasonsFilter("#policy-waiver-reason-filter");
+  }
+
   public static PolicyViolationStateFilter policyViolationStateFilter() {
     return new PolicyViolationStateFilter();
   }

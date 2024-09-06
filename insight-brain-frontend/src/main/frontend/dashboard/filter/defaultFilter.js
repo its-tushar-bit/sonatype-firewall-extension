@@ -12,11 +12,12 @@ export default Object.freeze({
   categories: new Set(),
   stages: new Set(),
   policyTypes: new Set(),
+  policyWaiverReasons: new Set(),
   policyViolationStates: new Set(['OPEN']),
   maxDaysOld: defaultMaxDaysOld,
   expirationDate: defaultMinExpiration,
   policyThreatLevels: [2, 10],
-  policyWaiverReasonIds: [],
+  policyWaiverReasonIds: new Set(),
 });
 
 export const DEFAULT_FILTER_NAME = 'Default';

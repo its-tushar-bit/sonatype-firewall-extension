@@ -132,6 +132,7 @@ describe('addWaiverReducer', function () {
       expect(newState.fieldsPristineState).toEqual({
         selectedWaiverScope: 'target1',
         componentMatcherStrategy: 'EXACT_COMPONENT',
+        waiverReasonId: null,
         expiryTime: null,
         waiverComments: '',
       });
@@ -148,6 +149,7 @@ describe('addWaiverReducer', function () {
         selectedWaiverScope: 'target1',
         componentMatcherStrategy: 'EXACT_COMPONENT',
         expiryTime: null,
+        waiverReasonId: null,
         waiverComments: 'preloaded Comment',
       });
       expect(newState.waiverComments).toEqual({
@@ -315,6 +317,7 @@ describe('addWaiverReducer', function () {
           selectedWaiverScope: null,
           componentMatcherStrategy: 'EXACT_COMPONENT',
           expiryTime: null,
+          waiverReasonId: null,
           waiverComments: '',
         },
       };
@@ -352,6 +355,7 @@ describe('addWaiverReducer', function () {
         fieldsPristineState: {
           selectedWaiverScope: null,
           componentMatcherStrategy: 'EXACT_COMPONENT',
+          waiverReasonId: null,
           expiryTime: null,
           waiverComments: '',
         },
@@ -384,6 +388,7 @@ describe('addWaiverReducer', function () {
         fieldsPristineState: {
           selectedWaiverScope: null,
           componentMatcherStrategy: 'EXACT_COMPONENT',
+          waiverReasonId: null,
           expiryTime: null,
           waiverComments: '',
         },
@@ -437,6 +442,7 @@ describe('addWaiverReducer', function () {
         fieldsPristineState: {
           selectedWaiverScope: null,
           componentMatcherStrategy: 'EXACT_COMPONENT',
+          waiverReasonId: null,
           expiryTime: null,
           waiverComments: '',
         },
@@ -514,6 +520,51 @@ describe('addWaiverReducer', function () {
         trimmedValue: '',
         validationErrors: null,
       });
+      expect(newState.otherProp).toBe(initialState.otherProp);
+    });
+  });
+
+  describe('WAIVERS_ADD_WAIVER_SET_REASON action', function () {
+    it('sets waiverReasonId and isDirty props in the state', function () {
+      const initialState = {
+        isDirty: true,
+        loading: false,
+        loadError: null,
+        submitMaskState: false,
+        submitError: null,
+        waiverComments: {},
+        availableWaiverScopes: null,
+        selectedWaiverScope: null,
+        componentMatcherStrategy: 'EXACT_COMPONENT',
+        violationDetails: null,
+        expiryTime: null,
+        waiverReasonId: null,
+        customExpiryTime: nxDateInputStateHelpers.initialState(''),
+        otherProp: { prop: 'foo' },
+        fieldsPristineState: {
+          selectedWaiverScope: null,
+          componentMatcherStrategy: 'EXACT_COMPONENT',
+          waiverReasonId: null,
+          expiryTime: null,
+          waiverComments: '',
+        },
+      };
+
+      let newState = reducer(initialState, {
+        type: 'WAIVERS_ADD_WAIVER_SET_REASON',
+        payload: 'waiverReasonId Id',
+      });
+      expect(newState.isDirty).toBe(true);
+      expect(newState.waiverReasonId).toEqual('waiverReasonId Id');
+      expect(newState.otherProp).toBe(initialState.otherProp);
+
+      newState = reducer(initialState, {
+        type: 'WAIVERS_ADD_WAIVER_SET_REASON',
+        payload: null,
+      });
+
+      expect(newState.isDirty).toBe(true);
+      expect(newState.expiryTime).toEqual(null);
       expect(newState.otherProp).toBe(initialState.otherProp);
     });
   });

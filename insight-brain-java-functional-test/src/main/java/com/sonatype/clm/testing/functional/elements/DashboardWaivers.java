@@ -13,6 +13,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
@@ -37,6 +38,10 @@ public class DashboardWaivers
 
   public ElementsCollection paginationButtons() {
     return $$(".nx-btn--pagination");
+  }
+
+  public SelenideElement mask() {
+    return $(".iq-dashboard-form-mask");
   }
 
   public class WaiversResults

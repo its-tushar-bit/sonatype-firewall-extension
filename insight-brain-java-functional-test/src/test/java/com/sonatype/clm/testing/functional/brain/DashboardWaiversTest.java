@@ -807,6 +807,32 @@ public class DashboardWaiversTest
     DashboardPage.waitUntilSpinnersGone();
   }
 
+  @Test
+  public void testWaiversTabShowsReasonsFilter() {
+    refreshOrOpen(DashboardPage.urlToWaivers());
+
+    DashboardPage.expandFilter();
+    DashboardFilters.filterContainer().shouldBe(visible);
+    DashboardFilters.iqPolicyWaiverReasonFilter().shouldBe(visible);
+    final var dashboardReasonsFilter = DashboardFilters.iqPolicyWaiverReasonFilter();
+    dashboardReasonsFilter.click();
+
+    final var labels = dashboardReasonsFilter.getLabels()
+        .stream()
+        .map(label -> label.getText().trim())
+        .toList();
+
+    assertThat(labels).containsExactlyInAnyOrder(
+        "all/none",
+        "Acknowledged violation",
+        "Mitigated externally",
+        "No upgrade path",
+        "Not exploitable",
+        "Researching",
+        "Other",
+        "(No reason provided)");
+  }
+
   private ArrayList<PolicyWaiver> createWaivers() {
     parentOrganization = tempEntity.newOrganization("Parent Org 1");
     organization = tempEntity.newOrganization("Org 1", parentOrganization);

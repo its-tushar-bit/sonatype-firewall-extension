@@ -9,11 +9,21 @@ import DashboardFilter from './DashboardFilter';
 import * as manageFiltersActions from '../manageFiltersActions';
 import * as dashboardFilterActions from '../dashboardFilterActions';
 
-function mapStateToProps({ manageFilters, dashboardFilter, orgsAndPolicies: { ownerSideNav } }) {
+function mapStateToProps({
+  manageFilters,
+  dashboardFilter,
+  orgsAndPolicies: { ownerSideNav },
+  waivers: {
+    waiverReasons: { data: waiverReasons, loading: waiverReasonsLoading, loadError: waiverReasonsLoadError },
+  },
+}) {
   return {
     ...dashboardFilter,
     ...pick(['appliedFilterName', 'showDirtyAsterisk', 'savedFilters'], manageFilters),
     ...pick(['ownersMap', 'topParentOrganizationId'], ownerSideNav),
+    loading: dashboardFilter.loading || waiverReasonsLoading,
+    loadError: dashboardFilter.loadError || waiverReasonsLoadError,
+    waiverReasons,
   };
 }
 

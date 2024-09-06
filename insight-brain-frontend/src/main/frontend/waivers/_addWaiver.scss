@@ -59,3 +59,7 @@ div.iq-add-waiver-form__date-input {
   position: absolute;
   margin-top: var(--nx-spacing-2x);
 }
+
+.iq-add-waiver-form__expiryTime-block .nx-form-select {
+  margin-bottom: 0;
+}

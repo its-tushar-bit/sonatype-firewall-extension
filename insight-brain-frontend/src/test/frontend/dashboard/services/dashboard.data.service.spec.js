@@ -28,6 +28,7 @@ describe('dashboard.data.service.spec', function () {
     maxDaysOld: undefined,
     policyThreatLevelRange: undefined,
     expirationDate: undefined,
+    policyWaiverReasonIds: undefined,
     pageSize: 100,
     page: 0,
   };

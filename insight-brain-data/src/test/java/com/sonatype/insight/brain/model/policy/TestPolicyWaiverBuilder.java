@@ -85,4 +85,9 @@ public class TestPolicyWaiverBuilder
     this.policyWaiver.setCreatorName(creatorName);
     return this;
   }
+
+  public TestPolicyWaiverBuilder withWaverReasonId(String withWaverReasonId) {
+    this.policyWaiver.setWaiverReasonId(withWaverReasonId);
+    return this;
+  }
 }

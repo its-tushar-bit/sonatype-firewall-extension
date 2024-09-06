@@ -119,6 +119,15 @@ public class AddWaiverTest
     addWaiverPage.expiryTimesOptions().get(6).shouldHave(text("120 Days"));
     addWaiverPage.expiryTimesOptions().get(7).shouldHave(text("Custom"));
     addWaiverPage.expiryTimesSelect().getSelectedOption().shouldHave(text("Never"));
+    addWaiverPage.waiverReasonOptions().shouldHave(size(7));
+    addWaiverPage.waiverReasonOptions().get(0).shouldHave(text("Select a reason"));
+    addWaiverPage.waiverReasonOptions().get(1).shouldHave(text("Acknowledged violation"));
+    addWaiverPage.waiverReasonOptions().get(2).shouldHave(text("Mitigated externally"));
+    addWaiverPage.waiverReasonOptions().get(3).shouldHave(text("No upgrade path"));
+    addWaiverPage.waiverReasonOptions().get(4).shouldHave(text("Not exploitable"));
+    addWaiverPage.waiverReasonOptions().get(5).shouldHave(text("Researching"));
+    addWaiverPage.waiverReasonOptions().get(6).shouldHave(text("Other"));
+    addWaiverPage.waiverReasonSelect().getSelectedOption().shouldHave(text("Select a reason"));
 
     eyesWatcher.eyesCheck();
 
@@ -171,6 +180,7 @@ public class AddWaiverTest
     assertThat(waivers.size()).isEqualTo(1);
     assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
     assertThat(waivers.get(0).getExpiryTime()).isNull();
+    assertThat(waivers.get(0).getWaiverReasonId()).isNull();
   }
 
   @Test
@@ -194,6 +204,7 @@ public class AddWaiverTest
     assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
     assertThat(waivers.get(0).getHash()).isNull();
     assertThat(waivers.get(0).getExpiryTime()).isNull();
+    assertThat(waivers.get(0).getWaiverReasonId()).isNull();
   }
 
   @Test
@@ -218,6 +229,7 @@ public class AddWaiverTest
     assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
     assertThat(waivers.get(0).getHash()).isNull();
     assertThat(waivers.get(0).getExpiryTime()).isNotNull();
+    assertThat(waivers.get(0).getWaiverReasonId()).isNull();
   }
 
   @Test
@@ -250,6 +262,31 @@ public class AddWaiverTest
     assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
     assertThat(waivers.get(0).getHash()).isNull();
     assertThat(waivers.get(0).getExpiryTime()).isNotNull();
+    assertThat(waivers.get(0).getWaiverReasonId()).isNull();
+  }
+
+  @Test
+  public void testSubmit_ApplicationWaiver_WithReason() {
+    refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.availableScopes().shouldHave(size(4));
+    addWaiverPage.availableScopesDropdown().chooseOption(new Option(0, "Application - App 1"));
+    addWaiverPage.availableComponents().shouldHave(size(3));
+    NxRadio chosenComponent = addWaiverPage.component(0);
+    chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
+    chosenComponent.click();
+    addWaiverPage.waiverReasonSelect().selectOptionContainingText("Mitigated externally");
+    addWaiverPage.comments().setValue("Some comments");
+    addWaiverPage.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    addWaiverPage.submitError().shouldNotBe(visible);
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getApplicableToComponent(application.getId(), "hash1");
+    assertThat(waivers.size()).isEqualTo(1);
+    assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+    assertThat(waivers.get(0).getExpiryTime()).isNull();
+    assertThat(waivers.get(0).getWaiverReasonId()).isNotNull();
   }
 
   @Test
@@ -273,6 +310,7 @@ public class AddWaiverTest
     assertThat(waivers.size()).isEqualTo(1);
     assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
     assertThat(waivers.get(0).getExpiryTime()).isNull();
+    assertThat(waivers.get(0).getWaiverReasonId()).isNull();
   }
 
   @Test
@@ -296,6 +334,7 @@ public class AddWaiverTest
     assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
     assertThat(waivers.get(0).getHash()).isNull();
     assertThat(waivers.get(0).getExpiryTime()).isNull();
+    assertThat(waivers.get(0).getWaiverReasonId()).isNull();
   }
 
   @Test
@@ -321,6 +360,7 @@ public class AddWaiverTest
     assertThat(waivers.size()).isEqualTo(1);
     assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
     assertThat(waivers.get(0).getExpiryTime()).isNotNull();
+    assertThat(waivers.get(0).getWaiverReasonId()).isNull();
   }
 
   @Test
@@ -350,6 +390,32 @@ public class AddWaiverTest
     assertThat(waivers.size()).isEqualTo(1);
     assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
     assertThat(waivers.get(0).getExpiryTime()).isNotNull();
+    assertThat(waivers.get(0).getWaiverReasonId()).isNull();
+  }
+
+  @Test
+  public void testSubmit_OrgWaiver_WithReason() {
+    refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+
+    addWaiverPage.availableScopes().shouldHave(size(4));
+    addWaiverPage.availableScopesDropdown().chooseOption(new Option(1, "Organization - Org 1"));
+    addWaiverPage.availableComponents().shouldHave(size(3));
+    NxRadio chosenComponent = addWaiverPage.component(0);
+    chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
+    chosenComponent.click();
+    addWaiverPage.waiverReasonSelect().selectOptionContainingText("Acknowledged violation");
+    addWaiverPage.comments().setValue("Some comments");
+    addWaiverPage.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    addWaiverPage.submitError().shouldNotBe(visible);
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getApplicableToComponent(organization.getId(), "hash1");
+    assertThat(waivers.size()).isEqualTo(1);
+    assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+    assertThat(waivers.get(0).getExpiryTime()).isNull();
+    assertThat(waivers.get(0).getWaiverReasonId()).isNotNull();
   }
 
   @Test
@@ -373,6 +439,7 @@ public class AddWaiverTest
     assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
     assertThat(waivers.get(0).getHash()).isNull();
     assertThat(waivers.get(0).getExpiryTime()).isNull();
+    assertThat(waivers.get(0).getWaiverReasonId()).isNull();
   }
 
   @Test
@@ -396,6 +463,7 @@ public class AddWaiverTest
     assertThat(waivers.size()).isEqualTo(1);
     assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
     assertThat(waivers.get(0).getExpiryTime()).isNull();
+    assertThat(waivers.get(0).getWaiverReasonId()).isNull();
   }
 
   @Test
@@ -421,6 +489,7 @@ public class AddWaiverTest
     assertThat(waivers.size()).isEqualTo(1);
     assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
     assertThat(waivers.get(0).getExpiryTime()).isNotNull();
+    assertThat(waivers.get(0).getWaiverReasonId()).isNull();
   }
 
   @Test
@@ -450,6 +519,32 @@ public class AddWaiverTest
     assertThat(waivers.size()).isEqualTo(1);
     assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
     assertThat(waivers.get(0).getExpiryTime()).isNotNull();
+    assertThat(waivers.get(0).getWaiverReasonId()).isNull();
+  }
+
+  @Test
+  public void testSubmit_ParentOrgWaiver_WithReason() {
+    refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+
+    addWaiverPage.availableScopes().shouldHave(size(4));
+    addWaiverPage.availableScopesDropdown().chooseOption(new Option(2, "Organization - Parent Org"));
+    addWaiverPage.availableComponents().shouldHave(size(3));
+    NxRadio chosenComponent = addWaiverPage.component(0);
+    chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
+    chosenComponent.click();
+    addWaiverPage.waiverReasonSelect().selectOptionContainingText("Acknowledged violation");
+    addWaiverPage.comments().setValue("Some comments");
+    addWaiverPage.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    addWaiverPage.submitError().shouldNotBe(visible);
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getApplicableToComponent(parentOrganization.getId(), "hash1");
+    assertThat(waivers.size()).isEqualTo(1);
+    assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+    assertThat(waivers.get(0).getExpiryTime()).isNull();
+    assertThat(waivers.get(0).getWaiverReasonId()).isNotNull();
   }
 
   @Test
@@ -474,6 +569,37 @@ public class AddWaiverTest
       assertThat(waivers.size()).isEqualTo(1);
       assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
       assertThat(waivers.get(0).getExpiryTime()).isNull();
+      assertThat(waivers.get(0).getWaiverReasonId()).isNull();
+    }
+    finally {
+      cleanupCreatedWaivers(waivers);
+    }
+  }
+
+  @Test
+  public void testSubmit_RootOrgWaiver_WithReason() {
+    List<PolicyWaiver> waivers = Collections.emptyList();
+    try {
+      refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.availableScopes().shouldHave(size(4));
+      addWaiverPage.availableScopesDropdown().chooseOption(new Option(3, "Organization - Root Organization"));
+      addWaiverPage.availableComponents().shouldHave(size(3));
+      NxRadio chosenComponent = addWaiverPage.component(0);
+      chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
+      chosenComponent.click();
+      addWaiverPage.waiverReasonSelect().selectOptionContainingText("Acknowledged violation");
+      addWaiverPage.comments().setValue("Some comments");
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
+
+      waivers = policyWaiverDAO.getApplicableToComponent(Organization.ROOT_ORGANIZATION_ID, "hash1");
+      assertThat(waivers.size()).isEqualTo(1);
+      assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+      assertThat(waivers.get(0).getExpiryTime()).isNull();
+      assertThat(waivers.get(0).getWaiverReasonId()).isNotNull();
     }
     finally {
       cleanupCreatedWaivers(waivers);
@@ -503,6 +629,7 @@ public class AddWaiverTest
       assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
       assertThat(waivers.get(0).getHash()).isNull();
       assertThat(waivers.get(0).getExpiryTime()).isNull();
+      assertThat(waivers.get(0).getWaiverReasonId()).isNull();
     }
     finally {
       cleanupCreatedWaivers(waivers);

@@ -20,6 +20,7 @@ import {
 import { filterToJson } from './dashboardFilterService';
 import defaultFilter from './defaultFilter';
 import { Messages } from '../../utilAngular/CommonServices';
+import { actions as waiverActions } from 'MainRoot/waivers/waiverSlice';
 
 export const LOAD_FILTER_REQUESTED = 'LOAD_FILTER_REQUESTED';
 export const FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED = 'FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED';
@@ -44,13 +45,13 @@ export const TOGGLE_FILTER_SIDEBAR = 'TOGGLE_FILTER_SIDEBAR';
 export function loadFilter(resultsType = null, isLoadResults = false) {
   return (dispatch, getState) => {
     dispatch({ type: LOAD_FILTER_REQUESTED });
-
     return Promise.all([
       axios.get(getApplicationsUrl()),
       axios.get(getOrganizationsUrl()),
       axios.get(getApplicationTagsUrl()),
       axios.get(getDashboardFilters()),
       axios.get(getRepositoriesUrl()),
+      dispatch(waiverActions.loadCachedWaiverReasons()),
       dispatch(fetchStageTypes('dashboard')),
       dispatch(fetchSavedFilters()),
       dispatch(ownerSideNavActions.loadOwnerList()),
@@ -59,6 +60,7 @@ export function loadFilter(resultsType = null, isLoadResults = false) {
         const [applications, organizations, categoriesData, filterData, repositories] = data;
         // Get dashboard-stages from general state
         const { dashboard } = getState().stages;
+
         dispatch(
           fetchAvailableFilterOptionsFulfilled(
             applications.data,

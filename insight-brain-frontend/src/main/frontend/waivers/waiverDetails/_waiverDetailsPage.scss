@@ -11,7 +11,15 @@ waiver-sidebar-view {
 }
 
 #waiver-details-page {
+  .nx-read-only--grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .iq-waiver-details {
+    &__vulnerability-details-button {
+      margin: 0;
+    }
+
     &__vulnerability-details-link {
       margin-bottom: var(--nx-spacing-8x);
     }

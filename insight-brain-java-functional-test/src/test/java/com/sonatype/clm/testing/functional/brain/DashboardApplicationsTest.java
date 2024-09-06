@@ -510,6 +510,13 @@ public class DashboardApplicationsTest
     table.lastApplication().totalRisk().shouldBe(text("3"));
   }
 
+  @Test
+  public void testApplicationsTabDoesNotShowReasonsFilter() {
+    DashboardPage.expandFilter();
+    DashboardFilters.filterContainer().shouldBe(visible);
+    DashboardFilters.iqPolicyWaiverReasonFilter().shouldNotBe(visible);
+  }
+
   private void assertApplicationsCsv(String csv, String[] expectedSortedResults) {
     String[] lines = csv.split("\r\n");
     assertThat(lines[0]).isEqualTo("Organization Name,Application Name,Total Risk,Critical,Severe,Moderate,Low");

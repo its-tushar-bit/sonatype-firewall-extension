@@ -26,6 +26,7 @@ import {
 import { getExpiryTime, originNamesForAddRequestPages } from '../util/waiverUtils';
 
 import { actions as policyViolationsActions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
+import { actions as waiverActions } from 'MainRoot/waivers/waiverSlice';
 import { loadTransitiveViolationWaivers } from '../violation/transitiveViolationsActions';
 import {
   selectHash,
@@ -51,6 +52,7 @@ export const WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT = 'WAIVERS_ADD_WAIVER_SET_WAI
 export const WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE = 'WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE';
 export const WAIVERS_ADD_WAIVER_SET_COMPONENT_MATCHER_STRATEGY = 'WAIVERS_ADD_WAIVER_SET_COMPONENT_MATCHER_STRATEGY';
 export const WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME = 'WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME';
+export const WAIVERS_ADD_WAIVER_SET_REASON = 'WAIVERS_ADD_WAIVER_SET_REASON';
 export const WAIVERS_ADD_WAIVER_SET_CUSTOM_EXPIRY_TIME = 'WAIVERS_ADD_WAIVER_SET_CUSTOM_EXPIRY_TIME';
 export const WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED = 'WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED';
 export const WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED = 'WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED';
@@ -91,13 +93,23 @@ function startSubmitMaskTimer(dispatch) {
  * @param componentMatcherStrategy { string } EXACT_COMPONENT | ALL_COMPONENTS | ALL_VERSIONS
  * @param expiration { string }
  */
-function saveWaiver(policyViolationId, waiverScope, ownerId, comment, componentMatcherStrategy, expiration, dispatch) {
+function saveWaiver(
+  policyViolationId,
+  waiverScope,
+  ownerId,
+  comment,
+  componentMatcherStrategy,
+  expiration,
+  dispatch,
+  waiverReasonId
+) {
   dispatch(saveWaiverRequested());
   const url = getAddPolicyViolationWaiverUrl(waiverScope, ownerId, policyViolationId),
     payload = {
       comment,
       matcherStrategy: componentMatcherStrategy,
       expiryTime: typeof expiration === 'string' ? getISODateFromDateInput(expiration) : getExpiryTime(expiration),
+      waiverReasonId,
     };
   return axios.post(url, payload).then(() => {
     startSubmitMaskTimer(dispatch);
@@ -111,9 +123,19 @@ export const saveWaiverAndRedirect = (
   ownerId,
   comment,
   componentMatcherStrategy,
-  expiration
+  expiration,
+  waiverReasonId
 ) => (dispatch) =>
-  saveWaiver(policyViolationId, waiverScope, ownerId, comment, componentMatcherStrategy, expiration, dispatch)
+  saveWaiver(
+    policyViolationId,
+    waiverScope,
+    ownerId,
+    comment,
+    componentMatcherStrategy,
+    expiration,
+    dispatch,
+    waiverReasonId
+  )
     .then(() => dispatch(returnToAddWaiverOriginPage()))
     .catch((err) => dispatch(saveWaiverFailed(err)));
 
@@ -123,9 +145,19 @@ export const saveWaiverAndLoadPolicyViolationData = (
   ownerId,
   comment,
   componentMatcherStrategy,
-  expiration
+  expiration,
+  waiverReasonId
 ) => (dispatch) =>
-  saveWaiver(policyViolationId, waiverScope, ownerId, comment, componentMatcherStrategy, expiration, dispatch)
+  saveWaiver(
+    policyViolationId,
+    waiverScope,
+    ownerId,
+    comment,
+    componentMatcherStrategy,
+    expiration,
+    dispatch,
+    waiverReasonId
+  )
     .then(() => dispatch(policyViolationsActions.load()))
     .then(() => dispatch(resetAddWaiverData()))
     .catch((err) => dispatch(saveWaiverFailed(err)));
@@ -135,11 +167,12 @@ export const saveWaiverAndLoadPolicyViolationData = (
  */
 export function loadAddWaiverData(violationId) {
   return (dispatch, getState) => {
-    const isFirewallOrRepositoryComponent = selectIsFirewallOrRepository(getState());
+    const state = getState();
+    const isFirewallOrRepositoryComponent = selectIsFirewallOrRepository(state);
     const isCurrentRouteName = isFirewallOrRepositoryComponent;
     const repositoryPolicyId = isFirewallOrRepositoryComponent
-      ? selectRepositoryId(getState())
-      : selectPrevRepositoryPolicyId(getState());
+      ? selectRepositoryId(state)
+      : selectPrevRepositoryPolicyId(state);
     const fetchCrossStage = isCurrentRouteName ? fetchCrossStageViolationAddWaiver : fetchCrossStageViolation;
 
     dispatch(loadAddWaiverDataRequested());
@@ -151,11 +184,20 @@ export function loadAddWaiverData(violationId) {
           { applicationPublicId, policyId } = violationDetails,
           isPublicId = isCurrentRouteName ? repositoryPolicyId : applicationPublicId;
         // ToDo verify that ownerType is always application
-        return loadOwnerContextHierarchy(ownerType, isPublicId, policyId);
+        const promises = [
+          loadOwnerContextHierarchy(ownerType, isPublicId, policyId),
+          dispatch(waiverActions.loadCachedWaiverReasons()),
+        ];
+        return Promise.all(promises);
       })
-      .then((waiverTargets) =>
-        dispatch(loadAddWaiverDataFulfilled({ waiverTargets, comments: extractPreloadedCommentFromUrl(getState()) }))
-      )
+      .then((responses) => {
+        dispatch(
+          loadAddWaiverDataFulfilled({
+            waiverTargets: responses[0],
+            comments: extractPreloadedCommentFromUrl(getState()),
+          })
+        );
+      })
       .catch((err) => dispatch(loadAddWaiverDataFailed(err)));
   };
 }
@@ -283,6 +325,8 @@ export const setWaiverScope = payloadParamActionCreator(WAIVERS_ADD_WAIVER_SET_W
 export const setComponentMatcherStrategy = payloadParamActionCreator(WAIVERS_ADD_WAIVER_SET_COMPONENT_MATCHER_STRATEGY);
 
 export const setExpiryTime = payloadParamActionCreator(WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME);
+
+export const setWaiverReason = payloadParamActionCreator(WAIVERS_ADD_WAIVER_SET_REASON);
 
 export const setCustomExpiryTime = payloadParamActionCreator(WAIVERS_ADD_WAIVER_SET_CUSTOM_EXPIRY_TIME);
 

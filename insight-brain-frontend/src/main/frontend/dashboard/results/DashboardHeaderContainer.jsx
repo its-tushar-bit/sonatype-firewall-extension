@@ -16,7 +16,7 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 const mapStateToProps = (state) => {
-  const { manageFilters, dashboardFilter, dashboard } = state;
+  const { manageFilters, dashboardFilter, dashboard, waivers } = state;
   return {
     dashboard,
     exportTitle: selectExportTitle(state),
@@ -25,8 +25,8 @@ const mapStateToProps = (state) => {
     ...pick(['appliedFilterName', 'showDirtyAsterisk'], manageFilters),
     filterSidebarOpen: dashboardFilter.filterSidebarOpen,
     filters: dashboardFilter.appliedFilter,
-    filterLoading: dashboardFilter.loading,
-    loadFilterError: dashboardFilter.loadError,
+    filterLoading: dashboardFilter.loading || waivers.waiverReasons.loading,
+    loadFilterError: dashboardFilter.loadError || waivers.waiverReasons.loadError,
     isDashboardEnabled: selectIsDashboardSupported(state),
     isWaiversTabEnabled: selectIsDashboardWaiversSupported(state),
   };

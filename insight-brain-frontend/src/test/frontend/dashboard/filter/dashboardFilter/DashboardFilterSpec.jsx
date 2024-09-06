@@ -15,6 +15,8 @@ import {
 } from 'MainRoot/dashboard/filter/staticFilterEntries';
 import { render, screen, within, fireEvent } from 'TestRoot/SpecUtil';
 
+// TODO: Migrate to DashboardFilter.jestspec.jsx https://sonatype.atlassian.net/browse/CLM-31341
+// If you have a new tests, please but it in the jestspec, consider this deprecated
 describe('DashboardFilter', function () {
   let renderComponent, loadFilterSpy, minimalProps, SaveFilterModalContainerMock, DashboardFilter;
 
@@ -470,6 +472,7 @@ describe('DashboardFilter', function () {
       applications: new Set(['777heaven777']),
       repositories: new Set(['repo123']),
       policyTypes: new Set(['QUALITY', 'OTHER', 'SECURITY']),
+      policyWaiverReasonIds: new Set(['some-reason-id']),
       stages: new Set(['release', 'stage-release', 'build']),
       categories: new Set([null]),
       policyViolationStates: new Set(['OPEN', 'WAIVED']),
@@ -489,7 +492,7 @@ describe('DashboardFilter', function () {
       minPolicyThreatLevel: 3,
       maxPolicyThreatLevel: 6,
       expirationDate: 'ALL',
-      policyWaiverReasonIds: [],
+      policyWaiverReasonIds: ['some-reason-id'],
     };
 
     it('calls applyFilter action', function () {

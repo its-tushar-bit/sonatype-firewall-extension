@@ -11,6 +11,7 @@ import { stateGo as stateGoAction } from 'MainRoot/reduxUiRouter/routerActions';
 import DashboardWaiversTable from './DashboardWaiversTable';
 import DashboardMask from '../dashboardMask/DashboardMask';
 import { NxInfoAlert, NxTextLink } from '@sonatype/react-shared-components';
+import { prop } from 'ramda';
 
 export default function DashboardWaivers() {
   const dispatch = useDispatch();
@@ -27,7 +28,9 @@ export default function DashboardWaivers() {
   } = useSelector(selectDashboardFilter);
   const waivers = useSelector(selectWaiversResults);
 
-  const isLoading = !waivers.results && !waivers.error;
+  const waiverSelector = useSelector(prop('waivers'));
+
+  const isLoading = (!waivers.results && !waivers.error) || waiverSelector.waiverReasons.loading;
 
   const tableProps = {
     waivers,

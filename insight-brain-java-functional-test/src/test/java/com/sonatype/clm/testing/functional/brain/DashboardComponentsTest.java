@@ -439,6 +439,13 @@ public class DashboardComponentsTest
     table.lastComponent().lowRisk().shouldHave(text("0"));
   }
 
+  @Test
+  public void testComponentsTabDoesNotShowReasonsFilter() {
+    DashboardPage.expandFilter();
+    DashboardFilters.filterContainer().shouldBe(visible);
+    DashboardFilters.iqPolicyWaiverReasonFilter().shouldNotBe(visible);
+  }
+
   private void assertComponentsCsv(String csv, String[] expectedSortedResults) {
     String[] lines = csv.split("\r\n");
     assertThat(lines[0]).isEqualTo("Component Name,Affected Apps,Total Risk,Critical,Severe,Moderate,Low");

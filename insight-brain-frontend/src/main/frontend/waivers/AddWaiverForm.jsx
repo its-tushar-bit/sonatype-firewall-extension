@@ -46,6 +46,7 @@ export default function AddWaiverForm(props) {
     threatLevelCategory,
     waiverComments,
     availableWaiverScopes,
+    waiverReasons,
     selectedWaiverScope,
     expiryTime,
     customExpiryTime,
@@ -56,6 +57,8 @@ export default function AddWaiverForm(props) {
     setWaiverComment,
     setComponentMatcherStrategy,
     setExpiryTime,
+    setWaiverReason,
+    waiverReasonId,
     setCustomExpiryTime,
     saveWaiver,
     vulnerabilityId,
@@ -71,6 +74,8 @@ export default function AddWaiverForm(props) {
   const isCustomExpiryTimeSelected = expiryTime === 'custom';
 
   const isNeverExpiryTimeSelected = expiryTime === 'never' || expiryTime === null;
+
+  const waiverReasonsToRender = [{ id: '', reasonText: 'Select a reason', type: 'system' }, ...waiverReasons];
 
   const getExpiration = () => {
     if (isCustomExpiryTimeSelected) {
@@ -91,7 +96,7 @@ export default function AddWaiverForm(props) {
     const { value } = waiverComments;
     const expiration = getExpiration();
 
-    saveWaiver(policyViolationId, type, id, value, componentMatcherStrategy, expiration);
+    saveWaiver(policyViolationId, type, id, value, componentMatcherStrategy, expiration, waiverReasonId);
   };
 
   const onVulnerabilityDetailsClick = () => {
@@ -124,6 +129,10 @@ export default function AddWaiverForm(props) {
   const onExpiryTimeChange = (event) => {
     const value = event.currentTarget.value === 'never' ? null : event.currentTarget.value;
     setExpiryTime(value);
+  };
+
+  const onReasonChange = (event) => {
+    setWaiverReason(event.currentTarget.value ?? null);
   };
 
   const policyClassnames = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`);
@@ -292,6 +301,17 @@ export default function AddWaiverForm(props) {
           </div>
         </NxFieldset>
 
+        {/* Reason */}
+        <NxFieldset className="iq-add-waiver-form__reason" label="Reason">
+          <NxFormSelect id="waiver-reason-select" onChange={onReasonChange}>
+            {waiverReasonsToRender.map(({ id, reasonText }) => (
+              <option key={id} value={id}>
+                {reasonText}
+              </option>
+            ))}
+          </NxFormSelect>
+        </NxFieldset>
+
         {/* Comments */}
         <NxFieldset className="iq-add-waiver-form__comments" label="Comments">
           <NxTextInput type="textarea" maxLength={1000} {...waiverComments} onChange={setWaiverComment} />
@@ -329,8 +349,12 @@ AddWaiverForm.propTypes = {
     isPristine: PropTypes.bool.isRequired,
   }).isRequired,
   availableWaiverScopes: PropTypes.arrayOf(PropTypes.shape(waiverScopePropTypes)).isRequired,
+  waiverReasons: PropTypes.arrayOf(
+    PropTypes.shape({ id: PropTypes.string, reasonText: PropTypes.string, type: PropTypes.string })
+  ),
   selectedWaiverScope: PropTypes.shape(waiverScopePropTypes).isRequired,
   expiryTime: PropTypes.string,
+  waiverReasonId: PropTypes.string,
   customExpiryTime: PropTypes.shape({
     value: PropTypes.string,
     isPristine: PropTypes.bool,
@@ -339,6 +363,7 @@ AddWaiverForm.propTypes = {
   setWaiverScope: PropTypes.func.isRequired,
   setComponentMatcherStrategy: PropTypes.func.isRequired,
   setExpiryTime: PropTypes.func.isRequired,
+  setWaiverReason: PropTypes.func.isRequired,
   setCustomExpiryTime: PropTypes.func.isRequired,
   setWaiverComment: PropTypes.func.isRequired,
   saveWaiver: PropTypes.func.isRequired,

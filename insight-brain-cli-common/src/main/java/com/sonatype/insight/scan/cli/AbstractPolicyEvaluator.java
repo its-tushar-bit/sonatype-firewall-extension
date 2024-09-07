@@ -343,7 +343,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     PolicyEvaluationResult policyEvaluationResult = eval.getResult();
     ApiCallFlowAnalysisConfigDTO iqCallFlowParams = fetchCallFlowAnalysisConfig(params, restClient);
     if (shouldRunCallFlowAnalysis(iqCallFlowParams, params)) {
-      policyEvaluationResult = runCallFlowAnalysis(restClient,eval,params,iqCallFlowParams);
+      policyEvaluationResult = runCallFlowAnalysis(restClient, eval, params, iqCallFlowParams);
     }
 
     log.info("");
@@ -384,35 +384,6 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
           params.getApplicationId());
     }
     return null;
-  }
-
-  private List<String> validateParamValue(List<String> properties, String key, String newValue) {
-    if (!propertyExists(properties, key) && newValue != null) {
-      return updateProperty(properties, key, newValue);
-    }
-    return properties;
-  }
-
-  private boolean propertyExists(List<String> properties, String key) {
-    return properties.stream().anyMatch(property -> property.startsWith(key + "="));
-  }
-
-  private List<String> updateProperty(List<String> properties, String key, String newValue) {
-    boolean found = false;
-    List<String> updatedProperties = new ArrayList<>();
-    for (String property : properties) {
-      if (property.startsWith(key + "=")) {
-        updatedProperties.add(key + "=" + newValue);
-        found = true;
-      }
-      else {
-        updatedProperties.add(property);
-      }
-    }
-    if (!found) {
-      updatedProperties.add(key + "=" + newValue);
-    }
-    return updatedProperties;
   }
 
   private boolean shouldRunCallFlowAnalysis(ApiCallFlowAnalysisConfigDTO iqCallFlowParams, P params) {
@@ -514,7 +485,6 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     log.info("Running call flow analysis...");
     StopWatch stopWatch = StopWatch.createStarted();
 
-    List<String> properties = prepareProperties(params, iqCallFlowParams);
     List<String> namespaces = prepareNamespaces(params, iqCallFlowParams);
 
     PolicyEvaluationResult result = policyEvaluationResult.getResult();
@@ -528,7 +498,8 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
             params.getScanTargets(),
             namespaces,
             // Pass down parameters entered by the user
-            getScanConfiguration(properties, null)
+            getScanConfiguration(params.getProperties(), null),
+            iqCallFlowParams
         );
 
         CallFlowGraphExtractor extractor = CallFlowGraphExtractor.newInstance(log, config);
@@ -554,17 +525,6 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       saveErrorData(params, CLIError.forSystemError(message), restClient);
     }
     return result;
-  }
-
-  private List<String> prepareProperties(P params, ApiCallFlowAnalysisConfigDTO iqCallFlowParams) {
-    List<String> properties = new ArrayList<>(params.getProperties());
-    if (iqCallFlowParams != null) {
-      properties = validateParamValue(properties, "callFlowAlgorithm",
-          iqCallFlowParams.algorithm != null ? iqCallFlowParams.algorithm.getName() : null);
-      properties = validateParamValue(properties, "callFlowThreadCount",
-          iqCallFlowParams.threadCount != null ? iqCallFlowParams.threadCount.toString() : null);
-    }
-    return properties;
   }
 
   private List<String> prepareNamespaces(P params, ApiCallFlowAnalysisConfigDTO iqCallFlowParams) {

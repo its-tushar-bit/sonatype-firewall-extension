@@ -70,6 +70,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.SbomAction;
+import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
@@ -108,8 +109,6 @@ public class ApiSbomService
   public static final String STATE_PARAM = "state";
 
   public static final String SBOM_VALIDATED_HEADER = "X-SBOM-Validated";
-
-  public static final String SCAN_TYPE_BINARY = "BINARY";
 
   private final DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 
@@ -535,7 +534,8 @@ public class ApiSbomService
         dtFormatter.format(LocalDateTime.now()), thirdPartyFile.getFilename(), UUID.randomUUID().toString(),
         SbomSpecification.CYCLONEDX.toString(), SbomFormat.JSON.toString(), ExportSpecification.DEFAULT.getVersion(),
         SbomStatus.PENDING.toString(), new Date(), SbomCycloneDxUtils.getGenericSbomCreationDetailsAsString(),
-        SCAN_TYPE_BINARY);
+        SbomScanType.BINARY.toString());
     sbomMetadataUtils.insertThirdPartySbomMetadataWithRetry(thirdPartySbomMetadata);
+    AuditData.get().setSbomVersion(thirdPartySbomMetadata, SbomAction.CREATE);
   }
 }

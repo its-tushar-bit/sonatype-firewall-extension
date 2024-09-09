@@ -113,6 +113,36 @@ public class ThirdPartyScanDAOTest
   }
 
   @Test
+  public void testGetSingleByScanRequestId_Single() {
+    ThirdPartyScan expected1 = tempEntity.newThirdPartyScan();
+
+    ThirdPartyScan found = dao.getSingleByScanRequestId(expected1.getScanRequestId());
+    assertThat(found).isNotNull();
+    assertThat(found.getId()).isEqualTo(expected1.getId());
+  }
+
+  @Test
+  public void testGetSingleByScanRequestId_Multiple() throws Exception {
+    ThirdPartyScan expected1 = tempEntity.newThirdPartyScan();
+    ThirdPartyScan expected2 = tempEntity.newThirdPartyScan(expected1.getScanRequestId(), TemporaryEntity.uuid());
+
+    ThirdPartyScan found = dao.getSingleByScanRequestId(expected1.getScanRequestId());
+    assertThat(found).isNotNull();
+    assertThat(found.getId()).isIn(expected1.getId(), expected2.getId());
+  }
+
+  @Test
+  public void testUpdateScanIdForScanRequest() throws Exception {
+    ThirdPartyScan expected1 = tempEntity.newThirdPartyScan();
+    tempEntity.newThirdPartyScan(expected1.getScanRequestId(), TemporaryEntity.uuid());
+
+    dao.updateScanIdForScanRequest(expected1.getScanRequestId(), "newScanId");
+
+    List<ThirdPartyScan> updated = dao.getByScanRequestId(expected1.getScanRequestId());
+    assertThat(updated).hasSize(2).extracting("scanId").containsOnly("newScanId");
+  }
+
+  @Test
   public void testGetByThirdPartyFileId() {
     ThirdPartyScan expected = tempEntity.newThirdPartyScan();
     ThirdPartyScan result = dao.getByThirdPartyFileId(expected.getThirdPartyFileId());

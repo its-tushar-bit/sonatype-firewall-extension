@@ -75,10 +75,10 @@ public class ScanHandlerTest
   @Test
   public void testHandle_SbomManagerBinaryScan() throws Exception {
     Application app = tempEntity.newApplicationWithParent("test-app-id");
-    ScanReceipt scanReceipt = new ScanReceipt();
+    ScanReceipt mockScanReceipt = new ScanReceipt();
     String scanId = "test-scan-id";
     String scanRequestId = "scan-request-id";
-    scanReceipt.setScanId(scanId);
+    mockScanReceipt.setScanId(scanId);
     File scanDir = work.getScanDir(app.getId());
     Files.createDirectories(scanDir.toPath());
     File scanFile = FileUtils.createTempFile("temp-", ".xml.gz", scanDir);
@@ -86,12 +86,14 @@ public class ScanHandlerTest
     Files.writeString(scanFile.getAbsoluteFile().toPath(), scanFileContent);
 
     when(scanUploadService.upload(any(File.class), any(Application.class), any(), eq(ClientScanType.SONATYPE),
-        any(), any(), any())).thenReturn(scanReceipt);
+        any(), any(), any())).thenReturn(mockScanReceipt);
 
-    scanReceipt = scanHandler.handle(scanFile, app, ClientScanType.SONATYPE, null, ComplianceStageType.ID,
-        null , scanRequestId);
-
-    assertThat(scanReceipt.getScanId()).isEqualTo(scanId);
+    ScanReceipt scanReceipt = scanHandler.handle(scanFile, app, ClientScanType.SONATYPE, null, ComplianceStageType.ID,
+        null, scanRequestId);
+    verify(scanUploadService, times(1))
+        .upload(eq(scanFile), eq(app), eq(ComplianceStageType.ID), eq(ClientScanType.SONATYPE), eq(null), eq(null),
+            eq(scanRequestId));
+    assertThat(mockScanReceipt).isEqualTo(scanReceipt);
   }
 
   @Test
@@ -109,7 +111,8 @@ public class ScanHandlerTest
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE_THIRD_PARTY);
     assertThat(scanReceipt.getScanId()).isEqualTo(scanId);
     verify(scanUploadService, times(1))
-        .upload(any(File.class), any(Application.class), eq(null), any(), eq(null), eq(null), any());
+        .upload(any(File.class), any(Application.class), eq(null), eq(ClientScanType.SONATYPE_THIRD_PARTY), eq(null),
+            eq(null), any());
   }
 
   @Test
@@ -127,7 +130,7 @@ public class ScanHandlerTest
     ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
     when(scanUploadService.upload(any(File.class), any(Application.class), eq(null), any(ClientScanType.class),
         clientUserAgentArgCaptor.capture(), eq(null), any())) //
-            .thenReturn(scanReceipt);
+        .thenReturn(scanReceipt);
 
     scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE_THIRD_PARTY);
 

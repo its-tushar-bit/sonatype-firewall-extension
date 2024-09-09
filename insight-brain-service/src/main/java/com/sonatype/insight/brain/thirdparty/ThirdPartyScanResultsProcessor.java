@@ -17,7 +17,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -139,19 +138,25 @@ public class ThirdPartyScanResultsProcessor
       File scanFile,
       File tempScanFile,
       File scanDir,
+      ThirdPartyScanContext scanContext,
       TelemetryData thirdPartyScanTelemetryData,
       String applicationId,
       String stageTypeId)
   {
-    String scanRequestId = UUID.randomUUID().toString().replace("-", "");
+    String scanRequestId;
+    if (scanContext == null) {
+      scanRequestId = UUID.randomUUID().toString().replace("-", "");
+      scanContext = new ThirdPartyScanContext(scanRequestId, applicationId, SbomScanType.SBOM, scanFile,
+          stageTypeId);
+    }
+    else {
+      scanRequestId = scanContext.getScanRequestId();
+    }
+
     log.info("Processing third party content with scanRequestId: {}", scanRequestId);
     try {
       File filteredFile = FileUtils.createTempFile("tmp-", ".xml", scanDir);
-      ThirdPartyScanContext scanContext = new ThirdPartyScanContext(scanRequestId,
-          applicationId,
-          scanFile,
-          stageTypeId
-      );
+
       try (GZIPInputStream gis = new GZIPInputStream(new FileInputStream(scanFile));
            OutputStream out = new FileOutputStream(filteredFile)) {
 
@@ -168,7 +173,6 @@ public class ThirdPartyScanResultsProcessor
         writer.flush();
         writer.close();
         compressScanFile(filteredFile, tempScanFile);
-        saveFilteredScanFileIfNeeded(scanContext, tempScanFile);
         telemetrySender.send(thirdPartyScanTelemetryData);
         log.info("Completed processing third party content in file {}", scanFile.getName());
         return scanRequestId;
@@ -180,36 +184,6 @@ public class ThirdPartyScanResultsProcessor
     catch (Exception e) {
       throw new IllegalArgumentException("Error reading/processing third party scan content from scan file", e);
     }
-  }
-
-  private void saveFilteredScanFileIfNeeded(final ThirdPartyScanContext scanContext, final File tempScanFile) {
-    //this check guarantees that the filtered temp scan file is saved only in the case of a successful sbom scan
-    // where an "original" sbom is saved with sbom limit checks validated.
-    if (scanContext.isSbomSavedForScan()) {
-      ThirdPartyScan tpScan = thirdPartyScanDAO.getById(scanContext.getThirdPartyScanId());
-      if (tpScan != null) {
-        File filteredScanFile = new File(insightWork.getScanDir(scanContext.getApplicationId()), newScanFileName());
-        try {
-          Files.copy(tempScanFile.toPath(), filteredScanFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-          tpScan.setFilteredScanFile(filteredScanFile.getName());
-          thirdPartyScanDAO.update(tpScan);
-        }
-        catch (IOException e) {
-          log.error("Error saving filtered scan file {}", filteredScanFile.getName(), e);
-        }
-      }
-    }
-  }
-
-  private static String newScanFileName() {
-    return "scan-" + UUID.randomUUID().toString().replace("-", "") + ".xml.gz";
-  }
-
-  public void postHandle(String scanId, String scanRequestId) {
-    thirdPartyScanDAO.getByScanRequestId(scanRequestId).forEach(thirdPartyScan -> {
-      thirdPartyScan.setScanId(scanId);
-      thirdPartyScanDAO.update(thirdPartyScan);
-    });
   }
 
   private void processEvent(
@@ -306,9 +280,7 @@ public class ThirdPartyScanResultsProcessor
     String lastModified = itemElement.getAttribute("lastModified");
     String sha1 = itemElement.getAttribute("sha1");
 
-    ThirdPartyFile thirdPartyFile = saveFile(path);
-    scanContext.setThirdPartyFileId(thirdPartyFile.getId());
-    saveScan(thirdPartyFile, scanContext.getScanRequestId(), scanContext);
+    ThirdPartyFile thirdPartyFile = storeOrResolveThirdPartyFile(path, scanContext);
     storeSbomFileIfApplicable(contentType, itemElement, contentElement, scanContext);
 
     ItemContentType contentItemType = ItemContentType.valueOf(contentType);
@@ -318,16 +290,25 @@ public class ThirdPartyScanResultsProcessor
         thirdPartyFile);
   }
 
-  private ThirdPartyFile saveFile(String path) {
-    ThirdPartyFile thirdPartyFile = new ThirdPartyFile(path, new Date());
-    thirdPartyFileDAO.insert(thirdPartyFile);
-    return thirdPartyFile;
+  private ThirdPartyFile storeOrResolveThirdPartyFile(String path, ThirdPartyScanContext scanContext) {
+    if (SbomScanType.BINARY.equals(scanContext.getScanType())
+        && scanContext.getSbomMetadataId() != null
+        && scanContext.getThirdPartyFileId() != null
+        && ComplianceStageType.ID.equals(scanContext.getStageType())) {
+      return thirdPartyFileDAO.getById(scanContext.getThirdPartyFileId());
+    }
+    return saveNewScan(path, scanContext);
   }
 
-  private void saveScan(ThirdPartyFile thirdPartyFile, String scanRequestId, ThirdPartyScanContext context) {
-    ThirdPartyScan thirdPartyScan = new ThirdPartyScan(thirdPartyFile.getId(), scanRequestId, new Date());
+  private ThirdPartyFile saveNewScan(String path, ThirdPartyScanContext scanContext) {
+    ThirdPartyFile thirdPartyFile = new ThirdPartyFile(path, new Date());
+    thirdPartyFileDAO.insert(thirdPartyFile);
+    ThirdPartyScan thirdPartyScan =
+        new ThirdPartyScan(thirdPartyFile.getId(), scanContext.getScanRequestId(), new Date());
     thirdPartyScanDAO.insert(thirdPartyScan);
-    context.setThirdPartyScanId(thirdPartyScan.getId());
+    scanContext.setThirdPartyScanId(thirdPartyScan.getId());
+    scanContext.setThirdPartyFileId(thirdPartyFile.getId());
+    return thirdPartyFile;
   }
 
   private void compressScanFile(File filteredFile, File scanFile) throws IOException {
@@ -439,13 +420,14 @@ public class ThirdPartyScanResultsProcessor
         && !sbomMetadataUtils.hasMaxSbomLimitBeenReached()
         && isStageTypeSupported(scanContext)
         && (ItemContentType.SBOM.equals(contentItemType) || ItemContentType.SPDX.equals(contentItemType))
-        && !scanContext.isSbomSavedForScan();
+        && !scanContext.isSbomSavedForScan()
+        && !SbomScanType.BINARY.equals(scanContext.getScanType());
   }
 
   private boolean isStageTypeSupported(ThirdPartyScanContext scanContext) {
     return scanContext.getStageType().equalsIgnoreCase(ComplianceStageType.ID)
-        && productLicense.getStageTypes().stream().anyMatch(
-            stageType -> stageType.getId().equalsIgnoreCase( ComplianceStageType.ID));
+        && productLicense.getStageTypes().stream()
+        .anyMatch(stageType -> stageType.getId().equalsIgnoreCase(ComplianceStageType.ID));
   }
 
   private String storeSbom(
@@ -513,7 +495,7 @@ public class ThirdPartyScanResultsProcessor
     sbomMetadata.setMetadataJson(sbomDetectionResult.summary.creationDetails);
     sbomMetadata.setCreatedAt(new Date());
     sbomMetadata.setStatus(SbomStatus.PENDING.name());
-    sbomMetadata.setScanType("SBOM");
+    sbomMetadata.setScanType(SbomScanType.SBOM.name());
     return sbomMetadata;
   }
 

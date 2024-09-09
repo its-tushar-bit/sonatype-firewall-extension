@@ -313,7 +313,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-vulnerabilities.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null);
+    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null, null);
     thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
     sbomResultHandler =
         new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
@@ -363,7 +363,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-vulnerabilities-no-purl.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null);
+    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null, null);
     thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
     sbomResultHandler =
         new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
@@ -394,7 +394,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-vulnerabilities-no-purl-with-hash.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null);
+    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null, null);
     thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
     sbomResultHandler =
         new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
@@ -661,7 +661,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-vulnerabilities-optional-values.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null);
+    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null, null);
     thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
     sbomResultHandler =
         new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
@@ -746,7 +746,7 @@ public class SbomResultHandlerTest
   private void testHandleFilterContents(String sbomContent, String path, SbomFormat sbomFormat) throws Exception {
     ThirdPartyScanContent content = new ThirdPartyScanContent(path, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null);
+    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null, null);
     thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
     sbomResultHandler =
         new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,

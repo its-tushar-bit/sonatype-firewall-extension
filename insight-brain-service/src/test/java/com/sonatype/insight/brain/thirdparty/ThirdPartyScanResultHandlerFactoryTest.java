@@ -30,7 +30,7 @@ public class ThirdPartyScanResultHandlerFactoryTest
 
   @Test
   public void testGetHandler_Sbom() {
-    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null);
+    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null, null);
     ThirdPartyScanResultHandler handler =
         thirdPartyResultHandlerFactory.newHandler(ItemContentType.SBOM, thirdPartyScanContext);
     assertThat(handler).isInstanceOf(SbomResultHandler.class);
@@ -40,7 +40,7 @@ public class ThirdPartyScanResultHandlerFactoryTest
 
   @Test
   public void testGetHandler_Spdx() {
-    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null);
+    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null, null);
     ThirdPartyScanResultHandler handler =
         thirdPartyResultHandlerFactory.newHandler(ItemContentType.SPDX, thirdPartyScanContext);
     assertThat(handler).isInstanceOf(SpdxResultHandler.class);
@@ -50,7 +50,7 @@ public class ThirdPartyScanResultHandlerFactoryTest
 
   @Test
   public void testGetHandler_Container() {
-    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null);
+    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null, null);
     ThirdPartyScanResultHandler handler =
         thirdPartyResultHandlerFactory.newHandler(ItemContentType.CONTAINER_URI, thirdPartyScanContext);
     assertThat(handler).isInstanceOf(ContainerResultHandler.class);

@@ -1,0 +1,20 @@
+{
+  "image": "image-name",
+  "unapproved": [
+    "CVE-2019-3462",
+    "CVE-2017-16997",
+    "CVE-2018-1000001"
+  ],
+  "vulnerabilities": [
+    {
+      "featurename": "apt",
+      "featureversion": "1.4.8",
+      "vulnerability": "CVE-2019-3462",
+      "namespace": "debian:9",
+      "description": "",
+      "link": "https://security-tracker.debian.org/tracker/CVE-2019-3462",
+      "severity": "Critical",
+      "fixedby": "1.4.9"
+    }
+  ]
+}

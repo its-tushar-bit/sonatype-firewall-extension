@@ -13,7 +13,9 @@ public class ThirdPartyScanContext
 
   private final String applicationId;
 
-  private final File scanFile;
+  private final SbomScanType scanType;
+
+  private File scanFile;
 
   private boolean sbomSavedForScan;
 
@@ -29,11 +31,13 @@ public class ThirdPartyScanContext
 
   public ThirdPartyScanContext(final String scanRequestId,
                                final String applicationId,
+                               final SbomScanType scanType,
                                final File scanFile,
                                final String stageType)
   {
     this.scanRequestId = scanRequestId;
     this.applicationId = applicationId;
+    this.scanType = scanType;
     this.scanFile = scanFile;
     this.stageType = stageType;
   }
@@ -96,5 +100,9 @@ public class ThirdPartyScanContext
 
   public void setThirdPartyScanId(final String thirdPartyScanId) {
     this.thirdPartyScanId = thirdPartyScanId;
+  }
+
+  public SbomScanType getScanType() {
+    return scanType;
   }
 }

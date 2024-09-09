@@ -59,6 +59,25 @@ public class ThirdPartyScanDAO
     return getList(sQuery, scanRequestId);
   }
 
+  public ThirdPartyScan getSingleByScanRequestId(String scanRequestId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      Query<ThirdPartyScan> query =
+          createQuery("SELECT entity FROM ThirdPartyScan entity WHERE entity.scanRequestId=?1", scanRequestId);
+      query.setMaxResults(1);
+      return query.get(tx);
+    }
+  }
+
+  public void updateScanIdForScanRequest(String scanRequestId, String scanId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      String sQuery = "UPDATE ThirdPartyScan entity SET entity.scanId=?1 WHERE entity.scanRequestId=?2";
+      Query<ThirdPartyScan> query = createQuery(sQuery, scanId, scanRequestId);
+      query.executeUpdate(tx);
+      tx.commit();
+    }
+  }
+
   public int deleteByThirdPartyFileId(TransactionContext tx, String thirdPartyFileId) {
     String sQuery = "DELETE from ThirdPartyScan entity WHERE entity.thirdPartyFileId=?1";
     Query<ThirdPartyScan> query = createQuery(sQuery, thirdPartyFileId);

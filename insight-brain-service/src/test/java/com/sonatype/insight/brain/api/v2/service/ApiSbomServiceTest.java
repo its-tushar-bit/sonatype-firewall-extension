@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -13,6 +14,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -25,7 +27,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
@@ -38,6 +41,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentListDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
@@ -48,6 +52,8 @@ import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecificati
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.service.Zipper;
+import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.utils.Retry;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
@@ -108,7 +114,10 @@ public class ApiSbomServiceTest
   private ThirdPartyScanDAO thirdPartyScanDao;
 
   @Inject
-  private PolicyEvaluationDAO policyEvaluationDAO;
+  ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
+
+  @Inject
+  ThirdPartyCoordinateSecurityDAO coordinateSecurityDAO;
 
   @Inject
   private InsightWork insightWork;
@@ -718,7 +727,7 @@ public class ApiSbomServiceTest
     Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
     try (InputStream inputStream = getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/spdx.json")) {
-      Response response = service.importSbom(app.getId(), inputStream,"file.txt", false,
+      Response response = service.importSbom(app.getId(), inputStream, "file.txt", false,
           DUMMY_USER_AGENT);
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       assertThat(ticketDTO).isNotNull();
@@ -739,7 +748,7 @@ public class ApiSbomServiceTest
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
       Response response =
-          service.importSbom(app.getId(), inputStream,"third-party-simple-bom.xml", false, DUMMY_USER_AGENT);
+          service.importSbom(app.getId(), inputStream, "third-party-simple-bom.xml", false, DUMMY_USER_AGENT);
       ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
       assertThat(ticketDTO).isNotNull();
       assertThat(ticketDTO.statusUrl).isNotEmpty()
@@ -758,7 +767,7 @@ public class ApiSbomServiceTest
         "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
       assertThatExceptionOfType(PaymentRequiredException.class)
           .isThrownBy(
-              () -> service.importSbom(app.getId(), inputStream,"third-party-simple-bom.xml", true, DUMMY_USER_AGENT))
+              () -> service.importSbom(app.getId(), inputStream, "third-party-simple-bom.xml", true, DUMMY_USER_AGENT))
           .withMessage("You have exceeded the licensed limit of 0 sboms.");
     }
     testProductLicense.reset();
@@ -815,21 +824,79 @@ public class ApiSbomServiceTest
       assertThat(thirdPartyScan.getScanRequestId()).isEqualTo(ticketDTO.requestId);
 
       ThirdPartySbomMetadata thirdPartySbomMetadata = dao.getByThirdPartyFileId(thirdPartyScan.getThirdPartyFileId());
-
-      assertThat(thirdPartySbomMetadata).isNotNull();
-      assertThat(thirdPartySbomMetadata.getApplicationId()).isEqualTo(app.getId());
-      assertThat(thirdPartySbomMetadata.getSbomVersion()).isNotNull();
-      assertThat(thirdPartySbomMetadata.getFilename()).isEqualTo("index.html");
-      assertThat(thirdPartySbomMetadata.getSpec()).isEqualTo(SbomSpecification.CYCLONEDX.toString());
-      assertThat(thirdPartySbomMetadata.getSpecFormat()).isEqualTo(SbomFormat.JSON.toString());
-      assertThat(thirdPartySbomMetadata.getSpecVersion()).isEqualTo(ExportSpecification.DEFAULT.getVersion());
-      assertThat(thirdPartySbomMetadata.getStatus()).isEqualTo(SbomStatus.PENDING.toString());
-      assertThat(thirdPartySbomMetadata.getCreatedAt()).isNotNull();
-      assertThat(thirdPartySbomMetadata.getScanType()).isEqualTo(ApiSbomService.SCAN_TYPE_BINARY);
-      assertThat(thirdPartySbomMetadata.getMetadataJson()).isNotEmpty();
+      assertSbomMetadata(thirdPartySbomMetadata, app, "index.html");
 
       policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
+      //updated to reflect filtered scan file
+      thirdPartyScan = thirdPartyScanDao.getSingleByScanRequestId(ticketDTO.requestId);
+      assertThat(thirdPartyScan.getFilteredScanFile()).isNotNull();
     }
+  }
+
+  @Test
+  public void testImportSbom_BinaryFile_WithMultipleThirdPartyFiles() throws Exception {
+    File binaryFileToScan = tempDir.newFile("binary-scan.zip");
+    Zipper.zipDirectory(new File(getClass().getResource("/" + getClass().getSimpleName() + "/binary-scan").toURI()),
+        binaryFileToScan);
+    mockHdsForImportWithDelayedReportDownload(50);
+
+    Application app = tempEntity.newApplicationWithParent();
+    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
+
+    SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(true);
+    try (InputStream inputStream = new FileInputStream(binaryFileToScan)) {
+      Response response = service.importSbom(app.getId(), inputStream, "binary-scan.zip", true, DUMMY_USER_AGENT);
+
+      ApiThirdPartyScanTicketDTO ticketDTO = (ApiThirdPartyScanTicketDTO) response.getEntity();
+      assertThat(response.getStatus()).isEqualTo(200);
+      assertThat(ticketDTO).isNotNull();
+      assertThat(ticketDTO.statusUrl).isNotEmpty()
+          .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
+
+      ThirdPartyScan thirdPartyScan = thirdPartyScanDao.getSingleByScanRequestId(ticketDTO.requestId);
+      assertThat(thirdPartyScan).isNotNull();
+      assertThat(thirdPartyScan.getScanRequestId()).isEqualTo(ticketDTO.requestId);
+
+      ThirdPartySbomMetadata thirdPartySbomMetadata = dao.getByThirdPartyFileId(thirdPartyScan.getThirdPartyFileId());
+
+      assertSbomMetadata(thirdPartySbomMetadata, app, "binary-scan.zip");
+
+      policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
+
+      List<ThirdPartyFileCoordinate> tpComponents =
+          thirdPartyFileCoordinateDAO.getBySbomMetadataId(thirdPartySbomMetadata.getId());
+      //1 from clair file, 1 from cyclonedx file, 2 from spdx file
+      assertThat(tpComponents).hasSize(4).extracting("name")
+          .containsExactlyInAnyOrder("apt", "axis", "commons", "iq_application_SBOMTests");
+
+      List<ThirdPartyCoordinateSecurity> tpVulnerabilities = coordinateSecurityDAO.getByFileCoordinateIds(
+          tpComponents.stream().map(ThirdPartyFileCoordinate::getId).collect(
+              Collectors.toList()));
+      //ne each from clair, cdx, and spdx
+      assertThat(tpVulnerabilities).hasSize(3)
+          .extracting("refId").containsExactlyInAnyOrder("CVE-2007-2353", "CVE-2019-3462", "CVE-2007-2353");
+      //updated to reflect filtered scan file
+      thirdPartyScan = thirdPartyScanDao.getSingleByScanRequestId(ticketDTO.requestId);
+      assertThat(thirdPartyScan.getFilteredScanFile()).isNotNull();
+    }
+  }
+
+  private static void assertSbomMetadata(
+      final ThirdPartySbomMetadata thirdPartySbomMetadata,
+      final Application app,
+      final String expected)
+  {
+    assertThat(thirdPartySbomMetadata).isNotNull();
+    assertThat(thirdPartySbomMetadata.getApplicationId()).isEqualTo(app.getId());
+    assertThat(thirdPartySbomMetadata.getSbomVersion()).isNotNull();
+    assertThat(thirdPartySbomMetadata.getFilename()).isEqualTo(expected);
+    assertThat(thirdPartySbomMetadata.getSpec()).isEqualTo(SbomSpecification.CYCLONEDX.toString());
+    assertThat(thirdPartySbomMetadata.getSpecFormat()).isEqualTo(SbomFormat.JSON.toString());
+    assertThat(thirdPartySbomMetadata.getSpecVersion()).isEqualTo(ExportSpecification.DEFAULT.getVersion());
+    assertThat(thirdPartySbomMetadata.getStatus()).isEqualTo(SbomStatus.PENDING.toString());
+    assertThat(thirdPartySbomMetadata.getCreatedAt()).isNotNull();
+    assertThat(thirdPartySbomMetadata.getScanType()).isEqualTo(SbomScanType.BINARY.toString());
+    assertThat(thirdPartySbomMetadata.getMetadataJson()).isNotEmpty();
   }
 
   @Test

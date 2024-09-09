@@ -5,10 +5,13 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -41,6 +44,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataTestUtil;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -51,6 +55,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.service.Zipper;
 import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
@@ -86,10 +91,13 @@ public class ApiSbomResourceTest
 
   private InsightWork insightWork;
 
+  private ThirdPartyScanDAO thirdPartyScanDAO;
+
   @Before
   public void setUp() throws Exception {
     dao = lookup(ThirdPartySbomMetadataDAO.class);
     insightWork = lookup(InsightWork.class);
+    thirdPartyScanDAO = lookup(ThirdPartyScanDAO.class);
 
     setFeatures(LicensedFeature.SBOM_MANAGER);
   }
@@ -587,24 +595,37 @@ public class ApiSbomResourceTest
 
     mockReport("SCAN-ID", "/" + getClass().getSimpleName() + "/report");
 
-    byte[] sbomFile = loadFileFromAssets("/" + getClass().getSimpleName() + "/app01.zip");
-    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_IMPORT_PATH)
-        .parameter(app.getId())
-        .part("file", "app01.zip", sbomFile)
-        .part("applicationId", app.getId())
-        .query("enableBinaryImport", "true")
-        .post();
+    File binaryFile = tempDir.newFile("binary-scan");
+    Zipper.zipDirectory(new File(getClass().getResource("/ApiSbomServiceTest/binary-scan").toURI()),
+        binaryFile);
+    try (FileInputStream binaryInputStream = new FileInputStream(binaryFile)) {
+      byte[] inputFile = IOUtils.toByteArray(binaryInputStream);
+      HttpResponse response = restRequest().path(ApiSbomResource.SBOM_IMPORT_PATH)
+          .parameter(app.getId())
+          .part("file", "binary-scan.zip", inputFile)
+          .part("applicationId", app.getId())
+          .query("enableBinaryImport", "true")
+          .post();
 
-    assertResponseStatus(Status.OK.getStatusCode(), response);
-    ApiThirdPartyScanTicketDTO apiThirdPartyScanTicketDTO = response.getBody(ApiThirdPartyScanTicketDTO.class);
-    assertThat(apiThirdPartyScanTicketDTO.statusUrl).startsWith(
-        String.format("%s%s/%s/status", PublicApiPaths.SBOM_RESOURCE_PATH, ApiSbomResource.SBOMS_APPLICATIONS_PATH,
-            app.getId()));
+      assertResponseStatus(Status.OK.getStatusCode(), response);
 
-    ApiSbomStatusDTO resultDTO = getSbomStatusDTO(apiThirdPartyScanTicketDTO.statusUrl);
-    assertThat(resultDTO.errorMessage).isNull();
-    assertThat(resultDTO.isError).isFalse();
-    assertSbomMetadataIdIsSetOnThirdPartyCoordinateSecurityEntities(resultDTO);
+      ApiThirdPartyScanTicketDTO ticketDTO = response.getBody(ApiThirdPartyScanTicketDTO.class);
+      assertThat(ticketDTO.statusUrl).startsWith(
+          String.format("%s%s/%s/status", PublicApiPaths.SBOM_RESOURCE_PATH, ApiSbomResource.SBOMS_APPLICATIONS_PATH,
+              app.getId()));
+
+      ApiSbomStatusDTO resultDTO = getSbomStatusDTO(ticketDTO.statusUrl);
+      assertThat(resultDTO.errorMessage).isNull();
+      assertThat(resultDTO.isError).isFalse();
+
+      ThirdPartySbomMetadata sbomMetadata =
+          dao.getByApplicationIdAndSbomVersion(app.getId(), resultDTO.version);
+      assertThat(sbomMetadata).isNotNull();
+      await().atMost(Duration.ofSeconds(10)).until(() ->
+          null != thirdPartyScanDAO.getByThirdPartyFileId(sbomMetadata.getThirdPartyFileId())
+              .getFilteredScanFile()
+      );
+    }
   }
 
   @Test

@@ -326,7 +326,7 @@ public class SpdxResultHandlerTest
     String sbomContent = getSbomJsonFile("spdx-v2_3.json");
     ThirdPartyScanContent content = new ThirdPartyScanContent("spdx-v2_3.json", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null);
+    ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null, null);
     thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
     spdxResultHandler =
         new SpdxResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,

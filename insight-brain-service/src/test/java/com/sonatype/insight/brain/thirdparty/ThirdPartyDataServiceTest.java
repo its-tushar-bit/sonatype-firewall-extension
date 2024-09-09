@@ -32,9 +32,9 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.SearchIndexChange;
@@ -46,9 +46,9 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.sbom.SbomPostImportMetricsTelemetry;
 import com.sonatype.insight.brain.sbom.SbomResultsMatcherTelemetry;
@@ -864,6 +864,31 @@ public class ThirdPartyDataServiceTest
     assertThat(telemetry.getUnverifiedVulnerabilityCount()).isEqualTo(1);
     assertThat(telemetry.getAdditionalVulnerabilitiesCount()).isEqualTo(1);
     assertThat(telemetry.getTotalVulnerabilitiesCount()).isEqualTo(6);
+  }
+
+  @Test
+  public void testMergeSonatypeDataWithSbomData_invalidPurlScenario() throws Exception {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(file, "SBOM", "maven",
+        "commons-httpclient", "3.1", "964cd74171f427720480", null);
+    tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, "Apache", "Apache-2.0", "link1", "SBOM");
+
+    tempEntity.createSbomMetadata("appId", "1", file, "PENDING");
+
+    final File reportZip =
+        Paths.get(ReportHelper
+            .zipReport("/ThirdPartyDataServiceTest/report-with-invalid-purl",
+                tempDir).toURI()).toFile();
+
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
+
+    ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
+    assertThat(sbomMetadata).isNotNull();
+    assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
   }
 
   @Test

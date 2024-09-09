@@ -702,9 +702,18 @@ public class ThirdPartyDataService
       final ThirdPartyFileCoordinate sbomComponent,
       Map<ComponentIdentifier, String> componentDependencyTypeMap)
   {
-    ComponentIdentifier sbomComponentIdentifier =
-        ComponentIdentifierAdapter.toComponentIdentifier(sbomComponent.getPackageUrl());
-    sbomComponent.setDependencyType(componentDependencyTypeMap.get(sbomComponentIdentifier));
+    try {
+      ComponentIdentifier sbomComponentIdentifier =
+          ComponentIdentifierAdapter.toComponentIdentifier(sbomComponent.getPackageUrl());
+      sbomComponent.setDependencyType(componentDependencyTypeMap.get(sbomComponentIdentifier));
+    }
+    catch (InvalidPackageURLException e) {
+      log.debug(
+          "There was an error while trying to convert the purl into a component identifier - {purl: {}, " +
+              "componentName: {}, componentHash: {}, componentVersion: {}}",
+          sbomComponent.getPackageUrl(), sbomComponent.getName(), sbomComponent.getHash(), sbomComponent.getVersion(),
+          e);
+    }
   }
 
   private void populateComponentDependencyTypeMap(

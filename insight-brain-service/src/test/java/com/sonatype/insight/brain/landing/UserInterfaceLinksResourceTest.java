@@ -340,6 +340,16 @@ public class UserInterfaceLinksResourceTest
   }
 
   @Test
+  public void testLinkToSbomManagerBomPage() throws Exception {
+    String url = UserInterfaceLinksHelper.getSBOMBillOfMaterialPath("app-id", "app-version");
+    assertThat(url).isEqualTo(
+        UserInterfaceLinksHelper.RESOURCE_PATH + "/sbomManager/management/view/application/app-id/bom/app-version");
+    HttpResponse response = get(UserInterfaceLinksHelper.SBOM_BOM_VIEW_PATH, "app-id", "app-version");
+    assertRedirect(response,
+        "assets/index.html#/sbomManager/management/view/application/app-id/bom/app-version/overview");
+  }
+
+  @Test
   public void testLinkToPrioritiesReport() throws Exception {
     final Application application = tempEntity.newApplicationWithParent();
     final String appPublicId = application.getPublicId();

@@ -388,8 +388,11 @@ public class PolicyEvaluateServiceTest
     setBaseUrl(serverUrl);
     ContactDTO appContact =
         ApplicationContactLoader.getInstance(userDirectory).getContact(app.getContactInternalName());
+    Map<String, Object> baseModel =
+        emailer.createPolicyMailModel("https://cdn.sonatype.com/", app, StageTypes.getById(stage.getStageTypeId()),
+            policyFacts);
     Map<String, Object> model =
-        emailer.createPolicyMailModel(app, appContact, scanId, StageTypes.BUILD, policyFacts, 8);
+        emailer.createPolicyMailModel(app, appContact, scanId, 8, baseModel);
     assertThat(model.get("policyFacts")).isEqualTo(policyFacts);
     assertThat(model.get("cdnUrl")).isEqualTo("https://cdn.sonatype.com/");
     assertThat(model.get("detailedReportUrl"))

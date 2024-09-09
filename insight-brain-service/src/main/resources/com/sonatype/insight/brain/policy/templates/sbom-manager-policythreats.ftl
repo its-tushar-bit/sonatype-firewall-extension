@@ -417,13 +417,8 @@
                           <#list policyFacts as fact>
                               <#list fact.componentFacts as component>
                                 <tr>
-                                  <td style="padding: 24px 0 0 24px" colspan="3">
-                                    <span style="font-weight: 700;vertical-align: middle;">${fact.policyName}</span>
-                                  </td>
-                                </tr>
-                                <tr>
-                                    <#if (fact.threatLevel > 7)>
-                                      <td style="padding: 24px 8px 16px 24px;">
+                                  <td style="padding: 24px 5px 0 24px;">
+                                      <#if (fact.threatLevel > 7)>
                                         <div
                                             style="border-radius: 16px; height: 14px; width: 14px; background-color: #cc0028;"></div>
                                       </td>
@@ -451,27 +446,33 @@
                                   <td style="padding: 24px 8px 16px 0;">
                                     <span style="vertical-align: middle;">${fact.threatLevel}</span>
                                   </td>
-                                  <td style="padding: 24px 24px 16px 0">
-                                    <span style="font-weight: 700;vertical-align: middle;">
-                                      <#if component.displayName??>
-                                          ${component.displayName}
-                                      <#else>
-                                        Hash: ${component.hash}
-                                      </#if>
-                                    </span>
+                                  <td style="padding: 24px 8px 0 0;">
+                                    <h2 style="vertical-align: middle;">${fact.threatLevel} ${fact.policyName}</h2>
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td style="padding: 10px 24px 10px 24px;" colspan="3">
+                                    <h3 style="vertical-align: middle;margin: 0;">
+                                        <#if component.displayName??>
+                                            ${component.displayName}
+                                        <#else>
+                                          Hash: ${component.hash}
+                                        </#if>
+                                    </h3>
                                   </td>
                                 </tr>
                                   <#list component.constraintFacts as constraint>
                                     <tr>
-                                      <td colspan="2"></td>
-                                      <td style="padding: 4px 24px 4px 0;">
-                                        <span style="vertical-align: middle;">${constraint.constraintName}</span>
+                                      <td colspan="1"></td>
+                                      <td style="padding: 0 24px 5px 0;">
+                                        <span
+                                            style="vertical-align: middle; font-weight: 600;">${constraint.constraintName}</span>
                                       </td>
                                     </tr>
                                       <#list constraint.conditionFacts as condition>
                                         <tr>
-                                          <td colspan="2"></td>
-                                          <td style="padding: 4px 24px 4px 0;">
+                                          <td></td>
+                                          <td style="padding: 4px 24px 4px 0;" colspan="2">
                                               ${condition.reason}
                                           </td>
                                         </tr>

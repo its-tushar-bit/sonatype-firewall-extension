@@ -345,6 +345,17 @@ public class UserInterfaceLinksResource
     return linkToPrioritiesReportRedirect(applicationPublicId, scanId);
   }
 
+  @GET
+  @Path(SBOM_BOM_VIEW_PATH)
+  public Response linkToSbomManagerBomPage(
+      @PathParam("applicationPublicId") String applicationPublicId,
+      @PathParam("version") String version)
+  {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(ASSET_INDEX_PATH).fragment("/" + SBOM_BOM_VIEW_PATH + "/overview");
+    return redirect(uriBuilder, applicationPublicId, version);
+  }
+
   private Response linkToPrioritiesReportRedirect(final String applicationPublicId, final String scanId) {
     final UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(ASSET_INDEX_PATH).fragment(PRIORITIES_PATH);

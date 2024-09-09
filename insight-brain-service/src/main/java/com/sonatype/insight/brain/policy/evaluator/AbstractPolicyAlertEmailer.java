@@ -28,6 +28,10 @@ import freemarker.template.Template;
  */
 public abstract class AbstractPolicyAlertEmailer
 {
+  private static final String LIFECYCLE_POLICY_ALERT_TEMPLATE_NAME = "policythreats.ftl";
+
+  private static final String SBOM_MANAGER_POLICY_ALERT_TEMPLATE_NAME = "sbom-manager-policythreats.ftl";
+
   private final InsightMail mail;
 
   private final PolicyAlertEmailResolver policyAlertEmailResolver;
@@ -76,20 +80,25 @@ public abstract class AbstractPolicyAlertEmailer
   }
 
   protected String createPolicyMailBody(Map<String, Object> model) throws IOException {
-    return TemplateUtils.render(getPolicyThreatsTemplate(), model);
+    return TemplateUtils.render(getPolicyThreatsTemplate(LIFECYCLE_POLICY_ALERT_TEMPLATE_NAME), model);
   }
 
-  private static synchronized Template getPolicyThreatsTemplate() throws IOException {
-    if (policyThreatsTemplate == null) {
-      policyThreatsTemplate = TemplateUtils.createFreemarkerConfig().getTemplate("policythreats.ftl");
+  protected String createPolicyMailBodyForSbomManager(Map<String, Object> model) throws IOException {
+    return TemplateUtils.render(getPolicyThreatsTemplate(SBOM_MANAGER_POLICY_ALERT_TEMPLATE_NAME), model);
+  }
+
+  private static synchronized Template getPolicyThreatsTemplate(final String templateName) throws IOException {
+    if (policyThreatsTemplate == null || !policyThreatsTemplate.getName().equals(templateName)) {
+      policyThreatsTemplate = TemplateUtils.createFreemarkerConfig().getTemplate(templateName);
     }
     return policyThreatsTemplate;
   }
 
-  protected Map<String, Object> createPolicyMailModel(final String cdnUrl,
-                                                      final Owner owner,
-                                                      final StageType stageType,
-                                                      final List<PolicyFact> policyFacts)
+  protected Map<String, Object> createPolicyMailModel(
+      final String cdnUrl,
+      final Owner owner,
+      final StageType stageType,
+      final List<PolicyFact> policyFacts)
   {
     PolicyAlertCounts counts = new PolicyAlertCounts(policyFacts);
 

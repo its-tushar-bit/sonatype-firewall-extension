@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingD
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -58,6 +59,7 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.SamlGroup;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.organization.ApplicationContactLoader;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -71,6 +73,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
@@ -162,6 +165,9 @@ public class PolicyAlertEmailerTest
 
   @Captor
   private ArgumentCaptor<Thread> threadArgumentCaptor;
+
+  @Inject
+  ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
   @Override
   public void configure(Binder binder) {
@@ -535,7 +541,8 @@ public class PolicyAlertEmailerTest
         policyAlertEmailResolver,
         new AuditRecorder(null),
         testProductLicense,
-        mockShutdownHandler
+        mockShutdownHandler,
+        thirdPartySbomMetadataDAO
     );
 
     undertest.sendNotifications(app, scanId, stage, policyNotifications, 0);
@@ -814,8 +821,11 @@ public class PolicyAlertEmailerTest
 
     ContactDTO appContact =
         ApplicationContactLoader.getInstance(userDirectory).getContact(app.getContactInternalName());
+
+    Map<String, Object> baseModel =
+        policyAlertEmailer.createPolicyMailModel(mailer.getCdnUrl(), app, StageTypes.STAGE_RELEASE, policyFacts);
     Map<String, Object> model =
-        policyAlertEmailer.createPolicyMailModel(app, appContact, scanId, StageTypes.STAGE_RELEASE, policyFacts, 7);
+        policyAlertEmailer.createPolicyMailModel(app, appContact, scanId, 7, baseModel);
 
     String emailBody = policyAlertEmailer.createPolicyMailBody(model);
     assertThat(emailBody)
@@ -832,6 +842,48 @@ public class PolicyAlertEmailerTest
   }
 
   @Test
+  public void testNotificationEmailBodyForSM() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("the-app-public-id");
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(app.getId(), SbomStatus.ACTIVE.name(), "bom.xml");
+    Policy policy = tempEntity.newPolicy(app.getId(), "Notifying Policy");
+
+    List<PolicyFact> policyFacts = new ArrayList<>();
+    ComponentIdentifier componentIdentifierMaven = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1",
+        "e1");
+    String hashMaven = "hashmaven";
+    policyFacts.add(newPolicyFact(policy, componentIdentifierMaven, hashMaven));
+    ComponentIdentifier componentIdentifierAname = ComponentIdentifier.createAnameCoordinates("n1", "q&1", "v1");
+    String hashAname = "hashAname";
+    policyFacts.add(newPolicyFact(policy, componentIdentifierAname, hashAname));
+    String hashUnknown = "hashUnknown12&3";
+    policyFacts.add(newPolicyFact(policy, null, hashUnknown));
+
+    ContactDTO appContact =
+        ApplicationContactLoader.getInstance(userDirectory).getContact(app.getContactInternalName());
+
+    Map<String, Object> baseModel =
+        policyAlertEmailer.createPolicyMailModel(mailer.getCdnUrl(), app, StageTypes.COMPLIANCE, policyFacts);
+    Map<String, Object> model =
+        policyAlertEmailer.createPolicyMailModelForSbomManager(app, appContact, baseModel);
+
+    String emailBody = policyAlertEmailer.createPolicyMailBodyForSbomManager(model);
+    assertThat(emailBody)
+        .contains(
+            mailer.getCdnUrl() + "clm/sbom/logo-sonatype-sbom-manager.svg",
+            getBaseUrl() +
+                UserInterfaceLinksHelper.getSBOMBillOfMaterialPath(app.getPublicId(), sbomMetadata.getSbomVersion()))
+        .contains(app.getPublicId()) //
+        .contains(StageTypes.COMPLIANCE.getName()) //
+        .contains(ComponentDisplayNameUtil.fromIdentifier(componentIdentifierMaven).toString(),
+            ComponentDisplayNameUtil.fromIdentifier(componentIdentifierAname).toString().replace("&", "&amp;"))
+        .doesNotContain(hashMaven, hashAname).contains(hashUnknown.replace("&", "&amp;")) //
+        .contains(policy.getName()) //
+        .contains("Failed &amp; Constraint Name 1", "Failed Constraint Name 2")
+        .contains("Failed Condition &lt;Reason&gt; 1", "Failed Condition Reason 2");
+  }
+
+  @Test
   public void testCreatePolicyMailModel_BaseUrlNotConfigured() {
     setBaseUrl(null);
 
@@ -843,8 +895,8 @@ public class PolicyAlertEmailerTest
         .add(newPolicyFact(policy, ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"), "hash"));
 
     assertThatThrownBy(
-        () -> policyAlertEmailer.createPolicyMailModel(app, null /* appContact */, "scanId", StageTypes.BUILD,
-            policyFacts, 0)).isInstanceOf(IllegalStateException.class)
+        () -> policyAlertEmailer.createPolicyMailModel(app, null /* appContact */, "scanId",
+            0, Collections.emptyMap())).isInstanceOf(IllegalStateException.class)
         .hasMessage(BaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 

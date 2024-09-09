@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -18,11 +17,13 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.organization.ApplicationContactLoader;
 import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -57,6 +58,8 @@ public class PolicyAlertEmailer
 
   private final ShutdownHandler shutdownHandler;
 
+  private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
   @Inject
   public PolicyAlertEmailer(
       final InsightMail mail,
@@ -65,7 +68,8 @@ public class PolicyAlertEmailer
       final PolicyAlertEmailResolver policyAlertEmailResolver,
       final AuditRecorder auditRecorder,
       final ProductLicense productLicense,
-      final ShutdownHandler shutdownHandler)
+      final ShutdownHandler shutdownHandler,
+      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO)
   {
     super(mail, policyAlertEmailResolver);
     this.baseUrl = baseUrl;
@@ -73,6 +77,7 @@ public class PolicyAlertEmailer
     this.auditRecorder = auditRecorder;
     this.productLicense = productLicense;
     this.shutdownHandler = shutdownHandler;
+    this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
   }
 
   public void sendNotifications(
@@ -115,9 +120,21 @@ public class PolicyAlertEmailer
               AuditData.get().setData("totalPolicyViolationCount", policyAlertCounts.getTotal());
               StageType stageType = StageTypes.getById(stage.getStageTypeId());
               final String subject = createPolicyMailSubject(policyAlertCounts, app.getName(), stageType);
-              final String body = createPolicyMailBody(
-                  createPolicyMailModel(app, appContact, scanId, stageType, details.getValue(),
-                      legacyViolationCount));
+              Map<String, Object> baseModel =
+                  createPolicyMailModel(getMail().getCdnUrl(), app, stageType, details.getValue());
+              final String body;
+              if (StageTypes.COMPLIANCE.equals(stageType)) {
+                Map<String, Object> policyMailModelForSM =
+                    createPolicyMailModelForSbomManager(app, appContact,
+                        baseModel);
+                body = createPolicyMailBodyForSbomManager(policyMailModelForSM);
+              }
+              else {
+                Map<String, Object> policyMailModel =
+                    createPolicyMailModel(app, appContact, scanId,
+                        legacyViolationCount, baseModel);
+                body = createPolicyMailBody(policyMailModel);
+              }
               getMail().sendHtml(details.getKey(), subject, body);
             }
             catch (final Exception e) {
@@ -150,20 +167,38 @@ public class PolicyAlertEmailer
       Application app,
       ContactDTO appContact,
       String scanId,
-      StageType stageType,
-      List<PolicyFact> policyFacts,
-      int legacyViolationCount)
+      int legacyViolationCount,
+      Map<String, Object> baseModel)
   {
-    Map<String, Object> model = createPolicyMailModel(getMail().getCdnUrl(), app, stageType, policyFacts);
     if (appContact != null) {
-      model.put("applicationContactEmail", appContact.getEmail());
-      model.put("applicationContactName", appContact.getDisplayName());
+      baseModel.put("applicationContactEmail", appContact.getEmail());
+      baseModel.put("applicationContactName", appContact.getDisplayName());
     }
-    model.put("detailedReportUrl",
+    baseModel.put("detailedReportUrl",
         baseUrl.getConfigured() + UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), scanId));
-    model.put("ownerIdLabel", "APP ID");
-    model.put("legacyViolationCount", legacyViolationCount);
+    baseModel.put("ownerIdLabel", "APP ID");
+    baseModel.put("legacyViolationCount", legacyViolationCount);
 
-    return model;
+    return baseModel;
+  }
+
+  protected Map<String, Object> createPolicyMailModelForSbomManager(
+      Application app,
+      ContactDTO appContact,
+      Map<String, Object> baseModel)
+  {
+    if (appContact != null) {
+      baseModel.put("applicationContactEmail", appContact.getEmail());
+      baseModel.put("applicationContactName", appContact.getDisplayName());
+    }
+
+    ThirdPartySbomMetadata sbomMetadata =
+        thirdPartySbomMetadataDAO.getLatestActiveByApplicationId(app.getId());
+    baseModel.put("appVersion", sbomMetadata.getSbomVersion());
+
+    baseModel.put("bomUrl", baseUrl.getConfigured() +
+        UserInterfaceLinksHelper.getSBOMBillOfMaterialPath(app.getPublicId(), sbomMetadata.getSbomVersion()));
+
+    return baseModel;
   }
 }

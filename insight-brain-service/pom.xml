@@ -393,6 +393,7 @@
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-utils</artifactId>
     </dependency>
+    <!-- Version 2.1.0 fails to decrypt strings encrypted with 2.0 -->
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-cipher</artifactId>

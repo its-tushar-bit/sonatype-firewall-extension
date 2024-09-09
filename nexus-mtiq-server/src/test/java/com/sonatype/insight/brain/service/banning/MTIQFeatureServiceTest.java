@@ -225,7 +225,8 @@ public class MTIQFeatureServiceTest
             .filter(f -> !f.equals(LicensedFeature.SAML_USER_TOKENS))
             .filter(f -> !f.equals(LicensedFeature.SBOM_MANAGER))
             .filter(f -> !f.equals(LicensedFeature.SCM_UX_IMPROVEMENTS))
-            .filter(f -> !f.equals(LicensedFeature.DEVELOPER_DASHBOARD)),
+            .filter(f -> !f.equals(LicensedFeature.DEVELOPER_DASHBOARD))
+            .filter(f -> !f.equals(LicensedFeature.DEVELOPER_VERSION_UPPER_BOUND)),
         stream(NonLicensedFeature.values())
             .filter(f -> !f.equals(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS))
     ).flatMap(i -> i).map(Feature.class::cast).collect(toSet()).toArray(new Feature[]{});

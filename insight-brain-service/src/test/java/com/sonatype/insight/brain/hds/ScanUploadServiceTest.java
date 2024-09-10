@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.thirdparty.SbomStatus;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyScanContext;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultsProcessor;
 import com.sonatype.insight.scan.model.ClientScanType;
 
@@ -149,7 +148,6 @@ public class ScanUploadServiceTest
 
     verify(scanUploader, times(1)).upload(any(File.class), eq(app), eq(stageTypeId), eq(null));
     verify(thirdPartyScanDAO, times(1)).updateScanIdForScanRequest(scanRequestId, mockReceipt.getScanId());
-    assertFilteredScanFile(scanRequestId, app.getId());
     assertThat(uploadReceipt).isEqualTo(mockReceipt);
   }
 
@@ -178,21 +176,6 @@ public class ScanUploadServiceTest
     verify(scanUploader, times(1)).upload(any(File.class), eq(app), eq(stageTypeId), eq(null));
     verify(thirdPartyScanDAO, times(1)).updateScanIdForScanRequest(scanRequestId, mockReceipt.getScanId());
     assertThat(uploadReceipt).isEqualTo(mockReceipt);
-  }
-
-  @Test
-  public void testSaveFilteredScanFileIfNeeded_WorksForBinaryScansWithThirdPartyContents() throws Exception {
-    File scanFile = createScanFile(app, RandomStringUtils.randomAlphanumeric(10));
-    String scanId = RandomStringUtils.randomAlphanumeric(10);
-    String scanRequestId = RandomStringUtils.randomAlphanumeric(10);
-    ThirdPartyFile tpFile = tempEntity.newThirdPartyFile("filename");
-    ThirdPartyScan tpScan = tempEntity.newThirdPartyScan(scanRequestId, scanId, tpFile);
-    ThirdPartyScanContext context =
-        new ThirdPartyScanContext(scanRequestId, app.getId(), SbomScanType.BINARY, scanFile, ComplianceStageType.ID);
-    context.setThirdPartyScanId(tpScan.getId());
-
-    service.saveFilteredScanFileIfNeeded(context, scanFile);
-    assertFilteredScanFile(scanRequestId, app.getId());
   }
 
   @Test

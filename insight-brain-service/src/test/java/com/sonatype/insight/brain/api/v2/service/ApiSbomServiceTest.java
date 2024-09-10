@@ -827,9 +827,6 @@ public class ApiSbomServiceTest
       assertSbomMetadata(thirdPartySbomMetadata, app, "index.html");
 
       policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
-      //updated to reflect filtered scan file
-      thirdPartyScan = thirdPartyScanDao.getSingleByScanRequestId(ticketDTO.requestId);
-      assertThat(thirdPartyScan.getFilteredScanFile()).isNotNull();
     }
   }
 
@@ -875,9 +872,6 @@ public class ApiSbomServiceTest
       //ne each from clair, cdx, and spdx
       assertThat(tpVulnerabilities).hasSize(3)
           .extracting("refId").containsExactlyInAnyOrder("CVE-2007-2353", "CVE-2019-3462", "CVE-2007-2353");
-      //updated to reflect filtered scan file
-      thirdPartyScan = thirdPartyScanDao.getSingleByScanRequestId(ticketDTO.requestId);
-      assertThat(thirdPartyScan.getFilteredScanFile()).isNotNull();
     }
   }
 

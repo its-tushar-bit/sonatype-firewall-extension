@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -44,7 +43,6 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataTestUtil;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -91,13 +89,10 @@ public class ApiSbomResourceTest
 
   private InsightWork insightWork;
 
-  private ThirdPartyScanDAO thirdPartyScanDAO;
-
   @Before
   public void setUp() throws Exception {
     dao = lookup(ThirdPartySbomMetadataDAO.class);
     insightWork = lookup(InsightWork.class);
-    thirdPartyScanDAO = lookup(ThirdPartyScanDAO.class);
 
     setFeatures(LicensedFeature.SBOM_MANAGER);
   }
@@ -621,10 +616,6 @@ public class ApiSbomResourceTest
       ThirdPartySbomMetadata sbomMetadata =
           dao.getByApplicationIdAndSbomVersion(app.getId(), resultDTO.version);
       assertThat(sbomMetadata).isNotNull();
-      await().atMost(Duration.ofSeconds(10)).until(() ->
-          null != thirdPartyScanDAO.getByThirdPartyFileId(sbomMetadata.getThirdPartyFileId())
-              .getFilteredScanFile()
-      );
     }
   }
 

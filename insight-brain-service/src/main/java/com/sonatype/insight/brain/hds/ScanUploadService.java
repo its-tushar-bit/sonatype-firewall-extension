@@ -119,17 +119,14 @@ public class ScanUploadService
     return scanReceipt;
   }
 
-  //visible for testing
-  void saveFilteredScanFileIfNeeded(
-      final ThirdPartyScanContext scanContext,
-      final File filteredScanFile)
-  {
+  private void saveFilteredScanFileIfNeeded(final ThirdPartyScanContext scanContext, final File filteredScanFile) {
     if (scanContext == null) {
       return;
     }
     //we need to save the filtered scan files only in the case of SBOM binary scans or if at least one sbom is saved
     // During the SBOM manager import
-    if (scanContext.isSbomSavedForScan() || SbomScanType.BINARY.equals(scanContext.getScanType())) {
+    // For Binary scans the filtered scan file is saved at the merge time with HDS results
+    if (scanContext.isSbomSavedForScan() && !SbomScanType.BINARY.equals(scanContext.getScanType())) {
       ThirdPartyScan tpScan = thirdPartyScanDAO.getById(scanContext.getThirdPartyScanId());
       if (tpScan != null) {
         File scanFileCopy = new File(work.getScanDir(scanContext.getApplicationId()), newScanFileName());

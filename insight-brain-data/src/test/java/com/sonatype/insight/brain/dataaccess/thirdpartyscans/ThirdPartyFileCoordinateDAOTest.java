@@ -121,6 +121,19 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  public void testGetByPackageUrlHashAndScanId() {
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(
+        thirdPartyFileDAO.getById(fileCoordinate.getThirdPartyFileId()));
+
+    ThirdPartyFileCoordinate result = thirdPartyFileCoordinateDAO.getByPackageUrlAndHashAndScanId(
+        fileCoordinate.getPackageUrl(), fileCoordinate.getHash(), thirdPartyScan.getScanId());
+
+    assertThat(result).isNotNull();
+    assertThirdPartyCoordinateFile(fileCoordinate.getHash(), fileCoordinate.getSource(), fileCoordinate.getFormat(),
+        fileCoordinate.getName(), fileCoordinate.getVersion(), fileCoordinate.getThirdPartyFileId(), result);
+  }
+
+  @Test
   public void testDeleteByThirdPartyFileId() {
     final ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     final ThirdPartyFileCoordinate coord1 =

@@ -5077,6 +5077,42 @@ public class TemporaryEntity
     return thirdPartySbomMetadata;
   }
 
+  public ThirdPartySbomMetadata createSbomMetadataForBinaryScan(
+      final String applicationId,
+      final String sbomVersion,
+      final ThirdPartyFile thirdPartyFile,
+      final String sbomStatus)
+  {
+    ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata();
+    thirdPartySbomMetadata.setCreatedAt(new Date());
+    thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFile.getId());
+    thirdPartySbomMetadata.setFilename("binary.temp");
+    thirdPartySbomMetadata.setSerialNumber(RandomStringUtils.random(10, true, true));
+    thirdPartySbomMetadata.setSpec(RandomStringUtils.random(10, true, true));
+    thirdPartySbomMetadata.setSpecFormat(RandomStringUtils.random(10, true, true));
+    thirdPartySbomMetadata.setSpecVersion(RandomStringUtils.random(10, true, true));
+    thirdPartySbomMetadata.setStatus(sbomStatus);
+    thirdPartySbomMetadata.setScanType("BINARY");
+
+    if (applicationId != null) {
+      thirdPartySbomMetadata.setApplicationId(applicationId);
+    }
+    else {
+      Application app = newApplicationWithParent();
+      thirdPartySbomMetadata.setApplicationId(app.getId());
+    }
+
+    if (sbomVersion != null) {
+      thirdPartySbomMetadata.setSbomVersion(sbomVersion);
+    }
+    else {
+      thirdPartySbomMetadata.setSbomVersion(RandomStringUtils.random(10, true, true));
+    }
+
+    thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
+    return thirdPartySbomMetadata;
+  }
+
   public ThirdPartySbomMetadata newSbomEvaluation(
       Application application,
       String applicationVersion,

@@ -5,8 +5,12 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.Files;
@@ -23,8 +27,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPOutputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -59,11 +65,13 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.sbom.SbomPostImportMetricsTelemetry;
 import com.sonatype.insight.brain.sbom.SbomResultsMatcher;
 import com.sonatype.insight.brain.sbom.SbomResultsMatcherTelemetry;
+import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
@@ -91,9 +99,19 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.cyclonedx.Version;
+import org.cyclonedx.generators.BomGeneratorFactory;
+import org.cyclonedx.model.Bom;
+import org.cyclonedx.model.Component;
+import org.cyclonedx.model.Evidence;
+import org.cyclonedx.model.Metadata;
+import org.cyclonedx.model.Property;
 import org.cyclonedx.model.Swid;
+import org.cyclonedx.model.component.evidence.Occurrence;
+import org.cyclonedx.model.metadata.ToolInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -154,6 +172,10 @@ public class ThirdPartyDataService
 
   private final SbomPostImportMetricsTelemetry sbomPostImportMetricsTelemetry;
 
+  private final ProprietaryConfigService proprietaryConfigService;
+
+  private final Scanner scanner;
+
   @Inject
   public ThirdPartyDataService(
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
@@ -170,7 +192,9 @@ public class ThirdPartyDataService
       final TelemetryUtils telemetryUtils,
       SearchIndexManager searchIndexManager,
       final ProductLicense productLicense,
-      final InsightWork insightWork)
+      final InsightWork insightWork,
+      final ProprietaryConfigService proprietaryConfigService,
+      final Scanner scanner)
   {
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
@@ -187,6 +211,8 @@ public class ThirdPartyDataService
     this.searchIndexManager = searchIndexManager;
     this.productLicense = productLicense;
     this.insightWork = insightWork;
+    this.proprietaryConfigService = proprietaryConfigService;
+    this.scanner = scanner;
     sbomPostImportMetricsTelemetry = new SbomPostImportMetricsTelemetry();
   }
 
@@ -473,12 +499,40 @@ public class ThirdPartyDataService
         !bomJsonData.get("dependencyDataIncluded").booleanValue()) {
       populateComponentDependencyTypeMap(dependenciesJsonData, componentDependencyTypeMap);
     }
-    mergeSonatypeDataWithSbomData(sbomMetadata, scanId, bomJsonData, securityJsonData, licensesJsonData,
-        componentDependencyTypeMap);
+
+    // create an original SBOM and filtered scan file for continuous monitoring in the case of binary scans
+    if (sbomMetadata.getStatus().equals("PENDING") && sbomMetadata.getScanType().equals("BINARY")) {
+      Bom originalBom = createNewOriginalBom();
+      processComponentsFromBinaryScan(bomJsonData, originalBom, sbomMetadata.getThirdPartyFileId(),
+          componentDependencyTypeMap);
+      String bomAsString = BomGeneratorFactory.createJson(Version.VERSION_16, originalBom).toJsonString();
+      createAndSaveOriginalSbom(sbomMetadata, bomAsString);
+      makeSbomActive(sbomMetadata);
+    }
+    else {
+      mergeSonatypeDataWithSbomData(sbomMetadata, scanId, bomJsonData, securityJsonData, licensesJsonData,
+          componentDependencyTypeMap);
+    }
 
     cleanUpPreviousReport(sbomMetadata.getApplicationId(), sbomMetadata.getThirdPartyFileId(), scanId);
 
     indexSbomForSearch(sbomMetadata);
+  }
+
+  private void createAndSaveOriginalSbom(ThirdPartySbomMetadata thirdPartySbomMetadata,
+                                         String bomAsString) throws IOException
+  {
+    String binaryFileName = thirdPartySbomMetadata.getFilename();
+    String compressedBinaryFileName = binaryFileName.substring(0, binaryFileName.lastIndexOf(".")) + ".json.gz";
+    File sbomDirectory = insightWork.getSbomDir(thirdPartySbomMetadata.getApplicationId());
+    File compressedSbom = new File(sbomDirectory, compressedBinaryFileName);
+    try (InputStream inputStream = new ByteArrayInputStream(bomAsString.getBytes());
+         OutputStream outputStream = new GZIPOutputStream(new FileOutputStream(compressedSbom))) {
+      IOUtils.copy(inputStream, outputStream);
+      // We need to do this to seamlessly integrate into our SBOM exporter logic
+      thirdPartySbomMetadata.setFilename(compressedBinaryFileName);
+      thirdPartySbomMetadataDAO.update(thirdPartySbomMetadata);
+    }
   }
 
   @VisibleForTesting
@@ -495,6 +549,112 @@ public class ThirdPartyDataService
       thirdPartyScan.setPreviousScanId(null);
       thirdPartyScanDAO.update(thirdPartyScan);
     }
+  }
+
+  private Bom createNewOriginalBom() {
+    Bom bom = new Bom();
+    Metadata metadata = new Metadata();
+    ToolInformation toolInformation = new ToolInformation();
+    Component sbomManagerComponent = new Component();
+    sbomManagerComponent.setType(Component.Type.APPLICATION);
+    sbomManagerComponent.setName("Sonatype SBOM Manager");
+    toolInformation.setComponents(Collections.singletonList(sbomManagerComponent));
+    metadata.setToolChoice(toolInformation);
+    bom.setMetadata(metadata);
+    return bom;
+  }
+
+  private void processComponentsFromBinaryScan(ContainerNode<?> bomJsonData,
+                                               Bom bom,
+                                               String thirdPartyFileId,
+                                               Map<ComponentIdentifier, String> componentDependencyTypeMap)
+  {
+    ArrayNode bomArray = (ArrayNode) bomJsonData.get("aaData");
+    for (JsonNode bomNode : bomArray) {
+      String matchStateString = JsonUtils.getNullableString(bomNode.get(MATCH_STATE));
+      if (StringUtils.isEmpty(matchStateString) ||  MatchState.UNKNOWN.equals(MatchState.getById(matchStateString))) {
+        continue;
+      }
+      ThirdPartyFileCoordinate thirdPartyFileCoordinate =
+          createAndSaveComponentInThirdPartyDatabase(bomNode, thirdPartyFileId, componentDependencyTypeMap);
+      createAndSaveComponentInBom(thirdPartyFileCoordinate, bomNode, bom);
+    }
+  }
+
+  private void createAndSaveComponentInBom(ThirdPartyFileCoordinate thirdPartyFileCoordinate,
+                                           JsonNode bomNode,
+                                           Bom bom)
+  {
+    Component component = thirdPartyFileCoordinateToBomComponent(thirdPartyFileCoordinate);
+    addOccurenceEvidenceForComponent(bomNode, component);
+    bom.addComponent(component);
+  }
+
+  private void addOccurenceEvidenceForComponent(JsonNode bomNode, Component component) {
+    List<Occurrence> occurrences = Objects.requireNonNull(JsonUtils.getStringListFromArray(bomNode.get("pathnames")))
+        .stream().map( p -> {
+          Occurrence o = new Occurrence();
+          o.setLocation(p);
+          return o;
+        })
+        .collect(Collectors.toList());
+    Evidence evidence = new Evidence();
+    evidence.setOccurrences(occurrences);
+    component.setEvidence(evidence);
+  }
+
+  private ThirdPartyFileCoordinate createAndSaveComponentInThirdPartyDatabase(
+      JsonNode componentNode,
+      String thirdPartyFileId,
+      Map<ComponentIdentifier, String> componentDependencyTypeMap)
+  {
+    ThirdPartyFileCoordinate component = new ThirdPartyFileCoordinate();
+    component.setThirdPartyFileId(thirdPartyFileId);
+    ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(componentNode);
+    if (componentIdentifier != null ) {
+      Map<String, String> componentCoordinates = componentIdentifier.getCoordinates();
+      String name = String.join(":", componentIdentifier.getProprietaryCoordinates());
+      component.setName(name);
+      component.setVersion(componentCoordinates.get("version"));
+      String componentFormat = componentIdentifier.getFormat();
+      if (StringUtils.isNotEmpty(componentFormat)) {
+        component.setFormat(componentFormat);
+      }
+    }
+    if (componentNode.get("directDependency") != null) {
+      component.setDependencyType(componentNode.get("directDependency").booleanValue() ? "D" : "T");
+    }
+    else if (componentIdentifier != null && componentDependencyTypeMap.containsKey(componentIdentifier)) {
+      component.setDependencyType(componentDependencyTypeMap.get(componentIdentifier));
+    }
+    component.setHash(JsonUtils.getNullableString(componentNode.get("hash")));
+    component.setCpe(JsonUtils.getNullableString(componentNode.get("cpe")));
+    component.setSwid(JsonUtils.getNullableString(componentNode.get("swid")));
+    component.setPackageUrl(JsonUtils.getNullableString(componentNode.get("packageUrl")));
+    component.setSource("Sonatype");
+    component.setIdentificationSources("Sonatype");
+    thirdPartyFileCoordinateDAO.insert(component);
+    return component;
+  }
+
+  private Component thirdPartyFileCoordinateToBomComponent(ThirdPartyFileCoordinate fileCoordinate) {
+    Component component = new Component();
+    component.setBomRef(UUID.randomUUID().toString().replace("-", ""));
+    component.setName(fileCoordinate.getName());
+    component.setVersion(fileCoordinate.getVersion());
+    component.setCpe(fileCoordinate.getCpe());
+    component.setPurl(fileCoordinate.getPackageUrl());
+    component.setType(Component.Type.LIBRARY);
+    if (StringUtils.isNotEmpty(fileCoordinate.getSwid())) {
+      Swid swid = new Swid();
+      swid.setName(fileCoordinate.getSwid());
+      swid.setTagId(fileCoordinate.getSwid());
+    }
+    Property sonatypeIdentifierComponentProperty = new Property();
+    sonatypeIdentifierComponentProperty.setName("sonatypeIdentifier");
+    sonatypeIdentifierComponentProperty.setValue(fileCoordinate.getId());
+    component.addProperty(sonatypeIdentifierComponentProperty);
+    return component;
   }
 
   private void mergeSonatypeDataWithSbomData(
@@ -562,8 +722,8 @@ public class ThirdPartyDataService
       ComponentIdentifier bomComponentIdentifier = resultEntry.getKey();
       JsonNode bomNode = resultEntry.getValue();
       PackageUrlIdentifier bomPurl = PackageUrlIdentifier.fromComponentIdentifier(bomComponentIdentifier);
-      ThirdPartyFileCoordinate sbomComponent =
-          thirdPartyFileCoordinateDAO.getByPackageUrlAndScanId(bomPurl.getPackageUrl(), scanId);
+      ThirdPartyFileCoordinate sbomComponent = thirdPartyFileCoordinateDAO.getByPackageUrlAndHashAndScanId(
+          bomPurl.getPackageUrl(), bomNode.get("hash").asText(), scanId);
       if (sbomComponent == null) {
         //fallback to coordinate matching
         sbomComponent = thirdPartyFileCoordinateDAO

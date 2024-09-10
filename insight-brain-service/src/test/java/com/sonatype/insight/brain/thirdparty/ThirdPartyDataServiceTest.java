@@ -6,11 +6,14 @@
 package com.sonatype.insight.brain.thirdparty;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -22,7 +25,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -71,6 +76,7 @@ import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.Vulner
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.Binder;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.model.AttachmentText;
 import org.cyclonedx.model.Swid;
@@ -80,6 +86,7 @@ import org.mockito.ArgumentCaptor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.Assertions.withinPercentage;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -481,6 +488,107 @@ public class ThirdPartyDataServiceTest
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(sbomMetadata).isNotNull();
     assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
+  }
+
+  @Test
+  public void testMergeSonatypeDataWithSbomDataWithIndexing_BinaryScan_NoThirdPartyContent()
+      throws URISyntaxException, IOException
+  {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+    tempEntity.createSbomMetadataForBinaryScan(null, "1", file, "PENDING");
+
+    final File reportZip = Paths.get(ReportHelper.zipReport(
+        "/ThirdPartyDataServiceTest/report-for-binary-scan", tempDir).toURI()).toFile();
+
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
+
+    ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
+    List<ThirdPartyFileCoordinate> fileCoordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(sbomMetadata.getThirdPartyFileId());
+    Map<String, ThirdPartyFileCoordinate> coords = fileCoordinates.stream()
+        .collect(Collectors.toMap(ThirdPartyFileCoordinate::getPackageUrl, Function.identity()));
+    File actualSbomFile =
+        new File(insightWork.getSbomDir(sbomMetadata.getApplicationId()), sbomMetadata.getFilename());
+
+    try (InputStream actualInputStream = new GZIPInputStream(new FileInputStream(actualSbomFile));
+         InputStream expectedInputStream =
+             ThirdPartyDataServiceTest.class
+                 .getResourceAsStream("/ThirdPartyDataServiceTest/binaryScanOriginalSboms/original-bom.json"))
+    {
+      String actualSbomAsString = IOUtils.toString(actualInputStream, Charset.defaultCharset());
+      String expectedSbomAsString = IOUtils.toString(expectedInputStream, Charset.defaultCharset());
+      assertThatJson(actualSbomAsString)
+          .whenIgnoringPaths("metadata.timestamp", "components[*].bom-ref", "components[*].properties[0].value")
+          .isEqualTo(expectedSbomAsString);
+    }
+
+    assertThat(sbomMetadata).isNotNull();
+    assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
+    assertThat(fileCoordinates).hasSize(4);
+    assertThat(coords.keySet())
+        .containsExactlyInAnyOrder("pkg:pypi/orange@1.0.1?qualifier=py2.py3-none-any&extension=whl",
+            "pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0",
+            "pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1",
+            "pkg:maven/com.sun.istack/istack-commons-runtime@4.1.2?type=jar");
+
+    ThirdPartyFileCoordinate tpfc1 = coords.get("pkg:pypi/orange@1.0.1?qualifier=py2.py3-none-any&extension=whl");
+    assertThat(tpfc1.getId()).isNotEmpty();
+    assertThat(tpfc1.getThirdPartyFileId()).isEqualTo(sbomMetadata.getThirdPartyFileId());
+    assertThat(tpfc1.getPackageUrl()).isEqualTo("pkg:pypi/orange@1.0.1?qualifier=py2.py3-none-any&extension=whl");
+    assertThat(tpfc1.getName()).isEqualTo("orange");
+    assertThat(tpfc1.getVersion()).isEqualTo("1.0.1");
+    assertThat(tpfc1.getHash()).isEqualTo("093080a1a4bbd2750541");
+    assertThat(tpfc1.getIdentificationSources()).isEqualTo("Sonatype");
+    assertThat(tpfc1.getFormat()).isEqualTo("pypi");
+    assertThat(tpfc1.getSource()).isEqualTo("Sonatype");
+    assertThat(tpfc1.getDependencyType()).isNull();
+    assertThat(tpfc1.getCpe()).isNull();
+    assertThat(tpfc1.getSwid()).isNull();
+
+    ThirdPartyFileCoordinate tpfc2 = coords.get("pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0");
+    assertThat(tpfc2.getId()).isNotEmpty();
+    assertThat(tpfc2.getThirdPartyFileId()).isEqualTo(sbomMetadata.getThirdPartyFileId());
+    assertThat(tpfc2.getPackageUrl()).isEqualTo("pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0");
+    assertThat(tpfc2.getName()).isEqualTo("Microsoft.Identity.Client.Extensions.Msal");
+    assertThat(tpfc2.getVersion()).isEqualTo("2.23.0");
+    assertThat(tpfc2.getHash()).isEqualTo("00603c85922bf35d8edd");
+    assertThat(tpfc2.getIdentificationSources()).isEqualTo("Sonatype");
+    assertThat(tpfc2.getFormat()).isEqualTo("nuget");
+    assertThat(tpfc2.getSource()).isEqualTo("Sonatype");
+    assertThat(tpfc2.getDependencyType()).isEqualTo("T");
+    assertThat(tpfc2.getCpe()).isNull();
+    assertThat(tpfc2.getSwid()).isNull();
+
+    ThirdPartyFileCoordinate tpfc3 = coords.get("pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1");
+    assertThat(tpfc3.getId()).isNotEmpty();
+    assertThat(tpfc3.getThirdPartyFileId()).isEqualTo(sbomMetadata.getThirdPartyFileId());
+    assertThat(tpfc3.getPackageUrl()).isEqualTo("pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1");
+    assertThat(tpfc3.getName()).isEqualTo("Microsoft.IdentityModel.Protocols");
+    assertThat(tpfc3.getVersion()).isEqualTo("6.25.1");
+    assertThat(tpfc3.getHash()).isEqualTo("c795e78734c2860bb627");
+    assertThat(tpfc3.getIdentificationSources()).isEqualTo("Sonatype");
+    assertThat(tpfc3.getFormat()).isEqualTo("nuget");
+    assertThat(tpfc3.getSource()).isEqualTo("Sonatype");
+    assertThat(tpfc3.getDependencyType()).isEqualTo("D");
+    assertThat(tpfc3.getCpe()).isNull();
+    assertThat(tpfc3.getSwid()).isNull();
+
+    ThirdPartyFileCoordinate tpfc4 = coords.get("pkg:maven/com.sun.istack/istack-commons-runtime@4.1.2?type=jar");
+    assertThat(tpfc4.getId()).isNotEmpty();
+    assertThat(tpfc4.getThirdPartyFileId()).isEqualTo(sbomMetadata.getThirdPartyFileId());
+    assertThat(tpfc4.getPackageUrl()).isEqualTo("pkg:maven/com.sun.istack/istack-commons-runtime@4.1.2?type=jar");
+    assertThat(tpfc4.getName()).isEqualTo("com.sun.istack:istack-commons-runtime");
+    assertThat(tpfc4.getVersion()).isEqualTo("4.1.2");
+    assertThat(tpfc4.getHash()).isEqualTo("18ec117c85f3ba0ac654");
+    assertThat(tpfc4.getIdentificationSources()).isEqualTo("Sonatype");
+    assertThat(tpfc4.getFormat()).isEqualTo("maven");
+    assertThat(tpfc4.getSource()).isEqualTo("Sonatype");
+    assertThat(tpfc4.getDependencyType()).isEqualTo("T");
+    assertThat(tpfc4.getCpe()).isNull();
+    assertThat(tpfc4.getSwid()).isNull();
   }
 
   @Test

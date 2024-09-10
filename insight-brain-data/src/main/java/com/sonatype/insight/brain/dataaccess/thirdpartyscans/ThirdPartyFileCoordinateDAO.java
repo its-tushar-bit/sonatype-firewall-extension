@@ -82,6 +82,13 @@ public class ThirdPartyFileCoordinateDAO
     return get(sQuery, purl, scanId);
   }
 
+  public ThirdPartyFileCoordinate getByPackageUrlAndHashAndScanId(String purl, String hash, String scanId) {
+    String sQuery = "SELECT TPF FROM ThirdPartyScan TPS," + //
+        " ThirdPartyFileCoordinate TPF" + //
+        " WHERE TPS.thirdPartyFileId=TPF.thirdPartyFileId AND TPF.packageUrl=?1 AND TPF.hash=?2 AND TPS.scanId=?3";
+    return get(sQuery, purl, hash, scanId);
+  }
+
   public ThirdPartyFileCoordinate getByFormatNameVersionAndScanID(String format,
                                                                  String name,
                                                                  String version,

@@ -1,0 +1,26 @@
+{
+  "dependencyTree": {
+    "componentIdentifier": {
+      "format": "generic",
+      "coordinates": {
+        "name": "EasyConnect.WiFi",
+        "version": "0.0.0"
+      }
+    },
+    "packageUrl": "pkg:generic/EasyConnect.WiFi@0.0.0",
+    "children": [
+      {
+        "componentIdentifier": {
+          "format": "nuget",
+          "coordinates": {
+            "packageId": "Microsoft.IdentityModel.Protocols",
+            "version": "6.25.1"
+          }
+        },
+        "packageUrl": "pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1",
+        "direct": true
+      }
+    ],
+    "module": true
+  }
+}

@@ -261,7 +261,8 @@ public class ConfigurationInfoTest
         "skipSbomImportValidation",
         "cleanUpSbomContinuousMonitoringReport",
         "sbomBinaryScanning",
-        "sbomContinuousMonitoringUi");
+        "sbomContinuousMonitoringUi",
+        "sbomPolicies");
 
     // Properties included in the config.json in support zip
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());

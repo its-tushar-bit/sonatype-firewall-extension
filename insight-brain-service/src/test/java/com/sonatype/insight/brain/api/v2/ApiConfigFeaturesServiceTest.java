@@ -1063,4 +1063,43 @@ public class ApiConfigFeaturesServiceTest
             SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI)).isInstanceOf(
         BadRequestException.class).hasMessage("Feature is already disabled.");
   }
+
+  @Test
+  public void testGetSystemConfigurationPropertyFeature_SbomPolicies() {
+    assertThat(service.getSystemConfigurationPropertyFeature("sbomPolicies")).isEqualTo(
+        SystemConfigurationPropertyFeature.SBOM_POLICIES);
+    assertThat(service.getSystemConfigurationPropertyFeature("sbom-policies")).isEqualTo(
+        SystemConfigurationPropertyFeature.SBOM_POLICIES);
+    assertThat(service.getSystemConfigurationPropertyFeature("Sbom-Policies")).isEqualTo(
+        SystemConfigurationPropertyFeature.SBOM_POLICIES);
+    assertThat(service.getSystemConfigurationPropertyFeature("SBOM-POLICIES")).isEqualTo(
+        SystemConfigurationPropertyFeature.SBOM_POLICIES);
+  }
+
+  @Test
+  public void testEnableFeature_SbomPolicies() {
+    service.enableFeature(SystemConfigurationProperty.SBOM_POLICIES);
+
+    assertThat(
+        systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.SBOM_POLICIES)
+            .getValue())
+        .isEqualTo("true");
+  }
+
+  @Test
+  public void testEnableFeature_SbomPolicies_AlreadyEnabled() {
+    service.enableFeature(SystemConfigurationProperty.SBOM_POLICIES);
+    assertThatThrownBy(
+        () -> service.enableFeature(
+            SystemConfigurationProperty.SBOM_POLICIES)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_SbomPolicies_AlreadyDisabled() {
+    assertThatThrownBy(
+        () -> service.disableFeature(
+            SystemConfigurationProperty.SBOM_POLICIES)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
 }

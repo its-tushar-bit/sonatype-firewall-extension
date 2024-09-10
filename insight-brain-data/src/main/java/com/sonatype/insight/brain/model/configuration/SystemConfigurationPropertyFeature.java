@@ -218,7 +218,9 @@ public enum SystemConfigurationPropertyFeature
 
   SBOM_BINARY_SCANNING(SystemConfigurationProperty.SBOM_BINARY_SCANNING, false),
 
-  SBOM_CONTINUOUS_MONITORING_UI(SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI, false);
+  SBOM_CONTINUOUS_MONITORING_UI(SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI, false),
+
+  SBOM_POLICIES(SystemConfigurationProperty.SBOM_POLICIES, false);
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

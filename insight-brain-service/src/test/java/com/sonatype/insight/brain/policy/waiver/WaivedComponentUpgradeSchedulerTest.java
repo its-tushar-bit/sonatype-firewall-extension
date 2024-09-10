@@ -52,7 +52,8 @@ public class WaivedComponentUpgradeSchedulerTest
     // We expect the message that the task is getting scheduled but not verifying configured time to not create
     // more complicated mock configurations
     assertThatLogMessagesContain(
-        info("Next waived component upgrade inspection execution scheduled for null"));
+        info("Next waived component upgrade inspection execution scheduled for tenant Tenant[tenantSlug='notused', "
+            + "createdByThread='main', valid='true'] at null"));
   }
 
   @Test

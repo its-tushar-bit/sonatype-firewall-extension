@@ -114,7 +114,7 @@ public class WaivedComponentUpgradeInspectorTest
     waivedComponentUpgradeInspector.run();
     List<String> infoMessages = logOutput.getInfoMessages(WaivedComponentUpgradeInspector.class.getName());
     assertThat(infoMessages).contains(
-        "Could not run WaivedComponentUpgradeInspector as upgrade monitoring is turned off");
+        "Could not run Waived Component Upgrade Inspector as upgrade monitoring is turned off");
   }
 
   @Test

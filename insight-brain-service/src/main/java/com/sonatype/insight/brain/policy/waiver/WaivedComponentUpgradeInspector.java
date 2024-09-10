@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,15 +79,22 @@ public class WaivedComponentUpgradeInspector
 
   @Override
   public void run() {
+    log.info("Starting Waived Component Upgrade Inspector for tenant {}", TenantThreadLocal.getTenant());
+
     if (!configuration.getWaivedComponentUpgradeMonitoringEnabled()) {
-      log.info("Could not run WaivedComponentUpgradeInspector as upgrade monitoring is turned off");
+      log.info("Could not run Waived Component Upgrade Inspector as upgrade monitoring is turned off");
       return;
     }
+
+    long start = System.currentTimeMillis();
 
     ownersById = getAllOwnersById();
 
     // Query by policy to reduce memory load while doing less database hits than querying by owners
     policyDAO.getAll().forEach(this::inspectWaiversForPolicy);
+
+    log.info("Completed Waived Component Upgrade Inspector in {} ms for tenant {}", System.currentTimeMillis() - start,
+        TenantThreadLocal.getTenant());
   }
 
   private Map<String, Owner> getAllOwnersById() {

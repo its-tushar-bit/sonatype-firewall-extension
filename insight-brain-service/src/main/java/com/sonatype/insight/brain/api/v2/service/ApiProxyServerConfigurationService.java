@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiProxyServerConfigurationDTO;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -32,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
+@Singleton
 @DisallowConcurrentExecution
 public class ApiProxyServerConfigurationService
     implements InsightJob, GlobalTenantJob

@@ -126,6 +126,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyUnknownComponentDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityTagDAO;
@@ -1105,8 +1106,9 @@ public class TestDAOFactory
     ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO = createThirdPartyFileCoordinateDAO();
     ThirdPartyScanDAO thirdPartyScanDAO = createThirdPartyScanDAO();
     ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO = createThirdPartySbomMetadataDAO();
+    ThirdPartyUnknownComponentDAO thirdPartyUnknownComponentDAO = createThirdPartyUnknownComponentDAO();
     return new ThirdPartyFileDAO(dataStoreProvider.getThirdPartyScansDataStore(), thirdPartyFileCoordinateDAO,
-        thirdPartyScanDAO, thirdPartySbomMetadataDAO);
+        thirdPartyScanDAO, thirdPartySbomMetadataDAO, thirdPartyUnknownComponentDAO);
   }
 
   @Override
@@ -1128,5 +1130,10 @@ public class TestDAOFactory
   public DevelopmentPrioritizationDAO createDevelopmentPrioritizationDAO() {
     return new DevelopmentPrioritizationDAO(
         dataStoreProvider.getOperationalDataStore(), createDevelopmentPrioritizationComponentInfoDAO());
+  }
+
+  @Override
+  public ThirdPartyUnknownComponentDAO createThirdPartyUnknownComponentDAO() {
+    return new ThirdPartyUnknownComponentDAO(dataStoreProvider.getThirdPartyScansDataStore());
   }
 }

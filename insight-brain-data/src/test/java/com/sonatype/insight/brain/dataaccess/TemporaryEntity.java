@@ -155,6 +155,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoord
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyUnknownComponentDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
@@ -300,6 +301,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyUnknownComponent;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
@@ -610,6 +612,8 @@ public class TemporaryEntity
   private OAuth2ConfigurationDAO oAuth2ConfigurationDAO;
 
   private OidcConfigurationDAO oidcConfigurationDAO;
+
+  private ThirdPartyUnknownComponentDAO thirdPartyUnknownComponentDAO;
 
   private Collection<String> persistedUserSessionIds;
 
@@ -3955,6 +3959,20 @@ public class TemporaryEntity
     return thirdPartySbomMetadata;
   }
 
+  public ThirdPartyUnknownComponent newThirdPartyUnknownComponent(
+      String filename,
+      final ThirdPartyFile thirdPartyFile)
+  {
+    ThirdPartyUnknownComponent unknownComponent = new ThirdPartyUnknownComponent();
+    unknownComponent.setFilename(filename);
+    unknownComponent.setId(RandomStringUtils.randomAlphanumeric(50));
+    unknownComponent.setHash(RandomStringUtils.randomAlphanumeric(20));
+    unknownComponent.setThirdPartyFileId(thirdPartyFile.getId());
+    thirdPartyUnknownComponentDAO.insert(unknownComponent);
+
+    return unknownComponent;
+  }
+
   public ThirdPartyScan newThirdPartyScan(String scanRequestId, String scanId) {
     ThirdPartyScan scan = new ThirdPartyScan(newThirdPartyFile().getId(), scanRequestId, new Date());
     scan.setScanId(scanId);
@@ -5380,5 +5398,6 @@ public class TemporaryEntity
     thirdPartyFileCoordinateDAO = daoFactory.createThirdPartyFileCoordinateDAO();
     thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
     thirdPartySbomMetadataDAO = daoFactory.createThirdPartySbomMetadataDAO();
+    thirdPartyUnknownComponentDAO = daoFactory.createThirdPartyUnknownComponentDAO();
   }
 }

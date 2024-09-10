@@ -234,6 +234,7 @@
     <class>com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability</class>
     <class>com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange</class>
     <class>com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata</class>
+    <class>com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyUnknownComponent</class>
     <properties>
       <property name="openjpa.Log" value="DefaultLevel=WARN, Tool=INFO"/>
       <property name="openjpa.jdbc.Schema" value="insight_brain_third_party_scans"/>

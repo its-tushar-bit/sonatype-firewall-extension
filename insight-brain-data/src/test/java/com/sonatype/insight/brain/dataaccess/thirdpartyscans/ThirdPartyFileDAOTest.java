@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyUnknownComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
@@ -33,6 +34,8 @@ public class ThirdPartyFileDAOTest
 
   private ThirdPartyScanDAO thirdPartyScanDAO;
 
+  private ThirdPartyUnknownComponentDAO thirdPartyUnknownComponentDAO;
+
   private ThirdPartyFileDAO dao;
 
   @Before
@@ -42,6 +45,7 @@ public class ThirdPartyFileDAOTest
     thirdPartyCoordinateLicenseDAO = daoFactory.createThirdPartyCoordinateLicenseDAO();
     thirdPartyScanDAO = daoFactory.createThirdPartyScanDAO();
     thirdPartyFileCoordinateDAO = daoFactory.createThirdPartyFileCoordinateDAO();
+    thirdPartyUnknownComponentDAO = daoFactory.createThirdPartyUnknownComponentDAO();
     dao = daoFactory.createThirdPartyFileDAO();
   }
 
@@ -87,6 +91,9 @@ public class ThirdPartyFileDAOTest
     ThirdPartyCoordinateLicense coordLic21 = tempEntity.newThirdPartyCoordinateLicense(coord2, "l1", "n1", "u1");
     ThirdPartyCoordinateLicense coordLic22 = tempEntity.newThirdPartyCoordinateLicense(coord2, "l2", "n2", "u2");
 
+    ThirdPartyUnknownComponent unknownComponent =
+        tempEntity.newThirdPartyUnknownComponent("someFile.xml", thirdPartyFile);
+
     dao.delete(thirdPartyFile);
 
     assertThat(dao.getById(thirdPartyFile.getId())).isNull();
@@ -103,6 +110,8 @@ public class ThirdPartyFileDAOTest
     assertThat(thirdPartyCoordinateLicenseDAO.getById(coordLic12.getId())).isNull();
     assertThat(thirdPartyCoordinateLicenseDAO.getById(coordLic21.getId())).isNull();
     assertThat(thirdPartyCoordinateLicenseDAO.getById(coordLic22.getId())).isNull();
+
+    assertThat(thirdPartyUnknownComponentDAO.getById(unknownComponent.getId())).isNull();
   }
 
   @Test

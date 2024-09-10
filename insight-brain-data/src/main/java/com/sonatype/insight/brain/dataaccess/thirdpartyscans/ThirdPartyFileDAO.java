@@ -26,17 +26,21 @@ public class ThirdPartyFileDAO
 
   private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
+  private final ThirdPartyUnknownComponentDAO thirdPartyUnknownComponentDAO;
+
   @Inject
   public ThirdPartyFileDAO(
       final ThirdPartyScansDataStore thirdPartyScansDataStore,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyScanDAO thirdPartyScanDAO,
-      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO)
+      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
+      final ThirdPartyUnknownComponentDAO thirdPartyUnknownComponentDAO)
   {
     super(thirdPartyScansDataStore);
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
+    this.thirdPartyUnknownComponentDAO = thirdPartyUnknownComponentDAO;
   }
 
   public List<ThirdPartyFile> getAll() {
@@ -78,6 +82,9 @@ public class ThirdPartyFileDAO
 
     // cascade delete scanned files
     thirdPartyScanDAO.deleteByThirdPartyFileId(tx, thirdPartyFile.getId());
+
+    // cascade delete unknown components
+    thirdPartyUnknownComponentDAO.deleteByThirdPartyFileId(tx, thirdPartyFile.getId());
 
     // lastly delete this entity
     super.delete(tx, thirdPartyFile);

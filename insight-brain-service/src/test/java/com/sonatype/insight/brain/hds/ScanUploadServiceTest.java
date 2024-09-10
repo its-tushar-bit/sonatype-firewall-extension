@@ -191,7 +191,7 @@ public class ScanUploadServiceTest
         new ThirdPartyScanContext(scanRequestId, app.getId(), SbomScanType.BINARY, scanFile, ComplianceStageType.ID);
     context.setThirdPartyScanId(tpScan.getId());
 
-    service.saveFilteredScanFileIfNeeded(context, scanFile, true);
+    service.saveFilteredScanFileIfNeeded(context, scanFile);
     assertFilteredScanFile(scanRequestId, app.getId());
   }
 

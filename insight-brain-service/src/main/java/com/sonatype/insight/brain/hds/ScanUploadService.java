@@ -85,7 +85,7 @@ public class ScanUploadService
       scanReceipt = uploader.upload(scanFile, app, stageTypeId, clientUserAgent);
       if (ComplianceStageType.ID.equals(stageTypeId) && StringUtils.isNotEmpty(scanRequestId)) {
         thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanReceipt.getScanId());
-        saveFilteredScanFileIfNeeded(tpScanContext, scanFile, false);
+        saveFilteredScanFileIfNeeded(tpScanContext, scanFile);
       }
     }
     return scanReceipt;
@@ -109,7 +109,7 @@ public class ScanUploadService
             thirdPartyScanTelemetryData, app.getId(), stageTypeId);
     ScanReceipt scanReceipt = uploader.upload(tempScanFile, app, stageTypeId, clientUserAgent);
     thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanReceipt.getScanId());
-    saveFilteredScanFileIfNeeded(thirdPartyScanContext, tempScanFile, true);
+    saveFilteredScanFileIfNeeded(thirdPartyScanContext, tempScanFile);
     try {
       Files.delete(tempScanFile.toPath());
     }
@@ -122,8 +122,7 @@ public class ScanUploadService
   //visible for testing
   void saveFilteredScanFileIfNeeded(
       final ThirdPartyScanContext scanContext,
-      final File filteredScanFile,
-      boolean copyNew)
+      final File filteredScanFile)
   {
     if (scanContext == null) {
       return;
@@ -133,20 +132,14 @@ public class ScanUploadService
     if (scanContext.isSbomSavedForScan() || SbomScanType.BINARY.equals(scanContext.getScanType())) {
       ThirdPartyScan tpScan = thirdPartyScanDAO.getById(scanContext.getThirdPartyScanId());
       if (tpScan != null) {
-        if (copyNew) {
-          File scanFileCopy = new File(work.getScanDir(scanContext.getApplicationId()), newScanFileName());
-          try {
-            Files.copy(filteredScanFile.toPath(), scanFileCopy.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            tpScan.setFilteredScanFile(scanFileCopy.getName());
-            thirdPartyScanDAO.update(tpScan);
-          }
-          catch (IOException e) {
-            log.error("Error saving filtered scan file {}", scanFileCopy.getName(), e);
-          }
-        }
-        else {
-          tpScan.setFilteredScanFile(filteredScanFile.getName());
+        File scanFileCopy = new File(work.getScanDir(scanContext.getApplicationId()), newScanFileName());
+        try {
+          Files.copy(filteredScanFile.toPath(), scanFileCopy.toPath(), StandardCopyOption.REPLACE_EXISTING);
+          tpScan.setFilteredScanFile(scanFileCopy.getName());
           thirdPartyScanDAO.update(tpScan);
+        }
+        catch (IOException e) {
+          log.error("Error saving filtered scan file {}", scanFileCopy.getName(), e);
         }
       }
     }

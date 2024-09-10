@@ -17,6 +17,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BooleanSupplier;
+
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -112,6 +113,12 @@ public class ShutdownHandler
 
   public void add(final ExecutorService executorService, final int order) {
     addAndClean(new ExecutorServiceShutdownRequest(new WeakReference<>(executorService), order, getOrigin()));
+  }
+
+  public void remove(final ExecutorService executorService) {
+    shutdownRequests
+        .removeIf(shutdownRequestEntry -> ((shutdownRequestEntry.getEntry() instanceof ExecutorServiceShutdownRequest)
+            && ((ExecutorServiceShutdownRequest) shutdownRequestEntry.getEntry()).getItem().refersTo(executorService)));
   }
 
   public void add(final Thread thread) {

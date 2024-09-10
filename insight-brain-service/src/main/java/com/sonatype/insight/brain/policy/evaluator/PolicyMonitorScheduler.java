@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.product.license.ProductLicenseListener;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,7 +74,7 @@ public class PolicyMonitorScheduler
     // randomize minute to avoid coordinated load spike for HDS scan processing
     LocalTime startTime = LocalTime.of(configuration.getPolicyMonitoringHour(), new Random().nextInt(15));
     taskScheduler.scheduleDailyTask(policyMonitoringTask, startTime);
-    log.info("Next Policy Monitor execution scheduled for {}",
+    log.info("Next Policy Monitor execution scheduled for tenant {} at {}", TenantThreadLocal.getTenant(),
         taskScheduler.getNextExecutionTime(policyMonitoringTask));
   }
 

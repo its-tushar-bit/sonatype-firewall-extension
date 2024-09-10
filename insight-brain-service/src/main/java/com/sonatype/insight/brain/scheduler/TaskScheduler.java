@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -25,6 +26,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 
 import io.dropwizard.lifecycle.Managed;
 import org.quartz.CronScheduleBuilder;
@@ -184,6 +186,8 @@ public class TaskScheduler
     JobDetail job = newJob(insightJob) //
         .build();
 
+    log.debug("Scheduling daily task for insightJob {} ({}), jobKey '{}' for tenant {}.", insightJob.getJobName(),
+        insightJob, job.getKey(), TenantThreadLocal.getTenant());
     Trigger trigger = TriggerBuilder.newTrigger() //
         .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
         .withSchedule(schedule) //

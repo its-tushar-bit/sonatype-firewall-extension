@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
+
 import javax.mail.Message;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -58,6 +59,7 @@ import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
@@ -65,6 +67,7 @@ import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import com.google.inject.Binder;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -74,6 +77,8 @@ import org.jvnet.mock_javamail.Mailbox;
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class PolicyMonitorTest
     extends AbstractBrainServiceIntegrationTest
@@ -92,6 +97,8 @@ public class PolicyMonitorTest
 
   private OwnerDAO ownerDAO;
 
+  private static ShutdownHandler mockShutdownHandler = mock(ShutdownHandler.class);
+
   private static MailConfiguration testMailConfiguration = createTestMailConfiguration();
 
   private static MailConfiguration createTestMailConfiguration() {
@@ -100,6 +107,12 @@ public class PolicyMonitorTest
     mailConfiguration.setPort(587);
     mailConfiguration.setSystemEmail("NexusIQServer@localhost");
     return mailConfiguration;
+  }
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
+    super.configure(binder);
   }
 
   @Before
@@ -166,6 +179,7 @@ public class PolicyMonitorTest
         assertThat(eval.getTime()).isEqualTo(val);
       }
     }
+    assertShutdownHandler();
   }
 
   @Test
@@ -193,6 +207,7 @@ public class PolicyMonitorTest
           policyEvaluationDAO.getLastByApplicationIdAndStageId(notMonitoredApp.getId(), stageType.getId()).getTime())
           .isEqualTo(policyEvaluations.get(stageType).getTime());
     }
+    assertShutdownHandler();
   }
 
   @Test
@@ -207,6 +222,7 @@ public class PolicyMonitorTest
     for (StageType stageType : StageTypes.getAll()) {
       assertThat(policyEvaluationDAO.getLastByApplicationIdAndStageId(app.getId(), stageType.getId())).isNull();
     }
+    assertShutdownHandler();
   }
 
   @Test
@@ -251,6 +267,8 @@ public class PolicyMonitorTest
     ApplicationEvaluationEvent event = handler.getEvent();
     assertThat(event).isNotNull();
     assertThat(event.initiator).isEqualTo(CurrentUser.SYSTEM);
+
+    assertShutdownHandler();
   }
 
   private void testMonitored(OwnerType monitorOwnerType) throws Exception {
@@ -433,6 +451,8 @@ public class PolicyMonitorTest
     assertThat(scanFile5).doesNotExist();
     File scanFile6 = insightWork.getScanFile(app.getId(), scanId6);
     assertThat(scanFile6.exists()).isTrue();
+
+    assertShutdownHandler();
   }
 
   private Policy createPolicy(
@@ -644,6 +664,8 @@ public class PolicyMonitorTest
     assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME);
     assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME);
     assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME);
+
+    assertShutdownHandler();
   }
 
   @Test
@@ -670,6 +692,8 @@ public class PolicyMonitorTest
 
     File reportFile = insightWork.getReportFile(app.getId(), newScanId);
     assertThat(reportFile).doesNotExist();
+
+    assertShutdownHandler();
   }
 
   @Test
@@ -696,6 +720,8 @@ public class PolicyMonitorTest
 
     File reportFile = insightWork.getReportFile(app.getId(), newScanId);
     assertThat(reportFile).doesNotExist();
+    
+    assertShutdownHandler();
   }
 
   @Test
@@ -723,6 +749,8 @@ public class PolicyMonitorTest
 
     File reportFile = insightWork.getReportFile(app.getId(), newScanId);
     assertThat(reportFile).doesNotExist();
+    
+    assertShutdownHandler();
   }
 
   @Test
@@ -751,6 +779,8 @@ public class PolicyMonitorTest
     assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME);
     assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME);
     assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME);
+    
+    assertShutdownHandler();
   }
 
   @Test
@@ -773,6 +803,8 @@ public class PolicyMonitorTest
     // If the second scan file does not exist, then evaluation was not attempted and the scan file was not uploaded.
     // Invalid stage type exception would be still be thrown, but is caught and logged so can't be verified here.
     assertThat(insightWork.getScanFile(app.getId(), scanId2).exists()).isFalse();
+    
+    assertShutdownHandler();
   }
 
   private File createScanFileZip(Application app, String scanId, final String fileName) throws Exception {
@@ -817,5 +849,10 @@ public class PolicyMonitorTest
     scanReceipt.setTimeToReport(1L);
     mockScanReceipt(scanReceipt);
     mockReport(scanId, "/" + getClass().getSimpleName() + "/report");
+  }
+
+  private void assertShutdownHandler() {
+    verify(mockShutdownHandler).add(policyMonitor.getApplicationMonitorForkJoinPool());
+    verify(mockShutdownHandler).remove(policyMonitor.getApplicationMonitorForkJoinPool());
   }
 }

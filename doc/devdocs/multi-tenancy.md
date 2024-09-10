@@ -152,6 +152,15 @@ when finished. They cannot be reused, by design.
 Work that needs to run on a schedule will need its own context. The best way to handle this is to make use of Quartz
 which handles getting and setting the tenant. Custom scheduling outside of Quartz is not currently supported.
 
+Classes for Quartz scheduled work must implement the `InsightJob` interface.
+
+Notes about the `@DisallowConcurrentExecution` Quartz annotation:
+This annotation doesn't allow Quartz to run two jobs with the same Quartz job key concurrently. 
+It does not act on java instances. This means we can have a singleton that triggers concurrent jobs (as long as the 
+jobs have different keys).
+This is particularly important in MTIQ, where Quartz jobs have the tenant slug in their job key, which allows MTIQ to
+run a job/task per tenant in parallel (despite of the @DisallowConcurrentExecution annotation).
+
 ### Safeguards against forgetting to use tenant aware classes
 
 The tenant invalidation system is designed to be an imperfect safeguard against the risk that code might create and/or

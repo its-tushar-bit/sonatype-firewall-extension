@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -48,6 +49,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -73,7 +75,7 @@ public class PolicyMonitor
 
   private static final int POLICY_MONITOR_THREADS_MAX = 20;
 
-  private final ForkJoinPool applicationMonitorForkJoinPool;
+  private ForkJoinPool applicationMonitorForkJoinPool;
 
   private final InsightWork work;
 
@@ -100,6 +102,10 @@ public class PolicyMonitor
   private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
   private final ThirdPartyScanDAO thirdPartyScanDAO;
+
+  private final Configuration configuration;
+
+  private final ShutdownHandler shutdownHandler;
 
   private final TelemetrySender telemetrySender;
 
@@ -138,10 +144,11 @@ public class PolicyMonitor
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
-    this.applicationMonitorForkJoinPool = initThreadPool(configuration);
+    this.configuration = configuration;
+    this.shutdownHandler = shutdownHandler;
     this.telemetrySender = telemetrySender;
     this.telemetryUtils = telemetryUtils;
-    shutdownHandler.add(this.applicationMonitorForkJoinPool);
+    log.debug("Created a new PolicyMonitor for tenant {}", TenantThreadLocal.getTenant());
   }
 
   // Visible for testing
@@ -167,7 +174,7 @@ public class PolicyMonitor
   }
 
   public void run() {
-    log.info("Starting policy monitoring");
+    log.info("Starting policy monitoring for tenant {}", TenantThreadLocal.getTenant());
 
     long start = System.currentTimeMillis();
 
@@ -182,9 +189,16 @@ public class PolicyMonitor
       policyMonitoringsByOwnerId.put(policyMonitoring.getOwnerId(), policyMonitoring);
     }
 
+    applicationMonitorForkJoinPool = initThreadPool(configuration);
+    shutdownHandler.add(applicationMonitorForkJoinPool);
+
     evaluateApplications(policyMonitoringsByOwnerId);
 
-    log.info("Policy monitoring evaluated in {} ms", System.currentTimeMillis() - start);
+    applicationMonitorForkJoinPool.shutdown();
+    shutdownHandler.remove(applicationMonitorForkJoinPool);
+
+    log.info("Policy monitoring evaluated in {} ms for tenant {}", System.currentTimeMillis() - start,
+        TenantThreadLocal.getTenant());
   }
 
   private void evaluateApplications(final Map<String, PolicyMonitoring> policyMonitoringsByOwnerId) {

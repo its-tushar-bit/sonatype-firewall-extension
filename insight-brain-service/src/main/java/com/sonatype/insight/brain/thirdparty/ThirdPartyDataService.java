@@ -592,13 +592,16 @@ public class ThirdPartyDataService
   }
 
   private void addOccurenceEvidenceForComponent(JsonNode bomNode, Component component) {
-    List<Occurrence> occurrences = Objects.requireNonNull(JsonUtils.getStringListFromArray(bomNode.get("pathnames")))
-        .stream().map( p -> {
+    List<String> pathnames = JsonUtils.getStringListFromArray(bomNode.get("pathnames"));
+    if (pathnames == null) {
+      return;
+    }
+    List<Occurrence> occurrences = pathnames.stream()
+        .map(p -> {
           Occurrence o = new Occurrence();
           o.setLocation(p);
           return o;
-        })
-        .collect(Collectors.toList());
+        }).collect(Collectors.toList());
     Evidence evidence = new Evidence();
     evidence.setOccurrences(occurrences);
     component.setEvidence(evidence);
@@ -612,7 +615,7 @@ public class ThirdPartyDataService
     ThirdPartyFileCoordinate component = new ThirdPartyFileCoordinate();
     component.setThirdPartyFileId(thirdPartyFileId);
     ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(componentNode);
-    if (componentIdentifier != null ) {
+    if (componentIdentifier != null) {
       Map<String, String> componentCoordinates = componentIdentifier.getCoordinates();
       String name = String.join(":", componentIdentifier.getProprietaryCoordinates());
       component.setName(name);

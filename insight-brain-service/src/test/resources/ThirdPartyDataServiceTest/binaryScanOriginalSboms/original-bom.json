@@ -85,14 +85,7 @@
           "name" : "sonatypeIdentifier",
           "value" : "469b2abdaec946a7bd14aa2113408ff2"
         }
-      ],
-      "evidence" : {
-        "occurrences" : [
-          {
-            "location" : "webgoat-2023.8.jar/BOOT-INF/lib/istack-commons-runtime-4.1.2.jar"
-          }
-        ]
-      }
+      ]
     }
   ]
 }

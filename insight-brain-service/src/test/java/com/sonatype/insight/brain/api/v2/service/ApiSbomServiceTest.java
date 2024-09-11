@@ -835,7 +835,7 @@ public class ApiSbomServiceTest
     File binaryFileToScan = tempDir.newFile("binary-scan.zip");
     Zipper.zipDirectory(new File(getClass().getResource("/" + getClass().getSimpleName() + "/binary-scan").toURI()),
         binaryFileToScan);
-    mockHdsForImportWithDelayedReportDownload(50);
+    mockHdsForImportWithDelayedReportDownload("empty-report.zip", 50);
 
     Application app = tempEntity.newApplicationWithParent();
     Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
@@ -969,16 +969,20 @@ public class ApiSbomServiceTest
     }
   }
 
-  private void mockHdsForImportWithDelayedReportDownload(long delayInMs) throws IOException {
+  private void mockHdsForImportWithDelayedReportDownload(String reportName, long delayInMs) throws IOException {
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId("SCAN-ID");
     doReturn(scanReceipt).when(mockHdsClient).put(any(), eq(ScanReceipt.class), eq(DUMMY_USER_AGENT),
         eq(ScanUploader.HDS_PATH), any(File.class), any());
 
     doAnswer(new AnswersWithDelay(delayInMs,
-        new Returns(getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/small-report.zip"))))
+        new Returns(getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/" + reportName))))
         .when(mockHdsClient).get(any(Retry.class), eq(InputStream.class), eq("rest/application/analysis/{scanId}"),
             isNull(), eq("SCAN-ID"));
+  }
+
+  private void mockHdsForImportWithDelayedReportDownload(long delayInMs) throws IOException {
+    mockHdsForImportWithDelayedReportDownload("small-report.zip", delayInMs);
   }
 
   private void mockHdsForImportWithError() throws IOException {

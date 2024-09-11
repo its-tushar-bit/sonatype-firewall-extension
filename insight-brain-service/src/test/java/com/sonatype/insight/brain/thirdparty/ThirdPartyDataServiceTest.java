@@ -839,6 +839,7 @@ public class ThirdPartyDataServiceTest
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00231", "description3", "link3", 1.0f,
             "deepdive3", "fixedby3");
     tpVuln2.setIdentificationSources("SBOM,Sonatype");
+    tpVuln2.setCwes("");
     thirdPartyCoordinateSecurityDAO.update(tpVuln2);
 
     // Vulnerability in DB - FG-R00232 - With both SBOM and Sonatype source identifiers. No HDS results. Sonatype
@@ -920,6 +921,7 @@ public class ThirdPartyDataServiceTest
     assertThat(thirdPartyCoordinateSecurity.getDescription()).isEqualTo("description3");
     assertThat(thirdPartyCoordinateSecurity.getLink()).isEqualTo("new link3");
     assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isEqualTo("<dd>r1<dd/>");
+    assertThat(thirdPartyCoordinateSecurity.getCwes()).isEmpty();
 
     // Vulnerability not in DB - FG-R00232 - It should have Source Identifier = SBOM
     thirdPartyCoordinateSecurity =

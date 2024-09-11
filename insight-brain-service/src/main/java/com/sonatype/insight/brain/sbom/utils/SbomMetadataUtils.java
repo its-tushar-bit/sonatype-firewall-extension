@@ -13,7 +13,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.regex.Matcher;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.core.UriBuilder;
@@ -41,6 +45,8 @@ import org.apache.openjpa.persistence.EntityExistsException;
 import org.apache.openjpa.persistence.RollbackException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.api.v2.service.ApiCycloneDxServiceV2.CWE_REGEX;
 
 @Named
 public class SbomMetadataUtils
@@ -209,5 +215,20 @@ public class SbomMetadataUtils
         throw e;
       }
     }
+  }
+
+  public static List<Integer> convertCwesStringToIntegerList(String cwesString) {
+    return Arrays.stream(cwesString.split(","))
+        .map((cwe) -> {
+          Matcher cweMatcher = CWE_REGEX.matcher(cwe);
+          if (cweMatcher.matches()) {
+            return Integer.parseInt(cweMatcher.group(1));
+          }
+          else {
+            return null;
+          }
+        })
+        .filter(Objects::nonNull)
+        .toList();
   }
 }

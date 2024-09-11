@@ -166,6 +166,36 @@ public class CycloneDxToCycloneDxExporterTest
   }
 
   @Test
+  public void exportTest_nonNumericCwesReturnedByHDS() throws Exception {
+    String testFileName = "test-bom.xml";
+    File testBomFile = prepareTestReportFile(testFileName);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(testBomFile.getName(), thirdPartyFile);
+    exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_15, SbomFormat.JSON));
+    tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
+    ThirdPartyFileCoordinate fileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
+        "source",
+        "maven",
+        "log4j",
+        "1.2.8",
+        "abcdef",
+        "pkg:maven/log4j/log4j@1.2.8?type=jar"
+    );
+    tempEntity.newThirdPartyCoordinateSecurity(
+        fileCoordinate, "sonatype-2010-0053", "DESC sonatype-2010-0053", "l1", 5.5d,
+        "1.1", "source", "v:1", "Medium", "noinfo",
+        "m1", "<dd>r1<dd/>", "<dd>a1<dd/>", "G,F");
+    tempEntity.newThirdPartyCoordinateSecurity(
+        fileCoordinate, "sonatype-2010-1234", "Some nasty vulnerability", "l1", 10d,
+        "1.2", "source", "v:1", "Medium", "1973",
+        "m1", "<dd>r1<dd/>", "<dd>a1<dd/>", "G,F");
+    String export = exporter.export();
+    assertThatJson(export)
+        .whenIgnoringPaths("metadata.timestamp",
+            "metadata.tools.components[0].version", "metadata.component.bom-ref")
+        .isEqualTo(readFileToString("outputs/output-test-bom-3.json"));
+  }
+
+  @Test
   public void exportTest_VulnerabilityRatingFieldsPreserved() throws Exception {
     String testFileName = "test-bom.xml";
     File testBomFile = prepareTestReportFile(testFileName);

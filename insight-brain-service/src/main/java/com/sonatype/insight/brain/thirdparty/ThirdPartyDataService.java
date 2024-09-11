@@ -71,6 +71,7 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.sbom.SbomPostImportMetricsTelemetry;
 import com.sonatype.insight.brain.sbom.SbomResultsMatcher;
 import com.sonatype.insight.brain.sbom.SbomResultsMatcherTelemetry;
+import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -1111,7 +1112,9 @@ public class ThirdPartyDataService
           resolveRatingMethodFromSeveritySource(sonatypeVulnerabilityData.getVectorSource()).name());
     }
     if (StringUtils.isNotBlank(sonatypeVulnerabilityData.getCwe())) {
-      thirdPartySecurity.setCwes(sonatypeVulnerabilityData.getCwe());
+      if (!SbomMetadataUtils.convertCwesStringToIntegerList(sonatypeVulnerabilityData.getCwe()).isEmpty()) {
+        thirdPartySecurity.setCwes(sonatypeVulnerabilityData.getCwe());
+      }
     }
     thirdPartySecurity.addIdentificationSource(IdentificationSource.SONATYPE.getId());
   }

@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
+import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.SpdxLicenseExpressionUtil;
@@ -313,13 +314,7 @@ public abstract class AbstractCycloneDxExporter
   {
     bomVulnerability.setDescription(sonatypeVulnerability.getDescription());
     if (StringUtils.isNotBlank(sonatypeVulnerability.getCwes())) {
-      String cwesString = sonatypeVulnerability.getCwes();
-      List<Integer> cwesList = Arrays.stream(cwesString.split(","))
-          .map(String::trim)
-          .map(Integer::valueOf)
-          .collect(Collectors.toList());
-
-      bomVulnerability.setCwes(cwesList);
+      bomVulnerability.setCwes(SbomMetadataUtils.convertCwesStringToIntegerList(sonatypeVulnerability.getCwes()));
     }
 
     if (StringUtils.isNotBlank(sonatypeVulnerability.getVulnerabilitySource())) {

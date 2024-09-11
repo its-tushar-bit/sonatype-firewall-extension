@@ -59,6 +59,8 @@ import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersi
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES;
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS;
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES;
+import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING;
+import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyCollection;
@@ -85,6 +87,9 @@ public class ComponentRemediationServiceTest
   @Mock
   private ProductLicense productLicense;
 
+  @Mock
+  private VersionScoringService versionScoringServiceMock;
+
   @Inject
   private ComponentRemediationService componentRemediationService;
 
@@ -99,6 +104,7 @@ public class ComponentRemediationServiceTest
     binder.bind(HdsClient.class).toInstance(hdsClientMock);
     binder.bind(ProductLicense.class).toInstance(productLicense);
     binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
+    binder.bind(VersionScoringService.class).toInstance(versionScoringServiceMock);
     super.configure(binder);
   }
 
@@ -1196,5 +1202,173 @@ public class ComponentRemediationServiceTest
     assertThat((String) attributes.get(OWNER_TYPE_TELEMETRY_ATTR)).isEqualTo(org.getType().toString());
     assertThat(attributes.containsKey(REAL_OWNER_ID_TELEMETRY_ATTR)).isTrue();
     assertThat(attributes.get(REAL_OWNER_ID_TELEMETRY_ATTR)).isEqualTo(org.getId());
+  }
+
+  private void mockVersionScoring_mockSortedVersions(String... versionsInOrder) {
+    lenient().when(versionScoringServiceMock.getSortedNonBreakingVersionsNoAuth(anyCollection()))
+        .thenReturn(Map.of(MAVEN_COORDINATES_A1_V1, Arrays.asList(versionsInOrder)));
+  }
+
+  private void setBreakingChangesCount(int n, ComponentDetailsDTO... details) {
+    for (ComponentDetailsDTO detail : details) {
+      detail.breakingChangesCount = n;
+    }
+  }
+
+  /**
+   *   Without advanced strategies, we are unable to suggest RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES
+   *   Only RECOMMENDED_NON_BREAKING could be calculated.
+   */
+  @Test
+  public void testGetSuggestedRemediation_suggestNonBreakingVersion_topOneHasFailAlert_noAdvanced() {
+    setBreakingChangesCount(0,
+        detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3, detailsDtoA1V4, detailsDtoA1V5, detailsDtoA1V6);
+    mockVersionScoring_mockSortedVersions("v6", "v4", "v2");
+    SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.setEnabled(true);
+
+    setTransitiveSolverValue(false);
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+
+    ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3,
+        detailsDtoA1V4);
+    mockHdsGetComponentDependencies(returnDto);
+    mockLicenseFeature(false);
+    ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
+
+    // v6 is the top-scored non-breaking version, however, it has a fail alert. So v4 is suggested as the next best.
+    assertThat(dto.suggestedVersionChange.getData().getComponent().packageUrl).isEqualTo(componentDtoA1V4.packageUrl);
+    assertThat(dto.suggestedVersionChange.getType()).isEqualTo(RECOMMENDED_NON_BREAKING);
+    assertThat(dto.suggestedVersionChange.getIsGolden()).isFalse();
+  }
+
+  /**
+   *   If we exhausted all the non-breaking versions, but they all have fail alerts, we should not suggest any version.
+   */
+  @Test
+  public void testGetSuggestedRemediation_suggestNonBreakingVersion_allHaveFailAlert_noAdvanced() {
+    setBreakingChangesCount(0,
+        detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3, detailsDtoA1V4, detailsDtoA1V5, detailsDtoA1V6);
+    mockVersionScoring_mockSortedVersions("v6");
+    SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.setEnabled(true);
+
+    setTransitiveSolverValue(false);
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+
+    ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3,
+        detailsDtoA1V4);
+    mockHdsGetComponentDependencies(returnDto);
+    mockLicenseFeature(false);
+    ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
+
+    // v6 is the only non-breaking version, however, it has a fail alert. So the suggested version is null.
+    assertThat(dto.suggestedVersionChange).isNull();
+  }
+
+  /**
+   *   With advanced strategies, we are able to suggest RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES, if there are any.
+   */
+  @Test
+  public void testGetSuggestedRemediation_suggestGoldenVersion_goldenAvailable_advanced() {
+    setBreakingChangesCount(0,
+        detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3, detailsDtoA1V4, detailsDtoA1V5, detailsDtoA1V6);
+    mockVersionScoring_mockSortedVersions("v6", "v4", "v2");
+    SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.setEnabled(true);
+
+    setTransitiveSolverValue(true);
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+
+    ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3,
+        detailsDtoA1V4);
+    mockHdsGetComponentDependencies(returnDto);
+    mockLicenseFeature(true);
+    ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
+
+    // We are able to verify v4 has no fail alerts, and its dependencies also have no fail alerts. So it is golden.
+    assertThat(dto.suggestedVersionChange.getData().getComponent().packageUrl).isEqualTo(componentDtoA1V4.packageUrl);
+    assertThat(dto.suggestedVersionChange.getType()).isEqualTo(RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES);
+    assertThat(dto.suggestedVersionChange.getIsGolden()).isTrue();
+  }
+
+  /**
+   *   If we are unable to find a RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES version after exhausting the list,
+   *   we suggest the best RECOMMENDED_NON_BREAKING version instead.
+   */
+  @Test
+  public void testGetSuggestedRemediation_suggestGoldenVersion_goldenUnavailable_advanced() {
+    setBreakingChangesCount(0,
+        detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3, detailsDtoA1V4, detailsDtoA1V5, detailsDtoA1V6);
+    mockVersionScoring_mockSortedVersions("v6", "v4", "v2");
+    SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.setEnabled(true);
+
+    setTransitiveSolverValue(true);
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+
+    dependenciesMap.put(purlA1V2, Arrays.asList(purlA2V1, purlA2V2));
+    dependenciesMap.put(purlA1V4, Arrays.asList(purlA2V1, purlA2V3));
+
+    detailsMap.put(purlA2V1, detailsA2V1);
+    detailsMap.put(purlA2V2, detailsA2V2);
+    detailsMap.put(purlA2V3, detailsA2V3);
+
+    ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3,
+        detailsDtoA1V4);
+    mockHdsGetComponentDependencies(returnDto);
+    mockLicenseFeature(true);
+    ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
+
+    // A2v1 has fail alerts and is a dependency of both v2 and v4 so no golden candidate.
+    // We suggest v4 as non-golden RECOMMENDED_NON_BREAKING.
+    assertThat(dto.suggestedVersionChange.getData().getComponent().packageUrl).isEqualTo(componentDtoA1V4.packageUrl);
+    assertThat(dto.suggestedVersionChange.getType()).isEqualTo(RECOMMENDED_NON_BREAKING);
+    assertThat(dto.suggestedVersionChange.getIsGolden()).isFalse();
+  }
+
+  /**
+   *   If we can find a golden version,
+   *   even if it has a lower score than the non-golden non-breaking version, we suggest it.
+   */
+  @Test
+  public void testGetSuggestedRemediation_suggestGoldenVersion_goldenTakesPriority_advanced() {
+    setBreakingChangesCount(0,
+        detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3, detailsDtoA1V4, detailsDtoA1V5, detailsDtoA1V6);
+    mockVersionScoring_mockSortedVersions("v6", "v4", "v2");
+    SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.setEnabled(true);
+
+    setTransitiveSolverValue(true);
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+
+    dependenciesMap.put(purlA1V2, Arrays.asList(purlA2V2, purlA2V3));
+    dependenciesMap.put(purlA1V4, Arrays.asList(purlA2V1, purlA2V2));
+
+    detailsMap.put(purlA2V1, detailsA2V1);
+    detailsMap.put(purlA2V2, detailsA2V2);
+    detailsMap.put(purlA2V3, detailsA2V3);
+
+    ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3,
+        detailsDtoA1V4);
+    mockHdsGetComponentDependencies(returnDto);
+    mockLicenseFeature(true);
+    ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
+
+    // A2v1 has fail alerts and is a dependency of v4.
+    // We suggest v2 as because it's golden, even though it has a lower score than v4.
+    assertThat(dto.suggestedVersionChange.getData().getComponent().packageUrl).isEqualTo(componentDtoA1V2.packageUrl);
+    assertThat(dto.suggestedVersionChange.getType()).isEqualTo(RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES);
+    assertThat(dto.suggestedVersionChange.getIsGolden()).isTrue();
   }
 }

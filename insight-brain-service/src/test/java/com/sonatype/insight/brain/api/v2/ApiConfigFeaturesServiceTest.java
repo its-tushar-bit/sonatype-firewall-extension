@@ -1026,6 +1026,23 @@ public class ApiConfigFeaturesServiceTest
   }
 
   @Test
+  public void testEnableFeature_developerSuggestNonBreakingVersion() {
+    service.enableFeature(SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION);
+    assertThat(
+        systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION)
+            .getValue())
+        .isEqualTo("true");
+  }
+
+  @Test
+  public void testDisableFeature_developerSuggestNonBreakingVersion_AlreadyDisabled() {
+    assertThatThrownBy(
+        () -> service.disableFeature(
+            SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
+
+  @Test
   public void testGetSystemConfigurationPropertyFeature_SbomContinuousMonitoringUi() {
     assertThat(service.getSystemConfigurationPropertyFeature("sbomContinuousMonitoringUi")).isEqualTo(
         SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI);

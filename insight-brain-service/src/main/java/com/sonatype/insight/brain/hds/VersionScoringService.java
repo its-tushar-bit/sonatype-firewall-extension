@@ -24,6 +24,10 @@ public class VersionScoringService
 {
   static final String HDS_BULK_SCORE_VERSIONING_PATH = "rest/component/version-scoring/list";
 
+  // Currently HDS only supports Maven version scoring.
+  // Here at client side will have better performance if filtering out non-Maven formats.
+  static final boolean MAVEN_VERSION_SCORE_ONLY = true;
+
   private final HdsClient hdsClient;
 
   @Inject
@@ -40,6 +44,11 @@ public class VersionScoringService
       Collection<ComponentIdentifier> componentIdentifiers)
   {
     Map<ComponentIdentifier, List<String>> result = new HashMap<>();
+    if (MAVEN_VERSION_SCORE_ONLY) {
+      componentIdentifiers = componentIdentifiers.stream()
+        .filter(ComponentIdentifier::isMaven)
+        .toList();
+    }
     for (VersionScoringDTO versionScoringDTO : getVersionScoringNoAuth(componentIdentifiers)) {
       Map<String, ToVersionData> toVersionsNonBreaking = versionScoringDTO.getToVersionsNonBreaking();
       List<String> versionSortedByScore = toVersionsNonBreaking.entrySet().parallelStream()

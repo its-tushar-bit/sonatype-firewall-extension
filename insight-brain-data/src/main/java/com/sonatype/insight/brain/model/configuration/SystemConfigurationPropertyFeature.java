@@ -218,6 +218,8 @@ public enum SystemConfigurationPropertyFeature
 
   SBOM_BINARY_SCANNING(SystemConfigurationProperty.SBOM_BINARY_SCANNING, false),
 
+  DEVELOPER_SUGGEST_NON_BREAKING_VERSION(SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION, false),
+
   SBOM_CONTINUOUS_MONITORING_UI(SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI, false),
 
   SBOM_POLICIES(SystemConfigurationProperty.SBOM_POLICIES, false);

@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -31,6 +32,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentChangeActionDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiSuggestedVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.model.Owner;
@@ -87,19 +89,23 @@ public class ComponentRemediationService
 
   private final TelemetryUtils telemetryUtils;
 
+  private final VersionScoringService versionScoringService;
+
   @Inject
   public ComponentRemediationService(
       TelemetrySender telemetrySender,
       HdsClient hdsClient,
       ComponentPolicyEvaluator componentPolicyEvaluator,
       ProductLicense productLicense,
-      TelemetryUtils telemetryUtils)
+      TelemetryUtils telemetryUtils,
+      VersionScoringService versionScoringService)
   {
     this.telemetrySender = telemetrySender;
     this.hdsClient = hdsClient;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.productLicense = productLicense;
     this.telemetryUtils = telemetryUtils;
+    this.versionScoringService = versionScoringService;
   }
 
   private ComponentIdentifier ensureCompleteIfNeeded(ComponentIdentifier componentIdentifier) {
@@ -178,6 +184,23 @@ public class ComponentRemediationService
             telemetryAttributes.put(OPTION_NEXT_NON_FAILING_ATTR, String.valueOf(true));
           });
 
+      // Defined outside the feature-flagged block to avoid duplicate computation.
+      List<String> nonBreakingVersionsSortedByScore = new ArrayList<>();
+      if (SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.isEnabled()) {
+        nonBreakingVersionsSortedByScore.addAll(versionScoringService.getSortedNonBreakingVersionsNoAuth(
+            List.of(currentComponent)).getOrDefault(currentComponent, Collections.emptyList()));
+        Set<ComponentIdentifier> nonFailingVersionsSet =
+            nonFailingVersions.stream().map(dto -> dto.componentIdentifier).collect(Collectors.toSet());
+        Optional<ComponentIdentifier> topScoreNonFailingNonBreakingVersion = nonBreakingVersionsSortedByScore.stream()
+            .map(currentComponent::createAlternativeVersion)
+            .filter(nonFailingVersionsSet::contains)
+            .findFirst();
+        topScoreNonFailingNonBreakingVersion.ifPresent(topScore ->
+            // the non-golden version suggestion should happen before (to be overridden by) the golden suggestion.
+            componentRemediationDto.suggestedVersionChange = createSuggestedVersionChangeOption(
+            topScore, ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING, false));
+      }
+
       if (advancedStrategies) {
         boolean includeAdvancedStrategies = shouldIncludeAdvancedStrategies(currentComponent);
 
@@ -209,6 +232,27 @@ public class ComponentRemediationService
                 );
                 telemetryAttributes.put(OPTION_NEXT_NON_FAILING_WITH_DEPENDENCIES_ATTR, String.valueOf(true));
               });
+          
+          if (SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.isEnabled()) {
+            Set<ComponentIdentifier> nonFailingWithDependenciesSet =
+                nonFailingVersions.stream()
+                .filter(dto -> {
+                  List<PolicyAlert> policyAlerts = dependencyAlerts.get(
+                      PackageUrlIdentifier.fromComponentIdentifier(dto.componentIdentifier));
+                  return policyAlerts == null || !hasFailAction(policyAlerts);
+                })
+                .map(dto -> dto.componentIdentifier)
+                .collect(Collectors.toSet());
+            Optional<ComponentIdentifier> topScoreNonFailingNonBreakingWithDependenciesVersion =
+                nonBreakingVersionsSortedByScore.stream()
+                .map(currentComponent::createAlternativeVersion)
+                .filter(nonFailingWithDependenciesSet::contains)
+                .findFirst();
+            topScoreNonFailingNonBreakingWithDependenciesVersion.ifPresent(topScore ->
+                // the golden version suggestion should happen after (override) the non-golden version suggestions.
+                componentRemediationDto.suggestedVersionChange = createSuggestedVersionChangeOption(
+                    topScore, ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES, true));
+          }
         }
       }
     }
@@ -430,10 +474,17 @@ public class ComponentRemediationService
     telemetrySender.send(telemetryData);
   }
 
-  private ApiVersionChangeOptionDTO createVersionChangeOption(ComponentIdentifier componentIdentifier,
+  private ApiSuggestedVersionChangeOptionDTO createSuggestedVersionChangeOption(ComponentIdentifier componentIdentifier,
                                                               ApiVersionChangeOptionType apiVersionChangeOptionType,
-                                                              Integer breakingChangesCount)
+                                                              boolean isGolden)
   {
+    ApiComponentDTOV2 componentDTOV2 = createComponentDtoFromIdentifier(componentIdentifier);
+    componentDTOV2.breakingChangesCount = 0;
+    return new ApiSuggestedVersionChangeOptionDTO(
+        apiVersionChangeOptionType, isGolden, new ApiComponentChangeActionDTO(componentDTOV2));
+  }
+
+  public static ApiComponentDTOV2 createComponentDtoFromIdentifier(final ComponentIdentifier componentIdentifier) {
     ApiComponentDTOV2 componentDTOV2 = new ApiComponentDTOV2();
     componentDTOV2.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
     componentDTOV2.packageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier);
@@ -441,6 +492,14 @@ public class ComponentRemediationService
         ComponentDisplayNameUtil.fromIdentifier(componentIdentifier);
     componentDTOV2.displayName = componentDisplayName != null ? componentDisplayName.toString() : null;
     componentDTOV2.proprietary = null; // not applicable
+    return componentDTOV2;
+  }
+
+  private ApiVersionChangeOptionDTO createVersionChangeOption(ComponentIdentifier componentIdentifier,
+                                                              ApiVersionChangeOptionType apiVersionChangeOptionType,
+                                                              Integer breakingChangesCount)
+  {
+    ApiComponentDTOV2 componentDTOV2 = createComponentDtoFromIdentifier(componentIdentifier);
     componentDTOV2.breakingChangesCount = breakingChangesCount;
     return new ApiVersionChangeOptionDTO(apiVersionChangeOptionType, new ApiComponentChangeActionDTO(componentDTOV2));
   }

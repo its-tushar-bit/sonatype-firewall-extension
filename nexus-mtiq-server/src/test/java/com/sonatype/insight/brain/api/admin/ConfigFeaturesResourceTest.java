@@ -106,6 +106,7 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.SECURE_SHARING.getId(),
           SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId(),
           SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.getId(),
+          SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.getId(),
           SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI.getId(),
           SystemConfigurationPropertyFeature.SBOM_POLICIES.getId()
       }

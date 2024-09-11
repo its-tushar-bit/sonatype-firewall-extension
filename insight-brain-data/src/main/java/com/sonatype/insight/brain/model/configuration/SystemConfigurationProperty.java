@@ -239,6 +239,8 @@ public class SystemConfigurationProperty
 
   public static final String SBOM_BINARY_SCANNING = "sbomBinaryScanning";
 
+  public static final String DEVELOPER_SUGGEST_NON_BREAKING_VERSION = "developerSuggestNonBreakingVersion";
+
   public static final String SBOM_CONTINUOUS_MONITORING_UI = "sbomContinuousMonitoringUi";
 
   public static final String SBOM_POLICIES = "sbomPolicies";

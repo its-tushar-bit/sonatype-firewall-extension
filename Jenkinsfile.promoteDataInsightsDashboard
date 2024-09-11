@@ -180,6 +180,6 @@ def copyFromEastBucketToWestBucket(s3Configuration, fileName) {
 
 def uploadFile(bucketName, fileName) { 
  echo "uploading '${fileName}' to bucket '${bucketName}'"
- sh "aws s3 cp ${fileName} s3://${bucketName}/$fileName}"
+ sh "aws s3 cp ${fileName} s3://${bucketName}/${fileName}"
 }
 

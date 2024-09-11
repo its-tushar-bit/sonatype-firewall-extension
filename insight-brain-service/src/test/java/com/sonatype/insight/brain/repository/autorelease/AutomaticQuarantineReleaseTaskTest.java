@@ -46,7 +46,7 @@ public class AutomaticQuarantineReleaseTaskTest
     automaticQuarantineReleaseTask.execute(null, printWriterMock);
 
     verify(automaticQuarantineReleaseMock).run();
-    verify(printWriterMock).write("Completed manual automatic quarantine release execution\n");
+    verify(printWriterMock).write("Completed manual Automatic Quarantine Release execution\n");
   }
 
   @Test

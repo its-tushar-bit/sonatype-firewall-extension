@@ -259,10 +259,12 @@ public class TaskScheduler
   }
 
   public void schedulePeriodicTask(InsightJob insightJob, Duration interval, Date startTime) {
-    log.debug("Scheduling periodic task {} to run every {} starting at {}", insightJob.getJobName(), interval,
-        startTime);
     JobDetail job = newJob(insightJob) //
         .build();
+    log.debug(
+        "Scheduling periodic task for insightJob {} ({}), jobKey '{}' for tenant {} "
+            + "to run every {} starting at {}.",
+        insightJob.getJobName(), insightJob, job.getKey(), TenantThreadLocal.getTenant(), interval, startTime);
     TriggerBuilder<SimpleTrigger> triggerBuilder = TriggerBuilder.newTrigger() //
         .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
         .withSchedule(SimpleScheduleBuilder.simpleSchedule() //

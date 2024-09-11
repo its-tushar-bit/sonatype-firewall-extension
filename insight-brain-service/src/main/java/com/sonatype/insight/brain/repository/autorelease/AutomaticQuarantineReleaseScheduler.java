@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.MtiqBatchJob;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 
 import org.slf4j.Logger;
@@ -78,7 +79,7 @@ public class AutomaticQuarantineReleaseScheduler
     Duration timeInterval = Duration.ofMinutes(configuration.getAutomaticQuarantineReleaseTimeIntervalInMinutes());
     taskScheduler.schedulePeriodicTask(automaticQuarantineReleaseTask,
         timeInterval, getAutomaticQuarantineReleaseStartTime());
-    log.info("Next Automatic Quarantine Release execution scheduled for {}",
+    log.info("Next Automatic Quarantine Release execution scheduled for tenant {} at {}", TenantThreadLocal.getTenant(),
         taskScheduler.getNextExecutionTime(automaticQuarantineReleaseTask));
   }
 

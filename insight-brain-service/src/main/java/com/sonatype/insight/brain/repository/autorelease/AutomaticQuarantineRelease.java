@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -28,8 +29,8 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
@@ -43,6 +44,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.RepositoryService;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.slf4j.Logger;
@@ -102,10 +104,11 @@ public class AutomaticQuarantineRelease
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.clusterLockManager = clusterLockManager;
+    log.debug("Created a new AutomaticQuarantineRelease for tenant {}", TenantThreadLocal.getTenant());
   }
 
   public void run() {
-    log.info("Starting automatic quarantine release");
+    log.info("Starting automatic quarantine release for tenant {}", TenantThreadLocal.getTenant());
 
     long start = System.currentTimeMillis();
 
@@ -122,7 +125,8 @@ public class AutomaticQuarantineRelease
 
     evaluateApplicableQuarantinedRepositoryComponents(policyMonitoringsByOwnerId);
 
-    log.info("Completed automatic quarantine release in {} ms", System.currentTimeMillis() - start);
+    log.info("Completed automatic quarantine release in {} ms for tenant {}", System.currentTimeMillis() - start,
+        TenantThreadLocal.getTenant());
   }
 
   private void evaluateApplicableQuarantinedRepositoryComponents(

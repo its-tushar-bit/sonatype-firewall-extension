@@ -154,6 +154,6 @@ function DataRows({ dataset }) {
       dispatchComponentDetailsPage(componentHash);
     };
 
-    return <PrioritiesPageRow key={component.displayName} component={component} onClick={onRowClick} />;
+    return <PrioritiesPageRow key={componentHash} component={component} onClick={onRowClick} />;
   });
 }

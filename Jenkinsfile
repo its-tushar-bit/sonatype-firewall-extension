@@ -72,7 +72,9 @@ make(
     runFeatureBranchPolicyEvaluations: true,
     iqPolicyEvaluation: { stage ->
         if (shouldRunPolicyEvaluation()) {
-          def callflowConfig = isDeployBranch(env, 'main') ? [
+          // I am disabling callflow until this bug can be addressed: https://sonatype.atlassian.net/browse/CLM-31636
+          def callflowConfig = null
+          /*def callflowConfig = isDeployBranch(env, 'main') ? [
               enable: true,
               includes: [
                   'nexus-iq-server/target/insight-brain-service-*.jar'
@@ -87,7 +89,7 @@ make(
                       '-Xmx12G'
                   ]
               ]
-          ] : null
+          ] : null*/
           nexusPolicyEvaluation iqStage: stage, iqApplication: 'insight-brain',
               iqScanPatterns: [[scanPattern: 'insight-brain-frontend/target/webpack-modules']],
               //Test files inside the maven modules are excluded from the scan

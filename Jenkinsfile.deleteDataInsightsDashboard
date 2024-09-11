@@ -1,0 +1,124 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+// This job allows the Business Intelligence team to publish Data Insights dasbhoards to production
+// Some more technical background can be found here https://sonatype.atlassian.net/wiki/spaces/DATA/pages/227410489/Dashboard+Change+Management
+// The job can be ran here https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/Data%20Insights%20Dasbhoard%20Configuration/job/Delete%20Data%20Insights%20Dasbhoard/
+
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+import groovy.json.JsonSlurper
+
+def iconsZipFileName = 'icons.zip'
+def configFileName = 'enterprise-reporting.json'
+
+def s3ConfigurationByEnv = [
+  staging: [
+    account: "993883856687",
+    role: "Zion4iq-hds-stage",
+    usEast2Bucket: "hds-staging-enterprise-reporting-us-east-2",
+    usWest2Bucket: "hds-staging-enterprise-reporting-us-west-2"
+  ],
+
+  production: [
+    account  : "135388973902",
+    role: "Zion4iq-hds-prod",
+    usEast2Bucket: "hds-production-enterprise-reporting-us-east-2",
+    usWest2Bucket: "hds-production-enterprise-reporting-us-west-2"
+  ]
+]
+
+pipeline {
+  agent {
+    node {
+      label 'zion-small'
+    }
+  }
+
+  parameters {
+    choice(
+      name: 'environment',
+      description: 'Pick which environment you want to update.',
+      choices: ['staging', 'production']
+    )
+  }
+
+  stages {
+    stage('Delete Insight Data dasbhoard by ID') {
+      steps {
+        script {
+          echo "running for environment: ${params.environment}"
+          def s3Configuration = s3ConfigurationByEnv[params.environment]
+
+          withAWS(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account) {
+              def bucketName = s3Configuration.usEast2Bucket
+              
+              def existingConfig = readExistingConfig(bucketName, configFileName)
+              def existingDashboards = existingConfig.dashboards
+              def existingDashboardKeys = existingDashboards.keySet().toList()
+
+              echo "existing dashbaord ids: ${existingDashboardKeys}"
+
+              // prompt the user to choose a dashboardId
+              def selectedDashboardId = input(
+                  id: 'selectedDashboardId',
+                  message: 'Select the dasbhoard you would like to delete',
+                  parameters: [
+                    choice(name: 'selectDashboardId', choices: existingDashboardKeys)
+                  ]) 
+          
+              echo "selected dashboard '${selectedDashboardId}' will be removed"
+              
+              // unset the key
+              existingDashboards.remove(selectedDashboardId)
+
+              // bump the version
+              existingConfig.version = env.BUILD_NUMBER.toLong()
+
+              echo 'the update config will be: '
+              echo writeJSON(returnText: true, json: existingConfig, pretty: 2)
+
+              echo 'persisting to the us-east-2 bucket'
+              saveConfigToBucket(bucketName, configFileName, existingConfig)
+
+              copyFromEastBucketToWestBucket(s3Configuration, configFileName)
+          }
+        }
+      }
+    }
+  }
+}
+
+def readExistingConfig(bucketForStagingEast, fileName) {
+  def dashboardConfigJson = getFileContents(bucketForStagingEast, fileName)
+
+  echo "existing configuration: ${dashboardConfigJson}"
+
+  return new JsonSlurper().parseText(dashboardConfigJson)
+}
+
+def getFileContents(bucketName, fileName) {
+  return sh(script: "aws s3 cp s3://${bucketName}/${fileName} -", returnStdout: true).trim()
+}
+
+def saveConfigToBucket(bucketName, fileName, config) {
+  def configJson = groovy.json.JsonOutput.toJson(config)
+
+  sh """
+cat <<EOF | aws s3 cp - s3://${bucketName}/${fileName}
+${configJson}
+EOF
+  """
+}
+
+def copyFromEastBucketToWestBucket(s3Configuration, fileName) {
+  def bucketForStagingEast = s3Configuration.usEast2Bucket
+  def bucketForStagingWest = s3Configuration.usWest2Bucket
+
+  echo "copying s3://${bucketForStagingEast}/${fileName} to s3://${bucketForStagingWest}/${fileName}"
+
+  sh "aws s3 cp s3://${bucketForStagingEast}/${fileName} s3://${bucketForStagingWest}/${fileName}"
+}
+

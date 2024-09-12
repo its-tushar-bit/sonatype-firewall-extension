@@ -77,7 +77,7 @@ describe('ReportTableRow component', function () {
   ];
 
   beforeEach(function () {
-    onClickSpy = jasmine.createSpy('onClick');
+    onClickSpy = jest.fn('onClick').mockImplementation(() => {});
     minimalProps = {
       index: 0,
       component: {
@@ -102,10 +102,10 @@ describe('ReportTableRow component', function () {
       onClick: onClickSpy,
     };
 
-    selectSelectedReportSpy = spyOn(applicationReportSelectors, 'selectSelectedReport').and.returnValue({
+    selectSelectedReportSpy = jest.spyOn(applicationReportSelectors, 'selectSelectedReport').mockReturnValue({
       allEntries: mockReportData,
     });
-    selectIsAggregatedSpy = spyOn(applicationReportSelectors, 'selectIsAggregated').and.returnValue(false);
+    selectIsAggregatedSpy = jest.spyOn(applicationReportSelectors, 'selectIsAggregated').mockReturnValue(false);
 
     renderComponent = (additionalProps = {}) => render(<ReportTableRow {...minimalProps} {...additionalProps} />);
   });
@@ -140,7 +140,7 @@ describe('ReportTableRow component', function () {
     const directDependencyIndicator = screen.getByText('D');
 
     expect(directDependencyIndicator).toBeVisible();
-    expect(directDependencyIndicator.closest('div')).toHaveClassName('iq-dependency-indicator direct');
+    expect(directDependencyIndicator.closest('div')).toHaveClass('iq-dependency-indicator direct');
   });
 
   it('renders properties with transitive dependency type', function () {
@@ -156,11 +156,11 @@ describe('ReportTableRow component', function () {
     const transitiveDependencyIndicator = screen.getByText('T');
 
     expect(transitiveDependencyIndicator).toBeVisible();
-    expect(transitiveDependencyIndicator.closest('div')).toHaveClassName('iq-dependency-indicator transitive');
+    expect(transitiveDependencyIndicator.closest('div')).toHaveClass('iq-dependency-indicator transitive');
   });
   describe('transitive violations indicator', function () {
     it('renders transitive violations indicator when selectIsAggregated is set, plural scenario', function () {
-      selectIsAggregatedSpy.and.returnValue(true);
+      selectIsAggregatedSpy.mockReturnValue(true);
       const props = {
         component: {
           ...minimalProps.component,
@@ -174,8 +174,8 @@ describe('ReportTableRow component', function () {
     });
 
     it('renders transitive violations indicator when selectIsAggregated is set, singular scenario', function () {
-      selectIsAggregatedSpy.and.returnValue(true);
-      selectSelectedReportSpy.and.returnValue({
+      selectIsAggregatedSpy.mockReturnValue(true);
+      selectSelectedReportSpy.mockReturnValue({
         allEntries: remove(0, 1, mockReportData),
       });
       const props = {
@@ -204,7 +204,7 @@ describe('ReportTableRow component', function () {
     });
 
     it('does not render transitive violations indicator when innerSource is false', function () {
-      selectIsAggregatedSpy.and.returnValue(true);
+      selectIsAggregatedSpy.mockReturnValue(true);
       renderComponent();
       const transitiveViolationsIndicator = screen.queryByText('transitive violation', { exact: false });
 
@@ -289,7 +289,7 @@ describe('ReportTableRow component', function () {
         isOnlyInnerSourceTransitiveDependency: true,
       },
     };
-    SpecUtil.requestIdleCallbackInvokeImmediate();
+    SpecUtil.requestIdleCallbackInvokeImmediateJest();
 
     renderComponent(props);
     const indicator = screen.getByText('IS');

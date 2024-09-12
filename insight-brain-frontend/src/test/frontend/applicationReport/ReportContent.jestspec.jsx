@@ -28,14 +28,14 @@ describe('ReportContent component', function () {
   let renderComponent, stateGoSpy;
 
   beforeEach(function () {
-    spyOn(applicationReportActions, 'goToDependencyTreePage').and.returnValue({ type: 'type' });
-    spyOn(applicationReportSelectors, 'selectIsAggregated').and.returnValue(true);
-    spyOn(applicationReportSelectors, 'selectDisplayedComponentList').and.returnValue(displayedEntries);
-    spyOn(applicationReportSelectors, 'selectDependencyTreeUnavailableMessage').and.returnValue('');
-    spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(true);
-    spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue(routerCurrentParams);
+    jest.spyOn(applicationReportActions, 'goToDependencyTreePage').mockReturnValue({ type: 'type' });
+    jest.spyOn(applicationReportSelectors, 'selectIsAggregated').mockReturnValue(true);
+    jest.spyOn(applicationReportSelectors, 'selectDisplayedComponentList').mockReturnValue(displayedEntries);
+    jest.spyOn(applicationReportSelectors, 'selectDependencyTreeUnavailableMessage').mockReturnValue('');
+    jest.spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').mockReturnValue(true);
+    jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue(routerCurrentParams);
 
-    stateGoSpy = spyOn(RouterActions, 'stateGo').and.callThrough();
+    stateGoSpy = jest.spyOn(RouterActions, 'stateGo');
 
     renderComponent = (additionalProps = {}) => render(<ReportContent {...additionalProps} />);
   });
@@ -48,7 +48,7 @@ describe('ReportContent component', function () {
   });
 
   it('renders aggregate by component toggle tooltip', async function () {
-    SpecUtil.requestIdleCallbackInvokeImmediate();
+    SpecUtil.requestIdleCallbackInvokeImmediateJest();
 
     renderComponent();
     const aggregateByComponentToggle = screen.getByLabelText('Aggregate by component');
@@ -65,7 +65,7 @@ describe('ReportContent component', function () {
   });
 
   it('dispatches correct action when toggling aggregate by component toggle', function () {
-    spyOn(applicationReportActions, 'toggleAggregateReportEntries').and.returnValue({ type: 'type' });
+    jest.spyOn(applicationReportActions, 'toggleAggregateReportEntries').mockReturnValue({ type: 'type' });
     renderComponent();
     const aggregateByComponentToggle = screen.getByLabelText('Aggregate by component');
 
@@ -83,14 +83,14 @@ describe('ReportContent component', function () {
   });
 
   it('renders emptyMessage when there are no results', function () {
-    applicationReportSelectors.selectDisplayedComponentList.and.returnValue([]);
+    applicationReportSelectors.selectDisplayedComponentList.mockReturnValue([]);
 
     renderComponent();
     expect(screen.getByText('No Results')).toBeVisible();
   });
 
   it('render the table with descendent sort direction', function () {
-    spyOn(applicationReportSelectors, 'selectSortConfiguration').and.returnValue({
+    jest.spyOn(applicationReportSelectors, 'selectSortConfiguration').mockReturnValue({
       key: 'policyThreatLevel',
       sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
       dir: 'desc',
@@ -103,7 +103,7 @@ describe('ReportContent component', function () {
   });
 
   it('render the table with ascendant sort direction', function () {
-    spyOn(applicationReportSelectors, 'selectSortConfiguration').and.returnValue({
+    jest.spyOn(applicationReportSelectors, 'selectSortConfiguration').mockReturnValue({
       key: 'policyName',
       sortFields: ['policyName', '-policyThreatLevel', 'derivedComponentName'],
       dir: 'asc',
@@ -116,13 +116,13 @@ describe('ReportContent component', function () {
   });
 
   it('render the table header with filters', function () {
-    spyOn(applicationReportActions, 'setStringFieldFilter').and.returnValue({ type: 'type' });
-    spyOn(applicationReportSelectors, 'selectSortConfiguration').and.returnValue({
+    jest.spyOn(applicationReportActions, 'setStringFieldFilter').mockReturnValue({ type: 'type' });
+    jest.spyOn(applicationReportSelectors, 'selectSortConfiguration').mockReturnValue({
       key: 'policyThreatLevel',
       sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
       dir: 'desc',
     });
-    spyOn(applicationReportSelectors, 'selectSubstringFilters').and.returnValue({
+    jest.spyOn(applicationReportSelectors, 'selectSubstringFilters').mockReturnValue({
       policyName: 'policyName',
       derivedComponentName: 'derivedComponentName',
     });
@@ -140,7 +140,7 @@ describe('ReportContent component', function () {
   });
 
   it('dispatches action on filter`s click', function () {
-    spyOn(applicationReportActions, 'toggleShowFilterPopover').and.returnValue({ type: 'type' });
+    jest.spyOn(applicationReportActions, 'toggleShowFilterPopover').mockReturnValue({ type: 'type' });
     renderComponent();
     const button = screen.getByRole('button', { name: /filter/i });
 
@@ -160,9 +160,9 @@ describe('ReportContent component', function () {
   });
 
   it('when there is not a dependency tree available the "view dependency tree" button is disabled', async function () {
-    applicationReportSelectors.selectDependencyTreeIsAvailable.and.returnValue(false);
+    applicationReportSelectors.selectDependencyTreeIsAvailable.mockReturnValue(false);
     const tooltipText = 'some random tooltip text';
-    applicationReportSelectors.selectDependencyTreeUnavailableMessage.and.returnValue(tooltipText);
+    applicationReportSelectors.selectDependencyTreeUnavailableMessage.mockReturnValue(tooltipText);
     SpecUtil.requestIdleCallbackInvokeImmediate();
 
     renderComponent();

@@ -171,7 +171,7 @@ describe('applicationReportService', function () {
 
       expect(sortedResult[2].license).toBe(licensesData.aaData[0]);
       expect(sortedResult[2]).toEqual(
-        jasmine.objectContaining({
+        expect.objectContaining({
           derivedComponentName: 'foo : 1',
           cvssScore: 1.2,
           securityCode: 'fooCode',
@@ -184,7 +184,7 @@ describe('applicationReportService', function () {
 
       expect(sortedResult[3].license).toBe(licensesData.aaData[0]);
       expect(sortedResult[3]).toEqual(
-        jasmine.objectContaining({
+        expect.objectContaining({
           derivedComponentName: 'foo : 1',
           cvssScore: 3.4,
           securityCode: 'fooCode2',
@@ -384,161 +384,177 @@ describe('applicationReportService', function () {
       expect(result2.length).toEqual(4);
       expect(reportEntries.isInnerSourceEnabled).toEqual(false);
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'fooHash',
-          componentIdentifier: {
-            format: 'a-name',
-            coordinates: {
-              name: 'foo',
-              version: '1',
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'fooHash',
+            componentIdentifier: {
+              format: 'a-name',
+              coordinates: {
+                name: 'foo',
+                version: '1',
+              },
             },
-          },
-          serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
-          derivedComponentName: 'foo : 1',
-          derivedViolationState: 'open',
-          policyName: 'Security-High',
-          policyThreatLevel: 9,
-          waived: false,
-          legacyViolation: false,
-          actions: [{ actionSummary: 'Build Failed', actionType: 'fail' }],
-        })
+            serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
+            derivedComponentName: 'foo : 1',
+            derivedViolationState: 'open',
+            policyName: 'Security-High',
+            policyThreatLevel: 9,
+            waived: false,
+            legacyViolation: false,
+            actions: [{ actionSummary: 'Build Failed', actionType: 'fail' }],
+          }),
+        ])
       );
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'fooHash',
-          componentIdentifier: {
-            format: 'a-name',
-            coordinates: {
-              name: 'foo',
-              version: '1',
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'fooHash',
+            componentIdentifier: {
+              format: 'a-name',
+              coordinates: {
+                name: 'foo',
+                version: '1',
+              },
             },
-          },
-          serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
-          derivedComponentName: 'foo : 1',
-          derivedViolationState: 'waived+legacyViolation',
-          policyName: 'License-High',
-          policyThreatLevel: 8,
-          waived: true,
-          legacyViolation: true,
-        })
+            serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
+            derivedComponentName: 'foo : 1',
+            derivedViolationState: 'waived+legacyViolation',
+            policyName: 'License-High',
+            policyThreatLevel: 8,
+            waived: true,
+            legacyViolation: true,
+          }),
+        ])
       );
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'barHash',
-          componentIdentifier: {
-            format: 'maven',
-            coordinates: {
-              groupId: 'barGroup',
-              artifactId: 'bar',
-              version: '2',
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'barHash',
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                groupId: 'barGroup',
+                artifactId: 'bar',
+                version: '2',
+              },
             },
-          },
-          serializedComponentIdentifier: 'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
-          derivedComponentName: 'bargroup : bar : 2',
-          derivedViolationState: 'legacyViolation',
-          policyName: 'Security-High',
-          policyThreatLevel: 9,
-          waived: false,
-          legacyViolation: true,
-          matchDetails: partialMatchData.aaData[0].matchDetails,
-        })
+            serializedComponentIdentifier: 'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
+            derivedComponentName: 'bargroup : bar : 2',
+            derivedViolationState: 'legacyViolation',
+            policyName: 'Security-High',
+            policyThreatLevel: 9,
+            waived: false,
+            legacyViolation: true,
+            matchDetails: partialMatchData.aaData[0].matchDetails,
+          }),
+        ])
       );
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'bazHash',
-          otherProp: 'baz',
-          derivedComponentName: 'baz.js, bazzzz.js',
-          derivedViolationState: 'notViolating',
-          policyName: 'None',
-          policyThreatLevel: 0,
-          waived: false,
-          legacyViolation: false,
-        })
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'bazHash',
+            otherProp: 'baz',
+            derivedComponentName: 'baz.js, bazzzz.js',
+            derivedViolationState: 'notViolating',
+            policyName: 'None',
+            policyThreatLevel: 0,
+            waived: false,
+            legacyViolation: false,
+          }),
+        ])
       );
 
       const bazHashEntry = result.find(propEq('hash', 'bazHash'));
       expect(bazHashEntry.serializedComponentIdentifier).toBeUndefined();
 
-      expect(result2).toContain(
-        jasmine.objectContaining({
-          hash: 'fooHash',
-          componentIdentifier: {
-            format: 'a-name',
-            coordinates: {
-              name: 'foo',
-              version: '1',
+      expect(result2).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'fooHash',
+            componentIdentifier: {
+              format: 'a-name',
+              coordinates: {
+                name: 'foo',
+                version: '1',
+              },
             },
-          },
-          serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
-          derivedComponentName: 'foo : 1',
-          derivedViolationState: 'open',
-          policyName: 'Security-High',
-          policyThreatLevel: 9,
-          policyThreatCategory: 'OTHER',
-          waived: false,
-          legacyViolation: false,
-        })
+            serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
+            derivedComponentName: 'foo : 1',
+            derivedViolationState: 'open',
+            policyName: 'Security-High',
+            policyThreatLevel: 9,
+            policyThreatCategory: 'OTHER',
+            waived: false,
+            legacyViolation: false,
+          }),
+        ])
       );
 
-      expect(result2).toContain(
-        jasmine.objectContaining({
-          hash: 'fooHash',
-          componentIdentifier: {
-            format: 'a-name',
-            coordinates: {
-              name: 'foo',
-              version: '1',
+      expect(result2).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'fooHash',
+            componentIdentifier: {
+              format: 'a-name',
+              coordinates: {
+                name: 'foo',
+                version: '1',
+              },
             },
-          },
-          serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
-          derivedComponentName: 'foo : 1',
-          derivedViolationState: 'waived+legacyViolation',
-          policyName: 'License-High',
-          policyThreatLevel: 8,
-          policyThreatCategory: 'OTHER',
-          waived: true,
-          legacyViolation: true,
-        })
+            serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
+            derivedComponentName: 'foo : 1',
+            derivedViolationState: 'waived+legacyViolation',
+            policyName: 'License-High',
+            policyThreatLevel: 8,
+            policyThreatCategory: 'OTHER',
+            waived: true,
+            legacyViolation: true,
+          }),
+        ])
       );
 
-      expect(result2).toContain(
-        jasmine.objectContaining({
-          hash: 'barHash',
-          componentIdentifier: {
-            format: 'maven',
-            coordinates: {
-              groupId: 'barGroup',
-              artifactId: 'bar',
-              version: '2',
+      expect(result2).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'barHash',
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                groupId: 'barGroup',
+                artifactId: 'bar',
+                version: '2',
+              },
             },
-          },
-          serializedComponentIdentifier: 'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
-          derivedComponentName: 'bargroup : bar : 2',
-          derivedViolationState: 'legacyViolation',
-          policyName: 'Security-High',
-          policyThreatLevel: 9,
-          waived: false,
-          policyThreatCategory: 'OTHER',
-          legacyViolation: true,
-          matchDetails: partialMatchData.aaData[0].matchDetails,
-        })
+            serializedComponentIdentifier: 'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
+            derivedComponentName: 'bargroup : bar : 2',
+            derivedViolationState: 'legacyViolation',
+            policyName: 'Security-High',
+            policyThreatLevel: 9,
+            waived: false,
+            policyThreatCategory: 'OTHER',
+            legacyViolation: true,
+            matchDetails: partialMatchData.aaData[0].matchDetails,
+          }),
+        ])
       );
 
-      expect(result2).toContain(
-        jasmine.objectContaining({
-          hash: 'bazHash',
-          otherProp: 'baz',
-          derivedComponentName: 'baz.js, bazzzz.js',
-          derivedViolationState: 'notViolating',
-          policyName: 'None',
-          policyThreatLevel: 0,
-          waived: false,
-          legacyViolation: false,
-        })
+      expect(result2).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'bazHash',
+            otherProp: 'baz',
+            derivedComponentName: 'baz.js, bazzzz.js',
+            derivedViolationState: 'notViolating',
+            policyName: 'None',
+            policyThreatLevel: 0,
+            waived: false,
+            legacyViolation: false,
+          }),
+        ])
       );
 
       const bazHashEntry2 = result2.find(propEq('hash', 'bazHash'));
@@ -619,79 +635,87 @@ describe('applicationReportService', function () {
 
       expect(result.length).toEqual(4);
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'fooHash',
-          componentIdentifier: {
-            format: 'a-name',
-            coordinates: {
-              name: 'foo',
-              version: '1',
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'fooHash',
+            componentIdentifier: {
+              format: 'a-name',
+              coordinates: {
+                name: 'foo',
+                version: '1',
+              },
             },
-          },
-          serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
-          derivedComponentName: 'foo : 1',
-          derivedViolationState: 'open',
-          policyName: 'Security-High',
-          policyThreatLevel: 9,
-          waived: false,
-          legacyViolation: false,
-        })
+            serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
+            derivedComponentName: 'foo : 1',
+            derivedViolationState: 'open',
+            policyName: 'Security-High',
+            policyThreatLevel: 9,
+            waived: false,
+            legacyViolation: false,
+          }),
+        ])
       );
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'fooHash',
-          componentIdentifier: {
-            format: 'a-name',
-            coordinates: {
-              name: 'foo',
-              version: '1',
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'fooHash',
+            componentIdentifier: {
+              format: 'a-name',
+              coordinates: {
+                name: 'foo',
+                version: '1',
+              },
             },
-          },
-          serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
-          derivedComponentName: 'foo : 1',
-          derivedViolationState: 'waived',
-          policyName: 'License-High',
-          policyThreatLevel: 8,
-          waived: true,
-          legacyViolation: false,
-        })
+            serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
+            derivedComponentName: 'foo : 1',
+            derivedViolationState: 'waived',
+            policyName: 'License-High',
+            policyThreatLevel: 8,
+            waived: true,
+            legacyViolation: false,
+          }),
+        ])
       );
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'barHash',
-          componentIdentifier: {
-            format: 'maven',
-            coordinates: {
-              groupId: 'barGroup',
-              artifactId: 'bar',
-              version: '2',
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'barHash',
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                groupId: 'barGroup',
+                artifactId: 'bar',
+                version: '2',
+              },
             },
-          },
-          serializedComponentIdentifier: 'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
-          derivedComponentName: 'bargroup : bar : 2',
-          derivedViolationState: 'open',
-          policyName: 'Security-High',
-          policyThreatLevel: 9,
-          waived: false,
-          legacyViolation: false,
-          matchDetails: partialMatchData.aaData[0].matchDetails,
-        })
+            serializedComponentIdentifier: 'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
+            derivedComponentName: 'bargroup : bar : 2',
+            derivedViolationState: 'open',
+            policyName: 'Security-High',
+            policyThreatLevel: 9,
+            waived: false,
+            legacyViolation: false,
+            matchDetails: partialMatchData.aaData[0].matchDetails,
+          }),
+        ])
       );
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'bazHash',
-          otherProp: 'baz',
-          derivedComponentName: 'baz.js, bazzzz.js',
-          derivedViolationState: 'notViolating',
-          policyName: 'None',
-          policyThreatLevel: 0,
-          waived: false,
-          legacyViolation: false,
-        })
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'bazHash',
+            otherProp: 'baz',
+            derivedComponentName: 'baz.js, bazzzz.js',
+            derivedViolationState: 'notViolating',
+            policyName: 'None',
+            policyThreatLevel: 0,
+            waived: false,
+            legacyViolation: false,
+          }),
+        ])
       );
 
       const bazHashEntry = result.find(propEq('hash', 'bazHash'));
@@ -756,79 +780,87 @@ describe('applicationReportService', function () {
 
       expect(result.length).toEqual(4);
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'fooHash',
-          componentIdentifier: {
-            format: 'a-name',
-            coordinates: {
-              name: 'foo',
-              version: '1',
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'fooHash',
+            componentIdentifier: {
+              format: 'a-name',
+              coordinates: {
+                name: 'foo',
+                version: '1',
+              },
             },
-          },
-          serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
-          derivedComponentName: 'foo : 1',
-          derivedViolationState: 'open',
-          policyName: 'Security-High',
-          policyThreatLevel: 9,
-          waived: false,
-          legacyViolation: false,
-        })
+            serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
+            derivedComponentName: 'foo : 1',
+            derivedViolationState: 'open',
+            policyName: 'Security-High',
+            policyThreatLevel: 9,
+            waived: false,
+            legacyViolation: false,
+          }),
+        ])
       );
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'fooHash',
-          componentIdentifier: {
-            format: 'a-name',
-            coordinates: {
-              name: 'foo',
-              version: '1',
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'fooHash',
+            componentIdentifier: {
+              format: 'a-name',
+              coordinates: {
+                name: 'foo',
+                version: '1',
+              },
             },
-          },
-          serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
-          derivedComponentName: 'foo : 1',
-          derivedViolationState: 'open',
-          policyName: 'License-High',
-          policyThreatLevel: 8,
-          waived: false,
-          legacyViolation: false,
-        })
+            serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
+            derivedComponentName: 'foo : 1',
+            derivedViolationState: 'open',
+            policyName: 'License-High',
+            policyThreatLevel: 8,
+            waived: false,
+            legacyViolation: false,
+          }),
+        ])
       );
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'barHash',
-          componentIdentifier: {
-            format: 'maven',
-            coordinates: {
-              groupId: 'barGroup',
-              artifactId: 'bar',
-              version: '2',
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'barHash',
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                groupId: 'barGroup',
+                artifactId: 'bar',
+                version: '2',
+              },
             },
-          },
-          serializedComponentIdentifier: 'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
-          derivedComponentName: 'bargroup : bar : 2',
-          derivedViolationState: 'open',
-          policyName: 'Security-High',
-          policyThreatLevel: 9,
-          waived: false,
-          legacyViolation: false,
-          matchDetails: partialMatchData.aaData[0].matchDetails,
-        })
+            serializedComponentIdentifier: 'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
+            derivedComponentName: 'bargroup : bar : 2',
+            derivedViolationState: 'open',
+            policyName: 'Security-High',
+            policyThreatLevel: 9,
+            waived: false,
+            legacyViolation: false,
+            matchDetails: partialMatchData.aaData[0].matchDetails,
+          }),
+        ])
       );
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'bazHash',
-          otherProp: 'baz',
-          derivedComponentName: 'baz.js, bazzzz.js',
-          derivedViolationState: 'notViolating',
-          policyName: 'None',
-          policyThreatLevel: 0,
-          waived: false,
-          legacyViolation: false,
-        })
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'bazHash',
+            otherProp: 'baz',
+            derivedComponentName: 'baz.js, bazzzz.js',
+            derivedViolationState: 'notViolating',
+            policyName: 'None',
+            policyThreatLevel: 0,
+            waived: false,
+            legacyViolation: false,
+          }),
+        ])
       );
 
       const bazHashEntry = result.find(propEq('hash', 'bazHash'));
@@ -886,62 +918,68 @@ describe('applicationReportService', function () {
 
       expect(result.length).toEqual(3);
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'fooHash',
-          componentIdentifier: {
-            format: 'a-name',
-            coordinates: {
-              name: 'foo',
-              version: '1',
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'fooHash',
+            componentIdentifier: {
+              format: 'a-name',
+              coordinates: {
+                name: 'foo',
+                version: '1',
+              },
             },
-          },
-          derivedComponentName: 'foo : 1',
-          derivedViolationState: 'open',
-          policyName: 'Security-High',
-          policyThreatLevel: 9,
-          waived: false,
-          legacyViolation: false,
-        })
+            derivedComponentName: 'foo : 1',
+            derivedViolationState: 'open',
+            policyName: 'Security-High',
+            policyThreatLevel: 9,
+            waived: false,
+            legacyViolation: false,
+          }),
+        ])
       );
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'fooHash',
-          componentIdentifier: {
-            format: 'a-name',
-            coordinates: {
-              name: 'foo',
-              version: '1',
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'fooHash',
+            componentIdentifier: {
+              format: 'a-name',
+              coordinates: {
+                name: 'foo',
+                version: '1',
+              },
             },
-          },
-          derivedComponentName: 'foo : 1',
-          derivedViolationState: 'open',
-          policyName: 'License-High',
-          policyThreatLevel: 8,
-          waived: false,
-          legacyViolation: false,
-        })
+            derivedComponentName: 'foo : 1',
+            derivedViolationState: 'open',
+            policyName: 'License-High',
+            policyThreatLevel: 8,
+            waived: false,
+            legacyViolation: false,
+          }),
+        ])
       );
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'barHash',
-          componentIdentifier: {
-            format: 'maven',
-            coordinates: {
-              groupId: 'barGroup',
-              artifactId: 'bar',
-              version: '2',
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'barHash',
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                groupId: 'barGroup',
+                artifactId: 'bar',
+                version: '2',
+              },
             },
-          },
-          derivedComponentName: 'bargroup : bar : 2',
-          derivedViolationState: 'open',
-          policyName: 'Security-High',
-          policyThreatLevel: 9,
-          waived: false,
-          legacyViolation: false,
-        })
+            derivedComponentName: 'bargroup : bar : 2',
+            derivedViolationState: 'open',
+            policyName: 'Security-High',
+            policyThreatLevel: 9,
+            waived: false,
+            legacyViolation: false,
+          }),
+        ])
       );
     });
 
@@ -1042,48 +1080,54 @@ describe('applicationReportService', function () {
 
       expect(result.length).toEqual(4);
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'fooHash',
-          derivedViolationState: 'open',
-          policyName: 'Security-High',
-          policyThreatLevel: 9,
-          dependencyInfo: { isDirectDependency: true },
-          derivedDependencyType: 'direct',
-        })
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'fooHash',
+            derivedViolationState: 'open',
+            policyName: 'Security-High',
+            policyThreatLevel: 9,
+            dependencyInfo: { isDirectDependency: true },
+            derivedDependencyType: 'direct',
+          }),
+        ])
       );
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'fooHash',
-          derivedViolationState: 'waived+legacyViolation',
-          policyName: 'License-High',
-          policyThreatLevel: 8,
-          dependencyInfo: { isDirectDependency: true },
-          derivedDependencyType: 'direct',
-        })
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'fooHash',
+            derivedViolationState: 'waived+legacyViolation',
+            policyName: 'License-High',
+            policyThreatLevel: 8,
+            dependencyInfo: { isDirectDependency: true },
+            derivedDependencyType: 'direct',
+          }),
+        ])
       );
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'barHash',
-          derivedViolationState: 'notViolating',
-          policyName: 'None',
-          policyThreatLevel: 0,
-          dependencyInfo: {
-            isDirectDependency: false,
-            rootAncestors: [
-              serializeComponentIdentifier({
-                format: 'a-name',
-                coordinates: {
-                  name: 'foo',
-                  version: '1',
-                },
-              }),
-            ],
-          },
-          derivedDependencyType: 'transitive',
-        })
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'barHash',
+            derivedViolationState: 'notViolating',
+            policyName: 'None',
+            policyThreatLevel: 0,
+            dependencyInfo: {
+              isDirectDependency: false,
+              rootAncestors: [
+                serializeComponentIdentifier({
+                  format: 'a-name',
+                  coordinates: {
+                    name: 'foo',
+                    version: '1',
+                  },
+                }),
+              ],
+            },
+            derivedDependencyType: 'transitive',
+          }),
+        ])
       );
 
       const bazHashEntry = result.find(propEq('hash', 'bazHash'));
@@ -1234,81 +1278,87 @@ describe('applicationReportService', function () {
 
       expect(result.length).toEqual(5);
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'fooHash',
-          componentIdentifier: {
-            format: 'a-name',
-            coordinates: {
-              name: 'foo',
-              version: '1',
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'fooHash',
+            componentIdentifier: {
+              format: 'a-name',
+              coordinates: {
+                name: 'foo',
+                version: '1',
+              },
             },
-          },
-          derivedDependencyType: 'direct',
-          innerSource: true,
-          innerSourceData: [
-            {
-              ownerApplicationName: 'app',
-              ownerApplicationId: '123',
-            },
-          ],
-          innerSourceTDIndicator: false,
-          dependencyType: 'D',
-          isOnlyInnerSourceTransitiveDependency: false,
-        })
+            derivedDependencyType: 'direct',
+            innerSource: true,
+            innerSourceData: [
+              {
+                ownerApplicationName: 'app',
+                ownerApplicationId: '123',
+              },
+            ],
+            innerSourceTDIndicator: false,
+            dependencyType: 'D',
+            isOnlyInnerSourceTransitiveDependency: false,
+          }),
+        ])
       );
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'barHash',
-          componentIdentifier: {
-            format: 'maven',
-            coordinates: {
-              groupId: 'barGroup',
-              artifactId: 'bar',
-              version: '2',
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'barHash',
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                groupId: 'barGroup',
+                artifactId: 'bar',
+                version: '2',
+              },
             },
-          },
-          innerSource: false,
-          innerSourceData: [
-            {
-              ownerApplicationName: 'app',
-              ownerApplicationId: '123',
-              innerSourceComponentPurl: 'pkg:maven/tranGroup/tran@2.0.0?type=jar',
-            },
-          ],
-          innerSourceTDIndicator: true,
-          derivedDependencyType: 'transitive',
-          dependencyType: 'TD',
-          isOnlyInnerSourceTransitiveDependency: false,
-        })
+            innerSource: false,
+            innerSourceData: [
+              {
+                ownerApplicationName: 'app',
+                ownerApplicationId: '123',
+                innerSourceComponentPurl: 'pkg:maven/tranGroup/tran@2.0.0?type=jar',
+              },
+            ],
+            innerSourceTDIndicator: true,
+            derivedDependencyType: 'transitive',
+            dependencyType: 'TD',
+            isOnlyInnerSourceTransitiveDependency: false,
+          }),
+        ])
       );
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'barHash2',
-          componentIdentifier: {
-            format: 'maven',
-            coordinates: {
-              groupId: 'barGroup',
-              artifactId: 'bar2',
-              version: '2',
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'barHash2',
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                groupId: 'barGroup',
+                artifactId: 'bar2',
+                version: '2',
+              },
             },
-          },
-          innerSource: false,
-          innerSourceData: [
-            {
-              ownerApplicationName: 'app',
-              ownerApplicationId: '123',
-              innerSourceComponentPurl: 'pkg:maven/tranGroup/tran@2.0.0?type=jar',
-            },
-          ],
-          innerSourceTDIndicator: true,
-          innerSourceParentsDerivedComponentNames: ['foo-1.js'],
-          derivedDependencyType: 'transitive',
-          dependencyType: 'TD',
-          isOnlyInnerSourceTransitiveDependency: true,
-        })
+            innerSource: false,
+            innerSourceData: [
+              {
+                ownerApplicationName: 'app',
+                ownerApplicationId: '123',
+                innerSourceComponentPurl: 'pkg:maven/tranGroup/tran@2.0.0?type=jar',
+              },
+            ],
+            innerSourceTDIndicator: true,
+            innerSourceParentsDerivedComponentNames: ['foo-1.js'],
+            derivedDependencyType: 'transitive',
+            dependencyType: 'TD',
+            isOnlyInnerSourceTransitiveDependency: true,
+          }),
+        ])
       );
     });
 
@@ -1441,22 +1491,26 @@ describe('applicationReportService', function () {
         dependencies
       ).policies;
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'fooHash',
-          directDependency: false,
-          derivedDependencyType: 'transitive',
-          hasDependencyTypeInfo: true,
-        })
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'fooHash',
+            directDependency: false,
+            derivedDependencyType: 'transitive',
+            hasDependencyTypeInfo: true,
+          }),
+        ])
       );
 
-      expect(result).toContain(
-        jasmine.objectContaining({
-          hash: 'barHash',
-          directDependency: true,
-          derivedDependencyType: 'direct',
-          hasDependencyTypeInfo: true,
-        })
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'barHash',
+            directDependency: true,
+            derivedDependencyType: 'direct',
+            hasDependencyTypeInfo: true,
+          }),
+        ])
       );
     });
   });
@@ -2058,18 +2112,18 @@ describe('applicationReportService', function () {
           ];
 
         expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual([
-          jasmine.objectContaining({
+          expect.objectContaining({
             foo: 'bar',
             securityCode: 'CVE-1234',
             cvssScore: 5,
           }),
-          jasmine.objectContaining({
+          expect.objectContaining({
             foo: 'bar',
             baz: 'qwerty',
             securityCode: 'CVE-1235',
             cvssScore: 4,
           }),
-          jasmine.objectContaining({
+          expect.objectContaining({
             securityCode: 'CVE-1236',
             cvssScore: 3,
           }),
@@ -2092,14 +2146,16 @@ describe('applicationReportService', function () {
         ],
         rawDataEntries = [mkRawDataEntry(1234), mkRawDataEntry(1235, null, 'baz'), mkRawDataEntry(1236)];
 
-      expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual([
-        jasmine.objectContaining({
-          key: jasmine.stringMatching(/bar.*CVE-1234/),
-        }),
-        jasmine.objectContaining({
-          key: jasmine.stringMatching(/baz.*CVE-1235/),
-        }),
-      ]);
+      expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            key: expect.stringMatching(/bar.*CVE-1234/),
+          }),
+          expect.objectContaining({
+            key: expect.stringMatching(/baz.*CVE-1235/),
+          }),
+        ])
+      );
     });
 
     it('handles policy entries that have no constraints', function () {
@@ -2241,42 +2297,42 @@ describe('applicationReportService', function () {
 
       it('includes the waived flag and legacyViolation flags only if every matching violation is waived or legacy violations are enabled', function () {
         expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual([
-          jasmine.objectContaining({
+          expect.objectContaining({
             securityCode: 'CVE-1234',
             waived: false,
             legacyViolation: false,
           }),
-          jasmine.objectContaining({
+          expect.objectContaining({
             securityCode: 'CVE-1235',
             waived: false,
             legacyViolation: false,
           }),
-          jasmine.objectContaining({
+          expect.objectContaining({
             securityCode: 'CVE-1236',
             waived: false,
             legacyViolation: false,
           }),
-          jasmine.objectContaining({
+          expect.objectContaining({
             securityCode: 'CVE-1236',
             waived: false,
             legacyViolation: true,
           }),
-          jasmine.objectContaining({
+          expect.objectContaining({
             securityCode: 'CVE-1238',
             waived: true,
             legacyViolation: false,
           }),
-          jasmine.objectContaining({
+          expect.objectContaining({
             securityCode: 'CVE-1239',
             waived: false,
             legacyViolation: false,
           }),
-          jasmine.objectContaining({
+          expect.objectContaining({
             securityCode: 'CVE-1240',
             waived: true,
             legacyViolation: true,
           }),
-          jasmine.objectContaining({
+          expect.objectContaining({
             securityCode: 'CVE-1241',
             waived: true,
             legacyViolation: true,
@@ -2289,35 +2345,35 @@ describe('applicationReportService', function () {
           'followed by waived, legacyViolation & waived, and then finally legacyViolation',
         function () {
           expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual([
-            jasmine.objectContaining({
+            expect.objectContaining({
               securityCode: 'CVE-1234',
               violationSortState: 0,
             }),
-            jasmine.objectContaining({
+            expect.objectContaining({
               securityCode: 'CVE-1235',
               violationSortState: 0,
             }),
-            jasmine.objectContaining({
+            expect.objectContaining({
               securityCode: 'CVE-1236',
               violationSortState: 0,
             }),
-            jasmine.objectContaining({
+            expect.objectContaining({
               securityCode: 'CVE-1236',
               violationSortState: 4,
             }),
-            jasmine.objectContaining({
+            expect.objectContaining({
               securityCode: 'CVE-1238',
               violationSortState: 2,
             }),
-            jasmine.objectContaining({
+            expect.objectContaining({
               securityCode: 'CVE-1239',
               violationSortState: 0,
             }),
-            jasmine.objectContaining({
+            expect.objectContaining({
               securityCode: 'CVE-1240',
               violationSortState: 3,
             }),
-            jasmine.objectContaining({
+            expect.objectContaining({
               securityCode: 'CVE-1241',
               violationSortState: 3,
             }),
@@ -2330,35 +2386,35 @@ describe('applicationReportService', function () {
           'treating waived and legacy violations as 0',
         function () {
           expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual([
-            jasmine.objectContaining({
+            expect.objectContaining({
               securityCode: 'CVE-1234',
               policyThreatLevel: 2,
             }),
-            jasmine.objectContaining({
+            expect.objectContaining({
               securityCode: 'CVE-1235',
               policyThreatLevel: 2,
             }),
-            jasmine.objectContaining({
+            expect.objectContaining({
               securityCode: 'CVE-1236',
               policyThreatLevel: 1,
             }),
-            jasmine.objectContaining({
+            expect.objectContaining({
               securityCode: 'CVE-1236',
               policyThreatLevel: 0,
             }),
-            jasmine.objectContaining({
+            expect.objectContaining({
               securityCode: 'CVE-1238',
               policyThreatLevel: 0,
             }),
-            jasmine.objectContaining({
+            expect.objectContaining({
               securityCode: 'CVE-1239',
               policyThreatLevel: 3,
             }),
-            jasmine.objectContaining({
+            expect.objectContaining({
               securityCode: 'CVE-1240',
               policyThreatLevel: 0,
             }),
-            jasmine.objectContaining({
+            expect.objectContaining({
               securityCode: 'CVE-1241',
               policyThreatLevel: 0,
             }),
@@ -2393,9 +2449,9 @@ describe('applicationReportService', function () {
         mkRawDataEntry(406, 5.0, { foo: 'bar', baz: 'qwerty' }),
       ];
       expect(applicationReportService.extendRawDataWithKey(rawDataEntries)).toEqual([
-        jasmine.objectContaining({ cvssScore: '4.0' }),
-        jasmine.objectContaining({ cvssScore: '' }),
-        jasmine.objectContaining({ cvssScore: '5.0' }),
+        expect.objectContaining({ cvssScore: '4.0' }),
+        expect.objectContaining({ cvssScore: '' }),
+        expect.objectContaining({ cvssScore: '5.0' }),
       ]);
     });
 
@@ -2404,7 +2460,7 @@ describe('applicationReportService', function () {
         const rawDataEntries = [mkRawDataEntry(404, 4, { pathnames: ['WebGoat-6.0.1.war'] })];
 
         expect(applicationReportService.extendRawDataWithKey(rawDataEntries)).toEqual([
-          jasmine.objectContaining({
+          expect.objectContaining({
             securityCode: 'CVE-404',
             key: 'pathnames:WebGoat-6.0.1.war\u001dCVE-404',
           }),
@@ -2428,7 +2484,7 @@ describe('applicationReportService', function () {
         ];
 
         expect(applicationReportService.extendRawDataWithKey(rawDataEntries)).toEqual([
-          jasmine.objectContaining({
+          expect.objectContaining({
             securityCode: 'CVE-405',
             cvssScore: '',
             key:
@@ -2441,7 +2497,7 @@ describe('applicationReportService', function () {
         const rawDataEntries = [mkRawDataEntry(406, 5.0, { foo: 'bar', baz: 'qwerty' })];
 
         expect(applicationReportService.extendRawDataWithKey(rawDataEntries)).toEqual([
-          jasmine.objectContaining({
+          expect.objectContaining({
             foo: 'bar',
             securityCode: 'CVE-406',
             cvssScore: '5.0',

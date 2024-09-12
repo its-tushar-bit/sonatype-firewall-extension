@@ -23,7 +23,7 @@ describe('ReportStatusBar', () => {
       moderateViolationCount: 333,
       nonLowViolationCount: 123,
     };
-    spyOn(applicationReportSelectors, 'selectSelectedReport').and.returnValue(selectedReport);
+    jest.spyOn(applicationReportSelectors, 'selectSelectedReport').mockReturnValue(selectedReport);
 
     renderComponent = () =>
       render(
@@ -47,7 +47,7 @@ describe('ReportStatusBar', () => {
       .closest('.nx-small-threat-counter');
 
     expect(criticalThreatIndicator).toBeVisible();
-    expect(criticalThreatIndicator).toHaveClassName('nx-small-threat-counter--critical');
+    expect(criticalThreatIndicator).toHaveClass('nx-small-threat-counter--critical');
   });
 
   it('does not renders critical threat indicator if count is 0', () => {
@@ -65,7 +65,7 @@ describe('ReportStatusBar', () => {
       .closest('.nx-small-threat-counter');
 
     expect(severeThreatIndicator).toBeVisible();
-    expect(severeThreatIndicator).toHaveClassName('nx-small-threat-counter--severe');
+    expect(severeThreatIndicator).toHaveClass('nx-small-threat-counter--severe');
   });
 
   it('does not renders severe threat indicator if count is 0', () => {
@@ -83,7 +83,7 @@ describe('ReportStatusBar', () => {
       .closest('.nx-small-threat-counter');
 
     expect(moderateThreatIndicator).toBeVisible();
-    expect(moderateThreatIndicator).toHaveClassName('nx-small-threat-counter--moderate');
+    expect(moderateThreatIndicator).toHaveClass('nx-small-threat-counter--moderate');
   });
 
   it('does not renders moderate threat indicator if count is 0', () => {

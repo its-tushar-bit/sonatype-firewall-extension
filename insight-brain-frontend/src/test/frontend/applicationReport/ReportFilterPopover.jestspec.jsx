@@ -12,13 +12,15 @@ import { render, screen, fireEvent, within, getAllByRole } from 'TestRoot/SpecUt
 describe('ReportFilterPopover', () => {
   let renderComponent, selectShowFilterPopoverSpy;
   beforeEach(() => {
-    selectShowFilterPopoverSpy = spyOn(applicationReportSelectors, 'selectShowFilterPopover').and.returnValue(true);
-    spyOn(applicationReportSelectors, 'selectIsPolicyTypeFilterEnabled').and.returnValue(true);
+    selectShowFilterPopoverSpy = jest
+      .spyOn(applicationReportSelectors, 'selectShowFilterPopover')
+      .mockReturnValue(true);
+    jest.spyOn(applicationReportSelectors, 'selectIsPolicyTypeFilterEnabled').mockReturnValue(true);
     renderComponent = (props) => render(<ReportFilterPopover {...props} />);
   });
 
   it('does not render the tree when selectShowFilterPopover is false', () => {
-    selectShowFilterPopoverSpy.and.returnValue(false);
+    selectShowFilterPopoverSpy.mockReturnValue(false);
     renderComponent();
     expect(screen.queryByText('Filter')).toBeNull();
   });
@@ -34,20 +36,20 @@ describe('ReportFilterPopover', () => {
   });
 
   it('enables policy types filter when isPolicyTypeFilterEnabled flag is true', () => {
-    applicationReportSelectors.selectIsPolicyTypeFilterEnabled.and.returnValue(true);
+    applicationReportSelectors.selectIsPolicyTypeFilterEnabled.mockReturnValue(true);
     renderComponent();
     expect(screen.getByRole('button', { name: /policy types/i, exact: false })).toBeEnabled();
   });
 
   it('disables policy types filter when isPolicyTypeFilterEnabled flag is false', () => {
-    applicationReportSelectors.selectIsPolicyTypeFilterEnabled.and.returnValue(false);
+    applicationReportSelectors.selectIsPolicyTypeFilterEnabled.mockReturnValue(false);
     renderComponent();
     expect(screen.getByRole('button', { name: /policy types/i, exact: false })).toBeDisabled();
   });
 
   it('renders tooltip when policy types filter is disabled', async () => {
-    applicationReportSelectors.selectIsPolicyTypeFilterEnabled.and.returnValue(false);
-    SpecUtil.requestIdleCallbackInvokeImmediate();
+    applicationReportSelectors.selectIsPolicyTypeFilterEnabled.mockReturnValue(false);
+    SpecUtil.requestIdleCallbackInvokeImmediateJest();
     renderComponent();
     fireEvent.mouseOver(screen.getByRole('button', { name: /policy types/i, exact: false }));
     const tooltip = await screen.findByRole('tooltip');

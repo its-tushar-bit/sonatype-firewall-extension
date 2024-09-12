@@ -79,7 +79,7 @@
     <byte-buddy.version>1.14.15</byte-buddy.version>
     <testcontainers.version>1.19.8</testcontainers.version>
     <staging.autoReleaseAfterClose>true</staging.autoReleaseAfterClose>
-    <aws.java.sdk.version>2.26.11</aws.java.sdk.version>
+    <aws.java.sdk.version>2.27.24</aws.java.sdk.version>
     <!--
       Properties for functional test docker container used by insight-brain-java-functional-test
       and insight-brain-functional-test

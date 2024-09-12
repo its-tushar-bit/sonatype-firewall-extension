@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
@@ -44,6 +45,7 @@ import com.google.inject.Binder;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -63,6 +65,9 @@ import static org.mockito.Mockito.when;
 public class ScanServiceTest
     extends AbstractComponentTest
 {
+  @ClassRule
+  public static HdsMockServerRule hdsMockServer = new HdsMockServerRule();
+
   @Inject
   private ScanService scanService;
 
@@ -117,6 +122,8 @@ public class ScanServiceTest
               reportFile);
           return true;
         });
+    hdsMockServer.reset();
+    setHdsUrl(hdsMockServer.getHttpUrl());
   }
 
   @After

@@ -6,6 +6,9 @@
 
 package com.sonatype.insight.brain.developer.integrationdashboard;
 
+import javax.inject.Provider;
+
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.version.VersionService;
@@ -13,8 +16,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService.MIN_DEVELOPER_COMPATIBLE_VERSION;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
 public class DeveloperEnablementServiceTest
@@ -26,44 +32,83 @@ public class DeveloperEnablementServiceTest
   @Mock
   private ProductLicense productLicense;
 
+  @Mock
+  private Provider<HdsClient> hdsClientProvider;
+
+  @Mock
+  private HdsClient hdsClient;
+
   private DeveloperEnablementService developerEnablementService;
 
   @Before
   public void before() {
-    developerEnablementService = new DeveloperEnablementService(versionService, productLicense);
+    doReturn(hdsClient)
+        .when(hdsClientProvider)
+        .get();
+    developerEnablementService = new DeveloperEnablementService(versionService, productLicense, hdsClientProvider);
   }
 
   @Test
-  public void testShouldEnableDeveloperProduct_TrueWithEligibleLifecycleEditionAndEligibleVersion() {
+  public void testShouldEnableDeveloperProduct_TrueWithEligibleLifecycleEditionAndEligibleMinVersion() {
+    setLifecycleVersion("1.181.0");
     setEligibleLifecycleEdition();
-    setEligibleLifecycleVersion();
+    setEligibleLifecycleVersionMin();
+    setNoUpperBoundVersion();
 
     final boolean shouldEnableDeveloper = developerEnablementService.shouldEnableDeveloperProduct();
     assertThat(shouldEnableDeveloper).isTrue();
   }
 
   @Test
-  public void testShouldEnableDeveloperProduct_FalseWithIneligibleLifecycleEditionAndEligibleVersion() {
+  public void testShouldEnableDeveloperProduct_FalseWithIneligibleLifecycleEditionAndEligibleMinVersion() {
+    setLifecycleVersion("1.181.0");
     setIneligibleLifecycleEdition();
-    setEligibleLifecycleVersion();
+    setEligibleLifecycleVersionMin();
+    setNoUpperBoundVersion();
 
     final boolean shouldEnableDeveloper = developerEnablementService.shouldEnableDeveloperProduct();
     assertThat(shouldEnableDeveloper).isFalse();
   }
 
   @Test
-  public void testShouldEnableDeveloperProduct_FalseWithEligibleLifecycleEditionAndIneligibleVersion() {
+  public void testShouldEnableDeveloperProduct_FalseWithEligibleLifecycleEditionAndIneligibleMinVersion() {
+    setLifecycleVersion("1.178.0");
     setEligibleLifecycleEdition();
-    setIneligibleLifecycleVersion();
+    setIneligibleLifecycleVersionMin();
+    setNoUpperBoundVersion();
 
     final boolean shouldEnableDeveloper = developerEnablementService.shouldEnableDeveloperProduct();
     assertThat(shouldEnableDeveloper).isFalse();
   }
 
   @Test
-  public void testShouldEnableDeveloperProduct_FalseWithIneligibleLifecycleEditionAndIneligibleVersion() {
+  public void testShouldEnableDeveloperProduct_FalseWithIneligibleLifecycleEditionAndIneligibleMinVersion() {
+    setLifecycleVersion("1.178.0");
     setIneligibleLifecycleEdition();
-    setIneligibleLifecycleVersion();
+    setIneligibleLifecycleVersionMin();
+    setNoUpperBoundVersion();
+
+    final boolean shouldEnableDeveloper = developerEnablementService.shouldEnableDeveloperProduct();
+    assertThat(shouldEnableDeveloper).isFalse();
+  }
+
+  @Test
+  public void testShouldEnableDeveloperProduct_TrueWithEligibleMaxVersion() {
+    setLifecycleVersion("1.184.0");
+    setEligibleLifecycleEdition();
+    setEligibleLifecycleVersionMin();
+    setEligibleLifecycleVersionMax();
+
+    final boolean shouldEnableDeveloper = developerEnablementService.shouldEnableDeveloperProduct();
+    assertThat(shouldEnableDeveloper).isTrue();
+  }
+
+  @Test
+  public void testShouldEnableDeveloperProduct_FalseWithIneligibleMaxVersion() {
+    setLifecycleVersion("1.191.0");
+    setEligibleLifecycleEdition();
+    setEligibleLifecycleVersionMin();
+    setIneligibleLifecycleVersionMax();
 
     final boolean shouldEnableDeveloper = developerEnablementService.shouldEnableDeveloperProduct();
     assertThat(shouldEnableDeveloper).isFalse();
@@ -81,21 +126,47 @@ public class DeveloperEnablementServiceTest
         .hasProduct(anyString());
   }
 
-  private void setEligibleLifecycleVersion() {
-    doReturn("1.181.0")
+  private void setLifecycleVersion(final String version) {
+    doReturn(version)
         .when(versionService)
         .getVersion();
-    doReturn(1)
-        .when(versionService)
-        .compare(anyString(), anyString());
   }
 
-  private void setIneligibleLifecycleVersion() {
-    doReturn("1.178.0")
+  private void setEligibleLifecycleVersionMin() {
+    doReturn(1)
         .when(versionService)
-        .getVersion();
+        .compare(anyString(), eq(MIN_DEVELOPER_COMPATIBLE_VERSION));
+  }
+
+  private void setIneligibleLifecycleVersionMin() {
     doReturn(-1)
         .when(versionService)
-        .compare(anyString(), anyString());
+        .compare(anyString(), eq(MIN_DEVELOPER_COMPATIBLE_VERSION));
+  }
+
+  private void setNoUpperBoundVersion() {
+    doReturn("")
+        .when(hdsClient)
+        .get(any(), anyString());
+  }
+
+  private void setEligibleLifecycleVersionMax() {
+    final String upperBound = "1.190.0";
+    doReturn(upperBound)
+        .when(hdsClient)
+        .get(any(), anyString());
+    doReturn(-1)
+        .when(versionService)
+        .compare(anyString(), eq(upperBound));
+  }
+
+  private void setIneligibleLifecycleVersionMax() {
+    final String upperBound = "1.190.0";
+    doReturn(upperBound)
+        .when(hdsClient)
+        .get(any(), anyString());
+    doReturn(1)
+        .when(versionService)
+        .compare(anyString(), eq(upperBound));
   }
 }

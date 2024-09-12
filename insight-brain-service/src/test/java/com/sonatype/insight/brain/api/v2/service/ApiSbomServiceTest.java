@@ -975,6 +975,9 @@ public class ApiSbomServiceTest
     doReturn(scanReceipt).when(mockHdsClient).put(any(), eq(ScanReceipt.class), eq(DUMMY_USER_AGENT),
         eq(ScanUploader.HDS_PATH), any(File.class), any());
 
+    doReturn("")
+        .when(mockHdsClient).get(eq(String.class), eq("rest/productLicense/developer-upper-bound"));
+
     doAnswer(new AnswersWithDelay(delayInMs,
         new Returns(getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/" + reportName))))
         .when(mockHdsClient).get(any(Retry.class), eq(InputStream.class), eq("rest/application/analysis/{scanId}"),

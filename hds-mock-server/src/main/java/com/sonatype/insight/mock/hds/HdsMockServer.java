@@ -369,6 +369,10 @@ public class HdsMockServer
           consume(baseRequest);
           sendJson(response, "{}");
         }
+        else if (uri.equals("/rest/productLicense/developer-upper-bound") && "GET".equals(request.getMethod())) {
+          consume(baseRequest);
+          send(response, "text/plain", "");
+        }
       }
       catch (RequestException e) {
         consume(baseRequest);

@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -33,6 +34,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.http.client.utils.DateUtils;
+import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
 
@@ -45,11 +48,20 @@ import static org.mockito.Mockito.spy;
 public class PdfGeneratorServiceTest
     extends AbstractComponentTest
 {
+  @ClassRule
+  public static HdsMockServerRule hdsMockServer = new HdsMockServerRule();
+
   @Inject
   private PdfGeneratorService pdfGeneratorService;
 
   @Inject
   private InsightWork insightWork;
+
+  @Before
+  public void before() {
+    hdsMockServer.reset();
+    setHdsUrl(hdsMockServer.getHttpUrl());
+  }
 
   @Test
   public void testPrintReport_NoApplication() {

@@ -28,12 +28,14 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.LegacyViolationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.report.ReportTestUtils.createReportFile;
@@ -45,6 +47,9 @@ import static org.assertj.core.api.Assertions.fail;
 public class ApiReportServiceV2Test
     extends AbstractServiceAuthzTest
 {
+  @ClassRule
+  public static HdsMockServerRule hdsMockServer = new HdsMockServerRule();
+
   @Inject
   private ApiReportServiceV2 apiReportServiceV2;
 
@@ -83,6 +88,9 @@ public class ApiReportServiceV2Test
     appThree = tempEntity.newApplicationWithParent("three");
     tempEntity.newPolicyEvaluation(appThree.getId(), StageTypes.OPERATE.getId(), "three");
     grantReadPermission(appThree.getId());
+
+    hdsMockServer.reset();
+    setHdsUrl(hdsMockServer.getHttpUrl());
   }
 
   @Test

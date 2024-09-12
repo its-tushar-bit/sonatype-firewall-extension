@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -51,6 +52,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,6 +61,9 @@ import static org.junit.Assert.assertFalse;
 public class ApiReportDataServiceV2Test
     extends AbstractComponentTest
 {
+  @ClassRule
+  public static HdsMockServerRule hdsMockServer = new HdsMockServerRule();
+
   @Inject
   private ApiReportDataServiceV2 reportDataService;
 
@@ -140,6 +145,8 @@ public class ApiReportDataServiceV2Test
     scanId = "scan-id";
     reportFile = makeReportFile();
     policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId, "the-commit-hash");
+    hdsMockServer.reset();
+    setHdsUrl(hdsMockServer.getHttpUrl());
   }
 
   private void assertLicenses(List<ApiLicenseDTO> licenses, String... multiLicenseIds) {

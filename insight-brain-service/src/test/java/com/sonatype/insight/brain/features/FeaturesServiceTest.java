@@ -20,10 +20,13 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.inject.Binder;
+import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.Mock;
 
@@ -33,6 +36,9 @@ import static org.mockito.Mockito.when;
 public class FeaturesServiceTest
     extends AbstractComponentTest
 {
+  @ClassRule
+  public static HdsMockServerRule hdsMockServer = new HdsMockServerRule();
+
   @Inject
   private FeaturesService featuresService;
 
@@ -41,6 +47,12 @@ public class FeaturesServiceTest
 
   @Inject
   private ApiConfigurationService configurationService;
+
+  @Before
+  public void before() {
+    hdsMockServer.reset();
+    setHdsUrl(hdsMockServer.getHttpUrl());
+  }
 
   @Override
   public void configure(Binder binder) {

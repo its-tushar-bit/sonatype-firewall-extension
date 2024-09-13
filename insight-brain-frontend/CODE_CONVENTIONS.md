@@ -24,8 +24,6 @@ A live document containing our _current_ best practices, approaches, patterns an
   - [ Writing tests for React components ](#writing-tests-for-react-components)
   - [ Mocking Rejected Promises ](#mocking-rejected-promises)
 
-
-
 ## Code Conventions
 
 - All new UI components should be implemented in React and the state managed with Redux.

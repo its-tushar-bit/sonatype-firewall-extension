@@ -12,7 +12,6 @@ import { NxFontAwesomeIcon, NxTableCell, NxTableRow, NxThreatIndicator } from '@
 import { faHistory } from '@fortawesome/pro-solid-svg-icons';
 import classnames from 'classnames';
 import ActiveWaiversIndicator from '../../violation/ActiveWaiversIndicator';
-import ReachabilityStatus from 'MainRoot/componentDetails/ReachabilityStatus/ReachabilityStatus';
 
 const ACTION_ICON_CATEGORY = {
   fail: 'critical',
@@ -24,16 +23,7 @@ export default function PolicyViolationsTableRow({
   toggleShowViolationsDetailPopover,
   setSelectedPolicyViolationId,
 }) {
-  const {
-    policyThreatLevel,
-    policyName,
-    constraints,
-    actions,
-    legacyViolation,
-    waived,
-    policyViolationId,
-    reachabilityStatus,
-  } = violation;
+  const { policyThreatLevel, policyName, constraints, actions, legacyViolation, waived, policyViolationId } = violation;
   const [firstConstraint] = constraints;
   const reasons = flatten(
     constraints.map((constraint) => constraint.conditions.map((condition) => condition.conditionReason))
@@ -76,10 +66,7 @@ export default function PolicyViolationsTableRow({
         <span className="nx-threat-number">{policyThreatLevel}</span>
       </NxTableCell>
       <NxTableCell className="iq-policy-violation-row__policy-name-and-action-cell">
-        <div className="iq-policy-violation-row__policy-name-and-reachability">
-          <span>{policyName}</span>
-          <ReachabilityStatus reachabilityStatus={reachabilityStatus} />
-        </div>
+        <span>{policyName}</span>
         {renderActionsAsList(actions)}
       </NxTableCell>
       <NxTableCell>{firstConstraint ? firstConstraint.constraintName : null}</NxTableCell>

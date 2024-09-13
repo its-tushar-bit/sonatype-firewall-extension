@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import com.sonatype.insight.brain.common.config.ConfigUtil;
 import com.sonatype.insight.brain.dataaccess.search.EmptySearchIndexManager;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.db.IdUtil;
@@ -20,6 +21,7 @@ import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 
 import static java.util.stream.Collectors.toList;
@@ -32,6 +34,14 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
   public static final int H2_IN_OPERATOR_THRESHOLD = 2000;
 
   public static final int POSTGRES_IN_OPERATOR_THRESHOLD = Short.MAX_VALUE;
+
+  public static final int DEFAULT_MAX_ALLOWED_DB_RESULTS = 500_000;
+
+  // Any query that returns more than 1 result should be paged. We're not there yet but this acts as a safeguard while
+  // we work towards that.
+  @VisibleForTesting
+  static int MAX_ALLOWED_DB_RESULTS =
+      ConfigUtil.getIntegerConfig("com.sonatype.insight.maxAllowedDbResults", DEFAULT_MAX_ALLOWED_DB_RESULTS);
 
   /**
    * Constructor for DAOs that require the search index. These DAOs must override one of the methods:
@@ -54,6 +64,14 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
   protected AbstractSqlDAO() {
     // Note: singleton pattern used to reduce churn in tests
     this(EmptySearchIndexManager.getInstance());
+  }
+
+  @Override
+  protected List<T> getList(TransactionContext tx, String sQuery, Object... parameters) {
+    javax.persistence.Query query = this.createQuery(tx, sQuery, parameters);
+    query.setMaxResults(MAX_ALLOWED_DB_RESULTS);
+
+    return query.getResultList();
   }
 
   private String newUUID() {

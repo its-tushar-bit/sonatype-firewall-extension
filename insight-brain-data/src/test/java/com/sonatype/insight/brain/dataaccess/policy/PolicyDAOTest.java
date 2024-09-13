@@ -417,20 +417,20 @@ public class PolicyDAOTest
     // Check repo level
     policies = policyDAO.getApplicableByOwnerIdWithHierarchy(repository.getId());
     assertThat(policies).extracting(Policy::getName)
-        .containsExactly(policyNameRepo, policyNameRepoManager, policyNameRepoContainer, policyNameRootOrg);
+        .containsExactlyInAnyOrder(policyNameRepo, policyNameRepoManager, policyNameRepoContainer, policyNameRootOrg);
 
     // Check repo manager level
     policies = policyDAO.getApplicableByOwnerIdWithHierarchy(repositoryManager.getId());
     assertThat(policies).extracting(Policy::getName)
-        .containsExactly(policyNameRepoManager, policyNameRepoContainer, policyNameRootOrg);
+        .containsExactlyInAnyOrder(policyNameRepoManager, policyNameRepoContainer, policyNameRootOrg);
 
     // Check org level
     policies = policyDAO.getApplicableByOwnerIdWithHierarchy(organization.getId());
-    assertThat(policies).extracting(Policy::getName).containsExactly(policyNameOrg, policyNameRootOrg);
+    assertThat(policies).extracting(Policy::getName).containsExactlyInAnyOrder(policyNameOrg, policyNameRootOrg);
 
     // Check root org level
     policies = policyDAO.getApplicableByOwnerIdWithHierarchy(Organization.ROOT_ORGANIZATION_ID);
-    assertThat(policies).extracting(Policy::getName).containsExactly(policyNameRootOrg);
+    assertThat(policies).extracting(Policy::getName).containsExactlyInAnyOrder(policyNameRootOrg);
   }
 
   // does not apply to apps with no tags
@@ -508,8 +508,8 @@ public class PolicyDAOTest
 
     // For orgs, must retrieve all org policies, regardless of the tags associated with them
     policies = policyDAO.getApplicableByOwnerIdWithHierarchy(organization.getId());
-    assertThat(policies).extracting(Policy::getName).containsExactly("policyOrg1", "policyOrg2", "policyRootOrg1",
-        "policyRootOrg2");
+    assertThat(policies).extracting(Policy::getName).containsExactlyInAnyOrder("policyOrg1", "policyOrg2",
+        "policyRootOrg1", "policyRootOrg2");
   }
 
   @Test

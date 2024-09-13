@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.callflow;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,11 +19,13 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
@@ -45,6 +48,9 @@ public class PolicyViolationReachabilityServiceTest
 
   @Inject
   private PolicyViolationDAO policyViolationDAO;
+
+  @Inject
+  private PolicyDAO policyDAO;
 
   @Inject
   private InsightWork insightWork;
@@ -81,6 +87,50 @@ public class PolicyViolationReachabilityServiceTest
     PolicyThreats policyThreats = JsonUtils.parse(reportEntry.buf, PolicyThreats.class);
     assertThat(policyThreats.aaData.get(0).activeViolations.get(0).reachabilityStatus).isEqualTo(
         ReachabilityStatus.REACHABLE);
+  }
+
+  @Test
+  public void testUpdateReachabilityStatusForPolicyViolations_updateOnFileSystemIncludingWaivedPolicy()
+      throws IOException
+  {
+    String scanId = "test-scanid";
+    Application application = tempEntity.newApplicationWithParent("test-app");
+    Policy policy = tempEntity.newPolicy(application);
+    Policy policywaived = tempEntity.newPolicy(application);
+    policywaived.setLegacyViolationAllowed(true);
+    policyDAO.update(policywaived);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
+    PolicyWaiver policyWaiver =
+        tempEntity.newWaiver("hash1", policywaived.getId(), application.getId(), "Some comments here");
+    PolicyViolation waivedPolicyViolation =
+        tempEntity.newWaivedPolicyViolation(policyEvaluation, policywaived, policyWaiver);
+    PolicyViolation policyViolation =
+        createSecurityPolicyViolation(policyEvaluation, policy, ReachableVulnerabilityCVE);
+
+    assertThat(policyViolation.getReachabilityStatus()).isNull();
+    assertThat(waivedPolicyViolation.getReachabilityStatus()).isNull();
+
+    File reportFile = insightWork.getReportFile(application.getId(), scanId);
+    Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers =
+        getReachableVulnerabilitiesByPurlIdentifiers();
+
+    policyViolationReachabilityService.updateReachabilityStatusForPolicyViolations(application.getId(), scanId,
+        reachableVulnerabilitiesByPurlIdentifiers, reportFile);
+
+    List<PolicyViolation> policyViolations =
+        policyViolationDAO.getUnfixedByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
+    assertThat(policyViolations).hasSize(2);
+    assertThat(policyViolations.get(0).getReachabilityStatus()).isEqualTo(ReachabilityStatus.NON_REACHABLE);
+    assertThat(policyViolations.get(0).isWaived()).isTrue();
+    assertThat(policyViolations.get(1).getReachabilityStatus()).isEqualTo(ReachabilityStatus.REACHABLE);
+
+    ReportEntry reportEntry = Report.getEntry(reportFile, Report.POLICY_THREATS);
+    PolicyThreats policyThreats = JsonUtils.parse(reportEntry.buf, PolicyThreats.class);
+    assertThat(policyThreats.aaData.get(0).activeViolations.get(0).reachabilityStatus).isEqualTo(
+        ReachabilityStatus.REACHABLE);
+    //make sure it includes the waived policy violation
+    assertThat(policyThreats.aaData.get(0).allViolations.size()).isEqualTo(2);
   }
 
   @Test

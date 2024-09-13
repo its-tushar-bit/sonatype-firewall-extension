@@ -69,8 +69,8 @@ public class PolicyViolationReachabilityService
     }
 
     List<PolicyViolation> policyViolations =
-        policyViolationDAO.getActiveByApplicationIdAndStageId(applicationId, stageId);
-    logger.debug("Retrieved {} policy violations for applicationId: {}, stageId: {}", policyViolations.size(),
+        policyViolationDAO.getUnfixedByApplicationIdAndStageId(applicationId, stageId);
+    logger.debug("Retrieved {} unfixed policy violations for applicationId: {}, stageId: {}", policyViolations.size(),
         applicationId, stageId);
     List<PolicyViolation> reachableSecurityViolations = getReachableSecurityViolations(policyViolations,
         reachableVulnerabilitiesByPurlIdentifiers);

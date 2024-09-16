@@ -7,3 +7,19 @@
 continuous-monitoring {
   display: contents;
 }
+
+.sbom-continuous-monitoring {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sbom-continuous-monitoring-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sbom-nx-page-title {
+  margin: 0 0 var(--nx-spacing-4x) 0;
+}

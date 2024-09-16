@@ -338,7 +338,7 @@ CREATE TABLE policy_monitoring (
   owner_id varchar(50) NOT NULL,
   stage_type_id varchar(50) NOT NULL,
   CONSTRAINT policy_monitoring_pk PRIMARY KEY (policy_monitoring_id),
-  CONSTRAINT policy_monitoring_uk UNIQUE (owner_id)
+  CONSTRAINT policy_monitoring_uk UNIQUE (owner_id, stage_type_id)
 );
 
 CREATE TABLE tag (

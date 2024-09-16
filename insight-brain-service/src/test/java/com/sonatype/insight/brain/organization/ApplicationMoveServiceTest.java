@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.organization;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -377,7 +376,7 @@ public class ApplicationMoveServiceTest
 
     assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()).warnings).isEmpty();
     assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
-    PolicyMonitoring appMonitoring = policyMonitoringDAO.getByOwnerId(app.getId());
+    PolicyMonitoring appMonitoring = policyMonitoringDAO.getByOwnerIdAndStageTypeId(app.getId(), Stage.ID_RELEASE);
     assertThat(appMonitoring).isNull();
   }
 
@@ -389,7 +388,7 @@ public class ApplicationMoveServiceTest
     assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()).warnings)
         .containsExactlyInAnyOrder(ApplicationMoveService.POLICY_MONITORING_DIFFERENT_MSG);
     assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
-    PolicyMonitoring appMonitoring = policyMonitoringDAO.getByOwnerId(app.getId());
+    PolicyMonitoring appMonitoring = policyMonitoringDAO.getByOwnerIdAndStageTypeId(app.getId(), Stage.ID_OPERATE);
     assertThat(appMonitoring).isNull();
   }
 
@@ -400,7 +399,7 @@ public class ApplicationMoveServiceTest
     assertThat(applicationMoveService.moveApplication(app.getId(), newOrg.getId()).warnings)
         .containsExactlyInAnyOrder(ApplicationMoveService.POLICY_MONITORING_MISSING_MSG);
     assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
-    PolicyMonitoring appMonitoring = policyMonitoringDAO.getByOwnerId(app.getId());
+    PolicyMonitoring appMonitoring = policyMonitoringDAO.getByOwnerIdAndStageTypeId(app.getId(), Stage.ID_RELEASE);
     assertThat(appMonitoring).isNull();
   }
 

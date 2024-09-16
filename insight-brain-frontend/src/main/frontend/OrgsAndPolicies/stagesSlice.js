@@ -8,7 +8,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { fromPairs, keys, map, pair, path, __ } from 'ramda';
 
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { getDashboardStageUrl, getActionStageUrl, getCliStageUrl } from 'MainRoot/util/CLMLocation';
+import { getDashboardStageUrl, getActionStageUrl, getCliStageUrl, getSbomStageUrl } from 'MainRoot/util/CLMLocation';
 
 const REDUCER_NAME = 'stages';
 
@@ -16,6 +16,7 @@ export const urlsByPurpose = {
   dashboard: getDashboardStageUrl(),
   action: getActionStageUrl(),
   cli: getCliStageUrl(),
+  sbom: getSbomStageUrl(),
 };
 const initialPurposeState = Object.freeze({
   loading: false,
@@ -71,10 +72,12 @@ const stagesSlice = createSlice({
 export const loadCliStages = () => loadStageTypes('cli');
 export const loadActionStages = () => loadStageTypes('action');
 export const loadDashboardStages = () => loadStageTypes('dashboard');
+export const loadSbomStages = () => loadStageTypes('sbom');
 
 export default stagesSlice.reducer;
 export const actions = {
   loadCliStages,
   loadActionStages,
   loadDashboardStages,
+  loadSbomStages,
 };

@@ -253,3 +253,8 @@ export const selectIsDeveloperSummaryTableEnabled = createSelector(
   selectProductFeatures,
   propOr(false, 'developer-summary-table')
 );
+
+export const selectIsSbomContinuousMonitoringUiEnabled = createSelector(
+  selectProductFeatures,
+  propOr(false, 'sbom-continuous-monitoring-ui')
+);

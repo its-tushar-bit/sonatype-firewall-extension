@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.List;
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -13,6 +14,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
+import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -37,24 +39,36 @@ public class PolicyMonitoringDAO
     return getList(sQuery);
   }
 
-  public PolicyMonitoring getByOwnerId(String ownerId) {
+  public List<PolicyMonitoring> getByOwnerId(String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByOwnerId(tx, ownerId);
     }
   }
 
-  public PolicyMonitoring getByOwnerIdNotNull(String ownerId) {
-    PolicyMonitoring entity = getByOwnerId(ownerId);
+  public PolicyMonitoring getByOwnerIdAndStageTypeIdNotNull(String ownerId, String stageTypeId) {
+    PolicyMonitoring entity = getByOwnerIdAndStageTypeId(ownerId, stageTypeId);
     if (entity == null) {
       throw new NotFoundException("Policy monitoring was not set for owner ID " + ownerId + ".");
     }
     return entity;
   }
 
-  public PolicyMonitoring getByOwnerId(TransactionContext tx, String ownerId) {
+  public List<PolicyMonitoring> getByOwnerId(TransactionContext tx, String ownerId) {
     String sQuery = "SELECT entity FROM PolicyMonitoring entity" + //
         " WHERE entity.ownerId=?1";
-    return get(tx, sQuery, ownerId);
+    return getList(tx, sQuery, ownerId);
+  }
+
+  public PolicyMonitoring getByOwnerIdAndStageTypeId(String ownerId, String stageTypeId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerIdAndStageTypeId(tx, ownerId, stageTypeId);
+    }
+  }
+
+  public PolicyMonitoring getByOwnerIdAndStageTypeId(TransactionContext tx, String ownerId, String stageTypeId) {
+    String sQuery = "SELECT entity FROM PolicyMonitoring entity" + //
+        " WHERE entity.ownerId=?1 and entity.stageTypeId=?2";
+    return get(tx, sQuery, ownerId, stageTypeId);
   }
 
   public List<PolicyMonitoring> getByStageTypeId(String stageTypeId) {
@@ -64,28 +78,51 @@ public class PolicyMonitoringDAO
   }
 
   @Override
+  /**
+   * Inserts the policy monitoring for an app/org.
+   *
+   * This method enforces that there can be a maximum of 2 records per owner id
+   * one for Lifecycle with any stage except compliance and another for SBOM Manager
+   * with the compliance stage
+   */
   public void insert(TransactionContext tx, PolicyMonitoring entity) {
-    PolicyMonitoring other = getByOwnerId(tx, entity.getOwnerId());
-    if (other != null) {
+    List<PolicyMonitoring> others = getByOwnerId(tx, entity.getOwnerId());
+    if (others.stream().anyMatch(pM -> pM.getStageTypeId().equals(entity.getStageTypeId()) ||
+        (!ComplianceStageType.ID.equals(others.get(0).getStageTypeId()) &&
+            !ComplianceStageType.ID.equals(entity.getStageTypeId())))) {
       throw new BadRequestException("This application/organization already has policy monitoring.");
     }
-
     super.insert(tx, entity);
   }
 
   /**
    * Sets (insert or update) the policy monitoring for an app/org.
+   *
+   * This method enforces that there can be a maximum of 2 records per owner id
+   * one for Lifecycle with any stage except compliance and another for SBOM Manager
+   * with the compliance stage
    */
   public void set(PolicyMonitoring entity) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
-      PolicyMonitoring other = getByOwnerId(tx, entity.getOwnerId());
-      if (other == null) {
+      PolicyMonitoring existing = null;
+      if (ComplianceStageType.ID.equals(entity.getStageTypeId())) {
+        existing = getByOwnerIdAndStageTypeId(tx, entity.getOwnerId(), ComplianceStageType.ID);
+      }
+      else {
+        Optional<PolicyMonitoring> others = getByOwnerId(tx, entity.getOwnerId()).stream()
+            .filter(pm -> !ComplianceStageType.ID.equals(pm.getStageTypeId())).findFirst();
+        if (others.isPresent()) {
+          existing = others.get();
+        }
+      }
+
+      if (existing == null) {
         entity.setId(null);
         insert(tx, entity);
       }
       else {
-        entity.setId(other.getId());
+        entity.setId(existing.getId());
         update(tx, entity);
       }
       tx.commit();

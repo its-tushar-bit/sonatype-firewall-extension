@@ -10,7 +10,6 @@ import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -361,20 +360,22 @@ public class ApplicationCloneService
   }
 
   private void clonePolicyMonitoring(TransactionContext tx, Application sourceApp, Application clonedApp) {
-    PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(tx, sourceApp.getId());
-    if (policyMonitoring == null) {
+    List<PolicyMonitoring> policyMonitorings = policyMonitoringDAO.getByOwnerId(tx, sourceApp.getId());
+    if (policyMonitorings == null || policyMonitorings.isEmpty()) {
       return;
     }
 
-    String sourcePolicyMonitoringId = policyMonitoring.getId();
+    for (PolicyMonitoring policyMonitoring: policyMonitorings) {
+      String sourcePolicyMonitoringId = policyMonitoring.getId();
 
-    detachEntity(policyMonitoring);
-    policyMonitoring.setOwnerId(clonedApp.getId());
-    policyMonitoringDAO.insert(tx, policyMonitoring);
+      detachEntity(policyMonitoring);
+      policyMonitoring.setOwnerId(clonedApp.getId());
+      policyMonitoringDAO.insert(tx, policyMonitoring);
 
-    log.info("Cloned policy monitoring {} (stage: {}) to policy monitoring {}.", //
-        sourcePolicyMonitoringId, policyMonitoring.getStageTypeId(), //
-        policyMonitoring.getId());
+      log.info("Cloned policy monitoring {} (stage: {}) to policy monitoring {}.", //
+          sourcePolicyMonitoringId, policyMonitoring.getStageTypeId(), //
+          policyMonitoring.getId());
+    }
   }
 
   private void cloneApplicationTags(TransactionContext tx, Application sourceApp, Application clonedApp) {

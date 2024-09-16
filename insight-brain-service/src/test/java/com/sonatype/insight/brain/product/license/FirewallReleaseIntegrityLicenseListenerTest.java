@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.product.license;
 
+import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
@@ -44,9 +45,9 @@ public class FirewallReleaseIntegrityLicenseListenerTest
     assertThat(systemConfigurationPropertyDAO
         .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED).getValue())
         .isEqualTo(String.valueOf(true));
-    PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID);
-    assertThat(policyMonitoring).isNotNull();
-    assertThat(policyMonitoring.getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());
+    List<PolicyMonitoring> policyMonitorings = policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID);
+    assertThat(policyMonitorings).isNotNull().hasSize(1);
+    assertThat(policyMonitorings.get(0).getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());
     assertThat(autoUnquarantinePolicyConditionTypeDAO.getById(IntegrityRatingConditionType.ID)).isNotNull();
   }
 
@@ -60,7 +61,7 @@ public class FirewallReleaseIntegrityLicenseListenerTest
     assertThat(systemConfigurationPropertyDAO
         .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED).getValue())
         .isEqualTo(String.valueOf(true));
-    assertThat(policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID)).isNull();
+    assertThat(policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID)).isEmpty();
     assertThat(autoUnquarantinePolicyConditionTypeDAO.getById(IntegrityRatingConditionType.ID)).isNull();
   }
 
@@ -74,9 +75,9 @@ public class FirewallReleaseIntegrityLicenseListenerTest
     assertThat(systemConfigurationPropertyDAO
         .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED).getValue())
         .isEqualTo(String.valueOf(true));
-    PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID);
-    assertThat(policyMonitoring).isNotNull();
-    assertThat(policyMonitoring.getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());
+    List<PolicyMonitoring> policyMonitorings = policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID);
+    assertThat(policyMonitorings).isNotNull().hasSize(1);
+    assertThat(policyMonitorings.get(0).getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());
     assertThat(autoUnquarantinePolicyConditionTypeDAO.getById(IntegrityRatingConditionType.ID)).isNotNull();
   }
 
@@ -88,7 +89,7 @@ public class FirewallReleaseIntegrityLicenseListenerTest
 
     assertThat(systemConfigurationPropertyDAO
         .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED)).isNull();
-    assertThat(policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID)).isNull();
+    assertThat(policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID)).isEmpty();
     assertThat(autoUnquarantinePolicyConditionTypeDAO.getById(IntegrityRatingConditionType.ID)).isNull();
   }
 
@@ -100,7 +101,7 @@ public class FirewallReleaseIntegrityLicenseListenerTest
 
     assertThat(systemConfigurationPropertyDAO
         .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED)).isNull();
-    assertThat(policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID)).isNull();
+    assertThat(policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID)).isEmpty();
     assertThat(autoUnquarantinePolicyConditionTypeDAO.getById(IntegrityRatingConditionType.ID)).isNull();
   }
 
@@ -111,10 +112,10 @@ public class FirewallReleaseIntegrityLicenseListenerTest
 
     listener.productLicenseChanged();
 
-    PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID);
-    assertThat(policyMonitoring).isNotNull();
-    assertThat(policyMonitoring.getId()).isEqualTo(policyMonitoringId);
-    assertThat(policyMonitoring.getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());
+    List<PolicyMonitoring> policyMonitorings = policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID);
+    assertThat(policyMonitorings).isNotNull().hasSize(1);
+    assertThat(policyMonitorings.get(0).getId()).isEqualTo(policyMonitoringId);
+    assertThat(policyMonitorings.get(0).getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());
     assertThat(autoUnquarantinePolicyConditionTypeDAO.getById(IntegrityRatingConditionType.ID)).isNotNull();
   }
 

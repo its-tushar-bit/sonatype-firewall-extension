@@ -47,11 +47,16 @@ describe('policyMonitoringSelectors', () => {
           policyMonitoringByOwner: [
             {
               ownerName: 'Root Organization',
-              policyMonitoring: [
+              policyMonitorings: [
                 {
                   id: '8c54015dddc5465dbfb973b9979081e7',
                   ownerId: 'ROOT_ORGANIZATION_ID',
                   stageTypeId: 'develop',
+                },
+                {
+                  id: '8c54015dddc5465dbfb973b9979081e8',
+                  ownerId: 'ROOT_ORGANIZATION_ID',
+                  stageTypeId: 'compliance',
                 },
               ],
             },
@@ -84,11 +89,16 @@ describe('policyMonitoringSelectors', () => {
       const expected = [
         {
           ownerName: 'Root Organization',
-          policyMonitoring: [
+          policyMonitorings: [
             {
               id: '8c54015dddc5465dbfb973b9979081e7',
               ownerId: 'ROOT_ORGANIZATION_ID',
               stageTypeId: 'develop',
+            },
+            {
+              id: '8c54015dddc5465dbfb973b9979081e8',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              stageTypeId: 'compliance',
             },
           ],
         },

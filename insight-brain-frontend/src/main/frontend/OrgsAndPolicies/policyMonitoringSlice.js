@@ -5,12 +5,15 @@
  */
 import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { curryN, isNil, pick, prop } from 'ramda';
+import { curryN, isNil, mergeRight, pick, prop } from 'ramda';
 
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { getPolicyMonitoringUrl, getApplicablePolicyMonitoringUrl } from 'MainRoot/util/CLMLocation';
+import { getApplicablePolicyMonitoringUrl, getPolicyMonitoringUrl } from 'MainRoot/util/CLMLocation';
 import { selectOwnerProperties } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectPolicyMonitoringMonitoredStage } from 'MainRoot/OrgsAndPolicies/policyMonitoringSelectors';
+import {
+  selectLastSavedMonitoredStage,
+  selectPolicyMonitoringMonitoredStage,
+} from 'MainRoot/OrgsAndPolicies/policyMonitoringSelectors';
 
 import { propSet } from 'MainRoot/util/jsUtil';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
@@ -35,7 +38,11 @@ export const initialState = {
 const loadContinuousMonitoringSummaryTileInformation = createAsyncThunk(
   `${REDUCER_NAME}/loadContinuousMonitoringSummaryTileInformation`,
   (_, { dispatch }) => {
-    return Promise.all([dispatch(loadApplicablePolicyMonitoring()), dispatch(stagesActions.loadActionStages())]);
+    return Promise.all([
+      dispatch(loadApplicablePolicyMonitoring()),
+      dispatch(stagesActions.loadActionStages()),
+      dispatch(stagesActions.loadSbomStages()),
+    ]);
   }
 );
 
@@ -44,6 +51,7 @@ const loadApplicablePolicyMonitoring = createAsyncThunk(
   (_, { getState, rejectWithValue, dispatch }) => {
     const { ownerType, ownerId } = selectOwnerProperties(getState());
     dispatch(stagesActions.loadCliStages());
+    dispatch(stagesActions.loadSbomStages());
     return axios.get(getApplicablePolicyMonitoringUrl(ownerType, ownerId)).then(prop('data')).catch(rejectWithValue);
   }
 );
@@ -67,9 +75,10 @@ const savePolicyMonitoring = createAsyncThunk(
 const removePolicyMonitoring = createAsyncThunk(
   `${REDUCER_NAME}/removePolicyMonitoring`,
   (_, { getState, rejectWithValue, dispatch }) => {
+    const monitoredStage = selectLastSavedMonitoredStage(getState());
     const { ownerType, ownerId } = selectOwnerProperties(getState());
     return axios
-      .delete(getPolicyMonitoringUrl(ownerType, ownerId))
+      .delete(getPolicyMonitoringUrl(ownerType, ownerId, monitoredStage.stageTypeId))
       .then(() => {
         dispatch(loadApplicablePolicyMonitoring());
         startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone);
@@ -79,7 +88,12 @@ const removePolicyMonitoring = createAsyncThunk(
 );
 
 const setMonitoredStage = curryN(2, function setMonitoredStage(state, { payload }) {
-  return computeIsDirty(propSet('monitoredStage', payload, state));
+  const updatedState = {
+    monitoredStage: payload.monitoredStage,
+    stages: payload.stages,
+  };
+
+  return computeIsDirty(mergeRight(state, updatedState));
 });
 
 const loadApplicablePolicyMonitoringRequested = (state) => {
@@ -169,9 +183,16 @@ const policyMonitoringSlice = createSlice({
 });
 
 const computeIsDirty = (state) => {
-  const { monitoredStage, originalStage, policyMonitoringByOwner } = state;
-  const serverStageTypeId = originalStage?.stageTypeId || policyMonitoringByOwner[0].policyMonitoring?.stageTypeId;
-  const isDirty = isNil(monitoredStage) ? true : monitoredStage?.stageTypeId !== serverStageTypeId;
+  const { monitoredStage, originalStage, policyMonitoringByOwner, stages } = state;
+
+  const stageTypeId = policyMonitoringByOwner[0].policyMonitorings
+    .map((pm) => pm.stageTypeId)
+    .filter((stageTypeId) => stages.find((stage) => stage.stageTypeId === stageTypeId))[0];
+
+  const serverStageTypeId = originalStage?.stageTypeId || stageTypeId;
+
+  const isDirty = isNil(monitoredStage) ? true : serverStageTypeId !== monitoredStage.stageTypeId;
+
   return propSet('isDirty', isDirty, state);
 };
 

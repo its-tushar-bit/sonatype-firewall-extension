@@ -14,6 +14,9 @@ import {
   selectCliStagesIsLoading,
   selectCliStagesLoadError,
   selectCliStagesWithInheritOrNoMonitorOption,
+  selectSbomStageTypes,
+  selectSbomStagesLoadError,
+  selectSbomStagesIsLoading,
 } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 
 describe('policyMonitoringSelectors', () => {
@@ -41,24 +44,33 @@ describe('policyMonitoringSelectors', () => {
             error: 'dashboard stage types load error',
             stageTypes: [{ stageTypeId: 'dashboardStageOne' }],
           },
+          sbom: {
+            loading: false,
+            error: 'sbom stage types load error',
+            stageTypes: [{ stageTypeId: 'sbomStageOne' }],
+          },
         },
         policyMonitoring: {
           policyMonitoringByOwner: [
             {
               ownerName: 'ApplicationId',
-              policyMonitoring: {
-                id: '8c54015dddc5465dbfb973b9979081e7',
-                ownerId: 'ROOT_ORGANIZATION_ID',
-                stageTypeId: 'develop',
-              },
+              policyMonitorings: [
+                {
+                  id: '8c54015dddc5465dbfb973b9979081e7',
+                  ownerId: 'ROOT_ORGANIZATION_ID',
+                  stageTypeId: 'develop',
+                },
+              ],
             },
             {
               ownerName: 'Root Organization',
-              policyMonitoring: {
-                id: '8c54015dddc5465dbfb973b9979081e8',
-                ownerId: 'ROOT_ORGANIZATION_ID',
-                stageTypeId: 'build',
-              },
+              policyMonitorings: [
+                {
+                  id: '8c54015dddc5465dbfb973b9979081e8',
+                  ownerId: 'ROOT_ORGANIZATION_ID',
+                  stageTypeId: 'build',
+                },
+              ],
             },
           ],
         },
@@ -120,6 +132,24 @@ describe('policyMonitoringSelectors', () => {
   describe('selectDashboardStagesIsLoading', () => {
     it('returns dashboard stage types isLoading flag', () => {
       expect(selectDashboardStagesIsLoading(mockState)).toBeFalse();
+    });
+  });
+
+  describe('selectSbomStageTypes', () => {
+    it('returns sbom stage types', () => {
+      expect(selectSbomStageTypes(mockState)).toEqual([{ stageTypeId: 'sbomStageOne' }]);
+    });
+  });
+
+  describe('selectSbomStagesLoadError', () => {
+    it('returns sbom stage types load error', () => {
+      expect(selectSbomStagesLoadError(mockState)).toEqual('sbom stage types load error');
+    });
+  });
+
+  describe('selectSbomStagesIsLoading', () => {
+    it('returns sbom stage types isLoading flag', () => {
+      expect(selectSbomStagesIsLoading(mockState)).toBeFalse();
     });
   });
 

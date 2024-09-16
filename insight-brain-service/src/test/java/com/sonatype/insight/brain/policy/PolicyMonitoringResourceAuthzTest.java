@@ -35,12 +35,14 @@ public class PolicyMonitoringResourceAuthzTest
   @Test
   public void testDelete() throws Exception {
     grantWritePermission(app.getId());
-    createPolicyMonitoring(app.getId());
-    testAuthzDelete(restRequest().parameter(OwnerType.APPLICATION, app.getPublicId()));
+    PolicyMonitoring policyMonitoring = createPolicyMonitoring(app.getId());
+    testAuthzDelete(restRequest().parameter(OwnerType.APPLICATION, app.getPublicId())
+        .query("stageTypeId", policyMonitoring.getStageTypeId()));
 
     grantWritePermission(org.getId());
-    createPolicyMonitoring(org.getId());
-    testAuthzDelete(restRequest().parameter(OwnerType.ORGANIZATION, org.getId()));
+    policyMonitoring = createPolicyMonitoring(org.getId());
+    testAuthzDelete(restRequest().parameter(OwnerType.ORGANIZATION, org.getId())
+        .query("stageTypeId", policyMonitoring.getStageTypeId()));
   }
 
   @Test
@@ -67,8 +69,8 @@ public class PolicyMonitoringResourceAuthzTest
     testAuthzGet(request.parameter(OwnerType.ORGANIZATION, org.getId()));
   }
 
-  private void createPolicyMonitoring(String ownerid) {
+  private PolicyMonitoring createPolicyMonitoring(String ownerid) {
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(ownerid, Stage.ID_RELEASE);
-    tempEntity.newPolicyMonitoring(policyMonitoring);
+    return tempEntity.newPolicyMonitoring(policyMonitoring);
   }
 }

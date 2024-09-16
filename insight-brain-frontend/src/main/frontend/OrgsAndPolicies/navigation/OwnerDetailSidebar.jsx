@@ -11,7 +11,6 @@ import {
   NxTextLink,
   NxFontAwesomeIcon,
   useToggle,
-  NxH4,
   NxH3,
   NxThreatIndicator,
   NxTooltip,
@@ -19,7 +18,6 @@ import {
 } from '@sonatype/react-shared-components';
 import { faPlus, faPencilAlt, faTag, faUser } from '@fortawesome/free-solid-svg-icons';
 import MenuBarStatefulBreadcrumb from 'MainRoot/mainHeader/MenuBar/MenuBarStatefulBreadcrumb';
-import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
@@ -51,6 +49,7 @@ import {
   selectIsProprietaryComponentsEnabled,
   selectIsSourceControlForSourceTileSupported,
   selectIsScmEnabled,
+  selectIsSbomContinuousMonitoringUiEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSlice';
 import Hexagon from 'MainRoot/react/Hexagon';
@@ -103,6 +102,7 @@ export default function OwnerDetailSidebar() {
   const licenseThreatGroupSiblings = useSelector(selectLicenseThreatGroupSiblings);
   const areAnyCategoriesDefined = useSelector(selectAreAnyCategoriesDefined);
   const isSbomManager = useSelector(selectIsSbomManager);
+  const isSbomContinuousMonitoringUiEnabled = useSelector(selectIsSbomContinuousMonitoringUiEnabled);
 
   const uiRouterState = useRouterState();
 
@@ -131,10 +131,9 @@ export default function OwnerDetailSidebar() {
     return uiRouterState.href('sbomManager.management.edit.organization', { organizationId: owner.id });
   };
 
-  /* Refactor linkMainHref to use isSbomManager once all the SBOM Manager edit pages are finalized.
-    Also remove accessLinkMainHref */
-  const linkMainHref = getLinkMainHref(isApp, isRepositoriesRelated, owner);
-  const accessLinkMainHref = isSbomManager ? getSBOMLinkMainHref(isApp, owner) : linkMainHref;
+  const linkMainHref = isSbomManager
+    ? getSBOMLinkMainHref(isApp, owner)
+    : getLinkMainHref(isApp, isRepositoriesRelated, owner);
 
   const doLoad = () => dispatch(actions.loadSidebar());
 
@@ -284,11 +283,13 @@ export default function OwnerDetailSidebar() {
         </NxCollapsibleItems.Child>
       )}
       {/* Monitoring */}
-      {!isRepositoriesRelated && isMonitoringSupported && !isSbomManager && (
+      {!isRepositoriesRelated && isMonitoringSupported && (!isSbomManager || isSbomContinuousMonitoringUiEnabled) && (
         <NxCollapsibleItems.Child role="menuitem">
           <NxTextLink
             id="continous-monitoring-link"
-            className={`iq-noncollapsible ${isMonitoring && !currentRoleId ? 'selected' : ''}`}
+            className={`iq-noncollapsible ${isMonitoring && !currentRoleId ? 'selected' : ''} ${
+              isSbomManager ? 'sbomManager' : ''
+            }`}
             href={`${linkMainHref}/monitoring`}
           >
             Continuous Monitoring
@@ -402,7 +403,7 @@ export default function OwnerDetailSidebar() {
           <NxCollapsibleItems.Child role="menuitem">
             <NxTextLink
               className={isAccess && !currentRoleId ? 'selected' : ''}
-              href={`${accessLinkMainHref}/access`}
+              href={`${linkMainHref}/access`}
               disabled={!doesRolesWithoutLocalMembersExist}
             >
               <NxFontAwesomeIcon icon={faPlus} />
@@ -416,7 +417,7 @@ export default function OwnerDetailSidebar() {
             <NxCollapsibleItems.Child role="menuitem">
               <NxTextLink
                 className={roleId === currentRoleId ? 'selected' : ''}
-                href={`${accessLinkMainHref}/access/${roleId}`}
+                href={`${linkMainHref}/access/${roleId}`}
               >
                 <NxFontAwesomeIcon icon={faUser} />
                 {roleName}

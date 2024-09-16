@@ -44,6 +44,7 @@ const defaultPreloadedState = {
       'orgs-and-apps': true,
       'policy-monitoring': true,
       'source-control': true,
+      'sbom-continuous-monitoring-ui': true,
       notifications: true,
     },
   },
@@ -371,30 +372,52 @@ describe('OwnerDetailSidebar', () => {
     renderComponent(sbomPreloadedState);
 
     expect(await screen.findByText('Access')).toBeVisible();
+    expect(await screen.findByText('Continuous Monitoring')).toBeVisible();
 
     expect(screen.queryByText('Policies')).not.toBeInTheDocument();
     expect(screen.queryByText('Component Labels')).not.toBeInTheDocument();
     expect(screen.queryByText('License Threat Groups')).not.toBeInTheDocument();
     expect(screen.queryByText('Legacy Violations')).not.toBeInTheDocument();
     expect(screen.queryByText('Application Categories')).not.toBeInTheDocument();
-    expect(screen.queryByText('Continuous Monitoring')).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Source Control' })).not.toBeInTheDocument();
     expect(screen.queryAllByText('License Threat Groups').length).toBe(0);
+  });
+
+  it('does not render the Continuous Monitoring item at Organization levels when SBOM Manager and sbom-continuous-monitoring-ui is disabled', async () => {
+    renderComponent({
+      ...sbomPreloadedState,
+      productFeatures: {
+        productFeatures: { 'sbom-continuous-monitoring-ui': false },
+      },
+    });
+
+    expect(screen.queryByText('Continuous Monitoring')).not.toBeInTheDocument();
   });
 
   it('renders correct sidebar with correct list open at Application level when SBOM Manager', async () => {
     renderComponent(sbomAppsLevelState);
 
     expect(await screen.findByText('Access')).toBeVisible();
+    expect(await screen.findByText('Continuous Monitoring')).toBeVisible();
 
     expect(screen.queryByText('Policies')).not.toBeInTheDocument();
     expect(screen.queryByText('Component Labels')).not.toBeInTheDocument();
     expect(screen.queryByText('License Threat Groups')).not.toBeInTheDocument();
     expect(screen.queryByText('Legacy Violations')).not.toBeInTheDocument();
     expect(screen.queryByText('Application Categories')).not.toBeInTheDocument();
-    expect(screen.queryByText('Continuous Monitoring')).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Source Control' })).not.toBeInTheDocument();
     expect(screen.queryAllByText('License Threat Groups').length).toBe(0);
+  });
+
+  it('does not render the Continuous Monitoring item at Application level when SBOM Manager and sbom-continuous-monitoring-ui is disabled', async () => {
+    renderComponent({
+      ...sbomAppsLevelState,
+      productFeatures: {
+        productFeatures: { 'sbom-continuous-monitoring-ui': false },
+      },
+    });
+
+    expect(screen.queryByText('Continuous Monitoring')).not.toBeInTheDocument();
   });
 
   it('has correct collapse menu behavior', () => {

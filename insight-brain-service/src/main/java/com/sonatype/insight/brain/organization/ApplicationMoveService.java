@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -553,27 +552,32 @@ public class ApplicationMoveService
 
     private void checkPolicyMonitoring() {
       log.debug("Checking policy monitoring");
-      PolicyMonitoring oldMonitoring = getPolicyMonitoring(oldOwnersById.keySet());
-      if (oldMonitoring == null || oldMonitoring.getOwnerId().equals(application.getId())) {
-        return;
+      List<PolicyMonitoring> oldMonitorings = getPolicyMonitoring(oldOwnersById.keySet());
+      for (PolicyMonitoring oldMonitoring: oldMonitorings) {
+        if (oldMonitoring == null || oldMonitoring.getOwnerId().equals(application.getId())) {
+          return;
+        }
       }
-      PolicyMonitoring newMonitoring = getPolicyMonitoring(newAncestorIds);
-      if (newMonitoring == null) {
+
+      List<PolicyMonitoring> newMonitorings = getPolicyMonitoring(newAncestorIds);
+      if (!oldMonitorings.isEmpty() && newMonitorings.isEmpty()) {
         warnings.add(POLICY_MONITORING_MISSING_MSG);
       }
-      else if (!newMonitoring.getStageTypeId().equals(oldMonitoring.getStageTypeId())) {
-        warnings.add(POLICY_MONITORING_DIFFERENT_MSG);
+      for (PolicyMonitoring newMonitoring: newMonitorings) {
+        for (PolicyMonitoring oldMonitoring : oldMonitorings) {
+          if (!newMonitoring.getStageTypeId().equals(oldMonitoring.getStageTypeId())) {
+            warnings.add(POLICY_MONITORING_DIFFERENT_MSG);
+          }
+        }
       }
     }
 
-    private PolicyMonitoring getPolicyMonitoring(Set<String> ownerIds) {
+    private List<PolicyMonitoring> getPolicyMonitoring(Set<String> ownerIds) {
+      List<PolicyMonitoring> monitorings = new ArrayList<>();
       for (String ownerId : ownerIds) {
-        PolicyMonitoring monitoring = policyMonitoringDAO.getByOwnerId(tx, ownerId);
-        if (monitoring != null) {
-          return monitoring;
-        }
+        monitorings.addAll(policyMonitoringDAO.getByOwnerId(tx, ownerId));
       }
-      return null;
+      return monitorings;
     }
 
     private void updatePolicyReferences() {

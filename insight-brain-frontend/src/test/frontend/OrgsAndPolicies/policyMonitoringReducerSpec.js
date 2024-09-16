@@ -9,7 +9,7 @@ const applicablePolicyMonitoring = {
   policyMonitoringByOwner: [
     {
       ownerName: 'Root Organization',
-      policyMonitoring: [
+      policyMonitorings: [
         {
           id: '8c54015dddc5465dbfb973b9979081e7',
           ownerId: 'ROOT_ORGANIZATION_ID',
@@ -59,7 +59,7 @@ describe('policyMonitoring reducer', () => {
       expect(newState.policyMonitoringByOwner).toEqual([
         {
           ownerName: 'Root Organization',
-          policyMonitoring: [
+          policyMonitorings: [
             {
               id: '8c54015dddc5465dbfb973b9979081e7',
               ownerId: 'ROOT_ORGANIZATION_ID',
@@ -197,12 +197,19 @@ describe('policyMonitoring reducer', () => {
           stageTypeId: 'release',
         },
         isDirty: false,
+        policyMonitoringByOwner: [{ policyMonitorings: [] }],
       });
       const { isDirty, monitoredStage } = reducer(state, {
         type: 'policyMonitoring/setMonitoredStage',
         payload: {
-          stageName: 'Stage Release',
-          stageTypeId: 'stage-release',
+          stages: [
+            { stageName: 'Release', stageTypeId: 'release' },
+            { stageName: 'Stage Release', stageTypeId: 'stage-release' },
+          ],
+          monitoredStage: {
+            stageName: 'Stage Release',
+            stageTypeId: 'stage-release',
+          },
         },
       });
 

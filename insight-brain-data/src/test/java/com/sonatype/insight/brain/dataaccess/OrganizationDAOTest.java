@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -596,11 +597,17 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
 
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(organization.getId(), Stage.ID_RELEASE);
     policyMonitoringDAO.insert(policyMonitoring);
-    assertThat(policyMonitoringDAO.getByOwnerId(organization.getId())).isNotNull();
+    List<String> orgs = new ArrayList<>();
+    orgs.add(organization.getId());
+    assertThat(policyMonitoringDAO.getByOwnerId(organization.getId()))
+        .isNotEmpty()
+        .hasSize(1)
+        .extracting("ownerId")
+        .isEqualTo(orgs);
 
     dao.delete(organization);
 
-    assertThat(policyMonitoringDAO.getByOwnerId(organization.getId())).isNull();
+    assertThat(policyMonitoringDAO.getByOwnerId(organization.getId())).isEmpty();
   }
 
   @Test

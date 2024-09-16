@@ -33,6 +33,8 @@ public class StageTypeService
 {
   public static final String ALL_CONTEXT = "all";
 
+  public static final String LIFECYCLE_CONTEXT = "lifecycle";
+
   public static final String CI_CONTEXT = "ci";
 
   public static final String CLI_CONTEXT = "cli";
@@ -44,6 +46,8 @@ public class StageTypeService
   public static final String MAVEN_CONTEXT = "maven";
 
   public static final String DASHBOARD_CONTEXT = "dashboard";
+
+  public static final String SBOM_CONTEXT = "sbom";
 
   private final ProductLicense productLicense;
 
@@ -59,6 +63,8 @@ public class StageTypeService
     contextFilterMap.put(RM_CONTEXT, new RMFilter());
     contextFilterMap.put(MAVEN_CONTEXT, new BuildFilter());
     contextFilterMap.put(DASHBOARD_CONTEXT, new DashboardFilter());
+    contextFilterMap.put(SBOM_CONTEXT, new SbomFilter());
+    contextFilterMap.put(LIFECYCLE_CONTEXT, new LifecycleFilter());
   }
 
   /**
@@ -133,12 +139,30 @@ public class StageTypeService
     }
   }
 
+  private static class SbomFilter
+      implements Predicate<StageType>
+  {
+    @Override
+    public boolean test(StageType input) {
+      return ComplianceStageType.ID.equals(input.getId());
+    }
+  }
+
   private static class DashboardFilter
       implements Predicate<StageType>
   {
     @Override
     public boolean test(StageType input) {
       return !StageTypes.isIgnoredForDashboard(input.getId());
+    }
+  }
+
+  private static class LifecycleFilter
+      implements Predicate<StageType>
+  {
+    @Override
+    public boolean test(StageType input) {
+      return !ComplianceStageType.ID.equals(input.getId());
     }
   }
 }

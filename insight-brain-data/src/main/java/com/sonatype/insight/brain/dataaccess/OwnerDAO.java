@@ -16,7 +16,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -65,6 +64,8 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemedia
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
+
+import org.apache.commons.collections4.CollectionUtils;
 
 @Named
 @Singleton
@@ -461,9 +462,11 @@ public class OwnerDAO
     }
 
     // Cascade to policy monitoring
-    PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerId(tx, owner.getId());
-    if (policyMonitoring != null) {
-      policyMonitoringDAO.delete(tx, policyMonitoring);
+    List<PolicyMonitoring> policyMonitorings = policyMonitoringDAO.getByOwnerId(tx, owner.getId());
+    if (CollectionUtils.isNotEmpty(policyMonitorings)) {
+      for (PolicyMonitoring policyMonitoring : policyMonitorings) {
+        policyMonitoringDAO.delete(tx, policyMonitoring);
+      }
     }
 
     // Cascade to component copyrights

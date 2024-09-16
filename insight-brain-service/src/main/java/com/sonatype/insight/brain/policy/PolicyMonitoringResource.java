@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -16,6 +17,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -34,7 +36,10 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.solution.Solution;
+import com.sonatype.insight.brain.solution.SolutionResolver;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
@@ -61,21 +66,25 @@ public class PolicyMonitoringResource
 
   private final IdUtils idUtils;
 
+  private final SolutionResolver solutionResolver;
+
   @Inject
   public PolicyMonitoringResource(
       final PolicyMonitoringDAO policyMonitoringDAO,
       final OwnerDAO ownerDAO,
-      final IdUtils idUtils)
+      final IdUtils idUtils,
+      final SolutionResolver solutionResolver)
   {
     this.policyMonitoringDAO = policyMonitoringDAO;
     this.ownerDAO = ownerDAO;
     this.idUtils = idUtils;
+    this.solutionResolver = solutionResolver;
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Authorize(permission = Permission.READ)
-  public PolicyMonitoring get(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
+  public List<PolicyMonitoring> get(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
                               @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
   {
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
@@ -101,7 +110,7 @@ public class PolicyMonitoringResource
     for (Owner owner : ownerDAO.walkHierarchy(internalOwnerId)) {
       PolicyMonitoringByOwner policyMonitoringByOwner = new PolicyMonitoringByOwner();
       policyMonitoringByOwner.ownerName = owner.getName();
-      policyMonitoringByOwner.policyMonitoring = policyMonitoringDAO.getByOwnerId(owner.getId());
+      policyMonitoringByOwner.policyMonitorings.addAll(policyMonitoringDAO.getByOwnerId(owner.getId()));
       results.policyMonitoringByOwner.add(policyMonitoringByOwner);
     }
 
@@ -117,6 +126,7 @@ public class PolicyMonitoringResource
                               @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
                               PolicyMonitoring policyMonitoring)
   {
+    Set<Solution> licensedSolutions = solutionResolver.getLicensedSolutions();
     ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
     if (ProxyStageType.ID.equals(policyMonitoring.getStageTypeId())) {
@@ -132,9 +142,26 @@ public class PolicyMonitoringResource
     }
 
     policyMonitoring.setOwnerId(ownerId);
-    policyMonitoringDAO.set(policyMonitoring);
-    AuditData.get().setStageId(policyMonitoring.getStageTypeId());
 
+    if (Stage.ID_COMPLIANCE.equals(policyMonitoring.getStageTypeId())) {
+      if (licensedSolutions.contains(Solution.SBOM_MANAGER)) {
+        policyMonitoringDAO.set(policyMonitoring);
+      }
+      else {
+        throw new PaymentRequiredException(("policy monitoring for stage 'compliance' " +
+            "is not supported with your license."));
+      }
+    }
+    else {
+      if (licensedSolutions.contains(Solution.LIFECYCLE)) {
+        policyMonitoringDAO.set(policyMonitoring);
+      }
+      else {
+        throw new PaymentRequiredException(String.format("policy monitoring for stage '%s' " +
+            "is not supported with your license.", policyMonitoring.getStageTypeId()));
+      }
+    }
+    AuditData.get().setStageId(policyMonitoring.getStageTypeId());
     log.debug("Configured policy monitoring for {} with ID {} for stage '{}'.", ownerType, ownerId,
         policyMonitoring.getStageTypeId());
 
@@ -145,11 +172,12 @@ public class PolicyMonitoringResource
   @Authorize(permission = Permission.WRITE)
   @Audited(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING)
   public void delete(@AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
-                     @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId)
+                     @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
+                     @QueryParam("stageTypeId") final String stageTypeId)
   {
     ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
 
-    PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerIdNotNull(ownerId);
+    PolicyMonitoring policyMonitoring = policyMonitoringDAO.getByOwnerIdAndStageTypeIdNotNull(ownerId, stageTypeId);
     policyMonitoringDAO.delete(policyMonitoring);
     AuditData.get().setStageId(Organization.ROOT_ORGANIZATION_ID.equals(ownerId) ? "none" : "inherited");
 
@@ -166,6 +194,6 @@ public class PolicyMonitoringResource
   {
     public String ownerName;
 
-    public PolicyMonitoring policyMonitoring;
+    public List<PolicyMonitoring> policyMonitorings = new ArrayList<>();
   }
 }

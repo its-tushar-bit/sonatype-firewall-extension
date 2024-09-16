@@ -11,12 +11,14 @@ import editTemplate from 'MainRoot/owner.manager/state/owner.manager.edit.html';
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import advancedSearchModule from 'MainRoot/advancedSearch/module';
 import ComponentDetailsPage from 'MainRoot/sbomManager/features/componentDetails/ComponentDetailsPage';
+import SbomContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/сontinuousMonitoringEditor/SbomContinuousMonitoringEditor';
 
 export default angular
   .module('sbomManagerModule', ['ngRedux', advancedSearchModule.name])
   .component('sbomManagerDashboard', iqReact2Angular(SbomManagerDashboard, [], ['$ngRedux', '$state']))
   .component('billOfMaterials', iqReact2Angular(BillOfMaterials, [], ['$ngRedux', '$state']))
   .component('sbomManagerComponentDetails', iqReact2Angular(ComponentDetailsPage, [], ['$ngRedux', '$state']))
+  .component('sbomContinuousMonitoring', iqReact2Angular(SbomContinuousMonitoringEditor, [], ['$ngRedux', '$state']))
   .config(routes);
 
 function routes($stateProvider) {
@@ -129,6 +131,14 @@ function routes($stateProvider) {
           isDirty: ['orgsAndPolicies', 'access', 'isDirty'],
         },
         component: 'accessPage',
+      })
+      .state('sbomManager.management.edit.' + ownerType.type + '.monitor-policy', {
+        url: '/monitoring',
+        data: {
+          title: ownerType.name + ' Continuous Monitoring',
+          isDirty: ['orgsAndPolicies', 'policyMonitoring', 'isDirty'],
+        },
+        component: 'sbomContinuousMonitoring',
       });
   });
 }

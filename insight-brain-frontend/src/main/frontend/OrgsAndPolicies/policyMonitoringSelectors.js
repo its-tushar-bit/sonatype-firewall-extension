@@ -7,11 +7,20 @@ import { createSelector } from '@reduxjs/toolkit';
 import { prop } from 'ramda';
 import { selectOrgsAndPoliciesSlice } from './orgsAndPoliciesSelectors';
 
-import { selectActionStageTypes, selectCliStagesWithInheritOrNoMonitorOption } from './stagesSelectors';
+import {
+  selectActionStageTypes,
+  selectCliStagesWithInheritOrNoMonitorOption,
+  selectSbomStageTypes,
+} from './stagesSelectors';
 
-import { createInheritOrNoMonitorOption, getMonitoredStage } from 'MainRoot/OrgsAndPolicies/utility/monitoredStageUtil';
+import {
+  createInheritOrNoMonitorOption,
+  getMonitoredStage,
+  getMonitoredStageFromAncestors,
+  getSbomManagerMonitoredStageDetails,
+} from 'MainRoot/OrgsAndPolicies/utility/monitoredStageUtil';
 import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
-import { selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectRouterSlice, selectIsSbomManager, selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const selectPolicyMonitoringSlice = createSelector(selectOrgsAndPoliciesSlice, prop('policyMonitoring'));
 export const selectPolicyMonitoringLoading = createSelector(selectPolicyMonitoringSlice, prop('loading'));
@@ -36,11 +45,17 @@ export const selectLegacyViolationStatusMessage = createSelector(
 
 export const selectOriginalMonitoredStageFromFetchedData = createSelector(
   selectCliStagesWithInheritOrNoMonitorOption,
+  selectSbomStageTypes,
   selectPolicyMonitoringByOwner,
-  (cliStagesWithInheritOrNoMonitorOption, policyMonitoringByOwner) => {
+  selectIsSbomManager,
+  (cliStagesWithInheritOrNoMonitorOption, sbomStages, policyMonitoringByOwner, isSbomManager) => {
     if (!cliStagesWithInheritOrNoMonitorOption || !policyMonitoringByOwner) return undefined;
 
-    return getMonitoredStage(policyMonitoringByOwner[0].policyMonitoring, cliStagesWithInheritOrNoMonitorOption);
+    if (!isSbomManager) {
+      return getMonitoredStage(policyMonitoringByOwner[0].policyMonitorings, cliStagesWithInheritOrNoMonitorOption);
+    } else {
+      return getMonitoredStage(policyMonitoringByOwner[0].policyMonitorings, sbomStages);
+    }
   }
 );
 
@@ -65,10 +80,18 @@ export const selectMonitoredStageFromActionStages = createSelector(
   selectPolicyMonitoringByOwner,
   (actionStages, policyMonitoringByOwner) => {
     if (!actionStages || !policyMonitoringByOwner) return undefined;
-    const monitoredStage = getMonitoredStage(policyMonitoringByOwner[0].policyMonitoring, actionStages);
+    const monitoredStage = getMonitoredStage(policyMonitoringByOwner[0].policyMonitorings, actionStages);
     const inheritOrNoMonitorOption = createInheritOrNoMonitorOption(policyMonitoringByOwner, actionStages);
-
     return monitoredStage || inheritOrNoMonitorOption;
+  }
+);
+
+export const selectMonitoredStageFromSbomStages = createSelector(
+  selectSbomStageTypes,
+  selectPolicyMonitoringByOwner,
+  (sbomStages, policyMonitoringByOwner) => {
+    if (!sbomStages || !policyMonitoringByOwner) return undefined;
+    return getMonitoredStageFromAncestors(policyMonitoringByOwner, sbomStages);
   }
 );
 
@@ -93,7 +116,7 @@ export const selectPoliciesByOwnerWithEnforcementActions = createSelector(
   }
 );
 
-export const selectContinousMonitoringIsDirty = createSelector(selectPolicyMonitoringSlice, prop('isDirty'));
+export const selectContinuousMonitoringIsDirty = createSelector(selectPolicyMonitoringSlice, prop('isDirty'));
 export const selectContinuousMonitoringSubmitMaskState = createSelector(
   selectPolicyMonitoringSlice,
   prop('submitMaskState')
@@ -101,4 +124,13 @@ export const selectContinuousMonitoringSubmitMaskState = createSelector(
 
 export const selectPolicyMonitoringLinkParams = createSelector(selectRouterSlice, (router) =>
   deriveEditRoute(router, 'monitor-policy')
+);
+
+export const selectSelectedStageLabelForSbomManager = createSelector(
+  selectPolicyMonitoringByOwner,
+  selectSbomStageTypes,
+  selectIsApplication,
+  (policyMonitoringByOwner, sbomStages, isAnApp) => {
+    return getSbomManagerMonitoredStageDetails(policyMonitoringByOwner, sbomStages, isAnApp);
+  }
 );

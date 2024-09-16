@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -292,11 +293,17 @@ public class RepositoryDAOTest
   public void testDelete_CascadesToPolicyMonitoring() {
     Repository repository = tempEntity.newRepository("testCascadeDeleteToPolicyMonitoring");
     tempEntity.newPolicyMonitoring(repository.getId(), Stage.ID_PROXY);
-    assertThat(policyMonitoringDAO.getByOwnerId(repository.getId())).isNotNull();
+    List<String> repos = new ArrayList<>();
+    repos.add(repository.getId());
+    assertThat(policyMonitoringDAO.getByOwnerId(repository.getId()))
+        .isNotEmpty()
+        .hasSize(1)
+        .extracting("ownerId")
+        .isEqualTo(repos);
 
     dao.delete(repository);
 
-    assertThat(policyMonitoringDAO.getByOwnerId(repository.getId())).isNull();
+    assertThat(policyMonitoringDAO.getByOwnerId(repository.getId())).isEmpty();
   }
 
   @Test

@@ -18,6 +18,7 @@ import {
   selectIsSourceControlForSourceTileSupported,
   selectTenantMode,
   selectIsScmEnabled,
+  selectIsSbomContinuousMonitoringUiEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 import NavPills from 'MainRoot/navPills/NavPills';
@@ -36,6 +37,7 @@ export default function OwnerSummaryPills() {
   const isSbomManager = useSelector(selectIsSbomManager);
   const isScmEnabled = useSelector(selectIsScmEnabled);
   const isSourceControlForSourceTileSupported = useSelector(selectIsSourceControlForSourceTileSupported);
+  const isSbomContinuousMonitoringUiEnabled = useSelector(selectIsSbomContinuousMonitoringUiEnabled);
 
   const isMultiTenant = useSelector(selectTenantMode) === 'multi-tenant';
   const isDataRetentionConfigEnabled = isDataRetentionEnabled && !isMultiTenant;
@@ -60,7 +62,7 @@ export default function OwnerSummaryPills() {
       {
         label: 'Continuous monitoring',
         target: 'owner-pill-continuous-monitoring',
-        isDisplayed: isMonitoringSupported && !isSbomManager,
+        isDisplayed: isMonitoringSupported && (!isSbomManager || isSbomContinuousMonitoringUiEnabled),
       },
       {
         label: 'Proprietary Components',
@@ -122,6 +124,7 @@ export default function OwnerSummaryPills() {
     isProprietaryComponentsEnabled,
     isSbomManager,
     isSourceControlForSourceTileSupported,
+    isSbomContinuousMonitoringUiEnabled,
   ]);
   return <NavPills list={navList} root="#owner-summary-sections" />;
 }

@@ -9,15 +9,22 @@ import { render, screen, waitFor } from 'TestRoot/SpecUtil';
 import ContinuousMonitoringSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ContinuousMonitoringSummaryTile';
 import * as productFeatureSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as stageSelectors from 'MainRoot/OrgsAndPolicies/stagesSelectors';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as policyMonitoringSelectors from 'MainRoot/OrgsAndPolicies/policyMonitoringSelectors';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 
 describe('ContinuousMonitoringSummaryTile', () => {
-  let renderComponent, selectIsLoadingSpy, selectMonitoredStageFromActionStagesSpy, routerContextMock;
+  let renderComponent,
+    selectIsLoadingSpy,
+    selectMonitoredStageFromActionStagesSpy,
+    selectMonitoredStageFromSbomStagesSpy,
+    routerContextMock;
 
   beforeEach(() => {
     spyOn(stageSelectors, 'selectActionStagesIsLoading').and.returnValue(false);
     spyOn(stageSelectors, 'selectActionStagesLoadError').and.returnValue('');
+    spyOn(stageSelectors, 'selectSbomStagesIsLoading').and.returnValue(false);
+    spyOn(stageSelectors, 'selectSbomStagesLoadError').and.returnValue('');
     spyOn(policyMonitoringSelectors, 'selectPolicyMonitoringLinkParams').and.returnValue({
       to: 'management.edit.application.monitor-policy',
       params: {
@@ -27,6 +34,10 @@ describe('ContinuousMonitoringSummaryTile', () => {
     selectMonitoredStageFromActionStagesSpy = spyOn(
       policyMonitoringSelectors,
       'selectMonitoredStageFromActionStages'
+    ).and.returnValue('');
+    selectMonitoredStageFromSbomStagesSpy = spyOn(
+      policyMonitoringSelectors,
+      'selectMonitoredStageFromSbomStages'
     ).and.returnValue('');
     selectIsLoadingSpy = spyOn(policyMonitoringSelectors, 'selectPolicyMonitoringLoading').and.returnValue(false);
     spyOn(policyMonitoringSelectors, 'selectPolicyMonitoringLoadError').and.returnValue('');
@@ -76,6 +87,24 @@ describe('ContinuousMonitoringSummaryTile', () => {
       expect(monitoringStage).toHaveTextContent('Stage Release');
     });
 
+    it('renders Stage text for SBOM Manager when Compliance enabled', () => {
+      spyOn(routerSelectors, 'selectIsSbomManager').and.returnValue(true);
+      selectMonitoredStageFromSbomStagesSpy.and.returnValue({ stageName: 'Compliance', stageTypeId: 'compliance' });
+      renderComponent();
+      const monitoringStage = screen.getByRole('listitem');
+      expect(monitoringStage).toBeVisible();
+      expect(monitoringStage).toHaveTextContent('Notifications and Alerts are enabled for Compliance stage');
+    });
+
+    it('renders Stage text for SBOM Manager when Compliance disabled', () => {
+      spyOn(routerSelectors, 'selectIsSbomManager').and.returnValue(true);
+      selectMonitoredStageFromSbomStagesSpy.and.returnValue(undefined);
+      renderComponent();
+      const monitoringStage = screen.getByRole('listitem');
+      expect(monitoringStage).toBeVisible();
+      expect(monitoringStage).toHaveTextContent('Notifications and Alerts are disabled for Compliance stage');
+    });
+
     it('text is a link to edit continuous monitoring page', () => {
       selectMonitoredStageFromActionStagesSpy.and.returnValue({ stageName: 'Stage Release' });
       renderComponent();
@@ -84,6 +113,18 @@ describe('ContinuousMonitoringSummaryTile', () => {
       expect(monitoringStage).toHaveTextContent('Stage Release');
 
       const linkToEdit = screen.getByText('Stage Release').closest('a');
+      expect(linkToEdit).toHaveAttribute('href', '#/management/edit/application/multiModule/monitoring');
+    });
+
+    it('text is a link to edit continuous monitoring page for SBOM Manager when Compliance enabled', () => {
+      spyOn(routerSelectors, 'selectIsSbomManager').and.returnValue(true);
+      selectMonitoredStageFromSbomStagesSpy.and.returnValue({ stageName: 'Compliance' });
+      renderComponent(true);
+      const monitoringStage = screen.getByRole('listitem');
+      expect(monitoringStage).toBeVisible();
+      expect(monitoringStage).toHaveTextContent('Notifications and Alerts are enabled for Compliance stage');
+
+      const linkToEdit = screen.getByText('Notifications and Alerts are enabled for Compliance stage').closest('a');
       expect(linkToEdit).toHaveAttribute('href', '#/management/edit/application/multiModule/monitoring');
     });
   });

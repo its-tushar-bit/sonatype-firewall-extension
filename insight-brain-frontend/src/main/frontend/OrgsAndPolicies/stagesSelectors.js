@@ -25,6 +25,11 @@ export const selectDashboardStageTypes = createSelector(selectDashboardStages, p
 export const selectDashboardStagesLoadError = createSelector(selectDashboardStages, prop('error'));
 export const selectDashboardStagesIsLoading = createSelector(selectDashboardStages, prop('loading'));
 
+export const selectSbomStages = createSelector(selectStagesSlice, prop('sbom'));
+export const selectSbomStageTypes = createSelector(selectSbomStages, prop('stageTypes'));
+export const selectSbomStagesLoadError = createSelector(selectSbomStages, prop('error'));
+export const selectSbomStagesIsLoading = createSelector(selectSbomStages, prop('loading'));
+
 export const selectCliStagesWithInheritOrNoMonitorOption = createSelector(
   selectCliStageTypes,
   path(['orgsAndPolicies', 'policyMonitoring', 'policyMonitoringByOwner']),

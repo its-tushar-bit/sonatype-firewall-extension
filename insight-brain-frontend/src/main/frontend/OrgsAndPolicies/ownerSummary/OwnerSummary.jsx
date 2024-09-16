@@ -14,7 +14,10 @@ import { selectLoadError as selectLoadSelectedOwnerError } from 'MainRoot/OrgsAn
 import { selectIsApplication, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectSelectedOwner, selectEntityId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectRepositoryUrl, selectScmProviderIcon } from 'MainRoot/OrgsAndPolicies/sourceControlSelectors';
-import { selectNoSbomManagerEnabledError } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectNoSbomManagerEnabledError,
+  selectIsSbomContinuousMonitoringUiEnabled,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions as ownerSummaryActions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
 import OwnerSummaryPills from 'MainRoot/OrgsAndPolicies/OwnerSummaryPills/OwnerSummaryPills';
@@ -62,14 +65,13 @@ function DefaultTiles() {
   );
 }
 
-function SbomManagerTiles(isApp) {
-  return isApp ? (
+function SbomManagerTiles(isApp, isSbomContinuousMonitoringUiEnabled) {
+  return (
     <>
-      <SbomsTile />
+      {isApp && <SbomsTile />}
       <AccessTile />
+      {isSbomContinuousMonitoringUiEnabled && <ContinuousMonitoringSummaryTile />}
     </>
-  ) : (
-    <AccessTile />
   );
 }
 
@@ -86,6 +88,7 @@ export default function OwnerSummary() {
   const isSyntheticOrg = useSelector(selectIsDisplayedOrganizationSynthetic) && !isApp;
   const isSbomManager = useSelector(selectIsSbomManager);
   const noSbomManagerEnabledError = useSelector(selectNoSbomManagerEnabledError);
+  const isSbomContinuousMonitoringUiEnabled = useSelector(selectIsSbomContinuousMonitoringUiEnabled);
   // loading is false when the page is already loaded. entityId may be set to null before doLoad is called.
   const loadingOwnerSummaryAndEntityId = loading || !entityId;
   const error = loadError || loadSelectedOwnerError || (isSbomManager && noSbomManagerEnabledError);
@@ -136,7 +139,7 @@ export default function OwnerSummary() {
         className="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-viewport-sized__scrollable"
         id="owner-summary-sections"
       >
-        {isSbomManager ? SbomManagerTiles(isApp) : DefaultTiles()}
+        {isSbomManager ? SbomManagerTiles(isApp, isSbomContinuousMonitoringUiEnabled) : DefaultTiles()}
       </div>
       <DeleteOwnerModal />
       <LegacyViolationModal />

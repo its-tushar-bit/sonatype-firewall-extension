@@ -75,11 +75,18 @@ describe('Continuous Monitoring Component', () => {
         policyMonitoringByOwner: [
           {
             ownerName: 'Root Organization',
-            policyMonitoring: {
-              id: '68d05f2bcbed42cb91b629a4dfa160a6',
-              ownerId: 'ROOT_ORGANIZATION_ID',
-              stageTypeId: 'operate',
-            },
+            policyMonitorings: [
+              {
+                id: '68d05f2bcbed42cb91b629a4dfa160a6',
+                ownerId: 'ROOT_ORGANIZATION_ID',
+                stageTypeId: 'operate',
+              },
+              {
+                id: '68d05f2bcbed42cb91b629a4dfa160a7',
+                ownerId: 'ROOT_ORGANIZATION_ID',
+                stageTypeId: 'compliance',
+              },
+            ],
           },
         ],
       },

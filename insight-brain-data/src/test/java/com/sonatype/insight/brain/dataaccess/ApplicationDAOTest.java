@@ -932,11 +932,17 @@ public class ApplicationDAOTest
     PolicyMonitoringDAO policyMonitoringDAO = daoFactory.createPolicyMonitoringDAO();
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(application.getId(), Stage.ID_RELEASE);
     policyMonitoringDAO.insert(policyMonitoring);
-    assertThat(policyMonitoringDAO.getByOwnerId(application.getId())).isNotNull();
+    List<String> apps = new ArrayList<>();
+    apps.add(application.getId());
+    assertThat(policyMonitoringDAO.getByOwnerId(application.getId()))
+        .isNotEmpty()
+        .hasSize(1)
+        .extracting("ownerId")
+        .isEqualTo(apps);
 
     applicationDAO.delete(application);
 
-    assertThat(policyMonitoringDAO.getByOwnerId(application.getId())).isNull();
+    assertThat(policyMonitoringDAO.getByOwnerId(application.getId())).isEmpty();
   }
 
   @Test

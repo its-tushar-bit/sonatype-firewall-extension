@@ -41,7 +41,7 @@ describe('stages actions', function () {
       const actions = store.getActions();
 
       expect(actions).toHaveActionTypesInOrder(['stages/loadStageTypes/pending', 'stages/loadStageTypes/rejected']);
-      expect(actions[1].payload).toEqual('purpose must be one of dashboard, action, cli');
+      expect(actions[1].payload).toEqual('purpose must be one of dashboard, action, cli, sbom');
     });
 
     describe('when corresponding stageTypes are already present', function () {

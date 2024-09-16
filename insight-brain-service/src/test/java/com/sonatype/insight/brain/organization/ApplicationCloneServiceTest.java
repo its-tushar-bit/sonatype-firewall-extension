@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.organization;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -401,7 +400,8 @@ public class ApplicationCloneServiceTest
     ApiApplicationDTO clonedAppDTO =
         appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName", "clonedAppPublicId");
 
-    PolicyMonitoring clonedPolicyMonitoring = policyMonitoringDAO.getByOwnerId(clonedAppDTO.id);
+    PolicyMonitoring clonedPolicyMonitoring = policyMonitoringDAO.getByOwnerIdAndStageTypeId(clonedAppDTO.id,
+        StageTypes.BUILD.getId());
     assertThat(clonedPolicyMonitoring.getId()).isNotEqualTo(sourcePolicyMonitoring.getId());
     assertThat(clonedPolicyMonitoring.getStageTypeId()).isEqualTo(sourcePolicyMonitoring.getStageTypeId());
 

@@ -12,6 +12,7 @@ import {
   getPolicyMonitoringUrl,
   getApplicablePolicyMonitoringUrl,
   getProductFeaturesUrl,
+  getSbomStageUrl,
 } from 'MainRoot/util/CLMLocation';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
@@ -23,11 +24,14 @@ const responseData = [
   { stageTypeId: 3, stageName: 'name 3' },
 ];
 
+const responseDataSbom = [{ stageTypeId: 'compliance', stageName: 'Compliance' }];
+
 describe('policyMonitoringActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   const policyMonitoringUrl = getPolicyMonitoringUrl('application', 'application');
   const applicablePolicyMonitoringUrl = getApplicablePolicyMonitoringUrl('application', 'application');
   const cliStageUrl = getCliStageUrl('application', 'application');
+  const sbomStageUrl = getSbomStageUrl('application', 'application');
   let store, state, productFeaturesSpy;
 
   beforeEach(function () {
@@ -41,10 +45,14 @@ describe('policyMonitoringActions', () => {
       orgsAndPolicies: {
         policyMonitoring: {
           monitoredStage: {},
+          originalStage: {},
         },
       },
       stages: {
         cli: {
+          stageTypes: null,
+        },
+        sbom: {
           stageTypes: null,
         },
       },
@@ -69,18 +77,21 @@ describe('policyMonitoringActions', () => {
             data: ['enforcement', 'firewall', 'policy-monitoring', 'policy-grandfathering'],
           }),
           [cliStageUrl]: Promise.resolve({ data: responseData }),
+          [sbomStageUrl]: Promise.resolve({ data: responseDataSbom }),
         },
       });
 
       store.dispatch(actions.loadApplicablePolicyMonitoring()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(2);
+        expect(axios.get).toHaveBeenCalledTimes(3);
         expect(axios.get).toHaveBeenCalledWith('/rest/policyMonitoring/application/application/applicable');
 
         const actions = store.getActions();
-        expect(actions.length).toBe(4);
+        expect(actions.length).toBe(6);
         expect(actions).toHaveActionTypesInOrder([
           'policyMonitoring/loadApplicablePolicyMonitoring/pending',
           'stages/loadStageTypes/pending',
+          'stages/loadStageTypes/pending',
+          'stages/loadStageTypes/fulfilled',
           'stages/loadStageTypes/fulfilled',
           'policyMonitoring/loadApplicablePolicyMonitoring/fulfilled',
         ]);
@@ -99,18 +110,21 @@ describe('policyMonitoringActions', () => {
         get: {
           [applicablePolicyMonitoringUrl]: () => Promise.reject('something went wrong'),
           [cliStageUrl]: Promise.resolve({ data: responseData }),
+          [sbomStageUrl]: Promise.resolve({ data: responseDataSbom }),
         },
       });
 
       store.dispatch(actions.loadApplicablePolicyMonitoring()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(2);
+        expect(axios.get).toHaveBeenCalledTimes(3);
         expect(axios.get).toHaveBeenCalledWith('/rest/policyMonitoring/application/application/applicable');
         const actions = store.getActions();
 
-        expect(actions.length).toBe(4);
+        expect(actions.length).toBe(6);
         expect(actions).toHaveActionTypesInOrder([
           'policyMonitoring/loadApplicablePolicyMonitoring/pending',
           'stages/loadStageTypes/pending',
+          'stages/loadStageTypes/pending',
+          'stages/loadStageTypes/fulfilled',
           'stages/loadStageTypes/fulfilled',
           'policyMonitoring/loadApplicablePolicyMonitoring/rejected',
         ]);
@@ -129,6 +143,7 @@ describe('policyMonitoringActions', () => {
             data: ['enforcement', 'firewall', 'policy-monitoring', 'policy-grandfathering'],
           }),
           [cliStageUrl]: Promise.resolve({ data: responseData }),
+          [sbomStageUrl]: Promise.resolve({ data: responseDataSbom }),
         },
       });
 
@@ -137,25 +152,29 @@ describe('policyMonitoringActions', () => {
         expect(axios.put).toHaveBeenCalledWith('/rest/policyMonitoring/application/application', {});
 
         const actions = store.getActions();
-        expect(actions.length).toBe(6);
+        expect(actions.length).toBe(8);
         expect(actions).toHaveActionTypesInOrder([
           'policyMonitoring/savePolicyMonitoring/pending',
           'policyMonitoring/loadApplicablePolicyMonitoring/pending',
           'stages/loadStageTypes/pending',
+          'stages/loadStageTypes/pending',
           'policyMonitoring/savePolicyMonitoring/fulfilled',
+          'stages/loadStageTypes/fulfilled',
           'stages/loadStageTypes/fulfilled',
           'policyMonitoring/loadApplicablePolicyMonitoring/fulfilled',
         ]);
         expect(actions[0].payload).toEqual(undefined);
-        expect(actions[3].payload).toEqual({});
+        expect(actions[4].payload).toEqual({});
 
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
-        expect(actions.length).toBe(7);
+        expect(actions.length).toBe(9);
         expect(actions).toHaveActionTypesInOrder([
           'policyMonitoring/savePolicyMonitoring/pending',
           'policyMonitoring/loadApplicablePolicyMonitoring/pending',
           'stages/loadStageTypes/pending',
+          'stages/loadStageTypes/pending',
           'policyMonitoring/savePolicyMonitoring/fulfilled',
+          'stages/loadStageTypes/fulfilled',
           'stages/loadStageTypes/fulfilled',
           'policyMonitoring/loadApplicablePolicyMonitoring/fulfilled',
           'policyMonitoring/saveMaskTimerDone',
@@ -197,6 +216,7 @@ describe('policyMonitoringActions', () => {
             data: ['enforcement', 'firewall', 'policy-monitoring', 'policy-grandfathering'],
           }),
           [cliStageUrl]: Promise.resolve({ data: responseData }),
+          [sbomStageUrl]: Promise.resolve({ data: responseDataSbom }),
         },
       });
 
@@ -205,12 +225,14 @@ describe('policyMonitoringActions', () => {
         expect(axios.delete).toHaveBeenCalledWith('/rest/policyMonitoring/application/application');
 
         const actions = store.getActions();
-        expect(actions.length).toBe(6);
+        expect(actions.length).toBe(8);
         expect(actions).toHaveActionTypesInOrder([
           'policyMonitoring/removePolicyMonitoring/pending',
           'policyMonitoring/loadApplicablePolicyMonitoring/pending',
           'stages/loadStageTypes/pending',
+          'stages/loadStageTypes/pending',
           'policyMonitoring/removePolicyMonitoring/fulfilled',
+          'stages/loadStageTypes/fulfilled',
           'stages/loadStageTypes/fulfilled',
           'policyMonitoring/loadApplicablePolicyMonitoring/fulfilled',
         ]);

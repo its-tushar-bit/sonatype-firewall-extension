@@ -647,7 +647,8 @@ public class MoveOrganizationService
       List<String> allOldOwnersToCheckForPolicyMonitoring = new ArrayList<>(oldParentIdsIncludingCommon);
       allOldOwnersToCheckForPolicyMonitoring.add(0, movedOrg.getId());
       Optional<PolicyMonitoring> configuredOrInheritedMonitoring =
-          allOldOwnersToCheckForPolicyMonitoring.stream().map(policyMonitoringDAO::getByOwnerId)
+          allOldOwnersToCheckForPolicyMonitoring.stream()
+              .flatMap(ownerId -> policyMonitoringDAO.getByOwnerId(ownerId).stream())
               .filter(Objects::nonNull).findFirst();
 
       if (configuredOrInheritedMonitoring.isPresent()) {
@@ -661,7 +662,7 @@ public class MoveOrganizationService
         allNewOwnersToCheckForPolicyMonitoring.add(0, newParentOrg.getId());
 
         Optional<PolicyMonitoring> expectedNewPolicyMonitoring = allNewOwnersToCheckForPolicyMonitoring.stream()
-            .map(policyMonitoringDAO::getByOwnerId)
+            .flatMap(ownerId -> policyMonitoringDAO.getByOwnerId(ownerId).stream())
             .filter(Objects::nonNull)
             .findFirst();
 

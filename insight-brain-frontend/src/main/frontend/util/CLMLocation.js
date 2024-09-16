@@ -230,11 +230,15 @@ export function getLegalDashboardFilters() {
 }
 
 export function getActionStageUrl() {
-  return uriTemplate`/rest/policy/stages?context=all`;
+  return uriTemplate`/rest/policy/stages?context=lifecycle`;
 }
 
 export function getCliStageUrl() {
   return uriTemplate`/rest/policy/stages`;
+}
+
+export function getSbomStageUrl() {
+  return uriTemplate`/rest/policy/stages?context=sbom`;
 }
 
 export function getAdvancedSearchConfigUrl() {
@@ -811,7 +815,10 @@ export function getPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCa
   return uriTemplate`/rest/policy/repository_container/REPOSITORY_CONTAINER_ID/withProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCode`;
 }
 
-export function getPolicyMonitoringUrl(ownerType, ownerId) {
+export function getPolicyMonitoringUrl(ownerType, ownerId, stageTypeId) {
+  if (stageTypeId) {
+    return uriTemplate`/rest/policyMonitoring/${ownerType}/${ownerId}?stageTypeId=${stageTypeId}`;
+  }
   return uriTemplate`/rest/policyMonitoring/${ownerType}/${ownerId}`;
 }
 

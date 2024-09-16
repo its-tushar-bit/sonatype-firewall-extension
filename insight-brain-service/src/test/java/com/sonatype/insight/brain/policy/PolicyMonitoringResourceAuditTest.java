@@ -71,8 +71,8 @@ public class PolicyMonitoringResourceAuditTest
 
   @Test
   public void testDelete_Application() throws Exception {
-    tempEntity.newPolicyMonitoring(app.getId(), Stage.ID_RELEASE);
-    restRequest(app).delete();
+    PolicyMonitoring policyMonitoring = tempEntity.newPolicyMonitoring(app.getId(), Stage.ID_RELEASE);
+    restRequest(app).query("stageTypeId", policyMonitoring.getStageTypeId()).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING, null);
     assertApplicationData(auditDTO, app);
@@ -81,8 +81,8 @@ public class PolicyMonitoringResourceAuditTest
 
   @Test
   public void testDelete_Organization() throws Exception {
-    tempEntity.newPolicyMonitoring(org.getId(), Stage.ID_RELEASE);
-    restRequest(org).delete();
+    PolicyMonitoring policyMonitoring = tempEntity.newPolicyMonitoring(org.getId(), Stage.ID_RELEASE);
+    restRequest(org).query("stageTypeId", policyMonitoring.getStageTypeId()).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING, null);
     assertOrganizationData(auditDTO, org);
@@ -91,8 +91,10 @@ public class PolicyMonitoringResourceAuditTest
 
   @Test
   public void testDelete_RootOrganization() throws Exception {
-    tempEntity.newPolicyMonitoring(Organization.ROOT_ORGANIZATION_ID, Stage.ID_RELEASE);
-    restRequest(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID).delete();
+    PolicyMonitoring policyMonitoring =
+        tempEntity.newPolicyMonitoring(Organization.ROOT_ORGANIZATION_ID, Stage.ID_RELEASE);
+    restRequest(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID).query("stageTypeId",
+        policyMonitoring.getStageTypeId()).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING, null);
     assertOrganizationData(auditDTO, org.getParentOrganizationId(), "Root Organization");

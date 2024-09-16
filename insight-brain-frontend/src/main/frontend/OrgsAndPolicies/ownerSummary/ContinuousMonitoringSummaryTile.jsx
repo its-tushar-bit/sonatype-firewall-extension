@@ -17,9 +17,11 @@ import {
   selectPolicyMonitoringLoading,
   selectPolicyMonitoringLoadError,
   selectPolicyMonitoringLinkParams,
+  selectMonitoredStageFromSbomStages,
 } from 'MainRoot/OrgsAndPolicies/policyMonitoringSelectors';
 import { selectActionStagesIsLoading, selectActionStagesLoadError } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 import { selectIsMonitoringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function ContinuousMonitoringSummaryTile() {
   const uiStateRouter = useRouterState();
@@ -28,7 +30,10 @@ export default function ContinuousMonitoringSummaryTile() {
 
   const dispatch = useDispatch();
   const isMonitoringSupported = useSelector(selectIsMonitoringSupported);
-  const monitoredStage = useSelector(selectMonitoredStageFromActionStages);
+  const isSbomManager = useSelector(selectIsSbomManager);
+  const monitoredStage = useSelector(
+    isSbomManager ? selectMonitoredStageFromSbomStages : selectMonitoredStageFromActionStages
+  );
   const isMonitoringLoading = useSelector(selectPolicyMonitoringLoading);
   const isStagesLoading = useSelector(selectActionStagesIsLoading);
   const isLoading = isMonitoringLoading || isStagesLoading;
@@ -45,7 +50,12 @@ export default function ContinuousMonitoringSummaryTile() {
   }, []);
 
   const renderContent = () => {
-    const stageName = prop('stageName', monitoredStage);
+    let stageName;
+    if (!isSbomManager) {
+      stageName = prop('stageName', monitoredStage);
+    } else {
+      stageName = `Notifications and Alerts are ${monitoredStage ? 'enabled' : 'disabled'} for Compliance stage`;
+    }
     return <NxList.LinkItem href={href}>{stageName}</NxList.LinkItem>;
   };
 

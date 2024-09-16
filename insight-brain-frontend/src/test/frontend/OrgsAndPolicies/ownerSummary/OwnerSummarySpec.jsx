@@ -164,13 +164,14 @@ describe('OwnerSummary', () => {
       expect(await screen.queryByRole('owner-summary-action-dropdown-container')).not.toBeInTheDocument();
     });
 
-    it('hides non-SBOM pills when in SBOM Manager', async () => {
+    it('hides non-SBOM pills when in SBOM Manager and sbom-continuous-monitoring-ui is enabled', async () => {
       const stateSBOMtrue = {
         ...preloadedState,
         productFeatures: {
           productFeatures: {
             'sbom-manager': true,
-            'policy-monitoring': false,
+            'policy-monitoring': true,
+            'sbom-continuous-monitoring-ui': true,
           },
         },
         router: {
@@ -191,8 +192,8 @@ describe('OwnerSummary', () => {
 
       expect(await screen.findByRole('heading', { name: 'Access' })).toBeVisible();
       expect(screen.getByRole('button', { name: 'Access' })).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Continuous monitoring' })).toBeVisible();
 
-      expect(screen.queryByRole('heading', { name: 'Continuous monitoring' })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'SBOMs' })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Application Categories' })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Policies' })).not.toBeInTheDocument();
@@ -202,7 +203,6 @@ describe('OwnerSummary', () => {
       expect(screen.queryByRole('heading', { name: 'License Threat Groups' })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Source Control' })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'InnerSource Repositories' })).not.toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: 'Continuous monitoring' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'SBOMs' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Application Categories' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Policies' })).not.toBeInTheDocument();
@@ -215,12 +215,43 @@ describe('OwnerSummary', () => {
       expect(screen.queryByTestId('owner-summary-action-dropdown-container')).not.toBeInTheDocument();
     });
 
+    it('hides Continuous Monitoring tile when in SBOM Manager and sbom-continuous-monitoring-ui is disabled', async () => {
+      const stateSbomTrueCmUiFalse = {
+        ...preloadedState,
+        productFeatures: {
+          productFeatures: {
+            'sbom-manager': true,
+            'policy-monitoring': true,
+            'sbom-continuous-monitoring-ui': false,
+          },
+        },
+        router: {
+          currentState: {
+            name: 'sbomManager.management.view.organization',
+            url: '/sbomManager/management/view/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+      };
+      renderComponent(stateSbomTrueCmUiFalse);
+
+      expect(screen.queryByRole('heading', { name: 'Continuous monitoring' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Continuous monitoring' })).not.toBeInTheDocument();
+    });
+
     it('does render the Actions button if SBOM Manager disabled', async () => {
       preloadedState.orgsAndPolicies.ownerSideNav = { displayedOrganization: { synthetic: false } };
       renderComponent(preloadedState);
 
       expect(await screen.queryByRole('heading', { name: 'SBOMs' })).not.toBeInTheDocument();
       expect(await screen.queryByRole('heading', { name: 'Access' })).not.toBeInTheDocument();
+      expect(await screen.queryByRole('heading', { name: 'Continuous monitoring' })).not.toBeInTheDocument();
       expect(await screen.findByTestId('owner-summary-action-dropdown-container')).toBeInTheDocument();
     });
   });
@@ -369,12 +400,14 @@ describe('OwnerSummary', () => {
       });
     });
 
-    it('true, then SBOMs and Access tiles are visible and no other tiles are', async () => {
+    it('true, then SBOMs, Access and Continuous Monitoring tiles are visible and no other tiles are', async () => {
       const stateSBOMtrue = {
         ...preloadedState,
         productFeatures: {
           productFeatures: {
             'sbom-manager': true,
+            'policy-monitoring': true,
+            'sbom-continuous-monitoring-ui': true,
           },
         },
         router: {
@@ -397,8 +430,8 @@ describe('OwnerSummary', () => {
       expect(screen.getByRole('heading', { name: 'Access' })).toBeVisible();
       expect(screen.getByRole('button', { name: 'Access' })).toBeVisible();
       expect(screen.getByRole('button', { name: 'SBOMs' })).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Continuous monitoring' })).toBeVisible();
 
-      expect(screen.queryByRole('heading', { name: 'Continuous monitoring' })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Application Categories' })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Policies' })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Legacy Violations' })).not.toBeInTheDocument();
@@ -407,7 +440,6 @@ describe('OwnerSummary', () => {
       expect(screen.queryByRole('heading', { name: 'License Threat Groups' })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Source Control' })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'InnerSource Repositories' })).not.toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: 'Continuous monitoring' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Application Categories' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Policies' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Legacy Violations' })).not.toBeInTheDocument();
@@ -419,6 +451,36 @@ describe('OwnerSummary', () => {
       expect(screen.queryByRole('heading', { name: 'Component Labels' })).not.toBeInTheDocument();
 
       expect(screen.queryByTestId('owner-summary-action-dropdown-container')).not.toBeInTheDocument();
+    });
+
+    it('true, but does not render Continuous Monitoring tile when sbom-continuous-monitoring-ui is disabled', async () => {
+      const stateSbomCmUiDisabled = {
+        ...preloadedState,
+        productFeatures: {
+          productFeatures: {
+            'sbom-manager': true,
+            'policy-monitoring': true,
+            'sbom-continuous-monitoring-ui': false,
+          },
+        },
+        router: {
+          currentState: {
+            name: 'sbomManager.management.view.application',
+            url: '/application/{applicationPublicId}',
+            data: {
+              title: 'Application Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            applicationPublicId: 'sbom_test',
+          },
+        },
+      };
+      renderComponent(stateSbomCmUiDisabled);
+
+      expect(screen.queryByRole('heading', { name: 'Continuous monitoring' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Continuous monitoring' })).not.toBeInTheDocument();
     });
 
     it('false, and shows error when the SBOM Manager license is disabled', async () => {

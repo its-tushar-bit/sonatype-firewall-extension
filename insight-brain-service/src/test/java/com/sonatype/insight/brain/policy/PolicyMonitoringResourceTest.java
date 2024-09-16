@@ -15,10 +15,12 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
+import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.policy.PolicyMonitoringResource.ApplicablePolicyMonitors;
 import com.sonatype.insight.brain.policy.PolicyMonitoringResource.PolicyMonitoringByOwner;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -47,14 +49,28 @@ public class PolicyMonitoringResourceTest
     String appPublicId = "PolicyMonitoringResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
 
+    setLicenseProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
     testCRUD(OwnerType.APPLICATION, appPublicId, application.getId());
+    setLicenseProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+    testCRUD_ComplianceStage(OwnerType.APPLICATION, appPublicId, application.getId());
+    setLicenseProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+    testCRUD_ComplianceStage(OwnerType.APPLICATION, appPublicId, application.getId());
+    setLicenseProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS, ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+    testCRUD_MultiLicense(OwnerType.APPLICATION, appPublicId, application.getId());
   }
 
   @Test
   public void testCRUD_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization("PolicyMonitoringResourceTest");
 
+    setLicenseProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
     testCRUD(OwnerType.ORGANIZATION, organization.getId(), organization.getId());
+    setLicenseProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+    testCRUD_ComplianceStage(OwnerType.ORGANIZATION, organization.getId(), organization.getId());
+    setLicenseProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+    testCRUD_ComplianceStage(OwnerType.ORGANIZATION, organization.getId(), organization.getId());
+    setLicenseProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS, ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+    testCRUD_MultiLicense(OwnerType.ORGANIZATION, organization.getId(), organization.getId());
   }
 
   private void testCRUD(OwnerType ownerType, String ownerPublicId, String ownerId) throws Exception {
@@ -68,8 +84,9 @@ public class PolicyMonitoringResourceTest
     // Get
     response = restRequest(ownerType, ownerPublicId).get();
     assertResponseStatus(200, response);
-    policyMonitoring = response.getBody(PolicyMonitoring.class);
-    assertPolicyMonitoring(ownerId, Stage.ID_RELEASE, policyMonitoring);
+    PolicyMonitoring[] policyMonitorings = response.getBody(PolicyMonitoring[].class);
+    assertThat(policyMonitorings).hasSize(1);
+    assertPolicyMonitoring(ownerId, Stage.ID_RELEASE, policyMonitorings[0]);
 
     // Update
     policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_BUILD);
@@ -81,22 +98,126 @@ public class PolicyMonitoringResourceTest
     // Get
     response = restRequest(ownerType, ownerPublicId).get();
     assertResponseStatus(200, response);
-    policyMonitoring = response.getBody(PolicyMonitoring.class);
-    assertPolicyMonitoring(ownerId, Stage.ID_BUILD, policyMonitoring);
+    policyMonitorings = response.getBody(PolicyMonitoring[].class);
+    assertThat(policyMonitorings).hasSize(1);
+    assertPolicyMonitoring(ownerId, Stage.ID_BUILD, policyMonitorings[0]);
 
     // Delete
-    response = restRequest(ownerType, ownerPublicId).delete();
+    response =
+        restRequest(ownerType, ownerPublicId).query("stageTypeId", policyMonitorings[0].getStageTypeId()).delete();
     assertResponseStatus(204, response);
 
     // Get
     response = restRequest(ownerType, ownerPublicId).get();
+    assertResponseStatus(200, response);
+    policyMonitorings = response.getBody(PolicyMonitoring[].class);
+    assertThat(policyMonitorings).isEmpty();
+  }
+
+  private void testCRUD_ComplianceStage(OwnerType ownerType, String ownerPublicId, String ownerId) throws Exception {
+    // Create
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_COMPLIANCE);
+    HttpResponse response = restRequest(ownerType, ownerPublicId).body(policyMonitoring).put();
+    assertResponseStatus(200, response);
+    policyMonitoring = response.getBody(PolicyMonitoring.class);
+    assertPolicyMonitoring(ownerId, Stage.ID_COMPLIANCE, policyMonitoring);
+
+    // Get
+    response = restRequest(ownerType, ownerPublicId).get();
+    assertResponseStatus(200, response);
+    PolicyMonitoring[] policyMonitorings = response.getBody(PolicyMonitoring[].class);
+    assertThat(policyMonitorings).hasSize(1);
+    assertPolicyMonitoring(ownerId, Stage.ID_COMPLIANCE, policyMonitorings[0]);
+
+    // Update
+    policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_COMPLIANCE);
+    response = restRequest(ownerType, ownerPublicId).body(policyMonitoring).put();
+    assertResponseStatus(200, response);
+    policyMonitoring = response.getBody(PolicyMonitoring.class);
+    assertPolicyMonitoring(ownerId, Stage.ID_COMPLIANCE, policyMonitoring);
+
+    // Get
+    response = restRequest(ownerType, ownerPublicId).get();
+    assertResponseStatus(200, response);
+    policyMonitorings = response.getBody(PolicyMonitoring[].class);
+    assertThat(policyMonitorings).hasSize(1);
+    assertPolicyMonitoring(ownerId, Stage.ID_COMPLIANCE, policyMonitorings[0]);
+
+    // Delete
+    response =
+        restRequest(ownerType, ownerPublicId).query("stageTypeId", policyMonitorings[0].getStageTypeId()).delete();
     assertResponseStatus(204, response);
+
+    // Get
+    response = restRequest(ownerType, ownerPublicId).get();
+    assertResponseStatus(200, response);
+    policyMonitorings = response.getBody(PolicyMonitoring[].class);
+    assertThat(policyMonitorings).isEmpty();
+  }
+
+  private void testCRUD_MultiLicense(OwnerType ownerType, String ownerPublicId, String ownerId) throws Exception {
+    // Create Lifecycle (LC) Continuous Monitoring (CM)
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_RELEASE);
+    HttpResponse response = restRequest(ownerType, ownerPublicId).body(policyMonitoring).put();
+    assertResponseStatus(200, response);
+    policyMonitoring = response.getBody(PolicyMonitoring.class);
+    assertPolicyMonitoring(ownerId, Stage.ID_RELEASE, policyMonitoring);
+
+    // Create SBOM Manager (SM) Continuous Monitoring (CM)
+    policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_COMPLIANCE);
+    response = restRequest(ownerType, ownerPublicId).body(policyMonitoring).put();
+    assertResponseStatus(200, response);
+    policyMonitoring = response.getBody(PolicyMonitoring.class);
+    assertPolicyMonitoring(ownerId, Stage.ID_COMPLIANCE, policyMonitoring);
+
+    // Get both
+    response = restRequest(ownerType, ownerPublicId).get();
+    assertResponseStatus(200, response);
+    PolicyMonitoring[] policyMonitorings = response.getBody(PolicyMonitoring[].class);
+    assertThat(policyMonitorings).hasSize(2);
+    assertPolicyMonitoring(ownerId, Stage.ID_COMPLIANCE, policyMonitorings[0]);
+    assertPolicyMonitoring(ownerId, Stage.ID_RELEASE, policyMonitorings[1]);
+
+    // Update both
+    policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_BUILD);
+    response = restRequest(ownerType, ownerPublicId).body(policyMonitoring).put();
+    assertResponseStatus(200, response);
+    policyMonitoring = response.getBody(PolicyMonitoring.class);
+    assertPolicyMonitoring(ownerId, Stage.ID_BUILD, policyMonitoring);
+    policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_COMPLIANCE);
+    response = restRequest(ownerType, ownerPublicId).body(policyMonitoring).put();
+    assertResponseStatus(200, response);
+    policyMonitoring = response.getBody(PolicyMonitoring.class);
+    assertPolicyMonitoring(ownerId, Stage.ID_COMPLIANCE, policyMonitoring);
+
+    // Get both
+    response = restRequest(ownerType, ownerPublicId).get();
+    assertResponseStatus(200, response);
+    policyMonitorings = response.getBody(PolicyMonitoring[].class);
+    assertThat(policyMonitorings).hasSize(2);
+    assertPolicyMonitoring(ownerId, Stage.ID_BUILD, policyMonitorings[0]);
+    assertPolicyMonitoring(ownerId, Stage.ID_COMPLIANCE, policyMonitorings[1]);
+
+    // Delete both
+    response =
+        restRequest(ownerType, ownerPublicId).query("stageTypeId", policyMonitorings[0].getStageTypeId()).delete();
+    assertResponseStatus(204, response);
+    response =
+        restRequest(ownerType, ownerPublicId).query("stageTypeId", policyMonitorings[1].getStageTypeId()).delete();
+    assertResponseStatus(204, response);
+
+    // Get
+    response = restRequest(ownerType, ownerPublicId).get();
+    assertResponseStatus(200, response);
+    policyMonitorings = response.getBody(PolicyMonitoring[].class);
+    assertThat(policyMonitorings).isEmpty();
   }
 
   @Test
   public void testDelete_NotSet_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization("PolicyMonitoringResourceTest");
-    HttpResponse response = restRequest(OwnerType.ORGANIZATION, organization.getId()).delete();
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(organization.getId(), ReleaseStageType.ID);
+    HttpResponse response = restRequest(OwnerType.ORGANIZATION, organization.getId()).body(policyMonitoring).delete();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText())
         .isEqualTo("Policy monitoring was not set for owner ID " + organization.getId() + ".");
@@ -106,7 +227,8 @@ public class PolicyMonitoringResourceTest
   public void testDelete_NotSet_Application() throws Exception {
     String appPublicId = "PolicyMonitoringResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
-    HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).delete();
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(application.getId(), ReleaseStageType.ID);
+    HttpResponse response = restRequest(OwnerType.APPLICATION, appPublicId).body(policyMonitoring).delete();
     assertResponseStatus(404, response);
     assertThat(response.getBodyText())
         .isEqualTo("Policy monitoring was not set for owner ID " + application.getId() + ".");
@@ -237,6 +359,55 @@ public class PolicyMonitoringResourceTest
   }
 
   @Test
+  public void testSet_SbomManagerLicenseOnly() throws Exception {
+    setLicenseProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+    Organization organization = tempEntity.newOrganization("PolicyMonitoringResourceTest_OrgName");
+
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_COMPLIANCE);
+    HttpResponse response = restRequest(OwnerType.ORGANIZATION, organization.getId()).body(policyMonitoring).put();
+    assertResponseStatus(200, response);
+  }
+
+  @Test
+  public void testSet_MultiLicense() throws Exception {
+    setLicenseProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS, ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+    Organization organization = tempEntity.newOrganization("PolicyMonitoringResourceTest_OrgName");
+
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_COMPLIANCE);
+    HttpResponse response = restRequest(OwnerType.ORGANIZATION, organization.getId()).body(policyMonitoring).put();
+    assertResponseStatus(200, response);
+
+    policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_RELEASE);
+    response = restRequest(OwnerType.ORGANIZATION, organization.getId()).body(policyMonitoring).put();
+    assertResponseStatus(200, response);
+  }
+
+  @Test
+  public void testSet_VariousStagesWithInvalidLicenses() throws Exception {
+    // Try setting a compliance stage record with a Lifecycle only license
+    String orgName = "PolicyMonitoringResourceTest_OrgName";
+    Organization organization = tempEntity.newOrganization(orgName);
+
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_COMPLIANCE);
+    HttpResponse response = restRequest(OwnerType.ORGANIZATION, organization.getId()).body(policyMonitoring).put();
+
+    assertResponseStatus(402, response);
+    assertThat(response.getBodyText()).isEqualTo("policy monitoring for stage 'compliance' " +
+        "is not supported with your license.");
+    assertThat(policyMonitoringDAO.getAll()).isEmpty();
+
+    // Try setting a non-compliance stage record with a SBOM Manager only license
+    setLicenseProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+    policyMonitoring = new PolicyMonitoring(null /* ownerId */, Stage.ID_RELEASE);
+    response = restRequest(OwnerType.ORGANIZATION, organization.getId()).body(policyMonitoring).put();
+
+    assertResponseStatus(402, response);
+    assertThat(response.getBodyText()).isEqualTo("policy monitoring for stage 'release' " +
+        "is not supported with your license.");
+    assertThat(policyMonitoringDAO.getAll()).isEmpty();
+  }
+
+  @Test
   public void testSet_InvalidApplicationStageTypeId() throws Exception {
     String appPublicId = "PolicyMonitoringResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
@@ -315,7 +486,7 @@ public class PolicyMonitoringResourceTest
 
   private void assertEmptyPolicyMonitoringByOwner(Owner owner, PolicyMonitoringByOwner policyMonitoringByOwner) {
     assertThat(policyMonitoringByOwner.ownerName).isEqualTo(owner.getName());
-    assertThat(policyMonitoringByOwner.policyMonitoring).isNull();
+    assertThat(policyMonitoringByOwner.policyMonitorings).isEmpty();
   }
 
   private void assertPolicyMonitoringByOwner(Owner owner,
@@ -323,7 +494,9 @@ public class PolicyMonitoringResourceTest
                                              PolicyMonitoringByOwner policyMonitoringByOwner)
   {
     assertThat(policyMonitoringByOwner.ownerName).isEqualTo(owner.getName());
-    assertThat(policyMonitoringByOwner.policyMonitoring).isNotNull();
-    assertPolicyMonitoring(owner.getId(), stageTypeId, policyMonitoringByOwner.policyMonitoring);
+    assertThat(policyMonitoringByOwner.policyMonitorings).isNotNull();
+    for (PolicyMonitoring policyMonitoring: policyMonitoringByOwner.policyMonitorings) {
+      assertPolicyMonitoring(owner.getId(), stageTypeId, policyMonitoring);
+    }
   }
 }

@@ -13,12 +13,14 @@ export function createInheritOrNoMonitorOption(policyMonitoringByOwner, stages) 
     if (ownerIndex === 1) {
       parentsName = policyMonitoringOwner.ownerName;
     }
-    if (policyMonitoringOwner.policyMonitoring) {
-      var theStage = getMonitoredStage(policyMonitoringOwner.policyMonitoring, stages);
-      inheritOrNoMonitorOption = {
-        stageName: 'Inherit from ' + parentsName + ' (' + theStage.stageName + ')',
-      };
-      return true;
+    if (policyMonitoringOwner.policyMonitorings && policyMonitoringOwner.policyMonitorings.length > 0) {
+      var theStage = getMonitoredStage(policyMonitoringOwner.policyMonitorings, stages);
+      if (theStage) {
+        inheritOrNoMonitorOption = {
+          stageName: 'Inherit from ' + parentsName + ' (' + theStage.stageName + ')',
+        };
+        return true;
+      }
     }
   });
   if (!inheritOrNoMonitorOption) {
@@ -33,8 +35,70 @@ export function createInheritOrNoMonitorOption(policyMonitoringByOwner, stages) 
   return inheritOrNoMonitorOption;
 }
 
-export function getMonitoredStage(policyMonitoring, stages = []) {
+export function getMonitoredStageFromAncestors(policyMonitoringByOwner, sbomStages) {
+  let appliedStage = null;
+
+  for (const owner of policyMonitoringByOwner) {
+    appliedStage = getMonitoredStage(owner.policyMonitorings, sbomStages);
+    if (appliedStage) break;
+  }
+
+  return appliedStage;
+}
+
+export function getMonitoredStage(policyMonitorings, stages = []) {
   return stages.filter(function (stage) {
-    return policyMonitoring ? stage.stageTypeId === policyMonitoring.stageTypeId : !stage.stageTypeId;
+    return policyMonitorings.some((policyMonitoring) =>
+      policyMonitoring ? stage.stageTypeId === policyMonitoring.stageTypeId : !stage.stageTypeId
+    );
   })[0];
+}
+
+export function getSbomManagerMonitoredStageDetails(policyMonitoringByOwner, sbomStages, isApplication) {
+  if (!policyMonitoringByOwner || policyMonitoringByOwner.length === 0 || !sbomStages || sbomStages.length === 0) {
+    return null;
+  }
+
+  const textComplement = isApplication ? 'application' : 'organization and all its dependents';
+  const length = policyMonitoringByOwner.length;
+  let rootStage = null;
+
+  if (length === 1) {
+    const root = policyMonitoringByOwner[0];
+    if (getMonitoredStage(root.policyMonitorings, sbomStages)) {
+      return { label: 'Disable continuous monitoring for SBOM Manager', toggleEnabled: true };
+    } else {
+      return { label: 'Enable continuous monitoring for SBOM Manager', toggleEnabled: true };
+    }
+  }
+
+  for (let i = 0; i < length; i++) {
+    const currentOwner = policyMonitoringByOwner[i];
+    const currentStage = getMonitoredStage(currentOwner.policyMonitorings, sbomStages);
+
+    if (i === 0) {
+      if (currentStage) {
+        rootStage = currentStage;
+      }
+    } else {
+      const parent = policyMonitoringByOwner[i];
+      if (getMonitoredStage(parent.policyMonitorings, sbomStages)) {
+        return {
+          label: `Continuous Monitoring is up and running at ${parent.ownerName}, so this means it's active for this ${textComplement}.`,
+          toggleEnabled: false,
+        };
+      }
+    }
+  }
+
+  if (rootStage) {
+    return { label: 'Disable continuous monitoring for SBOM Manager', toggleEnabled: true };
+  } else {
+    return {
+      label:
+        'Continuous Monitoring is currently disabled at the root organization.' +
+        ` Would you like to enable it for this ${textComplement}?`,
+      toggleEnabled: true,
+    };
+  }
 }

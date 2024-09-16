@@ -20,7 +20,7 @@ import {
   selectPolicyMonitoringLoading,
   selectPolicyMonitoringSubmitError,
   selectSelectedMonitoredStage,
-  selectContinousMonitoringIsDirty,
+  selectContinuousMonitoringIsDirty,
   selectContinuousMonitoringSubmitMaskState,
 } from '../policyMonitoringSelectors';
 import { selectCliStagesWithInheritOrNoMonitorOption } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
@@ -33,7 +33,7 @@ export default function ContinuousMonitoringEditor() {
   const submitError = useSelector(selectPolicyMonitoringSubmitError);
   const stages = useSelector(selectCliStagesWithInheritOrNoMonitorOption);
   const monitoredStage = useSelector(selectSelectedMonitoredStage);
-  const isDirty = useSelector(selectContinousMonitoringIsDirty);
+  const isDirty = useSelector(selectContinuousMonitoringIsDirty);
   const submitMaskState = useSelector(selectContinuousMonitoringSubmitMaskState);
 
   const doLoad = () => {
@@ -45,7 +45,7 @@ export default function ContinuousMonitoringEditor() {
   };
 
   const handleMonitorChange = (stage) => {
-    dispatch(actions.setMonitoredStage(stage));
+    dispatch(actions.setMonitoredStage({ stages: stages, monitoredStage: stage }));
   };
 
   useEffect(function () {
@@ -81,7 +81,7 @@ export default function ContinuousMonitoringEditor() {
                       name="monitor"
                       key={stage.stageName}
                       value={stage.stageName}
-                      isChecked={monitoredStage.stageTypeId === stage.stageTypeId}
+                      isChecked={monitoredStage?.stageTypeId === stage.stageTypeId}
                       onChange={() => handleMonitorChange(stage)}
                     >
                       {stage.stageName}

@@ -118,7 +118,7 @@ public class FirewallReleaseIntegrityLicenseListener
   }
 
   private void enablePolicyMonitoringForAllRepositories(TransactionContext tx) {
-    if (policyMonitoringDAO.getByOwnerId(tx, REPOSITORY_CONTAINER_ID) == null) {
+    if (policyMonitoringDAO.getByOwnerId(tx, REPOSITORY_CONTAINER_ID).isEmpty()) {
       log.info("Enabling policy monitoring for all repositories");
       PolicyMonitoring policyMonitoring = new PolicyMonitoring();
       policyMonitoring.setOwnerId(REPOSITORY_CONTAINER_ID);

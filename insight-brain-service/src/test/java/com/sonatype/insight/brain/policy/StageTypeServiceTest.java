@@ -135,4 +135,26 @@ public class StageTypeServiceTest
         StageTypes.RELEASE, //
         StageTypes.OPERATE);
   }
+
+  @Test
+  public void testGetLicensedStageTypes_ContextSbom() {
+    testProductLicense.setStageTypes(StageTypes.getAll());
+
+    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.SBOM_CONTEXT)).containsExactly(
+        StageTypes.COMPLIANCE);
+  }
+
+  @Test
+  public void testGetLicensedStageTypes_ContextLifecycle() {
+    testProductLicense.setStageTypes(StageTypes.getAll());
+
+    assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.LIFECYCLE_CONTEXT)).containsExactly( //
+        StageTypes.PROXY, //
+        StageTypes.DEVELOP, //
+        StageTypes.SOURCE, //
+        StageTypes.BUILD, //
+        StageTypes.STAGE_RELEASE, //
+        StageTypes.RELEASE, //
+        StageTypes.OPERATE);
+  }
 }

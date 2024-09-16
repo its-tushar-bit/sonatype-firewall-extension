@@ -82,6 +82,7 @@ public class PolicyViolationTelemetryCollectorTest
     final String ecosystem = "npm";
     final String cveNumber = "c-1-v-2-e";
     final double cvssScore = 0;
+    final String componentIdentifier = "lodash:5.1.0";
     final boolean isScmEnabled = true;
     final boolean isDirectDependency = false;
     final boolean isInnerSource = false;
@@ -110,11 +111,11 @@ public class PolicyViolationTelemetryCollectorTest
     assertTelemetryAttributes(TIME_TO_REMEDIATE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, isDirectDependency, isInnerSource, null,
         telemetryData.get(0), policyViolation.getPolicyWaiverId(), ecosystem, policyName, violationId,
-        cveNumber, cvssScore);
+        cveNumber, cvssScore, componentIdentifier);
     assertTelemetryAttributes(TIME_TO_CHANGE_VERSION_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, isDirectDependency, isInnerSource,
         "upgrade", telemetryData.get(1), policyViolation.getPolicyWaiverId(), ecosystem, policyName, violationId,
-        cveNumber, cvssScore);
+        cveNumber, cvssScore, componentIdentifier);
   }
 
   @Test
@@ -124,6 +125,7 @@ public class PolicyViolationTelemetryCollectorTest
     final PolicyThreatCategory policyThreatCategory = PolicyThreatCategory.SECURITY;
     final String policyName = "defaultPolicyName";
     final String ecosystem = "npm";
+    final String componentIdentifier = "lodash:4.17.15";
     final boolean isScmEnabled = true;
     final boolean isDirectDependency = false;
     final boolean isInnerSource = false;
@@ -149,11 +151,12 @@ public class PolicyViolationTelemetryCollectorTest
     assertThat(telemetryData.size()).isEqualTo(2);
     assertTelemetryAttributes(TIME_TO_REMEDIATE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, isDirectDependency, isInnerSource, null,
-        telemetryData.get(0), policyViolation.getPolicyWaiverId(), ecosystem, policyName, null, null, null);
+        telemetryData.get(0), policyViolation.getPolicyWaiverId(), ecosystem, policyName, null, null,
+        null, componentIdentifier);
     assertTelemetryAttributes(TIME_TO_CHANGE_VERSION_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, isDirectDependency, isInnerSource,
         "downgrade", telemetryData.get(1), policyViolation.getPolicyWaiverId(), ecosystem, policyName, null,
-        null, null);
+        null, null, componentIdentifier);
   }
 
   @Test
@@ -186,7 +189,7 @@ public class PolicyViolationTelemetryCollectorTest
     assertThat(telemetryData.size()).isEqualTo(1);
     assertTelemetryAttributes(TIME_TO_REMEDIATE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, null, null, null, telemetryData.get(0),
-        policyViolation.getPolicyWaiverId(), null, policyName, policyViolationId, cveNumber, cvssScore);
+        policyViolation.getPolicyWaiverId(), null, policyName, policyViolationId, cveNumber, cvssScore, null);
   }
 
   @Test
@@ -199,6 +202,7 @@ public class PolicyViolationTelemetryCollectorTest
     final String ecosystem = "npm";
     final String cveNumber = "cve-000";
     final double cvssScore = 3.3;
+    final String componentIdentifier = "lodash:5.1.0";
     final boolean isScmEnabled = true;
     final boolean isDirectDependency = false;
     final boolean isInnerSource = false;
@@ -227,7 +231,7 @@ public class PolicyViolationTelemetryCollectorTest
     assertTelemetryAttributes(TIME_TO_REMEDIATE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, isDirectDependency, isInnerSource, null,
         telemetryData.get(0), policyViolation.getPolicyWaiverId(), ecosystem, policyName, policyViolationId,
-        cveNumber, cvssScore);
+        cveNumber, cvssScore, componentIdentifier);
   }
 
   @Test
@@ -273,7 +277,7 @@ public class PolicyViolationTelemetryCollectorTest
     assertTelemetryAttributes(TIME_TO_REMEDIATE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, null, isInnerSource, null,
         telemetryData.get(0), policyViolation.getPolicyWaiverId(), null, policyName, policyViolationId,
-        cveNumber, cvssScore);
+        cveNumber, cvssScore, null);
   }
 
   @Test
@@ -287,6 +291,7 @@ public class PolicyViolationTelemetryCollectorTest
     final String ecosystem = "pypi";
     final String cveNumber = "cvx-xxx";
     final double cvssScore = 5.1;
+    final String componentIdentifier = "urllib3:1.25.7";
     final boolean isScmEnabled = true;
     final boolean isDirectDependency = true;
     final boolean isInnerSource = true;
@@ -315,7 +320,7 @@ public class PolicyViolationTelemetryCollectorTest
     assertTelemetryAttributes(TIME_TO_WAIVE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), evalTime.getTime(), evalTime.getTime(), null, -1, isDirectDependency,
         isInnerSource, null, telemetryData.get(0), "some-old-policy-waiver-id", ecosystem,
-        policyName, policyViolationId, cveNumber, cvssScore);
+        policyName, policyViolationId, cveNumber, cvssScore, componentIdentifier);
   }
 
   @Test
@@ -328,6 +333,7 @@ public class PolicyViolationTelemetryCollectorTest
     final String ecosystem = "maven";
     final String cveNumber = "cve-111";
     final double cvssScore = 1;
+    final String componentIdentifier = "commons-lang3:3.8.1";
     final boolean isScmEnabled = false;
     final boolean isDirectDependency = true;
     final boolean isInnerSource = false;
@@ -364,7 +370,7 @@ public class PolicyViolationTelemetryCollectorTest
     assertTelemetryAttributes(TIME_TO_WAIVE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), evalTime.getTime(), evalTime.getTime(), null, 1, isDirectDependency,
         isInnerSource, null, telemetryData.get(0), policyViolation.getPolicyWaiverId(), ecosystem,
-        policyName, policyViolationId, cveNumber, cvssScore);
+        policyName, policyViolationId, cveNumber, cvssScore, componentIdentifier);
     assertThat(attributes.get(WAIVER_EXPIRATION)).isEqualTo(waiverExpirationInDays);
   }
 
@@ -408,6 +414,7 @@ public class PolicyViolationTelemetryCollectorTest
     final String ecosystem = "maven";
     final String cveNumber = "cve-456";
     final double cvssScore = 7.1;
+    final String componentIdentifier = "commons-lang3:3.8.1";
     final boolean isScmEnabled = false;
     final boolean isDirectDependency = true;
     final boolean isInnerSource = false;
@@ -441,7 +448,7 @@ public class PolicyViolationTelemetryCollectorTest
     assertTelemetryAttributes(TIME_TO_LEGACY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), null, null, null, 1, isDirectDependency, isInnerSource, null,
         telemetryData.get(0), policyViolation.getPolicyWaiverId(), ecosystem, policyName, policyViolationId,
-        cveNumber, cvssScore);
+        cveNumber, cvssScore, componentIdentifier);
     assertThat(attributes.get(LEGACY_VIOLATION_TIME)).isEqualTo(evalTime.getTime());
   }
 
@@ -654,7 +661,8 @@ public class PolicyViolationTelemetryCollectorTest
       final String policyName,
       final String policyViolationId,
       final String cveNumber,
-      final Double cvssScore)
+      final Double cvssScore,
+      final String componentIdentifier)
   {
     assertThat(telemetryData.getPurpose()).isEqualTo(telemetryPurpose);
     Map<String, Object> attributes = telemetryData.getAttributes();
@@ -680,6 +688,7 @@ public class PolicyViolationTelemetryCollectorTest
     assertNonNullableAttribute(attributes,ECOSYSTEM , ecosystem);
     assertNonNullableAttribute(attributes, CVE_NUMBER, cveNumber);
     assertNonNullableAttribute(attributes, CVSS_SCORE, cvssScore);
+    assertNonNullableAttribute(attributes, COMPONENT_IDENTIFIER, componentIdentifier);
 
     assertThat(attributes.containsKey(POLICY_NAME)).isTrue();
     assertThat(attributes.get(POLICY_NAME)).isEqualTo(policyName);

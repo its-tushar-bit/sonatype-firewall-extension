@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -46,6 +47,8 @@ public class PolicyViolationTelemetryCollector
   static final String COUNT = "count";
 
   static final String ECOSYSTEM = "ecosystem";
+
+  static final String COMPONENT_IDENTIFIER = "component_identifier";
 
   static final String FIX_TIME = "fix_time";
 
@@ -221,9 +224,21 @@ public class PolicyViolationTelemetryCollector
         telemetryData.put(DIRECT_DEPENDENCY, component.getDirectDependency());
       }
 
-      Optional.ofNullable(component.getComponentIdentifier())
+      Optional<ComponentIdentifier> componentIdentifierOptional =
+          Optional.ofNullable(component.getComponentIdentifier());
+
+      componentIdentifierOptional
           .map(ComponentIdentifier::getFormat)
           .ifPresent(ecosystem -> telemetryData.put(ECOSYSTEM, ecosystem));
+
+      componentIdentifierOptional
+          .map(PackageUrlIdentifier::fromComponentIdentifier)
+          .ifPresent(urlIdentifier -> {
+            String componentName = urlIdentifier.getName();
+            String componentVersion = urlIdentifier.getVersion();
+
+            telemetryData.put(COMPONENT_IDENTIFIER, String.format("%s:%s", componentName, componentVersion));
+          });
     }
   }
 

@@ -1038,6 +1038,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GUST-
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Gutmann','Gutmann','Gutmann License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('H-LPL-1.0.0','H-LPL-1.0.0','Holograph Limited Public License - 1.0.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('H2-1.0','H2-1.0','H2 License Version 1.0');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('H2-UNSPECIFIED','H2','H2-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('H2O-AI-Driverless-AI-EA','H2O-AI-Driverless-AI-EA','H2O.AI Driverless AI Evaluation Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Habanero-Business-Development-EULA-1.0','Habanero-Business-Development-EULA-1.0','Habanero Business Development End User License Agreement Version 1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Halerium-EULA-RD02202021','Halerium-EULA-RD02202021','Halerium End User License Agreement - Release Date 02-20-2021');

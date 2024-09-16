@@ -154,10 +154,6 @@ void configureBranchJob() {
       booleanParam(defaultValue: true,
           description: 'Only run policy violations when manifests have changed (not available on Main)',
           name: 'dynamicPolicyEvaluationEnabled'),
-      booleanParam(defaultValue: true,
-          description: 'Reduces what files we copy between build agents. By default we copy the entire ' +
-              'workspace (~5GB) between machines during the build which is slow (not available on Main)',
-          name: 'fastCopyEnabled'),
       booleanParam(defaultValue: mtiqImagePushEnabledByDefault,
           description: 'If checked will push the MTIQ Docker image to RSC for this branch',
           name: 'mtiqImagePushEnabled')
@@ -313,7 +309,9 @@ void runAllTests(Map<String, ?> mavenCommon, String keystoreCredId, boolean depl
 
   if (isFastCopyEnabled()) {
     runSafely "zip --symlinks -q -r ${m2Zip} .zion/repository/*"
-    runSafely 'find . \\( -type d \\( -name "test-classes" -o -name "classes" \\) -o -type f -name "pom.xml" -o -path "*/src/*" \\) ! -path "./insight-brain-frontend/target/*" ! -path "./insight-brain-functional-test-common/target/*" -print | zip -q -r iq-tests.zip -@'
+    runSafely 'find . \\( -type d \\( -name "test-classes" -o -name "classes" \\) -o -type f -name "pom.xml" -o -path "*/src/*" -o -type d -name .mvn \\) ! -path "./insight-brain-frontend/target/*" ! -path "./insight-brain-functional-test-common/target/*" -print | zip -q -r iq-tests.zip -@'
+
+    //\( -type d \( -name "test-classes" -o -name "classes" \) -o -type f -name "pom.xml" -o -path "*/src/*" \)
 
     archiveArtifacts(artifacts: "${m2Zip}, ${iqTestsZip}", fingerprint: false)
   }
@@ -537,7 +535,7 @@ boolean isDynamicPolicyEvaluationEnabled() {
 }
 
 boolean isFastCopyEnabled() {
-  return !isDeployBranch(env, 'main') && params.fastCopyEnabled
+  return false
 }
 
 boolean shouldRunPolicyEvaluation() {

@@ -438,6 +438,8 @@ CREATE TABLE policy_violation (
 
   reachability_status varchar(20) NULL,
 
+  auto_policy_waiver_id varchar(50) NULL,
+
   CONSTRAINT policy_violation_pk PRIMARY KEY (policy_violation_id),
   CONSTRAINT policy_violation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
 );
@@ -1846,3 +1848,22 @@ INSERT INTO policy_waiver_reason VALUES ('39984de3d6e64f508df82b4cbfd72f70', 'sy
 INSERT INTO policy_waiver_reason VALUES ('f6990a32cd8d4ea78853ca829d948927', 'system', 'Not exploitable');
 INSERT INTO policy_waiver_reason VALUES ('3446e70e60e04676a90131f3dea9bdb5', 'system', 'Researching');
 INSERT INTO policy_waiver_reason VALUES ('c991ef95866d4903ad0c6c217ac47c07', 'system', 'Other');
+
+
+
+-- since 1.183
+-- SaaS Compatible
+CREATE TABLE IF NOT EXISTS  auto_policy_waiver (
+    auto_policy_waiver_id VARCHAR(50) NOT NULL,
+    owner_id VARCHAR(50) NOT NULL,
+    threat_level SMALLINT NOT NULL,
+    reachable BOOLEAN,
+    path_forward BOOLEAN,
+    creator_id VARCHAR(60) NOT NULL,
+    creator_name varchar(210) NOT NULL,
+    create_time TIMESTAMP NOT NULL,
+    CONSTRAINT auto_policy_waiver_pk
+    PRIMARY KEY (auto_policy_waiver_id)
+    );
+
+CREATE INDEX auto_policy_waiver_owner_id_idx on auto_policy_waiver(owner_id);

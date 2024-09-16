@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 import javax.inject.Inject;
 
@@ -525,19 +526,24 @@ public class ThirdPartyDataServiceTest
           .isEqualTo(expectedSbomAsString);
     }
 
+    List<PackageUrlIdentifier> expectedUrls = Stream.of(
+        "pkg:pypi/orange@1.0.1?qualifier=py2.py3-none-any&extension=whl",
+        "pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0",
+        "pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1",
+        "pkg:maven/com.sun.istack/istack-commons-runtime@4.1.2?type=jar").map(PackageUrlIdentifier::new).toList();
+
     assertThat(sbomMetadata).isNotNull();
     assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
     assertThat(fileCoordinates).hasSize(4);
-    assertThat(coords.keySet())
-        .containsExactlyInAnyOrder("pkg:pypi/orange@1.0.1?qualifier=py2.py3-none-any&extension=whl",
-            "pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0",
-            "pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1",
-            "pkg:maven/com.sun.istack/istack-commons-runtime@4.1.2?type=jar");
+    assertThat(coords.keySet()).containsExactlyInAnyOrderElementsOf(expectedUrls.stream().map(PackageUrlIdentifier::
+        getPackageUrl).collect(Collectors.toList()));
 
-    ThirdPartyFileCoordinate tpfc1 = coords.get("pkg:pypi/orange@1.0.1?qualifier=py2.py3-none-any&extension=whl");
+    ThirdPartyFileCoordinate tpfc1 = coords.get(new PackageUrlIdentifier(
+        "pkg:pypi/orange@1.0.1?qualifier=py2.py3-none-any&extension=whl").getPackageUrl());
     assertThat(tpfc1.getId()).isNotEmpty();
     assertThat(tpfc1.getThirdPartyFileId()).isEqualTo(sbomMetadata.getThirdPartyFileId());
-    assertThat(tpfc1.getPackageUrl()).isEqualTo("pkg:pypi/orange@1.0.1?qualifier=py2.py3-none-any&extension=whl");
+    assertThat(tpfc1.getPackageUrl()).isEqualTo(new PackageUrlIdentifier(
+        "pkg:pypi/orange@1.0.1?qualifier=py2.py3-none-any&extension=whl").getPackageUrl());
     assertThat(tpfc1.getName()).isEqualTo("orange");
     assertThat(tpfc1.getVersion()).isEqualTo("1.0.1");
     assertThat(tpfc1.getHash()).isEqualTo("093080a1a4bbd2750541");
@@ -547,6 +553,45 @@ public class ThirdPartyDataServiceTest
     assertThat(tpfc1.getDependencyType()).isNull();
     assertThat(tpfc1.getCpe()).isNull();
     assertThat(tpfc1.getSwid()).isNull();
+
+    List<ThirdPartyCoordinateSecurity> tpvListC1 = thirdPartyCoordinateSecurityDAO
+        .getByFileCoordinateId(tpfc1.getId());
+
+    assertThat(tpvListC1.size()).isEqualTo(2);
+    ThirdPartyCoordinateSecurity fgR00229 = tpvListC1.get(0);
+    assertThat(fgR00229.getIdentificationSources()).isEqualTo("Sonatype");
+    assertThat(fgR00229.getRefId()).isEqualTo("FG-R00229");
+    assertThat(fgR00229.getAdvisories()).isNull();
+    assertThat(fgR00229.getAttackVector()).isEqualTo("1.vectorString");
+    assertThat(fgR00229.getCwes()).isEqualTo("cwe-1,2.cwe");
+    assertThat(fgR00229.getDescription()).isBlank();
+    assertThat(fgR00229.getLink()).isEqualTo("1.url");
+    assertThat(fgR00229.getRecommendations()).isNull();
+    assertThat(fgR00229.getSeverity()).isEqualTo(9.0d);
+    assertThat(fgR00229.getSeverityDescription()).isEqualTo("CRITICAL");
+    assertThat(fgR00229.getVulnerabilitySource()).isEqualTo("IAC");
+    assertThat(fgR00229.getRatingMethod()).isNull();
+
+    ThirdPartyCoordinateSecurity fgr00274 = tpvListC1.get(1);
+    assertThat(fgr00274.getRefId()).isEqualTo("FG-R00274");
+    assertThat(fgr00274.getIdentificationSources()).isEqualTo("Sonatype");
+    assertThat(fgr00274.getAdvisories()).isNull();
+    assertThat(fgr00274.getAttackVector()).isNull();
+    assertThat(fgr00274.getCwes()).isNull();
+    assertThat(fgr00274.getDescription()).isBlank();
+    assertThat(fgr00274.getLink()).isNull();
+    assertThat(fgr00274.getRecommendations()).isNull();
+    assertThat(fgr00274.getSeverity()).isEqualTo(7.0d);
+    assertThat(fgr00274.getSeverityDescription()).isEqualTo("HIGH");
+    assertThat(fgr00274.getVulnerabilitySource()).isEqualTo("IAC");
+    assertThat(fgr00274.getRatingMethod()).isNull();
+
+    List<ThirdPartyCoordinateLicense> tclListC1 = thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(tpfc1.getId());
+    assertThat(tclListC1.size()).isEqualTo(2);
+    ThirdPartyCoordinateLicense  component1License1 = tclListC1.get(0);
+    assertThat(component1License1.getLicenseId()).isEqualTo("Apache-2.0");
+    ThirdPartyCoordinateLicense  component1License2 = tclListC1.get(1);
+    assertThat(component1License2.getLicenseId()).isEqualTo("MIT");
 
     ThirdPartyFileCoordinate tpfc2 = coords.get("pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0");
     assertThat(tpfc2.getId()).isNotEmpty();

@@ -5,7 +5,7 @@
       "coordinates" : {
         "extension" : "whl",
         "name" : "orange",
-        "qualifier" : "py2.py3-none-1",
+        "qualifier" : "py2.py3-none-any",
         "version" : "1.0.1"
       }
     },

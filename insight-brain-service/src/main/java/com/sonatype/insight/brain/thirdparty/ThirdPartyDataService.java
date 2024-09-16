@@ -508,12 +508,10 @@ public class ThirdPartyDataService
           componentDependencyTypeMap);
       String bomAsString = BomGeneratorFactory.createJson(Version.VERSION_16, originalBom).toJsonString();
       createAndSaveOriginalSbom(sbomMetadata, bomAsString);
-      makeSbomActive(sbomMetadata);
     }
-    else {
-      mergeSonatypeDataWithSbomData(sbomMetadata, scanId, bomJsonData, securityJsonData, licensesJsonData,
-          componentDependencyTypeMap);
-    }
+
+    mergeSonatypeDataWithSbomData(sbomMetadata, scanId, bomJsonData, securityJsonData, licensesJsonData,
+        componentDependencyTypeMap);
 
     cleanUpPreviousReport(sbomMetadata.getApplicationId(), sbomMetadata.getThirdPartyFileId(), scanId);
 
@@ -576,8 +574,8 @@ public class ThirdPartyDataService
       if (StringUtils.isEmpty(matchStateString) ||  MatchState.UNKNOWN.equals(MatchState.getById(matchStateString))) {
         continue;
       }
-      ThirdPartyFileCoordinate thirdPartyFileCoordinate =
-          createAndSaveComponentInThirdPartyDatabase(bomNode, thirdPartyFileId, componentDependencyTypeMap);
+      ThirdPartyFileCoordinate thirdPartyFileCoordinate = createAndSaveComponentInThirdPartyDatabase(bomNode,
+          thirdPartyFileId, componentDependencyTypeMap);
       createAndSaveComponentInBom(thirdPartyFileCoordinate, bomNode, bom);
     }
   }

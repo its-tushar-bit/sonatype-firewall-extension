@@ -9,6 +9,7 @@ import * as enzymeUtils from 'TestRoot/enzymeUtils';
 import PolicyViolationsTableRow from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationsTableRow';
 import ViolationExclamation from 'MainRoot/react/ViolationExclamation';
 import ActiveWaiversIndicator from 'MainRoot/violation/ActiveWaiversIndicator';
+import ReachabilityStatus from 'MainRoot/componentDetails/ReachabilityStatus/ReachabilityStatus';
 
 describe('PolicyViolationsTableRow', () => {
   let minimalProps, getShallow, getMounted;
@@ -136,6 +137,46 @@ describe('PolicyViolationsTableRow', () => {
 
       const actionElement = policyNameAndActionsCell.dive().find('li');
       expect(actionElement.find(ViolationExclamation)).toHaveProp('threatLevelCategory', 'disabled');
+    });
+
+    describe('renders reachability status under the policy name', () => {
+      const getMountedIndicators = (additionalProps) => {
+        const component = getMounted(additionalProps),
+          rowCells = component.find(NxTableCell),
+          policyNameAndActionsCell = rowCells.at(1);
+        return policyNameAndActionsCell.find(ReachabilityStatus);
+      };
+
+      it('does not render reachability status when reachabilityStatus is null', () => {
+        const indicators = getMountedIndicators({ violation: { ...minimalProps.violation, reachabilityStatus: null } });
+        expect(indicators.find('iq-policy-violation-row__reachability')).not.toExist();
+      });
+
+      it('renders reachability status as "Reachable" when reachabilityStatus is REACHABLE', () => {
+        const indicators = getMountedIndicators({
+          violation: { ...minimalProps.violation, reachabilityStatus: 'REACHABLE' },
+        });
+        const reachabilityStatusDiv = indicators.find('.iq-policy-violation-row__reachability');
+        expect(reachabilityStatusDiv).toExist();
+        expect(reachabilityStatusDiv).toHaveClassName('iq-policy-violation-row__reachability--reachable');
+        expect(reachabilityStatusDiv.find('span')).toHaveText('Reachable');
+        expect(reachabilityStatusDiv.find(NxFontAwesomeIcon)).toHaveClassName(
+          'iq-policy-violation-row__reachability-icon--reachable'
+        );
+      });
+
+      it('renders reachability status as "Not reachable" when reachabilityStatus is NON_REACHABLE', () => {
+        const indicators = getMountedIndicators({
+          violation: { ...minimalProps.violation, reachabilityStatus: 'NON_REACHABLE' },
+        });
+        const reachabilityStatusDiv = indicators.find('.iq-policy-violation-row__reachability');
+        expect(reachabilityStatusDiv).toExist();
+        expect(reachabilityStatusDiv).not.toHaveClassName('iq-policy-violation-row__reachability--reachable');
+        expect(reachabilityStatusDiv.find('span')).toHaveText('Not reachable');
+        expect(reachabilityStatusDiv.find(NxFontAwesomeIcon)).toHaveClassName(
+          'iq-policy-violation-row__reachability-icon--non-reachable'
+        );
+      });
     });
   });
 

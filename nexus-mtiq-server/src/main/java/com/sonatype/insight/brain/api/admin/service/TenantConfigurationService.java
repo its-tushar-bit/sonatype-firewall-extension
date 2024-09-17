@@ -47,7 +47,8 @@ public class TenantConfigurationService
       CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT,
       SBOM_BINARY_SCANNING,
       SBOM_CONTINUOUS_MONITORING_UI,
-      SBOM_POLICIES
+      SBOM_POLICIES,
+      MALWARE_DEFENSE_API
   );
 
   // Visible for testing

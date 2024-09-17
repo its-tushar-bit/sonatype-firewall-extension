@@ -222,7 +222,19 @@ public enum SystemConfigurationPropertyFeature
 
   SBOM_CONTINUOUS_MONITORING_UI(SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI, false),
 
-  SBOM_POLICIES(SystemConfigurationProperty.SBOM_POLICIES, false);
+  SBOM_POLICIES(SystemConfigurationProperty.SBOM_POLICIES, false),
+
+  MALWARE_DEFENSE_API(SystemConfigurationProperty.MALWARE_DEFENSE_API, false)
+  {
+    @Override
+    public boolean isEnabled(TransactionContext tx) {
+      if (tenantUtil.isSingleTenant()) {
+        return false;
+      }
+      return super.isEnabled(tx);
+    }
+  };
+
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

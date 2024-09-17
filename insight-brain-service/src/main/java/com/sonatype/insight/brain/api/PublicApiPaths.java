@@ -135,6 +135,8 @@ public class PublicApiPaths
 
   public static final String FIREWALL_RESOURCE_PATH = API_VERSION_PATH_V2 + "firewall";
 
+  public static final String MALWARE_DEFENSE_RESOURCE_PATH = API_VERSION_PATH_V2 + "malware/defense";
+
   public static final String EXTERNAL_TELEMETRY_PATH = API_VERSION_PATH_V2 + "telemetry";
 
   public static final String REPOSITORY_IDENTIFIED_COMPONENT_PATH_V2 =

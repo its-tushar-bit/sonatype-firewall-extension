@@ -192,6 +192,7 @@ public class Configuration
         SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION,
         SystemConfigurationProperty.SUCCESS_METRICS_STAGE_ID,
         SystemConfigurationProperty.SBOM_BINARY_SCANNING,
+        SystemConfigurationProperty.MALWARE_DEFENSE_API,
         SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI,
         SystemConfigurationProperty.SBOM_POLICIES)
     );

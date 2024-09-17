@@ -7,6 +7,8 @@ package com.sonatype.clm.testing.functional.version.graph;
 
 import java.util.Collections;
 
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.VersionsCIP;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
@@ -230,6 +232,7 @@ public abstract class AbstractVersionGraphMavenTest
 
   @Test
   public void testCIPWithoutRemediation() {
+    tempEntity.setPolicyActions("CoordinatesPolicy", Stage.ID_DEVELOP, Action.ID_FAIL);
     setupHdsResponsesForNoRemediation();
     mockHdsResponseForFirstComponent();
     mockHdsResponseForRemediation();
@@ -277,6 +280,39 @@ public abstract class AbstractVersionGraphMavenTest
 
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
     VersionsCIP.hideDetailsLink().shouldBe(visible);
+  }
+
+  @Test
+  public void testCIPWithoutRemediation_developAsDefaultIdeStageBehavior() {
+    tempEntity.clearPolicyActions("CoordinatesPolicy");
+    setupHdsResponsesForNoRemediation();
+    mockHdsResponseForFirstComponent();
+    mockHdsResponseForRemediation();
+
+    if (isApplicationSelectionNeeded()) {
+      VersionsCIP.selectApplications().selectByVisibleText("ApplicationReportTest (ApplicationReportTest)");
+    }
+
+    executeJavaScript(JAVA_SCRIPT_TO_EXECUTE);
+
+    if (isVersionRecommendationSupported()) {
+      VersionsCIP.recommendedVersionsHeader().shouldBe(visible);
+      VersionsCIP.nextNoViolationVersionLink().shouldBe(hidden);
+      VersionsCIP.nextNoFailVersionLink().shouldBe(hidden);
+      /*
+      With "develop" as the default stage for IDE, instead of no version available, the current version is recommended.
+      Although the current version has policy violations,
+      it is recommended because it does not fail any policies of develop stage.
+      */
+      VersionsCIP.noVersionsAvailable().shouldBe(hidden);
+      VersionsCIP.nextNoFailDependenciesVersion().shouldBe(visible);
+    }
+    else {
+      VersionsCIP.recommendedVersionsHeader().shouldBe(hidden);
+      VersionsCIP.nextNoViolationVersionLink().shouldBe(hidden);
+      VersionsCIP.nextNoFailVersionLink().shouldBe(hidden);
+      VersionsCIP.noVersionsAvailable().shouldBe(hidden);
+    }
   }
 
   @Test

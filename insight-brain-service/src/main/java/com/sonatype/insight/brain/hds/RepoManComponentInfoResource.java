@@ -98,6 +98,6 @@ public class RepoManComponentInfoResource
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
   {
     return componentInfoService.getComponentVersionInfo_EvaluateComponentPermission(applicationPublicId,
-        componentIdentifier);
+        componentIdentifier, null);
   }
 }

@@ -21,6 +21,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
@@ -95,6 +96,6 @@ public class IDEComponentInfoResource
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
   {
     return componentInfoService.getComponentVersionInfo_EvaluateComponentPermission(applicationPublicId,
-        componentIdentifier);
+        componentIdentifier, Stage.ID_DEVELOP);
   }
 }

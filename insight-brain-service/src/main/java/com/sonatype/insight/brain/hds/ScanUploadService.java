@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -20,6 +19,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanContext;
@@ -129,7 +129,8 @@ public class ScanUploadService
     if (scanContext.isSbomSavedForScan() && !SbomScanType.BINARY.equals(scanContext.getScanType())) {
       ThirdPartyScan tpScan = thirdPartyScanDAO.getById(scanContext.getThirdPartyScanId());
       if (tpScan != null) {
-        File scanFileCopy = new File(work.getScanDir(scanContext.getApplicationId()), newScanFileName());
+        File scanFileCopy = new File(work.getScanDir(scanContext.getApplicationId()),
+            SbomCommonUtils.newFilteredScanFileName(tpScan.getScanId()));
         try {
           Files.copy(filteredScanFile.toPath(), scanFileCopy.toPath(), StandardCopyOption.REPLACE_EXISTING);
           tpScan.setFilteredScanFile(scanFileCopy.getName());
@@ -164,9 +165,5 @@ public class ScanUploadService
       }
     }
     return null;
-  }
-
-  private static String newScanFileName() {
-    return "scan-" + UUID.randomUUID().toString().replace("-", "") + ".xml.gz";
   }
 }

@@ -20,12 +20,6 @@
       "name" : "orange",
       "version" : "1.0.1",
       "purl" : "pkg:pypi/orange@1.0.1?qualifier=py2.py3-none-any&extension=whl",
-      "properties" : [
-        {
-          "name" : "sonatypeIdentifier",
-          "value" : "e2fc57f3100043d18ebe5d487465427e"
-        }
-      ],
       "evidence" : {
         "occurrences" : [
           {
@@ -40,12 +34,6 @@
       "name" : "Microsoft.Identity.Client.Extensions.Msal",
       "version" : "2.23.0",
       "purl" : "pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0",
-      "properties" : [
-        {
-          "name" : "sonatypeIdentifier",
-          "value" : "78868e787032489e9583bd44e6d48560"
-        }
-      ],
       "evidence" : {
         "occurrences" : [
           {
@@ -60,12 +48,6 @@
       "name" : "Microsoft.IdentityModel.Protocols",
       "version" : "6.25.1",
       "purl" : "pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1",
-      "properties" : [
-        {
-          "name" : "sonatypeIdentifier",
-          "value" : "4f63af9416354842ba5b05f7c463bfd0"
-        }
-      ],
       "evidence" : {
         "occurrences" : [
           {
@@ -79,13 +61,7 @@
       "bom-ref" : "72ad9a5452c24e06a6399b0947f5099f",
       "name" : "com.sun.istack:istack-commons-runtime",
       "version" : "4.1.2",
-      "purl" : "pkg:maven/com.sun.istack/istack-commons-runtime@4.1.2?type=jar",
-      "properties" : [
-        {
-          "name" : "sonatypeIdentifier",
-          "value" : "469b2abdaec946a7bd14aa2113408ff2"
-        }
-      ]
+      "purl" : "pkg:maven/com.sun.istack/istack-commons-runtime@4.1.2?type=jar"
     }
   ]
 }

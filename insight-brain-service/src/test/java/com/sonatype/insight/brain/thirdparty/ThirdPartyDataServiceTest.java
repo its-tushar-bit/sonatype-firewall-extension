@@ -507,13 +507,11 @@ public class ThirdPartyDataServiceTest
     handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
 
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
-    List<ThirdPartyFileCoordinate> fileCoordinates =
-        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(sbomMetadata.getThirdPartyFileId());
-    Map<String, ThirdPartyFileCoordinate> coords = fileCoordinates.stream()
-        .collect(Collectors.toMap(ThirdPartyFileCoordinate::getPackageUrl, Function.identity()));
+    assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
+
+    //original sbom is generated and saved as expected
     File actualSbomFile =
         new File(insightWork.getSbomDir(sbomMetadata.getApplicationId()), sbomMetadata.getFilename());
-
     try (InputStream actualInputStream = new GZIPInputStream(new FileInputStream(actualSbomFile));
          InputStream expectedInputStream =
              ThirdPartyDataServiceTest.class
@@ -526,15 +524,24 @@ public class ThirdPartyDataServiceTest
           .isEqualTo(expectedSbomAsString);
     }
 
+    //filtered scan file is generated and exists
+    ThirdPartyScan tpScan = thirdPartyScanDAO.getByThirdPartyFileId(sbomMetadata.getThirdPartyFileId());
+    assertThat(tpScan.getFilteredScanFile()).isEqualTo("scan-" + tpScan.getScanId() + "-filtered.xml.gz");
+    File filteredScanFile =
+        new File(insightWork.getScanDir(sbomMetadata.getApplicationId()), tpScan.getFilteredScanFile());
+    assertThat(filteredScanFile).exists();
+
+    //components are saved as expected
+    List<ThirdPartyFileCoordinate> fileCoordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(sbomMetadata.getThirdPartyFileId());
+    Map<String, ThirdPartyFileCoordinate> coords = fileCoordinates.stream()
+        .collect(Collectors.toMap(ThirdPartyFileCoordinate::getPackageUrl, Function.identity()));
+    assertThat(fileCoordinates).hasSize(4);
     List<PackageUrlIdentifier> expectedUrls = Stream.of(
         "pkg:pypi/orange@1.0.1?qualifier=py2.py3-none-any&extension=whl",
         "pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0",
         "pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1",
         "pkg:maven/com.sun.istack/istack-commons-runtime@4.1.2?type=jar").map(PackageUrlIdentifier::new).toList();
-
-    assertThat(sbomMetadata).isNotNull();
-    assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
-    assertThat(fileCoordinates).hasSize(4);
     assertThat(coords.keySet()).containsExactlyInAnyOrderElementsOf(expectedUrls.stream().map(PackageUrlIdentifier::
         getPackageUrl).collect(Collectors.toList()));
 

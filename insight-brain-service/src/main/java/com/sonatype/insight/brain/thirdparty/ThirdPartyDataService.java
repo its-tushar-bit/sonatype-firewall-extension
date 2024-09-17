@@ -725,7 +725,7 @@ public class ThirdPartyDataService
     MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> resultsConsideringSonatypeId =
         new ArrayListValuedHashMap<>();
     groupHdsResultsConsideringSonatypeId(bomJsonData, resultsConsideringSonatypeId, resultsNotConsideringSonatypeId);
-    Map<ComponentIdentifier, List<SecurityVulnerability>> sonatypeVulnerabilityResults =
+    Map<ComponentIdentifier, Set<SecurityVulnerability>> sonatypeVulnerabilityResults =
         readSonatypeSecurityResults(securityJsonData);
     Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults =
         readSonatypeLicenseResults(licensesJsonData);
@@ -769,7 +769,7 @@ public class ThirdPartyDataService
       final String scanId,
       final Map<ComponentIdentifier, String> componentDependencyTypeMap,
       final Map<ComponentIdentifier, JsonNode> resultsWithNoSonatypeId,
-      final Map<ComponentIdentifier, List<SecurityVulnerability>> sonatypeVulnerabilityResults,
+      final Map<ComponentIdentifier, Set<SecurityVulnerability>> sonatypeVulnerabilityResults,
       final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
       final ThirdPartySbomMetadata thirdPartySbomMetadata)
   {
@@ -795,7 +795,7 @@ public class ThirdPartyDataService
       final String scanId,
       final Map<ComponentIdentifier, String> componentDependencyTypeMap,
       final MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> resultsWithSonatypeId,
-      final Map<ComponentIdentifier, List<SecurityVulnerability>> sonatypeVulnerabilityResults,
+      final Map<ComponentIdentifier, Set<SecurityVulnerability>> sonatypeVulnerabilityResults,
       final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
       final ThirdPartySbomMetadata thirdPartySbomMetadata)
   {
@@ -852,7 +852,7 @@ public class ThirdPartyDataService
       final String bomPurl,
       final ThirdPartyFileCoordinate sbomComponent,
       final ComponentIdentifier bomComponentIdentifier,
-      final Map<ComponentIdentifier, List<SecurityVulnerability>> sonatypeVulnerabilityResults,
+      final Map<ComponentIdentifier, Set<SecurityVulnerability>> sonatypeVulnerabilityResults,
       final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
       final ThirdPartySbomMetadata thirdPartySbomMetadata)
   {
@@ -965,12 +965,12 @@ public class ThirdPartyDataService
   }
 
   private void mergeSecurityData(
-      final Map<ComponentIdentifier, List<SecurityVulnerability>> sonatypeSecResults,
+      final Map<ComponentIdentifier, Set<SecurityVulnerability>> sonatypeSecResults,
       final ComponentIdentifier bomComponentIdentifier,
       final ThirdPartyFileCoordinate sbomComponent,
       final ThirdPartySbomMetadata thirdPartySbomMetadata)
   {
-    List<SecurityVulnerability> sonatypeVulns = sonatypeSecResults.get(bomComponentIdentifier);
+    Set<SecurityVulnerability> sonatypeVulns = sonatypeSecResults.get(bomComponentIdentifier);
     if (CollectionUtils.isNotEmpty(sonatypeVulns)) {
       // Get all the coordinate securities from the DB for all the vulnerabilities. This list wil
       Map<String, ThirdPartyCoordinateSecurity> coordinateSecuritiesFromDBForComponentMap =
@@ -1117,10 +1117,10 @@ public class ThirdPartyDataService
     return licenseResults;
   }
 
-  private Map<ComponentIdentifier, List<SecurityVulnerability>> readSonatypeSecurityResults(
+  private Map<ComponentIdentifier, Set<SecurityVulnerability>> readSonatypeSecurityResults(
       final ContainerNode<?> securityJsonData)
   {
-    Map<ComponentIdentifier, List<SecurityVulnerability>> secResults = new HashMap<>();
+    Map<ComponentIdentifier, Set<SecurityVulnerability>> secResults = new HashMap<>();
     ArrayNode securityJsonArray = (ArrayNode) securityJsonData.get("aaData");
     for (JsonNode securityJsonNode : securityJsonArray) {
       ComponentIdentifier securityComponentIdentifier =
@@ -1129,7 +1129,7 @@ public class ThirdPartyDataService
         SecurityVulnerability securityVulnerability = loadSecurityJson(securityJsonNode);
         if (securityVulnerability != null) {
           secResults.computeIfAbsent(securityComponentIdentifier, componentIdentifier ->
-              new ArrayList<>()).add(securityVulnerability);
+              new HashSet<>()).add(securityVulnerability);
         }
       }
     }

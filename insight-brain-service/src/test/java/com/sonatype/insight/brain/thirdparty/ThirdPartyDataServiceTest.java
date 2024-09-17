@@ -644,6 +644,95 @@ public class ThirdPartyDataServiceTest
   }
 
   @Test
+  public void testMergeSonatypeDataWithSbomDataWithIndexing_BinaryScan_duplicatedVulnerabilities()
+      throws URISyntaxException, IOException
+  {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+    tempEntity.createSbomMetadataForBinaryScan(null, "1", file, "PENDING");
+
+    final File reportZip = Paths.get(ReportHelper.zipReport(
+        "/ThirdPartyDataServiceTest/report-for-binary-scan-duplicated-vulnerabilities", tempDir)
+        .toURI()).toFile();
+
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
+
+    ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
+    List<ThirdPartyFileCoordinate> fileCoordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(sbomMetadata.getThirdPartyFileId());
+    Map<String, ThirdPartyFileCoordinate> coords = fileCoordinates.stream()
+        .collect(Collectors.toMap(ThirdPartyFileCoordinate::getPackageUrl, Function.identity()));
+
+    assertThat(sbomMetadata).isNotNull();
+    assertThat(fileCoordinates).hasSize(4);
+
+    ThirdPartyFileCoordinate tpfc1 = coords.get(new PackageUrlIdentifier(
+        "pkg:pypi/orange@1.0.1?qualifier=py2.py3-none-any&extension=whl").getPackageUrl());
+    assertThat(tpfc1.getId()).isNotEmpty();
+    assertThat(tpfc1.getThirdPartyFileId()).isEqualTo(sbomMetadata.getThirdPartyFileId());
+    assertThat(tpfc1.getPackageUrl()).isEqualTo(new PackageUrlIdentifier(
+        "pkg:pypi/orange@1.0.1?qualifier=py2.py3-none-any&extension=whl").getPackageUrl());
+    assertThat(tpfc1.getName()).isEqualTo("orange");
+    assertThat(tpfc1.getVersion()).isEqualTo("1.0.1");
+    assertThat(tpfc1.getHash()).isEqualTo("093080a1a4bbd2750541");
+    assertThat(tpfc1.getIdentificationSources()).isEqualTo("Sonatype");
+    assertThat(tpfc1.getFormat()).isEqualTo("pypi");
+    assertThat(tpfc1.getSource()).isEqualTo("Sonatype");
+    assertThat(tpfc1.getDependencyType()).isNull();
+    assertThat(tpfc1.getCpe()).isNull();
+    assertThat(tpfc1.getSwid()).isNull();
+
+    List<ThirdPartyCoordinateSecurity> tpvListC1 = thirdPartyCoordinateSecurityDAO
+        .getByFileCoordinateId(tpfc1.getId());
+
+    // Security.json file has 5 vulnerabilities. 2 vulnerabilities are repeated once and 1 unique
+    assertThat(tpvListC1.size()).isEqualTo(3);
+    ThirdPartyCoordinateSecurity fgR00229 = tpvListC1.get(0);
+    assertThat(fgR00229.getIdentificationSources()).isEqualTo("Sonatype");
+    assertThat(fgR00229.getRefId()).isEqualTo("FG-R00229");
+    assertThat(fgR00229.getAdvisories()).isNull();
+    assertThat(fgR00229.getAttackVector()).isEqualTo("1.vectorString");
+    assertThat(fgR00229.getCwes()).isEqualTo("cwe-1,2.cwe");
+    assertThat(fgR00229.getDescription()).isBlank();
+    assertThat(fgR00229.getLink()).isEqualTo("1.url");
+    assertThat(fgR00229.getRecommendations()).isNull();
+    assertThat(fgR00229.getSeverity()).isEqualTo(9.0d);
+    assertThat(fgR00229.getSeverityDescription()).isEqualTo("CRITICAL");
+    assertThat(fgR00229.getVulnerabilitySource()).isEqualTo("IAC");
+    assertThat(fgR00229.getRatingMethod()).isNull();
+
+    ThirdPartyCoordinateSecurity fgr00274 = tpvListC1.get(1);
+    assertThat(fgr00274.getRefId()).isEqualTo("FG-R00274");
+    assertThat(fgr00274.getIdentificationSources()).isEqualTo("Sonatype");
+    assertThat(fgr00274.getAdvisories()).isNull();
+    assertThat(fgr00274.getAttackVector()).isNull();
+    assertThat(fgr00274.getCwes()).isNull();
+    assertThat(fgr00274.getDescription()).isBlank();
+    assertThat(fgr00274.getLink()).isNull();
+    assertThat(fgr00274.getRecommendations()).isNull();
+    assertThat(fgr00274.getSeverity()).isEqualTo(7.0d);
+    assertThat(fgr00274.getSeverityDescription()).isEqualTo("HIGH");
+    assertThat(fgr00274.getVulnerabilitySource()).isEqualTo("IAC");
+    assertThat(fgr00274.getRatingMethod()).isNull();
+
+    ThirdPartyCoordinateSecurity fgR0123 = tpvListC1.get(2);
+    assertThat(fgR0123.getIdentificationSources()).isEqualTo("Sonatype");
+    assertThat(fgR0123.getRefId()).isEqualTo("FG-R0123");
+    assertThat(fgR0123.getAdvisories()).isNull();
+    assertThat(fgR0123.getAttackVector()).isEqualTo("1.vectorString");
+    assertThat(fgR0123.getCwes()).isNull();
+    assertThat(fgR0123.getDescription()).isBlank();
+    assertThat(fgR0123.getLink()).isEqualTo("1.url");
+    assertThat(fgR0123.getRecommendations()).isNull();
+    assertThat(fgR0123.getSeverity()).isEqualTo(4.0d);
+    assertThat(fgR0123.getSeverityDescription()).isEqualTo("MEDIUM");
+    assertThat(fgR0123.getVulnerabilitySource()).isEqualTo("IAC");
+    assertThat(fgR0123.getRatingMethod()).isNull();
+  }
+
+  @Test
   public void testMergeSonatypeDataWithSbomDataWithIndexing_SbomMetadataStatusIsUnchangedIfNoScans()
       throws URISyntaxException, IOException
   {

@@ -1,0 +1,190 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "pypi",
+        "coordinates": {
+          "extension": "whl",
+          "name": "orange",
+          "qualifier": "py2.py3-none-any",
+          "version": "1.0.1"
+        }
+      },
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "hash": "093080a1a4bbd2750541",
+      "url": "1.url",
+      "reference": "FG-R00229",
+      "source": "IaC",
+      "score": 9.0,
+      "cwe": "cwe-1,2.cwe",
+      "cvssVectorString": "1.vectorString",
+      "cvssVectorSource": null,
+      "matchState": "exact",
+      "proprietary": null,
+      "vulnerabilityCategories": ["data"],
+      "fixedVersion": null,
+      "description": "FG-R00229 test",
+      "severity": "High",
+      "ratingMethod": null,
+      "recommendations": "1.recommendations",
+      "advisories": "1.advisories"
+    },
+    {
+      "componentIdentifier": {
+        "format": "pypi",
+        "coordinates": {
+          "extension": "whl",
+          "name": "orange",
+          "qualifier": "py2.py3-none-any",
+          "version": "1.0.1"
+        }
+      },
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "hash": "093080a1a4bbd2750541",
+      "url": "1.url",
+      "reference": "FG-R00229",
+      "source": "IaC",
+      "score": 9.0,
+      "cwe": "cwe-1,2.cwe",
+      "cvssVectorString": "1.vectorString",
+      "cvssVectorSource": null,
+      "matchState": "exact",
+      "proprietary": null,
+      "vulnerabilityCategories": ["data"],
+      "fixedVersion": null,
+      "description": "FG-R00229 test",
+      "severity": "High",
+      "ratingMethod": null,
+      "recommendations": "1.recommendations",
+      "advisories": "1.advisories"
+    },
+    {
+      "componentIdentifier": {
+        "format": "pypi",
+        "coordinates": {
+          "extension": "whl",
+          "name": "orange",
+          "qualifier": "py2.py3-none-any",
+          "version": "1.0.1"
+        }
+      },
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "hash": "093080a1a4bbd2750541",
+      "url": null,
+      "reference": "FG-R00274",
+      "source": "IaC",
+      "score": 7.0,
+      "cwe": null,
+      "cvssVectorString": null,
+      "cvssVectorSource": null,
+      "matchState": "exact",
+      "proprietary": null,
+      "vulnerabilityCategories": ["data"],
+      "fixedVersion": null,
+      "description": "FG-R00274 test",
+      "severity": "Medium",
+      "ratingMethod": null,
+      "recommendations": null,
+      "advisories": null
+    },
+    {
+      "componentIdentifier": {
+        "format": "pypi",
+        "coordinates": {
+          "extension": "whl",
+          "name": "orange",
+          "qualifier": "py2.py3-none-any",
+          "version": "1.0.1"
+        }
+      },
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "hash": "093080a1a4bbd2750541",
+      "url": null,
+      "reference": "FG-R00274",
+      "source": "IaC",
+      "score": 7.0,
+      "cwe": null,
+      "cvssVectorString": null,
+      "cvssVectorSource": null,
+      "matchState": "exact",
+      "proprietary": null,
+      "vulnerabilityCategories": ["data"],
+      "fixedVersion": null,
+      "description": "FG-R00274 test",
+      "severity": "Medium",
+      "ratingMethod": null,
+      "recommendations": null,
+      "advisories": null
+    },
+    {
+      "componentIdentifier": {
+        "format": "pypi",
+        "coordinates": {
+          "extension": "whl",
+          "name": "orange",
+          "qualifier": "py2.py3-none-any",
+          "version": "1.0.1"
+        }
+      },
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "hash": "093080a1a4bbd2750541",
+      "url": null,
+      "reference": "FG-R00274",
+      "source": "IaC",
+      "score": 7.0,
+      "cwe": null,
+      "cvssVectorString": null,
+      "cvssVectorSource": null,
+      "matchState": "exact",
+      "proprietary": null,
+      "vulnerabilityCategories": ["data"],
+      "fixedVersion": null,
+      "description": "FG-R00274 test",
+      "severity": "Medium",
+      "ratingMethod": null,
+      "recommendations": null,
+      "advisories": null
+    },
+    {
+      "componentIdentifier": {
+        "format": "pypi",
+        "coordinates": {
+          "extension": "whl",
+          "name": "orange",
+          "qualifier": "py2.py3-none-any",
+          "version": "1.0.1"
+        }
+      },
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "hash": "093080a1a4bbd2750541",
+      "url": "1.url",
+      "reference": "FG-R0123",
+      "source": "IaC",
+      "score": 4.0,
+      "cwe": null,
+      "cvssVectorString": "1.vectorString",
+      "cvssVectorSource": null,
+      "matchState": "exact",
+      "proprietary": null,
+      "vulnerabilityCategories": ["data"],
+      "fixedVersion": null,
+      "description": "FG-R0123 test",
+      "severity": "High",
+      "ratingMethod": null,
+      "recommendations": "1.recommendations",
+      "advisories": "1.advisories"
+    }
+  ]
+}

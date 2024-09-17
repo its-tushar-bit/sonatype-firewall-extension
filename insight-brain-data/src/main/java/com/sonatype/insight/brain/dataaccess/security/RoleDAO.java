@@ -5,9 +5,12 @@
  */
 package com.sonatype.insight.brain.dataaccess.security;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -185,6 +188,47 @@ public class RoleDAO
   public List<Role> getApplicationRoles() {
     String sQuery = "SELECT entity FROM Role entity WHERE entity.global=FALSE ORDER BY entity.name";
     return getList(sQuery);
+  }
+
+  public Set<String> getObfuscatedRolesByUserCaseInsensitiveAndGroups(String username, Set<String> groups) {
+    String schm = getDatabaseSchema();
+
+    return new HashSet<String>(getListWithSqlInClause(groups, groupPartition -> {
+      // This SQL query needs to work in H2 as well so we can't use array syntax
+      String inParamString = createInParamString(groupPartition.size(), 2);
+      Object[] params = new Object[1 + groupPartition.size()];
+      params[0] = username;
+      System.arraycopy(groupPartition.toArray(), 0, params, 1, groupPartition.size());
+      String sQuery = "SELECT DISTINCT (CASE WHEN r.built_in THEN r.name ELSE 'CUSTOM' END) " +
+          "FROM " + schm + ".role r INNER JOIN " + schm + ".membership_mapping mm ON r.role_id = mm.role_id " +
+          "WHERE (" +
+          "  (LOWER(mm.member_name) = LOWER(?1) OR UPPER(mm.member_name) = UPPER(?1) OR mm.member_name = ?1) " +
+          "  AND mm.member_type = 'USER'" +
+          ") OR (" +
+          "  mm.member_name IN " + inParamString + " AND mm.member_type = 'GROUP'" +
+          ")";
+
+      return getScalarsNative(String.class, sQuery, params);
+    }));
+  }
+
+  /**
+   * Create a string like (?1, ?2, ?3) for use with a SQL IN clause. In raw SQL, the individual items in the IN
+   * clause must be separate bound parameters.
+   * @param size The number of items in the IN clause
+   * @param initialArgIndex The index of the first bound parameter
+   */
+  private String createInParamString(int size, int initialArgIndex) {
+    StringBuilder sb = new StringBuilder("(");
+    for (int i = 0; i < size; i++) {
+      sb.append("?").append(i + initialArgIndex);
+      if (i < size - 1) {
+        sb.append(",");
+      }
+    }
+
+    sb.append(")");
+    return sb.toString();
   }
 
   /**

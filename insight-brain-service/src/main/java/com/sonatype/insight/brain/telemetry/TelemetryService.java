@@ -6,18 +6,13 @@
 package com.sonatype.insight.brain.telemetry;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
-import com.sonatype.insight.brain.model.security.MembershipMapping;
-import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -39,21 +34,13 @@ public class TelemetryService
 
   private final RoleDAO roleDAO;
 
-  private final MembershipMappingDAO membershipMappingDAO;
-
   private final CurrentUser currentUser;
 
   private final HashFunction obfuscationFunction = Hashing.sha256();
 
   @Inject
-  public TelemetryService(
-      TelemetrySender telemetrySender,
-      MembershipMappingDAO membershipMappingDAO,
-      RoleDAO roleDAO,
-      CurrentUser currentUser)
-  {
+  public TelemetryService(TelemetrySender telemetrySender, RoleDAO roleDAO, CurrentUser currentUser) {
     this.telemetrySender = telemetrySender;
-    this.membershipMappingDAO = membershipMappingDAO;
     this.roleDAO = roleDAO;
     this.currentUser = currentUser;
   }
@@ -70,20 +57,8 @@ public class TelemetryService
   private Set<String> getObfuscatedUserRoles() {
     UserPrincipal userPrincipal = currentUser.getUserPrincipal();
 
-    Collection<MembershipMapping> memberships =
-        membershipMappingDAO.getByUserCaseInsensitiveAndGroups(userPrincipal.getUsername(),
+    return roleDAO.getObfuscatedRolesByUserCaseInsensitiveAndGroups(userPrincipal.getUsername(),
             userPrincipal.getMembership());
-
-    Set<String> retval = new HashSet<>();
-
-    for (MembershipMapping membership : memberships) {
-      Role role = roleDAO.getById(membership.getRoleId());
-      String roleIdentifier = role.isBuiltIn() ? role.getName() : "CUSTOM";
-
-      retval.add(roleIdentifier);
-    }
-
-    return retval;
   }
 
   private String obfuscate(String input) {

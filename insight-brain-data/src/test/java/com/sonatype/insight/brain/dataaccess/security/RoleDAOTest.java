@@ -8,10 +8,12 @@ package com.sonatype.insight.brain.dataaccess.security;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.NameableDAOTest;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.DescriptionHelper;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -23,6 +25,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
+import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -321,5 +324,37 @@ public class RoleDAOTest extends NameableDAOTest<Role>
     role.setDescription(null);
     assertThatThrownBy(() -> roleDAO.update(role)).isInstanceOf(BadRequestException.class)
         .hasMessage("The description is required.");
+  }
+
+  @Test
+  public void testGetOfuscatedRolesByUserCaseInsensitiveAndGroups() {
+    String username = "username";
+    String otherUsername = "otherUser";
+    String group1 = "group1";
+    String group2 = "group2";
+    String otherGroup = "otherGroup";
+    Role customRole1 = newRole("CustomRole1");
+    Role customRole2 = newRole("CustomRole2");
+    Role customRole3 = newRole("CustomRole3");
+
+    Application app = tempEntity.newApplicationWithParent();
+
+    // This user's mappings
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.SYSTEM_ADMIN_ROLE_ID, username);
+    tempEntity.newMembershipMapping(app.getId(), Role.COMPONENT_EVALUATOR_ROLE_ID, "uSeRnAmE");
+    tempEntity.newMembershipMapping(app.getId(), Role.OWNER_ROLE_ID, group1, MemberType.GROUP);
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, customRole1.getId(), group2, MemberType.GROUP);
+    tempEntity.newMembershipMapping(app.getOrganizationId(), customRole3.getId(), username);
+
+    // Mappings for other users which should not affect the results
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.POLICY_ADMIN_ROLE_ID, otherGroup,
+        MemberType.GROUP);
+    tempEntity.newMembershipMapping(app.getId(), Role.APPLICATION_EVALUATOR_ROLE_ID, otherUsername);
+    tempEntity.newMembershipMapping(app.getId(), customRole1.getId(), otherUsername);
+    tempEntity.newMembershipMapping(app.getId(), customRole2.getId(), otherUsername);
+
+    var results = roleDAO.getObfuscatedRolesByUserCaseInsensitiveAndGroups(username, Set.of(group1, group2));
+
+    assertThat(results).containsExactlyInAnyOrder("System Administrator", "Component Evaluator", "Owner", "CUSTOM");
   }
 }

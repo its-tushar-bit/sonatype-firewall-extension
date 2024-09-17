@@ -196,4 +196,29 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
     Stream<?> resultStream = createQuery(tx, sQuery, parameters).getResultStream();
     return resultStream.map(type::cast);
   }
+
+  protected <C> List<C> getScalarsNative(Class<C> type, String sQuery, Object... parameters) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getScalarsNative(tx, type, sQuery, parameters);
+    }
+  }
+
+  protected <C> List<C> getScalarsNative(TransactionContext tx, Class<C> type, String sQuery, Object... parameters) {
+    try (Stream<C> resultStream = getScalarsStreamNative(tx, type, sQuery, parameters)) {
+      return resultStream.toList();
+    }
+  }
+
+  /**
+   * Note: This stream should be closed after use
+   */
+  protected <C> Stream<C> getScalarsStreamNative(
+      TransactionContext tx,
+      Class<C> type,
+      String sQuery,
+      Object... parameters)
+  {
+    Stream<?> resultStream = createNativeQuery(tx, sQuery, parameters).getResultStream();
+    return resultStream.map(type::cast);
+  }
 }

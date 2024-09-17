@@ -74,7 +74,6 @@ export function loadFilter(resultsType = null, isLoadResults = false) {
       })
       .catch((error) => {
         dispatch(loadFilterFailed(Messages.getHttpErrorMessage(error)));
-        throw new Error(error);
       });
   };
 }
@@ -118,31 +117,28 @@ function persistAppliedFilter(filter, basedOnFilterName) {
 export function applyFilter(filter, basedOnFilterName) {
   return (dispatch) =>
     dispatch(persistAppliedFilter(filter, basedOnFilterName))
+      .then(({ data }) => dispatch(applyFilterFulfilled(data, basedOnFilterName)))
       .catch((error) => {
-        dispatch(applyFilterFailed(error));
-        throw new Error(error);
-      })
-      .then(({ data }) => dispatch(applyFilterFulfilled(data, basedOnFilterName)));
+        dispatch(applyFilterFailed(Messages.getHttpErrorMessage(error)));
+      });
 }
 
 export function applyDefaultFilter() {
   return (dispatch) =>
     dispatch(persistAppliedFilter(filterToJson(defaultFilter), null))
+      .then(({ data }) => dispatch(applyFilterFulfilled(data, null)))
       .catch((error) => {
-        dispatch(applySavedFilterFailed('Default filter'));
-        throw new Error(error);
-      })
-      .then(({ data }) => dispatch(applyFilterFulfilled(data, null)));
+        dispatch(applySavedFilterFailed(`Default Filter Error: ${Messages.getHttpErrorMessage(error)}`));
+      });
 }
 
 export function applySavedFilter({ filter, name }) {
   return (dispatch) =>
     dispatch(persistAppliedFilter(filter, name))
+      .then(({ data }) => dispatch(applyFilterFulfilled(data, name)))
       .catch((error) => {
-        dispatch(applySavedFilterFailed(name));
-        throw new Error(error);
-      })
-      .then(({ data }) => dispatch(applyFilterFulfilled(data, name)));
+        dispatch(applySavedFilterFailed(`${name} Error: ${Messages.getHttpErrorMessage(error)}`));
+      });
 }
 
 const applyFilterFailed = payloadParamActionCreator(APPLY_FILTER_FAILED);

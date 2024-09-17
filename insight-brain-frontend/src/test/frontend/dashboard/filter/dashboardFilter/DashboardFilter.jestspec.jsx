@@ -6,7 +6,15 @@
 
 import React from 'react';
 
-import { axiosMockAdapter, render, screen, within } from 'TestRoot/SpecUtil';
+import {
+  axiosMockAdapter,
+  render,
+  screen,
+  within,
+  fireEvent,
+  waitFor,
+  waitForElementToBeRemoved,
+} from 'TestRoot/SpecUtil';
 import {
   ages,
   defaultMaxDaysOld,
@@ -16,8 +24,17 @@ import {
   uncategorizedCategory,
 } from 'MainRoot/dashboard/filter/staticFilterEntries';
 import DashboardFilterContainer from 'MainRoot/dashboard/filter/dashboardFilter/DashboardFilterContainer';
-import { fireEvent } from '@testing-library/react';
-import { getDashboardFilters } from 'MainRoot/util/CLMLocation';
+import {
+  getApplicationsUrl,
+  getApplicationTagsUrl,
+  getDashboardDeleteFilterUrl,
+  getDashboardFilters,
+  getDashboardSavedFilters,
+  getDashboardStageUrl,
+  getOrganizationsUrl,
+  getOwnerListUrl,
+  getRepositoriesUrl,
+} from 'MainRoot/util/CLMLocation';
 import defaultFilter from 'MainRoot/dashboard/filter/defaultFilter';
 
 describe('DashboardFilter', () => {
@@ -30,93 +47,408 @@ describe('DashboardFilter', () => {
     axiosMock = axiosMockAdapter();
   });
 
-  it('renders waiver reason filter when enabled', async () => {
-    renderComponent(
-      getMinimalReduxState({
+  describe('filters conditional rendering', () => {
+    it('renders only filters that are not conditional', async () => {
+      renderComponent();
+
+      let filters = within(getFilter()).getAllByRole('group');
+      expect(filters.length).toBe(5);
+      expect(filters[0]).toHaveTextContent('Organizations');
+      expect(filters[1]).toHaveTextContent('Applications');
+      expect(filters[2]).toHaveTextContent('Application Categories');
+      expect(filters[3]).toHaveTextContent('Policy Types');
+      expect(filters[4]).toHaveTextContent('Policy Threat Level');
+    });
+
+    it('renders repositories filter', async () => {
+      renderComponent({
+        dashboardFilter: getFilterState({ showRepositoriesFilter: true }),
+      });
+      let filters = within(getFilter()).getAllByRole('group');
+      expect(filters.length).toBe(6);
+      expect(filters[0]).toHaveTextContent('Organizations');
+      expect(filters[1]).toHaveTextContent('Applications');
+      expect(filters[2]).toHaveTextContent('Repositories');
+      expect(filters[3]).toHaveTextContent('Application Categories');
+      expect(filters[4]).toHaveTextContent('Policy Types');
+      expect(filters[5]).toHaveTextContent('Policy Threat Level');
+    });
+
+    it('renders stages filter', async () => {
+      renderComponent({
+        dashboardFilter: getFilterState({ showStagesFilter: true }),
+      });
+      let filters = within(getFilter()).getAllByRole('group');
+      expect(filters.length).toBe(6);
+      expect(filters[0]).toHaveTextContent('Organizations');
+      expect(filters[1]).toHaveTextContent('Applications');
+      expect(filters[2]).toHaveTextContent('Application Categories');
+      expect(filters[3]).toHaveTextContent('Stages');
+      expect(filters[4]).toHaveTextContent('Policy Types');
+      expect(filters[5]).toHaveTextContent('Policy Threat Level');
+    });
+
+    it('renders violation state filter', async () => {
+      renderComponent({
+        dashboardFilter: getFilterState({ showViolationStateFilter: true }),
+      });
+      let filters = within(getFilter()).getAllByRole('group');
+      expect(filters.length).toBe(6);
+      expect(filters[0]).toHaveTextContent('Organizations');
+      expect(filters[1]).toHaveTextContent('Applications');
+      expect(filters[2]).toHaveTextContent('Application Categories');
+      expect(filters[3]).toHaveTextContent('Policy Types');
+      expect(filters[4]).toHaveTextContent('Violation State');
+      expect(filters[5]).toHaveTextContent('Policy Threat Level');
+    });
+
+    it('renders expiration date filter', async () => {
+      renderComponent({
+        dashboardFilter: getFilterState({ showExpirationDateFilter: true }),
+      });
+      let filters = within(getFilter()).getAllByRole('group');
+      expect(filters.length).toBe(6);
+      expect(filters[0]).toHaveTextContent('Organizations');
+      expect(filters[1]).toHaveTextContent('Applications');
+      expect(filters[2]).toHaveTextContent('Application Categories');
+      expect(filters[3]).toHaveTextContent('Policy Types');
+      expect(filters[4]).toHaveTextContent('Expiration Date');
+      expect(filters[5]).toHaveTextContent('Policy Threat Level');
+    });
+
+    it('renders age filter', async () => {
+      renderComponent({
+        dashboardFilter: getFilterState({ showAgeFilter: true }),
+      });
+      let filters = within(getFilter()).getAllByRole('group');
+      expect(filters.length).toBe(6);
+      expect(filters[0]).toHaveTextContent('Organizations');
+      expect(filters[1]).toHaveTextContent('Applications');
+      expect(filters[2]).toHaveTextContent('Application Categories');
+      expect(filters[3]).toHaveTextContent('Policy Types');
+      expect(filters[4]).toHaveTextContent('Age');
+      expect(filters[5]).toHaveTextContent('Policy Threat Level');
+    });
+
+    it('renders policy waiver reason filter', async () => {
+      renderComponent({
         dashboardFilter: getFilterState({ showPolicyWaiverReasonFilter: true }),
-      })
-    );
-
-    const reasonFilter = getAndAssertReasonFilterExists();
-
-    expect(within(reasonFilter).getAllByRole('menuitemcheckbox').length).toEqual(4);
-
-    expect(within(reasonFilter).getByLabelText('all/none')).toBeVisible();
-    expect(within(reasonFilter).getByLabelText('REASON-1')).toBeVisible();
-    expect(within(reasonFilter).getByLabelText('REASON-2')).toBeVisible();
-    expect(within(reasonFilter).getByLabelText('(No reason provided)')).toBeVisible();
+      });
+      let filters = within(getFilter()).getAllByRole('group');
+      expect(filters.length).toBe(6);
+      expect(filters[0]).toHaveTextContent('Organizations');
+      expect(filters[1]).toHaveTextContent('Applications');
+      expect(filters[2]).toHaveTextContent('Application Categories');
+      expect(filters[3]).toHaveTextContent('Policy Types');
+      expect(filters[4]).toHaveTextContent('Policy Threat Level');
+      expect(filters[5]).toHaveTextContent('Reason');
+    });
   });
 
-  it('does not render waiver reason filter when disabled', async () => {
-    renderComponent(
-      getMinimalReduxState({
-        dashboardFilter: getFilterState({ showPolicyWaiverReasonFilter: false }),
-      })
-    );
-
-    let filters = within(getFilter()).getAllByRole('group');
-    expect(filters.length).toBe(5);
+  it('shows loading spinner when loading', () => {
+    renderComponent({ dashboardFilter: getFilterState({ loading: true }) });
+    expect(screen.getByText('Loading…')).toBeVisible();
+    expect(screen.queryByRole('group')).toBeNull();
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'foo' })).toBeNull();
   });
 
-  it('shows reasons as checked when persisted', () => {
-    renderComponentWithAReasonChecked('some-reason-id-2');
-
-    const reasonFilter = getAndAssertReasonFilterExists();
-
-    expect(within(reasonFilter).getAllByRole('menuitemcheckbox').length).toEqual(4);
-
-    const reason1 = within(reasonFilter).getByLabelText('REASON-1');
-    expect(reason1).toBeVisible();
-    expect(reason1).not.toHaveAttribute('checked');
-
-    const reason2 = within(reasonFilter).getByLabelText('REASON-2');
-    expect(reason2).toBeVisible();
-    expect(reason2).toHaveAttribute('checked');
+  it('shows error when loadingError and reloads on retry', async () => {
+    renderComponent({ dashboardFilter: getFilterState({ loadError: 'some error' }) });
+    expect(screen.getByRole('alert')).toHaveTextContent('some error');
+    mockLoadFilter();
+    const retryButton = screen.getByRole('button', { name: 'Retry' });
+    fireEvent.click(retryButton);
+    expect(screen.getByText('Loading…')).toBeVisible();
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 
-  it('includes policyViolationReasonIds when applying filters', () => {
-    const applyMatcher = mockDashboardFilterUpdateRequest();
+  describe('saved filters', () => {
+    it('shows saved filters in dropdown', async () => {
+      renderComponent();
+      const header = getHeader();
+      const filterDropdown = within(header.children[1]).getByRole('button');
+      fireEvent.click(filterDropdown);
+      const filterOptions = within(header.children[1].children[0].children[1]).getAllByRole('button');
+      // The result is 5 because the delete icon is also a button
+      expect(filterOptions.length).toBe(5);
+      expect(filterOptions[0]).toHaveTextContent('Default');
+      expect(filterOptions[1]).toHaveTextContent('foo');
+      expect(filterOptions[3]).toHaveTextContent('bar');
+    });
 
-    renderComponentWithAReasonChecked('some-reason-id-1');
+    it('deletes a saved filter', async () => {
+      renderComponent();
+      const header = getHeader();
+      let filterDropdown = within(header.children[1]).getByRole('button');
+      fireEvent.click(filterDropdown);
+      let filterOptions = within(header.children[1].children[0].children[1]).getAllByRole('button');
+      // The result is 5 because the delete icon is also a button
+      expect(filterOptions.length).toBe(5);
+      expect(filterOptions[0]).toHaveTextContent('Default');
+      expect(filterOptions[1]).toHaveTextContent('foo');
+      expect(filterOptions[3]).toHaveTextContent('bar');
+      deleteFilter('foo');
+      await waitFor(() => {
+        filterOptions = within(header.children[1].children[0].children[1]).getAllByRole('button');
+        expect(filterOptions.length).toBe(3);
+      });
+      expect(filterOptions[0]).toHaveTextContent('Default');
+      expect(filterOptions[1]).toHaveTextContent('bar');
+    });
+
+    it('loads a saved filter', async () => {
+      const applyMatcher = axiosMock.onPut(getDashboardFilters()).reply(200);
+
+      renderComponent();
+      selectFilter('foo');
+      expect(applyMatcher.history.put.length).toBe(1);
+      expect(applyMatcher.history.put[0].data).toContain('"basedOnFilterName":"foo"');
+    });
+
+    it('loads the default filter', async () => {
+      const applyMatcher = axiosMock.onPut(getDashboardFilters()).reply(200);
+
+      renderComponent();
+      selectFilter('Default');
+      expect(applyMatcher.history.put.length).toBe(1);
+      expect(applyMatcher.history.put[0].data).toContain('"basedOnFilterName":null');
+    });
+
+    it('shows error message when apply named filter fails', async () => {
+      axiosMock.onPut(getDashboardFilters()).reply(500, 'some error');
+      renderComponent();
+      selectFilter('foo');
+      const errorAlert = await screen.findByRole('alert');
+      expect(errorAlert).toBeVisible();
+      expect(errorAlert).toHaveTextContent('some error');
+    });
+
+    it('shows error message when apply default filter fails', async () => {
+      axiosMock.onPut(getDashboardFilters()).reply(500, 'some error');
+      renderComponent();
+      selectFilter('Default');
+      const errorAlert = await screen.findByRole('alert');
+      expect(errorAlert).toBeVisible();
+      expect(errorAlert).toHaveTextContent('some error');
+    });
+  });
+
+  describe('filters modification', () => {
+    it('includes policyViolationReasonIds when applying filters', () => {
+      const applyMatcher = axiosMock.onPut(getDashboardFilters()).reply(200, {
+        organizationFilters: [group1Id],
+        applicationFilters: ['app-1-id'],
+        repositoryFilters: ['repo123'],
+        policyThreatCategoryFilters: ['QUALITY'],
+        stageTypeFilters: ['release'],
+        tagFilters: ['cat'],
+        policyViolationStates: ['OPEN', 'LEGACY_VIOLATION'],
+        maxDaysOld: 90,
+        minPolicyThreatLevel: 2,
+        maxPolicyThreatLevel: 10,
+        expirationDate: 'IN_90_DAYS',
+        policyWaiverReasonIds: ['some-reason-id-1'],
+      });
+
+      renderComponent({
+        dashboardFilter: getFilterState({
+          showRepositoriesFilter: true,
+          showStagesFilter: true,
+          showPolicyWaiverReasonFilter: true,
+          showViolationStateFilter: true,
+          showExpirationDateFilter: true,
+          showAgeFilter: true,
+        }),
+      });
+      const organizationsFilter = getAndAssertFilterExists(0, 'Organizations');
+      const applicationsFilter = getAndAssertFilterExists(1, 'Applications');
+      const repositoriesFilter = getAndAssertFilterExists(2, 'Repositories');
+      const categoriesFilter = getAndAssertFilterExists(3, 'Application Categories');
+      const stagesFilter = getAndAssertFilterExists(4, 'Stages');
+      const policyTypesFilter = getAndAssertFilterExists(5, 'Policy Types');
+      const violationStateFilter = getAndAssertFilterExists(6, 'Violation State');
+      const expirationDateFilter = getAndAssertFilterExists(7, 'Expiration Date');
+      const ageFilter = getAndAssertFilterExists(8, 'Age');
+      const reasonFilter = getAndAssertFilterExists(10, 'Reason');
+
+      const organization = within(organizationsFilter).getByLabelText('group-1');
+      fireEvent.click(organization);
+      const application = within(applicationsFilter).getByLabelText('App1');
+      fireEvent.click(application);
+      const repository = within(repositoriesFilter).getByLabelText('maven-central - 12345-67890');
+      fireEvent.click(repository);
+      const category = within(categoriesFilter).getByLabelText('Cat');
+      fireEvent.click(category);
+      const stage = within(stagesFilter).getByLabelText('Release');
+      fireEvent.click(stage);
+      const policyType = within(policyTypesFilter).getByLabelText('Quality');
+      fireEvent.click(policyType);
+      const violationState = within(violationStateFilter).getByLabelText('Legacy');
+      fireEvent.click(violationState);
+      const expirationDate = within(expirationDateFilter).getByLabelText('in 90 days');
+      fireEvent.click(expirationDate);
+      const age = within(ageFilter).getByLabelText('past 90 days');
+      fireEvent.click(age);
+      const reason = within(reasonFilter).getByLabelText('REASON-1');
+      fireEvent.click(reason);
+
+      const footer = getFooter();
+      const [, , applyButton] = within(footer).getAllByRole('button');
+      fireEvent.click(applyButton);
+
+      expect(applyMatcher.history.put.length).toBe(1);
+      expect(applyMatcher.history.put[0].data).toContain(
+        //eslint-disable-next-line
+        '{"filter":{"organizationFilters":["group-id-1"],"applicationFilters":["app-1-id"],"repositoryFilters":["repo123"],"policyThreatCategoryFilters":["QUALITY"],"stageTypeFilters":["release"],"tagFilters":["cat"],"policyViolationStates":["OPEN","LEGACY_VIOLATION"],"maxDaysOld":90,"minPolicyThreatLevel":2,"maxPolicyThreatLevel":10,"expirationDate":"IN_90_DAYS","policyWaiverReasonIds":["some-reason-id-1"]}}'
+      );
+    });
+
+    it('shows preloaded values for filters as checked when persisted', () => {
+      renderComponent({
+        dashboardFilter: getFilterState({
+          showRepositoriesFilter: true,
+          showStagesFilter: true,
+          showViolationStateFilter: true,
+          showExpirationDateFilter: true,
+          showAgeFilter: true,
+          showPolicyWaiverReasonFilter: true,
+          selected: getSelected({
+            organizations: new Set([group1Id]),
+            applications: new Set(['app-1-id']),
+            repositories: new Set(['repo123']),
+            categories: new Set(['cat']),
+            stages: new Set(['release']),
+            policyTypes: new Set(['QUALITY']),
+            policyViolationStates: new Set(['OPEN', 'LEGACY_VIOLATION']),
+            maxDaysOld: 90,
+            expirationDate: 'IN_90_DAYS',
+            policyThreatLevels: [2, 10],
+            policyWaiverReasonIds: new Set(['some-reason-id-1']),
+          }),
+        }),
+      });
+      const organizationsFilter = getAndAssertFilterExists(0, 'Organizations');
+      const applicationsFilter = getAndAssertFilterExists(1, 'Applications');
+      const repositoriesFilter = getAndAssertFilterExists(2, 'Repositories');
+      const categoriesFilter = getAndAssertFilterExists(3, 'Application Categories');
+      const stagesFilter = getAndAssertFilterExists(4, 'Stages');
+      const policyTypesFilter = getAndAssertFilterExists(5, 'Policy Types');
+      const violationStateFilter = getAndAssertFilterExists(6, 'Violation State');
+      const expirationDateFilter = getAndAssertFilterExists(7, 'Expiration Date');
+      const ageFilter = getAndAssertFilterExists(8, 'Age');
+      const reasonFilter = getAndAssertFilterExists(10, 'Reason');
+
+      const organizations = within(organizationsFilter).getAllByRole('menuitemcheckbox');
+      expect(organizations.length).toBe(2);
+
+      const organization = within(organizationsFilter).getByLabelText('group-1');
+      expect(organization).toBeVisible();
+      expect(organization).toHaveAttribute('checked');
+
+      const applications = within(applicationsFilter).getAllByRole('menuitemcheckbox');
+      expect(applications.length).toBe(3);
+
+      const application = within(applicationsFilter).getByLabelText('App1');
+      expect(application).toBeVisible();
+      expect(application).toHaveAttribute('checked');
+
+      const repositories = within(repositoriesFilter).getAllByRole('menuitemcheckbox');
+      expect(repositories.length).toBe(3);
+
+      const repository = within(repositoriesFilter).getByLabelText('maven-central - 12345-67890');
+      expect(repository).toBeVisible();
+      expect(repository).toHaveAttribute('checked');
+
+      const categories = within(categoriesFilter).getAllByRole('menuitemcheckbox');
+      expect(categories.length).toBe(3);
+
+      const category = within(categoriesFilter).getByLabelText('Cat');
+      expect(category).toBeVisible();
+      expect(category).toHaveAttribute('checked');
+
+      const stages = within(stagesFilter).getAllByRole('menuitemcheckbox');
+      expect(stages.length).toBe(5);
+
+      const stage = within(stagesFilter).getByLabelText('Release');
+      expect(stage).toBeVisible();
+      expect(stage).toHaveAttribute('checked');
+
+      const policyTypes = within(policyTypesFilter).getAllByRole('menuitemcheckbox');
+      expect(policyTypes.length).toBe(5);
+
+      const policyType = within(policyTypesFilter).getByLabelText('Quality');
+      expect(policyType).toBeVisible();
+      expect(policyType).toHaveAttribute('checked');
+
+      const violationStates = within(violationStateFilter).getAllByRole('menuitemcheckbox');
+      expect(violationStates.length).toBe(4);
+
+      const violationState1 = within(violationStateFilter).getByLabelText('Open');
+      expect(violationState1).toBeVisible();
+      expect(violationState1).toHaveAttribute('checked');
+
+      const violationState2 = within(violationStateFilter).getByLabelText('Legacy');
+      expect(violationState2).toBeVisible();
+      expect(violationState2).toHaveAttribute('checked');
+
+      const expirationDates = within(expirationDateFilter).getAllByRole('menuitemradio');
+      expect(expirationDates.length).toBe(7);
+
+      const expirationDate = within(expirationDateFilter).getByLabelText('in 90 days');
+      expect(expirationDate).toBeVisible();
+      expect(expirationDate).toHaveAttribute('checked');
+
+      const age = within(ageFilter).getByLabelText('past 90 days');
+      expect(age).toBeVisible();
+      expect(age).toHaveAttribute('checked');
+
+      const reasons = within(reasonFilter).getAllByRole('menuitemcheckbox');
+      expect(reasons.length).toBe(4);
+
+      const reason = within(reasonFilter).getByLabelText('REASON-1');
+      expect(reason).toBeVisible();
+      expect(reason).toHaveAttribute('checked');
+    });
+  });
+
+  it('shows error message when apply filter fails', async () => {
+    axiosMock.onPut(getDashboardFilters()).reply(500, 'some error');
+    renderComponent();
+    const orgsFilter = getAndAssertFilterExists(0, 'Organizations');
+
+    const org1 = within(orgsFilter).getByLabelText('group-1');
+    fireEvent.click(org1);
 
     const footer = getFooter();
     const [, , applyButton] = within(footer).getAllByRole('button');
     fireEvent.click(applyButton);
 
-    expect(applyMatcher.history.put.length).toBe(1);
-    expect(applyMatcher.history.put[0].data).toContain('"policyWaiverReasonIds":["some-reason-id-1"]');
+    const errorAlert = await screen.findByRole('alert');
+    expect(errorAlert).toBeVisible();
+    expect(errorAlert).toHaveTextContent('some error');
   });
 
-  function renderComponentWithAReasonChecked(reasonId) {
-    // render with a reason id checked
-    return renderComponent({
-      dashboardFilter: getFilterState({
-        filtersAreDirty: true,
-        showPolicyWaiverReasonFilter: true,
-        selected: getSelected({ policyWaiverReasonIds: new Set([reasonId]) }),
-      }),
-    });
-  }
-
-  function renderComponent(preloadedStateOverrides = {}) {
+  const renderComponent = (preloadedStateOverrides = {}) => {
     const preloadedState = {
       ...getMinimalReduxState(),
       ...preloadedStateOverrides,
     };
 
     return render(<DashboardFilterContainer />, { preloadedState });
-  }
+  };
 
-  function getMinimalReduxState(overrides = {}) {
+  const getMinimalReduxState = (overrides = {}) => {
     return {
       dashboardFilter: getFilterState(),
       orgsAndPolicies: getOrgsAndPoliciesState(),
+      manageFilters: { savedFilters: getSavedFilters() },
       waivers: getWaiversState(),
       ...overrides,
     };
-  }
+  };
 
-  function getFilterState(overrides = {}) {
+  const getFilterState = (overrides = {}) => {
     return {
       selected: getSelected(),
       applications: [
@@ -127,12 +459,26 @@ describe('DashboardFilter', () => {
           organizationId: 'org-1-id',
           organizationName: 'Org1',
         },
+        {
+          id: 'app-2-id',
+          publicId: 'App2',
+          name: 'App2',
+          organizationId: 'org-1-id',
+          organizationName: 'Org1',
+        },
       ],
       repositories: [
         {
           fullName: 'maven-central - 12345-67890',
+          name: 'maven-central - 12345-67890',
           id: 'repo123',
           publicId: 'maven-central - 12345',
+        },
+        {
+          fullName: 'maven-not-central - 12345-67890',
+          name: 'maven-not-central - 12345-67890',
+          id: 'repo456',
+          publicId: 'maven-not-central - 12345',
         },
       ],
       categories: [uncategorizedCategory, { id: 'cat', name: 'Cat', owner: 'Org1' }],
@@ -146,22 +492,12 @@ describe('DashboardFilter', () => {
       policyTypes,
       policyViolationStates,
       expirationDates,
-      loadFilter: jest.fn(),
       loading: false,
-      savedFilters: getSavedFilters(),
-      applyDefaultFilter: jest.fn(),
-      applySavedFilter: jest.fn(),
-      applyFilter: jest.fn(),
-      setDisplaySaveFilterModal: jest.fn(),
-      revert: jest.fn(),
-      selectFilterToDelete: jest.fn(),
-      applyFilterCancelled: jest.fn(),
-      toggleAppsAndOrgs: jest.fn(),
       ...overrides,
     };
-  }
+  };
 
-  function getOrgsAndPoliciesState(ownerSideNavOverrides = {}) {
+  const getOrgsAndPoliciesState = (ownerSideNavOverrides = {}) => {
     return {
       ownerSideNav: {
         topParentOrganizationId: rootOrganizationId,
@@ -188,13 +524,21 @@ describe('DashboardFilter', () => {
             totalApps: 1,
             organizationIds: [],
           },
+          ['app-1-id']: {
+            type: 'application',
+            id: 'app-1-id',
+            name: 'App1',
+            synthetic: false,
+            parentOrganizationId: group1Id,
+            applicationIds: ['app-1-id'],
+          },
         },
       },
       ...ownerSideNavOverrides,
     };
-  }
+  };
 
-  function getSavedFilters() {
+  const getSavedFilters = () => {
     return [
       {
         name: 'foo',
@@ -203,16 +547,16 @@ describe('DashboardFilter', () => {
         name: 'bar',
       },
     ];
-  }
+  };
 
-  function getSelected(overrides = {}) {
+  const getSelected = (overrides = {}) => {
     return {
       ...defaultFilter,
       ...overrides,
     };
-  }
+  };
 
-  function getWaiversState() {
+  const getWaiversState = () => {
     return {
       waiverReasons: {
         data: [
@@ -221,10 +565,115 @@ describe('DashboardFilter', () => {
         ],
       },
     };
-  }
+  };
 
-  function mockDashboardFilterUpdateRequest() {
-    return axiosMock.onPut(getDashboardFilters()).reply(200, {
+  const getFilter = () => {
+    return screen.getByRole('complementary');
+  };
+
+  const getFooter = () => {
+    const filter = getFilter();
+    return filter.children[2];
+  };
+
+  const getHeader = () => {
+    const filter = getFilter();
+    return filter.children[0];
+  };
+
+  const getAndAssertFilterExists = (index, text) => {
+    // Gets the filter section at index and asserts that it contains the text
+    const filters = within(getFilter()).getAllByRole('group');
+    const reasonFilter = filters[index];
+    within(reasonFilter).getByText(text);
+    return reasonFilter;
+  };
+
+  const selectFilter = (filterName) => {
+    // Selects a saved filter from the dropdown
+    const header = getHeader();
+    const filterDropdown = within(header.children[1]).getByRole('button');
+    fireEvent.click(filterDropdown);
+    const filterOption = within(header.children[1].children[0].children[1]).getByRole('button', { name: filterName });
+    fireEvent.click(filterOption);
+  };
+
+  const deleteFilter = async (filterName) => {
+    // Selects a saved filter from the dropdown
+    const deleteRequest = axiosMock.onPost(getDashboardDeleteFilterUrl(filterName)).reply(200);
+    axiosMock.onGet(getDashboardSavedFilters()).reply(
+      200,
+      getSavedFilters().filter((f) => f.name !== filterName)
+    );
+    const header = getHeader();
+    const filterDropdown = within(header.children[1]).getAllByRole('button')[0];
+    fireEvent.click(filterDropdown);
+    const filterOption = within(header.children[1].children[0].children[1]).getByRole('button', { name: filterName });
+    const deleteButton = filterOption.parentElement.children[1];
+    deleteButton.click();
+    const alert = screen.getByText(`You are about to delete "${filterName}" filter. This action can not be undone.`);
+    expect(alert).toBeInTheDocument();
+    const continueButton = screen.getByText('Continue');
+    fireEvent.click(continueButton);
+    expect(deleteRequest.history.post.length).toBe(1);
+    await waitForElementToBeRemoved(() => screen.queryByText('Delete Filter'));
+  };
+
+  const mockLoadFilter = () => {
+    axiosMock.onGet(getApplicationsUrl()).reply(200, [
+      {
+        id: 'applicationId',
+        name: 'app-1-id',
+        organizationId: group1Id,
+        organizationName: 'group-1',
+        publicId: 'app-1-id',
+      },
+    ]);
+
+    axiosMock.onGet(getOrganizationsUrl()).reply(200, [
+      {
+        id: rootOrganizationId,
+        name: 'Root Organization',
+        parentOrganizationId: null,
+      },
+      {
+        id: group1Id,
+        name: 'group-1',
+        parentOrganizationId: rootOrganizationId,
+      },
+    ]);
+
+    axiosMock.onGet(getRepositoriesUrl()).reply(200, [
+      {
+        oldestEvalTimestamp: null,
+        managerInstanceId: '72B7AFE9-0FE2FE06-762B1E5B-43258149-63E1C1BB',
+        managerName: '72B7AFE9-0FE2FE06-762B1E5B-43258149-63E1C1BB',
+        repository: {
+          id: '186583fe069447e2a0d26195e7c7d7ab',
+          repositoryManagerId: 'f86bbf0ee69742298363a36dc54e8a36',
+          publicId: 'sonatype-grid.release',
+          repositoryType: 'proxy',
+          auditEnabled: false,
+          quarantineEnabled: false,
+          policyCompliantComponentSelectionEnabled: false,
+          namespaceConfusionProtectionEnabled: false,
+          format: 'maven2',
+          lastManualConfigureTime: null,
+        },
+      },
+    ]);
+
+    axiosMock.onGet(getApplicationTagsUrl()).reply(200, [
+      {
+        id: 'e5229fffe44343839583846534b38336',
+        name: 'Internal',
+        description: 'Applications that are used only by your employees',
+        organizationId: 'ROOT_ORGANIZATION_ID',
+        color: 'dark-green',
+      },
+    ]);
+
+    axiosMock.onGet(getDashboardFilters()).reply(200, {
       organizationFilters: [],
       applicationFilters: [],
       repositoryFilters: [],
@@ -236,24 +685,34 @@ describe('DashboardFilter', () => {
       minPolicyThreatLevel: 2,
       maxPolicyThreatLevel: 10,
       expirationDate: 'ALL',
-      policyWaiverReasonIds: ['some-reason-id-1'],
+      policyWaiverReasonIds: [],
     });
-  }
 
-  function getFilter() {
-    return screen.getByRole('complementary');
-  }
+    axiosMock.onGet(getDashboardStageUrl()).reply(200, [
+      {
+        stageTypeId: 'source',
+        stageName: 'Source',
+      },
+      {
+        stageTypeId: 'build',
+        stageName: 'Build',
+      },
+      {
+        stageTypeId: 'stage-release',
+        stageName: 'Stage Release',
+      },
+      {
+        stageTypeId: 'release',
+        stageName: 'Release',
+      },
+      {
+        stageTypeId: 'operate',
+        stageName: 'Operate',
+      },
+    ]);
 
-  function getFooter() {
-    const filter = getFilter();
-    return filter.children[2];
-  }
+    axiosMock.onGet(getDashboardSavedFilters()).reply(200, getSavedFilters());
 
-  function getAndAssertReasonFilterExists() {
-    const filters = within(getFilter()).getAllByRole('group');
-    const reasonFilter = filters[5];
-    within(reasonFilter).getByText('Reason');
-
-    return reasonFilter;
-  }
+    axiosMock.onGet(getOwnerListUrl()).reply(200, getOrgsAndPoliciesState.ownerSideNav);
+  };
 });

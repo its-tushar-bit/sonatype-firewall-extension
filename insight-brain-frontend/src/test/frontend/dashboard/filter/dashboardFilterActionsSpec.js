@@ -106,7 +106,7 @@ describe('dashboardFilterActions: non-angular', function () {
 
         store = SpecUtil.mockReduxStore(initialState);
 
-        store.dispatch(loadFilter()).catch(() => {
+        store.dispatch(loadFilter()).then(() => {
           expect(axios.get).toHaveBeenCalledWith(getApplicationsUrl());
           expect(axios.get).toHaveBeenCalledWith(getOrganizationsUrl());
           expect(axios.get).toHaveBeenCalledWith(getApplicationTagsUrl());
@@ -195,7 +195,7 @@ describe('dashboardFilterActions: non-angular', function () {
   describe('applyFilter', function () {
     const expectedFailAction = {
       type: 'APPLY_FILTER_FAILED',
-      payload: { status: 403 },
+      payload: 'Error 403',
     };
 
     const action = applyFilter('test filters', 'test filter name');
@@ -213,7 +213,7 @@ describe('dashboardFilterActions: non-angular', function () {
 
     const expectedFailAction = {
       type: 'APPLY_SAVED_FILTER_FAILED',
-      payload: 'test filter name',
+      payload: 'test filter name Error: Error 403',
     };
 
     const action = applySavedFilter(savedFilter);
@@ -228,7 +228,7 @@ describe('dashboardFilterActions: non-angular', function () {
 
     const expectedFailAction = {
       type: 'APPLY_SAVED_FILTER_FAILED',
-      payload: 'Default filter',
+      payload: 'Default Filter Error: Error 403',
     };
 
     const action = applyDefaultFilter();
@@ -259,7 +259,7 @@ describe('dashboardFilterActions: non-angular', function () {
 
       store = SpecUtil.mockReduxStore(initialState);
 
-      store.dispatch(action).catch(() => {
+      store.dispatch(action).then(() => {
         expect(axios.put).toHaveBeenCalledWith(getDashboardFilters(), {
           filter: expectedFilter,
           basedOnFilterName: expectedFilterName,

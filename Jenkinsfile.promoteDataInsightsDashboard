@@ -28,7 +28,6 @@ def s3ConfigurationProd = [
   usWest2Bucket: "hds-production-enterprise-reporting-us-west-2"
 ]
 
-def selectedDashboardId
 def selectedDashboardValue
 
 pipeline {
@@ -38,6 +37,15 @@ pipeline {
     }
   }
 
+  parameters {
+    string(
+        name: 'dashboardId',
+        description: ' The primary identifier used to determine which dashboard is published.',
+        trim: true,
+        defaultValue: ''
+    )
+  }
+
   stages {
     // prod and staging each require different roles so we will assume a staging role, copy resource down
     // then assume a prod role to push back up to prod
@@ -45,6 +53,8 @@ pipeline {
       steps {
         script {
           withAWS(region: 'us-east-2', role: s3ConfigurationStaging.role, roleAccount: s3ConfigurationStaging.account) {
+              validateFieldHasValue(params, 'dashboardId')
+
               clean(iconsZipFileName)
 
               def bucketName = s3ConfigurationStaging.bucketName
@@ -53,20 +63,16 @@ pipeline {
               getFileFromS3(bucketName, iconsZipFileName)
 
               def stagingConfig = readExistingConfig(bucketName, configFileName)
-              def stagingDashboards = stagingConfig['dashboards']
-              def stagingDashboardKeys = stagingDashboards.keySet().toList()
+              def stagingDashboards = stagingConfig.dashboards
 
-              echo "existing dashbaord ids: ${stagingDashboardKeys}"
+              def selectedDashboardId = params.dashboardId
 
-              // prompt the user to choose a dashboardId
-              // and store the value globally to persist it across the stages
-              selectedDashboardId = input(
-                  id: 'selectedDashboardId',
-                  message: 'Select the dasbhoard you would like to promote to production',
-                  parameters: [
-                    choice(name: 'selectDashboardId', choices: stagingDashboardKeys)
-                  ]) 
-          
+              if (!stagingDashboards.containsKey(selectedDashboardId)) {
+                def existingDashboardKeys = stagingDashboards.keySet().toList()
+                error("'${selectedDashboardId}' does not exist, please choosed a valid identifier:\n" +
+                    "${existingDashboardKeys}")
+              }
+
               echo "selected dashboard id: '${selectedDashboardId}'"
               
               // setting global value to persist across the stages
@@ -105,13 +111,13 @@ pipeline {
             def prodConfig = readExistingConfig(eastBucketName, configFileName)
 
             // update the selected entry
-            prodConfig.dashboards[selectedDashboardId] = selectedDashboardValue
+            prodConfig.dashboards[selectedDashboardValue.dashboardId] = selectedDashboardValue
 
             // bump the version
             prodConfig.version = env.BUILD_NUMBER.toLong()
 
             echo "The updated production configuration will be:"
-            echo "${prodConfig}"
+            echo writeJSON(returnText: true, json: prodConfig, pretty: 2)
             saveConfigToBucket(eastBucketName, configFileName, prodConfig)
             
             echo "Copying the configuration file to the west bucket"
@@ -183,3 +189,8 @@ def uploadFile(bucketName, fileName) {
  sh "aws s3 cp ${fileName} s3://${bucketName}/${fileName}"
 }
 
+def validateFieldHasValue(params, fieldName) {
+  if (params[fieldName].length() == 0) {
+    error "'${fieldName}' is a required field"
+  }
+}

@@ -11,7 +11,6 @@
 @Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
 import groovy.json.JsonSlurper
 
-def iconsZipFileName = 'icons.zip'
 def configFileName = 'enterprise-reporting.json'
 
 def s3ConfigurationByEnv = [
@@ -43,6 +42,13 @@ pipeline {
       description: 'Pick which environment you want to update.',
       choices: ['staging', 'production']
     )
+
+    string(
+        name: 'dashboardId',
+        description: ' The primary identifier used to determine which dashboard is deleted.',
+        trim: true,
+        defaultValue: ''
+    )
   }
 
   stages {
@@ -53,22 +59,19 @@ pipeline {
           def s3Configuration = s3ConfigurationByEnv[params.environment]
 
           withAWS(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account) {
+              validateFieldHasValue(params, 'dashboardId')
+
+              def selectedDashboardId = params.dashboardId
               def bucketName = s3Configuration.usEast2Bucket
-              
               def existingConfig = readExistingConfig(bucketName, configFileName)
               def existingDashboards = existingConfig.dashboards
-              def existingDashboardKeys = existingDashboards.keySet().toList()
 
-              echo "existing dashbaord ids: ${existingDashboardKeys}"
+              if (!existingDashboards.containsKey(selectedDashboardId)) {
+                def existingDashboardKeys = existingDashboards.keySet().toList()
+                error("'${selectedDashboardId}' does not exist, please choosed a valid identifier:\n" +
+                    "${existingDashboardKeys}")
+              }
 
-              // prompt the user to choose a dashboardId
-              def selectedDashboardId = input(
-                  id: 'selectedDashboardId',
-                  message: 'Select the dasbhoard you would like to delete',
-                  parameters: [
-                    choice(name: 'selectDashboardId', choices: existingDashboardKeys)
-                  ]) 
-          
               echo "selected dashboard '${selectedDashboardId}' will be removed"
               
               // unset the key
@@ -122,3 +125,8 @@ def copyFromEastBucketToWestBucket(s3Configuration, fileName) {
   sh "aws s3 cp s3://${bucketForStagingEast}/${fileName} s3://${bucketForStagingWest}/${fileName}"
 }
 
+def validateFieldHasValue(params, fieldName) {
+  if (params[fieldName].length() == 0) {
+    error "'${fieldName}' is a required field"
+  }
+}

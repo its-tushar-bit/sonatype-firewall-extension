@@ -394,12 +394,6 @@ CREATE INDEX policy_evaluation_time_idx ON policy_evaluation(time);
 CREATE INDEX policy_evaluation_app_monitoring_stage_idx ON policy_evaluation(application_id, for_monitoring, stage_type_id);
 CREATE INDEX policy_evaluation_commit_hash_idx ON policy_evaluation(commit_hash);
 
-CREATE TABLE policy_violation_constraint_facts (
-   policy_violation_constraint_facts_id VARCHAR(20) NOT NULL,
-   constraint_facts_json text NOT NULL,
-   CONSTRAINT policy_violation_constraint_facts_pk PRIMARY KEY (policy_violation_constraint_facts_id)
-);
-
 CREATE TABLE policy_violation (
   policy_violation_id varchar(50) NOT NULL,
 
@@ -419,7 +413,7 @@ CREATE TABLE policy_violation (
   filename varchar(1000),
 
   -- record of the most recent policy constraints/conditions that were violated
-  constraint_facts_json text,
+  constraint_facts_json text NOT NULL,
 
   -- the most recent action during the violation's lifetime
   action_type_id varchar(20),
@@ -446,12 +440,8 @@ CREATE TABLE policy_violation (
 
   auto_policy_waiver_id varchar(50) NULL,
 
-  constraint_facts_id varchar(20),
-
   CONSTRAINT policy_violation_pk PRIMARY KEY (policy_violation_id),
-  CONSTRAINT policy_violation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id),
-  CONSTRAINT policy_violation_constraint_facts_id_fk FOREIGN KEY (constraint_facts_id)
-      REFERENCES policy_violation_constraint_facts(policy_violation_constraint_facts_id)
+  CONSTRAINT policy_violation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
 );
 CREATE INDEX policy_violation_app_fix_time_stage_idx ON policy_violation(application_id, fix_time, stage_type_id);
 CREATE INDEX policy_violation_policy_app_idx ON policy_violation(policy_id, application_id);
@@ -593,19 +583,16 @@ CREATE TABLE repository_policy_violation (
   hash varchar(20),
   component_id_format varchar(10),
   component_id_coordinates_json varchar(1000), -- the component identifier coordinates (that caused the policy violation) stored in json format
-  constraint_facts_json text, -- the constraint facts (that caused the policy violation) stored in json format
+  constraint_facts_json text NOT NULL, -- the constraint facts (that caused the policy violation) stored in json format
   action_type_id varchar(20),
   waived bool DEFAULT false NOT NULL,
   active bool DEFAULT true NOT NULL, -- Whether this violation is still active. If false, then the component was removed from the repository or a more recent evaluation was performed for this component.
   policy_waiver_id varchar(50) NULL,        -- no foreign key constraint to policy_waiver, waivers can be deleted at any time
   policy_waiver_comment varchar(1000) NULL,
   waive_time timestamp NULL,                -- when the violation was waived
-  constraint_facts_id varchar(20),
 
   CONSTRAINT repository_policy_violation_pk PRIMARY KEY (repository_policy_violation_id),
-  CONSTRAINT repository_policy_violation_repository_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id),
-  CONSTRAINT repository_policy_violation_constraint_facts_id_fk FOREIGN KEY (constraint_facts_id)
-      REFERENCES policy_violation_constraint_facts(policy_violation_constraint_facts_id)
+  CONSTRAINT repository_policy_violation_repository_fk FOREIGN KEY (repository_id) REFERENCES repository(repository_id)
 );
 CREATE INDEX repository_policy_violation_pathname_idx ON repository_policy_violation(pathname);
 CREATE INDEX repository_policy_violation_repository_id_idx ON repository_policy_violation(repository_id);

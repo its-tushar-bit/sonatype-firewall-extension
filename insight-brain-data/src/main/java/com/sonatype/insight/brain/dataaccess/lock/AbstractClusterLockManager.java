@@ -129,16 +129,6 @@ public abstract class AbstractClusterLockManager
   }
 
   @Override
-  public ClusterLock createForAsyncDbMigration(final String jobName) {
-    return createClusterLock(ClusterLockManager.getLockIdForAsyncDbMigration(jobName));
-  }
-
-  @Override
-  public void deleteForAsyncDbMigration(final String jobName) {
-    deleteFor(ClusterLockManager.getLockIdForAsyncDbMigration(jobName));
-  }
-
-  @Override
   public ClusterLock createForNewInstancePopulation() {
     return createClusterLock(ClusterLockManager.getLockIdForNewInstancePopulation());
   }

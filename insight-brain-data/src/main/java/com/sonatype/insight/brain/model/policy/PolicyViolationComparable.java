@@ -22,6 +22,4 @@ public interface PolicyViolationComparable
   int getThreatLevel();
 
   List<ConstraintFact> getConstraintFacts();
-
-  String getConstraintFactsId();
 }

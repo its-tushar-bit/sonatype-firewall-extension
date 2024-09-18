@@ -51,7 +51,6 @@ import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.metrics.CustomMetrics;
 import com.sonatype.insight.brain.migration.DbMigrationCommand;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFactsDAOProvider;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
 import com.sonatype.insight.brain.report.Report;
@@ -584,7 +583,6 @@ public class InsightBrainService
         requestStaticInjection(Report.class);
         requestStaticInjection(ComponentDetailsLoader.class);
         requestStaticInjection(SystemConfigurationPropertyFeature.class);
-        requestStaticInjection(PolicyViolationConstraintFactsDAOProvider.class);
 
         bind(ApplicationLifecycle.class).to(DefaultApplicationLifecycle.class);
 

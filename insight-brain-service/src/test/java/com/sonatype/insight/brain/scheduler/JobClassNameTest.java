@@ -16,7 +16,6 @@ import com.sonatype.insight.brain.service.InsightJob;
 import org.junit.Test;
 import org.quartz.Job;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 public class JobClassNameTest
@@ -114,12 +113,6 @@ public class JobClassNameTest
     insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.sbom.PendingSbomMetadataCleaner",
         "PendingSbomMetadataCleanerJob");
-    insightJobClassNameToExpectedJobName.put(
-        "com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigration",
-        "RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigration");
-    insightJobClassNameToExpectedJobName.put(
-        "com.sonatype.insight.brain.policy.violation.PolicyViolationConstraintFactsJsonAsyncDbMigration",
-        "PolicyViolationConstraintFactsJsonAsyncDbMigration");
   }
 
   @Inject
@@ -148,8 +141,8 @@ public class JobClassNameTest
             "see https://issues.sonatype.org/browse/CLM-24241.");
       }
       if (!expectedJobName.equals(insightJob.getJobName())) {
-        assertThat(insightJob.getJobName()).as("If job names have been changed a migration script may be " +
-            "needed as well as updating this test.").isEqualTo(expectedJobName);
+        fail("InsightJob " + insightJob.getClass().getName() + " is expected to have job name " + expectedJobName +
+            " if this has been changed a migration script may be needed as well as updating this test.");
       }
     }
   }

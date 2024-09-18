@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,6 +27,8 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
 {
   public static Map<String, TestEntityLeakDetectionData> testEntityLeaksDetectionData = new LinkedHashMap<>();
 
+  private String entityName;
+
   private final OperationalDataStore operationalDataStore;
 
   /**
@@ -42,10 +46,21 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
   {
     super(searchIndexManager);
     this.operationalDataStore = operationalDataStore;
+    entityName = ((Class<?>) getParameterizedSuperClass().getActualTypeArguments()[0]).getSimpleName();
   }
 
   protected AbstractOperationalSqlDAO(OperationalDataStore operationalDataStore) {
     this.operationalDataStore = operationalDataStore;
+    entityName = ((Class<?>) getParameterizedSuperClass().getActualTypeArguments()[0]).getSimpleName();
+  }
+
+  private ParameterizedType getParameterizedSuperClass() {
+    Type genericSuperclass = getClass().getGenericSuperclass();
+    if (!(genericSuperclass instanceof ParameterizedType)) {
+      genericSuperclass = getClass().getSuperclass().getGenericSuperclass();
+    }
+
+    return (ParameterizedType) genericSuperclass;
   }
 
   @Override
@@ -150,6 +165,11 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     }
   }
 
+  public long getCount() {
+    String sQuery = "SELECT COUNT(entity) FROM " + getEntityName() + " entity";
+    return getSingle(Long.class, sQuery);
+  }
+
   public boolean isDatabaseEmbedded() {
     return super.isDatabaseEmbedded(operationalDataStore);
   }
@@ -163,6 +183,10 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
       Function<Collection<E>, List<U>> getter)
   {
     return super.getListWithSqlInClause(inClauseValues, getter, operationalDataStore);
+  }
+
+  public String getEntityName() {
+    return entityName;
   }
 
   protected String getDatabaseSchema() {

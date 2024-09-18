@@ -138,24 +138,6 @@ public class PolicyViolationComparatorTest
   }
 
   @Test
-  public void testCompare_PolicyViolation_EqualConstraintFactsIds() {
-    PolicyViolation v1 = buildPolicyViolation("1", "Policy", 1, "hash", componentA);
-
-    // Ensure the constraint facts are not equal
-    ConstraintFact constraintFact11 = buildConstraintFact("testConstraintId2", "Test Constraint Name2",
-        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
-    ConstraintFact constraintFact12 = buildConstraintFact("testConstraintId3", "Test Constraint Name2",
-        new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));
-    PolicyViolation v2 = buildPolicyViolation("1", "Policy1", 1, "hash", componentA,
-        Lists.newArrayList(constraintFact11, constraintFact12));
-
-    v1.setConstraintFactsId("id");
-    v2.setConstraintFactsId("id");
-
-    compareAndAssert(v1, v2, 0);
-  }
-
-  @Test
   public void testCompare_ConstraintFactsSizes_LessThanGreaterThan() {
     ConstraintFact constraintFact11 = buildConstraintFact("testConstraintId1", "Test Constraint Name1",
         new ConditionFact(AgeInDaysConditionType.ID, 0 /* conditionIndex */, "test summary", "test reason"));

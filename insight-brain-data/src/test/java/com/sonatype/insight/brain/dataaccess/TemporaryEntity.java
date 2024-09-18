@@ -101,7 +101,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPol
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFactsDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
@@ -616,8 +615,6 @@ public class TemporaryEntity
 
   private ThirdPartyUnknownComponentDAO thirdPartyUnknownComponentDAO;
 
-  private PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO;
-
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -885,7 +882,6 @@ public class TemporaryEntity
       delete(repositoryIdentifiedComponentDAO.getAll(), repositoryIdentifiedComponentDAO);
       delete(deletedTenants, deletedTenantDAO);
       delete(callFlowAnalysisConfigDAO.getAll(), callFlowAnalysisConfigDAO);
-      delete(policyViolationConstraintFactsDAO.getAll(), policyViolationConstraintFactsDAO);
       restoreInitialWaiverReasons();
       productLicenseDAO.delete();
       firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
@@ -5395,7 +5391,6 @@ public class TemporaryEntity
         daoFactory.createDevelopmentPrioritizationDAO();
     oAuth2ConfigurationDAO = daoFactory.createOAuth2ConfigurationDAO();
     oidcConfigurationDAO = daoFactory.createOidcConfigurationDAO();
-    policyViolationConstraintFactsDAO = daoFactory.createPolicyViolationConstraintFactsDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {

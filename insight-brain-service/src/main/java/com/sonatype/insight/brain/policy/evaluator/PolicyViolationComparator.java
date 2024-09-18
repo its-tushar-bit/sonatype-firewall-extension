@@ -41,12 +41,6 @@ public class PolicyViolationComparator
       return result;
     }
 
-    // Shortcut the constraints comparison if the IDs are the same.
-    if (v1.getConstraintFactsId() != null && v1.getConstraintFactsId().equals(v2.getConstraintFactsId())) {
-      return 0;
-    }
-
-    // If the IDs are not the same we need to compare the constraint facts because they might be functionally equivalent
     return ConstraintFactsListComparator.CONSTRAINT_FACTS_LIST_COMPARATOR.compare(v1.getConstraintFacts(),
         v2.getConstraintFacts());
   }

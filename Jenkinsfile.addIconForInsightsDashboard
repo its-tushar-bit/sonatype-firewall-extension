@@ -15,7 +15,8 @@ def iconZipFileName = "icons.zip"
 
 def s3Configuration =  [
   account: "993883856687",
-  role: "Zion4iq-hds-stage",
+  role: 'jenkins-hds-enterprise-reporting-staging',
+  credentialsId: 'hds-enterprise-reporting-external-id-staging',
   usEast2Bucket: "hds-staging-enterprise-reporting-us-east-2",
   usWest2Bucket: "hds-staging-enterprise-reporting-us-west-2"
 ]
@@ -38,7 +39,7 @@ pipeline {
     stage('Create/Update Data Insights Tile For usEast2Bucket Staging') {
       steps {
         script {
-          withAWS(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account) {
+          withAwsRole(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account, credentialsId: s3Configuration.credentialsId) {
               withFileParameter('newImage') {
                   def newIconFileName = env.newImage_FILENAME
                   validateImageFileName(newIconFileName)

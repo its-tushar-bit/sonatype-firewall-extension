@@ -17,13 +17,15 @@ def iconsFileName = "icons.zip"
 def s3ConfigurationByEnv =  [
   staging: [
     account: "993883856687",
-    role: "Zion4iq-hds-stage",
+    role: 'jenkins-hds-enterprise-reporting-staging',
+    credentialsId: 'hds-enterprise-reporting-external-id-staging',
     usEast2Bucket: "hds-staging-enterprise-reporting-us-east-2" // assume east is canonical
   ],
 
   production: [
     account  : "135388973902",
-    role: "Zion4iq-hds-prod",
+    role: 'jenkins-hds-enterprise-reporting-production',
+    credentialsId: 'hds-enterprise-reporting-external-id-production',
     usEast2Bucket: "hds-production-enterprise-reporting-us-east-2" // assume east is canonical
   ]
 ]
@@ -50,7 +52,7 @@ pipeline {
           echo "running for environment: ${params.environment}"
           def s3Configuration = s3ConfigurationByEnv[params.environment]
 
-          withAWS(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account) {
+          withAwsRole(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account, credentialsId: s3Configuration.credentialsId) {
             def bucket = s3Configuration.usEast2Bucket
 
             validateConfigurationFileExists(bucket, fileName)
@@ -70,7 +72,7 @@ pipeline {
           echo "running for environment: ${params.environment}"
           def s3Configuration = s3ConfigurationByEnv[params.environment]
 
-          withAWS(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account) {
+          withAwsRole(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account, , credentialsId: s3Configuration.credentialsId) {
             def bucket = s3Configuration.usEast2Bucket
 
             def iconsZipContents = readIconZipContents(bucket, iconsFileName)

@@ -16,14 +16,16 @@ def configFileName = 'enterprise-reporting.json'
 
 def s3ConfigurationStaging =  [
   account: "993883856687",
-  role: "Zion4iq-hds-stage",
+  role: 'jenkins-hds-enterprise-reporting-staging',
+  credentialsId: 'hds-enterprise-reporting-external-id-staging',
   bucketName: "hds-staging-enterprise-reporting-us-east-2" // assume east is canonical 
 ]
 
 
 def s3ConfigurationProd = [
   account  : "135388973902",
-  role: "Zion4iq-hds-prod",
+  role: 'jenkins-hds-enterprise-reporting-production',
+  credentialsId: 'hds-enterprise-reporting-external-id-production',
   usEast2Bucket: "hds-production-enterprise-reporting-us-east-2",
   usWest2Bucket: "hds-production-enterprise-reporting-us-west-2"
 ]
@@ -52,7 +54,7 @@ pipeline {
     stage('Downloading staging data') {
       steps {
         script {
-          withAWS(region: 'us-east-2', role: s3ConfigurationStaging.role, roleAccount: s3ConfigurationStaging.account) {
+          withAwsRole(region: 'us-east-2', role: s3ConfigurationStaging.role, roleAccount: s3ConfigurationStaging.account, credentialsId: s3ConfigurationStaging.credentialsId) {
               validateFieldHasValue(params, 'dashboardId')
 
               clean(iconsZipFileName)
@@ -87,7 +89,7 @@ pipeline {
     stage('Update the production icons.zip file') {
       steps{
         script {
-          withAWS(region: 'us-east-2', role: s3ConfigurationProd.role, roleAccount: s3ConfigurationProd.account) {
+          withAwsRole(region: 'us-east-2', role: s3ConfigurationProd.role, roleAccount: s3ConfigurationProd.account, credentialsId: s3ConfigurationProd.credentialsId) {
             def eastBucketName = s3ConfigurationProd.usEast2Bucket
             def westBucketName = s3ConfigurationProd.usWest2Bucket
           
@@ -101,7 +103,7 @@ pipeline {
     stage('Promote dashboard configuration entry to production') {
       steps {
         script {
-          withAWS(region: 'us-east-2', role: s3ConfigurationProd.role, roleAccount: s3ConfigurationProd.account) {
+          withAwsRole(region: 'us-east-2', role: s3ConfigurationProd.role, roleAccount: s3ConfigurationProd.account, credentialsId: s3ConfigurationProd.credentialsId) {
             def eastBucketName = s3ConfigurationProd.usEast2Bucket
             def westBucketName = s3ConfigurationProd.usWest2Bucket
 

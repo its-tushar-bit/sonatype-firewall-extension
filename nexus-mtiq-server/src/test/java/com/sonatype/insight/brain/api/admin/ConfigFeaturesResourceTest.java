@@ -109,7 +109,8 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.getId(),
           SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI.getId(),
           SystemConfigurationPropertyFeature.SBOM_POLICIES.getId(),
-          SystemConfigurationPropertyFeature.MALWARE_DEFENSE_API.getId()
+          SystemConfigurationPropertyFeature.MALWARE_DEFENSE_API.getId(),
+          SystemConfigurationPropertyFeature.AUTO_WAIVERS.getId()
       }
   )).toArray(String[]::new);
 

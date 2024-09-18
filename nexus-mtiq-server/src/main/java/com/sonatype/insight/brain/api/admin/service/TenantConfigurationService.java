@@ -48,7 +48,8 @@ public class TenantConfigurationService
       SBOM_BINARY_SCANNING,
       SBOM_CONTINUOUS_MONITORING_UI,
       SBOM_POLICIES,
-      MALWARE_DEFENSE_API
+      MALWARE_DEFENSE_API,
+      AUTO_WAIVERS
   );
 
   // Visible for testing

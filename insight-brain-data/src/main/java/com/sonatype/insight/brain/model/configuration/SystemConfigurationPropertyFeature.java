@@ -224,6 +224,8 @@ public enum SystemConfigurationPropertyFeature
 
   SBOM_POLICIES(SystemConfigurationProperty.SBOM_POLICIES, false),
 
+  AUTO_WAIVERS(SystemConfigurationProperty.AUTO_WAIVERS, false),
+
   MALWARE_DEFENSE_API(SystemConfigurationProperty.MALWARE_DEFENSE_API, false)
   {
     @Override

@@ -1119,4 +1119,43 @@ public class ApiConfigFeaturesServiceTest
             SystemConfigurationProperty.SBOM_POLICIES)).isInstanceOf(
         BadRequestException.class).hasMessage("Feature is already disabled.");
   }
+
+  @Test
+  public void testGetSystemConfigurationPropertyFeature_AutoWaivers() {
+    assertThat(service.getSystemConfigurationPropertyFeature("autoWaivers")).isEqualTo(
+        SystemConfigurationPropertyFeature.AUTO_WAIVERS);
+    assertThat(service.getSystemConfigurationPropertyFeature("autowaivers")).isEqualTo(
+        SystemConfigurationPropertyFeature.AUTO_WAIVERS);
+    assertThat(service.getSystemConfigurationPropertyFeature("AutoWaivers")).isEqualTo(
+        SystemConfigurationPropertyFeature.AUTO_WAIVERS);
+    assertThat(service.getSystemConfigurationPropertyFeature("AUTOWAIVERS")).isEqualTo(
+        SystemConfigurationPropertyFeature.AUTO_WAIVERS);
+  }
+
+  @Test
+  public void testEnableFeature_AutoWaivers() {
+    service.enableFeature(AUTO_WAIVERS);
+
+    assertThat(
+        systemConfigurationPropertyDAO.getByName(AUTO_WAIVERS)
+            .getValue())
+        .isEqualTo("true");
+  }
+
+  @Test
+  public void testEnableFeature_AutoWaivers_AlreadyEnabled() {
+    service.enableFeature(AUTO_WAIVERS);
+    assertThatThrownBy(
+        () -> service.enableFeature(
+            AUTO_WAIVERS)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_AutoWaivers_AlreadyDisabled() {
+    assertThatThrownBy(
+        () -> service.disableFeature(
+            AUTO_WAIVERS)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
 }

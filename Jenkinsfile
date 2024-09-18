@@ -63,6 +63,9 @@ make(
       withSonatypeDockerRegistry() {
         withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/"]) {
           buildAndSkipTests(mavenCommon, keystoreCredentialsId, false, useInstall4J)
+          // Download the JDKs and build the assemblies that will be included in the Jenkins artifacts that
+          // are used for releasing a bundled JDK with the server and cli
+          mvn mavenCommon, ' -pl :nexus-iq-server -Pjdks process-resources jreleaser:assemble'
         }
       }
     },
@@ -111,6 +114,10 @@ make(
     distFiles: [
       includes: [
         'nexus-iq-server/target/*.zip*',
+        'nexus-iq-server/target/jreleaser/assemble/nexus-iq-server/jlink/*.zip',
+        'nexus-iq-server/target/jreleaser/assemble/nexus-iq-server/jlink/*.tgz',
+        'nexus-iq-server/target/jreleaser/assemble/nexus-iq-cli/jlink/*.zip',
+        'nexus-iq-server/target/jreleaser/assemble/nexus-iq-cli/jlink/*.tgz',
         'nexus-iq-server/target/*.tar.gz*',
         'nexus-iq-cli/target/*.jar*',
         'nexus-iq-diagnostics/target/*.jar*',

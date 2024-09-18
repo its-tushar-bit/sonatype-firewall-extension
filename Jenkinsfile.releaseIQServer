@@ -46,7 +46,7 @@ pipeline {
               parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
       }
     }
-    stage('Stage Release Binaries') {
+    stage('Stage Release Binaries') { // Jenkinsfile
       steps {
         build(job: 'insight/insight-brain/release',
               parameters: [ booleanParam(name: 'hotfix', value: params.hotfix),
@@ -60,14 +60,14 @@ pipeline {
               parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
       }
     }
-    stage('Deploy Binaries to Staging') {
+    stage('Deploy Binaries to Staging') { // Jenkinsfile.deploy
       steps {
         build(job: 'insight/insight-brain/deploy',
               parameters: [ string(name: 'environment', value: 'Staging'),
                             run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")])
       }
     }
-    stage('Deploy Binaries to Production') {
+    stage('Deploy Binaries to Production') { // Jenkinsfile.deploy
       steps {
         build(job: 'insight/insight-brain/deploy',
               parameters: [ string(name: 'environment', value: 'Production'),

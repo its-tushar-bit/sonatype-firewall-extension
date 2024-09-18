@@ -23,6 +23,8 @@
   <properties>
     <clm.server.jar>${project.artifactId}-${project.version}.jar</clm.server.jar>
     <clm.server.demo.command>java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/sun.security.rsa=ALL-UNNAMED --add-opens=java.base/sun.security.x509=ALL-UNNAMED --add-opens=java.base/sun.security.util=ALL-UNNAMED --add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED -jar ${clm.server.jar} server config.yml 2> stderr.log</clm.server.demo.command>
+    <jdk.distribution>temurin</jdk.distribution>
+    <jdk.version>17.0.2</jdk.version>
   </properties>
 
   <dependencies>
@@ -61,6 +63,16 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.jreleaser</groupId>
+        <artifactId>jreleaser-maven-plugin</artifactId>
+        <version>1.14.0</version>
+        <inherited>false</inherited>
+        <configuration>
+          <configFile>jreleaser.yml</configFile>
+        </configuration>
+      </plugin>
+      <!-- This will be deprecated in the future -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
@@ -105,5 +117,75 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>jdks</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jreleaser</groupId>
+            <artifactId>jdks-maven-plugin</artifactId>
+            <version>1.10.0</version>
+            <executions>
+              <execution>
+                <phase>process-resources</phase>
+                <id>setup-disco</id>
+                <goals>
+                  <goal>setup-disco</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <pkgs>
+                <pkg>
+                  <name>${jdk.distribution}_${jdk.version}_linux_x86_64</name>
+                  <distribution>${jdk.distribution}</distribution>
+                  <platform>linux-x86_64</platform>
+                  <version>${jdk.version}</version>
+                  <archiveType>tar.gz</archiveType>
+                </pkg>
+                <pkg>
+                  <name>${jdk.distribution}_${jdk.version}_linux_musl_x86_64</name>
+                  <distribution>${jdk.distribution}</distribution>
+                  <platform>linux-x86_64</platform>
+                  <version>${jdk.version}</version>
+                  <libcType>musl</libcType>
+                  <archiveType>tar.gz</archiveType>
+                </pkg>
+                <pkg>
+                  <name>${jdk.distribution}_${jdk.version}_linux_aarch64</name>
+                  <distribution>${jdk.distribution}</distribution>
+                  <platform>linux-aarch64</platform>
+                  <version>${jdk.version}</version>
+                  <archiveType>tar.gz</archiveType>
+                </pkg>
+                <pkg>
+                  <name>${jdk.distribution}_${jdk.version}_mac_x86_64</name>
+                  <distribution>${jdk.distribution}</distribution>
+                  <platform>osx-x86_64</platform>
+                  <version>${jdk.version}</version>
+                  <archiveType>tar.gz</archiveType>
+                </pkg>
+                <pkg>
+                  <name>${jdk.distribution}_${jdk.version}_mac_aarch64</name>
+                  <distribution>${jdk.distribution}</distribution>
+                  <platform>osx-aarch64</platform>
+                  <version>${jdk.version}</version>
+                  <archiveType>tar.gz</archiveType>
+                </pkg>
+                <pkg>
+                  <name>${jdk.distribution}_${jdk.version}_windows_x86_64</name>
+                  <distribution>${jdk.distribution}</distribution>
+                  <platform>windows-x86_64</platform>
+                  <version>${jdk.version}</version>
+                </pkg>
+              </pkgs>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
   
 </project>

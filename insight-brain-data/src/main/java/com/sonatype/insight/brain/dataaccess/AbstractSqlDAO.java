@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -43,6 +45,8 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
   static int MAX_ALLOWED_DB_RESULTS =
       ConfigUtil.getIntegerConfig("com.sonatype.insight.maxAllowedDbResults", DEFAULT_MAX_ALLOWED_DB_RESULTS);
 
+  private final String entityName;
+
   /**
    * Constructor for DAOs that require the search index. These DAOs must override one of the methods:
    * <ul>
@@ -54,6 +58,7 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
    */
   protected AbstractSqlDAO(final SearchIndexManager searchIndexManager) {
     this.searchIndexManager = searchIndexManager;
+    entityName = ((Class<?>) getParameterizedSuperClass().getActualTypeArguments()[0]).getSimpleName();
   }
 
   /**
@@ -71,6 +76,15 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
     javax.persistence.Query query = this.createQuery(tx, sQuery, parameters);
     query.setMaxResults(MAX_ALLOWED_DB_RESULTS);
 
+    return query.getResultList();
+  }
+
+  public List<T> getPage(TransactionContext tx, String lastProcessedId, int pageSize) {
+    String sQuery = "SELECT entity FROM " + getEntityName()
+        + " entity WHERE entity.id > :lastProcessedId ORDER BY entity.id";
+    javax.persistence.Query query = tx.createQuery(sQuery);
+    query.setParameter("lastProcessedId", lastProcessedId);
+    query.setMaxResults(pageSize);
     return query.getResultList();
   }
 
@@ -100,6 +114,23 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
     super.delete(tx, entity);
     insertSearchIndexChange(tx, newSearchIndexChangeForDelete(entity));
   }
+
+  public long getCount(TransactionContext tx) {
+    String sQuery = "SELECT COUNT(entity) FROM " + getEntityName() + " entity";
+    return getSingle(tx, Long.class, sQuery);
+  }
+
+  public long getCount() {
+    String sQuery = "SELECT COUNT(entity) FROM " + getEntityName() + " entity";
+    return getSingle(Long.class, sQuery);
+  }
+
+  public String getEntityName() {
+    return entityName;
+  }
+
+  @Override
+  public abstract TransactionContext createTransactionContext();
 
   private void insertSearchIndexChange(final TransactionContext tx, final SearchIndexChange searchIndexChange) {
     searchIndexManager.insert(tx, searchIndexChange);
@@ -220,5 +251,14 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
   {
     Stream<?> resultStream = createNativeQuery(tx, sQuery, parameters).getResultStream();
     return resultStream.map(type::cast);
+  }
+
+  private ParameterizedType getParameterizedSuperClass() {
+    Type genericSuperclass = getClass().getGenericSuperclass();
+    if (!(genericSuperclass instanceof ParameterizedType)) {
+      genericSuperclass = getClass().getSuperclass().getGenericSuperclass();
+    }
+
+    return (ParameterizedType) genericSuperclass;
   }
 }

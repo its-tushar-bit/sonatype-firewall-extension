@@ -408,6 +408,36 @@ public abstract class AbstractClusterLockManagerTest
   }
 
   @Test
+  public void testGetLockIdForAsyncDbMigration() {
+    String jobName = "JobName";
+    assertThat(ClusterLockManager.getLockIdForAsyncDbMigration(jobName))
+        .isEqualTo(ClusterLockManager.ASYNC_DB_MIGRATION + "-" + jobName)
+        .isEqualTo("async-db-migration-" + jobName);
+  }
+
+  @Test
+  public void testCreateForAsyncDbMigration() {
+    String name = "JobName";
+    try (ClusterLock clusterLock = clusterLockManager.createForAsyncDbMigration(name)) {
+      clusterLock.lock();
+
+      assertThat(clusterLock.getLockId()).isEqualTo(ClusterLockManager.getLockIdForAsyncDbMigration(name));
+    }
+  }
+
+  @Test
+  public void testDeleteForAsyncDbMigration() {
+    String name = "JobName";
+    try (ClusterLock ignored = clusterLockManager.createForAsyncDbMigration(name)) {
+      assertThat(lockExists(ClusterLockManager.getLockIdForAsyncDbMigration(name))).isTrue();
+
+      clusterLockManager.deleteForAsyncDbMigration(name);
+
+      assertThat(lockExists(ClusterLockManager.getLockIdForAsyncDbMigration(name))).isFalse();
+    }
+  }
+
+  @Test
   public void testGetLockIdForNewInstancePopulation() {
     assertThat(ClusterLockManager.getLockIdForNewInstancePopulation()).isEqualTo(
             ClusterLockManager.NEW_INSTANCE_POPULATION)

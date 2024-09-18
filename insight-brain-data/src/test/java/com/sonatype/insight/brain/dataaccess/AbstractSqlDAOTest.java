@@ -57,7 +57,7 @@ public class AbstractSqlDAOTest
     }
 
     @Override
-    protected TransactionContext createTransactionContext() {
+    public TransactionContext createTransactionContext() {
       return new TransactionContext(dataStore.getJPAEntityManagerFactory().createEntityManager());
     }
 
@@ -66,6 +66,7 @@ public class AbstractSqlDAOTest
       return getList(createTransactionContext(), sQuery);
     }
 
+    @Override
     public long getCount() {
       String sQuery = "SELECT COUNT(entity) FROM MigrationTracker entity";
       return getSingle(Long.class, sQuery);

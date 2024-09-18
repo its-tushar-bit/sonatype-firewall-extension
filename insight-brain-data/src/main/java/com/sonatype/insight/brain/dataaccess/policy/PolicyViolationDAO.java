@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.policy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -38,12 +39,31 @@ import static java.util.stream.Collectors.toList;
 @Singleton
 public class PolicyViolationDAO
     extends AbstractOperationalSqlDAO<PolicyViolation>
+    implements AbstractPolicyViolationDAO
 {
   static final int DELETE_BATCH_SIZE = 100;
 
+  private final PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO;
+
   @Inject
-  public PolicyViolationDAO(OperationalDataStore operationalDataStore) {
+  public PolicyViolationDAO(
+      OperationalDataStore operationalDataStore,
+      PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO)
+  {
     super(operationalDataStore);
+    this.policyViolationConstraintFactsDAO = policyViolationConstraintFactsDAO;
+  }
+
+  @Override
+  public void insert(final TransactionContext tx, final PolicyViolation entity) {
+    storeConstraints(policyViolationConstraintFactsDAO, tx, entity);
+    super.insert(tx, entity);
+  }
+
+  @Override
+  public void update(final TransactionContext tx, final PolicyViolation entity) {
+    storeConstraints(policyViolationConstraintFactsDAO, tx, entity);
+    super.update(tx, entity);
   }
 
   public List<PolicyViolation> getByApplicationId(String applicationId) {
@@ -139,7 +159,7 @@ public class PolicyViolationDAO
     policyThreatCategories = getPolicyThreatCategoriesFilter(policyThreatCategories);
 
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.applicationId=?1" + //
+        " WHERE " + applicationIdString() + //
         " AND entity.openTime >= ?2" + //
         " AND entity.threatLevel >= ?3" + //
         " AND entity.threatLevel <= ?4" + //
@@ -147,6 +167,10 @@ public class PolicyViolationDAO
         " AND entity.threatCategory IN (?5)" + //
         (onlyActiveViolations ? " AND entity.waiveTime IS NULL AND entity.legacyViolationTime IS NULL " : "");
     return getUnfixed(sQuery, applicationIds, minDate, minThreatLevel, maxThreatLevel, policyThreatCategories);
+  }
+
+  private String applicationIdString() {
+    return isDatabaseEmbedded() ? "entity.applicationId=?1" : "entity.applicationId IN (?1)";
   }
 
   public List<PolicyViolation> getUnfixedByApplicationIds(Collection<String> applicationIds) {
@@ -161,7 +185,7 @@ public class PolicyViolationDAO
                                                            boolean onlyActiveViolations)
   {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.applicationId=?1" + //
+        " WHERE " + applicationIdString() + //
         " AND entity.fixTime IS NULL" + //
         (onlyActiveViolations ? " AND entity.waiveTime IS NULL " : "") + //
         (onlyActiveViolations ? " AND entity.legacyViolationTime IS NULL " : "");
@@ -189,7 +213,7 @@ public class PolicyViolationDAO
     policyThreatCategories = getPolicyThreatCategoriesFilter(policyThreatCategories);
 
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.applicationId=?1 AND entity.stageTypeId IN (?2)" + //
+        " WHERE " + applicationIdString() + " AND entity.stageTypeId IN (?2)" + //
         " AND entity.openTime >= ?3" + //
         " AND entity.threatLevel >= ?4" + //
         " AND entity.threatLevel <= ?5" + //
@@ -213,7 +237,7 @@ public class PolicyViolationDAO
     policyThreatCategories = getPolicyThreatCategoriesFilter(policyThreatCategories);
 
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.applicationId=?1 AND entity.stageTypeId IN (?2)" + //
+        " WHERE " + applicationIdString() + " AND entity.stageTypeId IN (?2)" + //
         " AND entity.fixTime IS NULL" + //
         " AND entity.threatLevel >= ?3" + //
         " AND entity.threatLevel <= ?4" + //
@@ -240,7 +264,7 @@ public class PolicyViolationDAO
     policyThreatCategories = getPolicyThreatCategoriesFilter(policyThreatCategories);
 
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.applicationId=?1 AND entity.stageTypeId IN (?2)" + //
+        " WHERE " + applicationIdString() + " AND entity.stageTypeId IN (?2)" + //
         " AND entity.fixTime IS NULL" + //
         " AND entity.threatLevel >= ?3" + //
         " AND entity.threatLevel <= ?4" + //
@@ -268,7 +292,7 @@ public class PolicyViolationDAO
     policyThreatCategories = getPolicyThreatCategoriesFilter(policyThreatCategories);
 
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.applicationId=?1 AND entity.stageTypeId IN (?2)" + //
+        " WHERE " + applicationIdString() + "AND entity.stageTypeId IN (?2)" + //
         " AND entity.openTime >= ?3" + //
         " AND entity.threatLevel >= ?4" + //
         " AND entity.threatLevel <= ?5" + //
@@ -323,7 +347,7 @@ public class PolicyViolationDAO
       Date openTimeBefore)
   {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
-        " WHERE entity.applicationId=?1 AND entity.policyId IN (?2)" + //
+        " WHERE " + applicationIdString() + " AND entity.policyId IN (?2)" + //
         " AND entity.fixTime IS NULL" + //
         " AND entity.waiveTime IS NULL" + //
         " AND entity.legacyViolationTime IS NULL";
@@ -355,19 +379,36 @@ public class PolicyViolationDAO
                                            Collection<String> applicationIds,
                                            Object... otherParameters)
   {
-    // H2 won't utilize the index for the application id when the query uses an IN operator with multiple values (and
-    // has additional filter criteria like the fix_time), doing an expensive table scan instead.
-    // So we make one query per app to ensure the index is used (and all the fixed violations aren't scanned).
-    TenantAwareFunction<String, List<PolicyViolation>> tenantAwareFunction =
-        new TenantAwareFunction<>(applicationId -> {
-          Object[] parameters = new Object[otherParameters.length + 1];
-          System.arraycopy(otherParameters, 0, parameters, 1, otherParameters.length);
-          parameters[0] = applicationId;
-          return getList(sQuery, parameters);
-        });
-    return CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> {
-      return applicationIds.stream().parallel().map(tenantAwareFunction).flatMap(Collection::stream).collect(toList());
-    }), ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.DAO)).join();
+    if (isDatabaseEmbedded()) {
+      // H2 won't utilize the index for the application id when the query uses an IN operator with multiple values (and
+      // has additional filter criteria like the fix_time), doing an expensive table scan instead.
+      // So we make one query per app to ensure the index is used (and all the fixed violations aren't scanned).
+      TenantAwareFunction<String, List<PolicyViolation>> tenantAwareFunction =
+          new TenantAwareFunction<>(applicationId -> {
+            Object[] parameters = new Object[otherParameters.length + 1];
+            System.arraycopy(otherParameters, 0, parameters, 1, otherParameters.length);
+            parameters[0] = applicationId;
+            return getList(sQuery, parameters);
+          });
+      return CompletableFuture.supplyAsync(
+          new TenantAwareSupplier<>(() -> applicationIds.stream()
+              .parallel()
+              .map(tenantAwareFunction)
+              .flatMap(Collection::stream)
+              .collect(toList())),
+          ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.DAO)).join();
+    }
+    else if (!applicationIds.isEmpty()) {
+      return getListWithSqlInClause(applicationIds, appIds ->  {
+        Object[] parameters = new Object[otherParameters.length + 1];
+        System.arraycopy(otherParameters, 0, parameters, 1, otherParameters.length);
+        parameters[0] = appIds;
+        return getList(sQuery, parameters);
+      });
+    }
+    else {
+      return Collections.emptyList();
+    }
   }
 
   public List<PolicyViolation> getActiveByApplicationIdAndStageIdsAndTimeRange(String appId,
@@ -487,6 +528,14 @@ public class PolicyViolationDAO
         " WHERE entity.waiveTime IS NOT NULL" +
         " AND entity.fixTime IS NULL";
     return getSingle(Number.class, sQuery).intValue();
+  }
+
+  @Override
+  public long getCountWhereConstraintFactsJsonNotNull() {
+    String sQuery = "SELECT COUNT(entity) FROM " + getEntityName() +
+        " entity WHERE entity.constraintFactsJson IS NOT NULL";
+
+    return getSingle(Long.class, sQuery);
   }
 
   public List<PolicyViolation> getWaivedFixed() {

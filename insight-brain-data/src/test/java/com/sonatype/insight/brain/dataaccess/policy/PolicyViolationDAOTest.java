@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFactsDAOProvider;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
@@ -37,6 +38,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -48,11 +50,20 @@ public class PolicyViolationDAOTest
 {
   private PolicyViolationDAO dao;
 
+  private PolicyViolationConstraintFactsDAO constraintsDAO;
+
   @Before
   @Override
   public void setup() {
     super.setup();
     dao = daoFactory.createPolicyViolationDAO();
+    constraintsDAO = daoFactory.createPolicyViolationConstraintFactsDAO();
+    PolicyViolationConstraintFactsDAOProvider.inject(constraintsDAO);
+  }
+
+  @After
+  public void tearDown() {
+    PolicyViolationConstraintFactsDAOProvider.inject(null);
   }
 
   @Test
@@ -64,11 +75,17 @@ public class PolicyViolationDAOTest
     // Create
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1",
         "Version1");
+    String constraintData = "constraint data";
     PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, policy.getId(), policy.getName(), 5,
-        PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier, "constraint data", "filename");
+        PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier, constraintData, "filename");
     assertThat(policyViolation.getId()).isNull();
     dao.insert(policyViolation);
     assertThat(policyViolation.getId()).isNotNull();
+
+    // Test constraints stored
+    assertThat(policyViolation.getConstraintFactsId()).isNotNull();
+    String json = constraintsDAO.getById(policyViolation.getConstraintFactsId()).getConstraintFactsJson();
+    assertThat(json).isEqualTo(constraintData);
 
     // Read
     policyViolation = dao.getById(policyViolation.getId());
@@ -1617,5 +1634,24 @@ public class PolicyViolationDAOTest
         .containsExactlyInAnyOrder(waivedViolation1.getId(), expiredWaivedViolation.getId(), waivedViolation2.getId(),
             fixedViolation.getId())
         .doesNotContain(unfixedUnwaivedViolation.getId());
+  }
+
+  @Test
+  public void testGetConstraintFacts() {
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID,
+        "PolicyViolationDAOTestScanId");
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1",
+        "Version1");
+    String constraintData = "constraint data";
+    PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, policy.getId(), policy.getName(), 5,
+        PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier, constraintData, "filename");
+    assertThat(policyViolation.getId()).isNull();
+
+    dao.insert(policyViolation);
+
+    assertThat(policyViolation.getId()).isNotNull();
+    assertThat(dao.getById(policyViolation.getId()).getConstraintFactsJson()).isEqualTo(constraintData);
   }
 }

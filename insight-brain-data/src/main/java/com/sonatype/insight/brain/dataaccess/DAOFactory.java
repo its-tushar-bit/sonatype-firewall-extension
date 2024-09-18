@@ -58,6 +58,7 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseLicenseInternalDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFactsDAO;
 import com.sonatype.insight.brain.dataaccess.policy.LastPolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -417,6 +418,8 @@ public interface DAOFactory
   DevelopmentPrioritizationComponentInfoDAO createDevelopmentPrioritizationComponentInfoDAO();
 
   DevelopmentPrioritizationDAO createDevelopmentPrioritizationDAO();
+
+  PolicyViolationConstraintFactsDAO createPolicyViolationConstraintFactsDAO();
 
   ThirdPartyUnknownComponentDAO createThirdPartyUnknownComponentDAO();
 }

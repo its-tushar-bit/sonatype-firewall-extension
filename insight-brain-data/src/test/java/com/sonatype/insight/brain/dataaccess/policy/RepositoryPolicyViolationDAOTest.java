@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFactsDAOProvider;
 import com.sonatype.insight.brain.model.policy.PolicyViolationSummary;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -33,6 +34,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableSet;
@@ -44,11 +46,20 @@ public class RepositoryPolicyViolationDAOTest
 {
   private RepositoryPolicyViolationDAO dao;
 
+  private PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO;
+
   @Before
   @Override
   public void setup() {
     super.setup();
     dao = daoFactory.createRepositoryPolicyViolationDAO();
+    policyViolationConstraintFactsDAO = daoFactory.createPolicyViolationConstraintFactsDAO();
+    PolicyViolationConstraintFactsDAOProvider.inject(policyViolationConstraintFactsDAO);
+  }
+
+  @After
+  public void tearDown() {
+    PolicyViolationConstraintFactsDAOProvider.inject(null);
   }
 
   @Test

@@ -301,6 +301,12 @@ public class PolicyViolationMigrator
       throw new UnsupportedOperationException();
     }
 
+    // Not used. It is needed only because of the {@link PolicyViolationComparable} interface.
+    @Override
+    public String getConstraintFactsId() {
+      throw new UnsupportedOperationException();
+    }
+
     boolean isWaived() {
       return waiveTime != null;
     }
@@ -431,6 +437,12 @@ public class PolicyViolationMigrator
     // Not used. It is needed only because of the {@link PolicyViolationComparable} interface.
     @Override
     public List<ConstraintFact> getConstraintFacts() {
+      throw new UnsupportedOperationException();
+    }
+
+    // Not used. It is needed only because of the {@link PolicyViolationComparable} interface.
+    @Override
+    public String getConstraintFactsId() {
       throw new UnsupportedOperationException();
     }
   }

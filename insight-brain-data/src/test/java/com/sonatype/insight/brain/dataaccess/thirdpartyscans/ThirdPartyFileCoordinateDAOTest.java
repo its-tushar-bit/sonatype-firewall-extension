@@ -1100,6 +1100,33 @@ public class ThirdPartyFileCoordinateDAOTest
         .containsExactly(packageUrlIdentifier4.getPackageUrl());
   }
 
+  @Test
+  @PostgresTest
+  public void testGetSbomComponentsByThirdPartyFileId_ComponentNameAndDependecyTypeFilters() {
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(application.getId())
+        .build();
+
+    PackageUrlIdentifier packageUrlIdentifier1 = new PackageUrlIdentifier("pkg:maven/a/b@c?type=jar");
+    tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(), "s1", packageUrlIdentifier1.getFormat(),
+        packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(), "h1",
+        packageUrlIdentifier1.getPackageUrl(), DIRECT);
+
+    PackageUrlIdentifier packageUrlIdentifier2 = new PackageUrlIdentifier("pkg:golang/d/e@f");
+    tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(), "s2", packageUrlIdentifier2.getFormat(),
+        packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(), "h2",
+        packageUrlIdentifier2.getPackageUrl(), DIRECT);
+
+    SbomComponentListDTO result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
+        sbomMetadata.getThirdPartyFileId(), null, Collections.singleton(DIRECT), "a : b : c", null, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isOne();
+    assertThat(result.getResults())
+        .extracting(SbomComponentDTO::getPackageUrl)
+        .containsExactly(packageUrlIdentifier1.getPackageUrl());
+  }
+
   private void insertVEXToThirdPartyCoordinateSecurity(ThirdPartyCoordinateSecurity coordinateSecurity) {
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity, coordinateSecurity.getRefId(),
         "state", "justification", "response", "detail");

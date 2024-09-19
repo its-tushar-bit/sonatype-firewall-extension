@@ -33,6 +33,7 @@ import com.sonatype.insight.error.exception.InternalServerException;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 
 import static com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO.createPaginationNativeQuery;
@@ -197,9 +198,10 @@ public class ThirdPartyFileCoordinateDAO
         "  LEFT JOIN " + getDatabaseSchema() + ".vulnerability_exploitability ve" + //
         "    ON cs.coordinate_security_id = ve.coordinate_security_id" + //
         " WHERE fc.third_party_file_id = ?10";
-    int index = 11;
+    int indexForComponentName = 11;
+    MutableInt index = new MutableInt(indexForComponentName);
     sQuery = generateComponentNameFilterQuery(componentName, index, sQuery);
-    sQuery += generateHavingByDependencyTypes(dependencyTypes, dependencyTypesParams, 13) + //
+    sQuery += generateHavingByDependencyTypes(dependencyTypes, dependencyTypesParams, index.intValue()) + //
         " GROUP BY fc.hash, fc.package_url, fc.name, fc.version, licenses_json ,fc.dependency_type " + //
         generateHavingByVulnerabilityThreatLevels(vulnerabilityThreatLevels) + //
         generateOrderBySortFieldSelected(sortBy, asc);
@@ -211,8 +213,7 @@ public class ThirdPartyFileCoordinateDAO
           createPaginationQueryWithScoreRangeParams(thirdPartyFileId, pageSize, sQuery, offset, tx);
       if (componentName != null && !componentName.isEmpty()) {
         componentName = componentName.trim();
-        index = 11;
-        setComponentNameParameters(componentName, index, paginationQuery);
+        setComponentNameParameters(componentName, indexForComponentName, paginationQuery);
       }
       dependencyTypesParams.forEach(paginationQuery::setParameter);
 
@@ -481,7 +482,7 @@ public class ThirdPartyFileCoordinateDAO
     return "";
   }
 
-  private String generateComponentNameFilterQuery(String componentName, int index, String sQuery) {
+  private String generateComponentNameFilterQuery(String componentName, MutableInt index, String sQuery) {
     if (componentName != null && !componentName.isEmpty()) {
       if (componentName.contains(" : ") || componentName.contains(" ")) {
         long count = Arrays.stream(componentName.split("\\s+:\\s+|\\s+"))
@@ -490,8 +491,8 @@ public class ThirdPartyFileCoordinateDAO
         int i = 0;
         sQuery += " AND (";
         while (i < count) {
-          sQuery += applyComponentNameFilterArray(componentName, index);
-          index++;
+          sQuery += applyComponentNameFilterArray(componentName, index.intValue());
+          index.increment();
           i++;
           if (i < count) {
             sQuery += " AND";
@@ -500,7 +501,7 @@ public class ThirdPartyFileCoordinateDAO
         sQuery += " ) ";
       }
       else {
-        sQuery += applyComponentNameFilter(componentName, index);
+        sQuery += applyComponentNameFilter(componentName, index.intValue());
       }
     }
     return sQuery;

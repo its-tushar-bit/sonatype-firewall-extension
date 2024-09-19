@@ -73,7 +73,7 @@ export default function SbomContinuousMonitoringEditor() {
 
   return (
     <>
-      <div className={'sbom-nx-page-title'}>
+      <div id={'sbom-manager-continuous-monitoring'} className={'sbom-nx-page-title'}>
         <div className={'sbom-continuous-monitoring-title'}>
           <NxH1>Continuous Monitoring</NxH1>
           <NxButton onClick={handleLearnMoreClick}>Learn more</NxButton>
@@ -98,7 +98,7 @@ export default function SbomContinuousMonitoringEditor() {
             >
               <NxH2>Configure Continuous monitoring</NxH2>
               <div className={'sbom-continuous-monitoring'}>
-                <span>{stageDetails?.label}</span>
+                <span id={'sbom-continuous-monitoring-status-label'}>{stageDetails?.label}</span>
                 <NxToggle
                   id="enable-continuous-monitoring"
                   onChange={() => toggleComplianceStageEnabled()}

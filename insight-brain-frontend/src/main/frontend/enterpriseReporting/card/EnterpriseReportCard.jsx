@@ -5,7 +5,8 @@
  */
 
 import React from 'react';
-import { NxButton, NxH2, NxList, NxP, NxTag, NxTile } from '@sonatype/react-shared-components';
+import PropTypes from 'prop-types';
+import { NxButton, NxH2, NxList, NxP, NxTag, NxTile, selectableColors } from '@sonatype/react-shared-components';
 import { useDispatch } from 'react-redux';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { actions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
@@ -21,6 +22,8 @@ export default function EnterpriseReportCard(props) {
     dispatch(stateGo('enterpriseReportingDashboard'));
   };
 
+  const color = selectableColors.includes(dashboard.spotlightColor) ? dashboard.spotlightColor : selectableColors[4];
+
   const btnClassName = 'iq-enterprise-reporting__dashboard__btn dashboard-id-btn-' + dashboard.dashboardId;
 
   return (
@@ -34,7 +37,7 @@ export default function EnterpriseReportCard(props) {
           <NxTile.HeaderTitle className="iq-enterprise-reporting__dashboard__header-title">
             <NxH2>{dashboard.title}</NxH2>
             {dashboard.spotlight ? (
-              <NxTag color="turquoise" className="iq-enterprise-reporting__dashboard__spotlight">
+              <NxTag color={color} className="iq-enterprise-reporting__dashboard__spotlight">
                 NEW
               </NxTag>
             ) : (
@@ -67,3 +70,16 @@ export default function EnterpriseReportCard(props) {
     </div>
   );
 }
+
+EnterpriseReportCard.propTypes = {
+  dashboard: PropTypes.shape({
+    dashboardId: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    spotlight: PropTypes.bool,
+    spotlightColor: PropTypes.string,
+    previewImage: PropTypes.string,
+    description: PropTypes.string,
+    features: PropTypes.arrayOf(PropTypes.string),
+    accessButtonText: PropTypes.string,
+  }).isRequired,
+};

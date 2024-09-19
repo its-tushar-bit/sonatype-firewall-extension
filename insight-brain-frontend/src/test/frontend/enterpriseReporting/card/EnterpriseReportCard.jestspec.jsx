@@ -42,13 +42,36 @@ describe('EnterpriseReportCard', () => {
     expect(btn).toHaveClass('dashboard-id-btn-rolling-recap');
   });
 
-  it('spotligths a given card', async () => {
+  it('spotligths a given card with default color', async () => {
     dashboard = { ...dashboard, spotlight: true };
 
     renderComponent();
 
     expect(await screen.findByRole('enterprise-reporting-dashboard-card')).toBeInTheDocument();
     expect(screen.queryByText('NEW')).toBeInTheDocument();
+    expect(screen.queryByText('NEW').parentElement).toHaveClass('nx-selectable-color--turquoise');
+    expect(screen.getByRole('button', { name: dashboard.accessButtonText })).toBeInTheDocument();
+  });
+
+  it('spotligths a given card with a valid color', async () => {
+    dashboard = { ...dashboard, spotlight: true, spotlightColor: 'kiwi' };
+
+    renderComponent();
+
+    expect(await screen.findByRole('enterprise-reporting-dashboard-card')).toBeInTheDocument();
+    expect(screen.queryByText('NEW')).toBeInTheDocument();
+    expect(screen.queryByText('NEW').parentElement).toHaveClass('nx-selectable-color--kiwi');
+    expect(screen.getByRole('button', { name: dashboard.accessButtonText })).toBeInTheDocument();
+  });
+
+  it('spotligths a given card with an invalid color rendering default', async () => {
+    dashboard = { ...dashboard, spotlight: true, spotlightColor: 'invalid' };
+
+    renderComponent();
+
+    expect(await screen.findByRole('enterprise-reporting-dashboard-card')).toBeInTheDocument();
+    expect(screen.queryByText('NEW')).toBeInTheDocument();
+    expect(screen.queryByText('NEW').parentElement).toHaveClass('nx-selectable-color--turquoise');
     expect(screen.getByRole('button', { name: dashboard.accessButtonText })).toBeInTheDocument();
   });
 });

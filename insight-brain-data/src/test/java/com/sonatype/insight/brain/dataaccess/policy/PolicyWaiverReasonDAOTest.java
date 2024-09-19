@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.dataaccess.policy;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
+
+import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -84,5 +86,58 @@ public class PolicyWaiverReasonDAOTest
     assertThat(savedPolicyWaiverReason.getId()).isEqualTo(policyWaiverReason.getId());
     assertThat(savedPolicyWaiverReason.getType()).isEqualTo(policyWaiverReason.getType());
     assertThat(savedPolicyWaiverReason.getReasonText()).isEqualTo(policyWaiverReason.getReasonText());
+  }
+
+  @Test
+  public void testGetAll_returnsAllEntriesCorrectlySorted() {
+    final var oranges = tempEntity.newWaiverReason("system", "oranges", null);
+    final var apples  = tempEntity.newWaiverReason("system", "apples", null);
+    final var plumbs = tempEntity.newWaiverReason("system", "plumbs", null);
+
+    final var overLappingSortOrder = tempEntity.newWaiverReason("system", "over-lapping-sort-order", 0);
+    final var endOfTheLine = tempEntity.newWaiverReason("system", "end-of-the-line", 7);
+
+    final List<PolicyWaiverReason> results = policyWaiverReasonDAO.getAll();
+    assertPolicyWaiverReasonListEqual(
+        results,
+        Lists.newArrayList(
+            // Entries without sort-order, appear alphabetically at the beginning, this is really an edge case for now.
+            // We are currently not inserting any entries without a sort-order, but the fallback sort guarantees
+            // this is determinant
+            apples,
+            oranges,
+            plumbs,
+            new PolicyWaiverReason("9b704ef5bc064fc29d7fe08a251ee9a6", "system", "Acknowledged violation", 0),
+            overLappingSortOrder, // show come second, same sort-order, but greater alphabetical value
+            new PolicyWaiverReason("42069f58114f4df8b435a40a415d2835", "system", "Mitigated externally", 1),
+            new PolicyWaiverReason("39984de3d6e64f508df82b4cbfd72f70", "system", "No upgrade path", 2),
+            new PolicyWaiverReason("f6990a32cd8d4ea78853ca829d948927", "system", "Not exploitable", 3),
+            new PolicyWaiverReason("19bbf1a7d591497698ab3172461d971a", "system", "Not reachable", 4),
+            new PolicyWaiverReason("3446e70e60e04676a90131f3dea9bdb5", "system", "Researching", 5),
+            new PolicyWaiverReason("c991ef95866d4903ad0c6c217ac47c07", "system", "Other", 6),
+            endOfTheLine // comes at the end of entries with sort-orders
+        ));
+  }
+
+  private void assertPolicyWaiverReasonListEqual(
+      final List<PolicyWaiverReason> actualReasons,
+      final List<PolicyWaiverReason> expectedReasons
+  )
+  {
+    assertThat(actualReasons.size()).isEqualTo(expectedReasons.size());
+
+    for (int i = 0; i < actualReasons.size(); i++) {
+      final var actual = actualReasons.get(i);
+      final var expected = expectedReasons.get(i);
+
+      assertPolicyWaiverReasonsEqual(actual, expected);
+    }
+  }
+
+  private void assertPolicyWaiverReasonsEqual(final PolicyWaiverReason actual, final PolicyWaiverReason expected) {
+    assertThat(actual.getId()).isEqualTo(expected.getId());
+    assertThat(actual.getType()).isEqualTo(expected.getType());
+    assertThat(actual.getReasonText()).isEqualTo(expected.getReasonText());
+    assertThat(actual.getSortOrder()).isEqualTo(expected.getSortOrder());
   }
 }

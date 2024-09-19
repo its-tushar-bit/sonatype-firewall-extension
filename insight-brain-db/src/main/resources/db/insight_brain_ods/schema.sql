@@ -1839,17 +1839,17 @@ CREATE TABLE IF NOT EXISTS policy_waiver_reason (
   waiver_reason_id varchar(50) NOT NULL,
   type varchar(50) NOT NULL DEFAULT 'system',
   reason_text varchar(60) NOT NULL,
+  sort_order INTEGER NULL,
   CONSTRAINT policy_waiver_reason_pk PRIMARY KEY (waiver_reason_id),
   CONSTRAINT policy_waiver_reason_uk UNIQUE (reason_text)
 );
-INSERT INTO policy_waiver_reason VALUES ('9b704ef5bc064fc29d7fe08a251ee9a6', 'system', 'Acknowledged violation');
-INSERT INTO policy_waiver_reason VALUES ('42069f58114f4df8b435a40a415d2835', 'system', 'Mitigated externally');
-INSERT INTO policy_waiver_reason VALUES ('39984de3d6e64f508df82b4cbfd72f70', 'system', 'No upgrade path');
-INSERT INTO policy_waiver_reason VALUES ('f6990a32cd8d4ea78853ca829d948927', 'system', 'Not exploitable');
-INSERT INTO policy_waiver_reason VALUES ('3446e70e60e04676a90131f3dea9bdb5', 'system', 'Researching');
-INSERT INTO policy_waiver_reason VALUES ('c991ef95866d4903ad0c6c217ac47c07', 'system', 'Other');
-
-
+INSERT INTO policy_waiver_reason VALUES ('9b704ef5bc064fc29d7fe08a251ee9a6', 'system', 'Acknowledged violation', 0);
+INSERT INTO policy_waiver_reason VALUES ('42069f58114f4df8b435a40a415d2835', 'system', 'Mitigated externally', 1);
+INSERT INTO policy_waiver_reason VALUES ('39984de3d6e64f508df82b4cbfd72f70', 'system', 'No upgrade path', 2);
+INSERT INTO policy_waiver_reason VALUES ('f6990a32cd8d4ea78853ca829d948927', 'system', 'Not exploitable', 3);
+INSERT INTO policy_waiver_reason VALUES ('19bbf1a7d591497698ab3172461d971a', 'system', 'Not reachable', 4);
+INSERT INTO policy_waiver_reason VALUES ('3446e70e60e04676a90131f3dea9bdb5', 'system', 'Researching', 5);
+INSERT INTO policy_waiver_reason VALUES ('c991ef95866d4903ad0c6c217ac47c07', 'system', 'Other', 6);
 
 -- since 1.183
 -- SaaS Compatible
@@ -1867,3 +1867,4 @@ CREATE TABLE IF NOT EXISTS  auto_policy_waiver (
     );
 
 CREATE INDEX auto_policy_waiver_owner_id_idx on auto_policy_waiver(owner_id);
+

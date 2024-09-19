@@ -24,6 +24,19 @@ public class PolicyWaiverReasonDAO
     super(operationalDataStore);
   }
 
+  @Override
+  public List<PolicyWaiverReason> getAll() {
+    final String sQuery = "SELECT entity FROM PolicyWaiverReason entity" +
+        "  ORDER BY " +
+        "    entity.sortOrder ASC," +
+        // this is a fallback for when sortOrder is null, it guarantees determinant behavior, currently we are providing
+        // sort_order values for all rows so this should not get hit, but we have left the column nullable because there
+        // is discussion around
+        "    entity.reasonText ASC";
+
+    return getList(sQuery);
+  }
+
   public List<PolicyWaiverReason> getAllByIds(List<String> policyWaiverReasonIds) {
     String sQuery = "SELECT entity FROM PolicyWaiverReason entity" + //
         " WHERE entity.id IN ?1";

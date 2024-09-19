@@ -1768,6 +1768,12 @@ public class TemporaryEntity
     return policyWaiverReason;
   }
 
+  public PolicyWaiverReason newWaiverReason(String type, String reasonText, Integer sortOrder) {
+    PolicyWaiverReason policyWaiverReason = new PolicyWaiverReason(type, reasonText, sortOrder);
+    waiverReasonDAO.insert(policyWaiverReason);
+    return policyWaiverReason;
+  }
+
   public CallFlowAnalysisConfig newCallFlowAnalysisConfig(String ownerId, int threadCount) {
     CallFlowAnalysisConfig callFlowAnalysisConfig = new CallFlowAnalysisConfig(true,
         Collections.singletonList("com.sonatype"),

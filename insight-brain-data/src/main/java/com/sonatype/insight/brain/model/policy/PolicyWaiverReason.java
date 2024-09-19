@@ -30,22 +30,25 @@ public class PolicyWaiverReason
   @Column(name = "reason_text")
   private String reasonText;
 
+  @Column(name = "sort_order")
+  private Integer sortOrder;
+
   public PolicyWaiverReason() {
   }
 
-  public PolicyWaiverReason(String reasonText) {
-    this.reasonText = reasonText;
-  }
-
   public PolicyWaiverReason(String type, String reasonText) {
-    this.type = type;
-    this.reasonText = reasonText;
+    this(null, type, reasonText, null);
   }
 
-  public PolicyWaiverReason(String id, String type, String reasonText) {
+  public PolicyWaiverReason(String type, String reasonText, Integer sortOrder) {
+    this(null, type, reasonText, sortOrder);
+  }
+
+  public PolicyWaiverReason(String id, String type, String reasonText, Integer sortOrder) {
     this.id = id;
     this.type = type;
     this.reasonText = reasonText;
+    this.sortOrder = sortOrder;
   }
 
   @Override
@@ -72,5 +75,13 @@ public class PolicyWaiverReason
 
   public void setReasonText(String reasonText) {
     this.reasonText = reasonText;
+  }
+
+  public Integer getSortOrder() {
+    return this.sortOrder;
+  }
+
+  public void setSortOrder(Integer sortOrder) {
+    this.sortOrder = sortOrder;
   }
 }

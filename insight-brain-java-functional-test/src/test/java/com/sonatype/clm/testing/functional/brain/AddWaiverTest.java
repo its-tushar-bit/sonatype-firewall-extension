@@ -119,14 +119,15 @@ public class AddWaiverTest
     addWaiverPage.expiryTimesOptions().get(6).shouldHave(text("120 Days"));
     addWaiverPage.expiryTimesOptions().get(7).shouldHave(text("Custom"));
     addWaiverPage.expiryTimesSelect().getSelectedOption().shouldHave(text("Never"));
-    addWaiverPage.waiverReasonOptions().shouldHave(size(7));
+    addWaiverPage.waiverReasonOptions().shouldHave(size(8));
     addWaiverPage.waiverReasonOptions().get(0).shouldHave(text("Select a reason"));
     addWaiverPage.waiverReasonOptions().get(1).shouldHave(text("Acknowledged violation"));
     addWaiverPage.waiverReasonOptions().get(2).shouldHave(text("Mitigated externally"));
     addWaiverPage.waiverReasonOptions().get(3).shouldHave(text("No upgrade path"));
     addWaiverPage.waiverReasonOptions().get(4).shouldHave(text("Not exploitable"));
-    addWaiverPage.waiverReasonOptions().get(5).shouldHave(text("Researching"));
-    addWaiverPage.waiverReasonOptions().get(6).shouldHave(text("Other"));
+    addWaiverPage.waiverReasonOptions().get(5).shouldHave(text("Not reachable"));
+    addWaiverPage.waiverReasonOptions().get(6).shouldHave(text("Researching"));
+    addWaiverPage.waiverReasonOptions().get(7).shouldHave(text("Other"));
     addWaiverPage.waiverReasonSelect().getSelectedOption().shouldHave(text("Select a reason"));
 
     eyesWatcher.eyesCheck();

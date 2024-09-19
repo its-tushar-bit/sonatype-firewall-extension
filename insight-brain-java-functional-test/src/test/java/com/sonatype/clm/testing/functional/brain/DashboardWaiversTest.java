@@ -822,12 +822,13 @@ public class DashboardWaiversTest
         .map(label -> label.getText().trim())
         .toList();
 
-    assertThat(labels).containsExactlyInAnyOrder(
+    assertThat(labels).containsExactly(
         "all/none",
         "Acknowledged violation",
         "Mitigated externally",
         "No upgrade path",
         "Not exploitable",
+        "Not reachable",
         "Researching",
         "Other",
         "(No reason provided)");

@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.function.Consumer;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -237,46 +239,99 @@ public class Configuration
     Integer currentWaivedComponentUpgradeInspectionHour = getWaivedComponentUpgradeInspectionHour();
     boolean isWaivedComponentUpgradeMonitoringEnabled = getWaivedComponentUpgradeMonitoringEnabled();
     updateValueByPropertyNames(propertyNamesCopy);
-    if (propertyNamesCopy.contains(SystemConfigurationProperty.HDS_URL) ||
-        propertyNamesCopy.contains(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS) ||
-        propertyNamesCopy.contains(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS)) {
-      hdsClientsProvider.get().forEach(HdsClient::serverConfigurationChanged);
-    }
-    if (propertyNamesCopy.contains(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE)) {
-      asyncEventBusProvider.get().setMaxPoolSize(getEventBusMaxThreadPoolSize());
-    }
-    if (propertyNamesCopy.contains(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE)) {
-      releaseGraphCacheProviderProvider.get().initializeCache();
-    }
-
-    // Following prop changes deal with task scheduling so they are ignored if the scheduler is not initialized
+    hdsUrlAndTimeoutsServerConfigurationChanged(propertyNamesCopy);
+    eventBusMaxThreadPoolSizeSetMaxPoolSize(propertyNamesCopy);
+    releaseGraphCacheSizeInitializeCache(propertyNamesCopy);
     if (!taskScheduler.isSchedulerInitialized()) {
       return;
     }
+    policyMonitoringHourSchedulePolicyMonitoring(propertyNamesCopy, currentPolicyMonitoringHour);
+    automaticQuarantineReleaseTimeIntervalInMinutesScheduleAutomaticQuarantineRelease(propertyNamesCopy,
+        currentAutomaticQuarantineReleaseTimeIntervalInMinutes);
+    waivedComponentUpgradeInspectionHourScheduleWaivedComponentUpgradeInspection(propertyNamesCopy,
+        isWaivedComponentUpgradeMonitoringEnabled, currentWaivedComponentUpgradeInspectionHour);
+    waivedComponentUpgradeMonitoringEnabledScheduleWaivedComponentUpgradeInspectionOrDeregister(propertyNamesCopy,
+        isWaivedComponentUpgradeMonitoringEnabled );
+  }
 
-    if (propertyNamesCopy.contains(SystemConfigurationProperty.POLICY_MONITORING_HOUR) &&
-        !Objects.equals(currentPolicyMonitoringHour, getPolicyMonitoringHour())) {
-      policyMonitorSchedulerProvider.get().schedulePolicyMonitoring();
-    }
-    if (propertyNamesCopy.contains(SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES) &&
-        !Objects.equals(currentAutomaticQuarantineReleaseTimeIntervalInMinutes,
-            getAutomaticQuarantineReleaseTimeIntervalInMinutes())) {
-      automaticQuarantineReleaseSchedulerProvider.get().scheduleAutomaticQuarantineRelease();
-    }
-    if (propertyNamesCopy.contains(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR) &&
-        isWaivedComponentUpgradeMonitoringEnabled &&
-        !Objects.equals(currentWaivedComponentUpgradeInspectionHour, getWaivedComponentUpgradeInspectionHour())) {
-      waivedComponentUpgradeSchedulerProvider.get().scheduleWaivedComponentUpgradeInspection();
-    }
-    if (propertyNamesCopy.contains(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED) &&
-        !Objects.equals(isWaivedComponentUpgradeMonitoringEnabled, getWaivedComponentUpgradeMonitoringEnabled())) {
-      if (getWaivedComponentUpgradeMonitoringEnabled()) {
-        waivedComponentUpgradeSchedulerProvider.get().scheduleWaivedComponentUpgradeInspection();
-      }
-      else {
-        waivedComponentUpgradeSchedulerProvider.get().deregister();
-      }
-    }
+  private void hdsUrlAndTimeoutsServerConfigurationChanged(Set<String> propertyNamesCopy) {
+    filterAndAction(propertyNamesCopy,
+        prop -> prop.equals(SystemConfigurationProperty.HDS_URL) ||
+            prop.equals(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS) ||
+            prop.equals(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS),
+        prop -> hdsClientsProvider.get().forEach(HdsClient::serverConfigurationChanged)
+    );
+  }
+
+  private void eventBusMaxThreadPoolSizeSetMaxPoolSize(Set<String> propertyNamesCopy) {
+    filterAndAction(propertyNamesCopy,
+        prop -> prop.equals(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE),
+        prop -> asyncEventBusProvider.get().setMaxPoolSize(getEventBusMaxThreadPoolSize())
+    );
+  }
+
+  private void releaseGraphCacheSizeInitializeCache(Set<String> propertyNamesCopy) {
+    filterAndAction(propertyNamesCopy,
+        prop -> prop.equals(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE),
+        prop -> releaseGraphCacheProviderProvider.get().initializeCache()
+    );
+  }
+
+  private void policyMonitoringHourSchedulePolicyMonitoring(Set<String> propertyNamesCopy,
+                                                            Integer currentPolicyMonitoringHour)
+  {
+    filterAndAction(propertyNamesCopy,
+        prop -> prop.equals(SystemConfigurationProperty.POLICY_MONITORING_HOUR) &&
+            !Objects.equals(currentPolicyMonitoringHour, getPolicyMonitoringHour()),
+        prop -> policyMonitorSchedulerProvider.get().schedulePolicyMonitoring()
+    );
+  }
+
+  private void automaticQuarantineReleaseTimeIntervalInMinutesScheduleAutomaticQuarantineRelease(
+      Set<String> propertyNamesCopy, Integer currentAutomaticQuarantineReleaseTimeIntervalInMinutes)
+  {
+    filterAndAction(propertyNamesCopy,
+        prop -> prop.equals(SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES)
+            && !Objects.equals(currentAutomaticQuarantineReleaseTimeIntervalInMinutes,
+            getAutomaticQuarantineReleaseTimeIntervalInMinutes()),
+        prop -> automaticQuarantineReleaseSchedulerProvider.get().scheduleAutomaticQuarantineRelease()
+    );
+  }
+
+  private void waivedComponentUpgradeInspectionHourScheduleWaivedComponentUpgradeInspection(
+      Set<String> propertyNamesCopy, boolean isWaivedComponentUpgradeMonitoringEnabled,
+      Integer currentWaivedComponentUpgradeInspectionHour)
+  {
+    filterAndAction(propertyNamesCopy,
+        prop -> prop.equals(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR) &&
+            isWaivedComponentUpgradeMonitoringEnabled && !Objects.equals(currentWaivedComponentUpgradeInspectionHour,
+            getWaivedComponentUpgradeInspectionHour()),
+        prop -> waivedComponentUpgradeSchedulerProvider.get().scheduleWaivedComponentUpgradeInspection()
+    );
+  }
+
+  private void waivedComponentUpgradeMonitoringEnabledScheduleWaivedComponentUpgradeInspectionOrDeregister(
+      Set<String> propertyNamesCopy, boolean isWaivedComponentUpgradeMonitoringEnabled)
+  {
+    filterAndAction(propertyNamesCopy,
+        prop -> prop.equals(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED) &&
+            !Objects.equals(isWaivedComponentUpgradeMonitoringEnabled, getWaivedComponentUpgradeMonitoringEnabled()),
+        prop -> {
+          Runnable action = getWaivedComponentUpgradeMonitoringEnabled()
+              ? () -> waivedComponentUpgradeSchedulerProvider.get().scheduleWaivedComponentUpgradeInspection()
+              : () -> waivedComponentUpgradeSchedulerProvider.get().deregister();
+          action.run();
+        }
+    );
+  }
+
+  private void filterAndAction(Set<String> propertyNames,
+                                            Predicate<String> filterPredicate, Consumer<String> action)
+  {
+    propertyNames.stream()
+        .filter(filterPredicate)
+        .findAny()
+        .ifPresent(action);
   }
 
   @Override

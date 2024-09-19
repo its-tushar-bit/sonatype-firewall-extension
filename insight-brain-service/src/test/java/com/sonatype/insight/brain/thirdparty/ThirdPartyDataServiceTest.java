@@ -25,6 +25,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -62,6 +63,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
@@ -76,18 +78,24 @@ import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.Securi
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.VulnerabilitySource;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.model.AttachmentText;
+import org.cyclonedx.model.Bom;
+import org.cyclonedx.model.Component;
+import org.cyclonedx.model.Property;
 import org.cyclonedx.model.Swid;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.Assertions.withinPercentage;
-import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -492,6 +500,124 @@ public class ThirdPartyDataServiceTest
   }
 
   @Test
+  public void testMergeSonatypeDataWithSbomData_BinaryScan_WithThirdPartyContent() throws Exception {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+    PackageUrlIdentifier purl1 =
+        new PackageUrlIdentifier("pkg:pypi/orange@1.0.1?qualifier=py2.py3-none-any&extension=whl");
+    PackageUrlIdentifier purl2 = new PackageUrlIdentifier("pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0");
+    PackageUrlIdentifier purl3 = new PackageUrlIdentifier("pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1");
+    PackageUrlIdentifier purl4 =
+        new PackageUrlIdentifier("pkg:maven/com.sun.istack/istack-commons-runtime@4.1.2?type=jar");
+
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(null, "1", file, "PENDING");
+    ThirdPartyFileCoordinate tpComponent =
+        tempEntity.newThirdPartyFileCoordinate(file, "Sonatype", "pypi", "orange", "1.0.1", "093080a1a4bbd2750541",
+            purl1.getPackageUrl());
+    tempEntity.newThirdPartyCoordinateSecurity(tpComponent, "FG-R00229", sbomMetadata.getId(), "desc", "1.url", 1d,
+        "FG-R00229 test", "2.0");
+    tempEntity.newThirdPartyCoordinateLicense(tpComponent, "MIT", "MIT", "https://opensource.org/licenses/MIT");
+
+    ContainerNode<?> bomJson = enhanceBomJsonWithMockedThirdPartyComponent(
+        loadResource("/ThirdPartyDataServiceTest/report-for-binary-scan-with-thirdparty/bom.json"), tpComponent);
+    ContainerNode<?> securityJson =
+        loadResource("/ThirdPartyDataServiceTest/report-for-binary-scan-with-thirdparty/security.json");
+    ContainerNode<?> licenseJson =
+        loadResource("/ThirdPartyDataServiceTest/report-for-binary-scan-with-thirdparty/licenses.json");
+    Bom originalBom = handler.createNewBom();
+    Bom filteredBom = handler.createNewBom();
+
+    handler.mergeSonatypeDataWithSbomData(sbomMetadata, SCAN_ID, bomJson, securityJson, licenseJson, Map.of(),
+        originalBom, filteredBom);
+
+    sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
+    assertThat(sbomMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
+
+    //verify all components
+    List<ThirdPartyFileCoordinate> fileCoordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(sbomMetadata.getThirdPartyFileId());
+    Map<PackageUrlIdentifier, ThirdPartyFileCoordinate> coords = fileCoordinates.stream()
+        .collect(Collectors.toMap(tpCoord -> new PackageUrlIdentifier(tpCoord.getPackageUrl()), tpCoord -> tpCoord));
+    assertThat(fileCoordinates).hasSize(4);
+    List<PackageUrlIdentifier> expectedPurls = List.of(purl1, purl2, purl3, purl4);
+    assertThat(coords.keySet()).containsExactlyInAnyOrderElementsOf(expectedPurls);
+
+    //verify component is merged
+    ThirdPartyFileCoordinate tpfc1 = coords.get(purl1);
+    assertThat(tpfc1.getId()).isNotEmpty();
+    assertThat(tpfc1.getThirdPartyFileId()).isEqualTo(sbomMetadata.getThirdPartyFileId());
+    assertThat(tpfc1.getName()).isEqualTo("orange");
+    assertThat(tpfc1.getVersion()).isEqualTo("1.0.1");
+    assertThat(tpfc1.getHash()).isEqualTo("093080a1a4bbd2750541");
+    assertThat(tpfc1.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+
+    //verify dependency types correctly set
+    assertThat(coords.get(purl1).getDependencyType()).isEqualTo("D");
+    assertThat(coords.get(purl2).getDependencyType()).isEqualTo("T");
+    assertThat(coords.get(purl3).getDependencyType()).isEqualTo("D");
+    assertThat(coords.get(purl4).getDependencyType()).isEqualTo("T");
+
+    //verify security vulnerabilities are merged
+    List<ThirdPartyCoordinateSecurity> tpvListC1 = thirdPartyCoordinateSecurityDAO
+        .getByFileCoordinateId(tpfc1.getId());
+
+    assertThat(tpvListC1.size()).isEqualTo(2);
+    ThirdPartyCoordinateSecurity fgR00229 = tpvListC1.get(0);
+    assertThat(fgR00229.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+    assertThat(fgR00229.getRefId()).isEqualTo("FG-R00229");
+
+    ThirdPartyCoordinateSecurity fgr00274 = tpvListC1.get(1);
+    assertThat(fgr00274.getRefId()).isEqualTo("FG-R00274");
+    assertThat(fgr00274.getIdentificationSources()).isEqualTo("Sonatype");
+
+    //verify licenses are merged
+    List<ThirdPartyCoordinateLicense> tclListC1 = thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(tpfc1.getId());
+    assertThat(tclListC1.size()).isEqualTo(2);
+    ThirdPartyCoordinateLicense component1License1 = tclListC1.get(0);
+    assertThat(component1License1.getLicenseId()).isEqualTo("Apache-2.0");
+    assertThat(component1License1.getIdentificationSources()).isEqualTo("Sonatype");
+    ThirdPartyCoordinateLicense component1License2 = tclListC1.get(1);
+    assertThat(component1License2.getLicenseId()).isEqualTo("MIT");
+    assertThat(component1License2.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+
+    //verify original SBOM and filtered SBOM
+    assertThat(originalBom.getComponents()).hasSize(4)
+        .allSatisfy(component -> assertThat(component.getProperties()).isNull());
+    assertThat(filteredBom.getComponents()).hasSize(4)
+        .allSatisfy(component -> {
+          assertThat(component.getProperties()).hasSize(1);
+          assertThat(component.getProperties().get(0).getName()).isEqualTo("sonatypeIdentifier");
+          assertThat(component.getProperties().get(0).getValue()).isNotNull();
+        });
+
+    Optional<Component> tpBomComponentOptional = filteredBom.getComponents().stream()
+        .filter(component -> new PackageUrlIdentifier(component.getPurl()).equals(purl1))
+        .findFirst();
+    assertThat(tpBomComponentOptional).isPresent();
+    List<Property> properties = tpBomComponentOptional.get().getProperties();
+    assertThat(properties).hasSize(1);
+    Property property = properties.get(0);
+    assertThat(property.getName()).isEqualTo("sonatypeIdentifier");
+    assertThat(property.getValue()).isEqualTo(tpComponent.getId());
+
+    //verify telemetry data
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender, times(1)).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_POST_IMPORT_METRICS);
+    assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
+    SbomPostImportMetricsTelemetry telemetry = (SbomPostImportMetricsTelemetry) telemetryData.getAttributes()
+        .get("sbom_post_import_metrics");
+    assertThat(telemetry.getVerifiedVulnerabilityCount()).isEqualTo(1);
+    assertThat(telemetry.getUnverifiedVulnerabilityCount()).isEqualTo(0);
+    assertThat(telemetry.getAdditionalVulnerabilitiesCount()).isEqualTo(1);
+    assertThat(telemetry.getTotalVulnerabilitiesCount()).isEqualTo(1);
+  }
+
+  @Test
   public void testMergeSonatypeDataWithSbomDataWithIndexing_BinaryScan_NoThirdPartyContent()
       throws URISyntaxException, IOException
   {
@@ -515,8 +641,7 @@ public class ThirdPartyDataServiceTest
     try (InputStream actualInputStream = new GZIPInputStream(new FileInputStream(actualSbomFile));
          InputStream expectedInputStream =
              ThirdPartyDataServiceTest.class
-                 .getResourceAsStream("/ThirdPartyDataServiceTest/binaryScanOriginalSboms/original-bom.json"))
-    {
+                 .getResourceAsStream("/ThirdPartyDataServiceTest/binaryScanOriginalSboms/original-bom.json")) {
       String actualSbomAsString = IOUtils.toString(actualInputStream, Charset.defaultCharset());
       String expectedSbomAsString = IOUtils.toString(expectedInputStream, Charset.defaultCharset());
       assertThatJson(actualSbomAsString)
@@ -542,8 +667,8 @@ public class ThirdPartyDataServiceTest
         "pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0",
         "pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1",
         "pkg:maven/com.sun.istack/istack-commons-runtime@4.1.2?type=jar").map(PackageUrlIdentifier::new).toList();
-    assertThat(coords.keySet()).containsExactlyInAnyOrderElementsOf(expectedUrls.stream().map(PackageUrlIdentifier::
-        getPackageUrl).collect(Collectors.toList()));
+    assertThat(coords.keySet().stream().map(PackageUrlIdentifier::new)).containsExactlyInAnyOrderElementsOf(
+        expectedUrls);
 
     ThirdPartyFileCoordinate tpfc1 = coords.get(new PackageUrlIdentifier(
         "pkg:pypi/orange@1.0.1?qualifier=py2.py3-none-any&extension=whl").getPackageUrl());
@@ -595,9 +720,9 @@ public class ThirdPartyDataServiceTest
 
     List<ThirdPartyCoordinateLicense> tclListC1 = thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(tpfc1.getId());
     assertThat(tclListC1.size()).isEqualTo(2);
-    ThirdPartyCoordinateLicense  component1License1 = tclListC1.get(0);
+    ThirdPartyCoordinateLicense component1License1 = tclListC1.get(0);
     assertThat(component1License1.getLicenseId()).isEqualTo("Apache-2.0");
-    ThirdPartyCoordinateLicense  component1License2 = tclListC1.get(1);
+    ThirdPartyCoordinateLicense component1License2 = tclListC1.get(1);
     assertThat(component1License2.getLicenseId()).isEqualTo("MIT");
 
     ThirdPartyFileCoordinate tpfc2 = coords.get("pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0");
@@ -654,7 +779,7 @@ public class ThirdPartyDataServiceTest
     tempEntity.createSbomMetadataForBinaryScan(null, "1", file, "PENDING");
 
     final File reportZip = Paths.get(ReportHelper.zipReport(
-        "/ThirdPartyDataServiceTest/report-for-binary-scan-duplicated-vulnerabilities", tempDir)
+            "/ThirdPartyDataServiceTest/report-for-binary-scan-duplicated-vulnerabilities", tempDir)
         .toURI()).toFile();
 
     handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, reportZip);
@@ -730,6 +855,40 @@ public class ThirdPartyDataServiceTest
     assertThat(fgR0123.getSeverityDescription()).isEqualTo("MEDIUM");
     assertThat(fgR0123.getVulnerabilitySource()).isEqualTo("IAC");
     assertThat(fgR0123.getRatingMethod()).isNull();
+  }
+
+  private ContainerNode<?> loadResource(final String name) throws IOException {
+    return JsonUtils.parse(IOUtils.toByteArray(Objects.requireNonNull(getClass().getResource(name))));
+  }
+
+  private ContainerNode<?> enhanceBomJsonWithMockedThirdPartyComponent(
+      final ContainerNode<?> bomJson,
+      final ThirdPartyFileCoordinate tpComponent)
+  {
+    ArrayNode aaNode = (ArrayNode) bomJson.get("aaData");
+    ObjectNode componentNode = aaNode.insertObject(0);
+    ObjectNode componentIdentifierNode = componentNode.putObject("componentIdentifier");
+    componentIdentifierNode.put("format", "pypi");
+    componentIdentifierNode.putObject("coordinates")
+        .put("extension", "whl")
+        .put("name", "orange")
+        .put("qualifier", "py2.py3-none-any")
+        .put("version", "1.0.1");
+
+    componentNode.put("packageUrl", "pkg:pypi/orange@1.0.1?qualifier=py2.py3-none-any&extension=whl")
+        .put("sonatypeIdentifier", tpComponent.getId())
+        .put("filenames", "pkg:pypi/orange@1.0.1")
+        .put("pathnames", "pkg:pypi/orange@1.0.1?qualifier=py2.py3-none-any&extension=whl")
+        .put("matchState", "exact")
+        .put("scanError", false)
+        .put("proprietary", false)
+        .put("hash", "093080a1a4bbd2750541")
+        .put("createTime", "1706953998000")
+        .put("directDependency", true)
+        .put("identificationSource", "Sonatype");
+    componentNode.putArray("filenames").insert(0, "pkg:pypi/orange@1.0.1");
+    componentNode.putArray("pathnames").insert(0, "dependency:/SBOM-bom.json/pkg:pypi\\orange@1.0.1");
+    return bomJson;
   }
 
   @Test

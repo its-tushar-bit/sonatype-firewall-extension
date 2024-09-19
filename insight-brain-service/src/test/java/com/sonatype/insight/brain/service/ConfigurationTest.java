@@ -5,22 +5,57 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
+import com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeScheduler;
+import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheProvider;
+import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.inject.Binder;
+import com.google.inject.Provides;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ConfigurationTest
     extends AbstractComponentTest
 {
+  @Mock
+  HdsClient hdsClient1;
+
+  @Mock
+  HdsClient hdsClient2;
+
+  @Mock
+  ReleaseGraphCacheProvider releaseGraphCacheProvider;
+
+  @Mock
+  PolicyMonitorScheduler policyMonitorScheduler;
+
+  @Mock
+  AutomaticQuarantineReleaseScheduler automaticQuarantineReleaseScheduler;
+
+  @Mock
+  WaivedComponentUpgradeScheduler waivedComponentUpgradeScheduler;
+
+  @Mock
+  TaskScheduler taskScheduler;
+
   @Inject
   private ApiConfigurationService configurationService;
 
@@ -30,14 +65,65 @@ public class ConfigurationTest
   @Inject
   private AsyncEventBus asyncEventBus;
 
+  @Override
+  public void configure(final Binder binder) {
+    binder.bind(TaskScheduler.class).toInstance(taskScheduler);
+    super.configure(binder);
+  }
+
+  @Provides
+  List<HdsClient> providesHdsClients() {
+    return Lists.newArrayList(hdsClient1, hdsClient2);
+  }
+
+  @Provides
+  ReleaseGraphCacheProvider providesReleaseGraphCache() {
+    return releaseGraphCacheProvider;
+  }
+
+  @Provides
+  PolicyMonitorScheduler providesPolicyMonitorScheduler() {
+    return policyMonitorScheduler;
+  }
+
+  @Provides
+  AutomaticQuarantineReleaseScheduler providesAutomaticQuarantineReleaseScheduler() {
+    return automaticQuarantineReleaseScheduler;
+  }
+
+  @Provides
+  WaivedComponentUpgradeScheduler providesWaivedComponentUpgradeScheduler() {
+    return waivedComponentUpgradeScheduler;
+  }
+
   @Test
-  public void testConfigurationChanged_OtherProperty() {
-    configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE,
-        AsyncEventBus.DEFAULT_MAX_POOL_SIZE + 1);
+  public void testConfigurationChanged_OnlyReloadsThePropertyThatIsUpdated() {
+    final String givenSomeCustomBaseUrl1 = "http://my-custom-base-url-1/";
+    final String givenSomeCustomBaseUrl2 = "http://my-custom-base-url-2/";
 
-    configuration.configurationChanged(ImmutableSet.of(SystemConfigurationProperty.BASE_URL));
+    givenCacheAndDatabaseAreNotInSync(
+        AsyncEventBus.DEFAULT_MAX_POOL_SIZE + 1, givenSomeCustomBaseUrl1);
 
+    // none of the cache values are updated
     assertThat(asyncEventBus.getMaxPoolSize()).isEqualTo(AsyncEventBus.DEFAULT_MAX_POOL_SIZE);
+    assertThat(configuration.getBaseUrlConfiguration().getBaseUrl()).isEqualTo(null);
+
+    // should only update the BASE_URL
+    configuration.configurationChanged(ImmutableSet.of(SystemConfigurationProperty.BASE_URL));
+    assertThat(asyncEventBus.getMaxPoolSize()).isEqualTo(AsyncEventBus.DEFAULT_MAX_POOL_SIZE);
+    assertThat(configuration.getBaseUrlConfiguration().getBaseUrl()).isEqualTo(givenSomeCustomBaseUrl1);
+
+    givenCacheAndDatabaseAreNotInSync(
+        AsyncEventBus.DEFAULT_MAX_POOL_SIZE + 1, givenSomeCustomBaseUrl2);
+
+    // none of the cache values are updated
+    assertThat(asyncEventBus.getMaxPoolSize()).isEqualTo(AsyncEventBus.DEFAULT_MAX_POOL_SIZE);
+    assertThat(configuration.getBaseUrlConfiguration().getBaseUrl()).isEqualTo(givenSomeCustomBaseUrl1);
+
+    // should only update the DEFAULT_MAX_POOL_SIZE
+    configuration.configurationChanged(ImmutableSet.of(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE));
+    assertThat(asyncEventBus.getMaxPoolSize()).isEqualTo(AsyncEventBus.DEFAULT_MAX_POOL_SIZE + 1);
+    assertThat(configuration.getBaseUrlConfiguration().getBaseUrl()).isEqualTo(givenSomeCustomBaseUrl1);
   }
 
   @Test
@@ -48,6 +134,169 @@ public class ConfigurationTest
     configuration.configurationChanged(ImmutableSet.of(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE));
 
     assertThat(asyncEventBus.getMaxPoolSize()).isEqualTo(AsyncEventBus.DEFAULT_MAX_POOL_SIZE + 1);
+  }
+
+  @Test
+  public void testConfigurationChanged_shouldFireServerConfigurationChangedEventOnHdsClientForUrlChange() {
+    configuration.configurationChanged(ImmutableSet.of(SystemConfigurationProperty.HDS_URL));
+
+    verify(hdsClient1).serverConfigurationChanged();
+    verify(hdsClient2).serverConfigurationChanged();
+  }
+
+  @Test
+  @SuppressWarnings("checkstyle:LineLength")
+  public void testConfigurationChanged_shouldFireServerConfigurationChangedEventOnHdsClientForConnectionTimeoutChange() {
+    configuration.configurationChanged(ImmutableSet.of(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS));
+
+    verify(hdsClient1).serverConfigurationChanged();
+    verify(hdsClient2).serverConfigurationChanged();
+  }
+
+  @Test
+  public void testConfigurationChanged_shouldFireServerConfigurationChangedEventOnHdsClientForSocketTimeoutChange() {
+    configuration.configurationChanged(ImmutableSet.of(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS));
+
+    verify(hdsClient1).serverConfigurationChanged();
+    verify(hdsClient2).serverConfigurationChanged();
+  }
+
+  @Test
+  public void testConfigurationChanged_shouldInitializeReleaseGraphCacheOnCacheSizeUpdate() {
+    verify(releaseGraphCacheProvider, times(0)).initializeCache();
+
+    configuration.configurationChanged(ImmutableSet.of(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE));
+
+    verify(releaseGraphCacheProvider).initializeCache();
+  }
+
+  @Test
+  public void testConfigurationChanged_shouldUpdatePolicyMonitorScheduleWhenSchedulerEnabledAndHourUpdated() {
+    when(taskScheduler.isSchedulerInitialized()).thenReturn(true);
+
+    // given that the configuration has changed
+    configurationService.setConfigurationInDatabaseNoAuthz(
+        SystemConfigurationProperty.POLICY_MONITORING_HOUR, 1);
+
+    // check that initially we have not called schedulePolicyMonitoring
+    verify(policyMonitorScheduler, times(0)).schedulePolicyMonitoring();
+
+    configuration.configurationChanged(ImmutableSet.of(SystemConfigurationProperty.POLICY_MONITORING_HOUR));
+    verify(policyMonitorScheduler).schedulePolicyMonitoring();
+  }
+
+  @Test
+  public void testConfigurationChanged_shouldScheduleAutomaticQuarantineReleaseWhenQuarantineReleaseTimeChanged() {
+    when(taskScheduler.isSchedulerInitialized()).thenReturn(true);
+
+    // given that the configuration has changed
+    configurationService.setConfigurationInDatabaseNoAuthz(
+        SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES, 31);
+
+    // check that initially we have not called scheduleAutomaticQuarantineRelease
+    verify(
+        automaticQuarantineReleaseScheduler, times(0)).scheduleAutomaticQuarantineRelease();
+
+    configuration.configurationChanged(ImmutableSet.of(
+        SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES));
+    verify(automaticQuarantineReleaseScheduler).scheduleAutomaticQuarantineRelease();
+  }
+
+  @Test
+  public void testConfigurationChanged_shouldScheduleWaivedComponentUpgradesWhenUpgradeInspectionHourChanged() {
+    when(taskScheduler.isSchedulerInitialized()).thenReturn(true);
+
+    // given that the configuration has changed
+    // and waived_component_upgrade_monitoring_is_enabled
+    configurationService.setConfigurationInDatabaseNoAuthz(
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, true
+    );
+    configuration.configurationChanged(ImmutableSet.of(
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED));
+    configurationService.setConfigurationInDatabaseNoAuthz(
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, 2);
+
+    // called when we enable monitoring, make sure this was the only call
+    verify(
+        waivedComponentUpgradeScheduler, times(1)).scheduleWaivedComponentUpgradeInspection();
+
+    configuration.configurationChanged(ImmutableSet.of(
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR));
+
+    // called again when we updated the hour with the scheduler enabled
+    verify(waivedComponentUpgradeScheduler, times(2)).scheduleWaivedComponentUpgradeInspection();
+  }
+
+  @Test
+  public void testConfigurationChanged_shouldDeregisterWaivedComponentSchedulerIfDisabled() {
+    when(taskScheduler.isSchedulerInitialized()).thenReturn(true);
+
+    // enable the scheduler
+    configurationService.setConfigurationInDatabaseNoAuthz(
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, true
+    );
+    configuration.configurationChanged(ImmutableSet.of(
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED));
+
+    // called when we enable monitoring, make sure this was the only call
+    verify(
+        waivedComponentUpgradeScheduler, times(0)).deregister();
+
+    // toggle it back to false
+    configurationService.setConfigurationInDatabaseNoAuthz(
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, false
+    );
+    configuration.configurationChanged(ImmutableSet.of(
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED));
+
+    // called again when we updated the hour with the scheduler enabled
+    verify(waivedComponentUpgradeScheduler).deregister();
+  }
+
+  @Test
+  public void testConfigurationChanged_shouldNotUpdateAnySchedulersIfSchedulingIsDisabled() {
+    when(taskScheduler.isSchedulerInitialized()).thenReturn(false);
+
+    // given that the configuration has changed
+    configurationService.setConfigurationInDatabaseNoAuthz(
+        SystemConfigurationProperty.POLICY_MONITORING_HOUR, 1);
+    configurationService.setConfigurationInDatabaseNoAuthz(
+        SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES, 31);
+    configurationService.setConfigurationInDatabaseNoAuthz(
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED, true
+    );
+    configurationService.setConfigurationInDatabaseNoAuthz(
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, 2);
+
+    // then fire updates
+    configuration.configurationChanged(ImmutableSet.of(SystemConfigurationProperty.POLICY_MONITORING_HOUR));
+    configuration.configurationChanged(ImmutableSet.of(
+        SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES));
+    configuration.configurationChanged(ImmutableSet.of(
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED));
+    configuration.configurationChanged(ImmutableSet.of(
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR));
+
+    verify(policyMonitorScheduler, times(0)).schedulePolicyMonitoring();
+    verify(
+        automaticQuarantineReleaseScheduler, times(0)).scheduleAutomaticQuarantineRelease();
+    verify(waivedComponentUpgradeScheduler, times(0)).scheduleWaivedComponentUpgradeInspection();
+  }
+
+  @Test
+  @SuppressWarnings("checkstyle:LineLength")
+  public void testConfigurationChanged_shouldNotScheduleWaivedComponentUpgradesWhenUpgradeInspectionHourChangedAndDisabled() {
+    when(taskScheduler.isSchedulerInitialized()).thenReturn(true);
+
+    // given that the configuration has changed, but the scheduler is disabled
+    configurationService.setConfigurationInDatabaseNoAuthz(
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR, 2);
+
+    configuration.configurationChanged(ImmutableSet.of(
+        SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR));
+
+    // not called even though there was a change because waivedComponentUpgradeMonitoring is not enabled
+    verify(waivedComponentUpgradeScheduler, times(0)).scheduleWaivedComponentUpgradeInspection();
   }
 
   @Test
@@ -67,5 +316,19 @@ public class ConfigurationTest
     Map<String, String> matcherConfiguration = configuration.getMatcherConfiguration();
 
     assertThat(matcherConfiguration).containsEntry("disableConanNamespaceMatching", "true");
+  }
+
+  private void givenCacheAndDatabaseAreNotInSync(
+      final int maxPoolSize,
+      final String givenSomeCustomBaseUrl
+  )
+  {
+    // given the database and the cache are out of sync
+    configurationService.setConfigurationInDatabaseNoAuthz(
+        SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE,
+        maxPoolSize);
+    configurationService.setConfigurationInDatabaseNoAuthz(
+        SystemConfigurationProperty.BASE_URL,
+        givenSomeCustomBaseUrl);
   }
 }

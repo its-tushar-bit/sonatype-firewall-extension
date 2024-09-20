@@ -249,7 +249,7 @@ public class PullRequestFeedbackDetails
 
     return
         versionlessIdentifierA.equals(versionlessIdentifierB) &&
-            policyViolationA.getConstraintFactsJson().equals(policyViolationB.getConstraintFactsJson());
+            policyViolationA.getConstraintFactsId().equals(policyViolationB.getConstraintFactsId());
   }
 
   private Template getPolicyTemplate() {

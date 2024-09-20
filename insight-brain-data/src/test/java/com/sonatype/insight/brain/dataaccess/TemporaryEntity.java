@@ -101,6 +101,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPol
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFactsDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
@@ -319,6 +320,7 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroupVulnerab
 import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -615,6 +617,8 @@ public class TemporaryEntity
 
   private ThirdPartyUnknownComponentDAO thirdPartyUnknownComponentDAO;
 
+  private PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO;
+
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -882,6 +886,7 @@ public class TemporaryEntity
       delete(repositoryIdentifiedComponentDAO.getAll(), repositoryIdentifiedComponentDAO);
       delete(deletedTenants, deletedTenantDAO);
       delete(callFlowAnalysisConfigDAO.getAll(), callFlowAnalysisConfigDAO);
+      delete(policyViolationConstraintFactsDAO.getAll(), policyViolationConstraintFactsDAO);
       restoreInitialWaiverReasons();
       productLicenseDAO.delete();
       firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
@@ -3004,11 +3009,21 @@ public class TemporaryEntity
       ComponentIdentifier componentIdentifier,
       Date time)
   {
+    String json = "[{\"constraintId\":\"acdb7a00d0914415802b5faa131bc058\",\"constraintName\":\"aa c\"," +
+        "\"operatorName\":\"OR\",\"conditionFacts\":[{\"conditionTypeId\":\"MatchState\",\"summary\":" +
+        "\"Match State is exact\",\"reason\":\"Match State was exact\"}]}]";
+
+    ConstraintFact[] constraintFacts;
+    try {
+      constraintFacts = JsonUtils.parse(json, ConstraintFact[].class);
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, pathname, time, policyId,
         policyName, threatLevel, PolicyThreatCategory.LICENSE, "hash", componentIdentifier,
-        "[{\"constraintId\":\"acdb7a00d0914415802b5faa131bc058\",\"constraintName\":\"aa c\",\"operatorName\":\"OR\","
-            + "\"conditionFacts\":[{\"conditionTypeId\":\"MatchState\",\"summary\":\"Match State is exact\","
-            + "\"reason\":\"Match State was exact\"}]}]" /* constraintFacts */);
+        Arrays.asList(constraintFacts));
     policyViolation.setWaived(isWaived);
     policyViolation.setActionTypeId(actionId);
     repositoryPolicyViolationDAO.insert(policyViolation);
@@ -3251,17 +3266,21 @@ public class TemporaryEntity
   }
 
   public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId, Date time) {
+    ConstraintFact constraintFact = new ConstraintFact("constraintdata", "constraintdata", "constraintdata");
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, "path", time,
         "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE, "hash",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), "[]" /* constraintFacts */);
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"),
+        List.of(constraintFact));
     repositoryPolicyViolationDAO.insert(policyViolation);
     return policyViolation;
   }
 
   public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId, String policyId, int threatLevel) {
+    ConstraintFact constraintFact = new ConstraintFact("constraintdata", "constraintdata", "constraintdata");
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, "path", new Date(),
         policyId, "policyName", threatLevel, PolicyThreatCategory.LICENSE, "hash",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), "[]" /* constraintFacts */);
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"),
+        List.of(constraintFact));
     repositoryPolicyViolationDAO.insert(policyViolation);
     return policyViolation;
   }
@@ -5397,6 +5416,7 @@ public class TemporaryEntity
         daoFactory.createDevelopmentPrioritizationDAO();
     oAuth2ConfigurationDAO = daoFactory.createOAuth2ConfigurationDAO();
     oidcConfigurationDAO = daoFactory.createOidcConfigurationDAO();
+    policyViolationConstraintFactsDAO = daoFactory.createPolicyViolationConstraintFactsDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {

@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.micrometer.MultiTenantMeterRegistryProvider;
 import com.sonatype.insight.brain.migration.MigrateTenantsCommand;
 import com.sonatype.insight.brain.migration.MultiTenantDbMigrationCommand;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFactsDAOProvider;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
 import com.sonatype.insight.brain.product.license.DefaultProductLicense;
@@ -348,6 +349,7 @@ public class MultiTenantInsightBrainService
         requestStaticInjection(Report.class);
         requestStaticInjection(ComponentDetailsLoader.class);
         requestStaticInjection(SystemConfigurationPropertyFeature.class);
+        requestStaticInjection(PolicyViolationConstraintFactsDAOProvider.class);
 
         bind(TenantManagedInitializer.class).to(MultiTenantTenantManagedInitializer.class).in(Singleton.class);
 

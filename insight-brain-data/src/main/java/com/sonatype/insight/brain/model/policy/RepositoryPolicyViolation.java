@@ -69,23 +69,6 @@ public class RepositoryPolicyViolation
                                    PolicyThreatCategory threatCategory,
                                    String hash,
                                    ComponentIdentifier componentIdentifier,
-                                   String constraintFactsJson)
-  {
-    super(policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier, constraintFactsJson);
-    this.repositoryId = repositoryId;
-    this.pathname = pathname;
-    this.time = time;
-  }
-
-  public RepositoryPolicyViolation(String repositoryId,
-                                   String pathname,
-                                   Date time,
-                                   String policyId,
-                                   String policyName,
-                                   int threatLevel,
-                                   PolicyThreatCategory threatCategory,
-                                   String hash,
-                                   ComponentIdentifier componentIdentifier,
                                    List<ConstraintFact> constraintFacts)
   {
     super(policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier, constraintFacts);

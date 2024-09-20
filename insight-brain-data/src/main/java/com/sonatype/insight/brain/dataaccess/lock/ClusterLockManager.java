@@ -32,6 +32,8 @@ public interface ClusterLockManager
 
   String DATA_MIGRATION = "data-migration";
 
+  String ASYNC_DB_MIGRATION = "async-db-migration";
+
   String NEW_INSTANCE_POPULATION = "new-instance-population";
 
   String PDF_GENERATION_LOCK_PREFIX = "pdf-generation-";
@@ -76,6 +78,10 @@ public interface ClusterLockManager
 
   static String getLockIdForDataMigration() {
     return DATA_MIGRATION;
+  }
+
+  static String getLockIdForAsyncDbMigration(String jobName) {
+    return ASYNC_DB_MIGRATION + "-" + jobName;
   }
 
   static String getLockIdForNewInstancePopulation() {
@@ -133,6 +139,10 @@ public interface ClusterLockManager
   ClusterLock createForDataMigration();
 
   void deleteForDataMigration();
+
+  ClusterLock createForAsyncDbMigration(String jobName);
+
+  void deleteForAsyncDbMigration(String jobName);
 
   ClusterLock createForNewInstancePopulation();
 

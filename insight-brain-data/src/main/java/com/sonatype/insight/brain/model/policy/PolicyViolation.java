@@ -65,23 +65,6 @@ public class PolicyViolation
   }
 
   public PolicyViolation(PolicyEvaluation evaluation,
-                         String policyId,
-                         String policyName,
-                         int threatLevel,
-                         PolicyThreatCategory threatCategory,
-                         String hash,
-                         ComponentIdentifier componentIdentifier,
-                         String constraintFactsJson,
-                         String filename)
-  {
-    super(policyId, policyName, threatLevel, threatCategory, hash, componentIdentifier, constraintFactsJson);
-    applicationId = evaluation.getApplicationId();
-    stageTypeId = evaluation.getStageTypeId();
-    openTime = evaluation.getTime();
-    this.filename = filename;
-  }
-
-  public PolicyViolation(PolicyEvaluation evaluation,
                          Policy policy,
                          String hash,
                          ComponentIdentifier componentIdentifier,

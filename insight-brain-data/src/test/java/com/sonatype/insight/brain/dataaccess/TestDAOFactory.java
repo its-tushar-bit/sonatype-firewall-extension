@@ -62,6 +62,7 @@ import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFactsDAO;
 import com.sonatype.insight.brain.dataaccess.policy.LastPolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -653,7 +654,8 @@ public class TestDAOFactory
 
   @Override
   public PolicyViolationDAO createPolicyViolationDAO() {
-    return new PolicyViolationDAO(dataStoreProvider.getOperationalDataStore());
+    return new PolicyViolationDAO(dataStoreProvider.getOperationalDataStore(),
+        createPolicyViolationConstraintFactsDAO());
   }
 
   @Override
@@ -669,7 +671,8 @@ public class TestDAOFactory
 
   @Override
   public RepositoryPolicyViolationDAO createRepositoryPolicyViolationDAO() {
-    return new RepositoryPolicyViolationDAO(dataStoreProvider.getOperationalDataStore());
+    return new RepositoryPolicyViolationDAO(dataStoreProvider.getOperationalDataStore(),
+        createPolicyViolationConstraintFactsDAO());
   }
 
   @Override
@@ -1130,6 +1133,11 @@ public class TestDAOFactory
   public DevelopmentPrioritizationDAO createDevelopmentPrioritizationDAO() {
     return new DevelopmentPrioritizationDAO(
         dataStoreProvider.getOperationalDataStore(), createDevelopmentPrioritizationComponentInfoDAO());
+  }
+
+  @Override
+  public PolicyViolationConstraintFactsDAO createPolicyViolationConstraintFactsDAO() {
+    return new PolicyViolationConstraintFactsDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override

@@ -37,6 +37,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -226,7 +227,7 @@ public class PullRequestLocationDiscoveryServiceTest
 
     PolicyViolation build() {
       return new PolicyViolation(evaluation, "policyId", "policyName", 5, PolicyThreatCategory.LICENSE, "hash",
-          componentIdentifier, "{}", null);
+          componentIdentifier, emptyList(), null);
     }
   }
 

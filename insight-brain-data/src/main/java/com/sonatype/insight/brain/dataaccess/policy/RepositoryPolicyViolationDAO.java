@@ -17,7 +17,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -46,10 +45,29 @@ import static java.util.stream.Collectors.toMap;
 @Singleton
 public class RepositoryPolicyViolationDAO
     extends AbstractOperationalSqlDAO<RepositoryPolicyViolation>
+    implements AbstractPolicyViolationDAO
 {
+  private final PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO;
+
   @Inject
-  public RepositoryPolicyViolationDAO(OperationalDataStore operationalDataStore) {
+  public RepositoryPolicyViolationDAO(
+      OperationalDataStore operationalDataStore,
+      PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO)
+  {
     super(operationalDataStore);
+    this.policyViolationConstraintFactsDAO = policyViolationConstraintFactsDAO;
+  }
+
+  @Override
+  public void insert(final TransactionContext tx, final RepositoryPolicyViolation entity) {
+    storeConstraints(policyViolationConstraintFactsDAO, entity);
+    super.insert(tx, entity);
+  }
+
+  @Override
+  public void update(final TransactionContext tx, final RepositoryPolicyViolation entity) {
+    storeConstraints(policyViolationConstraintFactsDAO, entity);
+    super.update(tx, entity);
   }
 
   public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathname(String repositoryId, String pathname) {
@@ -58,9 +76,10 @@ public class RepositoryPolicyViolationDAO
     }
   }
 
-  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathname(TransactionContext tx,
-                                                                            String repositoryId,
-                                                                            String pathname)
+  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathname(
+      TransactionContext tx,
+      String repositoryId,
+      String pathname)
   {
     String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
         " WHERE entity.repositoryId=?1" + //
@@ -70,9 +89,10 @@ public class RepositoryPolicyViolationDAO
     return getList(tx, sQuery, repositoryId, pathname);
   }
 
-  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathnameAndWaived(String repositoryId,
-                                                                                     String pathname,
-                                                                                     boolean isWaived)
+  public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathnameAndWaived(
+      String repositoryId,
+      String pathname,
+      boolean isWaived)
   {
     String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
         " WHERE entity.repositoryId=?1" + //
@@ -472,6 +492,14 @@ public class RepositoryPolicyViolationDAO
       return ((Stream<Object[]>) query.getResultStream()) //
           .collect(toMap(row -> getInteger(row[0]), row -> getInteger(row[1])));
     }
+  }
+
+  @Override
+  public long getCountWhereConstraintFactsJsonNotNull() {
+    String sQuery = "SELECT COUNT(entity) FROM " + getEntityName() +
+        " entity WHERE entity.constraintFactsJson IS NOT NULL";
+
+    return getSingle(Long.class, sQuery);
   }
 
   private boolean hasNonViolatingFilter(final Set<String> violationStateFilters) {

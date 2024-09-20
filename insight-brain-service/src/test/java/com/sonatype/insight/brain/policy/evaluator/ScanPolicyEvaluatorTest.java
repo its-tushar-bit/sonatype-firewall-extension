@@ -986,8 +986,9 @@ public class ScanPolicyEvaluatorTest
       PolicyThreatCategory policyThreatCategory,
       boolean legacyViolation)
   {
+    ConstraintFact constraintFact = new ConstraintFact("json", "json", "json");
     PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, "policyId", "policyName", threatLevel,
-        policyThreatCategory, "hash", null, "json", "filename");
+        policyThreatCategory, "hash", null, List.of(constraintFact), "filename");
     if (legacyViolation) {
       policyViolation.setLegacyViolationTime(new Date());
     }
@@ -1075,9 +1076,11 @@ public class ScanPolicyEvaluatorTest
             + "policy-violation-constraint-facts.json"),
         StandardCharsets.UTF_8);
     constraintFactsJson = constraintFactsJson.replace("TestConstraintId", policy.getConstraints().get(0).getId());
+
+    List<ConstraintFact> constraintFacts = Arrays.asList(JsonUtils.parse(constraintFactsJson, ConstraintFact[].class));
     PolicyViolation policyViolationBefore = new PolicyViolation(policyEvaluationBefore, policy.getId(),
         policy.getName(), policy.getThreatLevel(), policy.getThreatCategory(), "964cd74171f427720480",
-        componentIdentifier, constraintFactsJson, "commons-httpclient-3.1.jar");
+        componentIdentifier, constraintFacts, "commons-httpclient-3.1.jar");
     policyViolationDAO.insert(policyViolationBefore);
     assertThat(policyViolationBefore.getOpenTime()).isEqualTo(beforeTime);
 

@@ -10,7 +10,6 @@ import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-
 import javax.persistence.Column;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -20,10 +19,14 @@ import javax.persistence.Transient;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.HasComponentId;
+import com.sonatype.insight.brain.utils.Sha1Util;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 
 import org.apache.commons.lang3.StringUtils;
+
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * @since 1.17
@@ -49,6 +52,9 @@ public abstract class AbstractPolicyViolation
   @Column(name = "hash")
   private String hash;
 
+  @Column(name = "constraint_facts_id")
+  private String constraintFactsId;
+
   @Column(name = "constraint_facts_json")
   private String constraintFactsJson;
 
@@ -57,6 +63,7 @@ public abstract class AbstractPolicyViolation
 
   /**
    * New for repo policy violations
+   *
    * @since 1.76
    */
   @Column(name = "policy_waiver_id")
@@ -74,30 +81,14 @@ public abstract class AbstractPolicyViolation
   public AbstractPolicyViolation() {
   }
 
-  protected AbstractPolicyViolation(String policyId,
-                                    String policyName,
-                                    int threatLevel,
-                                    PolicyThreatCategory threatCategory,
-                                    String hash,
-                                    ComponentIdentifier componentIdentifier,
-                                    String constraintFactsJson)
-  {
-    this.policyId = policyId;
-    this.policyName = policyName;
-    this.threatLevel = threatLevel;
-    this.threatCategory = threatCategory;
-    this.hash = hash;
-    setComponentIdentifier(componentIdentifier);
-    setConstraintFactsJson(constraintFactsJson);
-  }
-
-  protected AbstractPolicyViolation(String policyId,
-                                    String policyName,
-                                    int threatLevel,
-                                    PolicyThreatCategory threatCategory,
-                                    String hash,
-                                    ComponentIdentifier componentIdentifier,
-                                    List<ConstraintFact> constraintFacts)
+  protected AbstractPolicyViolation(
+      String policyId,
+      String policyName,
+      int threatLevel,
+      PolicyThreatCategory threatCategory,
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      List<ConstraintFact> constraintFacts)
   {
     this.policyId = policyId;
     this.policyName = policyName;
@@ -153,31 +144,61 @@ public abstract class AbstractPolicyViolation
   }
 
   public String getConstraintFactsJson() {
+    // Lazy load constraint facts from PolicyViolationConstraintFacts table when needed
+    if (constraintFactsJson == null && isNotBlank(getConstraintFactsId())) {
+      constraintFactsJson = PolicyViolationConstraintFactsDAOProvider.getConstraintFactsJson(getConstraintFactsId());
+    }
+    return constraintFactsJson;
+  }
+
+  // This is to support the migration of the constraint facts from the JSON to an ID without triggering a read
+  @Deprecated
+  public String getConstraintFactsJsonWithoutLoading() {
     return constraintFactsJson;
   }
 
   public void setConstraintFactsJson(String constraintFactsJson) {
+    setConstraintFactsJsonInternal(constraintFactsJson);
+    constraintFacts = null; // If set externally then we reset the constraint facts
+  }
+
+  private void setConstraintFactsJsonInternal(String constraintFactsJson) {
     if (StringUtils.isBlank(constraintFactsJson)) {
       throw new IllegalArgumentException("ConstraintFactsJson cannot be null or empty.");
     }
+
     this.constraintFactsJson = constraintFactsJson;
-    constraintFacts = null;
+    this.constraintFactsId = calculateConstraintFactsId(constraintFactsJson);
+  }
+
+  /**
+   * This method nulls the JSON so that it doesn't get written to the DB but retains the in memory constraintFacts which
+   * can still be used to prevent unnecessary lazy loading and database round trips
+   */
+  public void clearConstraintFactsJson() {
+    this.constraintFactsJson = null;
   }
 
   public void setConstraintFacts(List<ConstraintFact> constraintFacts) {
-    if (constraintFacts == null || constraintFacts.isEmpty()) {
-      throw new IllegalArgumentException("ConstraintFacts cannot be null or empty.");
+    if (constraintFacts == null) {
+      throw new IllegalArgumentException("ConstraintFacts cannot be null");
     }
 
     this.constraintFacts = constraintFacts;
-    constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
+    setConstraintFactsJsonInternal(JsonUtils.writeUnformatted(constraintFacts));
   }
 
   @Override
   public List<ConstraintFact> getConstraintFacts() {
-    if (constraintFacts == null && !StringUtils.isBlank(constraintFactsJson)) {
+    // Short circuit to avoid a trip to the database to get the JSON if we already have the constraint facts
+    if (constraintFacts != null) {
+      return constraintFacts;
+    }
+
+    String json = getConstraintFactsJson();
+    if (!StringUtils.isBlank(json)) {
       try {
-        constraintFacts = Arrays.asList(JsonUtils.parse(constraintFactsJson, ConstraintFact[].class));
+        constraintFacts = Arrays.asList(JsonUtils.parse(json, ConstraintFact[].class));
       }
       catch (IOException e) {
         throw new UncheckedIOException("Failed to read constraint facts for policy violation " + getId(), e);
@@ -235,4 +256,26 @@ public abstract class AbstractPolicyViolation
   public abstract Date getOpenTime();
 
   public abstract String getOwnerId();
+
+  @Override
+  public String getConstraintFactsId() {
+    if (isBlank(constraintFactsId) && isNotBlank(constraintFactsJson)) {
+      // Populate the ID
+      setConstraintFactsJsonInternal(constraintFactsJson);
+    }
+
+    return constraintFactsId;
+  }
+
+  public void setConstraintFactsId(final String id) {
+    if (StringUtils.isBlank(id)) {
+      throw new IllegalArgumentException("ConstraintFactsJson cannot be null or empty.");
+    }
+
+    this.constraintFactsId = id;
+  }
+
+  public static String calculateConstraintFactsId(String constraintFactsJson) {
+    return Sha1Util.halfSha1(constraintFactsJson);
+  }
 }

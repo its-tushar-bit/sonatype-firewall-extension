@@ -190,14 +190,10 @@ public class MultiTenantAuth0ManagementServiceTest
 
   @Test
   public void test_deleteTenant_WhenConnectionCreationIsSkipped() throws Exception {
-    Connection connection = new Connection("connectionToDelete", Auth0ManagementAPI.GOOGLE_APPS_CONNECTION_STRATEGY);
-    Request<Connection> connectionRequest = Mockito.mock(Request.class);
     ClientsEntity clientsEntity = Mockito.mock(ClientsEntity.class);
     ConnectionsEntity connectionsEntity = Mockito.mock(ConnectionsEntity.class);
     Request<Void> deletionRequest = Mockito.mock(Request.class);
 
-    when(connectionsEntity.get(any(String.class), any(ConnectionFilter.class))).thenReturn(connectionRequest);
-    when(connectionRequest.execute()).thenReturn(connection);
     when(clientsEntity.delete(APPLICATION_ID)).thenReturn(deletionRequest);
     when(tokenRequest.execute()).thenReturn(tokenHolder);
     when(authApi.requestToken(any())).thenReturn(tokenRequest);
@@ -207,6 +203,7 @@ public class MultiTenantAuth0ManagementServiceTest
 
     assertThat(underTest.deleteTenant(APPLICATION_ID, CONNECTION_CREATION_SKIPPED, "")).isTrue();
     verify(managementApi.clients()).delete(APPLICATION_ID);
+    verify(managementApi.connections(), never()).get(eq(CONNECTION_CREATION_SKIPPED), any(ConnectionFilter.class));
     verify(managementApi.connections(), never()).delete(CONNECTION_CREATION_SKIPPED);
   }
 

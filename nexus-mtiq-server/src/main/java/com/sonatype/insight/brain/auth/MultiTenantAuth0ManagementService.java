@@ -130,13 +130,17 @@ public class MultiTenantAuth0ManagementService
         log.debug("Deleting Auth0 client with ID: {}", applicationId);
         auth0ManagementAPI.clients().delete(applicationId).execute();
 
+        //Ignoring the deletion of the reused connection identifier - backwards compatibility
+        if (CONNECTION_CREATION_SKIPPED.equals(connectionId)) {
+          return true;
+        }
+
         //Only retrieving strategy field for the connection
         ConnectionFilter connectionFilter = new ConnectionFilter().withFields("strategy", true);
         Connection connection = auth0ManagementAPI.connections().get(connectionId, connectionFilter).execute();
 
         //Only removing DB Auth0 connections
-        if (!CONNECTION_CREATION_SKIPPED.equals(connectionId) &&
-            connection.getStrategy().equals(Auth0ManagementAPI.AUTH0_CONNECTION_STRATEGY)) {
+        if (connection.getStrategy().equals(Auth0ManagementAPI.AUTH0_CONNECTION_STRATEGY)) {
           log.debug("Deleting Auth0 connection with ID: {}", connectionId);
           auth0ManagementAPI.connections().delete(connectionId).execute();
         }

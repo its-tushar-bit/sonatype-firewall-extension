@@ -7,8 +7,6 @@ package com.sonatype.clm.testing.functional.version.graph;
 
 import java.util.Collections;
 
-import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.VersionsCIP;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
@@ -26,7 +24,6 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
@@ -137,7 +134,6 @@ public class VersionGraphVsTest
 
   @Test
   public void testCIPWithoutRemediation() {
-    tempEntity.setPolicyActions("QualityPolicy", Stage.ID_DEVELOP, Action.ID_FAIL);
     setupHdsResponsesForNoRemediation();
     mockHdsResponseForFirstComponent();
     mockHdsResponseForRemediation();
@@ -164,29 +160,6 @@ public class VersionGraphVsTest
 
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
     VersionsCIP.hideDetailsLink().shouldBe(visible);
-  }
-
-  @Test
-  public void testCIPWithoutRemediation_developAsDefaultIdeStageBehavior() {
-    tempEntity.clearPolicyActions("QualityPolicy");
-    setupHdsResponsesForNoRemediation();
-    mockHdsResponseForFirstComponent();
-    mockHdsResponseForRemediation();
-
-    executeJavaScript(JAVA_SCRIPT_TO_EXECUTE);
-
-    VersionsCIP.recommendedVersionsHeader().shouldBe(visible);
-    VersionsCIP.nextNoViolationVersionLink().shouldNotBe(visible);
-    VersionsCIP.nextNoFailVersionLink().shouldNotBe(visible);
-    VersionsCIP.viewDetailsButton().shouldBe(visible);
-    VersionsCIP.migrateButton().shouldNotBe(visible);
-    /*
-      With "develop" as the default stage for IDE, instead of no version available, the current version is recommended.
-      Although the current version has policy violations,
-      it is recommended because it does not fail any policies of develop stage.
-      */
-    VersionsCIP.noVersionsAvailable().shouldBe(hidden);
-    VersionsCIP.componentCategory().shouldHave(text("Other"));
   }
 
   @Test

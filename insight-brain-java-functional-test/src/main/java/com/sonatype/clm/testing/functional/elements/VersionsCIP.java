@@ -187,10 +187,6 @@ public class VersionsCIP
     return root().find("#no-versions-available");
   }
 
-  public static SelenideElement nextNoFailDependenciesVersion() {
-    return root().find("#next-no-fail-dependencies-version");
-  }
-
   public static SelenideElement rootAncestorsHeader() {
     return root().find("#cip-root-ancestors-header");
   }

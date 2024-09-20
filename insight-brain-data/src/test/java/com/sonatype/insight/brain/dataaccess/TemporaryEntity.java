@@ -2124,22 +2124,6 @@ public class TemporaryEntity
     return newPolicy(policy);
   }
 
-  public void updatePolicyActionsByName(String policyName, final Map<String, String> actions) {
-    List<Policy> policy = policyDAO.getByName(policyName);
-    policy.forEach(p -> {
-      p.setActions(actions);
-      policyDAO.update(p);
-    });
-  }
-
-  public void setPolicyActions(String policyName, String stageId, String action) {
-    updatePolicyActionsByName(policyName, Map.of(stageId, action));
-  }
-
-  public void clearPolicyActions(String policyName) {
-    updatePolicyActionsByName(policyName, Map.of());
-  }
-
   public HashComponentIdentifier newClaimedComponent(String hash, ComponentIdentifier componentIdentifier) {
     HashComponentIdentifier claimedComponent = new HashComponentIdentifier(hash, componentIdentifier);
     claimedComponent.setComment("testing");

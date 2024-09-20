@@ -412,12 +412,11 @@ public class ComponentInfoService
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   public ComponentVersionInfoDTO getComponentVersionInfo_EvaluateComponentPermission(
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
-      ComponentIdentifier componentIdentifier,
-      String stageId)
+      ComponentIdentifier componentIdentifier)
   {
     auditComponentAccess(componentIdentifier, null);
-    return getComponentVersionInfoNoAuth(OwnerType.APPLICATION, applicationPublicId, componentIdentifier, stageId,
-        null, null, null);
+    return getComponentVersionInfoNoAuth(OwnerType.APPLICATION, applicationPublicId, componentIdentifier, null, null,
+        null, null);
   }
 
   /**

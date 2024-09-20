@@ -374,20 +374,20 @@ public class ComponentInfoServiceAuthzTest
     configureHdsClientMock();
     grantEvaluateComponentPermission(app.getId());
     componentInfoService.getComponentVersionInfo_EvaluateComponentPermission(app.getPublicId(),
-        COMPONENT_IDENTIFIER, null);
+        COMPONENT_IDENTIFIER);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetComponentVersionInfo_EvaluateComponentPermission_Unauthorized() {
     login();
     componentInfoService.getComponentVersionInfo_EvaluateComponentPermission(app.getPublicId(),
-        COMPONENT_IDENTIFIER, null);
+        COMPONENT_IDENTIFIER);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetComponentVersionInfo_EvaluateComponentPermission_Unauthenticated() {
     componentInfoService
-        .getComponentVersionInfo_EvaluateComponentPermission(app.getPublicId(), COMPONENT_IDENTIFIER, null);
+        .getComponentVersionInfo_EvaluateComponentPermission(app.getPublicId(), COMPONENT_IDENTIFIER);
   }
 
   private void testGetComponentVersionInfo_Authorized_ReadPermission(final Owner owner, final String ownerId)

@@ -1,12 +1,21 @@
 -- Since 1.183
 -- SaaS Compatible
-ALTER TABLE policy_waiver_reason ADD COLUMN IF NOT EXISTS sort_order INTEGER NULL;
+BEGIN;
+    CREATE TABLE policy_violation_constraint_facts (
+           policy_violation_constraint_facts_id VARCHAR(20) NOT NULL,
+           constraint_facts_json text NOT NULL,
+           CONSTRAINT policy_violation_constraint_facts_pk PRIMARY KEY (policy_violation_constraint_facts_id)
+    );
 
-DELETE FROM policy_waiver_reason WHERE type = 'system';
-INSERT INTO policy_waiver_reason VALUES ('9b704ef5bc064fc29d7fe08a251ee9a6', 'system', 'Acknowledged violation', 0);
-INSERT INTO policy_waiver_reason VALUES ('42069f58114f4df8b435a40a415d2835', 'system', 'Mitigated externally', 1);
-INSERT INTO policy_waiver_reason VALUES ('39984de3d6e64f508df82b4cbfd72f70', 'system', 'No upgrade path', 2);
-INSERT INTO policy_waiver_reason VALUES ('f6990a32cd8d4ea78853ca829d948927', 'system', 'Not exploitable', 3);
-INSERT INTO policy_waiver_reason VALUES ('19bbf1a7d591497698ab3172461d971a', 'system', 'Not reachable', 4);
-INSERT INTO policy_waiver_reason VALUES ('3446e70e60e04676a90131f3dea9bdb5', 'system', 'Researching', 5);
-INSERT INTO policy_waiver_reason VALUES ('c991ef95866d4903ad0c6c217ac47c07', 'system', 'Other', 6);
+    ALTER TABLE policy_violation ADD COLUMN constraint_facts_id VARCHAR(20);
+    ALTER TABLE policy_violation
+        ADD CONSTRAINT policy_violation_constraint_facts_id_fk
+            FOREIGN KEY (constraint_facts_id) REFERENCES policy_violation_constraint_facts (policy_violation_constraint_facts_id);
+    ALTER TABLE policy_violation ALTER COLUMN constraint_facts_json DROP NOT NULL;
+
+    ALTER TABLE repository_policy_violation ADD COLUMN constraint_facts_id VARCHAR(20);
+    ALTER TABLE repository_policy_violation
+        ADD CONSTRAINT repository_policy_violation_constraint_facts_id_fk
+            FOREIGN KEY (constraint_facts_id) REFERENCES policy_violation_constraint_facts (policy_violation_constraint_facts_id);
+    ALTER TABLE repository_policy_violation ALTER COLUMN constraint_facts_json DROP NOT NULL;
+COMMIT;

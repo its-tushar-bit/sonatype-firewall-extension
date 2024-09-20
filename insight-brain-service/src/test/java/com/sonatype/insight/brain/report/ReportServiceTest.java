@@ -11,11 +11,14 @@ import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sonatype.clm.dto.model.component.AnalysisSource;
 import com.sonatype.clm.dto.model.component.AnalysisType;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
@@ -43,6 +46,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
+import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -73,12 +77,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -716,6 +722,61 @@ public class ReportServiceTest
         .isThrownBy(() -> createReportService().getBomForPolicyEvaluation(policyEvaluation));
   }
 
+  @Test
+  public void testGetPolicyThreats_shouldThrowNotFoundExceptionGivenNoReportFile() {
+    final ReportService reportService = createReportService();
+    final String expectedErrorMessage = "Could not find a report with ID " + scanId;
+
+    assertThatThrownBy(() ->
+        reportService.getPolicyThreats(app.getPublicId(), scanId))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessage(expectedErrorMessage);
+  }
+
+  @Test
+  public void testGetPolicyThreats_shouldThrowNotFoundExceptionGivenNoReportEntryForPolicyThreatFounds()
+      throws Exception
+  {
+    final ReportService reportService = createReportService();
+    final String expectedErrorMessage = String.format("Report policy threats entry is missing for the requested " +
+        "application [%s] and scan ID [%s]", app.getPublicId(), scanId);
+
+    createReportFile(app.getId(), scanId, zipReportDir("/ReportServiceTest/report"));
+
+    try (MockedStatic<Report> report = mockStatic(Report.class)) {
+      when(Report.getEntry(any(), any())).thenReturn(null);
+
+      assertThatThrownBy(() ->
+          reportService.getPolicyThreats(app.getPublicId(), scanId))
+          .isInstanceOf(NotFoundException.class)
+          .hasMessage(expectedErrorMessage);
+    }
+  }
+
+  @Test
+  public void testGetPolicyThreats_shouldReturnPolicyThreatsGivenPolicyThreatFileInReport() throws Exception {
+    final ReportService reportService = createReportService();
+    final PolicyThreats givenPolicyThreatsStoredForReport = createPolicyThreat();
+
+    final ReportEntry givenReportEntryReturned =
+        new ReportEntry(Report.POLICY_THREATS, 1L, (new ObjectMapper())
+            .writeValueAsBytes(givenPolicyThreatsStoredForReport));
+
+    createReportFile(app.getId(), scanId, zipReportDir("/ReportServiceTest/report"));
+
+    try (MockedStatic<Report> report = mockStatic(Report.class)) {
+      when(Report.getEntry(any(), any())).thenReturn(givenReportEntryReturned);
+
+      final PolicyThreats result = reportService
+          .getPolicyThreats(app.getPublicId(), scanId);
+
+      assertThat(result.aaData).hasSize(1);
+      assertThat(result.aaData.get(0).componentIdentifier)
+          .isEqualTo(givenPolicyThreatsStoredForReport.aaData.get(0).componentIdentifier);
+
+    }
+  }
+
   private void assertThatReportZipContains(File zipFile, final String thirdPartyFile) {
     assertThat(Stream.of(new TFile(zipFile).listFiles()).anyMatch(f -> f.getName().endsWith(thirdPartyFile)))
         .isTrue();
@@ -731,5 +792,43 @@ public class ReportServiceTest
 
   private File zipReportDir(String reportResourceName) throws URISyntaxException {
     return Paths.get(ReportHelper.zipReport(reportResourceName, tempDir).toURI()).toFile();
+  }
+
+  public static PolicyThreats createPolicyThreat() {
+    final PolicyThreats policyThreats = new PolicyThreats();
+
+    final PolicyThreats.Component component = createComponent();
+
+    final PolicyThreats.PolicyViolation policyViolation = createPolicyViolation();
+
+    component.activeViolations.add(policyViolation);
+    component.allViolations.add(policyViolation);
+
+    policyThreats.aaData.add(component);
+
+    return policyThreats;
+  }
+
+  public static PolicyThreats.PolicyViolation createPolicyViolation() {
+    final PolicyThreats.PolicyViolation policyViolation = new PolicyThreats.PolicyViolation();
+    policyViolation.policyThreatLevel = 9;
+    policyViolation.policyId = "some-policy-id";
+    policyViolation.policyViolationId = "some-violation-id";
+
+    return policyViolation;
+  }
+
+  public static PolicyThreats.Component createComponent() {
+    final PolicyThreats.Component component = new PolicyThreats.Component();
+    component.hash = "aaa";
+    final Map<String, String > coordinate = new HashMap<>();
+    coordinate.put("extension", "jar");
+    coordinate.put("groupId", "com.sonatype");
+    coordinate.put("artifactId", "test");
+    coordinate.put("version", "1.1.1");
+
+    component.componentIdentifier = new ComponentIdentifier("maven", coordinate);
+
+    return component;
   }
 }

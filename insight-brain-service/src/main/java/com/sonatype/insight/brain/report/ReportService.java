@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
+import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.security.Authorize;
@@ -294,5 +295,27 @@ public class ReportService
   {
     File reportFile = getReport(appInternalId, scanId);
     Report.putEntry(reportFile, entryName, bufferData);
+  }
+
+  public PolicyThreats getPolicyThreats(
+      final String applicationPublicId,
+      final String scanId)
+  {
+    final Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    final File reportFile = getReport(application.getId(), scanId);
+
+    try {
+      final ReportEntry reportEntry = Report.getEntry(reportFile, Report.POLICY_THREATS);
+
+      if (reportEntry == null) {
+        throw new NotFoundException(String.format("Report policy threats entry is missing for the requested " +
+            "application [%s] and scan ID [%s]", applicationPublicId, scanId));
+      }
+
+      return JsonUtils.parse(reportEntry.buf, PolicyThreats.class);
+    }
+    catch (final IOException e) {
+      throw new NotFoundException(e.getMessage());
+    }
   }
 }

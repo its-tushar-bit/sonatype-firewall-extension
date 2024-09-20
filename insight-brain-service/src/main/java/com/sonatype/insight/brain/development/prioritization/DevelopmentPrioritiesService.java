@@ -22,20 +22,19 @@ import com.sonatype.insight.brain.api.v2.dto.ApiDependencyDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
+import com.sonatype.insight.brain.callflow.ComponentReachabilityService;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
 import com.sonatype.insight.brain.features.FeaturesService;
-import com.sonatype.insight.brain.label.ComponentLabelService;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.Component;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyViolation;
+import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import static com.sonatype.insight.brain.api.experimental.ApiVulnerabilitySignatureService.SECURITY_REACHABLE_LABEL;
 import static com.sonatype.insight.brain.api.experimental.development.prioritization.PrioritizedComponent.DEPENDENCY_TYPE_DIRECT;
 import static com.sonatype.insight.brain.api.experimental.development.prioritization.PrioritizedComponent.DEPENDENCY_TYPE_TRANSITIVE;
 import static com.sonatype.insight.brain.api.experimental.development.prioritization.PrioritizedComponent.DEPENDENCY_TYPE_UNKNOWN;
@@ -48,9 +47,11 @@ public class DevelopmentPrioritiesService
 
   private final DevelopmentPrioritiesReportService developmentPrioritiesReportService;
 
-  private final ComponentLabelService componentLabelService;
-
   private final DevelopmentPrioritizationComponentInfoDAO prioritizationComponentInfoDAO;
+
+  private final ReportService reportService;
+
+  private final ComponentReachabilityService componentReachabilityService;
 
   private boolean isBulkRecommendationsEnabled;
 
@@ -58,13 +59,15 @@ public class DevelopmentPrioritiesService
   public DevelopmentPrioritiesService(
       final FeaturesService featuresService,
       final DevelopmentPrioritiesReportService developmentPrioritiesReportService,
-      final ComponentLabelService componentLabelService,
-      final DevelopmentPrioritizationComponentInfoDAO prioritizationComponentInfoDAO)
+      final DevelopmentPrioritizationComponentInfoDAO prioritizationComponentInfoDAO,
+      final ReportService reportService,
+      final ComponentReachabilityService componentReachabilityService)
   {
     this.featuresService = featuresService;
     this.developmentPrioritiesReportService = developmentPrioritiesReportService;
-    this.componentLabelService = componentLabelService;
     this.prioritizationComponentInfoDAO = prioritizationComponentInfoDAO;
+    this.reportService = reportService;
+    this.componentReachabilityService = componentReachabilityService;
   }
 
   public DevelopmentPrioritizationResults getPrioritizedFindings(
@@ -79,8 +82,7 @@ public class DevelopmentPrioritiesService
     // checks for read permissions on the app, making this an authorized function
     final ApiReportRawDataDTOV2 apiReportRawDataDTOV2 =
         developmentPrioritiesReportService.getDependencyInformation(applicationPublicId, scanId);
-    final PolicyThreats policyThreats =
-        this.developmentPrioritiesReportService.getPolicyThreatsNoAuth(applicationPublicId, scanId);
+    final PolicyThreats policyThreats = reportService.getPolicyThreats(applicationPublicId, scanId);
 
     final int skipCount = (page - 1) * pageSize;
     isBulkRecommendationsEnabled = isBulkRecommendationsEnabled();
@@ -118,7 +120,7 @@ public class DevelopmentPrioritiesService
           }
 
           final boolean securityReachable = hasSecurityViolations(policyViolations)
-              && isSecurityReachable(applicationPublicId, component.hash);
+              && isSecurityReachable(applicationPublicId, scanId, component.hash);
 
           DevelopmentPrioritizationComponentInfo prioritizationComponentInfo = null;
           if (isBulkRecommendationsEnabled && componentIdentifier != null) {
@@ -391,14 +393,12 @@ public class DevelopmentPrioritiesService
     return features.contains(LicensedFeature.DEVELOPER_DASHBOARD);
   }
 
-  private boolean isSecurityReachable(final String applicationPublicId, final String componentHash) {
-    return this.componentLabelService.getComponentLabelsNoAuth(
-        OwnerType.APPLICATION,
-        applicationPublicId,
-        componentHash).labelsByOwner.stream()
-        .anyMatch(label -> {
-          return label.labels.stream().anyMatch(label1 -> label1.getLabel().equals(SECURITY_REACHABLE_LABEL));
-        });
+  private boolean isSecurityReachable(
+      final String applicationId,
+      final String scanId,
+      final String componentHash)
+  {
+    return componentReachabilityService.isComponentReachable(applicationId, scanId, componentHash);
   }
 
   private boolean isBulkRecommendationsEnabled() {

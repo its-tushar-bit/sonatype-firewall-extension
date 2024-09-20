@@ -303,7 +303,6 @@ public class PolicyViolationTest
     PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
         PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
 
-    assertThat(policyViolation.getConstraintFactsId()).isNotBlank();
     assertThat(policyViolation.getConstraintFactsJson()).isNotBlank();
     assertThat(policyViolation.getConstraintFacts()).isNotEmpty();
 

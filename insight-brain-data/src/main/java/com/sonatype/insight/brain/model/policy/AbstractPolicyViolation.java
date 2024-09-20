@@ -25,7 +25,6 @@ import com.sonatype.insight.model.HasStringId;
 
 import org.apache.commons.lang3.StringUtils;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
@@ -168,7 +167,6 @@ public abstract class AbstractPolicyViolation
     }
 
     this.constraintFactsJson = constraintFactsJson;
-    this.constraintFactsId = calculateConstraintFactsId(constraintFactsJson);
   }
 
   /**
@@ -259,11 +257,6 @@ public abstract class AbstractPolicyViolation
 
   @Override
   public String getConstraintFactsId() {
-    if (isBlank(constraintFactsId) && isNotBlank(constraintFactsJson)) {
-      // Populate the ID
-      setConstraintFactsJsonInternal(constraintFactsJson);
-    }
-
     return constraintFactsId;
   }
 

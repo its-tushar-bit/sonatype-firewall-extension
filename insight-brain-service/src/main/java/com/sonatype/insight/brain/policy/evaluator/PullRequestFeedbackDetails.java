@@ -247,9 +247,14 @@ public class PullRequestFeedbackDetails
         .getComponentIdentifier()
         .createAlternativeVersion(null);
 
-    return
-        versionlessIdentifierA.equals(versionlessIdentifierB) &&
-            policyViolationA.getConstraintFactsId().equals(policyViolationB.getConstraintFactsId());
+    if (policyViolationA.getConstraintFactsId() != null) {
+      return versionlessIdentifierA.equals(versionlessIdentifierB) &&
+          policyViolationA.getConstraintFactsId().equals(policyViolationB.getConstraintFactsId());
+    }
+    else {
+      return versionlessIdentifierA.equals(versionlessIdentifierB) &&
+          policyViolationA.getConstraintFactsJson().equals(policyViolationB.getConstraintFactsJson());
+    }
   }
 
   private Template getPolicyTemplate() {

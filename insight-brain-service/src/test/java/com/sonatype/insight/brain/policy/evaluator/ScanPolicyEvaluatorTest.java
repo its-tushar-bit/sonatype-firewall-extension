@@ -21,6 +21,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
+import javax.persistence.Query;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -39,6 +40,7 @@ import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFactsDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
@@ -64,6 +66,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFacts;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
@@ -120,6 +123,7 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.PolicyAlertEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -182,6 +186,9 @@ public class ScanPolicyEvaluatorTest
 
   @Inject
   private AggregateFileDAO aggregateFileDAO;
+
+  @Inject
+  private PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO;
 
   @Inject
   private ApplicationComponentLicenseDAO applicationComponentLicenseDAO;
@@ -2382,6 +2389,52 @@ public class ScanPolicyEvaluatorTest
 
     policyViolationDAO.getByApplicationId(application.getId())
         .forEach(policyViolation -> assertThat(policyViolation.isLegacyViolationApplied()).isFalse());
+  }
+
+  @Test
+  public void testEvaluate_constraintFactsNotMigrated() throws Exception {
+    application = tempEntity.newApplicationWithParent();
+    Policy policy = newSecurityPolicy();
+    policy.setLegacyViolationAllowed(true);
+    policyDAO.update(policy);
+    application.setLegacyViolationEnabled(true);
+    applicationDAO.update(application);
+
+    // First evaluation creates legacy violation
+    String scanId1 = simulateReportIsAvailable("report");
+    Stage stage1 = new Stage(Stage.ID_BUILD);
+    scanPolicyEvaluator.evaluate(application, scanId1, stage1, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    // Run second evaluation which will use violations from the first evaluation. This is where the constraint violation
+    // was triggered
+    String scanId2 = simulateReportIsAvailable("report");
+
+    restoreConstraintFactsToPreMigratedState();
+
+    ScanPolicyEvaluatorResults results2 =
+        scanPolicyEvaluator.evaluate(application, scanId2, stage1, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results2.activeViolations).isNotEmpty();
+  }
+
+  private void restoreConstraintFactsToPreMigratedState() {
+    List<PolicyViolationConstraintFacts> constraintFacts = policyViolationConstraintFactsDAO.getAll();
+    PolicyViolationConstraintFacts policyViolationConstraintFacts = constraintFacts.get(0);
+    try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+      tx.begin();
+
+      Query updateIdQuery = tx.createQuery("UPDATE PolicyViolation entity SET entity.constraintFactsId = NULL");
+      updateIdQuery.executeUpdate();
+
+      Query updateJsonQuery = tx.createQuery("UPDATE PolicyViolation entity SET entity.constraintFactsJson = ?1");
+      updateJsonQuery.setParameter(1, policyViolationConstraintFacts.getConstraintFactsJson());
+      updateJsonQuery.executeUpdate();
+
+      tx.commit();
+    }
+
+    for (PolicyViolationConstraintFacts constraintFact : constraintFacts) {
+      policyViolationConstraintFactsDAO.delete(constraintFact);
+    }
   }
 
   @SuppressWarnings("unchecked")

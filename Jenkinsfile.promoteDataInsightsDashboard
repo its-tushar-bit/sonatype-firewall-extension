@@ -4,9 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-// This job allows the Business Intelligence team to publish Data Insights dasbhoards to production
+// This job allows the Business Intelligence team to publish Data Insights dashboards to production
 // Some more technical background can be found here https://sonatype.atlassian.net/wiki/spaces/DATA/pages/227410489/Dashboard+Change+Management
-// The job can be ran here https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/Data%20Insights%20Dasbhoard%20Configuration/job/Promote%20Dashboard%20to%20Production/
+// The job can be ran here https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/Data%20Insights%20Dashboard%20Configuration/job/Promote%20Dashboard%20to%20Production/
 
 @Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
 import groovy.json.JsonSlurper

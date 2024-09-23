@@ -6,7 +6,7 @@
 
 // This job allows the Business Intelligence team to view the current dashboard configuration and icons list
 // Some more technical background can be found here https://sonatype.atlassian.net/wiki/spaces/DATA/pages/227410489/Dashboard+Change+Management
-// The job can be ran here: https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/Data%20Insights%20Dasbhoard%20Configuration/job/Get%20Data%20Insights%20Dashboards%20and%20Icons/
+// The job can be ran here: https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/Data%20Insights%20Dashboard%20Configuration/job/Get%20Data%20Insights%20Dashboards%20and%20Icons/
 
 @Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
 import groovy.json.JsonSlurper

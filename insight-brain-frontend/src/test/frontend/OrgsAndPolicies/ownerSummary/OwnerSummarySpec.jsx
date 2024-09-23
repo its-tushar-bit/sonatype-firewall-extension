@@ -212,7 +212,7 @@ describe('OwnerSummary', () => {
       expect(screen.queryByRole('button', { name: 'License Threat Groups' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Source Control' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'InnerSource Repositories' })).not.toBeInTheDocument();
-      expect(screen.queryByTestId('owner-summary-action-dropdown-container')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('owner-summary-action-dropdown-container')).toBeInTheDocument();
     });
 
     it('hides Continuous Monitoring tile when in SBOM Manager and sbom-continuous-monitoring-ui is disabled', async () => {
@@ -450,7 +450,7 @@ describe('OwnerSummary', () => {
       expect(screen.queryByRole('button', { name: 'InnerSource Repositories' })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Component Labels' })).not.toBeInTheDocument();
 
-      expect(screen.queryByTestId('owner-summary-action-dropdown-container')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('owner-summary-action-dropdown-container')).toBeInTheDocument();
     });
 
     it('true, but does not render Continuous Monitoring tile when sbom-continuous-monitoring-ui is disabled', async () => {

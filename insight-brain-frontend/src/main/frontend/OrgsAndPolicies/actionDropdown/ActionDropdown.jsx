@@ -22,6 +22,7 @@ import {
   selectIsRepositoriesRelated,
   selectIsRepositoryManager,
   selectIsRepository,
+  selectIsSbomManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 import { selectSelectedOwner } from '../orgsAndPoliciesSelectors';
@@ -99,7 +100,7 @@ const ActionDropdown = () => {
   const stages = useSelector(selectDashboardStageTypes);
   const legacyViolationDisabled = !isLegacyViolationSupported || !isLegacyViolationEnabled;
   const LegacyViolationTooltip = legacyViolationDisabled ? NxTooltip : NxOverflowTooltip;
-
+  const isSbomManager = useSelector(selectIsSbomManager);
   const uiRouterState = useRouterState();
 
   const openReport = (stageTypeId) => {
@@ -203,7 +204,7 @@ const ActionDropdown = () => {
           </button>
         </NxOverflowTooltip>
 
-        {isApp && (
+        {isApp && !isSbomManager && (
           <NxTooltip title={!hasPermissionToChangeAppId ? 'Insufficient permissions to change App ID' : ''}>
             <button
               id="change-app-id-link"
@@ -229,7 +230,7 @@ const ActionDropdown = () => {
           </NxOverflowTooltip>
         )}
 
-        {isOrg && (
+        {isOrg && !isSbomManager && (
           <button
             id="import-policies-link"
             onClick={() => dispatch(importPoliciesActions.openModal())}
@@ -253,7 +254,7 @@ const ActionDropdown = () => {
           </NxOverflowTooltip>
         )}
 
-        {isApp && (
+        {isApp && !isSbomManager && (
           <>
             <NxDropdown.Divider />
             <LegacyViolationTooltip

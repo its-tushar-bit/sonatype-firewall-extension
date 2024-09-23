@@ -156,6 +156,56 @@ describe('ActionDropdown', () => {
       expect(axiosMock.history.get.length).toBe(1);
     });
 
+    it('shows dropdown options at App level when Sbom Manager is enabled', async () => {
+      renderComponent({
+        ...defaultPreloadedState,
+        router: {
+          currentParams: { applicationPublicId: '4', '#': null },
+          currentState: {
+            data: { title: 'Sbom Manager Orgs and Policies', viewportSized: true },
+            name: 'sbomManager.management.view.application',
+            url: 'sbomManager/management/view/organization/ROOT_ORGANIZATION',
+          },
+        },
+      });
+      const actionButton = screen.getByRole('button', { name: 'Actions' });
+      fireEvent.click(actionButton);
+      const dropdownButtons = await screen.findAllByRole('button');
+      dropdownButtons.forEach((button) => expect(button).toBeVisible());
+      const buttonNames = [
+        'Actions',
+        'App ID to Clipboard',
+        'Select Contact',
+        'Edit App Name / Icon',
+        'Move 44App',
+        'Delete 44App',
+      ];
+
+      const notExpectedOptions = [
+        'Change App ID',
+        'Legacy existing violations',
+        'Revoke legacy status',
+        'Evaluate a File',
+        'View source report',
+        'View build report',
+        'View stage report',
+        'View release report',
+        'View operate report',
+      ];
+
+      buttonNames.forEach((optionText) => {
+        expect(screen.queryByText(optionText)).toBeVisible();
+      });
+
+      notExpectedOptions.forEach((optionText) => {
+        expect(screen.queryByText(optionText)).not.toBeInTheDocument();
+      });
+
+      // Check API calls on App level
+      expect(axiosMock.history.put.length).toBe(1);
+      expect(axiosMock.history.get.length).toBe(1);
+    });
+
     it('on Org level', async () => {
       renderComponent({
         router: {
@@ -206,6 +256,57 @@ describe('ActionDropdown', () => {
       expect(axiosMock.history.get.length).toBe(0);
     });
 
+    it('shows dropdown options at Org level when Sbom Manager is enabled', async () => {
+      renderComponent({
+        router: {
+          currentParams: { '#': null, organizationId: 'cb53' },
+          currentState: {
+            name: 'sbomManager.management.view.organization',
+            url: '/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: 'cb53',
+              parentOrganizationId: 'ROOT_ORGANIZATION_ID',
+              name: '4 org',
+              nameLowercaseNoWhitespace: '4org',
+              legacyViolationEnabled: true,
+              allowLegacyViolationOverride: true,
+              repositoryConnectionEnabled: null,
+              allowRepositoryConnectionOverride: true,
+              artifactoryConnectionEnabled: null,
+              allowArtifactoryConnectionOverride: true,
+            },
+          },
+        },
+      });
+      const actionButton = screen.getByRole('button', { name: 'Actions' });
+      fireEvent.click(actionButton);
+      const dropdownButtons = await screen.findAllByRole('button');
+      dropdownButtons.forEach((button) => expect(button).toBeVisible());
+      const buttonNames = ['Org ID to Clipboard', 'Edit Org Name / Icon', 'Move 4 org', 'Delete 4 org'];
+
+      buttonNames.forEach((optionText) => {
+        expect(screen.queryByText(optionText)).toBeVisible();
+      });
+
+      const notExpectedOptions = ['Import Policies'];
+
+      notExpectedOptions.forEach((optionText) => {
+        expect(screen.queryByText(optionText)).not.toBeInTheDocument();
+      });
+
+      // there should be no API calls on Org level
+      expect(axiosMock.history.put.length).toBe(0);
+      expect(axiosMock.history.get.length).toBe(0);
+    });
+
     it('on RootOrg level', async () => {
       renderComponent({
         router: {
@@ -244,6 +345,57 @@ describe('ActionDropdown', () => {
       dropdownButtons.forEach((button, ind) => {
         expect(button.textContent).toBe(buttonNames[ind]);
       });
+      // there should be no API calls on RootOrg level
+      expect(axiosMock.history.put.length).toBe(0);
+      expect(axiosMock.history.get.length).toBe(0);
+    });
+
+    it('shows dropdown options at Root Org level when Sbom Manager is enabled', async () => {
+      renderComponent({
+        router: {
+          currentParams: { '#': null, organizationId: 'ROOT_ORGANIZATION_ID' },
+          currentState: {
+            name: 'sbomManager.management.view.organization',
+            url: '/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: 'ROOT_ORGANIZATION_ID',
+              parentOrganizationId: null,
+              name: 'Root Organization',
+              nameLowercaseNoWhitespace: 'rootorganization',
+              legacyViolationEnabled: false,
+              allowLegacyViolationOverride: true,
+              repositoryConnectionEnabled: null,
+              allowRepositoryConnectionOverride: true,
+              artifactoryConnectionEnabled: null,
+              allowArtifactoryConnectionOverride: true,
+            },
+          },
+        },
+      });
+      const actionButton = screen.getByRole('button', { name: 'Actions' });
+      fireEvent.click(actionButton);
+      const dropdownButtons = await screen.findAllByRole('button');
+      dropdownButtons.forEach((button) => expect(button).toBeVisible());
+      const buttonNames = ['Actions', 'Org ID to Clipboard', 'Edit Org Name / Icon'];
+
+      const notExpectedOptions = ['Import Policies'];
+
+      buttonNames.forEach((optionText) => {
+        expect(screen.queryByText(optionText)).toBeVisible();
+      });
+
+      notExpectedOptions.forEach((optionText) => {
+        expect(screen.queryByText(optionText)).not.toBeInTheDocument();
+      });
+
       // there should be no API calls on RootOrg level
       expect(axiosMock.history.put.length).toBe(0);
       expect(axiosMock.history.get.length).toBe(0);

@@ -119,11 +119,9 @@ export default function OwnerSummary() {
               <NxFontAwesomeIcon icon={faUser} className="iq-owner-contact-icon" /> {owner.contact.displayName}
             </NxPageTitle.Description>
           )}
-          {!isSbomManager && (
-            <div className="nx-btn-bar" data-testid="owner-summary-action-dropdown-container">
-              <ActionDropdown />
-            </div>
-          )}
+          <div className="nx-btn-bar" data-testid="owner-summary-action-dropdown-container">
+            <ActionDropdown />
+          </div>
         </NxPageTitle>
         {isApp && repositoryUrl && (
           <div className="page-repository-url nx-truncate-ellipsis">

@@ -48,11 +48,13 @@ pipeline {
               title: params.title,
               description: params.description,
               dashboardPath: params.dashboardPath,
+              sinceIQVersion: covertEmtpyToNull(params.sinceIQVersion),
               modelsCsv: params.modelsCsv,
               featuresCsv: params.featuresCsv,
               accessButtonText: params.accessButtonText,
               previewImageFilename: params.previewImageFilename,
               priorityOrder: params.priorityOrder.toInteger(),
+              spotlightColor: covertEmtpyToNull(params.spotlightColor),
               spotlight: params.spotlight
             ]
 
@@ -61,6 +63,11 @@ pipeline {
 
             def newDashboardConfigJson = groovy.json.JsonOutput.toJson(dashboardConfig)
 
+            // pretty print for convenience
+            echo "new configuration state:"
+            echo writeJSON(returnText: true, json: dashboardConfig, pretty: 2)
+
+            // dump raw, just in case
             echo "saving new configuration: ${newDashboardConfigJson}"
             saveToBucket(bucketForStagingEast, fileName, newDashboardConfigJson)
           }
@@ -103,6 +110,12 @@ pipeline {
     )
 
     string(
+        name: 'sinceIQVersion',
+        description: 'The minimum IQ version required for this feature -- optional (Provided by BI team).',
+        trim: true
+    )
+
+    string(
         name: 'title',
         description: 'Dashboard title (Provided by UI/UX Design team).',
         trim: true,
@@ -142,6 +155,12 @@ pipeline {
         description: 'Dashboard priority, used order the dashboards on the page (Provided by UI/UX Design team).',
         trim: true,
         defaultValue: '0'
+    )
+
+    string(
+        name: 'spotlightColor',
+        description: 'A optional customer color for "new" tag shown in the UI (Provided by UI/UX Design team).',
+        trim: true
     )
 
     booleanParam(
@@ -202,11 +221,13 @@ def printUserInput (params) {
   echo "  title: ${params.title}"
   echo "  description: ${params.description}"
   echo "  dashboardPath: ${params.dashboardPath}"
+  echo "  sinceIQVersion: ${params.sinceIQVersion}"
   echo "  modelsCsv: ${params.modelsCsv}"
   echo "  featuresCsv: ${params.featuresCsv}"
   echo "  accessButtonText: ${params.accessButtonText}"
   echo "  previewImageFilename: ${params.previewImageFilename}"
   echo "  priorityOrder: ${params.priorityOrder}"
+  echo "  spotlightColor: ${params.spotlightColor}"
   echo "  spotlight: ${params.spotlight}"
 }
 
@@ -221,6 +242,7 @@ def validateInput(params, existingConfig) {
 }
 
 def validateRequiredFields(params) {
+  // spotlightColor and sinceIQVersion are optional and not validated here
   validateFieldHasValue(params, 'dashboardId')
   validateFieldHasValue(params, 'title')
   validateFieldHasValue(params, 'description')
@@ -248,5 +270,13 @@ def assertThatNewPriorityOrderIsUnique(existingConfig, specifiedDashboardId, new
       error "Priority orders should be unique, the provided value ${newPriorityOrder} conflicts with the priority of " +
           "dashboardId ${dashboardId}"
     }
+  }
+}
+
+def covertEmtpyToNull(String value) {
+  if (value == null || value.length() == 0) {
+    return null
+  } else {
+    return value
   }
 }

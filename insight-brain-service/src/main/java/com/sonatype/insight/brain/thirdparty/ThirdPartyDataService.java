@@ -115,15 +115,19 @@ import org.cyclonedx.generators.BomGeneratorFactory;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Evidence;
+import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.Property;
 import org.cyclonedx.model.Swid;
 import org.cyclonedx.model.component.evidence.Occurrence;
 import org.cyclonedx.model.metadata.ToolInformation;
+import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.report.DependencyResolver.MATCH_STATE;
+import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxLicenseFromDbData;
+import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxVulnerabilityFromDbData;
 import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.resolveRatingMethodFromSeveritySource;
 import static com.sonatype.insight.brain.utils.CvssV3Severity.resolveRatingSeverity;
 
@@ -614,16 +618,25 @@ public class ThirdPartyDataService
       String thirdPartyFileId)
   {
     if (ObjectUtils.allNotNull(originalBom, filteredBom)) {
+      List<ThirdPartyCoordinateSecurity> disclosedVulns = null;
+      List<ThirdPartyCoordinateLicense> disclosedLicenses = null;
       if (sbomDbComponent == null) {
         sbomDbComponent = createAndSaveComponentInThirdPartyDatabase(bomNode, thirdPartyFileId);
       }
-      createAndSaveComponentInBom(sbomDbComponent, bomNode, originalBom, filteredBom);
+      else {
+        disclosedVulns = thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(sbomDbComponent.getId());
+        disclosedLicenses = thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(sbomDbComponent.getId());
+      }
+      createAndSaveComponentInBom(sbomDbComponent, disclosedVulns, disclosedLicenses, bomNode, originalBom,
+          filteredBom);
     }
     return sbomDbComponent;
   }
 
   private void createAndSaveComponentInBom(
       ThirdPartyFileCoordinate thirdPartyFileCoordinate,
+      List<ThirdPartyCoordinateSecurity> disclosedVulns,
+      List<ThirdPartyCoordinateLicense> disclosedLicenses,
       JsonNode bomNode,
       Bom bom,
       Bom filteredBom)
@@ -632,6 +645,10 @@ public class ThirdPartyDataService
     Component component = thirdPartyFileCoordinateToBomComponent(thirdPartyFileCoordinate, bomRef);
     addOccurenceEvidenceForComponent(bomNode, component);
     bom.addComponent(component);
+    //merge has not happened yet, so at this point only disclosed vulnerabilities and licenses can exist
+    //  include them as disclosed
+    addDisclosedVulnerabilities(disclosedVulns, bom, component);
+    addDisclosedLicenses(disclosedLicenses, component);
 
     Component clone = thirdPartyFileCoordinateToBomComponent(thirdPartyFileCoordinate, bomRef);
     //this might not be needed after SBOM-749 is implemented
@@ -640,6 +657,43 @@ public class ThirdPartyDataService
     sonatypeIdentifierComponentProperty.setValue(thirdPartyFileCoordinate.getId());
     clone.addProperty(sonatypeIdentifierComponentProperty);
     filteredBom.addComponent(clone);
+  }
+
+  private void addDisclosedLicenses(List<ThirdPartyCoordinateLicense> disclosedLicenses, Component component) {
+    if (CollectionUtils.isNotEmpty(disclosedLicenses)) {
+      LicenseChoice licenseChoice = new LicenseChoice();
+      licenseChoice.setLicenses(new ArrayList<>());
+      disclosedLicenses.forEach(license -> {
+        licenseChoice.addLicense(createCycloneDxLicenseFromDbData(license));
+      });
+      component.setLicenses(licenseChoice);
+    }
+  }
+
+  private void addDisclosedVulnerabilities(
+      List<ThirdPartyCoordinateSecurity> disclosedVulns,
+      Bom bom,
+      Component component)
+  {
+    if (CollectionUtils.isNotEmpty(disclosedVulns)) {
+      initVulnerabilities(bom);
+      List<Vulnerability> newBomVulnerabilities = new ArrayList<>();
+      disclosedVulns.forEach(vuln -> {
+        ThirdPartyVulnerabilityExploitabilityExchange vex =
+            thirdPartyVulnerabilityExploitabilityExchangeDAO.getByCoordinateSecurityIdAndRefId(vuln.getId(),
+                vuln.getRefId());
+        newBomVulnerabilities.add(createCycloneDxVulnerabilityFromDbData(component, vuln, vex));
+      });
+      bom.getVulnerabilities().addAll(newBomVulnerabilities);
+    }
+  }
+
+  private void initVulnerabilities(final Bom bom) {
+    List<Vulnerability> vulnerabilities = bom.getVulnerabilities();
+    if (vulnerabilities == null) {
+      vulnerabilities = new ArrayList<>();
+      bom.setVulnerabilities(vulnerabilities);
+    }
   }
 
   private void addOccurenceEvidenceForComponent(JsonNode bomNode, Component component) {

@@ -89,6 +89,10 @@ import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Property;
 import org.cyclonedx.model.Swid;
+import org.cyclonedx.model.vulnerability.Vulnerability;
+import org.cyclonedx.model.vulnerability.Vulnerability.Analysis;
+import org.cyclonedx.model.vulnerability.Vulnerability.Analysis.Justification;
+import org.cyclonedx.model.vulnerability.Vulnerability.Analysis.Response;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -96,6 +100,7 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.Assertions.withinPercentage;
+import static org.cyclonedx.model.vulnerability.Vulnerability.Analysis.State.RESOLVED;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -515,9 +520,12 @@ public class ThirdPartyDataServiceTest
     ThirdPartyFileCoordinate tpComponent =
         tempEntity.newThirdPartyFileCoordinate(file, "Sonatype", "pypi", "orange", "1.0.1", "093080a1a4bbd2750541",
             purl1.getPackageUrl());
-    tempEntity.newThirdPartyCoordinateSecurity(tpComponent, "FG-R00229", sbomMetadata.getId(), "desc", "1.url", 1d,
-        "FG-R00229 test", "2.0");
+    ThirdPartyCoordinateSecurity tpVuln =
+        tempEntity.newThirdPartyCoordinateSecurity(tpComponent, "FG-R00229", sbomMetadata.getId(), "desc", "1.url", 1d,
+            "FG-R00229 test", "2.0");
     tempEntity.newThirdPartyCoordinateLicense(tpComponent, "MIT", "MIT", "https://opensource.org/licenses/MIT");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(tpVuln, "FG-R00229", "resolved", "code_not_reachable",
+        "will_not_fix,update", null);
 
     ContainerNode<?> bomJson = enhanceBomJsonWithMockedThirdPartyComponent(
         loadResource("/ThirdPartyDataServiceTest/report-for-binary-scan-with-thirdparty/bom.json"), tpComponent);
@@ -581,9 +589,30 @@ public class ThirdPartyDataServiceTest
     assertThat(component1License2.getLicenseId()).isEqualTo("MIT");
     assertThat(component1License2.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
 
-    //verify original SBOM and filtered SBOM
+    //verify original SBOM
     assertThat(originalBom.getComponents()).hasSize(4)
         .allSatisfy(component -> assertThat(component.getProperties()).isNull());
+    Component bomComponent =
+        originalBom.getComponents().stream().filter(c -> new PackageUrlIdentifier(c.getPurl()).equals(purl1))
+            .findFirst().get();
+    assertThat(originalBom.getVulnerabilities()).hasSize(1);
+    Vulnerability vuln = originalBom.getVulnerabilities().get(0);
+    assertThat(vuln.getAffects()).hasSize(1);
+    assertThat(vuln.getAffects().get(0).getRef()).isEqualTo(bomComponent.getBomRef());
+
+    //disclosed vulnerabilities
+    Analysis disclosedAnalysis = vuln.getAnalysis();
+    assertThat(disclosedAnalysis).isNotNull();
+    assertThat(disclosedAnalysis.getState()).isEqualTo(RESOLVED);
+    assertThat(disclosedAnalysis.getJustification()).isEqualTo(Justification.CODE_NOT_REACHABLE);
+    assertThat(disclosedAnalysis.getResponses().get(0)).isEqualTo(Response.WILL_NOT_FIX);
+
+    //disclosed licenses
+    assertThat(bomComponent.getLicenses()).isNotNull();
+    assertThat(bomComponent.getLicenses().getLicenses()).hasSize(1);
+    assertThat(bomComponent.getLicenses().getLicenses().get(0).getId()).isEqualTo("MIT");
+
+    //verify filtered SBOM
     assertThat(filteredBom.getComponents()).hasSize(4)
         .allSatisfy(component -> {
           assertThat(component.getProperties()).hasSize(1);

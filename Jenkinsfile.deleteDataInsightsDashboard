@@ -80,7 +80,7 @@ pipeline {
               existingDashboards.remove(selectedDashboardId)
 
               // bump the version
-              existingConfig.version = env.BUILD_NUMBER.toLong()
+              existingConfig.version = existingConfig.version + 1
 
               echo 'the update config will be: '
               echo writeJSON(returnText: true, json: existingConfig, pretty: 2)

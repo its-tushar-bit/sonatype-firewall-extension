@@ -116,7 +116,7 @@ pipeline {
             prodConfig.dashboards[selectedDashboardValue.dashboardId] = selectedDashboardValue
 
             // bump the version
-            prodConfig.version = env.BUILD_NUMBER.toLong()
+            prodConfig.version = prodConfig.version + 1
 
             echo "The updated production configuration will be:"
             echo writeJSON(returnText: true, json: prodConfig, pretty: 2)

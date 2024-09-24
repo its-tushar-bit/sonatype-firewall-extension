@@ -107,6 +107,8 @@ public class ReportResource
 
   public static final String PRINT_PATH = "{scanId}/printReport";
 
+  public static final String SBOM_PRINT_PATH = "sbom/{sbomVersion}/printReport";
+
   public static final String DOWNLOAD_BUNDLE_PATH = "{scanId}/downloadBundle";
 
   public static final String PREPARE_PATH = "{scanId}/prepareReport";
@@ -370,6 +372,18 @@ public class ReportResource
       @PathParam("scanId") final String scanId) throws IOException
   {
     return pdfGeneratorService.printReport(appPublicId, scanId);
+  }
+
+  @GET
+  @Path(SBOM_PRINT_PATH)
+  @Produces("application/pdf")
+  @Audited(AuditEvent.PRINT_APPLICATION_COMPOSITION_REPORT)
+  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_REPORTS)
+  public Response printSbomReport(
+      @PathParam("applicationPublicId") final String appPublicId,
+      @PathParam("sbomVersion") final String sbomVersion) throws IOException
+  {
+    return pdfGeneratorService.printSbomReport(appPublicId, sbomVersion);
   }
 
   /**

@@ -1032,7 +1032,7 @@ public class ThirdPartyDataServiceTest
     //FG-R00228 not in report zip but in db with minimal third party vulnerability data
     ThirdPartyCoordinateSecurity tpVuln1 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00228", "", null, 0f, null, null);
-    tpVuln1.setIdentificationSources("SBOM");
+    tpVuln1.setIdentificationSources("SBOM, Sonatype");
     thirdPartyCoordinateSecurityDAO.update(tpVuln1);
 
     //Update Scenario 2: existing third party coordinate security record in db is modified with sonatype data
@@ -1138,7 +1138,7 @@ public class ThirdPartyDataServiceTest
     SbomPostImportMetricsTelemetry telemetry = (SbomPostImportMetricsTelemetry) telemetryData.getAttributes()
         .get("sbom_post_import_metrics");
     assertThat(telemetry.getVerifiedVulnerabilityCount()).isEqualTo(1);
-    assertThat(telemetry.getUnverifiedVulnerabilityCount()).isEqualTo(0);
+    assertThat(telemetry.getUnverifiedVulnerabilityCount()).isEqualTo(1);
     assertThat(telemetry.getAdditionalVulnerabilitiesCount()).isEqualTo(5);
     assertThat(telemetry.getTotalVulnerabilitiesCount()).isEqualTo(2);
   }

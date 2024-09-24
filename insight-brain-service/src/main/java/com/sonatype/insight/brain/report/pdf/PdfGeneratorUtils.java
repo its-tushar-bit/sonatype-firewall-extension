@@ -11,12 +11,14 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
+import org.apache.commons.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.knowm.xchart.internal.chartpart.Chart;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 
 public final class PdfGeneratorUtils
 {
@@ -136,5 +138,20 @@ public final class PdfGeneratorUtils
     affineTransform.scale((double) width / chart.getWidth(), (double) height / chart.getHeight());
     pdFormXObject.setMatrix(affineTransform);
     pdPageContentStream.drawForm(pdFormXObject);
+  }
+
+  public static void addImage(PDDocument pdDocument, PDPageContentStream pdPageContentStream,
+                              float x, float y, String resourcePath)
+  {
+    try (InputStream inputStream = PdfGeneratorUtils.class.getClassLoader()
+          .getResourceAsStream(resourcePath)) {
+      byte[] data = IOUtils.toByteArray(inputStream);
+      PDImageXObject pdImageXObject =
+          PDImageXObject.createFromByteArray(pdDocument, data, null);
+      pdPageContentStream.drawImage(pdImageXObject, x, y, 250, 25);
+    }
+    catch (Exception e) {
+      throw new RuntimeException("Failed to load image from " + resourcePath, e);
+    }
   }
 }

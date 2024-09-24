@@ -40,4 +40,42 @@ public class PdfGeneratorServiceAuthzTest
         pdfGeneratorService.printReport(app.getPublicId(), "scanId")
     ).withMessage("Could not find a report with ID scanId");
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testPrintSbomReport_withAppId_Unauthenticated() throws Exception {
+    pdfGeneratorService.printSbomReport(app.getPublicId(), "sbomVersion");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testPrintSbomReport_withAppId_Unauthorized() throws Exception {
+    login();
+    pdfGeneratorService.printSbomReport(app.getPublicId(), "sbomVersion");
+  }
+
+  @Test
+  public void testPrintSbomReport_withAppId_Authorized() {
+    grantReadPermission(app.getId());
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
+        pdfGeneratorService.printSbomReport(app.getPublicId(), "sbomVersion")
+    ).withMessage("SBOM version 'sbomVersion' not found for application '" + app.getPublicId() + "'.");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testPrintSbomReport_withApp_Unauthenticated() throws Exception {
+    pdfGeneratorService.printSbomReport(app, "sbomVersion");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testPrintSbomReport_withApp_Unauthorized() throws Exception {
+    login();
+    pdfGeneratorService.printSbomReport(app, "sbomVersion");
+  }
+
+  @Test
+  public void testPrintSbomReport_withApp_Authorized() {
+    grantReadPermission(app.getId());
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
+        pdfGeneratorService.printSbomReport(app, "sbomVersion")
+    ).withMessage("SBOM version 'sbomVersion' not found for application '" + app.getPublicId() + "'.");
+  }
 }

@@ -505,7 +505,7 @@ public class SbomManagerBillOfMaterialsPageTest
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
     sbomManagerBillOfMaterialsPage.exportButton().shouldHave(visible);
     sbomManagerBillOfMaterialsPage.exportButtonMenu().click();
-    sbomManagerBillOfMaterialsPage.exportButtonMenuItems().shouldBe(size(2));
+    sbomManagerBillOfMaterialsPage.exportButtonMenuItems().shouldBe(size(3));
     File downloadedSbom = sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(0)
         .shouldHave(text("Export Original SBOM"))
         .download();

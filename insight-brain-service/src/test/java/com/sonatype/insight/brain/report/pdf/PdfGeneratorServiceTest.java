@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.report.pdf;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
@@ -25,9 +26,12 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -123,6 +127,66 @@ public class PdfGeneratorServiceTest
     // Validate content type and check the actual content is really a PDF.
     String expectedFilename = application.getName() + "-" + StageTypes.BUILD.getName() + "-" +
         new SimpleDateFormat("yyyyMMdd-HHmmss").format(policyEvaluation.getTime()) + ".pdf";
+    assertThat(response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION)).isEqualTo(
+        HttpHeaderUtils.buildContentDispositionHeaderValue(expectedFilename));
+    assertThat(response.getMediaType()).hasToString("application/pdf;charset=UTF-8");
+    assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(pdfFile.length()));
+    assertThat(
+        DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))
+        .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
+    assertThat(response.getEntity()).isEqualTo(pdfFile);
+    assertThat(new String(Files.readAllBytes(pdfFile.toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains("%PDF-");
+  }
+
+  @Test
+  public void testPrintSbomReport() throws IOException {
+    Application application = tempEntity.newApplicationWithParent();
+    String scanId = "scanId";
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
+    File reportFile = insightWork.getReportFile(application.getId(), scanId);
+    FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorServiceTest/report", tempDir), reportFile);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile("cdx-test-bom.xml");
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), application.getId(), SbomStatus.ACTIVE.name(),
+            thirdPartyFile.getFilename());
+    tempEntity.newThirdPartyScan(thirdPartyFile);
+
+    Response response = pdfGeneratorService.printSbomReport(application.getPublicId(), sbomMetadata.getSbomVersion());
+
+    // Validate content type and check the actual content is really a PDF.
+    File pdfFile = PdfGenerator.getPdfFile(insightWork.getReportFile(application.getId(), scanId));
+    String expectedFilename = application.getName() + "-" + sbomMetadata.getSbomVersion() + ".pdf";
+    assertThat(response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION)).isEqualTo(
+        HttpHeaderUtils.buildContentDispositionHeaderValue(expectedFilename));
+    assertThat(response.getMediaType()).hasToString("application/pdf;charset=UTF-8");
+    assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(pdfFile.length()));
+    assertThat(
+        DateUtils.parseDate(response.getHeaderString("Last-Modified")).toInstant().truncatedTo(ChronoUnit.SECONDS))
+        .isEqualTo(policyEvaluation.getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
+    assertThat(response.getEntity()).isEqualTo(pdfFile);
+    assertThat(new String(Files.readAllBytes(pdfFile.toPath()), 0, 1024, StandardCharsets.US_ASCII)).contains("%PDF-");
+  }
+
+  @Test
+  public void testPrintSbomReport_emptyReport() throws IOException {
+    Application application = tempEntity.newApplicationWithParent();
+    String scanId = "scanId";
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
+    File reportFile = insightWork.getReportFile(application.getId(), scanId);
+    FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorServiceTest/emptyReport", tempDir), reportFile);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile("cdx-test-bom.xml");
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), application.getId(), SbomStatus.ACTIVE.name(),
+            thirdPartyFile.getFilename());
+    tempEntity.newThirdPartyScan(thirdPartyFile);
+
+    Response response = pdfGeneratorService.printSbomReport(application.getPublicId(), sbomMetadata.getSbomVersion());
+
+    // Validate content type and check the actual content is really a PDF.
+    File pdfFile = PdfGenerator.getPdfFile(insightWork.getReportFile(application.getId(), scanId));
+    String expectedFilename = application.getName() + "-" + sbomMetadata.getSbomVersion() + ".pdf";
     assertThat(response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION)).isEqualTo(
         HttpHeaderUtils.buildContentDispositionHeaderValue(expectedFilename));
     assertThat(response.getMediaType()).hasToString("application/pdf;charset=UTF-8");
@@ -257,7 +321,7 @@ public class PdfGeneratorServiceTest
     };
     Consumer<Answer<Void>> answerConsumer = answer -> {
       try {
-        doAnswer(answer).when(spyPdfGeneratorService).generate(any(), any());
+        doAnswer(answer).when(spyPdfGeneratorService).generate(any(), any(), any());
       }
       catch (Exception e) {
         throw new RuntimeException(e.getMessage(), e);

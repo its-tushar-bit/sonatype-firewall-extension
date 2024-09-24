@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.report.pdf;
 
+import java.awt.*;
 import java.util.Arrays;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -34,21 +35,18 @@ public class PdfGeneratorUtilsTest
     try (PDDocument pdDocument = new PDDocument()) {
       PDPage pdPage = new PDPage();
       try (PDPageContentStream pdPageContentStreamSpy = spy(new PDPageContentStream(pdDocument, pdPage))) {
-        pdPageContentStreamSpy.beginText();
         PDFont notoSansCJKRegular = loadPDType0Font(pdDocument, "NotoSansCJKsc-Regular.ttf");
-        PDFontList pdFontList =
-            new PDFontList(Arrays.asList(PDType1Font.HELVETICA, notoSansCJKRegular));
         reset(pdPageContentStreamSpy);
         ArgumentCaptor<String> stringArgumentCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<PDFont> fontArgumentCaptor = ArgumentCaptor.forClass(PDFont.class);
 
-        PdfGeneratorUtils.addText(pdPageContentStreamSpy, pdFontList, 10, "a星");
+        PdfGeneratorUtils.addText(pdPageContentStreamSpy, 0, 0, new FontStyle(notoSansCJKRegular, 16, Color.BLUE),
+            "a星");
 
-        verify(pdPageContentStreamSpy, times(2)).showText(stringArgumentCaptor.capture());
-        assertThat(stringArgumentCaptor.getAllValues()).containsExactly("a", "星");
-        verify(pdPageContentStreamSpy, times(2)).setFont(fontArgumentCaptor.capture(), eq(10f));
-        assertThat(fontArgumentCaptor.getAllValues()).containsExactly(PDType1Font.HELVETICA, notoSansCJKRegular);
-        pdPageContentStreamSpy.endText();
+        verify(pdPageContentStreamSpy, times(1)).showText(stringArgumentCaptor.capture());
+        assertThat(stringArgumentCaptor.getAllValues()).containsExactly("a星");
+        verify(pdPageContentStreamSpy, times(1)).setFont(fontArgumentCaptor.capture(), eq(16f));
+        assertThat(fontArgumentCaptor.getAllValues()).containsExactly(notoSansCJKRegular);
       }
     }
   }

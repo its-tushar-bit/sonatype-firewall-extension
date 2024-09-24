@@ -14,7 +14,7 @@ import {
   NxStatefulSubmitMask,
   NxTooltip,
 } from '@sonatype/react-shared-components';
-import { faDownload } from '@fortawesome/pro-solid-svg-icons';
+import { faDownload, faFilePdf } from '@fortawesome/pro-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { toLower, toUpper } from 'ramda';
 
@@ -25,7 +25,7 @@ import BillOfMaterialsComponentsTile from 'MainRoot/sbomManager/features/billOfM
 import MenuBarStatefulBreadcrumb from 'MainRoot/mainHeader/MenuBar/MenuBarStatefulBreadcrumb';
 import SbomAdditionalExportOptionsModal from './sbomAdditionalExportOptionsModal/SbomAdditionalExportOptionsModal';
 
-import { getDownloadSbomFileUrl } from 'MainRoot/util/CLMLocation';
+import { getDownloadSbomFileUrl, getSbomDownloadPdfUrl } from 'MainRoot/util/CLMLocation';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectLoadErrorFeatures,
@@ -79,6 +79,8 @@ export default function BillOfMaterials() {
 
   const showSbomAdditionalExportOptionsModal = () => dispatch(actions.setShowSbomAdditionalExportOptionsModal(true));
   const exportAndDownloadSbom = (options) => dispatch(actions.exportAndDownloadSbom(options));
+
+  const pdfUrl = getSbomDownloadPdfUrl(publicAppId, currentSbomVersion);
 
   const doLoad = () => {
     dispatch(actions.setPublicAppId(publicAppId));
@@ -179,6 +181,10 @@ export default function BillOfMaterials() {
                     <span>Additional Export Options</span>
                   </NxTooltip>
                 </button>
+                <a className="nx-dropdown-button" href={pdfUrl}>
+                  <NxFontAwesomeIcon icon={faFilePdf} />
+                  <span>Export PDF</span>
+                </a>
               </NxStatefulSegmentedButton>
             </NxButtonBar>
             <NxPageTitle.Description>

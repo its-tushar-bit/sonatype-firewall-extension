@@ -57,11 +57,14 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -457,6 +460,29 @@ public class ReportResourceTest
     assertResponseStatus(200, response);
     assertThat(response.getHeader(HttpHeaders.CONTENT_DISPOSITION))
         .containsSubsequence("attachment; filename=\"" + app.getName() + "-Build-", ".pdf\"");
+
+    // validate content type and check the actual content is really a PDF
+    assertThat(response.getContentType()).isEqualTo("application/pdf;charset=UTF-8");
+    assertThat(new String(response.getBodyBytes(), 0, 1024, "US-ASCII")).contains("%PDF-");
+  }
+
+  @Test
+  public void testPrintSbomReport() throws Exception {
+    String scanId = "scanId";
+    createReportFile(app.getId(), "scanId", "/ReportResourceTest/sample-report");
+    tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile("cdx-test-bom.xml");
+    tempEntity.newThirdPartyScan(thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), SbomStatus.ACTIVE.name(),
+            thirdPartyFile.getFilename());
+
+    HttpResponse response =
+        restRequest(app.getPublicId(), sbomMetadata.getSbomVersion())
+            .path("sbom/{sbomVersion}/printReport").get();
+    assertResponseStatus(200, response);
+    assertThat(response.getHeader(HttpHeaders.CONTENT_DISPOSITION))
+        .containsSubsequence("attachment; filename=\"" + app.getName() + "-" + sbomMetadata.getSbomVersion(), ".pdf\"");
 
     // validate content type and check the actual content is really a PDF
     assertThat(response.getContentType()).isEqualTo("application/pdf;charset=UTF-8");

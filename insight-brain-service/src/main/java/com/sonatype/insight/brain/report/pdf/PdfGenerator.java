@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.report.pdf;
 
-import java.awt.Color;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,23 +14,22 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentPolicyViolationsDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent;
+import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicense;
+import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentPolicyViolation;
+import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentSecurityIssue;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -74,6 +73,7 @@ import rst.pdfbox.layout.util.WordBreakerFactory;
 import rst.pdfbox.layout.util.WordBreakers;
 
 import static com.sonatype.insight.brain.report.pdf.PdfGeneratorUtils.addText;
+import static com.sonatype.insight.brain.report.pdf.PdfGeneratorUtils.addImage;
 import static com.sonatype.insight.brain.report.pdf.PdfGeneratorUtils.drawChart;
 import static com.sonatype.insight.brain.report.pdf.PdfGeneratorUtils.drawRectangleWithText;
 import static com.sonatype.insight.brain.report.pdf.PdfGeneratorUtils.loadPDType0Font;
@@ -134,6 +134,8 @@ public class PdfGenerator
 
   private static final Color APPLICATION_COMPOSITION_REPORT_COLOR = new Color(119, 130, 251);
 
+  private static final Color BILL_OF_MATERIALS_REPORT_COLOR = new Color(13, 13, 12, 1);
+
   private static final Color DATE_DESCRIPTOR_COLOR = Color.GRAY;
 
   private static final Color HEADER_FILL_COLOR = new Color(245, 245, 245);
@@ -144,9 +146,11 @@ public class PdfGenerator
 
   private static final int MAX_CELL_CHARACTERS = 500;
 
+  private final Context productContext;
+
   private final PdfData pdfData;
 
-  private final Predicate<ApiReportPolicyViolationDTOV2> isActiveViolation =
+  private final Predicate<PdfComponentPolicyViolation> isActiveViolation =
       violation -> !violation.waived && !violation.legacyViolation;
 
   private File pdfFile;
@@ -156,6 +160,8 @@ public class PdfGenerator
   private FontStyle sonatypeFontStyle;
 
   private FontStyle applicationCompositionReportFontStyle;
+
+  private FontStyle billOfMaterialsReportFontStyle;
 
   private FontStyle titleFontStyle;
 
@@ -181,14 +187,25 @@ public class PdfGenerator
 
   private String analyzedOnDateTime;
 
+  enum Context
+  {
+    LIFECYCLE,
+    SBOM
+  }
+
   static {
     System.setProperty(WordBreakerFactory.WORD_BREAKER_CLASS_PROPERTY, WordBreaker.class.getName());
   }
 
   // Visible for testing
-  PdfGenerator(File pdfFile, PdfData pdfData) {
+  PdfGenerator(File pdfFile, PdfData pdfData, Context productContext) {
     this.pdfFile = pdfFile;
     this.pdfData = pdfData;
+    this.productContext = productContext;
+  }
+
+  PdfGenerator(File pdfFile, PdfData pdfData) {
+    this(pdfFile, pdfData, Context.LIFECYCLE);
   }
 
   private void generate() throws IOException {
@@ -197,8 +214,8 @@ public class PdfGenerator
       initFontStyles(pdf);
       setDocumentMetadata();
       DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_STRING, Locale.ENGLISH);
-      createdOnDateTime = dateFormat.format(new Date());
-      analyzedOnDateTime = dateFormat.format(pdfData.policyData.reportTime);
+      createdOnDateTime = dateFormat.format(pdfData.createdDate);
+      analyzedOnDateTime = dateFormat.format(pdfData.analyzedDate);
       addPolicyViolationsSection();
       addVulnerabilitiesSection();
       addLicensesSection();
@@ -220,6 +237,7 @@ public class PdfGenerator
     sonatypeFontStyle = new FontStyle(regularFont, HEADER_FONT_SIZE, DEFAULT_FONT_COLOR);
     applicationCompositionReportFontStyle = new FontStyle(regularFont, HEADER_FONT_SIZE,
         APPLICATION_COMPOSITION_REPORT_COLOR);
+    billOfMaterialsReportFontStyle = new FontStyle(regularFont, HEADER_FONT_SIZE, BILL_OF_MATERIALS_REPORT_COLOR);
     titleFontStyle = new FontStyle(regularFont, TITLE_FONT_SIZE, DEFAULT_FONT_COLOR);
     dateDescriptorFontStyle = new FontStyle(regularFont, DEFAULT_FONT_SIZE, DATE_DESCRIPTOR_COLOR);
     dateFontStyle = new FontStyle(regularFont, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
@@ -234,7 +252,7 @@ public class PdfGenerator
 
   private void setDocumentMetadata() {
     PDDocumentInformation docInfo = new PDDocumentInformation();
-    docInfo.setTitle(pdfData.policyData.application.name + " " + pdfData.policyData.reportTitle);
+    docInfo.setTitle(pdfData.title);
     docInfo.setCreator("Nexus IQ Server release " + pdfData.productVersion);
     docInfo.setProducer(docInfo.getCreator());
     docInfo.setCreationDate(new GregorianCalendar());
@@ -249,13 +267,25 @@ public class PdfGenerator
       // Add header
       float headerLeftStartX = MARGIN;
       float headerLeftStartY = pageRec.getHeight() - MARGIN - sonatypeFontStyle.getFontAscent();
-      addText(contentStream, headerLeftStartX, headerLeftStartY, sonatypeFontStyle, "Sonatype");
-      String applicationCompositionReport = "Application Composition Report";
-      float headerRightStartX = pageRec.getWidth() - MARGIN -
-          applicationCompositionReportFontStyle.getStringWidth(applicationCompositionReport);
       float headerRightStartY = headerLeftStartY;
-      addText(contentStream, headerRightStartX, headerRightStartY, applicationCompositionReportFontStyle,
-          applicationCompositionReport);
+      float logoLeftStartY = headerLeftStartY - 7;
+      if (this.productContext.equals(Context.SBOM)) {
+        addImage(pdf, contentStream,
+            headerLeftStartX, logoLeftStartY, "assets/sbomManager/assets/sonatype-sbom-manager-logo-nav.png");
+        String billOfMaterialsReport = "Bill of Materials Report";
+        float headerRightStartX = pageRec.getWidth() - MARGIN -
+            billOfMaterialsReportFontStyle.getStringWidth(billOfMaterialsReport);
+        addText(contentStream, headerRightStartX, headerRightStartY, billOfMaterialsReportFontStyle,
+            billOfMaterialsReport);
+      }
+      else {
+        addText(contentStream, headerLeftStartX, headerLeftStartY, sonatypeFontStyle, "Sonatype");
+        String applicationCompositionReport = "Application Composition Report";
+        float headerRightStartX = pageRec.getWidth() - MARGIN -
+            applicationCompositionReportFontStyle.getStringWidth(applicationCompositionReport);
+        addText(contentStream, headerRightStartX, headerRightStartY, applicationCompositionReportFontStyle,
+            applicationCompositionReport);
+      }
 
       // Add title and dates
       float titleAndDatesStartY = addTitleAndDates(contentStream, pageRec, "Policy Violations", MARGIN,
@@ -290,25 +320,27 @@ public class PdfGenerator
       addText(contentStream, affectedComponentsStartX, affectedComponentsStartY, summaryFontStyle, affectingText);
 
       // Add legacy violation summary
-      float maxViolationsAffectedWidth =
-          Math.max(summaryHeaderFontStyle.getStringWidth(violationsText),
-              summaryFontStyle.getStringWidth(affectingText));
-      float legacyViolationsSymbolStartX = affectedComponentsStartX + maxViolationsAffectedWidth + 4 * PADDING;
-      float legacyViolationsSymbolStartY = affectedComponentsStartY;
-      addText(contentStream, legacyViolationsSymbolStartX, legacyViolationsSymbolStartY, legacyViolationsFontStyle,
-          String.valueOf(LEGACY_VIOLATIONS_SYMBOL));
-      float legacyViolationsCountStartX = legacyViolationsSymbolStartX +
-          legacyViolationsFontStyle.getStringWidth(String.valueOf(LEGACY_VIOLATIONS_SYMBOL)) + PADDING;
-      float legacyViolationsCountStartY = violationsTextStartY - 4;
-      long legacyViolations = pdfData.policyData.components.stream().flatMap(component -> component.violations.stream())
-          .filter(violation -> violation.legacyViolation).count();
+      if (!this.productContext.equals(Context.SBOM)) {
+        float maxViolationsAffectedWidth =
+            Math.max(summaryHeaderFontStyle.getStringWidth(violationsText),
+                summaryFontStyle.getStringWidth(affectingText));
+        float legacyViolationsSymbolStartX = affectedComponentsStartX + maxViolationsAffectedWidth + 4 * PADDING;
+        float legacyViolationsSymbolStartY = affectedComponentsStartY;
+        addText(contentStream, legacyViolationsSymbolStartX, legacyViolationsSymbolStartY, legacyViolationsFontStyle,
+            String.valueOf(LEGACY_VIOLATIONS_SYMBOL));
+        float legacyViolationsCountStartX = legacyViolationsSymbolStartX +
+            legacyViolationsFontStyle.getStringWidth(String.valueOf(LEGACY_VIOLATIONS_SYMBOL)) + PADDING;
+        float legacyViolationsCountStartY = violationsTextStartY - 4;
+        long legacyViolations = pdfData.components.stream().flatMap(component -> component.policyViolations.stream())
+            .filter(violation -> violation.legacyViolation).count();
 
-      String legacyViolationsText = legacyViolations + " LEGACY VIOLATIONS";
-      if (legacyViolations == 1) {
-        legacyViolationsText = legacyViolations + " LEGACY VIOLATION";
+        String legacyViolationsText = legacyViolations + " LEGACY VIOLATIONS";
+        if (legacyViolations == 1) {
+          legacyViolationsText = legacyViolations + " LEGACY VIOLATION";
+        }
+        addText(contentStream, legacyViolationsCountStartX, legacyViolationsCountStartY, summaryHeaderFontStyle,
+            legacyViolationsText);
       }
-      addText(contentStream, legacyViolationsCountStartX, legacyViolationsCountStartY, summaryHeaderFontStyle,
-          legacyViolationsText);
 
       // Add policy violations table
       Table table = createPolicyViolationsTable(page);
@@ -370,8 +402,8 @@ public class PdfGenerator
   // Visible for testing
   List<PolicyViolationsTableRow> createPolicyViolationsTableData() {
     List<PolicyViolationsTableRow> policyViolationsTableRows = new ArrayList<>();
-    for (ApiReportComponentPolicyViolationsDTOV2 component : pdfData.policyData.components) {
-      for (ApiReportPolicyViolationDTOV2 violation : component.violations) {
+    for (PdfComponent component : pdfData.components) {
+      for (PdfComponentPolicyViolation violation : component.policyViolations) {
         if (!isActiveViolation.test(violation)) {
           continue;
         }
@@ -455,11 +487,8 @@ public class PdfGenerator
 
   private List<SecurityIssuesTableRow> createSecurityIssuesTableData() {
     List<SecurityIssuesTableRow> securityIssuesTableRows = new ArrayList<>();
-    for (ApiReportComponentDTOV2 component : pdfData.rawData.components) {
-      if (component.securityData == null) {
-        continue;
-      }
-      for (ApiSecurityIssueDTO securityIssue : component.securityData.securityIssues) {
+    for (PdfComponent component : pdfData.components) {
+      for (PdfComponentSecurityIssue securityIssue : component.securityIssues) {
         SecurityIssuesTableRow securityIssuesTableRow = new SecurityIssuesTableRow();
         securityIssuesTableRow.reference = securityIssue.reference;
         securityIssuesTableRow.severity = securityIssue.severity;
@@ -553,15 +582,12 @@ public class PdfGenerator
 
   private List<LicensesTableRow> createLicensesTableData() {
     List<LicensesTableRow> licensesTableRows = new ArrayList<>();
-    for (ApiReportComponentDTOV2 component : pdfData.rawData.components) {
-      if (component.licenseData == null) {
-        continue;
-      }
+    for (PdfComponent component : pdfData.components) {
       LicensesTableRow licensesTableRow = new LicensesTableRow();
-      licensesTableRow.overridden = !component.licenseData.overriddenLicenses.isEmpty();
-      licensesTableRow.effectiveLicenses = licensesToString(component.licenseData.effectiveLicenses);
-      licensesTableRow.declaredLicenses = licensesToString(component.licenseData.declaredLicenses);
-      licensesTableRow.observedLicenses = licensesToString(component.licenseData.observedLicenses);
+      licensesTableRow.overridden = !component.overriddenLicenses.isEmpty();
+      licensesTableRow.effectiveLicenses = licensesToString(component.effectiveLicenses);
+      licensesTableRow.declaredLicenses = licensesToString(component.declaredLicenses);
+      licensesTableRow.observedLicenses = licensesToString(component.observedLicenses);
       licensesTableRow.componentName = component.displayName;
       licensesTableRows.add(licensesTableRow);
     }
@@ -578,8 +604,8 @@ public class PdfGenerator
           pageRec.getHeight() - MARGIN - titleFontStyle.getFontHeight());
 
       // Add components summary
-      int totalComponents = pdfData.policyData.components.size();
-      int totalMatched = (int) pdfData.policyData.components.stream().filter(
+      int totalComponents = pdfData.components.size();
+      int totalMatched = (int) pdfData.components.stream().filter(
           component -> MatchState.EXACT.getName().equalsIgnoreCase(component.matchState) ||
               MatchState.SIMILAR.getName().equalsIgnoreCase(component.matchState)).count();
       long componentPercentIdentified = Math.round(100.0d * totalMatched / totalComponents);
@@ -636,7 +662,7 @@ public class PdfGenerator
 
   private List<BomTableRow> createBomTableData() {
     List<BomTableRow> bomTableRows = new ArrayList<>();
-    for (ApiReportComponentDTOV2 component : pdfData.rawData.components) {
+    for (PdfComponent component : pdfData.components) {
       BomTableRow bomTableRow = new BomTableRow();
       bomTableRow.componentName = component.displayName;
       bomTableRows.add(bomTableRow);
@@ -675,18 +701,19 @@ public class PdfGenerator
     addText(contentStream, analyzedOnDateStartX, analyzedOnDateStartY, dateFontStyle, analyzedOnDateTime);
 
     addCommitHash(contentStream, pageRec, createdOnDescriptorStartY);
-    addProductVersion(contentStream, pageRec, analyzedOnDateStartY);
-
+    if (!this.productContext.equals(Context.SBOM)) {
+      addProductVersion(contentStream, pageRec, analyzedOnDateStartY);
+    }
     return analyzedOnDateStartY;
   }
 
   private void addCommitHash(PDPageContentStream contentStream, PDRectangle pageRec, float startY) throws IOException {
-    if (pdfData.policyData.commitHash != null) {
+    if (pdfData.commitHash != null) {
       String commitLabel = "Commit: ";
       float commitHashStartY = startY;
       float commitHashStartX =
-          pageRec.getUpperRightX() - MARGIN - dateFontStyle.getStringWidth(pdfData.policyData.commitHash);
-      addText(contentStream, commitHashStartX, commitHashStartY, dateFontStyle, pdfData.policyData.commitHash);
+          pageRec.getUpperRightX() - MARGIN - dateFontStyle.getStringWidth(pdfData.commitHash);
+      addText(contentStream, commitHashStartX, commitHashStartY, dateFontStyle, pdfData.commitHash);
       commitHashStartX -= dateDescriptorFontStyle.getStringWidth(commitLabel);
       addText(contentStream, commitHashStartX, commitHashStartY, dateDescriptorFontStyle, commitLabel);
     }
@@ -722,21 +749,12 @@ public class PdfGenerator
 
   // Visible for testing
   String getTitle(String sectionName) {
-    String title = sectionName;
-    String suffix = "";
-    if (pdfData.policyData.application != null && pdfData.policyData.application.name != null) {
-      suffix += " " + pdfData.policyData.application.name;
-    }
-    if (pdfData.policyData.reportTitle != null) {
-      suffix += " " + pdfData.policyData.reportTitle;
-    }
-    title += suffix.isEmpty() ? "" : " for" + suffix;
-    return title;
+    return sectionName + (StringUtils.isBlank(pdfData.title) ? "" : " for " + pdfData.title);
   }
 
   // Visible for testing
   long countPolicyViolations(int minThreatLevel, int maxThreatLevel) {
-    return pdfData.policyData.components.stream().flatMap(component -> component.violations.stream())
+    return pdfData.components.stream().flatMap(component -> component.policyViolations.stream())
         .filter(isActiveViolation)
         .filter(violation -> violation.policyThreatLevel >= minThreatLevel
             && violation.policyThreatLevel <= maxThreatLevel)
@@ -745,7 +763,7 @@ public class PdfGenerator
 
   // Visible for testing
   long countAffectedComponents() {
-    return pdfData.policyData.components.stream().filter(component -> component.violations.stream()
+    return pdfData.components.stream().filter(component -> component.policyViolations.stream()
         .anyMatch(violation -> isActiveViolation.test(violation) && violation.policyThreatLevel >= 2)).count();
   }
 
@@ -844,11 +862,17 @@ public class PdfGenerator
 
   private List<Row> buildTableRowAndSplitIfNeeded(TextCellBuilder... textCellBuilders) {
     List<Row> result = new ArrayList<>();
-    int rows =
-        Arrays.stream(textCellBuilders).mapToInt(textCellBuilder -> textCellBuilder.textParts.size()).max().orElse(0);
+    int rows = Arrays.stream(textCellBuilders)
+        .filter(Objects::nonNull)
+        .mapToInt(textCellBuilder -> textCellBuilder.textParts.size())
+        .max()
+        .orElse(0);
     for (int row = 0; row < rows; row++) {
       RowBuilder rowBuilder = Row.builder();
       for (TextCellBuilder textCellBuilder : textCellBuilders) {
+        if (textCellBuilder == null) {
+          continue;
+        }
         AbstractCellBuilder<?, ?> abstractCellBuilder =
             textCellBuilder.textToCellBuilder.apply(textCellBuilder.getTextPartOrEmpty(row));
         if (rows > 1) {
@@ -870,8 +894,8 @@ public class PdfGenerator
   }
 
   // Visible for testing
-  static String licensesToString(List<ApiLicenseDTO> licenses) {
-    return licenses.stream().map(license -> license.licenseName).collect(Collectors.joining(", "));
+  static String licensesToString(List<PdfComponentLicense> licenses) {
+    return licenses.stream().map(license -> license.name).collect(Collectors.joining(", "));
   }
 
   public static File getPdfFile(File reportFile) {
@@ -966,12 +990,16 @@ public class PdfGenerator
   }
 
   public static void generate(File pdfFile, PdfData pdfData) throws IOException {
+    generate(pdfFile, pdfData, Context.LIFECYCLE);
+  }
+
+  public static void generate(File pdfFile, PdfData pdfData, Context productContext) throws IOException {
     if (!pdfFile.isFile() || pdfFile.length() == 0) {
       try {
         log.debug("Generating report PDF {}", pdfFile);
         long millis = System.currentTimeMillis();
 
-        new PdfGenerator(pdfFile, pdfData).generate();
+        new PdfGenerator(pdfFile, pdfData, productContext).generate();
 
         if (pdfFile.length() <= 0) {
           throw new IOException("Could not generate report " + pdfFile);

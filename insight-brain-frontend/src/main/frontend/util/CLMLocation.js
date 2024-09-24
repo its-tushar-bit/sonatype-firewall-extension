@@ -588,6 +588,10 @@ export function getDownloadPdfUrl(applicationPublicId, scanId) {
   return uriTemplate`/rest/report/${applicationPublicId}/${scanId}/printReport`;
 }
 
+export function getSbomDownloadPdfUrl(applicationPublicId, sbomVersion) {
+  return uriTemplate`/rest/report/${applicationPublicId}/sbom/${sbomVersion}/printReport`;
+}
+
 export function getExportCycloneDxUrl(applicationId, scanId) {
   return uriTemplate`/ui/links/cycloneDx/${applicationId}/reports/${scanId}`;
 }

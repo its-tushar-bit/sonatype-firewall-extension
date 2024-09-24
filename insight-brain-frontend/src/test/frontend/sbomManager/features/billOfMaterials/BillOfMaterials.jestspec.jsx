@@ -14,6 +14,7 @@ import {
   getSbomMetadataUrl,
   getSbomSummaryUrl,
   getBillOfMaterialsComponentsUrl,
+  getSbomDownloadPdfUrl,
 } from 'MainRoot/util/CLMLocation';
 import BillOfMaterials from 'MainRoot/sbomManager/features/billOfMaterials/BillOfMaterials';
 import { initialState as billOfMaterialsPageInitialState } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
@@ -26,6 +27,7 @@ import {
   cleanUpComponentsFilterDrawerPortalContainer,
   setupComponentsFilterDrawerPortalContainer,
 } from './billOfMaterialsComponentsTile/componentsFilterDrawer/ComponentsFilterDrawer.jestspec';
+import { fireEvent, queryByText } from '@testing-library/react';
 
 describe('BillOfMaterials Page', () => {
   let axiosMock, renderPage;
@@ -166,7 +168,7 @@ describe('BillOfMaterials Page', () => {
       .onGet(getBillOfMaterialsComponentsUrl(...getBillOfMaterialsComponentsParams))
       .reply(200, getBillOfMaterialsComponentsResponsePayload);
 
-    renderPage();
+    const { container } = renderPage();
 
     jest.advanceTimersByTime(JEST_TIMER);
     jest.useRealTimers();
@@ -183,6 +185,14 @@ describe('BillOfMaterials Page', () => {
 
     const field = await screen.findByRole('button', { name: /Viewing:/i });
     expect(field).toHaveTextContent(`Viewing: ${SBOM_VERSION}`);
+
+    // Check export options
+    const exportDropdown = container.querySelector('.nx-segmented-btn__dropdown-btn');
+    fireEvent.click(exportDropdown);
+    expect(queryByText(container, 'Export PDF')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Export PDF' }).getAttribute('href')).toBe(
+      getSbomDownloadPdfUrl(APPLICATION_PUBLIC_ID, SBOM_VERSION)
+    );
   });
 
   it('renders SummaryTile values correctly', async () => {

@@ -60,7 +60,8 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION.getId(),
       SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT.getId(),
       SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE.getId(),
-      SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT.getId()
+      SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT.getId(),
+      SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.getId()
       };
 
   /**
@@ -88,7 +89,8 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION.getId(),
       SystemConfigurationPropertyFeature.PRIORITIZED_FINDINGS_REPORT.getId(),
       SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE.getId(),
-      SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT.getId()
+      SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT.getId(),
+      SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.getId()
       };
 
   /**
@@ -105,7 +107,6 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS.getId(),
           SystemConfigurationPropertyFeature.SECURE_SHARING.getId(),
           SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId(),
-          SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.getId(),
           SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.getId(),
           SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI.getId(),
           SystemConfigurationPropertyFeature.SBOM_POLICIES.getId(),

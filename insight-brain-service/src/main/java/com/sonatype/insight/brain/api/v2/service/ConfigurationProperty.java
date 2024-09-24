@@ -216,7 +216,7 @@ public class ConfigurationProperty
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, true),
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.SBOM_BINARY_SCANNING, Boolean.class,
-          (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
+          (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, true),
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI, Boolean.class,
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),

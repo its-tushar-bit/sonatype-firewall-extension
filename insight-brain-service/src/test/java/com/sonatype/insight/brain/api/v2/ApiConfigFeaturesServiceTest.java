@@ -999,18 +999,16 @@ public class ApiConfigFeaturesServiceTest
   }
 
   @Test
-  public void testEnableFeature_SbomBinaryScanning() {
-    service.enableFeature(SystemConfigurationProperty.SBOM_BINARY_SCANNING);
-
+  public void testDisableFeature_SbomBinaryScanning() {
+    service.disableFeature(SystemConfigurationProperty.SBOM_BINARY_SCANNING);
     assertThat(
         systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.SBOM_BINARY_SCANNING)
             .getValue())
-        .isEqualTo("true");
+        .isEqualTo("false");
   }
 
   @Test
   public void testEnableFeature_SbomBinaryScanning_AlreadyEnabled() {
-    service.enableFeature(SystemConfigurationProperty.SBOM_BINARY_SCANNING);
     assertThatThrownBy(
         () -> service.enableFeature(
             SystemConfigurationProperty.SBOM_BINARY_SCANNING)).isInstanceOf(
@@ -1019,6 +1017,7 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testDisableFeature_SbomBinaryScanning_AlreadyDisabled() {
+    service.disableFeature(SystemConfigurationProperty.SBOM_BINARY_SCANNING);
     assertThatThrownBy(
         () -> service.disableFeature(
             SystemConfigurationProperty.SBOM_BINARY_SCANNING)).isInstanceOf(

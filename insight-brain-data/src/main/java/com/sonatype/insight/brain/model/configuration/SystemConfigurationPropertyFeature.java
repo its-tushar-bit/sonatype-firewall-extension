@@ -216,7 +216,7 @@ public enum SystemConfigurationPropertyFeature
   CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT(SystemConfigurationProperty.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT,
       true),
 
-  SBOM_BINARY_SCANNING(SystemConfigurationProperty.SBOM_BINARY_SCANNING, false),
+  SBOM_BINARY_SCANNING(SystemConfigurationProperty.SBOM_BINARY_SCANNING, true),
 
   DEVELOPER_SUGGEST_NON_BREAKING_VERSION(SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION, false),
 

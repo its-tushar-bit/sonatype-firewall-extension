@@ -778,6 +778,8 @@ public class ApiSbomServiceTest
     Application app = tempEntity.newApplicationWithParent();
     Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
 
+    SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(false);
+
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/index.html")) {
       assertThatExceptionOfType(BadRequestException.class)

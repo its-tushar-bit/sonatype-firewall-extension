@@ -17,6 +17,7 @@ import com.sonatype.clm.testing.functional.pages.sbom.BillOfMaterialsPageSummary
 import com.sonatype.clm.testing.functional.elements.sbom.ComponentsTile;
 import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerBillOfMaterialsPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
+import com.sonatype.clm.testing.functional.pages.sbom.LearnMoreSbomManagerPage;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -236,14 +237,16 @@ public class SbomManagerBillOfMaterialsPageTest
   }
 
   @Test
-  public void testBillOfMaterial_SbomManagerDisabled() {
+  public void testBillOfMaterial_SbomManagerDisabledRedirectsToLearnMorePage() {
     setLicenseAndLogin();
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
     setLicensedProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
-
-    sbomManagerBillOfMaterialsPage.title().shouldNotBe(visible);
-    sbomManagerBillOfMaterialsPage.errorAlert().shouldBe(visible);
+    waitUntilUrl(LearnMoreSbomManagerPage.url());
+    
+    LearnMoreSbomManagerPage learnMoreSbomManagerPage = new LearnMoreSbomManagerPage();
+    learnMoreSbomManagerPage.infoAlert().shouldHave(text("SBOM Manager is currently not enabled for your " +
+        "organization. Learn more about SBOM Manager."));
   }
 
   @Test

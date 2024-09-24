@@ -25,6 +25,7 @@ import com.sonatype.clm.testing.functional.mtiq.AbstractMtiqFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
+import com.sonatype.clm.testing.functional.pages.sbom.LearnMoreSbomManagerPage;
 import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerDashboardPage;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
@@ -97,14 +98,16 @@ public class SbomManagerDashboardPageTest
   }
 
   @Test
-  public void testDashboard_SbomManagerDisabled() {
+  public void testDashboard_SbomManagerDisabledRedirectsToLearnMorePage() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
     refresh();
 
     refreshOrOpen(SbomManagerDashboardPage.url());
-
-    sbomManagerDashboardPage.title().shouldNotBe(visible);
-    sbomManagerDashboardPage.errorAlert().shouldBe(visible);
+    waitUntilUrl(LearnMoreSbomManagerPage.url());
+    
+    LearnMoreSbomManagerPage learnMoreSbomManagerPage = new LearnMoreSbomManagerPage();
+    learnMoreSbomManagerPage.infoAlert().shouldHave(text("SBOM Manager is currently not enabled for your " +
+        "organization. Learn more about SBOM Manager."));
   }
 
   @Test

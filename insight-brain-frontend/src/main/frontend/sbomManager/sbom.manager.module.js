@@ -12,6 +12,9 @@ import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import advancedSearchModule from 'MainRoot/advancedSearch/module';
 import ComponentDetailsPage from 'MainRoot/sbomManager/features/componentDetails/ComponentDetailsPage';
 import SbomContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/сontinuousMonitoringEditor/SbomContinuousMonitoringEditor';
+import LearnMoreSbomManager from 'MainRoot/sbomManager/features/LearnMoreSbomManager';
+import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { selectIsSbomManagerEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default angular
   .module('sbomManagerModule', ['ngRedux', advancedSearchModule.name])
@@ -19,7 +22,9 @@ export default angular
   .component('billOfMaterials', iqReact2Angular(BillOfMaterials, [], ['$ngRedux', '$state']))
   .component('sbomManagerComponentDetails', iqReact2Angular(ComponentDetailsPage, [], ['$ngRedux', '$state']))
   .component('sbomContinuousMonitoring', iqReact2Angular(SbomContinuousMonitoringEditor, [], ['$ngRedux', '$state']))
-  .config(routes);
+  .component('learnMoreSbomManager', iqReact2Angular(LearnMoreSbomManager, [], ['$ngRedux', '$state']))
+  .config(routes)
+  .run(checkLicense);
 
 function routes($stateProvider) {
   const ownerTypesForSbomManager = [
@@ -97,6 +102,13 @@ function routes($stateProvider) {
         title: 'SBOM Manager - Component Details',
         authenticationRequired: true,
       },
+    })
+    .state('sbomManager.learnMore', {
+      url: '/learnMore',
+      component: 'learnMoreSbomManager',
+      data: {
+        title: 'Learn More',
+      },
     });
 
   ownerTypesForSbomManager.forEach(function (ownerType) {
@@ -143,3 +155,21 @@ function routes($stateProvider) {
   });
 }
 routes.$inject = ['$stateProvider'];
+
+function checkLicense($transitions, $state, $ngRedux) {
+  $transitions.onBefore({ to: 'sbomManager.**' }, (transition) => {
+    return $ngRedux.dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded()).then(() => {
+      const state = $ngRedux.getState();
+      const isSbomManagerEnabled = selectIsSbomManagerEnabled(state);
+      const transitionTo = transition.to().name;
+      const sbomManagerLearnMoreState = 'sbomManager.learnMore';
+
+      if (!isSbomManagerEnabled && transitionTo !== sbomManagerLearnMoreState) {
+        return $state.target(sbomManagerLearnMoreState);
+      } else if (isSbomManagerEnabled && transitionTo === sbomManagerLearnMoreState) {
+        return $state.target('sbomManager.dashboard');
+      }
+    });
+  });
+}
+checkLicense.$inject = ['$transitions', '$state', '$ngRedux'];

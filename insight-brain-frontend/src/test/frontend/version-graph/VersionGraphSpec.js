@@ -682,7 +682,7 @@ var clmEndpointTemplate = {
             expect(scope.suggestedRemediations.length).toEqual(1);
             expect(scope.suggestedRemediations[0]).toEqual({
               id: 'no-versions-available',
-              text: 'No recommended versions are available for the current component',
+              text: 'There are no suggested versions for this component',
             });
           }));
 

@@ -771,11 +771,10 @@ public class FirewallComponentDetailsPageTest
 
     RiskRemediationTile riskRemediation = firewallComponentDetailsPage.getRiskRemediationTile();
     riskRemediation.shouldBe(visible);
-    riskRemediation.getTitle().shouldHave(text("Risk Remediation"));
+    riskRemediation.getTitle().shouldHave(text("Version Explorer"));
 
     RiskRemediationTile.VersionExplorerSection versionExplorerSection = riskRemediation.versionExplorerSection();
     versionExplorerSection.shouldBe(visible);
-    versionExplorerSection.getTitle().shouldHave(text("Version Explorer"));
     ScrollUtil.scrollIntoView(versionExplorerSection.content());
     versionExplorerSection.content().shouldBe(visible);
   }
@@ -786,19 +785,19 @@ public class FirewallComponentDetailsPageTest
 
     RiskRemediationTile riskRemediation = firewallComponentDetailsPage.getRiskRemediationTile();
     riskRemediation.shouldBe(visible);
-    riskRemediation.getTitle().shouldHave(text("Risk Remediation"));
+    riskRemediation.getTitle().shouldHave(text("Version Explorer"));
 
     RiskRemediationTile.RecommendedVersionsSection recommendedVersionsSection =
         riskRemediation.recommendedVersionsSections();
     recommendedVersionsSection.shouldBe(visible);
     ScrollUtil.scrollIntoView(recommendedVersionsSection.content());
-    recommendedVersionsSection.getTitle().shouldHave(text("Recommended Versions"));
+    recommendedVersionsSection.getTitle().shouldHave(text("Suggested Version Change"));
     ElementsCollection recommendedVersions = recommendedVersionsSection.contentRecommendedVersionsList();
     recommendedVersions.shouldHave(size(1));
 
     RiskRemediationTile.RecommendationElement recommendation = recommendedVersionsSection.getRecommendation(0);
     recommendation.shouldBe(visible);
-    recommendation.subText().shouldHave(text("No recommended versions are available for the current component"));
+    recommendation.text().shouldHave(text("There are no suggested versions for this component"));
   }
 
   public void testCompareVersionsTable(String url) {
@@ -962,11 +961,18 @@ public class FirewallComponentDetailsPageTest
         riskRemediation.recommendedVersionsSections();
     recommendedVersionsSection.shouldBe(visible);
 
+    recommendedVersionsSection.alternateVersionsAccordion().shouldBe(visible).click();
+
     RiskRemediationTile.RecommendationElement recommendation =
         recommendedVersionsSection.getRecommendation(recommendationIndex);
 
     recommendation.shouldBe(visible);
-    recommendation.text().shouldHave(text("Upgrade to 0.5.3"));
+    if (recommendationIndex == 0) {
+      recommendation.text().shouldHave(text("Upgrade to 0.5.3"));
+    }
+    else {
+      recommendation.text().shouldHave(text("Version 0.5.3"));
+    }
 
     SelenideElement compareButton = recommendedVersionsSection.getRecommendation(recommendationIndex).actions().first();
 

@@ -32,6 +32,8 @@ public class RiskRemediationTile
 
   private static final String LOADING_SPINNER = ".nx-loading-spinner";
 
+  private static final String ALTERNATE_VERSIONS_ACCORDION = ".nx-accordion";
+
   public static RiskRemediationTile getOverviewTileForParent(String parentSelector) {
     String combinedSelector = SelectorUtils.createSelector(parentSelector, TILE_SELECTOR);
     return new RiskRemediationTile(combinedSelector);
@@ -145,8 +147,17 @@ public class RiskRemediationTile
       return child.findAll(LIST_ITEM_SELECTOR);
     }
 
+    public SelenideElement alternateVersionsAccordion() {
+      return child(ALTERNATE_VERSIONS_ACCORDION);
+    }
+
+    public ElementsCollection alternateVersionsAccordionVersionsList() {
+      SelenideElement child = alternateVersionsAccordion();
+      return child.findAll(LIST_ITEM_SELECTOR);
+    }
+
     public RecommendationElement getRecommendation(int index) {
-      SelenideElement child = child(LIST_SELECTOR);
+      SelenideElement child = child();
       ElementsCollection recommendations = child.findAll(LIST_ITEM_SELECTOR);
       return new RecommendationElement(recommendations.get(index), LIST_ITEM_SELECTOR);
     }

@@ -30,4 +30,54 @@
     border-left: 0;
     padding: 0;
   }
+
+  .iq-recommended-version-check-icon.nx-icon {
+    color: var(--nx-swatch-green-30);
+    margin-left: 0;
+  }
+
+  .iq-version-container {
+    .iq-golden-version-text-container {
+      display: flex;
+      gap: var(--nx-spacing-2x);
+      align-items: center;
+
+      .iq-golden-version-text {
+        color: var(--nx-swatch-yellow-30);
+        font-weight: 600;
+      }
+    }
+
+    .iq-version-checklist {
+      .iq-version-checklist-list {
+        list-style-type: none;
+      }
+
+      .iq-version-checklist-item {
+        margin-top: var(--nx-spacing-2x);
+      }
+    }
+  }
+
+  .iq-alternate-versions-accordion.nx-accordion {
+    margin-top: 0;
+
+    .nx-accordion__summary-wrapper {
+      padding: var(--nx-spacing-4x) calc(var(--nx-spacing-4x) - 1px);
+    }
+  }
+  .nx-accordion__content {
+    margin-right: 0;
+    margin-left: var(--nx-spacing-4x);
+
+    .iq-version-item {
+      padding-left: 0;
+    }
+  }
+
+  .iq-version-item {
+    .nx-list__text {
+      color: var(--nx-swatch-grey-05);
+    }
+  }
 }

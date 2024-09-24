@@ -10,6 +10,8 @@ import {
   NEXT_NO_VIOLATIONS_DEPENDENCIES,
   NEXT_NON_FAILING,
   NEXT_NON_FAILING_DEPENDENCIES,
+  RECOMMENDED_NON_BREAKING,
+  RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
 } from './riskRemediation/recommendedVersionsUtils';
 
 export const CoordinatesPropTypes = PropTypes.shape({
@@ -42,10 +44,13 @@ export const VersionChangePropTypes = PropTypes.shape({
     NEXT_NO_VIOLATIONS_DEPENDENCIES,
     NEXT_NON_FAILING,
     NEXT_NON_FAILING_DEPENDENCIES,
+    RECOMMENDED_NON_BREAKING,
+    RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
   ]),
   version: PropTypes.string,
   linkId: PropTypes.string,
   linkText: PropTypes.string,
+  isGolden: PropTypes.bool,
 });
 
 export const AncestorPropTypes = PropTypes.shape({

@@ -93,11 +93,10 @@ public class VersionGraphTest
 
     RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
     riskRemediation.shouldBe(visible);
-    riskRemediation.getTitle().shouldHave(text("Risk Remediation"));
+    riskRemediation.getTitle().shouldHave(text("Version Explorer"));
 
     VersionExplorerSection versionExplorerSection = riskRemediation.versionExplorerSection();
     versionExplorerSection.shouldBe(visible);
-    versionExplorerSection.getTitle().shouldHave(text("Version Explorer"));
     ScrollUtil.scrollIntoView(versionExplorerSection.content());
     versionExplorerSection.content().shouldBe(visible);
     eyesWatcher.eyesCheck("Version Graph - debug component - initial render");
@@ -132,7 +131,6 @@ public class VersionGraphTest
 
     VersionExplorerSection versionExplorerSection = riskRemediation.versionExplorerSection();
     versionExplorerSection.shouldBe(visible);
-    versionExplorerSection.getTitle().shouldHave(text("Version Explorer"));
     ScrollUtil.scrollIntoView(versionExplorerSection.content());
     versionExplorerSection.content().shouldBe(visible);
     eyesWatcher.eyesCheck("Version Graph - @babel/plugin-syntax-async-generators component - initial render");
@@ -152,11 +150,10 @@ public class VersionGraphTest
 
     RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
     riskRemediation.shouldBe(visible);
-    riskRemediation.getTitle().shouldHave(text("Risk Remediation"));
+    riskRemediation.getTitle().shouldHave(text("Version Explorer"));
 
     VersionExplorerSection versionExplorerSection = riskRemediation.versionExplorerSection();
     versionExplorerSection.shouldBe(visible);
-    versionExplorerSection.getTitle().shouldHave(text("Version Explorer"));
     ScrollUtil.scrollIntoView(versionExplorerSection.content());
     versionExplorerSection.content().shouldBe(visible);
     eyesWatcher.eyesCheck("Version Graph - postgresql component - initial render");

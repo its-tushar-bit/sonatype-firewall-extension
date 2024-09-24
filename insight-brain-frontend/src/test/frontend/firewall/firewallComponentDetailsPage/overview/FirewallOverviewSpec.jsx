@@ -102,12 +102,12 @@ describe('FirewallOverview', () => {
     };
   });
 
-  it('renders the RiskRemediation if component is known', () => {
+  it('renders the Version Explorer tile if component is known', () => {
     spyOn(firewallSelectors, 'selectFirewallComponentDetailsPage').and.callFake(() => {
       return originalSelectFirewallComponentDetailsPage(minState);
     });
     render(<FirewallOverview />);
-    expect(screen.getByText('Risk Remediation')).toBeVisible();
+    expect(screen.getByText('Version Explorer')).toBeVisible();
   });
 
   it('does not render the RiskRemediation if component is unknown', () => {

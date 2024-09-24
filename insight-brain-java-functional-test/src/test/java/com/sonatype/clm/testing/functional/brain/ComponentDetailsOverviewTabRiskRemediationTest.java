@@ -130,14 +130,12 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
     riskRemediation.shouldBe(visible);
-    riskRemediation.getTitle().shouldHave(text("Risk Remediation"));
+    riskRemediation.getTitle().shouldHave(text("Version Explorer"));
 
     VersionExplorerSection versionExplorerSection = riskRemediation.versionExplorerSection();
     versionExplorerSection.shouldBe(visible);
-    versionExplorerSection.getTitle().shouldHave(text("Version Explorer"));
     ScrollUtil.scrollIntoView(versionExplorerSection.content());
     versionExplorerSection.content().shouldBe(visible);
-
   }
 
   @Test
@@ -149,32 +147,29 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
     riskRemediation.shouldBe(visible);
-    riskRemediation.getTitle().shouldHave(text("Risk Remediation"));
+    riskRemediation.getTitle().shouldHave(text("Version Explorer"));
 
     RecommendedVersionsSection recommendedVersionsSection = riskRemediation.recommendedVersionsSections();
     recommendedVersionsSection.shouldBe(visible);
     ScrollUtil.scrollIntoView(recommendedVersionsSection.content());
-    recommendedVersionsSection.getTitle().shouldHave(text("Recommended Versions"));
+    recommendedVersionsSection.getTitle().shouldHave(text("Suggested Version Change"));
     ElementsCollection recommendedVersions = recommendedVersionsSection.contentRecommendedVersionsList();
-    recommendedVersions.shouldHave(size(3));
+    recommendedVersions.shouldHave(size(1));
+    recommendedVersionsSection.alternateVersionsAccordion().shouldBe(visible).click();
+    recommendedVersionsSection.alternateVersionsAccordionVersionsList().shouldHave((size(1)));
 
     RecommendationElement recommendation = recommendedVersionsSection.getRecommendation(0);
-    recommendation.shouldBe(visible);
-    recommendation.text().shouldHave(text("Upgrade to 31.52"));
-    recommendation.subText().shouldHave(text("Next version with no policy violation"));
-    recommendation.actions().shouldHave(size(1));
-
-    recommendation = recommendedVersionsSection.getRecommendation(1);
     recommendation.shouldBe(visible);
     recommendation.text().shouldHave(text("Upgrade to 31.52"));
     recommendation.subText().shouldHave(
         text("Next version with no policy violations for this component and its dependencies"));
     recommendation.actions().shouldHave(size(1));
 
-    recommendation = recommendedVersionsSection.getRecommendation(2);
+    recommendation = recommendedVersionsSection.getRecommendation(1);
     recommendation.shouldBe(visible);
-    recommendation.subText().shouldHave(
-        text("The current version doesn't cause Build failure for this component and its dependencies"));
+    recommendation.text().shouldHave(text("Version 31.52"));
+    recommendation.subText().shouldHave(text("Next version with no policy violation"));
+    recommendation.actions().shouldHave(size(1));
   }
 
   @Test
@@ -186,20 +181,19 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
     riskRemediation.shouldBe(visible);
-    riskRemediation.getTitle().shouldHave(text("Risk Remediation"));
+    riskRemediation.getTitle().shouldHave(text("Version Explorer"));
 
     RecommendedVersionsSection recommendedVersionsSection = riskRemediation.recommendedVersionsSections();
     recommendedVersionsSection.shouldBe(visible);
     ScrollUtil.scrollIntoView(recommendedVersionsSection.content());
-    recommendedVersionsSection.getTitle().shouldHave(text("Recommended Versions"));
+    recommendedVersionsSection.getTitle().shouldHave(text("Suggested Version Change"));
     ElementsCollection recommendedVersions = recommendedVersionsSection.contentRecommendedVersionsList();
     recommendedVersions.shouldHave(size(1));
 
     RecommendationElement recommendation = recommendedVersionsSection.getRecommendation(0);
     recommendation.shouldBe(visible);
-    recommendation.subText().shouldHave(
-        text("No recommended versions are available for the current component"));
-
+    recommendation.text().shouldHave(
+        text("There are no suggested versions for this component"));
   }
 
   @Test
@@ -213,7 +207,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     riskRemediation.shouldBe(visible);
     riskRemediation.getLoadingSpinner().shouldNotBe(visible);  // wait until loading complete
     ScrollUtil.scrollIntoView(riskRemediation.getTitle());
-    riskRemediation.getTitle().shouldHave(text("Risk Remediation"));
+    riskRemediation.getTitle().shouldHave(text("Version Explorer"));
 
     riskRemediation.recommendedVersionsSections().shouldBe(visible);
     riskRemediation.compareVersionsTable().shouldBe(visible);
@@ -304,7 +298,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
     riskRemediation.shouldBe(visible);
-    riskRemediation.getTitle().shouldHave(text("Risk Remediation"));
+    riskRemediation.getTitle().shouldHave(text("Version Explorer"));
 
     RecommendedRemediationSection recommendedRemediationSection = riskRemediation.dependencyInformationSection();
     recommendedRemediationSection.shouldBe(visible);
@@ -339,7 +333,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
     riskRemediation.shouldBe(visible);
-    riskRemediation.getTitle().shouldHave(text("Risk Remediation"));
+    riskRemediation.getTitle().shouldHave(text("Version Explorer"));
 
     RecommendedRemediationSection recommendedRemediationSection = riskRemediation.dependencyInformationSection();
     recommendedRemediationSection.shouldBe(visible);
@@ -398,7 +392,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
     riskRemediation.shouldBe(visible);
-    riskRemediation.getTitle().shouldHave(text("Risk Remediation"));
+    riskRemediation.getTitle().shouldHave(text("Version Explorer"));
 
     RecommendedRemediationSection recommendedRemediationSection = riskRemediation.dependencyInformationSection();
     recommendedRemediationSection.shouldBe(visible);

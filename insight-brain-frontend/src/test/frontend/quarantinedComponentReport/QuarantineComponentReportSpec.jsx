@@ -50,8 +50,8 @@ describe('QuarantineComponentReport', () => {
     // policy violations tile
     expect(screen.getByRole('heading', { name: /policy violations causing quarantine/i })).toBeVisible();
 
-    // risk remediation tile
-    expect(screen.getByRole('heading', { name: /risk remediation/i })).toBeVisible();
+    // version explorer tile
+    expect(screen.getByRole('heading', { name: /version explorer/i })).toBeVisible();
   });
 
   it('shows a warning replacing the quarantine report when there is a token issue', () => {

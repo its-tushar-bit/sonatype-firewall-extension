@@ -3,11 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as enzymeUtils from '../../../enzymeUtils';
+import React from 'react';
+import { render, screen } from 'TestRoot/SpecUtil';
 import { RecommendedVersions } from 'MainRoot/componentDetails/overview/riskRemediation/RecommendedVersions';
 
 describe('RecommendedVersionsComponent', () => {
-  let minimalProps, component, getMounted;
+  let minimalProps, renderComponent;
 
   beforeEach(function () {
     minimalProps = {
@@ -17,136 +18,18 @@ describe('RecommendedVersionsComponent', () => {
       handleCompare: () => {},
     };
 
-    getMounted = enzymeUtils.getMountedComponent(RecommendedVersions, minimalProps);
-  });
-
-  afterEach(() => {
-    if (component) {
-      component.unmount();
-    }
+    renderComponent = (props) => render(<RecommendedVersions {...props} {...minimalProps} />);
   });
 
   it('renders a component', () => {
-    expect(getMounted()).toExist();
+    renderComponent();
+    expect(screen.getByTestId('iq-recommended-version')).toBeInTheDocument();
   });
 
-  it("Title is 'Recommended Versions'", () => {
+  it("Title is 'Suggested Version Change'", () => {
     const remediation = [];
-    component = getMounted({ remediation });
+    renderComponent({ remediation });
 
-    expect(component).toHaveProp('remediation', remediation);
-    expect(component).toHaveProp('actualVersion', '2.4.9');
-    expect(component).toHaveProp('stageId', 'build');
-
-    const title = component.find('.nx-grid-header__title');
-    expect(title).not.toBeNull();
-    expect(title).toHaveText('Recommended Versions');
-  });
-
-  it('with one component list if no remediation array is sent', () => {
-    const remediation = [];
-    component = getMounted({ remediation });
-    const content = component.find('RecommendedVersionsList');
-    expect(content).not.toBeNull();
-
-    const listElements = content.find('.nx-list__item');
-    expect(listElements.length).toBe(1);
-    const element = listElements.at(0);
-    expect(element).not.toBeNull();
-    const subText = element.find('.nx-list__subtext');
-    expect(subText).toHaveText('No recommended versions are available for the current component');
-  });
-
-  it('with two component list remediation array is sent', () => {
-    const remediation = {
-      versionChanges: [
-        {
-          type: 'next-no-violations',
-          data: {
-            component: {
-              packageUrl: 'pkg:maven/org.springframework.boot/spring-boot-jarmode-layertools@2.4.10?type=jar',
-              hash: null,
-              componentIdentifier: {
-                format: 'maven',
-                coordinates: {
-                  artifactId: 'spring-boot-jarmode-layertools',
-                  classifier: '',
-                  extension: 'jar',
-                  groupId: 'org.springframework.boot',
-                  version: '2.4.10',
-                },
-              },
-              displayName: 'org.springframework.boot : spring-boot-jarmode-layertools : 2.4.10',
-            },
-          },
-        },
-        {
-          type: 'next-non-failing',
-          data: {
-            component: {
-              packageUrl: 'pkg:maven/org.springframework.boot/spring-boot-jarmode-layertools@2.4.9?type=jar',
-              hash: null,
-              componentIdentifier: {
-                format: 'maven',
-                coordinates: {
-                  artifactId: 'spring-boot-jarmode-layertools',
-                  classifier: '',
-                  extension: 'jar',
-                  groupId: 'org.springframework.boot',
-                  version: '2.4.9',
-                },
-              },
-              displayName: 'org.springframework.boot : spring-boot-jarmode-layertools : 2.4.9',
-            },
-          },
-        },
-        {
-          type: 'next-non-failing-with-dependencies',
-          data: {
-            component: {
-              packageUrl: 'pkg:maven/org.springframework.boot/spring-boot-jarmode-layertools@2.4.9?type=jar',
-              hash: null,
-              componentIdentifier: {
-                format: 'maven',
-                coordinates: {
-                  artifactId: 'spring-boot-jarmode-layertools',
-                  classifier: '',
-                  extension: 'jar',
-                  groupId: 'org.springframework.boot',
-                  version: '2.4.9',
-                },
-              },
-              displayName: 'org.springframework.boot : spring-boot-jarmode-layertools : 2.4.9',
-            },
-          },
-        },
-      ],
-    };
-    component = getMounted({ remediation });
-    expect(component).toHaveProp('remediation', remediation);
-    expect(component).toHaveProp('actualVersion', '2.4.9');
-    expect(component).toHaveProp('stageId', 'build');
-
-    const content = component.find('RecommendedVersionsList');
-    expect(content).not.toBeNull();
-
-    const listElements = content.find('.nx-list__item');
-    expect(listElements.length).toBe(2);
-
-    let element = listElements.at(0);
-    expect(element).not.toBeNull();
-    let text = element.find('.nx-list__text');
-    expect(text).toHaveText('Upgrade to 2.4.10');
-    let subText = element.find('.nx-list__subtext');
-    expect(subText).toHaveText('Next version with no policy violation');
-    let button = element.find('.nx-btn');
-    expect(button).toHaveText('Compare');
-
-    element = listElements.at(1);
-    expect(element).not.toBeNull();
-    subText = element.find('.nx-list__subtext');
-    expect(subText).toHaveText(
-      "The current version doesn't cause Build failure for this component and its dependencies"
-    );
+    expect(screen.getByRole('heading', { name: /suggested version change/i })).toBeInTheDocument();
   });
 });

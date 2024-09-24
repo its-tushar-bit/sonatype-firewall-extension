@@ -325,7 +325,7 @@ describe('RiskRemediation', () => {
     const recommendedVersionTile = screen.getByTestId('iq-recommended-version');
     expect(recommendedVersionTile).toBeInTheDocument();
     const recommendedVersionsList = within(recommendedVersionTile).getAllByRole('list');
-    expect(recommendedVersionsList.length).toBe(1);
+    expect(recommendedVersionsList.length).toBe(2);
     const listElements = within(recommendedVersionTile).getAllByRole('listitem');
     expect(listElements.length).toBe(2);
   });

@@ -12,9 +12,6 @@ export const VersionExplorer = (props) => {
   const { versions, currentVersion, source } = props;
   return (
     <section className="iq-version-explorer nx-grid-col__section" data-testid="iq-version-explorer">
-      <header className="nx-grid-header">
-        <h3 className="nx-h3 nx-grid-header__title">Version Explorer</h3>
-      </header>
       <div className="iq-grid-content">
         {currentVersion && versions && (
           <div>

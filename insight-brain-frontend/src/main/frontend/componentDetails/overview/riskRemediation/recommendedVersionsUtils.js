@@ -11,6 +11,8 @@ export const NEXT_NO_VIOLATIONS = 'next-no-violations';
 export const NEXT_NO_VIOLATIONS_DEPENDENCIES = 'next-no-violations-with-dependencies';
 export const NEXT_NON_FAILING = 'next-non-failing';
 export const NEXT_NON_FAILING_DEPENDENCIES = 'next-non-failing-with-dependencies';
+export const RECOMMENDED_NON_BREAKING = 'recommended-non-breaking';
+export const RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES = 'recommended-non-breaking-with-dependencies';
 
 const createSuggestedRemediationWithRecommendedVersion = (item, remediationVersion, stageId) => {
   switch (item.type) {
@@ -22,6 +24,7 @@ const createSuggestedRemediationWithRecommendedVersion = (item, remediationVersi
         linkId: 'select-no-violation',
         linkText: remediationVersion,
         version: remediationVersion,
+        isGolden: false,
       };
     case NEXT_NON_FAILING:
       return {
@@ -31,6 +34,7 @@ const createSuggestedRemediationWithRecommendedVersion = (item, remediationVersi
         linkId: 'select-no-fail',
         linkText: remediationVersion,
         version: remediationVersion,
+        isGolden: false,
       };
     case NEXT_NON_FAILING_DEPENDENCIES:
       return {
@@ -40,6 +44,7 @@ const createSuggestedRemediationWithRecommendedVersion = (item, remediationVersi
         linkId: 'select-no-fail-dependencies',
         linkText: remediationVersion,
         version: remediationVersion,
+        isGolden: false,
       };
     case NEXT_NO_VIOLATIONS_DEPENDENCIES:
       return {
@@ -49,67 +54,51 @@ const createSuggestedRemediationWithRecommendedVersion = (item, remediationVersi
         linkId: 'select-no-violation-dependencies',
         linkText: remediationVersion,
         version: remediationVersion,
+        isGolden: false,
+      };
+    case RECOMMENDED_NON_BREAKING:
+      return {
+        id: 'recommended-non-breaking-version',
+        text: 'No breaking changes, No policy violations for this component',
+        type: RECOMMENDED_NON_BREAKING,
+        linkId: 'select-no-violation-no-breaking',
+        linkText: remediationVersion,
+        version: remediationVersion,
+        isGolden: false,
+      };
+    case RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES:
+      return {
+        id: 'recommended-non-breaking-with-dependencies-version',
+        text: 'No breaking changes, No policy violations for this component, No policy violations for its dependencies',
+        type: RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
+        linkId: 'select-no-violation-no-breaking-dependencies',
+        linkText: remediationVersion,
+        version: remediationVersion,
+        isGolden: true,
       };
   }
 };
 
-const createSuggestedRemediationWithCurrentVersion = (item, remediationVersion, stageId) => {
-  switch (item.type) {
-    case NEXT_NO_VIOLATIONS_DEPENDENCIES:
-      return {
-        id: 'next-no-violation-dependencies-version',
-        text: 'The current version has no policy violations for this component and its dependencies',
-        type: NEXT_NO_VIOLATIONS_DEPENDENCIES,
-        version: remediationVersion,
-      };
-    case NEXT_NO_VIOLATIONS:
-      return {
-        id: 'next-no-violation-version',
-        text: 'The current version has no policy violations',
-        type: NEXT_NO_VIOLATIONS,
-        version: remediationVersion,
-      };
-    case NEXT_NON_FAILING_DEPENDENCIES:
-      return {
-        id: 'next-no-fail-dependencies-version',
-        text:
-          `The current version doesn't cause ${capitalize(stageId)} failure ` +
-          'for this component and its dependencies',
-        type: NEXT_NON_FAILING_DEPENDENCIES,
-        version: remediationVersion,
-      };
-    case NEXT_NON_FAILING:
-      return {
-        id: 'next-no-fail-version',
-        text: `The current version doesn't cause ${capitalize(stageId)} failure`,
-        type: NEXT_NON_FAILING,
-        version: remediationVersion,
-      };
-  }
-};
+const getRemediationVersion = (item) =>
+  item &&
+  item.data &&
+  item.data.component &&
+  item.data.component.componentIdentifier &&
+  item.data.component.componentIdentifier.coordinates &&
+  item.data.component.componentIdentifier.coordinates.version;
 
-const createSuggestedRemediation = (item, applicationVersion, stageId, skipCurrentVersionForPrioritiesPage = false) => {
-  const remediationVersion =
-    item &&
-    item.data &&
-    item.data.component &&
-    item.data.component.componentIdentifier &&
-    item.data.component.componentIdentifier.coordinates &&
-    item.data.component.componentIdentifier.coordinates.version;
+const createSuggestedRemediation = (item, applicationVersion, stageId) => {
+  const remediationVersion = getRemediationVersion(item);
 
   if (item.data.component.thirdParty) {
     return {
       id: 'remediation-clair',
       text: `Next version: ${remediationVersion}`,
+      version: remediationVersion,
+      isGolden: false,
     };
   } else if (remediationVersion !== applicationVersion) {
     return createSuggestedRemediationWithRecommendedVersion(item, remediationVersion, stageId);
-  } else if (skipCurrentVersionForPrioritiesPage) {
-    return {
-      text: 'No recommendation available',
-    };
-  } else {
-    return createSuggestedRemediationWithCurrentVersion(item, remediationVersion, stageId);
   }
 };
 
@@ -134,16 +123,37 @@ export const setRemediations = (remediation, actualVersion, stageId) => {
   let suggestedRemediations = [];
 
   if (remediation && remediation.versionChanges) {
-    const nonViolatingDependencySuggestion = find(
-      propEq('type', NEXT_NO_VIOLATIONS_DEPENDENCIES),
-      remediation.versionChanges
-    );
-    const nonViolatingSuggestion = find(propEq('type', NEXT_NO_VIOLATIONS), remediation.versionChanges);
-    const nonFailingDependencySuggestion = find(
-      propEq('type', NEXT_NON_FAILING_DEPENDENCIES),
-      remediation.versionChanges
-    );
-    const nonFailingSuggestion = find(propEq('type', NEXT_NON_FAILING), remediation.versionChanges);
+    const filteredVersions = remediation.versionChanges.filter((item) => getRemediationVersion(item) !== actualVersion);
+    const recommendedSuggestion =
+      remediation.suggestedVersionChange?.type === RECOMMENDED_NON_BREAKING ? remediation.suggestedVersionChange : null;
+    const recommendedWithDependenciesSuggestion =
+      remediation.suggestedVersionChange?.type === RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES
+        ? remediation.suggestedVersionChange
+        : null;
+    const nonViolatingDependencySuggestion = find(propEq('type', NEXT_NO_VIOLATIONS_DEPENDENCIES), filteredVersions);
+    const nonViolatingSuggestion = find(propEq('type', NEXT_NO_VIOLATIONS), filteredVersions);
+    const nonFailingDependencySuggestion = find(propEq('type', NEXT_NON_FAILING_DEPENDENCIES), filteredVersions);
+    const nonFailingSuggestion = find(propEq('type', NEXT_NON_FAILING), filteredVersions);
+
+    if (recommendedWithDependenciesSuggestion) {
+      suggestedRemediations.push(
+        createSuggestedRemediation(recommendedWithDependenciesSuggestion, actualVersion, stageId)
+      );
+    }
+
+    if (
+      shouldDisplayWithoutDependenciesRemediation(
+        recommendedWithDependenciesSuggestion,
+        recommendedSuggestion,
+        actualVersion
+      )
+    ) {
+      suggestedRemediations.push(createSuggestedRemediation(recommendedSuggestion, actualVersion, stageId));
+    }
+
+    if (nonViolatingDependencySuggestion) {
+      suggestedRemediations.push(createSuggestedRemediation(nonViolatingDependencySuggestion, actualVersion, stageId));
+    }
 
     if (
       shouldDisplayWithoutDependenciesRemediation(
@@ -155,8 +165,8 @@ export const setRemediations = (remediation, actualVersion, stageId) => {
       suggestedRemediations.push(createSuggestedRemediation(nonViolatingSuggestion, actualVersion, stageId));
     }
 
-    if (nonViolatingDependencySuggestion) {
-      suggestedRemediations.push(createSuggestedRemediation(nonViolatingDependencySuggestion, actualVersion, stageId));
+    if (nonFailingDependencySuggestion) {
+      suggestedRemediations.push(createSuggestedRemediation(nonFailingDependencySuggestion, actualVersion, stageId));
     }
 
     if (
@@ -164,16 +174,12 @@ export const setRemediations = (remediation, actualVersion, stageId) => {
     ) {
       suggestedRemediations.push(createSuggestedRemediation(nonFailingSuggestion, actualVersion, stageId));
     }
-
-    if (nonFailingDependencySuggestion) {
-      suggestedRemediations.push(createSuggestedRemediation(nonFailingDependencySuggestion, actualVersion, stageId));
-    }
   }
 
   if (!suggestedRemediations.length) {
     suggestedRemediations.push({
       id: 'no-versions-available',
-      text: 'No recommended versions are available for the current component',
+      text: 'There are no suggested versions for this component',
     });
   }
 
@@ -181,26 +187,36 @@ export const setRemediations = (remediation, actualVersion, stageId) => {
 };
 
 export const getAsyncRecommendationsPrioritiesPage = (remediation, actualVersion, stageId) => {
-  const skipCurrentVersionForPrioritiesPage = true;
   if (remediation && remediation.versionChanges?.length > 0) {
-    const nonViolatingDependencySuggestion = find(
-      propEq('type', NEXT_NO_VIOLATIONS_DEPENDENCIES),
-      remediation.versionChanges
-    );
-    const nonViolatingSuggestion = find(propEq('type', NEXT_NO_VIOLATIONS), remediation.versionChanges);
-    const nonFailingDependencySuggestion = find(
-      propEq('type', NEXT_NON_FAILING_DEPENDENCIES),
-      remediation.versionChanges
-    );
-    const nonFailingSuggestion = find(propEq('type', NEXT_NON_FAILING), remediation.versionChanges);
+    const filteredVersions = remediation.versionChanges.filter((item) => getRemediationVersion(item) !== actualVersion);
+
+    const recommendedSuggestion =
+      remediation.suggestedVersionChange?.type === RECOMMENDED_NON_BREAKING ? remediation.suggestedVersionChange : null;
+    const recommendedWithDependenciesSuggestion =
+      remediation.suggestedVersionChange?.type === RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES
+        ? remediation.suggestedVersionChange
+        : null;
+    const nonViolatingDependencySuggestion = find(propEq('type', NEXT_NO_VIOLATIONS_DEPENDENCIES), filteredVersions);
+    const nonViolatingSuggestion = find(propEq('type', NEXT_NO_VIOLATIONS), filteredVersions);
+    const nonFailingDependencySuggestion = find(propEq('type', NEXT_NON_FAILING_DEPENDENCIES), filteredVersions);
+    const nonFailingSuggestion = find(propEq('type', NEXT_NON_FAILING), filteredVersions);
+
+    if (recommendedWithDependenciesSuggestion) {
+      return createSuggestedRemediation(recommendedWithDependenciesSuggestion, actualVersion, stageId);
+    }
+
+    if (
+      shouldDisplayWithoutDependenciesRemediation(
+        recommendedWithDependenciesSuggestion,
+        recommendedSuggestion,
+        actualVersion
+      )
+    ) {
+      return createSuggestedRemediation(recommendedSuggestion, actualVersion, stageId);
+    }
 
     if (nonViolatingDependencySuggestion) {
-      return createSuggestedRemediation(
-        nonViolatingDependencySuggestion,
-        actualVersion,
-        stageId,
-        skipCurrentVersionForPrioritiesPage
-      );
+      return createSuggestedRemediation(nonViolatingDependencySuggestion, actualVersion, stageId);
     }
 
     if (
@@ -210,32 +226,17 @@ export const getAsyncRecommendationsPrioritiesPage = (remediation, actualVersion
         actualVersion
       )
     ) {
-      return createSuggestedRemediation(
-        nonViolatingSuggestion,
-        actualVersion,
-        stageId,
-        skipCurrentVersionForPrioritiesPage
-      );
+      return createSuggestedRemediation(nonViolatingSuggestion, actualVersion, stageId);
     }
 
     if (nonFailingDependencySuggestion) {
-      return createSuggestedRemediation(
-        nonFailingDependencySuggestion,
-        actualVersion,
-        stageId,
-        skipCurrentVersionForPrioritiesPage
-      );
+      return createSuggestedRemediation(nonFailingDependencySuggestion, actualVersion, stageId);
     }
 
     if (
       shouldDisplayWithoutDependenciesRemediation(nonFailingDependencySuggestion, nonFailingSuggestion, actualVersion)
     ) {
-      return createSuggestedRemediation(
-        nonFailingSuggestion,
-        actualVersion,
-        stageId,
-        skipCurrentVersionForPrioritiesPage
-      );
+      return createSuggestedRemediation(nonFailingSuggestion, actualVersion, stageId);
     }
   }
 

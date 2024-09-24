@@ -43,7 +43,7 @@ export const RiskRemediation = ({
   const overviewComponentRiskRemediationTile_header = (
     <header className="nx-tile-header">
       <div className="nx-tile-header__title">
-        <h2 className="nx-h2">Risk Remediation</h2>
+        <h2 className="nx-h2">Version Explorer</h2>
       </div>
     </header>
   );

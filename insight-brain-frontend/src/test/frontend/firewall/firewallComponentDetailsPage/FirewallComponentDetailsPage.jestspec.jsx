@@ -136,10 +136,9 @@ describe('ComponentDetails', () => {
       expect(title).toBeVisible();
       const headers = screen.getAllByRole('heading');
       expect(headers[1]).toHaveTextContent('Component Information');
-      expect(headers[2]).toHaveTextContent('Risk Remediation');
-      expect(headers[3]).toHaveTextContent('Recommended Versions');
-      expect(headers[4]).toHaveTextContent('Version Explorer');
-      expect(headers[5]).toHaveTextContent('Compare Versions');
+      expect(headers[2]).toHaveTextContent('Version Explorer');
+      expect(headers[3]).toHaveTextContent('Suggested Version Change');
+      expect(headers[4]).toHaveTextContent('Compare Versions');
     });
 
     it('renders policy violations tab', async () => {

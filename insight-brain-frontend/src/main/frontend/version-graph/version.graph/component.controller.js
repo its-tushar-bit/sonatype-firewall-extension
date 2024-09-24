@@ -215,7 +215,7 @@ export default function ComponentController(
     if (!$scope.suggestedRemediations.length) {
       $scope.suggestedRemediations.push({
         id: 'no-versions-available',
-        text: 'No recommended versions are available for the current component',
+        text: 'There are no suggested versions for this component',
       });
     }
   }

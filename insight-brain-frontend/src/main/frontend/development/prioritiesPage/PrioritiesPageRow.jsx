@@ -16,6 +16,12 @@ import { selectIsDeveloperBulkRecommendationsEnabled } from 'MainRoot/productFea
 import {
   getAsyncRecommendationsPrioritiesPage,
   getRecommendationsPrioritiesPage,
+  NEXT_NO_VIOLATIONS,
+  NEXT_NO_VIOLATIONS_DEPENDENCIES,
+  NEXT_NON_FAILING,
+  NEXT_NON_FAILING_DEPENDENCIES,
+  RECOMMENDED_NON_BREAKING,
+  RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
 } from '../../componentDetails/overview/riskRemediation/recommendedVersionsUtils';
 import PropTypes from 'prop-types';
 import { isNilOrEmpty } from '../../util/jsUtil';
@@ -73,12 +79,6 @@ export default function PrioritiesPageRow({ component, onClick }) {
         actualVersion,
         stageId,
       ]);
-
-  const recommendationText =
-    !recommendation?.version || actualVersion === recommendation?.version
-      ? null
-      : `Upgrade to ${recommendation.version}`;
-  const recommendationSubtext = !recommendation?.text ? '' : recommendation.text;
 
   const doLoad = () => {
     const requestData = {
@@ -149,8 +149,8 @@ export default function PrioritiesPageRow({ component, onClick }) {
             loading={loading}
             error={error}
             isUnknown={isUnknown}
-            recommendationText={recommendationText}
-            recommendationSubtext={recommendationSubtext}
+            actualVersion={actualVersion}
+            recommendation={recommendation}
           />
         </div>
       </NxTable.Cell>
@@ -159,13 +159,24 @@ export default function PrioritiesPageRow({ component, onClick }) {
   );
 }
 
-function Recommendation({ loading, error, recommendationText, recommendationSubtext, isUnknown }) {
+function Recommendation({ loading, error, isUnknown, actualVersion, recommendation }) {
   if (loading) {
     return <NxLoadingSpinner />;
   }
 
   if (error || isUnknown) {
     return <div className="iq-priorities-page-remediation__upgrade">No recommendation available</div>;
+  }
+
+  const { version, text, type } = recommendation || {};
+
+  const recommendationText = !version || actualVersion === version ? null : `Upgrade to ${version}`;
+  let recommendationSubtext = !text ? '' : text;
+
+  if (type === RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES) {
+    recommendationSubtext = 'Non-breaking upgrade resolving issues for this component and its dependencies';
+  } else if (type === RECOMMENDED_NON_BREAKING) {
+    recommendationSubtext = 'Non-breaking upgrade resolving issues for this component';
   }
 
   if (isNilOrEmpty(recommendationText)) {
@@ -183,9 +194,24 @@ function Recommendation({ loading, error, recommendationText, recommendationSubt
 Recommendation.propTypes = {
   loading: PropTypes.bool,
   error: PropTypes.string,
-  recommendationText: PropTypes.string,
-  recommendationSubtext: PropTypes.string,
   isUnknown: PropTypes.bool,
+  actualVersion: PropTypes.string,
+  recommendation: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    text: PropTypes.string.isRequired,
+    type: PropTypes.oneOf([
+      NEXT_NO_VIOLATIONS,
+      NEXT_NO_VIOLATIONS_DEPENDENCIES,
+      NEXT_NON_FAILING,
+      NEXT_NON_FAILING_DEPENDENCIES,
+      RECOMMENDED_NON_BREAKING,
+      RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
+    ]),
+    version: PropTypes.string,
+    linkId: PropTypes.string,
+    linkText: PropTypes.string,
+    isGolden: PropTypes.bool,
+  }),
 };
 
 PrioritiesPageRow.propTypes = {

@@ -164,8 +164,8 @@ public class ThirdPartyScanResultsProcessorTest
   public void testHandle_EmptyItemElement() throws Exception {
     File scanFile = getScanFile("scan-with-empty-item-data.xml");
     File tempScanFile = tempDir.newFile();
-    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null, null,
-        DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(),
+        mockContext(scanFile), null);
     verify(thirdPartyScanResultsProcessorSpy, times(0)).createHandler(any(ItemContentType.class),
         any(ThirdPartyScanContext.class));
     assertEmptyItemElement(tempScanFile);
@@ -177,7 +177,7 @@ public class ThirdPartyScanResultsProcessorTest
     File tempScanFile = tempDir.newFile();
 
     thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile,
-        tempDir.getRoot(), null, null, DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
+        tempDir.getRoot(), mockContext(scanFile), null);
     verify(thirdPartyScanResultsProcessorSpy, times(2))
         .createHandler(any(ItemContentType.class), any(ThirdPartyScanContext.class));
 
@@ -203,7 +203,7 @@ public class ThirdPartyScanResultsProcessorTest
     File tempScanFile = tempDir.newFile();
 
     thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(),
-        null, null, DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
+        mockContext(scanFile), null);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.SPDX),
         any(ThirdPartyScanContext.class));
     assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SPDX, true, 6);
@@ -216,8 +216,8 @@ public class ThirdPartyScanResultsProcessorTest
     File scanFile = getScanFile("scan-with-spdx-data-api.xml");
     File tempScanFile = tempDir.newFile();
 
-    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null, null,
-        application.getId(), DEFAULT_STAGE_TYPE);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(),
+        mockContext(scanFile), null);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.SPDX),
         any(ThirdPartyScanContext.class));
     assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SPDX, true, 6);
@@ -237,9 +237,12 @@ public class ThirdPartyScanResultsProcessorTest
     File tempScanFile = tempDir.newFile();
     Files.createDirectories(insightWork.getScanDir(application.getId()).toPath());
 
+    ThirdPartyScanContext context =
+        new ThirdPartyScanContext("scanRequestId", application.getId(), SbomScanType.SBOM, scanFile,
+            StageTypes.COMPLIANCE.getName());
     String scanRequestId =
-        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-            null, application.getId(), StageTypes.COMPLIANCE.getName());
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(),
+            context, null);
     thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanId);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.SPDX),
         any(ThirdPartyScanContext.class));
@@ -281,8 +284,8 @@ public class ThirdPartyScanResultsProcessorTest
   public void testHandle_spdx_api_TelemetryData() throws Exception {
     File scanFile = getScanFile("scan-with-spdx-data-api.xml");
     TelemetryData telemetryData = buildThirdPartyScanTelemetryData();
-    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), null,
-        telemetryData, DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(),
+        mockContext(scanFile), telemetryData);
     verify(telemetrySender).send(telemetryData);
     assertTelemetryData(telemetryData, List.of("SPDX"));
   }
@@ -292,8 +295,8 @@ public class ThirdPartyScanResultsProcessorTest
     File scanFile = getScanFile("sbom/scan-with-sbom-data-api.xml");
     File tempScanFile = tempDir.newFile();
 
-    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-        null, DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(),
+        mockContext(scanFile), null);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.SBOM),
         any(ThirdPartyScanContext.class));
     assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SBOM, true, 3);
@@ -306,8 +309,8 @@ public class ThirdPartyScanResultsProcessorTest
     File scanFile = getScanFile("sbom/scan-with-sbom-data-api.xml");
     File tempScanFile = tempDir.newFile();
 
-    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-        null, application.getId(), DEFAULT_STAGE_TYPE);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(),
+        mockContext(scanFile), null);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.SBOM),
         any(ThirdPartyScanContext.class));
     assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.SBOM, true, 3);
@@ -327,9 +330,13 @@ public class ThirdPartyScanResultsProcessorTest
     String scanId = TemporaryEntity.uuid();
     File tempScanFile = tempDir.newFile();
 
+    ThirdPartyScanContext scanContext =
+        new ThirdPartyScanContext("scanRequestId", application.getId(), SbomScanType.SBOM, scanFile,
+            StageTypes.COMPLIANCE.getName());
+    scanContext.setStageType(StageTypes.COMPLIANCE.getName());
     String scanRequestId =
-        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-            null, application.getId(), StageTypes.COMPLIANCE.getName());
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(),
+            scanContext, null);
     thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanId);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.SBOM),
         any(ThirdPartyScanContext.class));
@@ -365,8 +372,8 @@ public class ThirdPartyScanResultsProcessorTest
   public void testHandle_sbom_api_TelemetryData() throws Exception {
     File scanFile = getScanFile("sbom/scan-with-sbom-data-api.xml");
     TelemetryData telemetryData = buildThirdPartyScanTelemetryData();
-    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), null,
-        telemetryData, DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(),
+        mockContext(scanFile), telemetryData);
     verify(telemetrySender).send(telemetryData);
     assertTelemetryData(telemetryData, List.of("SBOM"));
   }
@@ -376,8 +383,8 @@ public class ThirdPartyScanResultsProcessorTest
     File scanFile = getScanFile("sbom/scan-with-sbom-data-cli.xml");
     File tempScanFile = tempDir.newFile();
 
-    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-        null, DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(),
+        mockContext(scanFile), null);
 
     verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(eq(ItemContentType.SBOM),
         any(ThirdPartyScanContext.class));
@@ -395,9 +402,13 @@ public class ThirdPartyScanResultsProcessorTest
     File tempScanFile = tempDir.newFile();
     Files.createDirectories(insightWork.getScanDir(application.getId()).toPath());
 
+    ThirdPartyScanContext scanContext =
+        new ThirdPartyScanContext("scanRequestId", application.getId(), SbomScanType.SBOM, scanFile,
+            StageTypes.COMPLIANCE.getName());
+    scanContext.setStageType(StageTypes.COMPLIANCE.getName());
     String scanRequestId =
-        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-            null, application.getId(), StageTypes.COMPLIANCE.getName());
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), scanContext,
+            null);
     thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanId);
 
     verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(eq(ItemContentType.SBOM),
@@ -436,8 +447,8 @@ public class ThirdPartyScanResultsProcessorTest
     File tempScanFile = tempDir.newFile();
 
     TelemetryData telemetryData = buildThirdPartyScanTelemetryData();
-    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null, telemetryData,
-        DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(),
+        mockContext(scanFile), telemetryData);
 
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.CONTAINER_URI),
         any(ThirdPartyScanContext.class));
@@ -452,8 +463,8 @@ public class ThirdPartyScanResultsProcessorTest
 
     File tempScanFile = tempDir.newFile();
     TelemetryData telemetryData = buildThirdPartyScanTelemetryData();
-    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null, telemetryData,
-        DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(),
+        mockContext(scanFile), telemetryData);
 
     verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(any(ItemContentType.class),
         any(ThirdPartyScanContext.class));
@@ -467,8 +478,8 @@ public class ThirdPartyScanResultsProcessorTest
     File scanFile = getScanFile("scan-with-clair-scanner-data-invalid-json.xml");
     String scanId = TemporaryEntity.uuid();
     String scanRequestId =
-        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), null,
-            null, DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(),
+            mockContext(scanFile), null);
     thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanId);
 
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(any(ItemContentType.class),
@@ -483,8 +494,8 @@ public class ThirdPartyScanResultsProcessorTest
   public void testHandle_ClairScanner_TelemetryData() throws Exception {
     File scanFile = getScanFile("scan-with-clair-scanner-repeated-content.xml");
     TelemetryData telemetryData = buildThirdPartyScanTelemetryData();
-    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), null,
-        telemetryData, DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(),
+        mockContext(scanFile), telemetryData);
     verify(telemetrySender, times(1)).send(telemetryData);
     assertTelemetryData(telemetryData, List.of("CLAIR_SCANNER", "CLAIR_SCANNER"));
   }
@@ -496,8 +507,8 @@ public class ThirdPartyScanResultsProcessorTest
 
     File tempScanFile = tempDir.newFile();
     String scanRequestId =
-        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-            null, DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(),
+            mockContext(scanFile), null);
     thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanId);
     verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(eq(ItemContentType.CLAIR_SCANNER),
         any(ThirdPartyScanContext.class));
@@ -518,9 +529,12 @@ public class ThirdPartyScanResultsProcessorTest
 
     File tempScanFile = tempDir.newFile();
     TelemetryData telemetryData = buildThirdPartyScanTelemetryData();
+    ThirdPartyScanContext context =
+        new ThirdPartyScanContext("scanRequestId", application.getId(), SbomScanType.SBOM, scanFile,
+            DEFAULT_STAGE_TYPE);
     String scanRequestId =
-        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-            telemetryData, application.getId(), DEFAULT_STAGE_TYPE);
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), context,
+            telemetryData);
     thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanId);
 
     verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(eq(ItemContentType.CLAIR_SCANNER),
@@ -547,9 +561,12 @@ public class ThirdPartyScanResultsProcessorTest
     String scanId = TemporaryEntity.uuid();
 
     File tempScanFile = tempDir.newFile();
+    ThirdPartyScanContext context =
+        new ThirdPartyScanContext("scanRequestId", application.getId(), SbomScanType.SBOM, scanFile,
+            DEFAULT_STAGE_TYPE);
+
     String scanRequestId =
-        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-            null, application.getId(), DEFAULT_STAGE_TYPE);
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), context, null);
     thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanId);
 
     verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(eq(ItemContentType.CLAIR_SCANNER),
@@ -571,8 +588,8 @@ public class ThirdPartyScanResultsProcessorTest
 
     File tempScanFile = tempDir.newFile();
     String scanRequestId =
-        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-            null, DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(),
+            mockContext(scanFile), null);
     thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanId);
 
     verify(thirdPartyScanResultsProcessorSpy, times(2)).createHandler(any(ItemContentType.class),
@@ -589,8 +606,8 @@ public class ThirdPartyScanResultsProcessorTest
     TelemetryData telemetryData = buildThirdPartyScanTelemetryData();
     File scanFile = getScanFile("iac/scan-with-iac-content.xml");
     File tempScanFile = tempDir.newFile();
-    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null, telemetryData,
-        DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(),
+        mockContext(scanFile), telemetryData);
 
     verify(telemetrySender, times(1)).send(telemetryData);
     assertTelemetryData(telemetryData, List.of("IAC_FILE"));
@@ -602,7 +619,7 @@ public class ThirdPartyScanResultsProcessorTest
     File scanFile = getScanFile("scan-with-clair-scanner-data-corrupted.xml");
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(),
-            tempDir.getRoot(), null, null, DUMMY_APP_ID, DEFAULT_STAGE_TYPE))
+            tempDir.getRoot(), mockContext(scanFile), null))
         .withMessage("Error reading/processing third party scan content from scan file");
   }
 
@@ -611,15 +628,15 @@ public class ThirdPartyScanResultsProcessorTest
     File scanFile = getScanFile("sbom/scan-with-sbom-data-corrupted.xml");
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(),
-            tempDir.getRoot(), null, null, DUMMY_APP_ID, DEFAULT_STAGE_TYPE))
+            tempDir.getRoot(), mockContext(scanFile), null))
         .withMessage("Error reading/processing third party scan content from scan file");
   }
 
   @Test
   public void testHandle_noSbomContent() throws Exception {
     File scanFile = getScanFile("sbom/scan-with-empty-sbom-content.xml");
-    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), null,
-        null, DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(),
+        mockContext(scanFile), null);
     verify(thirdPartyScanResultsProcessorSpy, times(0)).createHandler(any(ItemContentType.class),
         any(ThirdPartyScanContext.class));
   }
@@ -665,9 +682,11 @@ public class ThirdPartyScanResultsProcessorTest
     File tempScanFile = tempDir.newFile();
     Files.createDirectories(insightWork.getScanDir(application.getId()).toPath());
 
+    ThirdPartyScanContext context =
+        new ThirdPartyScanContext("scanRequestId", application.getId(), SbomScanType.SBOM, scanFile,
+            StageTypes.COMPLIANCE.getName());
     String scanRequestId =
-        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null, null,
-            application.getId(), StageTypes.COMPLIANCE.getName());
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), context, null);
     thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanId);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.SBOM),
         any(ThirdPartyScanContext.class));
@@ -704,8 +723,8 @@ public class ThirdPartyScanResultsProcessorTest
     File scanFile = getScanFile(s);
     File tempScanFile = tempDir.newFile();
 
-    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-        null, DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(),
+        mockContext(scanFile), null);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.SBOM),
         any(ThirdPartyScanContext.class));
 
@@ -757,8 +776,8 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_NoThirdPartyContent() throws Exception {
     File scanFile = getScanFile("scan-without-thirdparty-content.xml");
-    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), null,
-        null, DUMMY_APP_ID, DEFAULT_STAGE_TYPE);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(),
+        mockContext(scanFile), null);
     verify(thirdPartyScanResultsProcessorSpy, times(0)).createHandler(any(ItemContentType.class),
         any(ThirdPartyScanContext.class));
   }
@@ -767,8 +786,8 @@ public class ThirdPartyScanResultsProcessorTest
   public void testHandle_InvalidFile() throws Exception {
     File scanFile = getScanFile("empty-scan.xml");
     assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
-        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), null,
-            null, DUMMY_APP_ID, DEFAULT_STAGE_TYPE)
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(),
+            mockContext(scanFile), null)
     ).withMessage("Error reading/processing third party scan content from scan file");
     verify(thirdPartyScanResultsProcessorSpy, times(0)).createHandler(any(ItemContentType.class),
         any(ThirdPartyScanContext.class));
@@ -783,8 +802,9 @@ public class ThirdPartyScanResultsProcessorTest
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
     File scanFile = getScanFile("sbom/scan-with-sbom-data-api.xml");
     File tempScan = tempDir.newFile();
-    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScan, tempDir.getRoot(), null,
-        null, application.getId(), DEFAULT_STAGE_TYPE);
+    ThirdPartyScanContext context =
+        new ThirdPartyScanContext("scanRequestId", DUMMY_APP_ID, SbomScanType.SBOM, scanFile, DEFAULT_STAGE_TYPE);
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScan, tempDir.getRoot(), context, null);
 
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.SBOM),
         any(ThirdPartyScanContext.class));
@@ -802,8 +822,9 @@ public class ThirdPartyScanResultsProcessorTest
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
     File scanFile = getScanFile("sbom/scan-with-sbom-data-api.xml");
     File tempScan = tempDir.newFile();
-    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScan, tempDir.getRoot(), null,
-        null, application.getId(), StageTypes.BUILD.getId());
+    ThirdPartyScanContext context =
+        new ThirdPartyScanContext("scanRequestId", DUMMY_APP_ID, SbomScanType.SBOM, scanFile, StageTypes.BUILD.getId());
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScan, tempDir.getRoot(), context, null);
 
     verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.SBOM),
         any(ThirdPartyScanContext.class));
@@ -817,15 +838,17 @@ public class ThirdPartyScanResultsProcessorTest
   public void testHandle_cdx_invalidFile_skipSbomValidationEnabled() throws Exception {
     SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
 
-    final Organization organization = tempEntity.newOrganization("Test Org");
-    final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
     File scanFile = getScanFile("scan-invalid-cdx.xml");
     String scanId = TemporaryEntity.uuid();
     File tempScanFile = tempDir.newFile();
 
+    ThirdPartyScanContext context =
+        new ThirdPartyScanContext("scanRequestId", DUMMY_APP_ID, SbomScanType.SBOM, scanFile,
+            StageTypes.RELEASE.getName());
+
     String scanRequestId =
-        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-            null, application.getId(), StageTypes.RELEASE.getName());
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), context,
+            null);
     thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanId);
     List<ThirdPartyFile> thirdPartyFiles = thirdPartyFileDAO.getByScanId(scanId);
     assertThirdPartyFile(thirdPartyFiles, 1, "third-party-simple-invalid-bom.xml");
@@ -853,9 +876,12 @@ public class ThirdPartyScanResultsProcessorTest
     String scanId = TemporaryEntity.uuid();
     File tempScanFile = tempDir.newFile();
 
+    ThirdPartyScanContext context =
+        new ThirdPartyScanContext("scanRequestId", application.getId(), SbomScanType.SBOM, scanFile,
+            StageTypes.RELEASE.getName());
+
     String scanRequestId =
-        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-            null, application.getId(), StageTypes.RELEASE.getName());
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), context, null);
     thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanId);
     List<ThirdPartyFile> thirdPartyFiles = thirdPartyFileDAO.getByScanId(scanId);
     assertThirdPartyFile(thirdPartyFiles, 1, "third-party-simple-invalid-bom.xml");
@@ -874,9 +900,12 @@ public class ThirdPartyScanResultsProcessorTest
     String scanId = TemporaryEntity.uuid();
     File tempScanFile = tempDir.newFile();
 
+    ThirdPartyScanContext context =
+        new ThirdPartyScanContext("scanRequestId", application.getId(), SbomScanType.SBOM, scanFile,
+            StageTypes.RELEASE.getName());
+
     String scanRequestId =
-        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null,
-            null, application.getId(), StageTypes.RELEASE.getName());
+        thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), context, null);
     thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanId);
     List<ThirdPartyFile> thirdPartyFiles = thirdPartyFileDAO.getByScanId(scanId);
     assertThirdPartyFile(thirdPartyFiles, 1, "third-party-simple-bom.xml");
@@ -1133,5 +1162,10 @@ public class ThirdPartyScanResultsProcessorTest
     when(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).thenReturn(true);
     when(productLicense.getMaxSboms()).thenReturn(50);
     when(productLicense.getStageTypes()).thenReturn(new HashSet<>(Arrays.asList(StageTypes.COMPLIANCE)));
+  }
+
+  private static ThirdPartyScanContext mockContext(final File scanFile) {
+    return new ThirdPartyScanContext("scanRequestId", DUMMY_APP_ID, SbomScanType.SBOM, scanFile,
+        DEFAULT_STAGE_TYPE);
   }
 }

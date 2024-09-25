@@ -735,6 +735,7 @@ public class ApiSbomServiceTest
           .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
 
       policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
+      assertSuccessfulSBOMImportState(app, ticketDTO);
     }
   }
 
@@ -755,6 +756,7 @@ public class ApiSbomServiceTest
           .startsWith("api/v2/sbom/applications/" + app.getId() + "/status/");
 
       policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), ticketDTO.requestId);
+      assertSuccessfulSBOMImportState(app, ticketDTO);
     }
   }
 
@@ -1010,6 +1012,15 @@ public class ApiSbomServiceTest
     String contentHeader = response.getHeaderString("Content-Disposition");
     String actualFilename = contentHeader.substring(contentHeader.indexOf("=") + 1).split(";")[0].replaceAll("\"", "");
     assertThat(actualFilename).isEqualTo(app.getName() + "_" + sbomVersion + x);
+  }
+
+  private void assertSuccessfulSBOMImportState(final Application app, final ApiThirdPartyScanTicketDTO ticketDTO) {
+    ApiSbomStatusDTO importStatus = service.getImportStatus(app.getId(), ticketDTO.requestId);
+    assertThat(importStatus.version).isNotNull();
+    ThirdPartySbomMetadata sbomMetadata = dao.getByApplicationIdAndSbomVersion(app.getId(), importStatus.version);
+    assertThat(sbomMetadata).isNotNull().hasFieldOrPropertyWithValue("status", SbomStatus.ACTIVE.name());
+    ThirdPartyScan tpScan = thirdPartyScanDao.getByThirdPartyFileId(sbomMetadata.getThirdPartyFileId());
+    assertThat(tpScan.getFilteredScanFile()).isNotNull();
   }
 
   private String expectedContentIn(String fileName) throws Exception {

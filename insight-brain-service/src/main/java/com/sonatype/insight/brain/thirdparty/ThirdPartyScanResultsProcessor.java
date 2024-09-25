@@ -139,20 +139,9 @@ public class ThirdPartyScanResultsProcessor
       File tempScanFile,
       File scanDir,
       ThirdPartyScanContext scanContext,
-      TelemetryData thirdPartyScanTelemetryData,
-      String applicationId,
-      String stageTypeId)
+      TelemetryData thirdPartyScanTelemetryData)
   {
-    String scanRequestId;
-    if (scanContext == null) {
-      scanRequestId = UUID.randomUUID().toString().replace("-", "");
-      scanContext = new ThirdPartyScanContext(scanRequestId, applicationId, SbomScanType.SBOM, scanFile,
-          stageTypeId);
-    }
-    else {
-      scanRequestId = scanContext.getScanRequestId();
-    }
-
+    String scanRequestId = scanContext.getScanRequestId();
     log.info("Processing third party content with scanRequestId: {}", scanRequestId);
     try {
       File filteredFile = FileUtils.createTempFile("tmp-", ".xml", scanDir);

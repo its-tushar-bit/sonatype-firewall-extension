@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -106,7 +107,7 @@ public class ScanUploadService
 
     String scanRequestId =
         scanResultsProcessor.filterAndSaveData(scanFile, tempScanFile, scanDir, thirdPartyScanContext,
-            thirdPartyScanTelemetryData, app.getId(), stageTypeId);
+            thirdPartyScanTelemetryData);
     ScanReceipt scanReceipt = uploader.upload(tempScanFile, app, stageTypeId, clientUserAgent);
     thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanReceipt.getScanId());
     saveFilteredScanFileIfNeeded(thirdPartyScanContext, tempScanFile);
@@ -119,7 +120,8 @@ public class ScanUploadService
     return scanReceipt;
   }
 
-  private void saveFilteredScanFileIfNeeded(final ThirdPartyScanContext scanContext, final File filteredScanFile) {
+  //visible for testing
+  void saveFilteredScanFileIfNeeded(final ThirdPartyScanContext scanContext, final File filteredScanFile) {
     if (scanContext == null) {
       return;
     }
@@ -164,6 +166,7 @@ public class ScanUploadService
         return thirdPartyScanContext;
       }
     }
-    return null;
+    String newScanRequestId = UUID.randomUUID().toString().replace("-", "");
+    return new ThirdPartyScanContext(newScanRequestId, app.getId(), SbomScanType.SBOM, scanFile, stageTypeId);
   }
 }

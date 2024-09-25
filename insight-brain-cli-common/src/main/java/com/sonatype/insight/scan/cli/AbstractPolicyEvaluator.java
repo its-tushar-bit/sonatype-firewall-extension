@@ -546,19 +546,16 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
   private void logCliVersion() {
     try {
-      String name = null;
+      String name = "Sonatype IQ CLI";
       String clientName = UserAgentUtils.getClientName();
-      if ("Sonatype_CLM_CLI".equals(clientName)) {
-        name = "Sonatype IQ CLI";
-      }
-      else if ("Docker_Nexus_IQ_CLI".equals(clientName)) {
-        name = "Sonatype IQ CLI (Docker)";
+      if ("Docker_Nexus_IQ_CLI".equals(clientName)) {
+        name += " (Docker)";
       }
       else if ("Sonatype_CLM_CLI_NATIVE".equals(clientName)) {
-        name = "Sonatype IQ CLI (Native)";
+        name += " (Native)";
       }
       String version = UserAgentUtils.getClientVersion();
-      if (name != null && StringUtils.isNotEmpty(version)) {
+      if (StringUtils.isNotEmpty(version)) {
         String jarSha1 = getJarSha1();
         if (StringUtils.isNotEmpty(jarSha1)) {
           log.info("{} version: {} ({})", name, version, jarSha1);

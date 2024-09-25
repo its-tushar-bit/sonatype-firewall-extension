@@ -1008,6 +1008,23 @@ public abstract class DefaultPolicyEvaluatorTest
     }
   }
 
+  @Test
+  public void testRun_logsCliVersionDetails() throws Exception {
+    tempEntity.newApplicationWithParent("the-app-id");
+
+    environmentVariables.set("SONATYPE_INTERNAL_CLIENT_NAME", "INTERNAL_CLIENT");
+    environmentVariables.set("SONATYPE_INTERNAL_CLIENT_VERSION", "1.100.0-01");
+
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
+        "src/test/data/artifact.jar");
+    withTestRunner(params)
+        .expectInfoLog("Sonatype IQ CLI version: 1.100.0-01")
+        .doPolicyEvaluationRun();
+
+    environmentVariables.clear("SONATYPE_INTERNAL_CLIENT_NAME", "SONATYPE_INTERNAL_CLIENT_VERSION");
+  }
+
   private void setupVulnerabilitiesSignatures() {
     Signature signature = new Signature();
     signature.setAnchor("test-anchor");

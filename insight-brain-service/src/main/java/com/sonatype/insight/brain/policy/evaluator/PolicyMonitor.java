@@ -17,7 +17,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -179,15 +178,18 @@ public class PolicyMonitor
       return;
     }
 
-    Map<String, PolicyMonitoring> policyMonitoringsByOwnerId = new LinkedHashMap<>();
-    for (PolicyMonitoring policyMonitoring : policyMonitorings) {
-      policyMonitoringsByOwnerId.put(policyMonitoring.getOwnerId(), policyMonitoring);
-    }
+    Map<String, PolicyMonitoring> lcPolicyMonitoringsByOwnerId = new LinkedHashMap<>();
+    policyMonitorings.stream().filter(pm -> !pm.getStageTypeId().equals(ComplianceStageType.ID))
+        .forEach(pm -> lcPolicyMonitoringsByOwnerId.put(pm.getOwnerId(), pm));
+    Map<String, PolicyMonitoring> smPolicyMonitoringsByOwnerId = new LinkedHashMap<>();
+    policyMonitorings.stream().filter(pm -> pm.getStageTypeId().equals(ComplianceStageType.ID))
+        .forEach(pm -> smPolicyMonitoringsByOwnerId.put(pm.getOwnerId(), pm));
 
     applicationMonitorForkJoinPool = initThreadPool(configuration);
     shutdownHandler.add(applicationMonitorForkJoinPool);
 
-    evaluateApplications(policyMonitoringsByOwnerId);
+    evaluateApplications(lcPolicyMonitoringsByOwnerId);
+    evaluateApplications(smPolicyMonitoringsByOwnerId);
 
     applicationMonitorForkJoinPool.shutdown();
     shutdownHandler.remove(applicationMonitorForkJoinPool);

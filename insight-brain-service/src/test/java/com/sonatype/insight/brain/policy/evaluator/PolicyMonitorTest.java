@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
-
 import javax.mail.Message;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -66,11 +65,13 @@ import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
@@ -83,6 +84,9 @@ import static org.mockito.Mockito.verify;
 public class PolicyMonitorTest
     extends AbstractBrainServiceIntegrationTest
 {
+  @Rule
+  public LogOutput logOutput = new LogOutput(PolicyMonitor.class);
+
   private PolicyMonitor policyMonitor;
 
   private InsightWork insightWork;
@@ -664,6 +668,38 @@ public class PolicyMonitorTest
     assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME);
     assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME);
     assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME);
+
+    assertShutdownHandler();
+  }
+
+  @Test
+  public void testApplicationMonitored_Both_SbomManagerComplianceStage_LifecycleReleaseStage() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication("app", org.getId());
+    Stage complianceStage = new Stage(ComplianceStageType.ID);
+    Stage releaseStage = new Stage(ReleaseStageType.ID);
+    tempEntity.newPolicyMonitoring(app.getId(), complianceStage.getStageTypeId());
+    tempEntity.newPolicyMonitoring(app.getId(), releaseStage.getStageTypeId());
+
+    String scanId1 = "PolicyMonitorTest_scanId";
+    tempEntity.newPolicyEvaluation(app.getId(), complianceStage.getStageTypeId(), scanId1);
+    File scanZip = createScanFileZip(app, scanId1, "scan/scan-third-party.xml");
+    createReportFile(app.getId(), scanId1, "/PolicyMonitorTest/report-third-party");
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE", "xyz");
+    tempEntity.newThirdPartyScan(scanId1, scanId1, thirdPartyFile, scanZip.getName());
+
+    String newScanId = "PolicyMonitorTest_scanId2";
+    mockScanReceiptAndReport(newScanId);
+    policyMonitor.run();
+
+    assertThat(logOutput).atInfoLevel().contains("SBOM Manager Policy Monitoring is enabled for application '" +
+        app.getName() + "' and stage '" + complianceStage.getStageTypeId() + "'");
+    assertThat(logOutput).atInfoLevel().contains("Policy monitoring is enabled for application '" +
+        app.getName() + "' and stage '" + releaseStage.getStageTypeId() + "'");
+    assertThat(logOutput).atDebugLevel().contains("SBOM Manager Policy Monitoring evaluated for application '" +
+        app.getName() + "'");
+    assertThat(logOutput).atInfoLevel().contains("Finished policy monitoring applications");
 
     assertShutdownHandler();
   }

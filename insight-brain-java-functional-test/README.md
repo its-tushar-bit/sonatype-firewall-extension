@@ -29,7 +29,16 @@ The functional tests run against a Chrome browser instance, which can be managed
 
 ### Can't run tests from intelliJ
 
-#### 1) "package sun.security.tools.keytool does not exist"
+#### 1) Local Chrome instance is not used even though `webdriver.chrome.driver` system property is set.
+
+This can be caused by the fact that `docker-functional-tests` profile is active.
+
+#### Fix
+
+In intelliJ, go to `Maven` tab, and in the `Profiles` section, uncheck the `docker-functional-tests` profile.
+After unchecking the profile, you need to reload the maven project.
+
+#### 2) "package sun.security.tools.keytool does not exist"
 
 This can be caused by a couple of misconfigurations in IntelliJ. The error
 shown is similar to one below:
@@ -55,7 +64,7 @@ Run the following command in the root folder of the project (insight-brain folde
 mvn clean install -DskipTests -Dskip-functional-test -X -Dcheckstyle.skip=true
 ```
 
-#### 2) "Unenhanced classes were detected" problem
+#### 3) "Unenhanced classes were detected" problem
 
 Sometimes IntelliJ will show an error when trying to run the functional test from the
 IDE UI (right-click on method name > run). This might be caused because of some problem with the class enhancement
@@ -111,7 +120,7 @@ Process finished with exit code 255
 
 #### Fix
 
-To fix this, run the following command from the root folder of the project (insight-brain):
+To fix this, run the following command from the insight-brain-data folder of the project (insight-brain/insight-brain-data):
 
 ```
 mvn process-classes

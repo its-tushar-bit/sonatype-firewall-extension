@@ -219,7 +219,7 @@ public class ConfigurationProperty
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, true),
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI, Boolean.class,
-          (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
+          (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, true),
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.MALWARE_DEFENSE_API, Boolean.class,
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),

@@ -220,7 +220,7 @@ public enum SystemConfigurationPropertyFeature
 
   DEVELOPER_SUGGEST_NON_BREAKING_VERSION(SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION, false),
 
-  SBOM_CONTINUOUS_MONITORING_UI(SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI, false),
+  SBOM_CONTINUOUS_MONITORING_UI(SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI, true),
 
   SBOM_POLICIES(SystemConfigurationProperty.SBOM_POLICIES, false),
 

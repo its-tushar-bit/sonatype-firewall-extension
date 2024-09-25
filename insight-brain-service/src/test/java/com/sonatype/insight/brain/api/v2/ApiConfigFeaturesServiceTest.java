@@ -1054,18 +1054,17 @@ public class ApiConfigFeaturesServiceTest
   }
 
   @Test
-  public void testEnableFeature_SbomContinuousMonitoringUi() {
-    service.enableFeature(SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI);
+  public void testDisableFeature_SbomContinuousMonitoringUi() {
+    service.disableFeature(SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI);
 
     assertThat(
         systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI)
             .getValue())
-        .isEqualTo("true");
+        .isEqualTo("false");
   }
 
   @Test
   public void testEnableFeature_SbomContinuousMonitoringUi_AlreadyEnabled() {
-    service.enableFeature(SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI);
     assertThatThrownBy(
         () -> service.enableFeature(
             SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI)).isInstanceOf(
@@ -1074,6 +1073,8 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testDisableFeature_SbomContinuousMonitoringUi_AlreadyDisabled() {
+    service.disableFeature(SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI);
+
     assertThatThrownBy(
         () -> service.disableFeature(
             SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI)).isInstanceOf(

@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -55,20 +56,22 @@ public class EnterpriseReportingLandingPageTest
   public void testFeatureEnabled_Success() throws IOException {
     setFeatures(LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING);
     mockHDSResponses();
-    DashboardMetadataDTO spotlightDashboardMetadataDTO = mockDashboardMetadataDTOSpotlight();
+    DashboardMetadataDTO spotlightDefautColorDashboardMetadataDTO = mockDashboardMetadataDTOSpotlightDefaultColor();
+    DashboardMetadataDTO spotlightProvidedColorDashboardMetadataDTO = mockDashboardMetadataDTOSpotlightProvidedColor();
     DashboardMetadataDTO nonSpotlightDashboardMetadataDTO = mockDashboardMetadataDTO();
     testCLMServer.getHdsServer()
         .respondWith(new DashboardsVersionDTO(1))
         .atUri("/rest/enterpriseReporting/currentVersion");
     testCLMServer.getHdsServer()
-        .respondWith(new DashboardMetadataListDTO(Arrays.asList(spotlightDashboardMetadataDTO,
-            nonSpotlightDashboardMetadataDTO)))
+        .respondWith(new DashboardMetadataListDTO(Arrays.asList(spotlightDefautColorDashboardMetadataDTO,
+            spotlightProvidedColorDashboardMetadataDTO, nonSpotlightDashboardMetadataDTO)))
         .atUri("/rest/enterpriseReporting/dashboards");
     refreshOrOpen(EnterpriseReportingLandingPage.url());
     page.enterpriseReportingNotEnabledError().shouldBe(hidden);
     pageHeaderShouldBeVisible();
     page.reports().shouldBe(visible);
-    assertReportContent(spotlightDashboardMetadataDTO);
+    assertReportContent(spotlightDefautColorDashboardMetadataDTO);
+    assertReportContent(spotlightProvidedColorDashboardMetadataDTO);
     assertReportContent(nonSpotlightDashboardMetadataDTO);
     contactusShouldBeVisible();
     eyesWatcher.eyesCheck();
@@ -99,7 +102,14 @@ public class EnterpriseReportingLandingPageTest
       features.get(i).shouldHave(text(dashboardMetadataDTO.features.get(i)));
     }
     if (dashboardMetadataDTO.spotlight) {
-      report.$(".iq-enterprise-reporting__dashboard__spotlight").is(visible);
+      report.$(".iq-enterprise-reporting__dashboard__spotlight").shouldBe(visible);
+      if (dashboardMetadataDTO.spotlightColor == null) {
+        report.$(".iq-enterprise-reporting__dashboard__spotlight")
+            .shouldHave(cssClass("nx-selectable-color--turquoise"));
+      }
+      else {
+        report.$(".iq-enterprise-reporting__dashboard__spotlight").shouldHave(cssClass("nx-selectable-color--kiwi"));
+      }
     }
   }
 
@@ -137,13 +147,21 @@ public class EnterpriseReportingLandingPageTest
         .atUri(ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH);
   }
 
-  private static DashboardMetadataDTO mockDashboardMetadataDTOSpotlight() {
+  private static DashboardMetadataDTO mockDashboardMetadataDTOSpotlightDefaultColor() {
     return new DashboardMetadataDTO("id", "title", "description", Arrays.asList("feature 1", "feature 2"),
         "button text", "rolling-recap.svg", 1, true, "dashboards/rolling_recap::rolling_recap");
   }
 
+  private static DashboardMetadataDTO mockDashboardMetadataDTOSpotlightProvidedColor() {
+    DashboardMetadataDTO dashboard = new DashboardMetadataDTO("id", "title", "description",
+        Arrays.asList("feature 1", "feature 2"), "button text", "rolling-recap.svg", 2, true,
+        "dashboards/rolling_recap::rolling_recap");
+    dashboard.spotlightColor = "kiwi";
+    return dashboard;
+  }
+
   private static DashboardMetadataDTO mockDashboardMetadataDTO() {
     return new DashboardMetadataDTO("id 2", "title 2", "description 2", Arrays.asList("feature 3", "feature 4"),
-        "button text 2", "rolling-recap.svg", 2, false, "dashboards/rolling_recap::rolling_recap");
+        "button text 2", "rolling-recap.svg", 3, false, "dashboards/rolling_recap::rolling_recap");
   }
 }

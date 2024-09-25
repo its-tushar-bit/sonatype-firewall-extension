@@ -124,7 +124,9 @@ public class ApiHashComponentIdentifierResource
   @Audited(AuditEvent.SET_COMPONENT_IDENTITY)
   public ApiHashComponentIdentifierDTO set(
       @RequestBody(description = "Specify the hash (required), comment (optional), createTime (optional), and the" +
-          " component identifier/package URL (required) for the component to be claimed.", required = true)
+          " component identifier/package URL (required) with non-null/non-empty format and coordinates, " +
+          " for the component to be claimed.",
+          required = true)
       ApiHashComponentIdentifierDTO hashComponentIdentifier)
   {
     return apiHashComponentIdentifierService.set(hashComponentIdentifier);

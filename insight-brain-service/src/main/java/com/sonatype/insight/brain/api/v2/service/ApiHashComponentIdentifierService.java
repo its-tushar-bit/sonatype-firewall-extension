@@ -5,8 +5,10 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.SortedMap;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -65,6 +67,7 @@ public class ApiHashComponentIdentifierService
             apiHashComponentIdentifierDTO.packageUrl == null)) {
       throw new BadRequestException("A component hash and identifier/package url are required.");
     }
+
     try {
       HashComponentIdentifier hashComponentIdentifier = apiHashComponentIdentifierDTO.toHashComponentIdentifier();
       ComponentIdentifier componentIdentifier = hashComponentIdentifier.getComponentIdentifier();
@@ -79,6 +82,7 @@ public class ApiHashComponentIdentifierService
       }
       else {
         componentIdentifier.ensureComplete();
+        validateNonBlankCoordinates(componentIdentifier);
       }
       if (componentIdentifierFromPackageUrl != null && !componentIdentifier.equals(componentIdentifierFromPackageUrl)) {
         throw new BadRequestException("Mismatched component identifier and package url.");
@@ -88,6 +92,23 @@ public class ApiHashComponentIdentifierService
     }
     catch (InvalidComponentIdentifierException e) {
       throw new BadRequestException(e.getMessage(), e);
+    }
+  }
+
+  private void validateNonBlankCoordinates(ComponentIdentifier componentIdentifier) {
+    Set<String> requiredCoords = ComponentIdentifier.getAllRequiredCoordinateNames(componentIdentifier.getFormat());
+    SortedMap<String, String> componentIdentifierCoordinates = componentIdentifier.getCoordinates();
+    Set<String> foundEmptyCoords = new HashSet<>();
+
+    componentIdentifierCoordinates.forEach((coordinate, value) -> {
+      if (requiredCoords.contains(coordinate) && value.isBlank()) {
+        foundEmptyCoords.add(coordinate);
+      }
+    });
+
+    if (!foundEmptyCoords.isEmpty()) {
+      throw new BadRequestException(
+          String.format("The following coordinates cannot be empty for given format: %s", foundEmptyCoords));
     }
   }
 

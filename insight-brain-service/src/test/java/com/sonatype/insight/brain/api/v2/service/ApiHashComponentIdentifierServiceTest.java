@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Date;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
@@ -262,6 +261,14 @@ public class ApiHashComponentIdentifierServiceTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiHashComponentIdentifierService
         .set(newApiHashComponentIdentifierDTO("hash", null, "pkg:maven/g/a@v?classifier=c")))
         .withMessageContaining("The following coordinates are missing for given format: [extension]");
+  }
+
+  @Test
+  public void testSet_EmptyRequiredCoordinates() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiHashComponentIdentifierService.set(
+        newApiHashComponentIdentifierDTO("hash",
+            ComponentIdentifier.createMavenCoordinates("", "", "", "", ""), null))).withMessageContaining(
+        "The following coordinates cannot be empty for given format: [extension, groupId, artifactId, version]");
   }
 
   @Test

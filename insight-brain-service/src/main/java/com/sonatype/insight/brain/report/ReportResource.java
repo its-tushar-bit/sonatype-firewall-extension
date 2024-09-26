@@ -378,7 +378,7 @@ public class ReportResource
   @Path(SBOM_PRINT_PATH)
   @Produces("application/pdf")
   @Audited(AuditEvent.PRINT_APPLICATION_COMPOSITION_REPORT)
-  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_REPORTS)
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
   public Response printSbomReport(
       @PathParam("applicationPublicId") final String appPublicId,
       @PathParam("sbomVersion") final String sbomVersion) throws IOException

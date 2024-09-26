@@ -468,6 +468,7 @@ public class ReportResourceTest
 
   @Test
   public void testPrintSbomReport() throws Exception {
+    setFeatures(LicensedFeature.SBOM_MANAGER);
     String scanId = "scanId";
     createReportFile(app.getId(), "scanId", "/ReportResourceTest/sample-report");
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);

@@ -899,7 +899,6 @@ public class CLMLicenseManager
       features.add(LicensedFeature.DATA_RETENTION);
       features.add(LicensedFeature.ORGS_AND_APPS);
       features.add(LicensedFeature.ENFORCEMENT);
-      features.add(LicensedFeature.APPLICATION_REPORTS);
 
       stageTypes.add(StageTypes.COMPLIANCE);
     }

@@ -155,8 +155,6 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     recommendedVersionsSection.getTitle().shouldHave(text("Suggested Version Change"));
     ElementsCollection recommendedVersions = recommendedVersionsSection.contentRecommendedVersionsList();
     recommendedVersions.shouldHave(size(1));
-    recommendedVersionsSection.alternateVersionsAccordion().shouldBe(visible).click();
-    recommendedVersionsSection.alternateVersionsAccordionVersionsList().shouldHave((size(1)));
 
     RecommendationElement recommendation = recommendedVersionsSection.getRecommendation(0);
     recommendation.shouldBe(visible);
@@ -167,9 +165,6 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     recommendation = recommendedVersionsSection.getRecommendation(1);
     recommendation.shouldBe(visible);
-    recommendation.text().shouldHave(text("Version 31.52"));
-    recommendation.subText().shouldHave(text("Next version with no policy violation"));
-    recommendation.actions().shouldHave(size(1));
   }
 
   @Test

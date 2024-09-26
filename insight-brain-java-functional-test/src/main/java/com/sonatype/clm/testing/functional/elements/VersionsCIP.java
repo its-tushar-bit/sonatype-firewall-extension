@@ -155,12 +155,20 @@ public class VersionsCIP
     return root().find("#next-no-violation-version-link");
   }
 
+  public static SelenideElement nextNoViolationWithDependenciesLink() {
+    return root().find("#next-no-violation-dependencies-version-link");
+  }
+
   public static SelenideElement nextNoFailVersionLink() {
     return root().find("#next-no-fail-version-link");
   }
 
   public static SelenideElement selectNoViolation() {
     return root().find("#select-no-violation");
+  }
+
+  public static SelenideElement selectNoViolationWithDependencies() {
+    return root().find("#select-no-violation-dependencies");
   }
 
   public static SelenideElement viewDetailsButton() {

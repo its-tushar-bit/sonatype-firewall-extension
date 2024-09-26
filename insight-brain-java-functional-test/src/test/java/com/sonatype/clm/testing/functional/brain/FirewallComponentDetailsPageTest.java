@@ -961,8 +961,6 @@ public class FirewallComponentDetailsPageTest
         riskRemediation.recommendedVersionsSections();
     recommendedVersionsSection.shouldBe(visible);
 
-    recommendedVersionsSection.alternateVersionsAccordion().shouldBe(visible).click();
-
     RiskRemediationTile.RecommendationElement recommendation =
         recommendedVersionsSection.getRecommendation(recommendationIndex);
 
@@ -1004,22 +1002,9 @@ public class FirewallComponentDetailsPageTest
     refreshOrOpen(url);
     waitUntilSpinnersGone();
 
+    // There used to be 4 recommendations, but they were of the same version.
+    // After the SDEV-1534 de-duplication, there is only one left.
     testCompareButtons(0);
-
-    refreshOrOpen(url);
-    waitUntilSpinnersGone();
-
-    testCompareButtons(1);
-
-    refreshOrOpen(url);
-    waitUntilSpinnersGone();
-
-    testCompareButtons(2);
-
-    refreshOrOpen(url);
-    waitUntilSpinnersGone();
-
-    testCompareButtons(3);
   }
 
   @Test

@@ -504,11 +504,9 @@ public class ComponentRemediationServiceTest
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
         allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
-    assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V3));
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V3));
-    assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V2));
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING_WITH_DEPENDENCIES, componentDtoA1V2));
-    assertThat(dto.versionChanges).hasSize(4);
+    assertThat(dto.versionChanges).hasSize(2);
   }
 
   /**
@@ -535,11 +533,9 @@ public class ComponentRemediationServiceTest
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
         allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
-    assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V3));
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V3));
-    assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V2));
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING_WITH_DEPENDENCIES, componentDtoA1V2));
-    assertThat(dto.versionChanges).hasSize(4);
+    assertThat(dto.versionChanges).hasSize(2);
   }
 
   /**
@@ -673,9 +669,7 @@ public class ComponentRemediationServiceTest
 
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V3));
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V4));
-    assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V3));
-    assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING_WITH_DEPENDENCIES, componentDtoA1V3));
-    assertThat(dto.versionChanges).hasSize(4);
+    assertThat(dto.versionChanges).hasSize(2);
   }
 
   /**
@@ -711,9 +705,8 @@ public class ComponentRemediationServiceTest
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V5,
         allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
-    assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V5));
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING_WITH_DEPENDENCIES, componentDtoA1V5));
-    assertThat(dto.versionChanges).hasSize(2);
+    assertThat(dto.versionChanges).hasSize(1);
   }
 
   /**
@@ -739,11 +732,8 @@ public class ComponentRemediationServiceTest
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V3,
         allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
-    assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V3));
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V3));
-    assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V3));
-    assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING_WITH_DEPENDENCIES, componentDtoA1V3));
-    assertThat(dto.versionChanges).hasSize(4);
+    assertThat(dto.versionChanges).hasSize(1);
   }
 
   /**
@@ -767,9 +757,8 @@ public class ComponentRemediationServiceTest
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V2,
         allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
-    assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V2));
     assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING_WITH_DEPENDENCIES, componentDtoA1V2));
-    assertThat(dto.versionChanges).hasSize(2);
+    assertThat(dto.versionChanges).hasSize(1);
   }
 
   /**
@@ -853,8 +842,7 @@ public class ComponentRemediationServiceTest
         allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V3));
-    assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V3));
-    assertThat(dto.versionChanges).hasSize(2);
+    assertThat(dto.versionChanges).hasSize(1);
   }
 
   /**
@@ -888,11 +876,8 @@ public class ComponentRemediationServiceTest
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
         allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
-    assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V11));
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V11));
-    assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V11));
-    assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING_WITH_DEPENDENCIES, componentDtoA1V11));
-    assertThat(dto.versionChanges).hasSize(4);
+    assertThat(dto.versionChanges).hasSize(1);
   }
 
   /**
@@ -928,11 +913,8 @@ public class ComponentRemediationServiceTest
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
         allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
-    assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V11));
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V11));
-    assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V11));
-    assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING_WITH_DEPENDENCIES, componentDtoA1V11));
-    assertThat(dto.versionChanges).hasSize(4);
+    assertThat(dto.versionChanges).hasSize(1);
   }
 
   /**
@@ -969,8 +951,7 @@ public class ComponentRemediationServiceTest
         allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org));
 
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V3));
-    assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, componentDtoA1V3));
-    assertThat(dto.versionChanges).hasSize(2);
+    assertThat(dto.versionChanges).hasSize(1);
   }
 
   private ApiVersionChangeOptionDTO buildChangeDto(ApiVersionChangeOptionType type, ApiComponentDTOV2 dto) {
@@ -1047,9 +1028,8 @@ public class ComponentRemediationServiceTest
     conanDto.packageUrl = PackageUrlIdentifier.toPackageUrl(cd3);
     conanDto.breakingChangesCount = BREAKING_CHANGES_3;
 
-    assertThat(dto.versionChanges).hasSize(2);
+    assertThat(dto.versionChanges).hasSize(1);
     assertRemediations(dto, buildChangeDto(NEXT_NO_VIOLATIONS, conanDto));
-    assertRemediations(dto, buildChangeDto(NEXT_NON_FAILING, conanDto));
   }
 
   @Test
@@ -1370,5 +1350,58 @@ public class ComponentRemediationServiceTest
     assertThat(dto.suggestedVersionChange.getData().getComponent().packageUrl).isEqualTo(componentDtoA1V2.packageUrl);
     assertThat(dto.suggestedVersionChange.getType()).isEqualTo(RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES);
     assertThat(dto.suggestedVersionChange.getIsGolden()).isTrue();
+  }
+  
+  @Test
+  public void testSortAndDeduplicateVersionChanges_deduplicateShouldKeepDesirableOrder() {
+    ApiVersionChangeOptionDTO v11NextNoViolations =
+        buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V11);
+    ApiVersionChangeOptionDTO v11NextNoViolationsWithDependencies =
+        buildChangeDto(NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V11);
+    ApiVersionChangeOptionDTO v11NextNonFailing =
+        buildChangeDto(NEXT_NON_FAILING, componentDtoA1V11);
+    ApiVersionChangeOptionDTO v11NextNonFailingWithDependencies =
+        buildChangeDto(NEXT_NON_FAILING_WITH_DEPENDENCIES, componentDtoA1V11);
+
+    assertThat(ComponentRemediationService.sortAndDeduplicateVersionChanges(
+        List.of(v11NextNoViolations,
+            v11NextNoViolationsWithDependencies,
+            v11NextNonFailing,
+            v11NextNonFailingWithDependencies)))
+        .hasSize(1)
+        .containsExactly(v11NextNoViolationsWithDependencies);
+
+    assertThat(ComponentRemediationService.sortAndDeduplicateVersionChanges(
+        List.of(v11NextNoViolations,
+            v11NextNonFailing,
+            v11NextNonFailingWithDependencies)))
+        .hasSize(1)
+        .containsExactly(v11NextNoViolations);
+
+    assertThat(ComponentRemediationService.sortAndDeduplicateVersionChanges(
+        List.of(v11NextNonFailing,
+            v11NextNonFailingWithDependencies)))
+        .hasSize(1)
+        .containsExactly(v11NextNonFailingWithDependencies);
+  }
+
+  @Test
+  public void testSortAndDeduplicateVersionChanges_deduplicateAndSortingShouldBothWork() {
+    ApiVersionChangeOptionDTO v5NextNonFailing =
+        buildChangeDto(NEXT_NON_FAILING, componentDtoA1V5);
+    ApiVersionChangeOptionDTO v6NextNoViolations =
+        buildChangeDto(NEXT_NO_VIOLATIONS, componentDtoA1V6);
+    ApiVersionChangeOptionDTO v11NextNoViolationsWithDependencies =
+        buildChangeDto(NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, componentDtoA1V11);
+    ApiVersionChangeOptionDTO v11NextNonFailingWithDependencies =
+        buildChangeDto(NEXT_NON_FAILING_WITH_DEPENDENCIES, componentDtoA1V11);
+
+    assertThat(ComponentRemediationService.sortAndDeduplicateVersionChanges(
+        Arrays.asList(v5NextNonFailing,
+            v6NextNoViolations,
+            v11NextNoViolationsWithDependencies,
+            v11NextNonFailingWithDependencies)))
+        .hasSize(3)
+        .containsExactly(v11NextNoViolationsWithDependencies, v6NextNoViolations, v5NextNonFailing);
   }
 }

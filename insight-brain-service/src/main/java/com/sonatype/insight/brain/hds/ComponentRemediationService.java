@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.hds;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -63,6 +65,17 @@ import org.apache.commons.collections4.CollectionUtils;
 @Named
 public class ComponentRemediationService
 {
+  public static final List<ApiVersionChangeOptionType> PREFERABLE_TYPE_ORDER = List.of(
+      ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
+      ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING,
+      // The above two are here to be logically consistent.
+      // The below are the actual types to be in the `versionChanges` list.
+      ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
+      ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
+      ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES,
+      ApiVersionChangeOptionType.NEXT_NON_FAILING
+  );
+
   private static final String OWNER_TYPE_ATTR = "owner_type";
 
   private static final String OWNER_ID_ATTR = "owner_id";
@@ -256,9 +269,31 @@ public class ComponentRemediationService
         }
       }
     }
-
+    componentRemediationDto.versionChanges = sortAndDeduplicateVersionChanges(componentRemediationDto.versionChanges);
     sendTelemetry(owner, currentComponent, telemetryAttributes);
     return componentRemediationDto;
+  }
+
+  public static List<ApiVersionChangeOptionDTO> sortAndDeduplicateVersionChanges(
+      final List<ApiVersionChangeOptionDTO> versionChanges)
+  {
+    Comparator<ApiVersionChangeOptionDTO> comparatorWithTypeOrder =
+        Comparator.comparingInt(dto -> PREFERABLE_TYPE_ORDER.indexOf(dto.getType()));
+    List<ApiVersionChangeOptionDTO> sortedVersionChanges = versionChanges.stream()
+        .sorted(comparatorWithTypeOrder)
+        .toList();
+
+    Set<String> seenPackageUrls = new HashSet<>();
+    List<ApiVersionChangeOptionDTO> deduplicatedVersionChanges = new ArrayList<>();
+    for (ApiVersionChangeOptionDTO versionChange : sortedVersionChanges) {
+      String packageUrl = versionChange.getData().getComponent().packageUrl;
+      if (!seenPackageUrls.contains(packageUrl)) {
+        deduplicatedVersionChanges.add(versionChange);
+      }
+      seenPackageUrls.add(packageUrl);
+    }
+
+    return deduplicatedVersionChanges;
   }
 
   public ApiComponentRemediationValueDTO getSuggestedRemediationForTransitive(

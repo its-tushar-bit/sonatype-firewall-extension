@@ -152,7 +152,7 @@ public abstract class AbstractVersionGraphMavenTest
     VersionsCIP.componentCategory().shouldHave(text("Programming Language Utilites"));
     if (isVersionRecommendationSupported()) {
       VersionsCIP.recommendedVersionsHeader().shouldBe(visible);
-      VersionsCIP.nextNoViolationVersionLink().shouldBe(visible).shouldHave(text("Select 31.52"));
+      VersionsCIP.nextNoViolationWithDependenciesLink().shouldBe(visible).shouldHave(text("Select 31.52"));
       VersionsCIP.nextNoFailVersionLink().shouldBe(hidden);
     }
     else {
@@ -214,7 +214,7 @@ public abstract class AbstractVersionGraphMavenTest
           .respondWith(getClass().getResource("/componentDetails/javancssComponentDetails-31.52.json"))
           .atUri("rest/rm/componentDetails");
 
-      VersionsCIP.selectNoViolation().shouldBe(visible).click();
+      VersionsCIP.selectNoViolationWithDependencies().shouldBe(visible).click();
 
       VersionsCIP.version().shouldHave(text("31.52"));
       VersionsCIP.declaredLicenses().shouldHave(texts("BSD-3-Clause"));

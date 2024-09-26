@@ -98,8 +98,8 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.util.MetadataRecorderUtils;
 
-import com.google.common.collect.Sets;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.google.inject.Binder;
 import org.apache.commons.lang3.tuple.Pair;
 import org.assertj.core.groups.Tuple;
@@ -108,9 +108,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NON_FAILING;
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES;
-import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS;
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED;
 import static com.sonatype.insight.brain.model.license.License.NOT_SUPPORTED_ID;
@@ -2982,17 +2980,13 @@ public class ComponentInfoServiceTest
         testGetComponentVersionInfo(application, application.getPublicId(), ReleaseStageType.ID);
 
     assertThat(dto.remediation.versionChanges).isNotNull();
-    assertThat(dto.remediation.versionChanges).hasSize(4);
+    assertThat(dto.remediation.versionChanges).hasSize(2);
     assertThat(dto.remediation.versionChanges).extracting(vc -> vc.getType().name())
         .containsExactlyInAnyOrder(
-            NEXT_NO_VIOLATIONS.name(),
-            NEXT_NON_FAILING.name(),
             NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES.name(),
             NEXT_NON_FAILING_WITH_DEPENDENCIES.name());
     assertThat(dto.remediation.versionChanges).extracting(vc -> vc.getData().getComponent().packageUrl)
         .containsExactlyInAnyOrder(
-            depPurlId.getPackageUrl(),
-            mvnPurlId.getPackageUrl(),
             depPurlId.getPackageUrl(),
             mvnPurlId.getPackageUrl());
   }

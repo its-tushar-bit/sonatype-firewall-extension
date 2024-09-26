@@ -88,7 +88,6 @@ public class ApiComponentRemediationResourceTest
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1,null);
     assertRemediationApplication(
         component,
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
     );
   }
@@ -221,34 +220,20 @@ public class ApiComponentRemediationResourceTest
     assertResponseStatus(200, response);
     ApiComponentRemediationDTO result = response.getBody(ApiComponentRemediationDTO.class);
     assertThat(result).isNotNull();
-    assertThat(result.remediation.versionChanges).hasSize(4);
+    assertThat(result.remediation.versionChanges).hasSize(2);
 
     assertThat(result.remediation.versionChanges.get(0).getType()).isEqualTo(
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
     assertThat(result.remediation.versionChanges.get(0).getDirectDependency()).isTrue();
     assertThat(result.remediation.versionChanges.get(0).getDirectDependencyData()).isEmpty();
     assertThat(result.remediation.versionChanges.get(0).getData()
         .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(newerVersionComponent2);
 
     assertThat(result.remediation.versionChanges.get(1).getType()).isEqualTo(
-        ApiVersionChangeOptionType.NEXT_NON_FAILING);
+        ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
     assertThat(result.remediation.versionChanges.get(1).getDirectDependency()).isTrue();
     assertThat(result.remediation.versionChanges.get(1).getDirectDependencyData()).isEmpty();
     assertThat(result.remediation.versionChanges.get(1).getData()
-        .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(currentParentComponent);
-
-    assertThat(result.remediation.versionChanges.get(2).getType()).isEqualTo(
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
-    assertThat(result.remediation.versionChanges.get(2).getDirectDependency()).isTrue();
-    assertThat(result.remediation.versionChanges.get(2).getDirectDependencyData()).isEmpty();
-    assertThat(result.remediation.versionChanges.get(2).getData()
-        .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(newerVersionComponent2);
-
-    assertThat(result.remediation.versionChanges.get(3).getType()).isEqualTo(
-        ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
-    assertThat(result.remediation.versionChanges.get(3).getDirectDependency()).isTrue();
-    assertThat(result.remediation.versionChanges.get(3).getDirectDependencyData()).isEmpty();
-    assertThat(result.remediation.versionChanges.get(3).getData()
         .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(currentParentComponent);
   }
 
@@ -329,7 +314,6 @@ public class ApiComponentRemediationResourceTest
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(purl);
     assertRemediationApplication(
         component,
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
     );
   }
@@ -365,7 +349,6 @@ public class ApiComponentRemediationResourceTest
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1, null);
     assertRemediationOrganization(
         component,
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
     );
   }
@@ -376,7 +359,6 @@ public class ApiComponentRemediationResourceTest
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(purl);
     assertRemediationOrganization(
         component,
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
     );
   }
@@ -412,8 +394,6 @@ public class ApiComponentRemediationResourceTest
         PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V3),
         expectedComponentNonFailing,
         PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V1),
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
-        ApiVersionChangeOptionType.NEXT_NON_FAILING,
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
         ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
   }
@@ -449,8 +429,6 @@ public class ApiComponentRemediationResourceTest
         PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V3),
         expectedComponentNonFailing,
         PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V1),
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
-        ApiVersionChangeOptionType.NEXT_NON_FAILING,
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
         ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
   }

@@ -765,7 +765,7 @@ public class ApiComponentRemediationServiceTest
     assertThat(apiComponentRemediationValueDTO.policyWaivers).hasSize(0);
 
     assertThat(apiComponentRemediationValueDTO).isNotNull();
-    assertThat(apiComponentRemediationValueDTO.versionChanges).hasSize(2);
+    assertThat(apiComponentRemediationValueDTO.versionChanges).hasSize(1);
     ApiVersionChangeOptionDTO noViolationsOption = apiComponentRemediationValueDTO.versionChanges.get(0);
     assertThat(noViolationsOption.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
     ApiComponentDTOV2 noViolationsDto = noViolationsOption.getData().getComponent();
@@ -773,19 +773,10 @@ public class ApiComponentRemediationServiceTest
     assertThat(noViolationsDto.componentIdentifier).isNotNull();
     assertThat(noViolationsDto.componentIdentifier.toComponentIdentifier()).isEqualTo(expectedComponentIdentifier);
     assertThat(noViolationsDto.hash).isNull();
-    assertThat(noViolationsDto.proprietary).isNull();
-
-    ApiVersionChangeOptionDTO nonFailingOption = apiComponentRemediationValueDTO.versionChanges.get(1);
-    assertThat(nonFailingOption.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NON_FAILING);
-    ApiComponentDTOV2 nonFailingDto = nonFailingOption.getData().getComponent();
-
-    assertThat(nonFailingDto.componentIdentifier).isNotNull();
-    assertThat(nonFailingDto.componentIdentifier.toComponentIdentifier()).isEqualTo(expectedComponentIdentifier);
-    assertThat(nonFailingDto.hash).isNull();
-    assertThat(nonFailingDto.packageUrl).isEqualTo(expectedPackageUrl);
-    assertThat(nonFailingDto.displayName)
+    assertThat(noViolationsDto.packageUrl).isEqualTo(expectedPackageUrl);
+    assertThat(noViolationsDto.displayName)
         .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(expectedComponentIdentifier).toString());
-    assertThat(nonFailingDto.proprietary).isNull();
+    assertThat(noViolationsDto.proprietary).isNull();
   }
 
   private void assertNonFailing(ApiComponentRemediationValueDTO apiComponentRemediationValueDTO,
@@ -819,37 +810,15 @@ public class ApiComponentRemediationServiceTest
     assertThat(apiComponentRemediationValueDTO.policyWaivers).hasSize(0);
 
     assertThat(apiComponentRemediationValueDTO).isNotNull();
-    assertThat(apiComponentRemediationValueDTO.versionChanges).hasSize(4);
+    assertThat(apiComponentRemediationValueDTO.versionChanges).hasSize(1);
 
-    ApiVersionChangeOptionDTO noViolationsOption = apiComponentRemediationValueDTO.versionChanges.get(0);
-    assertThat(noViolationsOption.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
-    ApiComponentDTOV2 noViolationsDto = noViolationsOption.getData().getComponent();
-    assertThat(noViolationsDto.packageUrl).isEqualTo(expectedPackageUrl);
-    assertThat(noViolationsDto.displayName).isEqualTo(ComponentDisplayNameUtil
-        .fromIdentifier(noViolationsOption.getData().getComponent().componentIdentifier.toComponentIdentifier())
-        .toString());
-
-    ApiVersionChangeOptionDTO nonFailingOption = apiComponentRemediationValueDTO.versionChanges.get(1);
-    assertThat(nonFailingOption.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NON_FAILING);
-    ApiComponentDTOV2 nonFailingDto = nonFailingOption.getData().getComponent();
-    assertThat(nonFailingDto.packageUrl).isEqualTo(expectedPackageUrl);
-
-    ApiVersionChangeOptionDTO noViolationsWithDepOption = apiComponentRemediationValueDTO.versionChanges.get(2);
+    ApiVersionChangeOptionDTO noViolationsWithDepOption = apiComponentRemediationValueDTO.versionChanges.get(0);
     assertThat(noViolationsWithDepOption.getType())
         .isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
     ApiComponentDTOV2 noViolationsWithDepDto = noViolationsWithDepOption.getData().getComponent();
     assertThat(noViolationsWithDepDto.packageUrl).isEqualTo(expectedPackageUrl);
-    assertThat(noViolationsDto.displayName).isEqualTo(ComponentDisplayNameUtil
+    assertThat(noViolationsWithDepDto.displayName).isEqualTo(ComponentDisplayNameUtil
         .fromIdentifier(noViolationsWithDepOption.getData().getComponent().componentIdentifier.toComponentIdentifier())
-        .toString());
-
-    ApiVersionChangeOptionDTO nonFailingWithDepOption = apiComponentRemediationValueDTO.versionChanges.get(3);
-    assertThat(nonFailingWithDepOption.getType())
-        .isEqualTo(ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
-    ApiComponentDTOV2 nonFailingWithDepDto = nonFailingWithDepOption.getData().getComponent();
-    assertThat(nonFailingWithDepDto.packageUrl).isEqualTo(expectedPackageUrl);
-    assertThat(noViolationsDto.displayName).isEqualTo(ComponentDisplayNameUtil
-        .fromIdentifier(nonFailingWithDepOption.getData().getComponent().componentIdentifier.toComponentIdentifier())
         .toString());
   }
 

@@ -478,6 +478,23 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   @Test
+  public void testHasSbomMetadata_isFalse() {
+    final boolean hasSbomMetadata = dao.hasSbomMetadata("scanId");
+    assertThat(hasSbomMetadata).isFalse();
+  }
+
+  @Test
+  public void testHasSbomMetadata_isTrue() {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan("scanRequestId", "scanId", thirdPartyFile);
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE", "xyz");
+
+    final boolean hasSbomMetadata = dao.hasSbomMetadata("scanId");
+    assertThat(hasSbomMetadata).isTrue();
+  }
+
+  @Test
   public void testGetByApplicationId_withPagination() {
     Application app = tempEntity.newApplicationWithParent();
     ThirdPartySbomMetadata sbomMetadata1 = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)

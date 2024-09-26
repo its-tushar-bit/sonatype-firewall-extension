@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -119,6 +118,20 @@ public class SbomMetadataUtilsTest
   @Test
   public void testDetermineItemContentType_Null() {
     assertThat(sbomMetadataUtils.determineItemContentType(null)).isNull();
+  }
+
+  @Test
+  public void testHasSbomMetadata_True() {
+    when(mockThirdPartySbomMetadataDAO.hasSbomMetadata("scanId")).thenReturn(true);
+
+    assertThat(sbomMetadataUtils.hasSbomMetadata("scanId")).isTrue();
+  }
+
+  @Test
+  public void testHasSbomMetadata_False() {
+    when(mockThirdPartySbomMetadataDAO.hasSbomMetadata("scanId")).thenReturn(false);
+
+    assertThat(sbomMetadataUtils.hasSbomMetadata("scanId")).isFalse();
   }
 
   @Test

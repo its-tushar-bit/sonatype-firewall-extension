@@ -100,6 +100,10 @@ public class SbomMetadataUtils
     return licensedMaxSboms == null || currentActiveSbomFiles >= licensedMaxSboms;
   }
 
+  public boolean hasSbomMetadata(final String scanId) {
+    return thirdPartySbomMetadataDAO.hasSbomMetadata(scanId);
+  }
+
   public ScanResult scanSbomFile(
       final Application app,
       final File sbomFile,

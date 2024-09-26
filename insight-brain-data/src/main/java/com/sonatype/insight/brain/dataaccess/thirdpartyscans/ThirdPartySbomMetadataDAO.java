@@ -143,6 +143,12 @@ public class ThirdPartySbomMetadataDAO
     return getList(sQuery, limitDate);
   }
 
+  public boolean hasSbomMetadata(String scanId) {
+    String sQuery = "SELECT count(entity) FROM ThirdPartySbomMetadata entity, ThirdPartyScan scan" +
+        " WHERE entity.thirdPartyFileId = scan.thirdPartyFileId AND scan.scanId = ?1";
+    return getSingle(Long.class, sQuery, scanId) != 0;
+  }
+
   /**
    * This allows service-layer code to create a SearchIndexChanges for insert or update at the appropriate times. It
    * also implements the search index change for deletions.

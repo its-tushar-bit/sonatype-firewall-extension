@@ -181,6 +181,7 @@ public class ReportService
       thirdPartyDataService.indexVulnerabilities(scanId);
 
       if (!productLicense.hasFeature(LicensedFeature.SBOM_MANAGER) ||
+          !sbomMetadataUtils.hasSbomMetadata(scanId) ||
           sbomMetadataUtils.hasMaxActiveSbomLimitBeenReached()) {
         thirdPartyDataService.deleteByScanId(scanId);
       }

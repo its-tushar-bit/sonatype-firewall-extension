@@ -18,7 +18,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sonatype.clm.dto.model.component.AnalysisSource;
 import com.sonatype.clm.dto.model.component.AnalysisType;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
@@ -41,6 +40,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -69,6 +69,7 @@ import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.scan.model.ItemContentType;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import de.schlichtherle.truezip.file.TFile;
 import org.apache.commons.io.FileUtils;
@@ -591,13 +592,39 @@ public class ReportServiceTest
   }
 
   @Test
+  public void testProcessThirdPartyData_Lifecycle_thirdPartyScanDataDeleted() throws Exception {
+    productLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
+    final File reportZip = zipReportDir("/ReportServiceTest/report");
+    createReportFile(app.getId(), scanId, reportZip);
+    ReportService reportService = createReportService();
+    tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, scanId);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan("scanRequestId", scanId, thirdPartyFile);
+
+    ThirdPartyApplicationReportDTO dto = new ThirdPartyApplicationReportDTO();
+    final ComponentIdentifier coord = ComponentIdentifier.createRpmCoordinates("n1", "v1", "a1");
+    dto.billOfMaterials.add(new ThirdPartyBillOfMaterialsRowDTO(coord, "hash1"));
+    dto.securityRows.add(new ThirdPartyHealthCheckReportSecurityRowDTO(coord, "hash1"));
+    dto.licenseRows.add(new ThirdPartyLicenseRowDTO(coord, "hash1"));
+    when(thirdPartyDataServiceSpy.getScanData(scanId)).thenReturn(dto);
+
+    reportService.processThirdPartyData(scanId, reportZip, app.getId());
+
+    assertThat(productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)).isFalse();
+    assertThat(sbomMetadataUtils.hasMaxActiveSbomLimitBeenReached()).isFalse();
+    assertThat(policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId).getStageTypeId()).isNotEqualTo(
+        ComplianceStageType.ID);
+    verify(thirdPartyDataServiceSpy, times(1)).deleteByScanId(scanId);
+  }
+
+  @Test
   public void testProcessThirdPartyData_SBOMManagerEnabled_reportNotDeleted() throws Exception {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
     final File reportZip = zipReportDir("/ReportServiceTest/report-with-third-party-iac");
     createReportFile(app.getId(), scanId, reportZip);
     ReportService reportService = createReportService();
-    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, scanId);
 
     ThirdPartyApplicationReportDTO dto = new ThirdPartyApplicationReportDTO();
 
@@ -607,6 +634,7 @@ public class ReportServiceTest
     dto.securityRows.add(new ThirdPartyHealthCheckReportSecurityRowDTO(coord, "existing1"));
 
     when(thirdPartyDataServiceSpy.getScanData(scanId)).thenReturn(dto);
+    when(sbomMetadataUtils.hasSbomMetadata(scanId)).thenReturn(true);
     reportService.processThirdPartyData(scanId, reportZip, "app-id");
 
     assertThat(dto.billOfMaterials).hasSize(3);
@@ -625,7 +653,7 @@ public class ReportServiceTest
     final File reportZip = zipReportDir("/ReportServiceTest/report");
     createReportFile(app.getId(), scanId, reportZip);
     ReportService reportService = createReportService();
-    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, scanId);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan("scanRequestId", scanId, thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
@@ -642,6 +670,7 @@ public class ReportServiceTest
     dto.securityRows.add(new ThirdPartyHealthCheckReportSecurityRowDTO(coord, "hash1"));
     dto.licenseRows.add(new ThirdPartyLicenseRowDTO(coord, "hash1"));
     when(thirdPartyDataServiceSpy.getScanData(scanId)).thenReturn(dto);
+    when(sbomMetadataUtils.hasSbomMetadata(scanId)).thenReturn(true);
 
     reportService.processThirdPartyData(scanId, reportZip, app.getId());
 
@@ -658,7 +687,7 @@ public class ReportServiceTest
     final File reportZip = zipReportDir("/ReportServiceTest/report-with-third-party-iac");
     createReportFile(app.getId(), scanId, reportZip);
     ReportService reportService = createReportService();
-    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, scanId);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan("scanRequestId", scanId, thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadata(app.getId(), "1", thirdPartyFile, "PENDING");
@@ -676,6 +705,7 @@ public class ReportServiceTest
     dto.securityRows.add(new ThirdPartyHealthCheckReportSecurityRowDTO(coord, "existing1"));
 
     when(thirdPartyDataServiceSpy.getScanData(scanId)).thenReturn(dto);
+    when(sbomMetadataUtils.hasSbomMetadata(scanId)).thenReturn(true);
     when(sbomMetadataUtils.hasMaxActiveSbomLimitBeenReached()).thenReturn(true);
 
     reportService.processThirdPartyData(scanId, reportZip, app.getId());

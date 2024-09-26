@@ -61,7 +61,13 @@ pipeline {
 
             echo "Dashboards current version: ${dashboardConfigs.version}"
 
-            echo writeJSON(returnText: true, json: sortDashboardsByPriorityOrder(dashboardConfigs), pretty: 2)
+            def sortedDashboards = sortDashboardsByPriorityOrder(dashboardConfigs)
+
+            def jsonContent = writeJSON(returnText: true, json: sortedDashboards, pretty: 2)
+
+            writeFile file: 'sorted_dashboard_configs.json', text: jsonContent
+
+            echo jsonContent
           }
         }
       }
@@ -80,6 +86,11 @@ pipeline {
             echo writeJSON(returnText: true, json: iconsZipContents.keySet(), pretty: 2)
           }
         }
+      }
+    }
+    stage('Archive Artifacts') {
+      steps {
+        archiveArtifacts artifacts: 'sorted_dashboard_configs.json', allowEmptyArchive: true
       }
     }
   }

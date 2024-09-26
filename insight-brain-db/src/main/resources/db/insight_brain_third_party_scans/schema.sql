@@ -39,6 +39,7 @@ CREATE TABLE file_coordinate (
   swid TEXT NULL,
   dependency_type        VARCHAR(2)   NULL,
   identification_sources VARCHAR(100) NULL,
+  match_state_id VARCHAR(20) NULL,
   CONSTRAINT file_coordinate_pk PRIMARY KEY (file_coordinate_id),
   CONSTRAINT file_coordinate_fk FOREIGN KEY (third_party_file_id) REFERENCES third_party_file (third_party_file_id)
 );

@@ -74,6 +74,9 @@ public class ThirdPartyFileCoordinate
   @Column(name = "dependency_type")
   private String dependencyType;
 
+  @Column (name = "match_state_id")
+  private String matchStateId;
+
   @Override
   public String getId() {
     return id;
@@ -179,5 +182,13 @@ public class ThirdPartyFileCoordinate
 
   public void setDependencyType(String dependencyType) {
     this.dependencyType = dependencyType;
+  }
+
+  public String getMatchStateId() {
+    return matchStateId;
+  }
+
+  public void setMatchStateId(String matchStateId) {
+    this.matchStateId = matchStateId;
   }
 }

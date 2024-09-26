@@ -937,6 +937,9 @@ public class ThirdPartyDataService
       // in such cases update the purl to the result purl for consistency with Sonatype data
       sbomComponent.setPackageUrl(bomPurl);
     }
+
+    sbomComponent.setMatchStateId(JsonUtils.getNullableString(bomNode.get(FIELD_MATCH_STATE)));
+
     updateComponentIdentifiedAsSonatype(sbomComponent);
     mergeSecurityData(sonatypeVulnerabilityResults, bomComponentIdentifier, sbomComponent, thirdPartySbomMetadata);
     mergeLicenseData(sonatypeLicenseResults, bomComponentIdentifier, sbomComponent);

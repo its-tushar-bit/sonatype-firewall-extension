@@ -559,6 +559,7 @@ public class ThirdPartyDataServiceTest
     assertThat(tpfc1.getVersion()).isEqualTo("1.0.1");
     assertThat(tpfc1.getHash()).isEqualTo("093080a1a4bbd2750541");
     assertThat(tpfc1.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+    assertThat(tpfc1.getMatchStateId()).isEqualTo("exact");
 
     //verify dependency types correctly set
     assertThat(coords.get(purl1).getDependencyType()).isEqualTo("D");
@@ -714,6 +715,7 @@ public class ThirdPartyDataServiceTest
     assertThat(tpfc1.getDependencyType()).isNull();
     assertThat(tpfc1.getCpe()).isNull();
     assertThat(tpfc1.getSwid()).isNull();
+    assertThat(tpfc1.getMatchStateId()).isEqualTo("exact");
 
     List<ThirdPartyCoordinateSecurity> tpvListC1 = thirdPartyCoordinateSecurityDAO
         .getByFileCoordinateId(tpfc1.getId());
@@ -767,6 +769,7 @@ public class ThirdPartyDataServiceTest
     assertThat(tpfc2.getDependencyType()).isEqualTo("T");
     assertThat(tpfc2.getCpe()).isNull();
     assertThat(tpfc2.getSwid()).isNull();
+    assertThat(tpfc2.getMatchStateId()).isEqualTo("exact");
 
     ThirdPartyFileCoordinate tpfc3 = coords.get("pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1");
     assertThat(tpfc3.getId()).isNotEmpty();
@@ -781,6 +784,7 @@ public class ThirdPartyDataServiceTest
     assertThat(tpfc3.getDependencyType()).isEqualTo("D");
     assertThat(tpfc3.getCpe()).isNull();
     assertThat(tpfc3.getSwid()).isNull();
+    assertThat(tpfc3.getMatchStateId()).isEqualTo("exact");
 
     ThirdPartyFileCoordinate tpfc4 = coords.get("pkg:maven/com.sun.istack/istack-commons-runtime@4.1.2?type=jar");
     assertThat(tpfc4.getId()).isNotEmpty();
@@ -795,6 +799,7 @@ public class ThirdPartyDataServiceTest
     assertThat(tpfc4.getDependencyType()).isEqualTo("T");
     assertThat(tpfc4.getCpe()).isNull();
     assertThat(tpfc4.getSwid()).isNull();
+    assertThat(tpfc4.getMatchStateId()).isEqualTo("exact");
   }
 
   @Test
@@ -837,6 +842,7 @@ public class ThirdPartyDataServiceTest
     assertThat(tpfc1.getDependencyType()).isNull();
     assertThat(tpfc1.getCpe()).isNull();
     assertThat(tpfc1.getSwid()).isNull();
+    assertThat(tpfc1.getMatchStateId()).isEqualTo("exact");
 
     List<ThirdPartyCoordinateSecurity> tpvListC1 = thirdPartyCoordinateSecurityDAO
         .getByFileCoordinateId(tpfc1.getId());

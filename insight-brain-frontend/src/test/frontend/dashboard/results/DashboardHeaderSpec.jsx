@@ -5,7 +5,7 @@
  */
 import * as enzymeUtils from '../../enzymeUtils';
 import DashboardHeader from '../../../../main/frontend/dashboard/results/DashboardHeader';
-import DashboardFilter from '../../../../main/frontend/dashboard/filter/dashboardFilter/DashboardFilterContainer';
+import DashboardFilter from '../../../../main/frontend/dashboard/filter/dashboardFilter/DashboardFilter';
 import ExportButton from '../../../../main/frontend/dashboard/results/dashboardSummary/ExportButton';
 import { DEFAULT_FILTER_NAME } from '../../../../main/frontend/dashboard/filter/defaultFilter';
 

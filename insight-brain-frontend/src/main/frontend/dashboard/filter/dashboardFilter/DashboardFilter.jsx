@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Fragment } from 'react';
-import * as PropTypes from 'prop-types';
-import { map, curryN } from 'ramda';
+import { map, curryN, prop, path } from 'ramda';
 import classnames from 'classnames';
 import {
   NxErrorAlert,
@@ -25,14 +24,47 @@ import DashboardFilterFooter from './DashboardFilterFooter';
 import SaveFilterModalContainer from '../saveFilterModal/SaveFilterModalContainer';
 import ManageFiltersDropdown from '../manageFiltersDropdown/ManageFiltersDropdown';
 import DeleteFilterModalContainer from '../deleteFilterModal/DeleteFilterModalContainer';
+import { useDispatch, useSelector } from 'react-redux';
+import * as manageFiltersActions from '../manageFiltersActions';
+import * as dashboardFilterActions from '../dashboardFilterActions';
+import {
+  selectOwnersMap,
+  selectTopParentOrganizationId,
+} from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 
-export default function DashboardFilter(props) {
+export default function DashboardFilter() {
+  const dispatch = useDispatch();
+
+  const applyFilter = (filter, basedOnFilterName) =>
+    dispatch(dashboardFilterActions.applyFilter(filter, basedOnFilterName));
+  const applyFilterCancelled = () => dispatch(dashboardFilterActions.applyFilterCancelled());
+  const setDisplaySaveFilterModal = (payload) => dispatch(dashboardFilterActions.setDisplaySaveFilterModal(payload));
+  const loadFilter = (resultsType, isLoadResults) =>
+    dispatch(dashboardFilterActions.loadFilter(resultsType, isLoadResults));
+  const revert = () => dispatch(dashboardFilterActions.revert());
+  const selectAge = (age) => dispatch(dashboardFilterActions.selectAge(age));
+  const onExpirationDatesChange = (date) => dispatch(dashboardFilterActions.selectExpirationDate(date));
+  const toggleFilter = (filterName, selectedIds) =>
+    dispatch(dashboardFilterActions.toggleFilter(filterName, selectedIds));
+  const toggleAppsAndOrgs = (selectedOrganizations, selectedApplications) =>
+    dispatch(dashboardFilterActions.toggleAppsAndOrgs(selectedOrganizations, selectedApplications));
+  const applyDefaultFilter = () => dispatch(dashboardFilterActions.applyDefaultFilter());
+  const applySavedFilter = (payload) => dispatch(dashboardFilterActions.applySavedFilter(payload));
+  const toggleFilterSidebar = (payload) => dispatch(dashboardFilterActions.toggleFilterSidebar(payload));
+  const selectFilterToDelete = (payload) => dispatch(manageFiltersActions.selectFilterToDelete(payload));
+
+  const { appliedFilterName, showDirtyAsterisk, savedFilters } = useSelector(prop('manageFilters'));
+  const ownersMap = useSelector(selectOwnersMap);
+  const topParentOrganizationId = useSelector(selectTopParentOrganizationId);
+  const { data: waiverReasons, loading: waiverReasonsLoading, loadError: waiverReasonsLoadError } = useSelector(
+    path(['waivers', 'waiverReasons'])
+  );
+
   const {
-    loading,
-    loadError,
+    loading: dashboardFilterLoading,
+    loadError: dashboardFilterLoadError,
     loadErrorFilterName,
     applyFilterError,
-    showDirtyAsterisk,
     filtersAreDirty,
     needsAcknowledgement,
     showAgeFilter,
@@ -40,10 +72,8 @@ export default function DashboardFilter(props) {
     showViolationStateFilter,
     showExpirationDateFilter,
     showRepositoriesFilter,
+    showPolicyWaiverReasonFilter,
     showSaveFilterModal,
-    savedFilters,
-
-    // filter items
     applications,
     categories,
     stages,
@@ -52,30 +82,11 @@ export default function DashboardFilter(props) {
     expirationDates,
     policyViolationStates,
     repositories,
-    ownersMap,
-    topParentOrganizationId,
-
-    // selected items
-    appliedFilterName,
     selected,
+  } = useSelector(prop('dashboardFilter'));
 
-    // actions
-    applyFilter,
-    applyFilterCancelled,
-    setDisplaySaveFilterModal,
-    loadFilter,
-    revert,
-    selectAge,
-    selectExpirationDate: onExpirationDatesChange,
-    toggleFilter,
-    toggleAppsAndOrgs,
-    applyDefaultFilter,
-    applySavedFilter,
-    selectFilterToDelete,
-    toggleFilterSidebar,
-    showPolicyWaiverReasonFilter,
-    waiverReasons,
-  } = props;
+  const loading = dashboardFilterLoading || waiverReasonsLoading;
+  const loadError = dashboardFilterLoadError || waiverReasonsLoadError;
 
   const curriedToggleFilter = curryN(2, toggleFilter),
     onCategoriesChange = curriedToggleFilter('categories'),
@@ -302,57 +313,3 @@ export default function DashboardFilter(props) {
     return waiverReasonOptions;
   }
 }
-
-export const dashboardFilterPropTypes = {
-  loading: PropTypes.bool.isRequired,
-  loadError: LoadWrapper.propTypes.error,
-  loadErrorFilterName: PropTypes.string,
-  applyFilterError: PropTypes.string,
-  filtersAreDirty: PropTypes.bool,
-  needsAcknowledgement: PropTypes.bool,
-  showAgeFilter: PropTypes.bool,
-  showSaveFilterModal: PropTypes.bool,
-  showStagesFilter: PropTypes.bool,
-  showViolationStateFilter: PropTypes.bool,
-  showExpirationDateFilter: PropTypes.bool,
-  showRepositoriesFilter: PropTypes.bool,
-  selectExpirationDate: PropTypes.func,
-  expirationDates: PropTypes.array,
-  organizations: PropTypes.array,
-  applications: PropTypes.array,
-  categories: PropTypes.array,
-  stages: PropTypes.array,
-  repositories: PropTypes.array,
-  ages: PropTypes.array,
-  policyTypes: PropTypes.array,
-  waiverReasons: PropTypes.array,
-  policyViolationStates: PropTypes.array,
-  selected: PropTypes.shape({
-    organizations: PropTypes.instanceOf(Set).isRequired,
-    applications: PropTypes.instanceOf(Set).isRequired,
-    categories: PropTypes.instanceOf(Set).isRequired,
-    stages: PropTypes.instanceOf(Set).isRequired,
-    policyTypes: PropTypes.instanceOf(Set).isRequired,
-    policyWaiverReasonIds: PropTypes.instanceOf(Set).isRequired,
-    policyViolationStates: PropTypes.instanceOf(Set).isRequired,
-    maxDaysOld: PropTypes.number,
-    policyThreatLevels: PropTypes.arrayOf(PropTypes.number).isRequired,
-    expirationDate: PropTypes.string.isRequired,
-  }),
-  applyFilter: PropTypes.func.isRequired,
-  setDisplaySaveFilterModal: PropTypes.func.isRequired,
-  loadFilter: PropTypes.func.isRequired,
-  revert: PropTypes.func.isRequired,
-  selectAge: PropTypes.func,
-  toggleAppsAndOrgs: PropTypes.func,
-  toggleFilter: PropTypes.func,
-  toggleFilterSidebar: PropTypes.func,
-  ...ManageFiltersDropdown.propTypes,
-  ownersMap: PropTypes.object,
-  topParentOrganizationId: PropTypes.string,
-  showPolicyWaiverReasonFilter: PropTypes.bool,
-};
-
-DashboardFilter.propTypes = {
-  ...dashboardFilterPropTypes,
-};

@@ -23,7 +23,7 @@ import {
   policyViolationStates,
   uncategorizedCategory,
 } from 'MainRoot/dashboard/filter/staticFilterEntries';
-import DashboardFilterContainer from 'MainRoot/dashboard/filter/dashboardFilter/DashboardFilterContainer';
+import DashboardFilter from 'MainRoot/dashboard/filter/dashboardFilter/DashboardFilter';
 import {
   getApplicationsUrl,
   getApplicationTagsUrl,
@@ -435,7 +435,7 @@ describe('DashboardFilter', () => {
       ...preloadedStateOverrides,
     };
 
-    return render(<DashboardFilterContainer />, { preloadedState });
+    return render(<DashboardFilter />, { preloadedState });
   };
 
   const getMinimalReduxState = (overrides = {}) => {

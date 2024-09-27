@@ -2154,6 +2154,24 @@ public class SbomResultHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_fallbackToCpe() throws Exception {
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("invalid-purl-bom.json", null, null, null,
+            getSbomJsonFile("invalid-purl-bom.json"));
+
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    assertFilteredSbomFile(filteredContent, 1);
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(1).extracting(ThirdPartyFileCoordinate::getPackageUrl)
+        .containsExactlyInAnyOrder("pkg:cpe/red_inc./fonts-filesystem@2.0.5");
+
+    assertDebugLogOutput("Invalid Component Identifier for provided purl pkg:rpm/fonts-filesystem@2.0.5");
+  }
+
+  @Test
   public void testHandleAndFilterContents_validSbom_skipSbomVaidationDisabled() throws Exception {
     String sbomContent = getSbomXmlFile("sbom-v1_4.xml");
     ThirdPartyScanContent content =

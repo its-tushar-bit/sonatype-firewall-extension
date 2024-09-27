@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
@@ -381,8 +382,12 @@ public class SpdxResultHandler
       }
     }
     catch (InvalidPackageURLException e) {
-      log.debug("Invalid purl: {}", purlOptional.orElse(""));
+      log.debug("Invalid purl: {}", purlOptional.orElse(""), e);
     }
+    catch (InvalidComponentIdentifierException e) {
+      log.debug("Invalid Component Identifier for provided purl {}", purlOptional.orElse(""), e);
+    }
+
     Optional<String> cpeOptional = getCpe(spdxPackage);
     if (cpeOptional.isPresent()) {
       String cpe = cpeOptional.get();
@@ -415,6 +420,7 @@ public class SpdxResultHandler
       component.setPurl(ThirdPartyScanResultUtils.getTruncatedPurl(packageUrlIdentifier.getPackageUrl()));
     }
     componentIdentifier = packageUrlIdentifier.toComponentIdentifier();
+    componentIdentifier.ensureComplete();
     component.setName(packageUrlIdentifier.getName());
     component.setVersion(packageUrlIdentifier.getVersion());
     String namespace = packageUrlIdentifier.getNamespace();

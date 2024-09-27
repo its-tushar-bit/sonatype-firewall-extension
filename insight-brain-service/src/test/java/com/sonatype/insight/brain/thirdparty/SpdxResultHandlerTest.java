@@ -170,6 +170,24 @@ public class SpdxResultHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_fallbackToCpe() throws Exception {
+    String sbomContent = getSbomXmlFile("invalid-purl-bom.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("invalid-purl-bom.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = spdxResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    Bom bom = assertFilteredSbomFile(filteredContent, 1);
+    List<Component> components = bom.getComponents();
+    assertThat(components).extracting(Component::getName).containsExactly("fonts-filesystem");
+    assertThat(components).extracting(Component::getVersion).containsExactly("2.0.5");
+
+    assertThat(components).extracting(Component::getPurl).containsExactly("pkg:cpe/red_inc./fonts-filesystem@2.0.5");
+
+    assertDebugLogOutput("Invalid Component Identifier for provided purl pkg:rpm/fonts-filesystem@2.0.5");
+  }
+
+  @Test
   public void testHandleAndFilterContents_nullContent() {
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, null);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -700,5 +718,9 @@ public class SpdxResultHandlerTest
   private Bom getBom(String content) throws ParseException {
     Parser parser = new XmlParser();
     return parser.parse(new StringReader(content));
+  }
+
+  private void assertDebugLogOutput(final String message) {
+    assertThat(logOutput.getDebugMessages(loggerName)).contains(message);
   }
 }

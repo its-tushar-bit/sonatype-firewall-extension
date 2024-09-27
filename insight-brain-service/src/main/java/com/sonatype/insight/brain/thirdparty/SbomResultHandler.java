@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import javax.xml.parsers.ParserConfigurationException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
@@ -396,7 +397,10 @@ public class SbomResultHandler
       }
     }
     catch (InvalidPackageURLException e) {
-      log.debug("Invalid purl: {}", packageUrl);
+      log.debug("Invalid purl: {}", packageUrl, e);
+    }
+    catch (InvalidComponentIdentifierException e) {
+      log.debug("Invalid Component Identifier for provided purl {}", packageUrl, e);
     }
     String cpe = sourceComponent.getCpe();
     PackageUrlIdentifier packageUrlIdentifier = SbomIdentityUtils.buildPackageUrlFromCpe(cpe);
@@ -487,6 +491,7 @@ public class SbomResultHandler
     }
 
     componentIdentifier = packageUrlIdentifier.toComponentIdentifier();
+    componentIdentifier.ensureComplete();
     component.setName(packageUrlIdentifier.getName());
     component.setVersion(packageUrlIdentifier.getVersion());
     String namespace = packageUrlIdentifier.getNamespace();

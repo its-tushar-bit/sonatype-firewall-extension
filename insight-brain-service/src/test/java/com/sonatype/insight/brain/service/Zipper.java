@@ -45,6 +45,16 @@ public class Zipper
     }
   }
 
+  public static void zipFilesInDirectory(File sourceDir, File zipTarget) throws IOException {
+    try (FileOutputStream fos = new FileOutputStream(zipTarget); ZipOutputStream zos = new ZipOutputStream(fos)) {
+      File[] children = sourceDir.listFiles();
+      assert children != null;
+      for (File childFile : children) {
+        zipFile(childFile, childFile.getName(), zos);
+      }
+    }
+  }
+
   public static void zipDirectory(File sourceDir, File zipTarget) throws IOException {
     try (FileOutputStream fos = new FileOutputStream(zipTarget); ZipOutputStream zos = new ZipOutputStream(fos)) {
       zipFile(sourceDir, sourceDir.getName(), zos);

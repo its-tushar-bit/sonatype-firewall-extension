@@ -211,8 +211,6 @@ public enum SystemConfigurationPropertyFeature
 
   DEVELOPER_SUMMARY_TABLE(SystemConfigurationProperty.DEVELOPER_SUMMARY_TABLE, true),
 
-  SECURE_SHARING(SystemConfigurationProperty.SECURE_SHARING, false),
-
   CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT(SystemConfigurationProperty.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT,
       true),
 

@@ -16,7 +16,6 @@ public class PermissionCategoryTest
     assertPermissionCategory(PermissionCategory.ADMINISTRATOR, "Administrator");
     assertPermissionCategory(PermissionCategory.REMEDIATION, "Remediation");
     assertPermissionCategory(PermissionCategory.IQ, "IQ");
-    assertPermissionCategory(PermissionCategory.SBOM, "SBOM");
   }
 
   private void assertPermissionCategory(final PermissionCategory permissionCategory, final String expectedDisplayName) {

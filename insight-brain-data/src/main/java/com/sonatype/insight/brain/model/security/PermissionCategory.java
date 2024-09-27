@@ -11,9 +11,7 @@ public enum PermissionCategory
 
   REMEDIATION("Remediation"),
 
-  IQ("IQ"),
-
-  SBOM("SBOM");
+  IQ("IQ");
 
   private final String displayName;
 

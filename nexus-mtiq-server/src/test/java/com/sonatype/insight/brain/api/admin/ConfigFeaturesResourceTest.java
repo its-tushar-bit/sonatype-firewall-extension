@@ -107,7 +107,6 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.OAUTH2_ENABLED.getId(),
           SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.getId(),
           SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS.getId(),
-          SystemConfigurationPropertyFeature.SECURE_SHARING.getId(),
           SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId(),
           SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.getId(),
           SystemConfigurationPropertyFeature.SBOM_POLICIES.getId(),

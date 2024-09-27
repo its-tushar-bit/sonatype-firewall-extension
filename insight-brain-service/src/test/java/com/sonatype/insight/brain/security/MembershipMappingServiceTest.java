@@ -31,7 +31,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapProtocol;
@@ -43,13 +42,11 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.webhook.ManagementEvent.RoleEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.After;
 import org.junit.Rule;
@@ -94,9 +91,6 @@ public class MembershipMappingServiceTest
   @Inject
   private LdapService ldapService;
 
-  @Inject
-  private TestProductLicense testProductLicense;
-
   @Rule
   public TestLdapServer testLdapServer = new TestLdapServer();
 
@@ -140,186 +134,31 @@ public class MembershipMappingServiceTest
   }
 
   @Test
-  public void testGetApplicableMembershipMappings_ApplicationContext_WithSbomManager_WithSecureSharing()
-      throws Exception
-  {
-    testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
-    testGetApplicableMembershipMappings(tempEntity.newApplicationWithParent(), true);
+  public void testGetApplicableMembershipMappings_ApplicationContext() throws Exception {
+    testGetApplicableMembershipMappings(tempEntity.newApplicationWithParent());
   }
 
   @Test
-  public void testGetApplicableMembershipMappings_ApplicationContext_WithSbomManager_WithoutSecureSharing()
-      throws Exception
-  {
-    testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
-    testGetApplicableMembershipMappings(tempEntity.newApplicationWithParent(), false);
+  public void testGetApplicableMembershipMappings_OrganizationContext() throws Exception {
+    testGetApplicableMembershipMappings(tempEntity.newOrganization());
   }
 
   @Test
-  public void testGetApplicableMembershipMappings_ApplicationContext_WithoutSbomManager_WithSecureSharing()
-      throws Exception
-  {
-    testProductLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
-    testGetApplicableMembershipMappings(tempEntity.newApplicationWithParent(), false);
+  public void testGetApplicableMembershipMappings_RepositoryContainerContext() throws Exception {
+    testGetApplicableMembershipMappings(RepositoryContainer.SINGLETON);
   }
 
   @Test
-  public void testGetApplicableMembershipMappings_ApplicationContext_WithoutSbomManager_WithoutSecureSharing()
-      throws Exception
-  {
-    testProductLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
-    testGetApplicableMembershipMappings(tempEntity.newApplicationWithParent(), false);
+  public void testGetApplicableMembershipMappings_RepositoryManagerContext() throws Exception {
+    testGetApplicableMembershipMappings(tempEntity.newRepositoryManager());
   }
 
   @Test
-  public void testGetApplicableMembershipMappings_OrganizationContext_WithSbomManager_WithSecureSharing()
-      throws Exception
-  {
-    testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
-    testGetApplicableMembershipMappings(tempEntity.newOrganization(), true);
+  public void testGetApplicableMembershipMappings_RepositoryContext() throws Exception {
+    testGetApplicableMembershipMappings(tempEntity.newRepository());
   }
 
-  @Test
-  public void testGetApplicableMembershipMappings_OrganizationContext_WithSbomManager_WithoutSecureSharing()
-      throws Exception
-  {
-    testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
-    testGetApplicableMembershipMappings(tempEntity.newOrganization(), false);
-  }
-
-  @Test
-  public void testGetApplicableMembershipMappings_OrganizationContext_WithoutSbomManager_WithSecureSharing()
-      throws Exception
-  {
-    testProductLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
-    testGetApplicableMembershipMappings(tempEntity.newOrganization(), false);
-  }
-
-  @Test
-  public void testGetApplicableMembershipMappings_OrganizationContext_WithoutSbomManager_WithoutSecureSharing()
-      throws Exception
-  {
-    testProductLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
-    testGetApplicableMembershipMappings(tempEntity.newOrganization(), false);
-  }
-
-  @Test
-  public void testGetApplicableMembershipMappings_RepositoryContainerContext_WithSbomManager_WithSecureSharing()
-      throws Exception
-  {
-    testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
-    testGetApplicableMembershipMappings(RepositoryContainer.SINGLETON, true);
-  }
-
-  @Test
-  public void testGetApplicableMembershipMappings_RepositoryContainerContext_WithSbomManager_WithoutSecureSharing()
-      throws Exception
-  {
-    testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
-    testGetApplicableMembershipMappings(RepositoryContainer.SINGLETON, false);
-  }
-
-  @Test
-  public void testGetApplicableMembershipMappings_RepositoryContainerContext_WithoutSbomManager_WithSecureSharing()
-      throws Exception
-  {
-    testProductLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
-    testGetApplicableMembershipMappings(RepositoryContainer.SINGLETON, false);
-  }
-
-  @Test
-  public void testGetApplicableMembershipMappings_RepositoryContainerContext_WithoutSbomManager_WithoutSecureSharing()
-      throws Exception
-  {
-    testProductLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
-    testGetApplicableMembershipMappings(RepositoryContainer.SINGLETON, false);
-  }
-
-  @Test
-  public void testGetApplicableMembershipMappings_RepositoryManagerContext_WithSbomManager_WithSecureSharing()
-      throws Exception
-  {
-    testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
-    testGetApplicableMembershipMappings(tempEntity.newRepositoryManager(), true);
-  }
-
-  @Test
-  public void testGetApplicableMembershipMappings_RepositoryManagerContext_WithSbomManager_WithoutSecureSharing()
-      throws Exception
-  {
-    testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
-    testGetApplicableMembershipMappings(tempEntity.newRepositoryManager(), false);
-  }
-
-  @Test
-  public void testGetApplicableMembershipMappings_RepositoryManagerContext_WithoutSbomManager_WithSecureSharing()
-      throws Exception
-  {
-    testProductLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
-    testGetApplicableMembershipMappings(tempEntity.newRepositoryManager(), false);
-  }
-
-  @Test
-  public void testGetApplicableMembershipMappings_RepositoryManagerContext_WithoutSbomManager_WithoutSecureSharing()
-      throws Exception
-  {
-    testProductLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
-    testGetApplicableMembershipMappings(tempEntity.newRepositoryManager(), false);
-  }
-
-  @Test
-  public void testGetApplicableMembershipMappings_RepositoryContext_WithSbomManager_WithSecureSharing()
-      throws Exception
-  {
-    testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
-    testGetApplicableMembershipMappings(tempEntity.newRepository(), true);
-  }
-
-  @Test
-  public void testGetApplicableMembershipMappings_RepositoryContext_WithSbomManager_WithoutSecureSharing()
-      throws Exception
-  {
-    testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
-    testGetApplicableMembershipMappings(tempEntity.newRepository(), false);
-  }
-
-  @Test
-  public void testGetApplicableMembershipMappings_RepositoryContext_WithoutSbomManager_WithSecureSharing()
-      throws Exception
-  {
-    testProductLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
-    testGetApplicableMembershipMappings(tempEntity.newRepository(), false);
-  }
-
-  @Test
-  public void testGetApplicableMembershipMappings_RepositoryContext_WithoutSbomManager_WithoutSecureSharing()
-      throws Exception
-  {
-    testProductLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
-    testGetApplicableMembershipMappings(tempEntity.newRepository(), false);
-  }
-
-  private void testGetApplicableMembershipMappings(Owner owner, boolean includeSbomRoles) throws Exception {
+  private void testGetApplicableMembershipMappings(Owner owner) throws Exception {
     startLdapServer();
 
     tempEntity.newMembershipMapping(owner.getId(), Role.DEVELOPER_ROLE_ID, "test_user1", MemberType.USER);
@@ -331,12 +170,7 @@ public class MembershipMappingServiceTest
     ApplicableMembershipMappings applicableMembershipMappings =
         membershipMappingService.getApplicableMembershipMappings(owner.getType(), owner.getId());
 
-    if (includeSbomRoles) {
-      assertThat(applicableMembershipMappings.membersByRole).hasSize(7);
-    }
-    else {
-      assertThat(applicableMembershipMappings.membersByRole).hasSize(5);
-    }
+    assertThat(applicableMembershipMappings.membersByRole).hasSize(5);
 
     MembersByRole membersByRoles = applicableMembershipMappings.membersByRole.get(0);
     Member expectedMember = new Member(MemberType.USER, user.getUsername(), user.calculateDisplayName(),
@@ -359,14 +193,6 @@ public class MembershipMappingServiceTest
 
     membersByRoles = applicableMembershipMappings.membersByRole.get(4);
     assertMembersByRoleOwner(membersByRoles, roleDAO.getById(Role.OWNER_ROLE_ID), owner, null);
-
-    if (includeSbomRoles) {
-      membersByRoles = applicableMembershipMappings.membersByRole.get(5);
-      assertMembersByRoleOwner(membersByRoles, roleDAO.getById(Role.SBOM_EXPORTER_ROLE_ID), owner, null);
-
-      membersByRoles = applicableMembershipMappings.membersByRole.get(6);
-      assertMembersByRoleOwner(membersByRoles, roleDAO.getById(Role.SBOM_IMPORTER_ROLE_ID), owner, null);
-    }
   }
 
   @Test
@@ -826,38 +652,7 @@ public class MembershipMappingServiceTest
   }
 
   @Test
-  public void testGetPermissionsForUserPrincipal_WithSbomManager_WithSecureSharing() {
-    testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
-    testGetPermissionsForUserPrincipal("Add", "Change", "Claim", "Edit", "Evaluate", "Manage",
-        "Review", "View", "Waive", "Export", "Import");
-  }
-
-  @Test
-  public void testGetPermissionsForUserPrincipal_WithSbomManager_WithoutSecureSharing() {
-    testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
-    testGetPermissionsForUserPrincipal("Add", "Change", "Claim", "Edit", "Evaluate", "Manage",
-        "Review", "View", "Waive");
-  }
-
-  @Test
-  public void testGetPermissionsForUserPrincipal_WithoutSbomManager_WithSecureSharing() {
-    testProductLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
-    testGetPermissionsForUserPrincipal("Add", "Change", "Claim", "Edit", "Evaluate", "Manage",
-        "Review", "View", "Waive");
-  }
-
-  @Test
-  public void testGetPermissionsForUserPrincipal_WithoutSbomManager_WithoutSecureSharing() {
-    testProductLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
-    testGetPermissionsForUserPrincipal("Add", "Change", "Claim", "Edit", "Evaluate", "Manage",
-        "Review", "View", "Waive");
-  }
-
-  private void testGetPermissionsForUserPrincipal(final String... expectedPermissions) {
+  public void testGetPermissionsForUserPrincipal() {
     String username = "username";
     Set<String> membership = new HashSet<>(Arrays.asList("developers", "qa"));
     tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, SYSTEM_ADMIN_ROLE_ID, username);
@@ -868,7 +663,8 @@ public class MembershipMappingServiceTest
     Set<String> actual = membershipMappingService.getPermissionsForUserPrincipal(username, membership);
 
     assertThat(actual).isNotNull();
-    assertThat(actual).containsExactlyInAnyOrderElementsOf(Arrays.asList(expectedPermissions));
+    assertThat(actual).containsExactlyInAnyOrder("Add", "Change", "Claim", "Edit", "Evaluate", "Manage",
+        "Review","View", "Waive");
   }
 
   @Test

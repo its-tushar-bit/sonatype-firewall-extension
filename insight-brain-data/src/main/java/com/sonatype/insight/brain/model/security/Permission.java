@@ -60,11 +60,7 @@ public enum Permission
       true /* global */, true /* allowedInCustomRoles */),
 
   LEGAL_REVIEWER("Review", PermissionCategory.REMEDIATION, "Legal obligations for components licenses",
-      false /* global */, true /* allowedInCustomRoles */),
-
-  EXPORT_SBOM("Export", PermissionCategory.SBOM, "SBOMs", false /* global */, true /* allowedInCustomRoles */),
-
-  IMPORT_SBOM("Import", PermissionCategory.SBOM, "SBOMs", false /* global */, true /* allowedInCustomRoles */);
+      false /* global */, true /* allowedInCustomRoles */);
 
   private final String displayName;
 

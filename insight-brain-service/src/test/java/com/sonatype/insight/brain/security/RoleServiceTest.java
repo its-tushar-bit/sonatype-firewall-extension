@@ -11,13 +11,10 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleDTO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.PermissionCategory;
 import com.sonatype.insight.brain.model.security.Role;
-import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Test;
 
@@ -32,9 +29,6 @@ public class RoleServiceTest
   @Inject
   private RoleDAO roleDAO;
 
-  @Inject
-  private TestProductLicense productLicense;
-
   private static final List<String> ALL_ROLE_IDS = Arrays.asList(
       Role.SYSTEM_ADMIN_ROLE_ID,
       Role.POLICY_ADMIN_ROLE_ID,
@@ -42,54 +36,14 @@ public class RoleServiceTest
       Role.COMPONENT_EVALUATOR_ROLE_ID,
       Role.DEVELOPER_ROLE_ID,
       Role.LEGAL_REVIEWER_ROLE_ID,
-      Role.SBOM_EXPORTER_ROLE_ID,
-      Role.SBOM_IMPORTER_ROLE_ID,
-      Role.OWNER_ROLE_ID
-  );
-
-  private static final List<String> ROLE_IDS_WITHOUT_SBOM_EXPORT_IMPORT = Arrays.asList(
-      Role.SYSTEM_ADMIN_ROLE_ID,
-      Role.POLICY_ADMIN_ROLE_ID,
-      Role.APPLICATION_EVALUATOR_ROLE_ID,
-      Role.COMPONENT_EVALUATOR_ROLE_ID,
-      Role.DEVELOPER_ROLE_ID,
-      Role.LEGAL_REVIEWER_ROLE_ID,
       Role.OWNER_ROLE_ID
   );
 
   @Test
-  public void testGetRoles_WithSbomManager_WithSecureSharing() {
-    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
-    testGetRoles(ALL_ROLE_IDS);
-  }
-
-  @Test
-  public void testGetRoles_WithSbomManager_WithoutSecureSharing() {
-    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
-    testGetRoles(ROLE_IDS_WITHOUT_SBOM_EXPORT_IMPORT);
-  }
-
-  @Test
-  public void testGetRoles_WithoutSbomManager_WithSecureSharing() {
-    productLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
-    testGetRoles(ROLE_IDS_WITHOUT_SBOM_EXPORT_IMPORT);
-  }
-
-  @Test
-  public void testGetRoles_WithoutSbomManager_WithoutSecureSharing() {
-    productLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
-    testGetRoles(ROLE_IDS_WITHOUT_SBOM_EXPORT_IMPORT);
-  }
-
-  private void testGetRoles(final List<String> expectedRoleIds) {
-    List<RoleDTO> roles = roleService.getRoles();
-
+  public void testGetAllRoles() {
+    List<RoleDTO> roles = roleService.getAllRoles();
     assertThat(roles).isNotEmpty();
-    assertThat(roles).extracting(role -> role.id).containsExactlyInAnyOrderElementsOf(expectedRoleIds);
+    assertThat(roles).extracting(role -> role.id).containsExactlyInAnyOrderElementsOf(ALL_ROLE_IDS);
   }
 
   @Test
@@ -105,45 +59,11 @@ public class RoleServiceTest
   }
 
   @Test
-  public void testGetRoleById_Builtin_WithSbomManager_WithSecureSharing() {
-    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
-    testGetRoleById_Builtin(true);
-  }
-
-  @Test
-  public void testGetRoleById_Builtin_WithSbomManager_WithoutSecureSharing() {
-    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
-    testGetRoleById_Builtin(false);
-  }
-
-  @Test
-  public void testGetRoleById_Builtin_WithoutSbomManager_WithSecureSharing() {
-    productLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
-    testGetRoleById_Builtin(false);
-  }
-
-  @Test
-  public void testGetRoleById_Builtin_WithoutSbomManager_WithoutSecureSharing() {
-    productLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
-    testGetRoleById_Builtin(false);
-  }
-
-  private void testGetRoleById_Builtin(final boolean includeSbomRoles) {
+  public void testGetRoleById_Builtin() {
     RoleDTO roleDTO = roleService.getRoleById(Role.SYSTEM_ADMIN_ROLE_ID);
 
     assertThat(roleDTO.id).isEqualTo(Role.SYSTEM_ADMIN_ROLE_ID);
-
-    if (includeSbomRoles) {
-      assertThat(roleDTO.permissionCategories).hasSize(4);
-    }
-    else {
-      assertThat(roleDTO.permissionCategories).hasSize(3);
-    }
-
+    assertThat(roleDTO.permissionCategories).hasSize(3);
     assertAllowedPermissions(roleDTO, Permission.CONFIGURE_SYSTEM, Permission.VIEW_ROLES);
 
     PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
@@ -169,43 +89,10 @@ public class RoleServiceTest
     assertThat(category.displayName).isEqualTo(PermissionCategory.REMEDIATION.getDisplayName());
     assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS, Permission.CHANGE_LICENSES,
         Permission.CHANGE_SECURITY_VULNERABILITIES, Permission.LEGAL_REVIEWER);
-
-    if (includeSbomRoles) {
-      category = roleDTO.permissionCategories.get(3);
-      assertThat(category.displayName).isEqualTo(PermissionCategory.SBOM.getDisplayName());
-      assertListedPermissions(category, Permission.EXPORT_SBOM, Permission.IMPORT_SBOM);
-    }
   }
 
   @Test
-  public void testGetRoleById_Custom_WithSbomManager_WithSecureSharing() {
-    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
-    testGetRoleById_Custom(true);
-  }
-
-  @Test
-  public void testGetRoleById_Custom_WithSbomManager_WithoutSecureSharing() {
-    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
-    testGetRoleById_Custom(false);
-  }
-
-  @Test
-  public void testGetRoleById_Custom_WithoutSbomManager_WithSecureSharing() {
-    productLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
-    testGetRoleById_Custom(false);
-  }
-
-  @Test
-  public void testGetRoleById_Custom_WithoutSbomManager_WithoutSecureSharing() {
-    productLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
-    testGetRoleById_Custom(false);
-  }
-
-  private void testGetRoleById_Custom(final boolean includeSbomRoles) {
+  public void testGetRoleById_Custom() {
     Role expectedRole = tempEntity.newRole(false, Permission.WRITE);
 
     RoleDTO roleDTO = roleService.getRoleById(expectedRole.getId());
@@ -213,13 +100,7 @@ public class RoleServiceTest
     assertThat(roleDTO.name).isEqualTo(expectedRole.getName());
     assertThat(roleDTO.description).isEqualTo(expectedRole.getDescription());
 
-    if (includeSbomRoles) {
-      assertThat(roleDTO.permissionCategories).hasSize(4);
-    }
-    else {
-      assertThat(roleDTO.permissionCategories).hasSize(3);
-    }
-
+    assertThat(roleDTO.permissionCategories).hasSize(3);
     assertAllowedPermissions(roleDTO, Permission.WRITE);
 
     PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
@@ -244,27 +125,16 @@ public class RoleServiceTest
     assertThat(category.displayName).isEqualTo(PermissionCategory.REMEDIATION.getDisplayName());
     assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS, Permission.CHANGE_LICENSES,
         Permission.CHANGE_SECURITY_VULNERABILITIES, Permission.LEGAL_REVIEWER);
-
-    if (includeSbomRoles) {
-      category = roleDTO.permissionCategories.get(3);
-      assertThat(category.displayName).isEqualTo(PermissionCategory.SBOM.getDisplayName());
-      assertListedPermissions(category, Permission.EXPORT_SBOM, Permission.IMPORT_SBOM);
-    }
   }
 
-  private void testGetTemplateForNewRole(final boolean includeSbomRoles) {
+  @Test
+  public void testGetTemplateForNewRole() {
     RoleDTO roleDTO = roleService.getTemplateForNewRole();
     assertThat(roleDTO.id).isNull();
     assertThat(roleDTO.name).isNull();
     assertThat(roleDTO.description).isNull();
 
-    if (includeSbomRoles) {
-      assertThat(roleDTO.permissionCategories).hasSize(4);
-    }
-    else {
-      assertThat(roleDTO.permissionCategories).hasSize(3);
-    }
-
+    assertThat(roleDTO.permissionCategories).hasSize(3);
     assertAllowedPermissions(roleDTO);
 
     PermissionCategoryDTO category = roleDTO.permissionCategories.get(0);
@@ -289,50 +159,15 @@ public class RoleServiceTest
     assertThat(category.displayName).isEqualTo(PermissionCategory.REMEDIATION.getDisplayName());
     assertListedPermissions(category, Permission.WAIVE_POLICY_VIOLATIONS, Permission.CHANGE_LICENSES,
         Permission.CHANGE_SECURITY_VULNERABILITIES, Permission.LEGAL_REVIEWER);
-
-    if (includeSbomRoles) {
-      category = roleDTO.permissionCategories.get(3);
-      assertThat(category.displayName).isEqualTo(PermissionCategory.SBOM.getDisplayName());
-      assertListedPermissions(category, Permission.EXPORT_SBOM, Permission.IMPORT_SBOM);
-    }
-  }
-
-  @Test
-  public void testGetTemplateForNewRole_WithSbomManager_WithSecureSharing() {
-    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
-    testGetTemplateForNewRole(true);
-  }
-
-  @Test
-  public void testGetTemplateForNewRole_WithSbomManager_WithoutSecureSharing() {
-    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
-    testGetTemplateForNewRole(false);
-  }
-
-  @Test
-  public void testGetTemplateForNewRole_WithoutSbomManager_WithSecureSharing() {
-    productLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(true);
-    testGetTemplateForNewRole(false);
-  }
-
-  @Test
-  public void testGetTemplateForNewRole_WithoutSbomManager_WithoutSecureSharing() {
-    productLicense.setMissingFeatures(LicensedFeature.SBOM_MANAGER);
-    SystemConfigurationPropertyFeature.SECURE_SHARING.setEnabled(false);
-    testGetTemplateForNewRole(false);
   }
 
   @Test
   public void testGetRolesAsApiRoleListDTO() {
-    List<Role> expectedRoles = ROLE_IDS_WITHOUT_SBOM_EXPORT_IMPORT.stream().map(roleDAO::getById).toList();
-
+    List<Role> allRoles = roleDAO.getAll();
     List<ApiRoleDTO> roles = roleService.getRolesAsApiRoleListDTO().roles;
 
-    assertThat(roles).hasSize(expectedRoles.size());
-    for (Role role : expectedRoles) {
+    assertThat(roles).hasSize(allRoles.size());
+    for (Role role : allRoles) {
       ApiRoleDTO roleDTO = roles.stream().filter(r -> role.getId().equals(r.id)).findFirst().orElse(null);
       assertThat(roleDTO).isNotNull();
       assertThat(roleDTO.name).isEqualTo(role.getName());

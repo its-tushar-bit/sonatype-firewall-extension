@@ -904,50 +904,6 @@ public class ApiConfigFeaturesServiceTest
   }
 
   @Test
-  public void testGetSystemConfigurationPropertyFeature_SecureSharing() {
-    assertThat(service.getSystemConfigurationPropertyFeature("secure-sharing")).isEqualTo(
-        SystemConfigurationPropertyFeature.SECURE_SHARING);
-    assertThat(service.getSystemConfigurationPropertyFeature("Secure-Sharing")).isEqualTo(
-        SystemConfigurationPropertyFeature.SECURE_SHARING);
-    assertThat(service.getSystemConfigurationPropertyFeature("SECURE_SHARING")).isEqualTo(
-        SystemConfigurationPropertyFeature.SECURE_SHARING);
-    assertThat(service.getSystemConfigurationPropertyFeature("secureSharing")).isEqualTo(
-        SystemConfigurationPropertyFeature.SECURE_SHARING);
-  }
-
-  @Test
-  public void testEnableFeature_SecureSharing() {
-    service.enableFeature(SystemConfigurationProperty.SECURE_SHARING);
-
-    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.SECURE_SHARING).getValue())
-        .isEqualTo("true");
-  }
-
-  @Test
-  public void testEnableFeature_SecureSharing_AlreadyEnabled() {
-    service.enableFeature(SystemConfigurationProperty.SECURE_SHARING);
-
-    assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.SECURE_SHARING)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already enabled.");
-  }
-
-  @Test
-  public void testDisableFeature_SecureSharing() {
-    tempEntity.newSystemConfigurationProperty(SystemConfigurationPropertyFeature.SECURE_SHARING.getPropertyName(),
-        "true");
-
-    service.disableFeature(SystemConfigurationProperty.SECURE_SHARING);
-
-    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.SECURE_SHARING)).isNull();
-  }
-
-  @Test
-  public void testDisableFeature_SecureSharing_AlreadyDisabled() {
-    assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.SECURE_SHARING)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already disabled.");
-  }
-
-  @Test
   public void testGetSystemConfigurationPropertyFeature_CleanUpContinuousMonitoringReport() {
     assertThat(service.getSystemConfigurationPropertyFeature("clean-up-sbom-continuous-monitoring-report")).isEqualTo(
         SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT);

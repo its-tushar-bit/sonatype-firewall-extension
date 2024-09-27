@@ -229,8 +229,6 @@ public class SystemConfigurationProperty
 
   public static final String DEVELOPER_BULK_RECOMMENDATIONS = "developerBulkRecommendations";
 
-  public static final String SECURE_SHARING = "secureSharing";
-
   public static final String DEVELOPER_SUMMARY_TABLE = "developerSummaryTable";
 
   public static final String CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT = "cleanUpSbomContinuousMonitoringReport";

@@ -54,8 +54,6 @@ public class PermissionTest
         "Automatic Source Control Configuration", true, true);
     assertPermission(Permission.LEGAL_REVIEWER, "Review", PermissionCategory.REMEDIATION,
         "Legal obligations for components licenses", false, true);
-    assertPermission(Permission.EXPORT_SBOM, "Export", PermissionCategory.SBOM, "SBOMs", false, true);
-    assertPermission(Permission.IMPORT_SBOM, "Import", PermissionCategory.SBOM, "SBOMs", false, true);
   }
 
   private void assertPermission(

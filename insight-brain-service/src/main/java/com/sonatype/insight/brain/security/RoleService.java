@@ -10,7 +10,6 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -18,13 +17,10 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRoleListDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiRoleAdapter;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.PermissionCategory;
 import com.sonatype.insight.brain.model.security.Role;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -41,34 +37,23 @@ public class RoleService
 
   private final RolePermissionService rolePermissionService;
 
-  private final ProductLicense productLicense;
-
   @Inject
-  public RoleService(
-      final RoleDAO roleDAO,
-      final RolePermissionService rolePermissionService,
-      final ProductLicense productLicense)
-  {
+  public RoleService(final RoleDAO roleDAO, final RolePermissionService rolePermissionService) {
     this.roleDAO = roleDAO;
     this.rolePermissionService = rolePermissionService;
-    this.productLicense = productLicense;
   }
 
   /**
    * Note: as an optimization we will not populate the permissions as the UI does not need them for get all.
    */
   @Authorize(permission = Permission.VIEW_ROLES)
-  public List<RoleDTO> getRoles() {
-    return convertRolesToDTO(getApplicableRoles());
+  public List<RoleDTO> getAllRoles() {
+    return convertRolesToDTO(roleDAO.getAll());
   }
 
   @Authorize(permission = Permission.VIEW_ROLES)
   public ApiRoleListDTO getRolesAsApiRoleListDTO() {
-    return ApiRoleAdapter.convertToDTO(getApplicableRoles());
-  }
-
-  private List<Role> getApplicableRoles() {
-    return filterOutSecureSharingRolesIfNeeded(roleDAO.getAll(), Role::getId);
+    return ApiRoleAdapter.convertToDTO(roleDAO.getAll());
   }
 
   @Authorize(permission = Permission.VIEW_ROLES)
@@ -182,12 +167,8 @@ public class RoleService
                                                               final boolean customRole)
   {
     ListMultimap<PermissionCategory, PermissionDTO> permissionsByCategoryMap = ArrayListMultimap.create();
-    boolean isSecureSharingEnabled = SystemConfigurationPropertyFeature.SECURE_SHARING.isEnabled();
     for (Permission perm : EnumSet.allOf(Permission.class)) {
       if (customRole && !perm.isAllowedInCustomRoles()) {
-        continue;
-      }
-      if (!isPermissionEnabled(isSecureSharingEnabled, perm)) {
         continue;
       }
       permissionsByCategoryMap.put(perm.getCategory(), new PermissionDTO(perm, permissions.contains(perm)));
@@ -207,33 +188,4 @@ public class RoleService
   // just so happens that alpha sort works for now
   private static final Comparator<PermissionCategoryDTO> PERMISSION_CATEGORY_COMPARATOR =
       (dto1, dto2) -> dto1.displayName.compareToIgnoreCase(dto2.displayName);
-
-  public <E> List<E> filterOutSecureSharingRolesIfNeeded(
-      final List<E> elements,
-      final Function<E, String> elementToRoleId)
-  {
-    List<E> result = new ArrayList<>(elements);
-    if (!isSecureSharingRoleOrPermissionEnabled()) {
-      result.removeIf(
-          element -> elementToRoleId.apply(element).equals(Role.SBOM_EXPORTER_ROLE_ID) ||
-              elementToRoleId.apply(element).equals(Role.SBOM_IMPORTER_ROLE_ID));
-    }
-    return result;
-  }
-
-  public boolean isPermissionEnabled(
-      final boolean isSecureSharingEnabled,
-      final Permission permission)
-  {
-    return permission.getCategory() != PermissionCategory.SBOM ||
-        isSecureSharingRoleOrPermissionEnabled(isSecureSharingEnabled);
-  }
-
-  private boolean isSecureSharingRoleOrPermissionEnabled() {
-    return isSecureSharingRoleOrPermissionEnabled(SystemConfigurationPropertyFeature.SECURE_SHARING.isEnabled());
-  }
-
-  private boolean isSecureSharingRoleOrPermissionEnabled(final boolean isSecureSharingEnabled) {
-    return productLicense.hasFeature(LicensedFeature.SBOM_MANAGER) && isSecureSharingEnabled;
-  }
 }

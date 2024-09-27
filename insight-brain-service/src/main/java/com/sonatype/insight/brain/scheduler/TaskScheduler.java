@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -27,6 +26,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
+import com.sonatype.insight.brain.utils.Retry;
 
 import io.dropwizard.lifecycle.Managed;
 import org.quartz.CronScheduleBuilder;
@@ -360,8 +360,15 @@ public class TaskScheduler
   }
 
   protected boolean unscheduleTask(JobKey jobKey, Scheduler scheduler) {
+    Retry retry = new Retry(
+        "unscheduleTask " + jobKey,
+        4, 
+        null,
+        e -> e.getMessage().contains("Unable to unschedule trigger"),
+        Duration::ofSeconds
+    );
     try {
-      return scheduler.deleteJob(jobKey);
+      return retry.executeCallable(() -> scheduler.deleteJob(jobKey));
     }
     catch (SchedulerException e) {
       throw new RuntimeException(e);

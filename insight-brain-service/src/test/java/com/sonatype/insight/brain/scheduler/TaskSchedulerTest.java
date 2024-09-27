@@ -31,6 +31,7 @@ import com.google.inject.Binder;
 import com.google.inject.matcher.Matchers;
 import org.aopalliance.intercept.Joinpoint;
 import org.aopalliance.intercept.MethodInterceptor;
+import org.apache.commons.lang.time.DateUtils;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -175,6 +176,34 @@ public class TaskSchedulerTest
   private Class<? extends Job> getTestJobClass() {
     // NOTE: unlike TestJob.class, this yields a bytecode enhanced class which is more interesting
     return testJob.getClass();
+  }
+
+  @Test
+  public void testUnscheduleSchedule() throws Exception {
+    taskScheduler.start();
+    Runnable runnable = () -> {
+      taskScheduler.unscheduleTask(testJob);
+      // We don't need the job to start, just for it to be scheduled
+      taskScheduler.schedulePeriodicTask(testJob, Duration.ofMinutes(15), DateUtils.addHours(new Date(), 5));
+    };
+
+    testInMultipleThreadsAndThrowAnyException(runnable, 4, Duration.ofSeconds(3));
+
+    assertThat(taskScheduler.isTaskScheduled(testJob)).isTrue();
+  }
+
+  @Test
+  public void testScheduleUnschedule() throws Exception {
+    taskScheduler.start();
+    Runnable runnable = () -> {
+      // We don't need the job to start, just for it to be scheduled
+      taskScheduler.schedulePeriodicTask(testJob, Duration.ofMinutes(15), DateUtils.addHours(new Date(), 5));
+      taskScheduler.unscheduleTask(testJob);
+    };
+
+    testInMultipleThreadsAndThrowAnyException(runnable, 4, Duration.ofSeconds(3));
+
+    assertThat(taskScheduler.isTaskScheduled(testJob)).isFalse();
   }
 
   @Test

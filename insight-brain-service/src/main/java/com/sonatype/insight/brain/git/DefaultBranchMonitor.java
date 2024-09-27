@@ -70,14 +70,13 @@ public class DefaultBranchMonitor
   }
 
   public void scheduleDefaultBranchMonitoring() {
-    taskScheduler.unscheduleTask(this);
-
-    if (!apiConfigFeaturesService.isDefaultBranchMonitoringEnabled()) {
-      log.debug("default branch monitoring is not enabled");
-      return;
+    if (apiConfigFeaturesService.isDefaultBranchMonitoringEnabled()) {
+      branchMonitorExecutor.schedule(this);
     }
-
-    branchMonitorExecutor.schedule(this);
+    else {
+      log.debug("default branch monitoring is not enabled");
+      taskScheduler.unscheduleTask(this);
+    }
   }
 
   @Override

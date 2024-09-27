@@ -151,6 +151,14 @@ public class DefaultBranchMonitorTest
   }
 
   @Test
+  public void testStart_FeatureEnabled() {
+    defaultBranchMonitor.register();
+
+    verify(taskSchedulerMock).schedulePeriodicTask(any(), any(), any());
+    verify(taskSchedulerMock, never()).unscheduleTask(defaultBranchMonitor);
+  }
+
+  @Test
   public void testStart_SaasLifecycleSCMFeatureDisabled() {
     when(mockApiConfigFeaturesService.isDefaultBranchMonitoringEnabled()).thenReturn(false);
     defaultBranchMonitor.register();

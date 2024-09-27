@@ -7,9 +7,11 @@ package com.sonatype.insight.brain.service;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -389,5 +391,36 @@ public class AbstractComponentTest
   private void loadSsoConfiguration() {
     SsoUserService ssoUserService = lookup(SsoUserService.class);
     ssoUserService.loadSsoConfiguration();
+  }
+
+  protected void testInMultipleThreadsAndThrowAnyException(
+      final Runnable runnable,
+      final int threadCount,
+      final Duration duration)
+      throws Exception
+  {
+    AtomicReference<Exception> exception = new AtomicReference<>();
+
+    List<Thread> threads = new ArrayList<>();
+    for (int i = 0; i < threadCount; i++) {
+      threads.add(new Thread(() -> {
+        try {
+          long start = System.currentTimeMillis();
+          while (System.currentTimeMillis() - start < duration.toMillis() && exception.get() == null) {
+            runnable.run();
+          }
+        }
+        catch (Exception e) {
+          exception.set(e);
+        }
+      }));
+    }
+    threads.forEach(Thread::start);
+    for (Thread thread : threads) {
+      thread.join();
+    }
+    if (exception.get() != null) {
+      throw exception.get();
+    }
   }
 }

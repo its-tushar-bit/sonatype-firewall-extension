@@ -202,13 +202,15 @@ public class ComponentRemediationService
       if (SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.isEnabled()) {
         nonBreakingVersionsSortedByScore.addAll(versionScoringService.getSortedNonBreakingVersionsNoAuth(
             List.of(currentComponent)).getOrDefault(currentComponent, Collections.emptyList()));
-        Set<ComponentIdentifier> nonFailingVersionsSet =
-            nonFailingVersions.stream().map(dto -> dto.componentIdentifier).collect(Collectors.toSet());
-        Optional<ComponentIdentifier> topScoreNonFailingNonBreakingVersion = nonBreakingVersionsSortedByScore.stream()
+        Set<ComponentIdentifier> nonViolatingVersionsSet =
+            findNoViolatingAboveSeverityThreshold(currentIndex, allVersions, 2)
+                .map(dto -> dto.componentIdentifier)
+                .collect(Collectors.toSet());
+        Optional<ComponentIdentifier> topScoreNonViolatingNonBreakingVersion = nonBreakingVersionsSortedByScore.stream()
             .map(currentComponent::createAlternativeVersion)
-            .filter(nonFailingVersionsSet::contains)
+            .filter(nonViolatingVersionsSet::contains)
             .findFirst();
-        topScoreNonFailingNonBreakingVersion.ifPresent(topScore ->
+        topScoreNonViolatingNonBreakingVersion.ifPresent(topScore ->
             // the non-golden version suggestion should happen before (to be overridden by) the golden suggestion.
             componentRemediationDto.suggestedVersionChange = createSuggestedVersionChangeOption(
             topScore, ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING, false));
@@ -247,21 +249,25 @@ public class ComponentRemediationService
               });
           
           if (SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.isEnabled()) {
-            Set<ComponentIdentifier> nonFailingWithDependenciesSet =
-                nonFailingVersions.stream()
+            Set<ComponentIdentifier> nonViolatingVersionsWithDependenciesSet =
+                findNoViolatingAboveSeverityThreshold(currentIndex, allVersions, 2)
                 .filter(dto -> {
-                  List<PolicyAlert> policyAlerts = dependencyAlerts.get(
-                      PackageUrlIdentifier.fromComponentIdentifier(dto.componentIdentifier));
-                  return policyAlerts == null || !hasFailAction(policyAlerts);
+                  // Get the dependencies of the current component as ComponentDetails
+                  Collection<PackageUrlIdentifier> dependencies = componentDependencies.getDependenciesMap()
+                      .getOrDefault(PackageUrlIdentifier.fromComponentIdentifier(dto.componentIdentifier), List.of());
+                  Stream<ComponentDetails> dependenciesDetailsStream =
+                      dependencies.stream().map(componentDependencies.getDetailsMap()::get);
+                  // Check if all dependencies have no violations above severity threshold
+                  return allMatchNoViolatingAboveSeverityThreshold(dependenciesDetailsStream, 2);
                 })
                 .map(dto -> dto.componentIdentifier)
                 .collect(Collectors.toSet());
-            Optional<ComponentIdentifier> topScoreNonFailingNonBreakingWithDependenciesVersion =
+            Optional<ComponentIdentifier> topScoreNonViolatingNonBreakingWithDependenciesVersion =
                 nonBreakingVersionsSortedByScore.stream()
                 .map(currentComponent::createAlternativeVersion)
-                .filter(nonFailingWithDependenciesSet::contains)
+                .filter(nonViolatingVersionsWithDependenciesSet::contains)
                 .findFirst();
-            topScoreNonFailingNonBreakingWithDependenciesVersion.ifPresent(topScore ->
+            topScoreNonViolatingNonBreakingWithDependenciesVersion.ifPresent(topScore ->
                 // the golden version suggestion should happen after (override) the non-golden version suggestions.
                 componentRemediationDto.suggestedVersionChange = createSuggestedVersionChangeOption(
                     topScore, ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES, true));
@@ -441,6 +447,40 @@ public class ComponentRemediationService
         .skip(startingIndex)
         .filter(dto -> !hasFailAction(dto.policyAlerts))
         .collect(Collectors.toList());
+  }
+
+  private Stream<ComponentDetailsDTO> findNoViolatingAboveSeverityThreshold(int startingIndex,
+                                                                            List<ComponentDetailsDTO> dtos,
+                                                                            int severityThreshold)
+  {
+    return dtos.stream().parallel()
+        .skip(startingIndex)
+        .filter(dto -> {
+          Stream<Integer> stream;
+          if (dto.policyMaxThreatLevelsByCategory == null) {
+            stream = Stream.empty();
+          }
+          else {
+            stream = dto.policyMaxThreatLevelsByCategory.values().stream();
+          }
+          return stream.max(Integer::compareTo).orElse(0) < severityThreshold;
+        });
+  }
+
+  private boolean allMatchNoViolatingAboveSeverityThreshold(Stream<ComponentDetails> details,
+                                                                             int severityThreshold)
+  {
+    return details.parallel()
+        .allMatch(d -> {
+          Stream<Integer> stream;
+          if (d.getPolicyMaxThreatLevelsByCategory() == null) {
+            stream = Stream.empty();
+          }
+          else {
+            stream = d.getPolicyMaxThreatLevelsByCategory().values().stream();
+          }
+          return stream.max(Integer::compareTo).orElse(0) < severityThreshold;
+        });
   }
 
   private ComponentIdentifier tryEnsureCompleteIdentifier(PackageUrlIdentifier versionPurl) {

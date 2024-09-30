@@ -179,6 +179,8 @@ public class SbomResultsMergerTest
     assertThat(tpfc1.getVersion()).isEqualTo("1.0.1");
     assertThat(tpfc1.getHash()).isEqualTo("093080a1a4bbd2750541");
     assertThat(tpfc1.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+    assertThat(tpfc1.getWebsite()).isEqualTo("website");
+    assertThat(tpfc1.getCategoryIds()).isEqualTo("113,114");
     assertThat(tpfc1.getMatchStateId()).isEqualTo("exact");
 
     //verify dependency types correctly set
@@ -1259,8 +1261,19 @@ public class SbomResultsMergerTest
         .put("hash", "093080a1a4bbd2750541")
         .put("createTime", "1706953998000")
         .put("directDependency", true)
-        .put("identificationSource", "Sonatype");
+        .put("identificationSource", "Sonatype")
+        .put("identificationSource", "Sonatype")
+        .put("website", "website");
     componentNode.putArray("filenames").insert(0, "pkg:pypi/orange@1.0.1");
     componentNode.putArray("pathnames").insert(0, "dependency:/SBOM-bom.json/pkg:pypi\\orange@1.0.1");
+    ArrayNode componentCategories = componentNode.putArray("componentCategories");
+
+    ObjectNode componentCategoryNode1 = componentCategories.insertObject(0);
+    componentCategoryNode1.put("componentCategoryId", 113);
+    componentCategoryNode1.put("path", "Other");
+
+    ObjectNode componentCategoryNode2 = componentCategories.insertObject(1);
+    componentCategoryNode2.put("componentCategoryId", 114);
+    componentCategoryNode2.put("path", "Data Management/Caching");
   }
 }

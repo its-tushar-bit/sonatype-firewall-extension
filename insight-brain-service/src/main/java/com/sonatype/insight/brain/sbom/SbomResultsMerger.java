@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import java.util.zip.GZIPOutputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -403,6 +404,18 @@ public class SbomResultsMerger
     }
     else {
       updateComponentDependencyType(sbomComponent, componentDependencyTypeMap);
+    }
+    if (bomNode.get("website") != null && !bomNode.get("website").isNull()) {
+      sbomComponent.setWebsite(bomNode.get("website").asText());
+    }
+    if (bomNode.get("componentCategories") != null && !bomNode.get("componentCategories").isNull()) {
+      JsonNode componentCategoryArrayNode = bomNode.get("componentCategories");
+      if (componentCategoryArrayNode.isArray()) {
+        String categories = StreamSupport.stream(componentCategoryArrayNode.spliterator(), false)
+            .map(node -> node.get("componentCategoryId").asText())
+            .collect(Collectors.joining(","));
+        sbomComponent.setCategoryIds(categories);
+      }
     }
     if (bomPurl != null && !StringUtils.equals(sbomComponent.getPackageUrl(), bomPurl)) {
       //in certain cases the purl from HDS matched results may be different to the original purl

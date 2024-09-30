@@ -74,6 +74,12 @@ public class ThirdPartyFileCoordinate
   @Column(name = "dependency_type")
   private String dependencyType;
 
+  @Column(name = "website")
+  private String website;
+
+  @Column(name = "category_ids")
+  private String categoryIds;
+
   @Column (name = "match_state_id")
   private String matchStateId;
 
@@ -182,6 +188,22 @@ public class ThirdPartyFileCoordinate
 
   public void setDependencyType(String dependencyType) {
     this.dependencyType = dependencyType;
+  }
+
+  public String getWebsite() {
+    return website;
+  }
+
+  public String getCategoryIds() {
+    return categoryIds;
+  }
+
+  public void setWebsite(final String website) {
+    this.website = website;
+  }
+
+  public void setCategoryIds(final String categoryIds) {
+    this.categoryIds = categoryIds;
   }
 
   public String getMatchStateId() {

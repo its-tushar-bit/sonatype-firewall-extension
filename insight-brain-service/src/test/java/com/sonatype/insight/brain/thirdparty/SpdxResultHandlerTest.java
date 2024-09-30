@@ -129,7 +129,7 @@ public class SpdxResultHandlerTest
         .containsExactlyInAnyOrder(
             "pkg:generic/sonatype/iq_application_SCM%20Test%201@76b10b862e7b42009f2415097620928c",
             "pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar",
-            "pkg:library/org.apache.logging.log4j/log4j-api@2.13.2",
+            "pkg:generic/org.apache.logging.log4j/log4j-api@2.13.2?sbom_type=library",
             null);
     assertThat(components).extracting("properties.size")
         .containsOnly(1, 1, 1, 1);
@@ -158,7 +158,7 @@ public class SpdxResultHandlerTest
         .containsExactlyInAnyOrder(
             "pkg:generic/sonatype/iq_application_SCM%20Test%201@76b10b862e7b42009f2415097620928c",
             "pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar",
-            "pkg:library/org.apache.logging.log4j/log4j-api@2.13.2",
+            "pkg:generic/org.apache.logging.log4j/log4j-api@2.13.2?sbom_type=library",
             "pkg:cpe/apache/log4j@2.11.2?update=rc3",
             null);
     assertThat(components).extracting("properties.size")
@@ -249,7 +249,7 @@ public class SpdxResultHandlerTest
         .containsExactlyInAnyOrder(
             "pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar",
             "pkg:maven/junit/junit@4.12?type=jar",
-            "pkg:application/sonatype/iq_application_SCM%20Test%201@76b10b862e7b42009f2415097620928c",
+            "pkg:generic/sonatype/iq_application_SCM%20Test%201@76b10b862e7b42009f2415097620928c?sbom_type=application",
             "pkg:maven/org.hamcrest/hamcrest-core@1.3?type=jar",
             "pkg:maven/org.apache.logging.log4j/log4j-api@2.13.2?type=jar",
             "pkg:maven/org.yaml/snakeyaml@1.29?type=jar");
@@ -272,10 +272,31 @@ public class SpdxResultHandlerTest
         .containsExactlyInAnyOrder(
             "pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar",
             "pkg:maven/junit/junit@4.12?type=jar",
-            "pkg:application/sonatype/iq_application_SCM%20Test%201@76b10b862e7b42009f2415097620928c",
+            "pkg:generic/sonatype/iq_application_SCM%20Test%201@76b10b862e7b42009f2415097620928c?sbom_type=application",
             "pkg:maven/org.hamcrest/hamcrest-core@1.3?type=jar",
             "pkg:maven/org.apache.logging.log4j/log4j-api@2.13.2?type=jar",
             "pkg:maven/org.yaml/snakeyaml@1.29?type=jar");
+  }
+
+  @Test
+  public void testHandleAndFilterContents_Json_v2_3_noPurl() throws Exception {
+    String sbomContent = getSbomJsonFile("spdx-v2_3-nopurl.json");
+    ThirdPartyScanContent content = new ThirdPartyScanContent("spdx-v2_3-nopurl.json", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    FilteredThirdPartyContent filteredContent =
+        spdxResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    String sbomXml = filteredContent.getContent();
+    // 3 components (1 maven, 1 generic, 1 library with empty purl: 1 skipped because purl is empty and unable to parse
+    Bom bom = assertFilteredSbomFile(sbomXml, 2);
+    assertThat(bom.getMetadata()).isNotNull();
+    assertThat(bom.getMetadata().getComponent().getPurl()).isEqualTo("pkg:generic/sonatype/iq_application_SCM_Test");
+
+    List<Component> components = bom.getComponents();
+    assertThat(components).extracting(Component::getPurl)
+        .containsExactlyInAnyOrder(
+            "pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar",
+            "pkg:generic/sonatype/iq_application_SCM%20Test%201@76b10b862e7b42009f2415097620928c?sbom_type=" +
+                "application");
   }
 
   @Test
@@ -535,8 +556,7 @@ public class SpdxResultHandlerTest
     assertThat(componentInfoTelemetry.getPurlCount()).isEqualTo(2);
     assertThat(componentInfoTelemetry.getHashCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getCoordinateCount()).isEqualTo(1);
-    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("generic", 1), entry("maven", 1),
-        entry("library", 1));
+    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("generic", 2), entry("maven", 1));
     assertThat(componentInfoTelemetry.getHasDependencies()).isEqualTo(true);
     assertThat(componentInfoTelemetry.getValidLicensesCount()).isEqualTo(2);
     assertThat(componentInfoTelemetry.getInvalidLicensesCount()).isEqualTo(0);
@@ -595,7 +615,7 @@ public class SpdxResultHandlerTest
     assertThat(componentInfoTelemetry.getPurlCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getSwidCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getCoordinateCount()).isEqualTo(1);
-    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("application", 1), entry("maven", 1));
+    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("generic", 1), entry("maven", 1));
   }
 
   @Test
@@ -627,7 +647,7 @@ public class SpdxResultHandlerTest
     assertThat(componentInfoTelemetry.getHashCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getCoordinateCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("cpe", 1), entry("maven", 1),
-        entry("library", 1), entry("generic", 1));
+        entry("generic", 2));
   }
 
   private void assertCpeAndSwid(ThirdPartyScanContent content) throws Exception {

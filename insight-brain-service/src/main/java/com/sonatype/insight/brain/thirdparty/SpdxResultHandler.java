@@ -486,12 +486,14 @@ public class SpdxResultHandler
       }
     }
     PackageURLBuilder packageURLBuilder = PackageURLBuilder.aPackageURL()
-        .withType(isRootPackage ? Type.APPLICATION.getTypeName() : Type.LIBRARY.getTypeName())
+        .withType(PackageUrlIdentifier.GENERIC_FORMAT)
         .withName(name)
         .withVersion(version);
     if (StringUtils.isNotBlank(group)) {
       packageURLBuilder.withNamespace(group);
     }
+    packageURLBuilder.withQualifier(PURL_BOM_TYPE, isRootPackage ? Type.APPLICATION.getTypeName()
+        : Type.LIBRARY.getTypeName());
     return packageURLBuilder.build().toString();
   }
 

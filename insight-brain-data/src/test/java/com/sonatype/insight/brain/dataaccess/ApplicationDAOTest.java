@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.H2ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
@@ -65,6 +66,7 @@ import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.label.Label;
@@ -1001,6 +1003,60 @@ public class ApplicationDAOTest
 
     SourceControlDefaultBranchCommitHistoryDAO dao = daoFactory.createSourceControlDefaultBranchCommitHistoryDAO();
     assertThat(dao.getById(defaultBranchCommitHistory.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToAutoPolicyWaivers() {
+    AutoPolicyWaiver autoPolicyWaiverOne = new AutoPolicyWaiver(
+        application.getId(),
+        7,
+        true,
+        true,
+        "creatorId",
+        "creatorName",
+        new Date()
+    );
+    AutoPolicyWaiver autoPolicyWaiverTwo = new AutoPolicyWaiver(
+        "otherApp",
+        7,
+        true,
+        true,
+        "creatorId",
+        "creatorName",
+        new Date()
+    );
+    AutoPolicyWaiver autoPolicyWaiverThree = new AutoPolicyWaiver(
+        "otherApp",
+        7,
+        true,
+        true,
+        "creatorId",
+        "creatorName",
+        new Date()
+    );
+    AutoPolicyWaiver autoPolicyWaiverFour = new AutoPolicyWaiver(
+        application.getId(),
+        7,
+        true,
+        true,
+        "creatorId",
+        "creatorName",
+        new Date()
+    );
+    AutoPolicyWaiverDAO autoPolicyWaiverDAO = daoFactory.createAutoPolicyWaiverDAO();
+    autoPolicyWaiverDAO.insert(autoPolicyWaiverOne);
+    autoPolicyWaiverDAO.insert(autoPolicyWaiverTwo);
+    autoPolicyWaiverDAO.insert(autoPolicyWaiverThree);
+    autoPolicyWaiverDAO.insert(autoPolicyWaiverFour);
+    List<AutoPolicyWaiver> testAppAutoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId(application.getId());
+    assertThat(testAppAutoPolicyWaivers).hasSize(2);
+
+    applicationDAO.delete(application);
+    testAppAutoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId(application.getId());
+    assertThat(testAppAutoPolicyWaivers).isEmpty();
+
+    List<AutoPolicyWaiver> otherAppAutoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId("otherApp");
+    assertThat(otherAppAutoPolicyWaivers).hasSize(2);
   }
 
   @Test

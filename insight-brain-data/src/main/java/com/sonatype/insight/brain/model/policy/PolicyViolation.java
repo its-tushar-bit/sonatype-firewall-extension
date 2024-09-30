@@ -61,6 +61,9 @@ public class PolicyViolation
   @Enumerated(EnumType.STRING)
   private ReachabilityStatus reachabilityStatus;
 
+  @Column(name = "auto_policy_waiver_id")
+  private String autoPolicyWaiverId;
+
   public PolicyViolation() {
   }
 
@@ -219,6 +222,14 @@ public class PolicyViolation
 
   public void setReachabilityStatus(ReachabilityStatus reachabilityStatus) {
     this.reachabilityStatus = reachabilityStatus;
+  }
+
+  public String getAutoPolicyWaiverId() {
+    return autoPolicyWaiverId;
+  }
+
+  public void setAutoPolicyWaiverId(String id) {
+    this.autoPolicyWaiverId = id;
   }
 
   @Transient

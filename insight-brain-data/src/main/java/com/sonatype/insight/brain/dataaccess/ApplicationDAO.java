@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -54,6 +55,7 @@ import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
@@ -119,6 +121,8 @@ public class ApplicationDAO
 
   private final ThirdPartyFileDAO thirdPartyFileDAO;
 
+  private final AutoPolicyWaiverDAO autoPolicyWaiverDAO;
+
   private final ClusterLockManager clusterLockManager;
 
   @Inject
@@ -145,6 +149,7 @@ public class ApplicationDAO
       final SastScanDAO sastScanDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final ThirdPartyFileDAO thirdPartyFileDAO,
+      final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       final ClusterLockManager clusterLockManager)
   {
     super(operationalDataStore, searchIndexManager);
@@ -168,6 +173,7 @@ public class ApplicationDAO
     this.sastScanDAO = sastScanDAO;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
+    this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
     this.clusterLockManager = clusterLockManager;
   }
 
@@ -766,6 +772,11 @@ public class ApplicationDAO
     // Cascade to repository connections
     for (RepositoryConnection repositoryConnection : repositoryConnectionDAO.getByOwnerId(tx, application.getId())) {
       repositoryConnectionDAO.delete(tx, repositoryConnection);
+    }
+
+    // Cascade to Auto Policy Waivers
+    for (AutoPolicyWaiver autoPolicyWaiver : autoPolicyWaiverDAO.getByOwnerId(tx, application.getId())) {
+      autoPolicyWaiverDAO.delete(tx, autoPolicyWaiver);
     }
 
     long duration = System.currentTimeMillis() - start;

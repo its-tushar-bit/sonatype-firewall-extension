@@ -97,6 +97,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -232,6 +233,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -611,6 +613,8 @@ public class TemporaryEntity
 
   private DevelopmentPrioritizationDAO developmentPrioritizationDAO;
 
+  private AutoPolicyWaiverDAO autoPolicyWaiverDAO;
+
   private OAuth2ConfigurationDAO oAuth2ConfigurationDAO;
 
   private OidcConfigurationDAO oidcConfigurationDAO;
@@ -837,6 +841,7 @@ public class TemporaryEntity
       delete(dashboardFilterDAO.getAll(), dashboardFilterDAO);
       delete(userFilterDAO.getAll(), userFilterDAO);
       delete(sourceControlOrganizationImportEventDAO.getAll(), sourceControlOrganizationImportEventDAO);
+      delete(autoPolicyWaiverDAO.getAll(), autoPolicyWaiverDAO);
       delete(policyDAO.getAll(), entity -> policyDAO.getById(entity.getId()), policyDAO::delete);
       List<Organization> orgs = orgDAO.getAll().stream()
           .filter(org -> !Organization.ROOT_ORGANIZATION_ID.equals(org.getId())).collect(toList());
@@ -1696,6 +1701,34 @@ public class TemporaryEntity
     LicenseOverride override = new LicenseOverride(ownerId, componentIdentifier, status, licenseIds, comment);
     licenseOverrideDAO.insert(override);
     return override;
+  }
+
+  public AutoPolicyWaiver newAutoPolicyWaiver() {
+    AutoPolicyWaiver autoPolicyWaiver = new AutoPolicyWaiver(
+        "fakeOwnerId",
+        7,
+        true,
+        false,
+        "fakeCreatorId",
+        "fakeCreatorName",
+        new Date()
+    );
+    autoPolicyWaiverDAO.insert(autoPolicyWaiver);
+    return autoPolicyWaiver;
+  }
+
+  public AutoPolicyWaiver newAutoPolicyWaiver(String ownerId) {
+    AutoPolicyWaiver autoPolicyWaiver = new AutoPolicyWaiver(
+        ownerId,
+        7,
+        true,
+        false,
+        "fakeCreatorId",
+        "fakeCreatorName",
+        new Date()
+    );
+    autoPolicyWaiverDAO.insert(autoPolicyWaiver);
+    return autoPolicyWaiver;
   }
 
   public PolicyWaiver newWaiver(String policyId, String ownerId) {
@@ -5314,6 +5347,7 @@ public class TemporaryEntity
     licenseOverrideDAO = daoFactory.createLicenseOverrideDAO();
     waiverDAO = daoFactory.createPolicyWaiverDAO();
     waiverReasonDAO = daoFactory.createPolicyWaiverReasonDAO();
+    autoPolicyWaiverDAO = daoFactory.createAutoPolicyWaiverDAO();
     callFlowAnalysisConfigDAO = daoFactory.createCallFlowAnalysisConfigDAO();
     ldapServerDAO = daoFactory.createLdapServerDAO();
     ldapConnectionDAO = daoFactory.createLdapConnectionDAO();

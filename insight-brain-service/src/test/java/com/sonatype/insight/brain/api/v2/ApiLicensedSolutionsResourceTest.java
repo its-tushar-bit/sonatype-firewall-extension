@@ -16,13 +16,20 @@ import com.sonatype.insight.brain.api.v2.dto.ApiLicensedSolutionDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class ApiLicensedSolutionsResourceTest
     extends AbstractResourceTest
 {
+  @Before
+  public void setUp() {
+    when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(true);
+  }
+  
   @Test
   public void testGetLicensedSolutions_expectRelativeUrls() throws Exception {
     // given: config with no base url and licensed for firewall
@@ -38,7 +45,7 @@ public class ApiLicensedSolutionsResourceTest
     // then: results have firewall with relative URL
     assertResponseStatus(200, response);
     List<ApiLicensedSolutionDTO> licensedSolutions = response.getBodyList(ApiLicensedSolutionDTO.class);
-    assertThat(licensedSolutions).hasSize(1);
+    assertThat(licensedSolutions).hasSize(2);
     assertThat(toMap(licensedSolutions))
         .containsEntry("firewall", "/ui/links/firewall/dashboard");
   }
@@ -80,7 +87,7 @@ public class ApiLicensedSolutionsResourceTest
     // then: results have solutions with full URLs
     assertResponseStatus(200, response);
     List<ApiLicensedSolutionDTO> licensedSolutions = response.getBodyList(ApiLicensedSolutionDTO.class);
-    assertThat(licensedSolutions).hasSize(1);
+    assertThat(licensedSolutions).hasSize(2);
     assertThat(toMap(licensedSolutions))
         .containsEntry("sbom", "https://localhost:8443/ui/links/sbomManager/dashboard");
   }

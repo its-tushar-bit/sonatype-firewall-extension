@@ -57,6 +57,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDA
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseLicenseInternalDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFactsDAO;
 import com.sonatype.insight.brain.dataaccess.policy.LastPolicyEvaluationDAO;
@@ -422,4 +423,6 @@ public interface DAOFactory
   PolicyViolationConstraintFactsDAO createPolicyViolationConstraintFactsDAO();
 
   ThirdPartyUnknownComponentDAO createThirdPartyUnknownComponentDAO();
+  
+  AutoPolicyWaiverDAO createAutoPolicyWaiverDAO();
 }

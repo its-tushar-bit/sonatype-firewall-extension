@@ -131,6 +131,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @Category(SlowTest.class)
 public abstract class AbstractFunctionalTest
@@ -175,6 +176,8 @@ public abstract class AbstractFunctionalTest
 
   private ShiroSessionDAO shiroSessionDAO;
 
+  protected static DeveloperEnablementService mockDeveloperEnablementService = mock(DeveloperEnablementService.class);
+
   static {
     // Creating a Database Container and initializing the DB that will be used for the entire functional test suite.
     // This MUST happen before the server start or before the TemporaryEntity before method is called
@@ -183,7 +186,8 @@ public abstract class AbstractFunctionalTest
 
     productLicenseManager = new TestProductLicenseManager();
     licenseFingerprinter = new TestLicenseFingerprinter();
-    testProductLicense = new TestProductLicense(productLicenseManager, mock(DeveloperEnablementService.class));
+    testProductLicense = new TestProductLicense(productLicenseManager, mockDeveloperEnablementService);
+    when(mockDeveloperEnablementService.shouldEnableDeveloperProduct()).thenReturn(true);
     testProductLicenseRule = new TestProductLicenseRule(databaseContainer);
     jiraService = Mockito.mock(JiraService.class);
     initMocks();
@@ -317,6 +321,12 @@ public abstract class AbstractFunctionalTest
         enableDefaultPasswordWarning);
   }
 
+  public static void setEnableAutoWaiverCreation(boolean enableAutoWaiver) {
+    ApiConfigurationService service = testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.AUTO_WAIVERS,
+        enableAutoWaiver);
+  }
+
   private static void initMocks() {
     try {
       Mockito.reset(jiraService);
@@ -379,6 +389,7 @@ public abstract class AbstractFunctionalTest
     log.info("Before: {}", testName.getMethodName());
     setEnableDefaultPasswordWarning(false);
     setBaseUrl(Configuration.baseUrl);
+    setEnableAutoWaiverCreation(true);
 
     persistedUserSessionDAO = lookup(PersistedUserSessionDAO.class);
     shiroSessionDAO = lookup(ShiroSessionDAO.class);

@@ -170,8 +170,10 @@ public abstract class AbstractBaseIntegrationTest
   // by default license is always valid, to override, simply uninstall the license
   protected static final TestProductLicenseManager licenseManager = new TestProductLicenseManager();
 
-  public static final TestProductLicense testProductLicense = new TestProductLicense(licenseManager, false, mock(
-      DeveloperEnablementService.class));
+  protected static DeveloperEnablementService mockDeveloperEnablementService = mock(DeveloperEnablementService.class);
+
+  public static final TestProductLicense testProductLicense =
+      new TestProductLicense(licenseManager, false, mockDeveloperEnablementService);
 
   private static final ObjectMapper objectMapper = new ObjectMapper();
 

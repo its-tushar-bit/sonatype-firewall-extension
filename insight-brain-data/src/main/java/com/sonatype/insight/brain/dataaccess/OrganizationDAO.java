@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
@@ -37,6 +38,7 @@ import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlOrganizationImportEvent;
@@ -78,6 +80,8 @@ public class OrganizationDAO
 
   private final OrganizationAncestorDAO organizationAncestorDAO;
 
+  private final AutoPolicyWaiverDAO autoPolicyWaiverDAO;
+
   private final ClusterLockManager clusterLockManager;
 
   @Inject
@@ -96,6 +100,7 @@ public class OrganizationDAO
       final SourceControlOrganizationImportEventDAO scmEventDAO,
       final ProprietaryConfigDAO proprietaryConfigDAO,
       final OrganizationAncestorDAO organizationAncestorDAO,
+      final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       final ClusterLockManager clusterLockManager)
   {
     super(operationalDataStore, searchIndexManager);
@@ -111,6 +116,7 @@ public class OrganizationDAO
     this.scmEventDAO = scmEventDAO;
     this.proprietaryConfigDAO = proprietaryConfigDAO;
     this.organizationAncestorDAO = organizationAncestorDAO;
+    this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
     this.clusterLockManager = clusterLockManager;
   }
 
@@ -271,6 +277,11 @@ public class OrganizationDAO
     //Cascade to source control on-boarding events
     for (SourceControlOrganizationImportEvent importEvent : scmEventDAO.getByOrganizationId(tx, organization.getId())) {
       scmEventDAO.delete(tx, importEvent);
+    }
+
+    // Cascade to Auto Policy Waivers
+    for (AutoPolicyWaiver autoPolicyWaiver : autoPolicyWaiverDAO.getByOwnerId(tx, organization.getId())) {
+      autoPolicyWaiverDAO.delete(tx, autoPolicyWaiver);
     }
 
     for (OrganizationAncestor orgAncestor : organizationAncestorDAO.getByOrganizationId(tx, organization.getId())) {

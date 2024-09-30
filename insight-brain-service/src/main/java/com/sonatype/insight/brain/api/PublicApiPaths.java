@@ -32,6 +32,8 @@ public class PublicApiPaths
 
   public static final String POLICY_VIOLATION_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "policyViolations";
 
+  public static final String AUTO_POLICY_WAIVER_PATH = API_VERSION_PATH_V2 + "autoPolicyWaivers";
+
   public static final String POLICY_WAIVER_PATH = API_VERSION_PATH_V2 + "policyWaivers";
 
   public static final String POLICY_WAIVER_REASONS_PATH = API_VERSION_PATH_V2 + "policyWaiverReasons";

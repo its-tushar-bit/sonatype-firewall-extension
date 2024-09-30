@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.H2ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.PostgresClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
@@ -51,6 +53,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -643,6 +646,76 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
   }
 
   @Test
+  public void testDelete_CascadesToAutoPolicyWaivers() {
+    Organization organization = tempEntity.newOrganization("testCascadeDeleteToAutoPolicyWaivers");
+    AutoPolicyWaiver autoPolicyWaiverOne = new AutoPolicyWaiver(
+        organization.getId(),
+        7,
+        true,
+        true,
+        "creatorId",
+        "creatorName",
+        new Date()
+    );
+
+    AutoPolicyWaiver autoPolicyWaiverTwo = new AutoPolicyWaiver(
+        organization.getId(),
+        7,
+        true,
+        true,
+        "creatorId",
+        "creatorName",
+        new Date()
+    );
+
+    AutoPolicyWaiver autoPolicyWaiverThree = new AutoPolicyWaiver(
+        organization.getId(),
+        7,
+        true,
+        true,
+        "creatorId",
+        "creatorName",
+        new Date()
+    );
+
+    AutoPolicyWaiver autoPolicyWaiverFour = new AutoPolicyWaiver(
+        "otherOrg",
+        7,
+        true,
+        true,
+        "creatorId",
+        "creatorName",
+        new Date()
+    );
+
+    AutoPolicyWaiver autoPolicyWaiverFive = new AutoPolicyWaiver(
+        "otherOrg",
+        7,
+        true,
+        true,
+        "creatorId",
+        "creatorName",
+        new Date()
+    );
+
+    AutoPolicyWaiverDAO autoPolicyWaiverDAO = daoFactory.createAutoPolicyWaiverDAO();
+    autoPolicyWaiverDAO.insert(autoPolicyWaiverOne);
+    autoPolicyWaiverDAO.insert(autoPolicyWaiverTwo);
+    autoPolicyWaiverDAO.insert(autoPolicyWaiverThree);
+    autoPolicyWaiverDAO.insert(autoPolicyWaiverFour);
+    autoPolicyWaiverDAO.insert(autoPolicyWaiverFive);
+
+    List<AutoPolicyWaiver> testOrgAutoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId(organization.getId());
+    assertThat(testOrgAutoPolicyWaivers).hasSize(3);
+
+    dao.delete(organization);
+    testOrgAutoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId(organization.getId());
+    assertThat(testOrgAutoPolicyWaivers).isEmpty();
+    List<AutoPolicyWaiver> otherOrgAutoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId("otherOrg");
+    assertThat(otherOrgAutoPolicyWaivers).hasSize(2);
+  }
+
+  @Test
   public void testDelete_AutomaticApplicationsCreationDisabled_SameOrganizationId() {
     Organization organization = tempEntity.newOrganization("organization");
 
@@ -816,7 +889,6 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
         .containsExactlyInAnyOrder("CVE-2022-1234", "CVE-2022-4321");
     dao.delete(organization);
     assertThat(vulnerabilityCustomCweDAO.getByOwnerId(organization.getId())).isEmpty();
-
   }
 
   @Test

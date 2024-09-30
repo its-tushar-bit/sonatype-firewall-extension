@@ -63,6 +63,7 @@ import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFactsDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.LastPolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -213,12 +214,13 @@ public class TestDAOFactory
     SastScanDAO sastScanDAO = createSastScanDAO();
     ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO = createThirdPartySbomMetadataDAO();
     ThirdPartyFileDAO thirdPartyFileDAO = createThirdPartyFileDAO();
+    AutoPolicyWaiverDAO autoPolicyWaiverDAO = createAutoPolicyWaiverDAO();
     return new ApplicationDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager, sourceControlDAOProvider,
         sourceControlEventDAO, sourceControlPullRequestResultDAO, policyViolationDAO, policyEvaluationDAO,
         licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider, ownerDAOProvider, applicationTagDAO,
         applicationComponentDAOProvider, proprietaryConfigDAO, innerSourceComponentDAO, membershipMappingDAO,
         policyViolationAggregationDAO, repositoryConnectionDAO, sourceControlDefaultBranchCommitHistoryDAO,
-        sastScanDAO, thirdPartySbomMetadataDAO, thirdPartyFileDAO, clusterLockManager);
+        sastScanDAO, thirdPartySbomMetadataDAO, thirdPartyFileDAO, autoPolicyWaiverDAO, clusterLockManager);
   }
 
   @Override
@@ -540,10 +542,11 @@ public class TestDAOFactory
     SourceControlOrganizationImportEventDAO scmEventDAO = createSourceControlOrganizationImportEventDAO();
     ProprietaryConfigDAO proprietaryConfigDAO = createProprietaryConfigDAO();
     OrganizationAncestorDAO organizationAncestorDAO = createOrganizationAncestorDAO();
+    AutoPolicyWaiverDAO autoPolicyWaiverDAO = createAutoPolicyWaiverDAO();
     return new OrganizationDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager,
         automaticApplicationsConfigurationDAO, licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider,
         membershipMappingDAO, ownerDAOProvider, tagDAOProvider, sourceControlDAOProvider, repositoryConnectionDAO,
-        scmEventDAO, proprietaryConfigDAO, organizationAncestorDAO, clusterLockManager);
+        scmEventDAO, proprietaryConfigDAO, organizationAncestorDAO, autoPolicyWaiverDAO, clusterLockManager);
   }
 
   @Override
@@ -1143,5 +1146,10 @@ public class TestDAOFactory
   @Override
   public ThirdPartyUnknownComponentDAO createThirdPartyUnknownComponentDAO() {
     return new ThirdPartyUnknownComponentDAO(dataStoreProvider.getThirdPartyScansDataStore());
+  }
+
+  @Override
+  public AutoPolicyWaiverDAO createAutoPolicyWaiverDAO() {
+    return new AutoPolicyWaiverDAO(dataStoreProvider.getOperationalDataStore());
   }
 }

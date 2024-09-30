@@ -21,6 +21,10 @@ import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * Provides an endpoint for the SCM Validator Service to perform basic validation on a given configuration
@@ -31,6 +35,12 @@ import com.codahale.metrics.annotation.Timed;
 @Timed
 @Path(value = PublicApiPaths.COMPOSITE_SOURCE_CONTROL_CONFIG_VALIDATOR_PATH_V2)
 @ProductLicenseEnforcementPoint(LicensedFeature.SOURCE_CONTROL)
+@Tag(name = "Composite Source Control Validator",
+    description = "Use this REST API to validate the composite source control management (SCM) configuration." +
+        "\n" +
+        "\n" +
+        "Composite source control configuration is defined as the configuration that is inherited from the " +
+        "parent or is directly assigned.")
 public class ApiCompositeSourceControlConfigValidatorResource
 {
   private final ApiCompositeSourceControlConfigValidatorService service;
@@ -45,7 +55,21 @@ public class ApiCompositeSourceControlConfigValidatorResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
+  @Operation(description = "Use this method to validate the composite source control configuration." +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "The response shows if the composite source control configuration for the application " +
+                  "is valid.",
+              useReturnTypeSchema = true
+          )
+      })
   public ConfigurationValidationResult validateSourceControlConfig(
+      @Parameter(description = "Enter the applicationId for which you want to validate the composite source " +
+          "control configuration.", required = true)
       @PathParam("applicationId") String applicationId)
   {
     return service.validateSourceControlConfig(applicationId);

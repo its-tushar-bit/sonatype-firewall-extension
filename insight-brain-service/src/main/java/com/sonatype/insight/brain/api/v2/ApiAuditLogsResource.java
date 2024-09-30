@@ -32,7 +32,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Named
 @Path(PublicApiPaths.AUDIT_LOGS_RESOURCE_PATH)
 @Tag(name = "Audit Logs",
-    description = "Use this REST API to access the audit logs.")
+    description = "Use this REST API to access the IQ Server audit logs.")
 
 public class ApiAuditLogsResource
 {
@@ -47,8 +47,8 @@ public class ApiAuditLogsResource
   @Produces(MediaType.TEXT_PLAIN)
   @Operation(description =
       "Use this method to retrieve the audit events for the specified time period." +
-          "/n" +
-          "/n" +
+          "\n" +
+          "\n" +
           "Permissions required: Access Audit Log",
       responses = {
           @ApiResponse(responseCode = "200",

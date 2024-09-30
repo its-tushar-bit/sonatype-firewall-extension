@@ -381,6 +381,14 @@ describe('EditableConstraint', () => {
             description: 'this is working',
             color: 'light-green',
           },
+          {
+            id: '436de63263244a409cc54689b30d6c63',
+            ownerId: 'ROOT_ORGANIZATION_ID',
+            label: 'Security-Reachable',
+            labelLowercase: 'security-reachable',
+            description: 'Components with vulnerable methods that are reachable by the application',
+            color: 'dark-red',
+          },
         ],
       },
     };
@@ -1669,6 +1677,49 @@ describe('EditableConstraint', () => {
       },
     ];
     conditionWithError.forEach(testCondition);
+  });
+
+  describe('custom label condition', () => {
+    it('renders the labels dropdown with available values except the "Security-Reachable" label', () => {
+      const labelProps = {
+        ...props,
+        constraint: {
+          ...constraint,
+          conditions: [
+            {
+              conditionTypeId: 'Label',
+              operator: 'is not',
+              value: 'd5582b6edc4a4e18ba4942339b8da1e2',
+            },
+          ],
+        },
+      };
+
+      renderComponent(labelProps);
+      const constrainElement = screen.getByTestId('editable-constraint');
+      expect(constrainElement).toBeVisible();
+      const conditionElements = within(constrainElement).getAllByTestId('editable-constraint__condition');
+      expect(conditionElements.length).toBe(1);
+
+      const condition = conditionTypesMap['Label'];
+      const conditionElement = conditionElements[0];
+      const availableValues = condition.valueType.availableValues;
+
+      const conditionInputValue = within(conditionElement).getByTestId('constraint__condition-value');
+      const valuesRenderedInCombobox = within(conditionInputValue).getAllByRole('option');
+
+      expect(availableValues.length).toBe(3); //contains a security-reachable label
+      expect(valuesRenderedInCombobox.length).toBe(2); //does not contain a security-reachable label
+
+      expect(valuesRenderedInCombobox[0]).toHaveTextContent('New Label');
+      expect(valuesRenderedInCombobox[1]).toHaveTextContent('test label');
+
+      expect(within(conditionInputValue).getByRole('option', { name: /new label/i })).toBeInTheDocument();
+      expect(within(conditionInputValue).getByRole('option', { name: /test label/i })).toBeInTheDocument();
+      expect(
+        within(conditionInputValue).queryByRole('option', { name: /security-reachable/i })
+      ).not.toBeInTheDocument();
+    });
   });
 
   function testCondition(condition) {

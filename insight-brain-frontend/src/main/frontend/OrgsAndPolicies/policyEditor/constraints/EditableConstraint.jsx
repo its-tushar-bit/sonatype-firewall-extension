@@ -110,9 +110,15 @@ export default function EditableConstraint({
                 : condition.conditionTypeId === 'License'
                 ? 'shortDisplayName'
                 : 'name';
+            const fieldValue = value[nameField];
+
+            if (fieldValue === 'Security-Reachable') {
+              return null;
+            }
+
             return (
               <option key={value.id} value={value.id}>
-                {value[nameField]}
+                {fieldValue}
               </option>
             );
           })}

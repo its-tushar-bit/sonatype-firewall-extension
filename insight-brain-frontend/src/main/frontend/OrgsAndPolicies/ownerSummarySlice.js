@@ -62,7 +62,7 @@ const loadOwnerSummary = createAsyncThunk(
   (_, { getState, dispatch, rejectWithValue }) => {
     const state = getState();
     const isApp = selectIsApplication(state);
-    const promises = [dispatch(rootActions.loadSelectedOwner()), dispatch(rootActions.loadApplicablePoliciesByOwner())];
+    const promises = [dispatch(rootActions.loadSelectedOwner())];
     if (isApp) {
       promises.push(dispatch(stagesActions.loadDashboardStages()));
     }

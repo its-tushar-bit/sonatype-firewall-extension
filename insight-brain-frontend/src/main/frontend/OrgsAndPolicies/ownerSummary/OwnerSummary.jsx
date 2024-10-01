@@ -89,8 +89,7 @@ export default function OwnerSummary() {
   const isSbomManager = useSelector(selectIsSbomManager);
   const noSbomManagerEnabledError = useSelector(selectNoSbomManagerEnabledError);
   const isSbomContinuousMonitoringUiEnabled = useSelector(selectIsSbomContinuousMonitoringUiEnabled);
-  // loading is false when the page is already loaded. entityId may be set to null before doLoad is called.
-  const loadingOwnerSummaryAndEntityId = loading || !entityId;
+  const loadingOwnerSummaryAndEntityId = loading || !entityId || entityId !== owner[isApp ? 'publicId' : 'id'];
   const error = loadError || loadSelectedOwnerError || (isSbomManager && noSbomManagerEnabledError);
 
   const doLoad = () => dispatch(ownerSummaryActions.loadOwnerSummary());

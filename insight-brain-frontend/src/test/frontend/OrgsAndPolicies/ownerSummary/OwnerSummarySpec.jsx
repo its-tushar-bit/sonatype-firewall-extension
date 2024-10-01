@@ -9,7 +9,6 @@ import {
   getOrganizationUrl,
   getApplicationsUrl,
   getDashboardStageUrl,
-  getApplicablePolicies,
   getApplicationSummaryUrl,
 } from 'MainRoot/util/CLMLocation';
 import { render, axiosMockAdapter, within, screen, fireEvent } from 'TestRoot/SpecUtil';
@@ -17,7 +16,6 @@ import { render, axiosMockAdapter, within, screen, fireEvent } from 'TestRoot/Sp
 describe('OwnerSummary', () => {
   let axiosMock, preloadedState;
 
-  const ownerType = 'organization';
   const ownerId = 'be17ea5538de4679ba3a9220734ddbf7';
   const renderComponent = (preloadedState) => render(<OwnerSummary />, { preloadedState });
 
@@ -85,7 +83,6 @@ describe('OwnerSummary', () => {
           displayName: 'Provided Contact Display Name',
         },
       });
-      axiosMock.onGet(getApplicablePolicies(ownerType, ownerId)).reply(200, { data: { policiesByOwner: {} } });
     });
 
     it('renders a loading indicator', () => {
@@ -257,7 +254,6 @@ describe('OwnerSummary', () => {
   });
 
   describe('if owner is an application', () => {
-    const ownerType = 'application';
     const ownerId = 'be17ea5538de4679ba3a9220734ddbf7';
 
     it('renders proper header with selected contact and publicId', async () => {
@@ -311,7 +307,6 @@ describe('OwnerSummary', () => {
           contact: null,
         },
       ]);
-      axiosMock.onGet(getApplicablePolicies(ownerType, 'a-aws-4-lll_app_filter')).reply(200, { policiesByOwner: {} });
       axiosMock.onGet(getDashboardStageUrl()).reply(200, []);
       axiosMock.onGet(getApplicationSummaryUrl('a-aws-4-lll_app_filter')).reply(200, {
         contact: {

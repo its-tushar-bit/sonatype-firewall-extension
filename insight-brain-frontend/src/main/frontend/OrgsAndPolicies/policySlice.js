@@ -14,9 +14,13 @@ import {
   findIndex,
   isEmpty,
   isNil,
+  lensProp,
+  lensPath,
   map,
   mapObjIndexed,
+  not,
   omit,
+  over,
   path,
   prop,
   propEq,
@@ -24,7 +28,6 @@ import {
   without,
   sortWith,
   reverse,
-  clone,
 } from 'ramda';
 import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
 import {
@@ -294,7 +297,7 @@ const loadCategoriesForPolicyFailed = (state, { payload }) => {
   state.loadingCategories = false;
   state.categoriesForPolicyLoadError = Messages.getHttpErrorMessage(payload);
   state.isDirty = false;
-  state.currentPolicy = clone(state.originalPolicy);
+  state.currentPolicy = state.originalPolicy;
 };
 
 const loadPolicyTile = createAsyncThunk(`${REDUCER_NAME}/loadPolicyTile`, (_, { rejectWithValue, dispatch }) => {
@@ -345,7 +348,10 @@ const loadPolicyTileRequested = (state) => {
 const loadPolicyTileFulfilled = (state, { payload }) => {
   state.policyTile.loading = false;
   state.policyTile.collapsibleSorting = setInitialSorting();
-  state.policyTile.policiesByOwner = sortCollapsibleItemsByField(payload, state.policyTile.collapsibleSorting);
+  state.policyTile.policiesByOwner = sortCollapsibleItemsByField(
+    cleanPoliciesByOwner(payload),
+    state.policyTile.collapsibleSorting
+  );
 };
 
 const loadPolicyTileFailed = (state, { payload }) => {
@@ -368,11 +374,19 @@ const checkAreStageValuesEqual = (key, policies) => {
   return allEqual(values);
 };
 
+// Remove potentially large unneeded fields from policiesByOwner
+const cleanPoliciesByOwner = map(
+  over(
+    lensProp('policies'),
+    map(omit(['notifications', 'constraints', 'policyNotificationsOverrides', 'policyActionsOverrides']))
+  )
+);
+
 const sortCollapsibleItemsByField = (policiesByOwner, updatedSorting) => {
   const { dir, key } = updatedSorting;
 
   return map((owner) => {
-    let policies = clone(owner.policies);
+    let policies = owner.policies;
     const customSort = sortWith(policiesComparator(prop(key), key));
     const equalValues = checkAreStageValuesEqual(key, policies);
 
@@ -535,7 +549,7 @@ const loadPolicyEditorFulfilled = (state, { payload }) => {
   } = payload;
   state.siblings = siblings;
   state.currentPolicy = currentPolicy;
-  state.originalPolicy = clone(currentPolicy);
+  state.originalPolicy = currentPolicy;
   state.currentPolicyOwner = currentPolicyOwner;
   state.isInherited = isInherited;
   state.isOrgOwner = isOrgOwner;
@@ -554,7 +568,7 @@ const loadPolicyEditorFailed = (state, { payload }) => {
   state.loadingPolicyEditor = false;
   state.loadError = Messages.getHttpErrorMessage(payload);
   state.isDirty = false;
-  state.currentPolicy = clone(state.originalPolicy);
+  state.currentPolicy = state.originalPolicy;
 };
 
 const checkEditIqPermission = createAsyncThunk(
@@ -660,7 +674,7 @@ const savePolicyFulfilled = (state, { payload }) => {
   state.submitMaskState = true;
 
   if (payload?.isEditMode) {
-    state.originalPolicy = clone(state.currentPolicy);
+    state.originalPolicy = state.currentPolicy;
     state.originalCategories = state.categories;
     state.originalHasPolicyCategories = state.hasPolicyCategories;
     state.originalProxyStageAction = state.currentPolicy.actions['proxy'];
@@ -746,7 +760,7 @@ const updateOverridesFulfilled = (state, { payload }) => {
   state.isDirty = false;
   const policy = { ...payload, name: initUserInput(payload.name) };
   state.currentPolicy = policy;
-  state.originalPolicy = clone(policy);
+  state.originalPolicy = policy;
   state.submitMaskState = true;
 };
 
@@ -1114,8 +1128,7 @@ const setConstraintCondition = curryN(2, function setConstraintCondition(state, 
 });
 
 const toggleCategoryIsApplied = (state, { payload: index }) => {
-  const newState = { ...state, categories: clone(state.categories) };
-  newState.categories[index].isApplied = !state.categories[index].isApplied;
+  const newState = over(lensPath(['categories', index, 'isApplied']), not, state);
   return updatedComputedProps(newState);
 };
 

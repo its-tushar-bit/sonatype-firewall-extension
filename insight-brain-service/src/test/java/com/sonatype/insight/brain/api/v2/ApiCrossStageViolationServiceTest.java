@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -543,6 +544,25 @@ public class ApiCrossStageViolationServiceTest
     assertThat(result1.fixTime).isEqualTo(time1);
     assertThat(result1.policyViolationId).isEqualTo(violation1.getId());
     assertThat(result1.stageData).doesNotContainKey(Stage.ID_BUILD);
+  }
+
+  @Test
+  public void testGetReachabilityStatus() {
+    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", baseDate);
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, policy, componentIdentifier, "1234", "vuln1");
+    policyViolationDAO.update(violation1);
+    ApiCrossStageViolationDTOV2 result = service.getCrossStageViolationById(violation1.getId());
+    assertThat(result.reachabilityStatus).isNull();
+
+    violation1.setReachabilityStatus(ReachabilityStatus.REACHABLE);
+    policyViolationDAO.update(violation1);
+    result = service.getCrossStageViolationById(violation1.getId());
+    assertThat(result.reachabilityStatus).isEqualTo(ReachabilityStatus.REACHABLE);
+
+    violation1.setReachabilityStatus(ReachabilityStatus.NON_REACHABLE);
+    policyViolationDAO.update(violation1);
+    result = service.getCrossStageViolationById(violation1.getId());
+    assertThat(result.reachabilityStatus).isEqualTo(ReachabilityStatus.NON_REACHABLE);
   }
 
   private void assertCrossStageData(

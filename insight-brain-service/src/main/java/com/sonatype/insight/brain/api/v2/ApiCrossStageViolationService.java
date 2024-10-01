@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
+import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -105,6 +106,7 @@ public class ApiCrossStageViolationService
       throwNotFound(constituentId);
     }
 
+    ReachabilityStatus reachabilityStatus = constituentViolation.getReachabilityStatus();
     Application app = applicationService.getApplicationByIdForRead(constituentViolation.getApplicationId());
     Organization org = organizationDAO.getById(app.getOrganizationId());
     Policy policy = policyDAO.getById(constituentViolation.getPolicyId());
@@ -124,7 +126,7 @@ public class ApiCrossStageViolationService
         allowEarlierViolations);
     Collection<PolicyEvaluation> evaluationsForViolationsToMerge = getEvaluationsForViolations(violationsToMerge);
 
-    return createDto(app, org, policyOwner, violationsToMerge, evaluationsForViolationsToMerge);
+    return createDto(app, org, policyOwner, violationsToMerge, evaluationsForViolationsToMerge, reachabilityStatus);
   }
 
   private Collection<PolicyEvaluation> getEvaluationsForViolations(Collection<PolicyViolation> violations) {
@@ -230,7 +232,8 @@ public class ApiCrossStageViolationService
       Organization org,
       Owner policyOwner,
       Collection<PolicyViolation> policyViolations,
-      Collection<PolicyEvaluation> policyEvaluations)
+      Collection<PolicyEvaluation> policyEvaluations,
+      final ReachabilityStatus reachabilityStatus)
   {
     ApiCrossStageViolationDTOV2 dto = new ApiCrossStageViolationDTOV2();
 
@@ -240,6 +243,7 @@ public class ApiCrossStageViolationService
         .collect(Collectors.toMap(PolicyViolation::getStageTypeId, v -> v, (first, later) -> later));
 
     dto.policyViolationId = firstViolation.getId();
+    dto.reachabilityStatus = reachabilityStatus;
     dto.applicationPublicId = app.getPublicId();
     dto.applicationName = app.getName();
     dto.organizationName = org.getName();

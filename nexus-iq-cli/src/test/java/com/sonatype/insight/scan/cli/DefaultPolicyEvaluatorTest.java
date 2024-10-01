@@ -842,6 +842,50 @@ public abstract class DefaultPolicyEvaluatorTest
   }
 
   @Test
+  public void testRun_ScanWithCommitHashFromAzureDevOpsAutoTriggerEnvironmentVariable() throws Exception {
+    final String commitHash = "COMMIT_HASH_ENV_VARIABLE_AUTO_TRIGGER";
+    environmentVariables.set("SYSTEM_PULLREQUEST_SOURCECOMMITID", commitHash);
+
+    Application app = tempEntity.newApplicationWithParent("the-app-id");
+    tempEntity.newProprietaryConfig(app.getId(), Collections.singletonList("com.sonatype"), Collections.emptyList());
+
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123",
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(),
+        "-m", "src/test/data/metadata.json", "src/test/data/artifact.jar");
+    withTestRunner(params)
+        .doPolicyEvaluationRun();
+
+    File scanFile = findScanFile();
+    Scan scan = scanReader.read(scanFile);
+
+    environmentVariables.clear("SYSTEM_PULLREQUEST_SOURCECOMMITID");
+    assertThat(scan).isNotNull();
+    assertThat(scan.getMetadata().getCommitHash()).isEqualTo(commitHash);
+  }
+
+  @Test
+  public void testRun_ScanWithCommitHashFromAzureDevOpsManualTriggerEnvironmentVariable() throws Exception {
+    final String commitHash = "COMMIT_HASH_ENV_VARIABLE_MANUAL_TRIGGER";
+    environmentVariables.set("BUILD_SOURCEVERSION", commitHash);
+
+    Application app = tempEntity.newApplicationWithParent("the-app-id");
+    tempEntity.newProprietaryConfig(app.getId(), Collections.singletonList("com.sonatype"), Collections.emptyList());
+
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123",
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(),
+        "-m", "src/test/data/metadata.json", "src/test/data/artifact.jar");
+    withTestRunner(params)
+        .doPolicyEvaluationRun();
+
+    File scanFile = findScanFile();
+    Scan scan = scanReader.read(scanFile);
+
+    environmentVariables.clear("BUILD_SOURCEVERSION");
+    assertThat(scan).isNotNull();
+    assertThat(scan.getMetadata().getCommitHash()).isEqualTo(commitHash);
+  }
+
+  @Test
   public void testRun_ScanWithCommitHashFromLocalGitRepository() throws Exception {
     Application app = tempEntity.newApplicationWithParent("the-app-id");
     tempEntity.newProprietaryConfig(app.getId(), Collections.singletonList("com.sonatype"), Collections.emptyList());

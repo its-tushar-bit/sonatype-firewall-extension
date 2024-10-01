@@ -44,6 +44,7 @@ import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.ScanMetadata;
 import com.sonatype.insight.scanner.call.flow.analyzer.CallFlowAnalysisConfig;
 import com.sonatype.insight.scanner.call.flow.analyzer.CallFlowGraphExtractor;
+import com.sonatype.nexus.git.utils.Environment.AzureDevOpsCI;
 import com.sonatype.nexus.git.utils.Environment.GitLabCI;
 import com.sonatype.nexus.git.utils.commit.CommitHashFinderBuilder;
 
@@ -461,8 +462,10 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
   private ScanMetadata verifyAndPopulateMetadata(P params) {
     ScanMetadata scanMetadata = params.getScanMetadata() == null ? new ScanMetadata() : params.getScanMetadata();
     Optional<String> optional = new CommitHashFinderBuilder()
-        .withEnvironmentVariableDefault()
+        .withEnvironmentVariableNamed(AzureDevOpsCI.COMMIT_HASH_ENV_VARIABLE_AUTO_TRIGGER)
+        .withEnvironmentVariableNamed(AzureDevOpsCI.COMMIT_HASH_ENV_VARIABLE_MANUAL_TRIGGER)
         .withEnvironmentVariableNamed(GitLabCI.COMMIT_HASH_ENV_VARIABLE)
+        .withEnvironmentVariableDefault()
         .withGitRepo()
         .withFallBack(scanMetadata.getCommitHash())
         .build()

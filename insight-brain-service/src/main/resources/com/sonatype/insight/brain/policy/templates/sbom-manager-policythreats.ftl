@@ -417,41 +417,38 @@
                           <#list policyFacts as fact>
                               <#list fact.componentFacts as component>
                                 <tr>
-                                  <td style="padding: 24px 5px 0 24px;">
-                                      <#if (fact.threatLevel > 7)>
+                                    <#if (fact.threatLevel > 7)>
+                                      <td style="padding: 24px 5px 0 24px;">
                                         <div
                                             style="border-radius: 16px; height: 14px; width: 14px; background-color: #cc0028;"></div>
                                       </td>
                                     <#elseif (fact.threatLevel > 3)>
-                                      <td style="padding: 24px 8px 16px 24px;">
+                                      <td style="padding: 24px 5px 0 24px;">
                                         <div
                                             style="border-radius: 16px; height: 14px; width: 14px; background-color: #ff8600;"></div>
                                       </td>
                                     <#elseif (fact.threatLevel > 1)>
-                                      <td style="padding: 24px 8px 16px 24px;">
+                                      <td style="padding: 24px 5px 0 24px;">
                                         <div
                                             style="border-radius: 16px; height: 14px; width: 14px; background-color: #ffc333;"></div>
                                       </td>
                                     <#elseif (fact.threatLevel > 0)>
-                                      <td style="padding: 24px 8px 16px 24px;">
+                                      <td style="padding: 24px 5px 0 24px;">
                                         <div
                                             style="border-radius: 16px; height: 14px; width: 14px; background-color: #00b2ff;"></div>
                                       </td>
                                     <#else>
-                                      <td style="padding: 24px 8px 16px 24px;">
+                                      <td style="padding: 24px 5px 0 24px;">
                                         <div
                                             style="border-radius: 16px; height: 14px; width: 14px; background-color: #cde2fe;"></div>
                                       </td>
                                     </#if>
-                                  <td style="padding: 24px 8px 16px 0;">
-                                    <span style="vertical-align: middle;">${fact.threatLevel}</span>
-                                  </td>
                                   <td style="padding: 24px 8px 0 0;">
                                     <h2 style="vertical-align: middle;">${fact.threatLevel} ${fact.policyName}</h2>
                                   </td>
                                 </tr>
                                 <tr>
-                                  <td style="padding: 10px 24px 10px 24px;" colspan="3">
+                                  <td style="padding: 10px 24px 10px 24px;" colspan="2">
                                     <h3 style="vertical-align: middle;margin: 0;">
                                         <#if component.displayName??>
                                             ${component.displayName}
@@ -463,7 +460,7 @@
                                 </tr>
                                   <#list component.constraintFacts as constraint>
                                     <tr>
-                                      <td colspan="1"></td>
+                                      <td></td>
                                       <td style="padding: 0 24px 5px 0;">
                                         <span
                                             style="vertical-align: middle; font-weight: 600;">${constraint.constraintName}</span>
@@ -472,7 +469,7 @@
                                       <#list constraint.conditionFacts as condition>
                                         <tr>
                                           <td></td>
-                                          <td style="padding: 4px 24px 4px 0;" colspan="2">
+                                          <td style="padding: 4px 24px 4px 0;">
                                               ${condition.reason}
                                           </td>
                                         </tr>

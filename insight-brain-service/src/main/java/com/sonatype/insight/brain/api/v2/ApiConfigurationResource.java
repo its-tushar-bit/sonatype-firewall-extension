@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.Map;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -27,6 +26,11 @@ import com.sonatype.insight.brain.banning.BlockIfMultiTenant;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * @since 1.138
@@ -34,6 +38,11 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(value = PublicApiPaths.CONFIG_RESOURCE_PATH_V2)
+@Tag(name = "Configuration",
+    description = "Use this REST API to configure the IQ Server system properties." +
+        "\n" +
+        "\n" +
+        "We strongly recommend using this REST API instead of config.yml for versions 142 and higher.")
 @UnlicensedPath
 public class ApiConfigurationResource
 {
@@ -45,8 +54,26 @@ public class ApiConfigurationResource
   }
 
   @GET
+  @Operation(description = "Use this method to retrieve the configured value for an IQ Server system property." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit System Configuration and Users or system property dependent",
+      responses = {
+          @ApiResponse(
+              responseCode = "400",
+              description = "Bad request, check for invalid property name."
+          ),
+          @ApiResponse(
+              responseCode = "200",
+              description = "The response contains all the requested properties and the corresponding values.",
+              useReturnTypeSchema = true)
+      }
+  )
   @Produces(MediaType.APPLICATION_JSON)
-  public Map<String, Object> getConfiguration(@QueryParam("property") Set<String> properties) {
+  public Map<String, Object> getConfiguration(
+      @Parameter(description = "Enter the names of the system properties. Values provided for name are case-sensitive.")
+      @QueryParam("property") Set<String> properties)
+  {
     return service.getConfiguration(properties);
   }
 
@@ -54,14 +81,54 @@ public class ApiConfigurationResource
   @Audited(AuditEvent.CONFIGURE_PROPERTIES)
   @Consumes(MediaType.APPLICATION_JSON)
   @BlockIfMultiTenant
-  public void setConfiguration(Map<String, Object> properties) {
+  @Operation(description = "Use this method to configure one or more IQ Server system properties. The property names " +
+      "are case-sensitive." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit System Configuration and Users",
+      responses = {
+          @ApiResponse(
+              responseCode = "400",
+              description = "Bad request, check for invalid property name."
+          ),
+          @ApiResponse(
+              responseCode = "204",
+              description = "The specified IQ server configuration property has been set successfully.",
+              useReturnTypeSchema = true
+          )
+      })
+  public void setConfiguration(
+      @RequestBody(description = "Enter the property names and the corresponding values.", required = true)
+      Map<String, Object> properties)
+  {
     service.setConfiguration(properties);
   }
 
   @DELETE
+  @Operation(description = "Use this method to disable one or more IQ Server system properties. " +
+      "The property names are case-sensitive." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit System Configuration and Users",
+      responses = {
+          @ApiResponse(
+              responseCode = "400",
+              description = "Bad request, check for invalid property name.",
+              useReturnTypeSchema = true
+          ),
+          @ApiResponse(
+              responseCode = "204",
+              description = "The IQ Server system properties specified have been successfully disabled.",
+              useReturnTypeSchema = true
+          )
+      }
+  )
   @Audited(AuditEvent.DELETE_PROPERTIES)
   @BlockIfMultiTenant
-  public void deleteConfiguration(@QueryParam("property") Set<String> properties) {
+  public void deleteConfiguration(
+      @Parameter(description = "Enter the names of the system properties. Values provided for name are case-sensitive.")
+      @QueryParam("property") Set<String> properties)
+  {
     service.deleteConfiguration(properties);
   }
 }

@@ -16,8 +16,15 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @Named
 @Path(PublicApiPaths.CONFIG_FEATURES_PATH)
+@Tag(name = "Feature Configuration",
+    description = "Use this REST API to enable/disable the IQ Server features.")
 public class ApiConfigFeaturesResource
 {
   public static final String FEATURE = "{feature}";
@@ -32,14 +39,45 @@ public class ApiConfigFeaturesResource
   @POST
   @Audited(AuditEvent.SET_FEATURES)
   @Path(FEATURE)
-  public void enabledFeature(@PathParam("feature") String feature) {
+  @Operation(description = "Use this method to enable an IQ Server feature." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit System Configuration and Users")
+  @ApiResponse(
+      responseCode = "204",
+      description = "The specified feature has been enabled successfully.",
+      useReturnTypeSchema = true
+  )
+  @ApiResponse(
+      responseCode = "400",
+      description = "Bad request, check for invalid feature name."
+  )
+  public void enabledFeature(
+      @Parameter(description = "Enter the name of the feature to be enabled.", required = true)
+      @PathParam("feature") String feature)
+  {
     apiConfigFeaturesService.enableFeature(feature);
   }
 
   @DELETE
   @Audited(AuditEvent.UNSET_FEATURES)
   @Path(FEATURE)
-  public void disableFeature(@PathParam("feature") String feature) {
+  @Operation(description = "Use this method to disable an IQ Server feature." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit System Configuration and Users")
+  @ApiResponse(
+      responseCode = "204",
+      description = "The IQ Server feature has been successfully disabled."
+  )
+  @ApiResponse(
+      responseCode = "400",
+      description = "Bad request, check for invalid feature name."
+  )
+  public void disableFeature(
+      @Parameter(description = "Enter the name of the IQ Server feature to be disabled.", required = true)
+      @PathParam("feature") String feature)
+  {
     apiConfigFeaturesService.disableFeature(feature);
   }
 }

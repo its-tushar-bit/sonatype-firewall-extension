@@ -100,6 +100,12 @@ public class PolicyThreats
     public boolean waived;
 
     /**
+     * @since 1.180
+     */
+    @JsonInclude(Include.NON_NULL)
+    public boolean waivedWithAutoWaiver;
+
+    /**
      * @since 1.50
      * @deprecated Use {@link PolicyThreats.PolicyViolation#legacyViolation}.
      */

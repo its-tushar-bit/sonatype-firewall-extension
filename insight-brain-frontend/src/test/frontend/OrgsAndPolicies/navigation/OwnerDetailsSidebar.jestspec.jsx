@@ -10,6 +10,7 @@ import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { getOwnerDetailsUrl, getOwnerListUrl } from 'MainRoot/util/CLMLocation';
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 const APPS = [
   {
@@ -437,5 +438,25 @@ describe('OwnerDetailSidebar', () => {
 
     expect(screen.getAllByRole('group')[0]).not.toHaveClass('nx-collapsible-items--expanded');
     expect(screen.getAllByRole('group')[1]).toHaveClass('nx-collapsible-items--expanded');
+  });
+
+  it('does not render waivers when developerDashboardEnabled is false', () => {
+    jest.spyOn(productFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').mockReturnValue(false);
+
+    mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
+
+    renderComponent();
+
+    expect(screen.queryByText('Waivers')).not.toBeInTheDocument();
+  });
+
+  it('renders waivers when developerDashboardEnabled is true', () => {
+    jest.spyOn(productFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').mockReturnValue(true);
+
+    mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
+
+    renderComponent();
+
+    expect(screen.getByText('Waivers')).toBeInTheDocument();
   });
 });

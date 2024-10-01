@@ -47,6 +47,7 @@ const nameIncludesOnboarding = includesNamePart('onboarding');
 const nameIncludesAccess = includesNamePart('access');
 const nameIncludesPrioritiesPageContainer = includesNamePart('WithinPrioritiesPageContainer');
 const nameIncludesPrioritiesPage = includesNamePart('prioritiesPage');
+const nameIncludesWaivers = includesNamePart('waivers');
 
 export const selectIsOrganization = createSelector(selectCurrentRouteName, nameIncludesOrganization);
 export const selectIsTransitiveViolations = createSelector(selectCurrentRouteName, nameIncludesTransitiveViolations);
@@ -72,6 +73,7 @@ export const selectIsSourceControl = createSelector(selectRouterStateUrl, nameIn
 export const selectIsScmOnboarding = createSelector(selectRouterStateUrl, nameIncludesOnboarding);
 export const selectIsAccess = createSelector(selectRouterStateUrl, nameIncludesAccess);
 export const selectIsPrevFirewall = createSelector(selectPreviousRouteName, nameIncludesFirewall);
+export const selectIsWaivers = createSelector(selectRouterStateUrl, nameIncludesWaivers);
 export const selectIsPrioritiesPageContainer = createSelector(selectCurrentRouteName, (routeName) => {
   return nameIncludesPrioritiesPageContainer(routeName) || nameIncludesPrioritiesPage(routeName);
 });

@@ -45,6 +45,7 @@ import MoveOwnerModal from 'MainRoot/OrgsAndPolicies/moveOwner/MoveOwnerModal';
 import { selectIsDisplayedOrganizationSynthetic } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import InsufficientPermissionOwnerHierarchyTree from 'MainRoot/OrgsAndPolicies/insufficientPermissionOwnerHierarchyTree/InsufficientPermissionOwnerHierarchyTree';
 import ImportSbomModal from 'MainRoot/OrgsAndPolicies/importSbomModal/ImportSbomModal';
+import WaiversConfigurationTile from 'MainRoot/OrgsAndPolicies/ownerSummary/AutomatedWaiversTile';
 
 function DefaultTiles() {
   return (
@@ -59,6 +60,7 @@ function DefaultTiles() {
       <RetentionTile />
       <SourceControlTile />
       <InnerSourceRepositoryTile />
+      <WaiversConfigurationTile />
       <ArtifactoryRepositoryTile />
       <AccessTile />
     </>

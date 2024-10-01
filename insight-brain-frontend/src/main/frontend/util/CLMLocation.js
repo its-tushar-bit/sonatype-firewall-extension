@@ -1394,6 +1394,18 @@ export const getAuditReportSummary = function (repositoryId) {
 export const getLegacyViolationURL = (ownerType, ownerId) =>
   uriTemplate`/rest/legacyViolations/${ownerType}/${ownerId}`;
 
+export const getWaiversConfigurationURL = (ownerType, ownerId) => {
+  return uriTemplate`/api/v2/autoPolicyWaivers/${ownerType}/${ownerId}/status`;
+};
+
+export const getWaiversConfigurationURLnoStatus = (ownerType, ownerId) => {
+  return uriTemplate`/api/v2/autoPolicyWaivers/${ownerType}/${ownerId}`;
+};
+
+export const getWaiversConfigurationURLWaiver = (ownerType, ownerId, waiverId) => {
+  return uriTemplate`/api/v2/autoPolicyWaivers/${ownerType}/${ownerId}/${waiverId}`;
+};
+
 export const getNotificationWebhooksUrl = (ownerType, ownerId) => {
   return uriTemplate`/rest/config/webhook/policy/${ownerType}/${ownerId ? `${ownerId}` : ''}`;
 };

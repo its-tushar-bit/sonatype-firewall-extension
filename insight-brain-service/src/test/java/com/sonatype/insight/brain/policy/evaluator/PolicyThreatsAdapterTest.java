@@ -111,6 +111,31 @@ public class PolicyThreatsAdapterTest
   }
 
   @Test
+  public void testCreatePolicyThreats_WaivedWithAutoWaiver() {
+    ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("commons-httpclient",
+        "commons-httpclient", "3.1.SONATYPE", "", "jar");
+    ComponentIdentifier cargoIdentifier = ComponentIdentifier.createCargoCoordinates("fauxpak", "0.7.0", "contrived");
+
+    PolicyViolation mavenViolation = buildPolicyViolation("policy1", "hash1", 10, mavenIdentifier, true,
+        false, Action.ID_FAIL);
+
+    PolicyViolation cargoViolation =
+        buildPolicyViolation("policy2", "hash2", 10, cargoIdentifier, true, false, Action.ID_FAIL);
+    cargoViolation.setAutoPolicyWaiverId("autoPolicyWaiverId1");
+
+    List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, cargoViolation);
+
+    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations);
+
+    // Make sure each component has a waived policy.
+    for (PolicyThreats.Component component : threats.aaData) {
+      assertThat(component.waivedViolations).hasSize(1);
+    }
+
+    assertPolicyThreats(threats, violations);
+  }
+
+  @Test
   public void testCreatePolicyThreats_LegacyViolation() {
     ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     ComponentIdentifier nugetIdentifier = ComponentIdentifier.createNugetCoordinates("p", "v");
@@ -214,6 +239,37 @@ public class PolicyThreatsAdapterTest
 
     assertThat(threats.aaData).isEmpty();
     assertThat(threats.version).isEqualTo(5);
+  }
+
+  @Test
+  public void testAutoWaiverEval() {
+    ComponentIdentifier cargoIdentifier = ComponentIdentifier.createMavenCoordinates("commons-httpclient",
+        "commons-httpclient", "3.1.SONATYPE", "", "jar");
+    ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("commons-httpclient",
+        "commons-httpclient-core", "4.2.8", "", "jar");
+    ComponentIdentifier nugetIdentifier = ComponentIdentifier.createNugetCoordinates("simplejson", "0.38.0");
+
+    PolicyViolation mavenViolation = buildPolicyViolation("policy1", "hash1", 10, mavenIdentifier, false,
+        false, Action.ID_FAIL);
+    PolicyViolation nugetViolation = buildPolicyViolation("policy1", "hash2", 10, nugetIdentifier, true,
+        false, Action.ID_FAIL);
+    PolicyViolation cargoViolation = buildPolicyViolation("policy1", "hash3", 10, cargoIdentifier, true,
+        true, Action.ID_FAIL);
+    cargoViolation.setAutoPolicyWaiverId("autoPolicyWaiverId1");
+    PolicyViolation cargoViolationTwo = buildPolicyViolation("policy1", "hash3", 10, cargoIdentifier, true,
+        false, Action.ID_FAIL);
+
+    boolean result = PolicyThreatsAdapter.isAutoWaived(cargoViolation);
+    assertThat(result).isTrue();
+
+    boolean resultTwo = PolicyThreatsAdapter.isAutoWaived(mavenViolation);
+    assertThat(resultTwo).isFalse();
+
+    boolean resultThree = PolicyThreatsAdapter.isAutoWaived(nugetViolation);
+    assertThat(resultThree).isFalse();
+
+    boolean resultFour = PolicyThreatsAdapter.isAutoWaived(cargoViolationTwo);
+    assertThat(resultFour).isFalse();
   }
 
   private PolicyViolation buildPolicyViolation(String policyId,
@@ -327,6 +383,8 @@ public class PolicyThreatsAdapterTest
     assertThat(policyViolation.policyViolationId).isEqualTo(violation.getId());
     assertThat(policyViolation.policyName).isEqualTo(violation.getPolicyName());
     assertThat(policyViolation.waived).isEqualTo(violation.isWaived());
+    assertThat(policyViolation.waivedWithAutoWaiver).isEqualTo(
+        violation.isWaived() && violation.getAutoPolicyWaiverId() != null);
     assertThat(policyViolation.legacyViolation).isEqualTo(violation.isLegacyViolation());
     assertThat(policyViolation.constraintFactsJson).isEqualTo(violation.getConstraintFactsJson());
     assertThat(policyViolation.policyThreatCategory).isEqualTo(violation.getThreatCategory().toString());

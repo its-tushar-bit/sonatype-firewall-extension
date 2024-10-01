@@ -18,12 +18,12 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 
 /**
- * 
+ *
  * <p>
  * This adapter replaces the older {@link PolicyThreats} generator that used {@link PolicyAlert}s.
  * {@link PolicyViolation}s are directly adapted to {@link PolicyThreats}.
  * </p>
- * 
+ *
  * @since 1.13.0
  */
 public class PolicyThreatsAdapter
@@ -81,6 +81,7 @@ public class PolicyThreatsAdapter
     result.policyName = violation.getPolicyName();
     result.policyThreatLevel = violation.getThreatLevel();
     result.waived = violation.isWaived();
+    result.waivedWithAutoWaiver = isAutoWaived(violation);
     result.legacyViolation = violation.isLegacyViolation();
     result.actions.addAll(toPolicyThreatsPolicyActions(violation));
     result.constraints.addAll(toPolicyThreatsPolicyConstraints(violation.getConstraintFacts()));
@@ -137,5 +138,9 @@ public class PolicyThreatsAdapter
       result.add(condition);
     }
     return result;
+  }
+
+  public static boolean isAutoWaived(PolicyViolation violation) {
+    return violation.isWaived() && violation.getAutoPolicyWaiverId() != null;
   }
 }

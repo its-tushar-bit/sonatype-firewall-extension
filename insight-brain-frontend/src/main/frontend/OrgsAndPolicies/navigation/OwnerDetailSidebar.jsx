@@ -41,6 +41,7 @@ import {
   selectIsSourceControl,
   selectIsAccess,
   selectIsSbomManager,
+  selectIsWaivers,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectIsLegacyViolationSupported,
@@ -50,6 +51,7 @@ import {
   selectIsSourceControlForSourceTileSupported,
   selectIsScmEnabled,
   selectIsSbomContinuousMonitoringUiEnabled,
+  selectIsDeveloperDashboardEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSlice';
 import Hexagon from 'MainRoot/react/Hexagon';
@@ -103,6 +105,8 @@ export default function OwnerDetailSidebar() {
   const areAnyCategoriesDefined = useSelector(selectAreAnyCategoriesDefined);
   const isSbomManager = useSelector(selectIsSbomManager);
   const isSbomContinuousMonitoringUiEnabled = useSelector(selectIsSbomContinuousMonitoringUiEnabled);
+  const isWaivers = useSelector(selectIsWaivers);
+  const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
 
   const uiRouterState = useRouterState();
 
@@ -426,6 +430,14 @@ export default function OwnerDetailSidebar() {
           </NxOverflowTooltip>
         ))}
       </NxCollapsibleItems>
+      {/* Waivers */}
+      {!isRepositoriesRelated && isScmEnabled && isDeveloperDashboardEnabled && (
+        <NxCollapsibleItems.Child role="menuitem">
+          <NxTextLink className={`iq-noncollapsible ${isWaivers ? 'selected' : ''}`} href={`${linkMainHref}/waivers`}>
+            Waivers
+          </NxTextLink>
+        </NxCollapsibleItems.Child>
+      )}
     </div>
   );
 }

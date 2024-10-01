@@ -41,6 +41,7 @@ import RepositoriesPills from 'MainRoot/OrgsAndPolicies/repositories/Repositorie
 import SourceControlConfiguration from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/SourceControlConfiguration';
 import OwnerSummaryPills from 'MainRoot/OrgsAndPolicies/OwnerSummaryPills/OwnerSummaryPills';
 import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
+import WaiversConfiguration from 'MainRoot/OrgsAndPolicies/waiversConfiguration/WaiversConfiguration';
 
 export default angular
   .module('owner.manager.module', [
@@ -71,6 +72,7 @@ export default angular
   .component('repositorySummaryView', iqReact2Angular(RepositorySummaryView, [], ['$ngRedux', '$state']))
   .component('licenseThreatGroupEditor', iqReact2Angular(LicenseThreatGroupEditor, [], ['$ngRedux']))
   .component('continuousMonitoring', iqReact2Angular(ContinuousMonitoringEditor, [], ['$ngRedux']))
+  .component('waiversConfiguration', iqReact2Angular(WaiversConfiguration, [], ['$ngRedux']))
   .component('createComponentLabel', iqReact2Angular(CreateComponentLabel, [], ['$ngRedux', '$state']))
   .component('accessPage', iqReact2Angular(AccessPage, [], ['$ngRedux', '$state']))
   .component('policyEditor', iqReact2Angular(PolicyEditor, [], ['$ngRedux']))
@@ -243,6 +245,13 @@ export default angular
               isDirty: ['orgsAndPolicies', 'sourceControlConfiguration', 'isDirty'],
             },
             component: 'sourceControlConfiguration',
+          })
+          .state('management.edit.' + ownerType.type + '.edit-waivers', {
+            url: '/waivers',
+            data: {
+              title: ownerType.name + ' Waivers Configuration',
+            },
+            component: 'waiversConfiguration',
           });
       });
 

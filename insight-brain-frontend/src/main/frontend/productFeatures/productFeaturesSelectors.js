@@ -258,3 +258,5 @@ export const selectIsSbomContinuousMonitoringUiEnabled = createSelector(
   selectProductFeatures,
   propOr(false, 'sbom-continuous-monitoring-ui')
 );
+
+export const selectIsAutoWaiversEnabled = createSelector(selectProductFeatures, propOr(false, 'auto-waivers'));

@@ -110,6 +110,7 @@ public class PullRequestRemediationDetails
   public PullRequestRemediationDetails(
       final ComponentIdentifier toBeRemediated,
       final String remediatedVersion,
+      final String targetVersionType,
       final Integer breakingChangesCount,
       final String pullRequestBranchName,
       final List<PolicyNotification> notifications,
@@ -123,7 +124,7 @@ public class PullRequestRemediationDetails
   {
     this(toBeRemediated, remediatedVersion, breakingChangesCount, pullRequestBranchName, app, scanId, stage,
         organizationDAO);
-    this.contents = constructContents(notifications, iqBaseUrl, provider, scmBaseUrl);
+    this.contents = constructContents(notifications, targetVersionType, iqBaseUrl, provider, scmBaseUrl);
   }
 
   public PullRequestRemediationDetails(
@@ -181,6 +182,7 @@ public class PullRequestRemediationDetails
 
   private String constructContents(
       final List<PolicyNotification> notifications,
+      final String targetVersionType,
       final String iqBaseUrl,
       final SourceControlProvider provider,
       final String scmBaseUrl) throws IOException
@@ -198,6 +200,7 @@ public class PullRequestRemediationDetails
         .put("componentName", getComponentName(getToBeRemediated()))
         .put("initialVersionDisplay", constructVersionDisplay(toBeRemediated))
         .put("targetVersionDisplay", constructVersionDisplay(remediatedComponent))
+        .put("targetVersionType", targetVersionType)
         .put("breakingChangesCount", breakingChangesCount == null ? -1 : breakingChangesCount)
         .put("applicationName", app.getName())
         .put("organizationName", getOrganizationName(app))

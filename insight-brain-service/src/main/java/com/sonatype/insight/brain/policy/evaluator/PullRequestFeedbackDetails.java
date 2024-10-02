@@ -330,14 +330,17 @@ public class PullRequestFeedbackDetails
               getSuggestedVersion(remediationVersionMap, componentEntry.getValue());
           String suggestedVersion = remediationVersionDTO != null ? remediationVersionDTO.getVersion() : "";
           int breakingChangesCount = -1;
+          String remediationTypeDisplayName = "";
           boolean remediationForDependencies = false;
           if (remediationVersionDTO != null) {
             if (remediationVersionDTO.getBreakingChangesCount() != null) {
               breakingChangesCount = remediationVersionDTO.getBreakingChangesCount();
             }
-            if (remediationVersionDTO.getRemediationType() != null) {
+            ApiVersionChangeOptionType remediationType = remediationVersionDTO.getRemediationType();
+            if (remediationType != null) {
+              remediationTypeDisplayName = remediationType.getDisplayName();
               remediationForDependencies = ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
-                  .equals(remediationVersionDTO.getRemediationType());
+                  .equals(remediationType);
             }
           }
 
@@ -355,6 +358,7 @@ public class PullRequestFeedbackDetails
               .put("suggestedVersion", suggestedVersion)
               .put("remediationForDependencies", remediationForDependencies)
               .put("breakingChangesCount", breakingChangesCount)
+              .put("remediationTypeDisplayName", remediationTypeDisplayName)
               .put("lineCommentLink",
                   getLineCommentLink(pullRequestLineComments, componentEntry.getValue(), gitRepositoryInfo, prNumber))
               .put("policiesViolated", getPoliciesViolatedMap(componentEntry.getValue(), baseUrl, true));

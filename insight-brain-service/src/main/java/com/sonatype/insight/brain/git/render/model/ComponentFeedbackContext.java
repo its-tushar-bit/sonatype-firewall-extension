@@ -34,6 +34,8 @@ public class ComponentFeedbackContext
   private final int breakingChangesCount;
 
   private final String suggestedVersion;
+  
+  private final String suggestedVersionType;
 
   private final boolean hasRemediationForDependencies;
 
@@ -54,6 +56,7 @@ public class ComponentFeedbackContext
                                   final SourceControlProvider provider,
                                   final int breakingChangesCount,
                                   final String suggestedVersion,
+                                  final String suggestedVersionType,
                                   final boolean hasRemediationForDependencies,
                                   final List<SecurityIssue> securityIssues,
                                   final MDImages dependencyImage,
@@ -68,6 +71,7 @@ public class ComponentFeedbackContext
     this.provider = requireNonNull(provider);
     this.breakingChangesCount = breakingChangesCount;
     this.suggestedVersion = suggestedVersion;
+    this.suggestedVersionType = suggestedVersionType;
     this.hasRemediationForDependencies = hasRemediationForDependencies;
     this.securityIssues = requireNonNull(securityIssues);
     this.dependencyImage = dependencyImage;
@@ -103,6 +107,10 @@ public class ComponentFeedbackContext
 
   public String getSuggestedVersion() {
     return suggestedVersion;
+  }
+  
+  public String getSuggestedVersionType() {
+    return suggestedVersionType;
   }
 
   public int getBreakingChangesCount() {

@@ -6,6 +6,8 @@
 <#assign moderateBreakingChangesThreshold = 2 >
 <#assign fewBreakingChangesThreshold = 0 >
 
+<#assign recommendedNonBreakingWithDependencies = "recommended-non-breaking-with-dependencies" >
+
 <#--
   Breaking Changes macro
   Parameters:
@@ -30,6 +32,18 @@
   - <img alt="Few breaking changes" src="https://cdn.sonatype.com/iq-for-scm/1.0/yellow-bar.png" width="${width}" height="${width}">&nbsp; Few breaking changes - This version upgrade may require moderate effort.
     <#elseif (count == 0)>
   - <img alt="No breaking changes" src="https://cdn.sonatype.com/iq-for-scm/1.0/dark-blue-bar.png" width="${width}" height="${width}">&nbsp; No breaking changes - This version upgrade requires minimal effort.
+    </#if>
+  </#if>
+</#macro>
+
+<#macro breakingChangesWithRemediationType remediationType minimalMarkdown width=12>
+  <#if minimalMarkdown>
+    <#if (remediationType == recommendedNonBreakingWithDependencies)>
+      <#lt>:white_check_mark: No breaking changes - This version upgrade requires minimal effort.
+    </#if>
+  <#else>
+    <#if (remediationType == recommendedNonBreakingWithDependencies)>
+      <#lt>&nbsp;<img alt="green_checkmark" src="https://cdn.sonatype.com/iq-for-scm/1.0/green-check-mark.png" width="${width}" height="${width}">&nbsp; No breaking changes - This version upgrade requires minimal effort.
     </#if>
   </#if>
 </#macro>

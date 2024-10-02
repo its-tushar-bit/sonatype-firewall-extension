@@ -16,7 +16,11 @@
 
   <#if component.suggestedVersion?has_content>
     :shield: **Bumping to version ${component.suggestedVersion}** will resolve all policy violations for this component<#if ( component.remediationForDependencies )> and its dependencies</#if><#lt>
-    <@breakingChanges count=component.breakingChangesCount minimalMarkdown=true />
+  <#if component.remediationTypeDisplayName == recommendedNonBreakingWithDependencies>
+  <@breakingChangesWithRemediationType remediationType=component.remediationTypeDisplayName minimalMarkdown=true />
+  <#else>
+  <@breakingChanges count=component.breakingChangesCount minimalMarkdown=true />
+  </#if>
   <#else>
     :warning: No recommended versions are available for this component<#lt>
   </#if>
@@ -76,3 +80,4 @@
 </#if>
 
 [Give feedback](https://community.sonatype.com/t/user-feedback-github-pr-reviews/3811)<#t>
+

@@ -16,8 +16,12 @@
   <p></p><#lt>
 
 <#if component.suggestedVersion?has_content>
-  :shield: **Bumping to version ${component.suggestedVersion}** will resolve all policy violations for this component<#if ( component.remediationForDependencies )> and its dependencies</#if><#lt>
-  <@breakingChanges count=component.breakingChangesCount minimalMarkdown=false width=width/>
+  :shield: **Bumping to version ${component.suggestedVersion}** will resolve all policy violations for this component<#if ( component.remediationForDependencies )> and its dependencies</#if><#lt><#if provider.name() == "GITLAB"><br /></#if>
+  <#if component.remediationTypeDisplayName == recommendedNonBreakingWithDependencies>
+  <@breakingChangesWithRemediationType remediationType=component.remediationTypeDisplayName minimalMarkdown=false width=width/>
+  <#else>
+  <@breakingChanges count=component.breakingChangesCount minimalMarkdown=false width=width/> 
+  </#if>
 <#else>
   :warning: No recommended versions are available for this component<#lt>
 </#if>

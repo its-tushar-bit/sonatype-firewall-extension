@@ -38,6 +38,23 @@ Threat (of 10) | Policy | Violation Details
 </details>
 
 <details>
+<summary title="Threat Level: 7 of 10"><a href="#;"><img alt="T7" src="https://cdn.sonatype.com/iq-for-scm/1.0/orange-bar.png" width="4" height="14"></a> 
+<b>7&nbsp;&nbsp;&nbsp;
+<a href="#;"><img alt="dependency logo" src="https://cdn.sonatype.com/iq-for-scm/1.0/blank.png" height="14"></a>&nbsp;
+org.apache.kafka : kafka-clients : 3.7.0</b></summary>
+<p></p>
+
+:shield: **Bumping to version 3.8.0** will resolve all policy violations for this component
+&nbsp;<img alt="green_checkmark" src="https://cdn.sonatype.com/iq-for-scm/1.0/green-check-mark.png" width="12" height="12">&nbsp; No breaking changes - This version upgrade requires minimal effort.
+
+Threat (of 10) | Policy | Violation Details
+--- | --- | --- |
+7 | Security-Medium | <b>Medium risk CVSS score:</b><ul><li>Found security vulnerability: [CVE-2018-14335](http://localhost:1122/ui/links/vln/CVE-2018-14335)</li></ul>
+
+  [Component detail 🔍](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/toScanId/componentDetails/kj71536d44e3b07f0c92?source=pr-commenting)
+</details>
+
+<details>
 <summary title="Threat Level: 3 of 10"><a href="#;"><img alt="T3" src="https://cdn.sonatype.com/iq-for-scm/1.0/yellow-bar.png" width="4" height="14"></a> 
 <b>3&nbsp;&nbsp;&nbsp;
 <a href="#;"><img alt="dependency logo" src="https://cdn.sonatype.com/iq-for-scm/1.0/blank.png" height="14"></a>&nbsp;

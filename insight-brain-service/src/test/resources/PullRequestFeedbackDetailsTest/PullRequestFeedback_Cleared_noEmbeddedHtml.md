@@ -27,6 +27,14 @@ Well done. The committed code does not violate any of your organization's Nexus 
 
 &#8192;
 
+:white_check_mark: **org.apache.kafka : kafka-clients : 3.7.0**
+
+| **Threat (of 10)** | **Policy** | **Violation Details** |
+| --- | --- | --- |
+| 7 | Security-Medium | **Medium risk CVSS score:** Found security vulnerability: [CVE-2018-14335](http://localhost:1122/ui/links/vln/CVE-2018-14335).  |
+
+&#8192;
+
 ### Nexus IQ Report Details
 **Application**: TEST APP   
 **Organization**: TEST ORG   

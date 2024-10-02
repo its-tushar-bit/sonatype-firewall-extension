@@ -66,6 +66,7 @@ public class ComponentFeedbackContextFactory
             provider,
             countBreakingChanges(remediationVersionDTO),
             resolveSuggestedVersion(remediationVersionDTO),
+            resolveSuggestedVersionType(remediationVersionDTO),
             hasRemediationForDependencies(remediationVersionDTO),
             securityIssues,
             //For now, we can only process Direct dependencies since
@@ -83,6 +84,13 @@ public class ComponentFeedbackContextFactory
 
   private static String resolveSuggestedVersion(final RemediationVersionDTO remediationVersionDTO) {
     return remediationVersionDTO == null ? "" : remediationVersionDTO.getVersion();
+  }
+  
+  private static String resolveSuggestedVersionType(final RemediationVersionDTO remediationVersionDTO) {
+    if (remediationVersionDTO == null || remediationVersionDTO.getRemediationType() == null) {
+      return "";
+    }
+    return remediationVersionDTO.getRemediationType().getDisplayName();
   }
 
   private static int countBreakingChanges(final RemediationVersionDTO remediationVersionDTO) {

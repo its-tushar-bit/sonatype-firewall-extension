@@ -223,7 +223,7 @@ public class PullRequestFeedbackDetailsTest
 
     //then assert that created contents match expected
     final Optional<String> contents = details.renderTemplateAndGetContents();
-    assertRenderedOutput(contents, getClass(),"PullRequestFeedback_Added_noEmbeddedHtml.md");
+    assertRenderedOutput(contents, getClass(), "PullRequestFeedback_Added_noEmbeddedHtml.md");
   }
 
   @Test
@@ -244,9 +244,9 @@ public class PullRequestFeedbackDetailsTest
 
     //then assert that created contents match expected
     final Optional<String> contents = details.renderTemplateAndGetContents();
-    assertRenderedOutput(contents, getClass(),"PullRequestFeedback_Added_noEmbeddedHtml_WithContext.md");
+    assertRenderedOutput(contents, getClass(), "PullRequestFeedback_Added_noEmbeddedHtml_WithContext.md");
   }
-
+  
   private String readResource(String contentFile) throws Exception {
     return TemplateHelper.readResource(PullRequestFeedbackDetailsTest.class, contentFile);
   }
@@ -1083,10 +1083,15 @@ public class PullRequestFeedbackDetailsTest
     remediationVersionMap.put(ci2, new RemediationVersionDTO("4.5.0.RELEASE",
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES));
 
+    ComponentIdentifier ci3 = ComponentIdentifier
+        .createMavenCoordinates("org.apache.kafka", "kafka-clients", "3.7.0", "", "jar");
+    remediationVersionMap.put(ci3, new RemediationVersionDTO("3.8.0",
+        ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES));
+
     //setup pullRequestLineComments
     pullRequestLineComments = new ArrayList<>();
     PullRequestLineCommentDTO lineCommentDTO = new PullRequestLineCommentDTO(ci, new DiffPosition("path",
-            1, 0, 1, "456", 1));
+        1, 0, 1, "456", 1));
     lineCommentDTO.setScmId(12345L);
     pullRequestLineComments.add(lineCommentDTO);
 
@@ -1233,11 +1238,11 @@ public class PullRequestFeedbackDetailsTest
         "   \"operatorName\":\"AND\"," +
         "   \"conditionFacts\": [{" +
         "      \"conditionTypeId\":\"SecurityVulnerabilitySeverity\"," +
-               "\"conditionIndex\":0," +
-               "\"summary\":\"Security Vulnerability Severity >= 0\"," +
-               "\"reason\":\"Found security vulnerability %s with severity >= 0 (severity = 3.5)\"," +
-               "\"reference\":{\"value\":\"%s\",\"type\":\"SECURITY_VULNERABILITY_REFID\"}," +
-               "\"triggerJson\":\"{}\"}]}]";
+        "\"conditionIndex\":0," +
+        "\"summary\":\"Security Vulnerability Severity >= 0\"," +
+        "\"reason\":\"Found security vulnerability %s with severity >= 0 (severity = 3.5)\"," +
+        "\"reference\":{\"value\":\"%s\",\"type\":\"SECURITY_VULNERABILITY_REFID\"}," +
+        "\"triggerJson\":\"{}\"}]}]";
 
     return String.format(str, constraintName, cve, cve);
   }

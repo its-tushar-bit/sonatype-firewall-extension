@@ -17,6 +17,7 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
@@ -164,11 +165,13 @@ public class PolicyAlertScmNotifier
 
       if (remediationVersion.isPresent()) {
         String nextVersion = remediationVersion.get().getVersion();
+        ApiVersionChangeOptionType remediationType = remediationVersion.get().getRemediationType();
+        String stringRemediationType = remediationType.toString();
         final String branchName = getBranchName(app, entry.getKey(), nextVersion);
 
         if (!sourceControlEventPublisher.doesRemediationEventExistForBranch(app.getId(), branchName)) {
           PullRequestRemediationDetails pullRequestRemediationDetails =
-              new PullRequestRemediationDetails(entry.getKey(), nextVersion,
+              new PullRequestRemediationDetails(entry.getKey(), nextVersion, stringRemediationType,
                   remediationVersion.get().getBreakingChangesCount(), branchName, entry.getValue(), app,
                   scanId, stage.getStageTypeId(), baseUrl.getConfigured(), gitRepositoryInfo.provider,
                   gitRepositoryInfo.normalizedRepositoryUrl, organizationDAO);

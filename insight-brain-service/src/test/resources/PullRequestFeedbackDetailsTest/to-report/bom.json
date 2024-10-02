@@ -209,6 +209,58 @@
           }
         ]
       }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "kafka-clients",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.apache.kafka",
+          "version": "3.7.0"
+        }
+      },
+      "groupId": "org.apache.kafka",
+      "artifactId": "kafka-clients",
+      "version": "3.7.0",
+      "filenames": [
+        "kafka-clients-3.7.0.jar"
+      ],
+      "pathnames": [
+        "webgoat-server/target/webgoat-server-8.0.0.M1.jar/BOOT-INF/lib/kafka-clients-3.7.0.jar"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "kj71536d44e3b07f0c92",
+      "relativePopularity": 0.03,
+      "createTime": 1444568574000,
+      "lastModifiedTime": 1444575270000,
+      "lastModifiedEntryTime": 1444575270000,
+      "website": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "org.apache.kafka"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "kafka-clients"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "3.7.0"
+          }
+        ]
+      }
     }
   ]
 }

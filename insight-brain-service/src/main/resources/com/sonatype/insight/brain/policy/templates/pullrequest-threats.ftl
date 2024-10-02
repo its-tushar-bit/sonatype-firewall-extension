@@ -1,6 +1,29 @@
 <#include "iq-for-scm-common.ftl">
+<#assign recommendedNonBreaking = "recommended-non-breaking" >
+<#assign recommendedNonBreakingWithDependencies = "recommended-non-breaking-with-dependencies" >
 <#if provider.name() == "GITLAB"><#assign width=14><#else><#assign width=12></#if>
-## :shield: Automated <#if provider.name() == "GITLAB">merge<#else>pull</#if> request: Nexus IQ found ${threatList?size} Policy Violation<#if (threatList?size > 1)>s</#if>
+<#if targetVersionType == recommendedNonBreakingWithDependencies>## <img src="https://cdn.sonatype.com/iq-for-scm/1.0/golden-pr.png" width="34" height="22" alt="golden PR icon"> Auto<#if provider.name() == "GITLAB">M<#else>P</#if>R: Bump ${componentName} to resolve ${threatList?size} policy violation<#if (threatList?size > 1)>s</#if>
+
+**Component: ${componentName}**
+- **Suggested version: ${targetVersionDisplay}**<#if provider.name() == "GITLAB">\</#if>
+&nbsp;<img src="https://cdn.sonatype.com/iq-for-scm/1.0/green-check-mark.png" width="12" height="12" alt="green checkmark icon">&nbsp; No breaking changes<#if provider.name() == "GITLAB">\</#if>
+&nbsp;<img src="https://cdn.sonatype.com/iq-for-scm/1.0/green-check-mark.png" width="12" height="12" alt="green checkmark icon">&nbsp; No policy violations for this component<#if provider.name() == "GITLAB">\</#if>
+&nbsp;<img src="https://cdn.sonatype.com/iq-for-scm/1.0/green-check-mark.png" width="12" height="12" alt="green checkmark icon">&nbsp; No policy violations for dependencies
+- Current version (with violations): **${initialVersionDisplay}**
+
+**Violations resolved by new version:**
+<#elseif targetVersionType == recommendedNonBreaking>
+## Auto<#if provider.name() == "GITLAB">M<#else>P</#if>R: Bump ${componentName} to resolve ${threatList?size} policy violation<#if (threatList?size > 1)>s</#if>
+
+**Component: ${componentName}**
+- **Suggested version: ${targetVersionDisplay}**<#if provider.name() == "GITLAB">\</#if>
+&nbsp;<img src="https://cdn.sonatype.com/iq-for-scm/1.0/green-check-mark.png" width="12" height="12" alt="green checkmark icon">&nbsp; No breaking changes<#if provider.name() == "GITLAB">\</#if>
+&nbsp;<img src="https://cdn.sonatype.com/iq-for-scm/1.0/green-check-mark.png" width="12" height="12" alt="green checkmark icon">&nbsp; No policy violations for this component
+- Current version (with violations): **${initialVersionDisplay}**
+
+**Violations resolved by new version:**
+<#else>
+## :shield: Automated pull request: Nexus IQ found ${threatList?size} Policy Violation<#if (threatList?size > 1)>s</#if>
 
 ### Description
 
@@ -10,6 +33,7 @@
 <@breakingChanges count=breakingChangesCount minimalMarkdown=false width=width/>
 
 ### Policy
+</#if>
 Threat (of 10) | Policy | Violation Details
 --- | --- | ---
 <#list threatList as threat>

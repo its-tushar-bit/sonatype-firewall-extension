@@ -1,4 +1,25 @@
 <#include "iq-for-scm-common.ftl">
+<#assign recommendedNonBreaking = "recommended-non-breaking" >
+<#assign recommendedNonBreakingWithDependencies = "recommended-non-breaking-with-dependencies" >
+<#if suggestedVersionType == recommendedNonBreakingWithDependencies>
+### Sonatype IQ found critical issues introduced by ${componentNameAndVersion}
+
+Direct dependency | **Threat level: ${threatLevel}** | [View Component Details in Sonatype Lifecycle](${componentDetailsReportUrl})
+
+:star: **Golden Version: ${suggestedVersion}**
+
+:white_check_mark: Non-breaking upgrade resolves issues for this component and its dependencies
+
+<#elseif suggestedVersionType == recommendedNonBreaking>
+### Sonatype IQ found critical issues introduced by ${componentNameAndVersion}
+
+Direct dependency | **Threat level: ${threatLevel}** | [View Component Details in Sonatype Lifecycle](${componentDetailsReportUrl})
+
+:shield: **Recommended Version: ${suggestedVersion}**
+
+:white_check_mark: Non-breaking upgrade resolves issues for this component
+
+<#else>
 ### :thinking: Nexus IQ found <#if ( policiesViolatedCount > 1 )>policy violations<#else>a policy violation</#if> introduced by this change.<#lt>
 
 <#if suggestedVersion?has_content>
@@ -6,6 +27,7 @@
   <@breakingChanges count=breakingChangesCount minimalMarkdown=true /><#lt>
 <#else>
   :warning: No recommended versions are available for this component (as of _${date}_)<#lt>
+</#if>
 </#if>
 
 Threat (of 10) | Policy | Violation Details

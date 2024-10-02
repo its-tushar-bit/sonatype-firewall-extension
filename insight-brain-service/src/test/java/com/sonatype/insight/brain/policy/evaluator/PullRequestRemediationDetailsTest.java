@@ -66,68 +66,124 @@ public class PullRequestRemediationDetailsTest
   @Test
   public void testSecurityVulnerabilityReport_richHtml() throws Exception {
     testSecurityVulnerabilityReport(SourceControlProvider.GITHUB,
-        "/PullRequestRemediationDetailsTest/VulnerabilityReport.md", null);
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport.md", null, "next-no-violations");
   }
 
   @Test
   public void testSecurityVulnerabilityReport_richHtml_noBreakingChanges() throws Exception {
     testSecurityVulnerabilityReport(SourceControlProvider.GITHUB,
-        "/PullRequestRemediationDetailsTest/VulnerabilityReport_noBreakingChanges.md", 0);
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_noBreakingChanges.md", 0, "next-no-violations");
   }
 
   @Test
   public void testSecurityVulnerabilityReport_richHtml_fewBreakingChanges() throws Exception {
     testSecurityVulnerabilityReport(SourceControlProvider.GITHUB,
-        "/PullRequestRemediationDetailsTest/VulnerabilityReport_fewBreakingChanges.md", 2);
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_fewBreakingChanges.md", 2, "next-no-violations");
   }
 
   @Test
   public void testSecurityVulnerabilityReport_richHtml_severalBreakingChanges() throws Exception {
     testSecurityVulnerabilityReport(SourceControlProvider.GITHUB,
-        "/PullRequestRemediationDetailsTest/VulnerabilityReport_severalBreakingChanges.md", 3);
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_severalBreakingChanges.md", 3, "next-no-violations");
   }
 
   @Test
   public void testSecurityVulnerabilityReport_richHtml_manyBreakingChanges() throws Exception {
     testSecurityVulnerabilityReport(SourceControlProvider.GITHUB,
-        "/PullRequestRemediationDetailsTest/VulnerabilityReport_manyBreakingChanges.md", 7);
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_manyBreakingChanges.md", 7, "next-no-violations");
+  }
+
+  @Test
+  public void testSecurityVulnerabilityReport_richHtml_Golden() throws Exception {
+    testSecurityVulnerabilityReport(SourceControlProvider.GITHUB,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_Golden.md", 0,
+        "recommended-non-breaking-with-dependencies");
+
+    testSecurityVulnerabilityReport(SourceControlProvider.GITLAB,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_Golden_Gitlab.md", 0,
+        "recommended-non-breaking-with-dependencies");
+  }
+
+  @Test
+  public void testSecurityVulnerabilityReport_richHtml_Suggested() throws Exception {
+    testSecurityVulnerabilityReport(SourceControlProvider.GITHUB,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_Suggested.md", 0, "recommended-non-breaking");
+
+    testSecurityVulnerabilityReport(SourceControlProvider.GITLAB,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_Suggested_Gitlab.md", 0, "recommended-non-breaking");
   }
 
   @Test
   public void testSecurityVulnerabilityReport_minimalHtml() throws Exception {
     testSecurityVulnerabilityReport(SourceControlProvider.BITBUCKET,
-        "/PullRequestRemediationDetailsTest/VulnerabilityReport_noHtml.md", null);
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_noHtml.md", null, "next-no-violations");
   }
 
   @Test
   public void testSecurityVulnerabilityReport_minimalHtml_noBreakingChanges() throws Exception {
     testSecurityVulnerabilityReport(SourceControlProvider.BITBUCKET,
-        "/PullRequestRemediationDetailsTest/VulnerabilityReport_bb_noBreakingChanges.md", 0);
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_bb_noBreakingChanges.md", 0, "next-no-violations");
   }
 
   @Test
   public void testSecurityVulnerabilityReport_minimalHtml_fewBreakingChanges() throws Exception {
     testSecurityVulnerabilityReport(SourceControlProvider.BITBUCKET,
-        "/PullRequestRemediationDetailsTest/VulnerabilityReport_bb_fewBreakingChanges.md", 2);
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_bb_fewBreakingChanges.md", 2, "next-no-violations");
   }
 
   @Test
   public void testSecurityVulnerabilityReport_minimalHtml_manyBreakingChanges() throws Exception {
     testSecurityVulnerabilityReport(SourceControlProvider.BITBUCKET,
-        "/PullRequestRemediationDetailsTest/VulnerabilityReport_bb_manyBreakingChanges.md", 7);
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_bb_manyBreakingChanges.md", 7, "next-no-violations");
+  }
+
+  @Test
+  public void testSecurityVulnerabilityReport_minimalHtml_Golden() throws Exception {
+    testSecurityVulnerabilityReport(
+        SourceControlProvider.BITBUCKET,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_bb_Golden.md",
+        0,
+        "recommended-non-breaking-with-dependencies"
+    );
+  }
+
+  @Test
+  public void testSecurityVulnerabilityReport_minimalHtml_Suggested() throws Exception {
+    testSecurityVulnerabilityReport(
+        SourceControlProvider.BITBUCKET,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_bb_Suggested.md",
+        0,
+        "recommended-non-breaking"
+    );
   }
 
   @Test
   public void testSecurityVulnerabilityReport_azure_noHtml() throws Exception {
     // azure uses minimal HTML
     testSecurityVulnerabilityReport(SourceControlProvider.AZURE,
-        "/PullRequestRemediationDetailsTest/VulnerabilityReport_noHtml.md", null);
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_noHtml.md", null, "next-no-violations");
+  }
+
+  @Test
+  public void testSecurityVulnerabilityReport_azure_Golden_noHtml() throws Exception {
+    // azure uses minimal HTML
+    testSecurityVulnerabilityReport(SourceControlProvider.AZURE,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_Golden_noHtml.md", 0,
+        "recommended-non-breaking-with-dependencies");
+  }
+
+  @Test
+  public void testSecurityVulnterabilityReport_azure_Suggested_noHtml() throws Exception {
+    // azure uses minimal HTML
+    testSecurityVulnerabilityReport(SourceControlProvider.AZURE,
+        "/PullRequestRemediationDetailsTest/VulnerabilityReport_Suggested_noHtml.md", 0, "recommended-non-breaking");
   }
 
   private void testSecurityVulnerabilityReport(
       SourceControlProvider provider,
       String expectedResource,
-      Integer breakingChangesCount)
+      Integer breakingChangesCount,
+      String targetVersionType)
       throws Exception
   {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("org.jooq", "jooq", "3.11.2");
@@ -136,7 +192,8 @@ public class PullRequestRemediationDetailsTest
     List<PolicyNotification> policyNotifications = createPolicyNotifications(componentIdentifier, componentIdentifier2);
 
     PullRequestRemediationDetails details =
-        new PullRequestRemediationDetails(componentIdentifier, "3.11.3", breakingChangesCount, "pullRequest",
+        new PullRequestRemediationDetails(componentIdentifier, "3.11.3", targetVersionType, breakingChangesCount,
+            "pullRequest",
             policyNotifications, app, SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL, organizationDAO);
 
     assertThat(details.getTitle()).isEqualTo("Bump jooq to 3.11.3");
@@ -161,8 +218,9 @@ public class PullRequestRemediationDetailsTest
         "/PullRequestRemediationDetailsTest/VulnerabilityReport_npm_bitbucket.md");
   }
 
-  private void testSecurityVulnerabilityReport_npmComponent(SourceControlProvider provider,
-                                                           String expectedResultResource) throws Exception
+  private void testSecurityVulnerabilityReport_npmComponent(
+      SourceControlProvider provider,
+      String expectedResultResource) throws Exception
   {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("@sonatype/foo", "1.0");
 
@@ -183,7 +241,8 @@ public class PullRequestRemediationDetailsTest
     policyNotifications.add(criticalPolicyNotification);
 
     PullRequestRemediationDetails details =
-        new PullRequestRemediationDetails(componentIdentifier, "1.1", null, "pullRequest", policyNotifications, app,
+        new PullRequestRemediationDetails(componentIdentifier, "1.1", "next-no-violations", null, "pullRequest",
+            policyNotifications, app,
             SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL, organizationDAO);
 
     assertThat(details.getTitle()).isEqualTo("Bump @sonatype/foo to 1.1");
@@ -227,7 +286,8 @@ public class PullRequestRemediationDetailsTest
     policyNotifications.add(criticalPolicyNotification);
 
     PullRequestRemediationDetails details =
-        new PullRequestRemediationDetails(componentIdentifier, "v0.3.3", null, "pullRequest", policyNotifications, app,
+        new PullRequestRemediationDetails(componentIdentifier, "v0.3.3", "next-no-violations", null, "pullRequest",
+            policyNotifications, app,
             SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL, organizationDAO);
 
     assertThat(details.getTitle()).isEqualTo("Bump golang.org/x/text to v0.3.3");
@@ -243,7 +303,8 @@ public class PullRequestRemediationDetailsTest
         new PolicyFact("critical-id", "Security-Critical", 10), new Notifications()));
 
     PullRequestRemediationDetails details =
-        new PullRequestRemediationDetails(componentIdentifier, "3.11.3", null, "pullRequest", policyNotifications, app,
+        new PullRequestRemediationDetails(componentIdentifier, "3.11.3", "next-no-violations", null, "pullRequest",
+            policyNotifications, app,
             SCAN_ID, Stage.ID_BUILD, getBaseUrl(), SourceControlProvider.GITHUB, TEST_SCM_URL, organizationDAO);
 
     assertThat(details.getContents().replace("\r\n", "\n"))
@@ -251,11 +312,12 @@ public class PullRequestRemediationDetailsTest
   }
 
   /**
-   * A complex set of policy violations covering multiple components and policies. Intended as a superset of
-   * possible scenarios we could encounter when synthesizing these into a simple aggregated display.
+   * A complex set of policy violations covering multiple components and policies. Intended as a superset of possible
+   * scenarios we could encounter when synthesizing these into a simple aggregated display.
    */
-  private List<PolicyNotification> createPolicyNotifications(final ComponentIdentifier componentIdentifier,
-                                                             final ComponentIdentifier componentIdentifier2)
+  private List<PolicyNotification> createPolicyNotifications(
+      final ComponentIdentifier componentIdentifier,
+      final ComponentIdentifier componentIdentifier2)
   {
     List<PolicyNotification> policyNotifications = new ArrayList<>();
 

@@ -7,7 +7,7 @@
 com.h2database : h2 : 1.4.190</b> - <a href="https://gitlab.com/sonatype/enhanced-commit-information/-/merge_requests/10#note_12345">line comment</a></summary>
 <p></p>
 
-:shield: **Bumping to version 1.4.200** will resolve all policy violations for this component
+:shield: **Bumping to version 1.4.200** will resolve all policy violations for this component<br />
   - <img alt="Few breaking changes" src="https://cdn.sonatype.com/iq-for-scm/1.0/orange-bar.png" width="14" height="14">&nbsp; Few breaking changes - This version upgrade may require moderate effort.
 
 Threat (of 10) | Policy | Violation Details
@@ -25,7 +25,7 @@ Threat (of 10) | Policy | Violation Details
 org.springframework.security : spring-security-web : 4.2.3.RELEASE</b></summary>
 <p></p>
 
-:shield: **Bumping to version 4.5.0.RELEASE** will resolve all policy violations for this component and its dependencies
+:shield: **Bumping to version 4.5.0.RELEASE** will resolve all policy violations for this component and its dependencies<br />
 
 Threat (of 10) | Policy | Violation Details
 --- | --- | --- |
@@ -35,6 +35,23 @@ Threat (of 10) | Policy | Violation Details
 3 | Security-Low | <b>Low risk CVSS score:</b><ul><li>Found security vulnerability: [sonatype-2019-0341](http://localhost:1122/ui/links/vln/sonatype-2019-0341)</li></ul>
 
   [Component detail 🔍](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/toScanId/componentDetails/7a03e737484ca232d714?source=pr-commenting)
+</details>
+
+<details>
+<summary title="Threat Level: 7 of 10"><a href="#;"><img alt="T7" src="https://cdn.sonatype.com/iq-for-scm/1.0/orange-bar.png" width="4" height="16"></a> 
+<b>7&nbsp;&nbsp;&nbsp;
+<a href="#;"><img alt="dependency logo" src="https://cdn.sonatype.com/iq-for-scm/1.0/blank.png" height="16"></a>&nbsp;
+org.apache.kafka : kafka-clients : 3.7.0</b></summary>
+<p></p>
+
+:shield: **Bumping to version 3.8.0** will resolve all policy violations for this component<br />
+&nbsp;<img alt="green_checkmark" src="https://cdn.sonatype.com/iq-for-scm/1.0/green-check-mark.png" width="14" height="14">&nbsp; No breaking changes - This version upgrade requires minimal effort.
+
+Threat (of 10) | Policy | Violation Details
+--- | --- | --- |
+7 | Security-Medium | <b>Medium risk CVSS score:</b><ul><li>Found security vulnerability: [CVE-2018-14335](http://localhost:1122/ui/links/vln/CVE-2018-14335)</li></ul>
+
+  [Component detail 🔍](http://localhost:1122/ui/links/application/TEST_APP_PUBLIC_ID/report/toScanId/componentDetails/kj71536d44e3b07f0c92?source=pr-commenting)
 </details>
 
 <details>

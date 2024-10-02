@@ -97,7 +97,8 @@ public class ComponentFeedbackContextFactoryTest
   private static final RemediationVersionDTO NO_SUGGESTION_REMEDIATION = null;
 
   private static final RemediationVersionDTO SUGGESTION_NO_DEPS_REMEDIATION =
-      new RemediationVersionDTO(SUGGESTED_VERSION, null, FEW.getNumBreakingChanges());
+      new RemediationVersionDTO(SUGGESTED_VERSION, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, 
+          FEW.getNumBreakingChanges());
 
   private static final RemediationVersionDTO SUGGESTION_WITH_DEPS_REMEDIATION =
       new RemediationVersionDTO(
@@ -401,28 +402,29 @@ public class ComponentFeedbackContextFactoryTest
   }
 
   private static ComponentFeedbackContext buildNoSuggestionContext(final SourceControlProvider provider) {
-    return buildDefaultContext(provider, BreakingChangeType.NOT_APPLICABLE, "", false, true);
+    return buildDefaultContext(provider, BreakingChangeType.NOT_APPLICABLE, "", "",false, true);
   }
 
   private static ComponentFeedbackContext buildWithSuggestionContext(final SourceControlProvider provider) {
-    return buildDefaultContext(provider, FEW, SUGGESTED_VERSION, false, true);
+    return buildDefaultContext(provider, FEW, SUGGESTED_VERSION, "next-no-violations",false, true);
   }
 
   private static ComponentFeedbackContext buildWithSuggestionWithDepRemediationContext(
       final SourceControlProvider provider)
   {
-    return buildDefaultContext(provider, FEW, SUGGESTED_VERSION, true, true);
+    return buildDefaultContext(provider, FEW, SUGGESTED_VERSION, "next-no-violations-with-dependencies", true, true);
   }
 
   private static ComponentFeedbackContext buildBreakingChangesContext(
       final SourceControlProvider provider,
       final BreakingChangeType breakingChangeType)
   {
-    return buildDefaultContext(provider, breakingChangeType, SUGGESTED_VERSION, true, true);
+    return buildDefaultContext(provider, breakingChangeType, SUGGESTED_VERSION, 
+        "next-no-violations-with-dependencies", true, true);
   }
 
   private static ComponentFeedbackContext buildDirectDepContext(final SourceControlProvider provider) {
-    return buildDefaultContext(provider, BreakingChangeType.NOT_APPLICABLE, "", false, true);
+    return buildDefaultContext(provider, BreakingChangeType.NOT_APPLICABLE, "", "",false, true);
   }
 
   private static ComponentFeedbackContext buildThreatLevelContext(
@@ -437,6 +439,7 @@ public class ComponentFeedbackContextFactoryTest
             COMPONENT_DISPLAY_NAME,
             provider,
             BreakingChangeType.NOT_APPLICABLE.getNumBreakingChanges(),
+            "",
             "",
             false,
             expectedSecurityIssues,
@@ -459,6 +462,7 @@ public class ComponentFeedbackContextFactoryTest
             provider,
             BreakingChangeType.NOT_APPLICABLE.getNumBreakingChanges(),
             "",
+            "",
             false,
             securityIssues,
             DIRECT_DEP_LOGO,
@@ -468,11 +472,11 @@ public class ComponentFeedbackContextFactoryTest
   }
 
   private ComponentFeedbackContext buildHasUtmSourceContext(final SourceControlProvider provider) {
-    return buildDefaultContext(provider, BreakingChangeType.NOT_APPLICABLE, "", false, true);
+    return buildDefaultContext(provider, BreakingChangeType.NOT_APPLICABLE, "", "", false, true);
   }
 
   private ComponentFeedbackContext buildNoUtmSourceContext(final SourceControlProvider provider) {
-    return buildDefaultContext(provider, BreakingChangeType.NOT_APPLICABLE, "", false, false);
+    return buildDefaultContext(provider, BreakingChangeType.NOT_APPLICABLE, "", "",false, false);
   }
 
   private static String resolveExpectedComponentDetailsLink(
@@ -486,6 +490,7 @@ public class ComponentFeedbackContextFactoryTest
       final SourceControlProvider provider,
       final BreakingChangeType breakingChangeType,
       final String suggestedVersion,
+      final String suggestedVersionType,
       final boolean hasRemediationDeps,
       final boolean enableUtmSource)
   {
@@ -502,6 +507,7 @@ public class ComponentFeedbackContextFactoryTest
             provider,
             breakingChangeType.getNumBreakingChanges(),
             suggestedVersion,
+            suggestedVersionType,
             hasRemediationDeps,
             securityIssues,
             DIRECT_DEP_LOGO,

@@ -27,6 +27,17 @@
 
 &#8192;
 
+**org.apache.kafka : kafka-clients : 3.7.0**
+
+:shield: **Bumping to version 3.8.0** will resolve all policy violations for this component
+:white_check_mark: No breaking changes - This version upgrade requires minimal effort.
+
+| **Threat (of 10)** | **Policy** | **Violation Details** |
+| --- | --- | --- |
+| 7 | Security-Medium | **Medium risk CVSS score:** Found security vulnerability: [CVE-2018-14335](http://localhost:1122/ui/links/vln/CVE-2018-14335).  |
+
+&#8192;
+
 **webgoat-server-8.0.0.M1.jar**
 
 :warning: No recommended versions are available for this component

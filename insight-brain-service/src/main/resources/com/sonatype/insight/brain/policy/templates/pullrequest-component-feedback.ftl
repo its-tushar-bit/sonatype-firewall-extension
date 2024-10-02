@@ -1,4 +1,6 @@
 <#include "iq-for-scm-common.ftl">
+<#assign recommendedNonBreaking = "recommended-non-breaking" >
+<#assign recommendedNonBreakingWithDependencies = "recommended-non-breaking-with-dependencies" >
 
 <#if provider == "gitlab"><#assign width=14><#else><#assign width=20></#if>
 
@@ -10,13 +12,6 @@ There are a few breaking changes - This version upgrade may require moderate eff
       <#elseIf (count == 0)>
 There are no breaking changes. This version upgrade requires minimal effort.
       </#if>
-</#macro>
-
-
-<#macro imageComponent mdImage="" imgWidth=0 imgHeight=0>
-  <#compress>
-<a href="#;"> <img title="${mdImage.title}" alt="${mdImage.alt}" src="${mdImage.src}" <#if (imgWidth > 0)>width="${imgWidth}"</#if> <#if (imgHeight > 0)>height="${imgHeight}"</#if>/></a>
-  </#compress>
 </#macro>
 
 <#macro dependencyIndicatorComponent>
@@ -60,12 +55,55 @@ There are no breaking changes. This version upgrade requires minimal effort.
 <#if data.severityInfo?hasContent>[${data.severityInfo.refId}]<#else>None</#if> <#if data.description?hasContent>${data.description}</#if>
     </#compress>
 </#macro>
+
+<#macro imageComponent mdImage="" imgWidth=0 imgHeight=0>
+  <#compress>
+<a href="#;"> <img title="${mdImage.title}" alt="${mdImage.alt}" src="${mdImage.src}" <#if (imgWidth > 0)>width="${imgWidth}"</#if> <#if (imgHeight > 0)>height="${imgHeight}"</#if>/></a>
+  </#compress>
+</#macro>
+
+<#macro breakingChangesComponent count>
+      <#if (count > criticalBreakingChangesThreshold)>
+There are multiple **breaking changes**. This version upgrade may require significant effort.
+      <#elseIf (count > fewBreakingChangesThreshold)>
+There are a few breaking changes - This version upgrade may require moderate effort.
+      <#elseIf (count == 0)>
+There are no breaking changes. This version upgrade requires minimal effort.
+      </#if>
+</#macro>
+
+<#if suggestedVersionType == recommendedNonBreakingWithDependencies>
+### Sonatype IQ found critical issues introduced by ${componentDisplayName}
+
+Direct dependency | **Threat level: ${threatLevelDisplay.value}** \| [View Component Details in Sonatype Lifecycle](${componentDetailLink})
+
+<img src="https://cdn.sonatype.com/iq-for-scm/1.0/golden-pr-inline.png" width="16" height="16" alt="star icon"> <strong>Golden Version: ${suggestedVersion}</strong>
+
+<img src="https://cdn.sonatype.com/iq-for-scm/1.0/green-check-mark.png" width="12" height="12" alt="green checkmark icon">&nbsp; Non-breaking upgrade resolves issues for this component and its dependencies
+
+<details>
+  <summary>View Security Details</summary>
+  
+<#elseIf suggestedVersionType == recommendedNonBreaking>
+### Sonatype IQ found critical issues introduced by ${componentDisplayName}
+
+Direct dependency | **Threat level: ${threatLevelDisplay.value}** \| [View Component Details in Sonatype Lifecycle](${componentDetailLink})
+
+:shield: **Recommended Version: ${suggestedVersion}**
+
+<img src="https://cdn.sonatype.com/iq-for-scm/1.0/green-check-mark.png" width="12" height="12" alt="green checkmark icon">&nbsp; Non-breaking upgrade resolves issues for this component
+
+<details>
+  <summary>View Security Details</summary>
+
+<#else>
 # <@threatLevelIndicatorComponent/> <@dependencyIndicatorComponent/> Sonatype IQ found issues introduced by ${componentDisplayName}<#if provider == "github" || provider == "gitlab"><br /><@imageComponent mdImage=previewImage imgWidth=70 imgHeight=20/></#if>
 <details>
 <br/>
 
 Threat Level: <strong>${threatLevelDisplay.image.alt} (${threatLevelDisplay.value})</strong> \| [View Component Details in Sonatype Lifecycle](${componentDetailLink})
 
+</#if>
 <#if (hasSecurityIssues)>
 ## :shield: Recommendation
 <#if suggestedVersion?hasContent>
@@ -97,4 +135,3 @@ Threat Level: <strong>${threatLevelDisplay.image.alt} (${threatLevelDisplay.valu
 ${codeSuggestion}
 ```
 </#if>
-

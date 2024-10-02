@@ -30,6 +30,17 @@ Threat (of 10) | Policy | Violation Details
 
 </details>
 
+<details>
+<summary title="Threat Level: 7 of 10"><img alt="T7" src="https://cdn.sonatype.com/iq-for-scm/1.0/orange-bar.png" width="4" height="14"> 
+<b>7&nbsp;&nbsp;&nbsp;org.apache.kafka : kafka-clients : 3.7.0</b>&nbsp;&nbsp; :white_check_mark:</summary>
+<p></p>
+
+Threat (of 10) | Policy | Violation Details
+--- | --- | --- |
+7 | Security-Medium | <b>Medium risk CVSS score:</b><ul><li>Found security vulnerability: [CVE-2018-14335](http://localhost:1122/ui/links/vln/CVE-2018-14335)</li></ul>
+
+</details>
+
 ----
 ### Nexus IQ Report Detail
 **Application**: TEST APP

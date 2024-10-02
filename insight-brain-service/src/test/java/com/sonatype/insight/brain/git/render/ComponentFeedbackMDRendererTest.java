@@ -40,6 +40,7 @@ public class ComponentFeedbackMDRendererTest
             SourceControlProvider.GITHUB,
             MANY_BREAKING_CHANGES_COUNT,
             "2.15.0",
+            "next-no-violations",
             true,
             ImmutableList.of(
                     new SecurityIssue(3, new SeverityInfo("CVE-123", 7.6f, SONATYPE_DEEP_DIVE_TAG),

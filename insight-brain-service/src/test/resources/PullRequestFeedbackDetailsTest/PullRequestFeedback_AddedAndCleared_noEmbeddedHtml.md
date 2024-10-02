@@ -27,6 +27,17 @@
 
 &#8192;
 
+**org.apache.kafka : kafka-clients : 3.7.0**
+
+:shield: **Bumping to version 3.8.0** will resolve all policy violations for this component
+:white_check_mark: No breaking changes - This version upgrade requires minimal effort.
+
+| **Threat (of 10)** | **Policy** | **Violation Details** |
+| --- | --- | --- |
+| 7 | Security-Medium | **Medium risk CVSS score:** Found security vulnerability: [CVE-2018-14335](http://localhost:1122/ui/links/vln/CVE-2018-14335).  |
+
+&#8192;
+
 **webgoat-server-8.0.0.M1.jar**
 
 :warning: No recommended versions are available for this component
@@ -70,6 +81,14 @@
 | 9 | Security-High | **High risk CVSS score:** Found security vulnerability: [sonatype-2017-0641](http://localhost:1122/ui/links/vln/sonatype-2017-0641).  |
 | 7 | Security-Medium | **Medium risk CVSS score:** Found security vulnerabilities: [CVE-2018-1199](http://localhost:1122/ui/links/vln/CVE-2018-1199), [sonatype-2017-0507](http://localhost:1122/ui/links/vln/sonatype-2017-0507), [sonatype-2019-0469](http://localhost:1122/ui/links/vln/sonatype-2019-0469).  |
 | 3 | Security-Low | **Low risk CVSS score:** Found security vulnerability: [sonatype-2019-0341](http://localhost:1122/ui/links/vln/sonatype-2019-0341).  |
+
+&#8192;
+
+:white_check_mark: **org.apache.kafka : kafka-clients-cleared : 3.7.0**
+
+| **Threat (of 10)** | **Policy** | **Violation Details** |
+| --- | --- | --- |
+| 7 | Security-Medium | **Medium risk CVSS score:** Found security vulnerability: [CVE-2018-14335](http://localhost:1122/ui/links/vln/CVE-2018-14335).  |
 
 &#8192;
 

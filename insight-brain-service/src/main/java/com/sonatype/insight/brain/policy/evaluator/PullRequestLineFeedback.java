@@ -168,6 +168,8 @@ public class PullRequestLineFeedback
     int threatLevel = getHighestThreatLevel(violations);
     String threatImage = PullRequestFeedbackDetails.getImageForThreatLevel(threatLevel);
     String suggestedVersion = remediationVersionDTO == null ? "" : remediationVersionDTO.getVersion();
+    String suggestedVersionType = 
+        remediationVersionDTO == null ? "" : remediationVersionDTO.getRemediationType().getDisplayName();
     int breakingChangesCount = -1;
     boolean remediationForDependencies = false;
     if (remediationVersionDTO != null) {
@@ -186,6 +188,7 @@ public class PullRequestLineFeedback
         .put("threatImage", threatImage)
         .put("policiesViolated", getPoliciesViolatedMap(violations, baseUrl, true))
         .put("suggestedVersion", suggestedVersion)
+        .put("suggestedVersionType", suggestedVersionType)
         .put("remediationForDependencies", remediationForDependencies)
         .put("codeSuggestion", codeSuggestion)
         .put("breakingChangesCount", breakingChangesCount)

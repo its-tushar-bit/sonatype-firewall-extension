@@ -1,8 +1,36 @@
 <#include "iq-for-scm-common.ftl">
+<#assign recommendedNonBreaking = "recommended-non-breaking" >
+<#assign recommendedNonBreakingWithDependencies = "recommended-non-breaking-with-dependencies" >
+
 <#if provider.name() == "GITLAB"><#assign width=14><#else><#assign width=12></#if>
+
+<#if suggestedVersionType == recommendedNonBreakingWithDependencies>
+### Sonatype IQ found critical issues introduced by ${componentNameAndVersion}
+
+Direct dependency | **Threat level: ${threatLevel}** | [View Component Details in Sonatype Lifecycle](${componentDetailsReportUrl})
+
+<img src="https://cdn.sonatype.com/iq-for-scm/1.0/golden-pr-inline.png" width="16" height="16" alt="star icon"> **Golden Version: ${suggestedVersion}**
+
+<img src="https://cdn.sonatype.com/iq-for-scm/1.0/green-check-mark.png" width="12" height="12" alt="green checkmark icon">&nbsp; Non-breaking upgrade resolves issues for this component and its dependencies
+
+<details>
+  <summary>View Security Details</summary>  
+<#elseif suggestedVersionType == recommendedNonBreaking>
+### Sonatype IQ found critical issues introduced by ${componentNameAndVersion}
+
+Direct dependency | **Threat level: ${threatLevel}** | [View Component Details in Sonatype Lifecycle](${componentDetailsReportUrl})
+
+:shield: **Recommended Version: ${suggestedVersion}**
+
+<img src="https://cdn.sonatype.com/iq-for-scm/1.0/green-check-mark.png" width="12" height="12" alt="green checkmark icon">&nbsp; Non-breaking upgrade resolves issues for this component
+
+<details>
+  <summary>View Security Details</summary>
+<#else>
 ### :thinking: Nexus IQ found <#if ( policiesViolatedCount > 1 )>policy violations<#else>a policy violation</#if> introduced by:<#lt><#if (provider.name() == "GITHUB" || provider.name() == "GITLAB") && scmChangesEnabled><br /><img title="Preview" alt="Preview" src="https://cdn.sonatype.com/iq-for-scm/1.0/Preview.svg" width="70" height="20"/></#if>
 
 <details open>
+</#if>
   <summary title="Threat Level: ${threatLevel} of 10"><img alt="T${threatLevel}" src="https://cdn.sonatype.com/iq-for-scm/1.0/${threatImage}"<#if provider.name() == "GITLAB"> width="4" height="16"</#if>>
     <b>${threatLevel}&nbsp;&nbsp;&nbsp; ${componentNameAndVersion}</b></summary>
 <p></p>

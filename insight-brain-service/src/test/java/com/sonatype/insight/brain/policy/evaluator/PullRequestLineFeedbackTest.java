@@ -49,6 +49,14 @@ public class PullRequestLineFeedbackTest
 
   public static final String MULTIPLE_WITH_SUGGESTION_AND_DEPENDENCY_REMEDIATION =
       "multipleWithSuggestionAndDependencyRemediation";
+  
+  public static final String MULTIPLE_WITH_GOLDEN = "multipleWithGolden";
+  
+  public static final String MULTIPLE_WITH_RECOMMENDED = "multipleWithRecommended";
+  
+  public static final String MULTIPLE_WITH_GOLDEN_SCM_IMPROVEMENTS = "multipleWithGoldenScmImprovements";
+  
+  public static final String MULTIPLE_WITH_RECOMMENDED_SCM_IMPROVEMENTS = "multipleWithRecommendedScmImprovements";
 
   public static final String SINGLE_NO_SUGGESTION = "singleNoSuggestion";
 
@@ -57,6 +65,14 @@ public class PullRequestLineFeedbackTest
   public static final String SINGLE_WITH_SUGGESTION_AZCLOUD = "singleWithSuggestion_azureCloud";
 
   public static final String SINGLE_WITH_SUGGESTION_AZONPREM = "singleWithSuggestion_azureOnPrem";
+  
+  public static final String SINGLE_WITH_GOLDEN = "singleWithGolden";
+  
+  public static final String SINGLE_WITH_RECOMMENDED = "singleWithRecommended";
+  
+  public static final String SINGLE_WITH_GOLDEN_SCM_IMPROVEMENTS = "singleWithGoldenScmImprovements";
+  
+  public static final String SINGLE_WITH_RECOMMENDED_SCM_IMPROVEMENTS = "singleWithRecommendedScmImprovements";
 
   private static final String SCM_ON_PREM_BASE_URL = "https://scm.mycompany.com";
 
@@ -107,6 +123,142 @@ public class PullRequestLineFeedbackTest
             iqBaseUrl, new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS),
             SCM_ON_PREM_BASE_URL, APPLICATION_PUBLIC_ID, FEATURE_BRANCH_SCAN_ID,
             EMPTY_OPTIONAL_STRING, false, organizationDAO))
+        .put(
+            MULTIPLE_WITH_GOLDEN,
+            new PullRequestLineFeedback(
+                defaultPolicyViolations(10), 
+                "Test Component",
+                iqBaseUrl,
+                new RemediationVersionDTO(
+                    "123",
+                    ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
+                    0
+                ),
+                SCM_ON_PREM_BASE_URL,
+                APPLICATION_PUBLIC_ID,
+                FEATURE_BRANCH_SCAN_ID,
+                EMPTY_OPTIONAL_STRING,
+                false,
+                organizationDAO))
+        .put(
+            MULTIPLE_WITH_RECOMMENDED,
+            new PullRequestLineFeedback(
+                defaultPolicyViolations(10),
+                "Test Component",
+                iqBaseUrl,
+                new RemediationVersionDTO(
+                    "123",
+                    ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING,
+                    0
+                ),
+                SCM_ON_PREM_BASE_URL,
+                APPLICATION_PUBLIC_ID,
+                FEATURE_BRANCH_SCAN_ID,
+                EMPTY_OPTIONAL_STRING,
+                false,
+                organizationDAO))
+        .put(
+            SINGLE_WITH_GOLDEN,
+            new PullRequestLineFeedback(
+                defaultPolicyViolations(1),
+                "Test Component",
+                iqBaseUrl,
+                new RemediationVersionDTO(
+                    "123",
+                    ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
+                    0
+                ),
+                SCM_ON_PREM_BASE_URL,
+                APPLICATION_PUBLIC_ID,
+                FEATURE_BRANCH_SCAN_ID,
+                EMPTY_OPTIONAL_STRING,
+                false,
+                organizationDAO))
+        .put(
+            SINGLE_WITH_RECOMMENDED,
+            new PullRequestLineFeedback(
+                defaultPolicyViolations(1),
+                "Test Component",
+                iqBaseUrl,
+                new RemediationVersionDTO(
+                    "123",
+                    ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING,
+                    0
+                ),
+                SCM_ON_PREM_BASE_URL,
+                APPLICATION_PUBLIC_ID,
+                FEATURE_BRANCH_SCAN_ID,
+                EMPTY_OPTIONAL_STRING,
+                false,
+                organizationDAO))
+        .put(
+            MULTIPLE_WITH_GOLDEN_SCM_IMPROVEMENTS,
+            new PullRequestLineFeedback(
+                defaultPolicyViolations(10),
+                "Test Component",
+                iqBaseUrl,
+                new RemediationVersionDTO(
+                    "123",
+                    ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
+                    0
+                ),
+                SCM_ON_PREM_BASE_URL,
+                APPLICATION_PUBLIC_ID,
+                FEATURE_BRANCH_SCAN_ID,
+                EMPTY_OPTIONAL_STRING,
+                true,
+                organizationDAO))
+        .put(
+            MULTIPLE_WITH_RECOMMENDED_SCM_IMPROVEMENTS,
+            new PullRequestLineFeedback(
+                defaultPolicyViolations(10),
+                "Test Component",
+                iqBaseUrl,
+                new RemediationVersionDTO(
+                    "123",
+                    ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING,
+                    0
+                ),
+                SCM_ON_PREM_BASE_URL,
+                APPLICATION_PUBLIC_ID,
+                FEATURE_BRANCH_SCAN_ID,
+                EMPTY_OPTIONAL_STRING,
+                true,
+                organizationDAO))
+        .put(
+            SINGLE_WITH_GOLDEN_SCM_IMPROVEMENTS,
+            new PullRequestLineFeedback(
+                defaultPolicyViolations(1),
+                "Test Component",
+                iqBaseUrl,
+                new RemediationVersionDTO(
+                    "123",
+                    ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
+                    0
+                ),
+                SCM_ON_PREM_BASE_URL,
+                APPLICATION_PUBLIC_ID,
+                FEATURE_BRANCH_SCAN_ID,
+                EMPTY_OPTIONAL_STRING,
+                true,
+                organizationDAO))
+        .put(
+            SINGLE_WITH_RECOMMENDED_SCM_IMPROVEMENTS,
+            new PullRequestLineFeedback(
+                defaultPolicyViolations(1),
+                "Test Component",
+                iqBaseUrl,
+                new RemediationVersionDTO(
+                    "123",
+                    ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING,
+                    0
+                ),
+                SCM_ON_PREM_BASE_URL,
+                APPLICATION_PUBLIC_ID,
+                FEATURE_BRANCH_SCAN_ID,
+                EMPTY_OPTIONAL_STRING,
+                true,
+                organizationDAO))
         .build();
   }
 
@@ -129,6 +281,30 @@ public class PullRequestLineFeedbackTest
   }
 
   @Test
+  public void testPullRequestFeedback_multipleWithGolden_github() throws Exception {
+    assertContents(testCases.get(MULTIPLE_WITH_GOLDEN),
+        "PullRequestLineFeedback_multipleWithGolden.md", GITHUB);
+  }
+  
+  @Test
+  public void testPullRequestFeedback_multipleWithRecommended_github() throws Exception {
+    assertContents(testCases.get(MULTIPLE_WITH_RECOMMENDED),
+        "PullRequestLineFeedback_multipleWithRecommended.md", GITHUB);
+  }
+
+  @Test
+  public void testPullRequestFeedback_multipleWithGolden_github_ScmImprovements() throws Exception {
+    assertContents(testCases.get(MULTIPLE_WITH_GOLDEN_SCM_IMPROVEMENTS),
+        "PullRequestLineFeedback_multipleWithGolden_ScmImprovements.md", GITHUB);
+  }
+
+  @Test
+  public void testPullRequestFeedback_multipleWithRecommended_github_ScmImprovements() throws Exception {
+    assertContents(testCases.get(MULTIPLE_WITH_RECOMMENDED_SCM_IMPROVEMENTS),
+        "PullRequestLineFeedback_multipleWithRecommended_ScmImprovements.md", GITHUB);
+  }
+  
+  @Test
   public void testPullRequestFeedback_singleNoSuggestion_github() throws Exception {
     assertContents(testCases.get(SINGLE_NO_SUGGESTION),
         "PullRequestLineFeedback_singleNoSuggestions.md", GITHUB);
@@ -140,6 +316,30 @@ public class PullRequestLineFeedbackTest
         "PullRequestLineFeedback_singleWithSuggestion.md", GITHUB);
   }
 
+  @Test
+  public void testPullRequestFeedback_singleWithGolden_github() throws Exception {
+    assertContents(testCases.get(SINGLE_WITH_GOLDEN),
+        "PullRequestLineFeedback_singleWithGolden.md", GITHUB);
+  }
+  
+  @Test
+  public void testPullRequestFeedback_singleWithRecommended_github() throws Exception {
+    assertContents(testCases.get(SINGLE_WITH_RECOMMENDED),
+        "PullRequestLineFeedback_singleWithRecommended.md", GITHUB);
+  }
+
+  @Test
+  public void testPullRequestFeedback_singleWithGolden_github_ScmImprovements() throws Exception {
+    assertContents(testCases.get(SINGLE_WITH_GOLDEN_SCM_IMPROVEMENTS),
+        "PullRequestLineFeedback_singleWithGolden_ScmImprovements.md", GITHUB);
+  }
+
+  @Test
+  public void testPullRequestFeedback_singleWithRecommended_github_ScmImprovements() throws Exception {
+    assertContents(testCases.get(SINGLE_WITH_RECOMMENDED_SCM_IMPROVEMENTS),
+        "PullRequestLineFeedback_singleWithRecommended_ScmImprovements.md", GITHUB);
+  }
+  
   @Test
   public void testPullRequestFeedback_multipleNoSuggestion_gitlab() throws Exception {
     assertContents(testCases.get(MULTIPLE_NO_SUGGESTIONS),
@@ -160,6 +360,30 @@ public class PullRequestLineFeedbackTest
   }
 
   @Test
+  public void testPullRequestFeedback_multipleWithGolden_gitlab() throws Exception {
+    assertContents(testCases.get(MULTIPLE_WITH_GOLDEN),
+        "PullRequestLineFeedback_multipleWithGold_gitlab.md", SourceControlProvider.GITLAB);
+  }
+  
+  @Test
+  public void testPullRequestFeedback_multipleWithRecommended_gitlab() throws Exception {
+    assertContents(testCases.get(MULTIPLE_WITH_RECOMMENDED),
+        "PullRequestLineFeedback_multipleWithReco_gitlab.md", SourceControlProvider.GITLAB); 
+  }
+
+  @Test
+  public void testPullRequestFeedback_multipleWithGolden_gitlab_ScmImprovements() throws Exception {
+    assertContents(testCases.get(MULTIPLE_WITH_GOLDEN_SCM_IMPROVEMENTS),
+        "PullRequestLineFeedback_multipleWithGolden_gitlab_ScmImprovements.md", SourceControlProvider.GITLAB);
+  }
+
+  @Test
+  public void testPullRequestFeedback_multipleWithRecommended_gitlab_ScmImprovements() throws Exception {
+    assertContents(testCases.get(MULTIPLE_WITH_RECOMMENDED_SCM_IMPROVEMENTS),
+        "PullRequestLineFeedback_multipleWithRecommended_gitlab_ScmImprovements.md", SourceControlProvider.GITLAB);
+  }
+  
+  @Test
   public void testPullRequestFeedback_singleNoSuggestion_gitlab() throws Exception {
     assertContents(testCases.get(SINGLE_NO_SUGGESTION),
         "PullRequestLineFeedback_singleNoSuggestions_gitlab.md", SourceControlProvider.GITLAB);
@@ -171,6 +395,30 @@ public class PullRequestLineFeedbackTest
         "PullRequestLineFeedback_singleWithSuggestion_gitlab.md", SourceControlProvider.GITLAB);
   }
 
+  @Test
+  public void testPullRequestFeedback_singleWithGolden_gitlab() throws Exception {
+    assertContents(testCases.get(SINGLE_WITH_GOLDEN),
+        "PullRequestLineFeedback_singleWithGolden_gitlab.md", SourceControlProvider.GITLAB);
+  }
+  
+  @Test
+  public void testPullRequestFeedback_singleWithRecommended_gitlab() throws Exception {
+    assertContents(testCases.get(SINGLE_WITH_RECOMMENDED),
+        "PullRequestLineFeedback_singleWithRecommended_gitlab.md", SourceControlProvider.GITLAB);
+  }
+
+  @Test
+  public void testPullRequestFeedback_singleWithGolden_gitlab_ScmImprovements() throws Exception {
+    assertContents(testCases.get(SINGLE_WITH_GOLDEN_SCM_IMPROVEMENTS),
+        "PullRequestLineFeedback_singleWithGolden_gitlab_ScmImprovements.md", SourceControlProvider.GITLAB);
+  }
+
+  @Test
+  public void testPullRequestFeedback_singleWithRecommended_gitlab_ScmImprovements() throws Exception {
+    assertContents(testCases.get(SINGLE_WITH_RECOMMENDED_SCM_IMPROVEMENTS),
+        "PullRequestLineFeedback_singleWithRecommended_gitlab_ScmImprovements.md", SourceControlProvider.GITLAB);
+  }
+  
   @Test
   public void testPullRequestFeedback_multipleNoSuggestion_bitbucket() throws Exception {
     assertContents(testCases.get(MULTIPLE_NO_SUGGESTIONS),
@@ -191,6 +439,20 @@ public class PullRequestLineFeedbackTest
   }
 
   @Test
+  public void testPullRequestFeedback_multipleWithGolden_bitbucket() throws Exception {
+    assertContents(testCases.get(MULTIPLE_WITH_GOLDEN),
+        "PullRequestLineFeedback_multipleWithGolden_noHtml.md",
+        SourceControlProvider.BITBUCKET); 
+  }
+  
+  @Test
+  public void testPullRequestFeedback_multipleWithRecommended_bitbucket() throws Exception {
+    assertContents(testCases.get(MULTIPLE_WITH_RECOMMENDED),
+        "PullRequestLineFeedback_multipleWithRecommended_noHtml.md",
+        SourceControlProvider.BITBUCKET);
+  }
+  
+  @Test
   public void testPullRequestFeedback_singleNoSuggestion_bitbucket() throws Exception {
     assertContents(testCases.get(SINGLE_NO_SUGGESTION),
         "PullRequestLineFeedback_singleNoSuggestions_noHtml.md", SourceControlProvider.BITBUCKET);
@@ -202,6 +464,18 @@ public class PullRequestLineFeedbackTest
         "PullRequestLineFeedback_singleWithSuggestion_noHtml.md", SourceControlProvider.BITBUCKET);
   }
 
+  @Test
+  public void testPullRequestFeedback_singleWithGolden_bitbucket() throws Exception {
+    assertContents(testCases.get(SINGLE_WITH_GOLDEN),
+        "PullRequestLineFeedback_singleWithGolden_noHtml.md", SourceControlProvider.BITBUCKET);
+  }
+
+  @Test
+  public void testPullRequestFeedback_singleWithRecommended_bitbucket() throws Exception {
+    assertContents(testCases.get(SINGLE_WITH_RECOMMENDED),
+        "PullRequestLineFeedback_singleWithRecommended_noHtml.md", SourceControlProvider.BITBUCKET);
+  }
+  
   @Test
   public void testPullRequestFeedback_singleWithSuggestion_azureCloud() throws Exception {
     // Azure Cloud uses the standard template with embedded HTML
@@ -216,6 +490,18 @@ public class PullRequestLineFeedbackTest
         "PullRequestLineFeedback_singleWithSuggestion_noHtml.md", SourceControlProvider.AZURE);
   }
 
+  @Test
+  public void testPullRequestFeedback_singleWithGolden_azureOnPrem() throws Exception {
+    assertContents(testCases.get(SINGLE_WITH_GOLDEN),
+        "PullRequestLineFeedback_singleWithGolden_noHtml.md", SourceControlProvider.AZURE);
+  }
+
+  @Test
+  public void testPullRequestFeedback_singleWithRecommended_azureOnPrem() throws Exception {
+    assertContents(testCases.get(SINGLE_WITH_RECOMMENDED),
+        "PullRequestLineFeedback_singleWithRecommended_noHtml.md", SourceControlProvider.AZURE);
+  }
+  
   @Test
   public void testPullRequestFeedback_nullViolations() {
     assertThatExceptionOfType(NullPointerException.class)

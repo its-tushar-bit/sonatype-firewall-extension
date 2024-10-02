@@ -16,10 +16,16 @@ import com.sonatype.insight.brain.api.v2.dto.legal.AttributionReportTemplateDTO;
 import com.sonatype.insight.brain.dataaccess.legal.AttributionReportTemplateDAO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.legal.AttributionReportTemplate;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.AuthzContext.Key;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 
 @Named
 public class AttributionReportService
@@ -53,6 +59,7 @@ public class AttributionReportService
   public AttributionReportTemplateDTO saveAttributionReportTemplate(
       final AttributionReportTemplateDTO attributionReportTemplateDTO)
   {
+    checkLegalReviewerPermission(ROOT_ORGANIZATION_ID);
     LegalServiceUtil.checkLicense(productLicense, log);
     AttributionReportTemplate attributionReportTemplate = new AttributionReportTemplate(
         attributionReportTemplateDTO.getId(),
@@ -93,9 +100,12 @@ public class AttributionReportService
     }
   }
 
-  public Optional<AttributionReportTemplateDTO> getAttributionReportTemplateById(
-      String id)
-  {
+  public Optional<AttributionReportTemplateDTO> getAttributionReportTemplateById(String id) {
+    checkLegalReviewerPermission(ROOT_ORGANIZATION_ID);
+    return getAttributionReportTemplateById_NoAuthz(id);
+  }
+
+  public Optional<AttributionReportTemplateDTO> getAttributionReportTemplateById_NoAuthz(String id) {
     LegalServiceUtil.checkLicense(productLicense, log);
     AttributionReportTemplate attributionReportTemplate = attributionReportTemplateDAO.getById(id);
     return Optional.ofNullable(AttributionReportTemplateDTO.fromReportTemplate(attributionReportTemplate));
@@ -108,6 +118,7 @@ public class AttributionReportService
    * @since 1.120
    */
   public List<AttributionReportTemplateDTO> getAllAttributionReportTemplates() {
+    checkLegalReviewerPermission(ROOT_ORGANIZATION_ID);
     LegalServiceUtil.checkLicense(productLicense, log);
 
     return attributionReportTemplateDAO.getAll().stream()
@@ -120,13 +131,22 @@ public class AttributionReportService
    * @param attributionReportId
    * @since 1.120
    */
-  public void deleteAttributionReportById(final String attributionReportId) {
+  public void deleteAttributionReportTemplateById(final String attributionReportId) {
+    checkLegalReviewerPermission(ROOT_ORGANIZATION_ID);
     LegalServiceUtil.checkLicense(productLicense, log);
     attributionReportTemplateDAO.deleteById(attributionReportId);
   }
 
-  public Optional<AttributionReportTemplate> getAttributionReportTemplateByTemplateName(final String templateName) {
+  private Optional<AttributionReportTemplate> getAttributionReportTemplateByTemplateName(final String templateName) {
     LegalServiceUtil.checkLicense(productLicense, log);
     return Optional.ofNullable(attributionReportTemplateDAO.getByTemplateName(templateName));
+  }
+
+  // Package visibility for the authz annotations to be effective.
+  @Authorize(permission = Permission.LEGAL_REVIEWER)
+  void checkLegalReviewerPermission(
+      @SuppressWarnings("unused") @AuthzContext(Key.ORGANIZATION_ID) String orgId)
+  {
+    // Do nothing as this method is only used to perform authz check for the caller
   }
 }

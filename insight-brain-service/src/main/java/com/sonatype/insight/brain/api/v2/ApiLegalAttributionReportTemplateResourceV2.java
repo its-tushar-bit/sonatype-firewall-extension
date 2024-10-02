@@ -90,8 +90,8 @@ public class ApiLegalAttributionReportTemplateResourceV2
   @DELETE
   @Path(REPORT_TEMPLATE_PATH_ID)
   public void deleteAttributionReportTemplate(@PathParam("id") String id) {
-    if (attributionReportService.getAttributionReportTemplateById(id).isPresent()) {
-      attributionReportService.deleteAttributionReportById(id);
+    if (attributionReportService.getAttributionReportTemplateById_NoAuthz(id).isPresent()) {
+      attributionReportService.deleteAttributionReportTemplateById(id);
     }
     else {
       throw new NotFoundException(String.format("Template with id %s does not exist", id));

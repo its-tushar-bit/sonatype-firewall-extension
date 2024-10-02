@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.experimental.legal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.legal.AttributionReportTemplateDTO;
@@ -62,7 +61,7 @@ public class AttributionReportServiceTest
         tempEntity.createNewAttributionReportTemplate("template two", "report 2");
     List<AttributionReportTemplateDTO> allReports = attributionReportService
         .getAllAttributionReportTemplates();
-    assertThat(allReports.size()).isEqualTo(2);
+    assertThat(allReports).hasSize(2);
     assertThat(allReports.stream().map(AttributionReportTemplateDTO::getDocumentTitle).collect(Collectors.toSet()))
         .containsExactlyInAnyOrder(reportTemplate1.getDocumentTitle(), reportTemplate2.getDocumentTitle());
     assertThat(allReports.stream().map(AttributionReportTemplateDTO::getTemplateName).collect(Collectors.toSet()))
@@ -89,12 +88,12 @@ public class AttributionReportServiceTest
   public void testDelete_unlicensed() {
     testProductLicense.setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK);
     assertThatExceptionOfType(InvalidLicenseException.class)
-        .isThrownBy(() -> attributionReportService.deleteAttributionReportById(""));
+        .isThrownBy(() -> attributionReportService.deleteAttributionReportTemplateById(""));
   }
 
   @Test
   public void testSave_updateExisting() {
-    assertThat(attributionReportService.getAllAttributionReportTemplates().size()).isZero();
+    assertThat(attributionReportService.getAllAttributionReportTemplates()).isEmpty();
     AttributionReportTemplateDTO reportTemplateDTO = new AttributionReportTemplateDTO();
     reportTemplateDTO.setTemplateName("template name");
     reportTemplateDTO.setDocumentTitle("document title");
@@ -123,6 +122,6 @@ public class AttributionReportServiceTest
     assertThat(savedReport.isIncludeTableOfContents()).isEqualTo(updatedReport.get().isIncludeTableOfContents());
     assertThat(savedReport.isIncludeSonatypeSpecialLicenses()).isEqualTo(updatedReport.get()
         .isIncludeSonatypeSpecialLicenses());
-    assertThat(attributionReportService.getAllAttributionReportTemplates().size()).isEqualTo(1);
+    assertThat(attributionReportService.getAllAttributionReportTemplates()).hasSize(1);
   }
 }

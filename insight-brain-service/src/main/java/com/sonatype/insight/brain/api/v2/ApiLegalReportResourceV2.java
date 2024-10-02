@@ -223,7 +223,8 @@ public class ApiLegalReportResourceV2
       @PathParam("templateId") String templateId,
       @Context ContainerRequest request)
   {
-    AttributionReportTemplateDTO templateDTO = attributionReportService.getAttributionReportTemplateById(templateId)
+    AttributionReportTemplateDTO templateDTO =
+        attributionReportService.getAttributionReportTemplateById_NoAuthz(templateId)
         .orElseThrow(() -> new NotFoundException(String.format("No template with id %s found", templateId)));
     List<String> noticeFiles = new ArrayList<>();
     if (request != null && request.getLength() > 0) {
@@ -267,7 +268,8 @@ public class ApiLegalReportResourceV2
       @PathParam("templateId") String templateId,
       @Context ContainerRequest request)
   {
-    AttributionReportTemplateDTO templateDTO = attributionReportService.getAttributionReportTemplateById(templateId)
+    AttributionReportTemplateDTO templateDTO =
+        attributionReportService.getAttributionReportTemplateById_NoAuthz(templateId)
         .orElseThrow(() -> new NotFoundException(String.format("No template with id %s found", templateId)));
     List<String> noticeFiles = new ArrayList<>();
     Set<AttributionReportApplicationDTO> applicationsAndStages = new HashSet<>();
@@ -291,7 +293,8 @@ public class ApiLegalReportResourceV2
       @Context ContainerRequest request)
   {
 
-    AttributionReportTemplateDTO templateDTO = attributionReportService.getAttributionReportTemplateById(templateId)
+    AttributionReportTemplateDTO templateDTO =
+        attributionReportService.getAttributionReportTemplateById_NoAuthz(templateId)
         .orElseThrow(() -> new NotFoundException(String.format("No template with id %s found", templateId)));
 
     List<String> noticeFiles = new ArrayList<>();

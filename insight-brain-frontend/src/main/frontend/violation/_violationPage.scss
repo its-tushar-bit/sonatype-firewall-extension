@@ -284,3 +284,11 @@
     text-align: baseline;
   }
 }
+
+.iq-violation-details__reachability {
+  margin-top: var(--nx-spacing-6x);
+
+  .nx-h3 {
+    margin-bottom: var(--nx-spacing-2x);
+  }
+}

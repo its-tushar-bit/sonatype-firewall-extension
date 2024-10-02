@@ -8,7 +8,7 @@ import * as PropTypes from 'prop-types';
 import { compose, keys, map, max, prop, reduce, values } from 'ramda';
 import classnames from 'classnames';
 import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/util/threatLevels';
-import { NxH2, NxPolicyViolationIndicator, NxTextLink, NxTile } from '@sonatype/react-shared-components';
+import { NxH2, NxH3, NxPolicyViolationIndicator, NxTextLink, NxTile } from '@sonatype/react-shared-components';
 
 import ActiveWaiversIndicator from 'MainRoot/violation/ActiveWaiversIndicator';
 import { timeAgo } from '../utilAngular/CommonServices';
@@ -18,6 +18,7 @@ import StageDisplay from './StageDisplay';
 import PolicyViolationConstraintInfo, { constraintViolationsPropType } from './PolicyViolationConstraintInfo';
 import AddOrRequestWaiverButton from 'MainRoot/waivers/AddOrRequestWaiverButton';
 import ViolationName from 'MainRoot/componentDetails/ViolationsTableTile/ViolationName';
+import ReachabilityStatus from 'MainRoot/componentDetails/ReachabilityStatus/ReachabilityStatus';
 
 const ownerIdTypeMap = {
   application: 'applicationPublicId',
@@ -68,8 +69,9 @@ export default function ViolationDetailsTile(props) {
       (stageType) => [stageType, stageData[stageType.stageTypeId]],
       isFirewallContext ? '' : stageTypes
     ),
+    reachabilityStatus = violationDetails?.reachabilityStatus,
     createStageDisplay = ([stageType, stageData]) => (
-      <dd className="iq-read-only-data" key={stageType.stageTypeId}>
+      <dd aria-labelledby="iq-violation-details__stages" className="iq-read-only-data" key={stageType.stageTypeId}>
         <StageDisplay {...{ $state, stageType, stageData, applicationPublicId }} />
       </dd>
     ),
@@ -157,12 +159,14 @@ export default function ViolationDetailsTile(props) {
       >
         <dl className="nx-form-group iq-read-only nx-grid-col iq-violation-details__left-details">
           <div className="iq-violation-details__threat-level">
-            <dt>Threat Level</dt>
-            <dd className={threatLevelClassName}>{threatLevel}</dd>
+            <dt id="iq-violation-details__threat-level">Threat Level</dt>
+            <dd aria-labelledby="iq-violation-details__threat-level" className={threatLevelClassName}>
+              {threatLevel}
+            </dd>
           </div>
           <div className="iq-violation-details__policy-type">
-            <dt>Policy Type</dt>
-            <dd className="iq-read-only-data">
+            <dt id="iq-violation-details__policy-type">Policy Type</dt>
+            <dd aria-labelledby="iq-violation-details__policy-type" className="iq-read-only-data">
               {capitalizeFirstLetter(
                 isFirewallContext ? policyDetail.policyThreatCategory : violationDetails.policyThreatCategory
               )}
@@ -172,14 +176,14 @@ export default function ViolationDetailsTile(props) {
         <dl className={secondFormGroupClasses}>
           {isFirewallContext ? null : (
             <div className="iq-violation-details__stages">
-              <dt>Stages</dt>
+              <dt id="iq-violation-details__stages">Stages</dt>
               {map(createStageDisplay, stageDisplayData)}
             </div>
           )}
           <div className={bottomFormGroupClasses}>
             <div className="iq-violation-details__policy-owner">
-              <dt>Policy Owner</dt>
-              <dd className="iq-read-only-data">
+              <dt id="iq-violation-details__policy-owner">Policy Owner</dt>
+              <dd aria-labelledby="iq-violation-details__policy-owner" className="iq-read-only-data">
                 {policyExists ? (
                   <NxTextLink href={getOwnerHref(policyOwner)}>{policyOwner.ownerName}</NxTextLink>
                 ) : (
@@ -190,15 +194,15 @@ export default function ViolationDetailsTile(props) {
             <div className={'iq-violation-details__reported'}>
               {isFirewallContext ? null : (
                 <div className="iq-violation-details__first-reported">
-                  <dt>First Reported</dt>
-                  <dd className="iq-read-only-data">
+                  <dt id="iq-violation-details__first-reported">First Reported</dt>
+                  <dd aria-labelledby="iq-violation-details__first-reported" className="iq-read-only-data">
                     {openTime.age} {openTime.qualifier}
                   </dd>
                 </div>
               )}
               <div className="iq-violation-details__last-reported">
-                <dt>Last Reported</dt>
-                <dd className="iq-read-only-data">
+                <dt id="iq-violation-details__last-reported">Last Reported</dt>
+                <dd aria-labelledby="iq-violation-details__last-reported" className="iq-read-only-data">
                   {mostRecentEvaluationTime.age} {mostRecentEvaluationTime.qualifier}
                 </dd>
               </div>
@@ -211,6 +215,12 @@ export default function ViolationDetailsTile(props) {
         constraintViolations={constraintViolations}
         isFromPolicyViolations={isFromPolicyViolations}
       />
+      {reachabilityStatus && (
+        <div className="iq-violation-details__reachability">
+          <NxH3>Reachability Analysis</NxH3>
+          <ReachabilityStatus reachabilityStatus={reachabilityStatus} />
+        </div>
+      )}
     </section>
   );
 }

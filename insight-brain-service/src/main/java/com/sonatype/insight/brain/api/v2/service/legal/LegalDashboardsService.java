@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.ApplicationComponentLicensesDTO;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.license.License;
+import com.sonatype.insight.brain.tenancy.TenantAwareFunction;
 import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
 import com.sonatype.insight.license.dto.model.LicenseObligationDTO;
 
@@ -99,8 +100,9 @@ public class LegalDashboardsService
   public Map<String, Set<String>> getLicenseObligationsFromHds(Set<String> licenseIds) {
     return licenseIds.isEmpty() ? Collections.emptyMap()
         : apiLicenseLegalHdsService.getLicenseMetadata(licenseIds).parallelStream()
-            .collect(Collectors.toMap(LicenseMetadataDTO::getLicenseId, licenseMetadata -> licenseMetadata
-                .getLicenseObligations().stream().map(LicenseObligationDTO::getName).collect(Collectors.toSet())));
+            .collect(Collectors.toMap(LicenseMetadataDTO::getLicenseId, //
+                new TenantAwareFunction<LicenseMetadataDTO, Set<String>>(licenseMetadata -> licenseMetadata
+                    .getLicenseObligations().stream().map(LicenseObligationDTO::getName).collect(Collectors.toSet()))));
   }
 
   private boolean isEmptyOrUnspecifiedLicenses(Set<String> licenseIds) {

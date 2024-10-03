@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.sbom.components;
 
 import java.util.Arrays;
-
+import java.util.List;
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -56,7 +56,7 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
             thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate component =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1", "h1",
-            "pkg:f1/group/n1@v1?type=jar");
+            "pkg:f1/group/n1@v1?type=jar", List.of("dependency:/bom.json/pkg:f1\\n1@v1"));
     tempEntity.newThirdPartyCoordinateSecurity(component, "cve", "d1", "l1", 9, "d1", "f1");
 
     HttpResponse response = restRequest()
@@ -82,6 +82,8 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
     assertThat(actual.getVulnerabilitySummary().getUnverifiedVulnerabilitiesCount()).isEqualTo(1);
     assertThat(actual.getDisclosedVulnerabilities().size()).isOne();
     assertThat(actual.getSonatypeIdentifiedVulnerabilities()).isEmpty();
+    assertThat(actual.getOccurrences()).isNotEmpty().hasSize(1);
+    assertThat(actual.getOccurrences()).isEqualTo(component.getOccurrencesList());
   }
 
   @Test

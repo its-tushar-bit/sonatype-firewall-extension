@@ -130,6 +130,8 @@ public class SbomResultsMerger
 
   public static final String FIELD_LICENSE_URL = "url";
 
+  public static final String FIELD_PATHNAMES = "pathnames";
+
   public static final Set<String> UNSUPPORTED_LICENSE_IDS = ImmutableSet.of("Not Provided", "Non-Standard");
 
   private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
@@ -423,6 +425,7 @@ public class SbomResultsMerger
       sbomComponent.setPackageUrl(bomPurl);
     }
     sbomComponent.setMatchStateId(JsonUtils.getNullableString(bomNode.get(FIELD_MATCH_STATE)));
+    sbomComponent.setOccurrencesList(JsonUtils.getStringListFromArray(bomNode.get(FIELD_PATHNAMES)));
     updateComponentIdentifiedAsSonatype(sbomComponent);
     mergeSecurityData(sonatypeVulnerabilityResults, bomComponentIdentifier, sbomComponent, thirdPartySbomMetadata);
     mergeLicenseData(sonatypeLicenseResults, bomComponentIdentifier, sbomComponent);
@@ -461,7 +464,7 @@ public class SbomResultsMerger
   {
     String bomRef = UUID.randomUUID().toString().replace("-", "");
     Component component = thirdPartyFileCoordinateToBomComponent(thirdPartyFileCoordinate, bomRef);
-    addOccurenceEvidenceForComponent(bomNode, component);
+    addOccurrenceEvidenceForComponent(bomNode, component);
     bom.addComponent(component);
     //merge has not happened yet, so at this point only disclosed vulnerabilities and licenses can exist
     //  include them as disclosed
@@ -477,9 +480,9 @@ public class SbomResultsMerger
     filteredBom.addComponent(clone);
   }
 
-  private void addOccurenceEvidenceForComponent(JsonNode bomNode, Component component) {
-    List<String> pathnames = JsonUtils.getStringListFromArray(bomNode.get("pathnames"));
-    if (pathnames == null) {
+  private void addOccurrenceEvidenceForComponent(JsonNode bomNode, Component component) {
+    List<String> pathnames = JsonUtils.getStringListFromArray(bomNode.get(FIELD_PATHNAMES));
+    if (CollectionUtils.isEmpty(pathnames)) {
       return;
     }
     List<Occurrence> occurrences = pathnames.stream()

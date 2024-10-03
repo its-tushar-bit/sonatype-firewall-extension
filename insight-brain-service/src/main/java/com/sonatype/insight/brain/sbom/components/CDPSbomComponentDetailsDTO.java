@@ -20,6 +20,8 @@ public class CDPSbomComponentDetailsDTO
 
   private List<VulnerabilityDetailsDTO> sonatypeIdentifiedVulnerabilities;
 
+  private List<String> occurrences;
+
   public CDPSbomComponentDetailsDTO() {
     // no op
   }
@@ -50,6 +52,14 @@ public class CDPSbomComponentDetailsDTO
 
   public void setSonatypeIdentifiedVulnerabilities(List<VulnerabilityDetailsDTO> sonatypeIdentifiedVulnerabilities) {
     this.sonatypeIdentifiedVulnerabilities = sonatypeIdentifiedVulnerabilities;
+  }
+
+  public List<String> getOccurrences() {
+    return occurrences;
+  }
+
+  public void setOccurrences(final List<String> occurrences) {
+    this.occurrences = occurrences;
   }
 
   public CDPSbomMetadataDTO getMetadata() {

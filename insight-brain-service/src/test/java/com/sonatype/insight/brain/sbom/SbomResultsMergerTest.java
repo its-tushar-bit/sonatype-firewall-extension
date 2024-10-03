@@ -182,6 +182,8 @@ public class SbomResultsMergerTest
     assertThat(tpfc1.getWebsite()).isEqualTo("website");
     assertThat(tpfc1.getCategoryIds()).isEqualTo("113,114");
     assertThat(tpfc1.getMatchStateId()).isEqualTo("exact");
+    assertThat(tpfc1.getOccurrencesList()).isNotEmpty().hasSize(1);
+    assertThat(tpfc1.getOccurrencesList().get(0)).isEqualTo("dependency:/SBOM-bom.json/pkg:pypi\\orange@1.0.1");
 
     //verify dependency types correctly set
     assertThat(coords.get(purl1).getDependencyType()).isEqualTo("D");
@@ -341,6 +343,8 @@ public class SbomResultsMergerTest
     assertThat(tpfc1.getCpe()).isNull();
     assertThat(tpfc1.getSwid()).isNull();
     assertThat(tpfc1.getMatchStateId()).isEqualTo("exact");
+    assertThat(tpfc1.getOccurrencesList()).isNotEmpty().hasSize(1);
+    assertThat(tpfc1.getOccurrencesList().get(0)).isEqualTo("dependency:/SBOM-bom.json/pkg:pypi\\orange@1.0.1");
 
     List<ThirdPartyCoordinateSecurity> tpvListC1 = thirdPartyCoordinateSecurityDAO
         .getByFileCoordinateId(tpfc1.getId());
@@ -395,6 +399,9 @@ public class SbomResultsMergerTest
     assertThat(tpfc2.getCpe()).isNull();
     assertThat(tpfc2.getSwid()).isNull();
     assertThat(tpfc2.getMatchStateId()).isEqualTo("exact");
+    assertThat(tpfc1.getOccurrencesList()).isNotEmpty().hasSize(1);
+    assertThat(tpfc2.getOccurrencesList().get(0)).isEqualTo(
+        "dependency:/app6-bom.xml/pkg:nuget\\Microsoft.Identity.Client.Extensions.Msal@2.23.0:00603c85922bf35d8edd");
 
     ThirdPartyFileCoordinate tpfc3 = coords.get("pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1");
     assertThat(tpfc3.getId()).isNotEmpty();
@@ -410,6 +417,9 @@ public class SbomResultsMergerTest
     assertThat(tpfc3.getCpe()).isNull();
     assertThat(tpfc3.getSwid()).isNull();
     assertThat(tpfc3.getMatchStateId()).isEqualTo("exact");
+    assertThat(tpfc1.getOccurrencesList()).isNotEmpty().hasSize(1);
+    assertThat(tpfc3.getOccurrencesList().get(0)).isEqualTo(
+        "dependency:/app6-bom.xml/pkg:nuget\\Microsoft.IdentityModel.Protocols@6.25.1:c795e78734c2860bb627");
 
     ThirdPartyFileCoordinate tpfc4 = coords.get("pkg:maven/com.sun.istack/istack-commons-runtime@4.1.2?type=jar");
     assertThat(tpfc4.getId()).isNotEmpty();
@@ -425,6 +435,7 @@ public class SbomResultsMergerTest
     assertThat(tpfc4.getCpe()).isNull();
     assertThat(tpfc4.getSwid()).isNull();
     assertThat(tpfc4.getMatchStateId()).isEqualTo("exact");
+    assertThat(tpfc4.getOccurrencesList()).isEmpty();
   }
 
   @Test

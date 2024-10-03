@@ -96,8 +96,8 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -4080,6 +4080,25 @@ public class TemporaryEntity
       String packageUrl)
   {
     return newThirdPartyFileCoordinate(thirdPartyFile.getId(), source, format, name, version, hash, packageUrl);
+  }
+
+  public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
+      ThirdPartyFile thirdPartyFile,
+      String source,
+      String format,
+      String name,
+      String version,
+      String hash,
+      String packageUrl,
+      List<String> occurrences)
+  {
+    ThirdPartyFileCoordinate fileCoordinate =
+        new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFile.getId());
+    fileCoordinate.setPackageUrl(packageUrl);
+    fileCoordinate.setIdentificationSources("SBOM");
+    fileCoordinate.setOccurrencesList(occurrences);
+    thirdPartyFileCoordinateDAO.insert(fileCoordinate);
+    return fileCoordinate;
   }
 
   public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(

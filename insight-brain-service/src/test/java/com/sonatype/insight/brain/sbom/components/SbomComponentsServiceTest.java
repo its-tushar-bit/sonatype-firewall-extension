@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.sbom.components;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
@@ -25,6 +26,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -56,10 +58,11 @@ public class SbomComponentsServiceTest
             thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate componentA =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1", "h1",
-            "pkg:f1/group/n1@v1?type=jar");
+            "pkg:f1/group/n1@v1?type=jar", List.of("dependency:/bom.json/pkg:f1\\n1@v1"));
     ThirdPartyFileCoordinate componentB =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s2", "f2", "n2", "v2", "h2",
-            "pkg:f2/group/n2@v2?type=jar");
+            "pkg:f2/group/n2@v2?type=jar",
+            List.of("dependency:/bom.json/pkg:f1\\n1@v1,dependency:/bom.json/pkg:f2\\n2@v2"));
     ThirdPartyCoordinateSecurity vulnerabilityA =
         tempEntity.newThirdPartyCoordinateSecurity(componentA, "cve1", "d1", "l1", 9, "f1", "v1", "cvs1", "sd1",
             "cwes1", "m1", "r1", "ad1", "SBOM");
@@ -128,10 +131,10 @@ public class SbomComponentsServiceTest
             thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate previousComponentA =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFilePrevious, "s1", "f1", "n1", "v1", "h1",
-            "pkg:f1/group/n1@v1?type=jar");
+            "pkg:f1/group/n1@v1?type=jar", null);
     ThirdPartyFileCoordinate componentA =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1", "h1",
-            "pkg:f1/group/n1@v1?type=jar");
+            "pkg:f1/group/n1@v1?type=jar", null);
     ThirdPartyFileCoordinate componentB =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s2", "f2", "n2", "v2", "h2",
             "pkg:f2/group/n2@v2?type=jar");
@@ -244,7 +247,7 @@ public class SbomComponentsServiceTest
   }
 
   @Test
-  public void testGetSbomComponentDetails_NoVulnerabilities() {
+  public void testGetSbomComponentDetails_NoVulnerabilities_NoOccurrences() {
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
@@ -258,6 +261,7 @@ public class SbomComponentsServiceTest
     assertThat(actual.getVulnerabilitySummary().getHighestCvssScore()).isZero();
     assertThat(actual.getVulnerabilitySummary().getVerifiedVulnerabilitiesCount()).isZero();
     assertThat(actual.getVulnerabilitySummary().getUnverifiedVulnerabilitiesCount()).isZero();
+    assertThat(actual.getOccurrences()).isEmpty();
     assertThat(actual.getDisclosedVulnerabilities()).isEmpty();
     assertThat(actual.getSonatypeIdentifiedVulnerabilities()).isEmpty();
   }
@@ -278,6 +282,12 @@ public class SbomComponentsServiceTest
     assertThat(actual.getMetadata().getApplicationName()).isEqualTo(app.getName());
     assertThat(actual.getMetadata().getOrganizationName()).isEqualTo(org.getName());
     assertThat(actual.getMetadata().getSbomCreationTime()).isEqualTo(sbom.getCreatedAt());
+    if (CollectionUtils.isEmpty(component.getOccurrencesList())) {
+      assertThat(actual.getOccurrences()).isEmpty();
+    }
+    else {
+      assertThat(actual.getOccurrences()).isEqualTo(component.getOccurrencesList());
+    }
   }
 
   private void assertComponentSummary(

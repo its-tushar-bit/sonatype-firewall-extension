@@ -46,7 +46,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 
 import static com.sonatype.insight.brain.sbom.utils.SbomCreationDetails.CreatorType.parseCreatorType;
 
@@ -124,6 +124,7 @@ public class SbomComponentsService
     componentDetailsDTO.setDependencyType(getDependencyType(component.getDependencyType()));
     componentDetailsDTO.setMetadata(getSbomMetadata(applicationId, sbomMetadata.getCreatedAt()));
     componentDetailsDTO.setVulnerabilitySummary(getVulnerabilitySummary(vulnerabilityList));
+    componentDetailsDTO.setOccurrences(component.getOccurrencesList());
 
     componentDetailsDTO.setDisclosedVulnerabilities(
         getVulnerabilitiesDetails(sbomMetadata, vulnerabilityList, vexAnnotationsMap, true));

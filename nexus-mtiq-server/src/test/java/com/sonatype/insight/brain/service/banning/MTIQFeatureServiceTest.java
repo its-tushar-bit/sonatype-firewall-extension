@@ -96,9 +96,11 @@ public class MTIQFeatureServiceTest
   @Test
   public void testGetFeatures_onlyIncludesAllowedFeatures() {
     Set<Feature> features = underTest.getFeatures();
-    Feature[] expectedFeatures = getFeatureSet();
+    Set<Feature> expectedFeatures = getFeatureSet();
+    // This feature is enabled via HDS only, so we cannot expect it to be enabled here.
+    expectedFeatures.remove(LicensedFeature.ALLOW_SCM_ON_PUBLIC_REPOS);
 
-    assertThat(features).containsExactlyInAnyOrder(expectedFeatures);
+    assertThat(features).containsExactlyInAnyOrderElementsOf(expectedFeatures);
   }
 
   @Test
@@ -106,16 +108,17 @@ public class MTIQFeatureServiceTest
   public void testGetFeatures_includes_ADVANCED_LEGAL_PACK_with_SAAS_ALP_ENABLED() {
     SystemConfigurationPropertyFeature.SAAS_ALP_ENABLED.setEnabled(true);
 
-    Feature[] expectedFeatures = Stream.of(
-        stream(getFeatureSet()),
+    Set<Feature> expectedFeatures = Stream.of(getFeatureSet().stream(),
         Stream.of(
             LicensedFeature.ADVANCED_LEGAL_PACK,
             SystemConfigurationPropertyFeature.SAAS_ALP_ENABLED
         )
-    ).flatMap(i -> i).collect(toSet()).toArray(new Feature[]{});
+    ).flatMap(i -> i).collect(toSet());
+    // This feature is enabled via HDS only, so we cannot expect it to be enabled here.
+    expectedFeatures.remove(LicensedFeature.ALLOW_SCM_ON_PUBLIC_REPOS);
 
     Set<Feature> features = underTest.getFeatures();
-    assertThat(features).containsExactlyInAnyOrder(expectedFeatures);
+    assertThat(features).containsExactlyInAnyOrderElementsOf(expectedFeatures);
   }
 
   @Test
@@ -213,7 +216,7 @@ public class MTIQFeatureServiceTest
     ).collect(toSet()).toArray(new SystemConfigurationPropertyFeature[]{});
   }
 
-  private Feature[] getFeatureSet() {
+  private Set<Feature> getFeatureSet() {
     return Stream.of(
         Stream.of(MULTI_TENANT),
         Stream.of(getEnabledSystemConfigurationPropertyFeatures()),
@@ -231,6 +234,6 @@ public class MTIQFeatureServiceTest
             .filter(f -> !f.equals(LicensedFeature.DEVELOPER_VERSION_UPPER_BOUND)),
         stream(NonLicensedFeature.values())
             .filter(f -> !f.equals(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS))
-    ).flatMap(i -> i).map(Feature.class::cast).collect(toSet()).toArray(new Feature[]{});
+    ).flatMap(i -> i).map(Feature.class::cast).collect(toSet());
   }
 }

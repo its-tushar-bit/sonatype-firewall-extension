@@ -30,12 +30,11 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
@@ -56,7 +55,7 @@ import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
-import org.apache.commons.lang3.StringUtils;
+
 import org.sonatype.licensing.LicensingException;
 import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -64,8 +63,11 @@ import org.sonatype.licensing.product.util.LicenseContent;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 import org.sonatype.licensing.util.LicensingUtil;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
 import de.schlichtherle.license.NoLicenseInstalledException;
+import org.apache.commons.lang3.StringUtils;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -928,7 +930,8 @@ public class CLMLicenseManager
         LicensedFeature.INFRASTRUCTURE_AS_CODE_PACK, //
         LicensedFeature.BREAKING_CHANGE, //
         LicensedFeature.DEVELOPER_DASHBOARD, //
-        LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING //
+        LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING, //
+        LicensedFeature.ALLOW_SCM_ON_PUBLIC_REPOS
     );
     for (LicensedFeature feature : hdsControlledFeatures) {
       if (licenseDetails.features.contains(feature.name())) {

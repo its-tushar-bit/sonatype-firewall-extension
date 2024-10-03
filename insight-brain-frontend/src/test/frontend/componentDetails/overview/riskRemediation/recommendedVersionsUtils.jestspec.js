@@ -318,4 +318,128 @@ describe('recommendedVersionUtils', () => {
       expect(fifthElement.isGolden).toBe(false);
     });
   });
+
+  describe('return list with no duplicate versions', () => {
+    const remediation = {
+      versionChanges: [
+        {
+          type: 'next-non-failing',
+          data: {
+            component: {
+              packageUrl: 'pkg:maven/com.h2database/h2@1.4.200?type=jar',
+              hash: null,
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  artifactId: 'h2',
+                  classifier: '',
+                  extension: 'jar',
+                  groupId: 'com.h2database',
+                  version: '1.5',
+                },
+              },
+              displayName: 'com.h2database : h2 : 1.4.200',
+            },
+          },
+        },
+        {
+          type: 'next-non-failing-with-dependencies',
+          data: {
+            component: {
+              packageUrl: 'pkg:maven/com.h2database/h2@1.4.200?type=jar',
+              hash: null,
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  artifactId: 'h2',
+                  classifier: '',
+                  extension: 'jar',
+                  groupId: 'com.h2database',
+                  version: '1.4',
+                },
+              },
+              displayName: 'com.h2database : h2 : 1.4.200',
+            },
+          },
+        },
+        {
+          type: 'next-no-violations-with-dependencies',
+          data: {
+            component: {
+              packageUrl: 'pkg:maven/com.h2database/h2@1.4.200?type=jar',
+              hash: null,
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  artifactId: 'h2',
+                  classifier: '',
+                  extension: 'jar',
+                  groupId: 'com.h2database',
+                  version: '1.5',
+                },
+              },
+              displayName: 'com.h2database : h2 : 1.4.200',
+            },
+          },
+        },
+        {
+          type: 'next-no-violations',
+          data: {
+            component: {
+              packageUrl: 'pkg:maven/com.h2database/h2@1.4.200?type=jar',
+              hash: null,
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  artifactId: 'h2',
+                  classifier: '',
+                  extension: 'jar',
+                  groupId: 'com.h2database',
+                  version: '1.5',
+                },
+              },
+              displayName: 'com.h2database : h2 : 1.4.050',
+            },
+          },
+        },
+      ],
+      suggestedVersionChange: {
+        type: 'recommended-non-breaking-with-dependencies',
+        isGolden: true,
+        data: {
+          component: {
+            packageUrl: 'pkg:maven/com.h2database/h2@1.4.200?type=jar',
+            hash: null,
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                artifactId: 'h2',
+                classifier: '',
+                extension: 'jar',
+                groupId: 'com.h2database',
+                version: '1.7',
+              },
+            },
+            displayName: 'com.h2database : h2 : 1.4.200',
+          },
+        },
+      },
+    };
+
+    const actualVersion = '1.4.200';
+    const stageId = 'build';
+    const result = setRemediations(remediation, actualVersion, stageId);
+
+    it('should return 3 results without any duplicate versions', () => {
+      expect(result.length).toBe(3);
+      expect(result[0].version).toBe('1.7');
+      expect(result[0].type).toBe('recommended-non-breaking-with-dependencies');
+
+      expect(result[1].version).toBe('1.5');
+      expect(result[1].type).toBe('next-no-violations-with-dependencies');
+
+      expect(result[2].version).toBe('1.4');
+      expect(result[2].type).toBe('next-non-failing-with-dependencies');
+    });
+  });
 });

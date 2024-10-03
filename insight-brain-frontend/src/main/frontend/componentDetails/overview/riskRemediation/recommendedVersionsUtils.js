@@ -119,6 +119,20 @@ const shouldDisplayWithoutDependenciesRemediation = (
   return withoutDependenciesVersion !== currentVersion || withDependenciesVersion !== currentVersion;
 };
 
+const getRemediationsWithoutDuplicates = (versions) => {
+  const uniqueVersions = [];
+  const seenVersions = new Set();
+
+  for (const version of versions) {
+    if (!seenVersions.has(version.version)) {
+      uniqueVersions.push(version);
+      seenVersions.add(version.version);
+    }
+  }
+
+  return uniqueVersions;
+};
+
 export const setRemediations = (remediation, actualVersion, stageId) => {
   let suggestedRemediations = [];
 
@@ -183,7 +197,7 @@ export const setRemediations = (remediation, actualVersion, stageId) => {
     });
   }
 
-  return suggestedRemediations;
+  return getRemediationsWithoutDuplicates(suggestedRemediations);
 };
 
 export const getAsyncRecommendationsPrioritiesPage = (remediation, actualVersion, stageId) => {

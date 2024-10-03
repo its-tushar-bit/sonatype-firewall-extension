@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -109,6 +110,7 @@ import static com.codeborne.selenide.Selenide.back;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.insight.brain.model.Color.dark_blue;
 import static com.sonatype.insight.brain.model.Color.dark_red;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType.HAS_NO_SUPPORT_FOR;
 import static com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType.HAS_SUPPORT_FOR;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -174,12 +176,21 @@ public abstract class AbstractPolicyEditorTest
   }
 
   @Test
-  @Ignore
-  // Flaky test to be addressed at CLM-24728
   public void testCreatePolicy() {
-    setFeatures(LicensedFeature.RELEASE_INTEGRITY, LicensedFeature.HYGIENE, LicensedFeature.POLICY_MONITORING,
+    setFeatures(LicensedFeature.RELEASE_INTEGRITY,
+        LicensedFeature.HYGIENE,
+        LicensedFeature.POLICY_MONITORING,
         LicensedFeature.ENFORCEMENT,
-        LicensedFeature.NOTIFICATIONS, LicensedFeature.WEBHOOKS_FOR_APPLICATIONS, LicensedFeature.DASHBOARD);
+        LicensedFeature.NOTIFICATIONS,
+        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
+        LicensedFeature.DASHBOARD,
+        LicensedFeature.POLICY_MANAGEMENT,
+        LicensedFeature.POLICY_READ_ONLY,
+        LicensedFeature.COMPONENT_LABELS
+    );
+
+    tempEntity.newLicenseThreatGroup(ROOT_ORGANIZATION_ID, "Banned", 10);
+    tempEntity.newLicenseThreatGroup(ROOT_ORGANIZATION_ID, "Liberal", 0);
 
     if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
       tempEntity.newTag(currentOwner.getId(), "PolicyEditorTest category");
@@ -191,6 +202,9 @@ public abstract class AbstractPolicyEditorTest
         Collections.singleton(WebhookEventType.POLICY_ALERT), "description");
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
+
+    // add extra timeout for visibility of the form as this has occasionally caused test instability
+    OwnerSummaryPage.policyTile().getElement().shouldBe(visible, Duration.ofSeconds(5));
     OwnerSummaryPage.policyTile().addPolicyButton().click();
 
     assertNewPolicyStateIsCorrect();
@@ -407,7 +421,6 @@ public abstract class AbstractPolicyEditorTest
 
     // Uncomment when fixing CLM-18677
     //NotificationsSection.notifications().shouldHave(texts("Project One (Bug)"));
-
     PolicyEditorPage.savePolicy();
 
     // verify persisted policy
@@ -1068,6 +1081,9 @@ public abstract class AbstractPolicyEditorTest
 
   public void testCreatePolicy_summarySection() {
     SummarySection summary = PolicyEditorPage.summarySection();
+
+    // add extra timeout for visibility of the form as this has occasionally caused test instability
+    PolicyEditorPage.summarySection().getElement().shouldBe(visible, Duration.ofSeconds(5));
     summary.policyName().input().val("New Policy");
 
     changeThreatLevel(9);
@@ -1272,7 +1288,7 @@ public abstract class AbstractPolicyEditorTest
         addDropdownCondition(newConstraint, LicenseConditionType.class, 5, conditionTypesOptionMap);
     licenseCondition.operator().shouldHave(text("is"));
     licenseCondition.value().shouldHave(text("0BSD")).click();
-    licenseCondition.value().listItem(5).shouldHave(text("ABBYY-RTR-SDK-LA")).click();
+    licenseCondition.value().listItem(10).shouldHave(text("ABBYY-RTR-SDK-LA")).click();
 
     DropdownConditionEditSection licenseStatus =
         addDropdownCondition(newConstraint, LicenseStatusConditionType.class, 6, conditionTypesOptionMap);
@@ -1285,7 +1301,7 @@ public abstract class AbstractPolicyEditorTest
         addDropdownCondition(newConstraint, LicenseThreatGroupConditionType.class, 7, conditionTypesOptionMap);
     licenseThreatGroup.operator().shouldHave(text("is"));
     licenseThreatGroup.value().shouldHave(text("Banned")).click();
-    licenseThreatGroup.value().listItem(2).shouldHave(text("Liberal")).click();
+    licenseThreatGroup.value().listItem(1).shouldHave(text("Liberal")).click();
 
     InputConditionEditSection licenseThreatGroupLevel =
         addInputCondition(newConstraint, LicenseThreatGroupLevelConditionType.class, 8, conditionTypesOptionMap);

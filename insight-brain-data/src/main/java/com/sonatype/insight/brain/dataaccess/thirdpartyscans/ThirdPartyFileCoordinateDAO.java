@@ -183,6 +183,7 @@ public class ThirdPartyFileCoordinateDAO
         "       COUNT(CASE WHEN (cs.severity BETWEEN ?8 AND ?9) THEN 1 END) AS severity_critical, " + //
         "       ROUND(COUNT(ve) * 100.0 / GREATEST(COUNT(cs), 1), 1) as percentage, " + //
         "       fc.dependency_type," + //
+        "       fc.filenames," + //
         "       COUNT(*) OVER() AS full_count" + //
 
         " FROM " + getDatabaseSchema() + ".file_coordinate fc" + //
@@ -202,7 +203,7 @@ public class ThirdPartyFileCoordinateDAO
     MutableInt index = new MutableInt(indexForComponentName);
     sQuery = generateComponentNameFilterQuery(componentName, index, sQuery);
     sQuery += generateHavingByDependencyTypes(dependencyTypes, dependencyTypesParams, index.intValue()) + //
-        " GROUP BY fc.hash, fc.package_url, fc.name, fc.version, licenses_json ,fc.dependency_type " + //
+        " GROUP BY fc.hash, fc.package_url, fc.name, fc.version, licenses_json ,fc.dependency_type, fc.filenames " + //
         generateHavingByVulnerabilityThreatLevels(vulnerabilityThreatLevels) + //
         generateOrderBySortFieldSelected(sortBy, asc);
 
@@ -222,7 +223,7 @@ public class ThirdPartyFileCoordinateDAO
       List<SbomComponentDTO> dtos = ((Stream<Object[]>) paginationQuery.getResultStream())
           .peek(array -> {
             if (result.getTotalResultsCount() == 0) {
-              result.setTotalResultsCount(((Long) array[12]).intValue());
+              result.setTotalResultsCount(((Long) array[13]).intValue());
             }
           })
           .map(SbomComponentDTO::new)

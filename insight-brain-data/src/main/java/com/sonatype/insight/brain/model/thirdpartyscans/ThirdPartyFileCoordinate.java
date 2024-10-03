@@ -92,6 +92,9 @@ public class ThirdPartyFileCoordinate
   @Column (name = "occurrences")
   private String occurrences;
 
+  @Column (name = "filenames")
+  private String filenames;
+
   @Override
   public String getId() {
     return id;
@@ -221,6 +224,14 @@ public class ThirdPartyFileCoordinate
 
   public void setMatchStateId(String matchStateId) {
     this.matchStateId = matchStateId;
+  }
+
+  public List<String> getFilenamesList() {
+    return StringUtils.isBlank(filenames) ? Collections.emptyList() : List.of(filenames.split(","));
+  }
+
+  public void setFilenamesList(List<String> filenames) {
+    this.filenames = CollectionUtils.isEmpty(filenames) ? null : String.join(",", filenames);
   }
 
   public List<String> getOccurrencesList() {

@@ -43,6 +43,7 @@ CREATE TABLE file_coordinate (
   website VARCHAR(1000) NULL,
   category_ids TEXT NULL,
   occurrences TEXT NULL,
+  filenames TEXT NULL,
   CONSTRAINT file_coordinate_pk PRIMARY KEY (file_coordinate_id),
   CONSTRAINT file_coordinate_fk FOREIGN KEY (third_party_file_id) REFERENCES third_party_file (third_party_file_id)
 );

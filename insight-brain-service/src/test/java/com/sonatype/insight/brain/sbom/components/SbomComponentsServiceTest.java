@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.sbom.components;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import javax.inject.Inject;
@@ -58,11 +59,11 @@ public class SbomComponentsServiceTest
             thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate componentA =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1", "h1",
-            "pkg:f1/group/n1@v1?type=jar", List.of("dependency:/bom.json/pkg:f1\\n1@v1"));
+            "pkg:f1/group/n1@v1?type=jar", List.of("dependency:/bom.json/pkg:f1\\n1@v1"), null);
     ThirdPartyFileCoordinate componentB =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s2", "f2", "n2", "v2", "h2",
             "pkg:f2/group/n2@v2?type=jar",
-            List.of("dependency:/bom.json/pkg:f1\\n1@v1,dependency:/bom.json/pkg:f2\\n2@v2"));
+            List.of("dependency:/bom.json/pkg:f1\\n1@v1,dependency:/bom.json/pkg:f2\\n2@v2"), null);
     ThirdPartyCoordinateSecurity vulnerabilityA =
         tempEntity.newThirdPartyCoordinateSecurity(componentA, "cve1", "d1", "l1", 9, "f1", "v1", "cvs1", "sd1",
             "cwes1", "m1", "r1", "ad1", "SBOM");
@@ -131,10 +132,10 @@ public class SbomComponentsServiceTest
             thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate previousComponentA =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFilePrevious, "s1", "f1", "n1", "v1", "h1",
-            "pkg:f1/group/n1@v1?type=jar", null);
+            "pkg:f1/group/n1@v1?type=jar", Collections.emptyList(), Collections.emptyList());
     ThirdPartyFileCoordinate componentA =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1", "h1",
-            "pkg:f1/group/n1@v1?type=jar", null);
+            "pkg:f1/group/n1@v1?type=jar", Collections.emptyList(), Collections.emptyList());
     ThirdPartyFileCoordinate componentB =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s2", "f2", "n2", "v2", "h2",
             "pkg:f2/group/n2@v2?type=jar");

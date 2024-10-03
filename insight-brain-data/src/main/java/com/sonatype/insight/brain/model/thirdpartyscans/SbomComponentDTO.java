@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.model.thirdpartyscans;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.License;
@@ -36,6 +37,8 @@ public class SbomComponentDTO
   private String version;
 
   private String dependencyType;
+
+  private List<String> filenames;
 
   private ComponentIdentifier componentIdentifier;
 
@@ -95,6 +98,10 @@ public class SbomComponentDTO
       if (StringUtils.isNotBlank(dependencyTypeValue)) {
         dependencyType = ThirdPartyDependencyType.fromValue(dependencyTypeValue).getDisplayName();
       }
+      String filenamesString = (String) array[12];
+      if (StringUtils.isNotBlank(filenamesString)) {
+        filenames = List.of(filenamesString.split(","));
+      }
     }
   }
 
@@ -152,6 +159,14 @@ public class SbomComponentDTO
 
   public void setDependencyType(final String dependencyType) {
     this.dependencyType = dependencyType;
+  }
+
+  public List<String> getFilenames() {
+    return filenames;
+  }
+
+  public void setFilenames(final List<String> filenames) {
+    this.filenames = filenames;
   }
 
   public Set<License> getLicenses() {

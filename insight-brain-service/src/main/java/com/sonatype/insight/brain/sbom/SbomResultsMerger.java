@@ -132,6 +132,8 @@ public class SbomResultsMerger
 
   public static final String FIELD_PATHNAMES = "pathnames";
 
+  public static final String FIELD_FILENAMES = "filenames";
+
   public static final Set<String> UNSUPPORTED_LICENSE_IDS = ImmutableSet.of("Not Provided", "Non-Standard");
 
   private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
@@ -426,6 +428,11 @@ public class SbomResultsMerger
     }
     sbomComponent.setMatchStateId(JsonUtils.getNullableString(bomNode.get(FIELD_MATCH_STATE)));
     sbomComponent.setOccurrencesList(JsonUtils.getStringListFromArray(bomNode.get(FIELD_PATHNAMES)));
+
+    final List<String> filenames = JsonUtils.getStringListFromArray(bomNode.get(FIELD_FILENAMES));
+    if (CollectionUtils.isNotEmpty(filenames)) {
+      sbomComponent.setFilenamesList(filenames);
+    }
     updateComponentIdentifiedAsSonatype(sbomComponent);
     mergeSecurityData(sonatypeVulnerabilityResults, bomComponentIdentifier, sbomComponent, thirdPartySbomMetadata);
     mergeLicenseData(sonatypeLicenseResults, bomComponentIdentifier, sbomComponent);

@@ -72,7 +72,7 @@
     "groupId" : null,
     "artifactId" : null,
     "version" : null,
-    "filenames" : [ "pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0:00603c85922bf35d8edd" ],
+    "filenames" : [ "pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0:00603c85922bf35d8edd", "pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.24.0:00603c85922bf35d8edd" ],
     "pathnames" : [ "dependency:/app6-bom.xml/pkg:nuget\\Microsoft.Identity.Client.Extensions.Msal@2.23.0:00603c85922bf35d8edd" ],
     "aggregateFiles" : [ ],
     "matchState" : "exact",

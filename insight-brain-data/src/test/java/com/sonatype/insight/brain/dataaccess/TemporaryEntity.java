@@ -4090,13 +4090,15 @@ public class TemporaryEntity
       String version,
       String hash,
       String packageUrl,
-      List<String> occurrences)
+      List<String> occurrences,
+      List<String> filenames)
   {
     ThirdPartyFileCoordinate fileCoordinate =
         new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFile.getId());
     fileCoordinate.setPackageUrl(packageUrl);
     fileCoordinate.setIdentificationSources("SBOM");
     fileCoordinate.setOccurrencesList(occurrences);
+    fileCoordinate.setFilenamesList(filenames);
     thirdPartyFileCoordinateDAO.insert(fileCoordinate);
     return fileCoordinate;
   }

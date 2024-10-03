@@ -5,12 +5,18 @@
  */
 package com.sonatype.insight.brain.model.thirdpartyscans;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
 import com.sonatype.insight.model.HasStringId;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @Entity
 @Table(name = "file_coordinate")
@@ -82,6 +88,9 @@ public class ThirdPartyFileCoordinate
 
   @Column (name = "match_state_id")
   private String matchStateId;
+
+  @Column (name = "occurrences")
+  private String occurrences;
 
   @Override
   public String getId() {
@@ -212,5 +221,13 @@ public class ThirdPartyFileCoordinate
 
   public void setMatchStateId(String matchStateId) {
     this.matchStateId = matchStateId;
+  }
+
+  public List<String> getOccurrencesList() {
+    return StringUtils.isBlank(occurrences) ? Collections.emptyList() : Arrays.asList(occurrences.split(","));
+  }
+
+  public void setOccurrencesList(List<String> occurrences) {
+    this.occurrences = CollectionUtils.isEmpty(occurrences) ? null : String.join(",", occurrences);
   }
 }

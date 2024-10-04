@@ -117,6 +117,48 @@ public class SpdxToCycloneDxExporterTest
   }
 
   @Test
+  public void testExport_componentWithSimilarMatchStateProperty() throws Exception {
+    File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("spdx-v2_3.xml"));
+
+    ThirdPartyFile tpf = tempEntity.newThirdPartyFile();
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(tpf.getId(), app.getId(), "1.0.1", "ACTIVE",
+            sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.XML.toString(), "2.3");
+
+    tempEntity.newThirdPartyFileCoordinateWithMatchState(tpf,
+        "source",
+        "maven",
+        "log4j-core",
+        "2.13.2",
+        "abcdef",
+        "pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar",
+        "similar"
+    );
+
+    tempEntity.newThirdPartyFileCoordinateWithMatchState(tpf,
+        "source",
+        "maven",
+        "junit",
+        "4.12",
+        "1111111",
+        "pkg:maven/junit/junit@4.12?type=jar",
+        "exact"
+    );
+
+    SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
+        .withExportSpecification(SbomExportParams.ExportSpecification.CYCLONEDX_15)
+        .withTargetFormat(SbomFormat.XML);
+    spdxToCycloneDxExporter.setExportParams(exportParams);
+    String actual = spdxToCycloneDxExporter.export();
+    XmlAssert.assertThat(actual).and(readFileToString("outputs/output_cdx-v_1_5-similar-components.xml"))
+        .withNodeFilter(cycloneDxIgnoreNodesFilter())
+        .withNodeFilter( n -> n.getNodeName().equals("vulnerabilities"))
+        .withAttributeFilter(cycloneDxIgnoreAttributesFilter())
+        .ignoreWhitespace()
+        .areIdentical();
+  }
+
+  @Test
   public void testExport_MergedVulnerabilities() throws Exception {
     Map<String, Object> mockData = mockOriginalThirdPartyScan();
     ThirdPartyFile tpFile = (ThirdPartyFile) mockData.get("tpFile");

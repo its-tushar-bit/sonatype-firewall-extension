@@ -156,6 +156,9 @@
         </license>
       </licenses>
       <purl>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</purl>
+      <properties>
+        <property name="sonatype:match_state">exact</property>
+      </properties>
     </component>
   </components>
   <vulnerabilities>

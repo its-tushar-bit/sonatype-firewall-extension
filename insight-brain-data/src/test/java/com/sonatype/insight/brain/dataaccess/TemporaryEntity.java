@@ -4120,6 +4120,25 @@ public class TemporaryEntity
     return fileCoordinate;
   }
 
+  public ThirdPartyFileCoordinate newThirdPartyFileCoordinateWithMatchState(
+      ThirdPartyFile thirdPartyFile,
+      String source,
+      String format,
+      String name,
+      String version,
+      String hash,
+      String packageUrl,
+      String matchState)
+  {
+    ThirdPartyFileCoordinate fileCoordinate =
+        new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFile.getId());
+    fileCoordinate.setPackageUrl(packageUrl);
+    fileCoordinate.setIdentificationSources("SBOM");
+    fileCoordinate.setMatchStateId(matchState);
+    thirdPartyFileCoordinateDAO.insert(fileCoordinate);
+    return fileCoordinate;
+  }
+
   public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
       String thirdPartyFileId,
       String source,

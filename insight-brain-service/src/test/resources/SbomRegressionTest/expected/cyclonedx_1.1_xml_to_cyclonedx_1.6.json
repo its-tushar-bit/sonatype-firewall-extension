@@ -218,6 +218,7 @@
           }
         }
       ],
+      "properties": [{ "name": "sonatype:match_state", "value": "exact" }],
       "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
     }
   ],

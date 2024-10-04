@@ -131,6 +131,21 @@ public abstract class AbstractCycloneDxExporter
             // 1.6+ new library won't validate/generate  an empty array of licenses and a null expression on a component
             bomComponent.setLicenses(null);
           }
+
+          if ( StringUtils.isNotEmpty(sonatypeComponent.getMatchStateId())) {
+            Property pSimilar = new Property();
+            pSimilar.setName("sonatype:match_state");
+            pSimilar.setValue(sonatypeComponent.getMatchStateId());
+            if (CollectionUtils.isNotEmpty(bomComponent.getProperties())) {
+              bomComponent.getProperties().stream()
+                  .filter(p -> p.getName().equals(pSimilar.getName()))
+                  .findFirst()
+                  .ifPresentOrElse(p -> p.setValue(pSimilar.getValue()), () -> bomComponent.addProperty(pSimilar));
+            }
+            else {
+              bomComponent.addProperty(pSimilar);
+            }
+          }
         }
       }
     }

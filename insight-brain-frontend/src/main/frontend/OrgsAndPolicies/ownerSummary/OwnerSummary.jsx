@@ -17,6 +17,7 @@ import { selectRepositoryUrl, selectScmProviderIcon } from 'MainRoot/OrgsAndPoli
 import {
   selectNoSbomManagerEnabledError,
   selectIsSbomContinuousMonitoringUiEnabled,
+  selectIsSbomPoliciesSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions as ownerSummaryActions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
@@ -67,12 +68,13 @@ function DefaultTiles() {
   );
 }
 
-function SbomManagerTiles(isApp, isSbomContinuousMonitoringUiEnabled) {
+function SbomManagerTiles(isApp, isSbomContinuousMonitoringUiEnabled, isSbomPoliciesSupported) {
   return (
     <>
       {isApp && <SbomsTile />}
-      <AccessTile />
+      {isSbomPoliciesSupported && <PoliciesTile />}
       {isSbomContinuousMonitoringUiEnabled && <ContinuousMonitoringSummaryTile />}
+      <AccessTile />
     </>
   );
 }
@@ -91,6 +93,8 @@ export default function OwnerSummary() {
   const isSbomManager = useSelector(selectIsSbomManager);
   const noSbomManagerEnabledError = useSelector(selectNoSbomManagerEnabledError);
   const isSbomContinuousMonitoringUiEnabled = useSelector(selectIsSbomContinuousMonitoringUiEnabled);
+  const isSbomPoliciesSupported = useSelector(selectIsSbomPoliciesSupported);
+  // loading is false when the page is already loaded. entityId may be set to null before doLoad is called.
   const loadingOwnerSummaryAndEntityId = loading || !entityId || entityId !== owner[isApp ? 'publicId' : 'id'];
   const error = loadError || loadSelectedOwnerError || (isSbomManager && noSbomManagerEnabledError);
 
@@ -138,7 +142,9 @@ export default function OwnerSummary() {
         className="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-viewport-sized__scrollable"
         id="owner-summary-sections"
       >
-        {isSbomManager ? SbomManagerTiles(isApp, isSbomContinuousMonitoringUiEnabled) : DefaultTiles()}
+        {isSbomManager
+          ? SbomManagerTiles(isApp, isSbomContinuousMonitoringUiEnabled, isSbomPoliciesSupported)
+          : DefaultTiles()}
       </div>
       <DeleteOwnerModal />
       <LegacyViolationModal />

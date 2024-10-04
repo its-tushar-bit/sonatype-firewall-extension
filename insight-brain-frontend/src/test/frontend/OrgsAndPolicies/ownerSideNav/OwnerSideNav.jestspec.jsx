@@ -1759,4 +1759,47 @@ describe('OwnerSideNav', () => {
       expect(screen.queryByTestId('organizations-add')).toBeNull();
     });
   });
+
+  describe('SBOM Manager', () => {
+    let selectedOrg;
+
+    beforeEach(() => {
+      selectedOrg = ownersMap[topParentOrganizationId];
+      state = {
+        productFeatures: {
+          productFeatures: {
+            'orgs-and-apps': true,
+            'sbom-manager': true,
+          },
+        },
+        router: {
+          currentState: {
+            name: 'sbomManager.management.view.organization',
+          },
+          currentParams: {
+            organizationId: selectedOrg.id,
+          },
+        },
+        orgsAndPolicies: {
+          ownerSideNav: {
+            filterQuery: rscInitialState(''),
+            filteredEntries: {
+              applications: [],
+              organizations: [],
+            },
+            displayedOrganization: {
+              type: 'organization',
+              id: selectedOrg.id,
+              name: selectedOrg.name,
+            },
+          },
+        },
+      };
+    });
+
+    it('does not render Repository Managers section', async () => {
+      renderComponent();
+      expect(screen.queryByRole('link', { name: /(Repository Managers)/ })).not.toBeInTheDocument();
+    });
+  });
 });

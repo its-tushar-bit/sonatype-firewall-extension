@@ -6,6 +6,7 @@
 import React from 'react';
 import { render, axiosMockAdapter, within, screen, fireEvent } from 'TestRoot/SpecUtil';
 
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import PoliciesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/policiesTile/PoliciesTile';
 import { actions as policyActions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import { getActionStageUrl, getApplicablePolicies } from 'MainRoot/util/CLMLocation';
@@ -710,6 +711,225 @@ describe('PoliciesTile', () => {
           }
         }
       });
+    });
+  });
+
+  describe('Stage Columns', () => {
+    const actionStagesWithCompliancePayload = [
+      { stageTypeId: 'proxy', stageName: 'Proxy' },
+      { stageTypeId: 'develop', stageName: 'Develop' },
+      { stageTypeId: 'source', stageName: 'Source' },
+      { stageTypeId: 'build', stageName: 'Build' },
+      { stageTypeId: 'stage-release', stageName: 'Stage Release' },
+      { stageTypeId: 'release', stageName: 'Release' },
+      { stageTypeId: 'operate', stageName: 'Operate' },
+      { stageTypeId: 'compliance', stageName: 'Compliance' },
+    ];
+
+    describe('Non SBOM Manager', () => {
+      it('renders the correct table headers (without "Compliance")', async () => {
+        ownerName = rootOrganizationPoliciesByOwnerPayload.ownerName;
+        ownerId = rootOrganizationPoliciesByOwnerPayload.ownerId;
+        ownerType = rootOrganizationPoliciesByOwnerPayload.ownerType;
+
+        preloadedState = {
+          router: {
+            currentState: {
+              name: 'management.view.organization',
+              url: '/organization/{organizationId}',
+              data: {
+                title: 'Organization Management',
+                viewportSized: true,
+              },
+            },
+            currentParams: {
+              organizationId: ownerId,
+            },
+          },
+          productFeatures: {
+            loading: false,
+            loadError: null,
+            productFeatures: {
+              firewall: firewallSupported,
+              enforcement: enforcementSupported,
+            },
+          },
+          orgsAndPolicies: {
+            root: {
+              selectedOwner: {
+                id: ownerId,
+                name: ownerName,
+                legacyViolationEnabled: null,
+                allowLegacyViolationOverride: true,
+                repositoryConnectionEnabled: null,
+                allowRepositoryConnectionOverride: true,
+                artifactoryConnectionEnabled: null,
+                allowArtifactoryConnectionOverride: true,
+              },
+            },
+            stages: {
+              action: {
+                loading: false,
+                error: null,
+                stageTypes: null,
+              },
+            },
+          },
+        };
+        jest.spyOn(routerSelectors, 'selectIsSbomManager').mockReturnValue(false);
+
+        axiosMock
+          .onGet(getApplicablePolicies(ownerType, ownerId))
+          .reply(200, { policiesByOwner: rootOrganizationPoliciesByOwnerPayload.policiesByOwner });
+        axiosMock.onGet(getActionStageUrl()).reply(200, actionStagesWithCompliancePayload);
+
+        renderComponent(preloadedState);
+
+        expect(await screen.findByText('Policies')).toBeVisible();
+
+        const headers = screen.getAllByRole('columnheader');
+
+        expect(headers.length).toBe(10);
+        expect(headers[1]).toHaveTextContent('Name');
+        expect(headers[2]).toHaveTextContent('Proxy');
+        expect(headers[3]).toHaveTextContent('Develop');
+        expect(headers[4]).toHaveTextContent('Source');
+        expect(headers[5]).toHaveTextContent('Build');
+        expect(headers[6]).toHaveTextContent('Stage');
+        expect(headers[7]).toHaveTextContent('Release');
+        expect(headers[8]).toHaveTextContent('Operate');
+        expect(headers[9]).toHaveTextContent('Select Row');
+      });
+    });
+
+    describe('SBOM Manager', () => {
+      it('renders the correct header title (without stages)', async () => {
+        ownerName = rootOrganizationPoliciesByOwnerPayload.ownerName;
+        ownerId = rootOrganizationPoliciesByOwnerPayload.ownerId;
+        ownerType = rootOrganizationPoliciesByOwnerPayload.ownerType;
+
+        preloadedState = {
+          router: {
+            currentState: {
+              name: 'sbomManager.management.view.organization',
+              url: '/organization/{organizationId}',
+              data: {
+                title: 'Organization Management',
+                viewportSized: true,
+              },
+            },
+            currentParams: {
+              organizationId: ownerId,
+            },
+          },
+          productFeatures: {
+            loading: false,
+            loadError: null,
+            productFeatures: {
+              firewall: firewallSupported,
+              enforcement: enforcementSupported,
+            },
+          },
+          orgsAndPolicies: {
+            root: {
+              selectedOwner: {
+                id: ownerId,
+                name: ownerName,
+                legacyViolationEnabled: null,
+                allowLegacyViolationOverride: true,
+                repositoryConnectionEnabled: null,
+                allowRepositoryConnectionOverride: true,
+                artifactoryConnectionEnabled: null,
+                allowArtifactoryConnectionOverride: true,
+              },
+            },
+            stages: {
+              action: {
+                loading: false,
+                error: null,
+                stageTypes: null,
+              },
+            },
+          },
+        };
+        jest.spyOn(routerSelectors, 'selectIsSbomManager').mockReturnValue(true);
+
+        axiosMock
+          .onGet(getApplicablePolicies(ownerType, ownerId))
+          .reply(200, { policiesByOwner: rootOrganizationPoliciesByOwnerPayload.policiesByOwner });
+        axiosMock.onGet(getActionStageUrl()).reply(200, actionStagesWithCompliancePayload);
+
+        renderComponent(preloadedState);
+
+        expect(await screen.findByText('Policies')).toBeVisible();
+
+        const headers = screen.getAllByRole('columnheader');
+
+        expect(headers.length).toBe(3);
+        expect(headers[1]).toHaveTextContent('Name');
+        expect(headers[2]).toHaveTextContent('Select Row');
+      });
+    });
+  });
+
+  describe('SBOM Manager', () => {
+    beforeAll(() => {
+      ownerName = rootOrganizationNoPoliciesByOwnerPayload.ownerName;
+      ownerId = rootOrganizationNoPoliciesByOwnerPayload.ownerId;
+      ownerType = rootOrganizationNoPoliciesByOwnerPayload.ownerType;
+      preloadedState = {
+        router: {
+          currentState: {
+            name: 'sbomManager.management.view.organization',
+            url: '/sbomManager/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+        productFeatures: {
+          loading: false,
+          loadError: null,
+          productFeatures: {
+            'sbom-manager': true,
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: ownerId,
+              name: ownerName,
+              legacyViolationEnabled: null,
+              allowLegacyViolationOverride: true,
+              repositoryConnectionEnabled: null,
+              allowRepositoryConnectionOverride: true,
+              artifactoryConnectionEnabled: null,
+              allowArtifactoryConnectionOverride: true,
+            },
+          },
+          stages: {
+            action: {
+              loading: false,
+              error: null,
+              stageTypes: null,
+            },
+          },
+        },
+      };
+
+      axiosMock
+        .onGet(getApplicablePolicies(ownerType, ownerId))
+        .reply(200, { policiesByOwner: rootOrganizationPoliciesByOwnerPayload.policiesByOwner });
+      axiosMock.onGet(getActionStageUrl()).reply(200, actionStagesPayload);
+    });
+
+    it('should hide Add Policy Button', async () => {
+      renderComponent(preloadedState);
+      expect(await screen.queryByRole('button', { name: 'Add a Policy' })).not.toBeInTheDocument();
     });
   });
 });

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.sbom.components;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import javax.ws.rs.core.Response.Status;
@@ -21,17 +22,22 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.apache.commons.io.FileUtils;
 
 import static com.sonatype.insight.brain.sbom.components.SbomComponentsResource.SBOM_SUMMARY_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SbomComponentsResourceTest extends AbstractResourceTest
 {
+  private InsightWork work;
+
   private Application app;
 
   private Organization org;
@@ -41,6 +47,7 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
     org = tempEntity.newOrganization();
     app = tempEntity.newApplicationWithParent(org);
     setFeatures(LicensedFeature.SBOM_MANAGER);
+    work = getCLMServer().getInstance(InsightWork.class);
   }
 
   @Override
@@ -199,6 +206,11 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
             "r1", "s1", "j1", "r1", "d1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity2,
             "r1", "s1", "j1", "r1", "d1");
+
+    File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper
+        .zipReport("/SbomComponentsResourceTest", tempDir), reportFile);
+
     HttpResponse response = restRequest()
         .path(SBOM_SUMMARY_PATH)
         .parameter(app.getId(), sbomMetadata.getSbomVersion())
@@ -247,6 +259,11 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
             "r1", "s1", "j1", "r1", "d1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(thirdPartyCoordinateSecurity2,
             "r1", "s1", "j1", "r1", "d1");
+
+    File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper
+        .zipReport("/SbomComponentsResourceTest", tempDir), reportFile);
+
     HttpResponse response = restRequest()
         .path(SBOM_SUMMARY_PATH)
         .parameter(app.getId(), sbomMetadata.getSbomVersion())
@@ -262,5 +279,34 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
     assertThat(resultDto.getDependencyType().getUnspecified()).isEqualTo(0);
     assertThat(resultDto.getDependencyType().getDirect()).isEqualTo(1);
     assertThat(resultDto.getDependencyType().getTransitive()).isEqualTo(1);
+  }
+
+  @Test
+  public void testGetSbomSummaryForComponents_PolicyThreatLevel() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan();
+    ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+        .withApplicationId(app.getId())
+        .withSpecVersion("1.5")
+        .withThirdPartyFileId(thirdPartyScan.getThirdPartyFileId())
+        .build();
+    tempEntity.newThirdPartyFileCoordinate(thirdPartyScan.getThirdPartyFileId(),
+            "s", "SPDX", "n1", "v1", "h1", "u1", ThirdPartyDependencyType.DIRECT);
+
+    File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper
+        .zipReport("/SbomComponentsResourceTest", tempDir), reportFile);
+
+    HttpResponse response = restRequest()
+        .path(SBOM_SUMMARY_PATH)
+        .parameter(app.getId(), sbomMetadata.getSbomVersion())
+        .get();
+
+    assertResponseStatus(Status.OK.getStatusCode(), response);
+    BomPageSbomSummaryDTO resultDto = response.getBody(BomPageSbomSummaryDTO.class);
+    assertThat(resultDto.getPolicyViolationSummary().getCritical()).isEqualTo(2);
+    assertThat(resultDto.getPolicyViolationSummary().getModerate()).isEqualTo(1);
+    assertThat(resultDto.getPolicyViolationSummary().getSevere()).isEqualTo(1);
+    assertThat(resultDto.getPolicyViolationSummary().getLow()).isEqualTo(0);
   }
 }

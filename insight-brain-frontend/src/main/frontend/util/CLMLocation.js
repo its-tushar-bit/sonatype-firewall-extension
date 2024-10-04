@@ -1087,6 +1087,12 @@ export function getCommitImportedSbomUrl(applicationId, requestId) {
   return uriTemplate`/rest/sbom/commit/${applicationId}/${requestId}`;
 }
 
+export function getSbomPolicyViolationReportUrl(applicationPublicId, sbomVersion, fileCoordinateId) {
+  const queryString =
+    typeof fileCoordinateId === 'string' ? `?fileCoordinateId=${encodeURIComponent(fileCoordinateId)}` : '';
+  return uriTemplate`/rest/report/${applicationPublicId}/sbom/${sbomVersion}/sbomPolicyViolationReport` + queryString;
+}
+
 export const getVersionGraphUrl = ({
   clientType,
   ownerType,

@@ -4104,6 +4104,48 @@ public class TemporaryEntity
   }
 
   public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
+      String thirdPartyFileCoordinateId,
+      ThirdPartyFile thirdPartyFileId,
+      String source,
+      String format,
+      String name,
+      String version,
+      String hash,
+      String packageUrl)
+  {
+    ThirdPartyFileCoordinate fileCoordinate =
+        new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFileId.getId());
+    fileCoordinate.setPackageUrl(packageUrl);
+    fileCoordinate.setIdentificationSources("SBOM");
+    fileCoordinate.setId(thirdPartyFileCoordinateId);
+    thirdPartyFileCoordinateDAO.insert(fileCoordinate);
+    return fileCoordinate;
+  }
+
+  public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
+          String thirdPartyFileCoordinateId,
+          ThirdPartyFile thirdPartyFile,
+          String source,
+          String format,
+          String name,
+          String version,
+          String hash,
+          String packageUrl,
+          List<String> occurrences,
+          List<String> filenames)
+  {
+    ThirdPartyFileCoordinate fileCoordinate =
+            new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFile.getId());
+    fileCoordinate.setPackageUrl(packageUrl);
+    fileCoordinate.setIdentificationSources("SBOM");
+    fileCoordinate.setOccurrencesList(occurrences);
+    fileCoordinate.setFilenamesList(filenames);
+    fileCoordinate.setId(thirdPartyFileCoordinateId);
+    thirdPartyFileCoordinateDAO.insert(fileCoordinate);
+    return fileCoordinate;
+  }
+
+  public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
       String thirdPartyFileId,
       String source,
       String format,

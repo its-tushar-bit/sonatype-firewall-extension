@@ -17,6 +17,8 @@ const actionStages = [
   { stageTypeId: 'operate', shortName: 'operate' },
 ];
 
+const sbomStages = [{ stageTypeId: 'compliance', shortName: 'compliance' }];
+
 describe('PolicyActionsEditor', () => {
   let renderComponent, state;
 
@@ -40,7 +42,10 @@ describe('PolicyActionsEditor', () => {
           },
           notificationWebhooks: [],
         },
-        stages: { action: { stageTypes: actionStages, loading: false, error: null } },
+        stages: {
+          action: { stageTypes: actionStages, loading: false, error: null },
+          sbom: { stageTypes: sbomStages, loading: false, error: null },
+        },
       },
       router: {
         currentParams: { organizationId: 'organizationId' },
@@ -55,7 +60,6 @@ describe('PolicyActionsEditor', () => {
         },
       },
     };
-
     renderComponent = (preloadedState = state) => render(<PolicyActionsEditor />, { preloadedState });
   });
 
@@ -119,6 +123,24 @@ describe('PolicyActionsEditor', () => {
     );
 
     expect(alert).toBeNull();
+  });
+
+  it('does not render SBOM Manager\'s "Compliance" stage in Lifecycle when state supports SBOM Manager', () => {
+    const stateSupportsSBOMManager = {
+      ...state,
+      productFeatures: {
+        productFeatures: {
+          notifications: true,
+          firewall: false,
+          enforcement: false,
+          'policy-monitoring': true,
+          'sbom-manager': true,
+        },
+      },
+    };
+    renderComponent(stateSupportsSBOMManager);
+    const table = screen.getByRole('table', { name: 'Edit policy actions table' });
+    expect(within(table).queryByRole('columnheader', { name: 'compliance' })).not.toBeInTheDocument();
   });
 
   describe('when quarantine warning flag is true', () => {

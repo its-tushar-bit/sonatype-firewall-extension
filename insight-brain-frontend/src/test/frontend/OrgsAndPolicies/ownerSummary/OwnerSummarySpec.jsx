@@ -169,6 +169,7 @@ describe('OwnerSummary', () => {
             'sbom-manager': true,
             'policy-monitoring': true,
             'sbom-continuous-monitoring-ui': true,
+            'sbom-policies': true,
           },
         },
         router: {
@@ -187,13 +188,13 @@ describe('OwnerSummary', () => {
       };
       renderComponent(stateSBOMtrue);
 
+      expect(await screen.findByTestId('policies-tile')).toBeVisible();
       expect(await screen.findByRole('heading', { name: 'Access' })).toBeVisible();
       expect(screen.getByRole('button', { name: 'Access' })).toBeVisible();
       expect(screen.getByRole('button', { name: 'Continuous monitoring' })).toBeVisible();
 
       expect(screen.queryByRole('heading', { name: 'SBOMs' })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Application Categories' })).not.toBeInTheDocument();
-      expect(screen.queryByRole('heading', { name: 'Policies' })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Legacy Violations' })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Proprietary Component Configuration' })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Component Labels' })).not.toBeInTheDocument();
@@ -202,7 +203,6 @@ describe('OwnerSummary', () => {
       expect(screen.queryByRole('heading', { name: 'InnerSource Repositories' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'SBOMs' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Application Categories' })).not.toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: 'Policies' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Legacy Violations' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Proprietary Components' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Component Labels' })).not.toBeInTheDocument();
@@ -240,6 +240,34 @@ describe('OwnerSummary', () => {
 
       expect(screen.queryByRole('heading', { name: 'Continuous monitoring' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Continuous monitoring' })).not.toBeInTheDocument();
+    });
+
+    it('hides Polices Tile when sbom-policies is disabled', async () => {
+      const state = {
+        ...preloadedState,
+        productFeatures: {
+          productFeatures: {
+            'sbom-manager': true,
+            'sbom-policies': false,
+          },
+        },
+        router: {
+          currentState: {
+            name: 'sbomManager.management.view.organization',
+            url: '/sbomManager/management/view/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+      };
+      renderComponent(state);
+
+      expect(await screen.queryByTestId('policies-tile')).not.toBeInTheDocument();
     });
 
     it('does render the Actions button if SBOM Manager disabled', async () => {
@@ -378,6 +406,7 @@ describe('OwnerSummary', () => {
         productFeatures: {
           productFeatures: {
             'sbom-manager': true,
+            'sbom-policies': true,
           },
         },
       };
@@ -403,6 +432,7 @@ describe('OwnerSummary', () => {
             'sbom-manager': true,
             'policy-monitoring': true,
             'sbom-continuous-monitoring-ui': true,
+            'sbom-policies': true,
           },
         },
         router: {
@@ -422,13 +452,16 @@ describe('OwnerSummary', () => {
       renderComponent(stateSBOMtrue);
 
       expect(await screen.findByRole('heading', { name: 'SBOMs' })).toBeVisible();
+      expect(screen.getByRole('button', { name: 'SBOMs' })).toBeVisible();
+
+      expect(await screen.findByTestId('policies-tile')).toBeVisible();
+
       expect(screen.getByRole('heading', { name: 'Access' })).toBeVisible();
       expect(screen.getByRole('button', { name: 'Access' })).toBeVisible();
       expect(screen.getByRole('button', { name: 'SBOMs' })).toBeVisible();
       expect(screen.getByRole('button', { name: 'Continuous monitoring' })).toBeVisible();
 
       expect(screen.queryByRole('heading', { name: 'Application Categories' })).not.toBeInTheDocument();
-      expect(screen.queryByRole('heading', { name: 'Policies' })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Legacy Violations' })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Proprietary Component Configuration' })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Component Labels' })).not.toBeInTheDocument();
@@ -436,7 +469,6 @@ describe('OwnerSummary', () => {
       expect(screen.queryByRole('heading', { name: 'Source Control' })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'InnerSource Repositories' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Application Categories' })).not.toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: 'Policies' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Legacy Violations' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Proprietary Components' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Component Labels' })).not.toBeInTheDocument();

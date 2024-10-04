@@ -57,6 +57,7 @@ import {
   selectIsRepositoryManager,
   selectIsRepositoryContainer,
   selectIsRepository,
+  selectIsSbomManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   getNotificationWebhooksUrl,
@@ -110,7 +111,7 @@ import {
   conditionsWithoutValue,
   withDefaultValue,
 } from 'MainRoot/OrgsAndPolicies/utility/constraintUtil';
-import { loadActionStages } from './stagesSlice';
+import { loadActionStages, loadSbomStages } from './stagesSlice';
 import { startSaveMaskSuccessTimer, toggleBooleanProp } from 'MainRoot/util/reduxUtil';
 
 const { initialState: initUserInput, userInput } = nxTextInputStateHelpers;
@@ -438,6 +439,7 @@ const loadPolicyEditor = createAsyncThunk(
       .then((loadApplicablePoliciesByOwnerAction) => {
         const state = getState();
         const isRepositories = selectIsRepositoriesRelated(state);
+        const isSbomManager = selectIsSbomManager(state);
         const policiesByOwner = unwrapResult(loadApplicablePoliciesByOwnerAction);
         const siblings = policiesByOwner.flatMap(prop('policies'));
 
@@ -492,7 +494,8 @@ const loadPolicyEditor = createAsyncThunk(
         dispatch(
           constraintActions.loadConstraint({ isNewPolicy: isNil(policyId), constraints: currentPolicy.constraints })
         );
-        dispatch(loadActionStages());
+
+        dispatch(isSbomManager ? loadSbomStages() : loadActionStages());
 
         if (isOrgOwner && !isRepositories) {
           dispatch(loadCategoriesForPolicy(currentPolicy));

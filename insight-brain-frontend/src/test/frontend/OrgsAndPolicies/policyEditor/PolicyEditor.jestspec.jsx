@@ -32,11 +32,12 @@ import {
   conditionValueType,
   policyTag,
   savedPolicy,
+  existingPolicy,
 } from './mockData';
 import { initialState } from 'MainRoot/OrgsAndPolicies/policySlice';
 
 describe('PolicyEditorSpec', () => {
-  let initState;
+  let initState, sbomState;
   const POLICY_ID_OVERRIDE_ENABLED_INHERITED = '9d5c30f793a54446a9601cf36c18e9e3';
   const POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN = '12f2086417ab44f9a63ba5e91786c570';
   const POLICY_ID_OVERRIDE_NOT_ENABLED = '2a1cb71651d14a60b0fa77ef829f5ec0';
@@ -156,6 +157,40 @@ describe('PolicyEditorSpec', () => {
       .reply(200, [...(permissions ? permissions : ['WRITE'])]);
   };
 
+  const setSbomState = (isSbomLicenseOnly = true) => {
+    sbomState = {
+      productLicense: {
+        license: {
+          products: ['Sonatype SBOM Manager', ...(isSbomLicenseOnly ? [] : ['Sonatype Lifecycle'])],
+        },
+      },
+      router: {
+        currentParams: {
+          organizationId: ROOT_ORG_ID,
+          applicationPublicId: ROOT_ORG_ID,
+          policyId: POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN,
+        },
+        currentState: { name: 'sbomManager.management.view.organization' },
+      },
+      orgsAndPolicies: {
+        root: {
+          selectedOwner: {
+            id: ROOT_ORG_ID,
+          },
+        },
+        policy: {
+          currentPolicy: existingPolicy,
+          isInherited: false,
+          notificationsEditor: {},
+          loadError: null,
+          loadingCategories: false,
+          loadingPolicyEditor: false,
+          loadingSavePolicy: false,
+        },
+      },
+    };
+  };
+
   beforeAll(() => {
     mockAxiosCalls = axiosMockAdapter();
   });
@@ -184,6 +219,56 @@ describe('PolicyEditorSpec', () => {
     const deleteButton = await screen.findByText('Delete');
     expect(deleteButton).toBeVisible();
     expect(deleteButton).toBeDisabled();
+  });
+
+  describe('SBOM Manager', () => {
+    it('renders the edit policy page and not new policy page', async () => {
+      setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
+      setSbomState();
+      renderComponent(sbomState);
+      expect(await screen.findByRole('heading', { name: 'Edit Policy' })).toBeVisible();
+      expect(await screen.queryByRole('heading', { name: 'New Policy' })).not.toBeInTheDocument();
+    });
+
+    it('does not render Delete button under SBOM Manager', async () => {
+      setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
+      setSbomState();
+      renderComponent(sbomState);
+      expect(await screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument();
+    });
+
+    it('does not render the Actions tile under SBOM Manager', async () => {
+      setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
+      setSbomState();
+      renderComponent(sbomState);
+      expect(await screen.queryByRole('heading', { name: 'Actions' })).not.toBeInTheDocument();
+    });
+
+    describe('lock icon and alert message', () => {
+      it('displays the correct alert message when both Sonatype Lifecycle and Sonatype SBOM Manager are enabled', async () => {
+        setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true, []);
+        setSbomState(false);
+        renderComponent(sbomState);
+        const alert = await screen.findByText('Switch to Lifecycle to manage your policies.');
+        expect(alert).toBeVisible();
+      });
+
+      it('displays the correct alert message when Sonatype Lifecycle is not enabled', async () => {
+        setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true, []);
+        setSbomState(true);
+        renderComponent(sbomState);
+        const alert = await screen.findByText('Custom policies are available with Lifecycle.');
+        expect(alert).toBeVisible();
+      });
+
+      it('displays lock icon on sbom manager page', async () => {
+        setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true, []);
+        setSbomState(false);
+        renderComponent(sbomState);
+        const lockIcon = await screen.findByTestId('policy-editor-lock-icon');
+        expect(lockIcon).toBeVisible();
+      });
+    });
   });
 
   describe('Local policy', () => {

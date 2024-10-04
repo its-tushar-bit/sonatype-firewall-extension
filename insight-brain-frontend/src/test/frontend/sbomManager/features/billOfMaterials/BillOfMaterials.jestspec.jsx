@@ -75,6 +75,12 @@ describe('BillOfMaterials Page', () => {
       transitive: 600,
       unspecified: 78,
     },
+    policyViolationSummary: {
+      low: 1111,
+      moderate: 2222,
+      severe: 3333,
+      critical: 5555,
+    },
     annotatedPercentage: 75,
   });
 
@@ -90,16 +96,28 @@ describe('BillOfMaterials Page', () => {
       transitive: 600,
       unspecified: 78,
     },
+    policyViolationSummary: {
+      low: 1111,
+      moderate: 2222,
+      severe: 3333,
+      critical: 5555,
+    },
     annotatedPercentage: null,
   });
 
-  const getSbomSummaryNoComponentsResponsePayload = Object.freeze({
+  const getSbomSummaryEmptyResponsePayload = Object.freeze({
     applicationVersion: '123',
     none: null,
     low: null,
     medium: null,
     high: null,
     critical: null,
+    policyViolationSummary: {
+      low: null,
+      moderate: null,
+      severe: null,
+      critical: null,
+    },
     dependencyType: null,
     annotatedPercentage: null,
   });
@@ -126,6 +144,7 @@ describe('BillOfMaterials Page', () => {
       productFeatures: {
         productFeatures: {
           'sbom-manager': true,
+          'sbom-policies': true,
           loading: true,
         },
       },
@@ -220,6 +239,7 @@ describe('BillOfMaterials Page', () => {
     const pieChartTotals = screen.getAllByTestId('pie-chart-total');
     expect(pieChartTotals[0]).toHaveTextContent('5,678');
     expect(pieChartTotals[1]).toHaveTextContent('1,234');
+    expect(pieChartTotals[2]).toHaveTextContent('12,221');
 
     expect(screen.getByText(/5,000 Direct/)).toBeVisible();
     expect(screen.getByText(/600 Transitive/)).toBeVisible();
@@ -229,6 +249,11 @@ describe('BillOfMaterials Page', () => {
     expect(screen.getByText(/200 Medium/)).toBeVisible();
     expect(screen.getByText(/30 High/)).toBeVisible();
     expect(screen.getByText(/4 Critical/)).toBeVisible();
+
+    expect(screen.getByText(/1,111 Low/)).toBeVisible();
+    expect(screen.getByText(/2,222 Moderate/)).toBeVisible();
+    expect(screen.getByText(/3,333 Severe/)).toBeVisible();
+    expect(screen.getByText(/5,555 Critical/)).toBeVisible();
 
     const description = screen.getByTestId('annotated-vulnerabilities-summary-description');
     expect(description).toHaveTextContent('75% of vulnerabilities annotated with exploitability information');
@@ -275,7 +300,7 @@ describe('BillOfMaterials Page', () => {
     expect(description).toHaveTextContent('No vulnerabilities to annotate');
   });
 
-  it('renders SummaryTile values correctly when there are no components', async () => {
+  it('renders SummaryTile values correctly when empty values', async () => {
     jest.useFakeTimers();
 
     axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_PUBLIC_ID)).reply(200, getApplicationSummaryResponsePayload);
@@ -285,10 +310,9 @@ describe('BillOfMaterials Page', () => {
     axiosMock
       .onGet(getSbomMetadataUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
       .reply(200, getSbomMetadataResponsePayload);
-    axiosMock.onGet(getSbomSummaryUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION)).reply(200, getSbomSummaryResponsePayload);
     axiosMock
       .onGet(getSbomSummaryUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
-      .reply(200, getSbomSummaryNoComponentsResponsePayload);
+      .reply(200, getSbomSummaryEmptyResponsePayload);
     axiosMock
       .onGet(getBillOfMaterialsComponentsUrl(...getBillOfMaterialsComponentsParams))
       .reply(200, getBillOfMaterialsComponentsResponsePayload);
@@ -308,10 +332,21 @@ describe('BillOfMaterials Page', () => {
     expect(screen.getByText(/0 Transitive/)).toBeVisible();
     expect(screen.getByText(/0 Unspecified/)).toBeVisible();
 
-    expect(screen.getByText(/0 Low/)).toBeVisible();
     expect(screen.getByText(/0 Medium/)).toBeVisible();
     expect(screen.getByText(/0 High/)).toBeVisible();
-    expect(screen.getByText(/0 Critical/)).toBeVisible();
+
+    const lows = screen.queryAllByText(/0 Low/);
+    expect(lows.length).toBe(2);
+    expect(lows[0]).toBeVisible();
+    expect(lows[1]).toBeVisible();
+
+    const criticals = screen.queryAllByText(/0 Critical/);
+    expect(criticals.length).toBe(2);
+    expect(criticals[0]).toBeVisible();
+    expect(criticals[1]).toBeVisible();
+
+    expect(screen.getByText(/0 Moderate/)).toBeVisible();
+    expect(screen.getByText(/0 Severe/)).toBeVisible();
 
     const description = screen.getByTestId('annotated-vulnerabilities-summary-description');
     expect(description).toHaveTextContent('No vulnerabilities to annotate');

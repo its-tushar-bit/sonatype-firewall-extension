@@ -22,6 +22,8 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependenc
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
@@ -29,6 +31,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
@@ -38,6 +41,7 @@ import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
@@ -75,7 +79,14 @@ public class SbomManagerBillOfMaterialsPageTest
         insightWork.getSbomDir(application.getId()).toPath());
 
     scannedFile = tempEntity.newThirdPartyFile();
-    tempEntity.newThirdPartyScan(scannedFile);
+    ThirdPartyScan scan = tempEntity.newThirdPartyScan(scannedFile);
+
+    File reportFile = insightWork.getReportFile(application.getId(), scan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper
+            .zipReport("/SbomManagerBillOfMaterialsPageTest", tempDir), reportFile);
+
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scan.getScanId());
+
     sbomMetadata = tempEntity.newThirdPartySbomMetadata(
       scannedFile.getId(),
       application.getId(),
@@ -135,6 +146,51 @@ public class SbomManagerBillOfMaterialsPageTest
         "1 High\n" +
         "1 Medium\n" +
         "1 Low")).shouldBe(visible);
+  }
+
+  @Test
+  public void testBillOfMaterial_PolicyViolationSummaryChart() {
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate =
+        tempEntity.newThirdPartyFileCoordinate(scannedFile.getId(),
+            "s", "SPDX", "n1", "v1", "h1", "u1");
+    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
+        "r1", "d1", "l1", 5.5, "sd1", "f1");
+    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
+        "r2", "d2", "l2", 7.5, "sd2", "f1");
+    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
+        "r3", "d3", "l3", 3.5, "sd3", "f3");
+    sbomMetadata.setCreatedAt(new Date(0));
+    thirdPartySbomMetadataDAO.update(sbomMetadata);
+    SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
+    setLicenseAndLogin();
+    refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
+    billOfMaterialsPageSummaryTile.policyViolationSummaryChartAndProgress().shouldBe(visible);
+    billOfMaterialsPageSummaryTile.policyViolationSummaryChartAndProgress()
+        .shouldHave(text("Policy Violation Summary\n" +
+        "4\n" +
+        "2 Critical\n" +
+        "1 Severe\n" +
+        "1 Moderate\n" +
+        "0 Low")).shouldBe(visible);
+  }
+
+  @Test
+  public void testBillOfMaterial_PolicyViolationSummaryChartHidden() {
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate =
+        tempEntity.newThirdPartyFileCoordinate(scannedFile.getId(),
+            "s", "SPDX", "n1", "v1", "h1", "u1");
+    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
+        "r1", "d1", "l1", 5.5, "sd1", "f1");
+    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
+        "r2", "d2", "l2", 7.5, "sd2", "f1");
+    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate,
+        "r3", "d3", "l3", 3.5, "sd3", "f3");
+    sbomMetadata.setCreatedAt(new Date(0));
+    thirdPartySbomMetadataDAO.update(sbomMetadata);
+    SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(false);
+    setLicenseAndLogin();
+    refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
+    billOfMaterialsPageSummaryTile.policyViolationSummaryChartAndProgress().shouldNotBe(visible);
   }
 
   @Test
@@ -421,6 +477,29 @@ public class SbomManagerBillOfMaterialsPageTest
     sbomManagerBillOfMaterialsPage.dependencyTypeFilterChecboxes().get(1).click();
     sbomManagerBillOfMaterialsPage.dependencyTypeFilterChecboxes().get(2).click();
     componentsTile.tableBodyRows().get(0).shouldHave(text("No components found"));
+  }
+
+  @Test
+  public void testBillOfMaterial_ComponentsTilePolicyViolation() {
+    SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
+    insertComponentsTileSbomData();
+    refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
+    ComponentsTile componentsTile = SbomManagerBillOfMaterialsPage.componentsTile();
+    componentsTile.shouldBe(visible);
+    componentsTile.header().shouldHave(text("Components"));
+    componentsTile.tableHeaders().shouldHave(size(6));
+    componentsTile.columnHeader(0).shouldHave(
+            text("TYPE"));
+    componentsTile.columnHeader(1).shouldHave(
+            text("NAME"));
+    componentsTile.columnHeader(2).shouldHave(
+            text("VULNERABILITIES"));
+    componentsTile.columnHeader(3).shouldHave(
+            text("VIOLATIONS"));
+    componentsTile.columnHeader(4).shouldHave(
+            text("PERCENTAGE ANNOTATED"));
+    componentsTile.columnHeader(5).shouldHave(
+            text("LICENSE"));
   }
 
   private void insertComponentsTileSbomData() {

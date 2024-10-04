@@ -23,15 +23,18 @@ import static com.codeborne.selenide.Condition.value;
 
 public class BaseUrlConfigurationPageTest extends AbstractFunctionalTest
 {
-  private String baseUrl = "";
+  protected String baseUrl = "";
 
-  private SystemConfigurationPropertyDAO dao;
+  protected SystemConfigurationPropertyDAO dao;
+
+  protected BaseUrlConfigurationPage baseUrlConfigurationPage;
 
   @Before
   public void before() {
     dao = lookup(SystemConfigurationPropertyDAO.class);
 
-    refreshOrOpen(BaseUrlConfigurationPage.url());
+    baseUrlConfigurationPage = new BaseUrlConfigurationPage();
+    refreshOrOpen(baseUrlConfigurationPage.getUrl());
     loginAsAdmin();
     baseUrl = dao.get(SystemConfigurationProperty.BASE_URL);
   }
@@ -44,9 +47,8 @@ public class BaseUrlConfigurationPageTest extends AbstractFunctionalTest
 
   @Test
   public void testDefaultState() {
-    BaseUrlConfigurationPage baseUrlConfigurationPage = new BaseUrlConfigurationPage();
     eyesWatcher.eyesCheck("base url configuration editor on top");
-    assertDefaultState(baseUrlConfigurationPage);
+    assertDefaultState();
   }
 
   /**
@@ -55,11 +57,11 @@ public class BaseUrlConfigurationPageTest extends AbstractFunctionalTest
    */
   @Test
   public void testCRUD() {
-    BaseUrlConfigurationPage baseUrlConfigurationPage = fillFormData();
+    fillFormData();
     baseUrlConfigurationPage.saveButton().click();
 
     logout();
-    refreshOrOpen(BaseUrlConfigurationPage.url());
+    refreshOrOpen(baseUrlConfigurationPage.getUrl());
     loginAsAdmin();
 
     //Once saved data is re-loaded
@@ -80,18 +82,17 @@ public class BaseUrlConfigurationPageTest extends AbstractFunctionalTest
 
   @Test
   public void testCancel() {
-    BaseUrlConfigurationPage baseUrlConfigurationPage = new BaseUrlConfigurationPage();
     baseUrlConfigurationPage.baseUrlAttribute().clear();
     baseUrlConfigurationPage.baseUrlAttribute().sendKeys("test");
     //If the form is dirty, the cancel button should be enabled
     baseUrlConfigurationPage.cancelButton().shouldBe(enabled).click();
 
     //The form should be reset
-    assertDefaultState(baseUrlConfigurationPage);
+    assertDefaultState();
     baseUrlConfigurationPage.deleteButton().shouldBe(enabled);
   }
 
-  private void assertDefaultState(BaseUrlConfigurationPage baseUrlConfigurationPage) {
+  public void assertDefaultState() {
     baseUrlConfigurationPage.saveButton().shouldBe(enabled);
     baseUrlConfigurationPage.cancelButton().shouldBe(disabled);
     baseUrlConfigurationPage.baseUrlAttribute().shouldHave(value(baseUrl));
@@ -99,10 +100,8 @@ public class BaseUrlConfigurationPageTest extends AbstractFunctionalTest
     baseUrlConfigurationPage.deleteButton().shouldBe(enabled);
   }
 
-  private BaseUrlConfigurationPage fillFormData() {
-    BaseUrlConfigurationPage baseUrlConfigurationPage = new BaseUrlConfigurationPage();
+  private void fillFormData() {
     baseUrlConfigurationPage.baseUrlAttribute().clear();
     baseUrlConfigurationPage.baseUrlAttribute().sendKeys(baseUrl);
-    return baseUrlConfigurationPage;
   }
 }

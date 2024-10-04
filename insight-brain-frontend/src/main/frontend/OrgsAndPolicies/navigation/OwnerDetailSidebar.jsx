@@ -25,6 +25,7 @@ import {
   selectRolesWithoutLocalMembersExist,
 } from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSelectors';
 import {
+  selectIsRootOrganization,
   selectIsApplication,
   selectRouterState,
   selectRouterCurrentParams,
@@ -73,6 +74,7 @@ export default function OwnerDetailSidebar() {
   const [accessOpen, onAccessCollapse, setAccessOpenState] = useToggle(false);
 
   const owner = useSelector(selectSelectedOwner);
+  const isRootOrganization = useSelector(selectIsRootOrganization);
   const isApp = useSelector(selectIsApplication);
   const { url } = useSelector(selectRouterState);
   const routerCurrentParams = useSelector(selectRouterCurrentParams);
@@ -245,7 +247,7 @@ export default function OwnerDetailSidebar() {
         </NxCollapsibleItems>
       )}
       {/* Policies */}
-      {!isSbomManager && (
+      {(!isSbomManager || isRootOrganization) && (
         <NxCollapsibleItems
           id="policy-group"
           role="menu"
@@ -254,12 +256,14 @@ export default function OwnerDetailSidebar() {
           triggerContent="Policies"
           className={isPolicy ? 'active' : ''}
         >
-          <NxCollapsibleItems.Child role="menuitem">
-            <NxTextLink className={isPolicy && !policyId ? 'selected' : ''} href={`${linkMainHref}/policy`}>
-              <NxFontAwesomeIcon icon={faPlus} />
-              New Policy
-            </NxTextLink>
-          </NxCollapsibleItems.Child>
+          {!isSbomManager && (
+            <NxCollapsibleItems.Child role="menuitem">
+              <NxTextLink className={isPolicy && !policyId ? 'selected' : ''} href={`${linkMainHref}/policy`}>
+                <NxFontAwesomeIcon icon={faPlus} />
+                New Policy
+              </NxTextLink>
+            </NxCollapsibleItems.Child>
+          )}
           {policies &&
             sort((a, b) => b.threatLevel - a.threatLevel, policies).map(({ name, id, threatLevel }) => (
               <NxOverflowTooltip key={name}>
@@ -273,7 +277,6 @@ export default function OwnerDetailSidebar() {
             ))}
         </NxCollapsibleItems>
       )}
-
       {/* Legacy Violations */}
       {!isRepositoriesRelated && isLegacyViolationsSupported && !isSbomManager && (
         <NxCollapsibleItems.Child>

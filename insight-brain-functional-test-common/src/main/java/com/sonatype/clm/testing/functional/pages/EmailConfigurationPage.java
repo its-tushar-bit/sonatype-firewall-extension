@@ -5,11 +5,10 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.codeborne.selenide.SelenideElement;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.NxCheckbox;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
-
-import com.codeborne.selenide.SelenideElement;
 
 public class EmailConfigurationPage
     extends BasicElement<EmailConfigurationPage>

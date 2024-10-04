@@ -183,6 +183,7 @@ public class ThirdPartyFileCoordinateDAO
         "       COUNT(CASE WHEN (cs.severity BETWEEN ?8 AND ?9) THEN 1 END) AS severity_critical, " + //
         "       ROUND(COUNT(ve) * 100.0 / GREATEST(COUNT(cs), 1), 1) as percentage, " + //
         "       fc.dependency_type," + //
+        "       fc.file_coordinate_id," + //
         "       fc.filenames," + //
         "       COUNT(*) OVER() AS full_count" + //
 
@@ -203,15 +204,16 @@ public class ThirdPartyFileCoordinateDAO
     MutableInt index = new MutableInt(indexForComponentName);
     sQuery = generateComponentNameFilterQuery(componentName, index, sQuery);
     sQuery += generateHavingByDependencyTypes(dependencyTypes, dependencyTypesParams, index.intValue()) + //
-        " GROUP BY fc.hash, fc.package_url, fc.name, fc.version, licenses_json ,fc.dependency_type, fc.filenames " + //
+        " GROUP BY fc.hash, fc.package_url, fc.name, fc.version, licenses_json " + //
+        ",fc.dependency_type, fc.filenames, fc.file_coordinate_id " + //
         generateHavingByVulnerabilityThreatLevels(vulnerabilityThreatLevels) + //
         generateOrderBySortFieldSelected(sortBy, asc);
 
     int offset = (page - 1) * pageSize;
 
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query paginationQuery =
-          createPaginationQueryWithScoreRangeParams(thirdPartyFileId, pageSize, sQuery, offset, tx);
+      javax.persistence.Query paginationQuery = createPaginationQueryWithScoreRangeParams(
+          thirdPartyFileId, pageSize, sQuery, offset, tx);
       if (componentName != null && !componentName.isEmpty()) {
         componentName = componentName.trim();
         setComponentNameParameters(componentName, indexForComponentName, paginationQuery);
@@ -223,7 +225,7 @@ public class ThirdPartyFileCoordinateDAO
       List<SbomComponentDTO> dtos = ((Stream<Object[]>) paginationQuery.getResultStream())
           .peek(array -> {
             if (result.getTotalResultsCount() == 0) {
-              result.setTotalResultsCount(((Long) array[13]).intValue());
+              result.setTotalResultsCount(((Long) array[14]).intValue());
             }
           })
           .map(SbomComponentDTO::new)

@@ -37,6 +37,7 @@ const componentTemplate = ({ hash, name, dependencyType }) =>
     vulnerabilitySeverityHighCount: 3,
     vulnerabilitySeverityCriticalCount: 4,
     percentageAnnotated: 50.0,
+    policyViolationCount: 123,
   });
 
 const componentResults = [
@@ -218,9 +219,11 @@ describe('billOfMaterialsComponentsTileSlice', function () {
 
       expect(newState.components[0].name).toBe('alice');
       expect(newState.components[0].dependencyType).toBe('direct');
+      expect(newState.components[0].policyViolationCount).toBe(123);
 
       expect(newState.components[1].name).toBe('bob');
       expect(newState.components[1].dependencyType).toBe('transitive');
+      expect(newState.components[1].policyViolationCount).toBe(123);
     });
   });
 

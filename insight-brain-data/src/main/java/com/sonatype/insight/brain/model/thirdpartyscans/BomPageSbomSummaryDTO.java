@@ -19,6 +19,8 @@ public class BomPageSbomSummaryDTO
 
   private SbomDependencyTypeDTO dependencyType;
 
+  private SbomPolicyViolationSummaryDTO policyViolationSummary;
+
   private Double annotatedPercentage;
 
   public BomPageSbomSummaryDTO() {
@@ -40,6 +42,14 @@ public class BomPageSbomSummaryDTO
 
   public void setDependencyType(final SbomDependencyTypeDTO dependencyType) {
     this.dependencyType = dependencyType;
+  }
+
+  public SbomPolicyViolationSummaryDTO getPolicyViolationSummary() {
+    return policyViolationSummary;
+  }
+
+  public void setPolicyViolationSummary(final SbomPolicyViolationSummaryDTO policyViolationSummary) {
+    this.policyViolationSummary = policyViolationSummary;
   }
 
   public Long getNone() {
@@ -84,6 +94,7 @@ public class BomPageSbomSummaryDTO
 
   public void setAllValuesToNull() {
     this.setDependencyType(null);
+    this.setPolicyViolationSummary(null);
     this.setAnnotatedPercentage(null);
     this.setNone(null);
     this.setCritical(null);

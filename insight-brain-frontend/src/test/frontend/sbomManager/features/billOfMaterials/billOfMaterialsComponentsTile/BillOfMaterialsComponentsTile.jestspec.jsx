@@ -64,7 +64,15 @@ describe('BillOfMaterialsComponentsTile', () => {
     currentPage: 0,
   });
 
-  const componentTemplate = ({ hash, name, dependencyType, vulnerabilities, licenses, percentageAnnotated }) =>
+  const componentTemplate = ({
+    hash,
+    name,
+    dependencyType,
+    vulnerabilities,
+    licenses,
+    percentageAnnotated,
+    policyViolationCount,
+  }) =>
     Object.freeze({
       hash,
       packageUrl: `pkg:maven/com.package.${name}/artifact-id@1.2.3?type=jar`,
@@ -88,6 +96,7 @@ describe('BillOfMaterialsComponentsTile', () => {
       vulnerabilitySeverityHighCount: vulnerabilities[3],
       vulnerabilitySeverityCriticalCount: vulnerabilities[4],
       percentageAnnotated,
+      policyViolationCount,
     });
 
   const componentParametersList = [
@@ -101,6 +110,7 @@ describe('BillOfMaterialsComponentsTile', () => {
         ['Apache', 'Apache'],
       ],
       percentageAnnotated: 0,
+      policyViolationCount: 111,
     },
     {
       hash: 'hash-2',
@@ -112,6 +122,7 @@ describe('BillOfMaterialsComponentsTile', () => {
         ['Public', 'Public'],
       ],
       percentageAnnotated: 50.5,
+      policyViolationCount: 222,
     },
     {
       hash: 'hash-3',
@@ -123,6 +134,7 @@ describe('BillOfMaterialsComponentsTile', () => {
         ['GNU', null],
       ],
       percentageAnnotated: 100,
+      policyViolationCount: 333,
     },
   ];
 
@@ -414,6 +426,62 @@ describe('BillOfMaterialsComponentsTile', () => {
       expect(paginationStatus).toBeVisible();
 
       expect(paginationStatus).toHaveTextContent(`Showing 100 of 100 components`);
+    });
+  });
+
+  describe('Policy Violations', () => {
+    it('renders the correct number of components and content', async () => {
+      jest.useFakeTimers();
+
+      const productFeaturesState = {
+        productFeatures: {
+          loading: false,
+          loadError: null,
+          productFeatures: {
+            'sbom-manager': true,
+            'sbom-policies': true,
+          },
+        },
+      };
+
+      renderComponent(initialProps, { ...initialState, ...productFeaturesState });
+
+      jest.advanceTimersByTime(JEST_TIMER);
+      jest.useRealTimers();
+
+      await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+      const tableRows = await screen.findAllByRole('row');
+
+      expect(tableRows.length).toBe(4);
+
+      const firstRow = tableRows[1];
+      const firstRowCells = within(firstRow).getAllByRole('cell');
+      expect(firstRowCells[0]).toHaveTextContent('D');
+      expect(firstRowCells[1]).toHaveTextContent('com.package.alice : artifact-id : 1.2.3');
+
+      expect(firstRowCells[2]).toHaveTextContent('Critical499+Severe399+Moderate299+Low199+');
+      expect(firstRowCells[3]).toHaveTextContent('111');
+      expect(firstRowCells[4]).toHaveTextContent(/0%/);
+      expect(firstRowCells[5]).toHaveTextContent('BSD, Apache');
+
+      const secondRow = tableRows[2];
+      const secondRowCells = within(secondRow).getAllByRole('cell');
+      expect(secondRowCells[0]).toHaveTextContent('T');
+      expect(secondRowCells[1]).toHaveTextContent('com.package.bob : artifact-id : 1.2.3');
+      expect(secondRowCells[2]).toHaveTextContent('Critical899+Severe799+Moderate699+Low599+');
+      expect(secondRowCells[3]).toHaveTextContent('222');
+      expect(secondRowCells[4]).toHaveTextContent(/50.5%/);
+      expect(secondRowCells[5]).toHaveTextContent('MIT, Public');
+
+      const thirdRow = tableRows[3];
+      const thirdRowCells = within(thirdRow).getAllByRole('cell');
+      expect(thirdRowCells[0]).toHaveTextContent('');
+      expect(thirdRowCells[1]).toHaveTextContent('com.package.malice : artifact-id : 1.2.3');
+      expect(thirdRowCells[2]).toHaveTextContent('Critical1299+Severe1199+Moderate1099+Low999+');
+      expect(thirdRowCells[3]).toHaveTextContent('333');
+      expect(thirdRowCells[4]).toHaveTextContent(/100%/);
+      expect(thirdRowCells[5]).toHaveTextContent('Beer, GNU');
     });
   });
 });

@@ -88,6 +88,36 @@ describe('OrgsAndPolicies util', () => {
       expect(actual.to).toEqual('management.view.repository_container');
       expect(actual.params).toEqual({ repositoryContainerId: 'REPOSITORY_CONTAINER_ID' });
     });
+
+    it('derives view route for SBOM Manager', () => {
+      router = {
+        currentState: {
+          name: 'sbomManager.management.view.organization',
+        },
+        currentParams: {
+          organizationId: 'ROOT_ORGANIZATION_ID',
+        },
+      };
+
+      const actual = deriveViewRoute(router);
+
+      expect(actual.to).toEqual('sbomManager.management.view.organization');
+    });
+
+    it('derives edit route for SBOM Manager', () => {
+      router = {
+        currentState: {
+          name: 'sbomManager.management.view.organization',
+        },
+        currentParams: {
+          organizationId: 'ROOT_ORGANIZATION_ID',
+        },
+      };
+
+      const actual = deriveEditRoute(router);
+
+      expect(actual.to).toEqual('sbomManager.management.edit.organization');
+    });
   });
 
   describe('getOwnerName', () => {

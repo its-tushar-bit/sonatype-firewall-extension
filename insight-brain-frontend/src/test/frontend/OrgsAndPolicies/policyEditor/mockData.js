@@ -3425,3 +3425,52 @@ export const savedPolicy = {
   policyNotificationsOverrideAllowed: true,
   policyNotificationsOverrides: null,
 };
+
+export const existingPolicy = {
+  id: '12f2086417ab44f9a63ba5e91786c570',
+  name: {
+    isPristine: true,
+    value: 'test1',
+    trimmedValue: 'test1',
+    validationErrors: ['Name is already in use'],
+  },
+  ownerId: 'ROOT_ORGANIZATION_ID',
+  threatLevel: 10,
+  legacyViolationAllowed: false,
+  constraints: [
+    {
+      id: '00dfcab9a99d430e98ec217ead91fc41',
+      name: {
+        isPristine: true,
+        value: 'abc123',
+        trimmedValue: 'abc123',
+        validationErrors: null,
+      },
+      operator: 'OR',
+      conditions: [
+        {
+          conditionTypeId: 'AgeInDays',
+          operator: 'older than',
+          value: {
+            isPristine: true,
+            value: '36500',
+            trimmedValue: '36500',
+            validationErrors: null,
+          },
+          conditionIndex: 0,
+        },
+      ],
+    },
+  ],
+  actions: {},
+  notifications: {
+    userNotifications: [],
+    roleNotifications: [],
+    jiraNotifications: [],
+    webhookNotifications: [],
+  },
+  policyActionsOverrideAllowed: true,
+  policyActionsOverrides: null,
+  policyNotificationsOverrideAllowed: true,
+  policyNotificationsOverrides: null,
+};

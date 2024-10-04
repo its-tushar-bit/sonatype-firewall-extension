@@ -34,6 +34,13 @@ const vulnerabilitiesSummaryInitialState = Object.freeze({
   low: 0,
 });
 
+const policyViolationSummaryInitialState = Object.freeze({
+  critical: 0,
+  severe: 0,
+  moderate: 0,
+  low: 0,
+});
+
 const componentSummaryInitialState = Object.freeze({
   direct: 0,
   transitive: 0,
@@ -260,6 +267,7 @@ describe('billOfMaterialsPage reducers have the correct state when the following
         errorSbomSummary: null,
         componentSummary: { ...componentSummaryInitialState },
         vulnerabilitiesSummary: { ...vulnerabilitiesSummaryInitialState },
+        policyViolationSummary: { ...policyViolationSummaryInitialState },
         annotatedVulnerabilitesPercentage: null,
       };
 
@@ -271,6 +279,7 @@ describe('billOfMaterialsPage reducers have the correct state when the following
       expect(newState.errorSbomSummary).toBe(null);
       expect(newState.componentSummary).toEqual(componentSummaryInitialState);
       expect(newState.vulnerabilitiesSummary).toEqual(vulnerabilitiesSummaryInitialState);
+      expect(newState.policyViolationSummary).toEqual(policyViolationSummaryInitialState);
       expect(newState.annotatedVulnerabilitesPercentage).toBe(null);
     });
 
@@ -280,6 +289,7 @@ describe('billOfMaterialsPage reducers have the correct state when the following
         errorSbomSummary: null,
         componentSummary: { ...componentSummaryInitialState },
         vulnerabilitiesSummary: { ...vulnerabilitiesSummaryInitialState },
+        policyViolationSummary: { ...policyViolationSummaryInitialState },
         annotatedVulnerabilitesPercentage: null,
       };
 
@@ -298,6 +308,7 @@ describe('billOfMaterialsPage reducers have the correct state when the following
       expect(newState.errorSbomSummary).toBe(payload);
       expect(newState.componentSummary).toEqual(componentSummaryInitialState);
       expect(newState.vulnerabilitiesSummary).toEqual(vulnerabilitiesSummaryInitialState);
+      expect(newState.policyViolationSummary).toEqual(policyViolationSummaryInitialState);
       expect(newState.annotatedVulnerabilitesPercentage).toBe(null);
     });
 
@@ -307,6 +318,7 @@ describe('billOfMaterialsPage reducers have the correct state when the following
         errorSbomSummary: null,
         componentSummary: { ...componentSummaryInitialState },
         vulnerabilitiesSummary: { ...vulnerabilitiesSummaryInitialState },
+        policyViolationSummary: { ...policyViolationSummaryInitialState },
         annotatedVulnerabilitesPercentage: null,
       };
 
@@ -321,6 +333,12 @@ describe('billOfMaterialsPage reducers have the correct state when the following
           direct: 5,
           transitive: 6,
           unspecified: 7,
+        },
+        policyViolationSummary: {
+          low: 111,
+          moderate: 222,
+          severe: 333,
+          critical: 444,
         },
         annotatedPercentage: 50,
       };
@@ -342,6 +360,12 @@ describe('billOfMaterialsPage reducers have the correct state when the following
         medium: 2,
         high: 3,
         critical: 4,
+      });
+      expect(newState.policyViolationSummary).toEqual({
+        low: 111,
+        moderate: 222,
+        severe: 333,
+        critical: 444,
       });
       expect(newState.annotatedVulnerabilitesPercentage).toBe(50);
     });

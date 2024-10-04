@@ -49,6 +49,7 @@ public class PolicyTagResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @ProductLicenseEnforcementPoint(LicensedFeature.POLICY_READ_ONLY)
   public List<Tag> getPolicyTags(@PathParam("ownerType") OwnerType ownerType,
                                  @PathParam("ownerId") String ownerId,
                                  @PathParam("policyId") String policyId)

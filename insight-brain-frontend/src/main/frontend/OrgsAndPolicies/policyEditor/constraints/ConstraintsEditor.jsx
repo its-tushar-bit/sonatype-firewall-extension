@@ -30,7 +30,7 @@ import {
 
 import ReadOnlyConstraint from './ReadOnlyConstraint';
 import EditableConstraint from './EditableConstraint';
-import { selectIsRepositoriesRelated } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsRepositoriesRelated, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const { initialState: initUserInput } = nxTextInputStateHelpers;
 
@@ -44,7 +44,8 @@ export default function ConstraintsEditor() {
   const isInherited = useSelector(selectIsInherited);
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const hasEditIqPermission = useSelector(selectHasEditIqPermission);
-  const readOnly = isInherited || !hasEditIqPermission;
+  const isSbomManager = useSelector(selectIsSbomManager);
+  const readOnly = isInherited || !hasEditIqPermission || isSbomManager;
 
   const setConstraint = (constraints) => dispatch(policyActions.setConstraint(constraints));
   const setCondition = (constraints) => dispatch(policyActions.setCondition(constraints));

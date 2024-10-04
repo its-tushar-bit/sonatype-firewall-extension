@@ -13,14 +13,20 @@ import {
   getSbomComponentDetailsUrl,
   getSbomVulnerabibilityAnalysisReferenceData,
   getSbomVulnerabilityAnnotationUrl,
+  getSbomPolicyViolationReportUrl,
 } from 'MainRoot/util/CLMLocation';
 import ComponentDetailsPage from 'MainRoot/sbomManager/features/componentDetails/ComponentDetailsPage';
-import { defaultSortConfiguration } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
+import {
+  defaultSortConfiguration,
+  policyViolationDetailsDrawerInitialState,
+  sbomPolicyViolationsInitialState,
+} from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
 
 describe('ComponentDetailsPage', () => {
   let renderPage;
   const applicationPublicId = 'app_123';
   const applicationInternalId = 'internalId';
+  const fileCoordinateId = 'file-coordinate-id';
   const sbomVersion = '1.0-SNAPSHOT_TEST';
   const componentHash = 'componentHash';
   const axiosMock = axiosMockAdapter();
@@ -128,6 +134,7 @@ describe('ComponentDetailsPage', () => {
   const mockComponentDetails = {
     name: 'jackson-databind',
     hash: 'f07c773f7b3a03c3801d',
+    fileCoordinateId,
     packageUrl: 'pkg:maven/net.sf.jason/jason-schema@1.2.11',
     dependencyType: 'Direct',
     version: '3.4.6',
@@ -187,6 +194,244 @@ describe('ComponentDetailsPage', () => {
     additionalVulnerabilities: [],
   };
 
+  const mockSbomPolicyViolationReport = {
+    hash: 'd5c2005c9e3279201e12',
+    componentIdentifier: {
+      format: 'maven',
+      coordinates: {
+        artifactId: 'h2',
+        classifier: '',
+        extension: 'jar',
+        groupId: 'com.h2database',
+        version: '2.1.214',
+      },
+    },
+    policyId: '769617ef5d174c30bb33127d71f18664',
+    policyName: 'Security-High',
+    policyThreatLevel: 9,
+    activeViolations: [
+      {
+        policyId: '769617ef5d174c30bb33127d71f18664',
+        policyViolationId: '347a469f98cd4ccf93924afb85b891cc',
+        policyName: 'Security-High',
+        policyThreatLevel: 9,
+        waived: false,
+        grandfathered: false,
+        legacyViolation: false,
+        constraintFactsJson:
+          '[{"constraintId":"0f01fea7ccc646f2b373bad6a46db009","constraintName":"High risk CVSS score","operatorName":"AND","conditionFacts":[{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":0,"summary":"Security Vulnerability Severity >= 7","reason":"Found security vulnerability sonatype-2022-6243 with severity >= 7 (severity = 8.4)","reference":{"value":"sonatype-2022-6243","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"refId\\":\\"sonatype-2022-6243\\",\\"severity\\":8.4}}"},{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":1,"summary":"Security Vulnerability Severity < 9","reason":"Found security vulnerability sonatype-2022-6243 with severity < 9 (severity = 8.4)","reference":{"value":"sonatype-2022-6243","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":1,\\"trigger\\":{\\"refId\\":\\"sonatype-2022-6243\\",\\"severity\\":8.4}}"}]}]',
+        actions: [],
+        constraints: [
+          {
+            constraintId: '0f01fea7ccc646f2b373bad6a46db009',
+            constraintName: 'High risk CVSS score',
+            constraintOperator: 'AND',
+            conditions: [
+              {
+                conditionType: 'SecurityVulnerabilitySeverity',
+                conditionSummary: 'Security Vulnerability Severity >= 7',
+                conditionReason: 'Found security vulnerability sonatype-2022-6243 with severity >= 7 (severity = 8.4)',
+                conditionTriggerReference: {
+                  value: 'sonatype-2022-6243',
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                },
+              },
+              {
+                conditionType: 'SecurityVulnerabilitySeverity',
+                conditionSummary: 'Security Vulnerability Severity < 9',
+                conditionReason: 'Found security vulnerability sonatype-2022-6243 with severity < 9 (severity = 8.4)',
+                conditionTriggerReference: {
+                  value: 'sonatype-2022-6243',
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                },
+              },
+            ],
+          },
+        ],
+        policyThreatCategory: 'SECURITY',
+      },
+      {
+        policyId: 'd9d531bb26924869b1ea80a357d6b11d',
+        policyViolationId: 'af3f658dc0924f1aa94c48ea188f7c69',
+        policyName: 'Architecture-Quality',
+        policyThreatLevel: 1,
+        waived: false,
+        grandfathered: false,
+        legacyViolation: false,
+        constraintFactsJson:
+          '[{"constraintId":"d0be8ceca9de45e599c8b690330493b5","constraintName":"Version is unpopular","operatorName":"OR","conditionFacts":[{"conditionTypeId":"RelativePopularity","conditionIndex":0,"summary":"Relative Popularity (Percentage) <= 10","reason":"Relative popularity was <= 10% (relative popularity = 0%)","reference":null,"triggerJson":null}]}]',
+        actions: [],
+        constraints: [
+          {
+            constraintId: 'd0be8ceca9de45e599c8b690330493b5',
+            constraintName: 'Version is unpopular',
+            constraintOperator: 'OR',
+            conditions: [
+              {
+                conditionType: 'RelativePopularity',
+                conditionSummary: 'Relative Popularity (Percentage) <= 10',
+                conditionReason: 'Relative popularity was <= 10% (relative popularity = 0%)',
+                conditionTriggerReference: null,
+              },
+            ],
+          },
+        ],
+        policyThreatCategory: 'QUALITY',
+      },
+      {
+        policyId: 'ee8ed41d2b2e4b3889841089648416f3',
+        policyViolationId: '448d64a2adae4a5eafad9033ffbdeb23',
+        policyName: 'Security-Medium',
+        policyThreatLevel: 7,
+        waived: false,
+        grandfathered: false,
+        legacyViolation: false,
+        constraintFactsJson:
+          '[{"constraintId":"e7471e76a3aa4e3a86e5f49655fee05c","constraintName":"Medium risk CVSS score","operatorName":"AND","conditionFacts":[{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":0,"summary":"Security Vulnerability Severity >= 4","reason":"Found security vulnerability sonatype-2018-0863 with severity >= 4 (severity = 6.0)","reference":{"value":"sonatype-2018-0863","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"refId\\":\\"sonatype-2018-0863\\",\\"severity\\":6.0}}"},{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":1,"summary":"Security Vulnerability Severity < 7","reason":"Found security vulnerability sonatype-2018-0863 with severity < 7 (severity = 6.0)","reference":{"value":"sonatype-2018-0863","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":1,\\"trigger\\":{\\"refId\\":\\"sonatype-2018-0863\\",\\"severity\\":6.0}}"}]}]',
+        actions: [],
+        constraints: [
+          {
+            constraintId: 'e7471e76a3aa4e3a86e5f49655fee05c',
+            constraintName: 'Medium risk CVSS score',
+            constraintOperator: 'AND',
+            conditions: [
+              {
+                conditionType: 'SecurityVulnerabilitySeverity',
+                conditionSummary: 'Security Vulnerability Severity >= 4',
+                conditionReason: 'Found security vulnerability sonatype-2018-0863 with severity >= 4 (severity = 6.0)',
+                conditionTriggerReference: {
+                  value: 'sonatype-2018-0863',
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                },
+              },
+              {
+                conditionType: 'SecurityVulnerabilitySeverity',
+                conditionSummary: 'Security Vulnerability Severity < 7',
+                conditionReason: 'Found security vulnerability sonatype-2018-0863 with severity < 7 (severity = 6.0)',
+                conditionTriggerReference: {
+                  value: 'sonatype-2018-0863',
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                },
+              },
+            ],
+          },
+        ],
+        policyThreatCategory: 'SECURITY',
+      },
+    ],
+    waivedViolations: [],
+    allViolations: [
+      {
+        policyId: '769617ef5d174c30bb33127d71f18664',
+        policyViolationId: '347a469f98cd4ccf93924afb85b891cc',
+        policyName: 'Security-High',
+        policyThreatLevel: 9,
+        waived: false,
+        grandfathered: false,
+        legacyViolation: false,
+        constraintFactsJson:
+          '[{"constraintId":"0f01fea7ccc646f2b373bad6a46db009","constraintName":"High risk CVSS score","operatorName":"AND","conditionFacts":[{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":0,"summary":"Security Vulnerability Severity >= 7","reason":"Found security vulnerability sonatype-2022-6243 with severity >= 7 (severity = 8.4)","reference":{"value":"sonatype-2022-6243","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"refId\\":\\"sonatype-2022-6243\\",\\"severity\\":8.4}}"},{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":1,"summary":"Security Vulnerability Severity < 9","reason":"Found security vulnerability sonatype-2022-6243 with severity < 9 (severity = 8.4)","reference":{"value":"sonatype-2022-6243","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":1,\\"trigger\\":{\\"refId\\":\\"sonatype-2022-6243\\",\\"severity\\":8.4}}"}]}]',
+        actions: [],
+        constraints: [
+          {
+            constraintId: '0f01fea7ccc646f2b373bad6a46db009',
+            constraintName: 'High risk CVSS score',
+            constraintOperator: 'AND',
+            conditions: [
+              {
+                conditionType: 'SecurityVulnerabilitySeverity',
+                conditionSummary: 'Security Vulnerability Severity >= 7',
+                conditionReason: 'Found security vulnerability sonatype-2022-6243 with severity >= 7 (severity = 8.4)',
+                conditionTriggerReference: {
+                  value: 'sonatype-2022-6243',
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                },
+              },
+              {
+                conditionType: 'SecurityVulnerabilitySeverity',
+                conditionSummary: 'Security Vulnerability Severity < 9',
+                conditionReason: 'Found security vulnerability sonatype-2022-6243 with severity < 9 (severity = 8.4)',
+                conditionTriggerReference: {
+                  value: 'sonatype-2022-6243',
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                },
+              },
+            ],
+          },
+        ],
+        policyThreatCategory: 'SECURITY',
+      },
+      {
+        policyId: 'd9d531bb26924869b1ea80a357d6b11d',
+        policyViolationId: 'af3f658dc0924f1aa94c48ea188f7c69',
+        policyName: 'Architecture-Quality',
+        policyThreatLevel: 1,
+        waived: false,
+        grandfathered: false,
+        legacyViolation: false,
+        constraintFactsJson:
+          '[{"constraintId":"d0be8ceca9de45e599c8b690330493b5","constraintName":"Version is unpopular","operatorName":"OR","conditionFacts":[{"conditionTypeId":"RelativePopularity","conditionIndex":0,"summary":"Relative Popularity (Percentage) <= 10","reason":"Relative popularity was <= 10% (relative popularity = 0%)","reference":null,"triggerJson":null}]}]',
+        actions: [],
+        constraints: [
+          {
+            constraintId: 'd0be8ceca9de45e599c8b690330493b5',
+            constraintName: 'Version is unpopular',
+            constraintOperator: 'OR',
+            conditions: [
+              {
+                conditionType: 'RelativePopularity',
+                conditionSummary: 'Relative Popularity (Percentage) <= 10',
+                conditionReason: 'Relative popularity was <= 10% (relative popularity = 0%)',
+                conditionTriggerReference: null,
+              },
+            ],
+          },
+        ],
+        policyThreatCategory: 'QUALITY',
+      },
+      {
+        policyId: 'ee8ed41d2b2e4b3889841089648416f3',
+        policyViolationId: '448d64a2adae4a5eafad9033ffbdeb23',
+        policyName: 'Security-Medium',
+        policyThreatLevel: 7,
+        waived: false,
+        grandfathered: false,
+        legacyViolation: false,
+        constraintFactsJson:
+          '[{"constraintId":"e7471e76a3aa4e3a86e5f49655fee05c","constraintName":"Medium risk CVSS score","operatorName":"AND","conditionFacts":[{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":0,"summary":"Security Vulnerability Severity >= 4","reason":"Found security vulnerability sonatype-2018-0863 with severity >= 4 (severity = 6.0)","reference":{"value":"sonatype-2018-0863","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"refId\\":\\"sonatype-2018-0863\\",\\"severity\\":6.0}}"},{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":1,"summary":"Security Vulnerability Severity < 7","reason":"Found security vulnerability sonatype-2018-0863 with severity < 7 (severity = 6.0)","reference":{"value":"sonatype-2018-0863","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":1,\\"trigger\\":{\\"refId\\":\\"sonatype-2018-0863\\",\\"severity\\":6.0}}"}]}]',
+        actions: [],
+        constraints: [
+          {
+            constraintId: 'e7471e76a3aa4e3a86e5f49655fee05c',
+            constraintName: 'Medium risk CVSS score',
+            constraintOperator: 'AND',
+            conditions: [
+              {
+                conditionType: 'SecurityVulnerabilitySeverity',
+                conditionSummary: 'Security Vulnerability Severity >= 4',
+                conditionReason: 'Found security vulnerability sonatype-2018-0863 with severity >= 4 (severity = 6.0)',
+                conditionTriggerReference: {
+                  value: 'sonatype-2018-0863',
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                },
+              },
+              {
+                conditionType: 'SecurityVulnerabilitySeverity',
+                conditionSummary: 'Security Vulnerability Severity < 7',
+                conditionReason: 'Found security vulnerability sonatype-2018-0863 with severity < 7 (severity = 6.0)',
+                conditionTriggerReference: {
+                  value: 'sonatype-2018-0863',
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                },
+              },
+            ],
+          },
+        ],
+        policyThreatCategory: 'SECURITY',
+      },
+    ],
+  };
+
   const getVexDrawerSubmitButton = (container) =>
     container.querySelector('.vex-annotation-drawer__form__submit-button');
 
@@ -243,6 +488,7 @@ describe('ComponentDetailsPage', () => {
       productFeatures: {
         productFeatures: {
           'sbom-manager': true,
+          'sbom-policies': true,
           loading: true,
         },
       },
@@ -266,6 +512,8 @@ describe('ComponentDetailsPage', () => {
         additionalVulnerabilitiesSortConfiguration: { ...defaultSortConfiguration },
 
         vulnerabilityAnalysisReferenceData,
+        policyViolationDetailsDrawer: { ...policyViolationDetailsDrawerInitialState },
+        sbomPolicyViolations: { ...sbomPolicyViolationsInitialState },
       },
     };
     renderPage = (additionalPreloadedState = {}) =>
@@ -280,7 +528,12 @@ describe('ComponentDetailsPage', () => {
       axiosMock
         .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
         .reply(200, mockComponentDetails);
+      axiosMock
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .reply(200, mockSbomPolicyViolationReport);
+
       renderPage();
+
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
       expect(await screen.findByText(mockComponentDetails.displayName)).toBeVisible();
       expect(screen.getByText(mockComponentDetails.metadata.organizationName)).toBeVisible();
@@ -329,6 +582,27 @@ describe('ComponentDetailsPage', () => {
       expect(screen.getByText('Dependency tree not available')).toBeVisible();
     });
 
+    it('should render correct tabs', async () => {
+      axiosMock
+        .onGet(getApplicationSummaryUrl(applicationPublicId))
+        .reply(200, { id: applicationInternalId, name: 'test-app' });
+      axiosMock
+        .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
+        .reply(200, mockComponentDetails);
+      axiosMock
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .reply(200, mockSbomPolicyViolationReport);
+
+      renderPage();
+
+      await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+      const tabs = screen.getAllByRole('tab');
+      expect(tabs.length).toBe(2);
+      expect(tabs[0]).toHaveTextContent('Vulnerability');
+      expect(tabs[1]).toHaveTextContent('Policy Violations');
+    });
+
     it('should render the tooltip on hovering over the copy icon', async () => {
       axiosMock
         .onGet(getApplicationSummaryUrl(applicationPublicId))
@@ -336,6 +610,9 @@ describe('ComponentDetailsPage', () => {
       axiosMock
         .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
         .reply(200, mockComponentDetails);
+      axiosMock
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .reply(200, mockSbomPolicyViolationReport);
       renderPage();
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
@@ -356,6 +633,9 @@ describe('ComponentDetailsPage', () => {
       axiosMock
         .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
         .reply(200, mockComponentDetails);
+      axiosMock
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .reply(200, mockSbomPolicyViolationReport);
       renderPage();
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
@@ -376,6 +656,9 @@ describe('ComponentDetailsPage', () => {
       axiosMock
         .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
         .reply(200, mockComponentDetails);
+      axiosMock
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .reply(200, mockSbomPolicyViolationReport);
       renderPage();
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
@@ -397,6 +680,9 @@ describe('ComponentDetailsPage', () => {
     axiosMock
       .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
       .reply(200, mockComponentDetails);
+    axiosMock
+      .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+      .reply(200, mockSbomPolicyViolationReport);
     const { container } = renderPage();
 
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
@@ -421,7 +707,9 @@ describe('ComponentDetailsPage', () => {
       .reply(200, mockComponentDetails);
 
     axiosMock.onGet(getSbomVulnerabibilityAnalysisReferenceData()).reply(200, vulnerabilityAnalysisReferenceData);
-
+    axiosMock
+      .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+      .reply(200, mockSbomPolicyViolationReport);
     const { container } = renderPage();
 
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
@@ -455,6 +743,9 @@ describe('ComponentDetailsPage', () => {
     axiosMock
       .onPut(getSbomVulnerabilityAnnotationUrl(applicationInternalId, sbomVersion, 'sonatype-2018-0863'))
       .reply(200, {});
+    axiosMock
+      .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+      .reply(200, mockSbomPolicyViolationReport);
 
     const { container } = renderPage();
 
@@ -487,6 +778,12 @@ describe('ComponentDetailsPage', () => {
       axiosMock
         .onPut(getSbomVulnerabilityAnnotationUrl(applicationInternalId, sbomVersion, 'sonatype-2018-0863'))
         .reply(200, {});
+      axiosMock
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .reply(200, mockSbomPolicyViolationReport);
+
+      await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
       const dialog = await openDeleteAnnotationModal();
       const cancelButton = queryByText(dialog.querySelector('.nx-form__cancel-btn'), 'Cancel');
       expect(cancelButton).toBeInTheDocument();
@@ -506,6 +803,9 @@ describe('ComponentDetailsPage', () => {
       axiosMock
         .onDelete(getSbomVulnerabilityAnnotationUrl(applicationInternalId, sbomVersion, 'sonatype-2018-0863'))
         .reply(200, {});
+      axiosMock
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .reply(200, mockSbomPolicyViolationReport);
 
       const dialog = await openDeleteAnnotationModal();
       const submitButton = queryByText(dialog.querySelector('.nx-form__submit-btn'), 'Delete');
@@ -521,6 +821,9 @@ describe('ComponentDetailsPage', () => {
       axiosMock
         .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
         .reply(200, mockComponentDetails);
+      axiosMock
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .reply(200, mockSbomPolicyViolationReport);
 
       axiosMock.onGet(getSbomVulnerabibilityAnalysisReferenceData()).reply(200, vulnerabilityAnalysisReferenceData);
       axiosMock
@@ -547,7 +850,9 @@ describe('ComponentDetailsPage', () => {
       axiosMock
         .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
         .reply(200, mockComponentDetails);
-
+      axiosMock
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .reply(200, mockSbomPolicyViolationReport);
       axiosMock.onGet(getSbomVulnerabibilityAnalysisReferenceData()).reply(200, vulnerabilityAnalysisReferenceData);
       axiosMock
         .onPut(getSbomVulnerabilityAnnotationUrl(applicationInternalId, sbomVersion, 'sonatype-2018-0863'))
@@ -566,7 +871,9 @@ describe('ComponentDetailsPage', () => {
       axiosMock
         .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
         .reply(200, mockComponentDetails);
-
+      axiosMock
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .reply(200, mockSbomPolicyViolationReport);
       axiosMock.onGet(getSbomVulnerabibilityAnalysisReferenceData()).reply(200, vulnerabilityAnalysisReferenceData);
       axiosMock
         .onPut(getSbomVulnerabilityAnnotationUrl(applicationInternalId, sbomVersion, 'sonatype-2018-9999'))
@@ -586,7 +893,9 @@ describe('ComponentDetailsPage', () => {
       axiosMock
         .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
         .reply(200, mockComponentDetails);
-
+      axiosMock
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .reply(200, mockSbomPolicyViolationReport);
       axiosMock.onGet(getSbomVulnerabibilityAnalysisReferenceData()).reply(200, vulnerabilityAnalysisReferenceData);
       axiosMock
         .onPut(getSbomVulnerabilityAnnotationUrl(applicationInternalId, sbomVersion, 'sonatype-2018-9999'))
@@ -611,6 +920,9 @@ describe('ComponentDetailsPage', () => {
     axiosMock
       .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
       .reply(200, mockComponentDetails);
+    axiosMock
+      .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+      .reply(200, mockSbomPolicyViolationReport);
 
     const { container } = renderPage();
 
@@ -626,7 +938,7 @@ describe('ComponentDetailsPage', () => {
     expect(queryByText(container, 'Annotate sonatype-2018-0863')).toBeInTheDocument();
     expect(queryByText(container, /An error occurred loading data./)).toBeInTheDocument();
     expect(queryByText(container, /Please retry./)).toBeInTheDocument();
-    const retryButton = queryByText(container.querySelector('.nx-drawer-content'), 'Retry');
+    const retryButton = queryByText(container.querySelector('.vex-annotation-drawer .nx-drawer-content'), 'Retry');
     expect(retryButton).toBeInTheDocument();
   });
 
@@ -652,12 +964,44 @@ describe('ComponentDetailsPage', () => {
     axiosMock
       .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
       .reply(500, 'There was an error');
+    axiosMock
+      .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+      .reply(200, mockSbomPolicyViolationReport);
+
     renderPage();
+
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
     const errorMessage = await screen.findByText('An error occurred loading data. There was an error');
     expect(errorMessage).toBeVisible();
 
     const retryButton = await screen.getByRole('button');
     expect(retryButton).toBeVisible();
+  });
+
+  describe('SBOM Policies not supported', () => {
+    it('should not show policy violations tab', async () => {
+      axiosMock
+        .onGet(getApplicationSummaryUrl(applicationPublicId))
+        .reply(200, { id: applicationInternalId, name: 'test-app' });
+      axiosMock
+        .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
+        .reply(200, mockComponentDetails);
+
+      renderPage({
+        productFeatures: {
+          productFeatures: {
+            'sbom-manager': true,
+            loading: true,
+          },
+        },
+      });
+
+      await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+      const tabs = screen.getAllByRole('tab');
+      expect(tabs.length).toBe(1);
+      expect(tabs[0]).toHaveTextContent('Vulnerability');
+    });
   });
 });

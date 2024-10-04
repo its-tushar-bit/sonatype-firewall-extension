@@ -10,6 +10,8 @@ import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.Compon
 import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.CopyAnnotationModal;
 import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.DeleteAnnotationModal;
 import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.DependencyTreeTile;
+import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.PolicyViolationsTile;
+import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.PolicyViolationDetailsDrawer;
 import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.VexAnnotationDrawer;
 import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.VulnerabilitiesTableTile;
 import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.VulnerabilityDetailsPopover;
@@ -29,6 +31,10 @@ public class SbomManagerComponentDetailsPage
 
   DependencyTreeTile dependencyTreeTile;
 
+  PolicyViolationsTile policyViolationsTile;
+
+  public PolicyViolationDetailsDrawer policyViolationDetailsDrawer;
+
   VulnerabilityDetailsPopover vulnerabilityDetailsPopover;
 
   VexAnnotationDrawer vexAnnotationDrawer;
@@ -42,7 +48,8 @@ public class SbomManagerComponentDetailsPage
       vulnerabilitiesTableTile, final VulnerabilitiesTableTile sonatypeVulnerabilitiesTile,
       final DependencyTreeTile dependencyTreeTile, final VulnerabilityDetailsPopover vulnerabilityDetailsPopover,
       final VexAnnotationDrawer vexAnnotationDrawer, final DeleteAnnotationModal deleteAnnotationModal,
-      final CopyAnnotationModal copyAnnotationModal)
+      final CopyAnnotationModal copyAnnotationModal, final PolicyViolationsTile policyViolationsTile,
+      final PolicyViolationDetailsDrawer policyViolationDetailsDrawer)
   {
     this.componentDetailsSummaryTile = componentDetailsSummaryTile;
     this.vulnerabilitiesTableTile = vulnerabilitiesTableTile;
@@ -52,6 +59,8 @@ public class SbomManagerComponentDetailsPage
     this.vexAnnotationDrawer = vexAnnotationDrawer;
     this.deleteAnnotationModal = deleteAnnotationModal;
     this.copyAnnotationModal = copyAnnotationModal;
+    this.policyViolationsTile = policyViolationsTile;
+    this.policyViolationDetailsDrawer = policyViolationDetailsDrawer;
   }
 
   public static String url(String applicationId, String versionId, String componentHash ) {
@@ -103,5 +112,21 @@ public class SbomManagerComponentDetailsPage
 
   public CopyAnnotationModal copyAnnotationModal() {
     return copyAnnotationModal;
+  }
+
+  public ElementsCollection tabs() {
+    return children(".nx-tab");
+  }
+
+  public SelenideElement vulnerabilityTab() {
+    return this.tabs().get(0);
+  }
+
+  public SelenideElement policyViolationsTab() {
+    return this.tabs().get(1);
+  }
+
+  public PolicyViolationsTile policyViolationsTile() {
+    return policyViolationsTile;
   }
 }

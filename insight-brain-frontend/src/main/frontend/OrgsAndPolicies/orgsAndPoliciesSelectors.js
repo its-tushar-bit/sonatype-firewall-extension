@@ -37,11 +37,16 @@ export const selectOwnerProperties = createSelector(
   selectRouterCurrentParams,
   selectIsRepositories,
   selectIsRepositoryManager,
-  (
-    { applicationPublicId, organizationId, applicationId, repositoryContainerId, repositoryManagerId, repositoryId },
-    isRepositories,
-    isRepositoryManager
-  ) => {
+  (params = {}, isRepositories, isRepositoryManager) => {
+    const {
+      applicationPublicId,
+      organizationId,
+      applicationId,
+      repositoryContainerId,
+      repositoryManagerId,
+      repositoryId,
+    } = params;
+
     if (repositoryContainerId || isRepositories) {
       return {
         ownerType: 'repository_container',

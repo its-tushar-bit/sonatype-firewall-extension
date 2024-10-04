@@ -5,7 +5,6 @@
  */
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import * as PropTypes from 'prop-types';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import {
   NxH2,
@@ -16,6 +15,9 @@ import {
   NxList,
   NxTableContainer,
 } from '@sonatype/react-shared-components';
+import { always, compose, propEq, reject, when, complement, isNil } from 'ramda';
+
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectEntityId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
   selectPoliciesByOwner,
@@ -29,15 +31,22 @@ import {
   selectIsFirewallSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectActionStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
+
 import PoliciesTable from './PoliciesTable';
 
 export default function PoliciesTile() {
   const dispatch = useDispatch();
 
+  const isSbomManager = useSelector(selectIsSbomManager);
   const policiesByOwner = useSelector(selectPoliciesByOwner);
-  const actionStages = useSelector(selectActionStageTypes);
+  const actionStages = compose(
+    when(complement(isNil), reject(propEq('stageTypeId', 'compliance'))),
+    when(always(isSbomManager), always([]))
+  )(useSelector(selectActionStageTypes));
+
   const isEnforcementSupported = useSelector(selectIsEnforcementSupported);
   const isFirewallSupported = useSelector(selectIsFirewallSupported);
+
   const loading = useSelector(selectPolicyTileLoading);
   const loadError = useSelector(selectPolicyTileLoadError);
   const entityId = useSelector(selectEntityId);
@@ -51,7 +60,7 @@ export default function PoliciesTile() {
 
   const goToCreatePolicy = () => dispatch(actions.goToCreatePolicy());
 
-  const stagesNumber = `policy-tile__stages-num--${actionStages?.length || 7}`;
+  const stagesNumber = `policy-tile__stages-num--${actionStages ? actionStages.length : 7}`;
 
   const isNoPoliciesDefined = !policiesByOwner?.some((owner) => {
     return owner.policies.length > 0;
@@ -67,10 +76,12 @@ export default function PoliciesTile() {
             </NxTile.HeaderTitle>
           </NxTile.Headings>
           <NxTile.HeaderActions>
-            <NxButton variant="tertiary" id="add-policy-button" onClick={goToCreatePolicy}>
-              <NxFontAwesomeIcon icon={faPlus} />
-              <span>Add a Policy</span>
-            </NxButton>
+            {isSbomManager ? null : (
+              <NxButton variant="tertiary" id="add-policy-button" onClick={goToCreatePolicy}>
+                <NxFontAwesomeIcon icon={faPlus} />
+                <span>Add a Policy</span>
+              </NxButton>
+            )}
           </NxTile.HeaderActions>
         </NxTile.Header>
         <NxTile.Content className={stagesNumber}>

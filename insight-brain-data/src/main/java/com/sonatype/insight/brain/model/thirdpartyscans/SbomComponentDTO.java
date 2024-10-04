@@ -17,6 +17,8 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependenc
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -42,6 +44,9 @@ public class SbomComponentDTO
 
   private ComponentIdentifier componentIdentifier;
 
+  @JsonInclude(Include.NON_NULL)
+  private Integer policyViolationCount;
+
   private String displayName;
 
   private Set<License> licenses;
@@ -57,6 +62,8 @@ public class SbomComponentDTO
   private int vulnerabilitySeverityCriticalCount;
 
   private double percentageAnnotated;
+
+  private String fileCoordinateId;
 
   public SbomComponentDTO() {
     // for Jackson
@@ -98,11 +105,20 @@ public class SbomComponentDTO
       if (StringUtils.isNotBlank(dependencyTypeValue)) {
         dependencyType = ThirdPartyDependencyType.fromValue(dependencyTypeValue).getDisplayName();
       }
-      String filenamesString = (String) array[12];
+      fileCoordinateId = (String) array[12];
+      String filenamesString = (String) array[13];
       if (StringUtils.isNotBlank(filenamesString)) {
         filenames = List.of(filenamesString.split(","));
       }
     }
+  }
+
+  public Integer getPolicyViolationCount() {
+    return policyViolationCount;
+  }
+
+  public void setPolicyViolationCount(Integer policyViolationCount) {
+    this.policyViolationCount = policyViolationCount;
   }
 
   public String getHash() {
@@ -219,6 +235,14 @@ public class SbomComponentDTO
 
   public double getPercentageAnnotated() {
     return percentageAnnotated;
+  }
+
+  public String getFileCoordinateId() {
+    return fileCoordinateId;
+  }
+
+  public void setFileCoordinateId(String fileCoordinateId) {
+    this.fileCoordinateId = fileCoordinateId;
   }
 
   private int longToInt(Object number) {

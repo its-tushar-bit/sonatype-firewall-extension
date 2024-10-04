@@ -26,6 +26,9 @@ const actionStages = [
   { stageTypeId: 'release', shortName: 'RELEASE' },
   { stageTypeId: 'operate', shortName: 'OPERATE' },
 ];
+
+const sbomStages = [{ stageTypeId: 'compliance', shortName: 'COMPLIANCE' }];
+
 const notifications = {
   userNotifications: [{ emailAddress: 'user@email.com', stageIds: ['proxy', 'develop'] }],
   roleNotifications: [{ roleId: '1', stageIds: [] }],
@@ -74,7 +77,10 @@ describe('PolicyNotificationsEditor', () => {
           },
           notificationWebhooks: [],
         },
-        stages: { action: { stageTypes: actionStages, loading: false, error: null } },
+        stages: {
+          action: { stageTypes: actionStages, loading: false, error: null },
+          sbom: { stageTypes: sbomStages, loading: false, error: null },
+        },
       },
       router: {
         currentParams: { organizationId: 'organizationId' },
@@ -155,12 +161,29 @@ describe('PolicyNotificationsEditor', () => {
     expect(await screen.findByText('Notifications')).toBeVisible();
   });
 
-  it('renders table headers', async () => {
+  it('renders correct table headers when not SBOM Manager', async () => {
     renderComponent();
 
+    expect(await screen.queryByRole('columnheader', { name: 'COMPLIANCE' })).not.toBeInTheDocument();
     const assertion = async (stage) =>
       expect(await screen.findByRole('columnheader', { name: stage.shortName })).toBeVisible();
     await Promise.all(actionStages.map(assertion));
+  });
+
+  it('renders correct table headers when SBOM Manager', async () => {
+    const sbomState = {
+      ...state,
+      router: {
+        currentParams: { organizationId: 'organizationId' },
+        currentState: { name: 'sbomManager.organization' },
+      },
+    };
+    renderComponent(sbomState);
+
+    expect(await screen.findByRole('columnheader', { name: 'COMPLIANCE' })).toBeVisible();
+    const assertionNotInDocument = async (stage) =>
+      expect(await screen.queryByRole('columnheader', { name: stage.shortName })).not.toBeInTheDocument();
+    await Promise.all(actionStages.map(assertionNotInDocument));
   });
 
   it('renders recipients', async () => {

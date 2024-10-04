@@ -25,6 +25,10 @@ public class BillOfMaterialsPageSummaryTile extends BasicElement<BillOfMaterials
     return child("#bill-of-materials-summary-tile-chart-and-progress-vulnerability-summary");
   }
 
+  public SelenideElement policyViolationSummaryChartAndProgress() {
+    return child("#bill-of-materials-summary-tile-chart-and-progress-policy-violation-summary");
+  }
+
   public SelenideElement annotatedVulnerabilitiesSummaryDescription() {
     return child(".sbom-manager-bill-of-materials-summary-tile__annotated-vulnerabilities-summary__description");
   }

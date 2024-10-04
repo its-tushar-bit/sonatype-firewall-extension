@@ -75,7 +75,7 @@ export default angular
   .component('waiversConfiguration', iqReact2Angular(WaiversConfiguration, [], ['$ngRedux']))
   .component('createComponentLabel', iqReact2Angular(CreateComponentLabel, [], ['$ngRedux', '$state']))
   .component('accessPage', iqReact2Angular(AccessPage, [], ['$ngRedux', '$state']))
-  .component('policyEditor', iqReact2Angular(PolicyEditor, [], ['$ngRedux']))
+  .component('policyEditor', iqReact2Angular(PolicyEditor, [], ['$ngRedux', '$state']))
   .component('proprietaryComponentConfiguration', iqReact2Angular(ProprietaryComponentConfiguration, [], ['$ngRedux']))
   .component('createEditApplicationCategory', iqReact2Angular(CreateEditApplicationCategory, [], ['$ngRedux']))
   .component('assignAppCategory', iqReact2Angular(AssignAppCategory, [], ['$ngRedux']))

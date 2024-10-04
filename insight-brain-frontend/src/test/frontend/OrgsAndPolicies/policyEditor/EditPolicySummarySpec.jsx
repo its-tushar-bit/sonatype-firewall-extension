@@ -9,6 +9,7 @@ import { render, screen } from 'TestRoot/SpecUtil';
 import EditPolicySummary from 'MainRoot/OrgsAndPolicies/policyEditor/editPolicySummary/EditPolicySummary';
 import * as policySelectors from 'MainRoot/OrgsAndPolicies/policySelectors';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('EditPolicySummary', () => {
   let renderComponent;
@@ -81,6 +82,23 @@ describe('EditPolicySummary', () => {
     expect(legacyViolationCheckbox).toBeDisabled();
   });
 
+  it('renders disabled inputs when SBOM Manager is enabled', () => {
+    spyOn(productFeaturesSelectors, 'selectIsLegacyViolationSupported').and.returnValue(true);
+    spyOn(routerSelectors, 'selectIsSbomManager').and.returnValue(true);
+    spyOn(policySelectors, 'selectIsInherited').and.returnValue(false);
+    spyOn(policySelectors, 'selectHasEditIqPermission').and.returnValue(true);
+
+    renderComponent();
+
+    const policyNameInput = screen.getByRole('textbox');
+    const threatLevelInput = screen.getByRole('button');
+    const legacyViolationCheckbox = screen.queryByRole('checkbox');
+
+    expect(policyNameInput).toBeDisabled();
+    expect(threatLevelInput).toHaveClassName('disabled');
+    expect(legacyViolationCheckbox).not.toBeInTheDocument();
+  });
+
   it('renders the legacy violations text', () => {
     spyOn(productFeaturesSelectors, 'selectIsLegacyViolationSupported').and.returnValue(true);
 
@@ -96,5 +114,22 @@ describe('EditPolicySummary', () => {
     expect(legacyViolationTitle).toBeVisible();
     expect(legacyViolationSubtitle).toBeVisible();
     expect(legacyViolationCheckboxText).toBeVisible();
+  });
+
+  it('hides the legacy violations text when is sbomManager', () => {
+    spyOn(routerSelectors, 'selectIsSbomManager').and.returnValue(true);
+
+    renderComponent();
+
+    const legacyViolationTitle = screen.queryByText(/Legacy Violations/i);
+    const legacyViolationSubtitle = screen.queryByText(
+      /Eligible violations will be reported but will not trigger actions/i
+    );
+    const legacyViolationCheckboxText = screen.queryByText(
+      /Allow violations of this policy to be granted legacy status/i
+    );
+    expect(legacyViolationTitle).not.toBeInTheDocument();
+    expect(legacyViolationSubtitle).not.toBeInTheDocument();
+    expect(legacyViolationCheckboxText).not.toBeInTheDocument();
   });
 });

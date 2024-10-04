@@ -31,6 +31,7 @@ import {
   selectLoadErrorFeatures,
   selectLoadingFeatures,
   selectNoSbomManagerEnabledError,
+  selectIsSbomPoliciesSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectBillOfMaterialsPage } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSelectors';
 import {
@@ -64,6 +65,7 @@ export default function BillOfMaterials() {
     sbomMetadata,
     componentSummary,
     vulnerabilitiesSummary,
+    policyViolationSummary,
     annotatedVulnerabilitesPercentage,
     exportAndDownloadSbomSubmitMask: exportAndDownloadSbomSubmitMaskState,
   } = useSelector(selectBillOfMaterialsPage);
@@ -71,6 +73,7 @@ export default function BillOfMaterials() {
   const loadingProductFeatures = useSelector(selectLoadingFeatures);
   const errorProductFeatures = useSelector(selectLoadErrorFeatures);
   const errorNoSbomManagerEnabled = useSelector(selectNoSbomManagerEnabledError);
+  const isSbomPoliciesSupported = useSelector(selectIsSbomPoliciesSupported);
 
   const routerParams = useSelector(selectRouterCurrentParams);
 
@@ -203,6 +206,8 @@ export default function BillOfMaterials() {
             annotatedVulnerabilitesPercentage={annotatedVulnerabilitesPercentage}
             componentSummary={componentSummary}
             vulnerabilitiesSummary={vulnerabilitiesSummary}
+            policyViolationSummary={policyViolationSummary}
+            isSbomPoliciesSupported={isSbomPoliciesSupported}
           />
           <BillOfMaterialsComponentsTile internalAppId={internalAppId} />
         </LoadWrapper>

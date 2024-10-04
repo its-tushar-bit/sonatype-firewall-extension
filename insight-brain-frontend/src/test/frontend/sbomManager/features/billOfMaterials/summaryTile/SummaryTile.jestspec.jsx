@@ -23,6 +23,13 @@ describe('SummaryTile', () => {
     unspecified: 78,
   });
 
+  const policyViolationSummaryProp = Object.freeze({
+    critical: 4444,
+    severe: 3333,
+    moderate: 2222,
+    low: 1111,
+  });
+
   const initialState = {
     billOfMaterialsPage: {
       sbomMetadata: {
@@ -36,11 +43,13 @@ describe('SummaryTile', () => {
     },
   };
 
-  it('renders the correct tile content', async () => {
+  it('renders the correct tile content when sbom policies supported is true', async () => {
     render(
       <SummaryTile
         componentSummary={componentSummaryProp}
         vulnerabilitiesSummary={vulnerabilitiesSummaryProp}
+        policyViolationSummary={policyViolationSummaryProp}
+        isSbomPoliciesSupported={true}
         annotatedVulnerabilitesPercentage={75}
       />,
       { preloadedState: { ...initialState } }
@@ -49,6 +58,42 @@ describe('SummaryTile', () => {
     expect(screen.getByRole('heading', { name: /Bill of Material/ })).toBeVisible();
     expect(screen.getByRole('heading', { name: /Component Summary/ })).toBeVisible();
     expect(screen.getByRole('heading', { name: /Vulnerabilities Summary/ })).toBeVisible();
+    expect(screen.getByRole('heading', { name: /Policy Violation Summary/ })).toBeVisible();
+
+    const pieChartTotals = screen.getAllByTestId('pie-chart-total');
+    expect(pieChartTotals[0]).toHaveTextContent('5,678');
+    expect(pieChartTotals[1]).toHaveTextContent('1,234');
+    expect(pieChartTotals[2]).toHaveTextContent('11,110');
+
+    expect(screen.getByText(/5,000 Direct/)).toBeVisible();
+    expect(screen.getByText(/600 Transitive/)).toBeVisible();
+    expect(screen.getByText(/78 Unspecified/)).toBeVisible();
+
+    expect(screen.getByText(/1,111 Low/)).toBeVisible();
+    expect(screen.getByText(/2,222 Moderate/)).toBeVisible();
+    expect(screen.getByText(/3,333 Severe/)).toBeVisible();
+    expect(screen.getByText(/4,444 Critical/)).toBeVisible();
+
+    const description = screen.getByTestId('annotated-vulnerabilities-summary-description');
+    expect(description).toHaveTextContent('75% of vulnerabilities annotated with exploitability information');
+  });
+
+  it('renders the correct tile content when sbom policies supported is false', async () => {
+    render(
+      <SummaryTile
+        componentSummary={componentSummaryProp}
+        vulnerabilitiesSummary={vulnerabilitiesSummaryProp}
+        policyViolationSummary={policyViolationSummaryProp}
+        isSbomPoliciesSupported={false}
+        annotatedVulnerabilitesPercentage={75}
+      />,
+      { preloadedState: { ...initialState } }
+    );
+
+    expect(screen.getByRole('heading', { name: /Bill of Material/ })).toBeVisible();
+    expect(screen.getByRole('heading', { name: /Component Summary/ })).toBeVisible();
+    expect(screen.getByRole('heading', { name: /Vulnerabilities Summary/ })).toBeVisible();
+    expect(screen.queryByRole('heading', { name: /Policy Violation Summary/ })).not.toBeInTheDocument();
 
     const pieChartTotals = screen.getAllByTestId('pie-chart-total');
     expect(pieChartTotals[0]).toHaveTextContent('5,678');
@@ -63,6 +108,11 @@ describe('SummaryTile', () => {
     expect(screen.getByText(/30 High/)).toBeVisible();
     expect(screen.getByText(/4 Critical/)).toBeVisible();
 
+    expect(screen.queryByText(/1,111 Low/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/2,222 Moderate/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/3,333 Severe/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/4,444 Critical/)).not.toBeInTheDocument();
+
     const description = screen.getByTestId('annotated-vulnerabilities-summary-description');
     expect(description).toHaveTextContent('75% of vulnerabilities annotated with exploitability information');
   });
@@ -72,6 +122,8 @@ describe('SummaryTile', () => {
       <SummaryTile
         componentSummary={componentSummaryProp}
         vulnerabilitiesSummary={vulnerabilitiesSummaryProp}
+        policyViolationSummary={policyViolationSummaryProp}
+        isSbomPoliciesSupported={true}
         annotatedVulnerabilitesPercentage={null}
       />,
       { preloadedState: { ...initialState } }

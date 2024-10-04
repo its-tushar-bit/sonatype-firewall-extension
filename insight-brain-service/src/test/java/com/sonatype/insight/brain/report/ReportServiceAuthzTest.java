@@ -70,4 +70,24 @@ public class ReportServiceAuthzTest
     login();
     reportService.updateReportEntry(app.getId(), "unrealId", Report.SECURITY_JSON_FILENAME, null);
   }
+
+  @Test
+  public void testProcessBrowseReport_Authorized() {
+    grantReadPermission(app.getId());
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> reportService.processBrowseReport(app.getId(), "12345678", "path"))
+        .withMessage("Could not find a report with ID 12345678");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testProcessBrowseReport_Unauthenticated() throws IOException {
+    reportService.processBrowseReport(app.getId(), "unrealId", "path");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testProcessBrowseReport_Unauthorized() throws IOException {
+    login();
+    reportService.processBrowseReport(app.getId(), "unrealId", "path");
+  }
 }

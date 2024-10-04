@@ -33,19 +33,26 @@ import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.thirdpartyscans.BomPageSbomSummaryDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomDependencyTypeDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.SbomPolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
+import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.sbom.SbomDependencyType;
+import com.sonatype.insight.brain.sbom.policy.SbomPolicyService;
 import com.sonatype.insight.brain.sbom.utils.SbomCreationDetails;
 import com.sonatype.insight.brain.sbom.utils.SbomCreationDetails.Creator;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.utils.ThreatLevel;
+import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.collections4.CollectionUtils;
 
 import static com.sonatype.insight.brain.sbom.utils.SbomCreationDetails.CreatorType.parseCreatorType;
@@ -62,11 +69,15 @@ public class SbomComponentsService
 
   private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
+  private final SbomPolicyService sbomPolicyService;
+
   private final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
 
   private final ThirdPartyVulnerabilityExploitabilityExchangeDAO vexDAO;
 
   private final ThirdPartyScanDAO thirdPartyScanDAO;
+
+  private static final Logger log = LoggerFactory.getLogger(SbomComponentsService.class);
 
   @Inject
   public SbomComponentsService(
@@ -76,7 +87,8 @@ public class SbomComponentsService
       final ThirdPartyScanDAO thirdPartyScanDAO,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
-      final ThirdPartyVulnerabilityExploitabilityExchangeDAO vexDAO)
+      final ThirdPartyVulnerabilityExploitabilityExchangeDAO vexDAO,
+      final SbomPolicyService sbomPolicyService)
   {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
@@ -85,6 +97,7 @@ public class SbomComponentsService
     this.vexDAO = vexDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
+    this.sbomPolicyService = sbomPolicyService;
   }
 
   @Authorize(permission = Permission.READ)
@@ -118,9 +131,8 @@ public class SbomComponentsService
             .collect(
                 Collectors.toMap(ThirdPartyVulnerabilityExploitabilityExchange::getCoordinateSecurityId, vex -> vex));
 
-    CDPSbomComponentDetailsDTO componentDetailsDTO =
-        new CDPSbomComponentDetailsDTO(component.getHash(), component.getPackageUrl(), component.getName(),
-            component.getVersion());
+    CDPSbomComponentDetailsDTO componentDetailsDTO = new CDPSbomComponentDetailsDTO(component.getHash(),
+        component.getPackageUrl(), component.getName(), component.getVersion(), component.getId());
     componentDetailsDTO.setDependencyType(getDependencyType(component.getDependencyType()));
     componentDetailsDTO.setMetadata(getSbomMetadata(applicationId, sbomMetadata.getCreatedAt()));
     componentDetailsDTO.setVulnerabilitySummary(getVulnerabilitySummary(vulnerabilityList));
@@ -349,7 +361,48 @@ public class SbomComponentsService
           String.format("Cannot find version %s for application with ID %s.", version, applicationId));
     }
     bomPageSbomSummaryDTO.setDependencyType(sbomDependencyTypeDTO);
-    return bomPageSbomSummaryDTO;
+
+    int policyViolationLow = 0;
+    int policyViolationModerate = 0;
+    int policyViolationSevere = 0;
+    int policyViolationCritical = 0;
+    try {
+      PolicyThreats policyThreats = sbomPolicyService.getPolicyViolations(applicationId, version);
+      List<PolicyThreats.Component> policyThreatComponents = policyThreats.aaData;
+      for (PolicyThreats.Component policyThreatComponent : policyThreatComponents) {
+        for (PolicyThreats.PolicyViolation policyViolation : policyThreatComponent.activeViolations) {
+          ThreatLevel threatLevel = ThreatLevel.from(policyViolation.policyThreatLevel);
+          switch (threatLevel) {
+            case LOW:
+              policyViolationLow++;
+              break;
+            case MODERATE:
+              policyViolationModerate++;
+              break;
+            case SEVERE:
+              policyViolationSevere++;
+              break;
+            case CRITICAL:
+              policyViolationCritical++;
+              break;
+            default:
+              log.error("Invalid threat level value {}", policyViolation.policyThreatLevel);
+          }
+        }
+      }
+      SbomPolicyViolationSummaryDTO sbomPolicyViolationSummaryDTO = new SbomPolicyViolationSummaryDTO();
+      sbomPolicyViolationSummaryDTO.setLow(policyViolationLow);
+      sbomPolicyViolationSummaryDTO.setModerate(policyViolationModerate);
+      sbomPolicyViolationSummaryDTO.setSevere(policyViolationSevere);
+      sbomPolicyViolationSummaryDTO.setCritical(policyViolationCritical);
+
+      bomPageSbomSummaryDTO.setPolicyViolationSummary(sbomPolicyViolationSummaryDTO);
+      return bomPageSbomSummaryDTO;
+    }
+    catch (IOException e) {
+      log.error("Policy threats report cannot be parsed", e);
+      throw new InternalServerException("Policy threat report can not be parsed", e);
+    }
   }
 
   private String getDependencyType(String code) {

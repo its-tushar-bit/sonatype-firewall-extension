@@ -19,6 +19,7 @@ import {
   selectTenantMode,
   selectIsScmEnabled,
   selectIsSbomContinuousMonitoringUiEnabled,
+  selectIsSbomPoliciesSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 import NavPills from 'MainRoot/navPills/NavPills';
@@ -38,12 +39,18 @@ export default function OwnerSummaryPills() {
   const isScmEnabled = useSelector(selectIsScmEnabled);
   const isSourceControlForSourceTileSupported = useSelector(selectIsSourceControlForSourceTileSupported);
   const isSbomContinuousMonitoringUiEnabled = useSelector(selectIsSbomContinuousMonitoringUiEnabled);
+  const isSbomPoliciesSupported = useSelector(selectIsSbomPoliciesSupported);
 
   const isMultiTenant = useSelector(selectTenantMode) === 'multi-tenant';
   const isDataRetentionConfigEnabled = isDataRetentionEnabled && !isMultiTenant;
 
   const navList = useMemo(() => {
     return [
+      {
+        label: 'SBOMs',
+        target: 'owner-pill-sboms',
+        isDisplayed: isSbomManager && isApp,
+      },
       {
         label: 'App Categories',
         target: 'owner-pill-app-categories',
@@ -52,7 +59,7 @@ export default function OwnerSummaryPills() {
       {
         label: 'Policies',
         target: 'owner-pill-policy',
-        isDisplayed: !isSbomManager,
+        isDisplayed: !isSbomManager || isSbomPoliciesSupported,
       },
       {
         label: 'Legacy Violations',
@@ -99,11 +106,6 @@ export default function OwnerSummaryPills() {
         label: 'Artifactory repository',
         target: 'owner-pill-artifactory-repository',
         isDisplayed: isArtifactoryRepositorySupported && (isOrg || isApp) && !isSbomManager,
-      },
-      {
-        label: 'SBOMs',
-        target: 'owner-pill-sboms',
-        isDisplayed: isSbomManager && isApp,
       },
       {
         label: 'Access',

@@ -103,6 +103,10 @@ public class PolicyEditorPage
     return $(".nx-alert__content");
   }
 
+  public static SelenideElement linkToLifecycle() {
+    return $(".policy-editor-lifecycle-link");
+  }
+
   public static void savePolicy() {
     ScrollUtil.scrollIntoView(saveButton());
     saveButton().shouldNotHave(DISABLED).click();

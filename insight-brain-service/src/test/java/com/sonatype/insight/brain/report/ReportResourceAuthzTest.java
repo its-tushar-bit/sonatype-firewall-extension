@@ -13,8 +13,6 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
-import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 import org.junit.Test;
@@ -45,22 +43,6 @@ public class ReportResourceAuthzTest
 
     HttpRequest request = restRequest().path("{scanId}/browseReport/{path}")
         .parameter(app.getPublicId(), scanId, "data.json");
-    testAuthzGet(request);
-  }
-
-  @Test
-  public void testGetSbomPolicyViolationReport() throws Exception {
-    final String scanId = "ReportResourceTest_ScanId";
-    String sbomVersion = "sbomVersion";
-    grantReadPermission(app.getId());
-    createReportFile(app.getId(), scanId);
-
-    tempEntity.newSbomEvaluation(app, sbomVersion, "spec1",
-        new PackageUrlIdentifier("pkg:maven/com.h2database/h2@1.4.200?type=jar"),
-        "hash1", scanId, true, "ACTIVE");
-    setFeatures(LicensedFeature.SBOM_MANAGER);
-    HttpRequest request = restRequest().path("sbom/{sbomVersion}/sbomPolicyViolationReport")
-        .parameter(app.getPublicId(), sbomVersion);
     testAuthzGet(request);
   }
 

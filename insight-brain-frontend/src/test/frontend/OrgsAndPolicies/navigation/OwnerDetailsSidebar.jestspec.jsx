@@ -163,7 +163,7 @@ const repositoryState = {
   },
 };
 
-const sbomPreloadedState = {
+const sbomRootOrgLevelState = {
   ...defaultPreloadedState,
   router: {
     currentState: {
@@ -172,6 +172,19 @@ const sbomPreloadedState = {
     },
     currentParams: {
       organizationId: 'ROOT_ORGANIZATION_ID',
+    },
+  },
+};
+
+const sbomOrgLevelState = {
+  ...defaultPreloadedState,
+  router: {
+    currentState: {
+      name: 'sbomManager.management.edit.organization.access',
+      url: '/access',
+    },
+    currentParams: {
+      organizationId: 'org1',
     },
   },
 };
@@ -367,10 +380,28 @@ describe('OwnerDetailSidebar', () => {
     expect(screen.queryByRole('link', { name: 'Source Control' })).not.toBeInTheDocument();
   });
 
-  it('renders correct sidebar with correct list open at Organization levels when SBOM Manager', async () => {
+  it('renders correct sidebar with correct list open at Root Organization level when SBOM Manager', async () => {
     mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
 
-    renderComponent(sbomPreloadedState);
+    renderComponent(sbomRootOrgLevelState);
+
+    expect(await screen.findByText('Access')).toBeVisible();
+
+    expect(screen.queryByText('Policies')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'New Policy' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Component Labels')).not.toBeInTheDocument();
+    expect(screen.queryByText('License Threat Groups')).not.toBeInTheDocument();
+    expect(screen.queryByText('Legacy Violations')).not.toBeInTheDocument();
+    expect(screen.queryByText('Application Categories')).not.toBeInTheDocument();
+    expect(screen.queryByText('Continuous Monitoring')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Source Control' })).not.toBeInTheDocument();
+    expect(screen.queryAllByText('License Threat Groups').length).toBe(0);
+  });
+
+  it('renders correct sidebar with correct list open at child organization level when SBOM Manager', async () => {
+    mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
+
+    renderComponent(sbomOrgLevelState);
 
     expect(await screen.findByText('Access')).toBeVisible();
     expect(await screen.findByText('Continuous Monitoring')).toBeVisible();
@@ -386,7 +417,7 @@ describe('OwnerDetailSidebar', () => {
 
   it('does not render the Continuous Monitoring item at Organization levels when SBOM Manager and sbom-continuous-monitoring-ui is disabled', async () => {
     renderComponent({
-      ...sbomPreloadedState,
+      ...sbomOrgLevelState,
       productFeatures: {
         productFeatures: { 'sbom-continuous-monitoring-ui': false },
       },

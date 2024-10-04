@@ -79,6 +79,7 @@ export default function OwnerSideNav() {
     ownersMap,
   } = useSelector(selectOwnerSideNavSlice);
   const loadingOwnerSummary = useSelector(selectOwnerSummaryLoading);
+  const isSbomManager = useSelector(selectIsSbomManager);
   const isRootOrganization = useSelector(selectIsRootOrganization);
   const isOrganizationTopOfHierarchyForUser = useSelector(selectIsOrganizationTopOfHierarchyForUser);
   const isOrganization = useSelector(selectIsOrganization);
@@ -88,7 +89,8 @@ export default function OwnerSideNav() {
   const isRepositoryContainer = useSelector(selectIsRepositoryContainer);
   const isApplication = useSelector(selectIsApplication);
   const repositoriesCounter = useSelector(selectRepositoriesLength);
-  const showRepositoriesLink = repositoriesCounter && isOrganizationTopOfHierarchyForUser && !isRepositoriesRelated;
+  const showRepositoriesLink =
+    repositoriesCounter && isOrganizationTopOfHierarchyForUser && !isRepositoriesRelated && !isSbomManager;
   const selectedApplicationId = useSelector(selectApplicationId);
   const selectedRepositoryId = useSelector(selectRepositoryId);
   const isManagementViewRoute = useSelector(selectIsManagementViewRouterState);
@@ -105,7 +107,6 @@ export default function OwnerSideNav() {
   const goToRepositoriesUrl = uiRouterState.href('management.view.repository_container', {
     repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
   });
-  const isSbomManager = useSelector(selectIsSbomManager);
 
   const treeViewPageHref = uiRouterState.href(`${isSbomManager ? 'sbomManager.' : ''}management.tree`);
 
@@ -443,7 +444,7 @@ export default function OwnerSideNav() {
                 ) : (
                   <>
                     {renderRepositoriesNavigationItem()}
-                    {isFirewallSupported && (
+                    {isFirewallSupported && !isSbomManager && (
                       <>
                         {renderRepositoryManagers(displayedOrganization)}
                         {renderRepositories(displayedOrganization.repositoryIds)}

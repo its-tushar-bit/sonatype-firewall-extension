@@ -1115,6 +1115,7 @@ public abstract class AbstractSummaryViewTest
     policyTable.stageHeaderColumn().nxAnchorHeader().shouldHave(text("STAGE"));
     policyTable.releaseHeaderColumn().nxAnchorHeader().shouldHave(text("RELEASE"));
     policyTable.operateHeaderColumn().nxAnchorHeader().shouldHave(text("OPERATE"));
+    policyTable.operateHeaderColumn().nxAnchorHeader().shouldNotHave(text("COMPLIANCE"));
 
     // Start on proxy column and don't include last column (select row)
     ElementsCollection headerColumns = policyTile.headerColumns();

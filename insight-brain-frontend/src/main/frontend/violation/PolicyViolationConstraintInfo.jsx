@@ -5,12 +5,19 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { map } from 'ramda';
+import { map, head, isEmpty } from 'ramda';
 import classnames from 'classnames';
 
-export default function PolicyViolationConstraintInfo(props) {
-  const { constraintViolations, isFirewallContext, isFromPolicyViolations } = props;
-  const { constraintName, reasons, conditions } = constraintViolations[0];
+export default function PolicyViolationConstraintInfo({
+  constraintViolations,
+  isFirewallContext,
+  isFromPolicyViolations,
+}) {
+  if (isEmpty(constraintViolations)) {
+    return null;
+  }
+
+  const { constraintName, reasons, conditions } = head(constraintViolations);
 
   return (
     <div id="policy-violation-constraint-info">

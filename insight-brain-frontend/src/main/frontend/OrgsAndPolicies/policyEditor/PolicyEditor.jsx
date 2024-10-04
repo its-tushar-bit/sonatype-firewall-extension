@@ -6,6 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import classNames from 'classnames';
+import { any, includes, __ } from 'ramda';
 
 import { actions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import {
@@ -36,17 +37,25 @@ import {
   NxPageTitle,
   NxTile,
   NxWarningAlert,
+  NxFontAwesomeIcon,
+  NxInfoAlert,
+  NxTextLink,
 } from '@sonatype/react-shared-components';
 import EditPolicySummary from './editPolicySummary/EditPolicySummary';
 import EditPolicyInheritance from './editPolicyInheritance/EditPolicyInheritance';
 import ConstraintsEditor from './constraints/ConstraintsEditor';
 import PolicyNotificationsEditor from './policyNotificationsEditor/PolicyNotificationsEditor';
 import PolicyActionsEditor from './policyActionsEditor/PolicyActionsEditor';
-import { selectEntityId } from '../orgsAndPoliciesSelectors';
-import { selectIsRepositoriesRelated } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectEntityId, selectOwnerProperties } from '../orgsAndPoliciesSelectors';
+import { selectIsRepositoriesRelated, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectProducts } from 'MainRoot/productFeatures/productLicenseSelectors';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { faLock } from '@fortawesome/pro-regular-svg-icons';
+import './PolicyEditor.scss';
 
 export default function PolicyEditor() {
   const dispatch = useDispatch();
+  const uiRouterState = useRouterState();
 
   const loading = useSelector(selectLoading);
   const loadError = useSelector(selectLoadError);
@@ -68,6 +77,12 @@ export default function PolicyEditor() {
   const overrideNeedsToBeUpdated = useSelector(selectOverrideNeedsToBeUpdated);
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
   const isLoading = ownerDetailTreeLoading || loading;
+  const isSbomManager = useSelector(selectIsSbomManager);
+  const productsEnabled = useSelector(selectProducts);
+  const selectedOwnerProperties = useSelector(selectOwnerProperties);
+  const isSonatypeLifecycleEnabled = any(includes(__, ['Sonatype Lifecycle', 'Sonatype Lifecycle SaaS']))(
+    productsEnabled
+  );
 
   const showInheritedSection = isOrgOwner || isRepoContainerOwner || isRepoManagerOwner;
   const loadPolicyEditor = () => dispatch(actions.loadPolicyEditor());
@@ -105,11 +120,38 @@ export default function PolicyEditor() {
     loadPolicyEditor();
   }, [entityId]);
 
+  const OWNER_TYPE_ID_MAP = {
+    application: `applicationPublicId`,
+    organization: `organizationId`,
+  };
+
+  const lifecycleRefPath = uiRouterState.href(`management.edit.${selectedOwnerProperties.ownerType}.policy`, {
+    [OWNER_TYPE_ID_MAP[selectedOwnerProperties.ownerType]]: selectedOwnerProperties.ownerId,
+    policyId: dirtyPolicy?.id,
+  });
+
+  const nxTextLinkProps = {
+    textLink: isSonatypeLifecycleEnabled ? 'Manage in Lifecycle' : 'Start your demo today',
+    refPath: isSonatypeLifecycleEnabled ? lifecycleRefPath : 'https://links.sonatype.com/nexus-lifecycle-sbom',
+  };
+
   return (
     <div id="policy-editor-summary">
       <NxPageTitle>
         <NxH1>{dirtyPolicy?.id ? (isInherited ? 'View' : 'Edit') : 'New'} Policy</NxH1>
+        {isSbomManager && <NxFontAwesomeIcon icon={faLock} data-testid="policy-editor-lock-icon" />}
       </NxPageTitle>
+
+      {isSbomManager && dirtyPolicy && (
+        <NxInfoAlert>
+          {isSonatypeLifecycleEnabled
+            ? 'Switch to Lifecycle to manage your policies. '
+            : 'Custom policies are available with Lifecycle. '}
+          <NxTextLink className="policy-editor-lifecycle-link" href={nxTextLinkProps.refPath} noReferrer newTab>
+            {nxTextLinkProps.textLink}
+          </NxTextLink>
+        </NxInfoAlert>
+      )}
 
       <NxTile>
         <NxStatefulForm
@@ -127,7 +169,7 @@ export default function PolicyEditor() {
           validationErrors={!validationError ? null : validationError === true ? '' : validationError}
           submitError={submitError}
           additionalFooterBtns={
-            dirtyPolicy?.id && !isInherited ? (
+            dirtyPolicy?.id && !isInherited && !isSbomManager ? (
               <NxButton
                 id="delete-policy-button"
                 variant="tertiary"
@@ -144,7 +186,7 @@ export default function PolicyEditor() {
             <EditPolicySummary />
             {showInheritedSection && <EditPolicyInheritance />}
             <ConstraintsEditor />
-            <PolicyActionsEditor />
+            {!isSbomManager && <PolicyActionsEditor />}
             <PolicyNotificationsEditor />
           </NxTile.Content>
         </NxStatefulForm>

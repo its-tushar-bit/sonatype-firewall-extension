@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   NxFontAwesomeIcon,
   NxLoadWrapper,
@@ -21,6 +21,7 @@ import {
   selectLoadErrorFeatures,
   selectLoadingFeatures,
   selectNoSbomManagerEnabledError,
+  selectIsSbomPoliciesSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { ComponentDetailsHeader, ComponentDetailsTags, Title } from 'MainRoot/componentDetails/ComponentDetailsHeader';
 import VulnerabilitiesTile from 'MainRoot/sbomManager/features/componentDetails/VulnerabilitiesTile';
@@ -50,6 +51,9 @@ import ComponentDetailsSbomInfo from 'MainRoot/sbomManager/features/componentDet
 import VulnerabilitiesSummary from 'MainRoot/sbomManager/features/componentDetails/VulnerabilitiesSummary';
 import SbomVulnerabilityDetailsPopover from 'MainRoot/sbomManager/features/componentDetails/vulnerabilitiesDrawer/SbomVulnerabilityDetailsPopover';
 
+import PolicyViolationsTile from 'MainRoot/sbomManager/features/componentDetails/policyViolationsTile/PolicyViolationsTile';
+import PolicyViolationDetailsDrawer from 'MainRoot/sbomManager/features/componentDetails//policyViolationDetailsDrawer/PolicyViolationDetailsDrawer';
+
 import VexAnnotationDrawer from 'MainRoot/sbomManager/features/componentDetails/vexAnnotationsDrawer/VexAnnotationDrawer';
 import { isNil } from 'ramda';
 import DeleteAnnotationModal from 'MainRoot/sbomManager/features/componentDetails/DeleteAnnotationModal';
@@ -72,6 +76,7 @@ export default function ComponentDetailsPage() {
     activeTabIndex,
     disclosedVulnerabilitiesSortConfiguration,
     additionalVulnerabilitiesSortConfiguration,
+    sbomPolicyViolations,
   } = useSelector(selectSbomComponentDetails);
   const showDeleteModal = useSelector(selectShowDeleteModal);
   const deleteError = useSelector(selectDeleteError);
@@ -79,8 +84,18 @@ export default function ComponentDetailsPage() {
   const showCopyModal = useSelector(selectShowCopyModal);
   const copyError = useSelector(selectCopyError);
   const copyMaskState = useSelector(selectCopyMaskState);
+  const isSbomPoliciesSupported = useSelector(selectIsSbomPoliciesSupported);
 
   const { applicationPublicId, sbomVersion, componentHash } = routerParams;
+  const isMounted = useRef(true);
+
+  useEffect(
+    () => () => {
+      isMounted.current = false;
+    },
+    []
+  );
+
   const internalAppId = useSelector(selectInternalAppId);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isVexAnnotationPopoverOpen, setIsVexAnnotationPopoverOpen] = useState(false);
@@ -151,15 +166,23 @@ export default function ComponentDetailsPage() {
   const cycleAdditionalVulnerabilitiesSortDirection = (sortBy) =>
     dispatch(actions.cycleAdditionalVulnerabilitiesSortDirection({ sortBy }));
 
-  const initialize = () => {
+  useEffect(() => {
     loadInternalAppId();
     loadVexReferenceData();
     loadStateForBreadcrum();
-  };
+  }, []);
 
   useEffect(() => {
-    initialize();
-  }, []);
+    if (componentDetails?.fileCoordinateId && isSbomPoliciesSupported) {
+      dispatch(
+        actions.loadSbomPolicyViolations({
+          applicationPublicId,
+          sbomVersion,
+          fileCoordinateId: componentDetails.fileCoordinateId,
+        })
+      );
+    }
+  }, [applicationPublicId, sbomVersion, componentDetails, isSbomPoliciesSupported]);
 
   useEffect(() => {
     if (internalAppId) {
@@ -170,9 +193,9 @@ export default function ComponentDetailsPage() {
   const copyToClipboard = async (value) => {
     try {
       await navigator.clipboard.writeText(value);
-      setIsPurlCopied(true);
+      if (isMounted.current) setIsPurlCopied(true);
       setTimeout(() => {
-        setIsPurlCopied(false);
+        if (isMounted.current) setIsPurlCopied(false);
       }, 2000);
     } catch (err) {}
   };
@@ -186,7 +209,9 @@ export default function ComponentDetailsPage() {
     loadSbomComponentVulnerabilities(vulnerability);
   };
 
-  const closeVexAnnotationModal = () => setIsVexAnnotationPopoverOpen(false);
+  const closeVexAnnotationModal = () => {
+    if (isMounted.current) setIsVexAnnotationPopoverOpen(false);
+  };
 
   const openVexAnnotationModal = (vulnerabilityRow) => {
     setSelectedVulnerability(vulnerabilityRow);
@@ -231,6 +256,7 @@ export default function ComponentDetailsPage() {
 
   return (
     <>
+      <PolicyViolationDetailsDrawer />
       {!isNil(selectedVulnerability) && (
         <VexAnnotationDrawer
           isDrawerOpen={isVexAnnotationPopoverOpen}
@@ -254,8 +280,8 @@ export default function ComponentDetailsPage() {
         <MenuBarStatefulBreadcrumb />
         <NxLoadWrapper
           retryHandler={load}
-          loading={isProductFeaturesLoading || isLoading}
-          error={errorLoadingProductFeatures || noSbomManagerEnabledError || loadError}
+          loading={isProductFeaturesLoading || isLoading || (isSbomPoliciesSupported && sbomPolicyViolations.loading)}
+          error={errorLoadingProductFeatures || noSbomManagerEnabledError || loadError || sbomPolicyViolations?.error}
         >
           {componentDetails && (
             <div className="sbom-component-details">
@@ -291,6 +317,7 @@ export default function ComponentDetailsPage() {
               <NxTabs activeTab={activeTabIndex} onTabSelect={setActiveTabIndex}>
                 <NxTabList>
                   <NxTab>Vulnerability</NxTab>
+                  {isSbomPoliciesSupported && <NxTab>Policy Violations</NxTab>}
                 </NxTabList>
                 <NxTabPanel>
                   {componentDetails.vulnerabilitySummary && (
@@ -329,6 +356,11 @@ export default function ComponentDetailsPage() {
                     componentDetails={componentDetails}
                   ></ComponentDetailsDependencyTreeTile>
                 </NxTabPanel>
+                {isSbomPoliciesSupported && (
+                  <NxTabPanel>
+                    <PolicyViolationsTile policy={sbomPolicyViolations.policy} />
+                  </NxTabPanel>
+                )}
               </NxTabs>
             </div>
           )}

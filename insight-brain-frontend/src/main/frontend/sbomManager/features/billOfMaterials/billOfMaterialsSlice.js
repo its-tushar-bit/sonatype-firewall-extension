@@ -20,6 +20,7 @@ import {
   omit,
   pick,
   pickBy,
+  prop,
   replace,
   trim,
   values,
@@ -65,6 +66,13 @@ export const componentSummaryInitialState = Object.freeze({
   direct: 0,
   transitive: 0,
   unspecified: 0,
+});
+
+export const policyViolationSummaryInitialState = Object.freeze({
+  critical: 0,
+  severe: 0,
+  moderate: 0,
+  low: 0,
 });
 
 // export-and-download-sbom
@@ -131,6 +139,7 @@ export const initialState = Object.freeze({
   errorSbomSummary: null,
   componentSummary: { ...componentSummaryInitialState },
   vulnerabilitiesSummary: { ...vulnerabilitiesSummaryInitialState },
+  policyViolationSummary: { ...policyViolationSummaryInitialState },
   annotatedVulnerabilitesPercentage: null,
 
   // sbom-additional-export-options-modal
@@ -232,6 +241,7 @@ const loadSbomSummaryRequested = (state) => {
   state.errorSbomSummary = null;
   state.componentSummary = { ...componentSummaryInitialState };
   state.vulnerabilitiesSummary = { ...vulnerabilitiesSummaryInitialState };
+  state.policyViolationSummary = { ...policyViolationSummaryInitialState };
   state.annotatedVulnerabilitesPercentage = null;
 };
 
@@ -240,6 +250,7 @@ const loadSbomSummaryFailed = (state, { payload }) => {
   state.errorSbomSummary = payload;
   state.componentSummary = { ...componentSummaryInitialState };
   state.vulnerabilitiesSummary = { ...vulnerabilitiesSummaryInitialState };
+  state.policyViolationSummary = { ...policyViolationSummaryInitialState };
   state.annotatedVulnerabilitesPercentage = null;
 };
 
@@ -253,6 +264,14 @@ const loadSbomSummaryFulfilled = (state, { payload }) => {
   state.vulnerabilitiesSummary = {
     ...vulnerabilitiesSummaryInitialState,
     ...compose(pick(Object.keys(vulnerabilitiesSummaryInitialState)), pickBy(complement(isNil)))(payload),
+  };
+  state.policyViolationSummary = {
+    ...policyViolationSummaryInitialState,
+    ...compose(
+      pick(Object.keys(policyViolationSummaryInitialState)),
+      pickBy(complement(isNil)),
+      prop('policyViolationSummary')
+    )(payload),
   };
   state.annotatedVulnerabilitesPercentage = payload.annotatedPercentage;
 };

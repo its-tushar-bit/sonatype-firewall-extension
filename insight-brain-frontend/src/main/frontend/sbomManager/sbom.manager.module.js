@@ -103,6 +103,30 @@ function routes($stateProvider) {
         authenticationRequired: true,
       },
     })
+    .state('sbomManager.mailConfig', {
+      component: 'mailConfig',
+      url: '/mailConfig',
+      data: {
+        title: 'Mail Config',
+        isDirty: ['mailConfig', 'isDirty'],
+      },
+      resolve: {
+        isAuthorized: [
+          'PermissionService',
+          function (PermissionService) {
+            return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
+          },
+        ],
+      },
+    })
+    .state('sbomManager.baseUrlConfiguration', {
+      url: '/baseUrl',
+      component: 'baseUrlConfiguration',
+      data: {
+        title: 'Base URL Configuration',
+        isDirty: ['baseUrlConfiguration', 'isDirty'],
+      },
+    })
     .state('sbomManager.learnMore', {
       url: '/learnMore',
       component: 'learnMoreSbomManager',
@@ -127,6 +151,14 @@ function routes($stateProvider) {
           title: ownerType.name + ' Management',
         },
         template: editTemplate,
+      })
+      .state('sbomManager.management.edit.' + ownerType.type + '.policy', {
+        url: '/policy/{policyId}',
+        data: {
+          title: ownerType.name + ' Policy',
+          isDirty: ['orgsAndPolicies', 'policy', 'isDirty'],
+        },
+        component: 'policyEditor',
       })
       .state('sbomManager.management.edit.' + ownerType.type + '.add-access', {
         url: '/access',

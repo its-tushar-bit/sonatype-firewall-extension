@@ -54,6 +54,7 @@ import { formatNumberLocale } from 'MainRoot/util/formatUtils';
 import ComponentsFilterDrawer from './componentsFilterDrawer/ComponentsFilterDrawer';
 import { selectBillOfMaterialsComponentsTile } from './billOfMaterialsComponentsTileSelectors.js';
 import { actions, COMPONENTS_PER_PAGE, SORT_BY_FIELDS, SORT_DIRECTION } from './billOfMaterialsComponentsTileSlice';
+import { selectIsSbomPoliciesSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 import './billOfMaterialsComponentsTile.scss';
 
@@ -80,7 +81,7 @@ ComponentsTileComponentNameSearch.propTypes = {
 
 export default function BillOfMaterialsComponentsTile({ internalAppId }) {
   const { applicationPublicId, versionId: sbomVersion } = useSelector(selectRouterCurrentParams);
-
+  const isSbomPoliciesSupported = useSelector(selectIsSbomPoliciesSupported);
   const uiRouterState = useRouterState();
 
   const dispatch = useDispatch();
@@ -170,6 +171,7 @@ export default function BillOfMaterialsComponentsTile({ internalAppId }) {
                 lowCount={component.vulnerabilitySeverityLowCount}
               />
             </NxTable.Cell>
+            {isSbomPoliciesSupported && <NxTable.Cell>{component.policyViolationCount}</NxTable.Cell>}
             <NxTable.Cell>
               <div className="sbom-manager-bill-of-materials-components-tile__percentage-annotated">
                 <NxBinaryDonutChart
@@ -274,6 +276,7 @@ export default function BillOfMaterialsComponentsTile({ internalAppId }) {
                 <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.vulnerabilities)}>
                   Vulnerabilities
                 </NxTable.Cell>
+                {isSbomPoliciesSupported && <NxTable.Cell>Violations</NxTable.Cell>}
                 <NxTable.Cell {...createColumnSortHandler(SORT_BY_FIELDS.percentageAnnotated)}>
                   Percentage Annotated
                 </NxTable.Cell>

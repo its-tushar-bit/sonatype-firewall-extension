@@ -26,8 +26,15 @@ public class CDPSbomComponentDetailsDTO
     // no op
   }
 
-  public CDPSbomComponentDetailsDTO(String hash, String packageUrl, String name, String version) {
+  public CDPSbomComponentDetailsDTO(
+      String hash,
+      String packageUrl,
+      String name,
+      String version,
+      String fileCoordinateId)
+  {
     super(new String[]{hash, packageUrl, name, version});
+    setFileCoordinateId(fileCoordinateId);
   }
 
   public VulnerabilitySummaryDTO getVulnerabilitySummary() {

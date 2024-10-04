@@ -510,9 +510,10 @@ public class ScanPolicyEvaluator
         }
       }
 
-      setLegacyViolations(tx, isLegacyViolationEnabled, app, policies, policyEvaluation.getTime(),
-          results.allViolations);
-
+      if (!stage.getStageTypeId().equals(Stage.ID_COMPLIANCE)) {
+        setLegacyViolations(tx, isLegacyViolationEnabled, app, policies, policyEvaluation.getTime(),
+            results.allViolations);
+      }
       ApplicationPolicyViolationLogger policyViolationLogger =
           policyViolationLoggerFactory.newLogger(policyEvaluation.getTime(), app);
 

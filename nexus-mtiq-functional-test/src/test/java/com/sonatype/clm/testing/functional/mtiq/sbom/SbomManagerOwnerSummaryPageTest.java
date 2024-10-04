@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.mtiq.sbom;
 import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar.OwnerItem;
 import com.sonatype.clm.testing.functional.elements.OwnerSummaryTile;
+import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.mtiq.AbstractMtiqFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
@@ -16,10 +17,15 @@ import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerDashboardPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.attribute;
@@ -49,7 +55,7 @@ public class SbomManagerOwnerSummaryPageTest
     childApplication1 = tempEntity.newApplicationWithParent(childOrganization);
     childApplication2 = tempEntity.newApplicationWithParent(childOrganization2);
 
-    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS, ProductLicenseDetails.PRODUCT_FOUNDATION);
     refreshOrOpen(IndexPage.url());
     loginAsAdmin();
   }
@@ -96,6 +102,24 @@ public class SbomManagerOwnerSummaryPageTest
   }
 
   @Test
+  public void testNavigateToOrganizations_sbomAndFirewallRepositoryLicense_RepositoryNotVisible() {
+    setLicensedProducts(
+        ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS, ProductLicenseDetails.PRODUCT_FOUNDATION,
+        ProductLicenseDetails.PRODUCT_REPOSITORY_FIREWALL_SAAS
+    );
+    refreshOrOpen(SbomManagerDashboardPage.url());
+    SidebarNavigation.sbomManagerOrganizationsNavigationButton().click();
+
+    OwnerSummaryTile ownerSummaryTile = OwnerSummaryPage.summaryTile();
+    ownerSummaryTile.shouldBe(visible);
+    isSbomManagerPage();
+
+    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
+    orgsAndPoliciesSidebar.getRepositoryList().shouldNotBe(visible);
+    orgsAndPoliciesSidebar.getRepoManagerList().shouldNotBe(visible);
+  }
+
+  @Test
   public void testSbomManager_ImportApplications_NotVisible() {
     refreshOrOpen(SbomManagerDashboardPage.url());
     SidebarNavigation.sbomManagerOrganizationsNavigationButton().click();
@@ -103,6 +127,47 @@ public class SbomManagerOwnerSummaryPageTest
     orgsAndPoliciesSidebar.getOrganizationLink(0).click();
     orgsAndPoliciesSidebar.getApplicationPlusIcon().click();
     orgsAndPoliciesSidebar.getImportApplicationsButton().shouldNotBe(visible);
+  }
+
+  @Test
+  public void testSbomManager_policyTable() {
+    SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
+
+    List<Policy> policies = new ArrayList<>();
+    policies.add(tempEntity.newPolicy(parentOrganization.getId(), "Policy 1", 10, null, null, null));
+    policies.add(tempEntity.newPolicy(parentOrganization.getId(), "Policy 2", 5, null, null, null));
+
+    logout();
+    refreshOrOpen(IndexPage.url());
+    loginAsAdmin();
+
+    refreshOrOpen(SbomManagerDashboardPage.url());
+    SidebarNavigation.sbomManagerOrganizationsNavigationButton().click();
+    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
+    orgsAndPoliciesSidebar.getOrganizationLink(0).click();
+    isSbomManagerPage();
+
+    PolicyTile policyTile = OwnerSummaryPage.policyTile();
+    policyTile.shouldBe(visible);
+    policyTile.headerColumns().shouldHave(size(3));
+  }
+
+  @Test
+  public void testSbomManager_policyTableHiddenWhenDisabled() {
+    SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(false);
+
+    List<Policy> policies = new ArrayList<>();
+    policies.add(tempEntity.newPolicy(parentOrganization.getId(), "Policy 1", 10, null, null, null));
+    policies.add(tempEntity.newPolicy(parentOrganization.getId(), "Policy 2", 5, null, null, null));
+
+    refreshOrOpen(SbomManagerDashboardPage.url());
+    SidebarNavigation.sbomManagerOrganizationsNavigationButton().click();
+    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
+    orgsAndPoliciesSidebar.getOrganizationLink(0).click();
+    isSbomManagerPage();
+
+    PolicyTile policyTile = OwnerSummaryPage.policyTile();
+    policyTile.shouldNotBe(visible);
   }
 
   private void isSbomManagerPage() {

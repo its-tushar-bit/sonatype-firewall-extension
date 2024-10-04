@@ -22,6 +22,7 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskScoreDTO;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -44,6 +45,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -51,9 +53,12 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.google.common.annotations.VisibleForTesting;
 import org.codehaus.plexus.util.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME;
@@ -67,6 +72,8 @@ public class ReportService
   private final ReportDownloader reportDownloader;
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
+
+  private static final Logger log = LoggerFactory.getLogger(ReportService.class);
 
   private final Configuration configuration;
 
@@ -186,6 +193,52 @@ public class ReportService
         thirdPartyDataService.deleteByScanId(scanId);
       }
     }
+  }
+
+  private void auditBrowseReport(final String scanId, final String name) {
+    if (name.endsWith(".json")) {
+      AuditData.get().setReportId(scanId);
+    }
+    else {
+      AuditData.get().setEvent(null);
+    }
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ReportEntry processBrowseReport(
+      final @AuthzContext(AuthzContext.Key.APPLICATION_ID) String appPublicId,
+      String scanId,
+      String path)
+  {
+    final String name = Report.toEntryName(path);
+    auditBrowseReport(scanId, name);
+    final File reportFile = getReport(appPublicId, scanId);
+    ReportEntry reportEntry = null;
+    try {
+      reportEntry = Report.getEntry(reportFile, name);
+      if (Report.SECURITY_JSON_FILENAME.equals(name)) {
+        reportEntry = loadCombinedSecurityData(reportEntry, reportFile);
+      }
+    }
+    catch (final Exception e) {
+      log.warn("Problem embedding report: " + e.getMessage(), e);
+    }
+    return reportEntry;
+  }
+
+  private ReportEntry loadCombinedSecurityData(ReportEntry reportEntry, File reportFile) throws IOException {
+    ReportEntry thirdPartyReportEntry =
+        Report.getEntry(reportFile, ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME);
+    if (reportEntry != null && thirdPartyReportEntry != null) {
+      ContainerNode<?> thirdPartySecurityNode = JsonUtils.parse(thirdPartyReportEntry.buf);
+      ContainerNode<?> securityNode = JsonUtils.parse(reportEntry.buf);
+      ArrayNode thirdPartySecurityRootNode = (ArrayNode) thirdPartySecurityNode.get("aaData");
+      ArrayNode securityRootNode = (ArrayNode) securityNode.get("aaData");
+      securityRootNode.addAll(thirdPartySecurityRootNode);
+
+      return new ReportEntry(Report.SECURITY_JSON_FILENAME, reportEntry.time, JsonUtils.generate(securityNode));
+    }
+    return reportEntry;
   }
 
   public File getReport(final String appId, final String scanId) {

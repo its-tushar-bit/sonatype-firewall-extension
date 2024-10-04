@@ -7,6 +7,8 @@ import reducer, {
   SORT_BY_FIELDS,
   SORT_DIRECTION,
   defaultSortConfiguration,
+  policyViolationDetailsDrawerInitialState,
+  sbomPolicyViolationsInitialState,
 } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
 
 describe('SBOM Manager componentDetailsSlice', function () {
@@ -283,6 +285,107 @@ describe('SBOM Manager componentDetailsSlice', function () {
         expect(state2.additionalVulnerabilitiesSortConfiguration.sortBy).toBe(SORT_BY_FIELDS.cvssScore);
         expect(state2.additionalVulnerabilitiesSortConfiguration.sortDirection).toBe(SORT_DIRECTION.ASC);
       });
+    });
+  });
+
+  describe('policyViolationDetailsDrawer', () => {
+    describe('showPolicyViolationDetailsDrawer', () => {
+      it('sets the correct state values', () => {
+        const state0 = {
+          policyViolationDetailsDrawer: { ...policyViolationDetailsDrawerInitialState },
+        };
+
+        const state1 = reducer(state0, {
+          type: 'sbomComponentDetailsPage/showPolicyViolationDetailsDrawer',
+          payload: 123,
+        });
+
+        expect(state1.policyViolationDetailsDrawer.showDrawer).toBe(true);
+        expect(state1.policyViolationDetailsDrawer.policyViolationId).toBe(123);
+      });
+    });
+
+    describe('hidePolicyViolationDetailsDrawer', () => {
+      it('sets the correct state values', () => {
+        const state0 = {
+          policyViolationDetailsDrawer: {
+            showDrawer: true,
+            policyViolationId: 123,
+          },
+        };
+
+        const state1 = reducer(state0, {
+          type: 'sbomComponentDetailsPage/hidePolicyViolationDetailsDrawer',
+          payload: 123,
+        });
+
+        expect(state1.policyViolationDetailsDrawer.showDrawer).toBe(false);
+        expect(state1.policyViolationDetailsDrawer.policyViolationId).toBe(null);
+      });
+    });
+  });
+
+  describe('sbomComponentDetailsPage/loadSbomPolicyViolationReport', function () {
+    it('/pending', () => {
+      const state = {
+        sbomPolicyViolations: {
+          ...sbomPolicyViolationsInitialState,
+        },
+      };
+
+      const newState = reducer(state, {
+        type: 'sbomComponentDetailsPage/loadSbomPolicyViolationReport/pending',
+      });
+
+      expect(newState.sbomPolicyViolations.loading).toBe(true);
+      expect(newState.sbomPolicyViolations.error).toBe(null);
+      expect(newState.sbomPolicyViolations.policy).toBe(null);
+    });
+
+    it('/failed', () => {
+      const state = {
+        sbomPolicyViolations: {
+          ...sbomPolicyViolationsInitialState,
+        },
+      };
+
+      const payload = {
+        response: {
+          data: 'payload-error',
+        },
+      };
+
+      const newState = reducer(state, {
+        type: 'sbomComponentDetailsPage/loadSbomPolicyViolationReport/rejected',
+        payload: payload,
+      });
+
+      expect(newState.sbomPolicyViolations.loading).toBe(false);
+      expect(newState.sbomPolicyViolations.error).toBe('payload-error');
+      expect(newState.sbomPolicyViolations.policy).toBe(null);
+    });
+
+    it('/fulfilled', () => {
+      const state = {
+        sbomPolicyViolations: {
+          ...sbomPolicyViolationsInitialState,
+        },
+      };
+
+      const fakePartialReportData = {
+        policyId: '123',
+        policyName: 'Security-High',
+        policyThreatLevel: 9,
+      };
+
+      const newState = reducer(state, {
+        type: 'sbomComponentDetailsPage/loadSbomPolicyViolationReport/fulfilled',
+        payload: fakePartialReportData,
+      });
+
+      expect(newState.sbomPolicyViolations.loading).toBe(false);
+      expect(newState.sbomPolicyViolations.error).toBe(null);
+      expect(newState.sbomPolicyViolations.policy).toEqual(fakePartialReportData);
     });
   });
 });

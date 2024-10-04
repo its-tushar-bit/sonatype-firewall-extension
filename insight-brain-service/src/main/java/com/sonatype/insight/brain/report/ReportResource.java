@@ -23,6 +23,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -77,7 +78,6 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 import com.sonatype.insight.brain.utils.JsonFileStore;
 import com.sonatype.insight.brain.utils.JsonStore;
@@ -87,12 +87,11 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 
 @Path(ReportResource.RESOURCE_PATH)
 @Named
@@ -114,8 +113,6 @@ public class ReportResource
   public static final String PREPARE_PATH = "{scanId}/prepareReport";
 
   public static final String METADATA_PATH = "{scanId}/metadata";
-
-  private static final Logger log = LoggerFactory.getLogger(ReportResource.class);
 
   private static final Set<Character> INVALID_FILESYSTEM_CHARACTERS;
 
@@ -206,117 +203,92 @@ public class ReportResource
       @PathParam("path") final String path,
       @Context final HttpServletRequest httpRequest)
   {
-    return processBrowseReport(appPublicId, scanId, path, httpRequest);
+    ReportEntry reportEntry = reportService.processBrowseReport(applicationDAO.getByPublicId(appPublicId).getId(),
+        scanId, path);
+    if (reportEntry == null) {
+      return Response.status(Status.NOT_FOUND).build();
+    }
+    return downloadReportEntry(reportEntry, httpRequest);
   }
 
   @GET
   @Path(SBOM_POLICY_VIOLATION_REPORT)
-  @Authorize(permission = Permission.READ)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
   public Response getSbomPolicyViolationReport(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) @PathParam("applicationPublicId")
+      @PathParam("applicationPublicId")
       final String applicationPublicId,
       @PathParam("sbomVersion") final String sbomVersion,
-      @Context final HttpServletRequest httpRequest)
+      @QueryParam("fileCoordinateId") final String fileCoordinateId,
+      @Context final HttpServletRequest httpRequest) throws IOException
   {
-    String applicationInternalId = findApplicationInternalId(applicationPublicId);
-    String scanId = sbomPolicyService.getScanIdForPolicyViolation(applicationInternalId, sbomVersion);
+    String applicationInternalId = applicationDAO.getByPublicIdNotNull(applicationPublicId).getId();
+    ReportEntry policyThreatsReportEntry =
+        sbomPolicyService.getPolicyViolationsReportEntry(applicationInternalId, sbomVersion);
 
-    return processBrowseReport(applicationPublicId, scanId, "policythreats.json", httpRequest);
-  }
-
-  private Response processBrowseReport(String appPublicId,
-                           String scanId,
-                           String path,
-                           @Context final HttpServletRequest httpRequest)
-  {
-    String applicationInternalId = findApplicationInternalId(appPublicId);
-
-    final String name = Report.toEntryName(path);
-    auditBrowseReport(scanId, name);
-    final File reportFile = reportService.getReport(applicationInternalId, scanId);
-    ReportEntry reportEntry = null;
-    try {
-      reportEntry = Report.getEntry(reportFile, name);
-      if (Report.SECURITY_JSON_FILENAME.equals(name)) {
-        reportEntry = loadCombinedSecurityData(reportEntry, reportFile);
-      }
+    if (policyThreatsReportEntry == null) {
+      return Response.status(Status.NOT_FOUND).build();
     }
-    catch (final Exception e) {
-      log.warn("Problem embedding report: " + e.getMessage(), e);
-    }
-    if (reportEntry != null) {
-      // we don't want to deal with any kind file timestamp stuff with index.html, since we are modifying
-      // the contents loaded from the file before serving up to the browser, the timestamp on the file won't
-      // change, even when brain versions do, so index.html is always sent in response
-      if (reportEntry.name.equals("index.html")) {
-        reportEntry = Report.appendCacheBustingParams(reportEntry, versionService.getVersion());
+
+    if (StringUtils.isNotEmpty(fileCoordinateId)) {
+      JsonNode jsonNode = sbomPolicyService.getPolicyViolationsJsonNodeByFileCoordinateId(applicationInternalId,
+          sbomVersion, fileCoordinateId, policyThreatsReportEntry);
+
+      if (jsonNode != null) {
+        ResponseBuilder response = Response.ok(jsonNode);
+        response.lastModified(new Date(policyThreatsReportEntry.time));
+        response.type(httpRequest.getServletContext().getMimeType(policyThreatsReportEntry.name));
+        return response.build();
       }
       else {
-        final long ifModifiedSince = httpRequest.getDateHeader(HttpHeaders.IF_MODIFIED_SINCE);
-        if (ifModifiedSince >= 0 && reportEntry.time / 1000 <= ifModifiedSince / 1000) {
-          return Response.status(304).build();
-        }
+        return Response.status(Status.NOT_FOUND).build();
       }
-      if ("bom.json".equals(name) && (reportEntry.buf.length > FILE_SIZE_THRESHOLD)) {
-        reportEntry = removeBomPathnames(reportEntry);
-      }
-      String mimeType = httpRequest.getServletContext().getMimeType(name);
-      if (mimeType == null) {
-        mimeType = "application/octet-stream";
-      }
-      else if (mimeType.startsWith("text")) {
-        mimeType += ";charset=UTF-8";
-      }
-      final ResponseBuilder response = Response.ok(reportEntry.buf);
-      response.lastModified(new Date(reportEntry.time));
-      response.type(mimeType);
-      if (!name.endsWith(".json") && !name.equals("index.html")) {
-        response.expires(new Date(System.currentTimeMillis() + YEAR));
-      }
-      else {
-        // JSON files and the index.html should always check with the server to ensure they are updated.
-        // A 304 will be returned for JSON files if they don't need updating, index.html will ALWAYS be
-        // returned with a 200 status
-        response.expires(new Date());
-      }
-      return response.build();
     }
-    return Response.status(Status.NOT_FOUND).build();
+    else {
+      return downloadReportEntry(policyThreatsReportEntry, httpRequest);
+    }
   }
 
-  private String findApplicationInternalId(String applicationPublicId) {
-    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    return application.getId();
-  }
-
-  private ReportEntry loadCombinedSecurityData(ReportEntry reportEntry, File reportFile) throws IOException {
-    ReportEntry thirdPartyReportEntry =
-        Report.getEntry(reportFile, ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME);
-    if (reportEntry != null && thirdPartyReportEntry != null) {
-      ContainerNode<?> thirdPartySecurityNode = JsonUtils.parse(thirdPartyReportEntry.buf);
-      ContainerNode<?> securityNode = JsonUtils.parse(reportEntry.buf);
-      ArrayNode thirdPartySecurityRootNode = (ArrayNode) thirdPartySecurityNode.get("aaData");
-      ArrayNode securityRootNode = (ArrayNode) securityNode.get("aaData");
-      securityRootNode.addAll(thirdPartySecurityRootNode);
-
-      return new ReportEntry(Report.SECURITY_JSON_FILENAME, reportEntry.time, JsonUtils.generate(securityNode));
+  private Response downloadReportEntry(ReportEntry reportEntry, HttpServletRequest httpRequest) {
+    // we don't want to deal with any kind file timestamp stuff with index.html, since we are modifying
+    // the contents loaded from the file before serving up to the browser, the timestamp on the file won't
+    // change, even when brain versions do, so index.html is always sent in response
+    if (reportEntry.name.equals("index.html")) {
+      reportEntry = Report.appendCacheBustingParams(reportEntry, versionService.getVersion());
     }
-    return reportEntry;
+    else {
+      final long ifModifiedSince = httpRequest.getDateHeader(HttpHeaders.IF_MODIFIED_SINCE);
+      if (ifModifiedSince >= 0 && reportEntry.time / 1000 <= ifModifiedSince / 1000) {
+        return Response.status(304).build();
+      }
+    }
+    if ("bom.json".equals(reportEntry.name) && (reportEntry.buf.length > FILE_SIZE_THRESHOLD)) {
+      reportEntry = removeBomPathnames(reportEntry);
+    }
+    String mimeType = httpRequest.getServletContext().getMimeType(reportEntry.name);
+    if (mimeType == null) {
+      mimeType = "application/octet-stream";
+    }
+    else if (mimeType.startsWith("text")) {
+      mimeType += ";charset=UTF-8";
+    }
+    final ResponseBuilder response = Response.ok(reportEntry.buf);
+    response.lastModified(new Date(reportEntry.time));
+    response.type(mimeType);
+    if (!reportEntry.name.endsWith(".json") && !reportEntry.name.equals("index.html")) {
+      response.expires(new Date(System.currentTimeMillis() + YEAR));
+    }
+    else {
+      // JSON files and the index.html should always check with the server to ensure they are updated.
+      // A 304 will be returned for JSON files if they don't need updating, index.html will ALWAYS be
+      // returned with a 200 status
+      response.expires(new Date());
+    }
+    return response.build();
   }
 
   private ReportEntry removeBomPathnames(ReportEntry reportEntry) {
     byte[] jsonWithoutFieldBuf = JsonUtils.setFieldToEmptyArray(reportEntry.buf, "pathnames");
     return new ReportEntry(reportEntry.name, reportEntry.time, jsonWithoutFieldBuf);
-  }
-
-  private void auditBrowseReport(final String scanId, final String name) {
-    if (name.endsWith(".json")) {
-      AuditData.get().setReportId(scanId);
-    }
-    else {
-      AuditData.get().setEvent(null);
-    }
   }
 
   /**

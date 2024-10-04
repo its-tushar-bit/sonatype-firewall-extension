@@ -357,6 +357,29 @@ public class ScanPolicyEvaluatorTest
     testEvaluate_LegacyViolations(legacyViolations, true);
   }
 
+  @Test
+  public void testEvaluate_Results_LegacyViolations_Compliance_Stage() throws Exception {
+    application = tempEntity.newApplicationWithParent();
+    application.setLegacyViolationEnabled(true);
+    applicationDAO.update(application);
+
+    Stage stage = new Stage(Stage.ID_COMPLIANCE);
+    String scanId = simulateReportIsAvailable("report");
+
+    Policy policy = newSecurityPolicy();
+    policy.setLegacyViolationAllowed(true);
+    policyDAO.update(policy);
+
+    ScanPolicyEvaluatorResults results =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    results.activeViolations.forEach(policyViolation -> {
+      assertThat(policyViolation.isLegacyViolationApplied()).isFalse();
+      assertThat(policyViolation.getLegacyViolationTime()).isNull();
+      assertThat(policyViolation.isLegacyViolation()).isFalse();
+    });
+  }
+
   private void testEvaluate_LegacyViolations(
       boolean expectLegacyViolations,
       boolean legacyViolationsEnabled) throws Exception

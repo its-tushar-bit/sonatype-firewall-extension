@@ -9,6 +9,8 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Selenide.$x;
+
 public class SummarySection
     extends BasicElement<SummarySection>
 {
@@ -32,6 +34,9 @@ public class SummarySection
 
   public SelenideElement threatLevel() {
     return child("#editor-policy-threat-level .nx-btn");
+  }
 
+  public SelenideElement legacyViolationTitle() {
+    return $x("//legend[span[text()='Legacy Violations']]");
   }
 }

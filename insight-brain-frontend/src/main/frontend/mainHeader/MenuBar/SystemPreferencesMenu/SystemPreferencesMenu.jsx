@@ -4,9 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Children } from 'react';
+import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { faCog } from '@fortawesome/pro-solid-svg-icons';
 import { NxTooltip } from '@sonatype/react-shared-components';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
+
 import { MenuButton, MenuTitle, NavLink } from '../MenuButton/MenuButton';
 
 export const SystemPreferencesMenu = ({
@@ -36,6 +39,8 @@ export const SystemPreferencesMenu = ({
     MANAGE_AUTOMATIC_APPLICATION_CREATION = false,
     MANAGE_AUTOMATIC_SCM_CONFIGURATION = false,
   } = permissions;
+
+  const isSbomManager = useSelector(selectIsSbomManager);
 
   return (
     <MenuButton icon={faCog} iconLabel="System Preferences" id="system-configuration-menu">
@@ -84,7 +89,7 @@ export const SystemPreferencesMenu = ({
         Atlassian Crowd
       </NavLink>
       <NavLink
-        stateName="mailConfig"
+        stateName={`${isSbomManager ? 'sbomManager.' : ''}mailConfig`}
         id="system-configuration-email"
         showIf={CONFIGURE_SYSTEM && isEmailConfigurationEnabled}
       >
@@ -144,7 +149,7 @@ export const SystemPreferencesMenu = ({
         Automatic SCM Configuration
       </NavLink>
       <NavLink
-        stateName="baseUrlConfiguration"
+        stateName={`${isSbomManager ? 'sbomManager.' : ''}baseUrlConfiguration`}
         id="system-configuration-base-url"
         showIf={CONFIGURE_SYSTEM && isBaseUrlConfigurationEnabled}
       >

@@ -30,6 +30,8 @@ import com.sonatype.clm.testing.functional.elements.NotificationsSection.AddNoti
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
+import com.sonatype.clm.testing.functional.elements.OwnerDetailSidebar;
+import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.elements.ThreatDropdownSelector;
@@ -87,6 +89,7 @@ import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
+import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -121,6 +124,8 @@ public abstract class AbstractPolicyEditorTest
     extends AbstractFunctionalTest
 {
   protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
+  
+  protected static final String COMPLIANCE = new ComplianceStageType().getId();
 
   private Owner currentOwner;
 
@@ -380,6 +385,46 @@ public abstract class AbstractPolicyEditorTest
 
     OwnerSummaryPage.policyTile().localPolicyList().row(1).click();
     assertEditPolicyStateIsCorrect(policy, categories[0], categories[1], false, true, true, true, true);
+  }
+
+  @Test
+  public void testLifecycle_rendersCorrectlyWithSbomManagerSupport() {
+    setFeatures(LicensedFeature.POLICY_MANAGEMENT, LicensedFeature.POLICY_READ_ONLY,
+        LicensedFeature.POLICY_GRANDFATHERING, LicensedFeature.ENFORCEMENT, LicensedFeature.SBOM_MANAGER,
+        LicensedFeature.ORGS_AND_APPS, LicensedFeature.NOTIFICATIONS);
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS, ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+    
+    String ownerId = currentOwner.getId();
+    Tag[] categories = createCategories(
+        OwnerType.ORGANIZATION.equals(currentOwner.getType()) ? ownerId : currentOwner.getParentOwnerId());
+    createPolicy(ownerId, categories, false);
+
+    refreshOrOpen(OwnerSummaryPage.url(currentOwner));
+
+    OwnerSummaryPage.policyTile().localPolicyList().row(1).click();
+    
+    SummarySection summarySection = PolicyEditorPage.summarySection();
+    summarySection.policyName().input().shouldBe(visible, enabled);
+    summarySection.threatLevel().shouldNotHave(cssClass("disabled"));
+    summarySection.legacyViolationCheckbox().shouldBe(visible, enabled);
+    
+    if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
+      PolicyInheritsToSection inheritanceSection = PolicyEditorPage.inheritanceSection();
+      inheritanceSection.allChildrenInheritRadio().shouldBe(visible, enabled); 
+    }
+    
+    ConstraintSection constraintsSection = PolicyEditorPage.constraintSection();
+    constraintsSection.addConstraintButton().shouldBe(visible, enabled);
+    constraintsSection.constraintSummary(0).editConstraintButton().shouldBe(visible, enabled);
+    
+    PolicyEditorPage.actionsSection().title().shouldBe(visible);
+    PolicyEditorPage.actionsSection().headers().get(0).shouldNotHave(text(COMPLIANCE));
+    PolicyEditorPage.actionsSection().table().shouldBe(visible);
+    
+    PolicyEditorPage.notificationsSection().headers().get(0).shouldBe(visible)
+      .shouldNotHave(text(COMPLIANCE));
+    PolicyEditorPage.deleteButton().shouldBe(visible);
+    OwnerDetailSidebar.policyGroup().shouldBe(visible);
   }
 
   @Test

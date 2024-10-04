@@ -206,7 +206,7 @@ export default function MailConfig(props) {
           onSubmit={save}
           submitBtnText="Save"
           submitError={submitError}
-          validationErrors={submitMaskMessage != 'Deleting' ? formValidationErrors : null}
+          validationErrors={submitMaskMessage !== 'Deleting' ? formValidationErrors : null}
           // If an there is a validationError alert, it's cleared on "Delete Configuration"
           submitMaskState={submitMaskState}
           submitMaskMessage={submitMaskMessage}

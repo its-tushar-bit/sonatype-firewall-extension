@@ -167,4 +167,10 @@
       }
     }
   }
+
+  .policy-tile__stages-num--0 {
+    .nx-table tr {
+      grid-template-columns: 67px 1fr 28px;
+    }
+  }
 }

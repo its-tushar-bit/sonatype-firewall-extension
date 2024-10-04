@@ -18,6 +18,10 @@ public class BaseUrlConfigurationPage
     return BaseUrl.resolvePageUrl("/baseUrl");
   }
 
+  public String getUrl() {
+    return BaseUrlConfigurationPage.url();
+  }
+
   public SelenideElement baseUrlAttribute() {
     return child("#config-base-url");
   }

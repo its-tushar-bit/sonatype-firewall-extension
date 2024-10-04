@@ -46,16 +46,19 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentListDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.Zipper;
 import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -68,6 +71,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.apache.commons.io.FileUtils;
 import org.xmlunit.assertj.XmlAssert;
 
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.DIRECT;
@@ -270,17 +274,27 @@ public class ApiSbomResourceTest
   @PostgresTest
   public void testGetSbomComponents_Successful() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan scan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
         .withApplicationId(app.getId())
+        .withThirdPartyFileId(thirdPartyFile.getId())
         .build();
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("p", "v");
     PackageUrlIdentifier packageUrlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
-    ThirdPartyFileCoordinate coordinate = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
-        "source", packageUrlIdentifier.getFormat(), packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion(),
-        "hash", packageUrlIdentifier.getPackageUrl());
+    ThirdPartyFileCoordinate coordinate = tempEntity.newThirdPartyFileCoordinate("86163fcc32524261bfd2bdbedb7eae42",
+        thirdPartyFile, "source", packageUrlIdentifier.getFormat(), packageUrlIdentifier.getName(),
+        packageUrlIdentifier.getVersion(), "hash", packageUrlIdentifier.getPackageUrl());
     tempEntity.newThirdPartyCoordinateSecurity(coordinate, "refId", "description", "link",
         CvssV3Severity.NONE.getStartScoreRange(), CvssV3Severity.NONE.getDisplayName(), "fix");
+
+    File reportFile = insightWork.getReportFile(app.getId(), scan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper
+        .zipReport("/ApiSbomServicePolicyViolationsTest", tempDir), reportFile);
+
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scan.getScanId());
+    SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
 
     HttpResponse response = restRequest()
         .path(ApiSbomResource.SBOM_COMPONENTS_PATH)
@@ -310,6 +324,7 @@ public class ApiSbomResourceTest
           assertThat(component.getVulnerabilitySeverityMediumCount()).isZero();
           assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
           assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
+          assertThat(component.getPolicyViolationCount()).isEqualTo(2);
         });
   }
 
@@ -317,8 +332,13 @@ public class ApiSbomResourceTest
   @PostgresTest
   public void testGetSbomComponents_SuccessfulWithDefaultValues() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan scan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
-        SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory).withApplicationId(app.getId()).build();
+        SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
+            .withApplicationId(app.getId())
+            .withThirdPartyFileId(thirdPartyFile.getId())
+            .build();
 
     int totalCountOfComponents = 51;
 
@@ -350,6 +370,12 @@ public class ApiSbomResourceTest
       tempEntity.newThirdPartyCoordinateSecurity(coordinate, "refId" + i, "description" + i, "link" + i,
           cvssV3Severity.getStartScoreRange(), cvssV3Severity.getDisplayName(), "fix" + i);
     }
+
+    File reportFile = insightWork.getReportFile(app.getId(), scan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper
+        .zipReport("/ApiSbomServicePolicyViolationsTest", tempDir), reportFile);
+
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scan.getScanId());
 
     HttpResponse response = restRequest().path(ApiSbomResource.SBOM_COMPONENTS_PATH)
         .parameter(app.getId(), sbomMetadata.getSbomVersion()).get();

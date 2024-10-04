@@ -159,6 +159,30 @@ describe('ConstraintsEditor', () => {
     expect(deleteConstraintButton).toBeDisabled();
   });
 
+  it('renders disabled if the user is using SBOM Manager', () => {
+    editConstraintMap = {};
+    renderComponent({
+      orgsAndPolicies: set(editConstraintMapLens, editConstraintMap, orgsAndPoliciesInitialState),
+      router: {
+        currentState: {
+          name: 'sbomManager.management.edit.organization.policy',
+        },
+      },
+    });
+
+    const addConstraintBtn = screen.getByText('Add Constraint').closest('button');
+    expect(addConstraintBtn).toBeDisabled();
+
+    const constraintListReadOnly = screen.getAllByTestId('read-only-constraint');
+    expect(constraintListReadOnly.length).toBe(2);
+    const constraintListReadOnlyButtons = within(constraintListReadOnly[0]).getAllByRole('button');
+    expect(constraintListReadOnlyButtons.length).toBe(2);
+    const addConstraintButton = constraintListReadOnlyButtons[0];
+    expect(addConstraintButton).toBeDisabled();
+    let deleteConstraintButton = constraintListReadOnlyButtons[1];
+    expect(deleteConstraintButton).toBeDisabled();
+  });
+
   it('renders editable and read only constraints', () => {
     editConstraintMap = {
       1660254072492: true,

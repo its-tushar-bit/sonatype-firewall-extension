@@ -13,6 +13,7 @@ import {
   getSbomComponentDetailsUrl,
   getSbomVulnerabibilityAnalysisReferenceData,
   getSbomVulnerabilityAnnotationUrl,
+  getSbomPolicyViolationReportUrl,
   getVulnerabilityJsonDetailUrl,
   getVulnerabilityOverrideUrl,
 } from 'MainRoot/util/CLMLocation';
@@ -36,6 +37,7 @@ export const SORT_DIRECTION = Object.freeze({
 
 export const TAB_INDICES = Object.freeze({
   VULNERABILTIY: 0,
+  POLICY_VIOLATION: 1,
 });
 
 export const defaultSortConfiguration = Object.freeze({
@@ -43,8 +45,19 @@ export const defaultSortConfiguration = Object.freeze({
   sortDirection: SORT_DIRECTION.DESC,
 });
 
+export const sbomPolicyViolationsInitialState = Object.freeze({
+  loading: true,
+  error: null,
+  policy: null,
+});
+
+export const policyViolationDetailsDrawerInitialState = Object.freeze({
+  showDrawer: false,
+  policyViolationId: null,
+});
+
 export const initialState = {
-  loading: false,
+  loading: true,
   loadError: null,
   loadingDependencyTree: false,
   loadDependencyTreeError: null,
@@ -70,6 +83,10 @@ export const initialState = {
   deleteMaskState: null,
   deleteError: null,
   showDeleteModal: false,
+
+  // policy-violations
+  policyViolationDetailsDrawer: { ...policyViolationDetailsDrawerInitialState },
+  sbomPolicyViolations: { ...sbomPolicyViolationsInitialState },
 };
 
 const setActiveTabIndex = (state, { payload }) => {
@@ -387,6 +404,49 @@ const cycleAdditionalVulnerabilitiesSortDirection = cycleVulnerabilitiesReducerC
   'additionalVulnerabilitiesSortConfiguration'
 );
 
+// policy-violations
+const showPolicyViolationDetailsDrawer = (state, { payload }) => {
+  if (payload) {
+    state.policyViolationDetailsDrawer = {
+      showDrawer: true,
+      policyViolationId: payload,
+    };
+  }
+};
+
+const hidePolicyViolationDetailsDrawer = (state) => {
+  state.policyViolationDetailsDrawer = { ...policyViolationDetailsDrawerInitialState };
+};
+
+const loadSbomPolicyViolations = createAsyncThunk(
+  `${REDUCER_NAME}/loadSbomPolicyViolationReport`,
+  async ({ applicationPublicId, sbomVersion, fileCoordinateId }, { rejectWithValue }) =>
+    axios
+      .get(getSbomPolicyViolationReportUrl(applicationPublicId, sbomVersion, fileCoordinateId))
+      .then((response) => response.data)
+      .catch((error) => rejectWithValue(error))
+);
+
+const loadSbomPolicyViolationsRequested = (state) => {
+  state.sbomPolicyViolations = { ...sbomPolicyViolationsInitialState };
+};
+
+const loadSbomPolicyViolationsFulfilled = (state, { payload }) => {
+  state.sbomPolicyViolations = Object.freeze({
+    loading: false,
+    error: null,
+    policy: payload,
+  });
+};
+
+const loadSbomPolicyViolationsRejected = (state, { payload }) => {
+  state.sbomPolicyViolations = Object.freeze({
+    loading: false,
+    error: payload.response.data,
+    policy: null,
+  });
+};
+
 const sbomComponentDetailsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -405,6 +465,8 @@ const sbomComponentDetailsSlice = createSlice({
     deleteMaskTimerDone: propSetConst('deleteMaskState', null),
     setShowCopyModal: compose(propSetConst('copyError', null), propSet('showCopyModal')),
     copyMaskTimerDone: propSetConst('copyMaskState', null),
+    showPolicyViolationDetailsDrawer,
+    hidePolicyViolationDetailsDrawer,
   },
   extraReducers: {
     [loadComponentDetails.pending]: loadComponentDetailsRequested,
@@ -428,6 +490,9 @@ const sbomComponentDetailsSlice = createSlice({
     [getVulnerabilityAnalysisReferenceData.pending]: getVulnerabilityAnalysisReferenceDataRequested,
     [getVulnerabilityAnalysisReferenceData.fulfilled]: getVulnerabilityAnalysisReferenceDataFulfilled,
     [getVulnerabilityAnalysisReferenceData.rejected]: getVulnerabilityAnalysisReferenceDataRejected,
+    [loadSbomPolicyViolations.pending]: loadSbomPolicyViolationsRequested,
+    [loadSbomPolicyViolations.fulfilled]: loadSbomPolicyViolationsFulfilled,
+    [loadSbomPolicyViolations.rejected]: loadSbomPolicyViolationsRejected,
     [UI_ROUTER_ON_FINISH]: always(initialState),
   },
 });
@@ -437,6 +502,7 @@ export const actions = {
   loadComponentDetails,
   loadComponentDependencyTreeData,
   loadVulnerabilityDetails,
+  loadSbomPolicyViolations,
   getVulnerabilityAnalysisReferenceData,
   saveVexAnnotation,
   deleteVexAnnotation,

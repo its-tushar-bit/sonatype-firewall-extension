@@ -36,6 +36,14 @@ public class PolicyInheritsToSection
 
     return Condition.text("All Applications in " + ownerName);
   }
+  
+  public static WebElementCondition allRadioTextSbomManager(String ownerName) {
+    if ("Root Organization".equals(ownerName)) {
+      return Condition.text("All Applications");
+    }
+
+    return Condition.text("All Applications in " + ownerName);
+  }
 
   public static WebElementCondition specifiedRadioText(String ownerName) {
     return Condition.text("Applications of the specified Application Categories in " + ownerName);

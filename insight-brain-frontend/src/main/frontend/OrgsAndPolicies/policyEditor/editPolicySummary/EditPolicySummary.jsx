@@ -27,7 +27,7 @@ import {
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import ThreatDropdownSelector from 'MainRoot/react/ThreatDropdownSelector';
 import { selectIsLegacyViolationSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { selectIsRepositoriesRelated } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsRepositoriesRelated, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function EditPolicySummary() {
   const dispatch = useDispatch();
@@ -38,7 +38,8 @@ export default function EditPolicySummary() {
   const isInherited = useSelector(selectIsInherited);
   const hasEditIqPermission = useSelector(selectHasEditIqPermission);
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
-  const readOnly = isRepositoriesRelated && !isInherited ? false : isInherited || !hasEditIqPermission;
+  const isSbomManager = useSelector(selectIsSbomManager);
+  const readOnly = isRepositoriesRelated && !isInherited ? false : isInherited || !hasEditIqPermission || isSbomManager;
   const isLegacyViolationSupported = useSelector(selectIsLegacyViolationSupported);
   const legacyViolationAllowed = useSelector(selectCurrentLegacyViolationAllowed);
 
@@ -71,12 +72,12 @@ export default function EditPolicySummary() {
           id="editor-policy-threat-level"
         />
       </NxFormRow>
-      {!isLegacyViolationSupported && (
+      {!isSbomManager && !isLegacyViolationSupported && (
         <NxStatefulInfoAlert id="legacy-violation-disabled-message">
           Legacy Violations are not supported by your license
         </NxStatefulInfoAlert>
       )}
-      {!isRepositoriesRelated && (
+      {!isSbomManager && !isRepositoriesRelated && (
         <NxFieldset
           label="Legacy Violations"
           sublabel="Eligible violations will be reported but will not trigger actions"

@@ -43,7 +43,7 @@ import {
   selectIsNotificationsTableEnabled,
   selectIsNotificationsInheritOverrideEnabled,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
-import { selectActionStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
+import { selectActionStageTypes, selectSbomStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 import {
   selectIsMonitoringSupported,
   selectIsNotificationsSupported,
@@ -52,7 +52,7 @@ import {
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { validateEmailPatternMatch, hasValidationErrors } from 'MainRoot/util/validationUtil';
 import { selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectIsRepositoriesRelated } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsRepositoriesRelated, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const isValidEmail = (email) => !hasValidationErrors(validateEmailPatternMatch('Invalid email format', email));
 
@@ -79,7 +79,11 @@ export default function PolicyNotificationsEditor() {
   const isNotificationOverrideEnabled = useSelector(selectIsNotificationOverrideEnabled);
   const isOverrideParentNotificationsEnabled = useSelector(selectOverrideNotificationsFlag);
   const notifications = useSelector(selectNotifications);
-  const actionStages = useSelector(selectActionStageTypes);
+
+  const stageTypes = useSelector((state) =>
+    selectIsSbomManager(state) ? selectSbomStageTypes(state) : selectActionStageTypes(state)
+  );
+
   const isInherited = useSelector(selectIsInherited);
   const applicableNotificationWebhooks = useSelector(selectApplicableWebhooks);
   const loading = useSelector(selectNotificationsEditorLoading);
@@ -100,7 +104,7 @@ export default function PolicyNotificationsEditor() {
   const recipientIssueTypeId = formState?.recipientIssueTypeId?.value;
   const { userNotifications = [] } = notifications ?? {};
   const tableGridTemplateStyles = {
-    gridTemplateColumns: `minmax(90px, 1fr) repeat(${actionStages?.length}, min-content) minmax(48px, min-content) 60px`,
+    gridTemplateColumns: `minmax(90px, 1fr) repeat(${stageTypes?.length}, min-content) minmax(48px, min-content) 60px`,
   };
   const isNotificationsInheritOverrideEnabled = useSelector(selectIsNotificationsInheritOverrideEnabled);
   const isNotificationsTableEnabled = useSelector(selectIsNotificationsTableEnabled);
@@ -216,7 +220,7 @@ export default function PolicyNotificationsEditor() {
           <NxTable.Head>
             <NxTable.Row>
               <NxTable.Cell />
-              {actionStages?.map((stage) => (
+              {stageTypes?.map((stage) => (
                 <NxTable.Cell key={stage.stageTypeId} className={stage.stageTypeId}>
                   {stage.shortName}
                 </NxTable.Cell>
@@ -238,7 +242,7 @@ export default function PolicyNotificationsEditor() {
                       <div className="nx-truncate-ellipsis">{recipient.displayName}</div>
                     </NxOverflowTooltip>
                   </NxTable.Cell>
-                  {actionStages?.map((stage) => (
+                  {stageTypes?.map((stage) => (
                     <NxTable.Cell key={stage.stageTypeId}>
                       <NxTooltip title={getCheckboxTooltipMessage(recipient, stage)}>
                         <NxCheckbox

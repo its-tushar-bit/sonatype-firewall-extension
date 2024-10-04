@@ -75,6 +75,50 @@ describe('EditPolicyInheritance', () => {
     expect(hasNoCategoriesRadio).toBeDisabled();
   });
 
+  describe('SBOM Manager', () => {
+    it('renders radios and checkboxes correctly if root organization policy', () => {
+      state.router.currentState.name = 'sbomManager.management.edit.organization.policy';
+      state.orgsAndPolicies.policy.isRootOrg = true;
+      renderComponent();
+
+      const allApplicationsRadio = screen.getByLabelText(/all applications/i);
+      const notificationsOverrideCheckbox = screen.getByLabelText(
+        /Allow notification overrides at organization and application levels/i
+      );
+
+      expect(allApplicationsRadio).toBeDisabled();
+      expect(
+        screen.queryByLabelText(/Applications of the specified Application Categories in/i)
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByLabelText(/Allow action overrides at organization and application levels/i)
+      ).not.toBeInTheDocument();
+      expect(notificationsOverrideCheckbox).not.toBeDisabled();
+    });
+
+    it('renders radios and checkboxes correctly if child organization policy', () => {
+      state.router.currentState.name = 'sbomManager.management.edit.organization.policy';
+      state.orgsAndPolicies.policy.currentPolicyOwner = {
+        name: 'child_org1',
+      };
+      renderComponent();
+
+      const allApplicationsRadio = screen.getByLabelText(/all applications in child_org1/i);
+      const notificationsOverrideCheckbox = screen.getByLabelText(
+        /Allow notification overrides at organization and application levels/i
+      );
+
+      expect(allApplicationsRadio).toBeDisabled();
+      expect(
+        screen.queryByLabelText(/Applications of the specified Application Categories in/i)
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByLabelText(/Allow action overrides at organization and application levels/i)
+      ).not.toBeInTheDocument();
+      expect(notificationsOverrideCheckbox).not.toBeDisabled();
+    });
+  });
+
   it('renders disabled radios if it does not have permission', () => {
     state.orgsAndPolicies.policy.hasEditIqPermission = false;
 

@@ -55,11 +55,13 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.sbom.export.SbomExporterProvider;
+import com.sonatype.insight.brain.sbom.policy.SbomPolicyService;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
 import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
@@ -134,6 +136,8 @@ public class ApiSbomService
 
   private final SbomExporterProvider sbomExporterProvider;
 
+  private final SbomPolicyService sbomPolicyService;
+
   @Inject
   public ApiSbomService(
       final ThirdPartySbomMetadataDAO dao,
@@ -146,7 +150,8 @@ public class ApiSbomService
       final ThirdPartyScanDAO thirdPartyScanDAO,
       final SbomMetadataUtils sbomMetadataUtils,
       final ProductLicense productLicense,
-      final SbomExporterProvider sbomExporterProvider)
+      final SbomExporterProvider sbomExporterProvider,
+      final SbomPolicyService sbomPolicyService)
   {
     this.dao = dao;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
@@ -159,6 +164,7 @@ public class ApiSbomService
     this.sbomMetadataUtils = sbomMetadataUtils;
     this.productLicense = productLicense;
     this.sbomExporterProvider = sbomExporterProvider;
+    this.sbomPolicyService = sbomPolicyService;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -370,8 +376,32 @@ public class ApiSbomService
   {
     validatePagination(pageSize, page);
     ThirdPartySbomMetadata thirdPartySbomMetadata = getThirdPartySbomMetadataNotNull(applicationId, version);
-    return thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId(),
+    SbomComponentListDTO sbomComponentListDTO =
+        thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId(),
         vulnerabilityThreatLevels, dependencyTypes, componentName, sortBy, asc, pageSize, page);
+    sbomComponentListDTO.getResults().forEach(sbomComponentDTO -> {
+      if (SystemConfigurationPropertyFeature.SBOM_POLICIES.isEnabled()) {
+        try {
+          PolicyThreats.Component component =
+              sbomPolicyService.getPolicyViolationsByFileCoordinateId(applicationId, version,
+                  sbomComponentDTO.getFileCoordinateId());
+          if (component != null) {
+            sbomComponentDTO.setPolicyViolationCount(component.activeViolations.size());
+          }
+          else {
+            sbomComponentDTO.setPolicyViolationCount(0);
+          }
+        }
+        catch (IOException e) {
+          log.error("Policy violations report cannot be parsed", e);
+          throw new InternalServerException("Policy violations report cannot be parsed", e);
+        }
+      }
+      else {
+        sbomComponentDTO.setPolicyViolationCount(null);
+      }
+    });
+    return sbomComponentListDTO;
   }
 
   private void validatePagination(int pageSize, int page) {

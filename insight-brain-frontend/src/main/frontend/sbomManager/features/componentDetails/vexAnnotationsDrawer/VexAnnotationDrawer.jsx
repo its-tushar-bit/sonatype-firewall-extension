@@ -488,7 +488,13 @@ export default function VexAnnotationDrawer(props) {
   };
 
   return (
-    <NxDrawer size="medium" id="vex-annotation-popover" onClose={onClose} open={isDrawerOpen}>
+    <NxDrawer
+      size="medium"
+      id="vex-annotation-popover"
+      className="vex-annotation-drawer"
+      onClose={onClose}
+      open={isDrawerOpen}
+    >
       <NxDrawer.Header>
         <VexAnnotationDrawerHeader
           headerTitle={`Annotate ${issue}`}

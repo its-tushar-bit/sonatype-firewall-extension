@@ -495,7 +495,6 @@ public class ThirdPartyFileCoordinateDAOTest
     List<SbomComponentDTO> dtos = result.getResults();
 
     assertThat(dtos).hasSize(2);
-    assertThat(dtos.get(1).getPercentageAnnotated()).isEqualTo(16.7);
     assertThat(dtos)
         .extracting(SbomComponentDTO::getHash)
         .containsExactlyInAnyOrder(coordinate1.getHash(), coordinate2.getHash());
@@ -511,6 +510,8 @@ public class ThirdPartyFileCoordinateDAOTest
           assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
           assertThat(component.getVulnerabilitySeverityCriticalCount()).isOne();
           assertThat(component.getLicenses()).isNullOrEmpty();
+          assertThat(component.getPercentageAnnotated()).isEqualTo(100.0);
+          assertThat(component.getFileCoordinateId()).isEqualTo(coordinate1.getId());
         });
 
     assertThat(dtos).filteredOn(component -> component.getHash().equals(coordinate2.getHash()))
@@ -529,6 +530,8 @@ public class ThirdPartyFileCoordinateDAOTest
           assertThat(component.getLicenses())
               .extracting(License::getLicenseName)
               .containsExactlyInAnyOrder("License 1", "License 2");
+          assertThat(component.getPercentageAnnotated()).isEqualTo(16.7);
+          assertThat(component.getFileCoordinateId()).isEqualTo(coordinate2.getId());
         });
   }
 
@@ -985,8 +988,8 @@ public class ThirdPartyFileCoordinateDAOTest
         .containsExactly(packageUrlIdentifier5.getPackageUrl());
 
     //testing no componentName filter
-    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId(), null,
-        null, null, null,
+    result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(sbomMetadata.getThirdPartyFileId(),
+        null, null, null, null,
         true, 5, 1);
 
     assertThat(result).isNotNull();
@@ -994,7 +997,8 @@ public class ThirdPartyFileCoordinateDAOTest
 
     // test excluding format name from search
     result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
-        sbomMetadata.getThirdPartyFileId(), null, null, "npm", null, true, 5, 1);
+        sbomMetadata.getThirdPartyFileId(), null, null, "npm",
+        null, true, 5, 1);
     assertThat(result).isNotNull();
     assertThat(result.getTotalResultsCount()).isZero();
     assertThat(result.getResults()).isEmpty();

@@ -176,6 +176,8 @@ export const selectIsProprietaryComponentsEnabled = createSelector(
   propOr(false, 'proprietary-components')
 );
 
+export const selectIsSbomPoliciesSupported = createSelector(selectProductFeatures, propOr(false, 'sbom-policies'));
+
 const selectIsSingleTenantEnabled = createSelector(selectProductFeatures, propOr(false, 'single-tenant'));
 const selectIsMultiTenantEnabled = createSelector(selectProductFeatures, propOr(false, 'multi-tenant'));
 

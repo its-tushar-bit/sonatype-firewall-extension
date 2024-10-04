@@ -26,7 +26,9 @@ const NIVO_COMPONENT_SUMMARY_COLOR_MAP = {
 const NIVO_VULNERABILITIES_SUMMARY_COLOR_MAP = {
   critical: 'var(--nx-color-threat-critical)',
   high: 'var(--nx-color-threat-severe)',
+  severe: 'var(--nx-color-threat-severe)',
   medium: 'var(--nx-color-threat-moderate)',
+  moderate: 'var(--nx-color-threat-moderate)',
   low: 'var(--nx-color-threat-low)',
 };
 
@@ -84,7 +86,7 @@ PieChart.propTypes = {
   colorMap: PropTypes.object.isRequired,
 };
 
-const SummaryChartAndProgress = ({ id, title, data, colorMap }) => {
+const SummaryChartAndProgress = ({ id, title, data, colorMap, isSbomPoliciesSupported }) => {
   const total = data.total;
   const dataFields = omit(['total'], data);
 
@@ -107,8 +109,12 @@ const SummaryChartAndProgress = ({ id, title, data, colorMap }) => {
     );
   });
 
+  const classes = classNames('sbom-manager-summary-chart-and-progress', {
+    'sbom-manager-summary-chart-and-progress--with-policies': isSbomPoliciesSupported,
+  });
+
   return (
-    <div id={id} className="sbom-manager-summary-chart-and-progress">
+    <div id={id} className={classes}>
       <NxH3>{title}</NxH3>
       <section>
         <div className="sbom-manager-summary-chart-and-progress__chart-container">
@@ -125,10 +131,17 @@ SummaryChartAndProgress.propTypes = {
   title: PropTypes.string.isRequired,
   data: PropTypes.object.isRequired,
   colorMap: PropTypes.object.isRequired,
+  isSbomPoliciesSupported: PropTypes.bool.isRequired,
 };
 
 export default function BillOfMaterialSummaryTile(props) {
-  const { annotatedVulnerabilitesPercentage, componentSummary, vulnerabilitiesSummary } = props;
+  const {
+    annotatedVulnerabilitesPercentage,
+    componentSummary,
+    vulnerabilitiesSummary,
+    policyViolationSummary,
+    isSbomPoliciesSupported,
+  } = props;
 
   const componentSummaryData = {
     ...componentSummary,
@@ -138,6 +151,11 @@ export default function BillOfMaterialSummaryTile(props) {
   const vulnerabilitiesSummaryData = {
     ...vulnerabilitiesSummary,
     total: sum(Object.values(vulnerabilitiesSummary)),
+  };
+
+  const policyViolationsSummaryData = {
+    ...policyViolationSummary,
+    total: sum(Object.values(policyViolationSummary)),
   };
 
   const annotatedVulnerabilitiesData = {
@@ -168,6 +186,7 @@ export default function BillOfMaterialSummaryTile(props) {
             title="Component Summary"
             data={componentSummaryData}
             colorMap={NIVO_COMPONENT_SUMMARY_COLOR_MAP}
+            isSbomPoliciesSupported={isSbomPoliciesSupported}
           />
           <div className="sbom-manager-bill-of-materials-summary-tile__summaries__divider"></div>
           <SummaryChartAndProgress
@@ -175,7 +194,20 @@ export default function BillOfMaterialSummaryTile(props) {
             title="Vulnerabilities Summary"
             data={vulnerabilitiesSummaryData}
             colorMap={NIVO_VULNERABILITIES_SUMMARY_COLOR_MAP}
+            isSbomPoliciesSupported={isSbomPoliciesSupported}
           />
+          {isSbomPoliciesSupported && (
+            <>
+              <div className="sbom-manager-bill-of-materials-summary-tile__summaries__divider"></div>
+              <SummaryChartAndProgress
+                id="bill-of-materials-summary-tile-chart-and-progress-policy-violation-summary"
+                title="Policy Violation Summary"
+                data={policyViolationsSummaryData}
+                colorMap={NIVO_VULNERABILITIES_SUMMARY_COLOR_MAP}
+                isSbomPoliciesSupported={isSbomPoliciesSupported}
+              />
+            </>
+          )}
           <div className="sbom-manager-bill-of-materials-summary-tile__annotated-vulnerabilities-summary">
             <PieChart
               data={annotatedVulnerabilitiesData}
@@ -199,4 +231,6 @@ BillOfMaterialSummaryTile.propTypes = {
   annotatedVulnerabilitesPercentage: PropTypes.number,
   componentSummary: PropTypes.object.isRequired,
   vulnerabilitiesSummary: PropTypes.object.isRequired,
+  policyViolationSummary: PropTypes.object.isRequired,
+  isSbomPoliciesSupported: PropTypes.bool.isRequired,
 };

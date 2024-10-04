@@ -1,5 +1,6 @@
 {
   "aaData" : [ {
+    "sonatypeIdentifier": "86163fcc32524261bfd2bdbedb7eae43",
     "filenames" : [ "tomcat-util-5.5.23.jar" ],
     "pathnames" : [ "tomcat-util-5.5.23.jar" ],
     "groupId" : "tomcat",

@@ -12,7 +12,9 @@ $component-summary-color-map: (
 $vulnerabilities-summary-color-map: (
   'critical': var(--nx-color-threat-critical),
   'high': var(--nx-color-threat-severe),
+  'severe': var(--nx-color-threat-severe),
   'medium': var(--nx-color-threat-moderate),
+  'moderate': var(--nx-color-threat-moderate),
   'low': var(--nx-color-threat-low),
 );
 
@@ -44,7 +46,7 @@ $-progress-radius: 5px;
 
     p {
       margin: 0;
-      min-width: 200px;
+      min-width: 120px;
       max-width: 320px;
     }
   }
@@ -74,6 +76,12 @@ $-progress-radius: 5px;
     flex-wrap: wrap;
     gap: $-gap-1 $-gap-2;
     min-width: calc(#{$-progress-width * 2} + #{$-gap-2});
+  }
+
+  &--with-policies {
+    .sbom-manager-summary-chart-and-progress__progress-bars {
+      min-width: calc(#{$-progress-width} + #{$-gap-2});
+    }
   }
 
   &__progress-bar-wrapper {

@@ -93,6 +93,7 @@ public class ApiApplicationCategoryResource
       description = "A list of application categories that can be applied to the specified application. " +
           "Each application category or tag consists of an id, name, description and color. ",
       useReturnTypeSchema = true)
+  @ProductLicenseEnforcementPoint(LicensedFeature.POLICY_READ_ONLY)
   public ApplicableTagsDTO getApplicationApplicableTags(
       @Parameter(description = "The application public ID ", required = true)
       @PathParam("applicationPublicId") String applicationPublicId)
@@ -132,6 +133,7 @@ public class ApiApplicationCategoryResource
           " organization." +
           " Each application category or tag consists of an id, name, description and color. ",
       useReturnTypeSchema = true)
+  @ProductLicenseEnforcementPoint(LicensedFeature.POLICY_READ_ONLY)
   public ApplicableTagsDTO getApplicableTags(
       @Parameter(description = "The organizationId assigned by IQ Server," +
           " for which you want to retrieve the applicable tags or application categories.",
@@ -152,6 +154,7 @@ public class ApiApplicationCategoryResource
       description = "Returns all application categories or tags that can be applied to this application,  " +
           "by providing the application public ID.",
       useReturnTypeSchema = true)
+  @ProductLicenseEnforcementPoint(LicensedFeature.POLICY_READ_ONLY)
   public List<ApiApplicationCategoryDTO> getApplicableTagsByApplicationPublicId(
       @Parameter(description = "Provide the application public ID assigned by IQ Server.", required = true)
       @PathParam("applicationPublicId") String applicationPublicId)

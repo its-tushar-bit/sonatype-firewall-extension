@@ -16,7 +16,7 @@ import {
   NxWarningAlert,
 } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
-import { propEq } from 'ramda';
+import { is, propEq } from 'ramda';
 
 import {
   selectCategories,
@@ -34,6 +34,7 @@ import {
   selectIsRepositoryContainerOwner,
   selectIsRepositoryManagerOwner,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions as policyActions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import { IqAssociationEditor, FieldType } from 'MainRoot/react/IqAssociationEditor';
 
@@ -55,6 +56,7 @@ export default function EditPolicyInheritance() {
   const isOrgOwner = useSelector(selectIsOrgOwner);
   const isRepoContainerOwner = useSelector(selectIsRepositoryContainerOwner);
   const isRepoManagerOwner = useSelector(selectIsRepositoryManagerOwner);
+  const isSbomManager = useSelector(selectIsSbomManager);
 
   const onCategoryToggled = (category) => {
     const categoryIndexForToggle = categories.findIndex(propEq('id', category.id));
@@ -122,22 +124,26 @@ export default function EditPolicyInheritance() {
           <NxRadio
             name="hasCategories"
             value={null}
-            disabled={isInherited || !hasEditIqPermission}
+            disabled={isInherited || !hasEditIqPermission || isSbomManager}
             isChecked={!hasPolicyCategories}
             onChange={onHasCategoriesChange}
           >
-            All Applications {isRootOrg ? 'and Repositories' : `in ${ownerName}`}
+            All Applications
+            {isRootOrg && !isSbomManager && ` and Repositories`}
+            {isRootOrg || ` in ${ownerName}`}
           </NxRadio>
 
-          <NxRadio
-            name="hasCategories"
-            value={'hasCategories'}
-            disabled={!hasCategories || isInherited || !hasEditIqPermission}
-            isChecked={hasPolicyCategories}
-            onChange={onHasCategoriesChange}
-          >
-            Applications of the specified Application Categories in {ownerName}
-          </NxRadio>
+          {!isSbomManager && (
+            <NxRadio
+              name="hasCategories"
+              value={'hasCategories'}
+              disabled={!hasCategories || isInherited || !hasEditIqPermission}
+              isChecked={hasPolicyCategories}
+              onChange={onHasCategoriesChange}
+            >
+              Applications of the specified Application Categories in {ownerName}
+            </NxRadio>
+          )}
 
           {hasPolicyCategories && (
             <IqAssociationEditor
@@ -185,24 +191,26 @@ export default function EditPolicyInheritance() {
         data-testid="editor-inheritance-overrides-fieldset"
         label="Inheritance Overrides"
       >
-        <NxCheckbox
-          id="editor-policy-actions-override"
-          className="iq-policy-actions-override-checkbox"
-          isChecked={!!currentPolicy.policyActionsOverrideAllowed}
-          disabled={isInherited || !hasEditIqPermission}
-          onChange={
-            currentPolicy.policyActionsOverrideAllowed && actionsOverridesCount > 0
-              ? toggleShowActionsOverridesConfirmationModal
-              : togglePolicyActionsOverrideAllowed
-          }
-        >
-          {isOrgOwner &&
-            (isRootOrg
-              ? 'Allow action overrides at organization, application and repositories levels'
-              : 'Allow action overrides at organization and application levels')}
-          {isRepoContainerOwner && 'Allow action overrides at repository manager and repository levels'}
-          {isRepoManagerOwner && 'Allow action overrides at repository level'}
-        </NxCheckbox>
+        {!isSbomManager && (
+          <NxCheckbox
+            id="editor-policy-actions-override"
+            className="iq-policy-actions-override-checkbox"
+            isChecked={!!currentPolicy.policyActionsOverrideAllowed}
+            disabled={isInherited || !hasEditIqPermission}
+            onChange={
+              currentPolicy.policyActionsOverrideAllowed && actionsOverridesCount > 0
+                ? toggleShowActionsOverridesConfirmationModal
+                : togglePolicyActionsOverrideAllowed
+            }
+          >
+            {isOrgOwner &&
+              (isRootOrg
+                ? 'Allow action overrides at organization, application and repositories levels'
+                : 'Allow action overrides at organization and application levels')}
+            {isRepoContainerOwner && 'Allow action overrides at repository manager and repository levels'}
+            {isRepoManagerOwner && 'Allow action overrides at repository level'}
+          </NxCheckbox>
+        )}
         <NxCheckbox
           id="editor-policy-notifications-override"
           className="iq-policy-notifications-override-checkbox"
@@ -215,7 +223,7 @@ export default function EditPolicyInheritance() {
           }
         >
           {isOrgOwner &&
-            (isRootOrg
+            (isRootOrg && !isSbomManager
               ? 'Allow notification overrides at organization, application and repositories levels'
               : 'Allow notification overrides at organization and application levels')}
           {isRepoContainerOwner && 'Allow notification overrides at repository manager and repository levels'}

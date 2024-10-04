@@ -41,12 +41,6 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectIsRepositoriesRelated } from 'MainRoot/reduxUiRouter/routerSelectors';
 
-const ACTIONS = [
-  { label: 'No Action', value: null },
-  { label: 'Warn', value: 'warn', icon: faExclamationTriangle },
-  { label: 'Fail', value: 'fail', icon: faExclamationCircle },
-];
-
 export default function PolicyActionsEditor() {
   const dispatch = useDispatch();
   const loadActionStages = () => dispatch(stagesActions.loadActionStages());
@@ -85,6 +79,12 @@ export default function PolicyActionsEditor() {
     const isEnforcementSupportedForStage = isEnforcementSupported || (isFirewallSupported && stageTypeId === 'proxy');
     return !isActionsTableEnabled || !isEnforcementSupportedForStage;
   };
+
+  const ACTIONS = [
+    { label: 'No Action', value: null },
+    { label: 'Warn', value: 'warn', icon: faExclamationTriangle },
+    { label: 'Fail', value: 'fail', icon: faExclamationCircle },
+  ];
 
   const getActionFor = (stageTypeId) => actions[stageTypeId] || null;
 

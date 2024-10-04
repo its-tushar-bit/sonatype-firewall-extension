@@ -49,7 +49,8 @@ public class TenantConfigurationService
       SBOM_CONTINUOUS_MONITORING_UI,
       SBOM_POLICIES,
       MALWARE_DEFENSE_API,
-      AUTO_WAIVERS
+      AUTO_WAIVERS,
+      QUARANTINED_ITEM_CUSTOM_MESSAGE
   );
 
   // Visible for testing

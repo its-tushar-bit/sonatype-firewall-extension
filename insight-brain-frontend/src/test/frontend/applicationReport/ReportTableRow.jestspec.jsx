@@ -10,9 +10,10 @@ import ReportTableRow from 'MainRoot/applicationReport/ReportTableRow';
 import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 import { serializeComponentIdentifier } from 'MainRoot/util/componentIdentifierUtils';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('ReportTableRow component', function () {
-  let renderComponent, onClickSpy, minimalProps, selectSelectedReportSpy, selectIsAggregatedSpy;
+  let renderComponent, onClickSpy, minimalProps, selectSelectedReportSpy, selectIsAggregatedSpy, selectIsAutoWaiversSpy;
   const npmProducerComponentKey = serializeComponentIdentifier({
     format: 'npm',
     coordinates: {
@@ -106,6 +107,7 @@ describe('ReportTableRow component', function () {
       allEntries: mockReportData,
     });
     selectIsAggregatedSpy = jest.spyOn(applicationReportSelectors, 'selectIsAggregated').mockReturnValue(false);
+    selectIsAutoWaiversSpy = jest.spyOn(productFeaturesSelectors, 'selectIsAutoWaiversEnabled').mockReturnValue(true);
 
     renderComponent = (additionalProps = {}) => render(<ReportTableRow {...minimalProps} {...additionalProps} />);
   });
@@ -158,6 +160,7 @@ describe('ReportTableRow component', function () {
     expect(transitiveDependencyIndicator).toBeVisible();
     expect(transitiveDependencyIndicator.closest('div')).toHaveClass('iq-dependency-indicator transitive');
   });
+
   describe('transitive violations indicator', function () {
     it('renders transitive violations indicator when selectIsAggregated is set, plural scenario', function () {
       selectIsAggregatedSpy.mockReturnValue(true);
@@ -303,5 +306,51 @@ describe('ReportTableRow component', function () {
         exact: false,
       })
     ).toBeInTheDocument();
+  });
+
+  describe('auto waiver indicator', function () {
+    const aggregatedView = [
+      { isAggregated: false, description: 'Non-Aggregated View' },
+      { isAggregated: true, description: 'Aggregated View' },
+    ];
+
+    describe.each(aggregatedView)('when $description', ({ isAggregated }) => {
+      it('does not render auto waiver indicator when auto waivers are not enabled even is auto waived before', function () {
+        selectIsAutoWaiversSpy.mockReturnValue(false);
+        selectIsAggregatedSpy.mockReturnValue(isAggregated);
+        const props = {
+          component: {
+            ...minimalProps.component,
+            waivedWithAutoWaiver: true,
+          },
+        };
+        renderComponent(props);
+        const autoWaiverIndicator = screen.queryByText('Auto');
+
+        expect(autoWaiverIndicator).toBeNull();
+      });
+
+      it('renders auto waiver indicator when component has auto waived violations', function () {
+        const props = {
+          component: {
+            ...minimalProps.component,
+            waivedWithAutoWaiver: true,
+          },
+        };
+        renderComponent(props);
+        selectIsAggregatedSpy.mockReturnValue(isAggregated);
+        const autoWaiverIndicator = screen.getByText('Auto');
+
+        expect(autoWaiverIndicator).toBeVisible();
+      });
+
+      it('does not render auto waiver indicator when component does not have waived violations', function () {
+        renderComponent();
+        selectIsAggregatedSpy.mockReturnValue(isAggregated);
+        const autoWaiverIndicator = screen.queryByText('Auto');
+
+        expect(autoWaiverIndicator).toBeNull();
+      });
+    });
   });
 });

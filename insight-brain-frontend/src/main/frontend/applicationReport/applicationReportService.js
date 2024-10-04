@@ -83,7 +83,7 @@ function makeViolationEntriesV3Plus(policyResult, bomDataByKey) {
     const key = toKey(component),
       bomComponent = bomDataByKey[key],
       makeEntryForViolation = (violation) => {
-        const { waived } = violation,
+        const { waived, waivedWithAutoWaiver } = violation,
           legacyViolationStatus = isLegacyViolation(violation);
         return {
           ...pick(
@@ -92,6 +92,7 @@ function makeViolationEntriesV3Plus(policyResult, bomDataByKey) {
           ),
           ...bomComponent,
           waived,
+          waivedWithAutoWaiver,
           legacyViolation: legacyViolationStatus,
           derivedComponentName: deriveComponentName(bomComponent),
           derivedViolationState: deriveViolationState(waived, legacyViolationStatus),
@@ -436,9 +437,12 @@ function highestViolationReducer(highestViolationSoFar, violation) {
   if (violation.waived) {
     waivedViolations += 1;
   }
+
+  const waivedWithAutoWaiver = highestViolationSoFar?.waivedWithAutoWaiver || violation.waivedWithAutoWaiver || false;
+
   // return the highest active violation, or if there isn't one, merge the inactive violations
   if (highestActiveViolation) {
-    return { ...highestActiveViolation, waivedViolations };
+    return { ...highestActiveViolation, waivedViolations, waivedWithAutoWaiver };
   } else {
     const waived = (highestViolationSoFar && highestViolationSoFar.waived) || violation.waived,
       legacyViolation =
@@ -448,6 +452,7 @@ function highestViolationReducer(highestViolationSoFar, violation) {
       policyThreatLevel: 0,
       policyName: 'None',
       waived,
+      waivedWithAutoWaiver,
       waivedViolations,
       legacyViolation,
       derivedViolationState: deriveViolationState(waived, legacyViolation),

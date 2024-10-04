@@ -9,6 +9,7 @@ import * as PropTypes from 'prop-types';
 import {
   NxFontAwesomeIcon,
   NxOverflowTooltip,
+  NxSmallTag,
   NxTableCell,
   NxTableRow,
   NxThreatIndicator,
@@ -22,11 +23,11 @@ import { selectIsAggregated, selectSelectedReport } from './applicationReportSel
 import { allPass, filter, includes, length, not, compose, pathOr, prop, is } from 'ramda';
 
 import ActiveWaiversIndicator from 'MainRoot/violation/ActiveWaiversIndicator';
+import { selectIsAutoWaiversEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function ReportTableRow({ onClick, component }) {
   const selectedReport = useSelector(selectSelectedReport);
   const isAggregated = useSelector(selectIsAggregated);
-
   const getTransitiveViolationsCount = () => {
     const transitiveComponentViolations = compose(
       length,
@@ -41,6 +42,7 @@ export default function ReportTableRow({ onClick, component }) {
     )(selectedReport.allEntries);
     return `${transitiveComponentViolations} transitive violation${transitiveComponentViolations === 1 ? '' : 's'}`;
   };
+  const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
   return (
     <NxTableRow isClickable onClick={onClick}>
       <NxTableCell className="iq-app-report__threat-cell">
@@ -74,6 +76,11 @@ export default function ReportTableRow({ onClick, component }) {
             </span>
           </NxTooltip>
         )}
+        {isAutoWaiversEnabled && component.waivedWithAutoWaiver && (
+          <span className="iq-app-report__auto-waiver-tag iq-text-indicator iq-pull-right">
+            <NxSmallTag color="green">Auto</NxSmallTag>
+          </span>
+        )}
         {component.legacyViolation && (
           <span className="iq-text-indicator iq-text-indicator--legacy-violation iq-pull-right">
             <span>Legacy</span>
@@ -103,6 +110,7 @@ ReportTableRow.propTypes = {
     isOnlyInnerSourceTransitiveDependency: PropTypes.bool,
     innerSource: PropTypes.bool,
     waivedViolations: PropTypes.number,
+    waivedWithAutoWaiver: PropTypes.bool,
     serializedComponentIdentifier: PropTypes.string,
   }),
   onClick: PropTypes.func.isRequired,

@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.persistence.Query;
 
@@ -2086,8 +2087,7 @@ public class ScanPolicyEvaluatorTest
 
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
-    // excluding the packageUrl condition, which is not included in telemetry
-    assertThat(telemetryDataList).hasSize(conditions.size() - 1);
+    assertThat(telemetryDataList).hasSize(conditions.size());
 
     boolean hasHygieneViolation = telemetryDataList.stream().anyMatch(telemetryData ->
         telemetryData.getAttributes().get(
@@ -2156,10 +2156,12 @@ public class ScanPolicyEvaluatorTest
     // When running the first evaluation
     scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
 
-    // Then no telemetry data is collected
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
-    assertThat(telemetryDataList).hasSize(0);
+    assertThat(telemetryDataList).hasSize(36);
+    for (TelemetryData telemetryData : telemetryDataList) {
+      assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.CONDITION_TYPE_VIOLATION);
+    }
 
     // When removing the policy
     policyDAO.delete(policy);
@@ -2262,9 +2264,11 @@ public class ScanPolicyEvaluatorTest
     // Then there should be two policy violations, of which one is waived.
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
     List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
-    assertThat(telemetryDataList).hasSize(1);
-    assertThat(telemetryDataList.get(0).getPurpose()).isEqualTo(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION);
-    assertThat(telemetryDataList.get(0).getAttributes().get(COUNT)).isEqualTo(1);
+    assertThat(telemetryDataList).hasSize(3);
+    TelemetryData timeToWaiveTelemetryData = telemetryDataList.stream()
+        .filter(telemetryData -> TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION.equals(telemetryData.getPurpose()))
+        .findFirst().orElseThrow();
+    assertThat(timeToWaiveTelemetryData.getAttributes().get(COUNT)).isEqualTo(1);
     clearInvocations(mockTelemetrySender);
 
     // When waive the other policy and evaluate policies again

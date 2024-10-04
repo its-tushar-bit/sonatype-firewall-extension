@@ -9,12 +9,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -23,6 +21,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -65,11 +64,6 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
-import com.sonatype.insight.brain.model.policy.conditions.ComponentCategoryConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.DependencyTypeConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.policy.LegacyViolationService;
 import com.sonatype.insight.brain.policy.violation.ApplicationPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
@@ -114,15 +108,6 @@ public class ScanPolicyEvaluator
   public static final String POLICY_ALERTS_FILENAME = "policyalerts.json";
 
   public static final String POLICY_THREATS_FILENAME = "policythreats.json";
-
-  public static final Set<String> TELEMETRY_CONDITION_TYPES = Collections.unmodifiableSet(
-      new HashSet<>(Arrays.asList(
-          HygieneRatingConditionType.ID,
-          IntegrityRatingConditionType.ID,
-          ComponentCategoryConditionType.ID,
-          DependencyTypeConditionType.ID,
-          SecurityVulnerabilityCategoryConditionType.ID
-      )));
 
   private static final String UNKNOWN = "unknown";
 
@@ -691,11 +676,7 @@ public class ScanPolicyEvaluator
     for (ConstraintFact constraintFact : newPolicyViolation.getConstraintFacts()) {
       for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
         String conditionTypeId = conditionFact.getConditionTypeId();
-
-        if (TELEMETRY_CONDITION_TYPES.contains(conditionTypeId)) {
-          telemetryCollector.addTelemetryForConditionTypeViolation(newPolicyViolation, conditionTypeId, components);
-
-        }
+        telemetryCollector.addTelemetryForConditionTypeViolation(newPolicyViolation, conditionTypeId, components);
       }
     }
   }

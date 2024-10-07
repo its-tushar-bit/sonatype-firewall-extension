@@ -10,22 +10,8 @@ import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 const { initialState: initUserInput } = nxTextInputStateHelpers;
 
 describe('policySlice reducers', () => {
-  describe('policy/resetIsDirty', () => {
-    it('resets isDirty', () => {
-      const state = Object.freeze({
-        isDirty: true,
-      });
-
-      const { isDirty } = reducer(state, {
-        type: 'policy/resetIsDirty',
-      });
-
-      expect(isDirty).toBeFalse();
-    });
-  });
-
   describe('policy/setPolicyName', () => {
-    it('sets currentPolicy name and compute isDirty', () => {
+    it('sets currentPolicy name', () => {
       const state = Object.freeze({
         currentPolicy: {
           name: null,
@@ -33,10 +19,9 @@ describe('policySlice reducers', () => {
         },
         siblings: [],
         originalPolicy: { name: { value: '' } },
-        isDirty: false,
       });
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setPolicyName',
         payload: 'newName',
       });
@@ -47,7 +32,6 @@ describe('policySlice reducers', () => {
         trimmedValue: 'newName',
         validationErrors: [],
       });
-      expect(isDirty).toBeTrue();
     });
 
     it('sets currentPolicy name with validation errors', () => {
@@ -58,7 +42,6 @@ describe('policySlice reducers', () => {
         },
         siblings: [],
         originalPolicy: { name: { value: 'newName' } },
-        isDirty: false,
       });
 
       const { currentPolicy } = reducer(state, {
@@ -86,7 +69,6 @@ describe('policySlice reducers', () => {
         },
         siblings: [],
         originalPolicy: { name: { value: 'newName' } },
-        isDirty: false,
       });
 
       const { currentPolicy } = reducer(state, {
@@ -110,7 +92,6 @@ describe('policySlice reducers', () => {
         },
         siblings: [{ name: 'newName' }],
         originalPolicy: { name: { value: '' } },
-        isDirty: false,
       });
 
       const { currentPolicy } = reducer(state, {
@@ -128,23 +109,20 @@ describe('policySlice reducers', () => {
   });
 
   describe('policy/setThreatLevel', () => {
-    it('sets currentPolicy threatLevel and compute isDirty', () => {
+    it('sets currentPolicy threatLevel', () => {
       const state = Object.freeze({
         currentPolicy: {
           threatLevel: 1,
           constraints: [],
         },
-
-        isDirty: false,
       });
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setThreatLevel',
         payload: 5,
       });
 
       expect(currentPolicy.threatLevel).toBe(5);
-      expect(isDirty).toBeTrue();
     });
   });
 
@@ -155,16 +133,14 @@ describe('policySlice reducers', () => {
           actions: null,
           constraints: [],
         },
-        validationError: null,
       });
 
-      const { currentPolicy, validationError } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setActions',
         payload: { proxy: 'warn' },
       });
 
       expect(currentPolicy.actions).toEqual({ proxy: 'warn' });
-      expect(validationError).toBeNull();
     });
   });
 
@@ -231,21 +207,18 @@ describe('policySlice reducers', () => {
   describe('policy/togglePolicyActionsOverrideAllowed', () => {
     it('toggles policyActionsOverrideAllowed for a category from false to true', () => {
       const state = Object.freeze({
-        isDirty: false,
         currentPolicy: { policyActionsOverrideAllowed: false, constraints: [] },
       });
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/togglePolicyActionsOverrideAllowed',
       });
 
       expect(currentPolicy.policyActionsOverrideAllowed).toBeTrue();
-      expect(isDirty).toBeTrue();
     });
 
     it('toggles policyActionsOverrideAllowed for a category from true to false', () => {
       const state = Object.freeze({
-        isDirty: false,
         currentPolicy: {
           constraints: [],
           policyActionsOverrideAllowed: true,
@@ -261,34 +234,30 @@ describe('policySlice reducers', () => {
         },
       });
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/togglePolicyActionsOverrideAllowed',
       });
 
       expect(currentPolicy.policyActionsOverrideAllowed).toBeFalse();
       expect(currentPolicy.policyActionsOverrides).toBeNull();
-      expect(isDirty).toBeTrue();
     });
   });
 
   describe('policy/togglePolicyNotificationsOverrideAllowed', () => {
     it('toggles policyNotificationsOverrideAllowed for a category from false to true', () => {
       const state = Object.freeze({
-        isDirty: false,
         currentPolicy: { policyNotificationsOverrideAllowed: false, constraints: [] },
       });
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/togglePolicyNotificationsOverrideAllowed',
       });
 
       expect(currentPolicy.policyNotificationsOverrideAllowed).toBeTrue();
-      expect(isDirty).toBeTrue();
     });
 
     it('toggles policyNotificationsOverrideAllowed for a category from true to false', () => {
       const state = Object.freeze({
-        isDirty: false,
         currentPolicy: {
           constraints: [],
           policyNotificationsOverrideAllowed: true,
@@ -300,18 +269,17 @@ describe('policySlice reducers', () => {
         },
       });
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/togglePolicyNotificationsOverrideAllowed',
       });
 
       expect(currentPolicy.policyNotificationsOverrideAllowed).toBeFalse();
       expect(currentPolicy.policyNotificationsOverrides).toBeNull();
-      expect(isDirty).toBeTrue();
     });
   });
 
   describe('policy/setConstraint', () => {
-    it('sets currentPolicy constraints and compute isDirty', () => {
+    it('sets currentPolicy constraints', () => {
       const state = Object.freeze({
         currentPolicy: {
           constraints: [],
@@ -319,8 +287,6 @@ describe('policySlice reducers', () => {
         originalPolicy: {
           constraints: [],
         },
-        isDirty: false,
-        validationError: null,
       });
 
       const constraints = [
@@ -340,17 +306,15 @@ describe('policySlice reducers', () => {
         },
       ];
 
-      const { currentPolicy, isDirty, validationError } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setConstraint',
         payload: constraints,
       });
 
       expect(currentPolicy.constraints).toEqual(constraints);
-      expect(isDirty).toBeTrue();
-      expect(validationError).toBeNull();
     });
 
-    it('sets currentPolicy constraints and compute validationError', () => {
+    it('sets currentPolicy constraints', () => {
       const state = Object.freeze({
         currentPolicy: {
           constraints: [],
@@ -358,8 +322,6 @@ describe('policySlice reducers', () => {
         originalPolicy: {
           constraints: [],
         },
-        isDirty: false,
-        validationError: null,
       });
 
       const constraints = [
@@ -379,108 +341,95 @@ describe('policySlice reducers', () => {
         },
       ];
 
-      const { currentPolicy, validationError } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setConstraint',
         payload: constraints,
       });
 
       expect(currentPolicy.constraints).toEqual(constraints);
-      expect(validationError).toBe('Unable to save: fields with invalid or missing data');
     });
   });
 
   describe('policy/setUserNotifications', () => {
-    it('sets userNotifications and compute isDirty', () => {
+    it('sets userNotifications', () => {
       const state = Object.freeze({
         currentPolicy: {
           constraints: [],
           notifications: { userNotifications: null },
         },
-
-        isDirty: false,
       });
       const userNotifications = [{ emailAddress: 'df@sd.com', stageIds: [] }];
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setUserNotifications',
         payload: { notifications: userNotifications, ownerId: null },
       });
 
       expect(currentPolicy.notifications.userNotifications).toEqual(userNotifications);
-      expect(isDirty).toBeTrue();
     });
   });
 
   describe('policy/setRoleNotifications', () => {
-    it('sets roleNotifications and compute isDirty', () => {
+    it('sets roleNotifications', () => {
       const state = Object.freeze({
         currentPolicy: {
           constraints: [],
           notifications: { roleNotifications: null },
         },
-
-        isDirty: false,
       });
       const roleNotifications = [{ roleId: '90c7c98683b4471cb77a916744540bcc', stageIds: [] }];
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setRoleNotifications',
         payload: { notifications: roleNotifications, ownerId: null },
       });
 
       expect(currentPolicy.notifications.roleNotifications).toEqual(roleNotifications);
-      expect(isDirty).toBeTrue();
     });
   });
 
   describe('policy/setJiraNotifications', () => {
-    it('sets jiraNotifications and compute isDirty', () => {
+    it('sets jiraNotifications', () => {
       const state = Object.freeze({
         currentPolicy: {
           constraints: [],
           notifications: { jiraNotifications: null },
         },
-
-        isDirty: false,
       });
 
       const jiraNotifications = [{ projectKey: 'somekey', stageIds: [] }];
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setJiraNotifications',
         payload: { notifications: jiraNotifications, ownerId: null },
       });
 
       expect(currentPolicy.notifications.jiraNotifications).toEqual(jiraNotifications);
-      expect(isDirty).toBeTrue();
     });
   });
 
   describe('policy/setWebhookNotifications', () => {
-    it('sets webhookNotifications and compute isDirty', () => {
+    it('sets webhookNotifications', () => {
       const state = Object.freeze({
         currentPolicy: {
           constraints: [],
           notifications: { webhookNotifications: null },
         },
-
-        isDirty: false,
       });
 
       const webhookNotifications = [{ webhookId: 'someid', stageIds: [] }];
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setWebhookNotifications',
         payload: { notifications: webhookNotifications, ownerId: null },
       });
 
       expect(currentPolicy.notifications.webhookNotifications).toEqual(webhookNotifications);
-      expect(isDirty).toBeTrue();
     });
   });
 
   describe('policy/setUserNotificationStageIds', () => {
-    it('sets stageIds in userNotifications and compute isDirty', () => {
+    it('sets stageIds in userNotifications', () => {
       const state = Object.freeze({
         currentPolicy: {
           constraints: [],
@@ -491,23 +440,20 @@ describe('policySlice reducers', () => {
             ],
           },
         },
-
-        isDirty: false,
       });
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setUserNotificationStageIds',
         payload: { index: 1, value: ['develop'] },
       });
 
       expect(currentPolicy.notifications.userNotifications[0].stageIds).toEqual([]);
       expect(currentPolicy.notifications.userNotifications[1].stageIds).toEqual(['develop']);
-      expect(isDirty).toBeTrue();
     });
   });
 
   describe('policy/setRoleNotificationStageIds', () => {
-    it('sets stageIds in roleNotifications and compute isDirty', () => {
+    it('sets stageIds in roleNotifications', () => {
       const state = Object.freeze({
         currentPolicy: {
           constraints: [],
@@ -518,23 +464,20 @@ describe('policySlice reducers', () => {
             ],
           },
         },
-
-        isDirty: false,
       });
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setRoleNotificationStageIds',
         payload: { index: 1, value: ['develop'] },
       });
 
       expect(currentPolicy.notifications.roleNotifications[0].stageIds).toEqual([]);
       expect(currentPolicy.notifications.roleNotifications[1].stageIds).toEqual(['develop']);
-      expect(isDirty).toBeTrue();
     });
   });
 
   describe('policy/setJiraNotificationStageIds', () => {
-    it('sets stageIds in jiraNotifications and compute isDirty', () => {
+    it('sets stageIds in jiraNotifications', () => {
       const state = Object.freeze({
         currentPolicy: {
           constraints: [],
@@ -545,23 +488,20 @@ describe('policySlice reducers', () => {
             ],
           },
         },
-
-        isDirty: false,
       });
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setJiraNotificationStageIds',
         payload: { index: 1, value: ['develop'] },
       });
 
       expect(currentPolicy.notifications.jiraNotifications[0].stageIds).toEqual([]);
       expect(currentPolicy.notifications.jiraNotifications[1].stageIds).toEqual(['develop']);
-      expect(isDirty).toBeTrue();
     });
   });
 
   describe('policy/setWebhookNotificationStageIds', () => {
-    it('sets stageIds in webhookNotifications and compute isDirty', () => {
+    it('sets stageIds in webhookNotifications', () => {
       const state = Object.freeze({
         currentPolicy: {
           constraints: [],
@@ -572,22 +512,20 @@ describe('policySlice reducers', () => {
             ],
           },
         },
-        isDirty: false,
       });
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setWebhookNotificationStageIds',
         payload: { index: 1, value: ['develop'] },
       });
 
       expect(currentPolicy.notifications.webhookNotifications[0].stageIds).toEqual([]);
       expect(currentPolicy.notifications.webhookNotifications[1].stageIds).toEqual(['develop']);
-      expect(isDirty).toBeTrue();
     });
   });
 
   describe('policy/setCondition', () => {
-    it('sets conditions for currentPolicy constraints and compute isDirty, validationError', () => {
+    it('sets conditions for currentPolicy constraints', () => {
       const state = Object.freeze({
         originalPolicy: {
           constraints: [],
@@ -601,8 +539,6 @@ describe('policySlice reducers', () => {
             },
           ],
         },
-        isDirty: false,
-        validationError: null,
       });
       const conditions = [
         {
@@ -612,20 +548,18 @@ describe('policySlice reducers', () => {
         },
       ];
 
-      const { currentPolicy, isDirty, validationError } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setCondition',
         payload: { constraintIndex: 1, value: conditions },
       });
 
       expect(currentPolicy.constraints[0].conditions).toEqual([]);
       expect(currentPolicy.constraints[1].conditions).toEqual(conditions);
-      expect(isDirty).toBeTrue();
-      expect(validationError).toBe('Unable to save: fields with invalid or missing data');
     });
   });
 
   describe('policy/setConstraintName', () => {
-    it('sets name for currentPolicy constraints and compute isDirty', () => {
+    it('sets name for currentPolicy constraints', () => {
       const state = Object.freeze({
         originalPolicy: {
           constraints: [],
@@ -646,20 +580,18 @@ describe('policySlice reducers', () => {
             },
           ],
         },
-        isDirty: false,
       });
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setConstraintName',
         payload: { constraintIndex: 1, value: 'newName', id: 'someOtherId' },
       });
 
       expect(currentPolicy.constraints[0].name.value).toBe('');
       expect(currentPolicy.constraints[1].name.value).toBe('newName');
-      expect(isDirty).toBeTrue();
     });
 
-    it('sets duplicated name for currentPolicy constraint and compute validationError', () => {
+    it('sets duplicated name for currentPolicy constraint', () => {
       const state = Object.freeze({
         originalPolicy: {
           constraints: [],
@@ -680,22 +612,20 @@ describe('policySlice reducers', () => {
             },
           ],
         },
-        validationError: null,
       });
 
-      const { currentPolicy, validationError } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setConstraintName',
         payload: { constraintIndex: 1, value: 'duplicate', id: 'someOtherId' },
       });
 
       expect(currentPolicy.constraints[0].name.value).toBe('duplicate');
       expect(currentPolicy.constraints[1].name.value).toBe('duplicate');
-      expect(validationError).toBe('Unable to save: fields with invalid or missing data');
     });
   });
 
   describe('policy/setConstraintOperator', () => {
-    it('sets operator for currentPolicy constraints and compute isDirty', () => {
+    it('sets operator for currentPolicy constraints', () => {
       const state = Object.freeze({
         originalPolicy: {
           constraints: [],
@@ -714,22 +644,20 @@ describe('policySlice reducers', () => {
             },
           ],
         },
-        isDirty: false,
       });
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setConstraintOperator',
         payload: { constraintIndex: 1, value: 'AND' },
       });
 
       expect(currentPolicy.constraints[0].operator).toBeNull();
       expect(currentPolicy.constraints[1].operator).toBe('AND');
-      expect(isDirty).toBeTrue();
     });
   });
 
   describe('policy/setConditionOperator', () => {
-    it('sets operator and compute isDirty', () => {
+    it('sets operator', () => {
       const state = Object.freeze({
         originalPolicy: {
           constraints: [],
@@ -746,22 +674,20 @@ describe('policySlice reducers', () => {
             },
           ],
         },
-        isDirty: false,
       });
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setConditionOperator',
         payload: { constraintIndex: 1, conditionIndex: 1, value: 'AND' },
       });
 
       expect(currentPolicy.constraints[1].conditions[0].operator).toBeNull();
       expect(currentPolicy.constraints[1].conditions[1].operator).toBe('AND');
-      expect(isDirty).toBeTrue();
     });
   });
 
   describe('policy/setConditionValue', () => {
-    it('sets value and compute isDirty', () => {
+    it('sets value', () => {
       const state = Object.freeze({
         originalPolicy: {
           constraints: [],
@@ -778,22 +704,20 @@ describe('policySlice reducers', () => {
             },
           ],
         },
-        isDirty: false,
       });
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setConditionValue',
         payload: { constraintIndex: 1, conditionIndex: 1, value: 'someValue' },
       });
 
       expect(currentPolicy.constraints[1].conditions[0].value).toBeNull();
       expect(currentPolicy.constraints[1].conditions[1].value).toBe('someValue');
-      expect(isDirty).toBeTrue();
     });
   });
 
   describe('policy/setConstraintCoordinatesFormat', () => {
-    it('sets value to a-name and compute isDirty, validationError', () => {
+    it('sets value to a-name', () => {
       const state = Object.freeze({
         originalPolicy: {
           conditions: [],
@@ -819,11 +743,9 @@ describe('policySlice reducers', () => {
             },
           ],
         },
-        isDirty: false,
-        validationError: null,
       });
 
-      const { currentPolicy, isDirty, validationError } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setConstraintCoordinatesFormat',
         payload: { constraintIndex: 0, conditionIndex: 0, value: 'a-name' },
       });
@@ -838,11 +760,9 @@ describe('policySlice reducers', () => {
           version: initUserInput(''),
         },
       });
-      expect(isDirty).toBeTrue();
-      expect(validationError).toBe('Unable to save: fields with invalid or missing data');
     });
 
-    it('sets value to pypi and compute isDirty, validationError', () => {
+    it('sets value to pypi', () => {
       const state = Object.freeze({
         originalPolicy: {
           conditions: [],
@@ -868,11 +788,9 @@ describe('policySlice reducers', () => {
             },
           ],
         },
-        isDirty: false,
-        validationError: null,
       });
 
-      const { currentPolicy, isDirty, validationError } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setConstraintCoordinatesFormat',
         payload: { constraintIndex: 0, conditionIndex: 0, value: 'pypi' },
       });
@@ -888,13 +806,11 @@ describe('policySlice reducers', () => {
           extension: initUserInput('*'),
         },
       });
-      expect(isDirty).toBeTrue();
-      expect(validationError).toBe('Unable to save: fields with invalid or missing data');
     });
   });
 
   describe('policy/setConstraintCoordinatesInput', () => {
-    it('sets value and compute isDirty, validationError', () => {
+    it('sets value', () => {
       const state = Object.freeze({
         originalPolicy: {
           conditions: [],
@@ -920,11 +836,9 @@ describe('policySlice reducers', () => {
             },
           ],
         },
-        isDirty: false,
-        validationError: null,
       });
 
-      const { currentPolicy, isDirty, validationError } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setConstraintCoordinatesInput',
         payload: { constraintIndex: 0, conditionIndex: 0, value: 'version value', name: 'version' },
       });
@@ -946,13 +860,11 @@ describe('policySlice reducers', () => {
           classifier: initUserInput('*'),
         },
       });
-      expect(isDirty).toBeTrue();
-      expect(validationError).toBe('Unable to save: fields with invalid or missing data');
     });
   });
 
   describe('policy/setConstraintConditionAgeField', () => {
-    it('sets value and compute isDirty, sets age field validation errors', () => {
+    it('sets value, sets age field validation errors', () => {
       const state = Object.freeze({
         originalPolicy: {
           conditions: [],
@@ -971,10 +883,9 @@ describe('policySlice reducers', () => {
             },
           ],
         },
-        isDirty: false,
       });
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setConditionAgeValue',
         payload: { constraintIndex: 0, conditionIndex: 0, value: '0' },
       });
@@ -985,10 +896,9 @@ describe('policySlice reducers', () => {
         isPristine: false,
         validationErrors: ['Minimum allowed value is 1'],
       });
-      expect(isDirty).toBeTrue();
     });
 
-    it('sets value and compute isDirty, sets age field validation errors', () => {
+    it('sets value, sets age field validation errors', () => {
       const state = Object.freeze({
         originalPolicy: {
           conditions: [],
@@ -1007,10 +917,9 @@ describe('policySlice reducers', () => {
             },
           ],
         },
-        isDirty: false,
       });
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setConditionAgeValue',
         payload: { constraintIndex: 0, conditionIndex: 0, value: '' },
       });
@@ -1021,12 +930,11 @@ describe('policySlice reducers', () => {
         isPristine: false,
         validationErrors: ['Must be non-empty', 'Minimum allowed value is 1'],
       });
-      expect(isDirty).toBeTrue();
     });
   });
 
   describe('setMultiInputConditionValue', () => {
-    it('sets value and compute isDirty, sets age field validation errors for PercentageValueType', () => {
+    it('sets value, sets age field validation errors for PercentageValueType', () => {
       const state = Object.freeze({
         originalPolicy: {
           conditions: [],
@@ -1034,10 +942,9 @@ describe('policySlice reducers', () => {
         currentPolicy: {
           constraints: [],
         },
-        isDirty: false,
       });
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setMultiInputConditionValue',
         payload: {
           constraintIndex: 0,
@@ -1054,10 +961,9 @@ describe('policySlice reducers', () => {
         isPristine: false,
         validationErrors: ['Must be non-empty', 'Value must be from 0 to 100'],
       });
-      expect(isDirty).toBeTrue();
     });
 
-    it('sets value and compute isDirty, sets age field validation errors for PackageUrlValueType', () => {
+    it('sets value, sets age field validation errors for PackageUrlValueType', () => {
       const state = Object.freeze({
         originalPolicy: {
           conditions: [],
@@ -1065,10 +971,9 @@ describe('policySlice reducers', () => {
         currentPolicy: {
           constraints: [],
         },
-        isDirty: false,
       });
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setMultiInputConditionValue',
         payload: {
           constraintIndex: 0,
@@ -1085,12 +990,11 @@ describe('policySlice reducers', () => {
         isPristine: false,
         validationErrors: ['Must be non-empty', 'Value must be a valid Package URL: pkg:type/name@version'],
       });
-      expect(isDirty).toBeTrue();
     });
   });
 
   describe('policy/setConstraintCondition', () => {
-    it('sets conditions and compute isDirty, validationError', () => {
+    it('sets conditions', () => {
       const state = Object.freeze({
         originalPolicy: {
           conditions: [],
@@ -1111,8 +1015,6 @@ describe('policySlice reducers', () => {
             },
           ],
         },
-        isDirty: false,
-        validationError: null,
       });
       const newCondition = {
         conditionTypeId: 'AgeInDays',
@@ -1120,7 +1022,7 @@ describe('policySlice reducers', () => {
         value: '',
       };
 
-      const { currentPolicy, isDirty, validationError } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setConstraintCondition',
         payload: { constraintIndex: 1, conditionIndex: 0, value: newCondition },
       });
@@ -1131,11 +1033,9 @@ describe('policySlice reducers', () => {
         operator: 'older than',
         value: initUserInput(''),
       });
-      expect(isDirty).toBeTrue();
-      expect(validationError).toBe('Unable to save: fields with invalid or missing data');
     });
 
-    it('sets conditions for coordinates case and compute isDirty, validationError', () => {
+    it('sets conditions for coordinates case', () => {
       const state = Object.freeze({
         originalPolicy: {
           conditions: [],
@@ -1156,8 +1056,6 @@ describe('policySlice reducers', () => {
             },
           ],
         },
-        isDirty: false,
-        validationError: null,
       });
       const newCondition = {
         conditionTypeId: 'Coordinates',
@@ -1165,7 +1063,7 @@ describe('policySlice reducers', () => {
         value: '',
       };
 
-      const { currentPolicy, isDirty, validationError } = reducer(state, {
+      const { currentPolicy } = reducer(state, {
         type: 'policy/setConstraintCondition',
         payload: { constraintIndex: 1, conditionIndex: 0, value: newCondition },
       });
@@ -1183,8 +1081,6 @@ describe('policySlice reducers', () => {
           classifier: initUserInput('*'),
         },
       });
-      expect(isDirty).toBeTrue();
-      expect(validationError).toBe('Unable to save: fields with invalid or missing data');
     });
   });
 
@@ -1242,19 +1138,17 @@ describe('policySlice reducers', () => {
       const state = Object.freeze({
         categoriesForPolicyLoadError: null,
         loadingCategories: true,
-        isDirty: true,
         currentPolicy: { name: 'current' },
         originalPolicy: { name: 'initial' },
       });
 
-      const { categoriesForPolicyLoadError, loadingCategories, isDirty, currentPolicy } = reducer(state, {
+      const { categoriesForPolicyLoadError, loadingCategories, currentPolicy } = reducer(state, {
         type: 'policy/loadCategoriesForPolicy/rejected',
         payload: 'error',
       });
 
       expect(categoriesForPolicyLoadError).toBe('error');
       expect(loadingCategories).toBeFalse();
-      expect(isDirty).toBeFalse();
       expect(currentPolicy).toEqual(state.originalPolicy);
     });
   });
@@ -1301,7 +1195,6 @@ describe('policySlice reducers', () => {
       const state = Object.freeze({
         loadError: 'error',
         loadingPolicyEditor: true,
-        isDirty: true,
         currentPolicy: null,
         currentPolicyOwner: null,
         originalPolicy: null,
@@ -1310,7 +1203,6 @@ describe('policySlice reducers', () => {
         isOrgOwner: false,
         isRootOrg: false,
         originalProxyStageAction: null,
-        validationError: null,
       });
 
       const fulfilledPayload = {
@@ -1326,7 +1218,6 @@ describe('policySlice reducers', () => {
       const {
         loadError,
         loadingPolicyEditor,
-        isDirty,
         currentPolicy,
         currentPolicyOwner,
         originalPolicy,
@@ -1335,7 +1226,6 @@ describe('policySlice reducers', () => {
         isOrgOwner,
         isRootOrg,
         originalProxyStageAction,
-        validationError,
       } = reducer(state, {
         type: 'policy/loadPolicyEditor/fulfilled',
         payload: fulfilledPayload,
@@ -1343,7 +1233,6 @@ describe('policySlice reducers', () => {
 
       expect(loadError).toBeNull();
       expect(loadingPolicyEditor).toBeFalse();
-      expect(isDirty).toBeFalse();
       expect(currentPolicy).toEqual(fulfilledPayload.currentPolicy);
       expect(currentPolicyOwner).toEqual(fulfilledPayload.currentPolicyOwner);
       expect(originalPolicy).toEqual(fulfilledPayload.currentPolicy);
@@ -1352,7 +1241,6 @@ describe('policySlice reducers', () => {
       expect(isOrgOwner).toBe(fulfilledPayload.isOrgOwner);
       expect(isRootOrg).toBe(fulfilledPayload.isRootOrg);
       expect(originalProxyStageAction).toBe(fulfilledPayload.originalProxyStageAction);
-      expect(validationError).toBeNull();
     });
   });
 
@@ -1388,7 +1276,6 @@ describe('policySlice reducers', () => {
       const state = Object.freeze({
         loadError: 'error',
         loadingSavePolicy: false,
-        isDirty: true,
         originalPolicy: null,
         currentPolicy: { id: 'somePolicyId', actions: { proxy: 'warn' } },
         categories: [],
@@ -1403,7 +1290,6 @@ describe('policySlice reducers', () => {
       const {
         loadError,
         loadingSavePolicy,
-        isDirty,
         originalPolicy,
         originalCategories,
         originalHasPolicyCategories,
@@ -1417,7 +1303,6 @@ describe('policySlice reducers', () => {
 
       expect(loadError).toBeNull();
       expect(loadingSavePolicy).toBeFalse();
-      expect(isDirty).toBeFalse();
       expect(submitMaskState).toBeTrue();
       expect(originalPolicy).toEqual(state.currentPolicy);
       expect(originalCategories).toEqual(state.categories);
@@ -1430,7 +1315,6 @@ describe('policySlice reducers', () => {
       const state = Object.freeze({
         loadError: 'error',
         loadingSavePolicy: false,
-        isDirty: true,
         originalPolicy: null,
         currentPolicy: { id: 'somePolicyId', actions: { proxy: 'warn' } },
         categories: [],
@@ -1445,7 +1329,6 @@ describe('policySlice reducers', () => {
       const {
         loadError,
         loadingSavePolicy,
-        isDirty,
         originalPolicy,
         originalCategories,
         originalHasPolicyCategories,
@@ -1460,7 +1343,6 @@ describe('policySlice reducers', () => {
       expect(loadError).toBeNull();
       expect(loadingSavePolicy).toBeFalse();
       expect(submitMaskState).toBeTrue();
-      expect(isDirty).toBeFalse();
       expect(originalPolicy).toEqual(state.originalPolicy);
       expect(originalCategories).toEqual(state.originalCategories);
       expect(originalHasPolicyCategories).toBe(state.originalHasPolicyCategories);
@@ -1525,9 +1407,8 @@ describe('policySlice reducers', () => {
   });
 
   describe('policy/setActionsOverride', () => {
-    it('adds provided actions override for provided owner and sets isDirty to true if override has changed', () => {
+    it('adds provided actions override for provided owner if override has changed', () => {
       const state = Object.freeze({
-        isDirty: true,
         isInherited: true,
         overrideActionsFlag: true,
         originalOverrideActionsFlag: false,
@@ -1552,16 +1433,14 @@ describe('policySlice reducers', () => {
         },
       };
 
-      const { currentPolicy, isDirty } = reducer(state, action);
+      const { currentPolicy } = reducer(state, action);
 
       expect(currentPolicy.policyActionsOverrides.someOwnerId).toEqual({ build: 'warn' });
       expect(currentPolicy.policyActionsOverrides.currentOwnerId).toEqual({ build: 'fail', release: 'fail' });
-      expect(isDirty).toBe(true);
     });
 
-    it('adds actions override and sets isDirty to false if override has not changed', () => {
+    it('adds actions override if override has not changed', () => {
       const state = Object.freeze({
-        isDirty: true,
         isInherited: true,
         overrideActionsFlag: false,
         originalOverrideActionsFlag: false,
@@ -1587,17 +1466,15 @@ describe('policySlice reducers', () => {
         },
       };
 
-      const { currentPolicy, isDirty } = reducer(state, action);
+      const { currentPolicy } = reducer(state, action);
 
       expect(currentPolicy.policyActionsOverrides).toEqual(state.originalPolicy.policyActionsOverrides);
-      expect(isDirty).toBe(false);
     });
   });
 
   describe('policy/setNotificationsOverride', () => {
-    it('adds provided notifications override for provided owner and sets isDirty to true if override has changed', () => {
+    it('adds provided notifications override for provided owner if override has changed', () => {
       const state = Object.freeze({
-        isDirty: true,
         isInherited: true,
         overrideNotificationsFlag: true,
         originalOverrideNotificationsFlag: false,
@@ -1622,18 +1499,16 @@ describe('policySlice reducers', () => {
         },
       };
 
-      const { currentPolicy, isDirty } = reducer(state, action);
+      const { currentPolicy } = reducer(state, action);
 
       expect(currentPolicy.policyNotificationsOverrides.someOwnerId).toEqual({ userNotifications: [] });
       expect(currentPolicy.policyNotificationsOverrides.currentOwnerId).toEqual({
         userNotifications: [{ emailAddress: 'user@email.com', stageIds: ['operate'] }],
       });
-      expect(isDirty).toBe(true);
     });
 
-    it('adds notifications override and sets isDirty to false if override has not changed', () => {
+    it('adds notifications override if override has not changed', () => {
       const state = Object.freeze({
-        isDirty: true,
         isInherited: true,
         overrideNotificationsFlag: false,
         originalOverrideNotificationsFlag: false,
@@ -1663,21 +1538,19 @@ describe('policySlice reducers', () => {
         },
       };
 
-      const { currentPolicy, isDirty } = reducer(state, action);
+      const { currentPolicy } = reducer(state, action);
 
       expect(currentPolicy.policyNotificationsOverrides).toEqual(state.originalPolicy.policyNotificationsOverrides);
-      expect(isDirty).toBe(false);
     });
   });
 
   describe('policy/updateOverrides/fulfilled', () => {
-    it('resets loading flags, resets isDirty and resets the policy from payload', () => {
+    fit('resets loading flags and resets the policy from payload', () => {
       const state = Object.freeze({
         submitMaskState: false,
         loadError: 'some error',
-        isDirty: true,
-        currentPolicy: 'current policy',
-        originalPolicy: 'original policy',
+        currentPolicy: { name: 'current policy' },
+        originalPolicy: { name: 'original policy' },
       });
 
       const action = {
@@ -1685,11 +1558,10 @@ describe('policySlice reducers', () => {
         payload: { name: 'updated policy' },
       };
 
-      const { submitMaskState, loadError, isDirty, currentPolicy, originalPolicy } = reducer(state, action);
+      const { submitMaskState, loadError, currentPolicy, originalPolicy } = reducer(state, action);
 
       expect(submitMaskState).toBeTrue();
       expect(loadError).toBe(null);
-      expect(isDirty).toBe(false);
       expect(currentPolicy).toEqual({
         name: {
           isPristine: true,
@@ -1805,11 +1677,10 @@ describe('policySlice reducers', () => {
   });
 
   describe('policy/setOverrideParentActions', () => {
-    it('sets overrideActionsFlag and isDirty', () => {
+    it('sets overrideActionsFlag ', () => {
       const state = Object.freeze({
         overrideActionsFlag: false,
         originalOverrideActionsFlag: false,
-        isDirty: false,
         isInherited: true,
         currentPolicy: {
           constraints: [],
@@ -1822,22 +1693,20 @@ describe('policySlice reducers', () => {
         },
       });
 
-      const { isDirty, overrideActionsFlag } = reducer(state, {
+      const { overrideActionsFlag } = reducer(state, {
         type: 'policy/setOverrideParentActions',
         payload: true,
       });
 
       expect(overrideActionsFlag).toBeTrue();
-      expect(isDirty).toBeTrue();
     });
   });
 
   describe('policy/setOverrideParentNotifications', () => {
-    it('sets overrideNotificationsFlag and isDirty', () => {
+    it('sets overrideNotificationsFlag', () => {
       const state = Object.freeze({
         overrideNotificationsFlag: false,
         originalOverrideNotificationsFlag: false,
-        isDirty: false,
         isInherited: true,
         currentPolicy: {
           constraints: [],
@@ -1850,22 +1719,20 @@ describe('policySlice reducers', () => {
         },
       });
 
-      const { isDirty, overrideNotificationsFlag } = reducer(state, {
+      const { overrideNotificationsFlag } = reducer(state, {
         type: 'policy/setOverrideParentNotifications',
         payload: true,
       });
 
       expect(overrideNotificationsFlag).toBeTrue();
-      expect(isDirty).toBeTrue();
     });
   });
 
   describe('policy/unSetOverrideParentActions', () => {
-    it('removes override from current policy, sets overrideActionsFlag and isDirty', () => {
+    it('removes override from current policy, sets overrideActionsFlag', () => {
       const state = Object.freeze({
         overrideActionsFlag: true,
         originalOverrideActionsFlag: true,
-        isDirty: false,
         isInherited: true,
         currentPolicy: {
           constraints: [],
@@ -1880,23 +1747,21 @@ describe('policySlice reducers', () => {
         },
       });
 
-      const { isDirty, overrideActionsFlag, currentPolicy } = reducer(state, {
+      const { overrideActionsFlag, currentPolicy } = reducer(state, {
         type: 'policy/unSetOverrideParentActions',
         payload: 'id201',
       });
 
       expect(overrideActionsFlag).toBeFalse();
-      expect(isDirty).toBeTrue();
       expect(currentPolicy.policyActionsOverrides).toEqual({});
     });
   });
 
   describe('policy/unSetOverrideParentNotifications', () => {
-    it('removes override from current policy, sets overrideNotificationsFlag and isDirty', () => {
+    it('removes override from current policy, sets overrideNotificationsFlag', () => {
       const state = Object.freeze({
         overrideNotificationsFlag: true,
         originalOverrideNotificationsFlag: true,
-        isDirty: false,
         isInherited: true,
         currentPolicy: {
           constraints: [],
@@ -1909,13 +1774,12 @@ describe('policySlice reducers', () => {
         },
       });
 
-      const { isDirty, overrideNotificationsFlag, currentPolicy } = reducer(state, {
+      const { overrideNotificationsFlag, currentPolicy } = reducer(state, {
         type: 'policy/unSetOverrideParentNotifications',
         payload: 'id201',
       });
 
       expect(overrideNotificationsFlag).toBeFalse();
-      expect(isDirty).toBeTrue();
       expect(currentPolicy.policyNotificationsOverrides).toEqual({});
     });
   });

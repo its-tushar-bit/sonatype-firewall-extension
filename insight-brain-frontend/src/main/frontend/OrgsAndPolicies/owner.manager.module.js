@@ -41,6 +41,7 @@ import RepositoriesPills from 'MainRoot/OrgsAndPolicies/repositories/Repositorie
 import SourceControlConfiguration from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/SourceControlConfiguration';
 import OwnerSummaryPills from 'MainRoot/OrgsAndPolicies/OwnerSummaryPills/OwnerSummaryPills';
 import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
+import { selectIsDirty as policyEditorSelectIsDirty } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import WaiversConfiguration from 'MainRoot/OrgsAndPolicies/waiversConfiguration/WaiversConfiguration';
 
 export default angular
@@ -186,7 +187,7 @@ export default angular
             url: '/policy/{policyId}',
             data: {
               title: ownerType.name + ' Policy',
-              isDirty: ['orgsAndPolicies', 'policy', 'isDirty'],
+              isDirty: policyEditorSelectIsDirty,
             },
             component: 'policyEditor',
           })
@@ -194,7 +195,7 @@ export default angular
             url: '/policy',
             data: {
               title: ownerType.name + ' Policy',
-              isDirty: ['orgsAndPolicies', 'policy', 'isDirty'],
+              isDirty: policyEditorSelectIsDirty,
             },
             component: 'policyEditor',
           })

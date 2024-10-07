@@ -4,7 +4,22 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createSelector } from '@reduxjs/toolkit';
-import { prop, isNil, map, indexBy, flatten, any, includes, equals } from 'ramda';
+import {
+  prop,
+  isNil,
+  map,
+  indexBy,
+  flatten,
+  any,
+  includes,
+  equals,
+  isEmpty,
+  path,
+  curryN,
+  values,
+  omit,
+  mapObjIndexed,
+} from 'ramda';
 
 import {
   selectIsRepositoriesRelated,
@@ -15,25 +30,67 @@ import {
   selectPoliciesByOwner as mainSelectPoliciesByOwner,
   selectOrgsAndPoliciesSlice,
 } from './orgsAndPoliciesSelectors';
-import { eqValues, isNilOrEmpty } from 'MainRoot/util/jsUtil';
+import { anyIndexed, eqValues, isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { selectConditionTypesMap } from 'MainRoot/OrgsAndPolicies/constraintSelectors';
 import { getActionsOverride, getNotificationsOverride } from 'MainRoot/OrgsAndPolicies/utility/util';
-import { getDisabledConditions } from 'MainRoot/OrgsAndPolicies/utility/constraintUtil';
+import { conditionsWithoutValue, getDisabledConditions } from 'MainRoot/OrgsAndPolicies/utility/constraintUtil';
 import {
   selectIsEnforcementSupported,
   selectIsFirewallSupported,
   selectIsNotificationsSupported,
   selectIsPolicyWebhooksSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { RECIPIENT_TYPES } from './policySlice';
+import { initialState, RECIPIENT_TYPES } from './policySlice';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
+import { validateForm } from 'MainRoot/util/validationUtil';
 
 export const selectPolicySlice = createSelector(selectOrgsAndPoliciesSlice, prop('policy'));
 
 export const selectIsEditMode = createSelector(selectRouterCurrentParams, ({ policyId }) => !isNil(policyId));
 
 export const selectHasEditIqPermission = createSelector(selectPolicySlice, prop('hasEditIqPermission'));
-export const selectValidationError = createSelector(selectPolicySlice, prop('validationError'));
+
+const computeValidatableFieldsForCoordinates = (fields) => {
+  if (fields.format === 'maven') {
+    return values(omit(['format', isEmpty(fields.classifier?.trimmedValue) ? 'classifier' : null], fields));
+  } else if (fields.format === 'a-name') {
+    return values(omit(['format', isEmpty(fields.qualifier?.trimmedValue) ? 'qualifier' : null], fields));
+  } else if (fields.format === 'pypi') {
+    return values(
+      omit(
+        [
+          'format',
+          isEmpty(fields.qualifier?.trimmedValue) ? 'qualifier' : null,
+          isEmpty(fields.extension?.trimmedValue) ? 'extension' : null,
+        ],
+        fields
+      )
+    );
+  }
+};
+
+export const selectValidationError = createSelector(selectPolicySlice, (state) => {
+  const { currentPolicy } = state,
+    constraints = currentPolicy?.constraints ?? [],
+    fields = [];
+
+  constraints.forEach((constraint) => {
+    fields.push(constraint.name);
+
+    constraint.conditions.forEach((condition) => {
+      if (!includes(condition.conditionTypeId, conditionsWithoutValue)) {
+        if (condition.conditionTypeId === 'Coordinates') {
+          fields.push(...computeValidatableFieldsForCoordinates(condition.value));
+        } else {
+          fields.push(condition.value);
+        }
+      }
+    });
+  });
+
+  const validationError = validateForm(fields);
+  return validationError;
+});
 
 export const selectIsOrgOwner = createSelector(selectPolicySlice, prop('isOrgOwner'));
 
@@ -56,6 +113,8 @@ export const selectOriginalProxyStageAction = createSelector(selectPolicySlice, 
 export const selectPolicyLoadError = createSelector(selectPolicySlice, prop('loadError'));
 
 export const selectPolicyDeleteError = createSelector(selectPolicySlice, prop('deleteError'));
+
+export const selectOriginalPolicy = createSelector(selectPolicySlice, prop('originalPolicy'));
 
 export const selectCategoriesForPolicyLoadError = createSelector(
   selectPolicySlice,
@@ -92,7 +151,143 @@ export const selectIsNotificationOverrideEnabled = createSelector(
   (isInherited, currentPolicy) => isInherited && currentPolicy.policyNotificationsOverrideAllowed
 );
 
-export const selectIsDirty = createSelector(selectPolicySlice, prop('isDirty'));
+const hasDirtyProps = curryN(3, (observedProps, originalPolicy, currentPolicy) => {
+  return isNil(originalPolicy)
+    ? false // currently loading or error state so no props to dirty
+    : any((prop) => !equals(path(prop, currentPolicy), path(prop, originalPolicy)), observedProps);
+});
+
+const isDirtyConstraints = (originalConstraints, currentConstraints) => {
+  if (!originalConstraints?.length && !currentConstraints?.length) return false;
+  if (originalConstraints?.length !== currentConstraints?.length) return true;
+  const dirty = anyIndexed((constrain, idx) => {
+    const originalConstraint = originalConstraints?.[idx];
+
+    const isNumberOfConditionsDifferent = originalConstraint?.conditions?.length !== constrain.conditions.length;
+    if (isNumberOfConditionsDifferent) {
+      return true;
+    }
+
+    const observedProps = [['name', 'trimmedValue'], ['operator']];
+    const constraintHasDirtyProps = hasDirtyProps(observedProps, originalConstraint, constrain);
+
+    const isAnyConditionDirty = anyIndexed((condition, conditionIdx) => {
+      const originalCondition = originalConstraint.conditions[conditionIdx];
+      const commonConditionPropDirty = any((prop) => !equals(condition[prop], originalCondition[prop]), [
+        'conditionTypeId',
+        'operator',
+      ]);
+
+      if (condition.conditionTypeId === 'Coordinates') {
+        if (originalCondition.conditionTypeId !== 'Coordinates') {
+          return true;
+        }
+        const currentValues = omit(['format'], mapObjIndexed(prop('trimmedValue'), condition.value));
+        const originalValues = omit(['format'], mapObjIndexed(prop('trimmedValue'), originalCondition.value));
+
+        const isValueDirty =
+          !equals(currentValues, originalValues) || condition.value.format !== originalCondition.value.format;
+
+        return commonConditionPropDirty || isValueDirty;
+      }
+
+      return commonConditionPropDirty || condition.value?.trimmedValue !== originalCondition.value?.trimmedValue;
+    }, constrain.conditions);
+
+    return constraintHasDirtyProps || isAnyConditionDirty;
+  }, currentConstraints);
+
+  return dirty;
+};
+
+const selectObservedPropsAreDirty = createSelector(
+  selectOriginalPolicy,
+  selectCurrentPolicy,
+  (originalPolicy, currentPolicy) => {
+    const observedProps = [
+      ['name', 'value'],
+      ['threatLevel'],
+      ['legacyViolationAllowed'],
+      ['policyActionsOverrideAllowed'],
+      ['policyNotificationsOverrideAllowed'],
+    ];
+
+    // we can't just use `hasDirtyProps` here because the currentPolicy has a default threatLevel of 5, which is
+    // not "empty"
+    return originalPolicy
+      ? hasDirtyProps(observedProps, originalPolicy, currentPolicy)
+      : !equals(currentPolicy, initialState.currentPolicy);
+  }
+);
+
+const selectActionsAreDirty = createSelector(
+  selectOriginalPolicy,
+  selectCurrentPolicy,
+  hasDirtyProps([['actions'], ['policyActionsOverrides']])
+);
+
+const selectNotificationsAreDirty = createSelector(
+  selectOriginalPolicy,
+  selectCurrentPolicy,
+  hasDirtyProps([['notifications'], ['policyNotificationsOverrides']])
+);
+
+const selectContraintsAreDirty = createSelector(
+  selectOriginalPolicy,
+  selectCurrentPolicy,
+  (originalPolicy, currentPolicy) =>
+    isNil(originalPolicy) ? false : isDirtyConstraints(originalPolicy.constraints, currentPolicy?.constraints)
+);
+
+const selectIsCategoriesDirty = createSelector(
+  selectPolicySlice,
+  ({ categories, originalCategories }) => !equals(categories, originalCategories)
+);
+
+export const selectIsDirty = createSelector(
+  selectPolicySlice,
+  selectObservedPropsAreDirty,
+  selectActionsAreDirty,
+  selectNotificationsAreDirty,
+  selectContraintsAreDirty,
+  selectIsCategoriesDirty,
+  (state, isDirty, isDirtyActions, isDirtyNotifications, isConstraintsDirty, isDirtyCategories) => {
+    const {
+      isInherited,
+      overrideActionsFlag,
+      originalOverrideActionsFlag,
+      overrideNotificationsFlag,
+      originalOverrideNotificationsFlag,
+      hasPolicyCategories,
+      originalHasPolicyCategories,
+    } = state;
+
+    const policyActionOverrideIsDirty = overrideActionsFlag !== originalOverrideActionsFlag;
+    const policyNotificationOverrideIsDirty = overrideNotificationsFlag !== originalOverrideNotificationsFlag;
+    const isDirtyHasPolicyCategories = hasPolicyCategories !== originalHasPolicyCategories;
+
+    if (overrideActionsFlag && isDirtyActions) {
+      return isDirtyActions;
+    }
+
+    if (overrideNotificationsFlag && isDirtyNotifications) {
+      return isDirtyNotifications;
+    }
+
+    if (!policyActionOverrideIsDirty && !policyNotificationOverrideIsDirty && isInherited) {
+      return isDirty;
+    }
+
+    const isContentDirty = isDirty || isConstraintsDirty || isDirtyHasPolicyCategories || isDirtyCategories;
+    return (
+      isContentDirty ||
+      (policyActionOverrideIsDirty && isInherited) ||
+      isDirtyActions ||
+      (policyNotificationOverrideIsDirty && isInherited) ||
+      isDirtyNotifications
+    );
+  }
+);
 
 export const selectHasPolicyCategories = createSelector(selectPolicySlice, prop('hasPolicyCategories'));
 
@@ -176,7 +371,6 @@ export const selectIfSubmitButtonShouldBeDisabled = createSelector(
 export const selectCurrentPolicyOwner = createSelector(selectPolicySlice, prop('currentPolicyOwner'));
 export const selectCurrentSubmitMaskState = createSelector(selectPolicySlice, prop('submitMaskState'));
 export const selectCurrentPolicyOwnerName = createSelector(selectCurrentPolicyOwner, prop('name'));
-export const selectOriginalPolicy = createSelector(selectPolicySlice, prop('originalPolicy'));
 export const selectOriginalPolicyName = createSelector(selectOriginalPolicy, prop('name'));
 
 export const selectShowActionsOverridesConfirmationModal = createSelector(

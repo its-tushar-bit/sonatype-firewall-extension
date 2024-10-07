@@ -727,16 +727,15 @@ describe('policySlice actions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(6);
+        expect(actions.length).toBe(5);
         expect(actions).toHaveActionTypesInOrder([
           'policy/removePolicy/pending',
-          'policy/resetIsDirty',
           'policy/goToCreatePolicy/pending',
           '@@reduxUiRouter/stateGo',
           'policy/goToCreatePolicy/fulfilled',
           'policy/removePolicy/fulfilled',
         ]);
-        expect(actions[5].payload).toBe(currentPolicyId);
+        expect(actions[4].payload).toBe(currentPolicyId);
 
         done();
       });

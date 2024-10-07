@@ -8,23 +8,18 @@ import {
   any,
   always,
   includes,
-  compose,
   curryN,
-  equals,
   findIndex,
-  isEmpty,
   isNil,
   lensProp,
   lensPath,
   map,
-  mapObjIndexed,
   not,
   omit,
   over,
-  path,
+  pick,
   prop,
   propEq,
-  values,
   without,
   sortWith,
   reverse,
@@ -43,7 +38,6 @@ import {
   validateDoubleWhitespace,
   combineValidators,
   validateEmailPatternMatch,
-  validateForm,
 } from 'MainRoot/util/validationUtil';
 
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
@@ -92,8 +86,8 @@ import {
   getNotificationsOverride,
 } from 'MainRoot/OrgsAndPolicies/utility/util';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import { propSet, pathSet, allEqual, anyIndexed } from 'MainRoot/util/jsUtil';
-import { propSet as reduxPropSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
+import { propSet, pathSet, allEqual } from 'MainRoot/util/jsUtil';
+import { propSet as reduxPropSet } from 'MainRoot/util/reduxToolkitUtil';
 import { selectOwnerProperties, selectSelectedOwnerId } from './orgsAndPoliciesSelectors';
 import { actions as constraintActions } from 'MainRoot/OrgsAndPolicies/constraintSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
@@ -108,7 +102,6 @@ import {
   getCoordinatesValidator,
   coordinatesTypes,
   coordinatesFormatOptions,
-  conditionsWithoutValue,
   withDefaultValue,
 } from 'MainRoot/OrgsAndPolicies/utility/constraintUtil';
 import { loadActionStages, loadSbomStages } from './stagesSlice';
@@ -181,7 +174,6 @@ export const initialState = {
     ],
   },
   currentPolicyOwner: null,
-  isDirty: false,
   originalPolicy: null,
   originalCategories: null,
   categories: null,
@@ -212,7 +204,6 @@ export const initialState = {
       recipientIssueTypeId: initUserInput(''),
     },
   },
-  validationError: null,
   submitMaskState: null,
   policyTile: {
     loading: false,
@@ -297,7 +288,6 @@ const loadCategoriesForPolicyFulfilled = (state, { payload }) => {
 const loadCategoriesForPolicyFailed = (state, { payload }) => {
   state.loadingCategories = false;
   state.categoriesForPolicyLoadError = Messages.getHttpErrorMessage(payload);
-  state.isDirty = false;
   state.currentPolicy = state.originalPolicy;
 };
 
@@ -535,7 +525,6 @@ const loadPolicyEditorFulfilled = (state, { payload }) => {
   state.loadingPolicyEditor = false;
   state.loadError = null;
   state.submitMaskState = null;
-  state.isDirty = false;
   const {
     siblings,
     currentPolicy,
@@ -570,8 +559,7 @@ const loadPolicyEditorFulfilled = (state, { payload }) => {
 const loadPolicyEditorFailed = (state, { payload }) => {
   state.loadingPolicyEditor = false;
   state.loadError = Messages.getHttpErrorMessage(payload);
-  state.isDirty = false;
-  state.currentPolicy = state.originalPolicy;
+  state.currentPolicy = state.originalPolicy ?? initialState.currentPolicy;
 };
 
 const checkEditIqPermission = createAsyncThunk(
@@ -673,7 +661,6 @@ const savePolicyRequested = (state) => {
 
 const savePolicyFulfilled = (state, { payload }) => {
   state.loadError = null;
-  state.isDirty = false;
   state.submitMaskState = true;
 
   if (payload?.isEditMode) {
@@ -760,10 +747,13 @@ const updateOverridesFulfilled = (state, { payload }) => {
   }
 
   state.loadError = null;
-  state.isDirty = false;
+
+  // note: the server response (payload) mangles the values of coordinate policy conditions. So we can't just
+  // take the full payload as the policy object
   const policy = { ...payload, name: initUserInput(payload.name) };
-  state.currentPolicy = policy;
-  state.originalPolicy = policy;
+  Object.assign(state.currentPolicy, pick(['policyActionsOverrides', 'policyNotificationsOverrides', 'name'], policy));
+  Object.assign(state.originalPolicy, pick(['policyActionsOverrides', 'policyNotificationsOverrides', 'name'], policy));
+
   state.submitMaskState = true;
 };
 
@@ -789,7 +779,7 @@ const removePolicy = createAsyncThunk(`${REDUCER_NAME}/removePolicy`, (_, { getS
   return axios
     .delete(getPolicyCRUDUrl(ownerType, ownerId, policyToRemove.id))
     .then(() => {
-      dispatch(actions.resetIsDirty());
+      dispatch(policySlice.actions.resetState());
       dispatch(goToCreatePolicy());
       return policyToRemove.id;
     })
@@ -811,178 +801,27 @@ const removePolicyFailed = (state, { payload }) => {
   state.submitMaskState = null;
 };
 
-const hasDirtyProps = (originalPolicy, currentPolicy, observedProps) => {
-  return isNil(originalPolicy)
-    ? any((prop) => !isEmpty(path(prop, currentPolicy)), observedProps)
-    : any((prop) => !equals(path(prop, currentPolicy), path(prop, originalPolicy)), observedProps);
-};
-
-const isDirtyConstraints = (originalConstraints, currentConstraints) => {
-  if (originalConstraints?.length !== currentConstraints?.length) return true;
-  const dirty = anyIndexed((constrain, idx) => {
-    const originalConstraint = originalConstraints?.[idx];
-
-    const isNumberOfConditionsDifferent = originalConstraint?.conditions?.length !== constrain.conditions.length;
-    if (isNumberOfConditionsDifferent) {
-      return true;
-    }
-
-    const observedProps = [['name', 'trimmedValue'], ['operator']];
-    const constraintHasDirtyProps = hasDirtyProps(originalConstraint, constrain, observedProps);
-
-    const isAnyConditionDirty = anyIndexed((condition, conditionIdx) => {
-      const originalCondition = originalConstraint.conditions[conditionIdx];
-      const commonConditionPropDirty = any((prop) => !equals(condition[prop], originalCondition[prop]), [
-        'conditionTypeId',
-        'operator',
-      ]);
-
-      if (condition.conditionTypeId === 'Coordinates') {
-        if (originalCondition.conditionTypeId !== 'Coordinates') {
-          return true;
-        }
-        const currentValues = omit(['format'], mapObjIndexed(prop('trimmedValue'), condition.value));
-        const originalValues = omit(['format'], mapObjIndexed(prop('trimmedValue'), originalCondition.value));
-
-        const isValueDirty =
-          !equals(currentValues, originalValues) || condition.value.format !== originalCondition.value.format;
-
-        return commonConditionPropDirty || isValueDirty;
-      }
-
-      return commonConditionPropDirty || condition.value?.trimmedValue !== originalCondition.value?.trimmedValue;
-    }, constrain.conditions);
-
-    return constraintHasDirtyProps || isAnyConditionDirty;
-  }, currentConstraints);
-
-  return dirty;
-};
-
-const computeIsDirty = (state) => {
-  const {
-    currentPolicy,
-    originalPolicy,
-    isInherited,
-    overrideActionsFlag,
-    originalOverrideActionsFlag,
-    overrideNotificationsFlag,
-    originalOverrideNotificationsFlag,
-    hasPolicyCategories,
-    originalHasPolicyCategories,
-    categories,
-    originalCategories,
-  } = state;
-  const isDirtyObservedProps = [
-    ['name', 'value'],
-    ['threatLevel'],
-    ['legacyViolationAllowed'],
-    ['policyActionsOverrideAllowed'],
-    ['policyNotificationsOverrideAllowed'],
-  ];
-  const isDirtyActionsProps = [['actions'], ['policyActionsOverrides']];
-
-  const isDirtyNotificationsProps = [['notifications'], ['policyNotificationsOverrides']];
-
-  const isDirty = hasDirtyProps(originalPolicy, currentPolicy, isDirtyObservedProps);
-  const isConstraintsDirty = isDirtyConstraints(originalPolicy?.constraints, currentPolicy?.constraints);
-  const isDirtyActions = hasDirtyProps(originalPolicy, currentPolicy, isDirtyActionsProps);
-  const policyActionOverrideIsDirty = overrideActionsFlag !== originalOverrideActionsFlag;
-  const isDirtyNotifications = hasDirtyProps(originalPolicy, currentPolicy, isDirtyNotificationsProps);
-  const policyNotificationOverrideIsDirty = overrideNotificationsFlag !== originalOverrideNotificationsFlag;
-  const isDirtyHasPolicyCategories = hasPolicyCategories !== originalHasPolicyCategories;
-  const isDirtyCategories = !equals(categories, originalCategories);
-
-  if (overrideActionsFlag && isDirtyActions) {
-    return propSet('isDirty', isDirtyActions, state);
-  }
-
-  if (overrideNotificationsFlag && isDirtyNotifications) {
-    return propSet('isDirty', isDirtyNotifications, state);
-  }
-
-  if (!policyActionOverrideIsDirty && !policyNotificationOverrideIsDirty && isInherited) {
-    return propSet('isDirty', isDirty, state);
-  }
-
-  const isContentDirty = isDirty || isConstraintsDirty || isDirtyHasPolicyCategories || isDirtyCategories;
-  return propSet(
-    'isDirty',
-    isContentDirty ||
-      (policyActionOverrideIsDirty && isInherited) ||
-      isDirtyActions ||
-      (policyNotificationOverrideIsDirty && isInherited) ||
-      isDirtyNotifications,
-    state
-  );
-};
-
-const computeValidatableFieldsForCoordinates = (fields) => {
-  if (fields.format === 'maven') {
-    return values(omit(['format', isEmpty(fields.classifier?.trimmedValue) ? 'classifier' : null], fields));
-  } else if (fields.format === 'a-name') {
-    return values(omit(['format', isEmpty(fields.qualifier?.trimmedValue) ? 'qualifier' : null], fields));
-  } else if (fields.format === 'pypi') {
-    return values(
-      omit(
-        [
-          'format',
-          isEmpty(fields.qualifier?.trimmedValue) ? 'qualifier' : null,
-          isEmpty(fields.extension?.trimmedValue) ? 'extension' : null,
-        ],
-        fields
-      )
-    );
-  }
-};
-
-const computeValidationError = (state) => {
-  const {
-    currentPolicy: { constraints },
-  } = state;
-
-  const fields = [];
-  constraints.forEach((constraint) => {
-    fields.push(constraint.name);
-
-    constraint.conditions.forEach((condition) => {
-      if (!includes(condition.conditionTypeId, conditionsWithoutValue)) {
-        if (condition.conditionTypeId === 'Coordinates') {
-          fields.push(...computeValidatableFieldsForCoordinates(condition.value));
-        } else {
-          fields.push(condition.value);
-        }
-      }
-    });
-  });
-
-  const validationError = validateForm(fields);
-  return propSetConst('validationError', validationError, state);
-};
-
-const updatedComputedProps = compose(computeIsDirty, computeValidationError);
-
 const setPolicyField = curryN(3, function setPolicyField(fieldName, state, { payload }) {
-  return updatedComputedProps(pathSet(['currentPolicy', fieldName], payload, state));
+  return pathSet(['currentPolicy', fieldName], payload, state);
 });
 
 const setPolicyNameField = curryN(2, function setPolicyField(state, { payload }) {
   const siblings = state.siblings;
   const originalPolicyName = state.originalPolicy.name.value;
   const fieldValue = userInput(policyNameValidator(siblings, originalPolicyName), payload);
-  return updatedComputedProps(pathSet(['currentPolicy', 'name'], fieldValue, state));
+  return pathSet(['currentPolicy', 'name'], fieldValue, state);
 });
 
-const setOverrideParentActions = (state) => computeIsDirty({ ...state, overrideActionsFlag: true });
+const setOverrideParentActions = (state) => ({ ...state, overrideActionsFlag: true });
 
-const setOverrideParentNotifications = (state) => computeIsDirty({ ...state, overrideNotificationsFlag: true });
+const setOverrideParentNotifications = (state) => ({ ...state, overrideNotificationsFlag: true });
 
 const unSetOverrideParentActions = (state, { payload }) => {
   const ownerId = payload;
   const currentActionsOverrides = state.currentPolicy.policyActionsOverrides || {};
   const updatedActionsOverrides = omit([ownerId], currentActionsOverrides);
   const newState = { ...state, overrideActionsFlag: false };
-  return updatedComputedProps(pathSet(['currentPolicy', 'policyActionsOverrides'], updatedActionsOverrides, newState));
+  return pathSet(['currentPolicy', 'policyActionsOverrides'], updatedActionsOverrides, newState);
 };
 
 const unSetOverrideParentNotifications = (state, { payload }) => {
@@ -990,18 +829,16 @@ const unSetOverrideParentNotifications = (state, { payload }) => {
   const currentNotificationsOverrides = state.currentPolicy.policyNotificationsOverrides || {};
   const updatedNotificationsOverrides = omit([ownerId], currentNotificationsOverrides);
   const newState = { ...state, overrideNotificationsFlag: false };
-  return updatedComputedProps(
-    pathSet(['currentPolicy', 'policyNotificationsOverrides'], updatedNotificationsOverrides, newState)
-  );
+  return pathSet(['currentPolicy', 'policyNotificationsOverrides'], updatedNotificationsOverrides, newState);
 };
 
 const toggleField = curryN(2, function toggleField(fieldName, state) {
-  return updatedComputedProps(pathSet(['currentPolicy', fieldName], !state.currentPolicy[fieldName], state));
+  return pathSet(['currentPolicy', fieldName], !state.currentPolicy[fieldName], state);
 });
 
 const setConstraintField = curryN(3, function setConstraintField(fieldName, state, { payload }) {
   const { constraintIndex, value } = payload;
-  return updatedComputedProps(pathSet(['currentPolicy', 'constraints', constraintIndex, fieldName], value, state));
+  return pathSet(['currentPolicy', 'constraints', constraintIndex, fieldName], value, state);
 });
 
 const setConstraintNameField = curryN(3, function setConstraintNameField(fieldName, state, { payload }) {
@@ -1018,16 +855,14 @@ const setConstraintNameField = curryN(3, function setConstraintNameField(fieldNa
   const constraintNameValidator = combineValidators([validateNonEmpty, duplicationValidator]);
   const newValue = userInput(constraintNameValidator, value, state);
 
-  return updatedComputedProps(pathSet(['currentPolicy', 'constraints', constraintIndex, fieldName], newValue, state));
+  return pathSet(['currentPolicy', 'constraints', constraintIndex, fieldName], newValue, state);
 });
 
 const setNotifications = curryN(3, function setNotifications(notificationType, state, { payload }) {
   const notificationsPath = isNotificationOverrideEnabled(state)
     ? ['policyNotificationsOverrides', payload.ownerId]
     : ['notifications'];
-  return updatedComputedProps(
-    pathSet(['currentPolicy', ...notificationsPath, notificationType], payload.notifications, state)
-  );
+  return pathSet(['currentPolicy', ...notificationsPath, notificationType], payload.notifications, state);
 });
 
 const setNotificationStageIds = curryN(3, function setNotificationStageIds(notificationType, state, { payload }) {
@@ -1035,15 +870,15 @@ const setNotificationStageIds = curryN(3, function setNotificationStageIds(notif
   const notificationsPath = isNotificationOverrideEnabled(state)
     ? ['policyNotificationsOverrides', ownerId]
     : ['notifications'];
-  return updatedComputedProps(
-    pathSet(['currentPolicy', ...notificationsPath, notificationType, index, 'stageIds'], value, state)
-  );
+  return pathSet(['currentPolicy', ...notificationsPath, notificationType, index, 'stageIds'], value, state);
 });
 
 const setConstraintConditionField = curryN(3, function setConstraintConditionField(fieldName, state, { payload }) {
   const { constraintIndex, conditionIndex, value } = payload;
-  return updatedComputedProps(
-    pathSet(['currentPolicy', 'constraints', constraintIndex, 'conditions', conditionIndex, fieldName], value, state)
+  return pathSet(
+    ['currentPolicy', 'constraints', constraintIndex, 'conditions', conditionIndex, fieldName],
+    value,
+    state
   );
 });
 
@@ -1051,8 +886,10 @@ const setConstraintConditionAgeField = curryN(2, function setConstraintCondition
   const { constraintIndex, conditionIndex, value } = payload;
   const newValue = userInput(ageValidator, value, state);
 
-  return updatedComputedProps(
-    pathSet(['currentPolicy', 'constraints', constraintIndex, 'conditions', conditionIndex, 'value'], newValue, state)
+  return pathSet(
+    ['currentPolicy', 'constraints', constraintIndex, 'conditions', conditionIndex, 'value'],
+    newValue,
+    state
   );
 });
 
@@ -1066,8 +903,10 @@ const setConstraintConditionFieldByDataType = curryN(
       : dataTypeValidatorsMap.get(dataType);
 
     const newValue = userInput(validator, value, state);
-    return updatedComputedProps(
-      pathSet(['currentPolicy', 'constraints', constraintIndex, 'conditions', conditionIndex, 'value'], newValue, state)
+    return pathSet(
+      ['currentPolicy', 'constraints', constraintIndex, 'conditions', conditionIndex, 'value'],
+      newValue,
+      state
     );
   }
 );
@@ -1075,12 +914,10 @@ const setConstraintConditionFieldByDataType = curryN(
 const setConstraintCoordinatesInput = curryN(2, function setConstraintCoordinatesInput(state, { payload }) {
   const { constraintIndex, conditionIndex, value, name } = payload;
   const newValue = userInput(getCoordinatesValidator(name), value, state);
-  return updatedComputedProps(
-    pathSet(
-      ['currentPolicy', 'constraints', constraintIndex, 'conditions', conditionIndex, 'value', name],
-      newValue,
-      state
-    )
+  return pathSet(
+    ['currentPolicy', 'constraints', constraintIndex, 'conditions', conditionIndex, 'value', name],
+    newValue,
+    state
   );
 });
 
@@ -1098,12 +935,10 @@ const initCoordinatesFields = (value) => {
 
 const setConstraintCoordinatesFormat = curryN(2, function setConstraintCoordinatesFormat(state, { payload }) {
   const { constraintIndex, conditionIndex, value } = payload;
-  return updatedComputedProps(
-    pathSet(
-      ['currentPolicy', 'constraints', constraintIndex, 'conditions', conditionIndex, 'value'],
-      initCoordinatesFields(value),
-      state
-    )
+  return pathSet(
+    ['currentPolicy', 'constraints', constraintIndex, 'conditions', conditionIndex, 'value'],
+    initCoordinatesFields(value),
+    state
   );
 });
 
@@ -1112,27 +947,23 @@ const setConstraintCondition = curryN(2, function setConstraintCondition(state, 
   const { conditionTypeId } = value;
 
   if (conditionTypeId === 'Coordinates') {
-    return updatedComputedProps(
-      pathSet(
-        ['currentPolicy', 'constraints', constraintIndex, 'conditions', conditionIndex],
-        { ...value, value: initCoordinatesFields(coordinatesFormatOptions[0]) },
-        state
-      )
+    return pathSet(
+      ['currentPolicy', 'constraints', constraintIndex, 'conditions', conditionIndex],
+      { ...value, value: initCoordinatesFields(coordinatesFormatOptions[0]) },
+      state
     );
   }
 
-  return updatedComputedProps(
-    pathSet(
-      ['currentPolicy', 'constraints', constraintIndex, 'conditions', conditionIndex],
-      { ...value, value: initUserInput(value.value) },
-      state
-    )
+  return pathSet(
+    ['currentPolicy', 'constraints', constraintIndex, 'conditions', conditionIndex],
+    { ...value, value: initUserInput(value.value) },
+    state
   );
 });
 
 const toggleCategoryIsApplied = (state, { payload: index }) => {
   const newState = over(lensPath(['categories', index, 'isApplied']), not, state);
-  return updatedComputedProps(newState);
+  return newState;
 };
 
 const togglePolicyActionsOverrideAllowed = (state) => {
@@ -1146,7 +977,7 @@ const togglePolicyActionsOverrideAllowed = (state) => {
         policyActionsOverrides: null,
       },
     };
-    return updatedComputedProps(newState);
+    return newState;
   } else {
     return toggleField('policyActionsOverrideAllowed')(state);
   }
@@ -1163,7 +994,7 @@ const togglePolicyNotificationsOverrideAllowed = (state) => {
         policyNotificationsOverrides: null,
       },
     };
-    return updatedComputedProps(newState);
+    return newState;
   } else {
     return toggleField('policyNotificationsOverrideAllowed')(state);
   }
@@ -1431,9 +1262,8 @@ const policySlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
-    resetIsDirty: propSetConst('isDirty', initialState.isDirty),
     setHasPolicyCategories(state, payload) {
-      return updatedComputedProps(reduxPropSet('hasPolicyCategories', state, payload));
+      return reduxPropSet('hasPolicyCategories', state, payload);
     },
     toggleCategoryIsApplied,
     toggleLegacyViolationAllowed: toggleField('legacyViolationAllowed'),
@@ -1446,16 +1276,14 @@ const policySlice = createSlice({
       const { ownerId, actionsOverride } = payload;
       const currentActionsOverrides = state.currentPolicy.policyActionsOverrides || {};
       const updatedActionsOverrides = { ...currentActionsOverrides, [ownerId]: actionsOverride };
-      return updatedComputedProps(pathSet(['currentPolicy', 'policyActionsOverrides'], updatedActionsOverrides, state));
+      return pathSet(['currentPolicy', 'policyActionsOverrides'], updatedActionsOverrides, state);
     },
     setConstraint: setPolicyField('constraints'),
     setNotificationsOverride(state, { payload }) {
       const { ownerId, notificationsOverride } = payload;
       const currentNotificationsOverrides = state.currentPolicy.policyNotificationsOverrides || {};
       const updatedNotificationsOverrides = { ...currentNotificationsOverrides, [ownerId]: notificationsOverride };
-      return updatedComputedProps(
-        pathSet(['currentPolicy', 'policyNotificationsOverrides'], updatedNotificationsOverrides, state)
-      );
+      return pathSet(['currentPolicy', 'policyNotificationsOverrides'], updatedNotificationsOverrides, state);
     },
     setUserNotifications: setNotifications('userNotifications'),
     setRoleNotifications: setNotifications('roleNotifications'),
@@ -1490,6 +1318,7 @@ const policySlice = createSlice({
     clearDeleteError: propSet('deleteError', null),
     toggleShowActionsOverridesConfirmationModal: toggleBooleanProp('showActionsOverridesConfirmationModal'),
     toggleShowNotificationsOverridesConfirmationModal: toggleBooleanProp('showNotificationsOverridesConfirmationModal'),
+    resetState: always(initialState),
   },
   extraReducers: {
     [loadCategoriesForPolicy.pending]: loadCategoriesForPolicyRequested,

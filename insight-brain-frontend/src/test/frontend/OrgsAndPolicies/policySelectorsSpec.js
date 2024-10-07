@@ -826,22 +826,6 @@ describe('policySelectors', () => {
     });
   });
 
-  describe('selectIsDirty', () => {
-    it('is composed from the following selector', () => {
-      expect(selectIsDirty.dependencies).toEqual([selectPolicySlice]);
-    });
-
-    it('selects isDirty', () => {
-      const policySlice = {
-        isDirty: true,
-      };
-
-      const selected = selectIsDirty.resultFunc(policySlice);
-
-      expect(selected).toBeTrue();
-    });
-  });
-
   describe('selectHasPolicyCategories', () => {
     it('is composed from the following selector', () => {
       expect(selectHasPolicyCategories.dependencies).toEqual([selectPolicySlice]);

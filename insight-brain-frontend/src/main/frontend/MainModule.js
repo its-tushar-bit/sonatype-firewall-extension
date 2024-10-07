@@ -470,8 +470,14 @@ export const InitModule = angular
         function isPageDirty() {
           const state = $ngRedux.getState();
           const currentState = state.router.currentState;
-          const isDirtyPath = currentState.data && currentState.data.isDirty;
-          return isDirtyPath ? path(isDirtyPath, state) : false;
+          const isDirtyLookup = currentState.data && currentState.data.isDirty;
+
+          // isDirtyLookup can either be an array (state property path) or a selector function
+          return Array.isArray(isDirtyLookup)
+            ? path(isDirtyLookup, state)
+            : typeof isDirtyLookup === 'function'
+            ? isDirtyLookup(state)
+            : false;
         }
 
         $rootScope.$on('$stateChangeStart', function (event, toState, toParams) {

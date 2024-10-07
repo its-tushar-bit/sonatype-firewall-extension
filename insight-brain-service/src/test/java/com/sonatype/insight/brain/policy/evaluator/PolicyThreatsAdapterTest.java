@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
-import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.security.CurrentUser;
 
 import com.google.common.collect.Lists;
@@ -131,7 +131,7 @@ public class PolicyThreatsAdapterTest
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, cargoViolation);
 
-    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations);
+    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations, null, null);
 
     // Make sure each component has a waived policy.
     for (PolicyThreats.Component component : threats.aaData) {
@@ -306,12 +306,13 @@ public class PolicyThreatsAdapterTest
   }
 
   private List<ConstraintFact> buildConstraintFact(String policyId) {
+    MatchStateConditionType matchStateConditionType = new MatchStateConditionType();
     ConstraintFact fact = new ConstraintFact("constraint-" + policyId, "constraint-" + policyId, "test-operator");
 
     TriggerReference triggerReference = new TriggerReference(TriggerReference.Type.SECURITY_VULNERABILITY_REFID,
         "vun-refId");
 
-    ConditionFact condition = new ConditionFact(ConditionTypes.MatchStateConditionType.getId(), 0 /* conditionIndex */,
+    ConditionFact condition = new ConditionFact(matchStateConditionType.getId(), 0 /* conditionIndex */,
         "Match state condition.", "Unknown match state.", triggerReference);
     fact.addConditionFact(condition);
 

@@ -801,10 +801,21 @@ public class ReportServiceTest
           .getPolicyThreats(app.getPublicId(), scanId);
 
       assertThat(result.aaData).hasSize(1);
+      assertThat(result.stageTypeId).isEqualTo("build");
+      assertThat(result.aaData.get(0).policyOwnerId).isEqualTo("ROOT_ORGANIZATION_ID");
       assertThat(result.aaData.get(0).componentIdentifier)
           .isEqualTo(givenPolicyThreatsStoredForReport.aaData.get(0).componentIdentifier);
 
     }
+  }
+
+  @Test
+  public void testGetPolicyThreats_shouldReturnPolicyThreats_noStageTypeIdAndPolicyOwnerId() throws Exception {
+    createReportFile(app.getId(), scanId,
+        zipReportDir("/ReportServiceTest/report-missing-stage-policy-owner-id-policythreats-json"));
+    ReportService reportService = createReportService();
+    PolicyThreats policyThreats = reportService.getPolicyThreats(app.getPublicId(), scanId);
+    assertThat(policyThreats).isNotNull();
   }
 
   private void assertThatReportZipContains(File zipFile, final String thirdPartyFile) {
@@ -830,9 +841,11 @@ public class ReportServiceTest
     final PolicyThreats.Component component = createComponent();
 
     final PolicyThreats.PolicyViolation policyViolation = createPolicyViolation();
+    policyThreats.stageTypeId = "build";
 
     component.activeViolations.add(policyViolation);
     component.allViolations.add(policyViolation);
+    component.policyOwnerId = "ROOT_ORGANIZATION_ID";
 
     policyThreats.aaData.add(component);
 

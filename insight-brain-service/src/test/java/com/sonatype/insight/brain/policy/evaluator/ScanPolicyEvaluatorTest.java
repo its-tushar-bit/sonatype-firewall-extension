@@ -1729,9 +1729,13 @@ public class ScanPolicyEvaluatorTest
     // Verify the policythreats.json report file
     ReportEntry policyThreatsReportEntry = Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
     PolicyThreats policyThreats = JsonUtils.parse(policyThreatsReportEntry.buf, PolicyThreats.class);
+    assertThat(policyThreats.stageTypeId).isEqualTo("build");
     assertThat(policyThreats.aaData) //
         .extracting(component -> component.hash) //
         .containsExactlyInAnyOrder("3e1470773021fde54f51", "e93e551d738e9f4d1aae", "f2e35e4a21f07d25710f");
+    assertThat(policyThreats.aaData) //
+        .extracting(component -> component.policyOwnerId) //
+        .containsExactly(policy.getOwnerId(), policy.getOwnerId(), policy.getOwnerId());
     // Verify the data.json report file
     ReportEntry dataReportEntry = Report.getEntry(reportFile, Report.DATA_JSON_FILENAME);
     ObjectNode data = JsonUtils.parse(dataReportEntry.buf);

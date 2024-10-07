@@ -83,7 +83,7 @@ public class PolicyViolationReachabilityService
       tx.commit();
     }
 
-    PolicyThreats policyThreats = PolicyThreatsAdapter.createPolicyThreats(policyViolations);
+    PolicyThreats policyThreats = PolicyThreatsAdapter.createPolicyThreats(policyViolations, null, null);
     Report.putEntry(reportFile, Report.POLICY_THREATS, JsonUtils.generate(policyThreats));
 
     logger.info("Finished updating policy violations with reachability data for applicationId: {}, reportId: {}",

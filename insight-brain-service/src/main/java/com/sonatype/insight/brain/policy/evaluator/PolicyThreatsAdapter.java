@@ -28,17 +28,24 @@ import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
  */
 public class PolicyThreatsAdapter
 {
-  public static PolicyThreats createPolicyThreats(List<PolicyViolation> policyViolations) {
-    Map<String, PolicyThreats.Component> components = processPolicyViolations(policyViolations);
+  public static PolicyThreats createPolicyThreats(List<PolicyViolation> policyViolations,
+                                                  String stageTypeId,
+                                                  Map<String, String> policyIdPolicyOwnerIdMap)
+  {
+    Map<String, PolicyThreats.Component> components = processPolicyViolations(policyViolations,
+        policyIdPolicyOwnerIdMap);
 
     PolicyThreats policyThreats = new PolicyThreats();
     policyThreats.version = 5;
+    policyThreats.stageTypeId = stageTypeId;
     policyThreats.aaData = new ArrayList<>(components.values());
 
     return policyThreats;
   }
 
-  private static Map<String, PolicyThreats.Component> processPolicyViolations(List<PolicyViolation> policyViolations) {
+  private static Map<String, PolicyThreats.Component> processPolicyViolations(List<PolicyViolation> policyViolations,
+                                                                      Map<String, String> policyIdPolicyOwnerIdMap)
+  {
     Map<String, PolicyThreats.Component> components = new LinkedHashMap<>();
 
     if (policyViolations != null) {
@@ -50,6 +57,9 @@ public class PolicyThreatsAdapter
           component.componentIdentifier = violation.getComponentIdentifier();
           component.policyThreatLevel = 0;
           component.policyName = "None";
+          if (policyIdPolicyOwnerIdMap != null) {
+            component.policyOwnerId = policyIdPolicyOwnerIdMap.get(violation.getPolicyId()).toString();
+          }
           components.put(component.hash, component);
         }
 

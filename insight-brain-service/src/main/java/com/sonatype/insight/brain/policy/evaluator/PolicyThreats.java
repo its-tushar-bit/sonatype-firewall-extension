@@ -26,6 +26,8 @@ public class PolicyThreats
   // designator of format version to help interop
   public int version;
 
+  public String stageTypeId;
+
   // components violating policies, in no particular order
   public List<Component> aaData = new ArrayList<>();
 
@@ -67,6 +69,8 @@ public class PolicyThreats
     public String policyId;
 
     public String policyName;
+
+    public String policyOwnerId;
 
     public int policyThreatLevel;
 

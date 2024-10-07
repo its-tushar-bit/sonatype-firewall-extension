@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -41,8 +43,12 @@ public class PolicyThreatsAdapterTest
         false, Action.ID_FAIL);
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
+    Map<String, String> policyIdPolicyOwnerIdMap = new HashMap<>();
+    policyIdPolicyOwnerIdMap.put("policy1", "ROOT_ORGANIZATION_ID");
 
-    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations);
+    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations, "compliance",
+        policyIdPolicyOwnerIdMap);
+    assertThat(threats.stageTypeId).isEqualTo("compliance");
 
     assertPolicyThreats(threats, violations);
   }
@@ -64,7 +70,7 @@ public class PolicyThreatsAdapterTest
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation10, mavenViolation1, nugetViolation10,
         nugetViolation1);
 
-    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations);
+    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations, null, null);
 
     PolicyViolation largestMavenPolicyViolation = getLargestThreatViolation("hash1", violations);
     PolicyViolation largestNuGetPolicyViolation = getLargestThreatViolation("hash2", violations);
@@ -100,7 +106,7 @@ public class PolicyThreatsAdapterTest
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
 
-    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations);
+    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations, null, null);
 
     // Make sure each component has a waived policy.
     for (PolicyThreats.Component component : threats.aaData) {
@@ -147,7 +153,7 @@ public class PolicyThreatsAdapterTest
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
 
-    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations);
+    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations, null, null);
 
     for (PolicyThreats.Component component : threats.aaData) {
       assertThat(component.allViolations).hasSize(1);
@@ -171,7 +177,7 @@ public class PolicyThreatsAdapterTest
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
 
-    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations);
+    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations, null, null);
 
     for (PolicyThreats.Component component : threats.aaData) {
       assertThat(component.allViolations).hasSize(1);
@@ -192,7 +198,7 @@ public class PolicyThreatsAdapterTest
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
 
-    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations);
+    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations, null, null);
 
     // Make sure each component has a 'top violation' even though all violations are waived.
     for (PolicyThreats.Component component : threats.aaData) {
@@ -216,8 +222,10 @@ public class PolicyThreatsAdapterTest
         false, Action.ID_FAIL);
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
+    Map policyIdPolicyOwnerIdMap = new HashMap<String, String>();
+    policyIdPolicyOwnerIdMap.put("policy1", "ROOT_ORGANIZATION_ID");
 
-    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations);
+    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations, null, policyIdPolicyOwnerIdMap);
 
     // Make sure we have two components.
     assertThat(threats.aaData).hasSize(2);
@@ -235,7 +243,7 @@ public class PolicyThreatsAdapterTest
 
   @Test
   public void testCreatePolicyThreats_NullPolicyViolations() {
-    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(null);
+    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(null, null, null);
 
     assertThat(threats.aaData).isEmpty();
     assertThat(threats.version).isEqualTo(5);
@@ -350,6 +358,7 @@ public class PolicyThreatsAdapterTest
     if (violation.isActive()) {
       assertThat(component.policyId).isEqualTo(violation.getPolicyId());
       assertThat(component.policyName).isEqualTo(violation.getPolicyName());
+      assertThat(component.policyOwnerId).isEqualTo("ROOT_ORGANIZATION_ID");
       assertThat(component.policyThreatLevel).isEqualTo(violation.getThreatLevel());
     }
   }

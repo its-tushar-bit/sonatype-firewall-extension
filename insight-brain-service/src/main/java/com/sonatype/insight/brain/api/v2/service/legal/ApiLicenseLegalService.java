@@ -100,6 +100,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.organization.ApplicationService;
+import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.InnerSourceUtils;
@@ -223,6 +224,8 @@ public class ApiLicenseLegalService
 
   private final TelemetryUtils telemetryUtils;
 
+  private final StageTypeService stageTypeService;
+
   private static final Set<String> SONATYPE_SPECIAL_LICENSES = new HashSet<>(Arrays.asList(
       UNSPECIFIED_ID,
       UNKNOWN_ID,
@@ -267,7 +270,8 @@ public class ApiLicenseLegalService
       LegalDashboardsService legalDashboardService,
       ComponentLegalService componentLegalService,
       IdUtils idUtils,
-      TelemetryUtils telemetryUtils)
+      TelemetryUtils telemetryUtils,
+      StageTypeService stageTypeService)
   {
     this.multiLicenseDAO = multiLicenseDAO;
     this.apiLicenseLegalHdsService = apiLicenseLegalHdsService;
@@ -298,6 +302,7 @@ public class ApiLicenseLegalService
     this.innerSourceComponentDAO = innerSourceComponentDAO;
     this.legalDashboardService = legalDashboardService;
     this.componentLegalService = componentLegalService;
+    this.stageTypeService = stageTypeService;
 
     attributionReportForkJoinPool =
         ExecutorThreadPools.getInstance().createThreadPool(1, 20, 200, "insight.threads.attribution.report");
@@ -331,7 +336,9 @@ public class ApiLicenseLegalService
 
     Set<String> stageTypeIdsToCheck =
         isEmpty(stageTypeIds)
-            ? StageTypes.getAll().stream().map(StageType::getId).collect(Collectors.toSet())
+            ? stageTypeService.getLicensedStageTypes(StageTypeService.LIFECYCLE_CONTEXT)
+            .stream().map(StageType::getId)
+            .collect(Collectors.toSet())
             : stageTypeIds;
 
     if (isNotEmpty(applicationIdsToCheck) && isNotEmpty(reviewStatus) && !reviewStatus
@@ -441,9 +448,9 @@ public class ApiLicenseLegalService
     Set<String> applicationIdsToCheck = new HashSet<>(mapApplicationIds.keySet());
 
     Set<String> stageTypeIdsToCheck = isEmpty(filter.stageTypeIds)
-        ? StageTypes.getAll().stream()
-            .map(StageType::getId)
-            .collect(Collectors.toSet())
+        ? stageTypeService.getLicensedStageTypes(StageTypeService.LIFECYCLE_CONTEXT).stream()
+        .map(StageType::getId)
+        .collect(Collectors.toSet())
         : filter.stageTypeIds;
 
     if (isEmpty(applicationIdsToCheck) || isEmpty(stageTypeIdsToCheck)) {

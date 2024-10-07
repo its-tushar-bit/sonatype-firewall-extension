@@ -399,6 +399,8 @@ public class ApiLicenseLegalServiceTest
     Tag tag2 = triple.getMiddle();
     PolicyEvaluation policyEvaluation2 = triple.getRight();
 
+    setupApplicationDashboardEntities("Test-Tag-3", StageTypes.COMPLIANCE.getId());
+
     ApiLicenseLegalApplicationDashboardResultDTO resultDto =
         apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, 1, 10);
 
@@ -936,6 +938,8 @@ public class ApiLicenseLegalServiceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     setupComponentDashboardEntities("Tag1", BuildStageType.ID, "somHash", componentIdentifier, "MIT");
     setupComponentDashboardEntities("Tag1", BuildStageType.ID, "somHash", componentIdentifier, "MIT");
+    setupComponentDashboardEntities("Tag1", StageTypes.COMPLIANCE.getId(), "somHash",
+        componentIdentifier, "MIT");
 
     ApiLicenseLegalComponentDashboardResultDTO resultDto =
         apiLicenseLegalService.getLicenseLegalComponentsDashboard(

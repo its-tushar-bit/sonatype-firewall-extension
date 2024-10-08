@@ -205,14 +205,6 @@ describe('PolicyEditorSpec', () => {
     expect(updateButton).toHaveClass('disabled');
   });
 
-  it('disables the Update button if there are no changes', async () => {
-    setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true);
-    renderComponent(initState);
-    const updateButton = await screen.findByText('Update');
-    expect(updateButton).toBeVisible();
-    expect(updateButton).toHaveClass('disabled');
-  });
-
   it('disables the Delete button when there is no permission', async () => {
     setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true, []);
     renderComponent(initState);
@@ -274,11 +266,10 @@ describe('PolicyEditorSpec', () => {
   describe('Local policy', () => {
     describe('Update policy', () => {
       describe('Rendering', () => {
-        beforeEach(() => {
+        it('renders the form with a hidden update button and delete button, shows the loading state before', async () => {
           setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
           renderComponent(initState);
-        });
-        it('renders the form with disabled update button and delete button, shows the loading state before', async () => {
+
           const updateButton = await screen.findByText('Update');
           const deleteButton = await screen.findByText('Delete');
           const policyTitle = screen.getByText('Edit Policy');
@@ -293,7 +284,38 @@ describe('PolicyEditorSpec', () => {
           expect(deleteButton).not.toHaveClass('disabled');
         });
 
+        it('styles update button as disabled when read only', async () => {
+          setInitStateAndMockHttpRequests(
+            'organization',
+            ROOT_ORG_ID,
+            POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN,
+            false,
+            []
+          );
+          renderComponent(initState);
+
+          let updateButton = await screen.findByText('Update');
+          expect(updateButton.className).toContain('disabled');
+
+          expect(updateButton).toBeVisible();
+
+          updateButton = screen.getByText('Update');
+          expect(updateButton).toBeVisible();
+
+          // the button is styled as disabled by applying the disabled class, but we do not have access
+          // to truly disable it inside of NxStatefulForm, we prevent validation errors from throwing using
+          // a workaround where validation errors should always be null when read only. This is why
+          // we are testing a click on a "disabled" button :-)
+          fireEvent.click(updateButton);
+
+          const alert = screen.queryByText(/There were validation errors/i);
+          expect(alert).not.toBeInTheDocument();
+        });
+
         it('enables the Update button with valid data', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
+          renderComponent(initState);
+
           let updateButton = await screen.findByText('Update');
           const policyNameInput = await screen.findByLabelText('Policy Name');
           expect(updateButton).toBeVisible();
@@ -302,6 +324,9 @@ describe('PolicyEditorSpec', () => {
         });
 
         it('enables the Update button when removing a constraint', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
+          renderComponent(initState);
+
           let updateButton = await screen.findByText('Update');
           expect(updateButton).toBeVisible();
           const deleteConstraintBtn = await screen.findAllByLabelText('Delete constraint');
@@ -311,6 +336,9 @@ describe('PolicyEditorSpec', () => {
         });
 
         it('disables the Update button for policy name duplicated', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
+          renderComponent(initState);
+
           let updateButton = await screen.findByText('Update');
           const policyNameInput = await screen.findByLabelText('Policy Name');
           expect(updateButton).toBeVisible();
@@ -326,6 +354,9 @@ describe('PolicyEditorSpec', () => {
         });
 
         it('disables the Update button for policy name empty', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
+          renderComponent(initState);
+
           let updateButton = await screen.findByText('Update');
           const policyNameInput = await screen.findByLabelText('Policy Name');
           expect(updateButton).toBeVisible();
@@ -341,6 +372,9 @@ describe('PolicyEditorSpec', () => {
         });
 
         it('disables the Update button for policy name invalid chars', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
+          renderComponent(initState);
+
           let updateButton = await screen.findByText('Update');
           const policyNameInput = await screen.findByLabelText('Policy Name');
           expect(updateButton).toBeVisible();
@@ -356,6 +390,9 @@ describe('PolicyEditorSpec', () => {
         });
 
         it('disables the Update button for policy name too long', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
+          renderComponent(initState);
+
           let updateButton = await screen.findByText('Update');
           const policyNameInput = await screen.findByLabelText('Policy Name');
           expect(updateButton).toBeVisible();
@@ -373,6 +410,9 @@ describe('PolicyEditorSpec', () => {
         });
 
         it('disables the Update button for invalid constraint', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
+          renderComponent(initState);
+
           let updateButton = await screen.findByText('Update');
           const policyNameInput = await screen.findByLabelText('Policy Name');
           expect(updateButton).toBeVisible();
@@ -391,6 +431,7 @@ describe('PolicyEditorSpec', () => {
           expect(alert).toBeVisible();
         });
       });
+
       describe('Saving changes', () => {
         it('saves a policy successfully, shows the save mask with the success message', async () => {
           setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);

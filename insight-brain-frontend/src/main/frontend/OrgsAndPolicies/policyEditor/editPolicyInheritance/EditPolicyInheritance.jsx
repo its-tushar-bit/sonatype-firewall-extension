@@ -16,7 +16,7 @@ import {
   NxWarningAlert,
 } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
-import { is, propEq } from 'ramda';
+import { propEq } from 'ramda';
 
 import {
   selectCategories,
@@ -124,7 +124,7 @@ export default function EditPolicyInheritance() {
           <NxRadio
             name="hasCategories"
             value={null}
-            disabled={isInherited || !hasEditIqPermission || isSbomManager}
+            disabled={isInheritedOrUserAccessReadOnly() || isSbomManager}
             isChecked={!hasPolicyCategories}
             onChange={onHasCategoriesChange}
           >
@@ -137,7 +137,7 @@ export default function EditPolicyInheritance() {
             <NxRadio
               name="hasCategories"
               value={'hasCategories'}
-              disabled={!hasCategories || isInherited || !hasEditIqPermission}
+              disabled={!hasCategories || isInheritedOrUserAccessReadOnly()}
               isChecked={hasPolicyCategories}
               onChange={onHasCategoriesChange}
             >
@@ -152,7 +152,7 @@ export default function EditPolicyInheritance() {
               selectedParam="isApplied"
               description="name"
               icon="hexagon"
-              disabled={isInherited}
+              disabled={isInheritedOrUserAccessReadOnly()}
               onChange={onCategoryToggled}
               fieldType={FieldType.CheckBox}
             />
@@ -215,7 +215,7 @@ export default function EditPolicyInheritance() {
           id="editor-policy-notifications-override"
           className="iq-policy-notifications-override-checkbox"
           isChecked={!!currentPolicy.policyNotificationsOverrideAllowed}
-          disabled={isInherited || !hasEditIqPermission}
+          disabled={isInheritedOrUserAccessReadOnly()}
           onChange={
             currentPolicy.policyNotificationsOverrideAllowed && notificationsOverridesCount > 0
               ? toggleShowNotificationsOverridesConfirmationModal
@@ -234,4 +234,8 @@ export default function EditPolicyInheritance() {
       <NxDivider />
     </div>
   );
+
+  function isInheritedOrUserAccessReadOnly() {
+    return isInherited || !hasEditIqPermission;
+  }
 }

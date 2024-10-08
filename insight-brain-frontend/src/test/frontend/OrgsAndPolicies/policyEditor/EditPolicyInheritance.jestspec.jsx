@@ -8,6 +8,7 @@ import React from 'react';
 import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 import EditPolicyInheritance from 'MainRoot/OrgsAndPolicies/policyEditor/editPolicyInheritance/EditPolicyInheritance';
 import { actions as policyActions, initialState } from 'MainRoot/OrgsAndPolicies/policySlice';
+import { within } from '@testing-library/react';
 
 describe('EditPolicyInheritance', () => {
   let state, renderComponent;
@@ -165,6 +166,65 @@ describe('EditPolicyInheritance', () => {
 
     expect(hasNoCategoriesRadio).not.toBeChecked();
     expect(hasCategoriesRadio).toBeChecked();
+  });
+
+  it('enables category checkboxes when user does have permissions to edit', () => {
+    state.orgsAndPolicies.policy.hasEditIqPermission = true;
+    const testCategory = givenAppCategoryBasedInheritanceSelectedAndCategoriesExist();
+
+    renderComponent();
+
+    const hasCategoriesRadio = screen.getByLabelText(/Applications of the specified Application Categories in/i);
+
+    expect(hasCategoriesRadio).toBeChecked();
+
+    const editorPolicyInherit = screen.getByTestId('editor-policy-inherit');
+
+    // the radio-checkbox for the category was rendered and rendered disabled.
+    within(editorPolicyInherit).getByLabelText(testCategory.name);
+    const inputs = within(editorPolicyInherit).getByRole('checkbox');
+
+    expect(inputs).not.toBeDisabled();
+  });
+
+  it('disables category checkboxes when user does not have permissions to edit', () => {
+    state.orgsAndPolicies.policy.hasEditIqPermission = false;
+    const testCategory = givenAppCategoryBasedInheritanceSelectedAndCategoriesExist();
+
+    renderComponent();
+
+    const hasCategoriesRadio = screen.getByLabelText(/Applications of the specified Application Categories in/i);
+
+    expect(hasCategoriesRadio).toBeChecked();
+
+    const editorPolicyInherit = screen.getByTestId('editor-policy-inherit');
+
+    // the radio-checkbox for the category was rendered and rendered disabled.
+    within(editorPolicyInherit).getByLabelText(testCategory.name);
+    const inputs = within(editorPolicyInherit).getByRole('checkbox');
+
+    expect(inputs).toBeDisabled();
+  });
+
+  it('disables category checkboxes when repository is inherited', () => {
+    state.orgsAndPolicies.policy.nameIncludesRepository = true;
+    state.orgsAndPolicies.policy.isInherited = true;
+
+    const testCategory = givenAppCategoryBasedInheritanceSelectedAndCategoriesExist();
+
+    renderComponent();
+
+    const hasCategoriesRadio = screen.getByLabelText(/Applications of the specified Application Categories in/i);
+
+    expect(hasCategoriesRadio).toBeChecked();
+
+    const editorPolicyInherit = screen.getByTestId('editor-policy-inherit');
+
+    // the radio-checkbox for the category was rendered and rendered disabled.
+    within(editorPolicyInherit).getByLabelText(testCategory.name);
+    const inputs = within(editorPolicyInherit).getByRole('checkbox');
+
+    expect(inputs).toBeDisabled();
   });
 
   it('categories not rendered for repository container', () => {
@@ -924,4 +984,20 @@ describe('EditPolicyInheritance', () => {
       ).toBeNull();
     });
   });
+
+  function givenAppCategoryBasedInheritanceSelectedAndCategoriesExist() {
+    const categoryForTest = {
+      id: 'ad9c8255617e41708c6a76d4e62cffc9',
+      name: 'some-category',
+      description: 'some-description',
+      isApplied: false,
+      organizationId: 'ROOT_ORGANIZATION_ID',
+      color: 'yellow',
+    };
+
+    state.orgsAndPolicies.policy.hasPolicyCategories = true;
+    state.orgsAndPolicies.policy.categories = [categoryForTest];
+
+    return categoryForTest;
+  }
 });

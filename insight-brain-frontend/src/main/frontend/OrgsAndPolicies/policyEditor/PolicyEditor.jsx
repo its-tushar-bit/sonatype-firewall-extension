@@ -91,6 +91,10 @@ export default function PolicyEditor() {
   const removePolicy = () => dispatch(actions.removePolicy());
 
   const onSave = () => {
+    if (isDisabled()) {
+      return;
+    }
+
     if (isRepositoriesRelated && !isInherited) {
       return savePolicy();
     }
@@ -160,13 +164,12 @@ export default function PolicyEditor() {
           submitMaskMessage="Saving…"
           submitMaskState={submitMaskState}
           submitBtnClasses={classNames({
-            disabled: isRepositoriesRelated && !isInherited ? false : !hasEditIqPermission || !isDirty,
+            disabled: isDisabled(),
           })}
           doLoad={loadPolicyEditor}
           loadError={loadError}
           loading={isLoading}
-          // Validation errors have this logic to avoid empty tooltips when disabled
-          validationErrors={!validationError ? null : validationError === true ? '' : validationError}
+          validationErrors={getValidationErrors()}
           submitError={submitError}
           additionalFooterBtns={
             dirtyPolicy?.id && !isInherited && !isSbomManager ? (
@@ -174,7 +177,7 @@ export default function PolicyEditor() {
                 id="delete-policy-button"
                 variant="tertiary"
                 onClick={() => setIsDeleteModalOpen(true)}
-                disabled={isRepositoriesRelated ? false : !hasEditIqPermission}
+                disabled={isDisabled()}
                 type="button"
               >
                 Delete
@@ -217,4 +220,23 @@ export default function PolicyEditor() {
       )}
     </div>
   );
+
+  function getValidationErrors() {
+    if (!validationError || isDisabled()) {
+      // when the form is readonly we suppress validation errors, we do not have a way to fully disable the button,
+      // we mimic disabling it by giving it a disabled class, short circuiting submit logic, and suppressing validation
+      return null;
+    } else {
+      // Validation errors have this logic to avoid empty tooltips when disabled
+      return validationError === true ? '' : validationError;
+    }
+  }
+
+  function isDisabled() {
+    if (isRepositoriesRelated && !isInherited) {
+      return false;
+    }
+
+    return !hasEditIqPermission;
+  }
 }

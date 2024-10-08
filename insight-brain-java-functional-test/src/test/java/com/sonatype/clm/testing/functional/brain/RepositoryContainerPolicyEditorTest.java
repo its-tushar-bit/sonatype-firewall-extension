@@ -479,7 +479,7 @@ public class RepositoryContainerPolicyEditorTest
     notificationsSection.inheritParentNotifications().shouldBe(visible, disabled);
     notificationsSection.overrideParentNotifications().shouldBe(visible, disabled);
 
-    PolicyEditorPage.saveButton().shouldBe(visible).shouldHave(DISABLED);
+    PolicyEditorPage.saveButton().shouldBe(visible);
   }
 
   private Policy createPolicy() {

@@ -1233,7 +1233,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Deepnight-RAIL','Deepnight-RAIL','Deepnight Responsible AI License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('DeepSeek-LA-1.0','DeepSeek-LA-1.0','DeepSeek License Agreement Version 1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Dejavu-Fonts-License','Dejavu-Fonts-License','DejaVu Fonts License');
-INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('DeployGate-TOU','DeployGate-TOU','DeployGate Terms of Use - Release Date February 28, 2015');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('DeployGate-TOU','DeployGate-TOU','DeployGate Terms of Use');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Design-Barn-IconScout-SL','Design-Barn-IconScout-SL','Design Barn Inc. IconScout Simple License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Dev-Tools-EULA','Dev-Tools-EULA','Dev Tools End User License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Devart-dotConnect-Provider-LA','Devart-dotConnect-Provider-LA','Devart dotConnect Provider License Agreement');
@@ -2368,6 +2368,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-Anti-996-License-UNSPECIFIED','MIT-with-Anti-996-License','MIT-with-Anti-996-License-Style Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-Commons-Clause-1.0','MIT-with-Commons-Clause-1.0','MIT with Commons-Clause-1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-Commons-Clause-UNSPECIFIED','MIT-with-Commons-Clause','MIT with Commons-Clause-Style License Not Identifiable by Sonatype');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-fmt-exception','MIT-with-fmt-exception','MIT with fmt exception');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-No-Resale-Clause','MIT-with-No-Resale-Clause','MIT License with No Resale Clause');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-WTFPL','MIT or WTFPL','Dual License Consisting of MIT License and Do What The F*ck You Want To Public License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-Wu','MIT-Wu','MIT Tom Wu Variant');

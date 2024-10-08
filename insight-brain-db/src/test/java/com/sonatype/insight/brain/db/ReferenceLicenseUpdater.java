@@ -35,7 +35,7 @@ public class ReferenceLicenseUpdater
 {
   public static void main(String[] args) throws Exception {
     try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
-      HttpGet request = new HttpGet("https://clm.sonatype.com/rest/license");
+      HttpGet request = new HttpGet("https://clm-staging.sonatype.com/rest/license");
       String responseBody = EntityUtils.toString(httpClient.execute(request).getEntity()).replaceAll("'", "''");
       LicenseResponseDto licenseResponseDto = new Gson().fromJson(responseBody, LicenseResponseDto.class);
 

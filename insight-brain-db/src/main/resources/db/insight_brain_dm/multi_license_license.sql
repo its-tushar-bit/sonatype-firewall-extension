@@ -3992,6 +3992,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-wit
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-with-Anti-996-License-UNSPECIFIED','MIT-with-Anti-996-License-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-with-Commons-Clause-1.0','MIT-with-Commons-Clause-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-with-Commons-Clause-UNSPECIFIED','MIT-with-Commons-Clause-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-with-fmt-exception','MIT-with-fmt-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-with-No-Resale-Clause','MIT-with-No-Resale-Clause');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-WTFPL','MIT');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-WTFPL','WTFPL');

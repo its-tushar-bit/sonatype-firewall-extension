@@ -190,6 +190,22 @@ public class ApiLegalAttributionReportTemplateResourceV2Test
   }
 
   @Test
+  public void testSaveAttributionReportTemplate_NullHeaderAndFooter() throws Exception {
+    AttributionReportTemplate reportTemplate = new AttributionReportTemplate();
+    reportTemplate.setTemplateName("template with null header and footer");
+    reportTemplate.setDocumentTitle("title");
+    HttpResponse savedResponse = restRequest()
+        .path(ApiLegalAttributionReportTemplateResourceV2.REPORT_TEMPLATE_PATH)
+        .body(AttributionReportTemplateDTO.fromReportTemplate(reportTemplate))
+        .post();
+    AttributionReportTemplateDTO savedReportTemplateDTO = savedResponse.getBody(AttributionReportTemplateDTO.class);
+
+    assertResponseStatus(200, savedResponse);
+    assertThat(savedReportTemplateDTO.getHeader()).isEmpty();
+    assertThat(savedReportTemplateDTO.getFooter()).isEmpty();
+  }
+
+  @Test
   public void testDeleteAttributionReportTemplateById() throws Exception {
     AttributionReportTemplate tempReport =
         tempEntity.createNewAttributionReportTemplate("template to be deleted", "to be deleted");

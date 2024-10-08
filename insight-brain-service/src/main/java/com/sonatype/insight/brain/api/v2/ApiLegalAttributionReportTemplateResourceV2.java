@@ -72,7 +72,6 @@ public class ApiLegalAttributionReportTemplateResourceV2
     if (reportTemplateDTO == null) {
       throw new BadRequestException("No report template provided");
     }
-    sanitizeAllTextFields(reportTemplateDTO);
     if (reportTemplateDTO.getId() != null && StringUtils.isBlank(reportTemplateDTO.getId())) {
       throw new InvalidNameException("id cannot be an empty string. Leave id null and allow service to set one");
     }
@@ -82,6 +81,14 @@ public class ApiLegalAttributionReportTemplateResourceV2
 
     if (StringUtils.isBlank(reportTemplateDTO.getTemplateName())) {
       throw new InvalidNameException("Report template name cannot be blank");
+    }
+
+    if (reportTemplateDTO.getHeader() == null) {
+      reportTemplateDTO.setHeader("");
+    }
+
+    if (reportTemplateDTO.getFooter() == null) {
+      reportTemplateDTO.setFooter("");
     }
 
     return attributionReportService.saveAttributionReportTemplate(reportTemplateDTO);
@@ -95,27 +102,6 @@ public class ApiLegalAttributionReportTemplateResourceV2
     }
     else {
       throw new NotFoundException(String.format("Template with id %s does not exist", id));
-    }
-  }
-
-  private void sanitizeAllTextFields(AttributionReportTemplateDTO reportTemplateDTO) {
-    if (reportTemplateDTO.getId() != null) {
-      reportTemplateDTO.setId(reportTemplateDTO.getId());
-    }
-    if (reportTemplateDTO.getTemplateName() != null) {
-      reportTemplateDTO.setTemplateName(reportTemplateDTO.getTemplateName());
-    }
-    if (reportTemplateDTO.getTemplateName() != null) {
-      reportTemplateDTO.setTemplateName(reportTemplateDTO.getTemplateName());
-    }
-    if (reportTemplateDTO.getDocumentTitle() != null) {
-      reportTemplateDTO.setDocumentTitle(reportTemplateDTO.getDocumentTitle());
-    }
-    if (reportTemplateDTO.getHeader() != null) {
-      reportTemplateDTO.setHeader(reportTemplateDTO.getHeader());
-    }
-    if (reportTemplateDTO.getFooter() != null) {
-      reportTemplateDTO.setFooter(reportTemplateDTO.getFooter());
     }
   }
 }

@@ -355,7 +355,6 @@ Map<String, Closure> getParallelTests() {
     testStages << createFunctionalTests('Java Functional Tests E', '.*/[P-R].*Test.class', zips)
     testStages << createFunctionalTests('Java Functional Tests F', '.*/[S-Z].*Test.class', zips)
     testStages << createMtiqFunctionalTests('MTIQ Functional Tests', '.*/.*Test.class', zips)
-    testStages << createFrontendTests('Frontend Tests - Jasmine/Jest', zips)
   }
 
   // These tests make use of iq-tests.zip which does not include insight-brain-frontend (1.2GB)
@@ -369,6 +368,7 @@ Map<String, Closure> getParallelTests() {
   testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 S', 'OpenJDK 17', '.*/[S].*Test.class', zips)
   testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 C + U-Z', 'OpenJDK 17', '.*/[CU-Z].*Test.class', zips)
   testStages << createMtiqUnitTests('MTIQ Unit and Integration Tests - OpenJDK 17', 'OpenJDK 17', zips)
+  testStages << createFrontendTests('Frontend Tests - Jasmine/Jest', zips)
 
   return testStages
 }

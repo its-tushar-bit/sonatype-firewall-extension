@@ -194,7 +194,8 @@ public class ConfigurationInfoTest
   public void testGetSourceControlConfigurationInfo_noConfig() throws Exception {
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());
 
-    assertThat(configNode.get(SystemConfigurationProperty.HDS_URL).asText()).isEqualTo("http://unknownhost");
+    assertThat(configNode.get(SystemConfigurationProperty.HDS_URL).asText())
+        .isEqualTo("https://clm-staging.sonatype.com/");
     assertThat(configNode.get(SystemConfigurationProperty.CSRF_PROTECTION).asText()).isEqualTo("true");
     assertThat(configNode.get(SystemConfigurationProperty.CDN_URL).asText()).isEqualTo("https://cdn.sonatype.com/");
     assertThat(configNode.get(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES).asText()).isEqualTo("31457280");

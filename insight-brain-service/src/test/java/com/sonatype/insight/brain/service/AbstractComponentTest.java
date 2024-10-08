@@ -19,6 +19,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.MockCleaner;
@@ -55,6 +56,7 @@ import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.json.store.JsonUtils;
+
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
@@ -252,7 +254,7 @@ public class AbstractComponentTest
     catch (IOException e) {
       throw new UncheckedIOException(e);
     }
-    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.HDS_URL, "http://unknownhost");
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.HDS_URL, "https://clm-staging.sonatype.com/");
     customizeConfig(config);
     binder.bind(InsightConfig.class).toInstance(config);
     binder.bind(ProductLicense.class).to(TestProductLicense.class);

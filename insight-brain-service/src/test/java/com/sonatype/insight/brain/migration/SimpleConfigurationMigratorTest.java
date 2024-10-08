@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
@@ -150,7 +151,7 @@ public class SimpleConfigurationMigratorTest
     logOutput.assertThat().atWarnLevel()
         .contains("The current hdsUrl configuration is invalid and cannot be migrated.");
     assertThat(configurationService.getConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL)).isEqualTo(
-        "http://unknownhost");
+        "https://clm-staging.sonatype.com/");
     assertThat(configurationService.getConfigurationNoAuthz(SystemConfigurationProperty.CDN_URL)).isEqualTo(
         insightConfig.getCdnUrl());
     verify(mockConfigurationService).setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.HDS_URL,

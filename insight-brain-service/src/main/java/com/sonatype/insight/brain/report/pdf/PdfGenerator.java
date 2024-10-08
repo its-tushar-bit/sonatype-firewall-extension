@@ -708,7 +708,7 @@ public class PdfGenerator
   }
 
   private void addCommitHash(PDPageContentStream contentStream, PDRectangle pageRec, float startY) throws IOException {
-    if (pdfData.commitHash != null) {
+    if (pdfData.commitHash != null && !this.productContext.equals(Context.SBOM)) {
       String commitLabel = "Commit: ";
       float commitHashStartY = startY;
       float commitHashStartX =

@@ -1545,7 +1545,7 @@ describe('policySlice reducers', () => {
   });
 
   describe('policy/updateOverrides/fulfilled', () => {
-    fit('resets loading flags and resets the policy from payload', () => {
+    it('resets loading flags and resets the policy from payload', () => {
       const state = Object.freeze({
         submitMaskState: false,
         loadError: 'some error',
@@ -1584,6 +1584,8 @@ describe('policySlice reducers', () => {
       const state = Object.freeze({
         overrideActionsFlag: true,
         originalOverrideActionsFlag: false,
+        currentPolicy: { name: 'current policy' },
+        originalPolicy: { name: 'original policy' },
       });
 
       const action = {
@@ -1601,6 +1603,8 @@ describe('policySlice reducers', () => {
       const state = Object.freeze({
         overrideActionsFlag: false,
         originalOverrideActionsFlag: true,
+        currentPolicy: { name: 'current policy' },
+        originalPolicy: { name: 'original policy' },
       });
 
       const action = {
@@ -1618,6 +1622,8 @@ describe('policySlice reducers', () => {
       const state = Object.freeze({
         overrideNotificationsFlag: true,
         originalOverrideNotificationsFlag: false,
+        currentPolicy: { name: 'current policy' },
+        originalPolicy: { name: 'original policy' },
       });
 
       const action = {
@@ -1635,6 +1641,8 @@ describe('policySlice reducers', () => {
       const state = Object.freeze({
         overrideNotificationsFlag: false,
         originalOverrideNotificationsFlag: true,
+        currentPolicy: { name: 'current policy' },
+        originalPolicy: { name: 'original policy' },
       });
 
       const action = {

@@ -35,6 +35,8 @@ import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.security.MembershipMappingService;
 import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.BaseUrlConfiguration;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.error.exception.BadGatewayException;
@@ -45,6 +47,7 @@ import com.sonatype.insight.scan.util.HashUtils;
 import com.google.inject.Binder;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.quartz.JobBuilder;
@@ -93,6 +96,9 @@ public class EnterpriseReportingServiceTest
   @Mock
   private TaskScheduler mockTaskScheduler;
 
+  @Mock
+  private Configuration mockConfiguration;
+
   @Inject
   private EnterpriseReportingService enterpriseReportingService;
 
@@ -101,13 +107,20 @@ public class EnterpriseReportingServiceTest
 
   @Override
   public void configure(Binder binder) {
+    setupMockConfigurationInstance();
     binder.bind(HdsClient.class).toInstance(mockHdsClient);
     binder.bind(CurrentUser.class).toInstance(mockCurrentUser);
     binder.bind(UserDAO.class).toInstance(mockUserDAO);
     binder.bind(SsoUserService.class).toInstance(mockSsoUserService);
     binder.bind(MembershipMappingService.class).toInstance(mockMembershipMappingService);
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
+    binder.bind(Configuration.class).toInstance(mockConfiguration);
     super.configure(binder);
+  }
+
+  private void setupMockConfigurationInstance() {
+    when(mockConfiguration.getEventBusMaxThreadPoolSize()).thenReturn(1);
+    when(mockConfiguration.getEnterpriseReportingVersionCacheExpirationInMinutes()).thenReturn(1);
   }
 
   @Test
@@ -536,19 +549,70 @@ public class EnterpriseReportingServiceTest
   @Test
   public void testAcquireEmbedSession_Success() {
     // Mock user queries to mock that a user has logged in
-    when(mockCurrentUser.getUserPrincipal()).thenReturn(new UserPrincipal("username", "displayName", InternalRealm.ID));
-    when(mockUserDAO.getByUsernameNotNull("username")).thenReturn(
-        new User("username", "password", "firstName", "lastName", "email"));
-
+    // Given
+    mockEmbedSessionParams("baseUrl/");
+    final ArgumentCaptor<Map<String, String>> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
     EmbedCookielessSessionAcquire expectedResponse =
         new EmbedCookielessSessionAcquire("authTokenResponse", 300, "navTokenResponse", 400, "apiTokenResponse", 500,
             "sessionTokenResponse", 600);
-    when(mockHdsClient.post(eq(EmbedCookielessSessionAcquire.class), anyString(), any(), anyString())).thenReturn(
-        expectedResponse);
 
+    when(mockHdsClient.post(eq(EmbedCookielessSessionAcquire.class),
+        anyString(),
+        any(),
+        mapArgumentCaptor.capture(),
+        anyString())
+    ).thenReturn(expectedResponse);
+
+    // When
     EmbedCookielessSessionAcquire sessionAcquireResult =
         enterpriseReportingService.acquireEmbedSession("dashboardId", embedDomain,
             "Mozilla/:::::");
+
+    //Then
+    assertSessionAcquireResult(sessionAcquireResult);
+
+    Map<String, String> value = mapArgumentCaptor.getValue();
+    assertThat(value.size()).isOne();
+    assertThat(value.get("baseUrl")).isEqualTo("baseUrl/");
+  }
+
+  @Test
+  public void testAcquireEmbedSession_Success_EmptyQueryParams() {
+    // Mock user queries to mock that a user has logged in
+    // Given
+    mockEmbedSessionParams(null);
+    final ArgumentCaptor<Map<String, String>> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
+    EmbedCookielessSessionAcquire expectedResponse =
+        new EmbedCookielessSessionAcquire("authTokenResponse", 300, "navTokenResponse", 400, "apiTokenResponse", 500,
+            "sessionTokenResponse", 600);
+
+    when(mockHdsClient.post(eq(EmbedCookielessSessionAcquire.class),
+        anyString(),
+        any(),
+        mapArgumentCaptor.capture(),
+        anyString())
+    ).thenReturn(expectedResponse);
+
+    // When
+    EmbedCookielessSessionAcquire sessionAcquireResult =
+        enterpriseReportingService.acquireEmbedSession("dashboardId", embedDomain,
+            "Mozilla/:::::");
+
+    //Then
+    assertSessionAcquireResult(sessionAcquireResult);
+
+    Map<String, String> value = mapArgumentCaptor.getValue();
+    assertThat(value.size()).isZero();
+  }
+
+  private void mockEmbedSessionParams(String baseUrl) {
+    when(mockCurrentUser.getUserPrincipal()).thenReturn(new UserPrincipal("username", "displayName", InternalRealm.ID));
+    when(mockUserDAO.getByUsernameNotNull("username"))
+        .thenReturn( new User("username", "password", "firstName", "lastName", "email"));
+    when(mockConfiguration.getBaseUrlConfiguration()).thenReturn(new BaseUrlConfiguration(baseUrl, false));
+  }
+
+  private void assertSessionAcquireResult(EmbedCookielessSessionAcquire sessionAcquireResult) {
     assertThat(sessionAcquireResult).isNotNull();
 
     assertThat(sessionAcquireResult.getAuthenticationToken()).isEqualTo("authTokenResponse");

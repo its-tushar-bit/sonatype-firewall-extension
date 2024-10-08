@@ -499,6 +499,18 @@ public class HdsClient
     return post(retryCreator.apply(path), clazz, path, jsonSerializableObject, uriParams);
   }
 
+  public <T> T post(
+      Class<T> clazz,
+      String path,
+      HttpEntity httpEntity,
+      Map<String, String> queryParams,
+      String clientUserAgent)
+  {
+    HttpPost cloudReq = createPostRequest(buildUri(path, queryParams), null, clientUserAgent);
+    cloudReq.setEntity(httpEntity);
+    return execute(retryCreator.apply(path), cloudReq, clazz);
+  }
+
   public <T> T post(Retry retry, Class<T> clazz, String path, Object jsonSerializableObject, String... uriParams) {
     return post(retry, null /* analytics */, clazz, path, null /* clientUserAgent */, jsonSerializableObject,
         uriParams);
@@ -756,6 +768,10 @@ public class HdsClient
 
   private String buildUri(String path, String... uriParams) {
     return buildUri(null /* base request */, path, null /* queryParams */, uriParams);
+  }
+
+  private String buildUri(String path, Map<String, String> queryParams, String... uriParams) {
+    return buildUri(null /* base request */, path, queryParams, uriParams);
   }
 
   private String buildUri(HttpServletRequest base, String path, Map<String, String> queryParams, String... uriParams) {

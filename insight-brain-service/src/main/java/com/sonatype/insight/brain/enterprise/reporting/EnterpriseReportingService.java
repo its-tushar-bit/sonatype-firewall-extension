@@ -200,7 +200,14 @@ public class EnterpriseReportingService
       throw new BadRequestException(e);
     }
 
-    return hdsClient.post(EmbedCookielessSessionAcquire.class, ACQUIRE_EMBED_SESSION_URL_PATH, entity,
+    String baseUrlPath = configuration.getBaseUrlConfiguration().getBaseUrl();
+
+    Map<String, String> queryParams = new HashMap<>();
+    if (!StringUtils.isBlank(baseUrlPath)) {
+      queryParams.put("baseUrl", baseUrlPath);
+    }
+
+    return hdsClient.post(EmbedCookielessSessionAcquire.class, ACQUIRE_EMBED_SESSION_URL_PATH, entity, queryParams,
         clientUserAgent);
   }
 

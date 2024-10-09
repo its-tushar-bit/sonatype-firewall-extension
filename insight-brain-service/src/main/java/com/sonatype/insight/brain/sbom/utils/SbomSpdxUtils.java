@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.thirdparty.SbomIdentityUtils;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.InvalidSbomException;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
@@ -202,7 +203,10 @@ public final class SbomSpdxUtils
     //fallback to cpe
     String cpe = getCpe(spdxPackage);
     if (cpe != null) {
-      return SbomIdentityUtils.buildPackageUrlFromCpe(cpe).getPackageUrl();
+      PackageUrlIdentifier packageUrlIdentifier = SbomIdentityUtils.buildPackageUrlFromCpe(cpe);
+      if (packageUrlIdentifier != null) {
+        return packageUrlIdentifier.getPackageUrl();
+      }
     }
 
     return null;

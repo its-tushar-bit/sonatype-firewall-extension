@@ -96,6 +96,7 @@ import org.spdx.library.InvalidSPDXAnalysisException;
 import org.spdx.library.model.license.AnyLicenseInfo;
 import org.spdx.library.model.license.InvalidLicenseStringException;
 import org.spdx.library.model.license.LicenseInfoFactory;
+import us.springett.parsers.cpe.util.Validate;
 
 import static com.sonatype.insight.brain.sbom.SbomSpecification.CYCLONEDX;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedAttackVector;
@@ -352,7 +353,14 @@ public class SbomResultHandler
     try {
       Pair<ComponentIdentifier, Component> resolvedComponent = getResolvedComponent(sourceComponent);
       if (resolvedComponent != null) {
-        resolvedComponent.getRight().setCpe(sourceComponent.getCpe());
+        String sourceSbomComponentCpe = sourceComponent.getCpe();
+        if (StringUtils.isNotBlank(sourceSbomComponentCpe) && Validate.cpe(sourceSbomComponentCpe).isValid()) {
+          resolvedComponent.getRight().setCpe(sourceComponent.getCpe());
+        }
+        else {
+          log.debug("Skipping invalid CPE {} for component with name {}", sourceSbomComponentCpe,
+              sourceComponent.getName());
+        }
         resolvedComponent.getRight().setSwid(sourceComponent.getSwid());
         ComponentIdentifier componentIdentifier = resolvedComponent.getLeft();
         if (componentIdentifier == null) {

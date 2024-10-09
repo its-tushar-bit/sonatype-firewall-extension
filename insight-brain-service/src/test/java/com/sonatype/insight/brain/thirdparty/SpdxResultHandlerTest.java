@@ -159,7 +159,7 @@ public class SpdxResultHandlerTest
             "pkg:generic/sonatype/iq_application_SCM%20Test%201@76b10b862e7b42009f2415097620928c",
             "pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar",
             "pkg:generic/org.apache.logging.log4j/log4j-api@2.13.2?sbom_type=library",
-            "pkg:cpe/apache/log4j@2.11.2?update=rc3",
+            "pkg:generic/apache/log4j@2.11.2?update=rc3",
             null);
     assertThat(components).extracting("properties.size")
         .containsOnly(1, 1, 1, 1, 1);
@@ -182,7 +182,8 @@ public class SpdxResultHandlerTest
     assertThat(components).extracting(Component::getName).containsExactly("fonts-filesystem");
     assertThat(components).extracting(Component::getVersion).containsExactly("2.0.5");
 
-    assertThat(components).extracting(Component::getPurl).containsExactly("pkg:cpe/red_inc./fonts-filesystem@2.0.5");
+    assertThat(components).extracting(Component::getPurl)
+        .containsExactly("pkg:generic/red_inc./fonts-filesystem@2.0.5");
 
     assertDebugLogOutput("Invalid Component Identifier for provided purl pkg:rpm/fonts-filesystem@2.0.5");
   }
@@ -646,8 +647,7 @@ public class SpdxResultHandlerTest
     assertThat(componentInfoTelemetry.getCpeCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getHashCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getCoordinateCount()).isEqualTo(1);
-    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("cpe", 1), entry("maven", 1),
-        entry("generic", 2));
+    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("generic", 3), entry("maven", 1));
   }
 
   private void assertCpeAndSwid(ThirdPartyScanContent content) throws Exception {

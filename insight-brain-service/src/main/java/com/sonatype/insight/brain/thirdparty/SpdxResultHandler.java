@@ -84,6 +84,7 @@ import org.spdx.library.model.enumerations.RelationshipType;
 import org.spdx.library.model.license.AnyLicenseInfo;
 import org.spdx.library.model.license.SpdxNoAssertionLicense;
 import org.spdx.library.model.license.SpdxNoneLicense;
+import us.springett.parsers.cpe.util.Validate;
 
 import static com.sonatype.insight.brain.sbom.SbomSpecification.SPDX;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedThirdPartyIdentificationSource;
@@ -204,7 +205,14 @@ public class SpdxResultHandler
     try {
       Pair<ComponentIdentifier, Component> resolvedComponent = getResolvedComponent(spdxPackage, rootPackageId);
       if (resolvedComponent != null) {
-        getCpe(spdxPackage).ifPresent(cpe -> resolvedComponent.getRight().setCpe(cpe));
+        getCpe(spdxPackage).ifPresent(cpe -> {
+          if (StringUtils.isNotEmpty(cpe) && Validate.cpe(cpe).isValid()) {
+            resolvedComponent.getRight().setCpe(cpe);
+          }
+          else {
+            log.debug("Skipping invalid CPE {} for component with ID {}", cpe, spdxPackage.getId());
+          }
+        });
         getSwid(spdxPackage).ifPresent(swid -> resolvedComponent.getRight().setSwid(swid));
         ComponentIdentifier componentIdentifier = resolvedComponent.getLeft();
         if (componentIdentifier == null) {

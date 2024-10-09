@@ -37,14 +37,14 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
+import us.springett.parsers.cpe.Cpe;
+import us.springett.parsers.cpe.CpeParser;
+import us.springett.parsers.cpe.exceptions.CpeParsingException;
+import us.springett.parsers.cpe.values.LogicalValue;
 
 public class SbomIdentityUtils
 {
   private static final Logger log = LoggerFactory.getLogger(SbomIdentityUtils.class);
-
-  private static final String CPE_2_2_PREFIX = "cpe:/";
-
-  private static final String CPE_2_3_PREFIX = "cpe:2.3:";
 
   private static DocumentBuilderFactory documentBuilderFactory;
 
@@ -79,52 +79,58 @@ public class SbomIdentityUtils
     if (StringUtils.isBlank(cpe)) {
       return null;
     }
-    String payload;
-    if (cpe.startsWith(CPE_2_3_PREFIX)) {
-      payload = cpe.substring(CPE_2_3_PREFIX.length());
-    }
-    else {
-      payload = cpe.substring(CPE_2_2_PREFIX.length());
-    }
-
-    String[] cpeParts = payload.split(":");
-    if (cpeParts.length < 4) {
-      log.debug("Invalid cpe: {}", cpe);
-      return null;
-    }
 
     try {
       PackageURLBuilder packageURLBuilder = PackageURLBuilder.aPackageURL();
-      packageURLBuilder
-          .withType("cpe")
-          .withName(ThirdPartyScanResultUtils.getTruncatedName(urlDecode(cpeParts[2])))
-          .withVersion(ThirdPartyScanResultUtils.getTruncatedVersion(urlDecode(cpeParts[3])));
-
-      if (StringUtils.isNotBlank(cpeParts[1])) { // vendor
-        packageURLBuilder.withNamespace(urlDecode(cpeParts[1]));
+      Cpe cpeParsedValue = CpeParser.parse(cpe);
+      packageURLBuilder.withType("generic");
+      if (isCpeQualifierValid(cpeParsedValue.getProduct())) {
+        packageURLBuilder.withName(ThirdPartyScanResultUtils.getTruncatedName(urlDecode(cpeParsedValue.getProduct())));
       }
-      addQualifierIfExists(packageURLBuilder, "update", cpeParts, 4);
-      addQualifierIfExists(packageURLBuilder, "edition", cpeParts, 5);
-      addQualifierIfExists(packageURLBuilder, "language", cpeParts, 6);
-      addQualifierIfExists(packageURLBuilder, "sw_edition", cpeParts, 7);
-      addQualifierIfExists(packageURLBuilder, "target_sw", cpeParts, 8);
-      addQualifierIfExists(packageURLBuilder, "target_hw", cpeParts, 9);
-      addQualifierIfExists(packageURLBuilder, "other", cpeParts, 10);
-
+      if (isCpeQualifierValid(cpeParsedValue.getVersion())) {
+        packageURLBuilder
+            .withVersion(ThirdPartyScanResultUtils.getTruncatedVersion(urlDecode(cpeParsedValue.getVersion())));
+      }
+      if (isCpeQualifierValid(cpeParsedValue.getVendor())) {
+        packageURLBuilder.withNamespace(urlDecode(cpeParsedValue.getVendor()));
+      }
+      if (isCpeQualifierValid(cpeParsedValue.getUpdate())) {
+        packageURLBuilder.withQualifier("update", cpeParsedValue.getUpdate());
+      }
+      if (isCpeQualifierValid(cpeParsedValue.getEdition())) {
+        packageURLBuilder.withQualifier("edition", cpeParsedValue.getEdition());
+      }
+      if (isCpeQualifierValid(cpeParsedValue.getLanguage())) {
+        packageURLBuilder.withQualifier("language", cpeParsedValue.getLanguage());
+      }
+      if (isCpeQualifierValid(cpeParsedValue.getSwEdition())) {
+        packageURLBuilder.withQualifier("sw_edition", cpeParsedValue.getSwEdition());
+      }
+      if (isCpeQualifierValid(cpeParsedValue.getTargetSw())) {
+        packageURLBuilder.withQualifier("target_sw", cpeParsedValue.getTargetSw());
+      }
+      if (isCpeQualifierValid(cpeParsedValue.getTargetHw())) {
+        packageURLBuilder.withQualifier("target_hw", cpeParsedValue.getTargetHw());
+      }
+      if (isCpeQualifierValid(cpeParsedValue.getOther())) {
+        packageURLBuilder.withQualifier("other", cpeParsedValue.getOther());
+      }
       PackageURL packageUrl = packageURLBuilder.build();
       return new PackageUrlIdentifier(packageUrl.canonicalize());
     }
     catch (MalformedPackageURLException | UnsupportedEncodingException e) {
       throw new InvalidPackageURLException(e.getMessage(), e);
     }
+    catch (CpeParsingException e) {
+      log.debug("Error parsing CPE {}", cpe, e);
+    }
+    return null;
   }
 
-  private static void addQualifierIfExists(PackageURLBuilder builder, String name, String[] parts, int index)
-      throws UnsupportedEncodingException
-  {
-    if (parts.length > index && StringUtils.isNotBlank(parts[index]) && !"*".equals(parts[index])) {
-      builder.withQualifier(name, urlDecode(parts[index]));
-    }
+  private static boolean isCpeQualifierValid(String cpeQualifier) {
+    return StringUtils.isNotEmpty(cpeQualifier)
+        && !LogicalValue.ANY.getAbbreviation().equals(cpeQualifier)
+        && !LogicalValue.NA.getAbbreviation().equals(cpeQualifier);
   }
 
   private static String urlDecode(String input) throws UnsupportedEncodingException {

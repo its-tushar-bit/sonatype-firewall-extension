@@ -737,6 +737,11 @@
       <artifactId>oauth2-oidc-sdk</artifactId>
       <version>11.10.1</version>
     </dependency>
+
+    <dependency>
+      <groupId>us.springett</groupId>
+      <artifactId>cpe-parser</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

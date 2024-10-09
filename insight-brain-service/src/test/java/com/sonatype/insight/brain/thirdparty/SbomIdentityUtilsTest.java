@@ -34,12 +34,12 @@ public class SbomIdentityUtilsTest
         {null, null},
         {"", null},
         {"cpe:invalid", null},
-        {"cpe:/a:apache:log4j:2.11.2:rc3", "pkg:cpe/apache/log4j@2.11.2?update=rc3"},
-        {"cpe:2.3:a:apache:log4j:2.11.2:rc3:*:*:*:*:*:*", "pkg:cpe/apache/log4j@2.11.2?update=rc3"},
+        {"cpe:/a:apache:log4j:2.11.2:rc3", "pkg:generic/apache/log4j@2.11.2?update=rc3"},
+        {"cpe:2.3:a:apache:log4j:2.11.2:rc3:*:*:*:*:*:*", "pkg:generic/apache/log4j@2.11.2?update=rc3"},
         {"cpe:/o:micro%24oft:window%24_2000::sp3:pro%2A",
-            "pkg:cpe/micro%24oft/window%24_2000@?edition=pro%2A&update=sp3"},
+            "pkg:generic/micro%24oft/window%24_2000?edition=pro%2A&update=sp3"},
         {"cpe:2.3:a:microsoft:internet_explorer:8.0.6001:beta:*:en:*:*:*:*",
-            "pkg:cpe/microsoft/internet_explorer@8.0.6001?language=en&update=beta"},
+            "pkg:generic/microsoft/internet_explorer@8.0.6001?language=en&update=beta"},
     });
   }
 

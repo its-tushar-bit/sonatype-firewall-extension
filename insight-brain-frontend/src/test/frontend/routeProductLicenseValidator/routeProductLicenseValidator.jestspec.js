@@ -24,6 +24,7 @@ describe('RouteProductLicenseValidator handleOnEnterPermissions', () => {
       expect(await handleOnEnterPermissions(mockStateServiceTargetFn, { name: 'root' })).toEqual(true);
       expect(await handleOnEnterPermissions(mockStateServiceTargetFn, { name: 'productlicense' })).toEqual(true);
       expect(await handleOnEnterPermissions(mockStateServiceTargetFn, { name: 'gettingStarted' })).toEqual(true);
+      expect(await handleOnEnterPermissions(mockStateServiceTargetFn, { name: 'proxyConfig' })).toEqual(true);
       expect(mockStateServiceTargetFn).not.toHaveBeenCalled();
     });
 

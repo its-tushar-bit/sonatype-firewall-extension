@@ -6,7 +6,7 @@
 import { nameStartsWithSbomManager, isSbomManagerOnlyLicenseProduct } from 'MainRoot/sbomManager/sbomManagerUtil';
 import { loadIfNotYetLoaded } from 'MainRoot/utility/services/ProductLicense';
 
-const NON_PROTECTED_PATHS = ['home', 'root', 'productlicense', 'gettingStarted'];
+const NON_PROTECTED_PATHS = ['home', 'root', 'productlicense', 'gettingStarted', 'proxyConfig'];
 const PERMITTED_SBOM_MANAGER_PATHS = [
   'addRole',
   'addWebhook',

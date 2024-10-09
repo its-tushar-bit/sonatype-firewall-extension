@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.disabled;
@@ -303,11 +302,12 @@ public class ProxyConfigurationPageTest
   }
 
   @Test
-  @Ignore // https://sonatype.atlassian.net/browse/CLM-31310
   public void testAccessWithoutLicense() {
     uninstallLicense();
     refreshOrOpen(DashboardPage.url());
+    refresh(); // Refresh to ensure the page is loaded after the license is uninstalled
     refreshOrOpen(ProxyConfigurationPage.url());
+
     assertNoProxyServerConfigured();
     proxyConfigurationPage.productLicenseNavigation().shouldBe(visible);
   }

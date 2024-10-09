@@ -118,7 +118,6 @@ public class ApplicationReportFilterTest
     ProprietaryFilter proprietaryFilter = reportPage.filterPanel().proprietaryFilter();
 
     proprietaryFilter.counter().shouldHave(text("2"));
-    proprietaryFilter.multiSelectList().shouldHave(size(3));
     proprietaryFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));
     proprietaryFilter.twisty().click();
     proprietaryFilter.multiSelectList().shouldHave(size(3));
@@ -163,7 +162,6 @@ public class ApplicationReportFilterTest
     InnerSourceFilter innerSourceFilter = reportPage.filterPanel().innerSourceFilter();
     innerSourceFilter.shouldHave(text("InnerSource"));
     innerSourceFilter.counter().shouldHave(exactText("2"));
-    innerSourceFilter.multiSelectList().shouldHave(size(3));
     innerSourceFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));
     innerSourceFilter.twisty().click();
     innerSourceFilter.multiSelectList().shouldHave(size(3));
@@ -186,7 +184,6 @@ public class ApplicationReportFilterTest
     // match state filter
     MatchStateFilter matchStateFilter = reportPage.filterPanel().matchStateFilter();
     matchStateFilter.counter().shouldHave(exactText("3"));
-    matchStateFilter.multiSelectList().shouldHave(size(4));
     matchStateFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));
     matchStateFilter.twisty().click();
     matchStateFilter.multiSelectList().shouldHave(size(4));
@@ -213,7 +210,6 @@ public class ApplicationReportFilterTest
     //policy type filter
     PolicyTypeFilter policyTypeFilter = reportPage.filterPanel().policyTypeFilter();
     policyTypeFilter.counter().shouldHave(exactText("4"));
-    policyTypeFilter.multiSelectList().shouldHave(size(5));
     policyTypeFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));
     policyTypeFilter.twisty().click();
     policyTypeFilter.multiSelectList().shouldHave(size(5));
@@ -259,7 +255,6 @@ public class ApplicationReportFilterTest
     // dependency type filter
     DependencyTypeFilter dependencyTypeFilter = reportPage.filterPanel().dependencyTypeFilter();
     dependencyTypeFilter.counter().shouldHave(exactText("3"));
-    dependencyTypeFilter.multiSelectList().shouldHave(size(4));
     dependencyTypeFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));
     dependencyTypeFilter.twisty().click();
     dependencyTypeFilter.multiSelectList().shouldHave(size(4));

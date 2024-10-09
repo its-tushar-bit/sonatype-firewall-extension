@@ -385,7 +385,7 @@ public class OrganizationSummaryViewTest
     }
     categoryTile.categoryListSubheader(i).shouldBe(visible)
         .shouldHave(CategoryTile.inheritedText(owners.get(i).getName())).click();
-    categoriesList.should(exist).shouldNotBe(visible);
+    categoriesList.shouldNotBe(visible);
   }
 
   @Test

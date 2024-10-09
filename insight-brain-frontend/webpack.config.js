@@ -46,6 +46,7 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals, es5 = fa
     buildConstants = {
       CLM_BUILD_TIMESTAMP: new Date().getTime(),
       CLM_SERVER_VERSION: JSON.stringify(extractFromPom('version')),
+      'process.env.NODE_ENV': JSON.stringify(production ? 'production' : 'development'),
     },
     getCssPlugins = () => [new MiniCssExtractPlugin({ filename: cssOutputPath })],
     productionPlugins = [

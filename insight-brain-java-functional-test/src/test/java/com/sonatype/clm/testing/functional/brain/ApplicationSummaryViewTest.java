@@ -745,7 +745,7 @@ public class ApplicationSummaryViewTest
     InheritedLabelsList inheritedLabelList = labelTile.inheritedLabelsList(organization.getId());
     inheritedLabelList.should(exist).shouldBe(visible);
     labelTile.labelListSubheader(1).shouldBe(visible).click();
-    inheritedLabelList.should(exist).shouldNotBe(visible);
+    inheritedLabelList.shouldNotBe(visible);
     labelTile.labelListSubheader(1).shouldHave(LabelTile.inheritedText(organization.getName()));
     ScrollUtil.scrollIntoViewInstantly(labelTile.getElement());
     //eyesWatcher.eyesCheck("Inherited Component Labels Header Truncation"); //sonatype.atlassian.net/browse/CLM-30559
@@ -769,7 +769,7 @@ public class ApplicationSummaryViewTest
     InheritedAccessList inheritedAccessList = accessTile.inheritedAccessList(organization.getId());
     inheritedAccessList.should(exist).shouldBe(visible);
     accessTile.accessListSubheader(0).shouldBe(visible).click();
-    inheritedAccessList.should(exist).shouldNotBe(visible);
+    inheritedAccessList.shouldNotBe(visible);
     accessTile.accessListSubheader(0).shouldHave(LabelTile.inheritedText(organization.getName()));
     ScrollUtil.scrollIntoViewInstantly(accessTile.getElement());
     eyesWatcher.eyesCheck("Inherited Access Header Truncation");

@@ -4,7 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, axiosMockAdapter, fireEvent, within, waitFor } from 'TestRoot/SpecUtil';
+import { userEvent } from '@testing-library/user-event';
+import { render, screen, axiosMockAdapter, within, waitFor } from 'TestRoot/SpecUtil';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import { getOwnerListUrl, getPermissionContextTestUrl, getRepositoriesUrl } from 'MainRoot/util/CLMLocation';
 import { getOwnersMap } from './nLevelMockData';
@@ -12,7 +13,6 @@ import OwnerSideNav from 'MainRoot/OrgsAndPolicies/ownerSideNav/OwnerSideNav';
 import RouterStateContext from 'MainRoot/react/RouterStateContext';
 import { PERMISSION } from 'MainRoot/util/authorizationUtil';
 import { fakeRouterState, verifyOwnersMenuSection } from './ownerSideNavTestingUtils';
-import { FILTER_DEBOUNCE } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { setupMenuBarBreadcrumbsPortalContainer } from '../../mainHeader/MenuBar/MenuBarStatefulBreadcrumb.jestspec';
 import { mergeDeepRight } from 'ramda';
 
@@ -133,6 +133,7 @@ describe('OwnerSideNav', () => {
   };
 
   it('renders loading indicator and handles error', async () => {
+    const user = userEvent.setup();
     mockAxiosCalls.reset();
 
     // ownerListUrl request error
@@ -142,7 +143,7 @@ describe('OwnerSideNav', () => {
     expect(await screen.findByRole('alert', /An error occurred loading data. Error 404/i)).toBeVisible();
 
     // no errors
-    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    await user.click(screen.getByRole('button', { name: 'Retry' }));
     const searchInput = await screen.findByRole('textbox');
     expect(searchInput).toBeVisible();
     expect(searchInput).toHaveTextContent('');
@@ -209,43 +210,45 @@ describe('OwnerSideNav', () => {
     });
 
     it('renders clarification message if search term is less than 3 chars long', async () => {
+      const user = userEvent.setup();
       renderComponent();
       const searchInput = await screen.findByRole('textbox');
 
-      fireEvent.change(searchInput, { target: { value: 'te' } });
+      await user.clear(searchInput);
+      await user.type(searchInput, 'te');
 
       const message = screen.getByText('Enter three characters to begin filtering.');
       expect(message).toBeVisible();
     });
 
     it('does not render clarification message if search term is longer than 3 chars', async () => {
+      const user = userEvent.setup();
       renderComponent();
       const searchInput = await screen.findByRole('textbox');
 
-      fireEvent.change(searchInput, { target: { value: 'term' } });
+      await user.clear(searchInput);
+      await user.type(searchInput, 'term');
 
       const message = screen.queryByText('Enter three characters to begin filtering.');
       expect(message).not.toBeInTheDocument();
     });
 
     it('renders no results found if there is no entries found', async () => {
-      jest.useFakeTimers();
+      const user = userEvent.setup();
 
       renderComponent();
 
       const searchInput = await screen.findByRole('textbox');
 
-      fireEvent.change(searchInput, { target: { value: 'ababahalamaha' } });
-
-      jest.advanceTimersByTime(FILTER_DEBOUNCE);
-      jest.useRealTimers();
+      await user.clear(searchInput);
+      await user.type(searchInput, 'ababahalamaha');
 
       const noResults = await screen.findByText('No Results Found');
       expect(noResults).toBeVisible();
     });
 
     it('renders matching results', async () => {
-      jest.useFakeTimers();
+      const user = userEvent.setup();
 
       const rootOrg = ownersMap[topParentOrganizationId];
       state = {
@@ -282,13 +285,10 @@ describe('OwnerSideNav', () => {
 
       const searchInput = await screen.findByRole('textbox');
 
-      fireEvent.change(searchInput, { target: { value: 'name 3' } });
+      await user.type(searchInput, 'name 3');
 
       const filteredHeader = screen.getByText('Filtered Results:');
       expect(filteredHeader).toBeVisible();
-
-      jest.advanceTimersByTime(FILTER_DEBOUNCE);
-      jest.useRealTimers();
 
       const results = await screen.findAllByRole('menuitem');
       expect(results).toHaveLength(5);
@@ -540,8 +540,13 @@ describe('OwnerSideNav', () => {
         });
 
         it('repository managers menu sections is not empty ', async () => {
+          const user = userEvent.setup();
           renderComponent();
           const childMenus = await screen.findAllByRole('group');
+
+          const repoManagerCollapseToggle = await screen.findByRole('button', { name: /Repository Managers/ });
+          await user.click(repoManagerCollapseToggle);
+
           const menuItems = within(childMenus[0]).getAllByRole('menuitem');
 
           expect(menuItems).toHaveLength(3);
@@ -560,6 +565,7 @@ describe('OwnerSideNav', () => {
       });
 
       it('renders matching results when filter is active', async () => {
+        const user = userEvent.setup();
         const rootOrg = { ...ownersMap[topParentOrganizationId], repositoryContainerId: 'REPOSITORY_CONTAINER_ID' };
         const repositoryManagerIds = ['repositoryManagerOne', 'repositoryManagerTwo'];
         const ownersMapWithRepositoryContainer = {
@@ -614,7 +620,10 @@ describe('OwnerSideNav', () => {
 
         const searchInput = await screen.findByRole('textbox');
 
-        fireEvent.change(searchInput, { target: { value: 'one' } });
+        await user.type(searchInput, 'one');
+
+        const itemsCollapseToggle = await screen.findByRole('button', { name: /Repository Managers/ });
+        await user.click(itemsCollapseToggle);
 
         const filteredHeader = screen.getByText('Filtered Results:');
         expect(filteredHeader).toBeVisible();
@@ -624,12 +633,14 @@ describe('OwnerSideNav', () => {
 
         expect(results[0]).toHaveTextContent('repositoryManagerOne');
 
-        fireEvent.change(searchInput, { target: { value: 'empty' } });
+        await user.clear(searchInput);
+        await user.type(searchInput, 'empty');
 
         expect(await screen.queryAllByRole('menuitem')).toHaveLength(0);
         expect(await screen.findByText('No Results Found')).toBeVisible();
 
-        fireEvent.change(searchInput, { target: { value: 'name' } });
+        await user.clear(searchInput);
+        await user.type(searchInput, 'name');
 
         expect(await screen.queryAllByRole('menuitem')).toHaveLength(0);
         expect(await screen.findByText('No Results Found')).toBeVisible();
@@ -816,6 +827,7 @@ describe('OwnerSideNav', () => {
       });
 
       it('renders matching results when filter is active', async () => {
+        const user = userEvent.setup();
         const rootOrg = { ...ownersMap[topParentOrganizationId], repositoryContainerId: 'REPOSITORY_CONTAINER_ID' };
         const repositoryManagerIds = ['repositoryManagerOne', 'repositoryManagerTwo'];
         const ownersMapWithRepositoryContainer = {
@@ -870,7 +882,10 @@ describe('OwnerSideNav', () => {
 
         const searchInput = await screen.findByRole('textbox');
 
-        fireEvent.change(searchInput, { target: { value: 'one' } });
+        await user.type(searchInput, 'one');
+
+        const itemsCollapseToggle = await screen.findByRole('button', { name: /Repository Managers/ });
+        await user.click(itemsCollapseToggle);
 
         const filteredHeader = screen.getByText('Filtered Results:');
         expect(filteredHeader).toBeVisible();
@@ -880,12 +895,14 @@ describe('OwnerSideNav', () => {
 
         expect(results[0]).toHaveTextContent('repositoryManagerOne');
 
-        fireEvent.change(searchInput, { target: { value: 'empty' } });
+        await user.clear(searchInput);
+        await user.type(searchInput, 'empty');
 
         expect(await screen.queryAllByRole('menuitem')).toHaveLength(0);
         expect(await screen.findByText('No Results Found')).toBeVisible();
 
-        fireEvent.change(searchInput, { target: { value: 'name' } });
+        await user.clear(searchInput);
+        await user.type(searchInput, 'name');
 
         expect(await screen.queryAllByRole('menuitem')).toHaveLength(0);
         expect(await screen.findByText('No Results Found')).toBeVisible();
@@ -1054,6 +1071,7 @@ describe('OwnerSideNav', () => {
       });
 
       it('renders matching results when filter is active', async () => {
+        const user = userEvent.setup();
         const rootOrg = { ...ownersMap[topParentOrganizationId], repositoryContainerId: 'REPOSITORY_CONTAINER_ID' };
         const repositoryManagerIds = ['repositoryManagerOne', 'repositoryManagerTwo'];
         const ownersMapWithRepositoryContainer = {
@@ -1108,7 +1126,10 @@ describe('OwnerSideNav', () => {
 
         const searchInput = await screen.findByRole('textbox');
 
-        fireEvent.change(searchInput, { target: { value: 'one' } });
+        await user.type(searchInput, 'one');
+
+        const itemsCollapseToggle = await screen.findByRole('button', { name: /Repository Managers/ });
+        await user.click(itemsCollapseToggle);
 
         const filteredHeader = screen.getByText('Filtered Results:');
         expect(filteredHeader).toBeVisible();
@@ -1118,12 +1139,14 @@ describe('OwnerSideNav', () => {
 
         expect(results[0]).toHaveTextContent('repositoryManagerOne');
 
-        fireEvent.change(searchInput, { target: { value: 'empty' } });
+        await user.clear(searchInput);
+        await user.type(searchInput, 'empty');
 
         expect(await screen.queryAllByRole('menuitem')).toHaveLength(0);
         expect(await screen.findByText('No Results Found')).toBeVisible();
 
-        fireEvent.change(searchInput, { target: { value: 'name' } });
+        await user.clear(searchInput);
+        await user.type(searchInput, 'name');
 
         expect(await screen.queryAllByRole('menuitem')).toHaveLength(0);
         expect(await screen.findByText('No Results Found')).toBeVisible();
@@ -1219,12 +1242,13 @@ describe('OwnerSideNav', () => {
 
     describe('Add Organization', () => {
       it('should open owner modal when user clicks on plus button in Organization section', async () => {
+        const user = userEvent.setup();
         renderComponent();
 
         const buttons = await screen.findAllByRole('button');
         const organizationPlusButton = buttons[2];
 
-        fireEvent.click(organizationPlusButton);
+        await user.click(organizationPlusButton);
 
         let ownerModal;
         await waitFor(() => {
@@ -1238,12 +1262,13 @@ describe('OwnerSideNav', () => {
 
     describe('Add Application dropdown', () => {
       it('should render two options if not sbom manager', async () => {
+        const user = userEvent.setup();
         renderComponent();
 
         const buttons = await screen.findAllByRole('button');
         const applicationPlusButton = buttons[4];
 
-        fireEvent.click(applicationPlusButton);
+        await user.click(applicationPlusButton);
 
         expect(await screen.findByRole('button', { name: 'New Application' })).toBeVisible();
         const importAppLink = await screen.findByRole('link', { name: 'Import Applications' });
@@ -1252,6 +1277,7 @@ describe('OwnerSideNav', () => {
       });
 
       it('should render one option if sbom manager', async () => {
+        const user = userEvent.setup();
         const preloadedState = mergeDeepRight(state, {
           productFeatures: {
             productFeatures: {
@@ -1267,22 +1293,23 @@ describe('OwnerSideNav', () => {
         const buttons = await screen.findAllByRole('button');
         const applicationPlusButton = buttons[4];
 
-        fireEvent.click(applicationPlusButton);
+        await user.click(applicationPlusButton);
 
         expect(await screen.findByRole('button', { name: 'New Application' })).toBeVisible();
         expect(screen.queryByRole('link', { name: 'Import Applications' })).not.toBeInTheDocument();
       });
 
       it('should open owner modal when user clicks on New Application button', async () => {
+        const user = userEvent.setup();
         renderComponent();
 
         const buttons = await screen.findAllByRole('button');
         const applicationPlusButton = buttons[4];
 
-        fireEvent.click(applicationPlusButton);
+        await user.click(applicationPlusButton);
 
         const newApplicationBtn = await screen.findByRole('button', { name: 'New Application' });
-        fireEvent.click(newApplicationBtn);
+        await user.click(newApplicationBtn);
 
         let ownerModal;
         await waitFor(() => {
@@ -1294,25 +1321,27 @@ describe('OwnerSideNav', () => {
       });
 
       it('should not render the Import Application option when saas-lifecycle-scm-enabled is false', async function () {
+        const user = userEvent.setup();
         state.productFeatures.productFeatures['saas-lifecycle-scm-enabled'] = false;
         renderComponent();
         const buttons = await screen.findAllByRole('button');
         const applicationPlusButton = buttons[4];
 
-        fireEvent.click(applicationPlusButton);
+        await user.click(applicationPlusButton);
 
         expect(await screen.findByRole('button', { name: 'New Application' })).toBeVisible();
         expect(screen.queryByRole('link', { name: 'Import Applications' })).not.toBeInTheDocument();
       });
 
       it('should not render the Import Application option when saas-lifecycle-scm-enabled is missing', async function () {
+        const user = userEvent.setup();
         delete state.productFeatures.productFeatures['saas-lifecycle-scm-enabled'];
         renderComponent();
 
         const buttons = await screen.findAllByRole('button');
         const applicationPlusButton = buttons[4];
 
-        fireEvent.click(applicationPlusButton);
+        await user.click(applicationPlusButton);
 
         expect(await screen.findByRole('button', { name: 'New Application' })).toBeVisible();
         expect(screen.queryByRole('link', { name: 'Import Applications' })).not.toBeInTheDocument();

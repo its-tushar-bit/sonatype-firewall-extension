@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { axiosMockAdapter, render, screen, waitFor } from 'TestRoot/SpecUtil';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 import SourceControlRateLimits from 'MainRoot/OrgsAndPolicies/sourceControlRateLimits/SourceControlRateLimits';
 import { getSourceControlRateLimitsUrl } from 'MainRoot/util/CLMLocation';
@@ -57,8 +58,9 @@ describe('SourceControlRateLimits', function () {
     ).toBeVisible();
   };
 
-  const expectOrganizationTableDataVisible = () => {
+  const expectOrganizationTableDataVisible = async (userEvent) => {
     expectTableRowVisible(
+      userEvent,
       'github',
       'userA',
       '80% Average',
@@ -67,6 +69,7 @@ describe('SourceControlRateLimits', function () {
       '1 Total'
     );
     expectTableRowVisible(
+      userEvent,
       'github',
       'userB',
       '70% Average',
@@ -76,8 +79,9 @@ describe('SourceControlRateLimits', function () {
     );
   };
 
-  const expectApplicationTableDataVisible = () => {
+  const expectApplicationTableDataVisible = async () => {
     expectTableRowVisible(
+      userEvent,
       'github',
       'userA',
       '10% Average',
@@ -87,7 +91,8 @@ describe('SourceControlRateLimits', function () {
     );
   };
 
-  const expectTableRowVisible = (
+  const expectTableRowVisible = async (
+    userEvent,
     provider,
     user,
     averageRateLimit,
@@ -106,9 +111,15 @@ describe('SourceControlRateLimits', function () {
 
     const averageRateLimitElement = within(parentElement.children[2]).getByText(averageRateLimit);
     expect(averageRateLimitElement).toBeVisible();
-    rateLimitParts.forEach((rateLimitPart) => {
-      expect(within(parentElement.children[2]).getByText(rateLimitPart)).toBeVisible();
-    });
+
+    for (const rateLimitPart of rateLimitParts) {
+      const cell = parentElement.children[2];
+      const collapsibleItemsToggle = within(cell).getByRole('button');
+
+      await userEvent.click(collapsibleItemsToggle);
+
+      expect(within(cell).getByText(rateLimitPart)).toBeVisible();
+    }
 
     const definingOwnersElement = within(parentElement.children[3]).getByText(definingOwners);
     expect(definingOwnersElement).toBeVisible();
@@ -133,9 +144,10 @@ describe('SourceControlRateLimits', function () {
 
   describe('when there is no load error', function () {
     it('shows the title, subtitle, table, and expected data for an organization', async () => {
+      const user = userEvent.setup();
       const date = new Date(1684730455000);
-      jasmine.clock().install();
-      jasmine.clock().mockDate(date);
+      jest.useFakeTimers();
+      jest.setSystemTime(date);
       axiosMock
         .onGet(getSourceControlRateLimitsUrl('organization', 'ROOT_ORGANIZATION_ID'))
         .reply(200, SOURCE_CONTROL_RATE_LIMITS_ORGANIZATION_MOCK_DATA);
@@ -147,13 +159,14 @@ describe('SourceControlRateLimits', function () {
       expectTitleVisible();
       expectSubTitleVisible('organization', 'Root Organization');
       expectTableHeadersVisible();
-      expectOrganizationTableDataVisible();
+      await expectOrganizationTableDataVisible(user);
     });
 
     it('shows the title, subtitle, table, and expected data for an application', async () => {
+      const user = userEvent.setup();
       const date = new Date(1684730455000);
-      jasmine.clock().install();
-      jasmine.clock().mockDate(date);
+      jest.useFakeTimers();
+      jest.setSystemTime(date);
       axiosMock
         .onGet(getSourceControlRateLimitsUrl('application', '17c4ab720bf64becba6be857bda65ffa'))
         .reply(200, SOURCE_CONTROL_RATE_LIMITS_APPLICATION_MOCK_DATA);
@@ -172,11 +185,7 @@ describe('SourceControlRateLimits', function () {
       expectTitleVisible();
       expectSubTitleVisible('application', 'relay-devtools');
       expectTableHeadersVisible();
-      expectApplicationTableDataVisible();
+      await expectApplicationTableDataVisible(user);
     });
-  });
-
-  afterEach(function () {
-    jasmine.clock().uninstall();
   });
 });

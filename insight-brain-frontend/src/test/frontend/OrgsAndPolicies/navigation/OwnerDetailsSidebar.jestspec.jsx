@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import userEvent from '@testing-library/user-event';
 import OwnerDetailSidebar from 'MainRoot/OrgsAndPolicies/navigation/OwnerDetailSidebar';
 import { fireEvent, render, screen } from 'TestRoot/SpecUtil';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
@@ -259,9 +260,17 @@ describe('OwnerDetailSidebar', () => {
   });
 
   it('renders correct sidebar with correct list open at Organization levels', async () => {
+    const user = userEvent.setup();
     mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
 
     renderComponent();
+
+    await user.click(await screen.findByRole('button', { name: 'Application Categories' }));
+    await user.click(await screen.findByRole('button', { name: 'Policies' }));
+    await user.click(await screen.findByRole('button', { name: 'Component Labels' }));
+    await user.click(await screen.findByRole('button', { name: 'License Threat Groups' }));
+    await user.click(await screen.findByRole('button', { name: 'Application Categories' }));
+    await user.click(await screen.findByRole('button', { name: 'Access' }));
 
     expect(await screen.findByText('categoryTest')).toBeVisible();
     expect(await screen.findByText('policyTest')).toBeVisible();

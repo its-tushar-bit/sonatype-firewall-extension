@@ -798,7 +798,7 @@ public abstract class AbstractSummaryViewTest
       InheritedLabelsList inheritedLabelList = labelTile.inheritedLabelsList(ownerId);
       inheritedLabelList.should(exist).shouldBe(visible);
       labelTile.labelListSubheader(i + 1).shouldBe(visible).click();
-      inheritedLabelList.should(exist).shouldNotBe(visible);
+      inheritedLabelList.shouldNotBe(visible);
       labelTile.labelListSubheader(i + 1).shouldBe(visible).click();
       inheritedLabelList.should(exist).shouldBe(visible);
       int expectedLabelCount = inheritedLabels.get(i).size();
@@ -967,7 +967,7 @@ public abstract class AbstractSummaryViewTest
       inheritedAccessList.should(exist).shouldBe(visible);
       //Collapse
       accessTile.accessListSubheader(i).shouldBe(visible).click();
-      inheritedAccessList.should(exist).shouldNotBe(visible);
+      inheritedAccessList.shouldNotBe(visible);
       //Expanded again
       accessTile.accessListSubheader(i).shouldBe(visible).click();
 

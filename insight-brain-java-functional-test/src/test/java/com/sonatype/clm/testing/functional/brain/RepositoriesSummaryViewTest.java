@@ -1383,6 +1383,7 @@ public class RepositoriesSummaryViewTest
     refreshOrOpen(RepositoriesSummaryPage.url());
     OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = OwnerSummaryPage.sidebar();
     NxCollapsible repoManagerList = orgsAndPoliciesSidebar.getRepoManagerList();
+    repoManagerList.click();
     repoManagerList.children().shouldHave(size(1));
   }
 

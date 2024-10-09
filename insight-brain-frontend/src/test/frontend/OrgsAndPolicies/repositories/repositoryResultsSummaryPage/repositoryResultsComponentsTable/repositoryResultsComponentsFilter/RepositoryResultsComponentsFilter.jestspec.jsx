@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import userEvent from '@testing-library/user-event';
 import { getAllByRole, render, screen } from 'TestRoot/SpecUtil';
 import RepositoryResultsComponentsFilter from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsComponentsTable/repositoryResultsComponentsFilter/RepositoryResultsComponentsFilter';
 import { actions as repositoryComponentsActions } from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsSummaryPageSlice';
@@ -32,11 +33,12 @@ describe('RepositoryResultsComponentsFilter', () => {
   }
 
   beforeEach(() => {
-    applyFiltersSpy = spyOn(repositoryComponentsActions, 'applyFilters').and.callThrough();
+    applyFiltersSpy = jest.spyOn(repositoryComponentsActions, 'applyFilters');
   });
 
   describe('when data are being loaded', () => {
-    it('renders collapsible filters and buttons', () => {
+    it('renders collapsible filters and buttons', async () => {
+      const user = userEvent.setup();
       renderComponent();
 
       const clearButton = screen.getByRole('button', { name: 'Clear' });
@@ -45,7 +47,8 @@ describe('RepositoryResultsComponentsFilter', () => {
       expect(screen.getByText('Filters')).toBeVisible();
       expect(screen.getByText('Component Match State')).toBeVisible();
 
-      fireEvent.click(screen.getByText('Component Match State'));
+      await user.click(screen.getByText('Component Match State'));
+      await user.click(screen.getByText('Violations'));
 
       expect(screen.getAllByText('all/none')[0]).toBeVisible();
       expect(screen.getByText('Exact')).toBeVisible();
@@ -64,50 +67,64 @@ describe('RepositoryResultsComponentsFilter', () => {
       expect(applyButton).toBeEnabled();
     });
 
-    it('renders the policy threat level slider', () => {
+    it('renders the policy threat level slider', async () => {
+      const user = userEvent.setup();
       renderComponent();
+      await user.click(screen.getByRole('button', { name: /Policy Threat Level/ }));
+
       const policyThreat = screen.getAllByRole('list')[0];
       const policyThreatSliders = getAllByRole(policyThreat, 'slider');
       expect(policyThreatSliders[0]).toHaveTextContent('0');
       expect(policyThreatSliders[1]).toHaveTextContent('10');
     });
 
-    it('it renders selection counter', () => {
+    it('it renders selection counter', async () => {
+      const user = userEvent.setup();
       renderComponent();
+      await user.click(screen.getByRole('button', { name: /Component Match State/ }));
+      await user.click(screen.getByRole('button', { name: /Violations/ }));
+
       const exactFilter = screen.getByText('Exact');
       const waivedFilter = screen.getByText('Waived');
       const openFilter = screen.getByText('Open');
 
       expect(exactFilter).toBeVisible();
-      fireEvent.click(exactFilter);
+      await user.click(exactFilter);
       expect(screen.getByText('1 of 2')).toBeVisible();
 
       expect(openFilter).toBeVisible();
-      fireEvent.click(openFilter);
+      await user.click(openFilter);
       expect(waivedFilter).toBeVisible();
-      fireEvent.click(waivedFilter);
+      await user.click(waivedFilter);
       expect(screen.getByText('2 of 4')).toBeVisible();
     });
 
-    it('it clears filter selected', () => {
+    it('it clears filter selected', async () => {
+      const user = userEvent.setup();
       renderComponent();
+      await user.click(screen.getByRole('button', { name: /Component Match State/ }));
+
       const exactFilter = screen.getByText('Exact');
       expect(exactFilter).toBeVisible();
-      fireEvent.click(exactFilter);
+      await user.click(exactFilter);
 
       const oneFilterTextSelected = '1 of 2';
       expect(screen.getByText(oneFilterTextSelected)).toBeVisible();
-      fireEvent.click(screen.getByText('Clear'));
+      await user.click(screen.getByText('Clear'));
       expect(screen.queryByText(oneFilterTextSelected)).not.toBeInTheDocument();
     });
 
-    it('it calls  apply filter selected', () => {
+    it('it calls  apply filter selected', async () => {
+      const user = userEvent.setup();
       renderComponent();
       const applyButton = screen.getByRole('button', { name: 'Apply' });
+
+      await user.click(screen.getByRole('button', { name: /Component Match State/ }));
+
       const exactFilter = screen.getByText('Exact');
       expect(exactFilter).toBeVisible();
-      fireEvent.click(exactFilter);
-      fireEvent.click(applyButton);
+      await user.click(exactFilter);
+      await user.click(applyButton);
 
       expect(applyFiltersSpy).toHaveBeenCalled();
     });

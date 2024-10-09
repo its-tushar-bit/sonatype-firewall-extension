@@ -711,9 +711,7 @@ public class ApplicationReportTest
     reportPage.filterToggle().click();
 
     ViolationStateFilter violationStateFilter = reportPage.filterPanel().violationStateFilter();
-    violationStateFilter.multiSelectList().shouldHave(size(5));
     violationStateFilter.counter().shouldHave(exactText("4"));
-    violationStateFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));
     violationStateFilter.twisty().click();
     violationStateFilter.multiSelectList().forEach(child -> child.shouldBe(visible));
 
@@ -732,8 +730,6 @@ public class ApplicationReportTest
 
     reportPage.filterToggle().click();
     violationStateFilter = reportPage.filterPanel().violationStateFilter();
-    violationStateFilter.multiSelectList().shouldHave(size(5));
-    violationStateFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));
     violationStateFilter.twisty().click();
     violationStateFilter.multiSelectList().shouldHave(size(5));
     violationStateFilter.multiSelectList().forEach(child -> child.shouldBe(visible));
@@ -886,20 +882,10 @@ public class ApplicationReportTest
     violations.shouldHave(size(63));
     policyTypeFilter.hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("Reevaluate the report in order to enable Policy Types filter"));
-    policyTypeFilter.multiSelectList().shouldHave(size(5));
-    policyTypeFilter.allItems().shouldBe(disabled);
-    policyTypeFilter.security().shouldBe(disabled);
-    policyTypeFilter.quality().shouldBe(disabled);
-    policyTypeFilter.license().shouldBe(disabled);
-    policyTypeFilter.other().shouldBe(disabled);
 
+    policyTypeFilter.multiSelectList().shouldHave(size(0));
     policyTypeFilter.twisty().shouldBe(disabled);
-    policyTypeFilter.multiSelectList().asFixedIterable().forEach(child -> child.shouldNotBe(visible));
-    policyTypeFilter.allItems().shouldBe(disabled);
-    policyTypeFilter.security().shouldBe(disabled);
-    policyTypeFilter.quality().shouldBe(disabled);
-    policyTypeFilter.license().shouldBe(disabled);
-    policyTypeFilter.other().shouldBe(disabled);
+
     violations.shouldHave(size(63));
 
     reportPage.filterPanel().closeButton().click();

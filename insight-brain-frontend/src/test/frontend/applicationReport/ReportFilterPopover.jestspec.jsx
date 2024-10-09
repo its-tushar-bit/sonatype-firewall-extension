@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import userEvent from '@testing-library/user-event';
 import ReportFilterPopover from 'MainRoot/applicationReport/ReportFilterPopover';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 
@@ -60,8 +61,12 @@ describe('ReportFilterPopover', () => {
   });
 
   describe('handles clicks on the checkboxes', () => {
-    it('Handles the click in the proprietary items', () => {
+    it('Handles the click in the proprietary items', async () => {
+      const user = userEvent.setup();
+
       renderComponent();
+      await user.click(screen.getByRole('button', { name: /Proprietary/ }));
+
       const proprietaryList = screen.getAllByRole('menu')[0];
       const proprietaryOptions = getAllByRole(proprietaryList, 'menuitemcheckbox');
 
@@ -85,8 +90,12 @@ describe('ReportFilterPopover', () => {
       expect(proprietaryOptions[2]).not.toBeChecked();
     });
 
-    it('Handles the click in the InnerSource items', () => {
+    it('Handles the click in the InnerSource items', async () => {
+      const user = userEvent.setup();
+
       renderComponent();
+      await user.click(screen.getByRole('button', { name: /InnerSource/ }));
+
       const innerSourceList = screen.getAllByRole('menu')[1];
       const innerSourceOptions = getAllByRole(innerSourceList, 'menuitemcheckbox');
 
@@ -110,8 +119,12 @@ describe('ReportFilterPopover', () => {
       expect(innerSourceOptions[2]).not.toBeChecked();
     });
 
-    it('Handles the click in the component match state items', () => {
+    it('Handles the click in the component match state items', async () => {
+      const user = userEvent.setup();
+
       renderComponent();
+      await user.click(screen.getByRole('button', { name: /Match State/ }));
+
       const matchStateList = screen.getAllByRole('menu')[2];
       const matchStateOptions = getAllByRole(matchStateList, 'menuitemcheckbox');
 
@@ -145,8 +158,12 @@ describe('ReportFilterPopover', () => {
       expect(matchStateOptions[3]).not.toBeChecked();
     });
 
-    it('Handles the click in the violation state items', () => {
+    it('Handles the click in the violation state items', async () => {
+      const user = userEvent.setup();
+
       renderComponent();
+      await user.click(screen.getByRole('button', { name: /Violation State/ }));
+
       const violationList = screen.getAllByRole('menu')[3];
       const violationOptions = getAllByRole(violationList, 'menuitemcheckbox');
 
@@ -192,8 +209,12 @@ describe('ReportFilterPopover', () => {
       expect(violationOptions[4]).not.toBeChecked();
     });
 
-    it('Handles the click in the dependency type items', () => {
+    it('Handles the click in the dependency type items', async () => {
+      const user = userEvent.setup();
+
       renderComponent();
+      await user.click(screen.getByRole('button', { name: /Dependency Type/ }));
+
       const dependencyTypeList = screen.getAllByRole('menu')[4];
       const dependencyTypeOptions = getAllByRole(dependencyTypeList, 'menuitemcheckbox');
 
@@ -227,8 +248,12 @@ describe('ReportFilterPopover', () => {
       expect(dependencyTypeOptions[3]).not.toBeChecked();
     });
 
-    it('Handles the click in the policy types items', () => {
+    it('Handles the click in the policy types items', async () => {
+      const user = userEvent.setup();
+
       renderComponent();
+      await user.click(screen.getByRole('button', { name: /Policy Type/ }));
+
       const policyList = screen.getAllByRole('menu')[5];
       const policyOptions = getAllByRole(policyList, 'menuitemcheckbox');
 
@@ -274,8 +299,12 @@ describe('ReportFilterPopover', () => {
       expect(policyOptions[4]).not.toBeChecked();
     });
 
-    it('Handles the click in the policy threat level', () => {
+    it('Handles the click in the policy threat level', async () => {
+      const user = userEvent.setup();
+
       renderComponent();
+      await user.click(screen.getByRole('button', { name: /Policy Threat Level/ }));
+
       const policyThreat = screen.getAllByRole('list')[0];
       const policyThreatSliders = getAllByRole(policyThreat, 'slider');
       expect(policyThreatSliders[0]).toHaveTextContent('0');

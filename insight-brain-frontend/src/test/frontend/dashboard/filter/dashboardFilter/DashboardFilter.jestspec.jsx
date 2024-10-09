@@ -272,24 +272,43 @@ describe('DashboardFilter', () => {
       const ageFilter = getAndAssertFilterExists(8, 'Age');
       const reasonFilter = getAndAssertFilterExists(10, 'Reason');
 
+      fireEvent.click(within(organizationsFilter).getByRole('button', { name: /Organizations/ }));
       const organization = within(organizationsFilter).getByLabelText('group-1');
       fireEvent.click(organization);
+
+      fireEvent.click(within(applicationsFilter).getByRole('button', { name: /Applications/ }));
       const application = within(applicationsFilter).getByLabelText('App1');
       fireEvent.click(application);
+
+      fireEvent.click(within(repositoriesFilter).getByRole('button', { name: /Repositories/ }));
       const repository = within(repositoriesFilter).getByLabelText('maven-central - 12345-67890');
       fireEvent.click(repository);
+
+      fireEvent.click(within(categoriesFilter).getByRole('button', { name: /Categories/ }));
       const category = within(categoriesFilter).getByLabelText('Cat');
       fireEvent.click(category);
+
+      fireEvent.click(within(stagesFilter).getByRole('button', { name: /Stages/ }));
       const stage = within(stagesFilter).getByLabelText('Release');
       fireEvent.click(stage);
+
+      fireEvent.click(within(policyTypesFilter).getByRole('button', { name: /Policy Type/ }));
       const policyType = within(policyTypesFilter).getByLabelText('Quality');
       fireEvent.click(policyType);
+
+      fireEvent.click(within(violationStateFilter).getByRole('button', { name: /Violation State/ }));
       const violationState = within(violationStateFilter).getByLabelText('Legacy');
       fireEvent.click(violationState);
+
+      fireEvent.click(within(expirationDateFilter).getByRole('button', { name: /Expiration Date/ }));
       const expirationDate = within(expirationDateFilter).getByLabelText('in 90 days');
       fireEvent.click(expirationDate);
+
+      fireEvent.click(within(ageFilter).getByRole('button', { name: /Age/ }));
       const age = within(ageFilter).getByLabelText('past 90 days');
       fireEvent.click(age);
+
+      fireEvent.click(within(reasonFilter).getByRole('button', { name: /Reason/ }));
       const reason = within(reasonFilter).getByLabelText('REASON-1');
       fireEvent.click(reason);
 
@@ -339,6 +358,7 @@ describe('DashboardFilter', () => {
       const ageFilter = getAndAssertFilterExists(8, 'Age');
       const reasonFilter = getAndAssertFilterExists(10, 'Reason');
 
+      fireEvent.click(within(organizationsFilter).getByRole('button', { name: /Organizations/ }));
       const organizations = within(organizationsFilter).getAllByRole('menuitemcheckbox');
       expect(organizations.length).toBe(2);
 
@@ -346,6 +366,7 @@ describe('DashboardFilter', () => {
       expect(organization).toBeVisible();
       expect(organization).toHaveAttribute('checked');
 
+      fireEvent.click(within(applicationsFilter).getByRole('button', { name: /Applications/ }));
       const applications = within(applicationsFilter).getAllByRole('menuitemcheckbox');
       expect(applications.length).toBe(3);
 
@@ -353,6 +374,7 @@ describe('DashboardFilter', () => {
       expect(application).toBeVisible();
       expect(application).toHaveAttribute('checked');
 
+      fireEvent.click(within(repositoriesFilter).getByRole('button', { name: /Repositories/ }));
       const repositories = within(repositoriesFilter).getAllByRole('menuitemcheckbox');
       expect(repositories.length).toBe(3);
 
@@ -360,6 +382,7 @@ describe('DashboardFilter', () => {
       expect(repository).toBeVisible();
       expect(repository).toHaveAttribute('checked');
 
+      fireEvent.click(within(categoriesFilter).getByRole('button', { name: /Categories/ }));
       const categories = within(categoriesFilter).getAllByRole('menuitemcheckbox');
       expect(categories.length).toBe(3);
 
@@ -367,6 +390,7 @@ describe('DashboardFilter', () => {
       expect(category).toBeVisible();
       expect(category).toHaveAttribute('checked');
 
+      fireEvent.click(within(stagesFilter).getByRole('button', { name: /Stages/ }));
       const stages = within(stagesFilter).getAllByRole('menuitemcheckbox');
       expect(stages.length).toBe(5);
 
@@ -374,6 +398,7 @@ describe('DashboardFilter', () => {
       expect(stage).toBeVisible();
       expect(stage).toHaveAttribute('checked');
 
+      fireEvent.click(within(policyTypesFilter).getByRole('button', { name: /Policy Types/ }));
       const policyTypes = within(policyTypesFilter).getAllByRole('menuitemcheckbox');
       expect(policyTypes.length).toBe(5);
 
@@ -381,6 +406,7 @@ describe('DashboardFilter', () => {
       expect(policyType).toBeVisible();
       expect(policyType).toHaveAttribute('checked');
 
+      fireEvent.click(within(violationStateFilter).getByRole('button', { name: /Violation State/ }));
       const violationStates = within(violationStateFilter).getAllByRole('menuitemcheckbox');
       expect(violationStates.length).toBe(4);
 
@@ -392,6 +418,7 @@ describe('DashboardFilter', () => {
       expect(violationState2).toBeVisible();
       expect(violationState2).toHaveAttribute('checked');
 
+      fireEvent.click(within(expirationDateFilter).getByRole('button', { name: /Expiration Date/ }));
       const expirationDates = within(expirationDateFilter).getAllByRole('menuitemradio');
       expect(expirationDates.length).toBe(7);
 
@@ -399,10 +426,12 @@ describe('DashboardFilter', () => {
       expect(expirationDate).toBeVisible();
       expect(expirationDate).toHaveAttribute('checked');
 
+      fireEvent.click(within(ageFilter).getByRole('button', { name: /Age/ }));
       const age = within(ageFilter).getByLabelText('past 90 days');
       expect(age).toBeVisible();
       expect(age).toHaveAttribute('checked');
 
+      fireEvent.click(within(reasonFilter).getByRole('button', { name: /Reason/ }));
       const reasons = within(reasonFilter).getAllByRole('menuitemcheckbox');
       expect(reasons.length).toBe(4);
 
@@ -416,6 +445,8 @@ describe('DashboardFilter', () => {
     axiosMock.onPut(getDashboardFilters()).reply(500, 'some error');
     renderComponent();
     const orgsFilter = getAndAssertFilterExists(0, 'Organizations');
+
+    fireEvent.click(within(orgsFilter).getByRole('button', { name: /Organizations/ }));
 
     const org1 = within(orgsFilter).getByLabelText('group-1');
     fireEvent.click(org1);

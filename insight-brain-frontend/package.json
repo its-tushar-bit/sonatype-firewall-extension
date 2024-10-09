@@ -36,7 +36,7 @@
     "@react-hook/resize-observer": "^1.2.6",
     "@reduxjs/toolkit": "^1.5.1",
     "@sonatype/react-commonmark": "^3.0.1",
-    "@sonatype/react-shared-components": "^12.16.15",
+    "@sonatype/react-shared-components": "^12.16.18",
     "@sonatype/solution-switcher-react-component": "^12.9.0",
     "@sonatype/version-graph": "^1.0.10",
     "@uirouter/angularjs": "^1.0.5",

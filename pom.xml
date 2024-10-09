@@ -127,6 +127,9 @@
       --add-opens java.base/sun.security.util=ALL-UNNAMED
       --add-opens java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED
     </argLine>
+    <jreleaser.version>1.14.0</jreleaser.version>
+    <jdk.distribution>temurin</jdk.distribution>
+    <jdk.version>17.0.2</jdk.version>
   </properties>
 
   <scm>
@@ -1565,6 +1568,66 @@
             </plugin>
           </plugins>
         </pluginManagement>
+      </build>
+    </profile>
+    <profile>
+      <id>jdks</id>
+      <build>
+        <defaultGoal>jdks:setup-disco</defaultGoal>
+        <plugins>
+          <plugin>
+            <groupId>org.jreleaser</groupId>
+            <artifactId>jdks-maven-plugin</artifactId>
+            <version>${jreleaser.version}</version>
+            <inherited>false</inherited>
+            <configuration>
+              <pkgs>
+                <pkg>
+                  <name>${jdk.distribution}_${jdk.version}_linux_x86_64</name>
+                  <distribution>${jdk.distribution}</distribution>
+                  <platform>linux-x86_64</platform>
+                  <version>${jdk.version}</version>
+                  <archiveType>tar.gz</archiveType>
+                </pkg>
+                <pkg>
+                  <name>${jdk.distribution}_${jdk.version}_linux_musl_x86_64</name>
+                  <distribution>${jdk.distribution}</distribution>
+                  <platform>linux-x86_64</platform>
+                  <version>${jdk.version}</version>
+                  <libcType>musl</libcType>
+                  <archiveType>tar.gz</archiveType>
+                </pkg>
+                <pkg>
+                  <name>${jdk.distribution}_${jdk.version}_linux_aarch64</name>
+                  <distribution>${jdk.distribution}</distribution>
+                  <platform>linux-aarch64</platform>
+                  <version>${jdk.version}</version>
+                  <archiveType>tar.gz</archiveType>
+                </pkg>
+                <pkg>
+                  <name>${jdk.distribution}_${jdk.version}_mac_x86_64</name>
+                  <distribution>${jdk.distribution}</distribution>
+                  <platform>osx-x86_64</platform>
+                  <version>${jdk.version}</version>
+                  <archiveType>tar.gz</archiveType>
+                </pkg>
+                <pkg>
+                  <name>${jdk.distribution}_${jdk.version}_mac_aarch64</name>
+                  <distribution>${jdk.distribution}</distribution>
+                  <platform>osx-aarch64</platform>
+                  <version>${jdk.version}</version>
+                  <archiveType>tar.gz</archiveType>
+                </pkg>
+                <pkg>
+                  <name>${jdk.distribution}_${jdk.version}_windows_x86_64</name>
+                  <distribution>${jdk.distribution}</distribution>
+                  <platform>windows-x86_64</platform>
+                  <version>${jdk.version}</version>
+                </pkg>
+              </pkgs>
+            </configuration>
+          </plugin>
+        </plugins>
       </build>
     </profile>
   </profiles>

@@ -1,11 +1,8 @@
 environment:
   properties:
-    jdkPathPrefix: 'nexus-iq-server/target/jdks'
+    jdkPathPrefix: 'target/jdks'
     jdkDirectoryPrefix: 'temurin_17.0.2'
     jdkFilePrefix: 'jdk-17.0.2+8'
-
-project:
-  stereotype: CLI
 
 assemble:
   jlink:
@@ -103,7 +100,7 @@ assemble:
       java:
         version: '17'
         groupId: com.sonatype.insight.brain
-        artifactId: insight-brain-service
+        artifactId: nexus-iq-server
         mainClass: com.sonatype.insight.brain.service.InsightBrainService
         jvmOptions:
           universal:
@@ -116,6 +113,29 @@ assemble:
             - --add-opens=java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED
       mainJar:
         path: 'nexus-iq-server/target/insight-brain-service-{{projectVersion}}-server.jar'
+
+      # Defines a list of additional files as artifacts.
+      # These files will be added to the assembled archive.
+      artifacts:
+        - path: nexus-iq-server/src/main/resources/config.yml
+          transform: examples/config.yml
+        - path: nexus-iq-server/src/main/resources/eula.html
+          transform: eula.html
+        - path: nexus-iq-server/src/main/resources/ASSEMBLY-README.txt
+          transform: README.txt
+        - path: nexus-iq-server/src/main/resources/sonatype-iq-server
+          transform: examples/sonatype-iq-server
+          platform: 'linux-aarch_64'
+        - path: nexus-iq-server/src/main/resources/sonatype-iq-server
+          transform: examples/sonatype-iq-server
+          platform: 'linux-x86_64'
+        - path: nexus-iq-server/src/main/resources/sonatype-iq-server.service
+          transform: examples/sonatype-iq-server.service
+          platform: 'linux-aarch_64'
+        - path: nexus-iq-server/src/main/resources/sonatype-iq-server.service
+          transform: examples/sonatype-iq-server.service
+          platform: 'linux-x86_64'
+
     nexus-iq-cli:
       active: ALWAYS
       imageName: '{{distributionName}}-{{projectVersion}}'

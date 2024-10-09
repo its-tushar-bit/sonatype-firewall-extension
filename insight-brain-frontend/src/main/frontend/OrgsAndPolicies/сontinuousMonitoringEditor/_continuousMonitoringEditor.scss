@@ -12,6 +12,11 @@ continuous-monitoring {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--nx-spacing-6x);
+}
+
+.sbom-enable-continuous-monitoring {
+  flex-shrink: 0;
 }
 
 .sbom-continuous-monitoring-title {

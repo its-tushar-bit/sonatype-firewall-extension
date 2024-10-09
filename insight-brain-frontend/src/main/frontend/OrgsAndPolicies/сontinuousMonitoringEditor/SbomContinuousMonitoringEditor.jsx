@@ -14,6 +14,7 @@ import {
   NxH2,
   NxButton,
   NxToggle,
+  NxP,
 } from '@sonatype/react-shared-components';
 import { actions } from '../policyMonitoringSlice';
 import {
@@ -98,9 +99,10 @@ export default function SbomContinuousMonitoringEditor() {
             >
               <NxH2>Configure Continuous monitoring</NxH2>
               <div className={'sbom-continuous-monitoring'}>
-                <span id={'sbom-continuous-monitoring-status-label'}>{stageDetails?.label}</span>
+                <NxP id={'sbom-continuous-monitoring-status-label'}>{stageDetails?.label}</NxP>
                 <NxToggle
                   id="enable-continuous-monitoring"
+                  className="sbom-enable-continuous-monitoring"
                   onChange={() => toggleComplianceStageEnabled()}
                   isChecked={isToggleChecked}
                   disabled={!stageDetails?.toggleEnabled}

@@ -10,11 +10,13 @@ import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -58,7 +60,27 @@ public class MultiTenantTenantManagedInitializerTest
   }
 
   @Test
-  public void shouldNotRegisterAllTenantsJobs_whenMtiqBatchMode() throws Exception {
+  public void shouldRegisterAllTenantsJobs_inOrder() throws Exception {
+    TenantManaged job1 = mock(MockTenantManaged.class);
+    TenantManaged job2 = mock(MockTenantManaged.class);
+    TenantManaged job3 = mock(MockTenantManaged.class);
+    when(job1.registrationPriority()).thenReturn(3);
+    when(job2.registrationPriority()).thenReturn(2);
+    when(job3.registrationPriority()).thenReturn(1);
+
+    MultiTenantTenantManagedInitializer initializer =
+        new MultiTenantTenantManagedInitializer(ImmutableList.of(job1, job2, job3), tenantUtil);
+
+    initializer.start();
+
+    InOrder inOrder = inOrder(job3, job2, job1);
+    inOrder.verify(job3).register();
+    inOrder.verify(job2).register();
+    inOrder.verify(job1).register();
+  }
+
+  @Test
+  public void shouldNotRegisterAllTenantsJobs_whenNotMtiqBatchMode() throws Exception {
     TenantManaged job = mock(AllTenantsJob.class);
 
     MultiTenantTenantManagedInitializer initializer =

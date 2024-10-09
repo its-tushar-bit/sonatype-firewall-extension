@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.tenancy;
 
 import java.util.Collection;
+import java.util.List;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -16,6 +17,9 @@ import com.sonatype.insight.brain.service.TenantManagedInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vyarus.dropwizard.guice.module.installer.order.Order;
+
+import static java.util.Comparator.comparingInt;
+import static java.util.stream.Collectors.toList;
 
 /**
  * The priority is set to be less than the TaskScheduler to ensure that start() is called on the TaskScheduler before
@@ -45,8 +49,12 @@ public class MultiTenantTenantManagedInitializer
 
   @Override
   public void start() throws Exception {
+    List<TenantManaged> prioritizedLifecycles = tenantLifecycles.stream()
+        .sorted(comparingInt(TenantManaged::registrationPriority))
+        .collect(toList());
+
     // Global lifecycle jobs are initialized on startup in multi-tenant mode
-    for (TenantManaged tenantLifecycle : tenantLifecycles) {
+    for (TenantManaged tenantLifecycle : prioritizedLifecycles) {
 
       // MtiqBatchJobs must only be created on a server running in Batch Mode
       if (tenantLifecycle instanceof MtiqBatchJob && !tenantUtil.isMtiqBatchMode()) {

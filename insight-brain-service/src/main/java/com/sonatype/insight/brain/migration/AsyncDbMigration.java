@@ -5,44 +5,39 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import java.io.PrintWriter;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 
 import com.sonatype.insight.brain.dataaccess.AbstractSqlDAO;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
 
-import io.dropwizard.servlets.tasks.Task;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Base class for asynchronous database migrations after the server has started.
+ * Base class for asynchronous database migrations run after the server has started.
+ * All classes extending this class will be run by the {@link AsyncDbMigrationScheduler} in order of their priority
+ * determined by the {@link AsyncDbMigration#migrationPriority()} method.
  * -
- * If there is a lot of churn on the table (additions and deletions) then this might not be a suitable approach. The
- * marker to prevent future migrations only occurs if the processed count is equal to the table count at the end of the
- * migration to attempt to prevent it being an issue, but it isn't guaranteed.
+ * If there is a lot of churn on a table (additions and deletions) then this might not be a suitable approach.
+ * The marker to prevent future migrations only occurs if the processed count is equal to the table count at the end
+ * of the migration, this is an attempt to prevent issues with incomplete migrations, but it isn't guaranteed.
  */
 public abstract class AsyncDbMigration<T extends HasStringId>
-    extends Task
-    implements InsightJob
+    implements Comparable<AsyncDbMigration<T>>
 {
   private static final int DEFAULT_POSTGRES_PAGE_SIZE = 30_000;
 
   private static final int DEFAULT_H2_PAGE_SIZE = 100;
 
-  private final Logger log = LoggerFactory.getLogger(getClass());
+  private static final Comparator<AsyncDbMigration<? extends HasStringId>> COMPARATOR = Comparator
+      .comparingInt((AsyncDbMigration<? extends HasStringId> a) -> a.migrationPriority())
+      .thenComparing(AsyncDbMigration::getMigrationName);
 
-  private final TaskScheduler taskScheduler;
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   protected final AbstractSqlDAO<T> dao;
 
@@ -50,102 +45,73 @@ public abstract class AsyncDbMigration<T extends HasStringId>
 
   private final String type;
 
-  private final ClusterLockManager clusterLockManager;
-
   private final int pageSize;
 
   protected AsyncDbMigration(
-      final String name,
-      final TaskScheduler taskScheduler,
       final AbstractSqlDAO<T> dao,
       final MigrationTrackerDAO migrationTrackerDAO,
       final String type,
-      final InsightConfig config,
-      final ClusterLockManager clusterLockManager)
+      final InsightConfig config)
   {
-    this(name, taskScheduler, dao, migrationTrackerDAO, type, clusterLockManager, getDefaultPageSize(config));
+    this(dao, migrationTrackerDAO, type, getDefaultPageSize(config));
   }
 
   protected AsyncDbMigration(
-      final String name,
-      final TaskScheduler taskScheduler,
       final AbstractSqlDAO<T> dao,
       final MigrationTrackerDAO migrationTrackerDAO,
       final String type,
-      final ClusterLockManager clusterLockManager,
       final int pageSize)
   {
-    super(name);
-    this.taskScheduler = taskScheduler;
     this.dao = dao;
     this.migrationTrackerDAO = migrationTrackerDAO;
     this.type = type;
-    this.clusterLockManager = clusterLockManager;
     this.pageSize = pageSize;
   }
 
-  @Override
-  public void register() {
-    taskScheduler.scheduleOneTimeTask(this);
+  protected abstract void migrate(final AbstractSqlDAO<T> dao, final T entity, final TransactionContext tx);
+
+  protected void onCompletion() {
+    // no-op - hook for subclasses to run on completion if needed
   }
 
-  @Override
-  public void execute(final JobExecutionContext jobExecutionContext) throws JobExecutionException {
-    log.info("Automatic request to run {}", getJobName());
-
-    checkAndRunMigration();
+  /**
+   * The name of the migration. This is used to prevent the migration from running again.
+   */
+  public String getMigrationName() {
+    return getClass().getSimpleName();
   }
 
-  @Override
-  public void execute(final Map<String, List<String>> map, final PrintWriter printWriter) throws Exception {
-    log.info("Manual request to run {}", getJobName());
-
-    checkAndRunMigration();
-
-    printWriter.write("Completed manual " + getJobName() + "\n");
+  /**
+   * Priority of the migration. The lower the number the higher the priority.
+   * - The default is {@link Integer#MAX_VALUE} which is the lowest possible priority.
+   */
+  public int migrationPriority() {
+    return Integer.MAX_VALUE;
   }
 
-  private void checkAndRunMigration() {
+  public void runMigration() {
     if (shouldMigrate()) {
-      boolean lockAcquired = false;
-      try (ClusterLock clusterLock = clusterLockManager.createForAsyncDbMigration(getJobName())) {
-        lockAcquired = clusterLock.tryLock();
-        if (lockAcquired) {
-          migrate();
-        }
-      }
-      finally {
-        if (lockAcquired) {
-          /*
-           * Deleting the lock on H2 first waits for the lock to be released. If this isn't the code that acquired the
-           * lock then it shouldn't be attempting to delete it otherwise the deletion hangs.
-           */
-          clusterLockManager.deleteForAsyncDbMigration(getJobName());
-        }
-      }
+
+      onStart();
+
+      long processed = loopAndMigrateEntities();
+
+      validateAndMarkMigrationFinished(processed);
+
+      onCompletion();
     }
     else {
       log.debug("Migration of {} has already been completed", type);
     }
   }
 
-  private void migrate() {
-    onStart();
-
-    long processed = loopAndMigrateEntities();
-
-    validateAndMarkMigrationFinished(processed);
-
-    onCompletion();
-  }
-
   private boolean shouldMigrate() {
-    return !migrationTrackerDAO.isTrackerPresent(getJobName());
+    return !migrationTrackerDAO.isTrackerPresent(getMigrationName());
   }
 
   protected void onStart() {
-    log.info("Starting migration of {}", type);
-    log.info("The server will continue to be operational and fully functional during this optimization");
+    log.info("Starting migration of {}\n" +
+        "The server will continue to be operational and fully functional during this optimization", type);
   }
 
   private long loopAndMigrateEntities() {
@@ -158,8 +124,8 @@ public abstract class AsyncDbMigration<T extends HasStringId>
     while (processed < count) {
 
       String processedPercent = String.format("%.0f", (double) processed / count * 100);
-      double lastProcessTime = batchFinishTime - batchStartTime;
-      log.info("{}% : Processed {} {} of {}. Previous page migration time = {} ms",
+      long lastProcessTime = batchFinishTime - batchStartTime;
+      log.debug("{}% : Processed {} {} of {}. Previous page migration time = {} ms",
           processedPercent, processed, type, count, lastProcessTime);
 
       batchStartTime = System.currentTimeMillis();
@@ -169,7 +135,7 @@ public abstract class AsyncDbMigration<T extends HasStringId>
         List<T> entities = dao.getPage(tx, lastProcessedId, pageSize);
 
         if (entities.isEmpty()) {
-          log.info("No more entities to process for {} migration", type);
+          log.debug("No more entities to process for {} migration", type);
 
           break;
         }
@@ -185,8 +151,6 @@ public abstract class AsyncDbMigration<T extends HasStringId>
           count = dao.getCount(tx);
         }
 
-        tempDebug(entities);
-
         tx.commit();
       }
 
@@ -195,14 +159,13 @@ public abstract class AsyncDbMigration<T extends HasStringId>
     return processed;
   }
 
-  protected abstract void tempDebug(final List<T> entities);
-
   protected void validateAndMarkMigrationFinished(final long processed) {
     long rows = dao.getCount();
 
     if (validateFinished(dao, processed, rows)) {
-      log.info("Migration of {} completed. Adding Migration Tracker entry to prevent running again.", type);
-      migrationTrackerDAO.insertTracker(getJobName());
+      log.info("Migration of {} completed. Adding Migration Tracker \"{}\" entry to prevent running again.",
+          type, getMigrationName());
+      migrationTrackerDAO.insertTracker(getMigrationName());
     }
     else {
       log.error("Migration of {} failed. Expected {} rows but only processed {}", type, rows, processed);
@@ -213,13 +176,12 @@ public abstract class AsyncDbMigration<T extends HasStringId>
     return processed == rows;
   }
 
-  protected void onCompletion() {
-
-  }
-
-  protected abstract void migrate(final AbstractSqlDAO<T> dao, final T entity, final TransactionContext tx);
-
   protected static int getDefaultPageSize(final InsightConfig config) {
     return config.isDatabaseEmbedded() ? DEFAULT_H2_PAGE_SIZE : DEFAULT_POSTGRES_PAGE_SIZE;
+  }
+
+  @Override
+  public int compareTo(final AsyncDbMigration<T> o) {
+    return COMPARATOR.compare(this, o);
   }
 }

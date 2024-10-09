@@ -6,13 +6,10 @@
 package com.sonatype.insight.brain.policy.violation;
 
 import java.util.List;
-import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFactsDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -24,7 +21,6 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFactsDAOProvider;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.utils.Sha1Util;
@@ -38,7 +34,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -50,12 +45,6 @@ public class PolicyViolationConstraintFactsJsonAsyncDbMigrationTest
   private MigrationTrackerDAO migrationTrackerDAO;
 
   private PolicyViolationConstraintFactsJsonAsyncDbMigration underTest;
-
-  @Inject
-  private ClusterLockManager clusterLockManager;
-
-  @Mock
-  private TaskScheduler taskScheduler;
 
   @Mock
   private InsightConfig insightConfig;
@@ -69,8 +58,8 @@ public class PolicyViolationConstraintFactsJsonAsyncDbMigrationTest
 
     when(insightConfig.isDatabaseEmbedded()).thenReturn(true);
 
-    underTest = new PolicyViolationConstraintFactsJsonAsyncDbMigration(taskScheduler, policyViolationDAO,
-        migrationTrackerDAO, insightConfig, clusterLockManager);
+    underTest = new PolicyViolationConstraintFactsJsonAsyncDbMigration(policyViolationDAO,
+        migrationTrackerDAO, insightConfig);
   }
 
   @After
@@ -80,32 +69,25 @@ public class PolicyViolationConstraintFactsJsonAsyncDbMigrationTest
   }
 
   @Test
-  public void testSchedulesJob_onRegister() {
-    underTest.register();
-
-    verify(taskScheduler).scheduleOneTimeTask(underTest);
-  }
-
-  @Test
   public void testMigration_policyConstraintsJson() throws Exception {
     String constraintData = "[{constraint data}]";
 
     PolicyViolation policyViolation = createPolicyViolation(constraintData);
 
     // Ensure the migration tracker does not exist
-    MigrationTracker migrationTracker = migrationTrackerDAO.getById(underTest.getJobName());
+    MigrationTracker migrationTracker = migrationTrackerDAO.getById(underTest.getMigrationName());
     migrationTrackerDAO.delete(migrationTracker);
     assertThat(migrationTracker).isNull();
 
     assertThat(policyViolationDAO.getById(policyViolation.getId()).getConstraintFactsJson()).isEqualTo(constraintData);
 
-    underTest.execute(null);
+    underTest.runMigration();
 
     PolicyViolation updatedPolicyViolation = policyViolationDAO.getById(policyViolation.getId());
     assertThat(updatedPolicyViolation.getConstraintFactsId()).isEqualTo(Sha1Util.halfSha1(constraintData));
     assertThat(updatedPolicyViolation.getConstraintFactsJson()).isEqualTo(constraintData);
 
-    MigrationTracker newMigrationTracker = migrationTrackerDAO.getById(underTest.getJobName());
+    MigrationTracker newMigrationTracker = migrationTrackerDAO.getById(underTest.getMigrationName());
     assertThat(newMigrationTracker).isNotNull();
   }
 
@@ -114,27 +96,9 @@ public class PolicyViolationConstraintFactsJsonAsyncDbMigrationTest
     String constraintData = "[{constraint data}]";
 
     PolicyViolation policyViolation = createPolicyViolation(constraintData);
-    migrationTrackerDAO.insertTracker(underTest.getJobName());
+    migrationTrackerDAO.insertTracker(underTest.getMigrationName());
 
-    underTest.execute(null);
-
-    PolicyViolation policyViolationMigrated = policyViolationDAO.getById(policyViolation.getId());
-    assertThat(policyViolationMigrated.getConstraintFactsJsonWithoutLoading()).isNotBlank();
-  }
-
-  @Test
-  public void testMigration_doesNotRun_whenClusterLocked() throws Exception {
-    String constraintData = "[{constraint data}]";
-
-    PolicyViolation policyViolation = createPolicyViolation(constraintData);
-
-    try (ClusterLock clusterLock = clusterLockManager.createForAsyncDbMigration(underTest.getJobName())) {
-      clusterLock.lock();
-      underTest.execute(null);
-    }
-    finally {
-      clusterLockManager.deleteForAsyncDbMigration(underTest.getJobName());
-    }
+    underTest.runMigration();
 
     PolicyViolation policyViolationMigrated = policyViolationDAO.getById(policyViolation.getId());
     assertThat(policyViolationMigrated.getConstraintFactsJsonWithoutLoading()).isNotBlank();

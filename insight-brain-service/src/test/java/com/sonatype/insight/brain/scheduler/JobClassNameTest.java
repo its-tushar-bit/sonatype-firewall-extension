@@ -114,12 +114,8 @@ public class JobClassNameTest
     insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.sbom.PendingSbomMetadataCleaner",
         "PendingSbomMetadataCleanerJob");
-    insightJobClassNameToExpectedJobName.put(
-        "com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigration",
-        "RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigration");
-    insightJobClassNameToExpectedJobName.put(
-        "com.sonatype.insight.brain.policy.violation.PolicyViolationConstraintFactsJsonAsyncDbMigration",
-        "PolicyViolationConstraintFactsJsonAsyncDbMigration");
+    insightJobClassNameToExpectedJobName.put("com.sonatype.insight.brain.migration.AsyncDbMigrationScheduler",
+        "AsyncDbMigrationScheduler");
   }
 
   @Inject

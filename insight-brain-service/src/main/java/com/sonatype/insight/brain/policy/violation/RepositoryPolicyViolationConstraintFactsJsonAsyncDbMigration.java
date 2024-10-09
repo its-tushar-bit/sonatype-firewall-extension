@@ -10,32 +10,19 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
-import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightConfig;
 
-import org.quartz.DisallowConcurrentExecution;
-
 @Named
-@DisallowConcurrentExecution
 @Singleton
 public class RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigration
     extends AbstractPolicyViolationConstraintFactsJsonAsyncDbMigration<RepositoryPolicyViolation>
 {
-  private final RepositoryPolicyViolationDAO dao;
-
   @Inject
   public RepositoryPolicyViolationConstraintFactsJsonAsyncDbMigration(
-      final TaskScheduler taskScheduler,
-      final RepositoryPolicyViolationDAO dao,
-      final MigrationTrackerDAO migrationTrackerDAO,
-      final InsightConfig config,
-      final ClusterLockManager clusterLockManager)
+      final RepositoryPolicyViolationDAO dao, final MigrationTrackerDAO migrationTrackerDAO, final InsightConfig config)
   {
-    super("RepositoryPolicyViolationConstraintJsonAsyncDbMigration", taskScheduler,
-        dao, migrationTrackerDAO, "repository policy violations", config, clusterLockManager);
-    this.dao = dao;
+    super(dao, migrationTrackerDAO, "repository policy violations", config);
   }
 }

@@ -43,7 +43,13 @@ public class OrganizationAncestorInitialPopulationMigratorTest
   public void setup() throws Exception {
     dataStore = databaseRule.getOperationalDataStore();
     connection = dataStore.getDataSource().getConnection();
-    dataStoreMigrator = new LegacyDataStoreMigrator(dataStore);
+    dataStoreMigrator = new LegacyDataStoreMigrator(dataStore)
+    {
+      @Override
+      public int getDesiredVersion(String dataStoreId) {
+        return 336;
+      }
+    };
 
     // create a schema populated to version 335
     dataStoreMigrator.runScript(CREATE_AND_SET_SCHEMA, getClass().getSimpleName() + "/prior_schema.sql");

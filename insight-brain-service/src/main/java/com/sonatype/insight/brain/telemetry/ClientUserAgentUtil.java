@@ -19,8 +19,9 @@ public class ClientUserAgentUtil
   // partial example:
   // GitLab_Nexus_IQ_CLI/1.133.0-SNAPSHOT (Java 1.8.0_322; Linux 5.10.76-linuxkit)
 
-  private static final Pattern PATTERN_IQ_CLIENT_USER_AGENT = Pattern
-      .compile("([^/]+)[/](\\S+)\\s[(](\\S+)\\s(\\S+);\\s(\\S+)\\s([^;]+)(?:;\\s(.+))?[)]");
+  private static final Pattern PATTERN_IQ_CLIENT_USER_AGENT = Pattern.compile(
+      "([^/]{1,100})\\/([^\\s]{1,50})\\s" +
+          "\\(([^;\\s]{1,50})\\s([^\\s;]{1,50});\\s([^\\s]{1,50})\\s([^;]{1,50})(?:;\\s(.+))?\\)");
 
   public static UserAgent parse(String ua) {
     if (ua == null) {

@@ -523,14 +523,14 @@ public class ApiSbomServiceTest
     ThirdPartyFileCoordinate coordinate1 =
         tempEntity.newThirdPartyFileCoordinate("86163fcc32524261bfd2bdbedb7eae42", thirdPartyFile, "s1",
         packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(), "h1",
-        packageUrlIdentifier1.getPackageUrl(), null, List.of("pkg:npm/p1@v1"));
+        packageUrlIdentifier1.getPackageUrl(), "exact", null, List.of("pkg:npm/p1@v1"));
 
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("p2", "v2");
     PackageUrlIdentifier packageUrlIdentifier2 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier2);
     ThirdPartyFileCoordinate coordinate2 =
         tempEntity.newThirdPartyFileCoordinate("86163fcc32524261bfd2bdbedb7eae43", thirdPartyFile, "s2",
         packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(), "h2",
-        packageUrlIdentifier2.getPackageUrl(), null, List.of("pkg:npm/p2@v2,pkg:npm/p3@v3"));
+        packageUrlIdentifier2.getPackageUrl(), "similar", null, List.of("pkg:npm/p2@v2,pkg:npm/p3@v3"));
     tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-1", "License 1", "http://license-1");
     tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-2", "License 2", "http://license-2");
 
@@ -562,6 +562,7 @@ public class ApiSbomServiceTest
           assertThat(component.getVersion()).isEqualTo(packageUrlIdentifier1.getVersion());
           assertThat(component.getPackageUrl()).isEqualTo(packageUrlIdentifier1.getPackageUrl());
           assertThat(component.getFilenames()).isEqualTo(coordinate1.getFilenamesList());
+          assertThat(component.getMatchStateId()).isEqualTo(coordinate1.getMatchStateId());
           assertThat(component.getDisplayName())
               .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier1).toString());
           assertThat(component.getVulnerabilitySeverityNoneCount()).isZero();
@@ -580,6 +581,7 @@ public class ApiSbomServiceTest
           assertThat(component.getVersion()).isEqualTo(packageUrlIdentifier2.getVersion());
           assertThat(component.getPackageUrl()).isEqualTo(packageUrlIdentifier2.getPackageUrl());
           assertThat(component.getFilenames()).isEqualTo(coordinate2.getFilenamesList());
+          assertThat(component.getMatchStateId()).isEqualTo(coordinate2.getMatchStateId());
           assertThat(component.getDisplayName())
               .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier2).toString());
           assertThat(component.getVulnerabilitySeverityNoneCount()).isZero();
@@ -864,6 +866,7 @@ public class ApiSbomServiceTest
           assertThat(component.getVersion()).isEqualTo(componentIdentifier1.get(ComponentIdentifier.VERSION));
           assertThat(component.getPackageUrl()).isEqualTo(null);
           assertThat(component.getFilenames()).isEqualTo(coordinate1.getFilenamesList());
+          assertThat(component.getMatchStateId()).isEqualTo(coordinate1.getMatchStateId());
           assertThat(component.getDisplayName()).isEqualTo(componentIdentifier1.get(ComponentIdentifier.NPM_PACKAGE_ID)
               + ":" + componentIdentifier1.get(ComponentIdentifier.VERSION));
           assertThat(component.getVulnerabilitySeverityNoneCount()).isZero();
@@ -881,6 +884,7 @@ public class ApiSbomServiceTest
           assertThat(component.getVersion()).isEqualTo(componentIdentifier2.get(ComponentIdentifier.VERSION));
           assertThat(component.getPackageUrl()).isEqualTo(null);
           assertThat(component.getFilenames()).isEqualTo(coordinate2.getFilenamesList());
+          assertThat(component.getMatchStateId()).isEqualTo(coordinate2.getMatchStateId());
           assertThat(component.getDisplayName())
               .isEqualTo(componentIdentifier2.get(ComponentIdentifier.NPM_PACKAGE_ID)
                   + ":" + componentIdentifier2.get(ComponentIdentifier.VERSION));

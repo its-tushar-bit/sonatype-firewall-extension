@@ -38,6 +38,8 @@ public class SbomComponentDTO
 
   private String version;
 
+  private String matchStateId;
+
   private String dependencyType;
 
   private List<String> filenames;
@@ -110,6 +112,11 @@ public class SbomComponentDTO
       if (StringUtils.isNotBlank(filenamesString)) {
         filenames = List.of(filenamesString.split(","));
       }
+
+      String matchStateIdString = (String) array[14];
+      if (StringUtils.isNotBlank(matchStateIdString)) {
+        matchStateId = matchStateIdString;
+      }
     }
   }
 
@@ -167,6 +174,14 @@ public class SbomComponentDTO
 
   public void setVersion(String version) {
     this.version = version;
+  }
+
+  public String getMatchStateId() {
+    return matchStateId;
+  }
+
+  public void setMatchStateId(String matchStateId) {
+    this.matchStateId = matchStateId;
   }
 
   public String getDependencyType() {

@@ -68,6 +68,7 @@ describe('BillOfMaterialsComponentsTile', () => {
     hash,
     name,
     dependencyType,
+    matchStateId,
     vulnerabilities,
     licenses,
     percentageAnnotated,
@@ -79,6 +80,8 @@ describe('BillOfMaterialsComponentsTile', () => {
       name,
       version: '1.2.3',
       dependencyType,
+      filenames: [`pkg:maven/com.package.${name}/artifact-id@1.2.3?type=jar`],
+      matchStateId,
       componentIdentifier: {
         format: 'maven',
         coordinates: {
@@ -104,6 +107,7 @@ describe('BillOfMaterialsComponentsTile', () => {
       hash: 'hash-1',
       name: 'alice',
       dependencyType: 'direct',
+      matchStateId: 'exact',
       vulnerabilities: [0, 1, 2, 3, 4],
       licenses: [
         ['BSD', 'BSD'],
@@ -116,6 +120,7 @@ describe('BillOfMaterialsComponentsTile', () => {
       hash: 'hash-2',
       name: 'bob',
       dependencyType: 'transitive',
+      matchStateId: 'exact',
       vulnerabilities: [0, 5, 6, 7, 8],
       licenses: [
         ['MIT', null],
@@ -128,6 +133,7 @@ describe('BillOfMaterialsComponentsTile', () => {
       hash: 'hash-3',
       name: 'malice',
       dependencyType: 'unspecified',
+      matchStateId: 'similar',
       vulnerabilities: [0, 9, 10, 11, 12],
       licenses: [
         ['Beer', null],
@@ -322,6 +328,17 @@ describe('BillOfMaterialsComponentsTile', () => {
       expect(thirdRowCells[2]).toHaveTextContent('Critical1299+Severe1199+Moderate1099+Low999+');
       expect(thirdRowCells[3]).toHaveTextContent(/100%/);
       expect(thirdRowCells[4]).toHaveTextContent('Beer, GNU');
+
+      const similarMatchIcon = await screen.findByTestId('similarMatchIcon');
+      expect(similarMatchIcon).toBeInTheDocument();
+
+      fireEvent.mouseOver(similarMatchIcon);
+      const tooltip = await screen.findByRole('tooltip');
+      expect(tooltip).toHaveTextContent(
+        'Original Component Name: pkg:maven/com.package.malice/artifact-id@1.2.3?type=jar.' +
+          'Similar component match: This component is similar to a known open source component' +
+          ' within your application based on its attributes.'
+      );
     });
   });
 

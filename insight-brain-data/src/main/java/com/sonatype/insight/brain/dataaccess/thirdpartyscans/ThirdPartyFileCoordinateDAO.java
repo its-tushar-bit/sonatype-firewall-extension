@@ -185,6 +185,7 @@ public class ThirdPartyFileCoordinateDAO
         "       fc.dependency_type," + //
         "       fc.file_coordinate_id," + //
         "       fc.filenames," + //
+        "       fc.match_state_id," + //
         "       COUNT(*) OVER() AS full_count" + //
 
         " FROM " + getDatabaseSchema() + ".file_coordinate fc" + //
@@ -204,8 +205,8 @@ public class ThirdPartyFileCoordinateDAO
     MutableInt index = new MutableInt(indexForComponentName);
     sQuery = generateComponentNameFilterQuery(componentName, index, sQuery);
     sQuery += generateHavingByDependencyTypes(dependencyTypes, dependencyTypesParams, index.intValue()) + //
-        " GROUP BY fc.hash, fc.package_url, fc.name, fc.version, licenses_json " + //
-        ",fc.dependency_type, fc.filenames, fc.file_coordinate_id " + //
+        " GROUP BY fc.hash, fc.package_url, fc.name, fc.version, licenses_json ,fc.dependency_type, " +
+        "fc.filenames, fc.file_coordinate_id, fc.match_state_id " + //
         generateHavingByVulnerabilityThreatLevels(vulnerabilityThreatLevels) + //
         generateOrderBySortFieldSelected(sortBy, asc);
 
@@ -225,7 +226,7 @@ public class ThirdPartyFileCoordinateDAO
       List<SbomComponentDTO> dtos = ((Stream<Object[]>) paginationQuery.getResultStream())
           .peek(array -> {
             if (result.getTotalResultsCount() == 0) {
-              result.setTotalResultsCount(((Long) array[14]).intValue());
+              result.setTotalResultsCount(((Long) array[15]).intValue());
             }
           })
           .map(SbomComponentDTO::new)

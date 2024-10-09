@@ -43,7 +43,7 @@ import {
   NxTile,
   NxTooltip,
 } from '@sonatype/react-shared-components';
-import { faFilter, faSearch } from '@fortawesome/pro-solid-svg-icons';
+import { faFilter, faInfoCircle, faSearch } from '@fortawesome/pro-solid-svg-icons';
 
 import DependencyIndicator from 'MainRoot/DependencyTree/DependencyIndicator';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
@@ -140,6 +140,7 @@ export default function BillOfMaterialsComponentsTile({ internalAppId }) {
   const hasComponents = !isNilOrEmpty(components);
   const componentRows = hasComponents
     ? components.map((component) => {
+        const originalComponent = component.filenames ? component.filenames[0] : null;
         const licenseString = licenseListToString(component.licenses);
         const displayNameClasses = classNames('sbom-manager-bill-of-materials-components-tile__display-name', {
           'sbom-manager-bill-of-materials-components-tile__display-name--direct-dependency':
@@ -153,14 +154,34 @@ export default function BillOfMaterialsComponentsTile({ internalAppId }) {
               ) : null}
             </NxTable.Cell>
             <NxTable.Cell>
-              <NxTooltip
-                title={component.displayName}
-                className="sbom-manager-bill-of-materials-components-tile__tooltip"
-              >
-                <NxTextLink className={displayNameClasses} href={componentDetailsHref(component.hash)}>
-                  {component.displayName}
-                </NxTextLink>
-              </NxTooltip>
+              <span className="sbom-manager-bill-of-materials-components-tile__component-name-content">
+                <NxTooltip
+                  title={component.displayName}
+                  className="sbom-manager-bill-of-materials-components-tile__tooltip--display-name"
+                >
+                  <NxTextLink className={displayNameClasses} href={componentDetailsHref(component.hash)}>
+                    {component.displayName}
+                  </NxTextLink>
+                </NxTooltip>
+                {includes(component.matchStateId, ['similar']) ? (
+                  <NxTooltip
+                    title={
+                      <span>
+                        Original Component Name: {originalComponent}.<br />
+                        Similar component match: This component is similar to a known open <br />
+                        source component within your application based on its attributes.
+                      </span>
+                    }
+                    className="sbom-manager-bill-of-materials-components-tile__tooltip--similar-match"
+                    data-testid="similarMatchIcon"
+                  >
+                    <NxFontAwesomeIcon
+                      icon={faInfoCircle}
+                      className="sbom-manager-bill-of-materials-components-tile__info-icon"
+                    />
+                  </NxTooltip>
+                ) : null}
+              </span>
             </NxTable.Cell>
             <NxTable.Cell>
               <NxSmallThreatCounter

@@ -7,8 +7,12 @@
   &__display-name {
     display: inline-block;
     min-width: 320px;
+    max-width: 350px;
     text-wrap: wrap;
     word-break: break-all;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 
     &--direct-dependency {
       font-weight: bold;
@@ -18,6 +22,11 @@
   &__actions {
     display: flex;
     align-items: flex-start;
+  }
+
+  &__info-icon {
+    color: var(--nx-color-text-dark);
+    margin-bottom: 5px;
   }
 
   &__percentage-annotated {
@@ -45,12 +54,6 @@
   .nx-btn-bar--pagination {
     width: min-content;
     margin: 0;
-  }
-
-  @media only screen and (min-width: 1366px) {
-    &__tooltip {
-      display: none;
-    }
   }
 }
 

@@ -65,7 +65,8 @@ make(
           buildAndSkipTests(mavenCommon, keystoreCredentialsId, false, useInstall4J)
           // Download the JDKs and build the assemblies that will be included in the Jenkins artifacts that
           // are used for releasing a bundled JDK with the server and cli
-          mvn mavenCommon, ' -pl :nexus-iq-server -Pjdks process-resources jreleaser:assemble'
+          mvn mavenCommon, ' -pl :insight-brain -Pjdks'
+          mvn mavenCommon, ' -pl :nexus-iq-server jreleaser:assemble'
         }
       }
     },

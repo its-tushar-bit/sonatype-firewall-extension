@@ -286,11 +286,18 @@ void pushMTIQDockerImage() {
         // Push for all `main` builds as well as any enabled branches by name or build parameter
         def pushMtiqImage = params.mtiqImagePushEnabled == null
             ? (isMainBuild || projName.endsWith('_mtiq')) : params.mtiqImagePushEnabled
-        // build two images, one named mtiq with a default command to start the server, and the other with a default
-        // command to migrate the database
-        ["server", "migrate-mtiq-db"].each { String command ->
-          buildAndPushMtiqImage(imageVersion, command, pushMtiqImage)
+        echo "pushMtiqImage: $pushMtiqImage"
+        def pushOption = ""
+        if (pushMtiqImage) {
+          pushOption = " --push "
         }
+
+        String fullImage = "${sonatypeDockerRegistryId()}/mtiq/server:${imageVersion}"
+        sh "docker buildx create --use"
+        sh "docker buildx build --platform=linux/amd64,linux/arm64 " +
+            " --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} " +
+            pushOption +
+            " --tag ${fullImage} ."
       }
     }
 
@@ -303,25 +310,6 @@ void pushMTIQDockerImage() {
           wait: false,
           propagate: false)
     }
-}
-
-void buildAndPushMtiqImage(String imageVersion, String command, boolean pushMtiqImage) {
-  echo "pushMtiqImage: $pushMtiqImage"
-
-  def pushOption = ""
-  if (pushMtiqImage) {
-    pushOption = " --push "
-  }
-
-  String fullImage = "${sonatypeDockerRegistryId()}/mtiq/${command}:${imageVersion}"
-
-  sh "docker buildx create --use"
-  sh "docker buildx build --platform=linux/amd64,linux/arm64 " +
-      " --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} " +
-      " --build-arg COMMAND=${command} " +
-      pushOption +
-      " --tag ${fullImage} ."
-
 }
 
 void runAllTests(Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J) {

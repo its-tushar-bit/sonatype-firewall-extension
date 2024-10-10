@@ -16,8 +16,6 @@ ARG SONATYPE_PRIVATE_REGISTRY=docker-all.repo.sonatype.com
 
 FROM $SONATYPE_PRIVATE_REGISTRY/eclipse-temurin:17-jre
 
-ARG COMMAND=server
-
 LABEL vendor=Sonatype \
   maintainer="MTIQ Team <mtiq-dev@sonatype.com>" \
   com.sonatype.name="MTIQ Server Docker Image"
@@ -60,4 +58,4 @@ ENTRYPOINT ["tini", "--", "java", \
              "-XshowSettings:vm", \
              "-jar"]
 
-CMD ["/opt/sonatype/nexus-iq-server/nexus-mtiq-server.jar", "${COMMAND}", "/etc/mtiq-server/config.yaml"]
+CMD ["/opt/sonatype/nexus-iq-server/nexus-mtiq-server.jar", "server", "/etc/mtiq-server/config.yaml"]

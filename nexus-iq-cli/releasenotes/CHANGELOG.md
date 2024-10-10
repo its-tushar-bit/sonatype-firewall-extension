@@ -7,6 +7,9 @@
 -->
 # Changelog
 
+## Version 1.183.0 (October 10, 2024)
+* Maintenance release
+
 ## Version 1.182.0 (September 04, 2024)
 * Added support for customizing the container scan runtime via the `NEXUS_CONTAINER_SCANNING_RUNTIME` environmental variable
 * Added support for customizing the container scan socket mapping via the `NEXUS_CONTAINER_SOCKET_MAPPING` environmental variable

@@ -4,31 +4,29 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import axios from 'axios';
 
-import { render, waitFor, fireEvent, screen } from '../../SpecUtil';
+import { render, waitFor, fireEvent, screen, axiosMockAdapter } from '../../SpecUtil';
 import SuccessMetricsConfigurationContainer from 'MainRoot/configuration/successMetricsConfiguration/SuccessMetricsConfigurationContainer';
 import { getSuccessMetricsConfigUrl } from 'MainRoot/util/CLMLocation';
 import { getGlobalPermissionTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
 
 describe('SuccessMetricsConfigurationSpec', () => {
-  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   const successMetricsConfigurationUrl = getSuccessMetricsConfigUrl();
   const globalPermissionTestUrl = getGlobalPermissionTestUrl();
 
+  let axiosMock;
+
+  beforeEach(() => {
+    axiosMock = axiosMockAdapter();
+
+    axiosMock.onPut(globalPermissionTestUrl).reply(200, ['CONFIGURE_SYSTEM']);
+  });
+
   it('renders enabled toggle', async () => {
-    mockAxiosCalls({
-      get: {
-        [successMetricsConfigurationUrl]: Promise.resolve({
-          data: { enabled: true },
-        }),
-      },
-      put: {
-        [globalPermissionTestUrl]: Promise.resolve({ data: ['CONFIGURE_SYSTEM'] }),
-      },
-    });
+    axiosMock.onGet(successMetricsConfigurationUrl).reply(200, { enabled: true });
 
     const { container } = render(<SuccessMetricsConfigurationContainer />);
+
     expect(screen.getByRole('heading', { name: /success metrics/i })).toBeVisible();
     expect(screen.queryByRole('checkbox', { name: /enable success metrics/i })).toBeNull();
     expect(screen.queryByText('Loading…')).toBeVisible();
@@ -43,16 +41,7 @@ describe('SuccessMetricsConfigurationSpec', () => {
   });
 
   it('renders disabled toggle', async () => {
-    mockAxiosCalls({
-      get: {
-        [successMetricsConfigurationUrl]: Promise.resolve({
-          data: { enabled: false },
-        }),
-      },
-      put: {
-        [globalPermissionTestUrl]: Promise.resolve({ data: ['CONFIGURE_SYSTEM'] }),
-      },
-    });
+    axiosMock.onGet(successMetricsConfigurationUrl).reply(200, { enabled: false });
 
     render(<SuccessMetricsConfigurationContainer />);
     await waitFor(() => screen.getByRole('heading', { name: /configure success metrics/i }));
@@ -61,14 +50,7 @@ describe('SuccessMetricsConfigurationSpec', () => {
   });
 
   it('handles load error', async () => {
-    mockAxiosCalls({
-      get: {
-        [successMetricsConfigurationUrl]: () => Promise.reject({ status: 403 }),
-      },
-      put: {
-        [globalPermissionTestUrl]: Promise.resolve({ data: ['CONFIGURE_SYSTEM'] }),
-      },
-    });
+    axiosMock.onGet(successMetricsConfigurationUrl).reply(403);
 
     render(<SuccessMetricsConfigurationContainer />);
     await waitFor(() => screen.getByText(/An error occurred loading data/));
@@ -77,16 +59,7 @@ describe('SuccessMetricsConfigurationSpec', () => {
   });
 
   it('toggles and cancels', async () => {
-    mockAxiosCalls({
-      get: {
-        [successMetricsConfigurationUrl]: Promise.resolve({
-          data: { enabled: false },
-        }),
-      },
-      put: {
-        [globalPermissionTestUrl]: Promise.resolve({ data: ['CONFIGURE_SYSTEM'] }),
-      },
-    });
+    axiosMock.onGet(successMetricsConfigurationUrl).reply(200, { enabled: false });
 
     render(<SuccessMetricsConfigurationContainer />);
     await waitFor(() => screen.getByRole('heading', { name: /configure success metrics/i }));
@@ -113,17 +86,8 @@ describe('SuccessMetricsConfigurationSpec', () => {
   });
 
   it('submits updated setting', async () => {
-    mockAxiosCalls({
-      get: {
-        [successMetricsConfigurationUrl]: Promise.resolve({
-          data: { enabled: false },
-        }),
-      },
-      put: {
-        [globalPermissionTestUrl]: Promise.resolve({ data: ['CONFIGURE_SYSTEM'] }),
-        [successMetricsConfigurationUrl]: Promise.resolve({}),
-      },
-    });
+    axiosMock.onGet(successMetricsConfigurationUrl).reply(200, { enabled: false });
+    axiosMock.onPut(successMetricsConfigurationUrl).reply(200, {});
 
     render(<SuccessMetricsConfigurationContainer />);
     await waitFor(() => screen.getByRole('heading', { name: /configure success metrics/i }));
@@ -143,17 +107,8 @@ describe('SuccessMetricsConfigurationSpec', () => {
   });
 
   it('handles submit error', async () => {
-    mockAxiosCalls({
-      get: {
-        [successMetricsConfigurationUrl]: Promise.resolve({
-          data: { enabled: false },
-        }),
-      },
-      put: {
-        [globalPermissionTestUrl]: Promise.resolve({ data: ['CONFIGURE_SYSTEM'] }),
-        [successMetricsConfigurationUrl]: () => Promise.reject({ status: 403 }),
-      },
-    });
+    axiosMock.onGet(successMetricsConfigurationUrl).reply(200, { enabled: false });
+    axiosMock.onPut(successMetricsConfigurationUrl).reply(403);
 
     render(<SuccessMetricsConfigurationContainer />);
     await waitFor(() => screen.getByLabelText('Enable Success Metrics'));
@@ -165,8 +120,8 @@ describe('SuccessMetricsConfigurationSpec', () => {
     expect(screen.getByRole('button', { name: 'Retry' })).toBeEnabled();
 
     // retry button
-    expect(axios.put.calls.count()).toBe(2);
+    expect(axiosMock.history.put.length).toBe(2);
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
-    expect(axios.put.calls.count()).toBe(3);
+    expect(axiosMock.history.put.length).toBe(3);
   });
 });

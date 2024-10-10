@@ -20,8 +20,8 @@ public class PrioritiesPage
     return $("h1");
   }
 
-  public static SelenideElement triggeredByDetails() {
-    return $(".nx-page-title__description");
+  public static SelenideElement summaryTile() {
+    return $(".nx-tile");
   }
 
   public static SelenideElement prioritiesTable() {

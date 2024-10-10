@@ -50,6 +50,13 @@ function routes($stateProvider, $urlServiceProvider) {
         policyViolationId: { dynamic: true },
       },
     })
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.dependencyTree', {
+      url: '/dashboard/developer/priorities/{publicId}/{scanId}/dependencyTree',
+      component: 'dependencyTree',
+      data: {
+        title: 'Dependency Tree',
+      },
+    })
     .state('componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails', {
       url: '/componentDetails/{hash}',
       component: 'componentDetails',
@@ -128,6 +135,13 @@ function routes($stateProvider, $urlServiceProvider) {
       component: 'applicationReportRoot',
       params: {
         policyViolationId: { dynamic: true },
+      },
+    })
+    .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.dependencyTree', {
+      url: '/developer/priorities/{publicId}/{scanId}/dependencyTree',
+      component: 'dependencyTree',
+      data: {
+        title: 'Dependency Tree',
       },
     })
     .state('componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails', {

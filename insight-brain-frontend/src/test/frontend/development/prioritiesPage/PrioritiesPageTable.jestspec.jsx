@@ -25,26 +25,6 @@ const mockResponsePage2 = generateMockResponseByPage(2, mockData);
 describe('PrioritiesPageTable', () => {
   let renderComponent, stateGoSpy, axiosMock;
 
-  const metadata = {
-    reportTime: 1702041439230,
-    reportTitle: 'Build Report',
-    application: {
-      name: 'TestApp',
-      nameLowercaseNoWhitespace: 'testapp',
-      id: 'a03a6722af3f47fc8b7de86c78176de5',
-      publicId: 'testPublicAppId',
-      publicIdLowercase: 'testpublicappid',
-    },
-    stageId: 'build',
-    commitHash: null,
-    initiator: 'admin',
-    scanTriggerType: 'Continuous Integration',
-    totalRisk: 138,
-    forMonitoring: false,
-    reevaluation: false,
-    scanId,
-  };
-
   const defaultPreloadedState = {
     router: {
       currentParams: {
@@ -53,7 +33,6 @@ describe('PrioritiesPageTable', () => {
       },
     },
     prioritiesPage: {
-      metadata,
       topPrioritiesData: null,
       additionalPrioritiesData: null,
       loadingTableData: false,

@@ -5,19 +5,38 @@
  */
 
 import React from 'react';
-import { render, screen, axiosMockAdapter, setupPortalContainer, removePortalContainer } from 'TestRoot/SpecUtil';
+import {
+  render,
+  screen,
+  axiosMockAdapter,
+  setupPortalContainer,
+  removePortalContainer,
+  within,
+  fireEvent,
+} from 'TestRoot/SpecUtil';
 import PrioritiesPage from 'MainRoot/development/prioritiesPage/PrioritiesPage';
 
 import * as ProductFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { DEVELOPER_FEATURE_DISABLED_MESSAGE } from 'MainRoot/development/developmentDashboard/LicenseLockScreen';
 
-import { metadata } from 'TestRoot/componentDetails/data';
-import { getReportMetadataUrl } from 'MainRoot/util/CLMLocation';
+import { getReportBomUrl, getReportMetadataUrl } from 'MainRoot/util/CLMLocation';
 
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 
 const publicAppId = 'testPublicAppId';
 const scanId = 'testScanId';
+const metadata = {
+  reportTime: 1703098535137,
+  reportTitle: 'Release Report',
+  application: {
+    name: 'TestApp',
+    nameLowercaseNoWhitespace: 'testapp',
+    id: '726e6f86d1d54ad0ae86439853d88fef',
+    publicId: 'testapp',
+    publicIdLowercase: 'testapp',
+  },
+  stageId: 'release',
+};
 
 describe('PrioritiesPage', () => {
   let renderComponent, selectIsDeveloperDashboardEnabled, axiosMock, hrefSpy, getSpy;
@@ -68,93 +87,102 @@ describe('PrioritiesPage', () => {
     expect(loading).toBeInTheDocument();
   });
 
-  it('renders an alert when there is a network error', async () => {
-    axiosMock.onGet(getReportMetadataUrl(publicAppId, scanId)).reply(500, 'something went wrong');
-    renderComponent();
+  describe('network requests', () => {
+    it('makes network requests to get the metadata on load', async () => {
+      renderComponent();
 
-    expect(await screen.findByRole('alert')).toBeInTheDocument();
-  });
+      expect(axiosMock.history.get.length).toBe(2);
+      expect(axiosMock.history.get[0].url).toBe(getReportBomUrl(publicAppId, scanId));
+      expect(axiosMock.history.get[1].url).toBe(getReportMetadataUrl(publicAppId, scanId));
+    });
 
-  it('renders a "View Full Report" button', async () => {
-    renderComponent();
+    describe('when failed', () => {
+      beforeEach(() => {
+        axiosMock.onGet(getReportBomUrl(publicAppId, scanId)).reply(500, 'something went wrong');
+        axiosMock.onGet(getReportMetadataUrl(publicAppId, scanId)).reply(500, 'something went wrong');
+      });
 
-    const viewFullReportBtn = await screen.findByRole('link', { name: /view full report/i });
-    expect(viewFullReportBtn).toBeInTheDocument();
-    expect(viewFullReportBtn).toHaveAttribute('target', '_blank');
-  });
+      it('renders an alert with a retry button makes network call to get metadata', async () => {
+        renderComponent();
 
-  describe('when priorities page is navigated from Reports page', () => {
-    const preloadedState = {
-      router: {
-        currentParams: {
-          publicAppId,
-          scanId,
-        },
-        currentState: {
-          name: 'prioritiesPageFromReports',
-        },
-      },
-    };
+        expect(axiosMock.history.get.length).toBe(2);
 
-    afterEach(() => removePortalContainer());
-
-    it('back button navigates back to Reports Page', async () => {
-      setupPortalContainer();
-      renderComponent(preloadedState);
-
-      const backBtn = await screen.findByRole('link', { name: /back to reports/i });
-      expect(backBtn).toBeInTheDocument();
-      expect(backBtn).toHaveAttribute('href', 'developer.reports');
+        const alert = await screen.findByRole('alert');
+        const retryBtn = within(alert).getByRole('button', { name: /retry/i });
+        expect(retryBtn).toBeInTheDocument();
+        fireEvent.click(retryBtn);
+        expect(axiosMock.history.get.length).toBe(4);
+        expect(axiosMock.history.get[2].url).toBe(getReportBomUrl(publicAppId, scanId));
+        expect(axiosMock.history.get[3].url).toBe(getReportMetadataUrl(publicAppId, scanId));
+      });
     });
   });
 
-  describe('when priorities page is navigated from App Report page', () => {
-    const preloadedState = {
-      router: {
-        currentParams: {
-          publicAppId,
-          scanId,
+  describe('back button', () => {
+    describe('when priorities page is navigated from Reports page', () => {
+      const preloadedState = {
+        router: {
+          ...defaultPreloadedState.router,
+          currentState: {
+            name: 'prioritiesPageFromReports',
+          },
         },
-        currentState: {
-          name: 'prioritiesPageFromAppReport',
-        },
-      },
-    };
+      };
 
-    afterEach(() => removePortalContainer());
+      afterEach(() => removePortalContainer());
 
-    it('back button navigates back to reports Page', async () => {
-      setupPortalContainer();
-      renderComponent(preloadedState);
+      it('back button navigates back to Reports Page', async () => {
+        setupPortalContainer();
+        renderComponent(preloadedState);
 
-      const backBtn = await screen.findByRole('link', { name: /back to reports/i });
-      expect(backBtn).toBeInTheDocument();
-      expect(backBtn).toHaveAttribute('href', 'developer.reports');
+        const backBtn = await screen.findByRole('link', { name: /back to reports/i });
+        expect(backBtn).toBeInTheDocument();
+        expect(backBtn).toHaveAttribute('href', 'developer.reports');
+      });
     });
-  });
 
-  describe('when priorities page is navigated from Developer Dashboard', () => {
-    const preloadedState = {
-      router: {
-        currentParams: {
-          publicAppId,
-          scanId,
+    describe('when priorities page is navigated from App Report page', () => {
+      const preloadedState = {
+        router: {
+          ...defaultPreloadedState.router,
+          currentState: {
+            name: 'prioritiesPageFromAppReport',
+          },
         },
-        currentState: {
-          name: 'prioritiesPageFromDashboard',
+      };
+
+      afterEach(() => removePortalContainer());
+
+      it('back button navigates back to reports Page', async () => {
+        setupPortalContainer();
+        renderComponent(preloadedState);
+
+        const backBtn = await screen.findByRole('link', { name: /back to reports/i });
+        expect(backBtn).toBeInTheDocument();
+        expect(backBtn).toHaveAttribute('href', 'developer.reports');
+      });
+    });
+
+    describe('when priorities page is navigated from Developer Dashboard', () => {
+      const preloadedState = {
+        router: {
+          ...defaultPreloadedState.router,
+          currentState: {
+            name: 'prioritiesPageFromDashboard',
+          },
         },
-      },
-    };
+      };
 
-    afterEach(() => removePortalContainer());
+      afterEach(() => removePortalContainer());
 
-    it('back button navigates back to Developer Dashboard', async () => {
-      setupPortalContainer();
-      renderComponent(preloadedState);
+      it('back button navigates back to Developer Dashboard', async () => {
+        setupPortalContainer();
+        renderComponent(preloadedState);
 
-      const backBtn = await screen.findByRole('link', { name: /back to developer dashboard/i });
-      expect(backBtn).toBeInTheDocument();
-      expect(backBtn).toHaveAttribute('href', 'developer.dashboard');
+        const backBtn = await screen.findByRole('link', { name: /back to developer dashboard/i });
+        expect(backBtn).toBeInTheDocument();
+        expect(backBtn).toHaveAttribute('href', 'developer.dashboard');
+      });
     });
   });
 });

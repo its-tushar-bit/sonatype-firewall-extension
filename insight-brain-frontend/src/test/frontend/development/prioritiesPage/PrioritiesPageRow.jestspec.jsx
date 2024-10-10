@@ -34,7 +34,7 @@ describe('PrioritiesPageRow', () => {
         name: 'prioritiesPageFromDashboard',
       },
     },
-    prioritiesPage: {
+    applicationReport: {
       metadata: {
         stageId: 'build',
       },

@@ -7,7 +7,7 @@
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { getPrioritiesPageTableData, getReportMetadataUrl, getVersionGraphUrl } from 'MainRoot/util/CLMLocation';
+import { getPrioritiesPageTableData, getVersionGraphUrl } from 'MainRoot/util/CLMLocation';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { isNil, keys } from 'ramda';
 import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
@@ -30,6 +30,8 @@ const loadTableDataFulfilled = (state, { payload }) => {
   const {
     topPriorities,
     additionalPriorities: { total, page, pageSize, pageCount, results },
+    publicAppId,
+    scanId,
   } = payload;
   return {
     ...state,
@@ -41,6 +43,8 @@ const loadTableDataFulfilled = (state, { payload }) => {
     pageCount,
     page,
     total,
+    publicAppId,
+    scanId,
   };
 };
 
@@ -64,48 +68,7 @@ const loadTableData = createAsyncThunk(
 
     return axios
       .get(tableDataUrl, { params: { pageSize: TABLE_PAGE_SIZE, page } })
-      .then(({ data }) => data)
-      .catch(rejectWithValue);
-  }
-);
-
-const loadMetadataRequested = (state) => {
-  return {
-    ...state,
-    metadata: null,
-    loadingMetadata: true,
-    loadErrorMetadata: null,
-  };
-};
-
-const loadMetadataFulfilled = (state, { payload }) => {
-  return {
-    ...state,
-    metadata: payload,
-    loadingMetadata: false,
-    loadErrorMetadata: null,
-  };
-};
-
-const loadMetadataFailed = (state, { payload }) => {
-  return {
-    ...state,
-    metadata: null,
-    loadingMetadata: false,
-    loadErrorMetadata: Messages.getHttpErrorMessage(payload),
-  };
-};
-
-const loadMetadata = createAsyncThunk(
-  `${PRIORITIES_PAGE_REDUCER_NAME}/loadMetadata`,
-  (_, { getState, rejectWithValue }) => {
-    const state = getState();
-    const { publicAppId, scanId } = selectRouterCurrentParams(state);
-    const metadataUrl = getReportMetadataUrl(publicAppId, scanId);
-
-    return axios
-      .get(metadataUrl)
-      .then(({ data }) => ({ ...data, scanId }))
+      .then(({ data }) => ({ ...data, publicAppId, scanId }))
       .catch(rejectWithValue);
   }
 );
@@ -180,6 +143,12 @@ const setPage = (state, { payload }) => {
 const resetState = (state) => {
   return {
     ...state,
+    topPrioritiesData: null,
+    additionalPrioritiesData: null,
+    loadingTableData: false,
+    loadErrorTableData: null,
+    loadingMetadata: false,
+    loadErrorMetaData: null,
     recommendations: {},
   };
 };
@@ -192,9 +161,6 @@ const prioritiesPageSlice = createSlice({
     [loadTableData.pending]: loadTableDataRequested,
     [loadTableData.fulfilled]: loadTableDataFulfilled,
     [loadTableData.rejected]: loadTableDataFailed,
-    [loadMetadata.pending]: loadMetadataRequested,
-    [loadMetadata.fulfilled]: loadMetadataFulfilled,
-    [loadMetadata.rejected]: loadMetadataFailed,
     [loadRecommendations.pending]: loadRecommendationsRequested,
     [loadRecommendations.fulfilled]: loadRecommendationsFulfilled,
     [loadRecommendations.rejected]: loadRecommendationsFailed,
@@ -207,7 +173,6 @@ function initialState() {
     additionalPrioritiesData: null,
     loadingTableData: false,
     loadErrorTableData: null,
-    metadata: null,
     loadingMetadata: false,
     loadErrorMetaData: null,
     recommendations: {},
@@ -215,6 +180,8 @@ function initialState() {
     pageCount: 1,
     page: 1,
     total: null,
+    publicAppId: null,
+    scanId: null,
   };
 }
 
@@ -223,7 +190,6 @@ export default prioritiesPageSlice.reducer;
 export const actions = {
   ...prioritiesPageSlice.actions,
   loadTableData,
-  loadMetadata,
   loadRecommendations,
   checkIfLoadRecommendationsNeeded,
 };

@@ -10,6 +10,8 @@ import {
   selectRouterCurrentParams,
   selectIsPrioritiesPageContainer,
   selectPrioritiesPageContainerName,
+  selectIsDependencyTreePageFromPrioritiesPage,
+  selectPrioritiesPageName,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { useSelector } from 'react-redux';
 
@@ -18,8 +20,13 @@ export default function BackButton() {
   const isPrioritiesPageContainer = useSelector(selectIsPrioritiesPageContainer);
   const { publicId, scanId } = useSelector(selectRouterCurrentParams);
   const prioritiesPageContainerName = useSelector(selectPrioritiesPageContainerName);
+  const prioritiesPageName = useSelector(selectPrioritiesPageName);
+  const isDependencyTreePageFromPrioritiesPage = useSelector(selectIsDependencyTreePageFromPrioritiesPage);
 
-  if (isPrioritiesPageContainer) {
+  if (isDependencyTreePageFromPrioritiesPage) {
+    const prioritiesPageHref = uiRouterState.href(prioritiesPageName, { scanId, publicAppId: publicId });
+    return <MenuBarBackButton href={prioritiesPageHref} text="Back to Priorities Page" />;
+  } else if (isPrioritiesPageContainer) {
     const appReportWithBackToPrioritiesHref = uiRouterState.href(`${prioritiesPageContainerName}.policy`, {
       scanId,
       publicId,

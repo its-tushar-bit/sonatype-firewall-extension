@@ -164,7 +164,7 @@ public class IntegrationsPageTest
     prioritiesReportViewLink(9).click();
 
     PrioritiesPage.title().shouldBe(visible);
-    PrioritiesPage.triggeredByDetails().shouldBe(visible);
+    PrioritiesPage.summaryTile().shouldBe(visible);
     PrioritiesPage.prioritiesTable().shouldBe(visible);
     back();
 

@@ -97,3 +97,8 @@ export const selectApplicationReportLoading = createSelector(
     );
   }
 );
+
+export const selectWaivedViolationCountFromAggregatedComponentList = createSelector(
+  selectAggregatedComponentsList,
+  (list) => (isNilOrEmpty(list) ? 0 : list.reduce((acc, component) => acc + component.waivedViolations, 0))
+);

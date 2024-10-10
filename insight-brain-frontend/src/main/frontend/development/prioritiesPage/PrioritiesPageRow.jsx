@@ -25,6 +25,7 @@ import {
 } from '../../componentDetails/overview/riskRemediation/recommendedVersionsUtils';
 import PropTypes from 'prop-types';
 import { isNilOrEmpty } from '../../util/jsUtil';
+import { selectReportStageId } from 'MainRoot/applicationReport/applicationReportSelectors';
 
 export const dependencyTypeMap = {
   Direct: 'direct',
@@ -37,10 +38,9 @@ export default function PrioritiesPageRow({ component, onClick }) {
   const dispatch = useDispatch();
 
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
-  const {
-    recommendations,
-    metadata: { stageId },
-  } = useSelector(selectPrioritiesPageSlice);
+  const { recommendations } = useSelector(selectPrioritiesPageSlice);
+  const stageId = useSelector(selectReportStageId);
+
   const isDeveloperBulkRecommendationsEnabled = useSelector(selectIsDeveloperBulkRecommendationsEnabled);
 
   const {

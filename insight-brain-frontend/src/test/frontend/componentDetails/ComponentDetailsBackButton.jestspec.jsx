@@ -21,7 +21,7 @@ describe('ComponentDetailsBackButton', () => {
       render(<ComponentDetailsBackButton {...minimalProps} {...additionalProps} />, { preloadedState });
 
     routerContextMock = {
-      href: jest.fn('href').mockReturnValue('href'),
+      href: jest.fn('href').mockImplementation((stateName) => stateName),
       get: jest.fn('get').mockImplementation((stateName) => {
         if (stateName === 'applicationReport.policy') {
           return { data: { title: 'Application Report' } };
@@ -39,10 +39,38 @@ describe('ComponentDetailsBackButton', () => {
 
   afterEach(() => removePortalContainer());
 
-  it('renders "Back to Dependency Tree" if scanId and publicId props are provided', () => {
-    renderComponent({ scanId: 'scanId', publicId: 'testId' });
+  describe('Back to Dependency Tree button', () => {
+    it('renders if scanId and publicId props are provided', () => {
+      renderComponent({ scanId: 'scanId', publicId: 'testId' });
 
-    expect(screen.getByRole('link', { name: 'Back To Dependency Tree' })).toBeInTheDocument();
+      const backBtn = screen.getByRole('link', { name: 'Back To Dependency Tree' });
+      expect(backBtn).toBeInTheDocument();
+      expect(backBtn).toHaveAttribute('href', 'applicationReport.dependencyTree');
+    });
+
+    it('if navigated from priorities page renders if scanId and publicId props are provided when navigated from Priorities Page -> Dependencies -> Click on Dependency', () => {
+      selectIsPrioritiesPageContainerSpy.mockReturnValue(true);
+
+      const routerPreloadedState = {
+        router: {
+          currentState: {
+            name: 'componentDetailsPageWithinPrioritiesPageContainerFromDashboard.dependencyTree',
+          },
+          currentParams: {
+            publicId: 'testPublicAppId',
+            scanId: 'testScanId',
+          },
+        },
+      };
+      renderComponent({ scanId: 'scanId', publicId: 'testId' }, routerPreloadedState);
+
+      const backBtn = screen.getByRole('link', { name: 'Back To Dependency Tree' });
+      expect(backBtn).toBeInTheDocument();
+      expect(backBtn).toHaveAttribute(
+        'href',
+        'componentDetailsPageWithinPrioritiesPageContainerFromDashboard.dependencyTree'
+      );
+    });
   });
 
   describe('if rendered within prioritiesPageContainer', () => {

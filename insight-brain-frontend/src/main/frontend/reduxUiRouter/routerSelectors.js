@@ -109,6 +109,12 @@ export const selectIsStandaloneDeveloper = createSelector(
   selectIsPrioritiesPageContainer,
   (isDeveloper, isPrioritiesPageContainer) => isDeveloper || isPrioritiesPageContainer
 );
+export const selectIsDependencyTreePageFromPrioritiesPage = createSelector(selectCurrentRouteName, (currentRouteName) =>
+  [
+    'componentDetailsPageWithinPrioritiesPageContainerFromDashboard.dependencyTree',
+    'componentDetailsPageWithinPrioritiesPageContainerFromReports.dependencyTree',
+  ].includes(currentRouteName)
+);
 
 // we can access to component details page from application report but also from firewall or repository results view,
 // so this is used to find out if the route is a firewall route or repository route

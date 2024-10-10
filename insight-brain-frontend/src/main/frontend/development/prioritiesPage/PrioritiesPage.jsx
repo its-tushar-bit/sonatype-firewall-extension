@@ -6,13 +6,7 @@
 
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  NxLoadingSpinner,
-  NxLoadWrapper,
-  NxPageMain,
-  NxPageTitle,
-  NxTextLink,
-} from '@sonatype/react-shared-components';
+import { NxLoadingSpinner, NxLoadWrapper, NxPageMain } from '@sonatype/react-shared-components';
 import LicenseLockScreen from 'MainRoot/development/developmentDashboard/LicenseLockScreen';
 import PrioritiesPageHeader from 'MainRoot/development/prioritiesPage/PrioritiesPageHeader';
 import PrioritiesPageTable from 'MainRoot/development/prioritiesPage/PrioritiesPageTable';
@@ -20,12 +14,17 @@ import {
   selectLoadingFeatures,
   selectIsDeveloperDashboardEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions } from 'MainRoot/development/prioritiesPage/slices/prioritiesPageSlice';
-import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
-import { selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectCurrentRouteName, selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import {
+  selectApplicationReportMetaData,
+  selectIsLoading,
+  selectLoadError,
+  selectReportParameters,
+} from 'MainRoot/applicationReport/applicationReportSelectors';
+import { setReportParameters, loadReportIfNeeded } from 'MainRoot/applicationReport/applicationReportActions';
 
 export default function PrioritiesPage() {
   const currentRouteName = useSelector(selectCurrentRouteName);
@@ -73,42 +72,30 @@ function PageContents() {
 function PrioritiesPageContents() {
   const dispatch = useDispatch();
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
-  const { loadingMetadata, loadErrorMetadata, metadata } = useSelector(selectPrioritiesPageSlice);
-  const uiRouterState = useRouterState();
+  const metadata = useSelector(selectApplicationReportMetaData);
+  const isLoading = useSelector(selectIsLoading);
+  const loadError = useSelector(selectLoadError);
+  const reportParameters = useSelector(selectReportParameters);
+  const reportParametersExist = reportParameters?.appId === publicAppId && reportParameters?.scanId === scanId;
 
   const doLoad = () => {
-    dispatch(actions.loadMetadata());
+    dispatch(setReportParameters(publicAppId, scanId));
+    dispatch(loadReportIfNeeded());
   };
 
   useEffect(() => {
-    doLoad();
+    if (!reportParametersExist) {
+      doLoad();
+    }
 
     return () => dispatch(actions.resetState());
   }, []);
 
-  const getApplicationReportHref = () => {
-    return uiRouterState.href('applicationReport.policy', {
-      publicId: publicAppId,
-      scanId: scanId,
-    });
-  };
-
   return (
-    <NxLoadWrapper loading={loadingMetadata} error={loadErrorMetadata} retryHandler={doLoad}>
+    <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={doLoad}>
       {metadata && (
         <>
-          <NxPageTitle>
-            <PrioritiesPageHeader />
-            <div className="nx-btn-bar">
-              <NxTextLink
-                className="nx-btn iq-priorities-page-view-full-report-btn"
-                href={getApplicationReportHref()}
-                external
-              >
-                View Full Report
-              </NxTextLink>
-            </div>
-          </NxPageTitle>
+          <PrioritiesPageHeader />
           <PrioritiesPageTable />
         </>
       )}

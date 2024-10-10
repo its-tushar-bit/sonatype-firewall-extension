@@ -36,10 +36,8 @@ export default function PrioritiesPageTable() {
     additionalPrioritiesData,
     page,
     pageCount,
-    metadata: {
-      application: { publicId: storedPublicId },
-      scanId: storedScanId,
-    },
+    publicAppId: storedPublicId,
+    scanId: storedScanId,
   } = useSelector(selectPrioritiesPageSlice);
   const currentPage = pageCount && pageCount > 0 ? page - 1 : null;
   const isFirstPage = page === 1;
@@ -84,28 +82,32 @@ export default function PrioritiesPageTable() {
             error={loadErrorTableData}
             emptyMessage="All clear! No violations were found during this evaluation."
           >
-            {!hasZeroFindings && isFirstPage && (
-              <>
+            {/* {(loadingTableData === false || loadingTableData === null) && ( */}
+            <>
+              {!hasZeroFindings && isFirstPage && (
+                <>
+                  <NxTable.Row>
+                    <NxTable.Cell className="iq-priorities-page-priority-findings-toggle" colSpan={5}>
+                      <NxAccordion open={showPriorityFindings} onToggle={toggleShowPriorityFindings}>
+                        <NxAccordion.Header>
+                          <NxAccordion.Title>Top Priorities</NxAccordion.Title>
+                        </NxAccordion.Header>
+                      </NxAccordion>
+                    </NxTable.Cell>
+                  </NxTable.Row>
+                  {showPriorityFindings && <DataRows dataset={topPrioritiesData} />}
+                </>
+              )}
+              {!hasZeroFindings && (
                 <NxTable.Row>
-                  <NxTable.Cell className="iq-priorities-page-priority-findings-toggle" colSpan={5}>
-                    <NxAccordion open={showPriorityFindings} onToggle={toggleShowPriorityFindings}>
-                      <NxAccordion.Header>
-                        <NxAccordion.Title>Top Priorities</NxAccordion.Title>
-                      </NxAccordion.Header>
-                    </NxAccordion>
+                  <NxTable.Cell className="iq-priorities-page-all-findings" colSpan={5}>
+                    Remaining Priorities
                   </NxTable.Cell>
                 </NxTable.Row>
-                {showPriorityFindings && <DataRows dataset={topPrioritiesData} />}
-              </>
-            )}
-            {!hasZeroFindings && (
-              <NxTable.Row>
-                <NxTable.Cell className="iq-priorities-page-all-findings" colSpan={5}>
-                  Remaining Priorities
-                </NxTable.Cell>
-              </NxTable.Row>
-            )}
-            <DataRows dataset={additionalPrioritiesData} />
+              )}
+              <DataRows dataset={additionalPrioritiesData} />
+            </>
+            {/* )} */}
           </NxTable.Body>
         </NxTable>
         {!hasZeroFindings && additionalPrioritiesData && (

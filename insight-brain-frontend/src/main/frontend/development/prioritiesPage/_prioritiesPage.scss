@@ -28,7 +28,42 @@ priorities-page {
 
   .iq-priorities-page-desc-details {
     display: flex;
+    gap: var(--nx-spacing-8x);
+    font-size: 14px;
+  }
+
+  .iq-priorities-page-header-title {
+    display: flex;
     gap: var(--nx-spacing-2x);
+    align-items: center;
+
+    .nx-small-threat-counter-container {
+      margin-right: 0;
+    }
+
+    .iq-priorities-page-header-tag {
+      border-radius: 8px;
+      font-size: 14px;
+      padding: 1px 8px;
+
+      .iq-priorities-page-header-tag-count {
+        font-weight: 700;
+        margin-right: 4px;
+      }
+
+      .iq-priorities-page-header-tag-type {
+        font-weight: 600;
+      }
+
+      &.legacy {
+        border: 1px solid var(--nx-swatch-indigo-40);
+        color: var(--nx-swatch-indigo-40);
+      }
+      &.waived {
+        border: 1px solid var(--nx-swatch-pink-30);
+        color: var(--nx-swatch-pink-30);
+      }
+    }
   }
 
   .iq-priorities-page-table {

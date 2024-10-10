@@ -129,7 +129,9 @@
     </argLine>
     <jreleaser.version>1.14.0</jreleaser.version>
     <jdk.distribution>temurin</jdk.distribution>
-    <jdk.version>17.0.2</jdk.version>
+    <jdks-maven-plugin.jdk-version>jdk-17.0.12%2B7</jdks-maven-plugin.jdk-version>
+    <jdks-maven-plugin.base-url>https://github.com/adoptium/temurin17-binaries/releases/download</jdks-maven-plugin.base-url>
+    <jdks-maven-plugin.jdk-file-version>17.0.12_7</jdks-maven-plugin.jdk-file-version>
   </properties>
 
   <scm>
@@ -1486,6 +1488,12 @@
 
   <profiles>
     <profile>
+      <id>jenkins</id>
+      <properties>
+        <jdks-maven-plugin.base-url>https://rsc-proxy.ci.sonatype.dev/repository/temurin17-binaries</jdks-maven-plugin.base-url>
+      </properties>
+    </profile>
+    <profile>
       <id>quick</id>
       <activation>
         <property>
@@ -1573,7 +1581,7 @@
     <profile>
       <id>jdks</id>
       <build>
-        <defaultGoal>jdks:setup-disco</defaultGoal>
+        <defaultGoal>jdks:setup-jdks</defaultGoal>
         <plugins>
           <plugin>
             <groupId>org.jreleaser</groupId>
@@ -1581,50 +1589,44 @@
             <version>${jreleaser.version}</version>
             <inherited>false</inherited>
             <configuration>
-              <pkgs>
-                <pkg>
-                  <name>${jdk.distribution}_${jdk.version}_linux_x86_64</name>
-                  <distribution>${jdk.distribution}</distribution>
+              <jdks>
+                <jdk>
+                  <name>${jdk.distribution}_${jdks-maven-plugin.jdk-file-version}_linux_x86_64</name>
                   <platform>linux-x86_64</platform>
-                  <version>${jdk.version}</version>
-                  <archiveType>tar.gz</archiveType>
-                </pkg>
-                <pkg>
-                  <name>${jdk.distribution}_${jdk.version}_linux_musl_x86_64</name>
-                  <distribution>${jdk.distribution}</distribution>
-                  <platform>linux-x86_64</platform>
-                  <version>${jdk.version}</version>
-                  <libcType>musl</libcType>
-                  <archiveType>tar.gz</archiveType>
-                </pkg>
-                <pkg>
-                  <name>${jdk.distribution}_${jdk.version}_linux_aarch64</name>
-                  <distribution>${jdk.distribution}</distribution>
+                  <url>${jdks-maven-plugin.base-url}/${jdks-maven-plugin.jdk-version}/OpenJDK17U-jdk_x64_linux_hotspot_${jdks-maven-plugin.jdk-file-version}.tar.gz</url>
+                  <checksum>9d4dd339bf7e6a9dcba8347661603b74c61ab2a5083ae67bf76da6285da8a778</checksum>
+                </jdk>
+                <jdk>
+                  <name>${jdk.distribution}_${jdks-maven-plugin.jdk-file-version}_linux_musl_x86_64</name>
+                  <platform>linux_musl</platform>
+                  <url>${jdks-maven-plugin.base-url}/${jdks-maven-plugin.jdk-version}/OpenJDK17U-jdk_x64_alpine-linux_hotspot_${jdks-maven-plugin.jdk-file-version}.tar.gz</url>
+                  <checksum>6d274a292a717a6f8d00a3ed0695497405c5c634c27fec1692dd13784f6ff6fa</checksum>
+                </jdk>
+                <jdk>
+                  <name>${jdk.distribution}_${jdks-maven-plugin.jdk-file-version}_linux_aarch64</name>
                   <platform>linux-aarch64</platform>
-                  <version>${jdk.version}</version>
-                  <archiveType>tar.gz</archiveType>
-                </pkg>
-                <pkg>
-                  <name>${jdk.distribution}_${jdk.version}_mac_x86_64</name>
-                  <distribution>${jdk.distribution}</distribution>
+                  <url>${jdks-maven-plugin.base-url}/${jdks-maven-plugin.jdk-version}/OpenJDK17U-jdk_aarch64_linux_hotspot_${jdks-maven-plugin.jdk-file-version}.tar.gz</url>
+                  <checksum>8257de06bf37f0c8f19f8d542e2ab5a4e17db3ca5f29d041bd0b02ab265db021</checksum>
+                </jdk>
+                <jdk>
+                  <name>${jdk.distribution}_${jdks-maven-plugin.jdk-file-version}_mac_x86_64</name>
                   <platform>osx-x86_64</platform>
-                  <version>${jdk.version}</version>
-                  <archiveType>tar.gz</archiveType>
-                </pkg>
-                <pkg>
-                  <name>${jdk.distribution}_${jdk.version}_mac_aarch64</name>
-                  <distribution>${jdk.distribution}</distribution>
+                  <url>${jdks-maven-plugin.base-url}/${jdks-maven-plugin.jdk-version}/OpenJDK17U-jdk_x64_mac_hotspot_${jdks-maven-plugin.jdk-file-version}.tar.gz</url>
+                  <checksum>d5230eeec88739aa7133e4c8635bbd4ab226708c12deaafa13cf26b02bc8e8c4</checksum>
+                </jdk>
+                <jdk>
+                  <name>${jdk.distribution}_${jdks-maven-plugin.jdk-file-version}_mac_aarch64</name>
                   <platform>osx-aarch64</platform>
-                  <version>${jdk.version}</version>
-                  <archiveType>tar.gz</archiveType>
-                </pkg>
-                <pkg>
-                  <name>${jdk.distribution}_${jdk.version}_windows_x86_64</name>
-                  <distribution>${jdk.distribution}</distribution>
+                  <url>${jdks-maven-plugin.base-url}/${jdks-maven-plugin.jdk-version}/OpenJDK17U-jdk_aarch64_mac_hotspot_${jdks-maven-plugin.jdk-file-version}.tar.gz</url>
+                  <checksum>d7910b1acaeb290c5c5da21811d2b2b8635f806612a2d6e8d1953b2f77580f78</checksum>
+                </jdk>
+                <jdk>
+                  <name>${jdk.distribution}_${jdks-maven-plugin.jdk-file-version}_windows_x86_64</name>
                   <platform>windows-x86_64</platform>
-                  <version>${jdk.version}</version>
-                </pkg>
-              </pkgs>
+                  <url>${jdks-maven-plugin.base-url}/${jdks-maven-plugin.jdk-version}/OpenJDK17U-jdk_x64_windows_hotspot_${jdks-maven-plugin.jdk-file-version}.zip</url>
+                  <checksum>052049d687ebfda6a4032d54afcd0da6549a23bc2ed04cfaa509746eeacbae71</checksum>
+                </jdk>
+              </jdks>
             </configuration>
           </plugin>
         </plugins>

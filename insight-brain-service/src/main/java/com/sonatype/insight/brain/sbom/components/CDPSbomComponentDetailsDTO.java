@@ -22,6 +22,8 @@ public class CDPSbomComponentDetailsDTO
 
   private List<String> occurrences;
 
+  private String matchState;
+
   public CDPSbomComponentDetailsDTO() {
     // no op
   }
@@ -75,5 +77,13 @@ public class CDPSbomComponentDetailsDTO
 
   public void setMetadata(final CDPSbomMetadataDTO metadata) {
     this.metadata = metadata;
+  }
+
+  public String getMatchState() {
+    return matchState;
+  }
+
+  public void setMatchState(final String matchState) {
+    this.matchState = matchState;
   }
 }

@@ -830,12 +830,12 @@ public class ApiSbomServiceTest
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("p1", "v1");
     ThirdPartyFileCoordinate coordinate1 = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1",
         componentIdentifier1.getFormat(), componentIdentifier1.get(ComponentIdentifier.NPM_PACKAGE_ID),
-        componentIdentifier1.get(ComponentIdentifier.VERSION), "h1", null, null, List.of("pkg:npm/p1@v1"));
+        componentIdentifier1.get(ComponentIdentifier.VERSION), "h1", null, null, List.of("pkg:npm/p1@v1"), null);
 
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("p2", "v2");
     ThirdPartyFileCoordinate coordinate2 = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s2",
         componentIdentifier2.getFormat(), componentIdentifier2.get(ComponentIdentifier.NPM_PACKAGE_ID),
-        componentIdentifier2.get(ComponentIdentifier.VERSION), "h2", null, null, List.of("pkg:npm/p2@v2"));
+        componentIdentifier2.get(ComponentIdentifier.VERSION), "h2", null, null, List.of("pkg:npm/p2@v2"), null);
     tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-1", "License 1", "http://license-1");
     tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-2", "License 2", "http://license-2");
 

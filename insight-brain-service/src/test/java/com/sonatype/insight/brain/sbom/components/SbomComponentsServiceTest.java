@@ -68,11 +68,11 @@ public class SbomComponentsServiceTest
             thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate componentA =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1", "h1",
-            "pkg:f1/group/n1@v1?type=jar", List.of("dependency:/bom.json/pkg:f1\\n1@v1"), null);
+            "pkg:f1/group/n1@v1?type=jar", List.of("dependency:/bom.json/pkg:f1\\n1@v1"), null, null);
     ThirdPartyFileCoordinate componentB =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s2", "f2", "n2", "v2", "h2",
             "pkg:f2/group/n2@v2?type=jar",
-            List.of("dependency:/bom.json/pkg:f1\\n1@v1,dependency:/bom.json/pkg:f2\\n2@v2"), null);
+            List.of("dependency:/bom.json/pkg:f1\\n1@v1,dependency:/bom.json/pkg:f2\\n2@v2"), null, "exact");
     ThirdPartyCoordinateSecurity vulnerabilityA =
         tempEntity.newThirdPartyCoordinateSecurity(componentA, "cve1", "d1", "l1", 9, "f1", "v1", "cvs1", "sd1",
             "cwes1", "m1", "r1", "ad1", "SBOM");
@@ -141,10 +141,10 @@ public class SbomComponentsServiceTest
             thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate previousComponentA =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFilePrevious, "s1", "f1", "n1", "v1", "h1",
-            "pkg:f1/group/n1@v1?type=jar", Collections.emptyList(), Collections.emptyList());
+            "pkg:f1/group/n1@v1?type=jar", Collections.emptyList(), Collections.emptyList(), null);
     ThirdPartyFileCoordinate componentA =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1", "h1",
-            "pkg:f1/group/n1@v1?type=jar", Collections.emptyList(), Collections.emptyList());
+            "pkg:f1/group/n1@v1?type=jar", Collections.emptyList(), Collections.emptyList(), null);
     ThirdPartyFileCoordinate componentB =
         tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s2", "f2", "n2", "v2", "h2",
             "pkg:f2/group/n2@v2?type=jar");
@@ -299,6 +299,7 @@ public class SbomComponentsServiceTest
     else {
       assertThat(actual.getOccurrences()).isEqualTo(component.getOccurrencesList());
     }
+    assertThat(actual.getMatchState()).isEqualTo(component.getMatchStateId());
   }
 
   private void assertComponentSummary(

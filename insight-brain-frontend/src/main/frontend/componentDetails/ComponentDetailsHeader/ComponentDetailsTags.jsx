@@ -7,12 +7,25 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import cx from 'classnames';
 import { DependencyTypeTag, ComponentLabelTag, ComponentFormatTag } from '../../react/tag';
+import SbomComponentMatchStateTag from 'MainRoot/sbomManager/features/componentDetails/SbomComponentMatchStateTag';
 
-const nothingToRender = ({ format, dependencyType, isInnerSource, labels }) =>
-  !format && (!dependencyType || dependencyType === 'unknown') && !isInnerSource && labels.length === 0;
+const nothingToRender = ({ format, dependencyType, isInnerSource, labels, matchState }) =>
+  !format &&
+  (!dependencyType || dependencyType === 'unknown') &&
+  !isInnerSource &&
+  labels.length === 0 &&
+  (!matchState || matchState !== 'similar');
 
-export const ComponentDetailsTags = ({ format, dependencyType, isInnerSource, labels = [], ...props }) => {
-  if (nothingToRender({ format, dependencyType, isInnerSource, labels })) {
+export const ComponentDetailsTags = ({
+  format,
+  dependencyType,
+  isInnerSource,
+  filename,
+  matchState,
+  labels = [],
+  ...props
+}) => {
+  if (nothingToRender({ format, dependencyType, isInnerSource, labels, matchState })) {
     return null;
   }
   const showDependencyTypeTags = (!!dependencyType && dependencyType !== 'unknown') || isInnerSource;
@@ -36,6 +49,7 @@ export const ComponentDetailsTags = ({ format, dependencyType, isInnerSource, la
           ))}
         </>
       )}
+      {<SbomComponentMatchStateTag filename={filename} matchState={matchState} />}
     </div>
   );
 };
@@ -53,6 +67,8 @@ export const componentDetailsTagsPropTypes = {
       color: PropTypes.string,
     })
   ),
+  filename: PropTypes.string,
+  matchState: PropTypes.string,
 };
 ComponentDetailsTags.propTypes = componentDetailsTagsPropTypes;
 

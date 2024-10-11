@@ -8,6 +8,7 @@ import { ComponentDetailsTags } from '../../../../main/frontend/componentDetails
 import ComponentFormatTag from '../../../../main/frontend/react/tag/ComponentFormatTag';
 import DependencyTypeTag from '../../../../main/frontend/react/tag/DependencyTypeTag';
 import ComponentLabelTag from '../../../../main/frontend/react/tag/ComponentLabelTag';
+import SbomComponentMatchStateTag from 'MainRoot/sbomManager/features/componentDetails/SbomComponentMatchStateTag';
 
 describe('ComponentDetailsTags', () => {
   let minimalProps;
@@ -60,10 +61,14 @@ describe('ComponentDetailsTags', () => {
     expect(el).toHaveProp('tabIndex', 0);
   });
 
-  it('does not render if there is no format, dependencyType, isInnerSource=true or labels props passed', () => {
-    const component = getShallowComponentNoProps();
-    expect(component).toBeEmptyRender();
-  });
+  it(
+    'does not render if there is no format, dependencyType, isInnerSource=true, matchState!=similar or labels props' +
+      ' passed',
+    () => {
+      const component = getShallowComponentNoProps();
+      expect(component).toBeEmptyRender();
+    }
+  );
 
   it('only renders format tag if `format` prop is passed', () => {
     const format = 'maven';
@@ -140,5 +145,24 @@ describe('ComponentDetailsTags', () => {
     expect(labelElements.length).toBe(mockLabels.length);
     expect(labelElements.at(0)).toHaveProp('description', 'It is the orange label');
     expect(labelElements.at(1)).toHaveProp('description', '');
+  });
+
+  it('renders similar match tag', async () => {
+    const renderComponent = enzymeUtils.getShallowComponent(ComponentDetailsTags, {
+      matchState: 'similar',
+      filename: 'abc.jar',
+    });
+    const component = renderComponent({});
+
+    expect(component.find(SbomComponentMatchStateTag)).toExist();
+    expect(
+      component.find(SbomComponentMatchStateTag).findWhere((tag) => tag.prop('matchState') === 'similar')
+    ).toExist();
+    expect(component.find(SbomComponentMatchStateTag).findWhere((tag) => tag.prop('filename') === 'abc.jar')).toExist();
+  });
+
+  it("won't render similar match tag", async () => {
+    const component = getShallowComponentNoProps();
+    expect(component.find(SbomComponentMatchStateTag)).not.toExist();
   });
 });

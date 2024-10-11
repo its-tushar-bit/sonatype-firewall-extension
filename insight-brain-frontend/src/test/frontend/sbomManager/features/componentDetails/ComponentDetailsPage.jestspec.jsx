@@ -153,6 +153,8 @@ describe('ComponentDetailsPage', () => {
       applicationName: 'sbom',
       sbomCreationTime: 1713279301273,
     },
+    matchState: 'similar',
+    filenames: null,
     vulnerabilitySummary: {
       highestCvssScore: 9,
       verifiedVulnerabilitiesCount: 10,
@@ -543,6 +545,7 @@ describe('ComponentDetailsPage', () => {
       expect(screen.getByText('pkg:maven/net.sf.jason/jason-schema@1.2.11')).toBeVisible();
       expect(screen.getByText('Component Summary')).toBeVisible();
       expect(screen.getByText('Highest CVSS Score')).toBeVisible();
+      expect(await screen.findByText('Match State: Similar')).toBeVisible();
 
       const highestCvssScoreContainer = await screen.findByTestId('highestCvssScore');
       expect(highestCvssScoreContainer).toBeInTheDocument();

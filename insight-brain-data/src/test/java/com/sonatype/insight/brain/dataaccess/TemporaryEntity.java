@@ -4091,7 +4091,8 @@ public class TemporaryEntity
       String hash,
       String packageUrl,
       List<String> occurrences,
-      List<String> filenames)
+      List<String> filenames,
+      String matchState)
   {
     ThirdPartyFileCoordinate fileCoordinate =
         new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFile.getId());
@@ -4099,6 +4100,7 @@ public class TemporaryEntity
     fileCoordinate.setIdentificationSources("SBOM");
     fileCoordinate.setOccurrencesList(occurrences);
     fileCoordinate.setFilenamesList(filenames);
+    fileCoordinate.setMatchStateId(matchState);
     thirdPartyFileCoordinateDAO.insert(fileCoordinate);
     return fileCoordinate;
   }

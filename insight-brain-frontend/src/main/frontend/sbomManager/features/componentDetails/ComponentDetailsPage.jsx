@@ -59,6 +59,7 @@ import { isNil } from 'ramda';
 import DeleteAnnotationModal from 'MainRoot/sbomManager/features/componentDetails/DeleteAnnotationModal';
 import CopyAnnotationModal from 'MainRoot/sbomManager/features/componentDetails/CopyAnnotationModal';
 import MenuBarStatefulBreadcrumb from 'MainRoot/mainHeader/MenuBar/MenuBarStatefulBreadcrumb';
+import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 
 export default function ComponentDetailsPage() {
   const dispatch = useDispatch();
@@ -293,6 +294,8 @@ export default function ComponentDetailsPage() {
                   format={componentDetails.componentIdentifier?.format}
                   isInnerSource={componentDetails.isInnerSource}
                   labels={componentDetails.labels}
+                  filename={isNilOrEmpty(componentDetails?.filenames) ? '' : componentDetails?.filenames[0]}
+                  matchState={componentDetails?.matchState?.toLowerCase()}
                 />
                 {componentDetails.packageUrl && (
                   <NxTag className="nx-tag sbom-nx-tag" color="sky">

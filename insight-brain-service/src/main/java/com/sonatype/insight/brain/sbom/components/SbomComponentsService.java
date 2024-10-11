@@ -137,6 +137,8 @@ public class SbomComponentsService
     componentDetailsDTO.setMetadata(getSbomMetadata(applicationId, sbomMetadata.getCreatedAt()));
     componentDetailsDTO.setVulnerabilitySummary(getVulnerabilitySummary(vulnerabilityList));
     componentDetailsDTO.setOccurrences(component.getOccurrencesList());
+    componentDetailsDTO.setMatchState(component.getMatchStateId());
+    componentDetailsDTO.setFilenames(component.getFilenamesList());
 
     componentDetailsDTO.setDisclosedVulnerabilities(
         getVulnerabilitiesDetails(sbomMetadata, vulnerabilityList, vexAnnotationsMap, true));

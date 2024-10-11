@@ -175,7 +175,7 @@ public class ComponentDetailsPageTest
     refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
             .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
 
-    sbomManagerComponentDetailsPage.tabs().get(1).shouldHave(text("Policy Violations")).click();;
+    sbomManagerComponentDetailsPage.tabs().get(1).shouldHave(text("Policy Violations")).click();
 
     sbomManagerComponentDetailsPage.policyViolationsTile().shouldBe(visible);
 
@@ -199,7 +199,7 @@ public class ComponentDetailsPageTest
     refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
             .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
 
-    sbomManagerComponentDetailsPage.tabs().get(1).shouldHave(text("Policy Violations")).click();;
+    sbomManagerComponentDetailsPage.tabs().get(1).shouldHave(text("Policy Violations")).click();
 
     sbomManagerComponentDetailsPage.policyViolationsTile().shouldBe(visible);
 

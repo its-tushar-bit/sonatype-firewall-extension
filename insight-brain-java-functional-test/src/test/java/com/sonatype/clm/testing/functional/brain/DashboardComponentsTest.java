@@ -272,7 +272,7 @@ public class DashboardComponentsTest
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
     DashboardFilters.apply();
-    DashboardFilters.closeFilter();;
+    DashboardFilters.closeFilter();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
@@ -487,7 +487,7 @@ public class DashboardComponentsTest
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(0, 10);
     DashboardFilters.apply();
-    DashboardFilters.closeFilter();;
+    DashboardFilters.closeFilter();
   }
 
   private void clearFilters() {

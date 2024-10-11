@@ -339,7 +339,10 @@ public class RepositoryPolicyViolationDAO
       RepositoryResultsDetailsFilter detailsFilter)
   {
     try (TransactionContext tx = createTransactionContext()) {
-      String[] threatLevelPolicyNameParts = getThreatLevelPolicyNameParts(detailsFilter);
+      String part1 = "MAX(CONCAT(LPAD(CAST(violation.threat_level AS varchar), 2, '0'), violation.policy_name))";
+      String part2 = "SUBSTRING(threat_level_and_policy_name, 1, 2)";
+      String part3 = "SUBSTRING(threat_level_and_policy_name, 3)";
+      String[] threatLevelPolicyNameParts = new String[]{part1, part2, part3};
       int repositoryIdsSize = repositoryIds.size();
       int threatLevelFiltersSize =
           detailsFilter.threatLevelFilters != null ? detailsFilter.threatLevelFilters.size() : 0;
@@ -443,40 +446,6 @@ public class RepositoryPolicyViolationDAO
 
       return results;
     }
-  }
-
-  private String[] getThreatLevelPolicyNameParts(RepositoryResultsDetailsFilter detailsFilter) {
-    String part1 = "MAX(CONCAT(LPAD(CAST(violation.threat_level AS varchar), 2, '0'), violation.policy_name))";
-    String part2 = "SUBSTRING(threat_level_and_policy_name, 1, 2)";
-    String part3 = "SUBSTRING(threat_level_and_policy_name, 3)";
-    if (!CollectionUtils.isEmpty(detailsFilter.sortFields)) {
-      detailsFilter.sortFields.sort(Comparator.comparing(field -> field.sortPriority));
-      for (SortField sortField : detailsFilter.sortFields) {
-        if (sortField.sortableField == SortableField.POLICY_THREAT_LEVEL) {
-          if (sortField.asc) {
-            part1 = "MIN(CONCAT(LPAD(CAST(violation.threat_level AS varchar), 2, '0'), violation.policy_name))";
-          }
-          else {
-            part1 = "MAX(CONCAT(LPAD(CAST(violation.threat_level AS varchar), 2, '0'), violation.policy_name))";
-          }
-          part2 = "SUBSTRING(threat_level_and_policy_name, 1, 2)";
-          part3 = "SUBSTRING(threat_level_and_policy_name, 3)";
-          break;
-        }
-        if (sortField.sortableField == SortableField.POLICY_NAME) {
-          if (sortField.asc) {
-            part1 = "MIN(CONCAT(violation.policy_name, LPAD(CAST(violation.threat_level AS varchar), 2, '0')))";
-          }
-          else {
-            part1 = "MAX(CONCAT(violation.policy_name, LPAD(CAST(violation.threat_level AS varchar), 2, '0')))";
-          }
-          part2 = "SUBSTRING(threat_level_and_policy_name, LENGTH(threat_level_and_policy_name) - 1)";
-          part3 = "SUBSTRING(threat_level_and_policy_name, 1, LENGTH(threat_level_and_policy_name) - 2)";
-          break;
-        }
-      }
-    }
-    return new String[]{part1, part2, part3};
   }
 
   public Map<Integer, Integer> getCountsByPolicyThreatLevel(String repositoryId) {

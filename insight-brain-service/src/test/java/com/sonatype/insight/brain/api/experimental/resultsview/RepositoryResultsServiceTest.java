@@ -410,8 +410,8 @@ public class RepositoryResultsServiceTest
     List<RepositoryResultsDetailsDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
 
     assertThat(repositoryResultsDetails).hasSize(2);
-    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(5);
-    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy2");
+    assertThat(repositoryResultsDetails.get(0).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails.get(0).policyName).isEqualTo("policy1");
     assertThat(repositoryResultsDetails.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
     assertThat(repositoryResultsDetails.get(0).quarantineTime).isEqualTo(date);
     assertThat(repositoryResultsDetails.get(0).waived).isNull();

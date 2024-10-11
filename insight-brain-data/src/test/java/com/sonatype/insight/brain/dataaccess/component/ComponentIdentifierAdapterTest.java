@@ -210,6 +210,17 @@ public class ComponentIdentifierAdapterTest
   }
 
   @Test
+  public void testGetPackageUrlIdentifier_MisleadingPurlLikePath() {
+    ObjectMapper mapper = new ObjectMapper();
+    ObjectNode node = mapper.createObjectNode();
+    ArrayNode list = node.putArray("pathnames");
+    list.add("dependency:/org.example:maven-java:jar:1.0/com.example.pkg:some-pkg:jar:1.0");
+    PackageUrlIdentifier purl = ComponentIdentifierAdapter.getPackageUrlIdentifier(node);
+
+    assertThat(purl.getPackageUrl()).isEqualTo("pkg:maven/com.example.pkg/some-pkg@1.0?type=jar");
+  }
+
+  @Test
   public void testToComponentIdentifier_FromFormatNameAndVersion() {
     final ComponentIdentifier identifier =
         ComponentIdentifierAdapter.toComponentIdentifier("nuget", "package","2.0");

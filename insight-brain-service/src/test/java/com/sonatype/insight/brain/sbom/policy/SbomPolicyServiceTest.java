@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.sbom.policy;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.inject.Inject;
@@ -24,7 +25,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.test.reverseproxy.jetty.io.RuntimeIOException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.io.FileUtils;
@@ -81,7 +81,7 @@ public class SbomPolicyServiceTest
         return JsonUtils.parse(reportEntry.buf, PolicyThreats.class);
       }
       catch (IOException e) {
-        throw new RuntimeIOException(e);
+        throw new UncheckedIOException(e);
       }
     });
   }
@@ -93,7 +93,7 @@ public class SbomPolicyServiceTest
         return service.getPolicyViolations(app.getId(), sbomVersion);
       }
       catch (IOException e) {
-        throw new RuntimeIOException(e);
+        throw new UncheckedIOException(e);
       }
     });
   }
@@ -146,7 +146,7 @@ public class SbomPolicyServiceTest
         return JsonUtils.asPojo(jsonNode, PolicyThreats.Component.class);
       }
       catch (IOException e) {
-        throw new RuntimeIOException(e);
+        throw new UncheckedIOException(e);
       }
     });
   }
@@ -158,7 +158,7 @@ public class SbomPolicyServiceTest
         return service.getPolicyViolationsByFileCoordinateId(app.getId(), sbomVersion, fileCoordinateId);
       }
       catch (IOException e) {
-        throw new RuntimeIOException(e);
+        throw new UncheckedIOException(e);
       }
     });
   }

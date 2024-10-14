@@ -119,7 +119,7 @@ public class SbomImportService
     String requestId = Base64.getEncoder().encodeToString(
         String.format("%s-%s-%s", fileNameUUID, result.mimeType,
             result.summary != null ? result.summary.specification : "").getBytes());
-    return new SbomDetectionResultDTO(requestId, result.summary, result.errorMessage);
+    return new SbomDetectionResultDTO(requestId, result.summary, result.errorMessage, result.errors);
   }
 
   @Authorize(permission = Permission.WRITE)

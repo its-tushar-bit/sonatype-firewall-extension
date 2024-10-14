@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.sbom.ingestion;
 
+import java.util.List;
+
 import com.sonatype.insight.brain.sbom.utils.SbomSummary;
 
 public class SbomDetectionResultDTO
@@ -15,14 +17,17 @@ public class SbomDetectionResultDTO
 
   private String errorMessage;
 
+  private List<String> errors;
+
   public SbomDetectionResultDTO() {
     // jackson
   }
 
-  public SbomDetectionResultDTO(String requestId, SbomSummary sbomSummary, String errorMessage) {
+  public SbomDetectionResultDTO(String requestId, SbomSummary sbomSummary, String errorMessage, List<String> errors) {
     this.requestId = requestId;
     this.sbomSummary = sbomSummary;
     this.errorMessage = errorMessage;
+    this.errors = errors;
   }
 
   public String getRequestId() {
@@ -47,5 +52,13 @@ public class SbomDetectionResultDTO
 
   public void setErrorMessage(String errorMessage) {
     this.errorMessage = errorMessage;
+  }
+
+  public List<String> getErrors() {
+    return errors;
+  }
+
+  public void setErrors(List<String> errors) {
+    this.errors = errors;
   }
 }

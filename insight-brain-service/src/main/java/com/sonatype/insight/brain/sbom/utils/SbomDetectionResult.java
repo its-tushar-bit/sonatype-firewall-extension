@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.sbom.utils;
 
+import java.util.List;
+
 public class SbomDetectionResult
 {
   public boolean isSbom = false;
@@ -12,6 +14,8 @@ public class SbomDetectionResult
   public boolean isBinary = false;
 
   public String errorMessage;
+
+  public List<String> errors;
 
   public String mimeType;
 

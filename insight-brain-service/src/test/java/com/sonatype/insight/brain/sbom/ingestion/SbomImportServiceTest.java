@@ -105,6 +105,7 @@ public class SbomImportServiceTest
         .detectSbom(application.getId(), new ByteArrayInputStream(Files.readAllBytes(sbom.toPath())));
     assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getErrorMessage()).isNullOrEmpty();
+    assertThat(actual.getErrors()).isNullOrEmpty();
     assertThat(actual.getSbomSummary().specification).isEqualTo(expected.summary.specification);
     assertThat(actual.getSbomSummary().format).isEqualTo(expected.summary.format);
     assertThat(actual.getSbomSummary().version).isEqualTo(expected.summary.version);
@@ -136,6 +137,7 @@ public class SbomImportServiceTest
         .detectSbom(application.getId(), new ByteArrayInputStream(Files.readAllBytes(sbom.toPath())));
     assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getErrorMessage()).isNullOrEmpty();
+    assertThat(actual.getErrors()).isNullOrEmpty();
     assertThat(actual.getSbomSummary().specification).isEqualTo(expected.summary.specification);
     assertThat(actual.getSbomSummary().format).isEqualTo(expected.summary.format);
     assertThat(actual.getSbomSummary().version).isEqualTo(expected.summary.version);
@@ -153,6 +155,7 @@ public class SbomImportServiceTest
     assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getSbomSummary()).isNull();
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid/supported sbom file.");
+    assertThat(actual.getErrors()).isNullOrEmpty();
     assertTempSbomFile(actual.getRequestId(), false);
   }
 
@@ -163,6 +166,151 @@ public class SbomImportServiceTest
     assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getSbomSummary()).isNull();
     assertThat(actual.getErrorMessage()).isEqualTo("Provided file type is not a supported SBOM file type.");
+    assertThat(actual.getErrors()).isNullOrEmpty();
+    assertTempSbomFile(actual.getRequestId(), false);
+  }
+
+  @Test
+  public void testDetectSbom_Failure_Invalid_CDX_JSON() {
+    String sbom = """
+        {
+          "bomFormat": "CycloneDX",
+          "specVersion": "1.4",
+          "version": 1,
+          "components": [
+            {
+              "type": "library",
+              "name": "example-library-1",
+              "version": "1.0.0"
+            },
+            {
+              "name": "example-library-2",
+              "version": "1.0.0"
+            },
+            {
+              "name": "example-library-3",
+              "version": "1.0.0"
+            }
+          ]
+        }
+        """;
+    SbomDetectionResultDTO actual = sbomImportService.detectSbom(application.getId(),
+        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)));
+    assertThat(actual.getRequestId()).isNotEmpty();
+    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDx SBOM file.");
+    assertThat(actual.getErrors()).containsExactly(
+        "$.components[1]: required property 'type' not found",
+        "$.components[2]: required property 'type' not found"
+    );
+    assertTempSbomFile(actual.getRequestId(), false);
+  }
+
+  @Test
+  public void testDetectSbom_Failure_Invalid_CDX_XML() {
+    String sbom = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <bom xmlns="http://cyclonedx.org/schema/bom/1.4" version="1">
+          <components>
+            <component type="library">
+              <name>example-library1</name>
+              <version>1.0.0</version>
+            </component>
+            <component>
+              <name>example-library2</name>
+              <version>1.0.0</version>
+            </component>
+            <component>
+              <name>example-library3</name>
+              <version>1.0.0</version>
+            </component>
+          </components>
+        </bom>
+        """;
+    SbomDetectionResultDTO actual = sbomImportService.detectSbom(application.getId(),
+        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)));
+    assertThat(actual.getRequestId()).isNotEmpty();
+    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDx SBOM file.");
+    assertThat(actual.getErrors()).containsExactly(
+        "cvc-complex-type.4: Attribute 'type' must appear on element 'component'.",
+        "cvc-complex-type.4: Attribute 'type' must appear on element 'component'."
+    );
+    assertTempSbomFile(actual.getRequestId(), false);
+  }
+
+  @Test
+  public void testDetectSbom_Failure_Invalid_SPDX_JSON() {
+    String sbom = """
+        {
+          "spdxVersion": "SPDX-2.3",
+          "SPDXID": "SPDXRef-DOCUMENT",
+          "name": "DummySPDXFile",
+          "documentNamespace": "http://spdx.org/spdxdocs/DummySPDXFile",
+          "documentDescribes" : [ "SPDXRef-Package1" ],
+          "packages": [
+            {
+              "name": "DummyComponent1",
+              "SPDXID": "SPDXRef-Package1",
+              "downloadLocation" : "http://some-download-1"
+            },
+            {
+              "name": "DummyComponent2",
+              "SPDXID": "SPDXRef-Package2"
+            },
+            {
+              "name": "DummyComponent3",
+              "SPDXID": "SPDXRef-Package3"
+            }
+          ]
+        }
+        """;
+    SbomDetectionResultDTO actual = sbomImportService.detectSbom(application.getId(),
+        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)));
+    assertThat(actual.getRequestId()).isNotEmpty();
+    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getErrorMessage()).isEqualTo("Not a valid SPDX SBOM file.");
+    assertThat(actual.getErrors()).containsExactly(
+        "Missing required Creator",
+        "Missing required data license"
+    );
+    assertTempSbomFile(actual.getRequestId(), false);
+  }
+
+  @Test
+  public void testDetectSbom_Failure_Invalid_SPDX_XML() {
+    String sbom = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Document>
+          <spdxVersion>SPDX-2.3</spdxVersion>
+          <SPDXID>SPDXRef-DOCUMENT</SPDXID>
+          <name>DummySPDXFile</name>
+          <documentNamespace>http://spdx.org/spdxdocs/DummySPDXFile</documentNamespace>
+          <documentDescribes>SPDXRef-Package1</documentDescribes>
+          <packages>
+            <name>DummyComponent1</name>
+            <SPDXID>SPDXRef-Package1</SPDXID>
+            <downloadLocation>http://some-download-1</downloadLocation>
+          </packages>
+          <packages>
+            <name>DummyComponent2</name>
+            <SPDXID>SPDXRef-Package2</SPDXID>
+          </packages>
+          <packages>
+            <name>DummyComponent3</name>
+            <SPDXID>SPDXRef-Package3</SPDXID>
+          </packages>
+        </Document>
+        """;
+    SbomDetectionResultDTO actual = sbomImportService.detectSbom(application.getId(),
+        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)));
+    assertThat(actual.getRequestId()).isNotEmpty();
+    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getErrorMessage()).isEqualTo("Not a valid SPDX SBOM file.");
+    assertThat(actual.getErrors()).containsExactly(
+        "Missing required Creator",
+        "Missing required data license"
+    );
     assertTempSbomFile(actual.getRequestId(), false);
   }
 

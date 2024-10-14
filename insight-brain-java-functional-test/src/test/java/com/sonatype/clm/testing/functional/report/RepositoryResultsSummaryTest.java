@@ -855,18 +855,18 @@ public class RepositoryResultsSummaryTest
     RepositoryResultDetailPage.table().header().threat().click();
 
     // Check first row of the table
-    testRow(RepositoryResultDetailPage.table().row(0), "1", "Policy Threat Level 1", "2020-06-01",
-        "groupId1 : artifactId1 : jar : classifier1 : version1");
+    testRow(RepositoryResultDetailPage.table().row(0), "1", "Policy Threat Level 1", "",
+        "groupId11 : artifactId11 : jar : classifier11 : version11");
 
     // Check last row of the table
-    testRow(RepositoryResultDetailPage.table().row(11), "6", "Policy Threat Level 6", "2020-06-06",
-        "groupId6 : artifactId6 : jar : classifier6 : version6");
+    testRow(RepositoryResultDetailPage.table().row(11), "10", "Policy Threat Level 10", "2020-06-05",
+        "groupId5 : artifactId5 : jar : classifier5 : version5");
 
     rightPagination.click();
 
     // Check first row of the table
-    testRow(RepositoryResultDetailPage.table().row(0), "7", "Policy Threat Level 7", "2020-06-07",
-        "groupId7 : artifactId7 : jar : classifier7 : version7");
+    testRow(RepositoryResultDetailPage.table().row(0), "10", "Policy Threat Level 10", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
 
     // Check last row of the table
     testRow(RepositoryResultDetailPage.table().row(9), "0", "No Violations", "",
@@ -1125,15 +1125,15 @@ public class RepositoryResultsSummaryTest
     // 2: Quarantined Asc
     // 3: Policy Asc
     // 4: Component Asc
-    testRow(RepositoryResultDetailPage.table().row(0), "1", "Policy Threat Level 1", "2020-06-01",
-        "groupId1 : artifactId1 : jar : classifier1 : version1");
-    testRow(RepositoryResultDetailPage.table().row(11), "6", "Policy Threat Level 6", "2020-06-06",
-        "groupId6 : artifactId6 : jar : classifier6 : version6");
+    testRow(RepositoryResultDetailPage.table().row(0), "1", "Policy Threat Level 1", "",
+        "groupId11 : artifactId11 : jar : classifier11 : version11");
+    testRow(RepositoryResultDetailPage.table().row(11), "10", "Policy Threat Level 10", "2020-06-02",
+        "groupId2 : artifactId2 : jar : classifier2 : version2");
 
     rightPagination.click();
 
-    testRow(RepositoryResultDetailPage.table().row(0), "7", "Policy Threat Level 7", "2020-06-07",
-        "groupId7 : artifactId7 : jar : classifier7 : version7");
+    testRow(RepositoryResultDetailPage.table().row(0), "10", "Policy Threat Level 10", "2020-06-03",
+        "groupId3 : artifactId3 : jar : classifier3 : version3");
     testRow(RepositoryResultDetailPage.table().row(9), "0", "No Violations", "",
         "groupId25 : artifactId25 : jar : classifier25 : version25");
 
@@ -1146,8 +1146,8 @@ public class RepositoryResultsSummaryTest
     // 2: Threat Asc
     // 3: Quarantined Asc
     // 4: Component Asc
-    testRow(RepositoryResultDetailPage.table().row(0), "9", "Policy Threat Level 9", "2020-06-01",
-        "groupId1 : artifactId1 : jar : classifier1 : version1");
+    testRow(RepositoryResultDetailPage.table().row(0), "9", "Policy Threat Level 9", "2020-06-09",
+        "groupId9 : artifactId9 : jar : classifier9 : version9");
     testRow(RepositoryResultDetailPage.table().row(11), "1", "Policy Threat Level 1", "",
         "groupId12 : artifactId12 : jar : classifier12 : version12");
 
@@ -1176,7 +1176,7 @@ public class RepositoryResultsSummaryTest
 
     testRow(RepositoryResultDetailPage.table().row(0), "0", "No Violations", "",
         "groupId20 : artifactId20 : jar : classifier20 : version20");
-    testRow(RepositoryResultDetailPage.table().row(9), "9", "Policy Threat Level 9", "2020-06-01",
+    testRow(RepositoryResultDetailPage.table().row(9), "10", "Policy Threat Level 10", "2020-06-01",
         "groupId1 : artifactId1 : jar : classifier1 : version1");
 
     leftPagination.click();

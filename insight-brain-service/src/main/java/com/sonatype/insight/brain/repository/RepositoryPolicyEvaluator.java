@@ -54,6 +54,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -253,7 +254,12 @@ public class RepositoryPolicyEvaluator
         policies, components.stream().filter(Objects::nonNull).collect(Collectors.toList()), false /* forMonitoring */);
 
     Map<Component, List<PolicyAlert>> policyAlertsByComponent =
-        groupPolicyAlertsByComponent(policyResults, components);
+        groupPolicyAlertsByComponent(policyResults.getActiveAlerts(), components);
+
+    Map<Component, List<PolicyAlert>> waivedAlertsByComponent =
+        groupPolicyAlertsByComponent(policyResults.getWaivedAlerts(), components);
+
+    List<PolicyNotification> policyNotifications = policyResults.getActiveNotifications();
 
     // Only notify new component evaluation policy violations
     boolean shouldSendNotifications =
@@ -278,16 +284,24 @@ public class RepositoryPolicyEvaluator
           repositoryComponentEvaluationResult.catalogDate = new Date(component.getCatalogDate());
         }
         if (persistEvaluationResults) {
+          List<PolicyAlert> activeAlerts = policyAlertsByComponent.getOrDefault(component, Collections.emptyList());
+          List<PolicyAlert> waivedAlerts = waivedAlertsByComponent.getOrDefault(component, Collections.emptyList());
+          Map<PolicyAlert, PolicyWaiver> policyWaiversByComponent =
+              getPolicyWaivers(policyResults, waivedAlerts, component);
+
           RepositoryComponent repositoryComponent = persistEvaluationResults(
               repository,
               now,
               component,
-              policyResults,
               policies,
               withQuarantine,
               shouldSendNotifications,
               forMonitoring,
-              event);
+              event,
+              activeAlerts,
+              waivedAlerts,
+              policyWaiversByComponent,
+              policyNotifications);
           repositoryComponentEvaluationResult.quarantine = repositoryComponent.isQuarantined();
         }
         else {
@@ -310,7 +324,7 @@ public class RepositoryPolicyEvaluator
 
     // Only notify new component evaluation policy violations
     if (shouldSendNotifications) {
-      repositoryPolicyAlertEmailer.sendNotifications(repository, policyResults.getActiveNotifications());
+      repositoryPolicyAlertEmailer.sendNotifications(repository, policyNotifications);
     }
     log.trace("Evaluated {} components with quarantine {} for repository {} in {} ms.",
         componentEvaluationDataRequestList.components.size(), withQuarantine,
@@ -319,18 +333,37 @@ public class RepositoryPolicyEvaluator
   }
 
   private Map<Component, List<PolicyAlert>> groupPolicyAlertsByComponent(
-      final PolicyResults policyResults,
+      final List<PolicyAlert> policyAlerts,
       final List<Component> components)
   {
     Map<Component, List<PolicyAlert>> policyAlertsByComponent = new HashMap<>();
 
-    for (PolicyAlert policyAlert : policyResults.getActiveAlerts()) {
+    for (PolicyAlert policyAlert : policyAlerts) {
       Component component = findComponentForAlert(policyAlert, components);
       if (component != null) {
         policyAlertsByComponent.computeIfAbsent(component, k -> new ArrayList<>()).add(policyAlert);
       }
     }
     return policyAlertsByComponent;
+  }
+
+  private Map<PolicyAlert, PolicyWaiver> getPolicyWaivers(
+      final PolicyResults policyResults,
+      final List<PolicyAlert> waivedAlerts,
+      final Component component)
+  {
+    Map<PolicyAlert, PolicyWaiver> policyWaiverByComponent = new HashMap<>();
+
+    for (PolicyAlert policyAlert : waivedAlerts) {
+      ComponentFact componentFact = getComponentFact(policyAlert, component);
+      if (componentFact == null) {
+        continue;
+      }
+
+      PolicyWaiver policyWaiver = policyResults.getPolicyWaiver(componentFact);
+      policyWaiverByComponent.put(policyAlert, policyWaiver);
+    }
+    return policyWaiverByComponent;
   }
 
   private Component findComponentForAlert(final PolicyAlert policyAlert, final List<Component> components) {
@@ -399,12 +432,15 @@ public class RepositoryPolicyEvaluator
       Repository repository,
       Date evaluationTime,
       Component component,
-      PolicyResults policyResults,
       List<Policy> policies,
       boolean canBeQuarantined,
       boolean isNotificationsToBeSent,
       boolean forMonitoring,
-      CreateRepositoryPolicyViolationsEvent event)
+      CreateRepositoryPolicyViolationsEvent event,
+      List<PolicyAlert> activeAlerts,
+      List<PolicyAlert> waivedAlerts,
+      Map<PolicyAlert, PolicyWaiver> policyWaiversByComponent,
+      List<PolicyNotification> policyNotifications)
   {
     RepositoryComponent repositoryComponent;
     try (ClusterLock clusterLock =
@@ -416,11 +452,15 @@ public class RepositoryPolicyEvaluator
       RepositoryPolicyViolationLogger policyViolationLogger =
           policyViolationLoggerFactory.newLogger(evaluationTime, repository);
 
+      List<PolicyAlert> allPolicyAlertsByComponent = new ArrayList<>();
+      allPolicyAlertsByComponent.addAll(activeAlerts);
+      allPolicyAlertsByComponent.addAll(waivedAlerts);
+
       // The order of the following calls are important and must not be changed. See: CLM-13853
-      persistPolicyViolations(tx, repository, evaluationTime, component, policyResults, policies,
-          policyViolationLogger, event);
+      persistPolicyViolations(tx, repository, evaluationTime, component, policies,
+          policyViolationLogger, event, allPolicyAlertsByComponent, policyWaiversByComponent);
       repositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
-          canBeQuarantined, policyResults, isNotificationsToBeSent, forMonitoring);
+          canBeQuarantined, isNotificationsToBeSent, forMonitoring, activeAlerts, policyNotifications);
 
       tx.commit();
       AuditData.get().commitSubEvents();
@@ -435,9 +475,10 @@ public class RepositoryPolicyEvaluator
       Date evaluationTime,
       Component component,
       boolean canBeQuarantined,
-      PolicyResults policyResults,
       boolean isNotificationsToBeSent,
-      boolean forMonitoring)
+      boolean forMonitoring,
+      List<PolicyAlert> activeAlerts,
+      List<PolicyNotification> policyNotifications)
   {
     String pathname = component.getPathnames().get(0);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(tx,
@@ -452,7 +493,7 @@ public class RepositoryPolicyEvaluator
       }
     }
     if (repositoryComponent == null || !repositoryComponent.getHash().equals(component.getHash())) {
-      boolean quarantine = canBeQuarantined && shouldQuarantine(policyResults.getActiveAlerts(), component);
+      boolean quarantine = canBeQuarantined && shouldQuarantine(activeAlerts, component);
       if (quarantine) {
         log.debug("Component {} in repository {}:{} ({}) was quarantined", pathname,
             repository.getRepositoryManagerId(), repository.getPublicId(), repository.getId());
@@ -483,7 +524,7 @@ public class RepositoryPolicyEvaluator
       repositoryComponent.setLastEvaluationTime(evaluationTime);
       repositoryComponent.setAnalyzerFeaturesJson(JsonUtils.format(component.getAnalyzerFeatures()));
 
-      if (repositoryComponent.isQuarantined() && !shouldQuarantine(policyResults.getActiveAlerts(), component)) {
+      if (repositoryComponent.isQuarantined() && !shouldQuarantine(activeAlerts, component)) {
         // The component is quarantined, but it doesn't have any policy violations/alerts that would quarantine it
         // anymore.
         unquarantineComponent(repository, repositoryComponent, evaluationTime, forMonitoring);
@@ -491,7 +532,7 @@ public class RepositoryPolicyEvaluator
 
       repositoryComponentDAO.update(tx, repositoryComponent);
     }
-    sendRepositoryComponentTelemetry(policyResults, repositoryComponent, repository, isNotificationsToBeSent);
+    sendRepositoryComponentTelemetry(policyNotifications, repositoryComponent, repository, isNotificationsToBeSent);
     return repositoryComponent;
   }
 
@@ -524,7 +565,7 @@ public class RepositoryPolicyEvaluator
   }
 
   private void sendRepositoryComponentTelemetry(
-      final PolicyResults policyResults,
+      final List<PolicyNotification> policyNotifications,
       final RepositoryComponent repositoryComponent,
       final Repository repository,
       final boolean isNotificationsToBeSent)
@@ -535,7 +576,7 @@ public class RepositoryPolicyEvaluator
         repositoryPolicyViolations, repository.getRepositoryManagerId(),
         repositoryComponent.isQuarantined() ? RepositoryComponentTelemetryEventType.QUARANTINE
             : RepositoryComponentTelemetryEventType.AUDIT,
-        isNotificationsToBeSent ? policyResults.getActiveNotifications() : Collections.emptyList());
+        isNotificationsToBeSent ? policyNotifications : Collections.emptyList());
   }
 
   private void persistPolicyViolations(
@@ -543,10 +584,11 @@ public class RepositoryPolicyEvaluator
       Repository repository,
       Date evaluationTime,
       Component component,
-      PolicyResults policyResults,
       List<Policy> policies,
       RepositoryPolicyViolationLogger policyViolationLogger,
-      CreateRepositoryPolicyViolationsEvent event)
+      CreateRepositoryPolicyViolationsEvent event,
+      List<PolicyAlert> allPolicyAlertsByComponent,
+      Map<PolicyAlert, PolicyWaiver> policyWaiversByComponent)
   {
     String pathname = component.getPathnames().get(0);
     // Get the persisted RepositoryPolicyViolations for this component
@@ -555,10 +597,7 @@ public class RepositoryPolicyEvaluator
 
     // Build the list of current RepositoryPolicyViolations for this component
     List<RepositoryPolicyViolation> newPolicyViolations = new ArrayList<>();
-    List<PolicyAlert> allPolicyAlerts = new ArrayList<>();
-    allPolicyAlerts.addAll(policyResults.getActiveAlerts());
-    allPolicyAlerts.addAll(policyResults.getWaivedAlerts());
-    for (PolicyAlert policyAlert : allPolicyAlerts) {
+    for (PolicyAlert policyAlert : allPolicyAlertsByComponent) {
       ComponentFact componentFact = getComponentFact(policyAlert, component);
       if (componentFact == null) {
         continue;
@@ -570,7 +609,7 @@ public class RepositoryPolicyEvaluator
 
       RepositoryPolicyViolation policyViolation = createRepositoryPolicyViolation(policyAlert, policy, componentFact,
           pathname,
-          repository, evaluationTime, policyResults.getPolicyWaiver(componentFact));
+          repository, evaluationTime, policyWaiversByComponent.get(policyAlert));
       newPolicyViolations.add(policyViolation);
     }
 

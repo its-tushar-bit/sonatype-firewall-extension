@@ -77,6 +77,9 @@ public class ScanUploadService
     }
     ThirdPartyScanContext tpScanContext =
         getThirdPartyScanContextIfAvailable(scanRequestId, scanFile, app, stageTypeId);
+    if (thirdPartyScanTelemetryData != null) {
+      thirdPartyScanTelemetryData.put("scan_file_type", tpScanContext.getScanType().name());
+    }
     ScanReceipt scanReceipt;
     if (ClientScanType.SONATYPE_THIRD_PARTY.equals(clientScanType)) {
       scanReceipt =

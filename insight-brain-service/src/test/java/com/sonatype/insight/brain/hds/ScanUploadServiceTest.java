@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.HashMap;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -27,6 +28,8 @@ import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanContext;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultsProcessor;
 import com.sonatype.insight.scan.model.ClientScanType;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
@@ -63,6 +66,8 @@ public class ScanUploadServiceTest
 
   private Application app;
 
+  private TelemetryData thirdPartyScanTelemetryData;
+
   @Before
   public void before() {
     app = tempEntity.newApplicationWithParent("ScanUploadServiceTest-PublicId", "ScanUploadServiceTest-Id");
@@ -73,6 +78,7 @@ public class ScanUploadServiceTest
     work = lookup(InsightWork.class);
     service = new ScanUploadService(thirdPartyScanResultsProcessorMock, scanUploader, thirdPartyScanDAO,
         thirdPartySbomMetadataDAO, work);
+    thirdPartyScanTelemetryData = buildThirdPartyScanTelemetryData();
   }
 
   @Test
@@ -150,10 +156,12 @@ public class ScanUploadServiceTest
     String stageTypeId = ReleaseStageType.ID;
     File scanFile = createScanFile(app, RandomStringUtils.randomAlphanumeric(10));
 
-    service.upload(scanFile, app, stageTypeId, null, null, null, null);
+    service.upload(scanFile, app, stageTypeId, null, null, thirdPartyScanTelemetryData, null);
 
     verify(scanUploader, times(1)).upload(eq(scanFile), eq(app), eq(stageTypeId), eq(null));
     verify(thirdPartyScanDAO, never()).updateScanIdForScanRequest(any(), any());
+    assertThat(thirdPartyScanTelemetryData.getAttributes()).extracting("scan_file_type")
+        .isEqualTo(SbomScanType.SBOM.name());
   }
 
   @Test
@@ -176,11 +184,14 @@ public class ScanUploadServiceTest
     when(scanUploader.upload(any(File.class), eq(app), eq(stageTypeId), eq(null))).thenReturn(mockReceipt);
 
     ScanReceipt uploadReceipt =
-        service.upload(scanFile, app, stageTypeId, ClientScanType.SONATYPE, null, null, scanRequestId);
+        service.upload(scanFile, app, stageTypeId, ClientScanType.SONATYPE, null, thirdPartyScanTelemetryData,
+            scanRequestId);
 
     verify(scanUploader, times(1)).upload(any(File.class), eq(app), eq(stageTypeId), eq(null));
     verify(thirdPartyScanDAO, times(1)).updateScanIdForScanRequest(scanRequestId, mockReceipt.getScanId());
     assertThat(uploadReceipt).isEqualTo(mockReceipt);
+    assertThat(thirdPartyScanTelemetryData.getAttributes()).extracting("scan_file_type")
+        .isEqualTo(SbomScanType.BINARY.name());
   }
 
   @Test
@@ -203,11 +214,14 @@ public class ScanUploadServiceTest
     when(scanUploader.upload(any(File.class), eq(app), eq(stageTypeId), eq(null))).thenReturn(mockReceipt);
 
     ScanReceipt uploadReceipt =
-        service.upload(scanFile, app, stageTypeId, ClientScanType.SONATYPE_THIRD_PARTY, null, null, scanRequestId);
+        service.upload(scanFile, app, stageTypeId, ClientScanType.SONATYPE_THIRD_PARTY, null,
+            thirdPartyScanTelemetryData, scanRequestId);
 
     verify(scanUploader, times(1)).upload(any(File.class), eq(app), eq(stageTypeId), eq(null));
     verify(thirdPartyScanDAO, times(1)).updateScanIdForScanRequest(scanRequestId, mockReceipt.getScanId());
     assertThat(uploadReceipt).isEqualTo(mockReceipt);
+    assertThat(thirdPartyScanTelemetryData.getAttributes()).extracting("scan_file_type")
+        .isEqualTo(SbomScanType.BINARY.name());
   }
 
   @Test
@@ -232,5 +246,11 @@ public class ScanUploadServiceTest
       throw new RuntimeException(e);
     }
     return scanFile;
+  }
+
+  private TelemetryData buildThirdPartyScanTelemetryData() {
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.THIRD_PARTY_SCAN_USAGE);
+    telemetryData.setAttributes(new HashMap<>());
+    return telemetryData;
   }
 }

@@ -314,7 +314,7 @@ class ApiSastScanService
 
   private static Map<String, Object> jsonStringToMap(final String jsonString) throws JsonProcessingException {
     final ObjectMapper mapper = configureObjectMapper(new ObjectMapper());
-    final TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>(){};
+    final TypeReference<HashMap<String, Object>> typeRef = new TypeReference<>(){};
     return mapper.readValue(jsonString, typeRef);
   }
 

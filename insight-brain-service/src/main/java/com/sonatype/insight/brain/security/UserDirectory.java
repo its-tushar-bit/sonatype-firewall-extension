@@ -126,7 +126,7 @@ public class UserDirectory
    */
   public QueryResult getMembersByName(Collection<Member> members) {
     if (members == null || members.isEmpty()) {
-      return new QueryResult(new ArrayList<Member>());
+      return new QueryResult(new ArrayList<>());
     }
 
     QueryResult result = getUsersByName(getNameByType(members, MemberType.USER));
@@ -220,7 +220,7 @@ public class UserDirectory
    */
   public QueryResult getUsersByName(Set<String> origUserNames) {
     if (origUserNames == null || origUserNames.isEmpty()) {
-      return new QueryResult(new ArrayList<Member>());
+      return new QueryResult(new ArrayList<>());
     }
 
     List<Member> members = new LinkedList<>();

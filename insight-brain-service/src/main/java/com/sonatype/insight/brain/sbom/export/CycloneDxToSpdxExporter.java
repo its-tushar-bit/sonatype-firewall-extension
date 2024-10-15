@@ -405,7 +405,7 @@ public class CycloneDxToSpdxExporter
 
     if (Type.FILE.equals(componentType) && !containsPackageOnlyProperties(component)) {
       element = newDocument.createSpdxFile(elementId, name,
-              new SpdxNoAssertionLicense(), new ArrayList<AnyLicenseInfo>(), copyright, sha1)
+              new SpdxNoAssertionLicense(), new ArrayList<>(), copyright, sha1)
           .build();
       setFileProperties((SpdxFile) element, component);
     }
@@ -443,7 +443,7 @@ public class CycloneDxToSpdxExporter
       if (Type.FILE.equals(component.getType())) {
         spdxPackage.setPackageFileName(spdxPackage.getName().get());
         spdxPackage.setPackageVerificationCode(
-            spdxPackage.createPackageVerificationCode(spdxPackage.getSha1(), new ArrayList<String>()));
+            spdxPackage.createPackageVerificationCode(spdxPackage.getSha1(), new ArrayList<>()));
       }
     }
     spdxPackage.setLicenseDeclared(

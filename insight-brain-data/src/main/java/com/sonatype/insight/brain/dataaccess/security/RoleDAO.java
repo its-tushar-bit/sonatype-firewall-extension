@@ -193,7 +193,7 @@ public class RoleDAO
   public Set<String> getObfuscatedRolesByUserCaseInsensitiveAndGroups(String username, Set<String> groups) {
     String schm = getDatabaseSchema();
 
-    return new HashSet<String>(getListWithSqlInClause(groups, groupPartition -> {
+    return new HashSet<>(getListWithSqlInClause(groups, groupPartition -> {
       // This SQL query needs to work in H2 as well so we can't use array syntax
       String inParamString = createInParamString(groupPartition.size(), 2);
       Object[] params = new Object[1 + groupPartition.size()];

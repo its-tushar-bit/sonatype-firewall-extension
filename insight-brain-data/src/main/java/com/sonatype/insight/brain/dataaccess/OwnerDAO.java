@@ -269,7 +269,7 @@ public class OwnerDAO
       // Return an iterable that will initially return the passed-in owner and then call walkHierarchy on that
       // owner's parent lazily, only if needed
       return () -> {
-        return new Iterator<Owner>() {
+        return new Iterator<>() {
           private boolean returnedImmediateOwner = false;
 
           private Iterator<Owner> parentIterator;

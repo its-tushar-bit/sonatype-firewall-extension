@@ -188,7 +188,7 @@ public class LabelService
         context = currentContext;
       }
       else {
-        currentContext.setChildren(new ArrayList<ApplicableContext>());
+        currentContext.setChildren(new ArrayList<>());
         currentContext.getChildren().add(context);
         context = currentContext;
       }

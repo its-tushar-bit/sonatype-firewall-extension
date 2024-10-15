@@ -82,7 +82,7 @@ public class  WaiverDetailsTest extends AbstractFunctionalTest
 
     organization = tempEntity.newOrganization("Org 1");
     application = tempEntity.newApplication("App 1", "app1", organization.getId());
-    securityPolicies = new ArrayList<Policy>() {{
+    securityPolicies = new ArrayList<>() {{
         this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 1", 7));
         this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 2", 9));
         this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 3", 3));
@@ -92,7 +92,7 @@ public class  WaiverDetailsTest extends AbstractFunctionalTest
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application.getId(),
         StageTypes.BUILD.getId(), "scan1", false, false, Date.from(twoDaysAgo));
 
-    policyViolations = new ArrayList<PolicyViolation>() {{
+    policyViolations = new ArrayList<>() {{
         this.add(tempEntity.newPolicyViolation(policyEvaluation1, securityPolicies.get(0), "Group1",
             "Artifact1", "Version1", "hash1", "sonatype-2017-0507"));
         this.add(tempEntity.newPolicyViolation(policyEvaluation1, securityPolicies.get(1), "Group2",
@@ -104,7 +104,7 @@ public class  WaiverDetailsTest extends AbstractFunctionalTest
       }};
 
     // Component identifier for waivers
-    TreeMap<String, String> coordinates = new TreeMap<String, String>() {{
+    TreeMap<String, String> coordinates = new TreeMap<>() {{
         this.put("artifactId", "Artifact1");
         this.put("groupId", "Group1");
         this.put("version", "1.2.3");
@@ -165,7 +165,7 @@ public class  WaiverDetailsTest extends AbstractFunctionalTest
         .withWaverReasonId(waiverReason.getId())
         .build());
 
-    policyWaivers = new ArrayList<PolicyWaiver>() {{
+    policyWaivers = new ArrayList<>() {{
         add(policyWaiver1);
         add(policyWaiver2);
         add(policyWaiver3);

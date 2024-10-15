@@ -736,7 +736,7 @@ public class DashboardPolicyWaiverServiceTest
   public void getDashboardPolicyWaivers_ordersByComponentDisplayNameWithMatchStrategy() {
     String[] chars = "abc".split("");
     String[] formats = { FORMAT_MAVEN, FORMAT_PYPI, FORMAT_GOLANG };
-    ArrayList<ComponentMatcherStrategyForWaiver> waiverTypes = new ArrayList<ComponentMatcherStrategyForWaiver>() {{
+    ArrayList<ComponentMatcherStrategyForWaiver> waiverTypes = new ArrayList<>() {{
         this.add(EXACT_COMPONENT);
         this.add(EXACT_COMPONENT);
         this.add(ALL_VERSIONS);
@@ -1185,7 +1185,7 @@ public class DashboardPolicyWaiverServiceTest
         new ConditionFact(ConditionTypes.SecurityVulnerabilityStatusConditionType.getId(), 0, "summary", "reason",
             triggerReference);
     ConstraintFact constraintFact = new ConstraintFact("constraint id", "constraint name", "operator", conditionFact);
-    TreeMap<String, String> coordinates = new TreeMap<String, String>() {{
+    TreeMap<String, String> coordinates = new TreeMap<>() {{
         this.put("artifactId", "a1");
         this.put("groupId", "g1");
         this.put("version", "v1");

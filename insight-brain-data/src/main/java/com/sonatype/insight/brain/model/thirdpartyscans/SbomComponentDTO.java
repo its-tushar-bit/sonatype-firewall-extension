@@ -28,7 +28,7 @@ public class SbomComponentDTO
 {
   private static final Logger log = LoggerFactory.getLogger(SbomComponentDTO.class);
 
-  private static final TypeReference<Set<License>> LICENSE_TYPE_REFERENCE = new TypeReference<Set<License>>() { };
+  private static final TypeReference<Set<License>> LICENSE_TYPE_REFERENCE = new TypeReference<>() { };
 
   private String hash;
 

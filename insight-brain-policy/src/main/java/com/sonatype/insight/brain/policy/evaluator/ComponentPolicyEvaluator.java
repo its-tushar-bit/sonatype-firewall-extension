@@ -71,7 +71,7 @@ public class ComponentPolicyEvaluator
       .expireAfterAccess(24, TimeUnit.HOURS)
       .build(CacheLoader.from(Object::new));
 
-  static final Comparator<PolicyFact> POLICY_FACT_COMPARATOR = new Comparator<PolicyFact>()
+  static final Comparator<PolicyFact> POLICY_FACT_COMPARATOR = new Comparator<>()
   {
     @Override
     public int compare(final PolicyFact policyFact1, final PolicyFact policyFact2) {

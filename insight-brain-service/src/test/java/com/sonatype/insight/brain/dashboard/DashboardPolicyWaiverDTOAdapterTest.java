@@ -113,7 +113,7 @@ public class DashboardPolicyWaiverDTOAdapterTest
     ConditionFact conditionFact =
         new ConditionFact(ConditionTypes.SecurityVulnerabilityStatusConditionType.getId(), 0, "summary", "reason",
             triggerReference);
-    TreeMap<String, String> coordinates = new TreeMap<String, String>() {{
+    TreeMap<String, String> coordinates = new TreeMap<>() {{
         this.put("artifactId", "a1");
         this.put("groupId", "g1");
         this.put("version", "v1");

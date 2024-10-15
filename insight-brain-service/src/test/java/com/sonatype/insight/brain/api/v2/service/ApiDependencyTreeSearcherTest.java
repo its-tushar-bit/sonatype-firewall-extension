@@ -174,7 +174,7 @@ public class ApiDependencyTreeSearcherTest
   }
 
   public TreeMap<String, String> generateCoordinate(String artifactId, String groupdId) {
-    return new TreeMap<String, String>()
+    return new TreeMap<>()
     {{
         this.put("artifactId", artifactId);
         this.put("groupId", groupdId);

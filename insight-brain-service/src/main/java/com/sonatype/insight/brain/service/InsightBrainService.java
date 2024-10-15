@@ -213,7 +213,7 @@ public class InsightBrainService
     bootstrap.addCommand(createDbMigrationCommand());
     // Note the DropWizard 'ServerCommand' is special for the main http application and passes 'this' in. For a main
     // server start the `#run(InsightConfig, Environment)` method is called next.
-    bootstrap.addCommand(new ServerCommand<InsightConfig>(this)
+    bootstrap.addCommand(new ServerCommand<>(this)
     {
       private volatile InsightFileLock insightFileLock;
 

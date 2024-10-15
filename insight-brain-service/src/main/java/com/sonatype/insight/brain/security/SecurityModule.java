@@ -53,7 +53,7 @@ public class SecurityModule
     bind(Managed.class).toInstance(new Destroyer());
     expose(Managed.class);
     TypeLiteral<Collection<SessionListener>> sessionListenerCollectionType =
-        new TypeLiteral<Collection<SessionListener>>() { };
+        new TypeLiteral<>() { };
     bind(sessionListenerCollectionType).toProvider(SessionListenerProvider.class);
     bindWebSecurityManager(bind(WebSecurityManager.class));
     expose(WebSecurityManager.class);

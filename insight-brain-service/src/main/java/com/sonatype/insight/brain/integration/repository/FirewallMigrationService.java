@@ -71,7 +71,7 @@ public class FirewallMigrationService
   private final PolicyWaiverDAO policyWaiverDAO;
 
   private final ThreadPoolExecutor executor = new TenantThreadPoolExecutor(1, 1, 3, TimeUnit.SECONDS,
-      new LinkedBlockingQueue<Runnable>(), new ThreadFactoryBuilder().setNameFormat("FirewallMigration-%d").build());
+      new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setNameFormat("FirewallMigration-%d").build());
 
   private final VersionService versionService;
 

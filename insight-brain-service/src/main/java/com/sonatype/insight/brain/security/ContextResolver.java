@@ -88,7 +88,7 @@ class ContextResolver
     this.ownerDAO = ownerDAO;
   }
 
-  private final ContextIdResolver<Application> resolverForInboundApplication = new ContextIdResolver<Application>()
+  private final ContextIdResolver<Application> resolverForInboundApplication = new ContextIdResolver<>()
   {
     @Override
     public Iterable<String> resolveContextIds(Application app) {
@@ -98,7 +98,7 @@ class ContextResolver
     }
   };
 
-  final ContextIdResolver<Application> resolverForApplication = new ContextIdResolver<Application>()
+  final ContextIdResolver<Application> resolverForApplication = new ContextIdResolver<>()
   {
     @Override
     public Iterable<String> resolveContextIds(Application app) {
@@ -106,7 +106,7 @@ class ContextResolver
     }
   };
 
-  private final ContextIdResolver<String> resolverForApplicationId = new ContextIdResolver<String>()
+  private final ContextIdResolver<String> resolverForApplicationId = new ContextIdResolver<>()
   {
     @Override
     public Iterable<String> resolveContextIds(String appId) {
@@ -115,7 +115,7 @@ class ContextResolver
     }
   };
 
-  private final ContextIdResolver<String> resolverForApplicationPublicId = new ContextIdResolver<String>()
+  private final ContextIdResolver<String> resolverForApplicationPublicId = new ContextIdResolver<>()
   {
     @Override
     public Iterable<String> resolveContextIds(String appPublicId) {
@@ -124,7 +124,7 @@ class ContextResolver
     }
   };
 
-  private final ContextIdResolver<Application> resolverForApplicationOwner = new ContextIdResolver<Application>()
+  private final ContextIdResolver<Application> resolverForApplicationOwner = new ContextIdResolver<>()
   {
     @Override
     public Iterable<String> resolveContextIds(Application app) {
@@ -132,7 +132,7 @@ class ContextResolver
     }
   };
 
-  private final ContextIdResolver<Organization> resolverForInboundOrganization = new ContextIdResolver<Organization>()
+  private final ContextIdResolver<Organization> resolverForInboundOrganization = new ContextIdResolver<>()
   {
     @Override
     public Iterable<String> resolveContextIds(Organization org) {
@@ -142,7 +142,7 @@ class ContextResolver
     }
   };
 
-  final ContextIdResolver<Organization> resolverForOrganization = new ContextIdResolver<Organization>()
+  final ContextIdResolver<Organization> resolverForOrganization = new ContextIdResolver<>()
   {
     @Override
     public Iterable<String> resolveContextIds(Organization org) {
@@ -150,7 +150,7 @@ class ContextResolver
     }
   };
 
-  private final ContextIdResolver<String> resolverForOrganizationId = new ContextIdResolver<String>()
+  private final ContextIdResolver<String> resolverForOrganizationId = new ContextIdResolver<>()
   {
     @Override
     public Iterable<String> resolveContextIds(String orgId) {
@@ -159,7 +159,7 @@ class ContextResolver
     }
   };
 
-  private final ContextIdResolver<Organization> resolverForOrganizationOwner = new ContextIdResolver<Organization>()
+  private final ContextIdResolver<Organization> resolverForOrganizationOwner = new ContextIdResolver<>()
   {
     @Override
     public Iterable<String> resolveContextIds(Organization org) {
@@ -171,7 +171,7 @@ class ContextResolver
     }
   };
 
-  final ContextIdResolver<Repository> resolverForRepository = new ContextIdResolver<Repository>()
+  final ContextIdResolver<Repository> resolverForRepository = new ContextIdResolver<>()
   {
     @Override
     public Iterable<String> resolveContextIds(Repository repository) {
@@ -193,7 +193,7 @@ class ContextResolver
     }
   };
 
-  private final ContextIdResolver<String> resolverForRepositoryId = new ContextIdResolver<String>()
+  private final ContextIdResolver<String> resolverForRepositoryId = new ContextIdResolver<>()
   {
     @Override
     public Iterable<String> resolveContextIds(String repositoryId) {
@@ -202,7 +202,7 @@ class ContextResolver
     }
   };
 
-  final ContextIdResolver<RepositoryManager> resolverForRepositoryManager = new ContextIdResolver<RepositoryManager>()
+  final ContextIdResolver<RepositoryManager> resolverForRepositoryManager = new ContextIdResolver<>()
   {
     @Override
     public Iterable<String> resolveContextIds(RepositoryManager repositoryManager) {
@@ -217,7 +217,7 @@ class ContextResolver
     }
   };
 
-  private final ContextIdResolver<String> resolverForRepositoryManagerId = new ContextIdResolver<String>()
+  private final ContextIdResolver<String> resolverForRepositoryManagerId = new ContextIdResolver<>()
   {
     @Override
     public Iterable<String> resolveContextIds(String repositoryManagerId) {
@@ -226,7 +226,7 @@ class ContextResolver
     }
   };
 
-  private static Function<Owner, String> PARENT_ID_FUNCTION = new Function<Owner, String>()
+  private static Function<Owner, String> PARENT_ID_FUNCTION = new Function<>()
   {
     @Override
     public String apply(Owner owner) {

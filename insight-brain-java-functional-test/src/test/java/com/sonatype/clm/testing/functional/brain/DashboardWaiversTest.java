@@ -841,7 +841,7 @@ public class DashboardWaiversTest
     application2 = tempEntity.newApplication("App 2", "app2", organization.getId());
     repository1 = tempEntity.newRepository("Repository 1");
 
-    ArrayList<Policy> securityPolicies = new ArrayList<Policy>() {{
+    ArrayList<Policy> securityPolicies = new ArrayList<>() {{
         this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 1", 7));
         this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 2", 9));
         this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 3", 3));
@@ -862,7 +862,7 @@ public class DashboardWaiversTest
         "Artifact3", "Version3", "hash3", "sonatype-2017-7848");
 
     // Component identifier for waivers
-    TreeMap<String, String> coordinates = new TreeMap<String, String>() {{
+    TreeMap<String, String> coordinates = new TreeMap<>() {{
         this.put("artifactId", "Artifact1");
         this.put("groupId", "Group1");
         this.put("version", "1.2.3");
@@ -1185,7 +1185,7 @@ public class DashboardWaiversTest
         "Artifact1", "Version1", "hash1", "sonatype-2017-0507");
 
     // Component identifier for waivers
-    TreeMap<String, String> coordinates = new TreeMap<String, String>() {{
+    TreeMap<String, String> coordinates = new TreeMap<>() {{
         this.put("artifactId", "Artifact1");
         this.put("groupId", "Group1");
         this.put("version", "1.2.3");

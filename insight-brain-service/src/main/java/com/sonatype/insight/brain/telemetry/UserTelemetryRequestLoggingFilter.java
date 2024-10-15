@@ -24,7 +24,7 @@ public class UserTelemetryRequestLoggingFilter
 
   @Override
   public Filter<IAccessEvent> build() {
-    return new Filter<IAccessEvent>() {
+    return new Filter<>() {
       @Override
       public FilterReply decide(IAccessEvent event) {
         if (event.getRequestURI().contains(uriToFilter)) {

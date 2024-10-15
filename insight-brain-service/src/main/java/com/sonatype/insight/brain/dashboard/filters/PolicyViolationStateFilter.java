@@ -56,7 +56,7 @@ public class PolicyViolationStateFilter
    * Transforms this predicate into one that applies the same filtering to policy violations.
    */
   public Predicate<AbstractPolicyViolation> asPolicyViolationPredicate() {
-    return new Predicate<AbstractPolicyViolation>()
+    return new Predicate<>()
     {
       @Override
       public boolean test(AbstractPolicyViolation policyViolation) {

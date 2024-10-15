@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.security.AuthzFilter;
 @Named
 public class OrganizationSummaryService
 {
-  private static final Comparator<Organization> ORG_NAME_COMPARATOR = new Comparator<Organization>()
+  private static final Comparator<Organization> ORG_NAME_COMPARATOR = new Comparator<>()
   {
     @Override
     public int compare(Organization org1, Organization org2) {

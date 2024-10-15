@@ -284,7 +284,7 @@ public class PolicyWaiverResource
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       ApplicableContext currentContext = new ApplicableContext(getRestOwnerId(owner), owner.getName(), owner.getType());
       if (context != null) {
-        currentContext.setChildren(new ArrayList<ApplicableContext>());
+        currentContext.setChildren(new ArrayList<>());
         currentContext.getChildren().add(context);
       }
       context = currentContext;

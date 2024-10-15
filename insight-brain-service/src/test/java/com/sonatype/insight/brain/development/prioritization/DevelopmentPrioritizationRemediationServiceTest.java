@@ -126,7 +126,7 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
 
   @Test
   public void testGetRemediationVersions_noDetails() {
-    TreeMap<String, String> coordinates = new TreeMap<String, String>() {{
+    TreeMap<String, String> coordinates = new TreeMap<>() {{
         this.put("artifactId", "Artifact1");
         this.put("groupId", "Group1");
         this.put("version", "1.2.3");
@@ -147,7 +147,7 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
 
   @Test
   public void testGetRemediationVersions_remediationNotFound() {
-    TreeMap<String, String> coordinates = new TreeMap<String, String>() {{
+    TreeMap<String, String> coordinates = new TreeMap<>() {{
         this.put("artifactId", "Artifact1");
         this.put("groupId", "Group1");
         this.put("version", "1.2.3");
@@ -178,7 +178,7 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
 
   @Test
   public void testGetRemediationVersions_remediationFound() {
-    TreeMap<String, String> coordinates = new TreeMap<String, String>() {{
+    TreeMap<String, String> coordinates = new TreeMap<>() {{
         this.put("artifactId", "Artifact1");
         this.put("groupId", "Group1");
         this.put("version", "1.2.3");
@@ -212,7 +212,7 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
 
   @Test
   public void testGetRemediationVersions_multipleRemediationFound() {
-    TreeMap<String, String> coordinates = new TreeMap<String, String>() {{
+    TreeMap<String, String> coordinates = new TreeMap<>() {{
         this.put("artifactId", "Artifact1");
         this.put("groupId", "Group1");
         this.put("version", "1.2.1");
@@ -223,7 +223,7 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
     componentDetailsDTO.componentIdentifier = componentIdentifier;
     componentDetailsDTO.violatedPolicyCount = 0;
 
-    TreeMap<String, String> coordinates1 = new TreeMap<String, String>() {{
+    TreeMap<String, String> coordinates1 = new TreeMap<>() {{
         this.put("artifactId", "Artifact2");
         this.put("groupId", "Group2");
         this.put("version", "1.2.2");
@@ -234,7 +234,7 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
     componentDetailsDTO1.componentIdentifier = componentIdentifier1;
     componentDetailsDTO1.violatedPolicyCount = 0;
 
-    TreeMap<String, String> coordinates2 = new TreeMap<String, String>() {{
+    TreeMap<String, String> coordinates2 = new TreeMap<>() {{
         this.put("artifactId", "Artifact3");
         this.put("groupId", "Group3");
         this.put("version", "1.2.3");

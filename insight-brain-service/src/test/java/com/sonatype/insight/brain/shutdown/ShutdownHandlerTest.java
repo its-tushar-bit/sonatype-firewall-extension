@@ -182,7 +182,7 @@ public class ShutdownHandlerTest
 
   @Test
   public void testTrigger_Exception() {
-    ShutdownRequest<String> shutdownRequest = new TestShutdownRequest<String>("sr", 0)
+    ShutdownRequest<String> shutdownRequest = new TestShutdownRequest<>("sr", 0)
     {
       @Override
       public Future<?> execute(final ExecutorService executorService) {

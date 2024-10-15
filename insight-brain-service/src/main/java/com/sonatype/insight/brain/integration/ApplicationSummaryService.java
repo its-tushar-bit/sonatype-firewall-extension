@@ -49,7 +49,7 @@ public class ApplicationSummaryService
 
   static final String APP_CREATED_AUTOMATICALLY_TELEMETRY_ATTR = "application_created_automatically";
 
-  private static final Comparator<Application> APP_COMPARATOR = new Comparator<Application>()
+  private static final Comparator<Application> APP_COMPARATOR = new Comparator<>()
   {
     @Override
     public int compare(Application a1, Application a2) {

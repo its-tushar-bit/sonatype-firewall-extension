@@ -34,9 +34,9 @@ public class TextLine implements TextSequence {
      */
     private static final String WIDTH = "width";
 
-    private final List<StyledText> styledTextList = new ArrayList<StyledText>();
+    private final List<StyledText> styledTextList = new ArrayList<>();
     private NewLine newLine;
-    private Map<String, Object> cache = new HashMap<String, Object>();
+    private Map<String, Object> cache = new HashMap<>();
 
     private void clearCache() {
 	cache.clear();

@@ -167,7 +167,7 @@ public class ApplicationManagementService
     Map<String, ApplicationManagementSummaryDTO> summariesByAppId = new HashMap<>();
     for (ApplicationManagementSummaryDTO summary : applicationManagementSummaries) {
       summariesByAppId.put(summary.getId(), summary);
-      summary.setPolicyEvaluations(new HashMap<String, PolicyEvaluation>());
+      summary.setPolicyEvaluations(new HashMap<>());
     }
     Set<String> stageTypeIds = new HashSet<>();
     for (StageType stageType : StageTypes.getAll()) {

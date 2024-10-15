@@ -27,7 +27,7 @@ public class TenantThreadLocal
 
   private static Tenant defaultTenant = SINGLE_TENANT;
 
-  private static final ThreadLocal<TenantState> tenantThreadLocal = new InheritableThreadLocal<TenantState>()
+  private static final ThreadLocal<TenantState> tenantThreadLocal = new InheritableThreadLocal<>()
   {
     // NOTE: because this is an InheritableThreadLocal, this method is only actually called to set the value for the
     // `main` thread. All other application threads use `InheritableThreadLocal#childValue()` instead

@@ -149,7 +149,7 @@ public class MultiLicenseDAO
       Map<String, MultiLicense> newMultiLicensesById = new LinkedHashMap<>();
       for (MultiLicense license : multiLicenses) {
         newMultiLicensesById.put(license.getId(), license);
-        newLicenseSetsById.put(license.getId(), new LinkedHashSet<License>());
+        newLicenseSetsById.put(license.getId(), new LinkedHashSet<>());
       }
       multiLicensesById = newMultiLicensesById;
 

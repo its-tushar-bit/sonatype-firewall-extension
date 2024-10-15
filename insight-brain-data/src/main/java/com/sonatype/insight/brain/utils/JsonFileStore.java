@@ -186,7 +186,7 @@ public final class JsonFileStore
   }
 
   private static <T> Iterable<T> each(final Iterator<T> itr) {
-    return new Iterable<T>()
+    return new Iterable<>()
     {
       @Override
       public Iterator<T> iterator() {

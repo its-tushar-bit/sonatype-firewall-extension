@@ -526,7 +526,7 @@ public class PolicyResource
     }
 
     public PoliciesByOwner(String ownerId, String ownerName, OwnerType ownerType) {
-      this(ownerId, ownerName, ownerType, new ArrayList<PolicyTag>());
+      this(ownerId, ownerName, ownerType, new ArrayList<>());
     }
 
     public PoliciesByOwner(String ownerId, String ownerName, OwnerType ownerType, List<PolicyTag> policyTags) {

@@ -56,7 +56,7 @@ public class RequiredExplicitBindingModuleTest
 
     List<Element> elements = Elements.getElements(underTest);
     assertThat(elements).doNotHave(
-        new Condition<Element>(UntargettedBinding.class::isInstance, "instanceof UntargettedBinding")
+        new Condition<>(UntargettedBinding.class::isInstance, "instanceof UntargettedBinding")
     );
 
     verify(banned).isBanned(any());
@@ -90,7 +90,7 @@ public class RequiredExplicitBindingModuleTest
 
     List<Element> elements = Elements.getElements(underTest);
     assertThat(elements).doNotHave(
-        new Condition<Element>(LinkedKeyBinding.class::isInstance, "instanceof LinkedKeyBinding")
+        new Condition<>(LinkedKeyBinding.class::isInstance, "instanceof LinkedKeyBinding")
     );
 
     verify(banned).isBanned(any());

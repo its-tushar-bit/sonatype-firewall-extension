@@ -118,7 +118,7 @@ public class RolePermissionDAO
     if (map == null || map.isEmpty()) {
       map = new EnumMap<>(Permission.class);
       for (Permission perm : Permission.values()) {
-        map.put(perm, new HashSet<String>());
+        map.put(perm, new HashSet<>());
       }
       for (RolePermission rolePerm : getList("SELECT entity FROM RolePermission entity")) {
         map.get(rolePerm.getPermission()).add(rolePerm.getRoleId());

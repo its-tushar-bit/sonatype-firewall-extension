@@ -62,6 +62,9 @@ public class SbomFileDetector
 
   public static final String SPDX_VERSION_PREFIX = "SPDX-";
 
+  public static final String PROVIDED_FILE_NOT_SUPPORTED_ERROR =
+      "Provided file type is not a supported SBOM file type.";
+
   private final Set<String> supportedSbomMimeTypes = ImmutableSet.of(APPLICATION_XML, APPLICATION_JSON);
 
   private final Tika tika = new Tika();
@@ -101,13 +104,14 @@ public class SbomFileDetector
   }
 
   public SbomDetectionResult getSbomDetectionResult(File sbomFile) {
-    if (sbomFile == null) {
-      return sbomDetectionErrorResult("Invalid SBOM file input.", null);
-    }
     return detect(sbomFile);
   }
 
   private SbomDetectionResult detect(File sbomFile) {
+    if (sbomFile == null || !sbomFile.exists() || sbomFile.length() == 0) {
+      return sbomDetectionErrorResult("Invalid SBOM file input.", null);
+    }
+
     try {
       SbomDetectionResult result = new SbomDetectionResult();
       result.isBinary = true;
@@ -126,7 +130,7 @@ public class SbomFileDetector
       else if (supportedSbomMimeTypes.contains(result.mimeType)) {
         return attemptDetectingSbomFromContent(getSbomStringContent(sbomFile), result);
       }
-      result.errorMessage = "Provided file type is not a supported SBOM file type.";
+      result.errorMessage = PROVIDED_FILE_NOT_SUPPORTED_ERROR;
       return result;
     }
     catch (IOException e) {
@@ -212,7 +216,7 @@ public class SbomFileDetector
       sbomResult.errorMessage = e.getMessage();
       sbomResult.errors = getErrors(e);
     }
-    catch (IOException | ParseException | InvalidSbomException e ) {
+    catch (IOException | ParseException | InvalidSbomException e) {
       log.debug("error parsing content as sbom", e);
       sbomResult.errorMessage = "Not a valid CycloneDx SBOM file.";
       sbomResult.errors = getErrors(e);

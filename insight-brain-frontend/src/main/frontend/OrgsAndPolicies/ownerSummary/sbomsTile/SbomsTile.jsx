@@ -165,7 +165,7 @@ export default function SbomsTile() {
             <NxTile.HeaderActions>
               <NxButton id="import-sbom-button" variant="tertiary" onClick={openModal}>
                 <NxFontAwesomeIcon icon={faPlus} />
-                <span>Import SBOM</span>
+                <span>Import</span>
               </NxButton>
             </NxTile.HeaderActions>
           </NxTile.Headings>

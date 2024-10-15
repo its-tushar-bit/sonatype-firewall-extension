@@ -41,6 +41,7 @@ public class SbomFileDetectorTest
     daoFactory = new TestDAOFactory(databaseRule);
 
     SystemConfigurationPropertyFeature.injectDependencies(daoFactory.createSystemConfigurationPropertyDAO());
+    SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(false);
   }
 
   @Test

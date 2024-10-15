@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -32,8 +33,11 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.brain.sbom.ingestion.SbomRequestIdElements;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
+import com.sonatype.insight.brain.thirdparty.SbomScanType;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.scan.application.ScannerDriver;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.model.ItemContentType;
@@ -41,6 +45,7 @@ import com.sonatype.insight.scan.model.ItemContentType;
 import io.dropwizard.logback.shaded.guava.annotations.VisibleForTesting;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.openjpa.persistence.EntityExistsException;
 import org.apache.openjpa.persistence.RollbackException;
 import org.slf4j.Logger;
@@ -234,5 +239,44 @@ public class SbomMetadataUtils
         })
         .filter(Objects::nonNull)
         .toList();
+  }
+
+  public SbomRequestIdElements decodeRequestId(String requestId) {
+    if (StringUtils.isEmpty(requestId)) {
+      return null;
+    }
+
+    String decodedRequestId;
+    try {
+      decodedRequestId = new String(Base64.getDecoder().decode(requestId));
+    }
+    catch (IllegalArgumentException ex) {
+      throw new BadRequestException("The provided requestId " + requestId + " is not valid.");
+    }
+
+    String[] requestElements = decodedRequestId.split("-");
+    String storedFilename;
+    if (requestElements[0].equals(SbomScanType.SBOM.name())) {
+      List<String> elementsList = Arrays.asList(requestElements);
+      storedFilename = String.join("-", elementsList.subList(3, elementsList.size()));
+      validateFilename(requestId, storedFilename);
+      return new SbomRequestIdElements(storedFilename,
+          SbomFormat.forMimeType(requestElements[1]),
+          determineItemContentType(requestElements[2]));
+    }
+    else if (requestElements[0].equals(SbomScanType.BINARY.name())) {
+      storedFilename = decodedRequestId.substring(decodedRequestId.indexOf("-") + 1);
+      validateFilename(requestId, storedFilename);
+      return new SbomRequestIdElements(storedFilename);
+    }
+    else {
+      throw new BadRequestException("The provided requestId " + requestId + " is not valid.");
+    }
+  }
+
+  private void validateFilename(String requestId, String storedfileName) {
+    if (StringUtils.indexOf(storedfileName, "-") == -1) {
+      throw new BadRequestException("The provided requestId " + requestId + " is not valid.");
+    }
   }
 }

@@ -19,3 +19,24 @@
     margin: 0;
   }
 }
+
+.sbom-manager-import-sbom-modal__binary-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nx-spacing-2x);
+
+  dt {
+    color: var(--nx-color-text-stark);
+    font-weight: bold;
+    font-size: var(--nx-font-size-heading-3);
+  }
+
+  dd.filename,
+  dd.application-name {
+    margin: 10px 0 0 0;
+  }
+
+  dt.application-name-title {
+    margin: 25px 0 0 0;
+  }
+}

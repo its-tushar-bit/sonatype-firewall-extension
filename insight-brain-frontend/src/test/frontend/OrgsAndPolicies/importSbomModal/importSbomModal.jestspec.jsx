@@ -121,15 +121,15 @@ describe('ImportSbomModal', () => {
     describe('Initial State', () => {
       it('shows the correct content', () => {
         renderComponent();
-        expect(screen.getByText('Import SBOM for Application testApplicationName')).toBeInTheDocument();
+        expect(screen.getByText('Import File for Application testApplicationName')).toBeInTheDocument();
         expect(screen.getByTestId('import-sbom-modal-file-upload')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /Cancel/i })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /Import SBOM/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Import/i })).toBeInTheDocument();
       });
 
       it('should disable import SBOM until a file is selected', async () => {
         renderComponent();
-        const importButton = screen.getByRole('button', { name: /Import SBOM/i });
+        const importButton = screen.getByRole('button', { name: /Import/i });
         expect(importButton).toBeVisible();
         expect(importButton).toBeDisabled();
         setFileUploadValue(await screen.findByTestId('import-sbom-modal-file-upload'), createTestFile());
@@ -151,20 +151,21 @@ describe('ImportSbomModal', () => {
         renderComponent();
 
         setFileUploadValue(await screen.findByTestId('import-sbom-modal-file-upload'), createTestFile());
-        const importButton = screen.getByRole('button', { name: /Import SBOM/i });
+        const importButton = screen.getByRole('button', { name: /Import/i });
         fireEvent.click(importButton);
 
         expect(await screen.findByRole('progressbar')).toBeVisible();
-        expect(await screen.findByText('Uploading...')).toBeVisible();
+        expect(await screen.findByText('Import in progress...')).toBeVisible();
+        expect(await screen.findByText('Importing [test-file.json]...')).toBeVisible();
 
         expect(screen.queryByRole('button', { name: /Cancel/i })).not.toBeInTheDocument();
         expect(screen.queryByRole('button', { name: /Close/i })).not.toBeInTheDocument();
-        expect(screen.queryByRole('button', { name: /Import SBOM/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /Import/i })).not.toBeInTheDocument();
       });
     });
 
     describe('Summary', () => {
-      it('shows post upload details', async () => {
+      it('shows post upload details for SBOM', async () => {
         axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply(200, {
           requestId: 'request-id',
           sbomSummary: {
@@ -178,6 +179,7 @@ describe('ImportSbomModal', () => {
             serialNumber: 'urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79',
             creationDetails: null,
           },
+          scanType: 'SBOM',
           errorMessage: null,
         });
         axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', 'request-id')).reply(201, {});
@@ -185,7 +187,7 @@ describe('ImportSbomModal', () => {
         renderComponent();
 
         setFileUploadValue(await screen.findByTestId('import-sbom-modal-file-upload'), createTestFile());
-        const importButton = screen.getByRole('button', { name: /import SBOM/i });
+        const importButton = screen.getByRole('button', { name: /import/i });
 
         fireEvent.click(importButton);
 
@@ -209,7 +211,40 @@ describe('ImportSbomModal', () => {
           )
         ).toBeInTheDocument();
 
-        expect(screen.queryByRole('button', { name: 'Import SBOM' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Import' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument();
+
+        const closeButton = await screen.findByRole('button', { name: 'Close' });
+        expect(closeButton).toBeVisible();
+
+        fireEvent.click(closeButton);
+
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      });
+
+      it('shows post upload details for BINARY', async () => {
+        axiosMock.onPost(getImportSbomUrl('testApplicationId')).reply(200, {
+          requestId: 'request-id',
+          sbomSummary: null,
+          scanType: 'BINARY',
+          errorMessage: null,
+        });
+        axiosMock.onPost(getCommitImportedSbomUrl('testApplicationId', 'request-id')).reply(201, {});
+
+        renderComponent();
+
+        setFileUploadValue(await screen.findByTestId('import-sbom-modal-file-upload'), createTestFile());
+        const importButton = screen.getByRole('button', { name: /import/i });
+
+        fireEvent.click(importButton);
+
+        expect(await screen.findByText('Application Name')).toBeVisible();
+        expect(await screen.findByText('testApplicationName')).toBeVisible();
+
+        expect(await screen.findByText('File')).toBeVisible();
+        expect(await screen.findByText('test-file.json')).toBeVisible();
+
+        expect(screen.queryByRole('button', { name: 'Import' })).not.toBeInTheDocument();
         expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument();
 
         const closeButton = await screen.findByRole('button', { name: 'Close' });

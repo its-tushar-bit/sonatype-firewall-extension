@@ -4,12 +4,15 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.clm.testing.functional.elements.sbom;
+
 import com.sonatype.clm.testing.functional.BasicElement;
+
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 
-public class ImportSbomModal extends BasicElement<ImportSbomModal>
+public class ImportSbomModal
+    extends BasicElement<ImportSbomModal>
 {
   public ImportSbomModal() {
     super("#import-sbom-modal");
@@ -60,5 +63,14 @@ public class ImportSbomModal extends BasicElement<ImportSbomModal>
 
   public SelenideElement fileSelected() {
     return child(".nx-selected-file__name");
+  }
+
+  // Binary summary
+  public SelenideElement binaryFilename() {
+    return child(".sbom-manager-import-sbom-modal__binary-summary > dd.filename");
+  }
+
+  public SelenideElement binaryAppName() {
+    return child(".sbom-manager-import-sbom-modal__binary-summary > dd.application-name");
   }
 }

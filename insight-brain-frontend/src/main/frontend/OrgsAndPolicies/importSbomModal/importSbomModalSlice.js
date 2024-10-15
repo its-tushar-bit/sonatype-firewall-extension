@@ -32,9 +32,8 @@ const sbomSummaryInitialState = Object.freeze({
 
 export const initialState = Object.freeze({
   isModalOpen: false,
-
   importState: IMPORT_STATE.INITIAL,
-
+  scanType: null,
   uploadProgress: 0,
   errorMessage: null,
   sbomSummary: { ...sbomSummaryInitialState },
@@ -68,7 +67,7 @@ const uploadFile = createAsyncThunk(`${REDUCER_NAME}/uploadFile`, (file, { dispa
       },
     })
     .then(({ data }) => {
-      if (isNonEmptyString(data.errorMessage)) {
+      if (data.scanType === 'SBOM' && isNonEmptyString(data.errorMessage)) {
         throw new Error(data.errorMessage);
       }
       dispatch(actions.commitFile(data.requestId));
@@ -83,9 +82,12 @@ const uploadFilePending = (state) => {
 
 const uploadFileFulfilled = (state, { payload }) => {
   state.importState = IMPORT_STATE.UPLOADING_COMMITTING;
-  state.sbomSummary.versionId = payload.sbomSummary.applicationVersion;
-  state.sbomSummary.totalComponents = payload.sbomSummary.componentCount;
-  state.sbomSummary.totalVulnerabilities = payload.sbomSummary.vulnerabilityCount;
+  if (payload.sbomSummary) {
+    state.sbomSummary.versionId = payload.sbomSummary.applicationVersion;
+    state.sbomSummary.totalComponents = payload.sbomSummary.componentCount;
+    state.sbomSummary.totalVulnerabilities = payload.sbomSummary.vulnerabilityCount;
+  }
+  state.scanType = payload.scanType;
 };
 
 const commitFile = createAsyncThunk(`${REDUCER_NAME}/commitFile`, async (requestId, { getState, rejectWithValue }) => {

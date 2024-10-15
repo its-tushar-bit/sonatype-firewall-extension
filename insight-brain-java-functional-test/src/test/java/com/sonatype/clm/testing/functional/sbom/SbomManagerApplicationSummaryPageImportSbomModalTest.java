@@ -3,27 +3,36 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.clm.testing.functional.mtiq.sbom;
+package com.sonatype.clm.testing.functional.sbom;
 
 import java.io.File;
+
+import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxToast;
-import com.sonatype.clm.testing.functional.mtiq.AbstractMtiqFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.sbom.ImportSbomModal;
 import com.sonatype.clm.testing.functional.elements.sbom.SbomsTile;
-import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerApplicationSummaryPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
+import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerApplicationSummaryPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
+import com.codeborne.selenide.Selenide;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import static com.codeborne.selenide.Condition.*;
+
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.insight.license.model.LicensedFeature.POLICY_MONITORING;
 
 public class SbomManagerApplicationSummaryPageImportSbomModalTest
-        extends AbstractMtiqFunctionalTest
+    extends AbstractFunctionalTest
 {
-  private final SbomManagerApplicationSummaryPage sbomSummaryPage = new SbomManagerApplicationSummaryPage();
+  private static SbomManagerApplicationSummaryPage sbomSummaryPage;
 
   private Organization organization;
 
@@ -31,15 +40,23 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
 
   private String testFilesPath;
 
+  @BeforeClass
+  public static void beforeClass() {
+    sbomSummaryPage = new SbomManagerApplicationSummaryPage();
+    Selenide.open("/#");
+    loginAsAdmin();
+  }
+
   @Before
   public void init() throws Exception {
     organization = tempEntity.newOrganization("test-organization");
     application = tempEntity.newApplication("Test Application", "test-application", organization.getId());
-    testFilesPath = "src/test/resources/SbomManagerApplicationSummaryPageTest/ImportSbomModalTest/";
+    testFilesPath = "src/test/resources/ImportSbomModalTest/";
 
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+    setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.SUCCESS_METRICS, POLICY_MONITORING);
+
     refreshOrOpen(IndexPage.url());
-    loginAsAdmin();
   }
 
   @Test
@@ -52,7 +69,7 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
     sbomsTile.importButton().click();
     ImportSbomModal importSbomModal = sbomSummaryPage.importSbomModal();
     importSbomModal.shouldBe(visible);
-    importSbomModal.title().shouldHave(text("Import SBOM for Application Test Application"));
+    importSbomModal.title().shouldHave(text("Import File for Application " + application.getName()));
   }
 
   @Test
@@ -70,7 +87,7 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
   }
 
   @Test
-  public void testImportSbomModal_fileUploadAndCommitSuccessful() {
+  public void testImportSbomModal_fileUploadAndCommitSuccessful_SBOM() {
     refreshOrOpen(SbomManagerApplicationSummaryPage.url(application.getPublicId()));
 
     SbomsTile sbomsTile = SbomManagerApplicationSummaryPage.sbomsTile();
@@ -88,6 +105,7 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
         .shouldBe(enabled)
         .click();
 
+    importSbomModal.title().shouldHave(text("Import in progress..."));
     importSbomModal.progressBar().shouldBe(visible);
     importSbomModal.summaryApplicationName()
         .shouldHave(text("Test Application"));
@@ -100,7 +118,32 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
   }
 
   @Test
-  public void testImportSbomModal_fileUploadFail() {
+  public void testImportSbomModal_fileUploadAndCommitSuccessful_BINARY() {
+    refreshOrOpen(SbomManagerApplicationSummaryPage.url(application.getPublicId()));
+
+    SbomsTile sbomsTile = SbomManagerApplicationSummaryPage.sbomsTile();
+    sbomsTile.importButton().click();
+    ImportSbomModal importSbomModal = sbomSummaryPage.importSbomModal();
+
+    importSbomModal.shouldBe(visible);
+
+    File file = new File(testFilesPath + "xml-apis-1.4.01.jar");
+    importSbomModal.fileUpload().uploadFile(file);
+    importSbomModal.fileSelected()
+        .shouldBe(visible)
+        .shouldHave(text("xml-apis-1.4.01.jar"));
+    importSbomModal.importSbomButton()
+        .shouldBe(enabled)
+        .click();
+
+    importSbomModal.title().shouldHave(text("Import in progress..."));
+    importSbomModal.progressBar().shouldBe(visible);
+    importSbomModal.binaryFilename().shouldBe(visible).shouldHave(text("xml-apis-1.4.01.jar"));
+    importSbomModal.binaryAppName().shouldBe(visible).shouldHave(text(application.getName()));
+  }
+
+  @Test
+  public void testImportSbomModal_fileUploadFail_shouldBeTreatedAsBinary() {
     refreshOrOpen(SbomManagerApplicationSummaryPage.url(application.getPublicId()));
 
     SbomsTile sbomsTile = SbomManagerApplicationSummaryPage.sbomsTile();
@@ -111,9 +154,17 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
 
     File file = new File(testFilesPath + "invalid-bom.json");
     importSbomModal.fileUpload().uploadFile(file);
-    importSbomModal.importSbomButton().shouldBe(enabled).click();
-    importSbomModal.errorAlert().shouldBe(visible);
-    importSbomModal.fileSelected().shouldBe(visible).shouldHave(text("invalid-bom.json"));
+    importSbomModal.fileSelected()
+        .shouldBe(visible)
+        .shouldHave(text("invalid-bom.json"));
+    importSbomModal.importSbomButton()
+        .shouldBe(enabled)
+        .click();
+
+    importSbomModal.title().shouldHave(text("Import in progress..."));
+    importSbomModal.progressBar().shouldBe(visible);
+    importSbomModal.binaryFilename().shouldBe(visible).shouldHave(text("invalid-bom.json"));
+    importSbomModal.binaryAppName().shouldBe(visible).shouldHave(text(application.getName()));
   }
 
   @Test
@@ -133,13 +184,13 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
 
     importSbomModal.progressBar().shouldBe(visible);
     importSbomModal.summaryApplicationName()
-            .shouldHave(text("Test Application"));
+        .shouldHave(text("Test Application"));
     importSbomModal.summaryInputVersionId()
-            .shouldHave(value("9.1.1"));
+        .shouldHave(value("9.1.1"));
     importSbomModal.summaryTotalComponents()
-            .shouldHave(text("2"));
+        .shouldHave(text("2"));
     importSbomModal.summaryTotalVulnerabilities()
-            .shouldHave(text("0"));
+        .shouldHave(text("0"));
     importSbomModal.cancelCloseButton().shouldBe(visible).click();
     importSbomModal.shouldNotBe(visible);
 
@@ -147,9 +198,8 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
 
     toast.shouldBe(visible);
     toast.shouldHave(text(
-        "SBOM is currently being evaluated and will be available in the SBOM table shortly." +
-                " Please refresh the page after few minutes to see newly imported SBOM."
+        "The file you uploaded is currently being evaluated and will be available on this page shortly. " +
+            "Please refresh the page after few minutes to see it."
     ));
   }
 }
-

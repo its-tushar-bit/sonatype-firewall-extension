@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.sbom.ingestion;
 
 import java.io.ByteArrayInputStream;
-
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
@@ -20,9 +19,13 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class SbomImportServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
+  private static final String TEST_FILENAME = "test-filename.xml";
+
   @Inject
   private SbomImportService sbomImportService;
 
@@ -31,21 +34,24 @@ public class SbomImportServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testDetectSbom_Unauthenticated() {
-    sbomImportService.detectSbom("abcd", new ByteArrayInputStream(new byte[1]));
+    sbomImportService.detectSbom("abcd", new ByteArrayInputStream(new byte[1]), TEST_FILENAME);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testDetectSbom_Unauthorized() {
     login();
     Application application = tempEntity.newApplicationWithParent();
-    sbomImportService.detectSbom(application.getId(), new ByteArrayInputStream(new byte[1]));
+    sbomImportService.detectSbom(application.getId(), new ByteArrayInputStream(new byte[1]), TEST_FILENAME);
   }
 
   @Test
   public void testDetectSbom_Authorized() {
     grantWritePermission();
     Application application = tempEntity.newApplicationWithParent();
-    sbomImportService.detectSbom(application.getId(), new ByteArrayInputStream(new byte[1]));
+    SbomDetectionResultDTO dto =
+        sbomImportService.detectSbom(application.getId(), new ByteArrayInputStream(new byte[1]),
+            TEST_FILENAME);
+    assertThat(dto.getRequestId()).isNotEmpty();
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -65,7 +71,8 @@ public class SbomImportServiceAuthzTest
     grantWritePermission();
     Application application = tempEntity.newApplicationWithParent();
     Response response = sbomImportService.importDetectedSbom(application.getId(),
-        "OTExZDYxOTUxZTk0NDI5NGJhNjA0YjhhOWZkYmQzY2YtYXBwbGljYXRpb24veG1sLUN5Y2xvbmVEeA==", "userAgent");
+        "U0JPTS1hcHBsaWNhdGlvbi94bWwtQ3ljbG9uZUR4LTkxMWQ2MTk1MWU5NDQyOTRiYTYwNGI4YTlmZGJkM2NmLWZpbGUuemlw",
+        "userAgent");
     ApiThirdPartyScanTicketDTO status = (ApiThirdPartyScanTicketDTO) response.getEntity();
     policyEvaluationHelper.awaitEvaluationFinished(application.getId(), status.requestId);
   }

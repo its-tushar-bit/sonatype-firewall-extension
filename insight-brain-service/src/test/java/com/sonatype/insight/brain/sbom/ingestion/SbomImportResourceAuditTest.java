@@ -24,7 +24,8 @@ import com.sonatype.insight.mock.hds.HdsMockServer.RestHandler;
 import org.junit.Before;
 import org.junit.Test;
 
-public class SbomImportResourceAuditTest extends AbstractAuditTest
+public class SbomImportResourceAuditTest
+    extends AbstractAuditTest
 {
   private Application app;
 
@@ -53,7 +54,7 @@ public class SbomImportResourceAuditTest extends AbstractAuditTest
         .path(SbomImportResource.RESOURCE_PATH, SbomImportResource.COMMIT_PATH)
         .parameter(app.getId(), actual.getRequestId())
         .post();
-    assertResponseStatus(201, responseCommit);
+    assertResponseStatus(202, responseCommit);
     List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.CREATE_SBOM_VERSION, 1, null);
     assertCustomData(auditDTOs.get(0), "applicationId", app.getId());
     assertCustomData(auditDTOs.get(0), "sbomVersion", "a140fd3c3ded4bb0a640dc31e2904dc9");
@@ -74,7 +75,8 @@ public class SbomImportResourceAuditTest extends AbstractAuditTest
     testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
     HttpResponse responseCommit = restRequest()
         .path(SbomImportResource.RESOURCE_PATH, SbomImportResource.COMMIT_PATH)
-        .parameter(app.getId(), "OTExZDYxOTUxZTk0NDI5NGJhNjA0YjhhOWZkYmQzY2YtYXBwbGljYXRpb24veG1sLUN5Y2xvbmVEeA==")
+        .parameter(app.getId(),
+            "U0JPTS1hcHBsaWNhdGlvbi94bWwtQ3ljbG9uZUR4LTkxMWQ2MTk1MWU5NDQyOTRiYTYwNGI4YTlmZGJkM2NmLWZpbGUuemlw")
         .post();
     assertResponseStatus(404, responseCommit);
     List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.CREATE_SBOM_VERSION, 1, "not-found");

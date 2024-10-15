@@ -15,7 +15,9 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -65,6 +67,7 @@ public class SbomImportResourceTest
     assertThat(actual.getSbomSummary().format).isEqualTo("xml");
     assertThat(actual.getSbomSummary().version).isEqualTo("1.5");
     assertThat(actual.getErrorMessage()).isNullOrEmpty();
+    assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
   }
 
   @Test
@@ -88,6 +91,24 @@ public class SbomImportResourceTest
     assertThat(actual.getSbomSummary().format).isEqualTo("json");
     assertThat(actual.getSbomSummary().version).isEqualTo("2.3");
     assertThat(actual.getErrorMessage()).isNullOrEmpty();
+    assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
+  }
+
+  @Test
+  public void testDetectBinary() throws Exception {
+    SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(true);
+    URL resource = SbomImportResourceTest.class.getResource("/SbomImportResourceTest/binary.jar");
+    File sbom = new File(Objects.requireNonNull(resource).getFile());
+    HttpResponse response = restRequest()
+        .parameter(application.getId())
+        .part("file", sbom.getName(), Files.readAllBytes(sbom.toPath()))
+        .path(SbomImportResource.DETECT_PATH)
+        .post();
+    SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
+    assertResponseStatus(200, response);
+    assertThat(actual.getRequestId()).isNotEmpty();
+    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getScanType()).isEqualTo(SbomScanType.BINARY);
   }
 
   @Test
@@ -97,11 +118,7 @@ public class SbomImportResourceTest
         .part("file", "sbom.xml", new byte[1])
         .path(SbomImportResource.DETECT_PATH)
         .post();
-    SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
     assertResponseStatus(200, response);
-    assertThat(actual.getSbomSummary()).isNull();
-    assertThat(actual.getRequestId()).isNotEmpty();
-    assertThat(actual.getErrorMessage()).isEqualTo("Provided file type is not a supported SBOM file type.");
   }
 
   @Test
@@ -135,10 +152,19 @@ public class SbomImportResourceTest
   }
 
   @Test
-  public void testImportDetectedSbom_Success() throws Exception {
+  public void testImportDetectedSbom_BINARY_Success() throws Exception {
+    testImportDetectedSbom_Success("binary.jar");
+  }
+
+  @Test
+  public void testImportDetectedSbom_SBOM_Success() throws Exception {
+    testImportDetectedSbom_Success("valid-spdx-bom.json");
+  }
+
+  private void testImportDetectedSbom_Success(String fileName) throws Exception {
     mockHdsReportDownload();
 
-    URL resource = SbomImportResourceTest.class.getResource("/SbomImportResourceTest/valid-spdx-bom.json");
+    URL resource = SbomImportResourceTest.class.getResource("/SbomImportResourceTest/" + fileName);
     File sbom = new File(Objects.requireNonNull(resource).getFile());
     HttpResponse responseDetect = restRequest()
         .parameter(application.getId())
@@ -154,7 +180,7 @@ public class SbomImportResourceTest
 
     ApiThirdPartyScanTicketDTO responseCommitBody = responseCommit.getBody(ApiThirdPartyScanTicketDTO.class);
 
-    assertResponseStatus(201, responseCommit);
+    assertResponseStatus(202, responseCommit);
     assertThat(responseCommitBody).isNotNull();
     assertThat(responseCommitBody.statusUrl).isNotEmpty();
     assertThat(responseCommitBody.statusUrl).startsWith("api/v2/sbom/applications/" + application.getId() + "/status/");

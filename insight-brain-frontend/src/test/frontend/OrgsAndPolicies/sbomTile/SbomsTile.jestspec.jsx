@@ -48,7 +48,7 @@ describe('SbomsTile', () => {
 
   it("renders it's import button", () => {
     renderComponent(initialState);
-    expect(screen.getByRole('button', { name: 'Import SBOM' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Import' })).toBeVisible();
   });
 
   describe('has a table that', () => {

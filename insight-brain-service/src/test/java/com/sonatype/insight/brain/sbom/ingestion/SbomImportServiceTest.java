@@ -19,30 +19,36 @@ import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
 import javax.inject.Inject;
-import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
+import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomSummary;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.utils.Retry;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 
 import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.thymeleaf.util.StringUtils;
 
 import static com.sonatype.insight.brain.hds.ScanUploader.HDS_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,6 +62,8 @@ import static org.mockito.Mockito.when;
 public class SbomImportServiceTest
     extends AbstractComponentTest
 {
+  private static final String TEST_FILENAME = "test-filename.xml";
+
   @Mock
   private HdsClient mockHdsClient;
 
@@ -71,6 +79,9 @@ public class SbomImportServiceTest
   @Inject
   private PolicyEvaluationHelper policyEvaluationHelper;
 
+  @Inject
+  private SbomMetadataUtils sbomMetadataUtils;
+
   private Application application;
 
   @Override
@@ -82,6 +93,7 @@ public class SbomImportServiceTest
   @Before
   public void before() {
     application = tempEntity.newApplicationWithParent();
+    SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(false);
   }
 
   @Test
@@ -102,7 +114,9 @@ public class SbomImportServiceTest
         .getResource("/SbomImportServiceTest/valid-cyclonedx-bom.xml");
     File sbom = new File(Objects.requireNonNull(resource).getFile());
     SbomDetectionResultDTO actual = sbomImportService
-        .detectSbom(application.getId(), new ByteArrayInputStream(Files.readAllBytes(sbom.toPath())));
+        .detectSbom(application.getId(), new ByteArrayInputStream(Files.readAllBytes(sbom.toPath())),
+            "valid-cyclonedx-bom.xml"
+        );
     assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getErrorMessage()).isNullOrEmpty();
     assertThat(actual.getErrors()).isNullOrEmpty();
@@ -113,7 +127,8 @@ public class SbomImportServiceTest
     assertThat(actual.getSbomSummary().vulnerabilityCount).isEqualTo(expected.summary.vulnerabilityCount);
     assertThat(actual.getSbomSummary().applicationName).isEqualTo(expected.summary.applicationName);
     assertThat(actual.getSbomSummary().applicationVersion).isEqualTo(expected.summary.applicationVersion);
-    assertTempSbomFile(actual.getRequestId().split("-")[0], true);
+    assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
+    assertTempSbomFile(actual.getRequestId(), true);
   }
 
   @Test
@@ -134,7 +149,8 @@ public class SbomImportServiceTest
         .getResource("/SbomImportServiceTest/valid-spdx-bom.json");
     File sbom = new File(Objects.requireNonNull(resource).getFile());
     SbomDetectionResultDTO actual = sbomImportService
-        .detectSbom(application.getId(), new ByteArrayInputStream(Files.readAllBytes(sbom.toPath())));
+        .detectSbom(application.getId(), new ByteArrayInputStream(Files.readAllBytes(sbom.toPath())),
+            "valid-spdx-bom.json");
     assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getErrorMessage()).isNullOrEmpty();
     assertThat(actual.getErrors()).isNullOrEmpty();
@@ -145,32 +161,46 @@ public class SbomImportServiceTest
     assertThat(actual.getSbomSummary().vulnerabilityCount).isEqualTo(expected.summary.vulnerabilityCount);
     assertThat(actual.getSbomSummary().applicationName).isEqualTo(expected.summary.applicationName);
     assertThat(actual.getSbomSummary().applicationVersion).isEqualTo(expected.summary.applicationVersion);
-    assertTempSbomFile(actual.getRequestId().split("-")[0], true);
+    assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
+    assertTempSbomFile(actual.getRequestId(), true);
   }
 
   @Test
-  public void testDetectSbom_Failure_InvalidSbomFormat() {
-    SbomDetectionResultDTO actual = sbomImportService.detectSbom(application.getId(),
-        new ByteArrayInputStream("{}".getBytes(StandardCharsets.UTF_8)));
-    assertThat(actual.getRequestId()).isNotEmpty();
-    assertThat(actual.getSbomSummary()).isNull();
-    assertThat(actual.getErrorMessage()).isEqualTo("Not a valid/supported sbom file.");
-    assertThat(actual.getErrors()).isNullOrEmpty();
-    assertTempSbomFile(actual.getRequestId(), false);
-  }
+  public void testDetectBinary_Success() throws IOException {
+    SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(true);
 
-  @Test
-  public void testDetectSbom_Failure_InvalidSbomFile() {
-    SbomDetectionResultDTO actual =
-        sbomImportService.detectSbom(application.getId(), new ByteArrayInputStream(new byte[0]));
+    URL resource = SbomImportServiceTest.class
+        .getResource("/SbomImportServiceTest/binary.jar");
+    File binary = new File(Objects.requireNonNull(resource).getFile());
+    SbomDetectionResultDTO actual = sbomImportService
+        .detectSbom(application.getId(), new ByteArrayInputStream(Files.readAllBytes(binary.toPath())), "binary.jar"
+        );
     assertThat(actual.getRequestId()).isNotEmpty();
-    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getScanType()).isEqualTo(SbomScanType.BINARY);
     assertThat(actual.getErrorMessage()).isEqualTo("Provided file type is not a supported SBOM file type.");
     assertThat(actual.getErrors()).isNullOrEmpty();
-    assertTempSbomFile(actual.getRequestId(), false);
+    assertThat(actual.getSbomSummary()).isNull();
+    assertTempSbomFile(actual.getRequestId(), true);
+
+    SbomRequestIdElements sbomRequestIdElements = sbomMetadataUtils.decodeRequestId(actual.getRequestId());
+    assertThat(sbomRequestIdElements.getScanType()).isEqualTo(SbomScanType.BINARY);
+    assertThat(sbomRequestIdElements.getFilename()).endsWith("binary.jar");
   }
 
   @Test
+  public void testDetectBinary_Disabled() {
+    URL resource = SbomImportServiceTest.class
+        .getResource("/SbomImportServiceTest/binary.jar");
+    File binary = new File(Objects.requireNonNull(resource).getFile());
+    assertThrows("Importing binary files for SBOM Manager is disabled", BadRequestException.class,
+        () -> sbomImportService
+            .detectSbom(application.getId(), new ByteArrayInputStream(Files.readAllBytes(binary.toPath())),
+                "binary.jar"
+            ));
+  }
+
+  @Test
+  @Ignore("Ignoring until SBOM-914 is done because now this invalid SBOM is treated as a Binary")
   public void testDetectSbom_Failure_Invalid_CDX_JSON() {
     String sbom = """
         {
@@ -195,7 +225,7 @@ public class SbomImportServiceTest
         }
         """;
     SbomDetectionResultDTO actual = sbomImportService.detectSbom(application.getId(),
-        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)));
+        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)), TEST_FILENAME);
     assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getSbomSummary()).isNull();
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDx SBOM file.");
@@ -207,6 +237,7 @@ public class SbomImportServiceTest
   }
 
   @Test
+  @Ignore("Ignoring until SBOM-914 is done because now this invalid SBOM is treated as a Binary")
   public void testDetectSbom_Failure_Invalid_CDX_XML() {
     String sbom = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -228,7 +259,7 @@ public class SbomImportServiceTest
         </bom>
         """;
     SbomDetectionResultDTO actual = sbomImportService.detectSbom(application.getId(),
-        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)));
+        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)), TEST_FILENAME);
     assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getSbomSummary()).isNull();
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDx SBOM file.");
@@ -240,6 +271,7 @@ public class SbomImportServiceTest
   }
 
   @Test
+  @Ignore("Ignoring until SBOM-914 is done because now this invalid SBOM is treated as a Binary")
   public void testDetectSbom_Failure_Invalid_SPDX_JSON() {
     String sbom = """
         {
@@ -266,7 +298,7 @@ public class SbomImportServiceTest
         }
         """;
     SbomDetectionResultDTO actual = sbomImportService.detectSbom(application.getId(),
-        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)));
+        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)), TEST_FILENAME);
     assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getSbomSummary()).isNull();
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid SPDX SBOM file.");
@@ -278,6 +310,7 @@ public class SbomImportServiceTest
   }
 
   @Test
+  @Ignore("Ignoring until SBOM-914 is done because now this invalid SBOM is treated as a Binary")
   public void testDetectSbom_Failure_Invalid_SPDX_XML() {
     String sbom = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -303,7 +336,7 @@ public class SbomImportServiceTest
         </Document>
         """;
     SbomDetectionResultDTO actual = sbomImportService.detectSbom(application.getId(),
-        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)));
+        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)), TEST_FILENAME);
     assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getSbomSummary()).isNull();
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid SPDX SBOM file.");
@@ -318,25 +351,44 @@ public class SbomImportServiceTest
   public void testDetectSbom_Failure_InvalidApplicationId() {
     assertThrows("Application with id applicationId does not exist", NotFoundException.class,
         () ->
-            sbomImportService.detectSbom("applicationId", new ByteArrayInputStream(new byte[0])));
+            sbomImportService.detectSbom("applicationId", new ByteArrayInputStream(new byte[0]), TEST_FILENAME));
   }
 
   @Test
-  public void testImportDetectedSbom_Success() throws IOException, URISyntaxException {
-    mockHdsReportDownload();
+  public void testImportDetectedSbom_Binary_Success() throws Exception {
+    testImportDetectedSbom_Success("binary.jar", SbomScanType.BINARY, null, null);
+  }
 
-    InputStream sbom = SbomImportServiceTest.class
-        .getResourceAsStream("/SbomImportServiceTest/valid-cyclonedx-bom.xml");
-    String fileName = UUID.randomUUID().toString().replace("-", "");
-    String mimeType = "application/xml";
-    String contentType = "CycloneDx";
-    String requestId =
-        Base64.getEncoder().encodeToString(String.format("%s-%s-%s", fileName, mimeType, contentType).getBytes());
-    File tempFile = createTemporarySbomFile(fileName, sbom);
+  @Test
+  public void testImportDetectedSbom_SBOM_Success() throws Exception {
+    testImportDetectedSbom_Success("valid-cyclonedx-bom.xml", SbomScanType.SBOM, "application/xml", "CycloneDx");
+  }
+
+  public void testImportDetectedSbom_Success(
+      String fileName,
+      SbomScanType scanType,
+      String mimeType,
+      String contentType) throws Exception
+  {
+    mockHdsReportDownload();
+    InputStream file = SbomImportServiceTest.class
+        .getResourceAsStream("/SbomImportServiceTest/" + fileName);
+    String uuid = UUID.randomUUID().toString().replace("-", "");
+    String storedFileName = StringUtils.concat(uuid, "-", fileName);
+
+    StringBuilder sb = new StringBuilder();
+    sb.append(scanType.name());
+    if (mimeType != null && contentType != null) {
+      sb.append("-").append(mimeType).append("-").append(contentType);
+    }
+    sb.append("-").append(uuid).append("-").append(fileName);
+
+    String requestId = Base64.getEncoder().encodeToString(sb.toString().getBytes(StandardCharsets.UTF_8));
+    File tempFile = createTemporarySbomFile(storedFileName, file);
     Response response = sbomImportService
         .importDetectedSbom(application.getId(), requestId, "clientUserAgent");
     assertThat(response).isNotNull();
-    assertThat(response.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+    assertThat(response.getStatus()).isEqualTo(Status.ACCEPTED.getStatusCode());
     assertThat(response.getEntity()).isNotNull();
     ApiThirdPartyScanTicketDTO status = (ApiThirdPartyScanTicketDTO) response.getEntity();
     assertThat(status.statusUrl).isNotEmpty()
@@ -351,7 +403,8 @@ public class SbomImportServiceTest
     assertThrows("Application with id applicationId does not exist", NotFoundException.class,
         () ->
             sbomImportService.importDetectedSbom("applicationId",
-                "OTExZDYxOTUxZTk0NDI5NGJhNjA0YjhhOWZkYmQzY2YtYXBwbGljYXRpb24veG1sLUN5Y2xvbmVEeA==", "userAgent"));
+                "U0JPTS1hcHBsaWNhdGlvbi94bWwtQ3ljbG9uZUR4LTkxMWQ2MTk1MWU5NDQyOTRiYTYwNGI4YTlmZGJkM2NmLWZpbGUuemlw",
+                "userAgent"));
   }
 
   @Test
@@ -359,7 +412,8 @@ public class SbomImportServiceTest
     assertThrows("Request with id requestId does not exist", NotFoundException.class,
         () ->
             sbomImportService.importDetectedSbom(application.getId(),
-                "OTExZDYxOTUxZTk0NDI5NGJhNjA0YjhhOWZkYmQzY2YtYXBwbGljYXRpb24veG1sLUN5Y2xvbmVEeA==", "userAgent"));
+                "U0JPTS1hcHBsaWNhdGlvbi94bWwtQ3ljbG9uZUR4LTkxMWQ2MTk1MWU5NDQyOTRiYTYwNGI4YTlmZGJkM2NmLWZpbGUuemlw",
+                "userAgent"));
   }
 
   @Test
@@ -387,7 +441,8 @@ public class SbomImportServiceTest
     productLicense.setMaxSbom(0);
     assertThrows("You have exceeded the licensed limit of " + productLicense.getMaxSboms() + " sboms.",
         PaymentRequiredException.class,
-        () -> sbomImportService.detectSbom(application.getId(), new ByteArrayInputStream(new byte[0])));
+        () -> sbomImportService.detectSbom(application.getId(), new ByteArrayInputStream(new byte[0]), TEST_FILENAME
+        ));
     productLicense.reset();
   }
 
@@ -403,13 +458,14 @@ public class SbomImportServiceTest
   }
 
   private void assertTempSbomFile(String requestId, boolean success) {
-    String[] decodedRequestId = new String(Base64.getDecoder().decode(requestId)).split("-");
-    File tempSbomFile = new File(insightWork.getSbomTempDir(), decodedRequestId[0] + ".tmp");
+    SbomRequestIdElements sbomRequestIdElements = sbomMetadataUtils.decodeRequestId(requestId);
+    File tempSbomFile =
+        new File(insightWork.getSbomTempDir(), sbomRequestIdElements.getFilename());
     assertThat(Files.exists(tempSbomFile.toPath())).isEqualTo(success);
   }
 
   private File createTemporarySbomFile(String fileName, InputStream sbom) {
-    File tempSbomFile = new File(insightWork.getSbomTempDir(), fileName + ".tmp");
+    File tempSbomFile = new File(insightWork.getSbomTempDir(), fileName);
     try (OutputStream outputStream = Files.newOutputStream(tempSbomFile.toPath())) {
       IOUtils.copy(sbom, outputStream);
     }

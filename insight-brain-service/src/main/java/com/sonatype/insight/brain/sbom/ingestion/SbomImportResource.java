@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 @Named
@@ -52,10 +53,13 @@ public class SbomImportResource
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces(MediaType.APPLICATION_JSON)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
-  public SbomDetectionResultDTO detectSbom(@PathParam("applicationId") String applicationId,
-                                           @FormDataParam("file") InputStream sbom)
+  public SbomDetectionResultDTO detectSbom(
+      @PathParam("applicationId") String applicationId,
+      @FormDataParam("file") InputStream sbom,
+      @FormDataParam("file") FormDataContentDisposition fileDetail
+  )
   {
-    return sbomImportService.detectSbom(applicationId, sbom);
+    return sbomImportService.detectSbom(applicationId, sbom, fileDetail.getFileName());
   }
 
   @POST

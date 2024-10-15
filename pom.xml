@@ -75,8 +75,8 @@
     <nexus-scm-client.version>1.58.3-01</nexus-scm-client.version>
     <nexus-dependency-management.version>2.2.1-01</nexus-dependency-management.version>
     <!-- byte-buddy version should match whichever version mockito-core depends on in its pom.xml file. -->
-    <mockito-core.version>5.13.0</mockito-core.version>
-    <byte-buddy.version>1.14.15</byte-buddy.version>
+    <mockito-core.version>5.14.1</mockito-core.version>
+    <byte-buddy.version>1.15.3</byte-buddy.version>
     <testcontainers.version>1.19.8</testcontainers.version>
     <staging.autoReleaseAfterClose>true</staging.autoReleaseAfterClose>
     <aws.java.sdk.version>2.27.24</aws.java.sdk.version>
@@ -1230,19 +1230,19 @@
       <dependency>
         <groupId>org.xmlunit</groupId>
         <artifactId>xmlunit-assertj</artifactId>
-        <version>2.9.1</version>
+        <version>2.10.0</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>net.javacrumbs.json-unit</groupId>
         <artifactId>json-unit-assertj</artifactId>
-        <version>2.38.0</version>
+        <version>3.4.1</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.skyscreamer</groupId>
         <artifactId>jsonassert</artifactId>
-        <version>1.5.0</version>
+        <version>1.5.3</version>
         <scope>test</scope>
         <exclusions>
           <exclusion>

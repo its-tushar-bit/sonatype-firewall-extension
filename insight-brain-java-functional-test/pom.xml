@@ -210,12 +210,6 @@
       <groupId>com.github.tomakehurst</groupId>
       <artifactId>wiremock-jre8</artifactId>
     </dependency>
-    <!-- Needed by the Crowd support tests -->
-    <dependency>
-      <groupId>org.glassfish.jaxb</groupId>
-      <artifactId>jaxb-runtime</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <profiles>

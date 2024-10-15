@@ -707,12 +707,6 @@
       <artifactId>ipaddress</artifactId>
       <version>5.4.0</version>
     </dependency>
-    <!-- Needed by the Crowd support tests -->
-    <dependency>
-      <groupId>org.glassfish.jaxb</groupId>
-      <artifactId>jaxb-runtime</artifactId>
-      <scope>test</scope>
-    </dependency>
     <!-- Needed for SPDX support -->
     <dependency>
       <groupId>org.spdx</groupId>

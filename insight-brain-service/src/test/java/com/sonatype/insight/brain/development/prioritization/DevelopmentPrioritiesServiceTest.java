@@ -27,9 +27,6 @@ import com.sonatype.insight.brain.callflow.ComponentReachabilityService;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
 import com.sonatype.insight.brain.features.FeaturesService;
-import com.sonatype.insight.brain.label.ComponentLabelService.AppliedLabels;
-import com.sonatype.insight.brain.label.ComponentLabelService.LabelsByOwner;
-import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
@@ -48,7 +45,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import oshi.util.tuples.Pair;
 
-import static com.sonatype.insight.brain.api.experimental.ApiVulnerabilitySignatureService.SECURITY_REACHABLE_LABEL;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS;
 import static com.sonatype.insight.license.model.LicensedFeature.DEVELOPER_DASHBOARD;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -1537,18 +1533,6 @@ public class DevelopmentPrioritiesServiceTest
 
   private ApiDependencyDataDTO getDependencyTypeWithNulls() {
     return new ApiDependencyDataDTO();
-  }
-
-  private AppliedLabels getAppliedLabelsForSecurityReachable() {
-    final Label label = new Label();
-    label.setLabel(SECURITY_REACHABLE_LABEL);
-    final LabelsByOwner labelsByOwner = new LabelsByOwner();
-    labelsByOwner.labels = Lists.newArrayList(label);
-
-    final AppliedLabels appliedLabels = new AppliedLabels();
-    appliedLabels.labelsByOwner.add(labelsByOwner);
-
-    return appliedLabels;
   }
 
   private void assertPaginationResultCorrect(

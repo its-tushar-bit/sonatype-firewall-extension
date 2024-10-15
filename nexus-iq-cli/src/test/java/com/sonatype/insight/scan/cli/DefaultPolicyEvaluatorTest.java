@@ -1001,7 +1001,7 @@ public abstract class DefaultPolicyEvaluatorTest
       withTestRunner(params).doPolicyEvaluationRun();
 
       Label label = labelDAO.getByLabelWithHierarchy("Security-Reachable", app.getId());
-      assertThat(label).isNotNull();
+      assertThat(label).isNull();
 
       if (label != null) {
         try (TransactionContext tx = componentLabelDAO.createTransactionContext()) {
@@ -1037,7 +1037,7 @@ public abstract class DefaultPolicyEvaluatorTest
       withTestRunner(params).doPolicyEvaluationRun();
 
       Label label = labelDAO.getByLabelWithHierarchy("Security-Reachable", app.getId());
-      assertThat(label).isNotNull();
+      assertThat(label).isNull();
 
       if (label != null) {
         try (TransactionContext tx = componentLabelDAO.createTransactionContext()) {

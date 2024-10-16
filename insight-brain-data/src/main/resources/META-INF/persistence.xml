@@ -44,6 +44,7 @@
     <class>com.sonatype.insight.brain.model.policy.PolicyWaiverReason</class>
     <class>com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation</class>
     <class>com.sonatype.insight.brain.model.policy.AutoPolicyWaiver</class>
+    <class>com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation</class>
     <class>com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern</class>
     <class>com.sonatype.insight.brain.model.repository.Repository</class>
     <class>com.sonatype.insight.brain.model.repository.RepositoryComponent</class>

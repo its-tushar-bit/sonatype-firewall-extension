@@ -36,6 +36,8 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.report.pdf.PdfGenerator.Context;
+import com.sonatype.insight.brain.sbom.components.BomPageMetadataDTO;
+import com.sonatype.insight.brain.sbom.components.SbomComponentsService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -65,6 +67,8 @@ public class PdfGeneratorService
 
   private final ClusterLockManager clusterLockManager;
 
+  private final SbomComponentsService sbomComponentsService;
+
   @Inject
   public PdfGeneratorService(
       final ApplicationDAO applicationDAO,
@@ -75,7 +79,8 @@ public class PdfGeneratorService
       final ApiReportDataServiceV2 apiReportDataServiceV2,
       final ClusterLockManager clusterLockManager,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
-      final ThirdPartyScanDAO thirdPartyScanDAO)
+      final ThirdPartyScanDAO thirdPartyScanDAO,
+      final SbomComponentsService sbomComponentsService)
   {
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -86,6 +91,7 @@ public class PdfGeneratorService
     this.clusterLockManager = clusterLockManager;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
+    this.sbomComponentsService = sbomComponentsService;
   }
 
   @Authorize(permission = Permission.READ)
@@ -124,7 +130,8 @@ public class PdfGeneratorService
     }
     ThirdPartyScan thirdPartyScan =
         thirdPartyScanDAO.getByThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId());
-    File pdfFile = generateSbomReport(application, thirdPartyScan.getScanId());
+    BomPageMetadataDTO bomPageMetadata = sbomComponentsService.getBomPageMetadata(application.getId(), sbomVersion);
+    File pdfFile = generateSbomReport(application, thirdPartyScan.getScanId(), bomPageMetadata);
 
     PolicyEvaluation policyEvaluation =
         policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), thirdPartyScan.getScanId());
@@ -142,12 +149,15 @@ public class PdfGeneratorService
     return generateReport(app, scanId, pdfData, false, Context.LIFECYCLE);
   }
 
-  public File generateSbomReport(Application app, String scanId) throws IOException {
+  public File generateSbomReport(Application app, String scanId, final BomPageMetadataDTO bomPageMetadata)
+      throws IOException
+  {
     PdfData pdfData = PdfData.createSbomPdfData(
         getBaseUrl(),
         versionService.getShortVersion(),
         apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), scanId),
-        augmentEmptyLicensesAsNotProvided(apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), scanId, true)));
+        augmentEmptyLicensesAsNotProvided(apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), scanId, true)),
+        bomPageMetadata);
     return generateReport(app, scanId, pdfData, true, Context.SBOM);
   }
 

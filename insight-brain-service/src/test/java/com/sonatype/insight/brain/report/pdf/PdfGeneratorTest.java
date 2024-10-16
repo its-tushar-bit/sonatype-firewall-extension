@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.report.pdf.PdfGenerator.Context;
 import com.sonatype.insight.brain.report.pdf.PdfGenerator.WordBreaker;
+import com.sonatype.insight.brain.sbom.components.BomPageMetadataDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -68,7 +69,44 @@ public class PdfGeneratorTest
   }
 
   @Test
-  public void testGenerate() throws Exception {
+  public void testGenerate_SBOM() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("appPublicId", "appName");
+    String scanId = "scanId";
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    File reportFile = insightWork.getReportFile(app.getId(), scanId);
+    FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorTest/report", tempDir), reportFile);
+
+    ApiReportPolicyDataDTOV2 policyViolationsData =
+        apiReportDataServiceV2.getPolicyViolationsData(app.getPublicId(), scanId);
+    policyViolationsData.commitHash = "b141d3806df77594e4744bcf24b4cc95";
+    File pdfFile = PdfGenerator.getPdfFile(reportFile);
+
+    BomPageMetadataDTO bomPageMetadataDTO = new BomPageMetadataDTO(
+        List.of("author"),
+        List.of("manufacturer"),
+        List.of("supplier"),
+        List.of("person"),
+        List.of("organization"),
+        "specification",
+        "specVersion",
+        "fileFormat",
+        new Date(),
+        "scanId"
+    );
+    PdfData pdfData = PdfData.createSbomPdfData(
+        null,
+        "98",
+        policyViolationsData,
+        apiReportDataServiceV2.getRawData(app.getPublicId(), scanId),
+        bomPageMetadataDTO
+    );
+
+    PdfGenerator.generate(pdfFile, pdfData, Context.SBOM);
+    assertThat(pdfFile).isFile();
+  }
+
+  @Test
+  public void testGenerate_LIFECYCLE() throws Exception {
     Application app = tempEntity.newApplicationWithParent("appPublicId", "appName");
     String scanId = "scanId";
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
@@ -86,7 +124,7 @@ public class PdfGeneratorTest
         apiReportDataServiceV2.getRawData(app.getPublicId(), scanId)
     );
 
-    PdfGenerator.generate(pdfFile, pdfData, Context.SBOM);
+    PdfGenerator.generate(pdfFile, pdfData, Context.LIFECYCLE);
     assertThat(pdfFile).isFile();
   }
 

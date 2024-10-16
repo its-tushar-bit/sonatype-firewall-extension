@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.report.pdf;
 
 import java.awt.*;
+import java.io.IOException;
 import java.util.Arrays;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -93,6 +94,72 @@ public class PdfGeneratorUtilsTest
         verify(pdPageContentStreamSpy).setFont(fontArgumentCaptor.capture(), eq(10f));
         assertThat(fontArgumentCaptor.getAllValues()).containsExactly(PDType1Font.HELVETICA);
         pdPageContentStreamSpy.endText();
+      }
+    }
+  }
+
+  @Test
+  public void testAddTextWithWordWrapAtChar_smallText_noWrapChar() throws IOException {
+    try (PDDocument pdDocument = new PDDocument()) {
+      PDPage pdPage = new PDPage();
+      try (PDPageContentStream pdPageContentStreamSpy = spy(new PDPageContentStream(pdDocument, pdPage))) {
+        PDFont notoSansCJKRegular = loadPDType0Font(pdDocument, "OpenSans-Regular.ttf");
+        reset(pdPageContentStreamSpy);
+        ArgumentCaptor<String> stringArgumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        PdfGeneratorUtils.addTextWithWordWrapAtChar(pdPageContentStreamSpy, pdPage.getCropBox(), 0, 0, 10,
+            new FontStyle(notoSansCJKRegular, 16, Color.BLUE), "This is a small text", null);
+
+        verify(pdPageContentStreamSpy, times(1)).showText(stringArgumentCaptor.capture());
+        assertThat(stringArgumentCaptor.getAllValues()).containsExactly("This is a small text");
+      }
+    }
+  }
+
+  @Test
+  public void testAddTextWithWordWrapAtChar_largeText_noWrapChar() throws IOException {
+    try (PDDocument pdDocument = new PDDocument()) {
+      PDPage pdPage = new PDPage();
+      try (PDPageContentStream pdPageContentStreamSpy = spy(new PDPageContentStream(pdDocument, pdPage))) {
+        PDFont notoSansCJKRegular = loadPDType0Font(pdDocument, "OpenSans-Regular.ttf");
+        reset(pdPageContentStreamSpy);
+        ArgumentCaptor<String> stringArgumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        String textToAdd = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer convallis neque a " +
+            "mollis pretium. Duis pharetra ex quis urna consequat, nec sagittis quam rhoncus. Ut tincidunt posuere " +
+            "purus non commodo. Vestibulum at varius ex, quis cursus lacus. Vivamus eget hendrerit leo. Integer " +
+            "ultrices massa vel eros vestibulum convallis. Nulla facilisi. In consequat turpis nec nisi tincidunt, " +
+            "non pellentesque enim ornare. Morbi eleifend";
+
+        PdfGeneratorUtils.addTextWithWordWrapAtChar(pdPageContentStreamSpy, pdPage.getCropBox(), 0, 0, 10,
+            new FontStyle(notoSansCJKRegular, 16, Color.BLUE), textToAdd, null);
+
+        verify(pdPageContentStreamSpy, times(1)).showText(stringArgumentCaptor.capture());
+        assertThat(stringArgumentCaptor.getAllValues()).containsExactly(
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer convallis neque");
+      }
+    }
+  }
+
+  @Test
+  public void testAddTextWithWordWrapAtChar_withWrapChar() throws IOException {
+    try (PDDocument pdDocument = new PDDocument()) {
+      PDPage pdPage = new PDPage();
+      try (PDPageContentStream pdPageContentStreamSpy = spy(new PDPageContentStream(pdDocument, pdPage))) {
+        PDFont notoSansCJKRegular = loadPDType0Font(pdDocument, "OpenSans-Regular.ttf");
+        reset(pdPageContentStreamSpy);
+        ArgumentCaptor<String> stringArgumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        String textToAdd =
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, Integer convallis neque a mollis";
+
+        PdfGeneratorUtils.addTextWithWordWrapAtChar(pdPageContentStreamSpy, pdPage.getCropBox(), 0, 0, 10,
+            new FontStyle(notoSansCJKRegular, 16, Color.BLUE), textToAdd, ",");
+
+        verify(pdPageContentStreamSpy, times(2)).showText(stringArgumentCaptor.capture());
+        assertThat(stringArgumentCaptor.getAllValues()).containsExactly(
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit,",
+            "Integer convallis neque a mollis");
       }
     }
   }

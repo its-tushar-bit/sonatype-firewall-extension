@@ -12,13 +12,15 @@ import java.io.InputStream;
 
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
-import org.knowm.xchart.internal.chartpart.Chart;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.knowm.xchart.internal.chartpart.Chart;
 
 public final class PdfGeneratorUtils
 {
@@ -34,6 +36,69 @@ public final class PdfGeneratorUtils
     catch (Exception e) {
       throw new RuntimeException("Failed to load font " + fontFileName, e);
     }
+  }
+
+  static float addTextWithWordWrapAtChar(
+      PDPageContentStream pdPageContentStream,
+      PDRectangle pageRec,
+      float x,
+      float y,
+      float margin,
+      FontStyle fontStyle,
+      String text,
+      String charToWrap) throws IOException
+  {
+    float availableSpace = pageRec.getWidth() - (margin * 2) - x;
+    String textToAdd = "";
+    if (fontStyle.getStringWidth(text) > availableSpace) {
+      if (StringUtils.isNotEmpty(charToWrap)) {
+        // If text is longer than available space and we have a character to wrap on
+        String[] textParts = text.split(charToWrap);
+        StringBuilder wrappedText = new StringBuilder();
+        for (String textPart : textParts) {
+          if (fontStyle.getStringWidth(wrappedText + charToWrap + " " + textPart) <= availableSpace) {
+            if (wrappedText.isEmpty()) {
+              wrappedText.append(textPart.trim());
+            }
+            else {
+              wrappedText.append(charToWrap).append(" ").append(textPart.trim());
+            }
+          }
+          else {
+            addText(pdPageContentStream, x, y, fontStyle, wrappedText + charToWrap);
+            y -= fontStyle.getFontHeight();
+            wrappedText = new StringBuilder(textPart.trim());
+          }
+        }
+
+        // Add whatever text was left as the last line
+        addText(pdPageContentStream, x, y, fontStyle, wrappedText.toString());
+        y -= fontStyle.getFontHeight();
+      }
+      else {
+        // Otherwise if there's no char to wrap on, we just wrap the text to the max possible
+        StringBuilder wrappedText = new StringBuilder();
+        for (char c : text.toCharArray()) {
+          if (fontStyle.getStringWidth(wrappedText + String.valueOf(c)) <= availableSpace) {
+            wrappedText.append(c);
+          }
+          else {
+            textToAdd = wrappedText.toString();
+            break;
+          }
+        }
+
+        addText(pdPageContentStream, x, y, fontStyle, textToAdd);
+        y -= fontStyle.getFontHeight();
+      }
+    }
+    else {
+      // If text is smaller than available space, we add it as is.
+      addText(pdPageContentStream, x, y, fontStyle, text);
+      y -= fontStyle.getFontHeight();
+    }
+
+    return y;
   }
 
   static void addText(
@@ -140,11 +205,12 @@ public final class PdfGeneratorUtils
     pdPageContentStream.drawForm(pdFormXObject);
   }
 
-  public static void addImage(PDDocument pdDocument, PDPageContentStream pdPageContentStream,
-                              float x, float y, String resourcePath)
+  public static void addImage(
+      PDDocument pdDocument, PDPageContentStream pdPageContentStream,
+      float x, float y, String resourcePath)
   {
     try (InputStream inputStream = PdfGeneratorUtils.class.getClassLoader()
-          .getResourceAsStream(resourcePath)) {
+        .getResourceAsStream(resourcePath)) {
       byte[] data = IOUtils.toByteArray(inputStream);
       PDImageXObject pdImageXObject =
           PDImageXObject.createFromByteArray(pdDocument, data, null);

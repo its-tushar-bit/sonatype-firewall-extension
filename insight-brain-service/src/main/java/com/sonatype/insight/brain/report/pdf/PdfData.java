@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicense;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentPolicyViolation;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentSecurityIssue;
+import com.sonatype.insight.brain.sbom.components.BomPageMetadataDTO;
 
 public class PdfData
 {
@@ -39,6 +40,8 @@ public class PdfData
   public String productVersion;
 
   public List<PdfComponent> components;
+
+  public BomPageMetadataDTO sbomMetadata;
 
   public static class PdfComponent
   {
@@ -183,10 +186,12 @@ public class PdfData
       String baseUrl,
       String productVersion,
       ApiReportPolicyDataDTOV2 policyData,
-      ApiReportRawDataDTOV2 rawData)
+      ApiReportRawDataDTOV2 rawData,
+      BomPageMetadataDTO bomPageMetadata)
   {
     PdfData pdfData = createPdfData(baseUrl, productVersion, policyData, rawData);
     // Make modifications to the pdfData here and in PdfGeneration to control the pdf
+    pdfData.sbomMetadata = bomPageMetadata;
     return pdfData;
   }
 

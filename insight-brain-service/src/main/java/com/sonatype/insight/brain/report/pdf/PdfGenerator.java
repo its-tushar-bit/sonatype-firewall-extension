@@ -72,8 +72,9 @@ import rst.pdfbox.layout.util.Pair;
 import rst.pdfbox.layout.util.WordBreakerFactory;
 import rst.pdfbox.layout.util.WordBreakers;
 
-import static com.sonatype.insight.brain.report.pdf.PdfGeneratorUtils.addText;
 import static com.sonatype.insight.brain.report.pdf.PdfGeneratorUtils.addImage;
+import static com.sonatype.insight.brain.report.pdf.PdfGeneratorUtils.addText;
+import static com.sonatype.insight.brain.report.pdf.PdfGeneratorUtils.addTextWithWordWrapAtChar;
 import static com.sonatype.insight.brain.report.pdf.PdfGeneratorUtils.drawChart;
 import static com.sonatype.insight.brain.report.pdf.PdfGeneratorUtils.drawRectangleWithText;
 import static com.sonatype.insight.brain.report.pdf.PdfGeneratorUtils.loadPDType0Font;
@@ -146,6 +147,19 @@ public class PdfGenerator
 
   private static final int MAX_CELL_CHARACTERS = 500;
 
+  private static final List<String> SBOM_METADATA_LABELS =
+      List.of("Author:", "Manufacturer:", "Supplier:", "Specification:", "Spec Version:",
+          "File Format:");
+
+  private static final String SBOM_METADATA_EMPTY_DEFAULT = "NONE";
+
+  private static final List<String> SBOM_METADATA_ALL_EMPTY_DEFAULTS =
+      Collections.nCopies(6, SBOM_METADATA_EMPTY_DEFAULT);
+
+  private static final int SBOM_METADATA_TITLE_TOP_MARGIN = 5;
+
+  private static final int SBOM_METADATA_LABELS_Y_MARGIN = 65;
+
   private final Context productContext;
 
   private final PdfData pdfData;
@@ -182,6 +196,10 @@ public class PdfGenerator
   private FontStyle rectangleFontStyle;
 
   private FontStyle threatLevelFontStyle;
+
+  private FontStyle sbomMetadataTitleFontStyle;
+
+  private FontStyle sbomMetadataFontStyle;
 
   private String createdOnDateTime;
 
@@ -248,6 +266,8 @@ public class PdfGenerator
     tableRowFontStyle = new FontStyle(regularFont, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
     rectangleFontStyle = new FontStyle(summaryFontStyle.getFont(), 14f, Color.WHITE);
     threatLevelFontStyle = new FontStyle(semiBoldFont, THREAT_LEVEL_FONT_SIZE, DEFAULT_FONT_COLOR);
+    sbomMetadataTitleFontStyle = new FontStyle(boldFont, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
+    sbomMetadataFontStyle = new FontStyle(regularFont, DEFAULT_FONT_SIZE, DEFAULT_FONT_COLOR);
   }
 
   private void setDocumentMetadata() {
@@ -291,13 +311,17 @@ public class PdfGenerator
       float titleAndDatesStartY = addTitleAndDates(contentStream, pageRec, "Policy Violations", MARGIN,
           headerLeftStartY - sonatypeFontStyle.getFontDescent() - titleFontStyle.getFontAscent());
 
+      // Add SBOM metadata
+      float sbomMetadataStartY = addSbomMetadata(contentStream, pageRec, MARGIN,
+          titleAndDatesStartY - dateDescriptorFontStyle.getFontHeight() - SBOM_METADATA_TITLE_TOP_MARGIN);
+
       // Add violations summary
       long critical = countPolicyViolations(8, 10);
       long severe = countPolicyViolations(4, 7);
       long moderate = countPolicyViolations(2, 3);
       long total = critical + severe + moderate;
       float criticalStartX = MARGIN;
-      float criticalStartY = titleAndDatesStartY - dateDescriptorFontStyle.getFontDescent() - SUMMARY_IMAGE_SIZE
+      float criticalStartY = sbomMetadataStartY - dateDescriptorFontStyle.getFontDescent() - SUMMARY_IMAGE_SIZE
           - SUMMARY_PADDING;
       float criticalWidth = drawRectangleWithText(contentStream, criticalStartX, criticalStartY, SUMMARY_IMAGE_SIZE,
           SUMMARY_IMAGE_SIZE, ThreatLevelColor.get(8), rectangleFontStyle, String.valueOf(critical));
@@ -635,6 +659,39 @@ public class PdfGenerator
       pdf.addPage(page);
       draw(tableDrawer);
     }
+  }
+
+  private float addSbomMetadata(
+      final PDPageContentStream contentStream,
+      final PDRectangle pageRec,
+      final int startX,
+      final float startY) throws IOException
+  {
+    float yPosition = startY;
+    if (this.productContext.equals(Context.SBOM)) {
+      addText(contentStream, startX, yPosition, sbomMetadataTitleFontStyle, "SBOM Metadata");
+      yPosition -= sbomMetadataFontStyle.getFontHeight();
+      yPosition -= SBOM_METADATA_TITLE_TOP_MARGIN;
+      List<String> values = pdfData.sbomMetadata != null ? List.of(
+          getSbomMetadataListValuesJoinedOrDefault(pdfData.sbomMetadata.author),
+          getSbomMetadataListValuesJoinedOrDefault(pdfData.sbomMetadata.manufacturer),
+          getSbomMetadataListValuesJoinedOrDefault(pdfData.sbomMetadata.supplier),
+          pdfData.sbomMetadata.specification,
+          pdfData.sbomMetadata.specVersion, pdfData.sbomMetadata.fileFormat
+      ) : SBOM_METADATA_ALL_EMPTY_DEFAULTS;
+
+      for (int i = 0; i < SBOM_METADATA_LABELS.size(); i++) {
+        addText(contentStream, startX, yPosition, sbomMetadataFontStyle, SBOM_METADATA_LABELS.get(i));
+        yPosition = addTextWithWordWrapAtChar(contentStream, pageRec, startX + SBOM_METADATA_LABELS_Y_MARGIN,
+            yPosition, MARGIN, sbomMetadataFontStyle, values.get(i), ",");
+      }
+    }
+
+    return yPosition;
+  }
+
+  private String getSbomMetadataListValuesJoinedOrDefault(List<String> listValues) {
+    return listValues.isEmpty() ? SBOM_METADATA_EMPTY_DEFAULT : StringUtils.join(listValues, ", ");
   }
 
   // Visible for testing

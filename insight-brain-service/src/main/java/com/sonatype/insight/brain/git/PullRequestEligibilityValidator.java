@@ -23,11 +23,11 @@ public class PullRequestEligibilityValidator
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestEligibilityValidator.class);
 
-  private final PullRequestRepositoryValidator pullRequestRepositoryValidator;
+  private final ScmRepoVisibilityService scmRepoVisibilityService;
 
   @Inject
-  public PullRequestEligibilityValidator(PullRequestRepositoryValidator pullRequestRepositoryValidator) {
-    this.pullRequestRepositoryValidator = pullRequestRepositoryValidator;
+  public PullRequestEligibilityValidator(ScmRepoVisibilityService scmRepoVisibilityService) {
+    this.scmRepoVisibilityService = scmRepoVisibilityService;
   }
 
   /**
@@ -40,8 +40,8 @@ public class PullRequestEligibilityValidator
    * @param featureBranchPolicyEvaluation evaluation associated with the application;  this needs to be for the
    *                                     head commit for the PR in order to pass validation
    *
-   * @return true iff:
-   *   (a) the PR is for a private, internal repository
+   * @return true if:
+   *   (a) the PR is for a private or internal repository (or allowed via license flag)
    *   (b) the PR is open
    *   (c) the PR is not for the default branch
    *   (d) the given policy evaluation is for the head commit of the PR
@@ -52,9 +52,8 @@ public class PullRequestEligibilityValidator
       GitRepositoryInfo gitRepositoryInfo,
       PolicyEvaluation featureBranchPolicyEvaluation)
   {
-    if (!pullRequestRepositoryValidator.isInternalRepository(gitRepositoryInfo) &&
-        !pullRequest.isRepositoryPrivate()) {
-      log.debug("Repository is not valid for pull requests, ensure that it is private: {}",
+    if (!scmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(gitRepositoryInfo)) {
+      log.debug("Repository is not valid for pull requests, ensure that it is private or internal: {}",
           gitRepositoryInfo.getRepositoryUrl());
       return false;
     }

@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.git.PullRequestCommentingEligibilityValidator;
 import com.sonatype.insight.brain.git.PullRequestInfoClient;
-import com.sonatype.insight.brain.git.PullRequestRepositoryValidator;
+import com.sonatype.insight.brain.git.ScmRepoVisibilityService;
 import com.sonatype.insight.brain.git.SourceControlException;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
@@ -75,7 +75,7 @@ public class SastPullRequestCommentingService
 
   private final TelemetrySender telemetrySender;
 
-  private final PullRequestRepositoryValidator pullRequestRepositoryValidator;
+  private final ScmRepoVisibilityService scmRepoVisibilityService;
 
   private final PullRequestCommentingEligibilityValidator prCommentingEligibilityValidator;
 
@@ -91,7 +91,7 @@ public class SastPullRequestCommentingService
       final ApplicationDAO applicationDAO,
       final BaseUrl baseUrl,
       final TelemetrySender telemetrySender,
-      final PullRequestRepositoryValidator pullRequestRepositoryValidator,
+      final ScmRepoVisibilityService scmRepoVisibilityService,
       final PullRequestCommentingEligibilityValidator prCommentingEligibilityValidator,
       final FeaturesService featuresService)
   {
@@ -103,7 +103,7 @@ public class SastPullRequestCommentingService
     this.applicationDAO = applicationDAO;
     this.baseUrl = baseUrl;
     this.telemetrySender = telemetrySender;
-    this.pullRequestRepositoryValidator = pullRequestRepositoryValidator;
+    this.scmRepoVisibilityService = scmRepoVisibilityService;
     this.prCommentingEligibilityValidator = prCommentingEligibilityValidator;
     this.featuresService = featuresService;
   }
@@ -286,8 +286,7 @@ public class SastPullRequestCommentingService
       log.warn("No SAST findings for SAST scan [{}], skipping SAST PR commenting.", sastScan.getId());
       return false;
     }
-    if (!pullRequestRepositoryValidator.isInternalRepository(gitRepoInfo) &&
-        !pullRequestRepositoryValidator.isPrivateRepository(gitRepoInfo)) {
+    if (!scmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(gitRepoInfo)) {
       log.warn("Repository [{}] is not private or internal, skipping SAST PR commenting.", gitRepoInfo.repositoryUrl);
       return false;
     }

@@ -12,7 +12,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.git.ConfigurationValidationResult;
 import com.sonatype.insight.brain.git.GitApiFactory;
 import com.sonatype.insight.brain.git.GitClientFactory;
-import com.sonatype.insight.brain.git.PullRequestRepositoryValidator;
+import com.sonatype.insight.brain.git.ScmRepoVisibilityService;
 import com.sonatype.insight.brain.git.SourceControlSshService;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
@@ -43,7 +43,7 @@ public class ApiCompositeSourceControlConfigValidatorService
 
   private final GitApiFactory gitApiFactory;
 
-  private final PullRequestRepositoryValidator pullRequestRepositoryValidator;
+  private final ScmRepoVisibilityService scmRepoVisibilityService;
 
   private final SourceControlSshService sourceControlSshService;
 
@@ -55,14 +55,14 @@ public class ApiCompositeSourceControlConfigValidatorService
       SourceControlUtils sourceControlUtils,
       GitClientFactory gitClientFactory,
       GitApiFactory gitApiFactory,
-      PullRequestRepositoryValidator pullRequestRepositoryValidator,
+      ScmRepoVisibilityService scmRepoVisibilityService,
       SourceControlSshService sourceControlSshService
   )
   {
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
     this.gitApiFactory = gitApiFactory;
-    this.pullRequestRepositoryValidator = pullRequestRepositoryValidator;
+    this.scmRepoVisibilityService = scmRepoVisibilityService;
     this.sourceControlSshService = sourceControlSshService;
   }
 
@@ -79,8 +79,7 @@ public class ApiCompositeSourceControlConfigValidatorService
     result.setConfigurationComplete(new ValidationResult(true));
 
     try {
-      if (!pullRequestRepositoryValidator.isInternalRepository(gitInfo) &&
-          !pullRequestRepositoryValidator.isPrivateRepository(gitInfo)) {
+      if (!scmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(gitInfo)) {
         result.setRepoPrivate(new ValidationResult(false,
             "Repository must be private or internal to enable all SCM features. " +
                 "Support for public repositories is limited."));

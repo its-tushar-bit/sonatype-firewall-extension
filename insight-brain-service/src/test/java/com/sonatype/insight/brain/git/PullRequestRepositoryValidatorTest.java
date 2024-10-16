@@ -6,13 +6,10 @@
 
 package com.sonatype.insight.brain.git;
 
-import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.Arrays;
 
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.scm.SourceControlProvider;
-import com.sonatype.nexus.scm.api.GitApiClient;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -31,7 +28,7 @@ import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -40,10 +37,7 @@ public class PullRequestRepositoryValidatorTest
   private static final String TEST_REPO_URL = "%s/sonatype/repo/";
 
   @Mock
-  private GitClientFactory gitClientFactory;
-
-  @Mock
-  private GitApiClient gitApiClient;
+  private ScmRepoVisibilityService mockScmRepoVisibilityService;
 
   private PullRequestRepositoryValidator pullRequestRepositoryValidator;
 
@@ -51,7 +45,7 @@ public class PullRequestRepositoryValidatorTest
 
   @Before
   public void setup() {
-    pullRequestRepositoryValidator = new PullRequestRepositoryValidator(gitClientFactory);
+    pullRequestRepositoryValidator = new PullRequestRepositoryValidator(mockScmRepoVisibilityService);
 
     Logger log = (Logger) LoggerFactory.getLogger(PullRequestRepositoryValidator.class);
     listAppender = new ListAppender<>();
@@ -60,7 +54,7 @@ public class PullRequestRepositoryValidatorTest
   }
 
   @Test
-  public void isPullRequestAllowed_RepoDisabled() {
+  public void testIsRepoValidForPRs_RepoDisabled() {
     String repoUrl = String.format(TEST_REPO_URL, GITHUB_COM);
 
     GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo(repoUrl, GITHUB);
@@ -78,112 +72,75 @@ public class PullRequestRepositoryValidatorTest
   }
 
   @Test
-  public void isPullRequestAllowed_GitHubEnterpriseFlow() {
+  public void testIsRepoValidForPRs_GitHubEnterpriseFlow() {
     String repoName = String.format(TEST_REPO_URL, "https://NOTgithub.com/");
+    GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo(repoName, GITHUB);
+    when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(eq(gitRepositoryInfo))).thenReturn(true);
     assertThat(pullRequestRepositoryValidator
-        .isRepoValidForPRs(newGitRepositoryInfo(repoName, GITHUB)))
+        .isRepoValidForPRs(gitRepositoryInfo))
         .isTrue();
   }
 
   @Test
-  public void isPullRequestAllowed_GitLabEnterpriseFlow() {
+  public void testIsRepoValidForPRs_GitLabEnterpriseFlow() {
     String repoName = String.format(TEST_REPO_URL, "https://NOTgitlab.com/");
-    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(gitApiClient);
     assertThat(pullRequestRepositoryValidator
         .isRepoValidForPRs(newGitRepositoryInfo(repoName, GITLAB)))
         .isFalse();
   }
 
   @Test
-  public void isPullRequestAllowed_BitBucketFlow() throws IOException {
+  public void testIsRepoValidForPRs_BitBucketFlow() {
     String repoName = String.format(TEST_REPO_URL, "https://foo.org/");
-    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(gitApiClient);
+    GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo(repoName, BITBUCKET);
 
     boolean[] isPrivateValues = {true, false};
     for (boolean isPrivate: isPrivateValues) {
-      when(gitApiClient.isRepositoryPrivate()).thenReturn(isPrivate);
-      assertThat(pullRequestRepositoryValidator.isRepoValidForPRs(newGitRepositoryInfo(repoName, BITBUCKET)))
+      when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(eq(gitRepositoryInfo)))
+          .thenReturn(isPrivate);
+      assertThat(pullRequestRepositoryValidator.isRepoValidForPRs(gitRepositoryInfo))
           .isEqualTo(isPrivate);
     }
   }
 
   @Test
-  public void isPullRequestAllowed_PrivateGithub() throws IOException {
-    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(gitApiClient);
+  public void testIsRepoValidForPRs_PrivateGithub() {
     String repoName = String.format(TEST_REPO_URL, "https://github.com/");
+    GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo(repoName, GITHUB);
 
     boolean[] isPrivateValues = {true, false};
-    for (boolean isPrivate: isPrivateValues) {
-      when(gitApiClient.isRepositoryPrivate()).thenReturn(isPrivate);
-      assertThat(pullRequestRepositoryValidator.isRepoValidForPRs(newGitRepositoryInfo(repoName, GITHUB)))
+    for (boolean isPrivate : isPrivateValues) {
+      when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(eq(gitRepositoryInfo)))
+          .thenReturn(isPrivate);
+      assertThat(pullRequestRepositoryValidator.isRepoValidForPRs(gitRepositoryInfo))
           .isEqualTo(isPrivate);
     }
   }
 
   @Test
-  public void isPullRequestAllowed_PrivateGitlab() throws IOException {
-    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(gitApiClient);
+  public void testIsRepoValidForPRs_PrivateGitlab() {
     String repoName = String.format(TEST_REPO_URL, "https://gitlab.com/");
+    GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo(repoName, GITLAB);
 
     boolean[] isPrivateValues = {true, false};
     for (boolean isPrivate: isPrivateValues) {
-      when(gitApiClient.isRepositoryPrivate()).thenReturn(isPrivate);
-      assertThat(pullRequestRepositoryValidator.isRepoValidForPRs(newGitRepositoryInfo(repoName, GITLAB)))
+      when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(eq(gitRepositoryInfo)))
+          .thenReturn(isPrivate);
+      assertThat(pullRequestRepositoryValidator.isRepoValidForPRs(gitRepositoryInfo))
           .isEqualTo(isPrivate);
     }
   }
 
   @Test
-  public void isPullRequestAllowed_ClientError() throws IOException {
-    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(gitApiClient);
-    when(gitApiClient.isRepositoryPrivate()).thenThrow(new IOException());
+  public void testIsRepoValidForPRs_ClientError() {
+    GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo(String.format(TEST_REPO_URL, GITHUB_COM), GITHUB);
+    when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(eq(gitRepositoryInfo)))
+        .thenThrow(UncheckedIOException.class);
 
     assertThatExceptionOfType(UncheckedIOException.class).isThrownBy(() ->
         pullRequestRepositoryValidator
-            .isRepoValidForPRs(newGitRepositoryInfo(String.format(TEST_REPO_URL, GITHUB_COM), GITHUB))
+            .isRepoValidForPRs(gitRepositoryInfo)
     );
-  }
-
-  @Test
-  public void isInternalRepository_GitHubEnterpriseFlow() {
-    String repoName = String.format(TEST_REPO_URL, "https://NOTgithub.com/");
-    assertThat(pullRequestRepositoryValidator
-        .isInternalRepository(newGitRepositoryInfo(repoName, GITHUB)))
-        .isTrue();
-  }
-
-  @Test
-  public void isInternalRepository_GitLabEnterpriseFlow() {
-    String repoName = String.format(TEST_REPO_URL, "https://NOTgitlab.com/");
-    assertThat(pullRequestRepositoryValidator
-        .isInternalRepository(newGitRepositoryInfo(repoName, GITLAB)))
-        .isFalse();
-  }
-
-  @Test
-  public void isInternalRepository_GitHubCloudFlow() {
-    String repoName = String.format(TEST_REPO_URL, "https://github.com/");
-    assertThat(pullRequestRepositoryValidator
-        .isInternalRepository(newGitRepositoryInfo(repoName, GITHUB)))
-        .isFalse();
-  }
-
-  @Test
-  public void isInternalRepository_GitLabCloudFlow() {
-    String repoName = String.format(TEST_REPO_URL, "https://gitlab.com/");
-    assertThat(pullRequestRepositoryValidator
-        .isInternalRepository(newGitRepositoryInfo(repoName, GITLAB)))
-        .isFalse();
-  }
-
-  @Test
-  public void isInternalRepository_NotGithubOrGitLab() {
-    String repoName = String.format(TEST_REPO_URL, "https://repo.com/");
-    Arrays.stream(SourceControlProvider.values())
-        .filter(sourceControlProvider -> sourceControlProvider != GITHUB && sourceControlProvider != GITLAB)
-        .forEach(sourceControlProvider -> assertThat(pullRequestRepositoryValidator
-            .isInternalRepository(newGitRepositoryInfo(repoName, sourceControlProvider)))
-            .isFalse());
   }
 
   private GitRepositoryInfo newGitRepositoryInfo(final String repoUrl, final SourceControlProvider provider) {

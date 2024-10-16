@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.dataaccess.sast.SastPullRequestCommentDAO;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.git.PullRequestInfoClient;
-import com.sonatype.insight.brain.git.PullRequestRepositoryValidator;
+import com.sonatype.insight.brain.git.ScmRepoVisibilityService;
 import com.sonatype.insight.brain.git.SourceControlException;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -80,7 +80,7 @@ public class SastPullRequestCommentingServiceTest
   private PullRequestInfoClient pullRequestInfoClient;
 
   @Mock
-  private PullRequestRepositoryValidator pullRequestRepositoryValidator;
+  private ScmRepoVisibilityService mockScmRepoVisibilityService;
 
   @Mock
   private GitClientFactory gitClientFactory;
@@ -106,7 +106,7 @@ public class SastPullRequestCommentingServiceTest
   public void configure(Binder binder) {
     binder.bind(FeaturesService.class).toInstance(featuresService);
     binder.bind(PullRequestInfoClient.class).toInstance(pullRequestInfoClient);
-    binder.bind(PullRequestRepositoryValidator.class).toInstance(pullRequestRepositoryValidator);
+    binder.bind(ScmRepoVisibilityService.class).toInstance(mockScmRepoVisibilityService);
     binder.bind(GitClientFactory.class).toInstance(gitClientFactory);
     binder.bind(ProjectUrl.class).toInstance(projectUrl);
     binder.bind(GitApiClient.class).toInstance(gitApiClient);
@@ -883,9 +883,7 @@ public class SastPullRequestCommentingServiceTest
   }
 
   private void setRepoPrivate() {
-    doReturn(true)
-        .when(pullRequestRepositoryValidator)
-        .isPrivateRepository(any());
+    doReturn(true).when(mockScmRepoVisibilityService).isRepositoryValidForPullRequestFeatures(any());
   }
 
   private void setCommentResponseForCreateComment() throws IOException {

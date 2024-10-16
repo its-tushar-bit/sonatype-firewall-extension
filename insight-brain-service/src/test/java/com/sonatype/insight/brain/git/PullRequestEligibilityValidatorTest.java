@@ -16,7 +16,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
 public class PullRequestEligibilityValidatorTest
@@ -55,7 +55,8 @@ public class PullRequestEligibilityValidatorTest
     // then
     assertThat(testScenario.isPullRequestEligibleForCommenting()).isFalse();
     assertThatLogMessagesEqual(
-        debug("Repository is not valid for pull requests, ensure that it is private: http://gitlab.com/projects/app1")
+        debug("Repository is not valid for pull requests, ensure that it is private or internal: "
+            + "http://gitlab.com/projects/app1")
     );
   }
 
@@ -146,7 +147,11 @@ public class PullRequestEligibilityValidatorTest
     private GitRepositoryInfo mockGitRepositoryInfo;
 
     @Mock
-    private PullRequestRepositoryValidator mockPullRequestRepositoryValidator;
+    private ScmRepoVisibilityService mockScmRepoVisibilityService;
+
+    private boolean isRepoPrivate;
+
+    private boolean isRepoInternal;
 
     private String applicationId;
 
@@ -160,11 +165,12 @@ public class PullRequestEligibilityValidatorTest
     }
 
     TestScenario withInternalRepository(boolean isInternal) {
-      doReturn(isInternal).when(mockPullRequestRepositoryValidator).isInternalRepository(any());
+      isRepoInternal = isInternal;
       return this;
     }
 
     TestScenario withPrivateRepository(boolean isPrivate) {
+      isRepoPrivate = isPrivate;
       doReturn(isPrivate).when(mockPullRequest).isRepositoryPrivate();
       return this;
     }
@@ -200,7 +206,9 @@ public class PullRequestEligibilityValidatorTest
     }
 
     boolean isPullRequestEligibleForCommenting() {
-      return new PullRequestEligibilityValidator(mockPullRequestRepositoryValidator)
+      doReturn(isRepoPrivate || isRepoInternal).when(mockScmRepoVisibilityService)
+          .isRepositoryValidForPullRequestFeatures(eq(mockGitRepositoryInfo));
+      return new PullRequestEligibilityValidator(mockScmRepoVisibilityService)
           .isPullRequestEligibleForCommenting(applicationId, mockPullRequest, mockGitRepositoryInfo, policyEvaluation);
     }
   }

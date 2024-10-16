@@ -66,8 +66,6 @@ public class PullRequestPollingService
 
   private final GitClientFactory gitClientFactory;
 
-  private final PullRequestRepositoryValidator pullRequestRepositoryValidator;
-
   private final RemediationBranchNamePrefixGenerator remediationBranchNamePrefixGenerator =
       new RemediationBranchNamePrefixGenerator();
 
@@ -77,6 +75,8 @@ public class PullRequestPollingService
 
   private final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator;
 
+  private final ScmRepoVisibilityService scmRepoVisibilityService;
+
   @Inject
   public PullRequestPollingService(
       ApplicationDAO applicationDAO,
@@ -85,7 +85,7 @@ public class PullRequestPollingService
       SourceControlEventPublisher sourceControlEventPublisher,
       SourceControlUtils sourceControlUtils,
       GitClientFactory gitClientFactory,
-      PullRequestRepositoryValidator pullRequestRepositoryValidator,
+      ScmRepoVisibilityService scmRepoVisibilityService,
       SourceControlLoadBalancer sourceControlLoadBalancer,
       IqForScmLicenseChecker licenseChecker,
       PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator)
@@ -96,10 +96,10 @@ public class PullRequestPollingService
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
-    this.pullRequestRepositoryValidator = pullRequestRepositoryValidator;
     this.sourceControlLoadBalancer = sourceControlLoadBalancer;
     this.licenseChecker = licenseChecker;
     this.pullRequestCommentingEligibilityValidator = pullRequestCommentingEligibilityValidator;
+    this.scmRepoVisibilityService = scmRepoVisibilityService;
   }
 
   public void fetchAndSendPullRequestsForCommenting() {
@@ -127,9 +127,8 @@ public class PullRequestPollingService
                   "  We will not comment on it.",
               pullRequest.getNumber(), pullRequest.getHead());
         }
-        else if (!pullRequestRepositoryValidator.isInternalRepository(gitRepositoryInfo) &&
-            !pullRequest.isRepositoryPrivate()) {
-          log.debug("Repository is not valid for pull requests, check that it is private: {}",
+        else if (!scmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(gitRepositoryInfo)) {
+          log.debug("Repository is not valid for pull requests, check that it is private/internal: {}",
               gitRepositoryInfo.getRepositoryUrl());
         }
         else if (isPullRequestForBaseBranch(pullRequest, gitRepositoryInfo)) {

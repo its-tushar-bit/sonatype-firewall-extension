@@ -6,15 +6,11 @@
 
 package com.sonatype.insight.brain.git;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.nexus.scm.api.GitApiClient;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,11 +26,11 @@ public class PullRequestRepositoryValidator
 
   static final String GITHUB_COM = "https://github.com";
 
-  private final GitClientFactory gitClientFactory;
+  private final ScmRepoVisibilityService scmRepoVisibilityService;
 
   @Inject
-  PullRequestRepositoryValidator(final GitClientFactory gitClientFactory) {
-    this.gitClientFactory = gitClientFactory;
+  PullRequestRepositoryValidator(final ScmRepoVisibilityService scmRepoVisibilityService) {
+    this.scmRepoVisibilityService = scmRepoVisibilityService;
   }
 
   /**
@@ -55,25 +51,6 @@ public class PullRequestRepositoryValidator
           String.format("'%s' not supported yet", gitRepositoryInfo.provider.name()));
     }
 
-    return isInternalRepository(gitRepositoryInfo) || isPrivateRepository(gitRepositoryInfo);
-  }
-
-  /**
-   * Returns {@code true} if a repository is internal only (e.g. GitHub Enterprise)
-   */
-  public boolean isInternalRepository(final GitRepositoryInfo gitRepositoryInfo) {
-    return gitRepositoryInfo.provider.isScmSecured(gitRepositoryInfo.normalizedRepositoryUrl);
-  }
-
-  public boolean isPrivateRepository(final GitRepositoryInfo gitRepositoryInfo) {
-    GitApiClient client = gitClientFactory.createApiClient(gitRepositoryInfo);
-    try {
-      return client.isRepositoryPrivate();
-    }
-    catch (IOException e) {
-      log.error("Error when checking if repository is private", e);
-      throw new UncheckedIOException("Unable to connect to the repository " + gitRepositoryInfo.normalizedRepositoryUrl,
-          e);
-    }
+    return scmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(gitRepositoryInfo);
   }
 }

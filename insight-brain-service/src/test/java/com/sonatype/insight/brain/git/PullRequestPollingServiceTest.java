@@ -432,7 +432,8 @@ public class PullRequestPollingServiceTest
     // then: no events emitted
     verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesContain(
-        debug("Repository is not valid for pull requests, check that it is private: https://domain.com/orgNp/repoNp")
+        debug("Repository is not valid for pull requests, check that it is private/internal: "
+            + "https://domain.com/orgNp/repoNp")
     );
   }
 
@@ -667,7 +668,7 @@ public class PullRequestPollingServiceTest
     private GitClientFactory mockGitClientFactory;
 
     @Mock
-    private PullRequestRepositoryValidator mockPullRequestRepositoryValidator;
+    private ScmRepoVisibilityService mockScmRepoVisibilityService;
 
     @Mock
     private IqForScmLicenseChecker mockLicenseChecker;
@@ -715,12 +716,13 @@ public class PullRequestPollingServiceTest
         }
 
         if (thrownException != null) {
-          doThrow(UnsupportedOperationException.class).when(mockPullRequestRepositoryValidator)
-              .isInternalRepository(eq(mockRepo.gitRepositoryInfo));
+          doThrow(UnsupportedOperationException.class).when(mockScmRepoVisibilityService)
+              .isRepositoryValidForPullRequestFeatures(eq(mockRepo.gitRepositoryInfo));
         }
         else {
-          doReturn(mockRepo.isGitRepositoryInternal).when(mockPullRequestRepositoryValidator)
-              .isInternalRepository(eq(mockRepo.gitRepositoryInfo));
+          doReturn(mockRepo.isGitRepositoryInternal || mockRepo.isGitRepositoryPrivate)
+              .when(mockScmRepoVisibilityService)
+              .isRepositoryValidForPullRequestFeatures(eq(mockRepo.gitRepositoryInfo));
         }
         mockRepo.pullRequests.forEach(pullRequest -> pullRequest.setRepositoryPrivate(mockRepo.isGitRepositoryPrivate));
 
@@ -731,7 +733,7 @@ public class PullRequestPollingServiceTest
 
       return new PullRequestPollingService(applicationDAO, sourceControlDAO,
           sourceControlPullRequestDAO, sourceControlEventPublisher, mockSourceControlUtils, mockGitClientFactory,
-          mockPullRequestRepositoryValidator, mockSourceControlLoadBalancer, mockLicenseChecker,
+          mockScmRepoVisibilityService, mockSourceControlLoadBalancer, mockLicenseChecker,
           new PullRequestCommentingEligibilityValidator());
     }
 

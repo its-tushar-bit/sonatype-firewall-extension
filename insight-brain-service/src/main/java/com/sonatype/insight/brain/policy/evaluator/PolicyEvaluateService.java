@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.scan.ScanContext;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.metrics.PolicyEvaluateServiceMetrics;
@@ -296,6 +297,31 @@ public class PolicyEvaluateService
         throw new IllegalArgumentException("Unknown integration type " + integrationType);
     }
   }
+  
+  public void evaluateWithPolling(
+      String statusId,
+      Application app,
+      ClientScanType clientScanType,
+      Stage stage,
+      ScanTriggerType scanTriggerType,
+      File tempScanFile,
+      String thirdPartyScanType,
+      String clientUserAgent,
+      String clientInstanceId)
+  {
+    evaluateWithPolling(
+        statusId,
+        app,
+        clientScanType,
+        stage,
+        scanTriggerType,
+        tempScanFile,
+        thirdPartyScanType,
+        clientUserAgent,
+        clientInstanceId,
+        null
+    );
+  }
 
   /**
    * Starts the evaluation of an {@link Application}, type and stage. The passed <code>statusId</code> is passed as
@@ -311,6 +337,7 @@ public class PolicyEvaluateService
    *          is {@link ClientScanType#SONATYPE_THIRD_PARTY} or null otherwise
    * @param clientUserAgent User agent from {@link HttpServletRequest}
    * @param clientInstanceId Client instance ID {@link HttpServletRequest}
+   * @param scanContext any information to be passed down through the scan {@link ScanContext}
    */
   public void evaluateWithPolling(
       String statusId,
@@ -321,7 +348,8 @@ public class PolicyEvaluateService
       File tempScanFile,
       String thirdPartyScanType,
       String clientUserAgent,
-      String clientInstanceId)
+      String clientInstanceId,
+      ScanContext scanContext)
   {
     // to avoid any race condition when the following task attempts to update
     PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
@@ -335,8 +363,8 @@ public class PolicyEvaluateService
         telemetryUtils.buildThirdPartyScanTelemetryData(app.getPublicId(), stage, thirdPartyScanType, scanTriggerType,
             clientUserAgent);
     AuditData.get().continueAsync(
-        new Task(app, clientScanType, statusId, stage, scanTriggerType, tempScanFile,
-            thirdPartyScanTelemetryData, persistedPolicyEvaluationPollingResult, clientUserAgent, clientInstanceId),
+        new Task(app, clientScanType, statusId, stage, scanTriggerType, tempScanFile, thirdPartyScanTelemetryData,
+            persistedPolicyEvaluationPollingResult, clientUserAgent, clientInstanceId, scanContext),
         executor::submit);
   }
 
@@ -413,6 +441,8 @@ public class PolicyEvaluateService
 
     private final String clientInstanceId;
 
+    private final ScanContext scanContext;
+
     Task(
         final Application app,
         final ClientScanType clientScanType,
@@ -423,7 +453,8 @@ public class PolicyEvaluateService
         final TelemetryData thirdPartyScanTelemetryData,
         final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult,
         final String clientUserAgent,
-        final String clientInstanceId)
+        final String clientInstanceId,
+        final ScanContext scanContext)
     {
       this.app = app;
       this.clientScanType = clientScanType;
@@ -435,6 +466,7 @@ public class PolicyEvaluateService
       this.persistedPolicyEvaluationPollingResult = persistedPolicyEvaluationPollingResult;
       this.clientUserAgent = clientUserAgent;
       this.clientInstanceId = clientInstanceId;
+      this.scanContext = scanContext;
     }
 
     @Override
@@ -451,8 +483,9 @@ public class PolicyEvaluateService
       policyEvaluationPollingResult.setNextPollingIntervalInSeconds(getNextPollingInterval());
 
       try {
-        ScanReceipt scanReceipt = scanHandler.handle(tempScanFile, app, clientScanType, thirdPartyScanTelemetryData,
-            stage.getStageTypeId(), clientUserAgent, persistedPolicyEvaluationPollingResult.getStatusId());
+        ScanReceipt scanReceipt =
+            scanHandler.handle(tempScanFile, app, clientScanType, thirdPartyScanTelemetryData, stage.getStageTypeId(),
+                clientUserAgent, persistedPolicyEvaluationPollingResult.getStatusId(), scanContext);
         scanId = scanReceipt.getScanId();
 
         policyEvaluationPollingResult.setScanReceipt(scanReceipt);

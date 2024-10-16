@@ -132,7 +132,7 @@ public class ApiPromoteScanServiceV2Test
     scanReceipt.setScanId(NEW_SCAN_ID);
     String toStageId = Stage.ID_OPERATE;
     when(scanUploadService.upload(any(File.class), any(Application.class), anyString(), any(ClientScanType.class),
-        eq(null), any(), any())).thenReturn(scanReceipt);
+        eq(null), any(), any(), eq(null))).thenReturn(scanReceipt);
     ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
     evaluatorResults.evaluation = tempEntity.newPolicyEvaluation(app.getId(), toStageId, NEW_SCAN_ID);
     when(scanPolicyEvaluator.evaluate(any(Application.class), eq(NEW_SCAN_ID), any(Stage.class),
@@ -210,7 +210,7 @@ public class ApiPromoteScanServiceV2Test
       scanReceipt.setScanId(NEW_SCAN_ID);
       String toStageId = Stage.ID_OPERATE;
       when(scanUploadService.upload(any(File.class), any(Application.class), anyString(), any(ClientScanType.class),
-          eq(null), any(), any())).thenReturn(scanReceipt);
+          eq(null), any(), any(), eq(null))).thenReturn(scanReceipt);
       ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
       evaluatorResults.evaluation =
           tempEntity.newPolicyEvaluation(app.getId(), toStageId, NEW_SCAN_ID, ClientScanType.SONATYPE_THIRD_PARTY);
@@ -293,7 +293,7 @@ public class ApiPromoteScanServiceV2Test
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(NEW_SCAN_ID);
     when(scanUploadService.upload(any(File.class), any(Application.class), anyString(), any(ClientScanType.class),
-        eq(null), any(), any())).thenReturn(scanReceipt);
+        eq(null), any(), any(), eq(null))).thenReturn(scanReceipt);
     String toStageId = Stage.ID_OPERATE;
     ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
     evaluatorResults.evaluation = tempEntity.newPolicyEvaluation(app.getId(), toStageId, NEW_SCAN_ID);

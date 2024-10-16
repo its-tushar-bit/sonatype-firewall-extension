@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.scan.ScanContext;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -87,13 +88,28 @@ public class ScanHandler
       String scanRequestId)
       throws IOException
   {
+    return handle(tempScanFile, app, clientScanType, thirdPartyScanTelemetryData, stageTypeId, clientUserAgent,
+        scanRequestId, null);
+  }
+
+  public ScanReceipt handle(
+      File tempScanFile,
+      Application app,
+      ClientScanType clientScanType,
+      TelemetryData thirdPartyScanTelemetryData,
+      String stageTypeId,
+      String clientUserAgent,
+      String scanRequestId,
+      ScanContext scanContext)
+      throws IOException
+  {
     long start = System.currentTimeMillis();
     log.debug("Received {} scan for application public id {}.", clientScanType, app.getPublicId());
 
     try {
       ScanReceipt scanReceipt =
           scanUploadService.upload(tempScanFile, app, stageTypeId, clientScanType, clientUserAgent,
-              thirdPartyScanTelemetryData, scanRequestId);
+              thirdPartyScanTelemetryData, scanRequestId, scanContext);
       File scanFile = work.getScanFile(app.getId(), scanReceipt.getScanId());
       FileUtils.rename(tempScanFile, scanFile);
 

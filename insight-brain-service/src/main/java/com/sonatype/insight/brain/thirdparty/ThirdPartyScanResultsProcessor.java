@@ -476,7 +476,8 @@ public class ThirdPartyScanResultsProcessor
     sbomMetadata.setApplicationId(scanContext.getApplicationId());
     sbomMetadata.setThirdPartyFileId(scanContext.getThirdPartyFileId());
     sbomMetadata.setFilename(scanContext.getSbomFileName());
-    sbomMetadata.setSbomVersion(getApplicationVersion(scanContext.getApplicationId(), sbomDetectionResult));
+    sbomMetadata.setSbomVersion(getApplicationVersion(
+        scanContext.getApplicationId(), scanContext.getApplicationVersion(), sbomDetectionResult));
     sbomMetadata.setSerialNumber(sbomDetectionResult.summary.serialNumber);
     sbomMetadata.setSpec(sbomDetectionResult.summary.specification);
     sbomMetadata.setSpecFormat(sbomDetectionResult.summary.format);
@@ -488,11 +489,17 @@ public class ThirdPartyScanResultsProcessor
     return sbomMetadata;
   }
 
-  private String getApplicationVersion(String applicationId, SbomDetectionResult sbomDetectionResult) {
-    Optional<String> applicationVersion = Optional.ofNullable(sbomDetectionResult.summary.applicationVersion)
+  private String getApplicationVersion(
+      String applicationId,
+      String applicationVersion,
+      SbomDetectionResult sbomDetectionResult)
+  {
+    Optional<String> resolvedApplicationVersion = Optional
+        .ofNullable(applicationVersion)
+        .or(() -> Optional.ofNullable(sbomDetectionResult.summary.applicationVersion))
         .map(version -> version.isEmpty() ? null : version);
 
-    return applicationVersion
+    return resolvedApplicationVersion
         .map(version ->
             thirdPartySbomMetadataDAO.getByApplicationId(applicationId).stream()
                 .filter(sbom -> version.equals(sbom.getSbomVersion()))

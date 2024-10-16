@@ -177,12 +177,13 @@ public class SbomImportService
 
       if (SbomScanType.SBOM.equals(idElements.getScanType())) {
         ApiThirdPartyScanTicketDTO importTicket = sbomScanEvaluator.evaluateSbom(
-            applicationId, tmpFileToScan, sbomFormat, contentType, ScanTriggerType.SBOM_UI, clientUserAgent);
+            applicationId, tmpFileToScan, sbomFormat, contentType, ScanTriggerType.SBOM_UI, clientUserAgent, null);
         return Response.status(Status.ACCEPTED).entity(importTicket).build();
       }
       else { //Binary
         ApiThirdPartyScanTicketDTO scanTicketDTO =
-            sbomScanEvaluator.evaluateBinary(applicationId, tmpFileToScan, ScanTriggerType.SBOM_UI, clientUserAgent);
+            sbomScanEvaluator.evaluateBinary(applicationId, tmpFileToScan, ScanTriggerType.SBOM_UI, clientUserAgent,
+                null);
         return Response.status(Status.ACCEPTED)
             .entity(scanTicketDTO)
             .build();

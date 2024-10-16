@@ -67,11 +67,11 @@ import com.sonatype.insight.scan.file.SbomFormat;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.apache.commons.io.FileUtils;
 import org.xmlunit.assertj.XmlAssert;
 
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.DIRECT;
@@ -583,6 +583,35 @@ public class ApiSbomResourceTest
   }
 
   @Test
+  public void testImportSbom_SPDX_CustomVersion() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
+
+    mockReport("SCAN-ID", "/" + getClass().getSimpleName() + "/report");
+
+    String applicationVersion = "my_application_version";
+
+    byte[] sbomFile = loadFileFromAssets("/" + getClass().getSimpleName() + "/spdx.json");
+    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_IMPORT_PATH)
+        .part("file", "spdx.json", sbomFile)
+        .part("applicationId", app.getId())
+        .part("applicationVersion", applicationVersion)
+        .post();
+
+    assertResponseStatus(Status.OK.getStatusCode(), response);
+    ApiThirdPartyScanTicketDTO apiThirdPartyScanTicketDTO = response.getBody(ApiThirdPartyScanTicketDTO.class);
+    assertThat(apiThirdPartyScanTicketDTO.statusUrl).startsWith(
+        String.format("%s%s/%s/status", PublicApiPaths.SBOM_RESOURCE_PATH, ApiSbomResource.SBOMS_APPLICATIONS_PATH,
+            app.getId()));
+
+    ApiSbomStatusDTO resultDTO = getSbomStatusDTO(apiThirdPartyScanTicketDTO.statusUrl);
+    assertThat(resultDTO.errorMessage).isNull();
+    assertThat(resultDTO.isError).isFalse();
+    assertThat(resultDTO.version).isEqualTo(applicationVersion);
+    assertSbomMetadataIdIsSetOnThirdPartyCoordinateSecurityEntities(resultDTO);
+  }
+
+  @Test
   public void testImportSbom_CycloneDX() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
@@ -605,6 +634,36 @@ public class ApiSbomResourceTest
     ApiSbomStatusDTO resultDTO = getSbomStatusDTO(apiThirdPartyScanTicketDTO.statusUrl);
     assertThat(resultDTO.errorMessage).isNull();
     assertThat(resultDTO.isError).isFalse();
+    assertSbomMetadataIdIsSetOnThirdPartyCoordinateSecurityEntities(resultDTO);
+  }
+
+  @Test
+  public void testImportSbom_CycloneDX_CustomVersion() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
+
+    mockReport("SCAN-ID", "/" + getClass().getSimpleName() + "/report");
+
+    String applicationVersion = "my_application_version";
+
+    byte[] sbomFile = loadFileFromAssets("/" + getClass().getSimpleName() + "/third-party-simple-bom.xml");
+    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_IMPORT_PATH)
+        .parameter(app.getId())
+        .part("file", "third-party-simple-bom.xml", sbomFile)
+        .part("applicationId", app.getId())
+        .part("applicationVersion", applicationVersion)
+        .post();
+
+    assertResponseStatus(Status.OK.getStatusCode(), response);
+    ApiThirdPartyScanTicketDTO apiThirdPartyScanTicketDTO = response.getBody(ApiThirdPartyScanTicketDTO.class);
+    assertThat(apiThirdPartyScanTicketDTO.statusUrl).startsWith(
+        String.format("%s%s/%s/status", PublicApiPaths.SBOM_RESOURCE_PATH, ApiSbomResource.SBOMS_APPLICATIONS_PATH,
+            app.getId()));
+
+    ApiSbomStatusDTO resultDTO = getSbomStatusDTO(apiThirdPartyScanTicketDTO.statusUrl);
+    assertThat(resultDTO.errorMessage).isNull();
+    assertThat(resultDTO.isError).isFalse();
+    assertThat(resultDTO.version).isEqualTo(applicationVersion);
     assertSbomMetadataIdIsSetOnThirdPartyCoordinateSecurityEntities(resultDTO);
   }
 

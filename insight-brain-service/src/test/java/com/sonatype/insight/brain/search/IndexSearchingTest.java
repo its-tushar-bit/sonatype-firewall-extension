@@ -1086,7 +1086,7 @@ public class IndexSearchingTest
     index();
 
     ApiThirdPartyScanTicketDTO scanTicket = (ApiThirdPartyScanTicketDTO) apiSbomService
-        .importSbom(app.getId(), binaryUploadInputStream, "file.txt", true, "")
+        .importSbom(app.getId(), binaryUploadInputStream, "file.txt", true, "", null)
         .getEntity();
 
     // Wait for the import processing to complete

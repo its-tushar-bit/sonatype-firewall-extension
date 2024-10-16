@@ -100,7 +100,7 @@ public class SourceControlScanServiceAuditTest
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
     when(mockScanHandler.handle(any(File.class), any(Application.class), any(ClientScanType.class),
-        any(TelemetryData.class), anyString(),  anyString(), anyString())) //
+        any(TelemetryData.class), anyString(),  anyString(), anyString(), eq(null))) //
             .thenReturn(scanReceipt);
 
     sourceControlScanService.onSourceControlScan(sourceControlEvent);

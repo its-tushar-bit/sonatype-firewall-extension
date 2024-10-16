@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
+import com.sonatype.insight.brain.scan.ScanContext;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanContext;
@@ -72,11 +73,33 @@ public class ScanUploadService
       TelemetryData thirdPartyScanTelemetryData,
       String scanRequestId) throws IOException
   {
+    return upload(
+        scanFile,
+        app,
+        stageTypeId,
+        clientScanType,
+        clientUserAgent,
+        thirdPartyScanTelemetryData,
+        scanRequestId,
+        null
+    );
+  }
+
+  public ScanReceipt upload(
+      File scanFile,
+      Application app,
+      String stageTypeId,
+      ClientScanType clientScanType,
+      String clientUserAgent,
+      TelemetryData thirdPartyScanTelemetryData,
+      String scanRequestId,
+      ScanContext scanContext) throws IOException
+  {
     if (scanFile == null || app == null) {
       throw new IllegalArgumentException("scanFile and application is required for scan uploads");
     }
     ThirdPartyScanContext tpScanContext =
-        getThirdPartyScanContextIfAvailable(scanRequestId, scanFile, app, stageTypeId);
+        getThirdPartyScanContext(scanRequestId, scanFile, app, stageTypeId, scanContext);
     if (thirdPartyScanTelemetryData != null) {
       thirdPartyScanTelemetryData.put("scan_file_type", tpScanContext.getScanType().name());
     }
@@ -148,28 +171,37 @@ public class ScanUploadService
     }
   }
 
-  private ThirdPartyScanContext getThirdPartyScanContextIfAvailable(
+  private ThirdPartyScanContext getThirdPartyScanContext(
       final String scanRequestId,
       final File scanFile,
       final Application app,
-      final String stageTypeId)
+      final String stageTypeId,
+      final ScanContext scanContext)
   {
+    ThirdPartyScanContext thirdPartyScanContext = null;
     if (scanRequestId != null && ComplianceStageType.ID.equals(stageTypeId)) {
       ThirdPartyScan scan = thirdPartyScanDAO.getSingleByScanRequestId(scanRequestId);
       if (scan != null) {
         ThirdPartySbomMetadata sbomMetadata =
             thirdPartySbomMetadataDAO.getByThirdPartyFileId(scan.getThirdPartyFileId());
-        ThirdPartyScanContext thirdPartyScanContext =
+        thirdPartyScanContext =
             new ThirdPartyScanContext(scanRequestId, app.getId(), SbomScanType.valueOf(sbomMetadata.getScanType()),
                 scanFile, stageTypeId);
         thirdPartyScanContext.setThirdPartyFileId(sbomMetadata.getThirdPartyFileId());
         thirdPartyScanContext.setSbomFileName(sbomMetadata.getFilename());
+        thirdPartyScanContext.setApplicationVersion(sbomMetadata.getSbomVersion());
         thirdPartyScanContext.setSbomMetadataId(sbomMetadata.getId());
         thirdPartyScanContext.setThirdPartyScanId(scan.getId());
-        return thirdPartyScanContext;
       }
     }
-    String newScanRequestId = UUID.randomUUID().toString().replace("-", "");
-    return new ThirdPartyScanContext(newScanRequestId, app.getId(), SbomScanType.SBOM, scanFile, stageTypeId);
+    if (thirdPartyScanContext == null) {
+      String newScanRequestId = UUID.randomUUID().toString().replace("-", "");
+      thirdPartyScanContext =
+          new ThirdPartyScanContext(newScanRequestId, app.getId(), SbomScanType.SBOM, scanFile, stageTypeId);
+      if (scanContext != null) {
+        thirdPartyScanContext.setApplicationVersion(scanContext.applicationVersion());
+      }
+    }
+    return thirdPartyScanContext;
   }
 }

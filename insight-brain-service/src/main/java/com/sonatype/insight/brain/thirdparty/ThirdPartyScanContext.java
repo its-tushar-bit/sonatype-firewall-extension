@@ -21,6 +21,8 @@ public class ThirdPartyScanContext
 
   private String sbomFileName;
 
+  private String applicationVersion;
+
   private String thirdPartyFileId;
 
   private String thirdPartyScanId;
@@ -29,11 +31,12 @@ public class ThirdPartyScanContext
 
   private String sbomMetadataId;
 
-  public ThirdPartyScanContext(final String scanRequestId,
-                               final String applicationId,
-                               final SbomScanType scanType,
-                               final File scanFile,
-                               final String stageType)
+  public ThirdPartyScanContext(
+      final String scanRequestId,
+      final String applicationId,
+      final SbomScanType scanType,
+      final File scanFile,
+      final String stageType)
   {
     this.scanRequestId = scanRequestId;
     this.applicationId = applicationId;
@@ -68,6 +71,14 @@ public class ThirdPartyScanContext
 
   public void setSbomFileName(final String sbomFileName) {
     this.sbomFileName = sbomFileName;
+  }
+
+  public String getApplicationVersion() {
+    return applicationVersion;
+  }
+
+  public void setApplicationVersion(final String applicationVersion) {
+    this.applicationVersion = applicationVersion;
   }
 
   public String getThirdPartyFileId() {

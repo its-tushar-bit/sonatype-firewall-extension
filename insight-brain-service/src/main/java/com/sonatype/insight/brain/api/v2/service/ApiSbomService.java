@@ -417,21 +417,26 @@ public class ApiSbomService
       final InputStream inputStream,
       final String fileName,
       final boolean enableBinaryImport,
-      final String clientUserAgent)
+      final String clientUserAgent,
+      final String applicationVersion)
   {
     if (sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
       throw new PaymentRequiredException(
           "You have exceeded the licensed limit of " + productLicense.getMaxSboms() + " sboms.");
     }
+    if (applicationVersion != null && (StringUtils.isBlank(applicationVersion) || applicationVersion.length() > 200)) {
+      throw new BadRequestException("applicationVersion cannot be blank and must be between 1 and 200 characters.");
+    }
     File clientFile = saveInputStreamAsFile(inputStream, fileName);
     SbomDetectionResult sbomDetectionResult = sbomFileDetector.getSbomDetectionResult(clientFile);
     if (sbomDetectionResult.isSbom) {
-      return scanAndEvaluateSbomFile(applicationId, clientFile, sbomDetectionResult, clientUserAgent);
+      return scanAndEvaluateSbomFile(applicationId, clientFile, sbomDetectionResult, clientUserAgent,
+          applicationVersion);
     }
     else if (enableBinaryImport && sbomDetectionResult.isBinary) {
       if (SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.isEnabled()) {
         log.debug("Initiating binary SBOM import for application {}", applicationId);
-        return scanAndEvaluateBinaryFile(applicationId, clientUserAgent, clientFile);
+        return scanAndEvaluateBinaryFile(applicationId, clientUserAgent, clientFile, applicationVersion);
       }
       throw new BadRequestException("Importing binary files for SBOM Manager is disabled.");
     }
@@ -492,15 +497,17 @@ public class ApiSbomService
         .collect(Collectors.toList());
   }
 
-  private Response scanAndEvaluateSbomFile(String applicationId,
-                                      File sbomFile,
-                                      SbomDetectionResult sbomDetectionResult,
-                                      String clientUserAgent)
+  private Response scanAndEvaluateSbomFile(
+      String applicationId,
+      File sbomFile,
+      SbomDetectionResult sbomDetectionResult,
+      String clientUserAgent,
+      String applicationVersion)
   {
     ApiThirdPartyScanTicketDTO scanTicketDTO =
         sbomScanEvaluator.evaluateSbom(applicationId, sbomFile, SbomFormat.forMimeType(sbomDetectionResult.mimeType),
             sbomMetadataUtils.determineItemContentType(sbomDetectionResult.summary.specification),
-            ScanTriggerType.SBOM_API, clientUserAgent);
+            ScanTriggerType.SBOM_API, clientUserAgent, applicationVersion);
     return Response.ok(Status.ACCEPTED)
         .entity(scanTicketDTO)
         .build();
@@ -526,9 +533,14 @@ public class ApiSbomService
     }
   }
 
-  private Response scanAndEvaluateBinaryFile(String applicationId, String clientUserAgent, File clientFile) {
+  private Response scanAndEvaluateBinaryFile(
+      String applicationId,
+      String clientUserAgent,
+      File clientFile,
+      String applicationVersion)
+  {
     ApiThirdPartyScanTicketDTO scanTicketDTO = sbomScanEvaluator.evaluateBinary(applicationId, clientFile,
-        ScanTriggerType.SBOM_API, clientUserAgent);
+        ScanTriggerType.SBOM_API, clientUserAgent, applicationVersion);
     return Response.ok(Status.ACCEPTED)
         .entity(scanTicketDTO)
         .build();

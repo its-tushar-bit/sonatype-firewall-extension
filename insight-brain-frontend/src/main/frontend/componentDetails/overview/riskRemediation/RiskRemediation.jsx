@@ -36,10 +36,22 @@ export const RiskRemediation = ({
     loadVersionExplorerData();
   }, []);
 
-  const { loading, loadError, remediation, versions, sourceResponse } = versionExplorerData;
-  const { loading: selectedVersionLoading, loadError: selectedVersionError, selectedVersion } = selectedVersionData;
+  const COMPONENT_IDENTIFIER_ERROR_MSG = 'componentidentifier is required';
+
+  const {
+    loading: versionExplorerLoading,
+    loadError: versionExplorerLoadError,
+    remediation,
+    versions,
+    sourceResponse,
+  } = versionExplorerData;
+  const { loading: selectedVersionLoading, loadError: selectedVersionLoadError, selectedVersion } = selectedVersionData;
   const source = sourceResponse ? sourceResponse.source : null;
   const isTransitiveDependency = componentInformation.directDependency === false;
+  const wasVersionExplorerDataFound = !versionExplorerLoadError
+    ?.toLowerCase()
+    ?.includes(COMPONENT_IDENTIFIER_ERROR_MSG);
+
   const overviewComponentRiskRemediationTile_header = (
     <header className="nx-tile-header">
       <div className="nx-tile-header__title">
@@ -81,14 +93,14 @@ export const RiskRemediation = ({
             source={source}
             currentVersion={currentVersion}
             versionClick={loadSelectedVersionData}
-            selectedVersionError={selectedVersionError}
+            selectedVersionError={selectedVersionLoadError}
           />
           {currentVersionComparisonData && (
             <CompareVersions
               currentVersion={currentVersionComparisonData}
               selectedVersion={selectedVersionComparisonData}
               loading={selectedVersionLoading}
-              error={selectedVersionError}
+              error={selectedVersionLoadError}
             />
           )}
         </div>
@@ -109,7 +121,7 @@ export const RiskRemediation = ({
         </h2>
       </header>
       <div className="nx-modal-content">
-        <NxLoadError error={selectedVersionError} />
+        <NxLoadError error={selectedVersionLoadError} />
       </div>
       <footer className="nx-footer">
         <div className="nx-btn-bar">
@@ -120,15 +132,25 @@ export const RiskRemediation = ({
   );
 
   return (
-    <section id="overview-component-risk-remediation-tile" className="nx-tile iq-component-risk-remediation-tile">
-      {overviewComponentRiskRemediationTile_header}
-      {selectedVersionError && selectedVersionLoadErrorModal}
-      <div className="nx-tile-content">
-        <NxLoadWrapper loading={loading} retryHandler={loadVersionExplorerData} error={loadError}>
-          {content}
-        </NxLoadWrapper>
-      </div>
-    </section>
+    wasVersionExplorerDataFound && (
+      <section
+        id="overview-component-risk-remediation-tile"
+        data-testid="overview-component-risk-remediation-tile"
+        className="nx-tile iq-component-risk-remediation-tile"
+      >
+        {overviewComponentRiskRemediationTile_header}
+        {selectedVersionLoadError && selectedVersionLoadErrorModal}
+        <div className="nx-tile-content">
+          <NxLoadWrapper
+            loading={versionExplorerLoading}
+            retryHandler={loadVersionExplorerData}
+            error={versionExplorerLoadError}
+          >
+            {content}
+          </NxLoadWrapper>
+        </div>
+      </section>
+    )
   );
 };
 
@@ -157,6 +179,7 @@ RiskRemediation.propTypes = {
     loadError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),
   selectedVersionData: PropTypes.shape({
+    selectedVersion: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     loading: PropTypes.bool,
     loadError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),

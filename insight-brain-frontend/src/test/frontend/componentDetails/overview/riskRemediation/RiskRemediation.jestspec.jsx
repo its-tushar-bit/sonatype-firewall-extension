@@ -330,6 +330,21 @@ describe('RiskRemediation', () => {
     expect(listElements.length).toBe(2);
   });
 
+  it('does NOT render RiskRemediation if fetching VersionExplorerData throws "componentIdentifier" error', () => {
+    renderComponent({
+      ...minimalProps,
+      versionExplorerData: {
+        loading: false,
+        loadError: 'componentIdentifier is required',
+        versions: null,
+        sourceResponse: null,
+        remediation: null,
+      },
+    });
+
+    expect(screen.queryByTestId('overview-component-risk-remediation-tile')).not.toBeInTheDocument();
+  });
+
   describe('selected version load error modal', () => {
     const cancelMock = jest.fn('resetSelectedVersionData');
     const minProps = {

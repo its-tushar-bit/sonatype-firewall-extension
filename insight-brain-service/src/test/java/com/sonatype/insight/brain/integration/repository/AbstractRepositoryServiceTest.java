@@ -2294,6 +2294,11 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
+  public void testAddProprietaryComponentNames_FormatTranslation_Yum() {
+    testAddProprietaryComponentNames_FormatTranslation("yum", "rpm");
+  }
+
+  @Test
   public void testGetQuarantinedComponentReportUrl() {
     // setup
     final RepositoryManager repositoryManager = tempEntity.newRepositoryManager();

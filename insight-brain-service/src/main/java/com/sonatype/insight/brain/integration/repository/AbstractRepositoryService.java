@@ -912,6 +912,8 @@ public abstract class AbstractRepositoryService
         return ComponentIdentifier.FORMAT_CRAN;
       case "rubygems":
         return ComponentIdentifier.FORMAT_RUBYGEMS;
+      case "yum":
+        return ComponentIdentifier.FORMAT_RPM;
       default:
         return format;
     }

@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -652,6 +653,43 @@ public class DashboardResourceTest
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid filter supplied for request.");
+  }
+
+  @Test
+  public void testGetPolicyWaivers_IncludeAutoWaivers() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+
+    Policy policy = tempEntity.newPolicy();
+    tempEntity.newWaiver("hash", policy.getId(), app.getId(), "comment");
+    tempEntity.newAutoPolicyWaiver(app.getId());
+
+    //Test without including auto waivers
+    HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
+        .body(new RisksFilterDTO()).post();
+
+    assertResponseStatus(200, response);
+    DashboardResultsDTO<?> dto = response.getBody(DashboardResultsDTO.class);
+    assertThat(dto.dashboardResults).hasSize(1);
+
+    //Test with including auto waivers but feature flag is not enabled
+    response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
+        .body(new RisksFilterDTO())
+        .query("includeAutoWaivers", "true").post();
+
+    assertResponseStatus(400, response);
+
+    //Test with including auto waivers and feature flag is enabled
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
+        .body(new RisksFilterDTO())
+        .query("includeAutoWaivers", true).post();
+
+    assertResponseStatus(200, response);
+
+    dto = response.getBody(DashboardResultsDTO.class);
+    assertThat(dto.dashboardResults).hasSize(2);
   }
 
   @Test

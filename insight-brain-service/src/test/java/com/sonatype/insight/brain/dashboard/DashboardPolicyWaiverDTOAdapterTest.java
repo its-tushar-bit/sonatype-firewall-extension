@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -84,6 +85,46 @@ public class DashboardPolicyWaiverDTOAdapterTest
     assertThat(dto.creatorName).isEqualTo(testPolicyWaiver.getCreatorName());
   }
 
+  @Test
+  public void testAutoPolicyWaiverToDTO_ExcludeDetails() {
+    AutoPolicyWaiver autoPolicyWaiver = new AutoPolicyWaiver(
+        app.getId(),
+        7,
+        true,
+        true,
+        "creator",
+        "Creator Name",
+        new Date()
+    );
+    dtoAdapter = new DashboardPolicyWaiverDTOAdapter(policiesById, ownersById, false);
+    DashboardPolicyWaiverDTO dto = dtoAdapter.toDto(autoPolicyWaiver);
+
+    assertAutoPolicyWaiverWithoutDetails(dto, autoPolicyWaiver);
+    assertThat(dto.comment).isNull();
+    assertThat(dto.constraintFacts).isNull();
+    assertThat(dto.creatorId).isNull();
+    assertThat(dto.creatorName).isNull();
+  }
+
+  @Test
+  public void testAutoPolicyWaiverToDTO_IncludeDetails() {
+    AutoPolicyWaiver autoPolicyWaiver = new AutoPolicyWaiver(
+        app.getId(),
+        7,
+        true,
+        true,
+        "creator",
+        "Creator Name",
+        new Date()
+    );
+    dtoAdapter = new DashboardPolicyWaiverDTOAdapter(policiesById, ownersById, true);
+    DashboardPolicyWaiverDTO dto = dtoAdapter.toDto(autoPolicyWaiver);
+
+    assertAutoPolicyWaiverWithoutDetails(dto, autoPolicyWaiver);
+    assertThat(dto.creatorId).isEqualTo(autoPolicyWaiver.getCreatorId());
+    assertThat(dto.creatorName).isEqualTo(autoPolicyWaiver.getCreatorName());
+  }
+
   private void assertPolicyWaiverWithoutDetails(DashboardPolicyWaiverDTO dto, PolicyWaiver testPolicyWaiver) {
     assertThat(dto.id).isEqualTo(testPolicyWaiver.getId());
     assertThat(dto.threatLevel).isEqualTo(policiesById.get(testPolicyWaiver.getPolicyId()).getThreatLevel());
@@ -100,6 +141,23 @@ public class DashboardPolicyWaiverDTOAdapterTest
     assertThat(dto.getDisplayName().toString())
         .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(testPolicyWaiver.getComponentIdentifier()).toString());
     assertThat(dto.componentUpgradeAvailable).isEqualTo(testPolicyWaiver.isComponentUpgradeAvailable());
+  }
+
+  private void assertAutoPolicyWaiverWithoutDetails(DashboardPolicyWaiverDTO dto, AutoPolicyWaiver autoPolicyWaiver) {
+    assertThat(dto.id).isEqualTo(autoPolicyWaiver.getId());
+    assertThat(dto.threatLevel).isEqualTo(autoPolicyWaiver.getThreatLevel());
+    assertThat(dto.createTime).isEqualTo(autoPolicyWaiver.getCreateTime());
+    assertThat(dto.expiryTime).isNull();
+    assertThat(dto.policyId).isNull();
+    assertThat(dto.policyName).isNull();
+    assertThat(dto.ownerId).isEqualTo(autoPolicyWaiver.getOwnerId());
+    assertThat(dto.ownerName).isEqualTo(ownersById.get(autoPolicyWaiver.getOwnerId()).getName());
+    assertThat(dto.ownerType).isEqualTo(ownersById.get(autoPolicyWaiver.getOwnerId()).getType().toString());
+    assertThat(dto.componentMatchStrategy).isNull();
+    assertThat(dto.hash).isNull();
+    assertThat(dto.componentIdentifier).isNull();
+    assertThat(dto.componentUpgradeAvailable).isNull();
+    assertThat(dto.isAutoWaiver).isTrue();
   }
 
   private PolicyWaiver createPolicyWaiverWithFullDetails() {

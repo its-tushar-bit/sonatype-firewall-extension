@@ -61,6 +61,8 @@ public class DashboardPolicyWaiverDTO
 
   public Boolean componentUpgradeAvailable;
 
+  public Boolean isAutoWaiver = false;
+
   @JsonProperty(access = Access.READ_ONLY)
   public ComponentDisplayName getDisplayName() {
     return this.componentIdentifier == null

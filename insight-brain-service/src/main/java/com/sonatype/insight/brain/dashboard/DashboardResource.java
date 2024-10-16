@@ -257,11 +257,14 @@ public class DashboardResource
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_DASHBOARD_WAIVER_LIST)
   @ExceptionMetered(name = "getPolicyWaiversExceptionMeter")
-  public DashboardResultsDTO<DashboardPolicyWaiverDTO> getPolicyWaivers(RisksFilterDTO risksFilterDTO) {
+  public DashboardResultsDTO<DashboardPolicyWaiverDTO> getPolicyWaivers(
+      RisksFilterDTO risksFilterDTO,
+      @QueryParam("includeAutoWaivers") boolean includeAutoWaivers)
+  {
     if (risksFilterDTO == null) {
       throw new BadRequestException("Invalid filter supplied for request.");
     }
-    return dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTO);
+    return dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTO, includeAutoWaivers);
   }
 
   /**

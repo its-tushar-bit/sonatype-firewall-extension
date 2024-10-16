@@ -27,8 +27,12 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.RisksFilterDTOBuilder;
+import com.sonatype.insight.brain.api.v2.FeatureAlreadyDisabledException;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
 import com.sonatype.insight.brain.builders.TestPolicyBuilder;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.dashboard.DashboardPolicyWaiverDTOComparator.DashboardPolicyWaiverOrderByEnum;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
@@ -87,6 +91,9 @@ public class DashboardPolicyWaiverServiceTest
   @Inject
   private PolicyDAO policyDAO;
 
+  @Inject
+  private AutoPolicyWaiverDAO autoPolicyWaiverDAO;
+
   private Organization parentOrg;
 
   private Organization org;
@@ -109,6 +116,7 @@ public class DashboardPolicyWaiverServiceTest
 
     risksFilterDTOBuilder = new RisksFilterDTOBuilder().withApplicationIds(Collections.emptySet())
         .withOrganizationIds(Collections.emptySet()).withPageSize(1);
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
   }
 
   @Test
@@ -1173,6 +1181,108 @@ public class DashboardPolicyWaiverServiceTest
         .isEqualTo(7);
   }
 
+  @Test
+  public void testGetDashboardPolicyWaivers_IncludeAutoWaivers() {
+    tempEntity.newWaiver(policy.getId(), app1.getId());
+    createAutoPolicyWaiver(app1.getId(), 7, true);
+
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withPageSize(10);
+
+    // Test without including auto waivers
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> result =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), false);
+    assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.dashboardResults.get(0).isAutoWaiver).isFalse();
+
+    // Test including auto waivers
+    result = dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), true);
+    assertThat(result.numResults).isEqualTo(2);
+    assertThat(result.dashboardResults).extracting("isAutoWaiver").containsExactlyInAnyOrder(false, true);
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaivers_FilterAutoWaiversByThreatLevel() {
+    createAutoPolicyWaiver(app1.getId(), 5, true);
+    createAutoPolicyWaiver(app1.getId(), 8, true);
+
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId()))
+        .withPolicyThreatLevelRange(new PolicyThreatLevelFilter(7, 10))
+        .withPageSize(10);
+
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> result =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), true);
+    assertThat(result.numResults).isEqualTo(1);
+    assertThat(result.dashboardResults.get(0).threatLevel).isEqualTo(8);
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaivers_FilterAutoWaiversBySecurityThreatCategoryAndReachable() {
+    createAutoPolicyWaiver(app1.getId(), 7, true);
+
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId()))
+        .withPolicyThreatCategories(new PolicyThreatCategoryFilter(PolicyThreatCategory.SECURITY))
+        .withPageSize(10);
+
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> result =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), true);
+    assertThat(result.numResults).isEqualTo(1);
+
+    risksFilterDTOBuilder.withPolicyThreatCategories(new PolicyThreatCategoryFilter(PolicyThreatCategory.LICENSE));
+    result = dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), true);
+    assertThat(result.numResults).isEqualTo(0);
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaivers_FilterAutoWaiversBySecurityThreatCategoryAndNotReachable() {
+    AutoPolicyWaiver autoPolicyWaiver = createAutoPolicyWaiver(app1.getId(), 7, false);
+
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId()))
+        .withPolicyThreatCategories(new PolicyThreatCategoryFilter(PolicyThreatCategory.SECURITY))
+        .withPageSize(10);
+
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> result =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), true);
+    assertThat(result.numResults).isEqualTo(0);
+
+    //set reachable to true
+    autoPolicyWaiver.setReachable(true);
+    autoPolicyWaiverDAO.update(autoPolicyWaiver);
+
+    result = dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), true);
+    assertThat(result.numResults).isEqualTo(1);
+
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaivers_OrderAutoWaivers() {
+    createAutoPolicyWaiver(app1.getId(), 5, true);
+    createAutoPolicyWaiver(app1.getId(), 8, true);
+
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId()))
+        .withOrderBy("-THREAT_LEVEL")
+        .withPageSize(10);
+
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> result =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), true);
+    assertThat(result.numResults).isEqualTo(2);
+    assertThat(result.dashboardResults).extracting("threatLevel").containsExactly(8, 5);
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaivers_FeatureFlagDisabled() {
+    tempEntity.newWaiver(policy.getId(), app1.getId());
+    createAutoPolicyWaiver(app1.getId(), 7, true);
+
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withPageSize(10);
+
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
+
+    // Test including auto waivers but feature flag is disabled
+    ThrowingCallable functionCall =
+        () -> dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), true);
+    assertThatExceptionOfType(FeatureAlreadyDisabledException.class).isThrownBy(functionCall);
+  }
+
   private PolicyWaiver createPolicyWaiverWithFullDetails(Application application) {
     Instant now = Instant.now();
     Date today = Date.from(now);
@@ -1276,5 +1386,18 @@ public class DashboardPolicyWaiverServiceTest
     assertThat(dashboardPolicyWaiverDTO.comment).isEqualTo(policyWaiver.getComment());
     assertThat(dashboardPolicyWaiverDTO.creatorId).isEqualTo(policyWaiver.getCreatorId());
     assertThat(dashboardPolicyWaiverDTO.creatorName).isEqualTo(policyWaiver.getCreatorName());
+  }
+
+  private AutoPolicyWaiver createAutoPolicyWaiver(String ownerId, int threatLevel, boolean reachable) {
+    AutoPolicyWaiver autoPolicyWaiver = new AutoPolicyWaiver(
+        ownerId,
+        threatLevel,
+        reachable,
+        true,
+        "testCreator",
+        "Test Creator",
+        new Date()
+    );
+    return tempEntity.newAutoPolicyWaiver(autoPolicyWaiver);
   }
 }

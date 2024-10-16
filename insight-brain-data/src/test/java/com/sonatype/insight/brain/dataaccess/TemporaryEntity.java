@@ -1731,6 +1731,11 @@ public class TemporaryEntity
     return autoPolicyWaiver;
   }
 
+  public AutoPolicyWaiver newAutoPolicyWaiver(AutoPolicyWaiver autoPolicyWaiver) {
+    autoPolicyWaiverDAO.insert(autoPolicyWaiver);
+    return autoPolicyWaiver;
+  }
+
   public PolicyWaiver newWaiver(String policyId, String ownerId) {
     return newWaiver(null, policyId, ownerId);
   }

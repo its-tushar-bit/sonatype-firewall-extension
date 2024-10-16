@@ -13,6 +13,7 @@ public enum ExpirationDate
   IN_30_DAYS(30),
   IN_90_DAYS(90),
   IN_OVER_90_DAYS(Integer.MAX_VALUE),
+  AUTO(-1),
   NEVER(null);
 
   private final Integer days;

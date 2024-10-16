@@ -14,6 +14,7 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.v2.FeatureAlreadyDisabledException;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -23,6 +24,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTO_WAIVERS;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
 
 @Named
@@ -58,6 +60,12 @@ public class DashboardUtils
 
     if (systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED) != null) {
       throw new ConflictException("The dashboard feature has been disabled.");
+    }
+  }
+
+  void validateAutoWaiverFeatureFlag() {
+    if (systemConfigurationPropertyDAO.getByName(AUTO_WAIVERS) == null) {
+      throw new FeatureAlreadyDisabledException("The auto-waivers feature has been disabled.");
     }
   }
 

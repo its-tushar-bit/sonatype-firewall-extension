@@ -9,6 +9,7 @@ import java.util.Map;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.utils.ScopeOwnerUtils;
@@ -45,6 +46,7 @@ public class DashboardPolicyWaiverDTOAdapter
     dto.componentMatchStrategy = policyWaiver.getComponentMatchStrategy();
     dto.hash = policyWaiver.getHash();
     dto.componentUpgradeAvailable = policyWaiver.isComponentUpgradeAvailable();
+    dto.isAutoWaiver = false;
 
     if (policyWaiver.getComponentIdentifier() != null) {
       dto.componentIdentifier = ApiComponentIdentifierDTOV2
@@ -56,6 +58,25 @@ public class DashboardPolicyWaiverDTOAdapter
       dto.constraintFacts = policyWaiver.getConstraintFacts();
       dto.creatorId = policyWaiver.getCreatorId();
       dto.creatorName = policyWaiver.getCreatorName();
+    }
+
+    return dto;
+  }
+
+  public DashboardPolicyWaiverDTO toDto(AutoPolicyWaiver autoPolicyWaiver) {
+    DashboardPolicyWaiverDTO dto = new DashboardPolicyWaiverDTO();
+    dto.id = autoPolicyWaiver.getId();
+    dto.threatLevel = autoPolicyWaiver.getThreatLevel();
+    dto.createTime = autoPolicyWaiver.getCreateTime();
+    dto.ownerId = autoPolicyWaiver.getOwnerId();
+    dto.ownerName = ownersById.get(autoPolicyWaiver.getOwnerId()).getName();
+    dto.ownerType =
+        ScopeOwnerUtils.getScopeOwnerType(ownersById.get(autoPolicyWaiver.getOwnerId()).getType(), dto.ownerId);
+    dto.isAutoWaiver = true;
+
+    if (includeDetails) {
+      dto.creatorId = autoPolicyWaiver.getCreatorId();
+      dto.creatorName = autoPolicyWaiver.getCreatorName();
     }
 
     return dto;

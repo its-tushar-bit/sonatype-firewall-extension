@@ -26,12 +26,15 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -67,6 +70,8 @@ public class DashboardPolicyWaiverService
 
   private final PolicyWaiverDAO policyWaiverDAO;
 
+  private final AutoPolicyWaiverDAO autoPolicyWaiverDAO;
+
   private final RepositoryService repositoryService;
 
   private final Collector<Owner, ?, Map<String, Owner>> ownerCollector =
@@ -79,6 +84,7 @@ public class DashboardPolicyWaiverService
       OrganizationService organizationService,
       PolicyDAO policyDAO,
       PolicyWaiverDAO policyWaiverDAO,
+      AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       OrganizationDAO organizationDAO,
       RepositoryService repositoryService)
   {
@@ -87,24 +93,35 @@ public class DashboardPolicyWaiverService
     this.organizationService = organizationService;
     this.policyDAO = policyDAO;
     this.policyWaiverDAO = policyWaiverDAO;
+    this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
     this.organizationDAO = organizationDAO;
     this.repositoryService = repositoryService;
   }
 
   public DashboardResultsDTO<DashboardPolicyWaiverDTO> getDashboardPolicyWaivers(final RisksFilterDTO risksFilterDTO) {
-    return getDashboardPolicyWaivers(risksFilterDTO, false);
+    return getDashboardPolicyWaivers(risksFilterDTO, false, false);
   }
 
   public DashboardResultsDTO<DashboardPolicyWaiverDTO> getDashboardPolicyWaiversForExport(
       final RisksFilterDTO risksFilterDTO)
   {
-    return getDashboardPolicyWaivers(risksFilterDTO, true);
+    return getDashboardPolicyWaivers(risksFilterDTO, true, false);
+  }
+
+  public DashboardResultsDTO<DashboardPolicyWaiverDTO> getDashboardPolicyWaivers(
+      final RisksFilterDTO risksFilterDTO,
+      boolean includeAutoWaivers)
+  {
+    return getDashboardPolicyWaivers(risksFilterDTO, false, includeAutoWaivers);
   }
 
   private DashboardResultsDTO<DashboardPolicyWaiverDTO> getDashboardPolicyWaivers(
-      final RisksFilterDTO risksFilterDTO, boolean includeDetails)
+      final RisksFilterDTO risksFilterDTO, boolean includeDetails, boolean includeAutoWaivers)
   {
     dashboardUtils.validateDashboardLicensedAndEnabled();
+    if (includeAutoWaivers) {
+      dashboardUtils.validateAutoWaiverFeatureFlag();
+    }
 
     long start = System.currentTimeMillis();
 
@@ -138,6 +155,15 @@ public class DashboardPolicyWaiverService
       List<DashboardPolicyWaiverDTO> partialDTOs =
           filterPolicyWaiversAndBuildDTOs(policyWaivers, filteringPredicate, dtoAdapter);
       filteredWaiverDTOs.addAll(partialDTOs);
+    }
+    //auto waiver
+    if (includeAutoWaivers) {
+      Predicate<AutoPolicyWaiver> autoPolicyWaiverPredicate = getFilteringPredicateForAutoPolicyWaivers(owners.keySet())
+          .and(getFilteringPredicateForAutoWaiverThreatLevel(policyThreatLevelRange))
+          .and(getFilteringPredicateForAutoWaiverThreatCategory(policyThreatCategories));
+      List<AutoPolicyWaiver> autoPolicyWaivers = autoPolicyWaiverDAO.getAll();
+      filteredWaiverDTOs.addAll(
+          filterAutoPolicyWaiversAndBuildDTOs(autoPolicyWaivers, autoPolicyWaiverPredicate, dtoAdapter));
     }
 
     log.debug("getDashboardPolicyWaivers: Found {} waivers after filters", filteredWaiverDTOs.size());
@@ -310,5 +336,36 @@ public class DashboardPolicyWaiverService
       final DashboardPolicyWaiverDTOAdapter dtoAdapter)
   {
     return policyWaivers.stream().filter(filter).map(dtoAdapter::toDto).collect(Collectors.toList());
+  }
+
+  private Predicate<AutoPolicyWaiver> getFilteringPredicateForAutoPolicyWaivers(final Set<String> ownerIds) {
+    return autoPolicyWaiver -> ownerIds.contains(autoPolicyWaiver.getOwnerId());
+  }
+
+  private Predicate<AutoPolicyWaiver> getFilteringPredicateForAutoWaiverThreatLevel(
+      final PolicyThreatLevelFilter policyThreatLevelRange)
+  {
+    if (policyThreatLevelRange == null) {
+      return autoPolicyWaiver -> true;
+    }
+    return autoPolicyWaiver -> policyThreatLevelRange.test(autoPolicyWaiver.getThreatLevel());
+  }
+
+  private Predicate<AutoPolicyWaiver> getFilteringPredicateForAutoWaiverThreatCategory(
+      final PolicyThreatCategoryFilter policyThreatCategories)
+  {
+    if (policyThreatCategories == null) {
+      return autoPolicyWaiver -> true;
+    }
+    return autoPolicyWaiver -> policyThreatCategories.test(PolicyThreatCategory.SECURITY) &&
+        autoPolicyWaiver.isReachable();
+  }
+
+  private List<DashboardPolicyWaiverDTO> filterAutoPolicyWaiversAndBuildDTOs(
+      final List<AutoPolicyWaiver> autoPolicyWaivers,
+      final Predicate<AutoPolicyWaiver> filter,
+      final DashboardPolicyWaiverDTOAdapter dtoAdapter)
+  {
+    return autoPolicyWaivers.stream().filter(filter).map(dtoAdapter::toDto).collect(Collectors.toList());
   }
 }

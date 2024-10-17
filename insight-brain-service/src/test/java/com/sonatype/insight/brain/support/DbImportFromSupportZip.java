@@ -10,6 +10,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.sonatype.insight.brain.api.v2.SystemConfigurationPropertyFeatureTestHelper;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -223,6 +227,9 @@ public class DbImportFromSupportZip
       String jsonString = FileUtils.readFileToString(new File(dataDumpDir, jsonFilename), StandardCharsets.UTF_8);
       jsonString = jsonString.substring(jsonString.indexOf(":") + 1, jsonString.length() - 1);
       T[] entities = JsonUtils.parse(jsonString, clazz);
+      if (entities.length > 0 && entities[0] instanceof Organization) {
+        entities = (T[]) sortOrganizations((Organization[]) entities);
+      }
       for (T entity : entities) {
         try {
           if (dao.getById(entity.getId()) == null) {
@@ -242,6 +249,41 @@ public class DbImportFromSupportZip
           log.error(e.getMessage(), e);
         }
       }
+    }
+
+    private static class OrgWithChildren
+    {
+      Organization org;
+
+      List<OrgWithChildren> children = new ArrayList<>();
+    }
+
+    private Organization[] sortOrganizations(Organization[] orgs) {
+      Map<String, OrgWithChildren> orgsWithChildrenById = new HashMap<>();
+
+      OrgWithChildren rootOrgWithChildren = null;
+      for (Organization org : orgs) {
+        OrgWithChildren orgWithChildren = orgsWithChildrenById.computeIfAbsent(org.getId(), k -> new OrgWithChildren());
+        orgWithChildren.org = org;
+
+        if (org.getParentOrganizationId() != null) {
+          OrgWithChildren parentOrgWithChildren =
+              orgsWithChildrenById.computeIfAbsent(org.getParentOrganizationId(), k -> new OrgWithChildren());
+          parentOrgWithChildren.children.add(orgWithChildren);
+        }
+        else {
+          rootOrgWithChildren = orgWithChildren;
+        }
+      }
+
+      List<Organization> sorted = new ArrayList<>();
+      sortOrgs(rootOrgWithChildren, sorted);
+      return sorted.toArray(Organization[]::new);
+    }
+
+    private void sortOrgs(OrgWithChildren orgWithChildren, List<Organization> result) {
+      result.add(orgWithChildren.org);
+      orgWithChildren.children.forEach(o -> sortOrgs(o, result));
     }
 
     private void importPolicies(String jsonFilename, PolicyDAO dao) throws IOException {

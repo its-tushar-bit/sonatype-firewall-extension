@@ -46,14 +46,16 @@ function ProductLicense({
   }
 
   function updateLicenseHandler() {
-    updateLicense(updatedLicense)
-      .then(({ type: actionType }) => {
-        if (actionType === PRODUCT_LICENSE_UPDATE_LICENSE_FAILED) return;
-        if (!license) {
-          window.location.href = '#/gettingStarted';
-        }
-      })
-      .then(() => window.location.reload());
+    updateLicense(updatedLicense).then(({ type: actionType }) => {
+      if (actionType === PRODUCT_LICENSE_UPDATE_LICENSE_FAILED) return;
+
+      if (!license) {
+        window.location.href = '#/gettingStarted';
+      }
+
+      window.location.reload();
+    });
+
     setShowEulaModal(false);
   }
 

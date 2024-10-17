@@ -61,16 +61,20 @@ public class SbomComponentsServiceTest
   }
 
   @Test
-  public void testGetSbomComponentDetails() {
+  public void testGetSbomComponentDetails() throws IOException {
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
             thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate componentA =
-        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1", "h1",
+        tempEntity.newThirdPartyFileCoordinate("86163fcc32524261bfd2bdbedb7eae43",thirdPartyFile, "s1",
+            "f1", "n1", "v1", "1249e25aebb15358bedd",
             "pkg:f1/group/n1@v1?type=jar", List.of("dependency:/bom.json/pkg:f1\\n1@v1"), null, null);
+
     ThirdPartyFileCoordinate componentB =
-        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s2", "f2", "n2", "v2", "h2",
+        tempEntity.newThirdPartyFileCoordinate("86163fcc32524261bfd2bdbedb7eae42",thirdPartyFile, "s2",
+            "f2", "n2", "v2", "1249e25aebb15358bedw",
             "pkg:f2/group/n2@v2?type=jar",
             List.of("dependency:/bom.json/pkg:f1\\n1@v1,dependency:/bom.json/pkg:f2\\n2@v2"), null, "exact");
     ThirdPartyCoordinateSecurity vulnerabilityA =
@@ -98,7 +102,9 @@ public class SbomComponentsServiceTest
     ThirdPartyVulnerabilityExploitabilityExchange vexE =
         tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityE, "cve2", "resolved",
             "code_not_reachable", "response", "detail");
-
+    File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper
+        .zipReport("/SbomComponentsServiceTest", tempDir), reportFile);
     CDPSbomComponentDetailsDTO actualA =
         service.getSbomComponentDetails(app.getId(), sbomMetadata.getSbomVersion(), componentA.getHash());
 
@@ -106,6 +112,7 @@ public class SbomComponentsServiceTest
         service.getSbomComponentDetails(app.getId(), sbomMetadata.getSbomVersion(), componentB.getHash());
 
     assertSbomComponentDetailsDTO(actualA, componentA, sbomMetadata);
+    assertThat(actualA.getPolicyViolationSummary().getCritical()).isEqualTo(1);
     assertComponentSummary(actualA, 9, 1, 1, 1);
     assertThat(actualA.getDisclosedVulnerabilities()).hasSize(2);
     assertVulnerabilities(actualA.getDisclosedVulnerabilities().get(0), vulnerabilityA, vexA.getState(),
@@ -127,12 +134,16 @@ public class SbomComponentsServiceTest
         vexE.getJustification(), vexE.getResponse(), vexE.getDetail(), vexE.getUpdatedAt(),
         vexE.getLastUpdatedByWithoutRealm());
     assertThat(actualB.getSonatypeIdentifiedVulnerabilities()).isEmpty();
+    assertThat(actualB.getPolicyViolationSummary().getCritical()).isEqualTo(1);
+    assertThat(actualB.getPolicyViolationSummary().getSevere()).isEqualTo(1);
   }
 
   @Test
-  public void testGetSbomComponentDetails_LatestPreviousAnnotation() {
+  public void testGetSbomComponentDetails_LatestPreviousAnnotation() throws IOException {
     ThirdPartyFile thirdPartyFilePrevious = tempEntity.newThirdPartyFile();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
+
     ThirdPartySbomMetadata sbomMetadataPrevious =
         tempEntity.newThirdPartySbomMetadata(thirdPartyFilePrevious.getId(), app.getId(), "ACTIVE",
             thirdPartyFilePrevious.getFilename());
@@ -140,13 +151,13 @@ public class SbomComponentsServiceTest
         tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
             thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate previousComponentA =
-        tempEntity.newThirdPartyFileCoordinate(thirdPartyFilePrevious, "s1", "f1", "n1", "v1", "h1",
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFilePrevious, "s1", "f1", "n1", "v1", "1249e25aebb15358bedd",
             "pkg:f1/group/n1@v1?type=jar", Collections.emptyList(), Collections.emptyList(), null);
     ThirdPartyFileCoordinate componentA =
-        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1", "h1",
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1", "1249e25aebb15358bedd",
             "pkg:f1/group/n1@v1?type=jar", Collections.emptyList(), Collections.emptyList(), null);
     ThirdPartyFileCoordinate componentB =
-        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s2", "f2", "n2", "v2", "h2",
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s2", "f2", "n2", "v2", "1249e25aebb15358bedw",
             "pkg:f2/group/n2@v2?type=jar");
     ThirdPartyCoordinateSecurity previousVulnerabilityA =
         tempEntity.newThirdPartyCoordinateSecurity(previousComponentA, "cve1", "d1", "l1", 9, "f1", "v1", "cvs1", "sd1",
@@ -178,6 +189,9 @@ public class SbomComponentsServiceTest
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityE, "cve2", "resolved2b",
         "code_not_reachable2b", "response2b", "detail2b");
 
+    File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper
+        .zipReport("/SbomComponentsServiceTest", tempDir), reportFile);
     CDPSbomComponentDetailsDTO actualA =
         service.getSbomComponentDetails(app.getId(), sbomMetadata.getSbomVersion(), componentA.getHash());
 
@@ -257,14 +271,18 @@ public class SbomComponentsServiceTest
   }
 
   @Test
-  public void testGetSbomComponentDetails_NoVulnerabilities_NoOccurrences() {
+  public void testGetSbomComponentDetails_NoVulnerabilities_NoOccurrences() throws IOException {
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
             thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate component =
-        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1", "h1",
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1", "1249e25aebb15358bedd",
             "pkg:f1/group/n1@v1?type=jar");
+    File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper
+        .zipReport("/SbomComponentsServiceTest", tempDir), reportFile);
     CDPSbomComponentDetailsDTO actual =
         service.getSbomComponentDetails(app.getId(), sbomMetadata.getSbomVersion(), component.getHash());
     assertSbomComponentDetailsDTO(actual, component, sbomMetadata);
@@ -274,6 +292,8 @@ public class SbomComponentsServiceTest
     assertThat(actual.getOccurrences()).isEmpty();
     assertThat(actual.getDisclosedVulnerabilities()).isEmpty();
     assertThat(actual.getSonatypeIdentifiedVulnerabilities()).isEmpty();
+    assertThat(actual.getCategories()).hasSize(component.getCategoryIds().split(",").length);
+
   }
 
   private void assertSbomComponentDetailsDTO(
@@ -293,6 +313,10 @@ public class SbomComponentsServiceTest
     assertThat(actual.getMetadata().getApplicationName()).isEqualTo(app.getName());
     assertThat(actual.getMetadata().getOrganizationName()).isEqualTo(org.getName());
     assertThat(actual.getMetadata().getSbomCreationTime()).isEqualTo(sbom.getCreatedAt());
+    assertThat(actual.getCategories()).hasSize(component.getCategoryIds().split(",").length);
+    assertThat(actual.getCategories().get(0)).isEqualTo("Sonatype");
+    assertThat(actual.getCategories().get(1)).isEqualTo("Analytics");
+    assertThat(actual.getWebsite()).isEqualTo("https://www.sonatype.com");
     if (CollectionUtils.isEmpty(component.getOccurrencesList())) {
       assertThat(actual.getOccurrences()).isEmpty();
     }
@@ -521,7 +545,7 @@ public class SbomComponentsServiceTest
     BomPageSbomSummaryDTO resultDto = service.getSbomSummaryForComponents(app.getId(), sbomMetadata.getSbomVersion());
     assertThat(resultDto.getPolicyViolationSummary().getCritical()).isEqualTo(2);
     assertThat(resultDto.getPolicyViolationSummary().getModerate()).isEqualTo(1);
-    assertThat(resultDto.getPolicyViolationSummary().getSevere()).isEqualTo(1);
+    assertThat(resultDto.getPolicyViolationSummary().getSevere()).isEqualTo(2);
     assertThat(resultDto.getPolicyViolationSummary().getLow()).isEqualTo(0);
   }
 

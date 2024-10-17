@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.sbom.components;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -21,6 +22,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -29,6 +31,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.component.ComponentCategory;
 import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.thirdpartyscans.BomPageSbomSummaryDTO;
@@ -77,6 +80,8 @@ public class SbomComponentsService
 
   private final ThirdPartyScanDAO thirdPartyScanDAO;
 
+  private final ComponentCategoryDAO componentCategoryDAO;
+
   private static final Logger log = LoggerFactory.getLogger(SbomComponentsService.class);
 
   @Inject
@@ -88,7 +93,8 @@ public class SbomComponentsService
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO vexDAO,
-      final SbomPolicyService sbomPolicyService)
+      final SbomPolicyService sbomPolicyService,
+      final ComponentCategoryDAO componentCategoryDAO)
   {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
@@ -98,6 +104,7 @@ public class SbomComponentsService
     this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.sbomPolicyService = sbomPolicyService;
+    this.componentCategoryDAO = componentCategoryDAO;
   }
 
   @Authorize(permission = Permission.READ)
@@ -144,7 +151,33 @@ public class SbomComponentsService
         getVulnerabilitiesDetails(sbomMetadata, vulnerabilityList, vexAnnotationsMap, true));
     componentDetailsDTO.setSonatypeIdentifiedVulnerabilities(
         getVulnerabilitiesDetails(sbomMetadata, vulnerabilityList, vexAnnotationsMap, false));
-    return componentDetailsDTO;
+    componentDetailsDTO.setCategories(getComponentCategoryPaths(component.getCategoryIds()));
+    componentDetailsDTO.setWebsite(component.getWebsite());
+
+    try {
+      PolicyThreats.Component componentFound = sbomPolicyService.getPolicyViolationsByFileCoordinateId(applicationId,
+          sbomVersion, component.getId());
+
+      SbomPolicyViolationSummaryDTO policyViolationSummary = componentFound != null ?
+          calculatePolicyViolationSummary(componentFound.activeViolations) :
+          new SbomPolicyViolationSummaryDTO();
+
+      componentDetailsDTO.setPolicyViolationSummary(policyViolationSummary);
+      return componentDetailsDTO;
+    }
+    catch (IOException e) {
+      throw new InternalServerException("Policy threat report can not be parsed", e);
+    }
+  }
+
+  private List<String> getComponentCategoryPaths(String ids) {
+    if (ids == null || ids.trim().isBlank()) {
+      return Collections.emptyList();
+    }
+    List<String> componentCategoryIds = Arrays.asList(ids.split(","));
+    return componentCategoryDAO.getByComponentCategoryIds(componentCategoryIds).stream()
+        .map(ComponentCategory::getPath).collect(Collectors.toList());
+
   }
 
   private CDPSbomMetadataDTO getSbomMetadata(String applicationId, Date sbomMetadataCreatedAt) {
@@ -363,48 +396,68 @@ public class SbomComponentsService
           String.format("Cannot find version %s for application with ID %s.", version, applicationId));
     }
     bomPageSbomSummaryDTO.setDependencyType(sbomDependencyTypeDTO);
+    try {
+      bomPageSbomSummaryDTO.setPolicyViolationSummary(processPolicyViolations(applicationId, version));
+      return bomPageSbomSummaryDTO;
+    }
+    catch (IOException e) {
+      throw new InternalServerException("Policy threat report can not be parsed", e);
+    }
+  }
 
+  private SbomPolicyViolationSummaryDTO processPolicyViolations(
+      String applicationId,
+      String version) throws IOException
+  {
+    PolicyThreats policyThreats = sbomPolicyService.getPolicyViolations(applicationId, version);
+    List<PolicyThreats.Component> policyThreatComponents = policyThreats.aaData;
+
+    SbomPolicyViolationSummaryDTO summaryDTO = new SbomPolicyViolationSummaryDTO();
+    for (PolicyThreats.Component policyThreatComponent : policyThreatComponents) {
+      SbomPolicyViolationSummaryDTO componentSummary = calculatePolicyViolationSummary(
+          policyThreatComponent.activeViolations);
+      summaryDTO.setLow(summaryDTO.getLow() + componentSummary.getLow());
+      summaryDTO.setModerate(summaryDTO.getModerate() + componentSummary.getModerate());
+      summaryDTO.setSevere(summaryDTO.getSevere() + componentSummary.getSevere());
+      summaryDTO.setCritical(summaryDTO.getCritical() + componentSummary.getCritical());
+    }
+    return summaryDTO;
+  }
+
+  private SbomPolicyViolationSummaryDTO calculatePolicyViolationSummary(
+      List<PolicyThreats.PolicyViolation> activeViolations)
+  {
     int policyViolationLow = 0;
     int policyViolationModerate = 0;
     int policyViolationSevere = 0;
     int policyViolationCritical = 0;
-    try {
-      PolicyThreats policyThreats = sbomPolicyService.getPolicyViolations(applicationId, version);
-      List<PolicyThreats.Component> policyThreatComponents = policyThreats.aaData;
-      for (PolicyThreats.Component policyThreatComponent : policyThreatComponents) {
-        for (PolicyThreats.PolicyViolation policyViolation : policyThreatComponent.activeViolations) {
-          ThreatLevel threatLevel = ThreatLevel.from(policyViolation.policyThreatLevel);
-          switch (threatLevel) {
-            case LOW:
-              policyViolationLow++;
-              break;
-            case MODERATE:
-              policyViolationModerate++;
-              break;
-            case SEVERE:
-              policyViolationSevere++;
-              break;
-            case CRITICAL:
-              policyViolationCritical++;
-              break;
-            default:
-              log.error("Invalid threat level value {}", policyViolation.policyThreatLevel);
-          }
-        }
+    for (PolicyThreats.PolicyViolation policyViolation : activeViolations) {
+      ThreatLevel threatLevel = ThreatLevel.from(policyViolation.policyThreatLevel);
+      switch (threatLevel) {
+        case LOW:
+          policyViolationLow++;
+          break;
+        case MODERATE:
+          policyViolationModerate++;
+          break;
+        case SEVERE:
+          policyViolationSevere++;
+          break;
+        case CRITICAL:
+          policyViolationCritical++;
+          break;
+        default:
+          log.error("Invalid threat level value {}", policyViolation.policyThreatLevel);
       }
-      SbomPolicyViolationSummaryDTO sbomPolicyViolationSummaryDTO = new SbomPolicyViolationSummaryDTO();
-      sbomPolicyViolationSummaryDTO.setLow(policyViolationLow);
-      sbomPolicyViolationSummaryDTO.setModerate(policyViolationModerate);
-      sbomPolicyViolationSummaryDTO.setSevere(policyViolationSevere);
-      sbomPolicyViolationSummaryDTO.setCritical(policyViolationCritical);
+    }
 
-      bomPageSbomSummaryDTO.setPolicyViolationSummary(sbomPolicyViolationSummaryDTO);
-      return bomPageSbomSummaryDTO;
-    }
-    catch (IOException e) {
-      log.error("Policy threats report cannot be parsed", e);
-      throw new InternalServerException("Policy threat report can not be parsed", e);
-    }
+    SbomPolicyViolationSummaryDTO sbomPolicyViolationSummaryDTO = new SbomPolicyViolationSummaryDTO();
+    sbomPolicyViolationSummaryDTO.setLow(policyViolationLow);
+    sbomPolicyViolationSummaryDTO.setModerate(policyViolationModerate);
+    sbomPolicyViolationSummaryDTO.setSevere(policyViolationSevere);
+    sbomPolicyViolationSummaryDTO.setCritical(policyViolationCritical);
+
+    return sbomPolicyViolationSummaryDTO;
   }
 
   private String getDependencyType(String code) {

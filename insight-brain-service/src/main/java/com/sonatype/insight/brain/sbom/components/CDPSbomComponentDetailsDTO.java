@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.sbom.components;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.SbomPolicyViolationSummaryDTO;
 
 public class CDPSbomComponentDetailsDTO
     extends SbomComponentDTO
@@ -23,6 +24,12 @@ public class CDPSbomComponentDetailsDTO
   private List<String> occurrences;
 
   private String matchState;
+
+  private SbomPolicyViolationSummaryDTO policyViolationSummary;
+
+  private List<String> categories;
+
+  private String website;
 
   public CDPSbomComponentDetailsDTO() {
     // no op
@@ -85,5 +92,29 @@ public class CDPSbomComponentDetailsDTO
 
   public void setMatchState(final String matchState) {
     this.matchState = matchState;
+  }
+
+  public SbomPolicyViolationSummaryDTO getPolicyViolationSummary() {
+    return policyViolationSummary;
+  }
+
+  public void setPolicyViolationSummary(final SbomPolicyViolationSummaryDTO policyViolationSummary) {
+    this.policyViolationSummary = policyViolationSummary;
+  }
+
+  public List<String> getCategories() {
+    return categories;
+  }
+
+  public void setCategories(final List<String> categories) {
+    this.categories = categories;
+  }
+
+  public String getWebsite() {
+    return website;
+  }
+
+  public void setWebsite(final String website) {
+    this.website = website;
   }
 }

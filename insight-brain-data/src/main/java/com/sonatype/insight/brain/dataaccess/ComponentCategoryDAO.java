@@ -89,4 +89,11 @@ public class ComponentCategoryDAO
             .filter(category -> category.getPath().startsWith(componentCategory.getPath() + "/"))
             .collect(Collectors.toList()));
   }
+
+  public List<ComponentCategory> getByComponentCategoryIds(List<String> componentCategoryIdList) {
+    String sQuery = "SELECT entity FROM ComponentCategory entity" + //
+        " WHERE entity.id IN ?1";
+    return getListWithSqlInClause(componentCategoryIdList,
+        inClauseValuesPartition -> getList(sQuery, inClauseValuesPartition),getDataStore());
+  }
 }

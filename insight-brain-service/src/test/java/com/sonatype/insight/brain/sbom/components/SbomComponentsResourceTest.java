@@ -58,14 +58,19 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
   @Test
   public void testGetComponentDetails() throws Exception {
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
             thirdPartyFile.getFilename());
     ThirdPartyFileCoordinate component =
-        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "s1", "f1", "n1", "v1", "h1",
+        tempEntity.newThirdPartyFileCoordinate("86163fcc32524261bfd2bdbedb7eae43", thirdPartyFile, "s1",
+            "f1", "n1", "v1", "1249e25aebb15358bedd",
             "pkg:f1/group/n1@v1?type=jar", List.of("dependency:/bom.json/pkg:f1\\n1@v1"), null,
             "similar");
     tempEntity.newThirdPartyCoordinateSecurity(component, "cve", "d1", "l1", 9, "d1", "f1");
+    File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper
+        .zipReport("/SbomComponentsResourceTest", tempDir), reportFile);
 
     HttpResponse response = restRequest()
         .parameter(app.getId(), sbomMetadata.getSbomVersion(), component.getHash())
@@ -93,6 +98,7 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
     assertThat(actual.getOccurrences()).isNotEmpty().hasSize(1);
     assertThat(actual.getOccurrences()).isEqualTo(component.getOccurrencesList());
     assertThat(actual.getMatchState()).isEqualTo(component.getMatchStateId());
+    assertThat(actual.getPolicyViolationSummary().getCritical()).isEqualTo(1);
   }
 
   @Test

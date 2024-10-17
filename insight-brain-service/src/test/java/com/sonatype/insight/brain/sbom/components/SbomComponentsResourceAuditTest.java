@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.sbom.components;
 
+import java.io.File;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Application;
@@ -14,9 +16,13 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -24,9 +30,12 @@ public class SbomComponentsResourceAuditTest extends AbstractAuditTest
 {
   private Application app;
 
+  private InsightWork work;
+
   @Before
   public void before() {
     app = tempEntity.newApplicationWithParent();
+    work = getCLMServer().getInstance(InsightWork.class);
   }
 
   @Override
@@ -37,6 +46,7 @@ public class SbomComponentsResourceAuditTest extends AbstractAuditTest
   @Test
   public void testGetComponentsDetails() throws Exception {
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
     ThirdPartySbomMetadata sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
             thirdPartyFile.getFilename());
@@ -47,6 +57,10 @@ public class SbomComponentsResourceAuditTest extends AbstractAuditTest
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerability, "cve", "resolved",
             "code_not_reachable", "response", "details");
     testProductLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper
+        .zipReport("/SbomComponentsResourceTest", tempDir), reportFile);
     HttpResponse response = restRequest().path(SbomComponentsResource.COMPONENT_DETAILS_PATH)
         .parameter(app.getId(),sbomMetadata.getSbomVersion(), component.getHash()).get();
 

@@ -1,0 +1,128 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "whl",
+        "name" : "orange",
+        "qualifier" : "py2.py3-none-1",
+        "version" : "1.0.1"
+      }
+    },
+    "sonatypeIdentifier": "86163fcc32524261bfd2bdbedb7eae43",
+    "packageUrl" : "pkg:pypi/orange@1.0.1?qualifier=py2.py3-none-any&extension=whl",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:pypi/orange@1.0.1" ],
+    "pathnames" : [ "dependency:/SBOM-bom.json/pkg:pypi\\orange@1.0.1" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "1249e25aebb15358bedd",
+    "relativePopularity" : null,
+    "createTime" : 1706953998000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "sbomApi",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "orange"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.0.1"
+      }, {
+        "value" : " (."
+      }, {
+        "field" : "Extension",
+        "value" : "whl"
+      }, {
+        "value" : ")"
+      } ],
+      "name" : "orange"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "pypi",
+      "coordinates" : {
+        "extension" : "whl",
+        "name" : "orange",
+        "qualifier" : "py2.py3-none-3",
+        "version" : "1.0.1"
+      }
+    },
+    "sonatypeIdentifier": "86163fcc32524261bfd2bdbedb7eae42",
+    "packageUrl" : "pkg:pypi/citrus/orange@1.0.1?extension=egg&qualifier=py2.py3-none-any",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:pypi/orange@1.0.1" ],
+    "pathnames" : [ "dependency:/SBOM-bom.json/pkg:pypi\\orange@1.0.1" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "1249e25aebb15358bedw",
+    "relativePopularity" : null,
+    "createTime" : 1706953998000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "sbomApi",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "orange"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "1.0.1"
+      }, {
+        "value" : " (."
+      }, {
+        "field" : "Extension",
+        "value" : "egg"
+      }, {
+        "value" : ")"
+      } ],
+      "name" : "orange"
+    }
+  } ],
+  "dependencyDataIncluded" : true
+}

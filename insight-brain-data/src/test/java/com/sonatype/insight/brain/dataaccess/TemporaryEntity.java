@@ -4105,6 +4105,35 @@ public class TemporaryEntity
     fileCoordinate.setIdentificationSources("SBOM");
     fileCoordinate.setOccurrencesList(occurrences);
     fileCoordinate.setFilenamesList(filenames);
+    fileCoordinate.setCategoryIds("1,2");
+    fileCoordinate.setWebsite("https://www.sonatype.com");
+    fileCoordinate.setMatchStateId(matchState);
+    thirdPartyFileCoordinateDAO.insert(fileCoordinate);
+    return fileCoordinate;
+  }
+
+  public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
+      String id,
+      ThirdPartyFile thirdPartyFile,
+      String source,
+      String format,
+      String name,
+      String version,
+      String hash,
+      String packageUrl,
+      List<String> occurrences,
+      List<String> filenames,
+      String matchState)
+  {
+    ThirdPartyFileCoordinate fileCoordinate =
+        new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFile.getId());
+    fileCoordinate.setId(id);
+    fileCoordinate.setPackageUrl(packageUrl);
+    fileCoordinate.setIdentificationSources("SBOM");
+    fileCoordinate.setOccurrencesList(occurrences);
+    fileCoordinate.setFilenamesList(filenames);
+    fileCoordinate.setCategoryIds("1,2");
+    fileCoordinate.setWebsite("https://www.sonatype.com");
     fileCoordinate.setMatchStateId(matchState);
     thirdPartyFileCoordinateDAO.insert(fileCoordinate);
     return fileCoordinate;
@@ -4125,6 +4154,8 @@ public class TemporaryEntity
     fileCoordinate.setPackageUrl(packageUrl);
     fileCoordinate.setIdentificationSources("SBOM");
     fileCoordinate.setId(thirdPartyFileCoordinateId);
+    fileCoordinate.setCategoryIds("1,2");
+    fileCoordinate.setWebsite("https://www.sonatype.com");
     thirdPartyFileCoordinateDAO.insert(fileCoordinate);
     return fileCoordinate;
   }
@@ -4167,6 +4198,8 @@ public class TemporaryEntity
         new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFileId);
     fileCoordinate.setPackageUrl(packageUrl);
     fileCoordinate.setIdentificationSources("SBOM");
+    fileCoordinate.setCategoryIds("1,2");
+    fileCoordinate.setWebsite("https://www.sonatype.com");
     thirdPartyFileCoordinateDAO.insert(fileCoordinate);
     return fileCoordinate;
   }

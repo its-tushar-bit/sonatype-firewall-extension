@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.sbom.components;
 
 import javax.inject.Inject;
+import java.io.File;
+import java.io.IOException;
 import java.util.UUID;
 
 import com.sonatype.insight.brain.model.Application;
@@ -13,9 +15,13 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -37,13 +43,18 @@ public class SbomComponentsServiceAuthzTest extends AbstractServiceAuthzTest
   @Inject
   private SbomComponentsService service;
 
+  @Inject
+  private InsightWork work;
+
   private static final String DUMMY_APP_ID = UUID.randomUUID().toString().replace("-", "");
 
   private static final String DUMMY_APP_VERSION = RandomStringUtils.random(10, true, true);
 
   @Before
-  public void before() {
+  public void before() throws IOException {
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
+
     sbomMetadata =
         tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), "ACTIVE",
             thirdPartyFile.getFilename());
@@ -53,6 +64,9 @@ public class SbomComponentsServiceAuthzTest extends AbstractServiceAuthzTest
         tempEntity.newThirdPartyCoordinateSecurity(component, "cve", "d1", "l1", 9, "d1", "f1");
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerability, "cve", "resolved",
             "code_not_reachable", "response", "details");
+    File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper
+        .zipReport("/SbomComponentsServiceTest", tempDir), reportFile);
   }
 
   @Test(expected = UnauthenticatedException.class)

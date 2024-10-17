@@ -143,7 +143,7 @@ describe('Report Page component', () => {
 
     fireEvent.click(options);
     expect(screen.getByRole('link', { name: 'Export PDF' })).toBeVisible();
-    expect(screen.getByRole('link', { name: 'Export CycloneDx' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Export CycloneDX' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Export SPDX' })).toBeVisible();
 
     const viewVulnerabilitiesLink = await screen.findByRole('link', {

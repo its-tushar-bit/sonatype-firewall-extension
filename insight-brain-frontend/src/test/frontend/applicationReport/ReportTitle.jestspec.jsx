@@ -104,7 +104,7 @@ describe('ReportTitle', () => {
     fireEvent.click(options);
 
     expect(screen.getByRole('link', { name: 'Export PDF' })).toBeVisible();
-    expect(screen.getByRole('link', { name: 'Export CycloneDx' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Export CycloneDX' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Export SPDX' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'View raw data' })).toBeVisible();
 
@@ -127,7 +127,7 @@ describe('ReportTitle', () => {
     fireEvent.click(options);
 
     expect(screen.getByRole('link', { name: 'Export PDF' })).toBeVisible();
-    expect(screen.getByRole('link', { name: 'Export CycloneDx' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Export CycloneDX' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Export SPDX' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'View raw data' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Priorities' })).toBeVisible();

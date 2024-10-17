@@ -103,7 +103,7 @@ export default function ReportTitle() {
           </a>
           <a className="nx-dropdown-button" href={sbomUrl} target="_blank" rel="noreferrer">
             <NxFontAwesomeIcon icon={faFileCode} />
-            <span>Export CycloneDx</span>
+            <span>Export CycloneDX</span>
           </a>
           <a className="nx-dropdown-button" href={spdxUrl}>
             <NxFontAwesomeIcon icon={faFilePdf} />

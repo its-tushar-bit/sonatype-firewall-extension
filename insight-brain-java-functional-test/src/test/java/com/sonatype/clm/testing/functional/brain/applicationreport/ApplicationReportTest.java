@@ -342,7 +342,7 @@ public class ApplicationReportTest
     NxDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.button().click();
 
-    File downloadedSbom = optionsDropdown.menu().entries().get(1).shouldHave(text("Export CycloneDx")).download();
+    File downloadedSbom = optionsDropdown.menu().entries().get(1).shouldHave(text("Export CycloneDX")).download();
 
     byte[] fileBeginning = new byte[5];
     try (FileInputStream stream = new FileInputStream(downloadedSbom)) {

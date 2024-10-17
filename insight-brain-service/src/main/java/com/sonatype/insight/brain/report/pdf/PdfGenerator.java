@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicense;
+import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicenseThreat;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentPolicyViolation;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentSecurityIssue;
 
@@ -546,14 +547,18 @@ public class PdfGenerator
 
   // Visible for testing
   Table createLicensesTable(PDPage page) {
-    float effectiveLicenseWidthPercent = 15;
-    float declaredLicenseWidthPercent = 15;
-    float observedLicenseWidthPercent = 15;
-    float componentWidthPercent = 55;
+    float threatLevelColorWidthPercent = 1;
+    float threatLevelWidthPercent = 9;
+    float effectiveLicenseWidthPercent = 16;
+    float declaredLicenseWidthPercent = 16;
+    float observedLicenseWidthPercent = 16;
+    float componentWidthPercent = 42;
 
     float tableWidthOnePercent = (page.getCropBox().getWidth() - 2 * MARGIN) / 100;
     TableBuilder tableBuilder =
         Table.builder().addColumnsOfWidth(
+            tableWidthOnePercent * threatLevelColorWidthPercent,
+            tableWidthOnePercent * threatLevelWidthPercent,
             tableWidthOnePercent * effectiveLicenseWidthPercent,
             tableWidthOnePercent * declaredLicenseWidthPercent,
             tableWidthOnePercent * observedLicenseWidthPercent,
@@ -561,6 +566,7 @@ public class PdfGenerator
 
     // Add licenses table headers
     tableBuilder.addRow(Row.builder()
+        .add(headerCellBuilder().text("THREAT").colSpan(2).build())
         .add(headerCellBuilder().text("EFFECTIVE").build())
         .add(headerCellBuilder().text("DECLARED").build())
         .add(headerCellBuilder().text("OBSERVED").build())
@@ -572,6 +578,12 @@ public class PdfGenerator
     licensesTableRows.sort(null);
     for (LicensesTableRow licensesTableRow : licensesTableRows) {
       List<Row> rows = buildTableRowAndSplitIfNeeded(
+          new TextCellBuilder("",
+              t -> cellBuilder(t).backgroundColor(ThreatLevelColor.get(licensesTableRow.threatLevel))),
+          new TextCellBuilder(String.valueOf(licensesTableRow.threatLevel),
+              t -> cellBuilder(t)
+                  .font(threatLevelFontStyle.getFont())
+                  .fontSize((int) threatLevelFontStyle.getFontSize()).textColor(threatLevelFontStyle.getFontColor())),
           new TextCellBuilder("",
               t -> buildLicensesCell(licensesTableRow.effectiveLicenses, licensesTableRow.overridden)),
           new TextCellBuilder("", t -> buildLicensesCell(licensesTableRow.declaredLicenses, false)),
@@ -607,8 +619,13 @@ public class PdfGenerator
   private List<LicensesTableRow> createLicensesTableData() {
     List<LicensesTableRow> licensesTableRows = new ArrayList<>();
     for (PdfComponent component : pdfData.components) {
+      if (component.effectiveLicenses.isEmpty() && component.declaredLicenses.isEmpty() &&
+          component.observedLicenses.isEmpty()) {
+        continue;
+      }
       LicensesTableRow licensesTableRow = new LicensesTableRow();
       licensesTableRow.overridden = !component.overriddenLicenses.isEmpty();
+      licensesTableRow.threatLevel = getMaxLicenseThreatLevel(component.effectiveLicenseThreats);
       licensesTableRow.effectiveLicenses = licensesToString(component.effectiveLicenses);
       licensesTableRow.declaredLicenses = licensesToString(component.declaredLicenses);
       licensesTableRow.observedLicenses = licensesToString(component.observedLicenses);
@@ -953,6 +970,11 @@ public class PdfGenerator
   // Visible for testing
   static String licensesToString(List<PdfComponentLicense> licenses) {
     return licenses.stream().map(license -> license.name).collect(Collectors.joining(", "));
+  }
+
+  static Integer getMaxLicenseThreatLevel(List<PdfComponentLicenseThreat> licenseThreats) {
+    return licenseThreats.stream().map(licenseThreat -> licenseThreat.licenseThreatGroupLevel)
+        .max(Integer::compareTo).orElse(0);
   }
 
   public static File getPdfFile(File reportFile) {

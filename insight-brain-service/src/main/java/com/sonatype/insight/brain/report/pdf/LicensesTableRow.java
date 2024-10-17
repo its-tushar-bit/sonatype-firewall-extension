@@ -11,12 +11,16 @@ public class LicensesTableRow
     implements Comparable<LicensesTableRow>
 {
   private static final Comparator<LicensesTableRow> COMPARATOR =
-      Comparator.comparing((LicensesTableRow row) -> row.effectiveLicenses, String::compareToIgnoreCase)
+      Comparator
+          .comparingInt((LicensesTableRow row) -> row.threatLevel).reversed()
+          .thenComparing(row -> row.effectiveLicenses, String::compareToIgnoreCase)
           .thenComparing(row -> row.declaredLicenses, String::compareToIgnoreCase)
           .thenComparing(row -> row.observedLicenses, String::compareToIgnoreCase)
           .thenComparing(row -> row.componentName, Comparator.nullsLast(String::compareToIgnoreCase));
 
   public boolean overridden;
+
+  public Integer threatLevel;
 
   public String effectiveLicenses;
 

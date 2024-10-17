@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationBaseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentPolicyViolationsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
@@ -37,6 +38,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
@@ -716,28 +718,30 @@ public class PdfGeneratorTest
   @Test
   public void testCreateLicensesTable_RowOrdering() throws Exception {
     ApiReportRawDataDTOV2 rawData = new ApiReportRawDataDTOV2();
-    ApiReportComponentDTOV2 c1 = generateComponentWithLicenses("v1", "v1", "v1", "v1");
+    ApiReportComponentDTOV2 c1 = generateComponentWithLicenses("v1", "v1", "v1", 9, "v1");
 
-    ApiReportComponentDTOV2 c2 = generateComponentWithLicenses("v2", "v1", "v1", "v1");
-    ApiReportComponentDTOV2 c3 = generateComponentWithLicenses("v1", "v2", "v1", "v1");
-    ApiReportComponentDTOV2 c4 = generateComponentWithLicenses("v1", "v1", "v2", "v1");
-    ApiReportComponentDTOV2 c5 = generateComponentWithLicenses("v1", "v1", "v1", "v2");
+    ApiReportComponentDTOV2 c2 = generateComponentWithLicenses("v2", "v1", "v1", 1, "v1");
+    ApiReportComponentDTOV2 c3 = generateComponentWithLicenses("v1", "v2", "v1", 1, "v1");
+    ApiReportComponentDTOV2 c4 = generateComponentWithLicenses("v1", "v1", "v2", 6, "v1");
+    ApiReportComponentDTOV2 c5 = generateComponentWithLicenses("v1", "v1", "v1", 9, "v2");
 
-    ApiReportComponentDTOV2 c6 = generateComponentWithLicenses("v2", "v2", "v1", "v1");
-    ApiReportComponentDTOV2 c7 = generateComponentWithLicenses("v1", "v2", "v2", "v1");
-    ApiReportComponentDTOV2 c8 = generateComponentWithLicenses("v1", "v1", "v2", "v2");
-    ApiReportComponentDTOV2 c9 = generateComponentWithLicenses("v2", "v1", "v1", "v2");
-    ApiReportComponentDTOV2 c10 = generateComponentWithLicenses("v1", "v2", "v1", "v2");
-    ApiReportComponentDTOV2 c11 = generateComponentWithLicenses("v2", "v1", "v2", "v1");
+    ApiReportComponentDTOV2 c6 = generateComponentWithLicenses("v2", "v2", "v1", 9, "v1");
+    ApiReportComponentDTOV2 c7 = generateComponentWithLicenses("v1", "v2", "v2", 9, "v1");
+    ApiReportComponentDTOV2 c8 = generateComponentWithLicenses("v1", "v1", "v2", 9, "v2");
+    ApiReportComponentDTOV2 c9 = generateComponentWithLicenses("v2", "v1", "v1", 6, "v2");
+    ApiReportComponentDTOV2 c10 = generateComponentWithLicenses("v1", "v2", "v1", 1, "v2");
+    ApiReportComponentDTOV2 c11 = generateComponentWithLicenses("v2", "v1", "v2", 4, "v1");
 
-    ApiReportComponentDTOV2 c12 = generateComponentWithLicenses("v1", "v2", "v2", "v2");
-    ApiReportComponentDTOV2 c13 = generateComponentWithLicenses("v2", "v1", "v2", "v2");
-    ApiReportComponentDTOV2 c14 = generateComponentWithLicenses("v2", "v2", "v1", "v2");
-    ApiReportComponentDTOV2 c15 = generateComponentWithLicenses("v2", "v2", "v2", "v1");
+    ApiReportComponentDTOV2 c12 = generateComponentWithLicenses("v1", "v2", "v2", 4, "v2");
+    ApiReportComponentDTOV2 c13 = generateComponentWithLicenses("v2", "v1", "v2", 1, "v2");
+    ApiReportComponentDTOV2 c14 = generateComponentWithLicenses("v2", "v2", "v1", 6, "v2");
+    ApiReportComponentDTOV2 c15 = generateComponentWithLicenses("v2", "v2", "v2", 9, "v1");
+    ApiReportComponentDTOV2 c16 = generateComponentWithLicenses("v2", "v2", "v2", 1, "v2");
 
-    ApiReportComponentDTOV2 c16 = generateComponentWithLicenses("v2", "v2", "v2", "v2");
+    ApiReportComponentDTOV2 c17 = generateComponentWithLicenses(null, null, null, null, "unknownComponent");
 
-    rawData.components.addAll(Arrays.asList(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16));
+    rawData.components.addAll(
+        Arrays.asList(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17));
     PdfData pdfData = PdfData.createPdfData(
         null,
         "98",
@@ -752,7 +756,7 @@ public class PdfGeneratorTest
     assertThat(licensesTable).isNotNull();
     List<Row> rows = licensesTable.getRows();
     assertThat(rows)
-        .hasSize(rawData.components.size() + 1)
+        .hasSize(rawData.components.size())
         .extracting(r -> r.getCells().stream().map(c -> {
           if (c instanceof ParagraphCell) {
             return ((ParagraphCell) c).getParagraph().getWrappedParagraph().iterator().next().getText();
@@ -761,23 +765,24 @@ public class PdfGeneratorTest
             return ((TextCell) c).getText();
           }
           return null;
-        }).collect(Collectors.joining(","))).containsExactly("EFFECTIVE,DECLARED,OBSERVED,COMPONENT",
-            "v1,v1,v1,v1",
-            "v1,v1,v1,v2",
-            "v1,v1,v2,v1",
-            "v1,v1,v2,v2",
-            "v1,v2,v1,v1",
-            "v1,v2,v1,v2",
-            "v1,v2,v2,v1",
-            "v1,v2,v2,v2",
-            "v2,v1,v1,v1",
-            "v2,v1,v1,v2",
-            "v2,v1,v2,v1",
-            "v2,v1,v2,v2",
-            "v2,v2,v1,v1",
-            "v2,v2,v1,v2",
-            "v2,v2,v2,v1",
-            "v2,v2,v2,v2");
+        }).collect(Collectors.joining(","))).containsExactly(
+            "THREAT,EFFECTIVE,DECLARED,OBSERVED,COMPONENT",
+            ",9,v1,v1,v1,v1",
+            ",9,v1,v1,v1,v2",
+            ",9,v1,v1,v2,v2",
+            ",9,v1,v2,v2,v1",
+            ",9,v2,v2,v1,v1",
+            ",9,v2,v2,v2,v1",
+            ",6,v1,v1,v2,v1",
+            ",6,v2,v1,v1,v2",
+            ",6,v2,v2,v1,v2",
+            ",4,v1,v2,v2,v2",
+            ",4,v2,v1,v2,v1",
+            ",1,v1,v2,v1,v1",
+            ",1,v1,v2,v1,v2",
+            ",1,v2,v1,v1,v1",
+            ",1,v2,v1,v2,v2",
+            ",1,v2,v2,v2,v2");
   }
 
   @Test
@@ -876,20 +881,32 @@ public class PdfGeneratorTest
       String effectiveLicense,
       String declaredLicense,
       String observedLicense,
+      Integer threatLevel,
       String componentName)
   {
     ApiReportComponentDTOV2 component = newApiReportComponentDTOV2();
     component.displayName = componentName;
     component.licenseData = new ApiLicenseDataDTOV2();
-    ApiLicenseDTO license = new ApiLicenseDTO();
-    license.licenseName = effectiveLicense;
-    component.licenseData.effectiveLicenses.add(license);
-    license = new ApiLicenseDTO();
-    license.licenseName = declaredLicense;
-    component.licenseData.declaredLicenses.add(license);
-    license = new ApiLicenseDTO();
-    license.licenseName = observedLicense;
-    component.licenseData.observedLicenses.add(license);
+    if (StringUtils.isNotEmpty(effectiveLicense)) {
+      ApiLicenseDTO license = new ApiLicenseDTO();
+      license.licenseName = effectiveLicense;
+      component.licenseData.effectiveLicenses.add(license);
+    }
+    if (StringUtils.isNotEmpty(declaredLicense)) {
+      ApiLicenseDTO license = new ApiLicenseDTO();
+      license.licenseName = declaredLicense;
+      component.licenseData.declaredLicenses.add(license);
+    }
+    if (StringUtils.isNotEmpty(observedLicense)) {
+      ApiLicenseDTO license = new ApiLicenseDTO();
+      license.licenseName = observedLicense;
+      component.licenseData.observedLicenses.add(license);
+    }
+    if (threatLevel != null) {
+      ApiLicenseThreatDTOV2 licenseThreat = new ApiLicenseThreatDTOV2();
+      licenseThreat.licenseThreatGroupLevel = threatLevel;
+      component.licenseData.effectiveLicenseThreats.add(licenseThreat);
+    }
     return component;
   }
 

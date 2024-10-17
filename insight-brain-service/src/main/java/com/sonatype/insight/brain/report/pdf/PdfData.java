@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentPolicyViolationsDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
@@ -21,6 +22,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicense;
+import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLicenseThreat;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentPolicyViolation;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentSecurityIssue;
 import com.sonatype.insight.brain.sbom.components.BomPageMetadataDTO;
@@ -61,6 +63,8 @@ public class PdfData
 
     public List<PdfComponentLicense> overriddenLicenses;
 
+    public List<PdfComponentLicenseThreat> effectiveLicenseThreats;
+
     public static class PdfComponentPolicyViolation
     {
       public int policyThreatLevel;
@@ -84,6 +88,11 @@ public class PdfData
     public static class PdfComponentLicense
     {
       public String name;
+    }
+
+    public static class PdfComponentLicenseThreat
+    {
+      public int licenseThreatGroupLevel;
     }
   }
 
@@ -119,6 +128,7 @@ public class PdfData
       component.declaredLicenses = new ArrayList<>();
       component.observedLicenses = new ArrayList<>();
       component.overriddenLicenses = new ArrayList<>();
+      component.effectiveLicenseThreats = new ArrayList<>();
 
       ApiReportComponentPolicyViolationsDTOV2 componentPolicyViolations = componentPolicyViolationsByHash.get(hash);
       if (componentPolicyViolations != null) {
@@ -173,6 +183,12 @@ public class PdfData
             PdfComponentLicense componentLicense = new PdfComponentLicense();
             componentLicense.name = license.licenseName;
             component.overriddenLicenses.add(componentLicense);
+          }
+
+          for (ApiLicenseThreatDTOV2 licenseThreat : componentRaw.licenseData.effectiveLicenseThreats) {
+            PdfComponentLicenseThreat componentLicenseThreat = new PdfComponentLicenseThreat();
+            componentLicenseThreat.licenseThreatGroupLevel = licenseThreat.licenseThreatGroupLevel;
+            component.effectiveLicenseThreats.add(componentLicenseThreat);
           }
         }
       }

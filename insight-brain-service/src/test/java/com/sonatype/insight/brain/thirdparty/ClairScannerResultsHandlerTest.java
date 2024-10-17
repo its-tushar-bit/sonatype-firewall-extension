@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -94,6 +95,7 @@ public class ClairScannerResultsHandlerTest
     assertThat(coordinateSecurity.getSeverityDescription()).hasSize(SEVERITY_DESCRIPTION_MAX_LENGTH);
     assertThat(coordinateSecurity.getRefId()).isEqualTo(
         "CSV-test-1" + StringUtils.repeat("*", REFID_MAX_LENGTH - "CSV-test-1".length()));
+    assertThat(coordinateSecurity.getIdentificationSources()).isEqualTo(IdentificationSource.SBOM.getId());
   }
 
   @Test

@@ -153,6 +153,7 @@ public class ClairScannerResultHandler
             vulnerability.getDescription(), link, severity, fixedBy);
     coordinateSecurity.setVulnerabilitySource(vulnerabilitySource);
     coordinateSecurity.setSeverityDescription(severityDescription);
+    coordinateSecurity.setIdentificationSources(IdentificationSource.SBOM.getId());
     thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
   }
 

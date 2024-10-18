@@ -5,12 +5,14 @@
  */
 import React from 'react';
 
-import { render, waitFor, fireEvent, screen, axiosMockAdapter } from '../../SpecUtil';
+import { render, waitFor, fireEvent, screen, axiosMockAdapter, within } from '../../SpecUtil';
 import SuccessMetricsConfigurationContainer from 'MainRoot/configuration/successMetricsConfiguration/SuccessMetricsConfigurationContainer';
 import { getSuccessMetricsConfigUrl } from 'MainRoot/util/CLMLocation';
 import { getGlobalPermissionTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
 
 describe('SuccessMetricsConfigurationSpec', () => {
+  const selectValidationErrorVisibility = 'form.nx-form--show-validation-errors';
+
   const successMetricsConfigurationUrl = getSuccessMetricsConfigUrl();
   const globalPermissionTestUrl = getGlobalPermissionTestUrl();
 
@@ -19,6 +21,7 @@ describe('SuccessMetricsConfigurationSpec', () => {
   beforeEach(() => {
     axiosMock = axiosMockAdapter();
 
+    // given user has permissions to configure the system
     axiosMock.onPut(globalPermissionTestUrl).reply(200, ['CONFIGURE_SYSTEM']);
   });
 
@@ -49,8 +52,32 @@ describe('SuccessMetricsConfigurationSpec', () => {
     expect(screen.getByLabelText('Enable Success Metrics')).not.toBeChecked();
   });
 
-  it('handles load error', async () => {
+  it('handles load error fetching success metrics configuration', async () => {
     axiosMock.onGet(successMetricsConfigurationUrl).reply(403);
+
+    render(<SuccessMetricsConfigurationContainer />);
+    await waitFor(() => screen.getByText(/An error occurred loading data/));
+
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeVisible();
+  });
+
+  it('handles load error fetching permissions', async () => {
+    axiosMock.onGet(successMetricsConfigurationUrl).reply(200, { enabled: false });
+
+    // given permission check experienced an error
+    axiosMock.onPut(globalPermissionTestUrl).reply(403);
+
+    render(<SuccessMetricsConfigurationContainer />);
+    await waitFor(() => screen.getByText(/An error occurred loading data/));
+
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeVisible();
+  });
+
+  it('handles instance where user does not have permissions', async () => {
+    axiosMock.onGet(successMetricsConfigurationUrl).reply(200, { enabled: false });
+
+    // given permission check succeeded but the user does not have permission
+    axiosMock.onPut(globalPermissionTestUrl).reply(200, []);
 
     render(<SuccessMetricsConfigurationContainer />);
     await waitFor(() => screen.getByText(/An error occurred loading data/));
@@ -97,13 +124,33 @@ describe('SuccessMetricsConfigurationSpec', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Update' }));
 
-    await waitFor(() => screen.getByRole('alert'));
+    await waitFor(() => expect(axiosMock.history.put.length).toEqual(2));
+    expect(axiosMock.history.put.length).toEqual(2);
+    expect(axiosMock.history.put[1].url).toEqual(successMetricsConfigurationUrl);
+    expect(axiosMock.history.put[1].data).toEqual('{"enabled":true}');
+
+    // check that a success mask is shown for the update event
+    expect(await screen.queryByText('Success!')).toBeVisible();
+
+    await assertAlertNotVisible();
 
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      'There were validation errors. There are no changes to update.'
+  });
+
+  it('submits on pristine document shows validation error', async () => {
+    axiosMock.onGet(successMetricsConfigurationUrl).reply(200, { enabled: false });
+    axiosMock.onPut(successMetricsConfigurationUrl).reply(200, {});
+
+    render(<SuccessMetricsConfigurationContainer />);
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: /configure success metrics/i })).toBeInTheDocument()
     );
-    expect(screen.getByLabelText('Enable Success Metrics')).toBeChecked();
+
+    await assertAlertNotVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Update' }));
+
+    await assertAlertToBeVisibleVisible('There were validation errors. There are no changes to update.');
   });
 
   it('handles submit error', async () => {
@@ -124,4 +171,22 @@ describe('SuccessMetricsConfigurationSpec', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
     expect(axiosMock.history.put.length).toBe(3);
   });
+
+  // The validation alerts are in the dom, regardless but are hidden by css rules.
+  // The closest we can come to testing if validation errors are shown is to check for the presence
+  // of the nx-form--show-validation-errors on the form
+  async function assertAlertNotVisible() {
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+    screen.debug();
+    expect(screen.getByRole('main').querySelector(selectValidationErrorVisibility)).not.toBeInTheDocument();
+  }
+
+  async function assertAlertToBeVisibleVisible(alertText) {
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+    const alert = screen.getByRole('alert');
+
+    expect(screen.getByRole('main').querySelector(selectValidationErrorVisibility)).toBeInTheDocument();
+
+    expect(within(alert).queryByText(alertText)).toBeInTheDocument();
+  }
 });

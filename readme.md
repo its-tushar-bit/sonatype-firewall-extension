@@ -67,7 +67,7 @@ If you just want to build the project in order to get up and running quickly, yo
 
 ### Increasing build speed ###
 If you have maven v3.9.0+ installed then you can make use of the 
-[Maven Build Cache](https://maven.apache.org/extensions/maven-build-cache-extension/). 
+[Maven Build Cache](https://maven.apache.org/extensions/maven-build-cache-extension/). See [Configuration parameters](https://maven.apache.org/extensions/maven-build-cache-extension/parameters.html) for advanced configuration options. One notable option if you wish to do a build without cache is to use `-Dmaven.build.cache.skipCache=true`. If you try to use `-Dmaven.build.cache.enabled=false` you will get an error due to the frontend module already configured to skipCache by default, which is not compatible with the cache being disabled.
 
 To further improve build times you can make use of the [Maven Daemon](https://github.com/apache/maven-mvnd).
 

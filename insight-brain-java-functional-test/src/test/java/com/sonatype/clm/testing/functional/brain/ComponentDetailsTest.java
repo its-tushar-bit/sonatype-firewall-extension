@@ -10,6 +10,7 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -108,6 +109,7 @@ import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 
 public class ComponentDetailsTest
@@ -602,8 +604,10 @@ public class ComponentDetailsTest
     ElementsCollection violations = reportPage.resultRows();
     SelenideElement fifthViolation = violations.get(4);
     fifthViolation.click();
+    waitUntilSpinnersGone();
 
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
     componentDetailsPage.violationsTab().shouldBe(visible).click();
 
     PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
@@ -611,10 +615,13 @@ public class ComponentDetailsTest
 
     // test switching from security to non-security while "Vulnerability Details" tab is selected
     ElementsCollection firstRow = policyViolationsTable.getCellsByNthRow(1);
+
+    waitUntilSpinnersGone();
+
     firstRow.get(0).shouldBe(visible).click();
     PolicyViolationDetailPopover violationDetailPopover = new PolicyViolationDetailPopover();
     violationDetailPopover.shouldBe(visible);
-    violationDetailPopover.securityVulnerabilityDetailsTab().shouldHave(cssClass("active"));
+    violationDetailPopover.applicableWaiversTab().shouldHave(cssClass("active"));
 
     ElementsCollection lastRow = policyViolationsTable.getCellsByNthRow(4);
     lastRow.get(1).shouldBe(visible).shouldHave(text("Component-Similar")).click();
@@ -1717,5 +1724,10 @@ public class ComponentDetailsTest
    */
   private void addWaiver(PolicyViolationsTable policyViolationsTable) {
     WaiverApplierForReport.waiveViolationFromTable(policyViolationsTable, 1);
+  }
+
+  public static void waitUntilSpinnersGone() {
+    final var pageLoadSpinner = $(".nx-loading-spinner");
+    pageLoadSpinner.shouldNotBe(visible, Duration.ofSeconds(10));
   }
 }

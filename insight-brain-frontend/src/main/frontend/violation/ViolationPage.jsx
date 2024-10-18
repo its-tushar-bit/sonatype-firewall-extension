@@ -102,7 +102,9 @@ export default function ViolationPage(props) {
       isFirewallContext ? policyDetail.policyThreatCategory : violationDetails && violationDetails.policyThreatCategory
     ) === 'Security';
 
-  const displayedTabs = isSecurityVulnerability
+  const shouldShowVulnerabilityTab = isSecurityVulnerability && !!vulnerabilityDetails;
+
+  const displayedTabs = shouldShowVulnerabilityTab
     ? [VULNERABILITY_DETAILS, APPLICABLE_WAIVERS, SIMILAR_WAIVERS]
     : [APPLICABLE_WAIVERS, SIMILAR_WAIVERS];
 
@@ -166,7 +168,7 @@ export default function ViolationPage(props) {
           <section className={sectionClasses}>
             <NxTabs activeTab={getActiveTabIndex()} onTabSelect={setActiveTab}>
               <NxTabList>
-                {isSecurityVulnerability && (
+                {shouldShowVulnerabilityTab && (
                   <NxTab id="violation-security-vulnerability-details-tab">Vulnerability Details</NxTab>
                 )}
                 <NxTab id="violation-applicable-waivers-tab">
@@ -179,7 +181,7 @@ export default function ViolationPage(props) {
                 </NxTab>
                 <NxTab id="violation-similar-waivers-tab">Similar Waivers</NxTab>
               </NxTabList>
-              {isSecurityVulnerability && (
+              {shouldShowVulnerabilityTab && (
                 <NxTabPanel>
                   <SecurityVulnerabilityDetailsTile
                     showTitle={false}

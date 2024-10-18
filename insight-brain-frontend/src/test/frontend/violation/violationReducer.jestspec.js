@@ -144,7 +144,7 @@ describe('violationReducer', function () {
         violationDetails: {},
         selectedViolationId: '123',
         vulnerabilityDetailsLoading: true,
-        vulnerabilityDetails: {},
+        vulnerabilityDetails: null,
         vulnerabilityDetailsError: 'bla',
         otherProp: 'asdf',
         activeWaivers: [123],

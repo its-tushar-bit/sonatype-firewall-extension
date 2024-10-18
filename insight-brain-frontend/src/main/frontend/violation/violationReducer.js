@@ -60,6 +60,7 @@ function loadViolationRequested(_, state) {
   return {
     ...state,
     loading: true,
+    vulnerabilityDetails: null,
     violationDetailsError: null,
   };
 }

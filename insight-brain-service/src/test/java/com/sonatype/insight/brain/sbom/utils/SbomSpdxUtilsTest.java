@@ -63,6 +63,33 @@ public class SbomSpdxUtilsTest
   }
 
   @Test
+  public void testGetRootPackage_no_relationship_describe() throws Exception {
+    SpdxDocument spdxDocument = getSpdxDocument("spdx-no-relationship-describe.json", Format.JSON);
+    SpdxPackage actual = SbomSpdxUtils.getRootPackage(spdxDocument);
+    assertThat(actual.getId()).isEqualTo("SPDXRef-Package");
+    assertThat(actual.getName().get()).isEqualTo("glibc");
+    assertThat(actual.getVersionInfo().get()).isEqualTo("2.11.1");
+  }
+
+  @Test
+  public void testGetRootPackage_multiple_describes_relationship() throws Exception {
+    SpdxDocument spdxDocument = getSpdxDocument("spdx-multiple-describes-relationship.json", Format.JSON);
+    SpdxPackage actual = SbomSpdxUtils.getRootPackage(spdxDocument);
+    assertThat(actual.getId()).isEqualTo("SPDXRef-997583b27e554729b7e310678f0b5690");
+    assertThat(actual.getName().get()).isEqualTo("com.h2database:h2");
+    assertThat(actual.getVersionInfo().get()).isEqualTo("2.3.232");
+  }
+
+  @Test
+  public void testGetRootPackage_single_package() throws Exception {
+    SpdxDocument spdxDocument = getSpdxDocument("spdx-single-package.json", Format.JSON);
+    SpdxPackage actual = SbomSpdxUtils.getRootPackage(spdxDocument);
+    assertThat(actual.getId()).isEqualTo("SPDXRef-997583b27e554729b7e310678f0b5690");
+    assertThat(actual.getName().get()).isEqualTo("com.h2database:h2");
+    assertThat(actual.getVersionInfo().get()).isEqualTo("2.3.232");
+  }
+
+  @Test
   public void testGetAllPackages_json() throws Exception {
     SpdxDocument spdxDocument = getSpdxDocument("spdx-v2_3.json", Format.JSON);
     List<SpdxPackage> allPackages = SbomSpdxUtils.getAllPackages(spdxDocument);

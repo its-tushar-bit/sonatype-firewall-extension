@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -162,10 +163,16 @@ public final class SbomSpdxUtils
     if (document != null) {
       Collection<SpdxElement> describes = document.getDocumentDescribes();
       if (!describes.isEmpty()) {
-        final SpdxElement rootElement = describes.iterator().next();
-        if (rootElement instanceof SpdxPackage) {
-          return (SpdxPackage) rootElement;
+        Optional<SpdxPackage> documentDescribesPackage = describes.stream().filter(Objects::nonNull)
+            .filter(spdxElement -> spdxElement instanceof SpdxPackage).map(spdxElement -> (SpdxPackage) spdxElement)
+            .findAny();
+        if (documentDescribesPackage.isPresent()) {
+          return documentDescribesPackage.get();
         }
+      }
+      List<SpdxPackage> spdxPackages = getAllPackages(document);
+      if (spdxPackages.size() == 1) {
+        return spdxPackages.get(0);
       }
     }
     return null;

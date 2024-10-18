@@ -76,7 +76,6 @@ import org.spdx.library.model.ModelObject;
 import org.spdx.library.model.ReferenceType;
 import org.spdx.library.model.Relationship;
 import org.spdx.library.model.SpdxDocument;
-import org.spdx.library.model.SpdxElement;
 import org.spdx.library.model.SpdxPackage;
 import org.spdx.library.model.enumerations.ChecksumAlgorithm;
 import org.spdx.library.model.enumerations.ReferenceCategory;
@@ -581,30 +580,25 @@ public class SpdxResultHandler
   {
     String rootElementId = "";
     Metadata metadata = new Metadata();
-
-    final Collection<SpdxElement> describes = spdxDocument.getDocumentDescribes();
-    if (!describes.isEmpty()) {
-      final SpdxElement rootElement = describes.iterator().next();
-      if (rootElement instanceof SpdxPackage) {
-        SpdxPackage spdxPackage = (SpdxPackage) rootElement;
-        rootElementId = spdxPackage.getId();
-        Component component = new Component();
-        component.setType(Type.APPLICATION);
-        component.setBomRef(rootElementId);
-        spdxPackage.getName().ifPresent(name -> {
-          if (name.contains(":")) {
-            final String[] parts = name.split(":");
-            component.setGroup(parts[0]);
-            component.setName(parts[1]);
-          }
-          else {
-            component.setName(name);
-          }
-        });
-        spdxPackage.getVersionInfo().ifPresent(component::setVersion);
-        getPurl(spdxPackage).ifPresent(component::setPurl);
-        metadata.setComponent(component);
-      }
+    SpdxPackage documentDescribesPackage = SbomSpdxUtils.getRootPackage(spdxDocument);
+    if (documentDescribesPackage != null) {
+      rootElementId = documentDescribesPackage.getId();
+      Component component = new Component();
+      component.setType(Type.APPLICATION);
+      component.setBomRef(rootElementId);
+      documentDescribesPackage.getName().ifPresent(name -> {
+        if (name.contains(":")) {
+          final String[] parts = name.split(":");
+          component.setGroup(parts[0]);
+          component.setName(parts[1]);
+        }
+        else {
+          component.setName(name);
+        }
+      });
+      documentDescribesPackage.getVersionInfo().ifPresent(component::setVersion);
+      getPurl(documentDescribesPackage).ifPresent(component::setPurl);
+      metadata.setComponent(component);
     }
     if (spdxDocument.getCreationInfo() != null) {
       final String created = spdxDocument.getCreationInfo().getCreated();

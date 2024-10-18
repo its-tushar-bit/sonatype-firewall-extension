@@ -1,0 +1,33 @@
+{
+  "SPDXID" : "SPDXRef-DOCUMENT",
+  "spdxVersion" : "SPDX-2.3",
+  "creationInfo" : {
+    "created" : "2024-10-15T18:47:03Z",
+    "creators" : [ "Tool: Sonatype SBOM Manager - 1.184.0-SNAPSHOT" ]
+  },
+  "name" : "dbug",
+  "dataLicense" : "CC0-1.0",
+  "documentNamespace" : "http://localhost:8070/ui/links/sbomManager/management/view/application/dbug/bom/20241015114637171",
+  "packages" : [ {
+    "SPDXID" : "SPDXRef-997583b27e554729b7e310678f0b5690",
+    "attributionTexts" : [ "Evidence license text for: (EPL-1.0 AND LGPL-3.0 AND MPL-2.0 AND LGPL-3.0+)" ],
+    "copyrightText" : "NOASSERTION",
+    "downloadLocation" : "NOASSERTION",
+    "externalRefs" : [ {
+      "comment" : "source: SONATYPE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://localhost:8070/ui/links/vln/sonatype-2018-0863",
+      "referenceType" : "advisory"
+    }, {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.h2database/h2@2.3.232?type=jar",
+      "referenceType" : "purl"
+    } ],
+    "filesAnalyzed" : false,
+    "licenseConcluded" : "NOASSERTION",
+    "licenseDeclared" : "NOASSERTION",
+    "name" : "com.h2database:h2",
+    "primaryPackagePurpose" : "APPLICATION",
+    "versionInfo" : "2.3.232"
+  }]
+}

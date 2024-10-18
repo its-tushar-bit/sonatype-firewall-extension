@@ -23,6 +23,7 @@ public class ComponentDetailsAdapter
     componentDetails.setComponentCategories(componentEvaluationData.componentCategories);
     componentDetails.setHygieneRating(componentEvaluationData.hygieneRating);
     componentDetails.setIntegrityRating(componentEvaluationData.integrityRating);
+    componentDetails.setEndOfLife(componentEvaluationData.endOfLife);
     return componentDetails;
   }
 }

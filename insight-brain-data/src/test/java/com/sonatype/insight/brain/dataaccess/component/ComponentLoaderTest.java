@@ -60,6 +60,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.clm.dto.model.ComponentEndOfLifeStatus.END_OF_LIFE_TRUE;
+import static com.sonatype.clm.dto.model.ComponentEndOfLifeStatus.END_OF_LIFE_UNKNOWN;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentLoaderTest
@@ -213,7 +215,10 @@ public class ComponentLoaderTest
     sv.setAliases(Collections.singletonList("alias1"));
     matchedComponent
         .addSecurityVulnerability(sv);
+    matchedComponent.setEndOfLife(END_OF_LIFE_TRUE);
+
     Component component = componentLoader.getComponent(matchedComponent, true);
+
     assertThat(component).isNotNull();
     assertThat(component.getHash()).isEqualTo(matchedComponent.getHash());
     assertThat(component.getComponentIdentifier()).isEqualTo(matchedComponent.getComponentIdentifier());
@@ -242,6 +247,7 @@ public class ComponentLoaderTest
     assertThat(component.getComponentCategories()).hasSize(1);
     assertThat(component.getComponentCategories().get(0).getId())
         .isEqualTo(String.valueOf(componentCategory.getComponentCategoryId()));
+    assertThat(component.getEndOfLife()).isEqualTo(END_OF_LIFE_TRUE);
   }
 
   @Test
@@ -411,17 +417,33 @@ public class ComponentLoaderTest
     ObjectMapper objectMapper = new ObjectMapper();
     ObjectNode bom = objectMapper.createObjectNode();
     ArrayNode aaData = objectMapper.createArrayNode();
-    ObjectNode component = objectMapper.createObjectNode();
+
+    ObjectNode component1 = objectMapper.createObjectNode();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
-    component.set("componentIdentifier", objectMapper.valueToTree(componentIdentifier));
-    component.put("hash", hash);
-    component.put("matchState", MatchState.EXACT.getId());
-    component.set("displayName",
+    component1.set("componentIdentifier", objectMapper.valueToTree(componentIdentifier));
+    component1.put("hash", hash);
+    component1.put("matchState", MatchState.EXACT.getId());
+    component1.set("displayName",
         objectMapper.valueToTree(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier)));
-    component.put("proprietary", false);
-    component.put("relativePopularity", 100.0);
-    component.put("createTime", System.currentTimeMillis());
-    aaData.add(objectMapper.valueToTree(component));
+    component1.put("proprietary", false);
+    component1.put("relativePopularity", 100.0);
+    component1.put("createTime", System.currentTimeMillis());
+    component1.put("endOfLife", END_OF_LIFE_TRUE.name());
+
+    ObjectNode component2 = objectMapper.createObjectNode();
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier
+        .createMavenCoordinates("g2", "a2", "v2", "c2", "e2");
+    component2.set("componentIdentifier", objectMapper.valueToTree(componentIdentifier2));
+    component2.put("hash", hash + "-2");
+    component2.put("matchState", MatchState.EXACT.getId());
+    component2.set("displayName",
+        objectMapper.valueToTree(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier2)));
+    component2.put("proprietary", true);
+    component2.put("relativePopularity", 70.0);
+    component2.put("createTime", System.currentTimeMillis());
+
+    aaData.add(objectMapper.valueToTree(component1));
+    aaData.add(objectMapper.valueToTree(component2));
     bom.set("aaData", aaData);
 
     ObjectNode securityData = objectMapper.createObjectNode();
@@ -448,8 +470,14 @@ public class ComponentLoaderTest
     List<Component> components = componentLoader.getAll(null, false,
         objectMapper.writeValueAsBytes(securityData), objectMapper.writeValueAsBytes(bom), null);
 
-    assertThat(components).hasSize(1);
+    assertThat(components).hasSize(2);
     assertThat(components.get(0).getSecurityVulnerabilities()).hasSize(1);
+
+    // should copy endOfLife from the bomRow
+    assertThat(components.get(0).getEndOfLife()).isEqualTo(END_OF_LIFE_TRUE);
+
+    // should be convert missing endOfLife to unknown
+    assertThat(components.get(1).getEndOfLife()).isEqualTo(END_OF_LIFE_UNKNOWN);
 
     SecurityVulnerability securityVulnerabilityResult = components.get(0).getSecurityVulnerabilities().get(0);
     assertThat(securityVulnerabilityResult.getRefId()).isEqualTo(refId);

@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess;
 
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ComponentCategoryConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ComponentEndOfLifeConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ComponentFormatConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
@@ -78,7 +79,8 @@ public class ConditionTypesTestHelper
         new IacControlConditionType(daoFactory.createThirdPartyVulnerabilityDAO()),
         new VulnerabilityGroupConditionType(daoFactory.createVulnerabilityGroupDAO(),
             daoFactory.createVulnerabilityGroupVulnerabilityDAO(), daoFactory.createOwnerDAO()),
-        new SecurityVulnerabilityCustomCVSSVectorStringConditionType()
+        new SecurityVulnerabilityCustomCVSSVectorStringConditionType(),
+        new ComponentEndOfLifeConditionType()
     );
   }
 

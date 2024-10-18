@@ -72,6 +72,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ComponentCategoryConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ComponentEndOfLifeConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ComponentFormatConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
@@ -2020,6 +2021,7 @@ public class ScanPolicyEvaluatorTest
     Condition licenseThreatGroupLevelCondition = new Condition(LicenseThreatGroupLevelConditionType.ID, "<=", "0");
     Condition matchStateCondition = new Condition(MatchStateConditionType.ID, "is not", "unknown");
     Condition proprietaryCondition = new Condition(ProprietaryConditionType.ID, "is false");
+    Condition endOfLifeCondition = new Condition(ComponentEndOfLifeConditionType.ID, "is false");
     Condition relativePopularityCondition = new Condition(RelativePopularityConditionType.ID, ">=", "0");
     Condition securityVulnerabilitySeverityCondition = new Condition(SecurityVulnerabilitySeverityConditionType.ID,
         ">=", "7");
@@ -2053,7 +2055,7 @@ public class ScanPolicyEvaluatorTest
         componentCategoryCondition, hygieneCondition, dataSourceCondition, dependencyCondition,
         componentFormatCondition, vulnerabilityCategoryCondition, integrityCondition,
         securityVulnerabilitySourceCondition, securityVulnerabilityCustomCVSSVectorCondition,
-        securityVulnerabilityCustomRemediationCondition);
+        securityVulnerabilityCustomRemediationCondition, endOfLifeCondition);
     ConditionTypes.enableConditionType(ConditionTypes.HygieneRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.IntegrityRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.SecurityVulnerabilitySourceConditionType);
@@ -2095,9 +2097,10 @@ public class ScanPolicyEvaluatorTest
     Condition vulnerabilityCategoryCondition =
         new Condition(SecurityVulnerabilityCategoryConditionType.ID, "is", "malicious_code");
     Condition integrityCondition = new Condition(IntegrityRatingConditionType.ID, "is not", "0");
+    Condition endOfLifeCondition = new Condition(ComponentEndOfLifeConditionType.ID, "is false");
 
     List<Condition> conditions = Arrays.asList(packageUrlCondition, componentCategoryCondition, hygieneCondition,
-        dependencyCondition, vulnerabilityCategoryCondition, integrityCondition);
+        dependencyCondition, vulnerabilityCategoryCondition, integrityCondition, endOfLifeCondition);
 
     Constraint constraint = new Constraint(null, "constraintName", LogicalOperator.OR);
     constraint.setConditions(conditions);
@@ -2136,11 +2139,16 @@ public class ScanPolicyEvaluatorTest
         telemetryData.getAttributes().get(
             PolicyViolationTelemetryCollector.CONDITION_TYPE).equals(IntegrityRatingConditionType.ID));
 
+    boolean hasComponentEndOfLife = telemetryDataList.stream().anyMatch(telemetryData ->
+        telemetryData.getAttributes().get(
+            PolicyViolationTelemetryCollector.CONDITION_TYPE).equals(ComponentEndOfLifeConditionType.ID));
+
     assertThat(hasHygieneViolation).isTrue();
     assertThat(hasComponentCategoryViolation).isTrue();
     assertThat(hasDependencyTypeViolation).isTrue();
     assertThat(hasSVCategoryTypeViolation).isTrue();
     assertThat(hasIntegrityViolation).isTrue();
+    assertThat(hasComponentEndOfLife).isTrue();
     clearInvocations(mockTelemetrySender);
   }
 

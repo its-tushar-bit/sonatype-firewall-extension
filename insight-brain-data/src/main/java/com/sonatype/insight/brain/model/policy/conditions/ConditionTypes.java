@@ -82,6 +82,8 @@ public class ConditionTypes
   public static SecurityVulnerabilityCustomCVSSVectorStringConditionType
       SecurityVulnerabilityCustomCVSSVectorStringConditionType;
 
+  public static ComponentEndOfLifeConditionType ComponentEndOfLifeConditionType;
+
   @Inject
   public static void injectConditionTypes(
       final AgeInDaysConditionType ageInDaysConditionType,
@@ -114,7 +116,8 @@ public class ConditionTypes
       final IacControlConditionType iacControlConditionType,
       final VulnerabilityGroupConditionType vulnerabilityGroupConditionType,
       final SecurityVulnerabilityCustomCVSSVectorStringConditionType
-          securityVulnerabilityCustomCVSSVectorStringConditionType)
+          securityVulnerabilityCustomCVSSVectorStringConditionType,
+      final ComponentEndOfLifeConditionType componentEndOfLifeConditionType)
   {
     ConditionTypes.AgeInDaysConditionType = ageInDaysConditionType;
     ConditionTypes.CoordinatesConditionType = coordinatesConditionType;
@@ -148,6 +151,7 @@ public class ConditionTypes
     ConditionTypes.VulnerabilityGroupConditionType = vulnerabilityGroupConditionType;
     ConditionTypes.SecurityVulnerabilityCustomCVSSVectorStringConditionType =
         securityVulnerabilityCustomCVSSVectorStringConditionType;
+    ConditionTypes.ComponentEndOfLifeConditionType = componentEndOfLifeConditionType;
 
     allConditionTypes.clear();
 
@@ -181,6 +185,7 @@ public class ConditionTypes
     add(DataSourceConditionType);
     add(DependencyTypeConditionType);
     addDisabledConditionType(IacControlConditionType);
+    add(ComponentEndOfLifeConditionType);
   }
 
   public static Collection<ConditionType> getAll() {

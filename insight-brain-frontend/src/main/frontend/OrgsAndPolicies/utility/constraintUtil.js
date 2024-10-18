@@ -179,6 +179,7 @@ export const conditionsWithoutValue = [
   'Proprietary',
   'ProprietaryNameConflict',
   'SecurityVulnerabilityCustomRemediation',
+  'ComponentEndOfLife',
 ];
 
 export const getDisabledConditions = (conditionTypesMap) => {

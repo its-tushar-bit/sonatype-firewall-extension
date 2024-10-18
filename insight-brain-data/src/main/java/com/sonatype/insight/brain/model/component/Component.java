@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import com.sonatype.clm.dto.model.ComponentEndOfLifeStatus;
 import com.sonatype.clm.dto.model.component.AggregateFile;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
@@ -101,6 +102,8 @@ public class Component
   private Set<String> parentComponentPurls;
 
   private boolean hiddenObservedLicenses;
+
+  private ComponentEndOfLifeStatus endOfLife;
 
   public Component() {
   }
@@ -499,6 +502,14 @@ public class Component
 
   public Set<String> getParentComponentPurls() {
     return parentComponentPurls;
+  }
+
+  public ComponentEndOfLifeStatus getEndOfLife() {
+    return endOfLife;
+  }
+
+  public void setEndOfLife(final ComponentEndOfLifeStatus componentEndOfLifeStatus) {
+    this.endOfLife = componentEndOfLifeStatus;
   }
 
   public Set<String> getInnerComponentPurls() {

@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.sonatype.clm.dto.model.ComponentEndOfLifeStatus;
 import com.sonatype.clm.dto.model.ComponentInfo;
 import com.sonatype.clm.dto.model.component.AggregateFile;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
@@ -430,6 +431,14 @@ public class ComponentLoader
             component.setInnerSource(innerSourceNode.asBoolean());
           }
 
+          JsonNode endOfLife = componentJson.get("endOfLife");
+          if (endOfLife != null && !endOfLife.isNull()) {
+            component.setEndOfLife(ComponentEndOfLifeStatus.valueOf(endOfLife.asText()));
+          }
+          else {
+            component.setEndOfLife(ComponentEndOfLifeStatus.END_OF_LIFE_UNKNOWN);
+          }
+
           component.setParentComponentPurls(
               JsonUtils.getStringSetFromArray(componentJson.path(PARENT_COMPONENT_PURLS_FIELD)));
 
@@ -712,6 +721,9 @@ public class ComponentLoader
       component.setObservedMultiLicenseIds(observedMultiLicenseIds);
       component.setDeclaredLicenseIds(multiLicenseIdsToLicenseIds(declaredMultiLicenseIds));
       component.setObservedLicenseIds(multiLicenseIdsToLicenseIds(observedMultiLicenseIds));
+
+      component.setEndOfLife(componentInfo.getEndOfLife());
+
       loadLicenseThreatGroups(component);
     }
 

@@ -66,6 +66,7 @@ export default angular
         'isSingleTenant',
         'isSbomManagerOnlyLicense',
         'isStandaloneDeveloper',
+        'isOrgsAndAppsEnabled',
       ],
       ['$ngRedux', 'userActions', '$state']
     )

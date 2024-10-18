@@ -24,6 +24,7 @@ import {
   selectIsMonitoringSupported,
   selectTenantMode,
   selectIsSsoIdpManagedBySonatype,
+  selectIsOrgsAndAppsEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectIsSbomManagerOnlyLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 import { selectIsStandaloneDeveloper } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -111,6 +112,7 @@ export const mapStateToThis = (state) => ({
   isSingleTenant: selectTenantMode(state) !== 'multi-tenant',
   isSbomManagerOnlyLicense: selectIsSbomManagerOnlyLicense(state),
   isStandaloneDeveloper: selectIsStandaloneDeveloper(state),
+  isOrgsAndAppsEnabled: selectIsOrgsAndAppsEnabled(state),
 });
 
 MainHeaderController.$inject = [

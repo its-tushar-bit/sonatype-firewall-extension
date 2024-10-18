@@ -32,6 +32,7 @@ export const SystemPreferencesMenu = ({
   isSsoIdpManagedBySonatype = false,
   isSingleTenant = false,
   isSbomManagerOnlyLicense = false,
+  isOrgsAndAppsEnabled = false,
 }) => {
   const {
     CONFIGURE_SYSTEM = false,
@@ -126,7 +127,9 @@ export const SystemPreferencesMenu = ({
       <NavLink
         stateName="successMetricsConfiguration"
         id="system-configuration-success-metrics"
-        showIf={CONFIGURE_SYSTEM && isSuccessMetricsConfigurationEnabled && !isSbomManagerOnlyLicense}
+        showIf={
+          CONFIGURE_SYSTEM && isSuccessMetricsConfigurationEnabled && !isSbomManagerOnlyLicense && isOrgsAndAppsEnabled
+        }
       >
         Success Metrics
       </NavLink>
@@ -194,6 +197,8 @@ SystemPreferencesMenu.propTypes = {
   isSsoIdpManagedBySonatype: PropTypes.bool,
   isSingleTenant: PropTypes.bool,
   isSbomManagerOnlyLicense: PropTypes.bool,
+  isFirewallLicense: PropTypes.bool,
+  isorgsAndAppsEnabled: PropTypes.bool,
 };
 
 const EarlyAccessLinks = ({ children }) => {

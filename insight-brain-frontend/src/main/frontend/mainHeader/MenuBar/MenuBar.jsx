@@ -40,6 +40,7 @@ export const MenuBar = ({
   isSingleTenant,
   isSbomManagerOnlyLicense,
   isStandaloneDeveloper,
+  isOrgsAndAppsEnabled,
 }) => {
   const hasAnyPermissions = Object.values(permissions).filter(Boolean).length > 0;
 
@@ -87,6 +88,7 @@ export const MenuBar = ({
             isSsoIdpManagedBySonatype={isSsoIdpManagedBySonatype}
             isSingleTenant={isSingleTenant}
             isSbomManagerOnlyLicense={isSbomManagerOnlyLicense}
+            isOrgsAndAppsEnabled={isOrgsAndAppsEnabled}
           />
         )}
         <SolutionSwitcherContainer />
@@ -129,6 +131,7 @@ MenuBar.propTypes = {
   isSingleTenant: PropTypes.bool,
   isSbomManagerOnlyLicense: PropTypes.bool,
   isStandaloneDeveloper: PropTypes.bool,
+  isOrgsAndAppsEnabled: PropTypes.bool,
 };
 
 export default MenuBar;

@@ -28,7 +28,7 @@ describe('SuccessMetricsConfigurationSpec', () => {
   it('renders enabled toggle', async () => {
     axiosMock.onGet(successMetricsConfigurationUrl).reply(200, { enabled: true });
 
-    const { container } = render(<SuccessMetricsConfigurationContainer />);
+    const { container } = renderComponent();
 
     expect(screen.getByRole('heading', { name: /success metrics/i })).toBeVisible();
     expect(screen.queryByRole('checkbox', { name: /enable success metrics/i })).toBeNull();
@@ -46,7 +46,7 @@ describe('SuccessMetricsConfigurationSpec', () => {
   it('renders disabled toggle', async () => {
     axiosMock.onGet(successMetricsConfigurationUrl).reply(200, { enabled: false });
 
-    render(<SuccessMetricsConfigurationContainer />);
+    renderComponent();
     await waitFor(() => screen.getByRole('heading', { name: /configure success metrics/i }));
 
     expect(screen.getByLabelText('Enable Success Metrics')).not.toBeChecked();
@@ -55,7 +55,7 @@ describe('SuccessMetricsConfigurationSpec', () => {
   it('handles load error fetching success metrics configuration', async () => {
     axiosMock.onGet(successMetricsConfigurationUrl).reply(403);
 
-    render(<SuccessMetricsConfigurationContainer />);
+    renderComponent();
     await waitFor(() => screen.getByText(/An error occurred loading data/));
 
     expect(screen.getByRole('button', { name: 'Retry' })).toBeVisible();
@@ -67,7 +67,9 @@ describe('SuccessMetricsConfigurationSpec', () => {
     // given permission check experienced an error
     axiosMock.onPut(globalPermissionTestUrl).reply(403);
 
-    render(<SuccessMetricsConfigurationContainer />);
+    renderComponent();
+
+    screen.debug(null, Infinity);
     await waitFor(() => screen.getByText(/An error occurred loading data/));
 
     expect(screen.getByRole('button', { name: 'Retry' })).toBeVisible();
@@ -79,7 +81,7 @@ describe('SuccessMetricsConfigurationSpec', () => {
     // given permission check succeeded but the user does not have permission
     axiosMock.onPut(globalPermissionTestUrl).reply(200, []);
 
-    render(<SuccessMetricsConfigurationContainer />);
+    renderComponent();
     await waitFor(() => screen.getByText(/An error occurred loading data/));
 
     expect(screen.getByRole('button', { name: 'Retry' })).toBeVisible();
@@ -88,7 +90,7 @@ describe('SuccessMetricsConfigurationSpec', () => {
   it('toggles and cancels', async () => {
     axiosMock.onGet(successMetricsConfigurationUrl).reply(200, { enabled: false });
 
-    render(<SuccessMetricsConfigurationContainer />);
+    renderComponent();
     await waitFor(() => screen.getByRole('heading', { name: /configure success metrics/i }));
     const toggle = screen.getByLabelText('Enable Success Metrics');
 
@@ -116,7 +118,7 @@ describe('SuccessMetricsConfigurationSpec', () => {
     axiosMock.onGet(successMetricsConfigurationUrl).reply(200, { enabled: false });
     axiosMock.onPut(successMetricsConfigurationUrl).reply(200, {});
 
-    render(<SuccessMetricsConfigurationContainer />);
+    renderComponent();
     await waitFor(() => screen.getByRole('heading', { name: /configure success metrics/i }));
     fireEvent.click(screen.getByLabelText('Enable Success Metrics'));
 
@@ -141,7 +143,7 @@ describe('SuccessMetricsConfigurationSpec', () => {
     axiosMock.onGet(successMetricsConfigurationUrl).reply(200, { enabled: false });
     axiosMock.onPut(successMetricsConfigurationUrl).reply(200, {});
 
-    render(<SuccessMetricsConfigurationContainer />);
+    renderComponent();
     await waitFor(() =>
       expect(screen.getByRole('heading', { name: /configure success metrics/i })).toBeInTheDocument()
     );
@@ -157,7 +159,7 @@ describe('SuccessMetricsConfigurationSpec', () => {
     axiosMock.onGet(successMetricsConfigurationUrl).reply(200, { enabled: false });
     axiosMock.onPut(successMetricsConfigurationUrl).reply(403);
 
-    render(<SuccessMetricsConfigurationContainer />);
+    renderComponent();
     await waitFor(() => screen.getByLabelText('Enable Success Metrics'));
     fireEvent.click(screen.getByLabelText('Enable Success Metrics'));
     fireEvent.click(screen.getByRole('button', { name: 'Update' }));
@@ -171,6 +173,46 @@ describe('SuccessMetricsConfigurationSpec', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
     expect(axiosMock.history.put.length).toBe(3);
   });
+
+  it('displays warning alert if the feature is not supported by the product license', async () => {
+    axiosMock.onGet(successMetricsConfigurationUrl).reply(200, { enabled: true });
+
+    renderComponent({
+      productFeatures: {
+        productFeatures: {
+          'orgs-and-apps': false, // isOrgsAndAppsEnabled is false
+        },
+        loading: false, // isProductFeaturesLoading is false
+      },
+    });
+
+    expect(await screen.queryByRole('heading', { name: /success metrics/i })).toBeVisible();
+
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+    const alert = await screen.getByRole('alert');
+    expect(within(alert).getByText('This feature is not supported by your product license.')).toBeVisible();
+  });
+
+  function renderComponent(preloadStateOverrides = {}) {
+    const preloadedState = {
+      ...givenOrgsAndAppsEnabled(),
+      ...preloadStateOverrides,
+    };
+
+    return render(<SuccessMetricsConfigurationContainer />, { preloadedState });
+  }
+
+  function givenOrgsAndAppsEnabled() {
+    return {
+      productFeatures: {
+        productFeatures: {
+          'orgs-and-apps': true,
+        },
+        loading: false,
+      },
+    };
+  }
 
   // The validation alerts are in the dom, regardless but are hidden by css rules.
   // The closest we can come to testing if validation errors are shown is to check for the presence

@@ -123,17 +123,32 @@ describe('SystemPreferencesMenu', () => {
     expect(screen.queryByText('Success Metrics')).toBeNull();
   });
 
-  it('should display "Success Metrics" if "isSbomManagerOnlyLicense" is false', () => {
+  it('should display "Success Metrics" if "isSbomManagerOnlyLicense" is false and isOrgsAndAppsEnabled is true', () => {
     render(
       <SystemPreferencesMenu
         permissions={permissions}
         isSuccessMetricsConfigurationEnabled={true}
         isSbomManagerOnlyLicense={false}
+        isOrgsAndAppsEnabled={true}
       />
     );
     const button = screen.getByRole('button');
     fireEvent.click(button);
     expect(screen.queryByText('Success Metrics')).toBeInTheDocument();
+  });
+
+  it('should not display "Success Metrics" if "isSbomManagerOnlyLicense" is true or isOrgsAndAppsEnabled is false', () => {
+    render(
+      <SystemPreferencesMenu
+        permissions={permissions}
+        isSuccessMetricsConfigurationEnabled={true}
+        isSbomManagerOnlyLicense={true}
+        isOrgsAndAppsEnabled={false}
+      />
+    );
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+    expect(screen.queryByText('Success Metrics')).toBeNull();
   });
 
   it('should not display "Automatic Applications" if "isSbomManagerOnlyLicense" is true', () => {

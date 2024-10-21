@@ -91,6 +91,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Binder;
 import com.google.inject.matcher.Matchers;
 import org.apache.commons.lang3.ArrayUtils;
@@ -1722,6 +1723,160 @@ public class ApiFirewallServiceTest
     assertThat(details.getTotal()).isEqualTo(1);
     assertThat(details.getResults()).hasSize(1);
     assertFirewallQuarantinedDetails(repo2, c5, violation5, details.getResults().get(0));
+  }
+
+  @Test
+  public void testGetQuarantinedComponents_filterByPolicyIdAndComponentName() {
+    Date june1st2022 = Date.from(LocalDateTime.of(2022, 6, 1, 1, 0).toInstant(ZoneOffset.UTC));
+    Date june2nd2022 = Date.from(LocalDateTime.of(2022, 6, 2, 1, 0).toInstant(ZoneOffset.UTC));
+    Date june3rd2022 = Date.from(LocalDateTime.of(2022, 6, 3, 1, 0).toInstant(ZoneOffset.UTC));
+    Date june4th2022 = Date.from(LocalDateTime.of(2022, 6, 4, 1, 0).toInstant(ZoneOffset.UTC));
+    Date june5th2022 = Date.from(LocalDateTime.of(2022, 6, 5, 1, 0).toInstant(ZoneOffset.UTC));
+    Date june6th2022 = Date.from(LocalDateTime.of(2022, 6, 6, 1, 0).toInstant(ZoneOffset.UTC));
+
+    Policy policy1 = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, "policy1", 10, Action.ID_FAIL,
+        Stage.ID_PROXY, null);
+    Policy policy2 = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, "policy2", 9, Action.ID_FAIL,
+        Stage.ID_PROXY, null);
+    Policy policy3 = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, "policy3", 8, Action.ID_FAIL,
+        Stage.ID_PROXY, null);
+    Policy policy4 = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, "policy4", 7, Action.ID_FAIL,
+        Stage.ID_PROXY, null);
+
+    RepositoryManager rm1 = tempEntity.newRepositoryManager();
+    Repository repo1 = tempEntity.newRepository(rm1, "repo1", true, true);
+
+    final RepositoryComponent c1 =
+        tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT, "pathname1", "hash",
+            ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), june1st2022, june1st2022);
+    final RepositoryComponent c2 =
+        tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT, "pathname2", "hash",
+            ComponentIdentifier.createMavenCoordinates("g2", "a2", "v1"), june2nd2022, june2nd2022);
+    final RepositoryComponent c3 =
+        tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT, "pathname3", "hash",
+            ComponentIdentifier.createMavenCoordinates("g1", "a3", "v1"), june3rd2022, june3rd2022);
+    final RepositoryComponent c4 =
+        tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT, "pathname4", "hash",
+            ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4"), june4th2022, june4th2022);
+    final RepositoryComponent c5 =
+        tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT, "pathname5", "hash",
+            ComponentIdentifier.createMavenCoordinates("g5", "a5", "v5"), june5th2022, june5th2022);
+    final RepositoryComponent c6 =
+        tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT, "pathname6", "hash",
+            ComponentIdentifier.createMavenCoordinates("g6", "a6", "v6"), june6th2022, june6th2022);
+
+    RepositoryPolicyViolation violation1 = PolicyViolationTestHelper.createPolicyViolationFail(policy1, c1, tempEntity);
+    RepositoryPolicyViolation violation2 = PolicyViolationTestHelper.createPolicyViolationFail(policy2, c2, tempEntity);
+    RepositoryPolicyViolation violation3 = PolicyViolationTestHelper.createPolicyViolationFail(policy3, c3, tempEntity);
+    RepositoryPolicyViolation violation4 = PolicyViolationTestHelper.createPolicyViolationFail(policy4, c4, tempEntity);
+    RepositoryPolicyViolation violation5 = PolicyViolationTestHelper.createPolicyViolationFail(policy4, c5, tempEntity);
+    RepositoryPolicyViolation violation6 = PolicyViolationTestHelper.createPolicyViolationFail(policy4, c6, tempEntity);
+
+    // FILTER BY MULTIPLE POLICY IDS
+    List<FirewallFilterField> filterFields = new ArrayList<>();
+    filterFields.add(new FirewallFilterField(FirewallFilterableField.POLICY_ID,
+        Sets.newHashSet(policy1.getId(), policy3.getId())));
+
+    FirewallRepositoryComponentFilter filter = new FirewallRepositoryComponentFilter(1, 10,
+        FirewallComponentFilterState.QUARANTINE, FirewallSortableField.QUARANTINE_TIME, false, filterFields);
+
+    // EXECUTE
+    ApiPageResult<ApiFirewallQuarantinedComponentDto> details = apiFirewallService.getQuarantinedComponents(filter);
+
+    assertThat(details.getTotal()).isEqualTo(2);
+    assertThat(details.getResults()).hasSize(2);
+    assertFirewallQuarantinedDetails(repo1, c3, violation3, details.getResults().get(0));
+    assertFirewallQuarantinedDetails(repo1, c1, violation1, details.getResults().get(1));
+
+    // SORT BY QUARANTINE TIME ASC
+    filter.asc = true;
+
+    // EXECUTE
+    details = apiFirewallService.getQuarantinedComponents(filter);
+
+    assertThat(details.getTotal()).isEqualTo(2);
+    assertThat(details.getResults()).hasSize(2);
+    assertFirewallQuarantinedDetails(repo1, c1, violation1, details.getResults().get(0));
+    assertFirewallQuarantinedDetails(repo1, c3, violation3, details.getResults().get(1));
+
+    // FILTER BY COMPONENT NAME
+    filterFields.remove(0);
+    filterFields.add(new FirewallFilterField(FirewallFilterableField.COMPONENT_NAME, "g2"));
+    filter.filterFields = filterFields;
+    filter.asc = false;
+
+    // EXECUTE
+    details = apiFirewallService.getQuarantinedComponents(filter);
+
+    assertThat(details.getTotal()).isEqualTo(1);
+    assertThat(details.getResults()).hasSize(1);
+    assertFirewallQuarantinedDetails(repo1, c2, violation2, details.getResults().get(0));
+
+    // FILTER BY MULTIPLE POLICY IDS AND COMPONENT NAME
+    filterFields.remove(0);
+    filterFields.add(new FirewallFilterField(FirewallFilterableField.POLICY_ID,
+        Sets.newHashSet(policy1.getId(), policy2.getId())));
+    filterFields.add(new FirewallFilterField(FirewallFilterableField.COMPONENT_NAME, "v1"));
+    filter.filterFields = filterFields;
+    filter.asc = false;
+
+    // EXECUTE
+    details = apiFirewallService.getQuarantinedComponents(filter);
+
+    assertThat(details.getTotal()).isEqualTo(2);
+    assertThat(details.getResults()).hasSize(2);
+    assertFirewallQuarantinedDetails(repo1, c2, violation2, details.getResults().get(0));
+    assertFirewallQuarantinedDetails(repo1, c1, violation1, details.getResults().get(1));
+
+    // SORT BY QUARANTINE TIME ASC
+    filter.asc = true;
+
+    // EXECUTE
+    details = apiFirewallService.getQuarantinedComponents(filter);
+
+    assertThat(details.getTotal()).isEqualTo(2);
+    assertThat(details.getResults()).hasSize(2);
+    assertFirewallQuarantinedDetails(repo1, c1, violation1, details.getResults().get(0));
+    assertFirewallQuarantinedDetails(repo1, c2, violation2, details.getResults().get(1));
+
+    // FILTER BY MULTIPLE POLICY IDS AND SET PAGE SIZE TO 3 TO TEST PAGED RESULTS
+    filterFields.clear();
+    filterFields.add(new FirewallFilterField(FirewallFilterableField.POLICY_ID,
+        Sets.newHashSet(policy1.getId(), policy2.getId(), policy4.getId())));
+    filter.filterFields = filterFields;
+    filter.asc = false;
+    filter.pageSize = 3;
+
+    // EXECUTE
+    details = apiFirewallService.getQuarantinedComponents(filter);
+
+    assertThat(details.getTotal()).isEqualTo(5);
+    assertThat(details.getResults()).hasSize(3);
+    assertFirewallQuarantinedDetails(repo1, c6, violation6, details.getResults().get(0));
+    assertFirewallQuarantinedDetails(repo1, c5, violation5, details.getResults().get(1));
+    assertFirewallQuarantinedDetails(repo1, c4, violation4, details.getResults().get(2));
+
+    // GET PAGE 2
+    filter.page = 2;
+
+    // EXECUTE
+    details = apiFirewallService.getQuarantinedComponents(filter);
+
+    assertThat(details.getTotal()).isEqualTo(5);
+    assertThat(details.getResults()).hasSize(2);
+    assertFirewallQuarantinedDetails(repo1, c2, violation2, details.getResults().get(0));
+    assertFirewallQuarantinedDetails(repo1, c1, violation1, details.getResults().get(1));
+
+    // SORT BY QUARANTINE TIME ASC
+    filter.asc = true;
+
+    // EXECUTE
+    details = apiFirewallService.getQuarantinedComponents(filter);
+
+    assertThat(details.getTotal()).isEqualTo(5);
+    assertThat(details.getResults()).hasSize(2);
+    assertFirewallQuarantinedDetails(repo1, c5, violation5, details.getResults().get(0));
+    assertFirewallQuarantinedDetails(repo1, c6, violation6, details.getResults().get(1));
   }
 
   @Test

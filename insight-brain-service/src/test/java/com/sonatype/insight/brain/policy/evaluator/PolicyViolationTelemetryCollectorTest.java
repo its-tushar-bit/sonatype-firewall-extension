@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -30,12 +31,42 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.*;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.APPLICATION_ID;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_DOWNGRADE;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_IDENTIFIER;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_NAME;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_NAMESPACE;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_UPGRADE;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_VERSION;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.CONDITION_TYPE;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COUNT;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.CVE_NUMBER;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.CVSS_SCORE;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.DIRECT_DEPENDENCY;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.ECOSYSTEM;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.FIX_BY_VERSION_CHANGE;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.FIX_TIME;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.INNERSOURCE_DEPENDENCY;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.IS_SCM_ENABLED;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.LEGACY_VIOLATION_TIME;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.OPEN_TIME;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.POLICY_VIOLATION_ID;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.POLICY_WAIVER_ID;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.STAGE;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.THREAT_CATEGORY;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.THREAT_LEVEL;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.TIME;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.UNWAIVE_TIME;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.WAIVER_EXPIRATION;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.WAIVE_TIME;
+import static com.sonatype.insight.brain.telemetry.TelemetryUtils.REAL_APPLICATION_ID;
+import static com.sonatype.insight.telemetry.model.TelemetryPurpose.CONDITION_TYPE_VIOLATION;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.TIME_TO_CHANGE_VERSION_POLICY_VIOLATION;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.TIME_TO_LEGACY_VIOLATION;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.TIME_TO_REMEDIATE_POLICY_VIOLATION;
@@ -49,22 +80,26 @@ public class PolicyViolationTelemetryCollectorTest
 
   private static final String TEST_STAGE = "testStage";
 
-  private static final String REAL_APPLICATION_ID = "real_application_id";
-
   private static final PolicyEvaluation policyEvaluation =
       new PolicyEvaluation(TEST_APP_ID, TEST_STAGE, "scanId123", CurrentUser.SYSTEM, ScanTriggerType.CLI);
 
+  static {
+    policyEvaluation.setTime(new Date());
+  }
+
   private static final ComponentIdentifier commonsLang3 = ComponentIdentifier.createMavenCoordinates(
       "org.apache.commons", "commons-lang3", "3.8.1");
-
-  private static final ComponentIdentifier urllib3 = ComponentIdentifier.createPypiCoordinates(
-      "urllib3", "1.25.7", null, "py");
 
   private static final ComponentIdentifier lodashv3 = ComponentIdentifier.createNpmCoordinates("lodash", "3.0.4");
 
   private static final ComponentIdentifier lodashv4 = ComponentIdentifier.createNpmCoordinates("lodash", "4.17.15");
 
   private static final ComponentIdentifier lodashv5 = ComponentIdentifier.createNpmCoordinates("lodash", "5.1.0");
+
+  private static final ComponentIdentifier urllib3 = ComponentIdentifier.createPypiCoordinates(
+      "urllib3", "1.25.7", null, "py");
+
+  private static final String TEST_POLICY = "testPolicy";
 
   @Inject
   private PolicyWaiverDAO policyWaiverDAO;
@@ -73,643 +108,705 @@ public class PolicyViolationTelemetryCollectorTest
   private TelemetryUtils telemetryUtils;
 
   @Test
-  public void testAddTelemetryForFixedViolation_FixedByUpgrade() {
-    // setup : create a fixed policy violation
-    final int threatLevel = 9;
-    final PolicyThreatCategory policyThreatCategory = PolicyThreatCategory.SECURITY;
-    final String policyName = "myPolicy";
-    final String violationId = "123";
-    final String ecosystem = "npm";
-    final String cveNumber = "c-1-v-2-e";
-    final double cvssScore = 0;
-    final String componentIdentifier = "lodash:5.1.0";
-    final boolean isScmEnabled = true;
-    final boolean isDirectDependency = false;
-    final boolean isInnerSource = false;
-    final Date evalTime = new Date();
-    final long expectedTTR = msForHours(37);
-    final Date openTime = new Date(evalTime.getTime() - expectedTTR);
-    Component component = new Component();
-    component.setComponentIdentifier(lodashv5);
-    component.setInnerSourceData(null);
-    component.setDirectDependency(isDirectDependency);
-    PolicyViolation policyViolation =
-        createPolicyViolation(threatLevel, policyThreatCategory, lodashv4, policyName, violationId,
-            cveNumber, cvssScore, 2);
-    policyViolation.setOpenTime(openTime);
-    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(policyWaiverDAO,
-        telemetryUtils, isScmEnabled);
-    telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
+  public void testAddTelemetryForConditionTypeViolation() {
+    // given a new policy violation and a telemetry collector
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultViolationForComponent(commonsLang3)
+            .withConditionType(HygieneRatingConditionType.ID);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
 
     // when
-    telemetryCollector.addTelemetryForFixedViolation(policyViolation, Collections.singletonList(component));
-    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    telemetryCollector.addTelemetryForConditionTypeViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getConditionType(),
+        testablePolicyViolation.getComponents()
+    );
 
     // then
-    assertThat(telemetryData).isNotNull();
-    assertThat(telemetryData.size()).isEqualTo(2);
-    assertTelemetryAttributes(TIME_TO_REMEDIATE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
-        expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, isDirectDependency, isInnerSource, null,
-        telemetryData.get(0), policyViolation.getPolicyWaiverId(), ecosystem, policyName, violationId,
-        cveNumber, cvssScore, componentIdentifier);
-    assertTelemetryAttributes(TIME_TO_CHANGE_VERSION_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
-        expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, isDirectDependency, isInnerSource,
-        "upgrade", telemetryData.get(1), policyViolation.getPolicyWaiverId(), ecosystem, policyName, violationId,
-        cveNumber, cvssScore, componentIdentifier);
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData, CONDITION_TYPE_VIOLATION);
   }
 
   @Test
   public void testAddTelemetryForFixedViolation_FixedByDowngrade() {
-    // setup : create a fixed policy violation
-    final int threatLevel = 9;
-    final PolicyThreatCategory policyThreatCategory = PolicyThreatCategory.SECURITY;
-    final String policyName = "defaultPolicyName";
-    final String ecosystem = "npm";
-    final String componentIdentifier = "lodash:4.17.15";
-    final boolean isScmEnabled = true;
-    final boolean isDirectDependency = false;
-    final boolean isInnerSource = false;
-    final Date evalTime = new Date();
-    final long expectedTTR = msForHours(37);
-    final Date openTime = new Date(evalTime.getTime() - expectedTTR);
-    Component component = new Component();
-    component.setComponentIdentifier(lodashv4);
-    component.setInnerSourceData(null);
-    component.setDirectDependency(isDirectDependency);
-    PolicyViolation policyViolation = createPolicyViolation(threatLevel, policyThreatCategory, lodashv5, policyName);
-    policyViolation.setOpenTime(openTime);
-    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(policyWaiverDAO,
-        telemetryUtils, isScmEnabled);
-    telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
+    // given a policy violation on lodash v4 that was fixed by downgrading
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultViolationForComponent(lodashv4)
+            .openedHoursAgo(48)
+            .asDirectDependency(true)
+            .withPolicyViolationId("fixedByDowngrade")
+            .markFixedByDowngrade();
 
-    // when
-    telemetryCollector.addTelemetryForFixedViolation(policyViolation, Collections.singletonList(component));
-    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // when - pass in downgraded component
+    telemetryCollector.addTelemetryForFixedViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        createWrappedComponent(lodashv3, true, false)
+    );
 
     // then
-    assertThat(telemetryData).isNotNull();
-    assertThat(telemetryData.size()).isEqualTo(2);
-    assertTelemetryAttributes(TIME_TO_REMEDIATE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
-        expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, isDirectDependency, isInnerSource, null,
-        telemetryData.get(0), policyViolation.getPolicyWaiverId(), ecosystem, policyName, null, null,
-        null, componentIdentifier);
-    assertTelemetryAttributes(TIME_TO_CHANGE_VERSION_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
-        expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, isDirectDependency, isInnerSource,
-        "downgrade", telemetryData.get(1), policyViolation.getPolicyWaiverId(), ecosystem, policyName, null,
-        null, null, componentIdentifier);
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    testablePolicyViolation.validateTelemetryDataForPurposes(
+        telemetryData,
+        TIME_TO_REMEDIATE_POLICY_VIOLATION,
+        TIME_TO_CHANGE_VERSION_POLICY_VIOLATION
+    );
+  }
+
+  @Test
+  public void testAddTelemetryForFixedViolation_FixedByOtherMeans() {
+    // given a policy violation on lodash v4 that was fixed by downgrading
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultViolationForComponent(lodashv4)
+            .openedHoursAgo(2)
+            .asDirectDependency(true)
+            .asInnerSourceDependency(true)
+            .withPolicyViolationId("fixedByOtherMeans")
+            .withAdditionalComponentVersion(lodashv3, true, true)
+            .withAdditionalComponentVersion(lodashv5, true, true)
+            .markFixedByOtherMeans();
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // when - pass in multiple additional versions
+    telemetryCollector.addTelemetryForFixedViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getAdditionalVersions()
+    );
+
+    // then
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData, TIME_TO_REMEDIATE_POLICY_VIOLATION);
   }
 
   @Test
   public void testAddTelemetryForFixedViolation_FixedByRemoval() {
-    // setup : create a fixed policy violation
-    final int threatLevel = 9;
-    final PolicyThreatCategory policyThreatCategory = PolicyThreatCategory.SECURITY;
-    final String policyName = "myPolicy2";
-    final String policyViolationId = "456";
-    final String cveNumber = "cve-888";
-    final double cvssScore = 2.2;
-    final boolean isScmEnabled = true;
-    final Date evalTime = new Date();
-    final long expectedTTR = msForHours(37);
-    final Date openTime = new Date(evalTime.getTime() - expectedTTR);
-    PolicyViolation policyViolation =
-        createPolicyViolation(threatLevel, policyThreatCategory, lodashv5, policyName, policyViolationId,
-            cveNumber, cvssScore, 1);
-    policyViolation.setOpenTime(openTime);
-    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(policyWaiverDAO,
-        telemetryUtils, isScmEnabled);
-    telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
+    // given a policy violation on lodash v4 that was fixed by downgrading
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultViolationForComponent(lodashv4)
+            .openedHoursAgo(37)
+            .asDirectDependency(true)
+            .withPolicyViolationId("fixedByRemoval")
+            .markFixedByRemoval();
 
-    // when
-    telemetryCollector.addTelemetryForFixedViolation(policyViolation, Collections.emptyList());
-    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // when - pass in empty component list
+    telemetryCollector.addTelemetryForFixedViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponents()
+    );
 
     // then
-    assertThat(telemetryData).isNotNull();
-    assertThat(telemetryData.size()).isEqualTo(1);
-    assertTelemetryAttributes(TIME_TO_REMEDIATE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
-        expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, null, null, null, telemetryData.get(0),
-        policyViolation.getPolicyWaiverId(), null, policyName, policyViolationId, cveNumber, cvssScore, null);
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData, TIME_TO_REMEDIATE_POLICY_VIOLATION);
+  }
+
+  @Test
+  public void testAddTelemetryForFixedViolation_FixedByUpgrade() {
+    // given a policy violation on lodash v4 that was fixed by downgrading
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultViolationForComponent(lodashv4)
+            .withScmEnabled(true)
+            .openedHoursAgo(72)
+            .asDirectDependency(true)
+            .withPolicyViolationId("fixedByUpgrade")
+            .markFixedByUpgrade();
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // when - pass in an upgraded component
+    telemetryCollector.addTelemetryForFixedViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        createWrappedComponent(lodashv5, true, false)
+    );
+
+    // then
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    testablePolicyViolation.validateTelemetryDataForPurposes(
+        telemetryData,
+        TIME_TO_REMEDIATE_POLICY_VIOLATION,
+        TIME_TO_CHANGE_VERSION_POLICY_VIOLATION
+    );
   }
 
   @Test
   public void testAddTelemetryForFixedViolation_FixedWithoutVersionChange() {
-    // setup : create a fixed policy violation
-    final int threatLevel = 9;
-    final PolicyThreatCategory policyThreatCategory = PolicyThreatCategory.SECURITY;
-    final String policyName = "myPolicy1";
-    final String policyViolationId = "456";
-    final String ecosystem = "npm";
-    final String cveNumber = "cve-000";
-    final double cvssScore = 3.3;
-    final String componentIdentifier = "lodash:5.1.0";
-    final boolean isScmEnabled = true;
-    final boolean isDirectDependency = false;
-    final boolean isInnerSource = false;
-    final Date evalTime = new Date();
-    final long expectedTTR = msForHours(37);
-    final Date openTime = new Date(evalTime.getTime() - expectedTTR);
-    Component component = new Component();
-    component.setComponentIdentifier(lodashv5);
-    component.setInnerSourceData(null);
-    component.setDirectDependency(isDirectDependency);
-    PolicyViolation policyViolation =
-        createPolicyViolation(threatLevel, policyThreatCategory, lodashv5, policyName, policyViolationId,
-            cveNumber, cvssScore, 2);
-    policyViolation.setOpenTime(openTime);
-    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(policyWaiverDAO,
-        telemetryUtils, isScmEnabled);
-    telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
+    // given a policy violation on lodash v5
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultViolationForComponent(lodashv5)
+            .openedHoursAgo(480)
+            .asDirectDependency(false)
+            .withPolicyViolationId("fixedWithoutVersionChange")
+            .markFixedByOtherMeans();
 
-    // when
-    telemetryCollector.addTelemetryForFixedViolation(policyViolation, Collections.singletonList(component));
-    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
-
-    // then
-    assertThat(telemetryData).isNotNull();
-    assertThat(telemetryData.size()).isEqualTo(1);
-    assertTelemetryAttributes(TIME_TO_REMEDIATE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
-        expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, isDirectDependency, isInnerSource, null,
-        telemetryData.get(0), policyViolation.getPolicyWaiverId(), ecosystem, policyName, policyViolationId,
-        cveNumber, cvssScore, componentIdentifier);
-  }
-
-  @Test
-  public void testAddTelemetryForFixedViolation_FixedByUndetermined() {
-    // setup : create a fixed policy violation
-    final int threatLevel = 9;
-    final PolicyThreatCategory policyThreatCategory = PolicyThreatCategory.SECURITY;
-    final String policyName = "aPolicyName";
-    final String policyViolationId = "lodashv4Id";
-    final String cveNumber = "cve-222";
-    final double cvssScore = 4.1;
-    final boolean isScmEnabled = true;
-    final boolean isInnerSource = true;
-    final Date evalTime = new Date();
-    final long expectedTTR = msForHours(37);
-    final Date openTime = new Date(evalTime.getTime() - expectedTTR);
-    Component component1 = new Component();
-    component1.setComponentIdentifier(lodashv5);
-    component1.setInnerSourceData(Collections.singleton(new InnerSourceData()));
-
-    Component component2 = new Component();
-    component2.setComponentIdentifier(lodashv3);
-    component2.setInnerSourceData(Collections.singleton(new InnerSourceData()));
-
-    List<Component> components = new ArrayList<>();
-    components.add(component1);
-    components.add(component2);
-    PolicyViolation policyViolation =
-        createPolicyViolation(threatLevel, policyThreatCategory, lodashv4, policyName, policyViolationId,
-            cveNumber, cvssScore, 0);
-    policyViolation.setOpenTime(openTime);
-    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(policyWaiverDAO,
-        telemetryUtils, isScmEnabled);
-    telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
-
-    // when
-    telemetryCollector.addTelemetryForFixedViolation(policyViolation, components);
-    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
-
-    // then
-    assertThat(telemetryData).isNotNull();
-    assertThat(telemetryData.size()).isEqualTo(1);
-    assertTelemetryAttributes(TIME_TO_REMEDIATE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
-        expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, null, isInnerSource, null,
-        telemetryData.get(0), policyViolation.getPolicyWaiverId(), null, policyName, policyViolationId,
-        cveNumber, cvssScore, null);
-  }
-
-  @Test
-  public void testAddTelemetryForUnwaivedViolation() {
-    // setup : create an unwaived policy violation
-    final String oldPolicyWaiverId = "some-old-policy-waiver-id";
-    final int threatLevel = 2;
-    final PolicyThreatCategory policyThreatCategory = PolicyThreatCategory.SECURITY;
-    final String policyName = "urllib3Policy";
-    final String policyViolationId = "urllib3Id";
-    final String ecosystem = "pypi";
-    final String cveNumber = "cvx-xxx";
-    final double cvssScore = 5.1;
-    final String componentIdentifier = "urllib3:1.25.7";
-    final boolean isScmEnabled = true;
-    final boolean isDirectDependency = true;
-    final boolean isInnerSource = true;
-    final Date evalTime = new Date();
-    final long expectedTTR = msForHours(5);
-    final Date openTime = new Date(evalTime.getTime() - expectedTTR);
-    Component component = new Component();
-    component.setComponentIdentifier(urllib3);
-    component.setInnerSourceData(Collections.singleton(new InnerSourceData()));
-    component.setDirectDependency(isDirectDependency);
-    PolicyViolation policyViolation =
-        createPolicyViolation(threatLevel, policyThreatCategory, urllib3, policyName, policyViolationId,
-            cveNumber, cvssScore, 1);
-    policyViolation.setOpenTime(openTime);
-    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(policyWaiverDAO,
-        telemetryUtils, isScmEnabled);
-    telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
-
-    // when
-    telemetryCollector.addTelemetryForUnwaivedViolation(policyViolation, component, oldPolicyWaiverId);
-    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
-
-    // then
-    assertThat(telemetryData).isNotNull();
-    assertThat(telemetryData.size()).isEqualTo(1);
-    assertTelemetryAttributes(TIME_TO_WAIVE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
-        expectedTTR, openTime.getTime(), evalTime.getTime(), evalTime.getTime(), null, -1, isDirectDependency,
-        isInnerSource, null, telemetryData.get(0), "some-old-policy-waiver-id", ecosystem,
-        policyName, policyViolationId, cveNumber, cvssScore, componentIdentifier);
-  }
-
-  @Test
-  public void testAddTelemetryForWaivedViolation() {
-    // setup : create a waived policy violation
-    final int threatLevel = 7;
-    final PolicyThreatCategory policyThreatCategory = PolicyThreatCategory.SECURITY;
-    final String policyName = "commonsLang3Policy";
-    final String policyViolationId = "commonsId";
-    final String ecosystem = "maven";
-    final String cveNumber = "cve-111";
-    final double cvssScore = 1;
-    final String componentIdentifier = "commons-lang3:3.8.1";
-    final boolean isScmEnabled = false;
-    final boolean isDirectDependency = true;
-    final boolean isInnerSource = false;
-    final Date evalTime = new Date();
-    final long expectedTTR = msForHours(45);
-    final Date openTime = new Date(evalTime.getTime() - expectedTTR);
-    final String waiverExpirationInDays = "never";
-
-    Component component = new Component();
-    component.setComponentIdentifier(commonsLang3);
-    component.setInnerSourceData(null);
-    component.setDirectDependency(isDirectDependency);
-
-    PolicyViolation policyViolation =
-        createPolicyViolation(threatLevel, policyThreatCategory, commonsLang3, policyName, policyViolationId,
-            cveNumber, cvssScore, 1);
-    PolicyWaiver policyWaiver =
-        tempEntity.newWaiver(tempEntity.newPolicy().getId(), policyViolation.getApplicationId());
-    policyWaiver.setCreateTime(new Date());
-    policyViolation.setOpenTime(openTime);
-    policyViolation.setPolicyWaiverId(policyWaiver.getId());
-    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(policyWaiverDAO,
-        telemetryUtils, isScmEnabled);
-    telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
-
-    // when
-    telemetryCollector.addTelemetryForWaivedViolation(policyViolation, component);
-    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
-
-    // then
-    assertThat(telemetryData).isNotNull();
-    assertThat(telemetryData.size()).isEqualTo(1);
-    Map<String, Object> attributes = telemetryData.get(0).getAttributes();
-    assertTelemetryAttributes(TIME_TO_WAIVE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
-        expectedTTR, openTime.getTime(), evalTime.getTime(), evalTime.getTime(), null, 1, isDirectDependency,
-        isInnerSource, null, telemetryData.get(0), policyViolation.getPolicyWaiverId(), ecosystem,
-        policyName, policyViolationId, cveNumber, cvssScore, componentIdentifier);
-    assertThat(attributes.get(WAIVER_EXPIRATION)).isEqualTo(waiverExpirationInDays);
-  }
-
-  @Test
-  public void testAddTelemetryForWaivedViolation_NoDependencyInfo() {
-    // setup : create a waived policy violation
-    Component component = new Component();
-    component.setComponentIdentifier(commonsLang3);
-    final String policyName = "defaultPolicyName";
-
-    PolicyViolation policyViolation = createPolicyViolation(7, PolicyThreatCategory.SECURITY, commonsLang3,
-        policyName);
-    policyViolation.setOpenTime(new Date());
-    PolicyWaiver policyWaiver =
-        tempEntity.newWaiver(tempEntity.newPolicy().getId(), policyViolation.getApplicationId());
-    policyViolation.setPolicyWaiverId(policyWaiver.getId());
     PolicyViolationTelemetryCollector telemetryCollector =
-        new PolicyViolationTelemetryCollector(policyWaiverDAO, telemetryUtils, false);
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
 
-    // when
-    telemetryCollector.addTelemetryForWaivedViolation(policyViolation, component);
-    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    // when - pass in same component version the violation is for
+    telemetryCollector.addTelemetryForFixedViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponents()
+    );
 
     // then
-    assertThat(telemetryData).isNotNull();
-    assertThat(telemetryData.size()).isEqualTo(1);
-    assertThat(telemetryData.get(0).getPurpose()).isEqualTo(TIME_TO_WAIVE_POLICY_VIOLATION);
-    Map<String, Object> attributes = telemetryData.get(0).getAttributes();
-    assertThat(attributes.get(DIRECT_DEPENDENCY)).isNull();
-    assertThat(attributes.get(INNERSOURCE_DEPENDENCY)).isEqualTo(false);
-    assertThat(attributes.get(POLICY_NAME)).isEqualTo(policyName);
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData, TIME_TO_REMEDIATE_POLICY_VIOLATION);
+  }
+
+  @Test
+  public void testAddTelemetryForFixedViolation_FixedWithoutVersionChange_licenseData() {
+    // given a policy violation on lodash v5
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createMinimalViolationForComponent(lodashv5)
+            .openedHoursAgo(480)
+            .withScmEnabled(false)
+            .withThreatCategory(PolicyThreatCategory.LICENSE)
+            .withThreatLevel(10)
+            .withConditionType(LicenseConditionType.ID)
+            .asDirectDependency(false)
+            .withPolicyViolationId("fixedWithoutVersionChange_license")
+            .markFixedByOtherMeans();
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // when - pass in same component version the violation is for
+    telemetryCollector.addTelemetryForFixedViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponents()
+    );
+
+    // then
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData, TIME_TO_REMEDIATE_POLICY_VIOLATION);
   }
 
   @Test
   public void testAddTelemetryForLegacyViolation() {
-    // setup : create a legacy policy violation
-    final int threatLevel = 7;
-    final PolicyThreatCategory policyThreatCategory = PolicyThreatCategory.SECURITY;
-    final String policyName = "commonsLang3Policy";
-    final String policyViolationId = "commonsId";
-    final String ecosystem = "maven";
-    final String cveNumber = "cve-456";
-    final double cvssScore = 7.1;
-    final String componentIdentifier = "commons-lang3:3.8.1";
-    final boolean isScmEnabled = false;
-    final boolean isDirectDependency = true;
-    final boolean isInnerSource = false;
-    final Date evalTime = new Date();
-    final long expectedTTR = msForHours(45);
-    final Date openTime = new Date(evalTime.getTime() - expectedTTR);
+    // given a policy violation on lodash v3
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultViolationForComponent(lodashv3)
+            .openedHoursAgo(480)
+            .asDirectDependency(false)
+            .withPolicyViolationId("legacyViolation")
+            .markFixedAsLegacy();
 
-    Component component = new Component();
-    component.setComponentIdentifier(commonsLang3);
-    component.setInnerSourceData(null);
-    component.setDirectDependency(isDirectDependency);
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
 
-    PolicyViolation policyViolation =
-        createPolicyViolation(threatLevel, policyThreatCategory, commonsLang3, policyName, policyViolationId,
-            cveNumber, cvssScore, 1);
-    policyViolation.setLegacyViolationTime(new Date());
-    policyViolation.setOpenTime(openTime);
-    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(policyWaiverDAO,
-        telemetryUtils, isScmEnabled);
-    telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
-
-    // when
-    telemetryCollector.addTelemetryForLegacyViolation(policyViolation, component);
-    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    // when - pass in same component version the violation is for
+    telemetryCollector.addTelemetryForLegacyViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponent()
+    );
 
     // then
-    assertThat(telemetryData).isNotNull();
-    assertThat(telemetryData.size()).isEqualTo(1);
-    assertThat(telemetryData.get(0).getPurpose()).isEqualTo(TIME_TO_LEGACY_VIOLATION);
-    Map<String, Object> attributes = telemetryData.get(0).getAttributes();
-    assertTelemetryAttributes(TIME_TO_LEGACY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
-        expectedTTR, openTime.getTime(), null, null, null, 1, isDirectDependency, isInnerSource, null,
-        telemetryData.get(0), policyViolation.getPolicyWaiverId(), ecosystem, policyName, policyViolationId,
-        cveNumber, cvssScore, componentIdentifier);
-    assertThat(attributes.get(LEGACY_VIOLATION_TIME)).isEqualTo(evalTime.getTime());
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData, TIME_TO_LEGACY_VIOLATION);
   }
 
   @Test
-  public void testAddTelemetryForConditionTypeViolation() {
-    // setup : create a condition type policy violation
-    final int threatLevel = 7;
-    final PolicyThreatCategory policyThreatCategory = PolicyThreatCategory.SECURITY;
-    final boolean isScmEnabled = false;
-    final Date evalTime = new Date();
-    final long expectedTTR = msForHours(45);
-    final Date openTime = new Date(evalTime.getTime() - expectedTTR);
-    final String cveNumber = "cve-123";
-    final double cvssScore = 9.8;
-    PolicyViolation policyViolation =
-        createPolicyViolation(threatLevel, policyThreatCategory, commonsLang3, cveNumber, cvssScore, 0);
-    policyViolation.setOpenTime(openTime);
-    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(policyWaiverDAO,
-        telemetryUtils, isScmEnabled);
-    telemetryCollector.setTimeOfPolicyEvaluation(evalTime);
+  public void testAddTelemetryForUnwaivedViolation() {
+    // given a policy violation on lodash v3
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultViolationForComponent(urllib3)
+            .openedHoursAgo(500)
+            .asDirectDependency(true)
+            .withPolicyViolationId("unwaivedViolation")
+            .markUnwaived("oldWaiverIdForUrllib3");
 
-    final TelemetryPurpose telemetryPurpose = TelemetryPurpose.CONDITION_TYPE_VIOLATION;
-    final String validConditionType = HygieneRatingConditionType.ID;
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
 
-    // when
-    telemetryCollector.addTelemetryForConditionTypeViolation(
-        policyViolation,
-        validConditionType,
-        Collections.emptyList()
+    // when - pass in same component version the violation is for
+    telemetryCollector.addTelemetryForUnwaivedViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponent(),
+        testablePolicyViolation.getWaiverId()
     );
-    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
 
     // then
-    assertThat(telemetryData).isNotNull();
-    assertThat(telemetryData.size()).isEqualTo(1);
-    assertThat(telemetryData.get(0).getPurpose()).isEqualTo(telemetryPurpose);
-    Map<String, Object> attributes = telemetryData.get(0).getAttributes();
-    assertThat(attributes.get(APPLICATION_ID)).isNotEqualTo(policyEvaluation.getApplicationId());
-    assertThat(attributes.get(REAL_APPLICATION_ID)).isEqualTo(policyViolation.getApplicationId());
-    assertThat(attributes.get(STAGE)).isEqualTo(policyEvaluation.getStageTypeId());
-    assertThat(attributes.get(THREAT_LEVEL)).isEqualTo(threatLevel);
-    assertThat(attributes.get(THREAT_CATEGORY)).isEqualTo(policyThreatCategory.getName());
-    assertThat(attributes.get(IS_SCM_ENABLED)).isEqualTo(isScmEnabled);
-    assertThat(attributes.get(COUNT)).isEqualTo(1);
-    assertThat(attributes.get(OPEN_TIME)).isEqualTo(openTime.getTime());
-    assertThat(attributes.get(TIME)).isEqualTo(expectedTTR);
-    assertThat(attributes.get(FIX_TIME)).isNull();
-    assertThat(attributes.get(CVE_NUMBER)).isEqualTo(cveNumber);
-    assertThat(attributes.get(CVSS_SCORE)).isEqualTo(cvssScore);
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData, TIME_TO_WAIVE_POLICY_VIOLATION);
+  }
 
-    // Important check
-    assertThat(attributes.get(CONDITION_TYPE)).isEqualTo(validConditionType);
+  @Test
+  public void testAddTelemetryForWaivedViolation() {
+    // given a policy violation and a waiver for it
+    PolicyWaiver policyWaiver =
+        tempEntity.newWaiver(tempEntity.newPolicy().getId(), policyEvaluation.getApplicationId());
+
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultViolationForComponent(commonsLang3)
+            .openedHoursAgo(5)
+            .asDirectDependency(true)
+            .withPolicyViolationId("waivedViolation")
+            .markWaived(policyWaiver);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // when - pass in same component version the violation is for
+    telemetryCollector.addTelemetryForWaivedViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponent()
+    );
+
+    // then
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData, TIME_TO_WAIVE_POLICY_VIOLATION);
+  }
+
+  private PolicyViolationTelemetryCollector createTelemetryCollector(boolean isScmEnabled) {
+    PolicyViolationTelemetryCollector telemetryCollector =
+        new PolicyViolationTelemetryCollector(policyWaiverDAO, telemetryUtils, isScmEnabled);
+    telemetryCollector.setTimeOfPolicyEvaluation(policyEvaluation.getTime());
+    return telemetryCollector;
+  }
+
+  private List<Component> createWrappedComponent(
+      ComponentIdentifier componentIdentifier,
+      boolean isDirectDependency,
+      boolean isInnersource)
+  {
+    Component component = new Component(componentIdentifier);
+    component.setDirectDependency(isDirectDependency);
+    component.setInnerSourceData(isInnersource ? Collections.singleton(new InnerSourceData()) : null);
+    return List.of(component);
   }
 
   /**
-   * A useful constraint fact must have at least 1 condition facts because that's where
-   * the test data is. Several are created because in real word scenarios there may be multiple constraint facts
-   * with one condition fact nested with needed data.
-   * The number of constraint and condition facts is fixed.
-   * Only one condition fact with the cv metadata is instantiated in the whole list of
-   * constraint facts, it is possible to choose where.
-   * Hardcoded values are not important for these tests.
-   * @param cveNumber CVE id to inject in the condition fact
-   * @param cvssScore Score to inject in the condition fact
-   * @param cvIteration Iteration you want to insert the cv metadata
-   * @return A list of constraint fact with the same amount of condition fact that contain the cv metadata
+   * Helper class to create the policy violation and component data needed for the tests and the validations against
+   * that data.
    */
-  private List<ConstraintFact> createConstraintFactsWithInjectedCondition(
-      String cveNumber,
-      double cvssScore,
-      int cvIteration)
+  private static class TestablePolicyViolation
   {
-    List<ConstraintFact> constraintFacts = new ArrayList<>();
-    for (int i = 0; i < 3; i++) {
-      ConstraintFact constraintFact = new ConstraintFact("constraintId" + i, "constraintName" + i, "operatorName" + i);
-      constraintFacts.add(constraintFact);
-      for (int j = 0; j < 3; j++) {
-        ConditionFact conditionFact;
+    private final List<Component> additionalVersions = new ArrayList<>();
 
-        if (cvIteration == i && cvIteration == j) {
-          conditionFact = createConditionFactWithCVMetadata(j, cveNumber, cvssScore);
-        }
-        else {
-          conditionFact = createConditionFact(j);
-        }
+    private final List<Component> components = new ArrayList<>();
 
-        constraintFact.addConditionFact(conditionFact);
+    private final PolicyViolation policyViolation;
+
+    private Component component;
+
+    private String conditionType;
+
+    private int count = 1;
+
+    private String cveIdentifier;
+
+    private Double cvssScore;
+
+    private String fixReason;
+
+    private Long fixTime;
+
+    private boolean isScmEnabled;
+
+    private String waiverId;
+
+    private Long openTime;
+
+    private String waiverExpiration;
+
+    TestablePolicyViolation(ComponentIdentifier componentIdentifier, String policyName) {
+      this.component = new Component(componentIdentifier);
+      this.components.add(component);
+      this.policyViolation = new PolicyViolation();
+      policyViolation.setComponentIdentifier(componentIdentifier);
+      policyViolation.setPolicyName(policyName);
+      policyViolation.setPolicyId(createPolicyId(policyName));
+      policyViolation.setApplicationId(policyEvaluation.getApplicationId());
+      policyViolation.setStageTypeId(policyEvaluation.getStageTypeId());
+      policyViolation.setOpenTime(policyEvaluation.getTime());
+    }
+
+    static TestablePolicyViolation createDefaultViolationForComponent(ComponentIdentifier componentIdentifier) {
+      return createMinimalViolationForComponent(componentIdentifier)
+          .withPolicyViolationId("conditionTypeViolation")
+          .withThreatCategory(PolicyThreatCategory.SECURITY)
+          .withThreatLevel(7)
+          .withCveAndCvssScore("CVE-123", 7.5, 1);
+    }
+
+    static TestablePolicyViolation createMinimalViolationForComponent(ComponentIdentifier componentIdentifier) {
+      return new TestablePolicyViolation(componentIdentifier, TEST_POLICY);
+    }
+
+    private long calculateExpectedFixTime() {
+      return calculateTimeDifference(getOpenTime(), policyViolation.getFixTime());
+    }
+
+    private long calculateExpectedLegacyTime() {
+      return calculateTimeDifference(getOpenTime(), policyViolation.getLegacyViolationTime());
+    }
+
+    private long calculateExpectedUnwaiveTime() {
+      return calculateTimeDifference(getOpenTime(), policyViolation.getWaiveTime());
+    }
+
+    private long calculateTimeDifference(long startTime, Date endTime) {
+      if (null == endTime) {
+        endTime = policyEvaluation.getTime();
+      }
+      return endTime.getTime() - startTime;
+    }
+
+    List<Component> getAdditionalVersions() {
+      return additionalVersions;
+    }
+
+    Component getComponent() {
+      return component;
+    }
+
+    List<Component> getComponents() {
+      return components;
+    }
+
+    String getConditionType() {
+      return conditionType;
+    }
+
+    String getWaiverId() {
+      return waiverId;
+    }
+
+    long getOpenTime() {
+      return null != openTime ? openTime : policyEvaluation.getTime().getTime();
+    }
+
+    PolicyViolation getPolicyViolation() {
+      return PolicyViolationTestUtils.copyPolicyViolation(policyViolation);
+    }
+
+    boolean isScmEnabled() {
+      return isScmEnabled;
+    }
+
+    private long msForHours(int hours) {
+      return 1000L * 60 * 60 * hours;
+    }
+
+    TestablePolicyViolation asDirectDependency(boolean isDirectDependency) {
+      component.setDirectDependency(isDirectDependency);
+      return this;
+    }
+
+    TestablePolicyViolation asInnerSourceDependency(boolean isInnerSource) {
+      component.setInnerSourceData(isInnerSource ? Collections.singleton(new InnerSourceData()) : null);
+      return this;
+    }
+
+    TestablePolicyViolation markFixedAsLegacy() {
+      this.fixTime = policyEvaluation.getTime().getTime();
+      return this;
+    }
+
+    TestablePolicyViolation markFixedByDowngrade() {
+      this.fixTime = policyEvaluation.getTime().getTime();
+      this.fixReason = COMPONENT_DOWNGRADE;
+      return this;
+    }
+
+    TestablePolicyViolation markFixedByOtherMeans() {
+      this.fixTime = policyEvaluation.getTime().getTime();
+      return this;
+    }
+
+    TestablePolicyViolation markFixedByRemoval() {
+      this.fixTime = policyEvaluation.getTime().getTime();
+      component = null;
+      this.components.clear();
+      return this;
+    }
+
+    TestablePolicyViolation markFixedByUpgrade() {
+      this.fixTime = policyEvaluation.getTime().getTime();
+      this.fixReason = COMPONENT_UPGRADE;
+      return this;
+    }
+
+    TestablePolicyViolation markUnwaived(String oldWaiverId) {
+      this.waiverId = oldWaiverId;
+      policyViolation.setWaiveTime(policyEvaluation.getTime());
+      withCount(-1);
+      return this;
+    }
+
+    TestablePolicyViolation markWaived(PolicyWaiver policyWaiver) {
+      policyViolation.setPolicyWaiverId(policyWaiver.getId());
+      policyViolation.setWaiveTime(policyEvaluation.getTime());
+      waiverId = policyWaiver.getId();
+      waiverExpiration = "never";
+      return this;
+    }
+
+    TestablePolicyViolation openedHoursAgo(int hours) {
+      this.openTime = policyEvaluation.getTime().getTime() - msForHours(hours);
+      policyViolation.setOpenTime(new Date(openTime));
+      return this;
+    }
+
+    TestablePolicyViolation withAdditionalComponentVersion(
+        ComponentIdentifier componentIdentifier,
+        boolean isDirect,
+        boolean isInnerSource)
+    {
+      Component anotherVersion = new Component(componentIdentifier);
+      anotherVersion.setDirectDependency(isDirect);
+      anotherVersion.setInnerSourceData(isInnerSource ? Collections.singleton(new InnerSourceData()) : null);
+      additionalVersions.add(anotherVersion);
+
+      return this;
+    }
+
+    TestablePolicyViolation withConditionType(String conditionType) {
+      this.conditionType = conditionType;
+      return this;
+    }
+
+    TestablePolicyViolation withCount(int count) {
+      this.count = count;
+      return this;
+    }
+
+    TestablePolicyViolation withCveAndCvssScore(String cveIdentifier, double cvssScore, int index) {
+      this.cveIdentifier = cveIdentifier;
+      this.cvssScore = cvssScore;
+
+      policyViolation.setConstraintFacts(
+          ConditionGenerator.createConstraintFactsWithInjectedCondition(cveIdentifier, cvssScore, index));
+      return this;
+    }
+
+    TestablePolicyViolation withPolicyViolationId(String policyViolationId) {
+      policyViolation.setId(policyViolationId);
+      return this;
+    }
+
+    TestablePolicyViolation withScmEnabled(boolean scmEnabled) {
+      this.isScmEnabled = scmEnabled;
+      return this;
+    }
+
+    TestablePolicyViolation withThreatLevel(int threatLevel) {
+      policyViolation.setThreatLevel(threatLevel);
+      return this;
+    }
+
+    TestablePolicyViolation withThreatCategory(PolicyThreatCategory threatCategory) {
+      policyViolation.setThreatCategory(threatCategory);
+      return this;
+    }
+
+    private String createPolicyId(String policyName) {
+      return "ID_" + policyName;
+    }
+
+    void validateTelemetryDataForPurposes(List<TelemetryData> telemetryDataList, TelemetryPurpose... purposeCodes) {
+      assertThat(telemetryDataList).hasSize(purposeCodes.length);
+      for (int i = 0; i < telemetryDataList.size(); i++) {
+        TelemetryData telemetryData = telemetryDataList.get(i);
+        TelemetryPurpose purpose = purposeCodes[i];
+        assertThat(telemetryData.getPurpose()).isEqualTo(purpose);
+
+        validateCommonAttributes(telemetryData);
+        validateComponentInfo(telemetryData.getAttributes());
+        validateDependencyInfo(telemetryData.getAttributes());
+        validatePurposeSpecificAttributes(telemetryData.getAttributes(), purpose);
       }
     }
-    return constraintFacts;
-  }
 
-  private ConditionFact createConditionFactWithCVMetadata(int j, String cveNumber, double cvssScore) {
-    TriggerReference triggerReference =
-        new TriggerReference(TriggerReference.Type.SECURITY_VULNERABILITY_REFID, cveNumber);
-    String triggerJson =
-        String.format("{\"conditionIndex\":1,\"trigger\":{\"refId\":\"CVE-2013-7285\",\"severity\":%f}}", cvssScore);
-    ConditionFact conditionFact = new ConditionFact(LicenseConditionType.ID, j, "summary", "reason", triggerReference);
-    conditionFact.setTriggerJson(triggerJson);
-    return conditionFact;
-  }
+    void validateCommonAttributes(TelemetryData telemetryData) {
+      Map<String, Object> attributes = telemetryData.getAttributes();
 
-  private ConditionFact createConditionFact(int j) {
-    return new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID, j, "summary", "reason");
-  }
+      // the application ID is obfuscated
+      assertThat(attributes).doesNotContainEntry(APPLICATION_ID, policyEvaluation.getApplicationId());
 
-  private List<ConstraintFact> createConstraintFactsWithInjectedCondition() {
-    List<ConstraintFact> constraintFacts = new ArrayList<>();
-    for (int i = 0; i < 10; i++) {
-      ConstraintFact constraintFact = new ConstraintFact("constraintId" + i, "constraintName" + i, "operatorName" + i);
-      constraintFacts.add(constraintFact);
-      for (int j = 0; j < 10; j++) {
-        String conditionType = (i == 5 && j == 5)
-            ? LicenseConditionType.ID
-            : SecurityVulnerabilitySeverityConditionType.ID;
-        ConditionFact conditionFact = new ConditionFact(conditionType, j, "summary", "reason");
-        constraintFact.addConditionFact(conditionFact);
+      assertThat(attributes).containsEntry(COUNT, count);
+      validateMatchesOrNotExists(attributes, CVE_NUMBER, cveIdentifier);
+      validateMatchesOrNotExists(attributes, CVSS_SCORE, cvssScore);
+      assertThat(attributes).containsEntry(IS_SCM_ENABLED, isScmEnabled);
+      assertThat(attributes).containsEntry(OPEN_TIME, getOpenTime());
+      assertThat(attributes).containsEntry(POLICY_VIOLATION_ID, policyViolation.getId());
+      assertThat(attributes).containsEntry(REAL_APPLICATION_ID, policyEvaluation.getApplicationId());
+      assertThat(attributes).containsEntry(STAGE, policyEvaluation.getStageTypeId());
+      assertThat(attributes).containsEntry(THREAT_LEVEL, policyViolation.getThreatLevel());
+      assertThat(attributes).containsEntry(THREAT_CATEGORY, policyViolation.getThreatCategory().getName());
+    }
+
+    void validateComponentInfo(Map<String, Object> attributes) {
+      assertThat(attributes).containsEntry(ECOSYSTEM, policyViolation.getComponentIdentifier().getFormat());
+      assertThat(attributes).containsEntry(COMPONENT_IDENTIFIER, policyViolation.getComponentIdentifier().toString());
+
+      PackageUrlIdentifier packageUrlIdentifier =
+          PackageUrlIdentifier.fromComponentIdentifier(policyViolation.getComponentIdentifier());
+
+      assertThat(attributes).containsEntry(COMPONENT_NAMESPACE, packageUrlIdentifier.getNamespace());
+      assertThat(attributes).containsEntry(COMPONENT_NAME, packageUrlIdentifier.getName());
+      assertThat(attributes).containsEntry(COMPONENT_VERSION, packageUrlIdentifier.getVersion());
+    }
+
+    void validateDependencyInfo(Map<String, Object> attributes) {
+      if (null != component) {
+        validateMatchesOrNotExists(attributes, DIRECT_DEPENDENCY, component.getDirectDependency());
+        assertThat(attributes).containsEntry(INNERSOURCE_DEPENDENCY, component.getInnerSourceData() != null);
       }
     }
-    return constraintFacts;
-  }
 
-  private PolicyViolation createPolicyViolation(
-      int threatLevel,
-      PolicyThreatCategory threatCategory,
-      ComponentIdentifier componentIdentifier,
-      String policyName)
-  {
-    return new PolicyViolation(
-        policyEvaluation,
-        policyName,
-        "defaultPolicyName",
-        threatLevel,
-        threatCategory,
-        "hash" + 1000 * Math.random(),
-        componentIdentifier,
-        createConstraintFactsWithInjectedCondition(),
-        "/etc/policyEval123.zip"
-    );
-  }
-
-  private PolicyViolation createPolicyViolation(
-      int threatLevel,
-      PolicyThreatCategory threatCategory,
-      ComponentIdentifier componentIdentifier,
-      String policyName,
-      String policyViolationId,
-      String cveNumber,
-      double cvssScore,
-      int cvIteration)
-  {
-    final PolicyViolation policyViolation = new PolicyViolation(
-        policyEvaluation,
-        "somePolicyId",
-        policyName,
-        threatLevel,
-        threatCategory,
-        "hash" + 1000 * Math.random(),
-        componentIdentifier,
-        createConstraintFactsWithInjectedCondition(cveNumber, cvssScore, cvIteration),
-        "/etc/policyEval123.zip"
-    );
-    policyViolation.setId(policyViolationId);
-    return policyViolation;
-  }
-
-  private PolicyViolation createPolicyViolation(
-      int threatLevel,
-      PolicyThreatCategory threatCategory,
-      ComponentIdentifier componentIdentifier,
-      String cveNumber,
-      double cvssScore,
-      int cvIteration)
-  {
-    final PolicyViolation policyViolation = new PolicyViolation(
-        policyEvaluation,
-        "somePolicyId",
-        null,
-        threatLevel,
-        threatCategory,
-        "hash" + 1000 * Math.random(),
-        componentIdentifier,
-        createConstraintFactsWithInjectedCondition(cveNumber, cvssScore, cvIteration),
-        "/etc/policyEval123.zip"
-    );
-    return policyViolation;
-  }
-
-  private long msForHours(int hours) {
-    return 1000L * 60 * 60 * hours;
-  }
-
-  private void assertTelemetryAttributes(
-      TelemetryPurpose telemetryPurpose,
-      int threatLevel,
-      PolicyThreatCategory policyThreatCategory,
-      boolean isScmEnabled,
-      long expectedTTR,
-      long openTime,
-      Long waiveTime,
-      Long unwaiveTime,
-      Long fixTime,
-      Integer count,
-      Boolean isDirectDependency,
-      Boolean isInnersource,
-      String fixByVersionChange,
-      TelemetryData telemetryData,
-      final String policyWaiverId,
-      final String ecosystem,
-      final String policyName,
-      final String policyViolationId,
-      final String cveNumber,
-      final Double cvssScore,
-      final String componentIdentifier)
-  {
-    assertThat(telemetryData.getPurpose()).isEqualTo(telemetryPurpose);
-    Map<String, Object> attributes = telemetryData.getAttributes();
-    assertThat(attributes.get(APPLICATION_ID)).isNotEqualTo(policyEvaluation.getApplicationId());
-    assertThat(attributes.get(STAGE)).isEqualTo(policyEvaluation.getStageTypeId());
-    assertThat(attributes.get(THREAT_LEVEL)).isEqualTo(threatLevel);
-    assertThat(attributes.get(THREAT_CATEGORY)).isEqualTo(policyThreatCategory.getName());
-    assertThat(attributes.get(IS_SCM_ENABLED)).isEqualTo(isScmEnabled);
-    assertThat(attributes.get(OPEN_TIME)).isEqualTo(openTime);
-    assertThat(attributes.get(TIME)).isEqualTo(expectedTTR);
-    assertThat(attributes.get(POLICY_WAIVER_ID)).isEqualTo(policyWaiverId);
-    assertThat(attributes.get(CVE_NUMBER)).isEqualTo(cveNumber);
-    assertThat(attributes.get(CVSS_SCORE)).isEqualTo(cvssScore);
-
-    assertNullableAttribute(attributes, WAIVE_TIME, waiveTime);
-    assertNullableAttribute(attributes, UNWAIVE_TIME, unwaiveTime);
-    assertNullableAttribute(attributes, FIX_TIME, fixTime);
-    assertNullableAttribute(attributes, COUNT, count);
-    assertNullableAttribute(attributes, DIRECT_DEPENDENCY, isDirectDependency);
-    assertNullableAttribute(attributes, INNERSOURCE_DEPENDENCY, isInnersource);
-
-    assertNonNullableAttribute(attributes, FIX_BY_VERSION_CHANGE, fixByVersionChange);
-    assertNonNullableAttribute(attributes,ECOSYSTEM , ecosystem);
-    assertNonNullableAttribute(attributes, CVE_NUMBER, cveNumber);
-    assertNonNullableAttribute(attributes, CVSS_SCORE, cvssScore);
-    assertNonNullableAttribute(attributes, COMPONENT_IDENTIFIER, componentIdentifier);
-
-    assertThat(attributes.containsKey(POLICY_NAME)).isTrue();
-    assertThat(attributes.get(POLICY_NAME)).isEqualTo(policyName);
-    assertThat(attributes.get(POLICY_VIOLATION_ID)).isEqualTo(policyViolationId);
-  }
-
-  private void assertNullableAttribute(Map<String, Object> attributes, String key, Object expectedValue) {
-    if (expectedValue == null) {
-      assertThat(attributes.get(key)).isNull();
+    void validateMatchesOrNotExists(Map<String, Object> attributes, String key, Object value) {
+      if (null != value) {
+        assertThat(attributes).containsEntry(key, value);
+      }
+      else {
+        assertThat(attributes).doesNotContainKey(key);
+      }
     }
-    else {
-      assertThat(attributes.get(key)).isEqualTo(expectedValue);
+
+    void validatePurposeSpecificAttributes(Map<String, Object> attributes, TelemetryPurpose purpose) {
+      switch (purpose) {
+        case CONDITION_TYPE_VIOLATION:
+          validateMatchesOrNotExists(attributes, CONDITION_TYPE, conditionType);
+          validateTimeAttribute(attributes, 0L);
+          break;
+
+        case TIME_TO_CHANGE_VERSION_POLICY_VIOLATION:
+          validateMatchesOrNotExists(attributes, FIX_TIME, fixTime);
+          validateMatchesOrNotExists(attributes, FIX_BY_VERSION_CHANGE, fixReason);
+          validateTimeAttribute(attributes, calculateExpectedFixTime());
+          break;
+
+        case TIME_TO_LEGACY_VIOLATION:
+          validateMatchesOrNotExists(attributes, LEGACY_VIOLATION_TIME, fixTime);
+          validateTimeAttribute(attributes, calculateExpectedLegacyTime());
+          break;
+
+        case TIME_TO_REMEDIATE_POLICY_VIOLATION:
+          validateMatchesOrNotExists(attributes, FIX_TIME, fixTime);
+          validateTimeAttribute(attributes, calculateExpectedFixTime());
+          break;
+
+        case TIME_TO_WAIVE_POLICY_VIOLATION:
+          validateMatchesOrNotExists(attributes, UNWAIVE_TIME, policyViolation.getWaiveTime().getTime());
+          validateMatchesOrNotExists(attributes, WAIVE_TIME, policyViolation.getWaiveTime().getTime());
+          validateMatchesOrNotExists(attributes, POLICY_WAIVER_ID, getWaiverId());
+          validateMatchesOrNotExists(attributes, WAIVER_EXPIRATION, waiverExpiration);
+          validateTimeAttribute(attributes, calculateExpectedUnwaiveTime());
+          break;
+
+        default:
+          throw new IllegalArgumentException("Unexpected purpose: " + purpose);
+      }
+    }
+
+    void validateTimeAttribute(Map<String, Object> attributes, long expectedTime) {
+      assertThat(attributes).containsEntry(TIME, expectedTime);
     }
   }
 
-  private void assertNonNullableAttribute(Map<String, Object> attributes, String key, Object expectedValue) {
-    if (expectedValue == null) {
-      assertThat(attributes.containsKey(key)).isFalse();
+  /**
+   * Helper class to generate the constraint facts with the condition facts needed for the tests.
+   */
+  private class ConditionGenerator
+  {
+    /**
+     * A useful constraint fact must have at least 1 condition facts because that's where
+     * the test data is. Several are created because in real word scenarios there may be multiple constraint facts
+     * with one condition fact nested with needed data.
+     * The number of constraint and condition facts is fixed.
+     * Only one condition fact with the cv metadata is instantiated in the whole list of
+     * constraint facts, it is possible to choose where.
+     * Hardcoded values are not important for these tests.
+     *
+     * @param cveNumber   CVE id to inject in the condition fact
+     * @param cvssScore   Score to inject in the condition fact
+     * @param cvIteration Iteration you want to insert the cv metadata
+     * @return A list of constraint fact with the same amount of condition fact that contain the cv metadata
+     */
+    static List<ConstraintFact> createConstraintFactsWithInjectedCondition(
+        String cveNumber,
+        double cvssScore,
+        int cvIteration)
+    {
+      List<ConstraintFact> constraintFacts = new ArrayList<>();
+      for (int i = 0; i < 3; i++) {
+        ConstraintFact constraintFact =
+            new ConstraintFact("constraintId" + i, "constraintName" + i, "operatorName" + i);
+        constraintFacts.add(constraintFact);
+        for (int j = 0; j < 3; j++) {
+          ConditionFact conditionFact;
+
+          if (cvIteration == i && cvIteration == j) {
+            conditionFact = createConditionFactWithCVMetadata(j, cveNumber, cvssScore);
+          }
+          else {
+            conditionFact = createConditionFact(j);
+          }
+
+          constraintFact.addConditionFact(conditionFact);
+        }
+      }
+      return constraintFacts;
     }
-    else {
-      assertThat(attributes.get(key)).isEqualTo(expectedValue);
+
+    private static ConditionFact createConditionFactWithCVMetadata(int j, String cveNumber, double cvssScore) {
+      TriggerReference triggerReference =
+          new TriggerReference(TriggerReference.Type.SECURITY_VULNERABILITY_REFID, cveNumber);
+      String triggerJson =
+          String.format("{\"conditionIndex\":1,\"trigger\":{\"refId\":\"CVE-2013-7285\",\"severity\":%f}}", cvssScore);
+      ConditionFact conditionFact =
+          new ConditionFact(LicenseConditionType.ID, j, "summary", "reason", triggerReference);
+      conditionFact.setTriggerJson(triggerJson);
+      return conditionFact;
+    }
+
+    private static ConditionFact createConditionFact(int j) {
+      return new ConditionFact(SecurityVulnerabilitySeverityConditionType.ID, j, "summary", "reason");
+    }
+  }
+
+  /**
+   * Helper class used to isolate the policy violation data to ensure that the telemetry collector can't
+   * inadvertently modify the reference data.
+   */
+  private class PolicyViolationTestUtils
+  {
+    static PolicyViolation copyPolicyViolation(PolicyViolation original) {
+      PolicyViolation copy = new PolicyViolation();
+
+      copy.setApplicationId(original.getApplicationId());
+      copy.setAutoPolicyWaiverId(original.getAutoPolicyWaiverId());
+      copy.setComponentIdentifier(original.getComponentIdentifier());
+      copy.setConstraintFacts(null != original.getConstraintFacts() ?
+          new ArrayList<>(original.getConstraintFacts()) : new ArrayList<>());
+      copy.setFilename(original.getFilename());
+      copy.setFixTime(original.getFixTime());
+      copy.setHash(original.getHash());
+      copy.setId(original.getId());
+      copy.setLegacyViolationApplied(original.isLegacyViolationApplied());
+      copy.setLegacyViolationTime(original.getLegacyViolationTime());
+      copy.setOpenTime(original.getOpenTime());
+      copy.setPolicyId(original.getPolicyId());
+      copy.setPolicyName(original.getPolicyName());
+      copy.setPolicyWaiverId(original.getPolicyWaiverId());
+      copy.setReachabilityStatus(original.getReachabilityStatus());
+      copy.setSeenByMonitoringEvaluation(original.isSeenByMonitoringEvaluation());
+      copy.setSeenByPrimaryEvaluation(original.isSeenByPrimaryEvaluation());
+      copy.setStageTypeId(original.getStageTypeId());
+      copy.setThreatCategory(original.getThreatCategory());
+      copy.setThreatLevel(original.getThreatLevel());
+      copy.setWaiveTime(original.getWaiveTime());
+
+      return copy;
     }
   }
 }

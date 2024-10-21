@@ -639,10 +639,13 @@ public class ScanPolicyEvaluator
       final PolicyViolation newPolicyViolation,
       final List<Component> components)
   {
+    List<Component> found = findComponentsByComponentIdentifierElseVersionless(components,
+        newPolicyViolation.getComponentIdentifier());
+
     for (ConstraintFact constraintFact : newPolicyViolation.getConstraintFacts()) {
       for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
         String conditionTypeId = conditionFact.getConditionTypeId();
-        telemetryCollector.addTelemetryForConditionTypeViolation(newPolicyViolation, conditionTypeId, components);
+        telemetryCollector.addTelemetryForConditionTypeViolation(newPolicyViolation, conditionTypeId, found);
       }
     }
   }

@@ -29,6 +29,10 @@ import org.apache.commons.lang3.StringUtils;
 @Singleton
 public final class TelemetryUtils
 {
+  public static final String REAL_APPLICATION_ID = "real_application_id";
+
+  public static final String REAL_OWNER_ID = "real_owner_id";
+
   private final TelemetryDataObfuscator telemetryDataObfuscator;
 
   @Inject
@@ -136,7 +140,7 @@ public final class TelemetryUtils
    * Integrated Enterprise Reporting feature, it has to be enabled.
    */
   public void includeRealOwnerId(Map<String, Object> telemetryAttributes, String attributeValue) {
-    telemetryAttributes.put("real_owner_id", obfuscateIfAdvancedReportingDisabled(attributeValue));
+    telemetryAttributes.put(REAL_OWNER_ID, obfuscateIfAdvancedReportingDisabled(attributeValue));
   }
 
   /**
@@ -144,7 +148,7 @@ public final class TelemetryUtils
    * Integrated Enterprise Reporting feature, it has to be enabled.
    */
   public void includeRealApplicationId(Map<String, Object> telemetryAttributes, String attributeValue) {
-    telemetryAttributes.put("real_application_id", obfuscateIfAdvancedReportingDisabled(attributeValue));
+    telemetryAttributes.put(REAL_APPLICATION_ID, obfuscateIfAdvancedReportingDisabled(attributeValue));
   }
 
   public String obfuscate(String value) {

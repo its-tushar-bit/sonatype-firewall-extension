@@ -83,6 +83,7 @@ import static com.sonatype.insight.brain.api.v2.service.ApiSbomService.SBOM_VALI
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.DIRECT;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.TRANSITIVE;
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.UNSPECIFIED;
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.CYCLONEDX_JSON_IGNORE_FIELDS;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreAttributesFilter;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreNodesFilter;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
@@ -332,7 +333,7 @@ public class ApiSbomServiceTest
         "-result-bom." + outputFormat.name().toLowerCase();
     if (outputFormat == SbomFormat.JSON) {
       assertThatJson(sbomContent)
-          .whenIgnoringPaths("creationInfo.created", "creationInfo.creators[0]", "documentNamespace", "name")
+          .whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS)
           .isEqualTo(expectedContentIn(outputFileName));
     }
     else {

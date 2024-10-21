@@ -162,35 +162,7 @@
     </component>
   </components>
   <vulnerabilities>
-    <vulnerability>
-      <id>CVE-2018-7489</id>
-      <source>
-        <name>NVD</name>
-        <url>https://nvd.nist.gov/vuln/detail/CVE-2018-7489</url>
-      </source>
-      <ratings>
-        <rating>
-          <source>
-            <name>NVD</name>
-            <url>https://nvd.nist.gov/vuln/detail/CVE-2018-7489</url>
-          </source>
-          <score>9.8</score>
-          <severity>critical</severity>
-          <method>CVSSv3</method>
-          <vector>AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H</vector>
-        </rating>
-      </ratings>
-      <description>FasterXML jackson-databind before 2.7.9.3, 2.8.x before 2.8.11.1 and 2.9.x before 2.9.5 allows unauthenticated remote code execution because of an incomplete fix for the CVE-2017-7525 deserialization flaw. This is exploitable by sending maliciously crafted JSON input to the readValue method of the ObjectMapper, bypassing a blacklist that is ineffective if the c3p0 libraries are available in the classpath.</description>
-      <affects>
-        <target>
-          <ref>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</ref>
-        </target>
-      </affects>
-      <properties>
-        <property name="identificationSources">SBOM</property>
-      </properties>
-    </vulnerability>
-    <vulnerability>
+    <vulnerability bom-ref="CVE-2019-12384-4e84364b476b4b698200eb460c12ac57">
       <id>CVE-2019-12384</id>
       <source>
         <name>NVD</name>
@@ -220,77 +192,17 @@
         <property name="identificationSources">Sonatype</property>
       </properties>
     </vulnerability>
-    <vulnerability>
-      <id>CVE-2019-12814</id>
+    <vulnerability bom-ref="CVE-2022-42004-1df6d3112e644e249499cdd277522b46">
+      <id>CVE-2022-42004</id>
       <source>
         <name>NVD</name>
-        <url>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12814</url>
+        <url>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42004</url>
       </source>
       <ratings>
         <rating>
           <source>
             <name>NVD</name>
-            <url>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12814</url>
-          </source>
-          <score>5.9</score>
-          <severity>medium</severity>
-          <method>CVSSv3</method>
-          <vector>CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N</vector>
-        </rating>
-      </ratings>
-      <cwes>
-        <cwe>502</cwe>
-      </cwes>
-      <affects>
-        <target>
-          <ref>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</ref>
-        </target>
-      </affects>
-      <properties>
-        <property name="identificationSources">Sonatype</property>
-      </properties>
-    </vulnerability>
-    <vulnerability>
-      <id>CVE-2020-25649</id>
-      <source>
-        <name>NVD</name>
-        <url>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-25649</url>
-      </source>
-      <ratings>
-        <rating>
-          <source>
-            <name>NVD</name>
-            <url>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-25649</url>
-          </source>
-          <score>7.5</score>
-          <severity>high</severity>
-          <method>CVSSv3</method>
-          <vector>CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N</vector>
-        </rating>
-      </ratings>
-      <cwes>
-        <cwe>611</cwe>
-      </cwes>
-      <affects>
-        <target>
-          <ref>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</ref>
-        </target>
-      </affects>
-      <properties>
-        <property name="identificationSources">Sonatype</property>
-      </properties>
-    </vulnerability>
-    <vulnerability>
-      <id>CVE-2020-36518</id>
-      <source>
-        <name>NVD</name>
-        <url>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-36518</url>
-      </source>
-      <ratings>
-        <rating>
-          <source>
-            <name>NVD</name>
-            <url>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-36518</url>
+            <url>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42004</url>
           </source>
           <score>7.5</score>
           <severity>high</severity>
@@ -299,8 +211,18 @@
         </rating>
       </ratings>
       <cwes>
-        <cwe>787</cwe>
+        <cwe>502</cwe>
       </cwes>
+      <analysis>
+        <state>exploitable</state>
+        <justification>code_not_present</justification>
+        <responses>
+          <response>can_not_fix</response>
+        </responses>
+        <detail></detail>
+        <firstIssued>2024-10-18T12:17:51Z</firstIssued>
+        <lastUpdated>2024-10-18T12:17:51Z</lastUpdated>
+      </analysis>
       <affects>
         <target>
           <ref>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</ref>
@@ -310,7 +232,7 @@
         <property name="identificationSources">Sonatype</property>
       </properties>
     </vulnerability>
-    <vulnerability>
+    <vulnerability bom-ref="CVE-2022-42003-f0148151784a418ba4143fd665393280">
       <id>CVE-2022-42003</id>
       <source>
         <name>NVD</name>
@@ -340,17 +262,47 @@
         <property name="identificationSources">Sonatype</property>
       </properties>
     </vulnerability>
-    <vulnerability>
-      <id>CVE-2022-42004</id>
+    <vulnerability bom-ref="CVE-2020-25649-cad6d33cc4854c41889f9ab79b7eadf2">
+      <id>CVE-2020-25649</id>
       <source>
         <name>NVD</name>
-        <url>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42004</url>
+        <url>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-25649</url>
       </source>
       <ratings>
         <rating>
           <source>
             <name>NVD</name>
-            <url>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42004</url>
+            <url>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-25649</url>
+          </source>
+          <score>7.5</score>
+          <severity>high</severity>
+          <method>CVSSv3</method>
+          <vector>CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N</vector>
+        </rating>
+      </ratings>
+      <cwes>
+        <cwe>611</cwe>
+      </cwes>
+      <affects>
+        <target>
+          <ref>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</ref>
+        </target>
+      </affects>
+      <properties>
+        <property name="identificationSources">Sonatype</property>
+      </properties>
+    </vulnerability>
+    <vulnerability bom-ref="CVE-2020-36518-501f1f1a9d1c4affaca8db799c893bcb">
+      <id>CVE-2020-36518</id>
+      <source>
+        <name>NVD</name>
+        <url>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-36518</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>NVD</name>
+            <url>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-36518</url>
           </source>
           <score>7.5</score>
           <severity>high</severity>
@@ -359,18 +311,66 @@
         </rating>
       </ratings>
       <cwes>
+        <cwe>787</cwe>
+      </cwes>
+      <affects>
+        <target>
+          <ref>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</ref>
+        </target>
+      </affects>
+      <properties>
+        <property name="identificationSources">Sonatype</property>
+      </properties>
+    </vulnerability>
+    <vulnerability bom-ref="CVE-2018-7489-b2c5545505dc4df68d3d2c116c3db0c6">
+      <id>CVE-2018-7489</id>
+      <source>
+        <name>NVD</name>
+        <url>https://nvd.nist.gov/vuln/detail/CVE-2018-7489</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>NVD</name>
+            <url>https://nvd.nist.gov/vuln/detail/CVE-2018-7489</url>
+          </source>
+          <score>9.8</score>
+          <severity>critical</severity>
+          <method>CVSSv3</method>
+          <vector>AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H</vector>
+        </rating>
+      </ratings>
+      <description>FasterXML jackson-databind before 2.7.9.3, 2.8.x before 2.8.11.1 and 2.9.x before 2.9.5 allows unauthenticated remote code execution because of an incomplete fix for the CVE-2017-7525 deserialization flaw. This is exploitable by sending maliciously crafted JSON input to the readValue method of the ObjectMapper, bypassing a blacklist that is ineffective if the c3p0 libraries are available in the classpath.</description>
+      <affects>
+        <target>
+          <ref>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</ref>
+        </target>
+      </affects>
+      <properties>
+        <property name="identificationSources">SBOM</property>
+      </properties>
+    </vulnerability>
+    <vulnerability bom-ref="CVE-2019-12814-08aa258524d34e1b90a008c5f1905aed">
+      <id>CVE-2019-12814</id>
+      <source>
+        <name>NVD</name>
+        <url>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12814</url>
+      </source>
+      <ratings>
+        <rating>
+          <source>
+            <name>NVD</name>
+            <url>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12814</url>
+          </source>
+          <score>5.9</score>
+          <severity>medium</severity>
+          <method>CVSSv3</method>
+          <vector>CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N</vector>
+        </rating>
+      </ratings>
+      <cwes>
         <cwe>502</cwe>
       </cwes>
-      <analysis>
-        <state>exploitable</state>
-        <justification>code_not_present</justification>
-        <responses>
-          <response>can_not_fix</response>
-        </responses>
-        <detail></detail>
-        <firstIssued>2024-08-23T10:55:57Z</firstIssued>
-        <lastUpdated>2024-08-23T10:55:57Z</lastUpdated>
-      </analysis>
       <affects>
         <target>
           <ref>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</ref>

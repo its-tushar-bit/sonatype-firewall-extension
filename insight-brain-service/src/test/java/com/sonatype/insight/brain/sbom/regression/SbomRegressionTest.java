@@ -48,6 +48,7 @@ import org.xmlunit.assertj.CompareAssert;
 import org.xmlunit.assertj.XmlAssert;
 
 import static com.sonatype.insight.brain.api.v2.service.ApiSbomService.SBOM_VALIDATED_HEADER;
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.CYCLONEDX_JSON_IGNORE_FIELDS;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreAttributesFilter;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreNodesFilter;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.spdxIgnoreAttributesFilter;
@@ -115,14 +116,6 @@ public class SbomRegressionTest
   private static final String EXPECTED_SBOM_TEMPLATE = "%s_%s_%s_to_%s_%s.%s";
 
   private static final String EXPECTED_SBOM_VARIANT_TEMPLATE = "%s_%s_%s_%s_to_%s_%s_%s.%s";
-
-  public static final String[] SBOM_JSON_IGNORE_FIELDS = {
-      "metadata.timestamp", "metadata.tools.components[0].version",
-      "metadata.component.bom-ref", "metadata.component.name", "metadata.component.version",
-      "creationInfo.created", "creationInfo.creators[0]", "documentNamespace",
-      "vulnerabilities[*].analysis.lastUpdated", "vulnerabilities[*].analysis.firstIssued",
-      "name", "packages[*].name"
-  };
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -267,7 +260,7 @@ public class SbomRegressionTest
     }
     else {
       assertThatJson(sbomContent)
-          .whenIgnoringPaths(SBOM_JSON_IGNORE_FIELDS)
+          .whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS)
           .isEqualTo(expectedContent);
     }
   }

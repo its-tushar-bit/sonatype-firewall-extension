@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
@@ -36,6 +37,8 @@ import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Severity;
 import org.cyclonedx.model.vulnerability.Vulnerability.Source;
 import org.spdx.library.model.license.ListedLicenses;
 
+import static com.google.common.collect.Lists.newArrayList;
+
 public class SbomExportUtils
 {
   public static final String IDENTIFICATION_SOURCES_PROPERTY = "identificationSources";
@@ -46,13 +49,20 @@ public class SbomExportUtils
       ThirdPartyVulnerabilityExploitabilityExchange sonatypeVexInformation)
   {
     Vulnerability vulnerability = new Vulnerability();
+    vulnerability.setBomRef(String.format("%s-%s", sonatypeVulnerability.getRefId(), uuid()));
     vulnerability.setId(sonatypeVulnerability.getRefId());
     vulnerability.setDescription(sonatypeVulnerability.getDescription());
-    Affect bomNewAffect = new Affect();
-    if (StringUtils.isNotBlank(bomComponent.getBomRef())) {
-      bomNewAffect.setRef(bomComponent.getBomRef());
+    Affect newAffect = new Affect();
+    String bomRef = bomComponent.getBomRef();
+    if (StringUtils.isNotBlank(bomRef)) {
+      newAffect.setRef(bomRef);
     }
-    vulnerability.setAffects(Collections.singletonList(bomNewAffect));
+    else {
+      bomRef = uuid();
+      bomComponent.setBomRef(bomRef);
+      newAffect.setRef(bomRef);
+    }
+    vulnerability.setAffects(newArrayList(newAffect));
     return updateCycloneDxVulnerabilityFromDbData(vulnerability, sonatypeVulnerability, sonatypeVexInformation);
   }
 
@@ -196,5 +206,9 @@ public class SbomExportUtils
       bomAnalysis.setResponses(sonatypeResponses);
     }
     return bomAnalysis;
+  }
+
+  private static String uuid() {
+    return UUID.randomUUID().toString().replace("-", "");
   }
 }

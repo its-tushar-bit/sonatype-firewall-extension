@@ -39,9 +39,14 @@ public class SbomTestHelper
   public static final List<String> SPDX_IGNORE_NODES =
       Arrays.asList("created", "documentNamespace", "creators");
 
-  public static final String CYCLONEDX_IGNORE_METADATA_COMPONENT_PATH = "metadata.component";
-
-  public static final String CYCLONEDX_IGNORE_METADATA_TIMESTAMP_PATH = "metadata.timestamp";
+  public static final String[] CYCLONEDX_JSON_IGNORE_FIELDS = {
+      "metadata.timestamp", "metadata.tools.components[0].version",
+      "metadata.component.bom-ref", "metadata.component.name", "metadata.component.version",
+      "creationInfo.created", "creationInfo.creators[0]", "documentNamespace",
+      "vulnerabilities[*].analysis.lastUpdated", "vulnerabilities[*].analysis.firstIssued",
+      "vulnerabilities[*].bom-ref",
+      "name", "packages[*].name"
+  };
 
   public static Predicate<Node> spdxDxIgnoreNodesFilter() {
     return node -> {
@@ -101,6 +106,9 @@ public class SbomTestHelper
         if (p != null && "metadata".equals(p.getNodeName())) {
           return false;
         }
+      }
+      if ("bom-ref".equals(attr.getName()) && "vulnerability".equals(attr.getOwnerElement().getNodeName())) {
+        return false;
       }
       if ("ref".equals(attr.getName()) && "dependency".equals(attr.getOwnerElement().getNodeName())) {
         NodeList elementsWithTagNameComponent = attr.getOwnerDocument().getElementsByTagName("component");

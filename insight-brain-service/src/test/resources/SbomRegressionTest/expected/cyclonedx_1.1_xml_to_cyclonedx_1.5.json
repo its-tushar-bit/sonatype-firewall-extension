@@ -224,227 +224,248 @@
   ],
   "vulnerabilities": [
     {
-      "id": "CVE-2018-7489",
-      "source": {
-        "name": "NVD",
-        "url": "https://nvd.nist.gov/vuln/detail/CVE-2018-7489"
+      "bom-ref" : "CVE-2019-12384-966a449a8a1d4258838ae07a2e97b5c1",
+      "id" : "CVE-2019-12384",
+      "source" : {
+        "name" : "NVD",
+        "url" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12384"
       },
-      "ratings": [
+      "ratings" : [
         {
-          "source": {
-            "name": "NVD",
-            "url": "https://nvd.nist.gov/vuln/detail/CVE-2018-7489"
+          "source" : {
+            "name" : "NVD",
+            "url" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12384"
           },
-          "score": 9.8,
-          "severity": "critical",
-          "method": "CVSSv3",
-          "vector": "AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+          "score" : 5.9,
+          "severity" : "medium",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
         }
       ],
-      "description": "FasterXML jackson-databind before 2.7.9.3, 2.8.x before 2.8.11.1 and 2.9.x before 2.9.5 allows unauthenticated remote code execution because of an incomplete fix for the CVE-2017-7525 deserialization flaw. This is exploitable by sending maliciously crafted JSON input to the readValue method of the ObjectMapper, bypassing a blacklist that is ineffective if the c3p0 libraries are available in the classpath.",
-      "affects": [
+      "cwes" : [
+        502
+      ],
+      "affects" : [
         {
-          "ref": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
+          "ref" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
         }
       ],
-      "properties": [
+      "properties" : [
         {
-          "name": "identificationSources",
-          "value": "SBOM"
+          "name" : "identificationSources",
+          "value" : "Sonatype"
         }
       ]
     },
     {
-      "id": "CVE-2019-12384",
-      "source": {
-        "name": "NVD",
-        "url": "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12384"
+      "bom-ref" : "CVE-2022-42004-5962ac7ff0c54604acefb7caf355e10b",
+      "id" : "CVE-2022-42004",
+      "source" : {
+        "name" : "NVD",
+        "url" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42004"
       },
-      "ratings": [
+      "ratings" : [
         {
-          "source": {
-            "name": "NVD",
-            "url": "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12384"
+          "source" : {
+            "name" : "NVD",
+            "url" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42004"
           },
-          "score": 5.9,
-          "severity": "medium",
-          "method": "CVSSv3",
-          "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
+          "score" : 7.5,
+          "severity" : "high",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
         }
       ],
-      "cwes": [502],
-      "affects": [
+      "cwes" : [
+        502
+      ],
+      "analysis" : {
+        "state" : "exploitable",
+        "justification" : "code_not_present",
+        "response" : [
+          "can_not_fix"
+        ],
+        "detail" : "",
+        "firstIssued" : "2024-10-18T12:27:49Z",
+        "lastUpdated" : "2024-10-18T12:27:49Z"
+      },
+      "affects" : [
         {
-          "ref": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
+          "ref" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
         }
       ],
-      "properties": [
+      "properties" : [
         {
-          "name": "identificationSources",
-          "value": "Sonatype"
+          "name" : "identificationSources",
+          "value" : "Sonatype"
         }
       ]
     },
     {
-      "id": "CVE-2019-12814",
-      "source": {
-        "name": "NVD",
-        "url": "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12814"
+      "bom-ref" : "CVE-2022-42003-f47d9ac432ea4880b4201546f9980c22",
+      "id" : "CVE-2022-42003",
+      "source" : {
+        "name" : "NVD",
+        "url" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42003"
       },
-      "ratings": [
+      "ratings" : [
         {
-          "source": {
-            "name": "NVD",
-            "url": "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12814"
+          "source" : {
+            "name" : "NVD",
+            "url" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42003"
           },
-          "score": 5.9,
-          "severity": "medium",
-          "method": "CVSSv3",
-          "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
+          "score" : 7.5,
+          "severity" : "high",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
         }
       ],
-      "cwes": [502],
-      "affects": [
+      "cwes" : [
+        502
+      ],
+      "affects" : [
         {
-          "ref": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
+          "ref" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
         }
       ],
-      "properties": [
+      "properties" : [
         {
-          "name": "identificationSources",
-          "value": "Sonatype"
+          "name" : "identificationSources",
+          "value" : "Sonatype"
         }
       ]
     },
     {
-      "id": "CVE-2020-25649",
-      "source": {
-        "name": "NVD",
-        "url": "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-25649"
+      "bom-ref" : "CVE-2020-25649-2ca77fbae6354d43bdc7318df5669bb9",
+      "id" : "CVE-2020-25649",
+      "source" : {
+        "name" : "NVD",
+        "url" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-25649"
       },
-      "ratings": [
+      "ratings" : [
         {
-          "source": {
-            "name": "NVD",
-            "url": "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-25649"
+          "source" : {
+            "name" : "NVD",
+            "url" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-25649"
           },
-          "score": 7.5,
-          "severity": "high",
-          "method": "CVSSv3",
-          "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+          "score" : 7.5,
+          "severity" : "high",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
         }
       ],
-      "cwes": [611],
-      "affects": [
+      "cwes" : [
+        611
+      ],
+      "affects" : [
         {
-          "ref": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
+          "ref" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
         }
       ],
-      "properties": [
+      "properties" : [
         {
-          "name": "identificationSources",
-          "value": "Sonatype"
+          "name" : "identificationSources",
+          "value" : "Sonatype"
         }
       ]
     },
     {
-      "id": "CVE-2020-36518",
-      "source": {
-        "name": "NVD",
-        "url": "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-36518"
+      "bom-ref" : "CVE-2020-36518-d890bd76d7414e169b4e88f1cc11629d",
+      "id" : "CVE-2020-36518",
+      "source" : {
+        "name" : "NVD",
+        "url" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-36518"
       },
-      "ratings": [
+      "ratings" : [
         {
-          "source": {
-            "name": "NVD",
-            "url": "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-36518"
+          "source" : {
+            "name" : "NVD",
+            "url" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-36518"
           },
-          "score": 7.5,
-          "severity": "high",
-          "method": "CVSSv3",
-          "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          "score" : 7.5,
+          "severity" : "high",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
         }
       ],
-      "cwes": [787],
-      "affects": [
+      "cwes" : [
+        787
+      ],
+      "affects" : [
         {
-          "ref": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
+          "ref" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
         }
       ],
-      "properties": [
+      "properties" : [
         {
-          "name": "identificationSources",
-          "value": "Sonatype"
+          "name" : "identificationSources",
+          "value" : "Sonatype"
         }
       ]
     },
     {
-      "id": "CVE-2022-42003",
-      "source": {
-        "name": "NVD",
-        "url": "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42003"
+      "bom-ref" : "CVE-2018-7489-2f136a80559b47828bfb24c9f9861c2b",
+      "id" : "CVE-2018-7489",
+      "source" : {
+        "name" : "NVD",
+        "url" : "https://nvd.nist.gov/vuln/detail/CVE-2018-7489"
       },
-      "ratings": [
+      "ratings" : [
         {
-          "source": {
-            "name": "NVD",
-            "url": "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42003"
+          "source" : {
+            "name" : "NVD",
+            "url" : "https://nvd.nist.gov/vuln/detail/CVE-2018-7489"
           },
-          "score": 7.5,
-          "severity": "high",
-          "method": "CVSSv3",
-          "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          "score" : 9.8,
+          "severity" : "critical",
+          "method" : "CVSSv3",
+          "vector" : "AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
         }
       ],
-      "cwes": [502],
-      "affects": [
+      "description" : "FasterXML jackson-databind before 2.7.9.3, 2.8.x before 2.8.11.1 and 2.9.x before 2.9.5 allows unauthenticated remote code execution because of an incomplete fix for the CVE-2017-7525 deserialization flaw. This is exploitable by sending maliciously crafted JSON input to the readValue method of the ObjectMapper, bypassing a blacklist that is ineffective if the c3p0 libraries are available in the classpath.",
+      "affects" : [
         {
-          "ref": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
+          "ref" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
         }
       ],
-      "properties": [
+      "properties" : [
         {
-          "name": "identificationSources",
-          "value": "Sonatype"
+          "name" : "identificationSources",
+          "value" : "SBOM"
         }
       ]
     },
     {
-      "id": "CVE-2022-42004",
-      "source": {
-        "name": "NVD",
-        "url": "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42004"
+      "bom-ref" : "CVE-2019-12814-0b7e14b182684631899d3b349911a80d",
+      "id" : "CVE-2019-12814",
+      "source" : {
+        "name" : "NVD",
+        "url" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12814"
       },
-      "ratings": [
+      "ratings" : [
         {
-          "source": {
-            "name": "NVD",
-            "url": "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42004"
+          "source" : {
+            "name" : "NVD",
+            "url" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12814"
           },
-          "score": 7.5,
-          "severity": "high",
-          "method": "CVSSv3",
-          "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          "score" : 5.9,
+          "severity" : "medium",
+          "method" : "CVSSv3",
+          "vector" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
         }
       ],
-      "cwes": [502],
-      "analysis": {
-        "state": "exploitable",
-        "justification": "code_not_present",
-        "response": ["can_not_fix"],
-        "detail": "",
-        "firstIssued": "2024-08-23T10:55:57Z",
-        "lastUpdated": "2024-08-23T10:55:57Z"
-      },
-      "affects": [
+      "cwes" : [
+        502
+      ],
+      "affects" : [
         {
-          "ref": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
+          "ref" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
         }
       ],
-      "properties": [
+      "properties" : [
         {
-          "name": "identificationSources",
-          "value": "Sonatype"
+          "name" : "identificationSources",
+          "value" : "Sonatype"
         }
       ]
     }

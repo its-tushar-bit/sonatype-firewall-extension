@@ -12,7 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
@@ -32,6 +34,8 @@ import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
@@ -45,6 +49,7 @@ import org.cyclonedx.model.Property;
 import org.cyclonedx.model.license.Expression;
 import org.cyclonedx.model.metadata.ToolInformation;
 import org.cyclonedx.model.vulnerability.Vulnerability;
+import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
 import org.spdx.library.InvalidSPDXAnalysisException;
 import org.spdx.library.model.license.AnyLicenseInfo;
 import org.spdx.library.model.license.LicenseInfoFactory;
@@ -103,6 +108,7 @@ public abstract class AbstractCycloneDxExporter
       bomVulnerabilitiesList = bom.getVulnerabilities();
     }
 
+    MultiValuedMap<String, Vulnerability> newBomVulnerabilities = new ArrayListValuedHashMap<>();
     if (sonatypeComponents != null) {
       for (ThirdPartyFileCoordinate sonatypeComponent : sonatypeComponents) {
         List<ThirdPartyCoordinateSecurity> sonatypeComponentVulnerabilities = thirdPartyCoordinateSecurityDAO
@@ -116,7 +122,8 @@ public abstract class AbstractCycloneDxExporter
           Component bomComponent = bomComponentFound.get();
 
           // Merge sonatype vulnerabilities into bom
-          mergeSonatypeDataVulnerabilities(bomComponent, sonatypeComponentVulnerabilities, bomVulnerabilitiesList);
+          mergeSonatypeDataVulnerabilities(bomComponent, sonatypeComponentVulnerabilities, bomVulnerabilitiesList,
+              newBomVulnerabilities);
           // If no new licenses were recovered from db, skip merge process (left current licenses unaltered)
           if (sonatypeComponentLicenses == null) {
             continue;
@@ -132,7 +139,7 @@ public abstract class AbstractCycloneDxExporter
             bomComponent.setLicenses(null);
           }
 
-          if ( StringUtils.isNotEmpty(sonatypeComponent.getMatchStateId())) {
+          if (StringUtils.isNotEmpty(sonatypeComponent.getMatchStateId())) {
             Property pSimilar = new Property();
             pSimilar.setName("sonatype:match_state");
             pSimilar.setValue(sonatypeComponent.getMatchStateId());
@@ -149,6 +156,7 @@ public abstract class AbstractCycloneDxExporter
         }
       }
     }
+    bomVulnerabilitiesList.addAll(newBomVulnerabilities.values());
 
     //1.6 requires properties tag to be a non-empty array for xml exports
     if (CollectionUtils.isEmpty(bom.getProperties())) {
@@ -161,36 +169,83 @@ public abstract class AbstractCycloneDxExporter
   private void mergeSonatypeDataVulnerabilities(
       Component bomComponent,
       List<ThirdPartyCoordinateSecurity> sonatypeVulnerabilities,
-      List<Vulnerability> bomVulnerabilities)
+      List<Vulnerability> bomVulnerabilities,
+      MultiValuedMap<String, Vulnerability> newBomVulnerabilities)
   {
-    List<Vulnerability> newBomVulnerabilities = new ArrayList<>();
     for (ThirdPartyCoordinateSecurity sonatypeVulnerability : sonatypeVulnerabilities) {
-
-      Optional<Vulnerability> vulnerabilityFromBom = Optional.empty();
-
-      if (bomVulnerabilities != null) {
-        vulnerabilityFromBom = bomVulnerabilities.stream()
-            .filter((Vulnerability bomVulnerability) -> bomVulnerability.getId()
-                .equals(sonatypeVulnerability.getRefId())).findAny();
-      }
+      Optional<Vulnerability> vulnerabilityFromBom;
+      vulnerabilityFromBom = findMatchingBomVulnerability(bomComponent, bomVulnerabilities, sonatypeVulnerability);
 
       ThirdPartyVulnerabilityExploitabilityExchange sonatypeVexInformation =
           thirdPartyVulnerabilityExploitabilityExchangeDAO.getByCoordinateSecurityIdAndRefId(
               sonatypeVulnerability.getId(), sonatypeVulnerability.getRefId());
       if (vulnerabilityFromBom.isPresent()) {
-        updateCycloneDxVulnerabilityFromDbData(vulnerabilityFromBom.get(), sonatypeVulnerability,
-            sonatypeVexInformation);
+        updateOrSplitExistingVulnerability(bomComponent, sonatypeVulnerability, vulnerabilityFromBom.get(),
+            newBomVulnerabilities, sonatypeVexInformation);
       }
       else {
-        newBomVulnerabilities.add(createCycloneDxVulnerabilityFromDbData(bomComponent, sonatypeVulnerability,
-                sonatypeVexInformation));
+        createNewBomVulnerability(bomComponent, sonatypeVulnerability, newBomVulnerabilities, sonatypeVexInformation);
       }
     }
+  }
 
-    if (!newBomVulnerabilities.isEmpty()) {
-      // If there are new vulnerabilities not present in the bom document, add them
-      bomVulnerabilities.addAll(newBomVulnerabilities);
+  private void updateOrSplitExistingVulnerability(
+      final Component bomComponent,
+      final ThirdPartyCoordinateSecurity sonatypeVulnerability,
+      final Vulnerability bomVulnerability,
+      final MultiValuedMap<String, Vulnerability> newBomVulnerabilities,
+      final ThirdPartyVulnerabilityExploitabilityExchange sonatypeVexInformation)
+  {
+    List<Affect> affects = bomVulnerability.getAffects();
+    if (CollectionUtils.size(affects) == 1 ||
+        (sonatypeVexInformation == null && bomVulnerability.getAnalysis() == null)) {
+      // there is only 1 affect (which is this component with possibly VEX) or
+      // there are multiple affecting components but no existing bom VEX or sonatype VEX
+      // just update the vulnerability data
+      updateCycloneDxVulnerabilityFromDbData(bomVulnerability, sonatypeVulnerability, sonatypeVexInformation);
+      return;
     }
+    // there are multiple affects and there is either VEX info in original bom or in sonatype data
+    // in all such cases we need to split this to a new vulnerability because of the vex
+    affects.removeIf(affect -> affect.getRef().equals(bomComponent.getBomRef()));
+    createNewBomVulnerability(bomComponent, sonatypeVulnerability, newBomVulnerabilities, sonatypeVexInformation);
+  }
+
+  private void createNewBomVulnerability(
+      final Component bomComponent,
+      final ThirdPartyCoordinateSecurity sonatypeVulnerability,
+      final MultiValuedMap<String, Vulnerability> newBomVulnerabilities,
+      final ThirdPartyVulnerabilityExploitabilityExchange sonatypeVexInformation)
+  {
+    if (sonatypeVexInformation == null) {
+      for (Vulnerability vulnerability : newBomVulnerabilities.get(sonatypeVulnerability.getRefId())) {
+        if (vulnerability.getAnalysis() == null) {
+          //if there's no vex in either (bom, db) we can combine this
+          Affect affect = new Affect();
+          affect.setRef(bomComponent.getBomRef());
+          vulnerability.getAffects().add(affect);
+          return;
+        }
+      }
+    }
+    Vulnerability newVulnerability =
+        createCycloneDxVulnerabilityFromDbData(bomComponent, sonatypeVulnerability, sonatypeVexInformation);
+    newBomVulnerabilities.put(newVulnerability.getId(), newVulnerability);
+  }
+
+  private Optional<Vulnerability> findMatchingBomVulnerability(
+      final Component bomComponent,
+      final List<Vulnerability> bomVulnerabilities,
+      final ThirdPartyCoordinateSecurity sonatypeVulnerability)
+  {
+    for (Vulnerability bomVulnerability : bomVulnerabilities) {
+      Set<String> affectRefs = bomVulnerability.getAffects().stream().map(Affect::getRef).collect(Collectors.toSet());
+      if (affectRefs.contains(bomComponent.getBomRef()) &&
+          bomVulnerability.getId().equals(sonatypeVulnerability.getRefId())) {
+        return Optional.of(bomVulnerability);
+      }
+    }
+    return Optional.empty();
   }
 
   private void updateOrGenerateNewLicenseChoices(

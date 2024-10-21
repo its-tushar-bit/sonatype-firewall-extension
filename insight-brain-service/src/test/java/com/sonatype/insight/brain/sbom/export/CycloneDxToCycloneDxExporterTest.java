@@ -29,7 +29,6 @@ import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportOption;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.scan.file.SbomFormat;
@@ -52,6 +51,7 @@ import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Severity;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.CYCLONEDX_JSON_IGNORE_FIELDS;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -160,8 +160,7 @@ public class CycloneDxToCycloneDxExporterTest
         "m1", "<dd>r1<dd/>", "<dd>a1<dd/>", "G,F");
     String export = exporter.export();
     assertThatJson(export)
-        .whenIgnoringPaths("metadata.timestamp",
-            "metadata.tools.components[0].version", "metadata.component.bom-ref")
+        .whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS)
         .isEqualTo(readFileToString("outputs/output-test-bom.json"));
   }
 
@@ -190,8 +189,7 @@ public class CycloneDxToCycloneDxExporterTest
         "m1", "<dd>r1<dd/>", "<dd>a1<dd/>", "G,F");
     String export = exporter.export();
     assertThatJson(export)
-        .whenIgnoringPaths("metadata.timestamp",
-            "metadata.tools.components[0].version", "metadata.component.bom-ref")
+        .whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS)
         .isEqualTo(readFileToString("outputs/output-test-bom-3.json"));
   }
 
@@ -216,8 +214,7 @@ public class CycloneDxToCycloneDxExporterTest
         "cvSSv3", "<dd>r1<dd/>", "<dd>a1<dd/>", "G,F");
     String export = exporter.export();
     assertThatJson(export)
-        .whenIgnoringPaths("metadata.timestamp", "metadata.tools.components[0].version",
-            "metadata.component.bom-ref")
+        .whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS)
         .isEqualTo(readFileToString("outputs/output-test-bom-2.json"));
   }
 
@@ -243,8 +240,7 @@ public class CycloneDxToCycloneDxExporterTest
         "cvSSv3", "<dd>r1<dd/>", "<dd>a1<dd/>", "G,F");
     String export = exporter.export();
     assertThatJson(export)
-        .whenIgnoringPaths("metadata.timestamp", "metadata.tools.components[0].version",
-            "metadata.component.bom-ref")
+        .whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS)
         .isEqualTo(readFileToString("outputs/output-test-bom-4.json"));
   }
 
@@ -270,9 +266,61 @@ public class CycloneDxToCycloneDxExporterTest
         "cvSSv3", "<dd>r1<dd/>", "<dd>a1<dd/>", "G,F");
     String export = exporter.export();
     assertThatJson(export)
-        .whenIgnoringPaths("metadata.timestamp", "metadata.tools.components[0].version",
-            "metadata.component.bom-ref")
+        .whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS)
         .isEqualTo(readFileToString("outputs/output-test-bom-5.json"));
+  }
+
+  @Test
+  public void testExport_VulnerabilitiesWithMultipleAffects_WithVex() throws Exception {
+    //Given
+    String testFileName = "test-bom-duplicate-vuln.xml";
+    File testBomFile = prepareTestReportFile(testFileName);
+    tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(testBomFile.getName(), thirdPartyFile);
+    ThirdPartyFileCoordinate cp1 =
+        tempEntity.newThirdPartyFileCoordinateWithMatchState(thirdPartyFile, "SBOM", "npm", "vue", "2.2.4", "2b0949b",
+            "pkg:npm/vue@2.2.4", "exact");
+    ThirdPartyFileCoordinate cp2 =
+        tempEntity.newThirdPartyFileCoordinateWithMatchState(thirdPartyFile, "SBOM", "npm", "vue", "2.2.5", "2b0949b",
+            "pkg:npm/vue@2.2.5", "exact");
+    ThirdPartyFileCoordinate cp3 =
+        tempEntity.newThirdPartyFileCoordinateWithMatchState(thirdPartyFile, "SBOM", "npm", "vue", "2.2.6", "2b0949b",
+            "pkg:npm/vue@2.2.6", "exact");
+
+    ThirdPartyCoordinateSecurity v1cp1 = tempEntity.newThirdPartyCoordinateSecurity(
+        cp1, "CVE-2018-6341", "DESC CVE-2018-6341", "NVD-link", 6.1d,
+        null, "NVD", "CVSS:3.1", "MEDIUM", "79",
+        "CVSSV3", null, null, "SBOM,Sonatype");
+    tempEntity.newThirdPartyCoordinateSecurity(
+        cp1, "sonatype-2018-0504", "DESC sonatype-2018-0504", "NVD-link", 5.4d,
+        null, "SONATYPE", "CVSS:3.1", "HIGH", "400",
+        "OTHER", null, null, "Sonatype");
+    tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(v1cp1,
+        "CVE-2018-6341", "resolved", "code_not_present", "update",
+        "VEX detail");
+
+    tempEntity.newThirdPartyCoordinateSecurity(
+        cp2, "CVE-2018-6341", "DESC CVE-2018-6341", "NVD-link", 6.1d,
+        null, "NVD", "CVSS:3.1", "MEDIUM", "79",
+        "CVSSV3", null, null, "SBOM,Sonatype");
+    tempEntity.newThirdPartyCoordinateSecurity(
+        cp2, "sonatype-2018-0504", "DESC sonatype-2018-0504", "NVD-link", 5.4d,
+        null, "SONATYPE", "CVSS:3.1", "HIGH", "400",
+        "OTHER", null, null, "Sonatype");
+
+    tempEntity.newThirdPartyCoordinateSecurity(
+        cp3, "CVE-2018-6341", "DESC CVE-2018-6341", "NVD-link", 6.1d,
+        null, "NVD", "CVSS:3.1", "MEDIUM", "79",
+        "CVSSV3", null, null, "SBOM,Sonatype");
+
+    //when
+    exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_16, SbomFormat.JSON));
+    String export = exporter.export();
+
+    //Then
+    assertThatJson(export)
+        .whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS)
+        .isEqualTo(readFileToString("outputs/output-test-bom-duplicate-vuln.json"));
   }
 
   private void testExportingWebgoatAppWithInputFormatAndOutputFormat(SbomFormat inputFormat, SbomFormat outputFormat)
@@ -476,9 +524,8 @@ public class CycloneDxToCycloneDxExporterTest
 
   private ThirdPartySbomMetadata insertTestData(String testBomFile, ThirdPartyFile thirdPartyFile) {
     ThirdPartySbomMetadata dbRecord = tempEntity.createSbomMetadata(APP_ID, SBOM_VERSION,
-        thirdPartyFile, "PENDING");
+        thirdPartyFile, "ACTIVE");
     dbRecord.setFilename(testBomFile);
-    dbRecord.setStatus(SbomStatus.ACTIVE.toString());
     thirdPartySbomMetadataDAO.update(dbRecord);
     return dbRecord;
   }

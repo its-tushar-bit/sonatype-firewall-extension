@@ -158,6 +158,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -231,6 +232,9 @@ public class ScanPolicyEvaluatorTest
 
   @Inject
   private Configuration configuration;
+
+  @Inject
+  private ReportComponentService reportComponentService;
 
   @Override
   public void configure(Binder binder) {
@@ -2453,6 +2457,25 @@ public class ScanPolicyEvaluatorTest
     ScanPolicyEvaluatorResults results2 =
         scanPolicyEvaluator.evaluate(application, scanId2, stage1, ScanTriggerType.CLI, ClientScanType.SONATYPE);
     assertThat(results2.activeViolations).isNotEmpty();
+  }
+
+  @Test
+  public void testPerformPolicyEvaluation() throws Exception {
+    String scanId = simulateReportIsAvailable("report");
+    newSecurityPolicy();
+    Stage stage = new Stage(Stage.ID_BUILD);
+
+    ReportComponentData reportComponentData =
+        reportComponentService.fetchReportAndComponents(application, scanId);
+
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.performPolicyEvaluation(
+        application, scanId, stage, ScanTriggerType.CLI, "testUserAgent", "testClientId",
+        false, ClientScanType.SONATYPE, reportComponentData
+    );
+
+    assertNotNull(results);
+    assertNotNull(results.evaluation);
+    assertThat(results.allViolations).isNotEmpty();
   }
 
   private void restoreConstraintFactsToPreMigratedState() {

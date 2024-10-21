@@ -29,15 +29,10 @@ import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.metrics.PolicyEvaluateServiceMetrics;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.StageTypeService;
-import com.sonatype.insight.brain.product.license.InvalidLicenseException;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -46,7 +41,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
@@ -79,10 +73,6 @@ public class PolicyEvaluateService
 
   private final ScanHandler scanHandler;
 
-  private final ProductLicense productLicense;
-
-  private final StageTypeService stageTypeService;
-
   private final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
 
   private final InsightWork insightWork;
@@ -90,6 +80,8 @@ public class PolicyEvaluateService
   private final TelemetryUtils telemetryUtils;
 
   private final PolicyEvaluateServiceMetrics policyEvaluateServiceMetrics;
+
+  private final PolicyEvaluationUtil policyEvaluationUtil;
 
   public boolean disablePollingIntervalForTesting = false;
 
@@ -99,26 +91,24 @@ public class PolicyEvaluateService
       PolicyAlertNotifier policyAlertNotifier,
       ErrorResponseGenerator errorResponseGenerator,
       ScanHandler scanHandler,
-      ProductLicense productLicense,
-      StageTypeService stageTypeService,
       PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO,
       ApplicationDAO applicationDAO,
       InsightWork insightWork,
       TelemetryUtils telemetryUtils,
       ShutdownHandler shutdownHandler,
-      PolicyEvaluateServiceMetrics policyEvaluateServiceMetrics)
+      PolicyEvaluateServiceMetrics policyEvaluateServiceMetrics,
+      PolicyEvaluationUtil policyEvaluationUtil)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
     this.errorResponseGenerator = errorResponseGenerator;
     this.scanHandler = scanHandler;
-    this.productLicense = productLicense;
-    this.stageTypeService = stageTypeService;
     this.persistedPolicyEvaluationPollingResultDAO = persistedPolicyEvaluationPollingResultDAO;
     this.applicationDAO = applicationDAO;
     this.insightWork = insightWork;
     this.telemetryUtils = telemetryUtils;
     this.policyEvaluateServiceMetrics = policyEvaluateServiceMetrics;
+    this.policyEvaluationUtil = policyEvaluationUtil;
     this.executor = buildExecutorService();
     shutdownHandler.add(executor, 2);
   }
@@ -245,23 +235,7 @@ public class PolicyEvaluateService
       HttpServletRequest req,
       Stage stage) throws IOException
   {
-    if (integrationType.equals(IntegrationType.CLI)) {
-      productLicense.validateFeature(LicensedFeature.CLI_INTEGRATION);
-    }
-    else if (integrationType.equals(IntegrationType.CI)) {
-      productLicense.validateFeature(LicensedFeature.CI_INTEGRATION);
-    }
-    else if (integrationType.equals(IntegrationType.RM)) {
-      productLicense.validateFeature(LicensedFeature.RM_STAGING_INTEGRATION);
-    }
-
-    if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
-      throw new InvalidStageException(stage.getStageTypeId());
-    }
-
-    if (!stageTypeService.getLicensedStageTypes().contains(StageTypes.getById(stage.getStageTypeId()))) {
-      throw new InvalidLicenseException("Stage '" + stage.getStageTypeId() + "' is not supported by your license.");
-    }
+    policyEvaluationUtil.validateEvaluationTypeAndFeature(integrationType, stage);
 
     String statusId = UUID.randomUUID().toString().replace("-", "");
     log.debug(

@@ -164,6 +164,8 @@ public class ScanPolicyEvaluator
 
   private final FeaturesService featuresService;
 
+  private final ReportComponentService reportComponentService;
+
   @Inject
   public ScanPolicyEvaluator(
       final InsightWork insightWork,
@@ -190,7 +192,8 @@ public class ScanPolicyEvaluator
       final PolicyAlertUtil policyAlertUtil,
       final TelemetryUtils telemetryUtils,
       final DevelopmentPrioritizationRemediationService developmentPrioritizationRemediationService,
-      final FeaturesService featuresService)
+      final FeaturesService featuresService,
+      final ReportComponentService reportComponentService)
   {
     this.work = insightWork;
     this.reportService = reportService;
@@ -217,6 +220,7 @@ public class ScanPolicyEvaluator
     this.telemetryUtils = telemetryUtils;
     this.developmentPrioritizationRemediationService = developmentPrioritizationRemediationService;
     this.featuresService = featuresService;
+    this.reportComponentService = reportComponentService;
   }
 
   public ScanPolicyEvaluatorResults evaluate(
@@ -294,55 +298,11 @@ public class ScanPolicyEvaluator
     throwErrorIfReEvaluatingAnOldScan(application.getId(), scanId, stage.getStageTypeId());
 
     AuditData.get().setStageId(stage.getStageTypeId());
-    final File reportFile;
-    final List<Component> components;
-    try (ClusterLock clusterLock = clusterLockManager.createForPolicyEvaluation(application, scanId)) {
-      clusterLock.lock();
-      reportFile = reportService.fetchReport(application, scanId);
 
-      final ReportEntry licenseReportEntry = Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME);
-      final ReportEntry securityReportEntry = Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME);
-      final ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
-      final ReportEntry dependenciesReportEntry = Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME);
+    ReportComponentData reportComponentData = reportComponentService.fetchReportAndComponents(application, scanId);
 
-      if (bomReportEntry == null || securityReportEntry == null || licenseReportEntry == null
-          || dependenciesReportEntry == null) {
-        throw new BadRequestException("Unable to evaluate policy, the scan " + scanId + " could not be processed.");
-      }
-
-      // Load data about components
-      components = componentLoaderFactory.createComponentLoader(application).getAll(licenseReportEntry.buf,
-          securityReportEntry.buf, bomReportEntry.buf, dependenciesReportEntry.buf);
-    }
-
-    sendEvaluationTelemetry(application.getId(), stage.getStageTypeId(), scanTriggerType, components, clientUserAgent,
-        clientInstanceId);
-
-    // Evaluate the policies
-    String appId = application.getId();
-    List<Policy> policies = policyDAO.getApplicableByOwnerIdWithHierarchy(appId);
-    PolicyResults policyResults = componentPolicyEvaluator.evaluate(appId, stage, policies, components, forMonitoring);
-
-    PolicyViolationTelemetryCollector telemetryCollector =
-        new PolicyViolationTelemetryCollector(policyWaiverDAO, telemetryUtils, sourceControlUtils.isScmEnabled(appId));
-
-    // Save the policy evaluation and violations
-    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
-        processPolicyResults(application, scanId, stage, scanTriggerType, policies, forMonitoring,
-            policyResults, components, telemetryCollector, reportFile, clientScanType);
-
-    telemetrySender.send(telemetryCollector.getTelemetryData());
-
-    sendLegacyViolationTelemetryData(application.getId(), scanPolicyEvaluatorResults.allViolations);
-
-    final Set<Feature> features = featuresService.getFeatures();
-    if (features.contains(SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS)) {
-      fetchAndPersistRemediationRecommendations(scanId, stage, components, appId);
-    }
-
-    postEvents(scanPolicyEvaluatorResults, application, components);
-
-    return scanPolicyEvaluatorResults;
+    return performPolicyEvaluation(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
+        forMonitoring, clientScanType, reportComponentData);
   }
 
   private void fetchAndPersistRemediationRecommendations(
@@ -1141,5 +1101,48 @@ public class ScanPolicyEvaluator
         throw new BadRequestException(REEVALUATE_NOT_ALLOWED_FOR_OUT_OF_DATE_SCAN_MESSAGE);
       }
     }
+  }
+
+  public ScanPolicyEvaluatorResults performPolicyEvaluation(
+      Application application,
+      String scanId,
+      Stage stage,
+      ScanTriggerType scanTriggerType,
+      String clientUserAgent,
+      String clientInstanceId,
+      boolean forMonitoring,
+      ClientScanType clientScanType,
+      ReportComponentData reportComponentData) throws IOException
+  {
+
+    sendEvaluationTelemetry(application.getId(), stage.getStageTypeId(), scanTriggerType,
+        reportComponentData.components,
+        clientUserAgent, clientInstanceId);
+
+    String appId = application.getId();
+    List<Policy> policies = policyDAO.getApplicableByOwnerIdWithHierarchy(appId);
+    PolicyResults policyResults =
+        componentPolicyEvaluator.evaluate(appId, stage, policies, reportComponentData.components,
+            forMonitoring);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        new PolicyViolationTelemetryCollector(policyWaiverDAO, telemetryUtils, sourceControlUtils.isScmEnabled(appId));
+
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
+        processPolicyResults(application, scanId, stage, scanTriggerType, policies, forMonitoring, policyResults,
+            reportComponentData.components, telemetryCollector, reportComponentData.reportFile, clientScanType);
+
+    telemetrySender.send(telemetryCollector.getTelemetryData());
+
+    sendLegacyViolationTelemetryData(application.getId(), scanPolicyEvaluatorResults.allViolations);
+
+    final Set<Feature> features = featuresService.getFeatures();
+    if (features.contains(SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS)) {
+      fetchAndPersistRemediationRecommendations(scanId, stage, reportComponentData.components, appId);
+    }
+
+    postEvents(scanPolicyEvaluatorResults, application, reportComponentData.components);
+
+    return scanPolicyEvaluatorResults;
   }
 }

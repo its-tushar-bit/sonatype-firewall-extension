@@ -354,12 +354,14 @@ public class SbomResultHandler
       Pair<ComponentIdentifier, Component> resolvedComponent = getResolvedComponent(sourceComponent);
       if (resolvedComponent != null) {
         String sourceSbomComponentCpe = sourceComponent.getCpe();
-        if (StringUtils.isNotBlank(sourceSbomComponentCpe) && Validate.cpe(sourceSbomComponentCpe).isValid()) {
-          resolvedComponent.getRight().setCpe(sourceComponent.getCpe());
-        }
-        else {
-          log.debug("Skipping invalid CPE {} for component with name {}", sourceSbomComponentCpe,
-              sourceComponent.getName());
+        if (sourceSbomComponentCpe != null) {
+          if (StringUtils.isNotBlank(sourceSbomComponentCpe) && Validate.cpe(sourceSbomComponentCpe).isValid()) {
+            resolvedComponent.getRight().setCpe(sourceComponent.getCpe());
+          }
+          else {
+            log.debug("Skipping invalid CPE {} for component with name {}", sourceSbomComponentCpe,
+                sourceComponent.getName());
+          }
         }
         resolvedComponent.getRight().setSwid(sourceComponent.getSwid());
         ComponentIdentifier componentIdentifier = resolvedComponent.getLeft();

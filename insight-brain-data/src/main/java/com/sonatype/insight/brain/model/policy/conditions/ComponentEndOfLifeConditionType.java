@@ -13,6 +13,7 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.ComponentEndOfLifeStatus;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -79,5 +80,10 @@ public class ComponentEndOfLifeConditionType
   protected boolean internalEvaluateCondition(Component component, String operator, String value) {
     boolean result = component.getEndOfLife().equals(ComponentEndOfLifeStatus.END_OF_LIFE_TRUE);
     return "is true".equals(operator) ? result : !result;
+  }
+
+  @Override
+  public PolicyThreatCategory getThreatCategory() {
+    return PolicyThreatCategory.QUALITY;
   }
 }

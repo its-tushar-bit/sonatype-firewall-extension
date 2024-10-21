@@ -4,15 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-package com.sonatype.insight.brain.api.experimental.development.prioritization;
+package com.sonatype.insight.brain.api.v2.dto;
 
 import java.util.Objects;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
+import com.sonatype.insight.brain.utils.CsvWritable;
 
-public class PrioritizedComponent
+public class PrioritizedComponent implements CsvWritable
 {
   public static final String DEPENDENCY_TYPE_DIRECT = "Direct";
 
@@ -191,5 +192,19 @@ public class PrioritizedComponent
         ", remediationType=" + remediationType +
         ", remediationVersion=" + remediationVersion +
         '}';
+  }
+
+  public static String getCsvHeader() {
+    // this is the dto involved in the export
+    return "Display Name,Component Identifier,Component Hash,Dependency Type,Has Fail Action On Component,Action," +
+            "Highest Threat,Highest Threat Policy Name,Highest Threat Policy Constraint Name,Security Reachable," +
+            "Priority,Remediation Type,Remediation Version";
+  }
+
+  @Override
+  public String toCsvLine() {
+    return joiner.useForNull("").join(displayName, componentIdentifier, componentHash, dependencyType,
+            hasFailActionOnComponent, action, highestThreat, highestThreatPolicyName, highestThreatPolicyConstraintName,
+            securityReachable, priority, remediationType, remediationVersion);
   }
 }

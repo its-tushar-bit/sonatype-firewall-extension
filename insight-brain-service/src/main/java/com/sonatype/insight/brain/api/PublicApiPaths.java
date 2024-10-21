@@ -172,4 +172,6 @@ public class PublicApiPaths
   public static final String EXTERNAL_PATH = API_VERSION_PATH_V2 + "external";
 
   public static final String DISTRIBUTE_PATH = EXTERNAL_PATH + "/distribute";
+
+  public static final String DEVELOPER_PATH = API_VERSION_PATH_V2 + "developer";
 }

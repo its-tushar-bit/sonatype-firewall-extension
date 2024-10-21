@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
 package com.sonatype.insight.brain.development.prioritization;
 
 import java.util.ArrayList;
@@ -17,7 +16,7 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.api.experimental.development.prioritization.PrioritizedComponent;
+import com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent;
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
@@ -27,22 +26,29 @@ import com.sonatype.insight.brain.dataaccess.development.prioritization.Developm
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.Component;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyViolation;
 import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.api.experimental.development.prioritization.PrioritizedComponent.DEPENDENCY_TYPE_DIRECT;
-import static com.sonatype.insight.brain.api.experimental.development.prioritization.PrioritizedComponent.DEPENDENCY_TYPE_TRANSITIVE;
-import static com.sonatype.insight.brain.api.experimental.development.prioritization.PrioritizedComponent.DEPENDENCY_TYPE_UNKNOWN;
-import static com.sonatype.insight.brain.api.experimental.development.prioritization.PrioritizedComponent.DEPENDENCY_TYPE_INNER_SOURCE;
+import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_DIRECT;
+import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_TRANSITIVE;
+import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_UNKNOWN;
+import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_INNER_SOURCE;
 
 @Named
 public class DevelopmentPrioritiesService
 {
+  private static final Logger log = LoggerFactory.getLogger(DevelopmentPrioritiesService.class);
+
   private final FeaturesService featuresService;
 
   private final DevelopmentPrioritiesReportService developmentPrioritiesReportService;
@@ -70,85 +76,17 @@ public class DevelopmentPrioritiesService
     this.componentReachabilityService = componentReachabilityService;
   }
 
+  @Authorize(permission = Permission.READ)
   public DevelopmentPrioritizationResults getPrioritizedFindings(
-      final String applicationPublicId,
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
       final String scanId,
       final int page,
       final int pageSize
   )
   {
-    throwErrorIfDevelopmentNotEnabledByLicense();
-
-    // checks for read permissions on the app, making this an authorized function
-    final ApiReportRawDataDTOV2 apiReportRawDataDTOV2 =
-        developmentPrioritiesReportService.getDependencyInformation(applicationPublicId, scanId);
-    final PolicyThreats policyThreats = reportService.getPolicyThreats(applicationPublicId, scanId);
-
     final int skipCount = (page - 1) * pageSize;
-    isBulkRecommendationsEnabled = isBulkRecommendationsEnabled();
-
-    final List<UnprioritizedComponent> sortedComponents = apiReportRawDataDTOV2.components
-        .stream()
-        .map(component -> {
-          final List<PolicyViolation> policyViolations =
-              getMatchingViolations(policyThreats.aaData, component);
-
-          // Component identifier can be null for unknown components
-          final ComponentIdentifier componentIdentifier =  component.componentIdentifier != null ?
-              component.componentIdentifier.toComponentIdentifier() :
-              null;
-          final PolicyViolation highestPolicyViolation = getHighestThreat(policyViolations);
-          final int highestThreatLevel;
-          final String policyName;
-          final String highestThreatConstraintName;
-
-          if (highestPolicyViolation == null) {
-            highestThreatLevel = 0;
-            policyName = null;
-            highestThreatConstraintName = null;
-          }
-          else {
-            highestThreatLevel = highestPolicyViolation.policyThreatLevel;
-            policyName = highestPolicyViolation.policyName;
-
-            if (!highestPolicyViolation.constraints.isEmpty()) {
-              highestThreatConstraintName = highestPolicyViolation.constraints.get(0).constraintName;
-            }
-            else {
-              highestThreatConstraintName = null;
-            }
-          }
-
-          final boolean securityReachable = hasSecurityViolations(policyViolations)
-              && isSecurityReachable(applicationPublicId, scanId, component.hash);
-
-          DevelopmentPrioritizationComponentInfo prioritizationComponentInfo = null;
-          if (isBulkRecommendationsEnabled && componentIdentifier != null) {
-            // component.hash and componentIdentifier.toSyntheticHash() have different values. The synthetic hash
-            // from the component identifier (does not use the binary) is what is stored in the database
-            prioritizationComponentInfo = prioritizationComponentInfoDAO.getByScanIdAndComponentHash(scanId,
-                componentIdentifier.toSyntheticHash());
-          }
-
-          return new UnprioritizedComponent(
-              component.displayName,
-              componentIdentifier,
-              getDependencyType(component),
-              hasFailActionOnComponent(policyViolations),
-              getAction(policyViolations),
-              highestThreatLevel,
-              policyName,
-              highestThreatConstraintName,
-              component.hash,
-              securityReachable,
-              prioritizationComponentInfo
-          );
-        })
-        .filter(unprioritizedComponent -> unprioritizedComponent.highestThreat > 0)
-        .sorted(this::compareScoreDescending)
-        .collect(Collectors.toList());
-
-    final List<PrioritizedComponent> allPrioritizedFindings = addPrioritiesToSortedList(sortedComponents, 1);
+    List<PrioritizedComponent> allPrioritizedFindings =
+            getAllPrioritizedFindings(applicationPublicId, scanId);
 
     // pluck off top 3
     final int top3Bound = Math.min(allPrioritizedFindings.size(), 3);
@@ -176,6 +114,86 @@ public class DevelopmentPrioritiesService
     return new DevelopmentPrioritizationResults(
         top3Priorities,
         new ApiPageResult<>(totalSize, page, pageSize, remainingPriorities));
+  }
+
+  @Authorize(permission = Permission.READ)
+  public List<PrioritizedComponent> getAllPrioritizedFindings(
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
+      final String scanId
+  )
+  {
+    throwErrorIfDevelopmentNotEnabledByLicense();
+
+    // checks for read permissions on the app, making this an authorized function
+    final ApiReportRawDataDTOV2 apiReportRawDataDTOV2 =
+            developmentPrioritiesReportService.getDependencyInformation(applicationPublicId, scanId);
+    final PolicyThreats policyThreats = reportService.getPolicyThreats(applicationPublicId, scanId);
+
+    isBulkRecommendationsEnabled = isBulkRecommendationsEnabled();
+
+    final List<UnprioritizedComponent> sortedComponents = apiReportRawDataDTOV2.components
+            .stream()
+            .map(component -> {
+              final List<PolicyViolation> policyViolations =
+                      getMatchingViolations(policyThreats.aaData, component);
+
+              // Component identifier can be null for unknown components
+              final ComponentIdentifier componentIdentifier = component.componentIdentifier != null ?
+                      component.componentIdentifier.toComponentIdentifier() :
+                      null;
+              final PolicyViolation highestPolicyViolation = getHighestThreat(policyViolations);
+              final int highestThreatLevel;
+              final String policyName;
+              final String highestThreatConstraintName;
+
+              if (highestPolicyViolation == null) {
+                highestThreatLevel = 0;
+                policyName = null;
+                highestThreatConstraintName = null;
+              }
+              else {
+                highestThreatLevel = highestPolicyViolation.policyThreatLevel;
+                policyName = highestPolicyViolation.policyName;
+
+                if (!highestPolicyViolation.constraints.isEmpty())
+                {
+                  highestThreatConstraintName = highestPolicyViolation.constraints.get(0).constraintName;
+                }
+                else {
+                  highestThreatConstraintName = null;
+                }
+              }
+
+              final boolean securityReachable = hasSecurityViolations(policyViolations)
+                      && isSecurityReachable(applicationPublicId, scanId, component.hash);
+
+              DevelopmentPrioritizationComponentInfo prioritizationComponentInfo = null;
+              if (isBulkRecommendationsEnabled && componentIdentifier != null) {
+                // component.hash and componentIdentifier.toSyntheticHash() have different values. The synthetic hash
+                // from the component identifier (does not use the binary) is what is stored in the database
+                prioritizationComponentInfo = prioritizationComponentInfoDAO.getByScanIdAndComponentHash(scanId,
+                        componentIdentifier.toSyntheticHash());
+              }
+
+              return new UnprioritizedComponent(
+                      component.displayName,
+                      componentIdentifier,
+                      getDependencyType(component),
+                      hasFailActionOnComponent(policyViolations),
+                      getAction(policyViolations),
+                      highestThreatLevel,
+                      policyName,
+                      highestThreatConstraintName,
+                      component.hash,
+                      securityReachable,
+                      prioritizationComponentInfo
+              );
+            })
+            .filter(unprioritizedComponent -> unprioritizedComponent.highestThreat > 0)
+            .sorted(this::compareScoreDescending)
+            .toList();
+
+    return addPrioritiesToSortedList(sortedComponents, 1);
   }
 
   private String getDependencyType(ApiReportComponentDTOV2 reportBomComponent) {

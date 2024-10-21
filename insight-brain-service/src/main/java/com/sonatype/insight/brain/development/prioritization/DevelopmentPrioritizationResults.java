@@ -9,7 +9,7 @@ package com.sonatype.insight.brain.development.prioritization;
 import java.util.List;
 import java.util.Objects;
 
-import com.sonatype.insight.brain.api.experimental.development.prioritization.PrioritizedComponent;
+import com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 
 public class DevelopmentPrioritizationResults

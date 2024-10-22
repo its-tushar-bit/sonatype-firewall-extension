@@ -315,8 +315,9 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testgetMultiLicensesNoAuth_NoComponentIdentifier() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
-    componentInfoService.getMultiLicensesNoAuth(null, null, null /* componentIdentifier */, httpRequestMock, null, null)
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> 
+    componentInfoService.getMultiLicensesNoAuth(null, null, null /* componentIdentifier */, 
+      httpRequestMock, null, null)
     ).withMessage("componentIdentifier is required");
   }
 
@@ -340,8 +341,8 @@ public class ComponentInfoServiceTest
 
   private void testgetMultiLicensesNoAuth_BadOwnerId(OwnerType ownerType, String expectedErrMsgPrefix) {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
-    componentInfoService.getMultiLicensesNoAuth(ownerType, "bogusOwnerId", MAVEN_A1_COORDINATES, httpRequestMock, null,
-        null)
+    componentInfoService.getMultiLicensesNoAuth(ownerType, "bogusOwnerId", MAVEN_A1_COORDINATES, httpRequestMock, null, 
+  null)
     ).withMessageContaining(expectedErrMsgPrefix + "bogusOwnerId");
   }
 
@@ -438,7 +439,7 @@ public class ComponentInfoServiceTest
 
     ComponentMultiLicenses licenses =
         componentInfoService.getMultiLicensesNoAuth(OwnerType.APPLICATION, application.getPublicId(),
-        MAVEN_A1_COORDINATES, httpRequestMock, identificationSource, scanId);
+            MAVEN_A1_COORDINATES, httpRequestMock, identificationSource, scanId);
 
     assertMultiLicenses(licenses.declaredLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
     assertMultiLicenses(licenses.observedLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
@@ -1087,7 +1088,6 @@ public class ComponentInfoServiceTest
         "pkg:maven/g1/a1",
         "1.0.0");
     mockGetComponentDetailsListFromHds(Collections.singletonList(componentEvaluationData1));
-    
     // Versions that equal the requested component identifiers should be returned
     Map<ComponentIdentifier, List<ComponentDetails>> componentDetailsMap =
         componentInfoService.getComponentDetailsListBulk(componentIdentifiers, application, null);
@@ -2347,7 +2347,8 @@ public class ComponentInfoServiceTest
         .isEqualTo("pkg:maven/g1/a2@v1?type=jar");
     assertThat(dto.remediation.versionChanges.get(0).getData().getComponent().displayName).isEqualTo(
         ComponentDisplayNameUtil.fromIdentifier(
-            dto.remediation.versionChanges.get(0).getData().getComponent().componentIdentifier.toComponentIdentifier())
+                dto.remediation.versionChanges.get(0).getData().getComponent().componentIdentifier
+                    .toComponentIdentifier())
             .toString());
   }
 
@@ -3192,8 +3193,8 @@ public class ComponentInfoServiceTest
   }
 
   private void assertGenericComponentDetails(
-          ComponentDetails componentDetails,
-          ComponentIdentifier componentIdentifier1)
+        ComponentDetails componentDetails,
+        ComponentIdentifier componentIdentifier1)
   {
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier1);
 

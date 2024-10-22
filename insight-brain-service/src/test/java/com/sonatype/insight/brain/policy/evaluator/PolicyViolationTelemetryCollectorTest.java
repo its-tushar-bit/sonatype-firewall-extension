@@ -20,6 +20,7 @@ import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -37,34 +38,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.APPLICATION_ID;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_DOWNGRADE;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_IDENTIFIER;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_NAME;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_NAMESPACE;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_UPGRADE;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_VERSION;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.CONDITION_TYPE;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COUNT;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.CVE_NUMBER;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.CVSS_SCORE;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.DIRECT_DEPENDENCY;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.ECOSYSTEM;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.FIX_BY_VERSION_CHANGE;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.FIX_TIME;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.INNERSOURCE_DEPENDENCY;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.IS_SCM_ENABLED;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.LEGACY_VIOLATION_TIME;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.OPEN_TIME;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.POLICY_VIOLATION_ID;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.POLICY_WAIVER_ID;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.STAGE;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.THREAT_CATEGORY;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.THREAT_LEVEL;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.TIME;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.UNWAIVE_TIME;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.WAIVER_EXPIRATION;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.WAIVE_TIME;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.*;
 import static com.sonatype.insight.brain.telemetry.TelemetryUtils.REAL_APPLICATION_ID;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.CONDITION_TYPE_VIOLATION;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.TIME_TO_CHANGE_VERSION_POLICY_VIOLATION;
@@ -365,6 +339,58 @@ public class PolicyViolationTelemetryCollectorTest
     testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData, TIME_TO_WAIVE_POLICY_VIOLATION);
   }
 
+  @Test
+  public void testAddTelemetryForAutoWaivedViolation() {
+    // given a policy violation and a waiver for it
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(policyEvaluation.getApplicationId());
+    
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultViolationForComponent(commonsLang3)
+            .openedHoursAgo(5)
+            .asDirectDependency(true)
+            .withPolicyViolationId("waivedViolation")
+            .markAutoWaived(autoPolicyWaiver);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // when - pass in same component version the violation is for
+    telemetryCollector.addTelemetryForAutoWaivedViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponent()
+    );
+
+    // then
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData, TIME_TO_WAIVE_POLICY_VIOLATION);
+    
+  }
+  
+  @Test
+  public void testAddTelemetryForUnautoWaivedViolation() {
+    // given a policy violation on lodash v3
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultViolationForComponent(urllib3)
+            .openedHoursAgo(500)
+            .asDirectDependency(true)
+            .withPolicyViolationId("unwaivedViolation")
+            .markUnAutoWaived("oldAutoPolicyWaiverId");
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // when - pass in same component version the violation is for
+    telemetryCollector.addTelemetryForUnAutoWaivedViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponent(),
+        testablePolicyViolation.getAutoPolicyWaiverId()
+    );
+
+    // then
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData, TIME_TO_WAIVE_POLICY_VIOLATION);
+  }
+  
   private PolicyViolationTelemetryCollector createTelemetryCollector(boolean isScmEnabled) {
     PolicyViolationTelemetryCollector telemetryCollector =
         new PolicyViolationTelemetryCollector(policyWaiverDAO, telemetryUtils, isScmEnabled);
@@ -412,6 +438,8 @@ public class PolicyViolationTelemetryCollectorTest
     private boolean isScmEnabled;
 
     private String waiverId;
+    
+    private String autoPolicyWaiverId;
 
     private Long openTime;
 
@@ -478,6 +506,10 @@ public class PolicyViolationTelemetryCollectorTest
 
     String getWaiverId() {
       return waiverId;
+    }
+    
+    String getAutoPolicyWaiverId() {
+      return autoPolicyWaiverId;
     }
 
     long getOpenTime() {
@@ -547,6 +579,20 @@ public class PolicyViolationTelemetryCollectorTest
       policyViolation.setWaiveTime(policyEvaluation.getTime());
       waiverId = policyWaiver.getId();
       waiverExpiration = "never";
+      return this;
+    }
+    
+    TestablePolicyViolation markUnAutoWaived(String oldAutoPolicyWaiverId) {
+      this.autoPolicyWaiverId = oldAutoPolicyWaiverId;
+      policyViolation.setWaiveTime(policyEvaluation.getTime());
+      withCount(-1);
+      return this;
+    }
+    
+    TestablePolicyViolation markAutoWaived(AutoPolicyWaiver autoPolicyWaiver) {
+      policyViolation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+      policyViolation.setWaiveTime(policyEvaluation.getTime());
+      autoPolicyWaiverId = autoPolicyWaiver.getId();
       return this;
     }
 
@@ -699,6 +745,7 @@ public class PolicyViolationTelemetryCollectorTest
           validateMatchesOrNotExists(attributes, UNWAIVE_TIME, policyViolation.getWaiveTime().getTime());
           validateMatchesOrNotExists(attributes, WAIVE_TIME, policyViolation.getWaiveTime().getTime());
           validateMatchesOrNotExists(attributes, POLICY_WAIVER_ID, getWaiverId());
+          validateMatchesOrNotExists(attributes, AUTO_POLICY_WAIVER_ID, getAutoPolicyWaiverId());
           validateMatchesOrNotExists(attributes, WAIVER_EXPIRATION, waiverExpiration);
           validateTimeAttribute(attributes, calculateExpectedUnwaiveTime());
           break;
@@ -798,6 +845,7 @@ public class PolicyViolationTelemetryCollectorTest
       copy.setPolicyId(original.getPolicyId());
       copy.setPolicyName(original.getPolicyName());
       copy.setPolicyWaiverId(original.getPolicyWaiverId());
+      copy.setAutoPolicyWaiverId(original.getAutoPolicyWaiverId());
       copy.setReachabilityStatus(original.getReachabilityStatus());
       copy.setSeenByMonitoringEvaluation(original.isSeenByMonitoringEvaluation());
       copy.setSeenByPrimaryEvaluation(original.isSeenByPrimaryEvaluation());

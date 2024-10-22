@@ -31,8 +31,12 @@ public enum PolicyViolationLogEvent
   REVOKE_LEGACY_STATUS,//
 
   WAIVE, //
+  
+  AUTOWAIVE,
 
   UNWAIVE, //
+  
+  UNAUTOWAIVE,
 
   CLEAR
 }

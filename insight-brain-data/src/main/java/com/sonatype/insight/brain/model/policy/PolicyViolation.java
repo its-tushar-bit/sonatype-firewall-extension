@@ -187,6 +187,11 @@ public class PolicyViolation
   public boolean isActive() {
     return !isFixed() && !isWaived() && !isLegacyViolation();
   }
+  
+  @Transient
+  public boolean isAutoWaived() {
+    return isWaived() && autoPolicyWaiverId != null;
+  }
 
   /**
    * @return the earlier of the fixTime or waiveTime, sorting nulls higher

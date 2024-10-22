@@ -33,18 +33,24 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiSuggestedVersionChangeOptionDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFactsDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.hds.ComponentInfoService;
+import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
@@ -54,10 +60,12 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilitySource;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -159,7 +167,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -178,6 +188,9 @@ public class ScanPolicyEvaluatorTest
   @Inject
   private PolicyDAO policyDAO;
 
+  @Inject
+  private AutoPolicyWaiverDAO autoPolicyWaiverDAO;
+  
   @Inject
   private PolicyWaiverDAO policyWaiverDAO;
 
@@ -226,6 +239,9 @@ public class ScanPolicyEvaluatorTest
   private MockReportDownloader mockReportDownloader;
 
   private TelemetrySender mockTelemetrySender;
+  
+  @Mock
+  private ComponentInfoService mockComponentInfoService;
 
   @Inject
   private TestProductLicense testProductLicense;
@@ -242,6 +258,8 @@ public class ScanPolicyEvaluatorTest
     binder.bind(ReportDownloader.class).toInstance(mockReportDownloader.getMock());
     mockTelemetrySender = mock(TelemetrySender.class);
     binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
+    mockComponentInfoService = mock(ComponentInfoService.class);
+    binder.bind(ComponentInfoService.class).toInstance(mockComponentInfoService);
 
     super.configure(binder);
   }
@@ -347,6 +365,329 @@ public class ScanPolicyEvaluatorTest
     });
   }
 
+  @Test
+  public void testEvaluate_Results_AutoWaivedViolations_AutoWaiversFeatureMissing() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    Policy licensePolicy = newPolicy(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
+
+    tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, false);
+    ScanPolicyEvaluatorResults results =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    List<PolicyViolation> autoWaivedViolations = results.autoWaivedViolations;
+    assertThat(autoWaivedViolations).hasSize(0);
+
+    assertThat(results.activeViolations).hasSize(20).allSatisfy(activeViolation -> {
+      assertThat(activeViolation.getPolicyId()).isEqualTo(licensePolicy.getId());
+      assertThat(activeViolation.getLegacyViolationTime()).isNull();
+      assertThat(activeViolation.getWaiveTime()).isNull();
+      assertThat(activeViolation.getAutoPolicyWaiverId()).isNull();
+      assertThat(activeViolation.getPolicyWaiverId()).isNull();
+      assertThat(activeViolation.getPolicyWaiverComment()).isNull();
+    });
+
+    List<PolicyViolation> inactiveViolations = getInactiveViolations(results);
+    assertThat(inactiveViolations).hasSize(0);
+  }
+
+  @Test
+  public void testEvaluate_Results_AutoWaivedViolations_PathForward_NoVersionChanges() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    ComponentVersionInfoDTO dto = new ComponentVersionInfoDTO();
+    dto.remediation = new ApiComponentRemediationValueDTO();
+
+    doReturn(dto)
+        .when(mockComponentInfoService).getComponentVersionInfoNoAuth(any(), any(), any(), any(), any(), any(), any());
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(4); // should not be auto waived
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, true);
+    ScanPolicyEvaluatorResults results =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    List<PolicyViolation> autoWaivedViolations = results.autoWaivedViolations;
+    assertThat(autoWaivedViolations).hasSize(36).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiver.getId());
+      assertThat(autoWaivedViolation.getWaiveTime()).isNotNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverId()).isNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverComment()).isNull();
+      assertThat(autoWaivedViolation.getPolicyId()).isEqualTo(securityPolicy.getId());
+    });
+  }
+
+  @Test
+  public void testEvaluate_Results_AutoWaivedViolations_PathForward_WithVersionChanges() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    ComponentVersionInfoDTO dto = new ComponentVersionInfoDTO();
+    dto.remediation = new ApiComponentRemediationValueDTO();
+    dto.remediation.versionChanges.add(new ApiVersionChangeOptionDTO());
+
+    doReturn(dto)
+        .when(mockComponentInfoService).getComponentVersionInfoNoAuth(any(), any(), any(), any(), any(), any(), any());
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(4); // should not be auto waived
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, true);
+    ScanPolicyEvaluatorResults results =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    List<PolicyViolation> autoWaivedViolations = results.autoWaivedViolations;
+    assertThat(autoWaivedViolations).hasSize(0);
+    assertThat(results.activeViolations).hasSize(36);
+  }
+
+  @Test
+  public void testEvaluate_Results_AutoWaivedViolations_PathForward_SuggestedVersionChange() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    ComponentVersionInfoDTO dto = new ComponentVersionInfoDTO();
+    dto.remediation = new ApiComponentRemediationValueDTO();
+    dto.remediation.suggestedVersionChange = new ApiSuggestedVersionChangeOptionDTO();
+
+    doReturn(dto)
+        .when(mockComponentInfoService).getComponentVersionInfoNoAuth(any(), any(), any(), any(), any(), any(), any());
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(4); // should not be auto waived
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, true);
+    ScanPolicyEvaluatorResults results =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    List<PolicyViolation> autoWaivedViolations = results.autoWaivedViolations;
+    assertThat(autoWaivedViolations).hasSize(0);
+    assertThat(results.activeViolations).hasSize(36);
+  }
+
+  @Test
+  public void testEvaluate_Results_AutoWaivedViolations_PathForward_WithVersionChangesAndSuggestedVersion()
+      throws Exception
+  {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    ComponentVersionInfoDTO dto = new ComponentVersionInfoDTO();
+    dto.remediation = new ApiComponentRemediationValueDTO();
+    dto.remediation.suggestedVersionChange = new ApiSuggestedVersionChangeOptionDTO();
+    dto.remediation.versionChanges.add(new ApiVersionChangeOptionDTO());
+
+    doReturn(dto)
+        .when(mockComponentInfoService).getComponentVersionInfoNoAuth(any(), any(), any(), any(), any(), any(), any());
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(4); // should not be auto waived
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, true);
+    ScanPolicyEvaluatorResults results =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    List<PolicyViolation> autoWaivedViolations = results.autoWaivedViolations;
+    assertThat(autoWaivedViolations).hasSize(0);
+    assertThat(results.activeViolations).hasSize(36);
+  }
+
+  @Test
+  public void testEvaluate_Results_AutoWaivedViolations_PathForward_NonSecurityViolations() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    ComponentVersionInfoDTO dto = new ComponentVersionInfoDTO();
+    dto.remediation = new ApiComponentRemediationValueDTO();
+    dto.remediation.suggestedVersionChange = new ApiSuggestedVersionChangeOptionDTO();
+    dto.remediation.versionChanges.add(new ApiVersionChangeOptionDTO());
+
+    doReturn(dto)
+        .when(mockComponentInfoService).getComponentVersionInfoNoAuth(any(), any(), any(), any(), any(), any(), any());
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    newPolicy(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
+
+    tempEntity.newAutoPolicyWaiver(application.getId(), 10, false, true);
+    ScanPolicyEvaluatorResults results =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    assertThat(results.autoWaivedViolations).hasSize(0);
+    assertThat(results.activeViolations).hasSize(20);
+  }
+
+  @Test
+  public void testEvaluate_Results_AutoWaivedViolations_MultipleAutoWaivers() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(8); // should not be auto waived
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    AutoPolicyWaiver appWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 8, false, false);
+    tempEntity.newAutoPolicyWaiver(application.getOrganizationId(), 4, false, false);
+    ScanPolicyEvaluatorResults results =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results.autoWaivedViolations).hasSize(36).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(appWaiver.getId());
+      assertThat(autoWaivedViolation.getWaiveTime()).isNotNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverId()).isNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverComment()).isNull();
+      assertThat(autoWaivedViolation.getPolicyId()).isEqualTo(securityPolicy.getId());
+    });
+    assertThat(results.activeViolations).hasSize(0);
+  }
+
+  @Test
+  public void testEvaluate_Results_AutoWaivedViolations_ThreatLevelOnly_noPolicyWaiver() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    // License policy has a threat level of 5, so its violations should be auto waived
+    Policy licensePolicy = newPolicy(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(8); // should not be auto waived
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, false);
+    ScanPolicyEvaluatorResults results =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    List<PolicyViolation> autoWaivedViolations = results.autoWaivedViolations;
+    assertThat(autoWaivedViolations).hasSize(20).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiver.getId());
+      assertThat(autoWaivedViolation.getWaiveTime()).isNotNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverId()).isNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverComment()).isNull();
+      assertThat(autoWaivedViolation.getPolicyId()).isEqualTo(licensePolicy.getId());
+    });
+
+    // auto waiver should not apply to security policy violations because their threat level > 7
+    assertThat(results.activeViolations).hasSize(36).allSatisfy(activeViolation -> {
+      assertThat(activeViolation.getPolicyId()).isEqualTo(securityPolicy.getId());
+      assertThat(activeViolation.getLegacyViolationTime()).isNull();
+      assertThat(activeViolation.getWaiveTime()).isNull();
+      assertThat(activeViolation.getAutoPolicyWaiverId()).isNull();
+      assertThat(activeViolation.getPolicyWaiverId()).isNull();
+      assertThat(activeViolation.getPolicyWaiverComment()).isNull();
+    });
+
+    List<PolicyViolation> inactiveViolations = getInactiveViolations(results);
+    assertThat(inactiveViolations).hasSize(20).allSatisfy(inactiveViolation -> {
+      assertThat(inactiveViolation.isLegacyViolation()).isFalse();
+      assertThat(inactiveViolation.getWaiveTime()).isNotNull();
+      assertThat(inactiveViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiver.getId());
+    });
+  }
+
+  @Test
+  public void testEvaluate_Results_AutoWaivedViolations_ThreatLevelOnly_withPolicyWaiver() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    // Basic setup
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    // There should be 36 violations per security policy
+    Policy securityPolicyOne = new Policy(null, "Security Policy One");
+    securityPolicyOne.setThreatLevel(5);
+    securityPolicyOne.setOwnerId(application.getId());
+    Constraint constraintOne = new Constraint(null, "TestConstraintOne", LogicalOperator.AND);
+    constraintOne.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicyOne.addConstraint(constraintOne);
+    tempEntity.newPolicy(securityPolicyOne);
+
+    Policy securityPolicyTwo = new Policy(null, "Security Policy Two");
+    securityPolicyTwo.setThreatLevel(9);
+    securityPolicyTwo.setOwnerId(application.getId());
+    Constraint constraintTwo = new Constraint(null, "TestConstraintTwo", LogicalOperator.AND);
+    constraintTwo.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicyTwo.addConstraint(constraintTwo);
+    tempEntity.newPolicy(securityPolicyTwo);
+
+    // Create a policy waiver for one of them - will only waive 3 of the 36 violations found
+    PolicyWaiver waiver = tempEntity.newWaiver("f0776db1593e215146d2", securityPolicyOne.getId(), application.getId());
+
+    // Create an auto waiver - should only waive violations for policy 1 where the threat level is 5
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, false);
+
+    ScanPolicyEvaluatorResults results =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    assertThat(results.activeViolations).hasSize(36).allSatisfy(activeViolation -> {
+      assertThat(activeViolation.getPolicyId()).isEqualTo(securityPolicyTwo.getId());
+      assertThat(activeViolation.getLegacyViolationTime()).isNull();
+      assertThat(activeViolation.getWaiveTime()).isNull();
+      assertThat(activeViolation.getAutoPolicyWaiverId()).isNull();
+      assertThat(activeViolation.getPolicyWaiverId()).isNull();
+      assertThat(activeViolation.getPolicyWaiverComment()).isNull();
+    });
+
+    assertThat(results.waivedViolations).hasSize(3).allSatisfy(waivedViolation -> {
+      assertThat(waivedViolation.getHash()).isEqualTo(waiver.getHash());
+      assertThat(waivedViolation.isLegacyViolation()).isFalse();
+      assertThat(waivedViolation.getWaiveTime()).isNotNull();
+      assertThat(waivedViolation.getPolicyWaiverId()).isEqualTo(waiver.getId());
+      assertThat(waivedViolation.getPolicyWaiverComment()).isEqualTo(waiver.getComment());
+    });
+
+    assertThat(results.autoWaivedViolations).hasSize(33).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.isLegacyViolation()).isFalse();
+      assertThat(autoWaivedViolation.getWaiveTime()).isNotNull();
+      assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiver.getId());
+    });
+
+    List<PolicyViolation> inactiveViolations = getInactiveViolations(results);
+    assertThat(inactiveViolations).hasSize(36);
+  }
+  
   @Test
   public void testEvaluate_Results_LegacyViolations() throws Exception {
     application = tempEntity.newApplicationWithParent();
@@ -557,6 +898,40 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
+  public void testEvaluate_Results_NotifiableViolations_WithAutoWaiver() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    newPolicy(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
+
+    ScanPolicyEvaluatorResults results1 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    assertThat(results1.activeViolations).hasSize(20);
+    assertThat(results1.notifiableViolations).hasSize(20);
+
+    AutoPolicyWaiver autoWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, false);
+
+    ScanPolicyEvaluatorResults results2 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    assertThat(results2.activeViolations).hasSize(0);
+    assertThat(results2.autoWaivedViolations).hasSize(20);
+    assertThat(results2.notifiableViolations).hasSize(0);
+
+    autoPolicyWaiverDAO.delete(autoWaiver);
+
+    ScanPolicyEvaluatorResults results3 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    assertThat(results3.activeViolations).hasSize(20);
+    assertThat(results3.autoWaivedViolations).hasSize(0);
+    assertThat(results3.notifiableViolations).hasSize(0);
+  }
+  
+  @Test
   public void testEvaluate_EmitsApplicationEvaluationEvent() throws IOException, InterruptedException {
     handler = new TestEventHandler<>(new CountDownLatch(1), ApplicationEvaluationEvent.class);
 
@@ -755,6 +1130,576 @@ public class ScanPolicyEvaluatorTest
         .allSatisfy(violation -> assertThat(violation.getFixTime()).isEqualTo(results2.evaluation.getTime()));
   }
 
+  @Test
+  public void testEvaluate_UpdateAutoWaivedViolations_MultiplePolicies_NoPolicyWaiver() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    // There should be 36 violations per security policy
+    Policy securityPolicyOne = new Policy(null, "Security Policy One");
+    securityPolicyOne.setThreatLevel(5);
+    securityPolicyOne.setOwnerId(application.getId());
+    Constraint constraintOne = new Constraint(null, "TestConstraintOne", LogicalOperator.AND);
+    constraintOne.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicyOne.addConstraint(constraintOne);
+    tempEntity.newPolicy(securityPolicyOne);
+
+    Policy securityPolicyTwo = new Policy(null, "Security Policy Two");
+    securityPolicyTwo.setThreatLevel(9);
+    securityPolicyTwo.setOwnerId(application.getId());
+    Constraint constraintTwo = new Constraint(null, "TestConstraintTwo", LogicalOperator.AND);
+    constraintTwo.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicyTwo.addConstraint(constraintTwo);
+    tempEntity.newPolicy(securityPolicyTwo);
+
+    ScanPolicyEvaluatorResults results1 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    Date openTime = results1.evaluation.getTime();
+
+    assertThat(results1.activeViolations).hasSize(72);
+
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, false);
+
+    ScanPolicyEvaluatorResults results2 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    assertThat(results2.activeViolations).hasSize(36).allSatisfy(activeViolation -> {
+      assertThat(activeViolation.getAutoPolicyWaiverId()).isNull();
+      assertThat(activeViolation.getWaiveTime()).isNull();
+      assertThat(activeViolation.getPolicyId()).isEqualTo(securityPolicyTwo.getId());
+    });
+
+    List<PolicyViolation> autoWaivedViolations = results2.autoWaivedViolations;
+    assertThat(autoWaivedViolations).hasSize(36).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.getOpenTime()).isEqualTo(openTime);
+      assertThat(autoWaivedViolation.getFixTime()).isNull();
+      assertThat(autoWaivedViolation.getWaiveTime()).isEqualTo(results2.evaluation.getTime());
+      assertThat(autoWaivedViolation.getPolicyWaiverId()).isNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverComment()).isNull();
+      assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiver.getId());
+    });
+
+    autoPolicyWaiverDAO.delete(autoPolicyWaiver);
+
+    ScanPolicyEvaluatorResults results3 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    assertThat(results3.activeViolations).hasSize(72).allSatisfy(unwaivedViolation -> {
+      assertThat(unwaivedViolation.getFixTime()).isNull();
+      assertThat(unwaivedViolation.getWaiveTime()).isNull();
+      assertThat(unwaivedViolation.getAutoPolicyWaiverId()).isNull();
+    });
+    assertThat(results3.autoWaivedViolations).hasSize(0);
+    // 36 waived violations + 72 unwaived violations = 108
+    assertThat(policyViolationDAO.getByApplicationId(application.getId())).hasSize(108);
+  }
+
+  @Test
+  public void testEvaluate_AddAndRemoveAutoWaiver_SinglePolicy_NoPolicyWaiver() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    // There should be 36 violations per security policy
+    Policy securityPolicy = new Policy(null, "Security Policy One");
+    securityPolicy.setThreatLevel(5);
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraintOne = new Constraint(null, "TestConstraintOne", LogicalOperator.AND);
+    constraintOne.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraintOne);
+    tempEntity.newPolicy(securityPolicy);
+
+    // add auto waiver and evaluate
+    AutoPolicyWaiver autoPolicyWaiverOne = tempEntity.newAutoPolicyWaiver(application.getId(), 6, false, false);
+    ScanPolicyEvaluatorResults results1 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    List<PolicyViolation> autoWaivedViolations = results1.autoWaivedViolations;
+    assertThat(autoWaivedViolations).hasSize(36).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.getOpenTime()).isEqualTo(results1.evaluation.getTime());
+      assertThat(autoWaivedViolation.getFixTime()).isNull();
+      assertThat(autoWaivedViolation.getWaiveTime()).isEqualTo(results1.evaluation.getTime());
+      assertThat(autoWaivedViolation.getPolicyWaiverId()).isNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverComment()).isNull();
+      assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiverOne.getId());
+    });
+
+    // delete auto waiver and evaluate
+    autoPolicyWaiverDAO.delete(autoPolicyWaiverOne);
+    ScanPolicyEvaluatorResults results2 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results2.autoWaivedViolations).hasSize(0);
+    assertThat(results2.activeViolations).hasSize(36).allSatisfy(activeViolation -> {
+      assertThat(activeViolation.getAutoPolicyWaiverId()).isNull();
+      assertThat(activeViolation.getWaiveTime()).isNull();
+    });
+
+    // add another auto waiver and evaluate
+    AutoPolicyWaiver autoPolicyWaiverTwo = tempEntity.newAutoPolicyWaiver(application.getId(), 3, false, false);
+    ScanPolicyEvaluatorResults results3 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results3.autoWaivedViolations).hasSize(0);
+    assertThat(results3.activeViolations).hasSize(36).allSatisfy(activeViolation -> {
+      assertThat(activeViolation.getAutoPolicyWaiverId()).isNull();
+      assertThat(activeViolation.getWaiveTime()).isNull();
+    });
+
+    // Add a final auto waiver and evaluate
+    autoPolicyWaiverDAO.delete(autoPolicyWaiverTwo);
+    AutoPolicyWaiver autoPolicyWaiverThree = tempEntity.newAutoPolicyWaiver(application.getId(), 8, false, false);
+    ScanPolicyEvaluatorResults results4 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results4.autoWaivedViolations).hasSize(36).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.getOpenTime()).isEqualTo(results2.evaluation.getTime());
+      assertThat(autoWaivedViolation.getFixTime()).isNull();
+      assertThat(autoWaivedViolation.getWaiveTime()).isEqualTo(results4.evaluation.getTime());
+      assertThat(autoWaivedViolation.getPolicyWaiverId()).isNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverComment()).isNull();
+      assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiverThree.getId());
+    });
+    assertThat(results4.activeViolations).hasSize(0);
+  }
+
+  @Test
+  public void testEvaluate_AddAndRemovePolicyWaiver_SinglePolicy_WithAutoWaiver() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(6);
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    // add auto policy waiver and evaluate
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 8, false, false);
+    ScanPolicyEvaluatorResults results1 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results1.activeViolations).hasSize(0);
+    List<PolicyViolation> autoWaivedViolations = results1.autoWaivedViolations;
+    assertThat(autoWaivedViolations).hasSize(36).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.getOpenTime()).isEqualTo(results1.evaluation.getTime());
+      assertThat(autoWaivedViolation.getFixTime()).isNull();
+      assertThat(autoWaivedViolation.getWaiveTime()).isEqualTo(results1.evaluation.getTime());
+      assertThat(autoWaivedViolation.getPolicyWaiverId()).isNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverComment()).isNull();
+      assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiver.getId());
+    });
+
+    // add policy waiver and evaluate
+    PolicyWaiver waiver = tempEntity.newWaiver("f0776db1593e215146d2", securityPolicy.getId(), application.getId());
+    ScanPolicyEvaluatorResults results2 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results2.activeViolations).hasSize(0);
+    assertThat(results2.waivedViolations).hasSize(3).allSatisfy(waivedViolation -> {
+      assertThat(waivedViolation.getHash()).isEqualTo(waiver.getHash());
+      assertThat(waivedViolation.getOpenTime()).isEqualTo(results2.evaluation.getTime());
+      assertThat(waivedViolation.getFixTime()).isNull();
+      assertThat(waivedViolation.getWaiveTime()).isEqualTo(results2.evaluation.getTime());
+      assertThat(waivedViolation.getPolicyWaiverId()).isEqualTo(waiver.getId());
+      assertThat(waivedViolation.getPolicyWaiverComment()).isEqualTo(waiver.getComment());
+      assertThat(waivedViolation.getAutoPolicyWaiverId()).isNull();
+    });
+    assertThat(results2.autoWaivedViolations).hasSize(33).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.getOpenTime()).isEqualTo(results1.evaluation.getTime());
+      assertThat(autoWaivedViolation.getFixTime()).isNull();
+      assertThat(autoWaivedViolation.getWaiveTime()).isEqualTo(results1.evaluation.getTime());
+      assertThat(autoWaivedViolation.getPolicyWaiverId()).isNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverComment()).isNull();
+      assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiver.getId());
+    });
+
+    // remove policy waiver and evaluate
+    policyWaiverDAO.delete(waiver);
+    ScanPolicyEvaluatorResults results3 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results3.activeViolations).hasSize(0);
+    assertThat(results3.waivedViolations).hasSize(0);
+    assertThat(results3.autoWaivedViolations).hasSize(36).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.getFixTime()).isNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverId()).isNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverComment()).isNull();
+      assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiver.getId());
+    });
+
+    List<PolicyViolation> newlyAutoWaivedViolations = results3.autoWaivedViolations.stream().filter(
+        autoWaivedViolation -> !autoWaivedViolation.getOpenTime().equals(results1.evaluation.getTime())
+    ).toList();
+
+    assertThat(newlyAutoWaivedViolations).hasSize(3).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.getOpenTime()).isEqualTo(results3.evaluation.getTime());
+      assertThat(autoWaivedViolation.getWaiveTime()).isEqualTo(results3.evaluation.getTime());
+    });
+  }
+
+  @Test
+  public void testEvaluate_AddAndRemoveAutoWaiver_SinglePolicy_WithPolicyWaiver() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(6);
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    // add policy waiver and evaluate
+    PolicyWaiver waiver = tempEntity.newWaiver("f0776db1593e215146d2", securityPolicy.getId(), application.getId());
+    ScanPolicyEvaluatorResults results1 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results1.activeViolations).hasSize(33);
+    assertThat(results1.waivedViolations).hasSize(3).allSatisfy(waivedViolation -> {
+      assertThat(waivedViolation.getHash()).isEqualTo(waiver.getHash());
+      assertThat(waivedViolation.getOpenTime()).isEqualTo(results1.evaluation.getTime());
+      assertThat(waivedViolation.getFixTime()).isNull();
+      assertThat(waivedViolation.getWaiveTime()).isEqualTo(results1.evaluation.getTime());
+      assertThat(waivedViolation.getPolicyWaiverId()).isEqualTo(waiver.getId());
+      assertThat(waivedViolation.getPolicyWaiverComment()).isEqualTo(waiver.getComment());
+      assertThat(waivedViolation.getAutoPolicyWaiverId()).isNull();
+    });
+    assertThat(results1.autoWaivedViolations).hasSize(0);
+
+    // add auto waiver and evaluate
+    AutoPolicyWaiver autoPolicyWaiverOne = tempEntity.newAutoPolicyWaiver(application.getId(), 8, false, false);
+    ScanPolicyEvaluatorResults results2 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results2.activeViolations).hasSize(0);
+    assertThat(results2.waivedViolations).hasSize(0);
+    assertThat(results2.autoWaivedViolations).hasSize(33).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.getOpenTime()).isEqualTo(results1.evaluation.getTime());
+      assertThat(autoWaivedViolation.getFixTime()).isNull();
+      assertThat(autoWaivedViolation.getWaiveTime()).isEqualTo(results2.evaluation.getTime());
+      assertThat(autoWaivedViolation.getPolicyWaiverId()).isNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverComment()).isNull();
+      assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiverOne.getId());
+    });
+
+    // delete auto waiver and evaluate
+    autoPolicyWaiverDAO.delete(autoPolicyWaiverOne);
+    ScanPolicyEvaluatorResults results3 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results3.activeViolations).hasSize(33);
+    assertThat(results3.autoWaivedViolations).hasSize(0);
+    assertThat(results3.waivedViolations).hasSize(0);
+
+    // delete policy waiver and evaluate
+    policyWaiverDAO.delete(waiver);
+    ScanPolicyEvaluatorResults results4 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results4.autoWaivedViolations).hasSize(0);
+    assertThat(results4.waivedViolations).hasSize(0);
+    assertThat(results4.activeViolations).hasSize(36);
+
+    // add auto waiver and evaluate
+    AutoPolicyWaiver autoPolicyWaiverTwo = tempEntity.newAutoPolicyWaiver(application.getId(), 8, false, false);
+    ScanPolicyEvaluatorResults results5 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results5.activeViolations).hasSize(0);
+    assertThat(results5.waivedViolations).hasSize(0);
+    assertThat(results5.autoWaivedViolations).hasSize(36).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.getFixTime()).isNull();
+      assertThat(autoWaivedViolation.getWaiveTime()).isEqualTo(results5.evaluation.getTime());
+      assertThat(autoWaivedViolation.getPolicyWaiverId()).isNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverComment()).isNull();
+      assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiverTwo.getId());
+    });
+
+    List<PolicyViolation> newlyAutoWaivedViolations = results5.autoWaivedViolations.stream().filter(
+        autoWaivedViolation -> autoWaivedViolation.getOpenTime().equals(results4.evaluation.getTime())
+    ).toList();
+
+    assertThat(newlyAutoWaivedViolations).hasSize(3).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.getOpenTime()).isEqualTo(results4.evaluation.getTime());
+      assertThat(autoWaivedViolation.getWaiveTime()).isEqualTo(results5.evaluation.getTime());
+    });
+
+    // add policy waiver and evaluate
+    PolicyWaiver waiverTwo = tempEntity.newWaiver("f0776db1593e215146d2", securityPolicy.getId(), application.getId());
+    ScanPolicyEvaluatorResults results6 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results6.activeViolations).hasSize(0);
+    assertThat(results6.waivedViolations).hasSize(3).allSatisfy(waivedViolation -> {
+      assertThat(waivedViolation.getHash()).isEqualTo(waiverTwo.getHash());
+      assertThat(waivedViolation.getFixTime()).isNull();
+      assertThat(waivedViolation.getWaiveTime()).isEqualTo(results6.evaluation.getTime());
+      assertThat(waivedViolation.getPolicyWaiverId()).isEqualTo(waiverTwo.getId());
+      assertThat(waivedViolation.getPolicyWaiverComment()).isEqualTo(waiverTwo.getComment());
+      assertThat(waivedViolation.getAutoPolicyWaiverId()).isNull();
+    });
+    assertThat(results6.autoWaivedViolations).hasSize(33).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.getFixTime()).isNull();
+      assertThat(autoWaivedViolation.getWaiveTime()).isEqualTo(results5.evaluation.getTime());
+      assertThat(autoWaivedViolation.getPolicyWaiverId()).isNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverComment()).isNull();
+      assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiverTwo.getId());
+    });
+  }
+
+  @Test
+  public void testEvaluate_AddAndRemoveAutoWaiver_MultiplePolicies_NoPolicyWaiver() throws Exception {
+    // setup
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    // There should be 36 violations per security policy
+    Policy securityPolicyOne = new Policy(null, "Security Policy One");
+    securityPolicyOne.setThreatLevel(5);
+    securityPolicyOne.setOwnerId(application.getId());
+    Constraint constraintOne = new Constraint(null, "TestConstraintOne", LogicalOperator.AND);
+    constraintOne.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicyOne.addConstraint(constraintOne);
+    tempEntity.newPolicy(securityPolicyOne);
+
+    Policy securityPolicyTwo = new Policy(null, "Security Policy Two");
+    securityPolicyTwo.setThreatLevel(9);
+    securityPolicyTwo.setOwnerId(application.getId());
+    Constraint constraintTwo = new Constraint(null, "TestConstraintTwo", LogicalOperator.AND);
+    constraintTwo.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicyTwo.addConstraint(constraintTwo);
+    tempEntity.newPolicy(securityPolicyTwo);
+
+    ScanPolicyEvaluatorResults results1 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    assertThat(results1.activeViolations).hasSize(72);
+
+    // add auto waiver and evaluate
+    AutoPolicyWaiver autoPolicyWaiverOne = tempEntity.newAutoPolicyWaiver(application.getId(), 5, false, false);
+    ScanPolicyEvaluatorResults results2 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results2.activeViolations).hasSize(36);
+    assertThat(results2.autoWaivedViolations).hasSize(36).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.getOpenTime()).isEqualTo(results1.evaluation.getTime());
+      assertThat(autoWaivedViolation.getFixTime()).isNull();
+      assertThat(autoWaivedViolation.getWaiveTime()).isEqualTo(results2.evaluation.getTime());
+      assertThat(autoWaivedViolation.getPolicyWaiverId()).isNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverComment()).isNull();
+      assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiverOne.getId());
+    });
+
+    // remove auto waive and evaluate
+    autoPolicyWaiverDAO.delete(autoPolicyWaiverOne);
+    ScanPolicyEvaluatorResults results3 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results3.autoWaivedViolations).hasSize(0);
+    assertThat(results3.activeViolations).hasSize(72);
+
+    List<PolicyViolation> unAutoWaivedViolations = results3.activeViolations.stream().filter(
+        unwaivedViolation -> unwaivedViolation.getOpenTime().equals(results3.evaluation.getTime())
+    ).toList();
+    assertThat(unAutoWaivedViolations).hasSize(36);
+
+    // add ineffective auto waiver and evaluate
+    tempEntity.newAutoPolicyWaiver(application.getId(), 3, false, false);
+    ScanPolicyEvaluatorResults results4 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results4.autoWaivedViolations).hasSize(0);
+    assertThat(results4.activeViolations).hasSize(72);
+  }
+
+  @Test
+  public void testEvaluate_AddAndRemoveAutoWaiver_MultiplePolicies_WithPolicyWaiver() throws Exception {
+    // setup
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    // There should be 20 violations for this policy
+    newPolicy(new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
+
+    // There should be 36 violations per security policy
+    Policy securityPolicyOne = new Policy(null, "Security Policy One");
+    securityPolicyOne.setThreatLevel(5);
+    securityPolicyOne.setOwnerId(application.getId());
+    Constraint constraintOne = new Constraint(null, "TestConstraintOne", LogicalOperator.AND);
+    constraintOne.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicyOne.addConstraint(constraintOne);
+    tempEntity.newPolicy(securityPolicyOne);
+
+    Policy securityPolicyTwo = new Policy(null, "Security Policy Two");
+    securityPolicyTwo.setThreatLevel(9);
+    securityPolicyTwo.setOwnerId(application.getId());
+    Constraint constraintTwo = new Constraint(null, "TestConstraintTwo", LogicalOperator.AND);
+    constraintTwo.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicyTwo.addConstraint(constraintTwo);
+    tempEntity.newPolicy(securityPolicyTwo);
+
+    tempEntity.newWaiver("f0776db1593e215146d2", securityPolicyOne.getId(), application.getId());
+
+    ScanPolicyEvaluatorResults results1 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results1.activeViolations).hasSize(89);
+    assertThat(results1.waivedViolations).hasSize(3);
+
+    // add auto waiver and evaluate
+    AutoPolicyWaiver autoPolicyWaiverOne = tempEntity.newAutoPolicyWaiver(application.getId(), 8, false, false);
+    ScanPolicyEvaluatorResults results2 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results2.activeViolations).hasSize(36);
+    assertThat(results2.autoWaivedViolations).hasSize(53).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.getOpenTime()).isEqualTo(results1.evaluation.getTime());
+      assertThat(autoWaivedViolation.getFixTime()).isNull();
+      assertThat(autoWaivedViolation.getWaiveTime()).isEqualTo(results2.evaluation.getTime());
+      assertThat(autoWaivedViolation.getPolicyWaiverId()).isNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverComment()).isNull();
+      assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiverOne.getId());
+    });
+    assertThat(results2.activeViolations).hasSize(36);
+
+    // remove auto waive and evaluate
+    autoPolicyWaiverDAO.delete(autoPolicyWaiverOne);
+    ScanPolicyEvaluatorResults results3 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results3.autoWaivedViolations).hasSize(0);
+    assertThat(results3.activeViolations).hasSize(89);
+    assertThat(results3.waivedViolations).hasSize(0);
+
+    // add ineffective auto waiver and evaluate
+    tempEntity.newAutoPolicyWaiver(application.getId(), 1, false, false);
+    ScanPolicyEvaluatorResults results4 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results4.autoWaivedViolations).hasSize(0);
+    assertThat(results4.activeViolations).hasSize(89);
+    assertThat(results3.waivedViolations).hasSize(0);
+  }
+
+  @Test
+  public void testEvaluate_UpdateAutoWaivedViolations_SinglePolicy_WithPolicyWaiver() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(6);
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    ScanPolicyEvaluatorResults results1 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    Date openTime = results1.evaluation.getTime();
+
+    assertThat(results1.activeViolations).hasSize(36);
+
+    PolicyWaiver waiver = tempEntity.newWaiver("f0776db1593e215146d2", securityPolicy.getId(), application.getId());
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, false);
+
+    ScanPolicyEvaluatorResults results2 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    assertThat(results2.activeViolations).hasSize(0);
+
+    assertThat(results2.waivedViolations).hasSize(3).allSatisfy(waivedViolation -> {
+      assertThat(waivedViolation.getHash()).isEqualTo(waiver.getHash());
+      assertThat(waivedViolation.getOpenTime()).isEqualTo(openTime);
+      assertThat(waivedViolation.getFixTime()).isNull();
+      assertThat(waivedViolation.getWaiveTime()).isEqualTo(results2.evaluation.getTime());
+      assertThat(waivedViolation.getPolicyWaiverId()).isEqualTo(waiver.getId());
+      assertThat(waivedViolation.getPolicyWaiverComment()).isEqualTo(waiver.getComment());
+    });
+
+    assertThat(results2.autoWaivedViolations).hasSize(33).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.getOpenTime()).isEqualTo(openTime);
+      assertThat(autoWaivedViolation.getFixTime()).isNull();
+      assertThat(autoWaivedViolation.getWaiveTime()).isEqualTo(results2.evaluation.getTime());
+      assertThat(autoWaivedViolation.getPolicyWaiverId()).isNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverComment()).isNull();
+      assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiver.getId());
+    });
+
+    policyWaiverDAO.delete(waiver);
+
+    ScanPolicyEvaluatorResults results3 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    assertThat(results3.waivedViolations).hasSize(0);
+    assertThat(results3.autoWaivedViolations).hasSize(36).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.getFixTime()).isNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverId()).isNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverComment()).isNull();
+      assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiver.getId());
+    });
+
+    List<PolicyViolation> newlyAutoWaivedViolations = results3.autoWaivedViolations.stream().filter(
+        autoWaivedViolation -> !autoWaivedViolation.getOpenTime().equals(openTime)
+    ).toList();
+
+    assertThat(newlyAutoWaivedViolations).hasSize(3).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.getOpenTime()).isEqualTo(results3.evaluation.getTime());
+      assertThat(autoWaivedViolation.getWaiveTime()).isEqualTo(results3.evaluation.getTime());
+    });
+  }
+
+  @Test
+  public void testEvaluate_UpdateAutoWaivedViolations_SinglePolicy_NoPolicyWaiver() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(6);
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    ScanPolicyEvaluatorResults results1 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    Date openTime = results1.evaluation.getTime();
+
+    assertThat(results1.activeViolations).hasSize(36);
+
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, false);
+
+    ScanPolicyEvaluatorResults results2 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    assertThat(results2.activeViolations).hasSize(0);
+
+    List<PolicyViolation> autoWaivedViolations = results2.autoWaivedViolations;
+    assertThat(autoWaivedViolations).hasSize(36).allSatisfy(autoWaivedViolation -> {
+      assertThat(autoWaivedViolation.getOpenTime()).isEqualTo(openTime);
+      assertThat(autoWaivedViolation.getFixTime()).isNull();
+      assertThat(autoWaivedViolation.getWaiveTime()).isEqualTo(results2.evaluation.getTime());
+      assertThat(autoWaivedViolation.getPolicyWaiverId()).isNull();
+      assertThat(autoWaivedViolation.getPolicyWaiverComment()).isNull();
+      assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiver.getId());
+    });
+
+    autoPolicyWaiverDAO.delete(autoPolicyWaiver);
+
+    ScanPolicyEvaluatorResults results3 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    assertThat(results3.activeViolations).hasSize(36).allSatisfy(unwaivedViolation -> {
+      assertThat(unwaivedViolation.getOpenTime()).isEqualTo(results3.evaluation.getTime());
+      assertThat(unwaivedViolation.getFixTime()).isNull();
+      assertThat(unwaivedViolation.getWaiveTime()).isNull();
+      assertThat(unwaivedViolation.getAutoPolicyWaiverId()).isNull();
+    });
+    assertThat(results3.autoWaivedViolations).hasSize(0);
+    assertThat(policyViolationDAO.getByApplicationId(application.getId())).hasSize(72);
+  }
+  
   @Test
   public void testEvaluate_UpdateWaivedViolations() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
@@ -1880,6 +2825,55 @@ public class ScanPolicyEvaluatorTest
         policyViolationDAO.getByApplicationId(application.getId()), currentUser.getUsernameOrSystem());
   }
 
+  @Test
+  public void testEvaluate_PolicyViolationLogger_AutoWaiveAndUnAutoWaivePolicyViolations() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+    when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("report");
+
+    // There should be 36 violations per security policy
+    Policy securityPolicyOne = new Policy(null, "Security Policy One");
+    securityPolicyOne.setThreatLevel(5);
+    securityPolicyOne.setOwnerId(application.getId());
+    Constraint constraintOne = new Constraint(null, "TestConstraintOne", LogicalOperator.AND);
+    constraintOne.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicyOne.addConstraint(constraintOne);
+    tempEntity.newPolicy(securityPolicyOne);
+
+    Policy securityPolicyTwo = new Policy(null, "Security Policy Two");
+    securityPolicyTwo.setThreatLevel(9);
+    securityPolicyTwo.setOwnerId(application.getId());
+    Constraint constraintTwo = new Constraint(null, "TestConstraintTwo", LogicalOperator.AND);
+    constraintTwo.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicyTwo.addConstraint(constraintTwo);
+    tempEntity.newPolicy(securityPolicyTwo);
+
+    AutoPolicyWaiver autoWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 7, false, false);
+
+    ScanPolicyEvaluatorResults results1 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+
+    assertThat(results1.allViolations).hasSize(72);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results1.evaluation.getTime(), results1.allViolations,
+        currentUser.getUsernameOrSystem());
+    List<PolicyViolation> autoWaivedViolations = results1.autoWaivedViolations;
+    assertThat(autoWaivedViolations).hasSize(36);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.AUTOWAIVE, results1.evaluation.getTime(), autoWaivedViolations,
+        currentUser.getUsernameOrSystem());
+
+    policyViolationLoggerOutput.clear();
+
+    autoPolicyWaiverDAO.delete(autoWaiver);
+    ScanPolicyEvaluatorResults results2 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE);
+    assertThat(results2.allViolations).hasSize(72);
+    assertThat(results2.activeViolations).hasSize(72);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.UNAUTOWAIVE, results2.evaluation.getTime(),
+        results1.autoWaivedViolations, currentUser.getUsernameOrSystem());
+  }
+  
   @Test
   public void testEvaluate_PolicyViolationLogger_WaiveAndUnwaivePolicyViolations() throws Exception {
     when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);

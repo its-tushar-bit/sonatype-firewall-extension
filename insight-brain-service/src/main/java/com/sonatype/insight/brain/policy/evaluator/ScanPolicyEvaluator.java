@@ -21,7 +21,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -39,9 +38,11 @@ import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -49,14 +50,18 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritizationRemediationService;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
+import com.sonatype.insight.brain.hds.ComponentInfoService;
+import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.ApplicationComponentLicense;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -132,6 +137,10 @@ public class ScanPolicyEvaluator
 
   private final PolicyWaiverDAO policyWaiverDAO;
 
+  private final AutoPolicyWaiverDAO autoPolicyWaiverDAO;
+
+  private final OwnerDAO ownerDAO;
+
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
   private final ApplicationEvaluationEventService applicationEvaluationEventService;
@@ -164,6 +173,8 @@ public class ScanPolicyEvaluator
 
   private final FeaturesService featuresService;
 
+  private final ComponentInfoService componentInfoService;
+
   private final ReportComponentService reportComponentService;
 
   @Inject
@@ -177,6 +188,8 @@ public class ScanPolicyEvaluator
       final ApplicationComponentDAO applicationComponentDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
       final PolicyWaiverDAO policyWaiverDAO,
+      final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
+      final OwnerDAO ownerDAO,
       final ComponentPolicyEvaluator componentPolicyEvaluator,
       final ApplicationEvaluationEventService applicationEvaluationEventService,
       final LegacyViolationService legacyViolationService,
@@ -193,6 +206,7 @@ public class ScanPolicyEvaluator
       final TelemetryUtils telemetryUtils,
       final DevelopmentPrioritizationRemediationService developmentPrioritizationRemediationService,
       final FeaturesService featuresService,
+      final ComponentInfoService componentInfoService,
       final ReportComponentService reportComponentService)
   {
     this.work = insightWork;
@@ -204,6 +218,8 @@ public class ScanPolicyEvaluator
     this.applicationComponentDAO = applicationComponentDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyWaiverDAO = policyWaiverDAO;
+    this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
+    this.ownerDAO = ownerDAO;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.applicationEvaluationEventService = applicationEvaluationEventService;
     this.legacyViolationService = legacyViolationService;
@@ -220,7 +236,9 @@ public class ScanPolicyEvaluator
     this.telemetryUtils = telemetryUtils;
     this.developmentPrioritizationRemediationService = developmentPrioritizationRemediationService;
     this.featuresService = featuresService;
+    this.componentInfoService = componentInfoService;
     this.reportComponentService = reportComponentService;
+    componentInfoService.setToolName("ci");
   }
 
   public ScanPolicyEvaluatorResults evaluate(
@@ -232,7 +250,7 @@ public class ScanPolicyEvaluator
       throws IOException
   {
     return doEvaluate(application, scanId, stage, scanTriggerType, null, null, false /* forMonitoring */,
-            clientScanType);
+        clientScanType);
   }
 
   public ScanPolicyEvaluatorResults evaluate(
@@ -258,7 +276,7 @@ public class ScanPolicyEvaluator
       throws IOException
   {
     return doEvaluate(application, scanId, stage, scanTriggerType, null, null, true /* forMonitoring */,
-            clientScanType);
+        clientScanType);
   }
 
   /*
@@ -434,6 +452,9 @@ public class ScanPolicyEvaluator
       results.notifiableViolations = new ArrayList<>();
       results.fixedViolations = new ArrayList<>();
       results.waivedViolations = new ArrayList<>();
+      results.autoWaivedViolations = new ArrayList<>();
+
+      AutoPolicyWaiver autoPolicyWaiver = getApplicableAutoPolicyWaiver(appId);
 
       // Convert the policy alerts into policy violations
       List<PolicyAlert> allPolicyAlerts = new ArrayList<>();
@@ -471,6 +492,19 @@ public class ScanPolicyEvaluator
             policyViolation.setPolicyWaiverId(policyWaiver.getId());
             policyViolation.setPolicyWaiverComment(policyWaiver.getComment());
           }
+
+          if (autoPolicyWaiver != null && policyViolation.isActive()) {
+            boolean violationShouldBeAutoWaived = evaluateAutoPolicyWaiver(
+                appId,
+                policyViolation,
+                autoPolicyWaiver,
+                stage.getStageTypeId());
+            if (violationShouldBeAutoWaived) {
+              policyViolation.setWaiveTime(policyEvaluation.getTime());
+              policyViolation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+            }
+          }
+
           results.allViolations.add(policyViolation);
         }
       }
@@ -512,11 +546,18 @@ public class ScanPolicyEvaluator
           Component component =
               findComponentByComponentIdentifier(components, newPolicyViolation.getComponentIdentifier());
 
-          if (newPolicyViolation.isWaived()) {
+          if (newPolicyViolation.isWaived() && !newPolicyViolation.isAutoWaived()) {
             policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, newPolicyViolation);
             telemetryCollector.addTelemetryForWaivedViolation(newPolicyViolation, component);
             results.waivedViolations.add(newPolicyViolation);
           }
+
+          if (newPolicyViolation.isAutoWaived()) {
+            policyViolationLogger.add(PolicyViolationLogEvent.AUTOWAIVE, newPolicyViolation);
+            telemetryCollector.addTelemetryForAutoWaivedViolation(newPolicyViolation, component);
+            results.autoWaivedViolations.add(newPolicyViolation);
+          }
+
           if (newPolicyViolation.isLegacyViolation()) {
             telemetryCollector.addTelemetryForLegacyViolation(newPolicyViolation, component);
             policyViolationLogger.add(PolicyViolationLogEvent.GRANDFATHER, newPolicyViolation);
@@ -540,8 +581,9 @@ public class ScanPolicyEvaluator
           PolicyViolation oldPolicyViolation = entry.getKey();
           existing.add(oldPolicyViolation);
           PolicyViolation newPolicyViolation = entry.getValue();
+
           if (!newPolicyViolation.isWaived() && oldPolicyViolation.isWaived()) {
-            // The policy violation was un-waived.
+            // The policy violation was un-waived or un-auto-waived
             oldPolicyViolation.setFixTime(policyEvaluation.getTime());
             policyViolationDAO.update(tx, oldPolicyViolation);
             if (isNotifiable(null, newPolicyViolation, forMonitoring, isReevaluation)) {
@@ -549,13 +591,24 @@ public class ScanPolicyEvaluator
             }
             policyViolationDAO.insert(tx, newPolicyViolation);
 
-            policyViolationLogger.add(PolicyViolationLogEvent.UNWAIVE, newPolicyViolation);
-            Component component =
-                findComponentByComponentIdentifier(components, oldPolicyViolation.getComponentIdentifier());
-            telemetryCollector.addTelemetryForUnwaivedViolation(
-                newPolicyViolation,
-                component,
-                oldPolicyViolation.getPolicyWaiverId());
+            if (oldPolicyViolation.isAutoWaived()) {
+              policyViolationLogger.add(PolicyViolationLogEvent.UNAUTOWAIVE, newPolicyViolation);
+              Component component =
+                  findComponentByComponentIdentifier(components, oldPolicyViolation.getComponentIdentifier());
+              telemetryCollector.addTelemetryForUnAutoWaivedViolation(
+                  newPolicyViolation,
+                  component,
+                  oldPolicyViolation.getPolicyWaiverId());
+            }
+            else {
+              policyViolationLogger.add(PolicyViolationLogEvent.UNWAIVE, newPolicyViolation);
+              Component component =
+                  findComponentByComponentIdentifier(components, oldPolicyViolation.getComponentIdentifier());
+              telemetryCollector.addTelemetryForUnwaivedViolation(
+                  newPolicyViolation,
+                  component,
+                  oldPolicyViolation.getPolicyWaiverId());
+            }
           }
           else {
             if (isNotifiable(oldPolicyViolation, newPolicyViolation, forMonitoring, isReevaluation)) {
@@ -570,19 +623,92 @@ public class ScanPolicyEvaluator
             Component component =
                 findComponentByComponentIdentifier(components, oldPolicyViolation.getComponentIdentifier());
 
-            if (newPolicyViolation.isWaived() &&
-                !newPolicyViolation.getPolicyWaiverId().equals(oldPolicyViolation.getPolicyWaiverId())) {
-              // The policy violation was waived, or waiverID has changed (CLM-19768)
-              oldPolicyViolation.setPolicyWaiverId(newPolicyViolation.getPolicyWaiverId());
-              oldPolicyViolation.setPolicyWaiverComment(newPolicyViolation.getPolicyWaiverComment());
+            boolean keepExistingViolation = true;
 
-              if (!oldPolicyViolation.isWaived()) {
+            if (newPolicyViolation.isAutoWaived()) {
+              if (oldPolicyViolation.isAutoWaived()) {
+                /*
+                 * The existing violation was auto waived. Between scans, the old waiver was removed and replaced by
+                 * a new one. Alternatively, the old waiver was removed and a waiver configured on a parent
+                 * organization now applies. Either way, the violation should continue to be auto waived with the
+                 * new waiver.
+                 */
+                if (!oldPolicyViolation.getAutoPolicyWaiverId().equals(newPolicyViolation.getAutoPolicyWaiverId())) {
+                  oldPolicyViolation.setAutoPolicyWaiverId(newPolicyViolation.getAutoPolicyWaiverId());
+                  oldPolicyViolation.setWaiveTime(newPolicyViolation.getWaiveTime());
+                }
+                results.autoWaivedViolations.add(oldPolicyViolation);
+              }
+              else if (oldPolicyViolation.isWaived()) {
+                // Old violation had a policy waiver which has been removed, new violation has an auto waiver
+                oldPolicyViolation.setFixTime(policyEvaluation.getTime());
+                if (isNotifiable(null, newPolicyViolation, forMonitoring, isReevaluation)) {
+                  results.notifiableViolations.add(newPolicyViolation);
+                }
+                policyViolationDAO.insert(tx, newPolicyViolation);
+
+                policyViolationLogger.add(PolicyViolationLogEvent.UNWAIVE, newPolicyViolation);
+                telemetryCollector.addTelemetryForUnwaivedViolation(
+                    newPolicyViolation,
+                    component,
+                    oldPolicyViolation.getPolicyWaiverId());
+
+                policyViolationLogger.add(PolicyViolationLogEvent.AUTOWAIVE, newPolicyViolation);
+                telemetryCollector.addTelemetryForAutoWaivedViolation(newPolicyViolation, component);
+                results.waivedViolations.remove(oldPolicyViolation);
+                results.autoWaivedViolations.add(newPolicyViolation);
+                results.allViolations.remove(oldPolicyViolation);
+                results.allViolations.add(newPolicyViolation);
+                keepExistingViolation = false;
+              }
+              else {
+                oldPolicyViolation.setAutoPolicyWaiverId(newPolicyViolation.getAutoPolicyWaiverId());
                 oldPolicyViolation.setWaiveTime(newPolicyViolation.getWaiveTime());
+                policyViolationLogger.add(PolicyViolationLogEvent.AUTOWAIVE, oldPolicyViolation);
+                telemetryCollector.addTelemetryForAutoWaivedViolation(oldPolicyViolation, component);
+                results.autoWaivedViolations.add(oldPolicyViolation);
+              }
+            }
+            else if (newPolicyViolation.isWaived()) {
+              if (oldPolicyViolation.isAutoWaived()) {
+                // Old policy violation had an auto waiver which has been removed/no longer applies
+                oldPolicyViolation.setFixTime(policyEvaluation.getTime());
+                if (isNotifiable(null, newPolicyViolation, forMonitoring, isReevaluation)) {
+                  results.notifiableViolations.add(newPolicyViolation);
+                }
+                policyViolationDAO.insert(tx, newPolicyViolation);
+                policyViolationLogger.add(PolicyViolationLogEvent.UNAUTOWAIVE, oldPolicyViolation);
+                telemetryCollector.addTelemetryForUnAutoWaivedViolation(
+                    oldPolicyViolation,
+                    component,
+                    oldPolicyViolation.getAutoPolicyWaiverId());
+
+                policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, oldPolicyViolation);
+                telemetryCollector.addTelemetryForWaivedViolation(oldPolicyViolation, component);
+
+                results.autoWaivedViolations.remove(oldPolicyViolation);
+                results.waivedViolations.add(newPolicyViolation);
+                results.allViolations.remove(oldPolicyViolation);
+                results.allViolations.add(newPolicyViolation);
+                keepExistingViolation = false;
+              }
+              else if (oldPolicyViolation.isWaived()) {
+                // The policy waiver ID has changed (CLM-19768)
+                if (!newPolicyViolation.getPolicyWaiverId().equals(oldPolicyViolation.getPolicyWaiverId())) {
+                  oldPolicyViolation.setPolicyWaiverId(newPolicyViolation.getPolicyWaiverId());
+                  oldPolicyViolation.setPolicyWaiverComment(newPolicyViolation.getPolicyWaiverComment());
+                }
+              }
+              else {
+                oldPolicyViolation.setWaiveTime(newPolicyViolation.getWaiveTime());
+                oldPolicyViolation.setPolicyWaiverId(newPolicyViolation.getPolicyWaiverId());
+                oldPolicyViolation.setPolicyWaiverComment(newPolicyViolation.getPolicyWaiverComment());
                 policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, oldPolicyViolation);
                 telemetryCollector.addTelemetryForWaivedViolation(oldPolicyViolation, component);
                 results.waivedViolations.add(oldPolicyViolation);
               }
             }
+
             if (oldPolicyViolation.isLegacyViolation() && !oldPolicyViolation.isLegacyViolationApplied()) {
               oldPolicyViolation.setLegacyViolationApplied(true);
               telemetryCollector.addTelemetryForLegacyViolation(oldPolicyViolation, component);
@@ -594,9 +720,10 @@ public class ScanPolicyEvaluator
             }
             policyViolationDAO.update(tx, oldPolicyViolation);
 
-            // Update the violation in the list of all violation to be the one actually saved to the db.
-            results.allViolations.remove(newPolicyViolation);
-            results.allViolations.add(oldPolicyViolation);
+            if (keepExistingViolation) {
+              results.allViolations.remove(newPolicyViolation);
+              results.allViolations.add(oldPolicyViolation);
+            }
           }
         }
         logPolicyViolations(existing, "previously seen");
@@ -1077,7 +1204,7 @@ public class ScanPolicyEvaluator
    */
   private void sendStaleReportEvaluationTelemetryData(final String privateAppId, final String scanId) {
     TelemetryData telemetryData = new TelemetryData(
-            TelemetryPurpose.STALE_REPORT_REEVALUATION);
+        TelemetryPurpose.STALE_REPORT_REEVALUATION);
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("application_id", HdsClientAnalytics.obfuscate(privateAppId));
     attributes.put("scan_id", HdsClientAnalytics.obfuscate(scanId));
@@ -1147,5 +1274,72 @@ public class ScanPolicyEvaluator
     postEvents(scanPolicyEvaluatorResults, application, reportComponentData.components);
 
     return scanPolicyEvaluatorResults;
+  }
+
+  private boolean evaluateAutoPolicyWaiver(
+      String appId,
+      PolicyViolation policyViolation,
+      AutoPolicyWaiver autoPolicyWaiver,
+      String stageId)
+  {
+
+    boolean hasPolicyWaiver = hasPolicyWaiver(policyViolation);
+    boolean threatLevel = doesViolationMeetThreatLevelCriteria(policyViolation, autoPolicyWaiver);
+    boolean hasPathForward = doesViolationHavePathForward(appId, policyViolation, autoPolicyWaiver, stageId);
+
+    return threatLevel && !hasPolicyWaiver && !hasPathForward;
+  }
+
+  private boolean hasPolicyWaiver(PolicyViolation policyViolation) {
+    return policyViolation.getPolicyWaiverId() != null && policyViolation.getWaiveTime() != null;
+  }
+
+  private boolean doesViolationMeetThreatLevelCriteria(
+      PolicyViolation policyViolation, AutoPolicyWaiver autoPolicyWaiver)
+  {
+    return policyViolation.getThreatLevel() <= autoPolicyWaiver.getThreatLevel();
+  }
+
+  private boolean doesViolationHavePathForward(
+      String appId,
+      PolicyViolation policyViolation,
+      AutoPolicyWaiver autoPolicyWaiver,
+      String stageId)
+  {
+    Boolean hasPathForward = autoPolicyWaiver.hasPathForward();
+    if (hasPathForward == null || !hasPathForward || policyViolation.getComponentIdentifier() == null) {
+      // Auto waiver does not have path forward enabled. No need to evaluate this condition.
+      return false;
+    }
+
+    ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfoNoAuth(
+        OwnerType.APPLICATION,
+        appId,
+        policyViolation.getComponentIdentifier(),
+        stageId,
+        null,
+        null,
+        null
+    );
+
+    if (dto == null || dto.remediation == null) {
+      // if either of these are null, we can't be sure if there is a path forward; don't auto waive in that case
+      return true;
+    }
+    return !dto.remediation.versionChanges.isEmpty() || dto.remediation.suggestedVersionChange != null;
+  }
+
+  private AutoPolicyWaiver getApplicableAutoPolicyWaiver(String applicationId) {
+    final Set<Feature> features = featuresService.getFeatures();
+    if (features.contains(SystemConfigurationPropertyFeature.AUTO_WAIVERS)) {
+      List<String> ownerIds = ownerDAO.getOwnerIds(applicationId);
+      for (String id : ownerIds) {
+        List<AutoPolicyWaiver> autoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId(id);
+        if (!autoPolicyWaivers.isEmpty()) {
+          return autoPolicyWaivers.get(0);
+        }
+      }
+    }
+    return null;
   }
 }

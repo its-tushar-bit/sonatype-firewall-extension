@@ -91,6 +91,8 @@ public class PolicyViolationTelemetryCollector
   static final String WAIVER_EXPIRATION = "waiver_expiration";
 
   static final String POLICY_WAIVER_ID = "policy_waiver_id";
+  
+  static final String AUTO_POLICY_WAIVER_ID = "auto_policy_waiver_id";
 
   static final String FIX_BY_VERSION_CHANGE = "fix_by_version_change";
 
@@ -166,7 +168,25 @@ public class PolicyViolationTelemetryCollector
       telemetryDataList.add(telemetryData);
     }
   }
+  
+  public void addTelemetryForUnAutoWaivedViolation(
+      final PolicyViolation unwaivedPolicyViolation,
+      final Component component,
+      final String oldAutoPolicyWaiverId
+  )
+  {
+    if (unwaivedPolicyViolation != null) {
+      TelemetryData telemetryData =
+          createTelemetry(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION, unwaivedPolicyViolation, component);
+      addComponentMetadata(telemetryData, unwaivedPolicyViolation);
+      telemetryData.put(UNWAIVE_TIME, timeOfPolicyEvaluation.getTime());
+      telemetryData.put(COUNT, -1);
+      telemetryData.put(AUTO_POLICY_WAIVER_ID, oldAutoPolicyWaiverId);
 
+      telemetryDataList.add(telemetryData); 
+    }
+  }
+  
   public void addTelemetryForWaivedViolation(PolicyViolation waivedPolicyViolation, Component component) {
     if (waivedPolicyViolation != null) {
       String policyWaiverId = waivedPolicyViolation.getPolicyWaiverId();
@@ -180,6 +200,19 @@ public class PolicyViolationTelemetryCollector
 
       telemetryDataList.add(telemetryData);
     }
+  }
+  
+  public void addTelemetryForAutoWaivedViolation(PolicyViolation waivedPolicyViolation, Component component) {
+    if (waivedPolicyViolation != null) {
+      String autoPolicyWaiverId = waivedPolicyViolation.getAutoPolicyWaiverId();
+
+      TelemetryData telemetryData =
+          createTelemetry(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION, waivedPolicyViolation, component);
+      addComponentMetadata(telemetryData, waivedPolicyViolation);
+      telemetryData.put(WAIVE_TIME, timeOfPolicyEvaluation.getTime());
+      telemetryData.put(AUTO_POLICY_WAIVER_ID, autoPolicyWaiverId);
+      telemetryDataList.add(telemetryData);
+    } 
   }
 
   public void addTelemetryForConditionTypeViolation(

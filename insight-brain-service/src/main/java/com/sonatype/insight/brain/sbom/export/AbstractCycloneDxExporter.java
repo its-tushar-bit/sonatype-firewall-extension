@@ -140,18 +140,19 @@ public abstract class AbstractCycloneDxExporter
           }
 
           if (StringUtils.isNotEmpty(sonatypeComponent.getMatchStateId())) {
-            Property pSimilar = new Property();
-            pSimilar.setName("sonatype:match_state");
-            pSimilar.setValue(sonatypeComponent.getMatchStateId());
-            if (CollectionUtils.isNotEmpty(bomComponent.getProperties())) {
-              bomComponent.getProperties().stream()
-                  .filter(p -> p.getName().equals(pSimilar.getName()))
-                  .findFirst()
-                  .ifPresentOrElse(p -> p.setValue(pSimilar.getValue()), () -> bomComponent.addProperty(pSimilar));
-            }
-            else {
-              bomComponent.addProperty(pSimilar);
-            }
+            addOrUpdatePropertyInBom(bomComponent, "sonatype:match_state", sonatypeComponent.getMatchStateId());
+          }
+
+          if (CollectionUtils.isNotEmpty(sonatypeComponent.getFilenamesList())) {
+            addOrUpdatePropertyInBom(bomComponent, "sonatype:match_filenames",
+                String.join(",", sonatypeComponent.getFilenamesList()));
+          }
+
+          if (CollectionUtils.isNotEmpty(sonatypeComponent.getOccurrencesList())) {
+            String occurrences = sonatypeComponent.getOccurrencesList().stream()
+                .map(p -> SbomCycloneDxUtils.getFilteredPathname(p))
+                .collect(Collectors.joining(","));
+            addOrUpdatePropertyInBom(bomComponent, "sonatype:match_pathnames", occurrences);
           }
         }
       }
@@ -389,6 +390,21 @@ public abstract class AbstractCycloneDxExporter
           bom.getDependencies().set(rootDependencyIndex, newRootDependency);
         }
       }
+    }
+  }
+
+  private void addOrUpdatePropertyInBom(Component bomComponent, String propName, String propValue) {
+    Property bomProperty = new Property();
+    bomProperty.setName(propName);
+    bomProperty.setValue(propValue);
+    if (CollectionUtils.isNotEmpty(bomComponent.getProperties())) {
+      bomComponent.getProperties().stream()
+          .filter(p -> p.getName().equals(bomProperty.getName()))
+          .findFirst()
+          .ifPresentOrElse(p -> p.setValue(bomProperty.getValue()), () -> bomComponent.addProperty(bomProperty));
+    }
+    else {
+      bomComponent.addProperty(bomProperty);
     }
   }
 }

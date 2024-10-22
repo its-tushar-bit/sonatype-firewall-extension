@@ -4212,6 +4212,8 @@ public class TemporaryEntity
       String version,
       String hash,
       String packageUrl,
+      String filenames,
+      String pathnames,
       String matchState)
   {
     ThirdPartyFileCoordinate fileCoordinate =
@@ -4219,6 +4221,8 @@ public class TemporaryEntity
     fileCoordinate.setPackageUrl(packageUrl);
     fileCoordinate.setIdentificationSources("SBOM");
     fileCoordinate.setMatchStateId(matchState);
+    fileCoordinate.setFilenamesList(List.of(filenames.split(",")));
+    fileCoordinate.setOccurrencesList(List.of(pathnames.split(",")));
     thirdPartyFileCoordinateDAO.insert(fileCoordinate);
     return fileCoordinate;
   }

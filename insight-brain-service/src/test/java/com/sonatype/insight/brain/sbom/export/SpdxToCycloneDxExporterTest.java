@@ -132,6 +132,8 @@ public class SpdxToCycloneDxExporterTest
         "2.13.2",
         "abcdef",
         "pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar",
+        "log4j-core-2.13.2.jar",
+        "path/to/log4j-core-2.13.2.jar",
         "similar"
     );
 
@@ -142,6 +144,8 @@ public class SpdxToCycloneDxExporterTest
         "4.12",
         "1111111",
         "pkg:maven/junit/junit@4.12?type=jar",
+        "junit-4.12.jar",
+        "path/to/junit-4.12.jar",
         "exact"
     );
 

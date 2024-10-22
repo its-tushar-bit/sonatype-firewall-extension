@@ -24,6 +24,8 @@ public class ApiReportComponentDTOV2
   // occurrences of component, in no particular order
   public List<String> pathnames = new ArrayList<>();
 
+  public List<String> filenames = new ArrayList<>();
+
   public String identificationSource;
 
   public ApiLicenseDataDTOV2 licenseData;

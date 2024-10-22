@@ -332,4 +332,8 @@ public class SbomCycloneDxUtils
     sbomCreationDetails.tools.add(sbomManagerTool);
     return gson.toJson(sbomCreationDetails);
   }
+
+  public static String getFilteredPathname(String pathname) {
+    return StringUtils.removeStart(pathname, "dependency:/");
+  }
 }

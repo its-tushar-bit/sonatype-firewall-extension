@@ -201,6 +201,7 @@ public class ApiReportDataServiceV2Test
     assertThat(component.pathnames).containsExactlyInAnyOrder(
         "com.sonatype.nexus:nexus-platform-api:jar:1.0.0/" +
             "com.sonatype.insight.scan:insight-scanner-archive:jar:1.0.0-SNAPSHOT");
+    assertThat(component.filenames).containsExactlyInAnyOrder("insight-scanner-archive-1.0.0-SNAPSHOT.jar");
     assertThat(component.displayName).isEqualTo("com.sonatype.insight.scan : insight-scanner-archive : 1.0.0-SNAPSHOT");
     assertThat(component.licenseData).isNotNull();
     assertThat(component.licenseData.status).isEqualTo("Overridden");
@@ -228,6 +229,7 @@ public class ApiReportDataServiceV2Test
         .isEqualTo(innerSourceChildId);
     assertThat(component.pathnames).containsExactlyInAnyOrder(
         "com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.google.code.gson:gson:jar:2.8.1");
+    assertThat(component.filenames).containsExactlyInAnyOrder("gson-2.8.1.jar");
     assertThat(component.displayName).isEqualTo("com.google.code.gson : gson : 2.8.1");
     assertThat(component.identificationSource).isEqualTo("Sonatype");
     assertThat(component.dependencyData.directDependency).isFalse();
@@ -245,6 +247,8 @@ public class ApiReportDataServiceV2Test
     assertThat(component.componentIdentifier).isNull();
     assertThat(component.pathnames).isNotNull();
     assertThat(component.pathnames).containsExactlyInAnyOrder("sample-application.zip");
+    assertThat(component.filenames).isNotNull();
+    assertThat(component.filenames).containsExactlyInAnyOrder("sample-application.zip");
     assertThat(component.displayName).isEqualTo("sample-application.zip");
     assertThat(component.licenseData).isNull();
     assertThat(component.securityData).isNull();

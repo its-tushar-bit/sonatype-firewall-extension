@@ -79,6 +79,8 @@ public class Component
 
   private List<String> pathnames = new ArrayList<>();
 
+  private List<String> filenames = new ArrayList<>();
+
   private List<AggregateFile> aggregateFiles = new ArrayList<>();
 
   private String displayName;
@@ -406,6 +408,14 @@ public class Component
 
   public void addPathname(String pathname) {
     pathnames.add(pathname);
+  }
+
+  public List<String> getFilenames() {
+    return filenames;
+  }
+
+  public void addFilename(String filename) {
+    filenames.add(filename);
   }
 
   public List<AggregateFile> getAggregateFiles() {

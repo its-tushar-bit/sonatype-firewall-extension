@@ -362,6 +362,9 @@ public class ComponentLoader
           for (JsonNode path : componentJson.path("pathnames")) {
             component.addPathname(path.asText());
           }
+          for (JsonNode filename : componentJson.path("filenames")) {
+            component.addFilename(filename.asText());
+          }
           for (JsonNode aggregateFileNode : componentJson.path("aggregateFiles")) {
             addAggregateFile(aggregateFileNode, component);
           }

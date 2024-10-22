@@ -52,6 +52,14 @@
         {
           "name" : "sonatype:match_state",
           "value" : "similar"
+        },
+        {
+          "name" : "sonatype:match_filenames",
+          "value" : "log4j-1.2.8.jar"
+        },
+        {
+          "name" : "sonatype:match_pathnames",
+          "value" : "path/to/log4j-1.2.8.jar"
         }
       ],
       "type" : "library",

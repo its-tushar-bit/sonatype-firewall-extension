@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
@@ -64,7 +65,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,8 +79,6 @@ import static java.util.stream.Collectors.toList;
 public class ApiReportDataServiceV2
 {
   private static final Logger log = LoggerFactory.getLogger(ApiReportDataServiceV2.class);
-
-  private static final String DEPENDENCY_PREFIX = "dependency:";
 
   private final ApplicationDAO appDAO;
 
@@ -325,7 +323,7 @@ public class ApiReportDataServiceV2
   private List<String> getPathnames(JsonNode componentNode) {
     List<String> pathnames = new ArrayList<>();
     for (JsonNode pathname : componentNode.path("pathnames")) {
-      pathnames.add(getPathname(pathname.asText()));
+      pathnames.add(SbomCycloneDxUtils.getFilteredPathname(pathname.asText()));
     }
     return pathnames;
   }
@@ -446,6 +444,7 @@ public class ApiReportDataServiceV2
       component.matchState = comp.getMatchState().getId();
       component.proprietary = comp.isProprietary();
       setPathnames(comp, component);
+      setFilenames(comp, component);
       component.displayName = comp.getDisplayName();
       component.identificationSource =
           comp.getIdentificationSource() == null ? null : comp.getIdentificationSource().getName();
@@ -508,16 +507,13 @@ public class ApiReportDataServiceV2
 
   private void setPathnames(Component comp, ApiReportComponentDTOV2 component) {
     for (String pathname : comp.getPathnames()) {
-      component.pathnames.add(getPathname(pathname));
+      component.pathnames.add(SbomCycloneDxUtils.getFilteredPathname(pathname));
     }
   }
 
-  private String getPathname(String pathname) {
-    if (!pathname.startsWith(DEPENDENCY_PREFIX)) {
-      return pathname;
-    }
-    else {
-      return StringUtils.removeStart(pathname, DEPENDENCY_PREFIX + "/");
+  private void setFilenames(Component comp, ApiReportComponentDTOV2 component) {
+    for (String filename : comp.getFilenames()) {
+      component.filenames.add(filename);
     }
   }
 }

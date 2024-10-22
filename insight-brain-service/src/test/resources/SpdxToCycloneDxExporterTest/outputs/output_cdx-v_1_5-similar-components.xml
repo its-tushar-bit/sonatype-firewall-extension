@@ -28,6 +28,8 @@
       <purl>pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar</purl>
       <properties>
         <property name="sonatype:match_state">similar</property>
+        <property name="sonatype:match_filenames">log4j-core-2.13.2.jar</property>
+        <property name="sonatype:match_pathnames">path/to/log4j-core-2.13.2.jar</property>
       </properties>
     </component>
     <component type="library" bom-ref="da83d3971bd00a068715210af7ae418b3fef1819">
@@ -42,6 +44,8 @@
       <purl>pkg:maven/junit/junit@4.12?type=jar</purl>
       <properties>
         <property name="sonatype:match_state">exact</property>
+        <property name="sonatype:match_filenames">junit-4.12.jar</property>
+        <property name="sonatype:match_pathnames">path/to/junit-4.12.jar</property>
       </properties>
     </component>
     <component type="application" bom-ref="473cbbff5cc120e810c1a32cfa9925859f40ce8f">

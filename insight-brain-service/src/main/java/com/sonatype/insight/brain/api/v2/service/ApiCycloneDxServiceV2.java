@@ -761,8 +761,14 @@ public class ApiCycloneDxServiceV2
       if (reportComponent.hash != null) {
         addProperty(SbomUtils.SONATYPE_HASH_PROPERTY_NAME, reportComponent.hash, bomComponent);
       }
-      addProperty("Match State", reportComponent.matchState, bomComponent);
+      addProperty("sonatype:match_state", reportComponent.matchState, bomComponent);
       addProperty(SbomUtils.IDENTIFICATION_SOURCE_PROPERTY_NAME, reportComponent.identificationSource, bomComponent);
+      if (CollectionUtils.isNotEmpty(reportComponent.filenames)) {
+        addProperty("sonatype:match_filenames", StringUtils.join(reportComponent.filenames, ","), bomComponent);
+      }
+      if (CollectionUtils.isNotEmpty(reportComponent.pathnames)) {
+        addProperty("sonatype:match_pathnames", StringUtils.join(reportComponent.pathnames, ","), bomComponent);
+      }
     }
   }
 

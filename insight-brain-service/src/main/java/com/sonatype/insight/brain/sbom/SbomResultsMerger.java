@@ -328,6 +328,7 @@ public class SbomResultsMerger
       final Bom originalBom,
       final Bom filteredBom)
   {
+    Set<String> alreadyInsertedComponentIds = new HashSet<>();
     for (Entry<ComponentIdentifier, JsonNode> resultEntry : resultsWithNoSonatypeId.entrySet()) {
       ComponentIdentifier bomComponentIdentifier = resultEntry.getKey();
       JsonNode bomNode = resultEntry.getValue();
@@ -336,12 +337,15 @@ public class SbomResultsMerger
           bomPurl.getPackageUrl(), bomNode.get("hash").asText(), scanId);
       if (sbomComponent == null) {
         //fallback to coordinate matching
-        sbomComponent = thirdPartyFileCoordinateDAO
-            .getByFormatNameVersionAndScanID(bomComponentIdentifier.getFormat(), bomPurl.getName(),
-                bomPurl.getVersion(), scanId);
+        sbomComponent = findExistingComponentUsingCoordinates(bomComponentIdentifier, bomPurl, scanId,
+            alreadyInsertedComponentIds);
       }
       sbomComponent = addNewComponentsForBinaryScan(bomNode, originalBom, filteredBom, sbomComponent,
           thirdPartySbomMetadata.getThirdPartyFileId());
+      if (sbomComponent != null) {
+        alreadyInsertedComponentIds.add(sbomComponent.getId());
+      }
+
       mergeResultComponentToDatabase(scanId, componentDependencyTypeMap, bomNode, bomPurl.getPackageUrl(),
           sbomComponent, bomComponentIdentifier, sonatypeVulnerabilityResults, sonatypeLicenseResults,
           thirdPartySbomMetadata);
@@ -1026,5 +1030,23 @@ public class SbomResultsMerger
         log.warn("Dependency tree depth exceeded {}, skipping child dependencies", recursionDepth);
       }
     }
+  }
+
+  private ThirdPartyFileCoordinate findExistingComponentUsingCoordinates(
+      ComponentIdentifier bomComponentIdentifier,
+      PackageUrlIdentifier bomPurl,
+      String scanId,
+      Set<String> alreadyInsertedComponentIds
+  )
+  {
+    ThirdPartyFileCoordinate sbomComponent = thirdPartyFileCoordinateDAO.getByFormatNameVersionAndScanID(
+        bomComponentIdentifier.getFormat(), bomPurl.getName(), bomPurl.getVersion(), scanId);
+    // Find if the found db record is in the set of inserted id.
+    if (sbomComponent != null && alreadyInsertedComponentIds.contains(sbomComponent.getId())) {
+      //We set it to null to force create a new record instead of updating the other similar record
+      sbomComponent = null;
+    }
+
+    return sbomComponent;
   }
 }

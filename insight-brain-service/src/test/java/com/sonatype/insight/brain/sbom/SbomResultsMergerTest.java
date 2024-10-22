@@ -23,6 +23,7 @@ import java.util.zip.GZIPInputStream;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -1066,7 +1067,7 @@ public class SbomResultsMergerTest
     assertThat(thirdPartyCoordinateSecurity.getAttackVector()).isEqualTo("new vectorString2");
     assertThat(thirdPartyCoordinateSecurity.getCwes()).isEqualTo("200");
     assertThat(thirdPartyCoordinateSecurity.getDescription()).isNull();
-    assertThat(thirdPartyCoordinateSecurity.getLink()).isEqualTo("new.link2");
+    assertThat(thirdPartyCoordinateSecurity.getLink()).isEqualTo("new.url2");
     assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isNull();
     assertThat(thirdPartyCoordinateSecurity.getSeverity()).isEqualTo(4.2d);
 
@@ -1080,6 +1081,64 @@ public class SbomResultsMergerTest
     assertThat(thirdPartyCoordinateSecurity.getLink()).isEqualTo("new.link3");
     assertThat(thirdPartyCoordinateSecurity.getRecommendations()).isNull();
     assertThat(thirdPartyCoordinateSecurity.getSeverity()).isEqualTo(6.2d);
+
+    ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
+    assertThat(updatedMetadata).isNotNull();
+    assertThat(updatedMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
+  }
+
+  @Test
+  public void testMergeSonatypeDataWithSbomData_duplicatedComponentsWithDifferentPurlHashGetsInsertedInsteadOfMerging()
+      throws URISyntaxException, IOException
+  {
+    productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
+
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
+
+    // Record existing in db before importing
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate1 = tempEntity.newThirdPartyFileCoordinate(file, "SBOM",
+        "pypi", "pip", "24.0", "XYZ", "pkg:pypi/pip@24.0?type=zip");
+
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(app.getId(), "1", file, "PENDING");
+
+    final File reportZip = Paths.get(ReportHelper.zipReport(
+        "/SbomResultsMergerTest/report-with-python-components", tempDir).toURI()).toFile();
+
+    merger.mergeResults(sbomMetadata, SCAN_ID, reportZip);
+
+    List<ThirdPartyCoordinateLicense> thirdPartyCoordinateLicenseList = thirdPartyCoordinateLicenseDAO
+        .getByFileCoordinateId(thirdPartyFileCoordinate1.getId());
+
+    List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList = thirdPartyCoordinateSecurityDAO
+        .getByFileCoordinateId(thirdPartyFileCoordinate1.getId());
+
+    assertThat(thirdPartyCoordinateLicenseList).hasSize(1);
+    assertThat(thirdPartyCoordinateSecurityList).hasSize(3);
+
+    List<ThirdPartyFileCoordinate> componentsInserted = thirdPartyFileCoordinateDAO.getBySbomMetadataId(
+        sbomMetadata.getId());
+    // 2 components: 1 updated with data in db, the second one inserted
+    assertThat(componentsInserted).hasSize(2);
+    ComponentIdentifier expectedComponentIdentifier = ComponentIdentifier.createPypiCoordinates("pip",
+        "24.0", null, "tar.gz");
+    final PackageUrlIdentifier expectedPurlTarGz = PackageUrlIdentifier
+        .fromComponentIdentifier(expectedComponentIdentifier);
+    Optional<ThirdPartyFileCoordinate> componentUpdatedTarGzExtensionOptional = componentsInserted.stream().filter(
+        c -> c.getPackageUrl().equals(expectedPurlTarGz.getPackageUrl())).findFirst();
+    // Hash updated
+    assertThat(componentUpdatedTarGzExtensionOptional.isPresent()).isTrue();
+    assertThat(componentUpdatedTarGzExtensionOptional.get().getHash()).isEqualTo("XYZ");
+
+    // New component inserted
+    expectedComponentIdentifier = ComponentIdentifier.createPypiCoordinates("pip", "24.0", "py3-none-any", "whl");
+    final PackageUrlIdentifier expectedPurlWhl = PackageUrlIdentifier.fromComponentIdentifier(
+        expectedComponentIdentifier);
+    Optional<ThirdPartyFileCoordinate> newlyInsertedComponentUpdatedWhlOptional = componentsInserted.stream().filter(
+        c -> c.getPackageUrl().equals(expectedPurlWhl.getPackageUrl())).findFirst();
+    assertThat(newlyInsertedComponentUpdatedWhlOptional.isPresent()).isTrue();
+    assertThat(newlyInsertedComponentUpdatedWhlOptional.get().getHash()).isEqualTo("e44313ae1e6af3c2bd3b");
 
     ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(updatedMetadata).isNotNull();

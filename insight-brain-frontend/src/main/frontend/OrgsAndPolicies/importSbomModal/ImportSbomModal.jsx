@@ -7,6 +7,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   NxButton,
+  NxCopyToClipboard,
   NxDescriptionList,
   NxErrorAlert,
   NxFileUpload,
@@ -20,6 +21,7 @@ import {
   NxProgressBar,
   NxTextInput,
   NxTextLink,
+  NxWarningAlert,
 } from '@sonatype/react-shared-components';
 import { always, complement, compose, is, isNil, toString, when } from 'ramda';
 
@@ -46,9 +48,15 @@ export default function ImportSbomModal() {
   // Store the File (non-serializable)
   const fileRef = useRef(null);
 
-  const { isModalOpen, importState, uploadProgress, sbomSummary, errorMessage, scanType } = useSelector(
-    selectImportSbomModalSlice
-  );
+  const {
+    isModalOpen,
+    importState,
+    uploadProgress,
+    sbomSummary,
+    errorMessage,
+    validationErrors,
+    scanType,
+  } = useSelector(selectImportSbomModalSlice);
 
   useEffect(() => {
     switch (importState) {
@@ -57,6 +65,9 @@ export default function ImportSbomModal() {
         break;
       case IMPORT_STATE.UPLOADING_COMMITTING:
         setModalTitle('Import in progress...');
+        break;
+      case IMPORT_STATE.ERROR:
+        setModalTitle(validationErrors?.length ? 'Your SBOM failed validation' : 'Error Importing SBOM');
         break;
       case IMPORT_STATE.SUMMARY:
         setModalTitle('Import completed. Evaluating...');
@@ -85,8 +96,6 @@ export default function ImportSbomModal() {
 
   const handleImportSBOM = () => dispatch(actions.uploadFile(fileRef.current));
 
-  const initialOrErrorImportState = [IMPORT_STATE.INITIAL, IMPORT_STATE.ERROR].includes(importState);
-
   const formSubLabel = (
     <>
       <NxP>
@@ -99,19 +108,31 @@ export default function ImportSbomModal() {
     </>
   );
 
-  const initialContent = initialOrErrorImportState ? (
-    <>
-      <NxFormGroup label="Import a file to evaluate" sublabel={formSubLabel} isRequired>
-        <NxFileUpload
-          {...fileUploadState}
-          data-testid="import-sbom-modal-file-upload"
-          onChange={handleSelectFile}
-          isRequired
-        />
-      </NxFormGroup>
-      {errorMessage ? <NxErrorAlert>{errorMessage}</NxErrorAlert> : null}
-    </>
-  ) : null;
+  const initialContent =
+    importState === IMPORT_STATE.INITIAL || importState === IMPORT_STATE.ERROR ? (
+      errorMessage ? (
+        validationErrors?.length ? (
+          <>
+            <NxWarningAlert role="alert">{errorMessage}</NxWarningAlert>
+            <NxCopyToClipboard
+              label="Validation Error Details"
+              content={validationErrors?.map((e) => '• ' + e).join('\n') || ''}
+            />
+          </>
+        ) : (
+          <NxErrorAlert>{errorMessage}</NxErrorAlert>
+        )
+      ) : (
+        <NxFormGroup label="Import a file to evaluate" sublabel={formSubLabel} isRequired>
+          <NxFileUpload
+            {...fileUploadState}
+            data-testid="import-sbom-modal-file-upload"
+            onChange={handleSelectFile}
+            isRequired
+          />
+        </NxFormGroup>
+      )
+    ) : null;
 
   const uploadingAndCommittingContent =
     importState === IMPORT_STATE.UPLOADING_COMMITTING ? (
@@ -201,9 +222,14 @@ export default function ImportSbomModal() {
   };
 
   return isModalOpen ? (
-    <NxModal id="import-sbom-modal" className="sbom-manager-import-sbom-modal" onCancel={closeModal}>
+    <NxModal
+      id="import-sbom-modal"
+      className="sbom-manager-import-sbom-modal"
+      aria-labelledby="import-sbom-modal-header"
+      onCancel={closeModal}
+    >
       <NxModal.Header>
-        <NxH2>{modalTitle}</NxH2>
+        <NxH2 id="import-sbom-modal-header">{modalTitle}</NxH2>
       </NxModal.Header>
       <NxModal.Content>
         {initialContent}
@@ -215,8 +241,12 @@ export default function ImportSbomModal() {
           {importState !== IMPORT_STATE.UPLOADING_COMMITTING ? (
             <NxButton onClick={closeModal}>{importState === IMPORT_STATE.SUMMARY ? 'Close' : 'Cancel'}</NxButton>
           ) : null}
-          {initialOrErrorImportState ? (
-            <NxButton variant="primary" onClick={handleImportSBOM} disabled={!fileUploadState.files}>
+          {importState === IMPORT_STATE.INITIAL || importState === IMPORT_STATE.ERROR ? (
+            <NxButton
+              variant="primary"
+              onClick={handleImportSBOM}
+              disabled={!fileUploadState.files || importState === IMPORT_STATE.ERROR}
+            >
               Import
             </NxButton>
           ) : null}

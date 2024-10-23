@@ -10,6 +10,7 @@ import { IMPORT_STATE } from 'MainRoot/OrgsAndPolicies/importSbomModal/importSbo
 import { getCommitImportedSbomUrl, getImportSbomUrl } from 'MainRoot/util/CLMLocation';
 
 import { axiosMockAdapter, fireEvent, render, screen } from 'TestRoot/SpecUtil';
+import userEvent from '@testing-library/user-event';
 
 describe('ImportSbomModal', () => {
   let renderComponent, axiosMock, defaultPreloadedState;
@@ -257,7 +258,7 @@ describe('ImportSbomModal', () => {
     });
 
     describe('Error', () => {
-      it('should show an error alert', () => {
+      it('should show an error message', () => {
         // We're not testing mock responses here, due to js-dom FileList error with NxFileUpload.
         // When NxFileUpload is initially mounted with a fake "FileList" passed into the files prop, in js-dom, it throws an error:
         // Failed to set the 'files' property on 'HTMLInputElement': The provided value is not of type 'FileList'
@@ -276,9 +277,64 @@ describe('ImportSbomModal', () => {
           },
         });
 
-        const errorAlert = screen.getByText('Something went wrong.');
-        expect(errorAlert).toBeInTheDocument();
+        expect(screen.getByRole('dialog', { name: 'Error Importing SBOM' })).toBeInTheDocument();
+        const alert = screen.getByRole('alert');
+        expect(alert).toBeInTheDocument();
+        expect(alert).toHaveTextContent('Something went wrong.');
+        expect(screen.queryByRole('button', { name: 'Copy to Clipboard' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('textbox', { name: 'Validation Error Details' })).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Import' })).toBeInTheDocument();
       });
+    });
+
+    it('should show the list of errors', () => {
+      renderComponent({
+        orgsAndPolicies: {
+          ownerActions: {
+            importSbomModal: {
+              isModalOpen: true,
+              importState: IMPORT_STATE.ERROR,
+              errorMessage: 'Something went wrong.',
+              validationErrors: ['error reason 1', 'error reason 2'],
+            },
+          },
+        },
+      });
+
+      expect(screen.getByRole('dialog', { name: 'Your SBOM failed validation' })).toBeInTheDocument();
+      const alert = screen.getByRole('alert');
+      expect(alert).toBeInTheDocument();
+      expect(alert).toHaveTextContent('Something went wrong.');
+      expect(screen.getByRole('button', { name: 'Copy to Clipboard' })).toBeInTheDocument();
+      const validationErrors = screen.getByRole('textbox', { name: 'Validation Error Details' });
+      expect(validationErrors).toBeInTheDocument();
+      expect(validationErrors).toHaveValue('• error reason 1\n• error reason 2');
+      expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Import' })).toBeInTheDocument();
+    });
+
+    it('should copy the list of errors when clicking the copy to clipboard button', async () => {
+      renderComponent({
+        orgsAndPolicies: {
+          ownerActions: {
+            importSbomModal: {
+              isModalOpen: true,
+              importState: IMPORT_STATE.ERROR,
+              errorMessage: 'Something went wrong.',
+              validationErrors: ['error reason 1', 'error reason 2'],
+            },
+          },
+        },
+      });
+      const user = userEvent.setup();
+      const copyToClipboardButton = screen.getByRole('button', { name: 'Copy to Clipboard' });
+      expect(copyToClipboardButton).toBeInTheDocument();
+
+      await user.click(copyToClipboardButton);
+
+      const clipboardText = await navigator.clipboard.readText();
+      expect(clipboardText).toEqual('• error reason 1\n• error reason 2');
     });
   });
 });

@@ -18,7 +18,7 @@ public class SbomDetectionResultDTO
 
   private String errorMessage;
 
-  private List<String> errors;
+  private List<String> validationErrors;
 
   private SbomScanType scanType;
 
@@ -30,13 +30,13 @@ public class SbomDetectionResultDTO
       String requestId,
       SbomSummary sbomSummary,
       String errorMessage,
-      List<String> errors,
+      List<String> validationErrors,
       SbomScanType scanType)
   {
     this.requestId = requestId;
     this.sbomSummary = sbomSummary;
     this.errorMessage = errorMessage;
-    this.errors = errors;
+    this.validationErrors = validationErrors;
     this.scanType = scanType;
   }
 
@@ -64,12 +64,12 @@ public class SbomDetectionResultDTO
     this.errorMessage = errorMessage;
   }
 
-  public List<String> getErrors() {
-    return errors;
+  public List<String> getValidationErrors() {
+    return validationErrors;
   }
 
-  public void setErrors(List<String> errors) {
-    this.errors = errors;
+  public void setValidationErrors(List<String> validationErrors) {
+    this.validationErrors = validationErrors;
   }
 
   public SbomScanType getScanType() {

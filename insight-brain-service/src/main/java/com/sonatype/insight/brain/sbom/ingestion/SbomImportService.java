@@ -13,7 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -132,19 +131,19 @@ public class SbomImportService
         throw new BadRequestException("Importing binary files for SBOM Manager is disabled.");
       }
     }
+    else if (result.validationErrors != null) {
+      scanType = SbomScanType.SBOM;
+      deleteTempFile(tempSbomFile, result.errorMessage);
+    }
     else {
       log.debug("Unable to process the SBOM import for file: {}, error: {}", tempFilename, result.errorMessage);
+      deleteTempFile(tempSbomFile, result.errorMessage);
 
-      if (tempSbomFile.exists()) {
-        String deletionResult = tempSbomFile.delete() ? "succeeded" : "failed";
-        log.debug("Deleting file due to an error, {}, {} ", result.errorMessage, deletionResult);
-      }
-
-      throw new InternalServerException("Unable to process the input file");
+      throw new BadRequestException("Unable to process the input file");
     }
 
     String requestId = Base64.getEncoder().encodeToString(filenameToUseForRequestId.getBytes());
-    return new SbomDetectionResultDTO(requestId, result.summary, result.errorMessage, Collections.emptyList(),
+    return new SbomDetectionResultDTO(requestId, result.summary, result.errorMessage, result.validationErrors,
         scanType);
   }
 
@@ -202,6 +201,13 @@ public class SbomImportService
           log.error("error deleting temporary sbom file", e);
         }
       }
+    }
+  }
+
+  private void deleteTempFile(File tempFile, String errorMessage) {
+    if (tempFile.exists()) {
+      String deletionResult = tempFile.delete() ? "succeeded" : "failed";
+      log.debug("Deleting file due to an error, {}, {} ", errorMessage, deletionResult);
     }
   }
 }

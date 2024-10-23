@@ -10,6 +10,7 @@ import { allPass, always, complement, is, isEmpty, isNil } from 'ramda';
 import { getImportSbomUrl, getCommitImportedSbomUrl } from 'MainRoot/util/CLMLocation';
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 import { selectSelectedOwnerId } from '../orgsAndPoliciesSelectors';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
 const DEFAULT_ERROR_MESSAGE = 'Encountered unexpected error while attempting to upload.';
 
@@ -36,6 +37,7 @@ export const initialState = Object.freeze({
   scanType: null,
   uploadProgress: 0,
   errorMessage: null,
+  validationErrors: null,
   sbomSummary: { ...sbomSummaryInitialState },
 });
 
@@ -68,7 +70,7 @@ const uploadFile = createAsyncThunk(`${REDUCER_NAME}/uploadFile`, (file, { dispa
     })
     .then(({ data }) => {
       if (data.scanType === 'SBOM' && isNonEmptyString(data.errorMessage)) {
-        throw new Error(data.errorMessage);
+        return rejectWithValue(data);
       }
       dispatch(actions.commitFile(data.requestId));
       return data;
@@ -97,7 +99,7 @@ const commitFile = createAsyncThunk(`${REDUCER_NAME}/commitFile`, async (request
     .post(getCommitImportedSbomUrl(appId, requestId))
     .then(({ data }) => {
       if (isNonEmptyString(data.errorMessage)) {
-        throw new Error(data.errorMessage);
+        return rejectWithValue(data);
       }
       return data;
     })
@@ -114,7 +116,19 @@ const commitFileFulfilled = (state) => {
 
 const uploadOrCommitFileFailed = (state, { payload }) => {
   state.importState = IMPORT_STATE.ERROR;
-  state.errorMessage = isNonEmptyString(payload.message) ? payload.message : DEFAULT_ERROR_MESSAGE;
+  if (payload.errorMessage) {
+    state.errorMessage = payload.errorMessage;
+  } else {
+    const potentialErrorMessage = Messages.getHttpErrorMessage(payload);
+    if (potentialErrorMessage === 'Error') {
+      state.errorMessage = payload.message || DEFAULT_ERROR_MESSAGE;
+    } else {
+      state.errorMessage = potentialErrorMessage;
+    }
+  }
+  if (payload.validationErrors) {
+    state.validationErrors = payload.validationErrors;
+  }
 };
 
 const importSbomModal = createSlice({

@@ -15,7 +15,7 @@ public class SbomDetectionResult
 
   public String errorMessage;
 
-  public List<String> errors;
+  public List<String> validationErrors;
 
   public String mimeType;
 

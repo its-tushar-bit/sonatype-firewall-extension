@@ -45,7 +45,6 @@ import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.thymeleaf.util.StringUtils;
@@ -62,7 +61,9 @@ import static org.mockito.Mockito.when;
 public class SbomImportServiceTest
     extends AbstractComponentTest
 {
-  private static final String TEST_FILENAME = "test-filename.xml";
+  private static final String TEST_FILENAME_XML = "test-filename.xml";
+
+  private static final String TEST_FILENAME_JSON = "test-filename.json";
 
   @Mock
   private HdsClient mockHdsClient;
@@ -119,7 +120,7 @@ public class SbomImportServiceTest
         );
     assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getErrorMessage()).isNullOrEmpty();
-    assertThat(actual.getErrors()).isNullOrEmpty();
+    assertThat(actual.getValidationErrors()).isNullOrEmpty();
     assertThat(actual.getSbomSummary().specification).isEqualTo(expected.summary.specification);
     assertThat(actual.getSbomSummary().format).isEqualTo(expected.summary.format);
     assertThat(actual.getSbomSummary().version).isEqualTo(expected.summary.version);
@@ -153,7 +154,7 @@ public class SbomImportServiceTest
             "valid-spdx-bom.json");
     assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getErrorMessage()).isNullOrEmpty();
-    assertThat(actual.getErrors()).isNullOrEmpty();
+    assertThat(actual.getValidationErrors()).isNullOrEmpty();
     assertThat(actual.getSbomSummary().specification).isEqualTo(expected.summary.specification);
     assertThat(actual.getSbomSummary().format).isEqualTo(expected.summary.format);
     assertThat(actual.getSbomSummary().version).isEqualTo(expected.summary.version);
@@ -178,7 +179,7 @@ public class SbomImportServiceTest
     assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getScanType()).isEqualTo(SbomScanType.BINARY);
     assertThat(actual.getErrorMessage()).isEqualTo("Provided file type is not a supported SBOM file type.");
-    assertThat(actual.getErrors()).isNullOrEmpty();
+    assertThat(actual.getValidationErrors()).isNullOrEmpty();
     assertThat(actual.getSbomSummary()).isNull();
     assertTempSbomFile(actual.getRequestId(), true);
 
@@ -200,7 +201,6 @@ public class SbomImportServiceTest
   }
 
   @Test
-  @Ignore("Ignoring until SBOM-914 is done because now this invalid SBOM is treated as a Binary")
   public void testDetectSbom_Failure_Invalid_CDX_JSON() {
     String sbom = """
         {
@@ -225,19 +225,17 @@ public class SbomImportServiceTest
         }
         """;
     SbomDetectionResultDTO actual = sbomImportService.detectSbom(application.getId(),
-        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)), TEST_FILENAME);
-    assertThat(actual.getRequestId()).isNotEmpty();
+        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)), TEST_FILENAME_JSON);
+    assertThat(actual.getRequestId()).isEmpty();
     assertThat(actual.getSbomSummary()).isNull();
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDx SBOM file.");
-    assertThat(actual.getErrors()).containsExactly(
+    assertThat(actual.getValidationErrors()).containsExactly(
         "$.components[1]: required property 'type' not found",
         "$.components[2]: required property 'type' not found"
     );
-    assertTempSbomFile(actual.getRequestId(), false);
   }
 
   @Test
-  @Ignore("Ignoring until SBOM-914 is done because now this invalid SBOM is treated as a Binary")
   public void testDetectSbom_Failure_Invalid_CDX_XML() {
     String sbom = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -259,19 +257,17 @@ public class SbomImportServiceTest
         </bom>
         """;
     SbomDetectionResultDTO actual = sbomImportService.detectSbom(application.getId(),
-        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)), TEST_FILENAME);
-    assertThat(actual.getRequestId()).isNotEmpty();
+        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)), TEST_FILENAME_XML);
+    assertThat(actual.getRequestId()).isEmpty();
     assertThat(actual.getSbomSummary()).isNull();
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDx SBOM file.");
-    assertThat(actual.getErrors()).containsExactly(
+    assertThat(actual.getValidationErrors()).containsExactly(
         "cvc-complex-type.4: Attribute 'type' must appear on element 'component'.",
         "cvc-complex-type.4: Attribute 'type' must appear on element 'component'."
     );
-    assertTempSbomFile(actual.getRequestId(), false);
   }
 
   @Test
-  @Ignore("Ignoring until SBOM-914 is done because now this invalid SBOM is treated as a Binary")
   public void testDetectSbom_Failure_Invalid_SPDX_JSON() {
     String sbom = """
         {
@@ -298,19 +294,17 @@ public class SbomImportServiceTest
         }
         """;
     SbomDetectionResultDTO actual = sbomImportService.detectSbom(application.getId(),
-        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)), TEST_FILENAME);
-    assertThat(actual.getRequestId()).isNotEmpty();
+        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)), TEST_FILENAME_JSON);
+    assertThat(actual.getRequestId()).isEmpty();
     assertThat(actual.getSbomSummary()).isNull();
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid SPDX SBOM file.");
-    assertThat(actual.getErrors()).containsExactly(
+    assertThat(actual.getValidationErrors()).containsExactly(
         "Missing required Creator",
         "Missing required data license"
     );
-    assertTempSbomFile(actual.getRequestId(), false);
   }
 
   @Test
-  @Ignore("Ignoring until SBOM-914 is done because now this invalid SBOM is treated as a Binary")
   public void testDetectSbom_Failure_Invalid_SPDX_XML() {
     String sbom = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -336,22 +330,21 @@ public class SbomImportServiceTest
         </Document>
         """;
     SbomDetectionResultDTO actual = sbomImportService.detectSbom(application.getId(),
-        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)), TEST_FILENAME);
-    assertThat(actual.getRequestId()).isNotEmpty();
+        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)), TEST_FILENAME_XML);
+    assertThat(actual.getRequestId()).isEmpty();
     assertThat(actual.getSbomSummary()).isNull();
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid SPDX SBOM file.");
-    assertThat(actual.getErrors()).containsExactly(
+    assertThat(actual.getValidationErrors()).containsExactly(
         "Missing required Creator",
         "Missing required data license"
     );
-    assertTempSbomFile(actual.getRequestId(), false);
   }
 
   @Test
   public void testDetectSbom_Failure_InvalidApplicationId() {
     assertThrows("Application with id applicationId does not exist", NotFoundException.class,
         () ->
-            sbomImportService.detectSbom("applicationId", new ByteArrayInputStream(new byte[0]), TEST_FILENAME));
+            sbomImportService.detectSbom("applicationId", new ByteArrayInputStream(new byte[0]), TEST_FILENAME_XML));
   }
 
   @Test
@@ -441,7 +434,7 @@ public class SbomImportServiceTest
     productLicense.setMaxSbom(0);
     assertThrows("You have exceeded the licensed limit of " + productLicense.getMaxSboms() + " sboms.",
         PaymentRequiredException.class,
-        () -> sbomImportService.detectSbom(application.getId(), new ByteArrayInputStream(new byte[0]), TEST_FILENAME
+        () -> sbomImportService.detectSbom(application.getId(), new ByteArrayInputStream(new byte[0]), TEST_FILENAME_XML
         ));
     productLicense.reset();
   }

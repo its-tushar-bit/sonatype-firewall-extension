@@ -114,7 +114,7 @@ public class SbomFileDetectorTest
     List<String> expectedErrors = List.of(
         "cvc-complex-type.2.4.a: Invalid content was found starting with element '{\"http://cyclonedx.org/schema/bom/1.4\":version}'. One of '{\"http://cyclonedx.org/schema/bom/1.4\":name}' is expected."
     );
-    SbomDetectionResult expected = createExpectedResult(false, true, "application/xml",
+    SbomDetectionResult expected = createExpectedResult(false, false, "application/xml",
         "Not a valid CycloneDx SBOM file.", expectedErrors, "1.5", "CycloneDx", "xml", 1,
         1, null, null);
     getSbomMetadata("cyclonedx-invalid-v1_5-xml.tmp", expected);
@@ -195,7 +195,7 @@ public class SbomFileDetectorTest
         "org.xml.sax.SAXParseException; lineNumber: 24; columnNumber: 14; The end-tag for element type \"component\" must end with a '>' delimiter."
     );
     SbomDetectionResult expected =
-        createExpectedResult(false, true, "application/xml", "Not a valid CycloneDx SBOM file.", expectedErrors);
+        createExpectedResult(false, false, "application/xml", "Not a valid CycloneDx SBOM file.", expectedErrors);
     getSbomMetadata("cyclonedx-invalid-xml.tmp", expected);
   }
 
@@ -213,7 +213,7 @@ public class SbomFileDetectorTest
         "cvc-type.3.1.3: The value 'git@github.com:lupomontero/psl.git' of element 'url' is not valid."
     );
     SbomDetectionResult expected =
-        createExpectedResult(false, true, "application/xml", "Not a valid CycloneDx SBOM file.", expectedErrors);
+        createExpectedResult(false, false, "application/xml", "Not a valid CycloneDx SBOM file.", expectedErrors);
     getSbomMetadata("cyclonedx-invalid-2-xml.tmp", expected);
   }
 
@@ -231,7 +231,7 @@ public class SbomFileDetectorTest
         "Missing required data license"
     );
     SbomDetectionResult expected =
-        createExpectedResult(false, true, "application/json", "Not a valid SPDX SBOM file.", expectedErrors);
+        createExpectedResult(false, false, "application/json", "Not a valid SPDX SBOM file.", expectedErrors);
     getSbomMetadata("spdx-invalid-json.tmp", expected);
   }
 
@@ -317,7 +317,7 @@ public class SbomFileDetectorTest
     expected.mimeType = mimeType;
     if (errorMessage != null) {
       expected.errorMessage = errorMessage;
-      expected.errors = errors;
+      expected.validationErrors = errors;
     }
     else if (expected.isSbom) {
       expected.summary = new SbomSummary();
@@ -340,7 +340,7 @@ public class SbomFileDetectorTest
     assertThat(result.isBinary).isEqualTo(expected.isBinary);
     assertThat(result.mimeType).isEqualTo(expected.mimeType);
     assertThat(result.errorMessage).isEqualTo(expected.errorMessage);
-    assertThat(result.errors).isEqualTo(expected.errors);
+    assertThat(result.validationErrors).isEqualTo(expected.validationErrors);
     if (expected.summary != null && result.summary != null) {
       assertThat(result.summary.version).isEqualTo(expected.summary.version);
       assertThat(result.summary.specification).isEqualTo(expected.summary.specification);

@@ -112,37 +112,48 @@ public class SbomFileDetector
       return sbomDetectionErrorResult("Invalid SBOM file input.", null);
     }
 
+    SbomDetectionResult result;
     try {
-      SbomDetectionResult result = new SbomDetectionResult();
+      result = new SbomDetectionResult();
       result.isBinary = true;
       result.mimeType = tika.detect(sbomFile);
       if (TEXT_PLAIN.equals(result.mimeType)) {
         String sbomStringContent = getSbomStringContent(sbomFile);
         if (isPlainTextValidJson(sbomStringContent)) {
           result.mimeType = APPLICATION_JSON;
-          return attemptDetectingSbomFromContent(sbomStringContent, result);
+          attemptDetectingSbomFromContent(sbomStringContent, result);
         }
         else if (isPlainTextValidXml(sbomStringContent)) {
           result.mimeType = APPLICATION_XML;
-          return attemptDetectingSbomFromContent(sbomStringContent, result);
+          attemptDetectingSbomFromContent(sbomStringContent, result);
+        }
+        else {
+          result.errorMessage = PROVIDED_FILE_NOT_SUPPORTED_ERROR;
         }
       }
       else if (supportedSbomMimeTypes.contains(result.mimeType)) {
-        return attemptDetectingSbomFromContent(getSbomStringContent(sbomFile), result);
+        attemptDetectingSbomFromContent(getSbomStringContent(sbomFile), result);
       }
-      result.errorMessage = PROVIDED_FILE_NOT_SUPPORTED_ERROR;
-      return result;
+      else {
+        result.errorMessage = PROVIDED_FILE_NOT_SUPPORTED_ERROR;
+      }
     }
     catch (IOException e) {
       log.debug("error detecting SBOM metadata", e);
-      return sbomDetectionErrorResult("Internal error in processing SBOM.", e);
+      result = sbomDetectionErrorResult("Internal error in processing SBOM.", e);
     }
+    // If there are any SBOM validation errors from parsing
+    // then we should set this to be an SBOM scan rather than a binary scan
+    if (result.validationErrors != null) {
+      result.isBinary = false;
+    }
+    return result;
   }
 
   private SbomDetectionResult sbomDetectionErrorResult(String errorMessage, Exception e) {
     SbomDetectionResult result = new SbomDetectionResult();
     result.errorMessage = errorMessage;
-    result.errors = getErrors(e);
+    result.validationErrors = getErrors(e);
     return result;
   }
 
@@ -157,7 +168,7 @@ public class SbomFileDetector
       catch (IOException | InvalidSPDXAnalysisException e) {
         log.error("Not a valid/supported sbom file.", e);
         sbomResult.errorMessage = "Not a valid/supported sbom file.";
-        sbomResult.errors = getErrors(e);
+        sbomResult.validationErrors = getErrors(e);
       }
     }
     else {
@@ -178,12 +189,12 @@ public class SbomFileDetector
     }
     catch (UnsupportedSbomException e) {
       sbomResult.errorMessage = e.getMessage();
-      sbomResult.errors = getErrors(e);
+      sbomResult.validationErrors = getErrors(e);
     }
     catch (InvalidSbomException e) {
       log.debug("error parsing content as sbom", e);
       sbomResult.errorMessage = "Not a valid SPDX SBOM file.";
-      sbomResult.errors = getErrors(e);
+      sbomResult.validationErrors = getErrors(e);
     }
     return sbomResult;
   }
@@ -214,12 +225,12 @@ public class SbomFileDetector
     }
     catch (UnsupportedSbomException e) {
       sbomResult.errorMessage = e.getMessage();
-      sbomResult.errors = getErrors(e);
+      sbomResult.validationErrors = getErrors(e);
     }
     catch (IOException | ParseException | InvalidSbomException e) {
       log.debug("error parsing content as sbom", e);
       sbomResult.errorMessage = "Not a valid CycloneDx SBOM file.";
-      sbomResult.errors = getErrors(e);
+      sbomResult.validationErrors = getErrors(e);
     }
     return sbomResult;
   }

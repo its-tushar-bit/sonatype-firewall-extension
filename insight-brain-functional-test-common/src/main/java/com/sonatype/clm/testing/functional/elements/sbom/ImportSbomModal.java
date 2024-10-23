@@ -31,6 +31,18 @@ public class ImportSbomModal
     return child(".nx-alert--error");
   }
 
+  public SelenideElement warnAlert() {
+    return child(".nx-alert--warning");
+  }
+
+  public SelenideElement validationErrors() {
+    return child("textarea");
+  }
+
+  public SelenideElement copyToClipboardButton() {
+    return child(".nx-copy-to-clipboard .nx-btn");
+  }
+
   //Uploading and commiting content
   public SelenideElement progressBar() {
     return child(".nx-progress-bar");

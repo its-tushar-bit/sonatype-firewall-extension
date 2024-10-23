@@ -1,0 +1,374 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4?type=jar",
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.9.4",
+    "filenames" : [ "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4?type=jar" ],
+    "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:maven\\com.fasterxml.jackson.core\\jackson-databind@2.9.4?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "498bbc3b94f566982c7f",
+    "relativePopularity" : 0.09,
+    "createTime" : 1516766867000,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "sbomApi",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "sonatypeIdentifier" : "a6add0d4f5b74ca0bac6bf467f0f7058",
+    "endOfLife" : "END_OF_LIFE_UNKNOWN",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-databind"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.9.4"
+      } ],
+      "name" : "jackson-databind"
+    },
+    "directDependency" : true,
+    "innerSource" : false
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "shaded-library",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "partner",
+        "version" : "1.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/partner/shaded-library@1.0?type=jar",
+    "groupId" : "partner",
+    "artifactId" : "shaded-library",
+    "version" : "1.0",
+    "filenames" : [ "pkg:maven/partner/shaded-library@1.0?type=jar" ],
+    "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:maven\\partner\\shaded-library@1.0?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "bea74eb2b5af290ae9b7",
+    "relativePopularity" : null,
+    "createTime" : 1729088140595,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "SBOM",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "sbomApi",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : null,
+    "endOfLife" : null,
+    "cpe" : null,
+    "swid" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "partner"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "shaded-library"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.0"
+      } ],
+      "name" : "shaded-library"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "library",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "acme",
+        "version" : "3.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/acme/library@3.0?type=jar",
+    "groupId" : "acme",
+    "artifactId" : "library",
+    "version" : "3.0",
+    "filenames" : [ "pkg:maven/acme/library@3.0?type=jar" ],
+    "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:maven\\acme\\library@3.0?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "a9f7d008c44d7c8a6796",
+    "relativePopularity" : null,
+    "createTime" : 1729088140595,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "SBOM",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "sbomApi",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : null,
+    "endOfLife" : null,
+    "cpe" : null,
+    "swid" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "acme"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "library"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.0"
+      } ],
+      "name" : "library"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "myapplication",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.example",
+        "version" : "1.0.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.example/myapplication@1.0.0?packaging=war&type=jar",
+    "groupId" : "com.example",
+    "artifactId" : "myapplication",
+    "version" : "1.0.0",
+    "filenames" : [ "pkg:maven/com.example/myapplication@1.0.0?type=jar:68b78babe00a053f9e35" ],
+    "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:maven\\com.example\\myapplication@1.0.0?type=jar:68b78babe00a053f9e35" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "68b78babe00a053f9e35",
+    "relativePopularity" : null,
+    "createTime" : 1729088140595,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "SBOM",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "sbomApi",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : null,
+    "endOfLife" : null,
+    "cpe" : "cpe:/a:example:myapplication:1.0.0",
+    "swid" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.example"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "myapplication"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.0.0"
+      } ],
+      "name" : "myapplication"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "tomcat-catalina",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.acme",
+        "version" : "9.0.14"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.acme/tomcat-catalina@9.0.14?packaging=jar&type=jar",
+    "groupId" : "com.acme",
+    "artifactId" : "tomcat-catalina",
+    "version" : "9.0.14",
+    "filenames" : [ "pkg:maven/com.acme/tomcat-catalina@9.0.14?type=jar:9188560f22e0b73070d2" ],
+    "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:maven\\com.acme\\tomcat-catalina@9.0.14?type=jar:9188560f22e0b73070d2" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "9188560f22e0b73070d2",
+    "relativePopularity" : null,
+    "createTime" : 1729088140595,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "SBOM",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "sbomApi",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : null,
+    "endOfLife" : null,
+    "cpe" : null,
+    "swid" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.acme"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "tomcat-catalina"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "9.0.14"
+      } ],
+      "name" : "tomcat-catalina"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "myframework",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.example",
+        "version" : "1.0.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.example/myframework@1.0.0?packaging=war&type=jar",
+    "groupId" : "com.example",
+    "artifactId" : "myframework",
+    "version" : "1.0.0",
+    "filenames" : [ "pkg:maven/com.example/myframework@1.0.0?type=jar:7fbeef2346c45d565c33" ],
+    "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:maven\\com.example\\myframework@1.0.0?type=jar:7fbeef2346c45d565c33" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "7fbeef2346c45d565c33",
+    "relativePopularity" : null,
+    "createTime" : 1729088140595,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "SBOM",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "sbomApi",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : null,
+    "endOfLife" : null,
+    "cpe" : null,
+    "swid" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.example"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "myframework"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.0.0"
+      } ],
+      "name" : "myframework"
+    }
+  } ],
+  "dependencyDataIncluded" : true
+}

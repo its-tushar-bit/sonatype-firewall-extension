@@ -91,8 +91,6 @@ public class SbomRegressionTest
 
   private static final String VEX_DIR = "/SbomRegressionTest/vex/";
 
-  private static final String HDS_DIR = "/SbomRegressionTest/hds/";
-
   private static final String EXPECTED_DIR = "/SbomRegressionTest/expected/";
 
   private static final String IMPORT_SBOM_TEMPLATE = "%s_%s.%s";
@@ -108,10 +106,6 @@ public class SbomRegressionTest
   private static final String VEX_FILE_TEMPLATE = "%s_%s_%s_to_%s_%s_%s.json";
 
   private static final String VEX_FILE_VARIANT_TEMPLATE = "%s_%s_%s_%s_to_%s_%s_%s_%s.json";
-
-  private static final String HDS_FILE_TEMPLATE = "%s_%s_%s.json";
-
-  private static final String HDS_FILE_VARIANT_TEMPLATE = "%s_%s_%s_%s.json";
 
   private static final String EXPECTED_SBOM_TEMPLATE = "%s_%s_%s_to_%s_%s.%s";
 
@@ -167,6 +161,18 @@ public class SbomRegressionTest
         {"cyclonedx", "1.1", "xml", "cyclonedx", "1.6", "json", ""},
         {"cyclonedx", "1.1", "xml", "spdx", "2.3", "xml", ""},
         {"cyclonedx", "1.1", "xml", "spdx", "2.3", "json", ""},
+        {"cyclonedx", "1.4", "xml", "cyclonedx", "1.5", "xml", ""},
+        {"cyclonedx", "1.4", "xml", "cyclonedx", "1.5", "json", ""},
+        {"cyclonedx", "1.4", "xml", "cyclonedx", "1.6", "xml", ""},
+        {"cyclonedx", "1.4", "xml", "cyclonedx", "1.6", "json", ""},
+        {"cyclonedx", "1.4", "xml", "spdx", "2.3", "xml", ""},
+        {"cyclonedx", "1.4", "xml", "spdx", "2.3", "json", ""},
+        {"cyclonedx", "1.4", "json", "cyclonedx", "1.5", "xml", ""},
+        {"cyclonedx", "1.4", "json", "cyclonedx", "1.5", "json", ""},
+        {"cyclonedx", "1.4", "json", "cyclonedx", "1.6", "xml", ""},
+        {"cyclonedx", "1.4", "json", "cyclonedx", "1.6", "json", ""},
+        {"cyclonedx", "1.4", "json", "spdx", "2.3", "xml", ""},
+        {"cyclonedx", "1.4", "json", "spdx", "2.3", "json", ""},
         };
     return Arrays.asList(data);
   }

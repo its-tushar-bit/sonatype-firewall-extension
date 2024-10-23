@@ -44,7 +44,7 @@ public class SbomTestHelper
       "metadata.component.bom-ref", "metadata.component.name", "metadata.component.version",
       "creationInfo.created", "creationInfo.creators[0]", "documentNamespace",
       "vulnerabilities[*].analysis.lastUpdated", "vulnerabilities[*].analysis.firstIssued",
-      "vulnerabilities[*].bom-ref",
+      "vulnerabilities[*].bom-ref", "components[*].licenses[*].license.bom-ref",
       "name", "packages[*].name"
   };
 
@@ -108,6 +108,9 @@ public class SbomTestHelper
         }
       }
       if ("bom-ref".equals(attr.getName()) && "vulnerability".equals(attr.getOwnerElement().getNodeName())) {
+        return false;
+      }
+      if ("bom-ref".equals(attr.getName()) && "license".equals(attr.getOwnerElement().getNodeName())) {
         return false;
       }
       if ("ref".equals(attr.getName()) && "dependency".equals(attr.getOwnerElement().getNodeName())) {

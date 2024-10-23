@@ -229,7 +229,7 @@ public class SpdxToCycloneDxExporter
       String licenseExpression = spdxPackage.getLicenseConcluded().toString();
       if (StringUtils.isNotBlank(licenseExpression)) {
         List<License> licenses =
-            parseLicenseChoiceExpression(licenseExpression, component.getPurl(), null);
+            parseLicenseChoiceExpression(licenseExpression, component.getPurl());
         licenseChoice.setLicenses(licenses);
       }
     }

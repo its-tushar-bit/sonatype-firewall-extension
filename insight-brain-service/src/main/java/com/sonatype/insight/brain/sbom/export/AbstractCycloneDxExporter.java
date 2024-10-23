@@ -288,12 +288,12 @@ public abstract class AbstractCycloneDxExporter
       bomComponent.getLicenses().setLicenses(new ArrayList<>());
       String purl = bomComponent.getPurl() != null ? bomComponent.getPurl() : "";
       bomComponent.getLicenses().getLicenses().addAll(
-          parseLicenseChoiceExpression(bomComponentLicenseExpression.getValue(), purl, bomComponent.getBomRef()));
+          parseLicenseChoiceExpression(bomComponentLicenseExpression.getValue(), purl));
     }
     return bomComponent.getLicenses();
   }
 
-  protected List<License> parseLicenseChoiceExpression(String expression, String purl, String bomRef) {
+  protected List<License> parseLicenseChoiceExpression(String expression, String purl) {
     List<License> licenses = new ArrayList<>();
     try {
       AnyLicenseInfo anyLicenseInfo = LicenseInfoFactory.parseSPDXLicenseString(expression);
@@ -308,8 +308,8 @@ public abstract class AbstractCycloneDxExporter
           processedLicense.setName(licenseId.replaceAll(NON_STD_LICENSE_ID_PRENUM, ""));
         }
 
-        if (bomRef != null) {
-          processedLicense.setBomRef(bomRef);
+        if (StringUtils.isEmpty(processedLicense.getBomRef())) {
+          processedLicense.setBomRef(UUID.randomUUID().toString());
         }
 
         licenses.add(processedLicense);

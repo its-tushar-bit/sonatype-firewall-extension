@@ -95,6 +95,7 @@ public class SpdxToCycloneDxExporterTest
         "/outputs/" + "output_cdx-v1_5.json", Charset.defaultCharset());
     String actual = spdxToCycloneDxExporter.export();
     assertThatJson(actual)
+        .whenIgnoringPaths("components[*].licenses[*].license.bom-ref")
         .isEqualTo(expected);
   }
 

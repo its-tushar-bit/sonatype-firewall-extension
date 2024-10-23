@@ -13,6 +13,7 @@ import advancedSearchModule from 'MainRoot/advancedSearch/module';
 import ComponentDetailsPage from 'MainRoot/sbomManager/features/componentDetails/ComponentDetailsPage';
 import SbomContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/сontinuousMonitoringEditor/SbomContinuousMonitoringEditor';
 import LearnMoreSbomManager from 'MainRoot/sbomManager/features/LearnMoreSbomManager';
+import SbomApplicationsPage from 'MainRoot/sbomManager/features/sbomApplicationsPage/SbomApplicationsPage';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { selectIsSbomManagerEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
@@ -22,6 +23,7 @@ export default angular
   .component('billOfMaterials', iqReact2Angular(BillOfMaterials, [], ['$ngRedux', '$state']))
   .component('sbomManagerComponentDetails', iqReact2Angular(ComponentDetailsPage, [], ['$ngRedux', '$state']))
   .component('sbomContinuousMonitoring', iqReact2Angular(SbomContinuousMonitoringEditor, [], ['$ngRedux', '$state']))
+  .component('sbomManagerApplicationsPage', iqReact2Angular(SbomApplicationsPage, [], ['$ngRedux', '$state']))
   .component('learnMoreSbomManager', iqReact2Angular(LearnMoreSbomManager, [], ['$ngRedux', '$state']))
   .config(routes)
   .run(checkLicense);
@@ -100,6 +102,14 @@ function routes($stateProvider) {
       component: 'sbomManagerComponentDetails',
       data: {
         title: 'SBOM Manager - Component Details',
+        authenticationRequired: true,
+      },
+    })
+    .state('sbomManager.applications', {
+      url: '/applications',
+      component: 'sbomManagerApplicationsPage',
+      data: {
+        title: 'SBOM Manager - Applications',
         authenticationRequired: true,
       },
     })

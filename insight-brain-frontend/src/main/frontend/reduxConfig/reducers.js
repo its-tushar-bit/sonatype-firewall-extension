@@ -104,6 +104,7 @@ import prioritiesPageSlice from 'MainRoot/development/prioritiesPage/slices/prio
 import sbomManagerDashboardSlice from 'MainRoot/sbomManager/features/dashboard/sbomManagerDashboardSlice';
 import solutionSwitcherSlice from 'MainRoot/mainHeader/MenuBar/SolutionSwitcherContainer/solutionSwitcherSlice';
 import latestReportForStageSlice from 'MainRoot/applicationReport/latestReportForStageSlice';
+import sbomApplicationsPageSlice from 'MainRoot/sbomManager/features/sbomApplicationsPage/sbomApplicationsPageSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -206,4 +207,5 @@ export default combineReducers({
   sbomManagerDashboard: sbomManagerDashboardSlice,
   solutionSwitcher: solutionSwitcherSlice,
   latestReportForStage: latestReportForStageSlice,
+  sbomApplicationsPage: sbomApplicationsPageSlice,
 });

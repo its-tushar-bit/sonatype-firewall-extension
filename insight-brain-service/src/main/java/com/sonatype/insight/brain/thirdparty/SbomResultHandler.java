@@ -81,6 +81,7 @@ import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.Property;
 import org.cyclonedx.model.Swid;
+import org.cyclonedx.model.component.evidence.Occurrence;
 import org.cyclonedx.model.license.Expression;
 import org.cyclonedx.model.vulnerability.Rating;
 import org.cyclonedx.model.vulnerability.Vulnerability;
@@ -117,6 +118,12 @@ public class SbomResultHandler
   private static final String VULNERABILITY_KEY = "vulnerabilities";
 
   public static final String PURL_BOM_TYPE = "sbom_type";
+
+  public static final String FILENAMES_COMPONENT_PROPERTY = "sonatype:match_filenames";
+
+  public static final String MATCH_STATE_COMPONENT_PROPERTY = "sonatype:match_state";
+
+  public static final String MATCH_STATE_LEGACY_COMPONENT_PROPERTY = "Match State";
 
   protected final ThirdPartyFileDAO thirdPartyFileDAO;
 
@@ -587,6 +594,20 @@ public class SbomResultHandler
       fileCoordinate.setSwid(ThirdPartyComponentDAO.MAPPER.writeValueAsString(swid));
     }
     fileCoordinate.setIdentificationSources(SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE);
+    if (sourceComponent.getEvidence() != null &&
+        CollectionUtils.isNotEmpty(sourceComponent.getEvidence().getOccurrences())) {
+      fileCoordinate.setOccurrencesList(
+          sourceComponent.getEvidence().getOccurrences().stream().map(Occurrence::getLocation).toList());
+    }
+    if (CollectionUtils.isNotEmpty(sourceComponent.getProperties())) {
+      fileCoordinate.setFilenames(getComponentPropertyAsString(sourceComponent, FILENAMES_COMPONENT_PROPERTY));
+      fileCoordinate.setMatchStateId(getComponentPropertyAsString(sourceComponent, MATCH_STATE_COMPONENT_PROPERTY));
+      if (StringUtils.isEmpty(fileCoordinate.getMatchStateId())) {
+        // Fallback to legacy property
+        fileCoordinate.setMatchStateId(
+            getComponentPropertyAsString(sourceComponent, MATCH_STATE_LEGACY_COMPONENT_PROPERTY));
+      }
+    }
     componentInfoTelemetry.incrementEcosystemCount(fileCoordinate.getFormat());
     thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
     if (!sbomValidationSkipped) {
@@ -594,6 +615,12 @@ public class SbomResultHandler
       saveVulnerabilitiesExtension(sourceComponent.getExtensions(), fileCoordinate.getId(), schemaVersion, tx);
     }
     return fileCoordinate.getId();
+  }
+
+  private String getComponentPropertyAsString(Component component, String propertyName) {
+    return component.getProperties().stream()
+        .filter(property -> propertyName.equals(property.getName()))
+        .map(Property::getValue).findFirst().orElse(null);
   }
 
   protected String getOrCreateFakeHash(Component component, ComponentIdentifier componentIdentifier) {

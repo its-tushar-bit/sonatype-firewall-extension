@@ -430,12 +430,17 @@ public class SbomResultsMerger
       // in such cases update the purl to the result purl for consistency with Sonatype data
       sbomComponent.setPackageUrl(bomPurl);
     }
-    sbomComponent.setMatchStateId(JsonUtils.getNullableString(bomNode.get(FIELD_MATCH_STATE)));
-    sbomComponent.setOccurrencesList(JsonUtils.getStringListFromArray(bomNode.get(FIELD_PATHNAMES)));
-
-    final List<String> filenames = JsonUtils.getStringListFromArray(bomNode.get(FIELD_FILENAMES));
-    if (CollectionUtils.isNotEmpty(filenames)) {
-      sbomComponent.setFilenamesList(filenames);
+    if (StringUtils.isEmpty(sbomComponent.getMatchStateId())) {
+      sbomComponent.setMatchStateId(JsonUtils.getNullableString(bomNode.get(FIELD_MATCH_STATE)));
+    }
+    if (CollectionUtils.isEmpty(sbomComponent.getOccurrencesList())) {
+      sbomComponent.setOccurrencesList(JsonUtils.getStringListFromArray(bomNode.get(FIELD_PATHNAMES)));
+    }
+    if (CollectionUtils.isEmpty(sbomComponent.getFilenamesList())) {
+      final List<String> filenames = JsonUtils.getStringListFromArray(bomNode.get(FIELD_FILENAMES));
+      if (CollectionUtils.isNotEmpty(filenames)) {
+        sbomComponent.setFilenamesList(filenames);
+      }
     }
     updateComponentIdentifiedAsSonatype(sbomComponent);
     mergeSecurityData(sonatypeVulnerabilityResults, bomComponentIdentifier, sbomComponent, thirdPartySbomMetadata);

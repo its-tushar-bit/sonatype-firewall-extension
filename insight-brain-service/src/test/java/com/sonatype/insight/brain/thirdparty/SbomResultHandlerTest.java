@@ -743,6 +743,77 @@ public class SbomResultHandlerTest
     assertVulnerabilityInformation("sbom-vulnerabilities-no-severity.xml");
   }
 
+  @Test
+  public void testHandleAndFilterContents_withComponentProperties() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-component-properties.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-component-properties.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(1);
+
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate = coordinates.get(0);
+    assertThat(thirdPartyFileCoordinate.getMatchStateId()).isEqualTo("exact");
+    assertThat(thirdPartyFileCoordinate.getFilenamesList()).containsExactlyInAnyOrder("f1", "f2", "f3");
+    assertThat(thirdPartyFileCoordinate.getOccurrencesList()).containsExactlyInAnyOrder(
+        "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/js-lib/jquery-ui-1.10.3/jquery-1.9.1.js",
+        "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/js-lib/jquery-ui-1.10.3/tests/jquery-1.9.1.js",
+        "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/js-lib/jquery/jquery-migrate-1.2.1.js",
+        "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/rest/js/vendor/jquery-1.9.1.min.js"
+    );
+  }
+
+  @Test
+  public void testHandleAndFilterContents_withComponentPropertiesLegacyMatchState() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-component-properties-legacy-match-state.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-component-properties.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(1);
+
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate = coordinates.get(0);
+    assertThat(thirdPartyFileCoordinate.getMatchStateId()).isEqualTo("exact");
+    assertThat(thirdPartyFileCoordinate.getFilenamesList()).containsExactlyInAnyOrder("f1", "f2", "f3");
+    assertThat(thirdPartyFileCoordinate.getOccurrencesList()).containsExactlyInAnyOrder(
+        "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/js-lib/jquery-ui-1.10.3/jquery-1.9.1.js",
+        "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/js-lib/jquery-ui-1.10.3/tests/jquery-1.9.1.js",
+        "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/js-lib/jquery/jquery-migrate-1.2.1.js",
+        "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/rest/js/vendor/jquery-1.9.1.min.js"
+    );
+  }
+
+  @Test
+  public void testHandleAndFilterContents_withNoComponentProperties() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-component-no-properties.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-component-no-properties.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(1);
+
+    ThirdPartyFileCoordinate thirdPartyFileCoordinate = coordinates.get(0);
+    assertThat(thirdPartyFileCoordinate.getMatchStateId()).isNull();
+    assertThat(thirdPartyFileCoordinate.getFilenamesList()).isEmpty();
+    assertThat(thirdPartyFileCoordinate.getOccurrencesList()).containsExactlyInAnyOrder(
+        "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/js-lib/jquery-ui-1.10.3/jquery-1.9.1.js",
+        "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/js-lib/jquery-ui-1.10.3/tests/jquery-1.9.1.js",
+        "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/js-lib/jquery/jquery-migrate-1.2.1.js",
+        "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/rest/js/vendor/jquery-1.9.1.min.js");
+  }
+
   private void testHandleFilterContents(String sbomContent, String path, SbomFormat sbomFormat) throws Exception {
     ThirdPartyScanContent content = new ThirdPartyScanContent(path, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();

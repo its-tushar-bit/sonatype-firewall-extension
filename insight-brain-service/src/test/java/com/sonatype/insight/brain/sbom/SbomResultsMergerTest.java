@@ -1157,14 +1157,20 @@ public class SbomResultsMergerTest
     ThirdPartyFileCoordinate thirdPartyFileCoordinate1 =
         tempEntity.newThirdPartyFileCoordinate(file, "src", "nuget", "Microsoft.IdentityModel.JsonWebTokens", "6.25.1",
             "0e3da21fd80b9853692d", "pkg:nuget/Microsoft.IdentityModel.JsonWebTokens@6.25.1");
+    thirdPartyFileCoordinate1.setMatchStateId("similar");
+    thirdPartyFileCoordinateDAO.update(thirdPartyFileCoordinate1);
 
     ThirdPartyFileCoordinate thirdPartyFileCoordinate2 =
         tempEntity.newThirdPartyFileCoordinate(file, "src", "nuget", "Microsoft.IdentityModel.Protocols", "6.25.1",
             "c795e78734c2860bb627", "pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1");
+    thirdPartyFileCoordinate2.setFilenamesList(List.of("f1,f2"));
+    thirdPartyFileCoordinateDAO.update(thirdPartyFileCoordinate2);
 
     ThirdPartyFileCoordinate thirdPartyFileCoordinate3 =
         tempEntity.newThirdPartyFileCoordinate(file, "src", "nuget", "Microsoft.Extensions.Options", "5.0.0",
             "d98bcd35050378773586", "pkg:nuget/Microsoft.Extensions.Options@5.0.0");
+    thirdPartyFileCoordinate3.setOccurrencesList(List.of("o1"));
+    thirdPartyFileCoordinateDAO.update(thirdPartyFileCoordinate3);
 
     ThirdPartyCoordinateSecurity tpVuln1 =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate1, "CVE-2024-21319", "description", null, 0f,
@@ -1186,14 +1192,29 @@ public class SbomResultsMergerTest
     thirdPartyFileCoordinate1 = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate1.getId());
     assertThat(thirdPartyFileCoordinate1.getDependencyType()).isEqualTo("T");
     assertThat(thirdPartyFileCoordinate1.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+    assertThat(thirdPartyFileCoordinate1.getMatchStateId()).isEqualTo("similar");
+    assertThat(thirdPartyFileCoordinate1.getFilenamesList()).containsExactlyInAnyOrder(
+        "pkg:nuget/Microsoft.IdentityModel.JsonWebTokens@6.25.1:0e3da21fd80b9853692d");
+    assertThat(thirdPartyFileCoordinate1.getOccurrencesList()).containsExactlyInAnyOrder(
+        "dependency:/app6-bom.xml/pkg:nuget\\Microsoft.IdentityModel.JsonWebTokens@6.25.1:0e3da21fd80b9853692d");
 
     thirdPartyFileCoordinate2 = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate2.getId());
     assertThat(thirdPartyFileCoordinate2.getDependencyType()).isEqualTo("D");
     assertThat(thirdPartyFileCoordinate2.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+    assertThat(thirdPartyFileCoordinate2.getMatchStateId()).isEqualTo("exact");
+    assertThat(thirdPartyFileCoordinate2.getFilenamesList()).containsExactlyInAnyOrder(
+        "f1", "f2");
+    assertThat(thirdPartyFileCoordinate2.getOccurrencesList()).containsExactlyInAnyOrder(
+        "dependency:/app6-bom.xml/pkg:nuget\\Microsoft.IdentityModel.Protocols@6.25.1:c795e78734c2860bb627");
 
     thirdPartyFileCoordinate3 = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate3.getId());
     assertThat(thirdPartyFileCoordinate3.getDependencyType()).isNull();
     assertThat(thirdPartyFileCoordinate3.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
+    assertThat(thirdPartyFileCoordinate3.getMatchStateId()).isEqualTo("exact");
+    assertThat(thirdPartyFileCoordinate3.getFilenamesList()).containsExactlyInAnyOrder(
+        "pkg:nuget/Microsoft.Extensions.Options@5.0.0:d98bcd35050378773586");
+    assertThat(thirdPartyFileCoordinate3.getOccurrencesList()).containsExactlyInAnyOrder(
+        "o1");
 
     List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList =
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate1.getId());

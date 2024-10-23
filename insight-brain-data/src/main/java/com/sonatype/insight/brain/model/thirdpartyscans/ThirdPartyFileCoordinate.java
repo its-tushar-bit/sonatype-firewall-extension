@@ -86,13 +86,13 @@ public class ThirdPartyFileCoordinate
   @Column(name = "category_ids")
   private String categoryIds;
 
-  @Column (name = "match_state_id")
+  @Column(name = "match_state_id")
   private String matchStateId;
 
-  @Column (name = "occurrences")
+  @Column(name = "occurrences")
   private String occurrences;
 
-  @Column (name = "filenames")
+  @Column(name = "filenames")
   private String filenames;
 
   @Override
@@ -232,6 +232,10 @@ public class ThirdPartyFileCoordinate
 
   public void setFilenamesList(List<String> filenames) {
     this.filenames = CollectionUtils.isEmpty(filenames) ? null : String.join(",", filenames);
+  }
+
+  public void setFilenames(String filenames) {
+    this.filenames = filenames;
   }
 
   public List<String> getOccurrencesList() {

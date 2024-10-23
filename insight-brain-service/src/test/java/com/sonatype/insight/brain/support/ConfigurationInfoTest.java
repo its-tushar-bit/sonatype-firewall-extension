@@ -265,7 +265,8 @@ public class ConfigurationInfoTest
         "sbomContinuousMonitoringUi",
         "sbomPolicies",
         "malwareDefenseApi",
-        "autoWaivers");
+        "autoWaivers",
+        "newScanProcess");
 
     // Properties included in the config.json in support zip
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());

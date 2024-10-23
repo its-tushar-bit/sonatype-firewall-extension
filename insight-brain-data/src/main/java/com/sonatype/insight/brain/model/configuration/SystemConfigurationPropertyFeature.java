@@ -224,7 +224,10 @@ public enum SystemConfigurationPropertyFeature
 
   AUTO_WAIVERS(SystemConfigurationProperty.AUTO_WAIVERS, false),
 
+  NEW_SCAN_PROCESS(SystemConfigurationProperty.NEW_SCAN_PROCESS, false),
+
   MALWARE_DEFENSE_API(SystemConfigurationProperty.MALWARE_DEFENSE_API, false)
+
   {
     @Override
     public boolean isEnabled(TransactionContext tx) {

@@ -247,6 +247,8 @@ public class SystemConfigurationProperty
 
   public static final String AUTO_WAIVERS = "autoWaivers";
 
+  public static final String NEW_SCAN_PROCESS = "newScanProcess";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

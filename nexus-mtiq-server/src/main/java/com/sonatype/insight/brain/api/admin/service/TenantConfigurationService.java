@@ -50,7 +50,8 @@ public class TenantConfigurationService
       SBOM_POLICIES,
       MALWARE_DEFENSE_API,
       AUTO_WAIVERS,
-      QUARANTINED_ITEM_CUSTOM_MESSAGE
+      QUARANTINED_ITEM_CUSTOM_MESSAGE,
+      NEW_SCAN_PROCESS
   );
 
   // Visible for testing

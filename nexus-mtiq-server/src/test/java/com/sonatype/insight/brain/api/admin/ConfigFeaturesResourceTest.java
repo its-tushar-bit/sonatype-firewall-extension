@@ -111,7 +111,8 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.getId(),
           SystemConfigurationPropertyFeature.SBOM_POLICIES.getId(),
           SystemConfigurationPropertyFeature.MALWARE_DEFENSE_API.getId(),
-          SystemConfigurationPropertyFeature.AUTO_WAIVERS.getId()
+          SystemConfigurationPropertyFeature.AUTO_WAIVERS.getId(),
+          SystemConfigurationPropertyFeature.NEW_SCAN_PROCESS.getId(),
       }
   )).toArray(String[]::new);
 

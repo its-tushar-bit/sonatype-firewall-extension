@@ -230,6 +230,9 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.AUTO_WAIVERS, Boolean.class,
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
           (p, o) -> Objects.toString(o, null)),
+      new ConfigurationProperty(SystemConfigurationProperty.NEW_SCAN_PROCESS, Boolean.class,
+          (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
+          (p, o) -> Objects.toString(o, null)),
       };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

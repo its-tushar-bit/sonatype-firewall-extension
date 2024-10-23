@@ -151,8 +151,6 @@ describe('Report Page component', () => {
     });
     expect(viewVulnerabilitiesLink).toBeVisible();
     expect(viewVulnerabilitiesLink).toHaveTextContent(/view vulnerabilities/i);
-
-    expect(screen.getByRole('link', { name: 'View legacy report' })).toBeVisible();
   });
 
   it('renders a ReportStatusBar', () => {

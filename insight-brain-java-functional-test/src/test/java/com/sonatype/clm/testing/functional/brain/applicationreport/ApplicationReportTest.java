@@ -21,7 +21,6 @@ import com.sonatype.clm.testing.functional.elements.NxDropdown;
 import com.sonatype.clm.testing.functional.elements.NxTooltip;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
@@ -297,7 +296,7 @@ public class ApplicationReportTest
     NxDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.shouldBe(visible).menu().shouldNotBe(visible);
     optionsDropdown.button().shouldHave(text("Options")).click();
-    optionsDropdown.menu().shouldBe(visible).entries().shouldHave(size(7));
+    optionsDropdown.menu().shouldBe(visible).entries().shouldHave(size(6));
 
     eyesWatcher.eyesCheck();
   }
@@ -371,16 +370,6 @@ public class ApplicationReportTest
 
     waitUntilUrl(ApplicationReportVulnerabilitiesPage.url(app, SCAN_ID));
     new ApplicationReportVulnerabilitiesPage().title().shouldHave(text(app.getName()));
-  }
-
-  @Test
-  public void testLinkToOldReport() {
-    NxDropdown optionsDropdown = reportPage.optionsDropdown();
-    optionsDropdown.button().click();
-    optionsDropdown.menu().entries().last().shouldHave(text("View legacy report")).click();
-
-    ApplicationReportContainerPage.getIframe().shouldBe(visible);
-    //eyesWatcher.eyesCheck(); https://sonatype.atlassian.net/browse/CLM-30559
   }
 
   @Test

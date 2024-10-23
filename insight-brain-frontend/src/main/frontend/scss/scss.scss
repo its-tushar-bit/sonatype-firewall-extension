@@ -64,7 +64,6 @@
 @use '../configuration/systemConfiguration';
 @use '../advancedSearch/advancedSearch';
 @use '../report/react/report';
-@use '../report/report/report' as legacy-report;
 @use '../configuration/scmOnboarding/scmOnboarding';
 @use '../violation/violationPage';
 @use '../waivers/waiverDetails/waiverDetailsPage';

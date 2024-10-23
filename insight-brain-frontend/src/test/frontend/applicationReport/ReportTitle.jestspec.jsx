@@ -113,8 +113,6 @@ describe('ReportTitle', () => {
     });
     expect(viewVulnerabilitiesLink).toBeVisible();
     expect(viewVulnerabilitiesLink).toHaveTextContent(/view vulnerabilities/i);
-
-    expect(screen.getByRole('link', { name: 'View legacy report' })).toBeVisible();
   });
 
   it('options dropdown renders 6 links if developer dashboard is enabled', async () => {
@@ -137,8 +135,6 @@ describe('ReportTitle', () => {
     });
     expect(viewVulnerabilitiesLink).toBeVisible();
     expect(viewVulnerabilitiesLink).toHaveTextContent(/view vulnerabilities/i);
-
-    expect(screen.getByRole('link', { name: 'View legacy report' })).toBeVisible();
   });
 
   it('options dropdown priorities link redirects to an external tab', async () => {

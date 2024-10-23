@@ -22,7 +22,7 @@ import mainHeaderModule from './mainHeader/module';
 import navigationContainer from './navigationContainer/module';
 import ReportModule from './ReportApp';
 import dashboardModule from './dashboard/dashboard.module';
-import Report from './report/ReportController';
+import Report from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/module';
 import routeProductLicenseValidator from './routeProductLicenseValidator/module';
 import pendoModule from './pendo/module';
 import externalLinkModule from './externalLink/module';

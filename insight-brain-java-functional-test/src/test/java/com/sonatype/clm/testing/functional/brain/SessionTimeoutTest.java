@@ -5,8 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.io.IOException;
-
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.LogoutWarningModal;
@@ -14,18 +12,10 @@ import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.MainView;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
-import com.sonatype.clm.testing.functional.pages.ReportPage;
-import com.sonatype.clm.testing.functional.pages.ReportPolicyPage;
 import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage;
 import com.sonatype.clm.testing.functional.pages.WebhookEditPage;
-import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.utils.ReportHelper;
 
 import com.codeborne.selenide.Selenide;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
@@ -94,61 +84,6 @@ public class SessionTimeoutTest
     loginModal.shouldBe(visible);
     loginModal.username().shouldHave(value("")).shouldBe(enabled);
     loginModal.password().shouldHave(value("")).shouldBe(enabled);
-  }
-
-  /**
-   * Test that the re-login works when triggered from within a report iframe
-   */
-  @Test
-  public void testReloginPromptOnAjaxDetectedSessionExpirationInReport() throws IOException {
-    String scanId = "306e0a923df34c64b836358182b1b902";
-
-    Organization org = tempEntity.newOrganization();
-    Application app = tempEntity.newApplication(org.getId());
-    TestReportEvaluator evaluator = new TestReportEvaluator(app, scanId,
-        ReportHelper.zipReport("/canned-reports/small-report", tempDir), baseUrlFromTest,
-        new InsightWork(testCLMServer.getCLMServer().getConfiguration()));
-
-    evaluator.evaluatePolicy();
-
-    loginAsAdmin();
-    refreshOrOpen(ApplicationReportContainerPage.url(app.getPublicId(), scanId));
-
-    Selenide.switchTo().frame(ApplicationReportContainerPage.getIframe());
-    ReportPage.licenseChart().shouldBe(visible);
-
-    hardreset();
-
-    // try to access another page of the report after the session is expired. This is expected to
-    // bring up the re-login modal, and then after successful reauthentication, is expected to navigate to the
-    // other page
-    ReportPage.policyTabButton().click();
-
-    // switch back to the parent frame in order to deal with the login dialog
-    Selenide.switchTo().defaultContent();
-    assertUiClearedAndLogBackIn();
-
-    // ensure that after logging back in, the report page loaded correctly
-    Selenide.switchTo().frame(ApplicationReportContainerPage.getIframe());
-    ReportPage.summaryTabButton().shouldBe(visible);
-
-    ReportPage.policyTabButton().click();
-
-    // expire the session again in order to test the re-login for the CIP itself
-    hardreset();
-
-    // click a row. This triggers the re-login using different logic so it needs to be tested separately
-    ReportPolicyPage.row(0).openCip();
-
-    Selenide.switchTo().defaultContent();
-    assertUiClearedAndLogBackIn();
-
-    // ensure the report is loaded again. Since a full page refresh happened the state within the iframe is lost
-    Selenide.switchTo().frame(ApplicationReportContainerPage.getIframe());
-    ReportPage.summaryTabButton().shouldBe(visible);
-
-    // cleanup
-    Selenide.switchTo().defaultContent();
   }
 
   @Test

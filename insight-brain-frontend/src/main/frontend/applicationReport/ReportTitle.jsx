@@ -75,7 +75,6 @@ export default function ReportTitle() {
     isPrioritiesPageContainer ? `${prioritiesPageContainerName}.rawData` : 'applicationReport.rawData',
     { publicId, scanId }
   );
-  const legacyReportUrl = uiRouterState.href('report', { publicId, scanId });
   const vulnerabilitiesUrl = uiRouterState.href(
     isPrioritiesPageContainer ? `${prioritiesPageContainerName}.vulnerabilities` : 'applicationReport.vulnerabilities',
     { publicId, scanId }
@@ -141,10 +140,6 @@ export default function ReportTitle() {
               <span>View vulnerabilities</span>
             </a>
           </NxTooltip>
-          <a className="nx-dropdown-link" href={legacyReportUrl}>
-            <NxFontAwesomeIcon icon={faFile} />
-            <span>View legacy report</span>
-          </a>
         </NxStatefulDropdown>
       </div>
       <h1 className="nx-h1">

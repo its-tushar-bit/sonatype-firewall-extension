@@ -240,6 +240,24 @@ public class DependencyResolverTest
   }
 
   @Test
+  public void testDependencyResolve_NoExactPurls_MatchUsingPurlPrefix() throws Exception {
+    JsonNode dependenciesJson =
+        getJsonNodeInformation("report-dependency-match-purl-prefix/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-dependency-match-purl-prefix/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-dependency-match-purl-prefix/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-dependency-match-purl-prefix/data.json");
+
+    List<String> expectedKnownPurls = List.of("pkg:pypi/multidict@6.1.0?extension=whl&qualifier=cp311-cp311-win_amd64",
+        "pkg:pypi/tomlkit@0.13.2?extension=tar.gz",
+        "pkg:pypi/protobuf@4.25.5?extension=whl&qualifier=cp37-abi3-manylinux2014_x86_64",
+        "pkg:pypi/gitpython@3.0.5?extension=tar.gz");
+
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
+        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    assertDependencyInfo(bomJson, 2, 2, 0, 0, 0, 4, 0, summaryJson, dataJson, app, expectedKnownPurls);
+  }
+
+  @Test
   public void processInnerSource_multiModule() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
     tempEntity.newInnerSourceComponent(

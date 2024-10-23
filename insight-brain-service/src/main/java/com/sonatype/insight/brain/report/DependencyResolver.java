@@ -6,11 +6,14 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -112,7 +115,7 @@ public class DependencyResolver
 
   private AtomicInteger exactlyMatchedComponentCount = new AtomicInteger();
 
-  private Map<PackageUrlIdentifier, ObjectNode> bomComponentNodes;
+  private Map<String, ObjectNode> bomNodesByPackageUrl;
 
   private final Set<InnerSourceProducerComponentTelemetry> innerSourceProducerTelemetries = new HashSet<>();
 
@@ -272,7 +275,7 @@ public class DependencyResolver
       log.debug("InnerSource module '{}' found", modulePurl);
       saveInnerSourceComponent(modulePurl);
 
-      updateBomNodeDependencyInformation(true, false, modulePurl, null, null, true);
+      updateBomNodeDependencyInformation(true, false, modulePurl, null, true);
 
       for (DependencyNode directDependencyChild : moduleDependency.getChildren()) {
         processDirectDependency(directDependencyChild, directDependencies, processedDirectDependencies, modules);
@@ -306,12 +309,12 @@ public class DependencyResolver
             getPackageUrl(directDependency), directDependencies);
       }
       else {
-        Optional<ObjectNode> bomNode = findBomComponent(packageUrlIdentifier);
+        Optional<Collection<ObjectNode>> bomNode = findBomComponent(packageUrlIdentifier);
         //Only modules need to be created
-        if (!bomNode.isPresent()) {
+        if (bomNode.isEmpty()) {
           if (directDependency.isModule()) {
             ObjectNode node = newNodeComponent(packageUrlIdentifier);
-            bomComponentNodes.put(packageUrlIdentifier, node);
+            bomNodesByPackageUrl.put(packageUrlIdentifier.getPackageUrl(), node);
           }
           else {
             log.debug("Dependency with purl '{}' exists in the tree but no the bom.json, it was not created",
@@ -322,7 +325,7 @@ public class DependencyResolver
         boolean markAsKnown = directDependency.isModule() || modules.contains(packageUrlIdentifier);
 
         // a regular (non InnerSource) dependency/module
-        updateBomNodeDependencyInformation(true, false, packageUrlIdentifier, null, null, markAsKnown);
+        updateBomNodeDependencyInformation(true, false, packageUrlIdentifier, null, markAsKnown);
         updateDependencyInfoForComponentChildren(directDependency.getChildren(), false, false, packageUrlIdentifier,
             markAsKnown);
       }
@@ -338,17 +341,18 @@ public class DependencyResolver
   {
     for (DependencyNode dependency : transitiveDependencies) {
       PackageUrlIdentifier dependencyPurl = getPackageUrl(dependency);
-      Optional<ObjectNode> bomObjectNodeOptional = findBomComponent(dependencyPurl);
+      Optional<Collection<ObjectNode>> bomObjectNodeOptional = findBomComponent(dependencyPurl);
 
       if (bomObjectNodeOptional.isPresent() && dependencyPurl != null && !directDependencies.contains(dependencyPurl)) {
-        ObjectNode bomObjectNode = bomObjectNodeOptional.get();
-        InnerSourceData innerSourceData = new InnerSourceData(innerSourceApp.getName(), innerSourceApp.getId(),
-            PackageUrlIdentifier.toPackageUrl(innerSourceParent.getComponentIdentifier()));
-        updateBomNodeDependencyInformation(false, false, dependencyPurl, parentPurl, innerSourceData, null, true);
-        log.debug("Component {} associated with InnerSource app {}", dependencyPurl, innerSourceApp.getName());
+        for (ObjectNode bomObjectNode : bomObjectNodeOptional.get()) {
+          InnerSourceData innerSourceData = new InnerSourceData(innerSourceApp.getName(), innerSourceApp.getId(),
+              PackageUrlIdentifier.toPackageUrl(innerSourceParent.getComponentIdentifier()));
+          updateBomNodeDependencyInformation(false, false, dependencyPurl, parentPurl, innerSourceData, null, true);
+          log.debug("Component {} associated with InnerSource app {}", dependencyPurl, innerSourceApp.getName());
 
-        if (MatchState.UNKNOWN.getId().equals(bomObjectNode.get(MATCH_STATE).asText())) {
-          updateUnknownTransitiveDependencyAsKnown(dependencyPurl, bomObjectNode);
+          if (MatchState.UNKNOWN.getId().equals(bomObjectNode.get(MATCH_STATE).asText())) {
+            updateUnknownTransitiveDependencyAsKnown(dependencyPurl, bomObjectNode);
+          }
         }
       }
 
@@ -369,7 +373,7 @@ public class DependencyResolver
     for (DependencyNode node : children) {
       if (node != null && node.getComponentIdentifier() != null) {
         PackageUrlIdentifier purl = getPackageUrl(node);
-        updateBomNodeDependencyInformation(isDirect, isInnerSource, purl, parentPurl, null, markAsKnown);
+        updateBomNodeDependencyInformation(isDirect, isInnerSource, purl, parentPurl, markAsKnown);
         if (CollectionUtils.isNotEmpty(node.getChildren())) {
           updateDependencyInfoForComponentChildren(node.getChildren(), false, isInnerSource, purl, markAsKnown);
         }
@@ -401,10 +405,10 @@ public class DependencyResolver
 
     // In some scenarios (during MJA matching) the component isn't identified and not present in the bom.json.
     // However, we are certain at this point this is an IS component so add a new identified component here
-    if (!findBomComponent(innerSourcePackageUrlIdentifier).isPresent()) {
+    if (findBomComponent(innerSourcePackageUrlIdentifier).isEmpty()) {
       ObjectNode isNode = newNodeComponent(innerSourcePackageUrlIdentifier);
 
-      bomComponentNodes.put(innerSourcePackageUrlIdentifier, isNode);
+      bomNodesByPackageUrl.put(innerSourcePackageUrlIdentifier.getPackageUrl(), isNode);
       totalArtifactCount.getAndIncrement();
 
       log.debug("InnerSource Component '{}' was created in bom.json", innerSourcePackageUrlIdentifier.getPackageUrl());
@@ -453,25 +457,36 @@ public class DependencyResolver
     // and having an InnerSource coordinate in dependencies.json. Setting to "cli"
     // in such a rare case where in all other cases it will adopt a sibling's scanClient.
     String scanClient = "cli";
-    if (aaNode.size() > 0 && aaNode.get(0).hasNonNull(FIELD_ANALYZER_FEATURES)) {
+    if (!aaNode.isEmpty() && aaNode.get(0).hasNonNull(FIELD_ANALYZER_FEATURES)) {
       scanClient = aaNode.get(0).get(FIELD_ANALYZER_FEATURES).get("scanClient").asText();
     }
     return new AnalyzerFeatures(AnalysisSource.THIRD_PARTY,
         AnalysisType.COORDINATE, scanClient, false, false, false);
   }
 
-  private Optional<ObjectNode> findBomComponent(PackageUrlIdentifier identifier) {
+  private Optional<Collection<ObjectNode>> findBomComponent(PackageUrlIdentifier identifier) {
     loadBomComponentsIfNotLoaded();
-    return Optional.ofNullable(bomComponentNodes.get(identifier));
+    Collection<ObjectNode> result = new ArrayList<>();
+    for (Entry<String, ObjectNode> bomPurl : bomNodesByPackageUrl.entrySet()) {
+      if (bomPurl.getKey().startsWith(identifier.getPackageUrl())) {
+        result.add(bomPurl.getValue());
+      }
+    }
+    if (result.isEmpty()) {
+      return Optional.empty();
+    }
+    else {
+      return Optional.of(result);
+    }
   }
 
   private void loadBomComponentsIfNotLoaded() {
-    if (bomComponentNodes == null) {
-      bomComponentNodes = new HashMap<>();
+    if (bomNodesByPackageUrl == null) {
+      bomNodesByPackageUrl = new HashMap<>();
       for (JsonNode bomChild : bomJson.get(AA_DATA_NODE)) {
         PackageUrlIdentifier purl = ComponentIdentifierAdapter.getPackageUrlIdentifier(bomChild);
         if (purl != null) {
-          bomComponentNodes.put(purl, (ObjectNode) bomChild);
+          bomNodesByPackageUrl.put(purl.getPackageUrl(), (ObjectNode) bomChild);
         }
         String matchStateString = bomChild.path(MATCH_STATE).asText();
         MatchState matchState = MatchState.getById(matchStateString);
@@ -482,7 +497,7 @@ public class DependencyResolver
           }
           purl = ComponentIdentifierAdapter.parsePathToId(pathnames.get(0).asText());
           if (purl != null) {
-            bomComponentNodes.put(purl, (ObjectNode) bomChild);
+            bomNodesByPackageUrl.put(purl.getPackageUrl(), (ObjectNode) bomChild);
           }
         }
       }
@@ -530,10 +545,9 @@ public class DependencyResolver
       final boolean isInnerSource,
       final PackageUrlIdentifier componentPurl,
       final PackageUrlIdentifier parentComponentPurl,
-      final InnerSourceData innerSourceData,
       final boolean markAsKnown)
   {
-    updateBomNodeDependencyInformation(isDirect, isInnerSource, componentPurl, parentComponentPurl, innerSourceData,
+    updateBomNodeDependencyInformation(isDirect, isInnerSource, componentPurl, parentComponentPurl, null,
         null, markAsKnown);
   }
 
@@ -558,49 +572,51 @@ public class DependencyResolver
       final PackageUrlIdentifier parentComponentPurl,
       final InnerSourceData innerSourceData,
       final InnerSourceProducerComponentTelemetry producerInfo,
-      final ObjectNode bomObjectNode,
+      final Collection<ObjectNode> bomObjectNodes,
       final boolean markAsKnown)
   {
-    if (!bomObjectNode.hasNonNull(FIELD_COMPONENT_IDENTIFIER)) {
-      bomObjectNode.set(FIELD_COMPONENT_IDENTIFIER,
-          new ObjectMapper().valueToTree(getComponentIdentifier(componentPurl)));
-    }
-    if (!bomObjectNode.hasNonNull(FIELD_PACKAGE_URL)) {
-      bomObjectNode.put(FIELD_PACKAGE_URL, componentPurl.getPackageUrl());
-    }
-    bomObjectNode
-        .put(FIELD_DIRECT_DEPENDENCY, bomObjectNode.path(FIELD_DIRECT_DEPENDENCY).asBoolean(false) || isDirect);
-    bomObjectNode
-        .put(FIELD_INNER_SOURCE, bomObjectNode.path(FIELD_INNER_SOURCE).asBoolean(false) || isInnerSource);
-    if (!isDirect && parentComponentPurl != null) {
-      if (bomObjectNode.path(ComponentLoader.PARENT_COMPONENT_PURLS_FIELD).isMissingNode()) {
-        bomObjectNode.putArray(ComponentLoader.PARENT_COMPONENT_PURLS_FIELD);
+    for (ObjectNode bomObjectNode : bomObjectNodes) {
+      if (!bomObjectNode.hasNonNull(FIELD_COMPONENT_IDENTIFIER)) {
+        bomObjectNode.set(FIELD_COMPONENT_IDENTIFIER,
+            new ObjectMapper().valueToTree(getComponentIdentifier(componentPurl)));
       }
-      ArrayNode parentComponentPurls = (ArrayNode) bomObjectNode.get(ComponentLoader.PARENT_COMPONENT_PURLS_FIELD);
-      if (!contains(parentComponentPurls, parentComponentPurl)) {
-        parentComponentPurls.add(parentComponentPurl.getPackageUrl());
+      if (!bomObjectNode.hasNonNull(FIELD_PACKAGE_URL)) {
+        bomObjectNode.put(FIELD_PACKAGE_URL, componentPurl.getPackageUrl());
       }
-    }
-    if (innerSourceData != null) {
-      if (bomObjectNode.path(ComponentLoader.INNER_SOURCE_DATA_FIELD).isMissingNode()) {
-        bomObjectNode.putArray(ComponentLoader.INNER_SOURCE_DATA_FIELD);
+      bomObjectNode
+          .put(FIELD_DIRECT_DEPENDENCY, bomObjectNode.path(FIELD_DIRECT_DEPENDENCY).asBoolean(false) || isDirect);
+      bomObjectNode
+          .put(FIELD_INNER_SOURCE, bomObjectNode.path(FIELD_INNER_SOURCE).asBoolean(false) || isInnerSource);
+      if (!isDirect && parentComponentPurl != null) {
+        if (bomObjectNode.path(ComponentLoader.PARENT_COMPONENT_PURLS_FIELD).isMissingNode()) {
+          bomObjectNode.putArray(ComponentLoader.PARENT_COMPONENT_PURLS_FIELD);
+        }
+        ArrayNode parentComponentPurls = (ArrayNode) bomObjectNode.get(ComponentLoader.PARENT_COMPONENT_PURLS_FIELD);
+        if (!contains(parentComponentPurls, parentComponentPurl)) {
+          parentComponentPurls.add(parentComponentPurl.getPackageUrl());
+        }
       }
-      ArrayNode innerSourceDataArray = (ArrayNode) bomObjectNode.get(ComponentLoader.INNER_SOURCE_DATA_FIELD);
-      if (!contains(innerSourceDataArray, innerSourceData)) {
-        innerSourceDataArray.add(JsonUtils.asTree(innerSourceData));
+      if (innerSourceData != null) {
+        if (bomObjectNode.path(ComponentLoader.INNER_SOURCE_DATA_FIELD).isMissingNode()) {
+          bomObjectNode.putArray(ComponentLoader.INNER_SOURCE_DATA_FIELD);
+        }
+        ArrayNode innerSourceDataArray = (ArrayNode) bomObjectNode.get(ComponentLoader.INNER_SOURCE_DATA_FIELD);
+        if (!contains(innerSourceDataArray, innerSourceData)) {
+          innerSourceDataArray.add(JsonUtils.asTree(innerSourceData));
+        }
       }
-    }
 
-    //Unknown components resulted from a binary scan (maven or other tools) that are not InnerSource
-    // or modules should not be updated as "known"
-    if (markAsKnown && (!bomObjectNode.hasNonNull(MATCH_STATE) ||
-        MatchState.UNKNOWN.getId().equals(bomObjectNode.get(MATCH_STATE).asText()))) {
-      markComponentAsKnown(bomObjectNode, componentPurl, isDirect);
-      log.debug((innerSourceData != null ? "InnerSource component" : "Component")
-          + "'{}' was updated in bom.json as a known component", componentPurl);
-    }
+      //Unknown components resulted from a binary scan (maven or other tools) that are not InnerSource
+      // or modules should not be updated as "known"
+      if (markAsKnown && (!bomObjectNode.hasNonNull(MATCH_STATE) ||
+          MatchState.UNKNOWN.getId().equals(bomObjectNode.get(MATCH_STATE).asText()))) {
+        markComponentAsKnown(bomObjectNode, componentPurl, isDirect);
+        log.debug((innerSourceData != null ? "InnerSource component" : "Component")
+            + "'{}' was updated in bom.json as a known component", componentPurl);
+      }
 
-    setTelemetryInfo(producerInfo, bomObjectNode);
+      setTelemetryInfo(producerInfo, bomObjectNode);
+    }
   }
 
   private void setTelemetryInfo(

@@ -773,6 +773,10 @@ public class SbomResultsMerger
       final ThirdPartyFileCoordinate sbomComponent,
       Map<ComponentIdentifier, String> componentDependencyTypeMap)
   {
+    if (StringUtils.isBlank(sbomComponent.getPackageUrl())) {
+      return;
+    }
+
     try {
       ComponentIdentifier sbomComponentIdentifier =
           ComponentIdentifierAdapter.toComponentIdentifier(sbomComponent.getPackageUrl());

@@ -1,0 +1,296 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "pypi",
+        "coordinates": {
+          "extension": "tar.gz",
+          "name": "tomlkit",
+          "qualifier": "",
+          "version": "0.13.2"
+        }
+      },
+      "packageUrl": "pkg:pypi/tomlkit@0.13.2?extension=tar.gz",
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "pkg:pypi/tomlkit@0.13.2:015d09aae1975ed263d0"
+      ],
+      "pathnames": [
+        "dependency:/SBOM-bom.json/pkg:pypi\\tomlkit@0.13.2:015d09aae1975ed263d0"
+      ],
+      "aggregateFiles": [],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "499e023d1501d950a2b6",
+      "relativePopularity": null,
+      "createTime": 1723623581000,
+      "lastModifiedTime": null,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "COORDINATE",
+        "scanClient": "sbomApi",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true,
+        "manifestContentType": "SBOM"
+      },
+      "integrityRating": {
+        "id": 0,
+        "label": "Normal"
+      },
+      "sonatypeIdentifier": "8a6b310a909648dc9161402a5a1bebc8",
+      "endOfLife": "END_OF_LIFE_UNKNOWN",
+      "displayName": {
+        "parts": [
+          {
+            "field": "Name",
+            "value": "tomlkit"
+          },
+          {
+            "value": " "
+          },
+          {
+            "field": "Version",
+            "value": "0.13.2"
+          },
+          {
+            "value": " (."
+          },
+          {
+            "field": "Extension",
+            "value": "tar.gz"
+          },
+          {
+            "value": ")"
+          }
+        ],
+        "name": "tomlkit"
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "pypi",
+        "coordinates" : {
+          "extension" : "whl",
+          "name" : "protobuf",
+          "qualifier" : "cp37-abi3-manylinux2014_x86_64",
+          "version" : "4.25.5"
+        }
+      },
+      "packageUrl" : "pkg:pypi/protobuf@4.25.5?extension=whl&qualifier=cp37-abi3-manylinux2014_x86_64",
+      "groupId" : null,
+      "artifactId" : null,
+      "version" : null,
+      "filenames" : [ "pkg:pypi/protobuf@4.25.5:cdfce0a656d4acc9fe76" ],
+      "pathnames" : [ "dependency:/SBOM-bom.json/pkg:pypi\\protobuf@4.25.5:cdfce0a656d4acc9fe76" ],
+      "aggregateFiles" : [ ],
+      "matchState" : "exact",
+      "scanError" : false,
+      "proprietary" : false,
+      "hash" : "0b00912fab308fc0310b",
+      "relativePopularity" : null,
+      "createTime" : 1726698333000,
+      "lastModifiedTime" : null,
+      "lastModifiedEntryTime" : null,
+      "website" : null,
+      "identificationSource" : "Sonatype",
+      "componentCategories" : [ {
+        "componentCategoryId" : 113,
+        "path" : "Other"
+      } ],
+      "hygieneRating" : null,
+      "analyzerFeatures" : {
+        "analysisSource" : "SDS",
+        "analysisType" : "COORDINATE",
+        "scanClient" : "sbomApi",
+        "hasLicense" : true,
+        "hasIdentity" : true,
+        "hasSecurity" : true,
+        "manifestContentType" : "SBOM"
+      },
+      "integrityRating" : {
+        "id" : 0,
+        "label" : "Normal"
+      },
+      "sonatypeIdentifier" : "3ab5e421da8645acba2b527c0357297c",
+      "endOfLife" : "END_OF_LIFE_UNKNOWN",
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Name",
+          "value" : "protobuf"
+        }, {
+          "value" : " ("
+        }, {
+          "field" : "Qualifier",
+          "value" : "cp37-abi3-manylinux2014_x86_64"
+        }, {
+          "value" : ")"
+        }, {
+          "value" : " "
+        }, {
+          "field" : "Version",
+          "value" : "4.25.5"
+        }, {
+          "value" : " (."
+        }, {
+          "field" : "Extension",
+          "value" : "whl"
+        }, {
+          "value" : ")"
+        } ],
+        "name" : "protobuf"
+      }
+    },{
+      "componentIdentifier" : {
+        "format" : "pypi",
+        "coordinates" : {
+          "extension" : "whl",
+          "name" : "multidict",
+          "qualifier" : "cp311-cp311-win_amd64",
+          "version" : "6.1.0"
+        }
+      },
+      "packageUrl" : "pkg:pypi/multidict@6.1.0?extension=whl&qualifier=cp311-cp311-win_amd64",
+      "groupId" : null,
+      "artifactId" : null,
+      "version" : null,
+      "filenames" : [ "pkg:pypi/multidict@6.1.0:7370f2abfd5e2424ee17" ],
+      "pathnames" : [ "dependency:/SBOM-bom.json/pkg:pypi\\multidict@6.1.0:7370f2abfd5e2424ee17" ],
+      "aggregateFiles" : [ ],
+      "matchState" : "exact",
+      "scanError" : false,
+      "proprietary" : false,
+      "hash" : "0b1094bd9c297e418bb0",
+      "relativePopularity" : null,
+      "createTime" : 1725925680000,
+      "lastModifiedTime" : null,
+      "lastModifiedEntryTime" : null,
+      "website" : null,
+      "identificationSource" : "Sonatype",
+      "componentCategories" : [ {
+        "componentCategoryId" : 113,
+        "path" : "Other"
+      } ],
+      "hygieneRating" : null,
+      "analyzerFeatures" : {
+        "analysisSource" : "SDS",
+        "analysisType" : "COORDINATE",
+        "scanClient" : "sbomApi",
+        "hasLicense" : true,
+        "hasIdentity" : true,
+        "hasSecurity" : true,
+        "manifestContentType" : "SBOM"
+      },
+      "integrityRating" : {
+        "id" : 2,
+        "label" : "Pending"
+      },
+      "sonatypeIdentifier" : "23a1923f7bc546609ac67dd688dc026e",
+      "endOfLife" : "END_OF_LIFE_UNKNOWN",
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Name",
+          "value" : "multidict"
+        }, {
+          "value" : " ("
+        }, {
+          "field" : "Qualifier",
+          "value" : "cp311-cp311-win_amd64"
+        }, {
+          "value" : ")"
+        }, {
+          "value" : " "
+        }, {
+          "field" : "Version",
+          "value" : "6.1.0"
+        }, {
+          "value" : " (."
+        }, {
+          "field" : "Extension",
+          "value" : "whl"
+        }, {
+          "value" : ")"
+        } ],
+        "name" : "multidict"
+      }
+    }, {
+      "componentIdentifier" : {
+        "format" : "pypi",
+        "coordinates" : {
+          "extension" : "tar.gz",
+          "name" : "GitPython",
+          "qualifier" : "",
+          "version" : "3.0.5"
+        }
+      },
+      "packageUrl" : "pkg:pypi/gitpython@3.0.5?extension=tar.gz",
+      "groupId" : null,
+      "artifactId" : null,
+      "version" : null,
+      "filenames" : [ "pkg:pypi/gitpython@3.0.5:3991e2275a5e3cc0ba6f" ],
+      "pathnames" : [ "dependency:/SBOM-bom.json/pkg:pypi\\gitpython@3.0.5:3991e2275a5e3cc0ba6f" ],
+      "aggregateFiles" : [ ],
+      "matchState" : "exact",
+      "scanError" : false,
+      "proprietary" : false,
+      "hash" : "38108988c3818bd79250",
+      "relativePopularity" : null,
+      "createTime" : 1711872454000,
+      "lastModifiedTime" : null,
+      "lastModifiedEntryTime" : null,
+      "website" : null,
+      "identificationSource" : "Sonatype",
+      "componentCategories" : [ {
+        "componentCategoryId" : 113,
+        "path" : "Other"
+      } ],
+      "hygieneRating" : null,
+      "analyzerFeatures" : {
+        "analysisSource" : "SDS",
+        "analysisType" : "COORDINATE",
+        "scanClient" : "sbomApi",
+        "hasLicense" : true,
+        "hasIdentity" : true,
+        "hasSecurity" : true,
+        "manifestContentType" : "SBOM"
+      },
+      "integrityRating" : {
+        "id" : 0,
+        "label" : "Normal"
+      },
+      "sonatypeIdentifier" : "81324e5caaf244ac85d896046199ae5e",
+      "endOfLife" : "END_OF_LIFE_UNKNOWN",
+      "displayName" : {
+        "parts" : [ {
+          "field" : "Name",
+          "value" : "GitPython"
+        }, {
+          "value" : " "
+        }, {
+          "field" : "Version",
+          "value" : "3.1.43"
+        }, {
+          "value" : " (."
+        }, {
+          "field" : "Extension",
+          "value" : "tar.gz"
+        }, {
+          "value" : ")"
+        } ],
+        "name" : "GitPython"
+      }
+    }
+  ]
+}

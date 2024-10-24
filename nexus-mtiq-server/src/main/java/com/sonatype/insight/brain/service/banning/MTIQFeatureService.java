@@ -75,7 +75,6 @@ public class MTIQFeatureService
       SystemConfigurationPropertyFeature.CODE_INSIGHTS,
       SystemConfigurationPropertyFeature.LDAP_CONFIGURATION,
       SystemConfigurationPropertyFeature.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES,
-      SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER,
       SystemConfigurationPropertyFeature.SCAN_POM_FILES_IN_META_INF_DIRECTORY,
       SystemConfigurationPropertyFeature.VULNERABILITY_SOURCE,
       SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE,

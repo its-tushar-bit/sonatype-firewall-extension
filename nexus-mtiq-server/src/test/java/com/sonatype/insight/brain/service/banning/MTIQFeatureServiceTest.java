@@ -78,7 +78,7 @@ public class MTIQFeatureServiceTest
   public void testRegister_setsFeatureFlags() {
     underTest.register();
 
-    verify(service, times(30)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
+    verify(service, times(29)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
     List<String> disabledFlagSet = propertyKeyCaptor.getAllValues();
     assertThat(disabledFlagSet).containsExactlyInAnyOrder(getDisabledSystemConfigurationPropertyFeatures());
   }
@@ -212,7 +212,8 @@ public class MTIQFeatureServiceTest
         SystemConfigurationPropertyFeature.DEVELOPER_SUMMARY_TABLE,
         SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT,
         SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING,
-        SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI
+        SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI,
+        SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER
     ).collect(toSet()).toArray(new SystemConfigurationPropertyFeature[]{});
   }
 

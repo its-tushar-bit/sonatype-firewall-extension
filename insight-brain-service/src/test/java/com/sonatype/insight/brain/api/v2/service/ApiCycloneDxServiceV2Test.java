@@ -271,9 +271,9 @@ public class ApiCycloneDxServiceV2Test
 
     Component component1 =
         createComponent(Version.VERSION_14, commonPurl1, "367c5c858d5f3057d93b", "Apache.NMS.dll",
-            "test/net40/Apache.NMS.dll", "Not Provided");
+            "Not Provided");
     Component component2 = createComponent(Version.VERSION_14, commonPurl1, "f19ac613238ca6e4ae77",
-        "Apache.NMS.dll", "test/netstandard2.0/Apache.NMS.dll");
+        "Apache.NMS.dll");
 
     assertThat(bom.getComponents()).usingRecursiveFieldByFieldElementComparator(
             RecursiveComparisonConfiguration.builder()
@@ -562,15 +562,12 @@ public class ApiCycloneDxServiceV2Test
 
     Component component1 = createComponent("2fa0ab71b154da29ac134097bc6bbacd90987dd4c4005516159e6494d1d52ea2",
             version, "pkg:nuget/jQuery@3.4.1", "5408e54a94044d1f1f21", "exact",
-        "jquery.3.4.1.nupkg", "jquery.3.4.1.nupkg", "CC0-1.0", "CDDL-1.1", "MIT");
+        "jquery.3.4.1.nupkg",  "CC0-1.0", "CDDL-1.1", "MIT");
     Component component2 = createComponent(version, "pkg:nuget/jQuery@3.2.1", "0babbbd2c221d24484f5",
         "similar", "common.ps1,install.ps1,uninstall.ps1",
-        "jquery.3.4.1.nupkg/Tools/common.ps1,jquery.3.4.1.nupkg/" +
-            "Tools/install.ps1,jquery.3.4.1.nupkg/Tools/uninstall.ps1",
         true, "CC0-1.0", "CDDL-1.1", "MIT");
     Component component3 = createComponent(version, "pkg:a-name/knockout.validation@2.0.0-Pre",
         "7c9933a349f37d5f3131", "jquery-3.4.1.intellisense.js",
-        "jquery.3.4.1.nupkg/Tools/jquery-3.4.1.intellisense.js",
         "MPL-1.1", "LGPL-2.1", "Apache-1.1", "Apache-1.0", "LGPL-3.0", "Apache-2.0");
 
     assertThat(bom.getComponents())
@@ -672,7 +669,6 @@ public class ApiCycloneDxServiceV2Test
         createComponent(version, "pkg:fake/com.google.guava/guava@30.1-jre?type=jar",
             "db6b61d995de714813ac", "exact",
             "pkg:fake/com.google.guava/guava@30.1-jre?type=jar",
-            "third-party-cvss4-bom.xml/pkg:fake\\com.google.guava\\guava@30.1-jre?type=jar",
             false, "Apache-2.0");
     final Property identificationSource = component1.getProperties().stream()
         .filter(p -> p.getName().equals(SbomUtils.IDENTIFICATION_SOURCE_PROPERTY_NAME)).findFirst()
@@ -779,11 +775,10 @@ public class ApiCycloneDxServiceV2Test
       String packageUrl,
       String hashStr,
       String filenames,
-      String pathnames,
       String... licenses)
   {
     return createComponent(bomVersion, packageUrl, hashStr, "exact",
-        filenames, pathnames, false, licenses);
+        filenames, false, licenses);
   }
 
   private Component createComponent(
@@ -793,11 +788,10 @@ public class ApiCycloneDxServiceV2Test
           String hashStr,
           String matchState,
           String filenames,
-          String pathnames,
           String... licenses)
   {
     Component component = createComponent(bomVersion, packageUrl, hashStr, matchState,
-        filenames, pathnames, false, licenses);
+        filenames, false, licenses);
     Hash hash = new Hash(Hash.Algorithm.SHA_256, sha256);
     component.addHash(hash);
     return component;
@@ -809,7 +803,6 @@ public class ApiCycloneDxServiceV2Test
       String hashStr,
       String matchState,
       String filenames,
-      String pathnames,
       boolean modified,
       String... licenses)
   {
@@ -851,11 +844,6 @@ public class ApiCycloneDxServiceV2Test
       filenamesProperty.setName("sonatype:match_filenames");
       filenamesProperty.setValue(filenames);
       component.addProperty(filenamesProperty);
-
-      Property pathnamesProperty = new Property();
-      pathnamesProperty.setName("sonatype:match_pathnames");
-      pathnamesProperty.setValue(pathnames);
-      component.addProperty(pathnamesProperty);
     }
 
     LicenseChoice licenseChoice = new LicenseChoice();

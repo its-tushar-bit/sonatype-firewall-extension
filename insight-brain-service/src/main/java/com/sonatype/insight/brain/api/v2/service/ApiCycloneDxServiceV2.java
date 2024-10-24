@@ -684,7 +684,7 @@ public class ApiCycloneDxServiceV2
       return bomComponent;
     }
     catch (Exception e) {
-      log.warn("There was an error creating SBoM component", e);
+      log.warn("There was an error creating SBOM component", e);
     }
     return null;
   }
@@ -765,9 +765,6 @@ public class ApiCycloneDxServiceV2
       addProperty(SbomUtils.IDENTIFICATION_SOURCE_PROPERTY_NAME, reportComponent.identificationSource, bomComponent);
       if (CollectionUtils.isNotEmpty(reportComponent.filenames)) {
         addProperty("sonatype:match_filenames", StringUtils.join(reportComponent.filenames, ","), bomComponent);
-      }
-      if (CollectionUtils.isNotEmpty(reportComponent.pathnames)) {
-        addProperty("sonatype:match_pathnames", StringUtils.join(reportComponent.pathnames, ","), bomComponent);
       }
     }
   }

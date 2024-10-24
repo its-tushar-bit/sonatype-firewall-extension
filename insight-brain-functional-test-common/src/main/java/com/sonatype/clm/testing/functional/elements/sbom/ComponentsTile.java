@@ -40,6 +40,11 @@ public class ComponentsTile
         .find(".sbom-manager-bill-of-materials-components-tile__percentage-annotated");
   }
 
+  public SelenideElement nameColum(int row) {
+    return tableBodyRows().get(row)
+        .find(".sbom-manager-bill-of-materials-components-tile__component-name-content");
+  }
+
   public ElementsCollection tableBodyRowsColumns(int row) {
     return tableBodyRows().get(row).findAll("td");
   }
@@ -70,5 +75,9 @@ public class ComponentsTile
 
   public ElementsCollection tableRows() {
     return $$(".nx-table .nx-table-row");
+  }
+
+  public SelenideElement inputComponentSearch() {
+    return child("#component-name-search");
   }
 }

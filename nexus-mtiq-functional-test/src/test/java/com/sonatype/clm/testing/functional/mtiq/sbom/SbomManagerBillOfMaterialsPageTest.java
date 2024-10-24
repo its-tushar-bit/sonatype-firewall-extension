@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.nio.file.Path;
 import java.util.Date;
+import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
@@ -525,7 +526,6 @@ public class SbomManagerBillOfMaterialsPageTest
     );
     sbomMetadata.setCreatedAt(new Date(0));
     thirdPartySbomMetadataDAO.update(sbomMetadata);
-
     for (int i = 0; i < 60; i++) {
       ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates(
           "cxf-rt-transports-http-jetty", "v-" + i);
@@ -663,5 +663,71 @@ public class SbomManagerBillOfMaterialsPageTest
     downloadedSbom = sbomManagerBillOfMaterialsPage.exportSbomButtonModal().shouldHave(text("Export SBOM"))
         .download(3000L);
     assertThat(downloadedSbom.getName()).endsWith(".xml");
+  }
+
+  @Test
+  public void testBillOfMaterial_ComponentSearch() {
+    insertComponentsTileSbomDataForSearchName();
+    setLicenseAndLogin();
+    refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
+    ComponentsTile componentsTile = SbomManagerBillOfMaterialsPage.componentsTile();
+    ElementsCollection tableRows = componentsTile.tableBodyRows();
+    componentsTile.inputComponentSearch().shouldBe(visible);
+    componentsTile.inputComponentSearch().setValue("insight-scanner-manifest-model");
+    tableRows.shouldHave(size(1));
+    componentsTile.nameColum(0).shouldHave(text("insight-scanner-manifest-model"));
+    componentsTile.inputComponentSearch().setValue("");
+    componentsTile.inputComponentSearch().setValue("jackson");
+    tableRows.shouldHave(size(2));
+    componentsTile.nameColum(0).shouldHave(text("nexus-rest-jackson2"));
+    componentsTile.nameColum(1).shouldHave(text("jackson-annotations"));
+    componentsTile.inputComponentSearch().setValue("insight");
+    tableRows.shouldHave(size(3));
+    componentsTile.nameColum(0).shouldHave(text("insight-scanner-tools"));
+    componentsTile.nameColum(1).shouldHave(text("insight-scanner-manifest-model"));
+    componentsTile.nameColum(2).shouldHave(text("insight-archive-utils"));
+    componentsTile.inputComponentSearch().setValue("org.apache.");
+    tableRows.shouldHave(size(2));
+    componentsTile.nameColum(0).shouldHave(text("org.apache.karaf"));
+    componentsTile.nameColum(1).shouldHave(text("org.apache.felix.converter"));
+    componentsTile.inputComponentSearch().setValue("geronimo-jpa_2.2_");
+    tableRows.shouldHave(size(1));
+    componentsTile.nameColum(0).shouldHave(text("geronimo-jpa_2.2_spec"));
+  }
+
+  private void insertComponentsTileSbomDataForSearchName() {
+    ThirdPartyFile scannedFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(scannedFile);
+    Path zippedBom = null;
+    try {
+      zippedBom = mockOriginalSbom(SbomManagerApplicationSummaryPageTest.class, "simple-bom.xml",
+          insightWork.getSbomDir(application.getId()).toPath());
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    sbomMetadata = tempEntity.newThirdPartySbomMetadata(
+        thirdPartyScan.getThirdPartyFileId(),
+        application.getId(),
+        "t-version",
+        "ACTIVE",
+        zippedBom.getFileName().toString(),
+        SbomSpecification.CYCLONEDX.toString(),
+        SbomFormat.XML.name(),
+        "1.6"
+    );
+    sbomMetadata.setCreatedAt(new Date(0));
+    thirdPartySbomMetadataDAO.update(sbomMetadata);
+    List<String> componentNames = List.of("insight-scanner-manifest-model", "jackson-annotations",
+        "nexus-rest-jackson2", "insight-archive-utils", "org.apache.felix.converter", "org.apache.karaf",
+        "jss-plugin-global", "insight-scanner-tools", "glibc/libc6", "geronimo-jpa_2.2_spec");
+    for (int i = 0; i < 10; i++) {
+      ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates(
+          componentNames.get(i), "v-" + i);
+      PackageUrlIdentifier packageUrlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
+      tempEntity.newThirdPartyFileCoordinate(
+          thirdPartyScan.getThirdPartyFileId(), "s", "SPDX", componentNames.get(i), "v1", "h1",
+          packageUrlIdentifier.getPackageUrl(), ThirdPartyDependencyType.DIRECT);
+    }
   }
 }

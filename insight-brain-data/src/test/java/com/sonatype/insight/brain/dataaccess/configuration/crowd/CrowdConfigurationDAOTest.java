@@ -10,7 +10,7 @@ import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.drools.core.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 

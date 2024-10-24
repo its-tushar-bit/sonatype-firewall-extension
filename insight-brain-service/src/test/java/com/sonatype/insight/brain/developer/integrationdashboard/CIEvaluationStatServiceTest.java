@@ -13,9 +13,11 @@ import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiIntegrationsCiCdStatIncrementDto;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -24,13 +26,11 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Binder;
-
 import org.junit.Test;
 import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.developer.integrationdashboard.CIEvaluationStatService.CICD_TRIGGERED_EVALUATION_CUT_OFF_MS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.drools.core.util.StringUtils.uuid;
 import static org.mockito.Mockito.when;
 
 public class CIEvaluationStatServiceTest
@@ -327,12 +327,12 @@ public class CIEvaluationStatServiceTest
       tempEntity.newPolicyEvaluation(
           app.getId(),
           Stage.ID_BUILD,
-          uuid(),
+          TemporaryEntity.uuid(),
           false,
           false,
           false,
           date,
-          uuid(),
+          TemporaryEntity.uuid(),
           ScanTriggerType.CONTINUOUS_INTEGRATION
       );
     });

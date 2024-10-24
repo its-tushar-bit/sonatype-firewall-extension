@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthentication
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.drools.core.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 

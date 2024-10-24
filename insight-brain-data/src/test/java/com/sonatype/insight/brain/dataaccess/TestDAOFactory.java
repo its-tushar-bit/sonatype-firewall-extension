@@ -61,6 +61,7 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseLicenseInternal
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverRevocationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFactsDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
@@ -1150,6 +1151,12 @@ public class TestDAOFactory
 
   @Override
   public AutoPolicyWaiverDAO createAutoPolicyWaiverDAO() {
-    return new AutoPolicyWaiverDAO(dataStoreProvider.getOperationalDataStore());
+    AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO = createAutoPolicyWaiverRevocationDAO();
+    return new AutoPolicyWaiverDAO(dataStoreProvider.getOperationalDataStore(), autoPolicyWaiverRevocationDAO);
+  }
+  
+  @Override
+  public AutoPolicyWaiverRevocationDAO createAutoPolicyWaiverRevocationDAO() {
+    return new AutoPolicyWaiverRevocationDAO(dataStoreProvider.getOperationalDataStore());
   }
 }

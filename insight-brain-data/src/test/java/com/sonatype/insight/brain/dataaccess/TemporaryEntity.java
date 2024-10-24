@@ -97,6 +97,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.notification.UserViewedProductNotificationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverRevocationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -234,6 +235,7 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
 import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -614,6 +616,8 @@ public class TemporaryEntity
   private DevelopmentPrioritizationDAO developmentPrioritizationDAO;
 
   private AutoPolicyWaiverDAO autoPolicyWaiverDAO;
+  
+  private AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO;
 
   private OAuth2ConfigurationDAO oAuth2ConfigurationDAO;
 
@@ -841,6 +845,7 @@ public class TemporaryEntity
       delete(dashboardFilterDAO.getAll(), dashboardFilterDAO);
       delete(userFilterDAO.getAll(), userFilterDAO);
       delete(sourceControlOrganizationImportEventDAO.getAll(), sourceControlOrganizationImportEventDAO);
+      delete(autoPolicyWaiverRevocationDAO.getAll(), autoPolicyWaiverRevocationDAO);
       delete(autoPolicyWaiverDAO.getAll(), autoPolicyWaiverDAO);
       delete(policyDAO.getAll(), entity -> policyDAO.getById(entity.getId()), policyDAO::delete);
       List<Organization> orgs = orgDAO.getAll().stream()
@@ -1748,6 +1753,21 @@ public class TemporaryEntity
     );
     autoPolicyWaiverDAO.insert(autoPolicyWaiver);
     return autoPolicyWaiver;
+  }
+  
+  public AutoPolicyWaiverRevocation newAutoPolicyWaiverRevocation(String ownerId, String autoPolicyWaiverId) {
+    AutoPolicyWaiverRevocation autoPolicyWaiverRevocation = new AutoPolicyWaiverRevocation(
+        ownerId,
+        "fakeCreatorId",
+        "fakeCreatorName",
+        new Date(),
+        autoPolicyWaiverId,
+        "fakeHash",
+        "fakePurl",
+        "fakeScanId"
+    );
+    autoPolicyWaiverRevocationDAO.insert(autoPolicyWaiverRevocation);
+    return autoPolicyWaiverRevocation;
   }
 
   public AutoPolicyWaiver newAutoPolicyWaiver(AutoPolicyWaiver autoPolicyWaiver) {
@@ -5495,6 +5515,7 @@ public class TemporaryEntity
     waiverDAO = daoFactory.createPolicyWaiverDAO();
     waiverReasonDAO = daoFactory.createPolicyWaiverReasonDAO();
     autoPolicyWaiverDAO = daoFactory.createAutoPolicyWaiverDAO();
+    autoPolicyWaiverRevocationDAO = daoFactory.createAutoPolicyWaiverRevocationDAO();
     callFlowAnalysisConfigDAO = daoFactory.createCallFlowAnalysisConfigDAO();
     ldapServerDAO = daoFactory.createLdapServerDAO();
     ldapConnectionDAO = daoFactory.createLdapConnectionDAO();

@@ -13,6 +13,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -21,9 +22,15 @@ import com.sonatype.insight.error.exception.NotFoundException;
 public class AutoPolicyWaiverDAO
     extends AbstractOperationalSqlDAO<AutoPolicyWaiver>
 {
+  private final AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO;
+  
   @Inject
-  public AutoPolicyWaiverDAO(final OperationalDataStore operationalDataStore) {
+  public AutoPolicyWaiverDAO(
+      final OperationalDataStore operationalDataStore,
+      final AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO)
+  {
     super(operationalDataStore);
+    this.autoPolicyWaiverRevocationDAO = autoPolicyWaiverRevocationDAO;
   }
 
   public List<AutoPolicyWaiver> getByOwnerId(String ownerId) {
@@ -56,5 +63,14 @@ public class AutoPolicyWaiverDAO
   public AutoPolicyWaiver getByIdAndOwnerId(TransactionContext tx, String autoPolicyWaiverId, String ownerId) {
     String sQuery = "SELECT waiver FROM AutoPolicyWaiver waiver WHERE waiver.id=?1 AND waiver.ownerId=?2";
     return get(tx, sQuery, autoPolicyWaiverId, ownerId);
+  }
+  
+  @Override
+  public void delete(TransactionContext tx, AutoPolicyWaiver autoPolicyWaiver) {
+    for (AutoPolicyWaiverRevocation autoPolicyWaiverRevocation : autoPolicyWaiverRevocationDAO
+        .getByOwnerIdAndAutoPolicyWaiverId(autoPolicyWaiver.getOwnerId(), autoPolicyWaiver.getId())) {
+      autoPolicyWaiverRevocationDAO.delete(autoPolicyWaiverRevocation);
+    }
+    super.delete(tx, autoPolicyWaiver);
   }
 }

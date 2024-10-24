@@ -6,9 +6,11 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.Date;
+import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Before;
@@ -21,12 +23,15 @@ public class AutoPolicyWaiverDAOTest
     extends AbstractDbDAOTest
 {
   private AutoPolicyWaiverDAO dao;
+  
+  private AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO;
 
   @Before
   @Override
   public void setup() {
     super.setup();
     dao = daoFactory.createAutoPolicyWaiverDAO();
+    autoPolicyWaiverRevocationDAO = daoFactory.createAutoPolicyWaiverRevocationDAO();
   }
 
   @Test
@@ -99,5 +104,65 @@ public class AutoPolicyWaiverDAOTest
     assertThat(queryResult.getCreatorId()).isEqualTo(autoPolicyWaiverInstance.getCreatorId());
     assertThat(queryResult.getCreatorName()).isEqualTo(autoPolicyWaiverInstance.getCreatorName());
     assertThat(queryResult.getCreateTime()).isEqualTo(autoPolicyWaiverInstance.getCreateTime());
+  }
+  
+  @Test
+  public void testDelete_CascadesToAutoPolicyWaiverRevocations() {
+    AutoPolicyWaiver autoPolicyWaiverInstanceOne = new AutoPolicyWaiver(
+        "fake",
+        7,
+        true,
+        true,
+        "creatorId",
+        "creatorName",
+        new Date()
+    );
+    dao.insert(autoPolicyWaiverInstanceOne);
+    
+    AutoPolicyWaiver autoPolicyWaiverInstanceTwo = new AutoPolicyWaiver(
+        "other",
+        3,
+        false,
+        false,
+        "creator",
+        "creator",
+        new Date()
+    );
+    dao.insert(autoPolicyWaiverInstanceTwo);
+    
+    AutoPolicyWaiverRevocation revocationOne = new AutoPolicyWaiverRevocation(
+        "fake",
+        "creatorId",
+        "creatorName",
+        new Date(),
+        autoPolicyWaiverInstanceOne.getId(),
+        "hash",
+        "purl",
+        "scanId"
+    );
+    autoPolicyWaiverRevocationDAO.insert(revocationOne);
+
+    AutoPolicyWaiverRevocation revocationTwo = new AutoPolicyWaiverRevocation(
+        "other",
+        "creator",
+        "creator",
+        new Date(),
+        autoPolicyWaiverInstanceTwo.getId(),
+        "hash",
+        "purl",
+        "scanId"
+    );
+    autoPolicyWaiverRevocationDAO.insert(revocationTwo);
+    
+    dao.delete(autoPolicyWaiverInstanceOne);
+
+    List<AutoPolicyWaiver> autoPolicyWaivers = dao.getAll();
+    assertThat(autoPolicyWaivers).hasSize(1);
+    
+    List<AutoPolicyWaiverRevocation> autoPolicyWaiverRevocations =
+        autoPolicyWaiverRevocationDAO.getAll();
+    assertThat(autoPolicyWaiverRevocations).hasSize(1).allSatisfy(revocationInstance -> {
+      revocationInstance.getAutoPolicyWaiverId().equals(autoPolicyWaiverInstanceTwo.getId());
+    });
   }
 }

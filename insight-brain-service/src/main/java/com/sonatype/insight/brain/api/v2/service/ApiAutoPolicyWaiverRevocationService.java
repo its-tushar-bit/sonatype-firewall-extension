@@ -60,7 +60,7 @@ public class ApiAutoPolicyWaiverRevocationService
       ApiAutoPolicyWaiverRevocationDTO apiAutoPolicyWaiverRevocationDTO)
   {
     checkOwnerType(ownerType, ownerId);
-    validateRequestDto(apiAutoPolicyWaiverRevocationDTO);
+    validateRequestDto(ownerId, apiAutoPolicyWaiverRevocationDTO);
 
     AutoPolicyWaiverRevocation autoPolicyWaiverRevocation = new AutoPolicyWaiverRevocation();
     autoPolicyWaiverRevocation.setOwnerId(ownerId);
@@ -107,7 +107,7 @@ public class ApiAutoPolicyWaiverRevocationService
     }
   }
 
-  private void validateRequestDto(ApiAutoPolicyWaiverRevocationDTO apiAutoPolicyWaiverRevocationDTO) {
+  private void validateRequestDto(String ownerId, ApiAutoPolicyWaiverRevocationDTO apiAutoPolicyWaiverRevocationDTO) {
     if (apiAutoPolicyWaiverRevocationDTO == null) {
       throw new BadRequestException("request body is required");
     }
@@ -132,7 +132,7 @@ public class ApiAutoPolicyWaiverRevocationService
       throw new BadRequestException("scanId is required");
     }
     AutoPolicyWaiverRevocation existing = autoPolicyWaiverRevocationDAO.getByOwnerIdAndAutoPolicyWaiverIdAndHash(
-        apiAutoPolicyWaiverRevocationDTO.ownerId,
+        ownerId,
         apiAutoPolicyWaiverRevocationDTO.autoPolicyWaiverId,
         apiAutoPolicyWaiverRevocationDTO.hash);
     if (existing != null) {

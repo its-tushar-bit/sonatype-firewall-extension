@@ -238,7 +238,6 @@ public class ScanPolicyEvaluator
     this.featuresService = featuresService;
     this.componentInfoService = componentInfoService;
     this.reportComponentService = reportComponentService;
-    componentInfoService.setToolName("ci");
   }
 
   public ScanPolicyEvaluatorResults evaluate(
@@ -1311,7 +1310,7 @@ public class ScanPolicyEvaluator
       // Auto waiver does not have path forward enabled. No need to evaluate this condition.
       return false;
     }
-
+    componentInfoService.setToolName("ci");
     ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfoNoAuth(
         OwnerType.APPLICATION,
         appId,

@@ -5,7 +5,11 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,7 +18,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -37,6 +40,7 @@ import com.sonatype.insight.brain.api.v2.dto.legal.AttributionReportTemplateDTO;
 import com.sonatype.insight.brain.api.v2.service.legal.ApiLicenseLegalService;
 import com.sonatype.insight.brain.api.v2.service.legal.report.ApplicationAttributionReportBuilder;
 import com.sonatype.insight.brain.api.v2.service.legal.report.LegalCustomReportParameters;
+import com.sonatype.insight.brain.api.v2.service.legal.report.LegalCustomReportParameters.Builder;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -45,6 +49,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.codahale.metrics.annotation.Timed;
+import org.apache.commons.io.FileUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.message.internal.MediaTypes;
@@ -82,6 +87,11 @@ public class ApiLegalReportResourceV2
       APPLICATION_REPORT_PATH + "/templateId/{templateId}";
 
   public static final String COMPONENT_PATH = "{ownerType: application|organization}/{ownerId}/component";
+
+  public static final long MAX_REQUEST_SIZE = FileUtils.ONE_MB * 10; //10MB
+
+  public static final String MAX_REQUEST_SIZE_MESSAGE =
+      "Request size must be smaller than " + (MAX_REQUEST_SIZE / FileUtils.ONE_MB) + " MB";
 
   static final String REPORT_FORM_TITLE = "title";
 
@@ -169,9 +179,12 @@ public class ApiLegalReportResourceV2
   public String getLicenseLegalCustomApplicationHTMLReport(
       @PathParam("applicationId") String applicationId,
       @PathParam("stageId") String stageId,
-      FormDataMultiPart formData)
+      @Context ContainerRequest request) throws IOException
   {
-    final LegalCustomReportParameters.Builder reportParametersBuilder = LegalCustomReportParameters.builder();
+    validateRequestSize(request);
+    FormDataMultiPart formData = request.readEntity(FormDataMultiPart.class);
+
+    final Builder reportParametersBuilder = LegalCustomReportParameters.builder();
     reportParametersBuilder.withTitle(requireMultiPartValue(formData, REPORT_FORM_TITLE))
         .withHeader(getMultiPartValue(formData, REPORT_FORM_HEADER, ""))
         .withFooter(getMultiPartValue(formData, REPORT_FORM_FOOTER, ""))
@@ -195,9 +208,14 @@ public class ApiLegalReportResourceV2
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path(CUSTOM_MULTI_APPLICATION_REPORT_PATH)
   @Produces(MediaType.TEXT_HTML)
-  public String getLicenseLegalCustomMultiApplicationHTMLReport(FormDataMultiPart formData) {
+  public String getLicenseLegalCustomMultiApplicationHTMLReport(
+      @Context ContainerRequest request) throws IOException
+  {
+    validateRequestSize(request);
+    FormDataMultiPart formData = request.readEntity(FormDataMultiPart.class);
+
     Set<AttributionReportApplicationDTO> applicationsAndStages;
-    final LegalCustomReportParameters.Builder reportParametersBuilder = LegalCustomReportParameters.builder();
+    final Builder reportParametersBuilder = LegalCustomReportParameters.builder();
     reportParametersBuilder.withTitle(requireMultiPartValue(formData, REPORT_FORM_TITLE))
         .withHeader(getMultiPartValue(formData, REPORT_FORM_HEADER, ""))
         .withFooter(getMultiPartValue(formData, REPORT_FORM_FOOTER, ""))
@@ -221,8 +239,10 @@ public class ApiLegalReportResourceV2
   @Produces(MediaType.TEXT_HTML)
   public String getLicenseLegalMultiApplicationReportFromActiveUserFilter(
       @PathParam("templateId") String templateId,
-      @Context ContainerRequest request)
+      @Context ContainerRequest request) throws IOException
   {
+    validateRequestSize(request);
+
     AttributionReportTemplateDTO templateDTO =
         attributionReportService.getAttributionReportTemplateById_NoAuthz(templateId)
         .orElseThrow(() -> new NotFoundException(String.format("No template with id %s found", templateId)));
@@ -244,12 +264,14 @@ public class ApiLegalReportResourceV2
   @Path(MULTI_APPLICATION_REPORT_PATH)
   @Produces(MediaType.TEXT_HTML)
   public String getLicenseLegalMultiApplicationHTMLReport(
-      @Context ContainerRequest requestForm)
+      @Context ContainerRequest request) throws IOException
   {
+    validateRequestSize(request);
+
     List<String> noticeFilesList = new ArrayList<>();
     Set<AttributionReportApplicationDTO> applicationsAndStagesSet = new HashSet<>();
-    if (requestForm != null && requestForm.getLength() > 0) {
-      final FormDataMultiPart multiPart = requestForm.readEntity(FormDataMultiPart.class);
+    if (request != null && request.getLength() > 0) {
+      final FormDataMultiPart multiPart = request.readEntity(FormDataMultiPart.class);
       noticeFilesList = getNoticeFilesFromFormData(multiPart);
       applicationsAndStagesSet = getApplicationsAndStagesFromFormData(multiPart);
     }
@@ -266,8 +288,10 @@ public class ApiLegalReportResourceV2
   @Produces(MediaType.TEXT_HTML)
   public String getLicenseLegalCustomMultiApplicationHTMLReport(
       @PathParam("templateId") String templateId,
-      @Context ContainerRequest request)
+      @Context ContainerRequest request) throws IOException
   {
+    validateRequestSize(request);
+
     AttributionReportTemplateDTO templateDTO =
         attributionReportService.getAttributionReportTemplateById_NoAuthz(templateId)
         .orElseThrow(() -> new NotFoundException(String.format("No template with id %s found", templateId)));
@@ -290,8 +314,9 @@ public class ApiLegalReportResourceV2
       @PathParam("applicationId") String applicationId,
       @PathParam("stageId") String stageId,
       @PathParam("templateId") String templateId,
-      @Context ContainerRequest request)
+      @Context ContainerRequest request) throws IOException
   {
+    validateRequestSize(request);
 
     AttributionReportTemplateDTO templateDTO =
         attributionReportService.getAttributionReportTemplateById_NoAuthz(templateId)
@@ -343,7 +368,7 @@ public class ApiLegalReportResourceV2
           return false;
         })
         .map(FormDataBodyPart::getValue)
-        .collect(Collectors.toList());
+        .toList();
     if (!invalidMime.isEmpty()) {
       throw new BadRequestException("Following notice files must be plain text files: "
           + String.join(", ", invalidMime));
@@ -402,5 +427,44 @@ public class ApiLegalReportResourceV2
   {
     return apiLicenseLegalServiceV2.getLicenseLegalComponentReport(ownerType, ownerId, componentIdentifier, packageUrl,
         hash, identificationSource, scanId);
+  }
+
+  private void validateRequestSize(ContainerRequest request) throws IOException {
+    // Fail fast evaluating the Content-Length header
+    if (request.getLength() > MAX_REQUEST_SIZE) {
+      throw new BadRequestException(MAX_REQUEST_SIZE_MESSAGE);
+    }
+    else if (request.getLength() != -1) { // -1 means the Content-Length header is not present in the request
+      return;
+    }
+
+    // If the above validations succeed, validate the entity stream
+    ByteArrayInputStream validatedRequest = validateRequestStreamSize(request.getEntityStream());
+    request.setEntityStream(validatedRequest);
+  }
+
+  private ByteArrayInputStream validateRequestStreamSize(InputStream stream) throws IOException {
+    if (stream == null) {
+      throw new BadRequestException("Request stream is null");
+    }
+
+    int b;
+    byte[] requestData = new byte[8192];
+    byte[] requestByteArray;
+
+    try (ByteArrayOutputStream requestOutputStream = new ByteArrayOutputStream();
+         BufferedInputStream bufferedInputStream = new BufferedInputStream(stream)) {
+      while ((b = bufferedInputStream.readNBytes(requestData, 0, requestData.length)) != 0) {
+        requestOutputStream.write(requestData, 0, b);
+        if (requestOutputStream.size() > MAX_REQUEST_SIZE) {
+          throw new BadRequestException(MAX_REQUEST_SIZE_MESSAGE);
+        }
+      }
+      requestOutputStream.flush();
+      requestByteArray = requestOutputStream.toByteArray();
+    }
+
+    // Returning a new stream, since we read and consume the original one in the validation process
+    return new ByteArrayInputStream(requestByteArray);
   }
 }

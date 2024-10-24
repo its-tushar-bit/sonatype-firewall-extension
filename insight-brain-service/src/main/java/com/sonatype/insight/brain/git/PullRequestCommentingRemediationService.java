@@ -160,10 +160,10 @@ public class PullRequestCommentingRemediationService
       ApiSuggestedVersionChangeOptionDTO suggestedVersionChange,
       List<ApiVersionChangeOptionDTO> versionChanges)
   {
-    if (versionChanges.isEmpty()) {
+    if (versionChanges.isEmpty() && suggestedVersionChange == null) {
       return Optional.empty();
     }
-    
+
     if (suggestedVersionChange != null) {
       ApiVersionChangeOptionDTO changeOption = new ApiVersionChangeOptionDTO(
           suggestedVersionChange.getType(),

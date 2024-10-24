@@ -166,7 +166,7 @@ public class PolicyAlertScmNotifier
       if (remediationVersion.isPresent()) {
         String nextVersion = remediationVersion.get().getVersion();
         ApiVersionChangeOptionType remediationType = remediationVersion.get().getRemediationType();
-        String stringRemediationType = remediationType.toString();
+        String stringRemediationType = remediationType.getDisplayName();
         final String branchName = getBranchName(app, entry.getKey(), nextVersion);
 
         if (!sourceControlEventPublisher.doesRemediationEventExistForBranch(app.getId(), branchName)) {

@@ -124,6 +124,16 @@ docker exec -it $(docker ps --quiet --filter name=iq-test-db) psql -U testuser -
 
 This will give you a `psql` prompt. Use `\l` to list current databases and `\c databasename` to connect to one.
 
+#### Cluster lock system
+The cluster locking system is used to lock resources that are shared outside the database, for example report files on disk/efs. 
+The database is used for the locks because it is already a shared resource in the cluster.
+
+There are two implementations, one for H2 and one for postgres. Because H2 doesn't support clustering, the H2 implementation
+does not persist locks in the database, but uses Java Semaphores for its locking mechanism. The postgres implementation uses a
+table to store the locks as rows with a string ID and uses SELECT FOR UPDATE to lock the row. In practice the SELECT FOR UPDATE 
+query doesn't change the database so the transaction is rolled back when the lock is released. 
+
+There are currently no timeouts on the locks, so if a lock is not released, it will block the application indefinitely.
 
 ## History
 

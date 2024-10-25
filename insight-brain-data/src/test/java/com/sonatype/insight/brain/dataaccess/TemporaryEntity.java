@@ -627,6 +627,8 @@ public class TemporaryEntity
 
   private PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO;
 
+  private MalwareDefenseMetricsDAO malwareDefenseMetricsDAO;
+
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -897,6 +899,7 @@ public class TemporaryEntity
       delete(deletedTenants, deletedTenantDAO);
       delete(callFlowAnalysisConfigDAO.getAll(), callFlowAnalysisConfigDAO);
       delete(policyViolationConstraintFactsDAO.getAll(), policyViolationConstraintFactsDAO);
+      delete(malwareDefenseMetricsDAO.getAll(), malwareDefenseMetricsDAO);
       restoreInitialWaiverReasons();
       productLicenseDAO.delete();
       firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
@@ -5603,6 +5606,7 @@ public class TemporaryEntity
     oAuth2ConfigurationDAO = daoFactory.createOAuth2ConfigurationDAO();
     oidcConfigurationDAO = daoFactory.createOidcConfigurationDAO();
     policyViolationConstraintFactsDAO = daoFactory.createPolicyViolationConstraintFactsDAO();
+    malwareDefenseMetricsDAO = daoFactory.createMalwareDefenseMetricsDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {

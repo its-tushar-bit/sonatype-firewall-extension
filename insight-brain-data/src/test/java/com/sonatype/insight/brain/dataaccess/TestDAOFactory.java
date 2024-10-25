@@ -1159,4 +1159,9 @@ public class TestDAOFactory
   public AutoPolicyWaiverRevocationDAO createAutoPolicyWaiverRevocationDAO() {
     return new AutoPolicyWaiverRevocationDAO(dataStoreProvider.getOperationalDataStore());
   }
+
+  @Override
+  public MalwareDefenseMetricsDAO createMalwareDefenseMetricsDAO() {
+    return new MalwareDefenseMetricsDAO(dataStoreProvider.getOperationalDataStore());
+  }
 }

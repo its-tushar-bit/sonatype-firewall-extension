@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritizationRemediationService;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
@@ -177,6 +178,8 @@ public class ScanPolicyEvaluator
 
   private final ReportComponentService reportComponentService;
 
+  private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
   @Inject
   public ScanPolicyEvaluator(
       final InsightWork insightWork,
@@ -207,7 +210,8 @@ public class ScanPolicyEvaluator
       final DevelopmentPrioritizationRemediationService developmentPrioritizationRemediationService,
       final FeaturesService featuresService,
       final ComponentInfoService componentInfoService,
-      final ReportComponentService reportComponentService)
+      final ReportComponentService reportComponentService,
+      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO)
   {
     this.work = insightWork;
     this.reportService = reportService;
@@ -238,6 +242,8 @@ public class ScanPolicyEvaluator
     this.featuresService = featuresService;
     this.componentInfoService = componentInfoService;
     this.reportComponentService = reportComponentService;
+    componentInfoService.setToolName("ci");
+    this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
   }
 
   public ScanPolicyEvaluatorResults evaluate(
@@ -1271,7 +1277,7 @@ public class ScanPolicyEvaluator
     }
 
     postEvents(scanPolicyEvaluatorResults, application, reportComponentData.components);
-
+    thirdPartySbomMetadataDAO.makeSbomActiveIfExist(scanId);
     return scanPolicyEvaluatorResults;
   }
 

@@ -410,8 +410,11 @@ public class SbomComponentsService
       String version) throws IOException
   {
     PolicyThreats policyThreats = sbomPolicyService.getPolicyViolations(applicationId, version);
-    List<PolicyThreats.Component> policyThreatComponents = policyThreats.aaData;
+    if (policyThreats == null) {
+      return new SbomPolicyViolationSummaryDTO();
+    }
 
+    List<PolicyThreats.Component> policyThreatComponents = policyThreats.aaData;
     SbomPolicyViolationSummaryDTO summaryDTO = new SbomPolicyViolationSummaryDTO();
     for (PolicyThreats.Component policyThreatComponent : policyThreatComponents) {
       SbomPolicyViolationSummaryDTO componentSummary = calculatePolicyViolationSummary(

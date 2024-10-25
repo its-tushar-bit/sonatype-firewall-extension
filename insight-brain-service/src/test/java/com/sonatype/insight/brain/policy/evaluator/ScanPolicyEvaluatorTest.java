@@ -48,6 +48,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFactsDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
@@ -113,6 +114,8 @@ import com.sonatype.insight.brain.model.policy.conditions.valuetype.SecurityVuln
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
@@ -130,6 +133,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.thirdparty.SbomStatus;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.PolicyAlertEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
@@ -211,6 +215,9 @@ public class ScanPolicyEvaluatorTest
 
   @Inject
   private ApplicationComponentDAO applicationComponentDAO;
+
+  @Inject
+  private ThirdPartySbomMetadataDAO sbomMetadataDAO;
 
   @Rule
   public LogOutput policyViolationLoggerOutput =
@@ -3470,6 +3477,32 @@ public class ScanPolicyEvaluatorTest
     assertNotNull(results);
     assertNotNull(results.evaluation);
     assertThat(results.allViolations).isNotEmpty();
+  }
+
+  @Test
+  public void testPerformPolicyEvaluation_SbomUpdateStatus() throws Exception {
+    String scanId = simulateReportIsAvailable("report");
+    ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan("request", scanId,file);
+    tempEntity.createSbomMetadata(application.getId(), scanId, file, "PENDING");
+
+    newSecurityPolicy();
+    Stage stage = new Stage(Stage.ID_BUILD);
+
+    ReportComponentData reportComponentData =
+        reportComponentService.fetchReportAndComponents(application, scanId);
+
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.performPolicyEvaluation(
+        application, scanId, stage, ScanTriggerType.CLI, "testUserAgent", "testClientId",
+        false, ClientScanType.SONATYPE, reportComponentData
+    );
+
+    assertNotNull(results);
+    assertNotNull(results.evaluation);
+    assertThat(results.allViolations).isNotEmpty();
+    ThirdPartySbomMetadata updatedMetadata = sbomMetadataDAO.getByThirdPartyFileId(file.getId());
+
+    assertThat(updatedMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
   }
 
   private void restoreConstraintFactsToPreMigratedState() {

@@ -161,7 +161,6 @@ public class SbomResultsMergerTest
     merger.mergeResults(sbomMetadata, SCAN_ID, reportZip);
 
     ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
-    assertThat(updatedMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
 
     //verify all components
     List<ThirdPartyFileCoordinate> fileCoordinates =
@@ -292,8 +291,6 @@ public class SbomResultsMergerTest
     merger.mergeResults(sbomMetadata, SCAN_ID, reportZip);
 
     ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
-    assertThat(updatedMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
-
     //original sbom is generated and saved as expected
     File actualSbomFile =
         new File(insightWork.getSbomDir(updatedMetadata.getApplicationId()), updatedMetadata.getFilename());
@@ -569,7 +566,6 @@ public class SbomResultsMergerTest
 
       ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
       assertThat(updatedMetadata).isNotNull();
-      assertThat(updatedMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
 
       List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList =
           thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(sbomComponent.getId());
@@ -728,7 +724,6 @@ public class SbomResultsMergerTest
 
     ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(updatedMetadata).isNotNull();
-    assertThat(updatedMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
 
     ArgumentCaptor<List<TelemetryData>> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(List.class);
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
@@ -892,7 +887,6 @@ public class SbomResultsMergerTest
 
     ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(updatedMetadata).isNotNull();
-    assertThat(updatedMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
 
     ArgumentCaptor<List<TelemetryData>> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(List.class);
     verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
@@ -932,7 +926,6 @@ public class SbomResultsMergerTest
 
     ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(updatedMetadata).isNotNull();
-    assertThat(updatedMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
   }
 
   @Test
@@ -999,7 +992,6 @@ public class SbomResultsMergerTest
 
     ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(updatedMetadata).isNotNull();
-    assertThat(updatedMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
   }
 
   @Test
@@ -1084,7 +1076,6 @@ public class SbomResultsMergerTest
 
     ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(updatedMetadata).isNotNull();
-    assertThat(updatedMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
   }
 
   @Test
@@ -1142,7 +1133,6 @@ public class SbomResultsMergerTest
 
     ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(updatedMetadata).isNotNull();
-    assertThat(updatedMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
   }
 
   @Test
@@ -1237,7 +1227,6 @@ public class SbomResultsMergerTest
 
     ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(updatedMetadata).isNotNull();
-    assertThat(updatedMetadata.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
   }
 
   @Test

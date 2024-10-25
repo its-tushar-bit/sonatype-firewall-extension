@@ -227,4 +227,12 @@ public class ThirdPartySbomMetadataDAO
     paginationQuery.setParameter(2, status);
     return paginationQuery.getResultList();
   }
+
+  public void makeSbomActiveIfExist(String scanId) {
+    ThirdPartySbomMetadata sbomMetadata = getByScanId(scanId);
+    if (sbomMetadata != null) {
+      sbomMetadata.setStatus("ACTIVE");
+      update(sbomMetadata);
+    }
+  }
 }

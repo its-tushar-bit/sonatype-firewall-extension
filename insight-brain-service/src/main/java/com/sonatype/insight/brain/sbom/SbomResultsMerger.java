@@ -279,7 +279,6 @@ public class SbomResultsMerger
       mergeResultsNotConsideringSonatypeIdentifier(scanId, componentDependencyTypeMap, resultsNotConsideringSonatypeId,
           sonatypeVulnerabilityResults, sonatypeLicenseResults, sbomMetadata, originalBom, filteredBom);
     }
-    makeSbomActive(sbomMetadata);
   }
 
   private void mergeResultsConsideringSonatypeIdentifier(
@@ -719,11 +718,6 @@ public class SbomResultsMerger
         resultsNotConsideringSonatypeId.put(bomComponentIdentifier, bomNode);
       }
     }
-  }
-
-  private void makeSbomActive(final ThirdPartySbomMetadata sbomMetadata) {
-    sbomMetadata.setStatus(SbomStatus.ACTIVE.toString());
-    thirdPartySbomMetadataDAO.update(sbomMetadata);
   }
 
   private void createAndSaveFilteredScanFile(final ThirdPartySbomMetadata sbomMetadata) {

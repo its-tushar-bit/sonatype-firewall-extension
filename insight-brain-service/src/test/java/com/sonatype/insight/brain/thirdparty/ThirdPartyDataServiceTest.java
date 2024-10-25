@@ -477,7 +477,6 @@ public class ThirdPartyDataServiceTest
 
     ThirdPartySbomMetadata updated = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(updated).isNotNull();
-    assertThat(updated.getStatus()).isEqualTo(SbomStatus.ACTIVE.name());
   }
 
   @Test

@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentTransitivePolicyViolationsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationDTO;
@@ -35,6 +36,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -431,5 +433,67 @@ public class ApiPolicyViolationResourceV2Test
     assertResponseStatus(403, response);
     assertThat(response.getBodyText())
         .contains(SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.getId() + " feature is disabled.");
+  }
+
+  @Test
+  public void testGetApplicableAutoWaivers() throws Exception {
+    List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
+    Organization newOrg = tempEntity.newOrganization("NewOrg");
+    Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(newApp.getId(), BuildStageType.ID, "scanId");
+    Policy policy = tempEntity.newPolicy(newOrg);
+    ComponentIdentifier identifier =
+        ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.0", "c1", "jar");
+    String ownerId = newApp.getId();
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(ownerId);
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, identifier, "hash");
+    violation.setConstraintFacts(constraintFacts);
+    violation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+
+    policyViolationDAO.update(violation);
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
+        .path(ApiPolicyViolationResourceV2.VIOLATIONID +
+            ApiPolicyViolationResourceV2.APPLICABLE_AUTO_WAIVER_PATH)
+        .parameter(violation.getId())
+        .get();
+
+    assertResponseStatus(200, response);
+
+    ApiAutoPolicyWaiverDTO apiPolicyWaivers =
+        response.getBody(ApiAutoPolicyWaiverDTO.class);
+
+    assertThat(apiPolicyWaivers).isNotNull();
+    assertThat(apiPolicyWaivers.ownerId).isEqualTo(ownerId);
+    assertThat(apiPolicyWaivers.threatLevel).isEqualTo(7);
+    assertThat(apiPolicyWaivers.reachable).isTrue();
+    assertThat(apiPolicyWaivers.pathForward).isFalse();
+    assertThat(apiPolicyWaivers.creatorId).isEqualTo("fakeCreatorId");
+    assertThat(apiPolicyWaivers.creatorName).isEqualTo("fakeCreatorName");
+  }
+
+  @Test
+  public void testGetApplicableAutoWaivers_NoAutoPolicyWaiverApplied() throws Exception {
+    List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
+    Organization newOrg = tempEntity.newOrganization("NewOrg");
+    Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(newApp.getId(), BuildStageType.ID, "scanId");
+    Policy policy = tempEntity.newPolicy(newOrg);
+    ComponentIdentifier identifier =
+        ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.0", "c1", "jar");
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, identifier, "hash");
+    violation.setConstraintFacts(constraintFacts);
+
+    policyViolationDAO.update(violation);
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
+        .path(ApiPolicyViolationResourceV2.VIOLATIONID +
+            ApiPolicyViolationResourceV2.APPLICABLE_AUTO_WAIVER_PATH)
+        .parameter(violation.getId())
+        .get();
+
+    assertResponseStatus(204, response);
   }
 }

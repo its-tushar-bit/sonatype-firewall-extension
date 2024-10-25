@@ -18,10 +18,13 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -38,6 +41,8 @@ public class ApiAutoPolicyWaiverService
 
   private final OrganizationDAO organizationDAO;
 
+  private final PolicyViolationDAO policyViolationDAO;
+
   private final OwnerDAO ownerDAO;
 
   private final CurrentUser currentUser;
@@ -47,6 +52,7 @@ public class ApiAutoPolicyWaiverService
       AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       ApplicationDAO applicationDAO,
       OrganizationDAO organizationDAO,
+      PolicyViolationDAO policyViolationDAO,
       OwnerDAO ownerDAO,
       CurrentUser currentUser
   )
@@ -54,6 +60,7 @@ public class ApiAutoPolicyWaiverService
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
+    this.policyViolationDAO = policyViolationDAO;
     this.ownerDAO = ownerDAO;
     this.currentUser = currentUser;
   }
@@ -204,6 +211,31 @@ public class ApiAutoPolicyWaiverService
     return dto;
   }
 
+  public ApiAutoPolicyWaiverDTO getApplicableAutoPolicyWaiver(final String violationId) {
+    PolicyViolation policyViolation = policyViolationDAO.getById(violationId);
+    if (policyViolation == null) {
+      throw new NotFoundException("Could not find policy violation with ID " + violationId + ".");
+    }
+    String autoPolicyWaiverId = policyViolation.getAutoPolicyWaiverId();
+    String applicationId = policyViolation.getApplicationId();
+    AutoPolicyWaiver autoPolicyWaiver = getAutoPolicyWaiverByAppOwnerHierarchy(autoPolicyWaiverId, applicationId);
+
+    return ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
+  }
+
+  private AutoPolicyWaiver getAutoPolicyWaiverByAppOwnerHierarchy(String autoPolicyWaiverId, String applicationId) {
+    List<String> ownerIds = ownerDAO.getOwnerIds(applicationId);
+    for (String ownerId : ownerIds) {
+      Owner owner = ownerDAO.getById(ownerId);
+      AutoPolicyWaiver applicableAutoPolicyWaiver =
+          getApplicableAutoPolicyWaiverWithPermissionCheck(autoPolicyWaiverId, owner);
+      if (applicableAutoPolicyWaiver != null) {
+        return applicableAutoPolicyWaiver;
+      }
+    }
+    return null;
+  }
+
   private void checkOwnerType(OwnerType ownerType, String ownerId) throws IllegalStateException {
     switch (ownerType) {
       case APPLICATION:
@@ -237,5 +269,13 @@ public class ApiAutoPolicyWaiverService
 
   private void auditAutoPolicyWaiver(AutoPolicyWaiver autoPolicyWaiver) {
     AuditData.get().setData("autoPolicyWaiverId", autoPolicyWaiver.getId());
+  }
+
+  @Authorize(permission = Permission.READ)
+  AutoPolicyWaiver getApplicableAutoPolicyWaiverWithPermissionCheck(
+      String autoPolicyWaiverId,
+      @AuthzContext(Key.OWNER) Owner owner)
+  {
+    return autoPolicyWaiverDAO.getByIdAndOwnerIdNullable(autoPolicyWaiverId, owner.getId());
   }
 }

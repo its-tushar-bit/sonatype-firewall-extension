@@ -9,14 +9,21 @@ import java.util.Date;
 import java.util.List;
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverStatusDTO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -31,6 +38,9 @@ public class ApiAutoPolicyWaiverServiceTest
 {
   @Inject
   private AutoPolicyWaiverDAO autoPolicyWaiverDAO;
+
+  @Inject
+  private PolicyViolationDAO policyViolationDAO;
 
   @Inject
   private ApiAutoPolicyWaiverService apiAutoPolicyWaiverService;
@@ -498,5 +508,32 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(responseDTO.autoPolicyWaiverId).isEqualTo(autoPolicyWaiver.getId());
     assertThat(responseDTO.autoPolicyWaiverOwnerId).isEqualTo(grandParentOrganization.getId());
     assertThat(responseDTO.autoPolicyWaiverOwnerName).isEqualTo(grandParentOrganization.getName());
+  }
+
+  @Test
+  public void testGetApplicableAutoPolicyWaivers() {
+    List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
+    Organization newOrg = tempEntity.newOrganization("NewOrg");
+    Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(newApp.getId(), BuildStageType.ID, "scanId");
+    Policy policy = tempEntity.newPolicy(newOrg);
+    ComponentIdentifier identifier =
+        ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.0", "c1", "jar");
+    String ownerId = newApp.getId();
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(ownerId);
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, identifier, "hash");
+    violation.setConstraintFacts(constraintFacts);
+    violation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+
+    policyViolationDAO.update(violation);
+
+    ApiAutoPolicyWaiverDTO results = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
+
+    assertThat(results.ownerId).isEqualTo(ownerId);
+    assertThat(results.threatLevel).isEqualTo(7);
+    assertThat(results.reachable).isTrue();
+    assertThat(results.pathForward).isFalse();
+    assertThat(results.creatorId).isEqualTo("fakeCreatorId");
+    assertThat(results.creatorName).isEqualTo("fakeCreatorName");
   }
 }

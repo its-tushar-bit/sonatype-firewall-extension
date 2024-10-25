@@ -20,10 +20,12 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentTransitivePolicyViolationsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiCrossStageViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiAutoPolicyWaiverService;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyViolationServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -61,6 +63,8 @@ public class ApiPolicyViolationResourceV2
 
   public static final String APPLICABLE_WAIVERS_PATH = "/applicableWaivers";
 
+  public static final String APPLICABLE_AUTO_WAIVER_PATH = "/applicableAutoWaiver";
+
   public static final String SIMILAR_WAIVERS_PATH = "/similarWaivers";
 
   public static final String TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH =
@@ -75,15 +79,19 @@ public class ApiPolicyViolationResourceV2
 
   private final ApiPolicyWaiverService apiPolicyWaiverService;
 
+  private final ApiAutoPolicyWaiverService apiAutoPolicyWaiverService;
+
   @Inject
   public ApiPolicyViolationResourceV2(
       final ApiPolicyViolationServiceV2 apiPolicyViolationService,
       final ApiCrossStageViolationService apiCrossStageViolationService,
-      final ApiPolicyWaiverService apiPolicyWaiverService)
+      final ApiPolicyWaiverService apiPolicyWaiverService,
+      final ApiAutoPolicyWaiverService apiAutoPolicyWaiverService)
   {
     this.apiPolicyViolationService = apiPolicyViolationService;
     this.apiCrossStageViolationService = apiCrossStageViolationService;
     this.apiPolicyWaiverService = apiPolicyWaiverService;
+    this.apiAutoPolicyWaiverService = apiAutoPolicyWaiverService;
   }
 
   @GET
@@ -207,6 +215,28 @@ public class ApiPolicyViolationResourceV2
           required = true) @PathParam("violationId") final String violationId)
   {
     return apiPolicyWaiverService.getApplicableWaivers(violationId);
+  }
+
+  @GET
+  @Path(VIOLATIONID + APPLICABLE_AUTO_WAIVER_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_COMPONENTS_WITH_WAIVERS)
+  @Operation(description = "Use this method to obtain the existing auto waiver applicable to a policy violation" +
+      "violation." +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements"
+  )
+  @ApiResponse(responseCode = "200",
+      description = "The response contains details for applicable auto waiver for the `violationId` specified. ",
+      useReturnTypeSchema = true)
+  public ApiAutoPolicyWaiverDTO getApplicableAutoWaiver(
+      @Parameter(description = "Enter the policy violationId for which you want to obtain the applicable auto policy " +
+          "waiver ",
+          required = true) @PathParam("violationId") final String violationId)
+  {
+    return apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violationId);
   }
 
   /**

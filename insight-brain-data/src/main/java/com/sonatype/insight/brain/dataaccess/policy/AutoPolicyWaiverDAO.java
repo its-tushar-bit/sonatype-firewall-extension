@@ -51,6 +51,12 @@ public class AutoPolicyWaiverDAO
     }
   }
 
+  public AutoPolicyWaiver getByIdAndOwnerIdNullable(String autoPolicyWaiverId, String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByIdAndOwnerId(tx, autoPolicyWaiverId, ownerId);
+    }
+  }
+
   public AutoPolicyWaiver getByIdAndOwnerIdNotNull(TransactionContext tx, String autoPolicyWaiverId, String ownerId) {
     AutoPolicyWaiver autoPolicyWaiver = getByIdAndOwnerId(tx, autoPolicyWaiverId, ownerId);
     if (autoPolicyWaiver == null) {

@@ -5,30 +5,45 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import {
-  NxStatefulForm,
-  NxToggle,
-  NxButton,
-  NxStatefulWarningAlert,
-  NxWarningAlert,
-} from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxToggle, NxButton, NxWarningAlert } from '@sonatype/react-shared-components';
 import { MSG_NO_CHANGES_TO_UPDATE } from 'MainRoot/util/constants';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { selectIsOrgsAndAppsEnabled, selectLoadingFeatures } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectSuccessMetricsConfigurationFormState,
+  selectSuccessMetricsConfigurationViewState,
+} from 'MainRoot/configuration/successMetricsConfiguration/successMetricsConfigurationSelectors';
+import {
+  load,
+  update,
+  toggleIsEnabled,
+  resetForm,
+} from 'MainRoot/configuration/successMetricsConfiguration/successMetricsConfigurationActions';
 
 export default function SuccessMetricsConfiguration(props) {
-  const { load, update, toggleIsEnabled, resetForm } = props;
-  const { loading, isDirty, loadError, updateError, submitMaskState } = props;
-  const { enabled } = props;
+  const dispatch = useDispatch();
 
+  const { loading, isDirty, loadError, updateError, submitMaskState } = useSelector(
+    selectSuccessMetricsConfigurationViewState
+  );
+  const { enabled } = useSelector(selectSuccessMetricsConfigurationFormState);
   const isOrgsAndAppsEnabled = useSelector(selectIsOrgsAndAppsEnabled);
   const isProductFeaturesLoading = useSelector(selectLoadingFeatures);
+
   const shouldShowLicenseAlert = !isProductFeaturesLoading && !isOrgsAndAppsEnabled;
   const formLoading = loading || isProductFeaturesLoading;
 
+  const doUpdate = () => dispatch(update());
+  const onToggleChanged = (value) => {
+    dispatch(toggleIsEnabled(value));
+  };
+  const doResetForm = () => {
+    dispatch(resetForm());
+  };
+
   useEffect(() => {
     if (!shouldShowLicenseAlert && !isProductFeaturesLoading) {
-      load();
+      dispatch(load());
     }
   }, [shouldShowLicenseAlert, isProductFeaturesLoading]);
 
@@ -44,7 +59,7 @@ export default function SuccessMetricsConfiguration(props) {
       ) : (
         <section id="success-metrics-configuration" className="nx-tile">
           <NxStatefulForm
-            onSubmit={update}
+            onSubmit={doUpdate}
             loadError={loadError}
             loading={formLoading}
             doLoad={load}
@@ -54,7 +69,7 @@ export default function SuccessMetricsConfiguration(props) {
             submitBtnText="Update"
             validationErrors={isDirty ? null : MSG_NO_CHANGES_TO_UPDATE}
             additionalFooterBtns={
-              <NxButton type="button" id="success-metrics-cancel" onClick={resetForm} disabled={!isDirty}>
+              <NxButton type="button" id="success-metrics-cancel" onClick={doResetForm} disabled={!isDirty}>
                 Cancel
               </NxButton>
             }
@@ -68,7 +83,7 @@ export default function SuccessMetricsConfiguration(props) {
               <NxToggle
                 id="success-metrics-toggle"
                 className="nx-toggle--no-gap"
-                onChange={toggleIsEnabled}
+                onChange={onToggleChanged}
                 isChecked={enabled}
               >
                 Enable Success Metrics
@@ -80,16 +95,3 @@ export default function SuccessMetricsConfiguration(props) {
     </main>
   );
 }
-
-SuccessMetricsConfiguration.propTypes = {
-  load: PropTypes.func.isRequired,
-  update: PropTypes.func.isRequired,
-  resetForm: PropTypes.func.isRequired,
-  enabled: PropTypes.bool.isRequired,
-  toggleIsEnabled: PropTypes.func.isRequired,
-  isDirty: PropTypes.bool.isRequired,
-  loading: PropTypes.bool.isRequired,
-  loadError: PropTypes.string,
-  updateError: PropTypes.string,
-  submitMaskState: PropTypes.bool,
-};

@@ -15,7 +15,7 @@ import ScmOnboardingContainer from './scmOnboarding/ScmOnboardingContainer';
 import LabsDataInsightsContainer from './labsDataInsights/LabsDataInsightsContainer';
 import scmOnboardingActions from './scmOnboarding/scmOnboardingActions';
 import AdvancedSearchConfigContainer from './advancedSearch/AdvancedSearchConfigContainer';
-import SuccessMetricsConfigurationContainer from './successMetricsConfiguration/SuccessMetricsConfigurationContainer';
+import SuccessMetricsConfiguration from 'MainRoot/configuration/successMetricsConfiguration/SuccessMetricsConfiguration';
 import SystemNoticeConfigurationContainer from './systemNoticeConfiguration/SystemNoticeConfigurationContainer';
 import AutomaticApplicationsConfiguration from './automaticApplicationsConfiguration/AutomaticApplicationsConfigurationContainer';
 import AdministratorsConfig from './administrators/config/AdministratorsConfig';
@@ -48,7 +48,7 @@ export default angular
   .component('gettingStarted', iqReact2Angular(GettingStartedContainer, [], ['$ngRedux']))
   .component('scmOnboarding', iqReact2Angular(ScmOnboardingContainer, [], ['$ngRedux', '$state']))
   .component('labsDataInsights', iqReact2Angular(LabsDataInsightsContainer, ['isAuthorized'], ['$ngRedux']))
-  .component('successMetricsConfiguration', iqReact2Angular(SuccessMetricsConfigurationContainer, [], ['$ngRedux']))
+  .component('successMetricsConfiguration', iqReact2Angular(SuccessMetricsConfiguration, [], ['$ngRedux']))
   .component(
     'waivedComponentUpgradesConfiguration',
     iqReact2Angular(WaivedComponentUpgradesConfiguration, [], ['$ngRedux', '$state'])

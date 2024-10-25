@@ -6,7 +6,7 @@
 import React from 'react';
 
 import { render, waitFor, fireEvent, screen, axiosMockAdapter, within } from '../../SpecUtil';
-import SuccessMetricsConfigurationContainer from 'MainRoot/configuration/successMetricsConfiguration/SuccessMetricsConfigurationContainer';
+import SuccessMetricsConfiguration from 'MainRoot/configuration/successMetricsConfiguration/SuccessMetricsConfiguration';
 import { getSuccessMetricsConfigUrl } from 'MainRoot/util/CLMLocation';
 import { getGlobalPermissionTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
 
@@ -200,7 +200,7 @@ describe('SuccessMetricsConfigurationSpec', () => {
       ...preloadStateOverrides,
     };
 
-    return render(<SuccessMetricsConfigurationContainer />, { preloadedState });
+    return render(<SuccessMetricsConfiguration />, { preloadedState });
   }
 
   function givenOrgsAndAppsEnabled() {

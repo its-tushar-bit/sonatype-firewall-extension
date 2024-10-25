@@ -44,7 +44,6 @@ import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
@@ -738,28 +737,5 @@ public class ApiLicenseLegalResourceTest
         .hasEntrySatisfying("copyright hash 1", new Condition<>(Predicate.isEqual(2), "hash 1"))
         .hasEntrySatisfying("copyright hash 2", new Condition<>(Predicate.isEqual(5), "hash 2"))
         .hasEntrySatisfying("copyright hash 3", new Condition<>(Predicate.isEqual(3), "hash 3"));
-  }
-
-  @Test
-  public void testGetLicenseLegalApplicationsDashboard_feature_SAAS_ALP_ENABLED_isIgnoredWhenSelfHosted()
-      throws Exception
-  {
-    SystemConfigurationPropertyFeature.SAAS_ALP_ENABLED.setEnabled(false);
-    assertThat(SystemConfigurationPropertyFeature.SAAS_ALP_ENABLED.isEnabled()).isTrue();
-
-    LicenseLegalFilterDTO filter = new LicenseLegalFilterDTO();
-
-    filter.page = 1;
-    filter.pageSize = 10;
-
-    HttpResponse response =
-        restRequest().path(ApiLicenseLegalResource.DASHBOARD_APPLICATIONS_PATH).body(filter).auth().post();
-
-    assertResponseStatus(200, response);
-    ApiLicenseLegalApplicationDashboardResultDTO result =
-        response.getBody(ApiLicenseLegalApplicationDashboardResultDTO.class);
-    assertThat(result).isNotNull();
-    assertThat(result.results).isEmpty();
-    assertThat(result.totalResultsCount).isZero();
   }
 }

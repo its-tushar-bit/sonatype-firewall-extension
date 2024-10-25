@@ -105,7 +105,6 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.SSO_IDP_MANAGED_BY_SONATYPE.getId(),
           SystemConfigurationPropertyFeature.SCM_UX_IMPROVEMENTS.getId(),
           SystemConfigurationPropertyFeature.SBOM_MANAGER.getId(),
-          SystemConfigurationPropertyFeature.SAAS_ALP_ENABLED.getId(),
           SystemConfigurationPropertyFeature.OAUTH2_ENABLED.getId(),
           SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.getId(),
           SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS.getId(),

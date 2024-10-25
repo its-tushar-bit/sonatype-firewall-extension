@@ -24,7 +24,6 @@ import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -78,7 +77,7 @@ public class MTIQFeatureServiceTest
   public void testRegister_setsFeatureFlags() {
     underTest.register();
 
-    verify(service, times(29)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
+    verify(service, times(28)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
     List<String> disabledFlagSet = propertyKeyCaptor.getAllValues();
     assertThat(disabledFlagSet).containsExactlyInAnyOrder(getDisabledSystemConfigurationPropertyFeatures());
   }
@@ -100,24 +99,6 @@ public class MTIQFeatureServiceTest
     // This feature is enabled via HDS only, so we cannot expect it to be enabled here.
     expectedFeatures.remove(LicensedFeature.ALLOW_SCM_ON_PUBLIC_REPOS);
 
-    assertThat(features).containsExactlyInAnyOrderElementsOf(expectedFeatures);
-  }
-
-  @Test
-  @Ignore // https://sonatype.atlassian.net/browse/CLM-31308
-  public void testGetFeatures_includes_ADVANCED_LEGAL_PACK_with_SAAS_ALP_ENABLED() {
-    SystemConfigurationPropertyFeature.SAAS_ALP_ENABLED.setEnabled(true);
-
-    Set<Feature> expectedFeatures = Stream.of(getFeatureSet().stream(),
-        Stream.of(
-            LicensedFeature.ADVANCED_LEGAL_PACK,
-            SystemConfigurationPropertyFeature.SAAS_ALP_ENABLED
-        )
-    ).flatMap(i -> i).collect(toSet());
-    // This feature is enabled via HDS only, so we cannot expect it to be enabled here.
-    expectedFeatures.remove(LicensedFeature.ALLOW_SCM_ON_PUBLIC_REPOS);
-
-    Set<Feature> features = underTest.getFeatures();
     assertThat(features).containsExactlyInAnyOrderElementsOf(expectedFeatures);
   }
 
@@ -222,7 +203,6 @@ public class MTIQFeatureServiceTest
         Stream.of(MULTI_TENANT),
         Stream.of(getEnabledSystemConfigurationPropertyFeatures()),
         stream(LicensedFeature.values())
-            .filter(f -> !f.equals(LicensedFeature.ADVANCED_LEGAL_PACK))
             .filter(f -> !f.equals(LicensedFeature.API_PAGE))
             .filter(f -> !f.equals(LicensedFeature.DATA_INSIGHTS))
             .filter(f -> !f.equals(LicensedFeature.FIREWALL_FOR_ARTIFACTORY))

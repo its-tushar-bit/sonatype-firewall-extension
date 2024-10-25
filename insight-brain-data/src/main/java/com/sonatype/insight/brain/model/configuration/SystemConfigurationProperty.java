@@ -209,8 +209,6 @@ public class SystemConfigurationProperty
 
   public static final String SAAS_LIFECYCLE_SCM_ENABLED = "SAAS_LIFECYCLE_SCM_ENABLED";
 
-  public static final String SAAS_ALP_ENABLED = "SAAS_ALP_ENABLED";
-
   public static final String SAAS_POLICY_MONITOR_POOL_SIZE = "SAAS_POLICY_MONITOR_POOL_SIZE";
 
   public static final String SBOM_MANAGER = "sbomManager";

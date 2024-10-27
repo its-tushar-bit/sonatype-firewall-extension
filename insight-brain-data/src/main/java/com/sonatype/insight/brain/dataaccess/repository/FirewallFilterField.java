@@ -37,5 +37,6 @@ public class FirewallFilterField
   {
     POLICY_ID,
     COMPONENT_NAME,
+    REPOSITORY_PUBLIC_ID,
   }
 }

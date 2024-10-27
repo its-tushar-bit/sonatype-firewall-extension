@@ -153,7 +153,7 @@ public class ApiFirewallResource
   )
   {
     return getComponents(uriInfo, page, pageSize, policyId != null ? Collections.singleton(policyId) : null,
-        componentName, sortBy, FirewallSortableField.RELEASE_QUARANTINE_TIME, asc,
+        componentName, null, sortBy, FirewallSortableField.RELEASE_QUARANTINE_TIME, asc,
         FirewallComponentFilterState.UNQUARANTINE_AUTO);
   }
 
@@ -165,11 +165,12 @@ public class ApiFirewallResource
       @DefaultValue("10") @QueryParam("pageSize") int pageSize,
       @QueryParam("policyId") Set<String> policyIds,
       @QueryParam("componentName") String componentName,
+      @QueryParam("repositoryPublicId") String repositoryPublicId,
       @QueryParam("sortBy") String sortBy,
       @DefaultValue("false") @QueryParam("asc") boolean asc
   )
   {
-    return getComponents(uriInfo, page, pageSize, policyIds, componentName, sortBy,
+    return getComponents(uriInfo, page, pageSize, policyIds, componentName, repositoryPublicId, sortBy,
         FirewallSortableField.QUARANTINE_TIME, asc, FirewallComponentFilterState.QUARANTINE);
   }
 
@@ -276,6 +277,7 @@ public class ApiFirewallResource
       final int pageSize,
       final Set<String> policyIds,
       final String componentName,
+      final String repositoryPublicId,
       final String sortBy,
       final FirewallSortableField defaultSortableField,
       final boolean asc,
@@ -287,7 +289,12 @@ public class ApiFirewallResource
     }
 
     if (StringUtils.isNotBlank(componentName)) {
-      filterFields.add(new FirewallFilterField(FirewallFilterableField.COMPONENT_NAME, componentName));
+      filterFields.add(new FirewallFilterField(FirewallFilterableField.COMPONENT_NAME, componentName.toLowerCase()));
+    }
+
+    if (StringUtils.isNotBlank(repositoryPublicId)) {
+      filterFields.add(
+          new FirewallFilterField(FirewallFilterableField.REPOSITORY_PUBLIC_ID, repositoryPublicId.toLowerCase()));
     }
 
     final FirewallSortableField sortableField = sortBy == null ? defaultSortableField : initializeSortField(sortBy);

@@ -1880,6 +1880,87 @@ public class ApiFirewallServiceTest
   }
 
   @Test
+  public void testGetQuarantinedComponents_sortAndFilterByRepoPublicId() {
+    Date jan1st2024hour12 = Date.from(LocalDateTime.of(2024, 1, 1, 12, 0).toInstant(ZoneOffset.UTC));
+    Date jan2nd2024hour12 = Date.from(LocalDateTime.of(2024, 1, 2, 12, 0).toInstant(ZoneOffset.UTC));
+    Policy policy1 = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, "policy1", 10, Action.ID_FAIL,
+        Stage.ID_PROXY, null);
+    RepositoryManager rm1 = tempEntity.newRepositoryManager();
+    Repository repo1 = tempEntity.newRepository(rm1, "repo1", true, true);
+    Repository repo2 = tempEntity.newRepository(rm1, "repo2", true, true);
+
+    final RepositoryComponent c1 =
+        tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT, "pathname1", "hash1",
+            ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), jan1st2024hour12, jan1st2024hour12);
+    final RepositoryComponent c2 =
+        tempEntity.newRepositoryComponent(repo2.getId(), MatchState.EXACT, "pathname2", "hash2",
+            ComponentIdentifier.createMavenCoordinates("g2", "a2", "v1"), jan1st2024hour12, jan1st2024hour12);
+    final RepositoryComponent c3 =
+        tempEntity.newRepositoryComponent(repo2.getId(), MatchState.EXACT, "pathname3", "hash3",
+            ComponentIdentifier.createMavenCoordinates("g1", "a3", "v1"), jan2nd2024hour12, jan2nd2024hour12);
+
+    RepositoryPolicyViolation violation1 = PolicyViolationTestHelper.createPolicyViolationFail(policy1, c1, tempEntity);
+    RepositoryPolicyViolation violation2 = PolicyViolationTestHelper.createPolicyViolationFail(policy1, c2, tempEntity);
+    RepositoryPolicyViolation violation3 = PolicyViolationTestHelper.createPolicyViolationFail(policy1, c3, tempEntity);
+
+    // SORT BY REPOSITORY PUBLIC ID DESC
+    FirewallRepositoryComponentFilter filter =
+        new FirewallRepositoryComponentFilter(1, 10, FirewallComponentFilterState.QUARANTINE,
+            FirewallSortableField.REPOSITORY_PUBLIC_ID, false,
+            Collections.emptyList());
+
+    // EXECUTE
+    ApiPageResult<ApiFirewallQuarantinedComponentDto> details =
+        apiFirewallService.getQuarantinedComponents(filter);
+
+    // VERIFY
+    assertThat(details.getTotal()).isEqualTo(3);
+    assertThat(details.getResults()).hasSize(3);
+    assertFirewallQuarantinedDetails(repo2, c3, violation3, details.getResults().get(0));
+    assertFirewallQuarantinedDetails(repo2, c2, violation2, details.getResults().get(1));
+    assertFirewallQuarantinedDetails(repo1, c1, violation1, details.getResults().get(2));
+
+    // SORT BY REPOSITORY PUBLIC ID ASC
+    filter.asc = true;
+
+    // EXECUTE
+    details = apiFirewallService.getQuarantinedComponents(filter);
+
+    // VERIFY
+    assertThat(details.getTotal()).isEqualTo(3);
+    assertThat(details.getResults()).hasSize(3);
+    assertFirewallQuarantinedDetails(repo1, c1, violation1, details.getResults().get(0));
+    assertFirewallQuarantinedDetails(repo2, c3, violation3, details.getResults().get(1));
+    assertFirewallQuarantinedDetails(repo2, c2, violation2, details.getResults().get(2));
+
+    // FILTER BY REPOSITORY PUBLIC ID
+    filter.filterFields =
+        Arrays.asList(new FirewallFilterField(FirewallFilterableField.REPOSITORY_PUBLIC_ID, repo1.getPublicId()));
+
+    // EXECUTE
+    details = apiFirewallService.getQuarantinedComponents(filter);
+
+    // VERIFY
+    assertThat(details.getTotal()).isEqualTo(1);
+    assertThat(details.getResults()).hasSize(1);
+    assertFirewallQuarantinedDetails(repo1, c1, violation1, details.getResults().get(0));
+
+    // FILTER BY REPOSITORY PUBLIC ID, POLICY ID AND COMPONENT NAME
+    filter.filterFields =
+        Arrays.asList(new FirewallFilterField(FirewallFilterableField.REPOSITORY_PUBLIC_ID, repo2.getPublicId()),
+            new FirewallFilterField(FirewallFilterableField.POLICY_ID, policy1.getId()),
+            new FirewallFilterField(FirewallFilterableField.COMPONENT_NAME, c2.getDisplayName()));
+
+    // EXECUTE
+    details = apiFirewallService.getQuarantinedComponents(filter);
+
+    // VERIFY
+    assertThat(details.getTotal()).isEqualTo(1);
+    assertThat(details.getResults()).hasSize(1);
+    assertFirewallQuarantinedDetails(repo2, c2, violation2, details.getResults().get(0));
+  }
+
+  @Test
   public void testGetQuarantinedComponents_invalid() {
     // null firewallComponentFilterState
     final FirewallRepositoryComponentFilter filter1 =

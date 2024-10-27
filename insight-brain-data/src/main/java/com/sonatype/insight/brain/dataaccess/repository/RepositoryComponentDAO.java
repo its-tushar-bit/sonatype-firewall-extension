@@ -261,7 +261,7 @@ public class RepositoryComponentDAO
       FirewallRepositoryComponentFilter filter)
   {
     try (TransactionContext tx = createTransactionContext()) {
-      // extracting the highest threat level and name combination
+      // extracting the highest threat level and policy name combination
       String highestThreatLevelPolicyNamePart =
           "MAX(CONCAT(LPAD(CAST(violation.threat_level AS varchar), 2, '0'), violation.policy_name))";
       // extracting threat level from concatenated string
@@ -296,11 +296,15 @@ public class RepositoryComponentDAO
         select1 += " AND LOWER(component.display_name) LIKE ?1";
       }
 
+      if (queryRequiresRepositoryPublicId(filter)) {
+        select1 += " AND LOWER(repository.public_id) LIKE ?2";
+      }
+
       List<String> policyIds = Collections.EMPTY_LIST;
       if (queryRequiresPolicyViolations(filter)) {
         policyIds = Arrays.asList(filter.getFilterFieldsMap().get(FirewallFilterableField.POLICY_ID)
             .split(FirewallFilterField.MULTI_VALUE_SEPARATOR));
-        select1 += " AND violation.policy_id IN " + buildPositionalParameters(policyIds, 2);
+        select1 += " AND violation.policy_id IN " + buildPositionalParameters(policyIds, 3);
       }
 
       select1 += " GROUP BY component.quarantine_time, component.component_id_format," +
@@ -327,25 +331,16 @@ public class RepositoryComponentDAO
           " hash," +
           " match_state_id," +
           " quarantine_time" +
-          " FROM (" + select1 + ") AS t1" +
-          " ORDER BY quarantine_time";
+          " FROM (" + select1 + ") AS t1";
 
-      if (null != filter.sortableField && filter.sortableField.getColumn().equals("quarantineTime")) {
-        if (filter.asc) {
-          select2 += " NULLS LAST,";
-        }
-        else {
-          select2 += " DESC NULLS LAST,";
-        }
-      }
+      select2 += addSortFields(filter);
 
-      select2 += " threat_level DESC NULLS LAST, display_name DESC NULLS LAST" +
-          " LIMIT " + filter.pageSize +
-          " OFFSET " + offset;
+      select2 += " LIMIT " + filter.pageSize + " OFFSET " + offset;
 
       javax.persistence.Query query = tx.createNativeQuery(select2);
       query.setParameter(1, '%' + filter.getFilterFieldsMap().get(FirewallFilterableField.COMPONENT_NAME) + '%');
-      addPositionalParameters(query, policyIds, 2);
+      query.setParameter(2, '%' + filter.getFilterFieldsMap().get(FirewallFilterableField.REPOSITORY_PUBLIC_ID) + '%');
+      addPositionalParameters(query, policyIds, 3);
 
       List<FirewallQuarantinedComponentDetails> results = ((Stream<Object[]>) query.getResultStream())
           .map(array -> new FirewallQuarantinedComponentDetails(
@@ -365,6 +360,32 @@ public class RepositoryComponentDAO
 
       return results;
     }
+  }
+
+  private String addSortFields(final FirewallRepositoryComponentFilter filter) {
+    String select = " ORDER BY";
+
+    if (null != filter.sortableField && filter.sortableField.getColumn().equals("repositoryPublicId")) {
+      select += " public_id";
+      if (filter.asc) {
+        select += " NULLS LAST,";
+      }
+      else {
+        select += " DESC NULLS LAST,";
+      }
+    }
+
+    select += " quarantine_time";
+
+    if (null != filter.sortableField && filter.sortableField.getColumn().equals("quarantineTime") && filter.asc) {
+      select += " NULLS LAST,";
+    }
+    else {
+      select += " DESC NULLS LAST,";
+    }
+
+    select += " threat_level DESC NULLS LAST, display_name DESC NULLS LAST";
+    return select;
   }
 
   public List<RepositoryComponent> getFirewallRepositoryComponents(FirewallRepositoryComponentFilter filter) {
@@ -424,6 +445,12 @@ public class RepositoryComponentDAO
           "%" + StringUtils.lowerCase(filter.getFilterFieldsMap().get(FirewallFilterableField.COMPONENT_NAME)) + "%");
     }
 
+    if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.REPOSITORY_PUBLIC_ID)) {
+      parameters.add(
+          "%" + StringUtils.lowerCase(filter.getFilterFieldsMap().get(FirewallFilterableField.REPOSITORY_PUBLIC_ID)) +
+              "%");
+    }
+
     return getSingle(Long.class, sQuery, parameters.toArray());
   }
 
@@ -465,6 +492,10 @@ public class RepositoryComponentDAO
     MutableBoolean sQueryContainsWhereClause = new MutableBoolean();
     int parameterIndex = 1;
 
+    if (queryRequiresRepositoryPublicId(filter)) {
+      sQuery.append(" , Repository repo");
+    }
+
     if (queryRequiresPolicyViolations(filter)) {
       sQuery.append(" , RepositoryPolicyViolation policyViolation")
           .append(" WHERE component.repositoryId = policyViolation.repositoryId")
@@ -487,7 +518,18 @@ public class RepositoryComponentDAO
         sQuery.append(" WHERE");
         sQueryContainsWhereClause.setTrue();
       }
-      sQuery.append(" LOWER(component.displayName) LIKE ?").append(parameterIndex);
+      sQuery.append(" LOWER(component.displayName) LIKE ?").append(parameterIndex++);
+    }
+
+    if (queryRequiresRepositoryPublicId(filter)) {
+      if (sQueryContainsWhereClause.getValue()) {
+        sQuery.append(" AND");
+      }
+      else {
+        sQuery.append(" WHERE");
+        sQueryContainsWhereClause.setTrue();
+      }
+      sQuery.append(" component.repositoryId = repo.id AND LOWER(repo.publicId) LIKE ?").append(parameterIndex);
     }
 
     return sQuery.toString();
@@ -499,6 +541,10 @@ public class RepositoryComponentDAO
 
   private static boolean queryRequiresComponentDisplayName(FirewallRepositoryComponentFilter filter) {
     return filter.getFilterFieldsMap().containsKey(FirewallFilterableField.COMPONENT_NAME);
+  }
+
+  private static boolean queryRequiresRepositoryPublicId(FirewallRepositoryComponentFilter filter) {
+    return filter.getFilterFieldsMap().containsKey(FirewallFilterableField.REPOSITORY_PUBLIC_ID);
   }
 
   private static String getFirewallComponentStateClause(

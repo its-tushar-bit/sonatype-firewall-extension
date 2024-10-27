@@ -698,6 +698,34 @@ public class RepositoryComponentDAOTest
   }
 
   @Test
+  public void testGetTotalFirewallRepositoryComponents_filterByRepoPublicId() {
+    setupMockDataForGetFirewallRepositoryComponents();
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "/quarantined/test",
+        june7th2020, null, june8th2020, false);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, component.getPathname(), false, FailActionType.ID,
+        "policy_id", "policy", component.getComponentIdentifier());
+
+    Repository repo2 = tempEntity.newRepository(repositoryManager);
+    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repo2.getId(), "/quarantined/test2",
+        june7th2020, null, june8th2020, false);
+    tempEntity.newRepositoryPolicyViolation(repo2.getId(), 5, component2.getPathname(), false, FailActionType.ID,
+        "policy_id", "policy", component2.getComponentIdentifier());
+
+    // FILTER BY REPOSITORY PUBLIC ID
+    List<FirewallFilterField> filterFields = new ArrayList<>();
+    filterFields.add(new FirewallFilterField(FirewallFilterableField.REPOSITORY_PUBLIC_ID, repo2.getPublicId()));
+
+    FirewallRepositoryComponentFilter filter = new FirewallRepositoryComponentFilter(1, 2,
+        FirewallComponentFilterState.QUARANTINE, FirewallSortableField.REPOSITORY_PUBLIC_ID, true, filterFields);
+
+    // EXECUTE
+    Long count = dao.getTotalFirewallRepositoryComponents(filter);
+
+    // ASSERTION - only the components with the given repository public ID should be returned
+    assertThat(count).isEqualTo(1);
+  }
+
+  @Test
   public void testGetFirewallRepositoryComponents_filterByComponentName() {
     Repository repository = tempEntity.newRepository();
     RepositoryComponent repositoryComponent1 = newQuarantinedRepositoryComponent(repository.getId(), "a1");

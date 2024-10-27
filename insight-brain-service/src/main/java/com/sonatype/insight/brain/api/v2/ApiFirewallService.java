@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -415,7 +416,8 @@ public class ApiFirewallService
           filter.firewallComponentFilterState.name()));
     }
 
-    if (!FirewallSortableField.QUARANTINE_TIME.equals(filter.sortableField)) {
+    if (!EnumSet.of(FirewallSortableField.QUARANTINE_TIME, FirewallSortableField.REPOSITORY_PUBLIC_ID)
+        .contains(filter.sortableField)) {
       throw new BadRequestException(String.format(
           "SortableField %s is not applicable to get Firewall Quarantined components.",
           filter.sortableField.getLabel()));

@@ -8,7 +8,8 @@ package com.sonatype.insight.brain.dataaccess.repository;
 public enum FirewallSortableField
 {
   QUARANTINE_TIME("quarantineTime", "quarantineTime"),
-  RELEASE_QUARANTINE_TIME("releaseQuarantineTime", "unquarantineTime");
+  RELEASE_QUARANTINE_TIME("releaseQuarantineTime", "unquarantineTime"),
+  REPOSITORY_PUBLIC_ID("repositoryPublicId", "repositoryPublicId");
 
   private final String label;
 

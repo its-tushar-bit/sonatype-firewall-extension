@@ -124,6 +124,19 @@ public class ApiSourceControlEvaluationServiceTest
   }
 
   @Test
+  public void testEvaluateSourceControl_InvalidStageCompliance() {
+    Application app = tempEntity.newApplicationWithParent();
+
+    String stageId = Stage.ID_COMPLIANCE;
+    String branchName = "a-branch";
+    ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
+        new ApiSourceControlEvaluationRequestDTO(stageId, branchName);
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSourceControlEvaluationService
+            .evaluateSourceControl(app.getId(), apiSourceControlEvaluationRequestDTO, null /* userAgent */))
+        .withMessage("Stage " + stageId + " is invalid.");
+  }
+
+  @Test
   public void testEvaluateSourceControl_ScanTargetContainsPathTraversal() {
     Application app = tempEntity.newApplicationWithParent();
     ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =

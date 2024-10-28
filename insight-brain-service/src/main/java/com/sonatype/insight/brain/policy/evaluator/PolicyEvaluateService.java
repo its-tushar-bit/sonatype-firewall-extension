@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.BadRequestException;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.scan.ScanContext;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
@@ -73,6 +75,8 @@ public class PolicyEvaluateService
 
   private final ScanHandler scanHandler;
 
+  private final StageTypeService stageTypeService;
+
   private final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
 
   private final InsightWork insightWork;
@@ -91,6 +95,7 @@ public class PolicyEvaluateService
       PolicyAlertNotifier policyAlertNotifier,
       ErrorResponseGenerator errorResponseGenerator,
       ScanHandler scanHandler,
+      StageTypeService stageTypeService,
       PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO,
       ApplicationDAO applicationDAO,
       InsightWork insightWork,
@@ -110,6 +115,7 @@ public class PolicyEvaluateService
     this.policyEvaluateServiceMetrics = policyEvaluateServiceMetrics;
     this.policyEvaluationUtil = policyEvaluationUtil;
     this.executor = buildExecutorService();
+    this.stageTypeService = stageTypeService;
     shutdownHandler.add(executor, 2);
   }
 
@@ -271,7 +277,7 @@ public class PolicyEvaluateService
         throw new IllegalArgumentException("Unknown integration type " + integrationType);
     }
   }
-  
+
   public void evaluateWithPolling(
       String statusId,
       Application app,
@@ -325,21 +331,33 @@ public class PolicyEvaluateService
       String clientInstanceId,
       ScanContext scanContext)
   {
-    // to avoid any race condition when the following task attempts to update
-    PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
-        createPersistedPolicyEvaluationPollingResultIfNeeded(app.getId(), statusId);
+    if (stageTypeService.getLicensedStageTypes(StageTypeService.LIFECYCLE_CONTEXT).stream()
+        .anyMatch(stageType -> stageType.getId().equals(stage.getStageTypeId())) ||
+        isComplianceStageWithSbomTrigger(stage, scanTriggerType))
+    {
+      PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
+          createPersistedPolicyEvaluationPollingResultIfNeeded(app.getId(), statusId);
 
-    log.debug(
-        "Submitting policy evaluation task for app public id {}, clientScanType {}, stageTypeId {}. "
-            + "The status ID of the operation is {}.",
-        app.getPublicId(), clientScanType, stage.getStageTypeId(), statusId);
-    TelemetryData thirdPartyScanTelemetryData =
-        telemetryUtils.buildThirdPartyScanTelemetryData(app.getPublicId(), stage, thirdPartyScanType, scanTriggerType,
-            clientUserAgent);
-    AuditData.get().continueAsync(
-        new Task(app, clientScanType, statusId, stage, scanTriggerType, tempScanFile, thirdPartyScanTelemetryData,
-            persistedPolicyEvaluationPollingResult, clientUserAgent, clientInstanceId, scanContext),
-        executor::submit);
+      log.debug(
+          "Submitting policy evaluation task for app public id {}, clientScanType {}, stageTypeId {}. "
+              + "The status ID of the operation is {}.",
+          app.getPublicId(), clientScanType, stage.getStageTypeId(), statusId);
+
+      TelemetryData thirdPartyScanTelemetryData = telemetryUtils.buildThirdPartyScanTelemetryData(
+          app.getPublicId(), stage, thirdPartyScanType, scanTriggerType, clientUserAgent);
+
+      AuditData.get().continueAsync(
+          new Task(app, clientScanType, statusId, stage, scanTriggerType, tempScanFile, thirdPartyScanTelemetryData,
+              persistedPolicyEvaluationPollingResult, clientUserAgent, clientInstanceId, scanContext),
+          executor::submit);
+    }
+    else {
+      throw new BadRequestException("Invalid stage: " + stage.getStageTypeId());
+    }
+  }
+
+  private boolean isComplianceStageWithSbomTrigger(Stage stage, ScanTriggerType scanTriggerType) {
+    return stage.getStageTypeId().equals(Stage.ID_COMPLIANCE) && ScanTriggerType.isSbomTrigger(scanTriggerType);
   }
 
   public PersistedPolicyEvaluationPollingResult createPersistedPolicyEvaluationPollingResultIfNeeded(

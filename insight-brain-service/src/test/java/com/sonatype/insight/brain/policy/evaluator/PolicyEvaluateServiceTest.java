@@ -20,6 +20,7 @@ import java.util.function.Function;
 import javax.inject.Inject;
 import javax.mail.Message;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.BadRequestException;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -94,9 +95,12 @@ import org.mockito.Mock;
 import org.mockito.internal.stubbing.answers.CallsRealMethods;
 import org.mockito.invocation.InvocationOnMock;
 
+import static com.sonatype.clm.dto.model.policy.Stage.ID_BUILD;
+import static com.sonatype.clm.dto.model.policy.Stage.ID_COMPLIANCE;
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -161,7 +165,6 @@ public class PolicyEvaluateServiceTest
     binder.bind(ScanHandler.class).toInstance(mockScanHandler);
     binder.bind(TaskScheduler.class).toInstance(mock(TaskScheduler.class));
     binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
-
     super.configure(binder);
   }
 
@@ -174,6 +177,20 @@ public class PolicyEvaluateServiceTest
     mailConfiguration.setPort(587);
     mailConfiguration.setSystemEmail("NexusIQServer@localhost");
     mailConfigurationDAO.set(mailConfiguration);
+  }
+
+  @Test
+  public void testPolicyEvaluationPolling_ComplianceStageValidation() throws IOException {
+    assertThatNoException().isThrownBy(() -> policyEvaluateService.evaluateWithPolling(
+        IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(ID_BUILD)));
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
+        policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(),
+            ClientScanType.SONATYPE, null, new Stage(ID_COMPLIANCE))).withMessage("Invalid stage: compliance");
+
+    assertThatNoException().isThrownBy(() -> policyEvaluateService.evaluateWithPolling(
+        "statusId", app, ClientScanType.SONATYPE, new Stage(ID_COMPLIANCE), ScanTriggerType.SBOM_API, mock(File.class),
+        "thirdPartyScanType", "clientUserAgent", "clientInstanceId"));
   }
 
   @Test

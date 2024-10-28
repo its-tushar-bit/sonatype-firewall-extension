@@ -48,4 +48,8 @@ public enum ScanTriggerType
       SOURCE_CONTROL_INTERNAL_PULL_REQUEST,
       SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING
   );
+
+  public static boolean isSbomTrigger(ScanTriggerType triggerType) {
+    return triggerType == SBOM_UI || triggerType == SBOM_API;
+  }
 }

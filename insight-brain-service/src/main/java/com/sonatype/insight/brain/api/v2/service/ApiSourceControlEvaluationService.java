@@ -9,7 +9,6 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationStatusDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlEvaluationRequestDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -19,6 +18,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.security.Authorize;
@@ -46,18 +46,22 @@ public class ApiSourceControlEvaluationService
 
   private final IqForScmLicenseChecker licenseChecker;
 
+  private final StageTypeService stageTypeService;
+
   @Inject
   public ApiSourceControlEvaluationService(
       final SourceControlEventPublisher sourceControlEventPublisher,
       final SourceControlUtils sourceControlUtils,
       final IqForScmLicenseChecker licenseChecker,
       PolicyEvaluateService policyEvaluateService,
-      ApplicationDAO applicationDAO)
+      ApplicationDAO applicationDAO,
+      StageTypeService stageTypeService)
   {
     super(applicationDAO, policyEvaluateService);
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.sourceControlUtils = sourceControlUtils;
     this.licenseChecker = licenseChecker;
+    this.stageTypeService = stageTypeService;
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
@@ -117,9 +121,11 @@ public class ApiSourceControlEvaluationService
       throw new BadRequestException("Missing parameters.");
     }
 
-    if (!Stage.isValidStageTypeId(sourceControlEvaluationRequest.stageId)) {
-      throw new BadRequestException("Stage " + sourceControlEvaluationRequest.stageId + " is invalid.");
-    }
+    stageTypeService.getLicensedStageTypes(StageTypeService.LIFECYCLE_CONTEXT).stream()
+        .filter(stageType -> stageType.getId().equals(sourceControlEvaluationRequest.stageId))
+        .findFirst()
+        .orElseThrow(() -> new BadRequestException("Stage " + sourceControlEvaluationRequest.stageId +
+            " is invalid."));
 
     validateScanTargets(sourceControlEvaluationRequest);
   }

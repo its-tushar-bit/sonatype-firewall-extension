@@ -168,5 +168,17 @@ describe('constraintUtil', () => {
         expect(getCoordinatesValue(value)).toBe('pypi:name:version::extension');
       });
     });
+
+    describe('npm', () => {
+      const value = {
+        format: 'npm',
+        packageId: initUserInput('packageId'),
+        version: initUserInput('version'),
+      };
+
+      it('returns combined coordinates value for npm', () => {
+        expect(getCoordinatesValue(value)).toBe('npm:packageId:version');
+      });
+    });
   });
 });

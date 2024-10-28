@@ -43,6 +43,8 @@ export function getCoordinatesValue(value) {
     return `${value.format}:${fields.name}:${fields.qualifier}:${fields.version}`;
   } else if (value.format === 'pypi') {
     return `${value.format}:${fields.name}:${fields.version}:${fields.qualifier}:${fields.extension}`;
+  } else if (value.format === 'npm') {
+    return `${value.format}:${fields.packageId}:${fields.version}`;
   }
 }
 
@@ -161,9 +163,10 @@ export const coordinatesTypes = {
   maven: ['groupId', 'artifactId', 'version', 'extension', 'classifier'],
   'a-name': ['name', 'qualifier', 'version'],
   pypi: ['name', 'version', 'qualifier', 'extension'],
+  npm: ['packageId', 'version'],
 };
 
-export const coordinatesFormatOptions = ['maven', 'a-name', 'pypi'];
+export const coordinatesFormatOptions = ['maven', 'a-name', 'pypi', 'npm'];
 
 export const fieldTypeToPlaceholder = {
   groupId: 'Group ID',
@@ -173,6 +176,7 @@ export const fieldTypeToPlaceholder = {
   classifier: 'Classifier',
   qualifier: 'Qualifier',
   name: 'Name',
+  packageId: 'Package ID',
 };
 
 export const conditionsWithoutValue = [

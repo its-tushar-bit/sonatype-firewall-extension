@@ -66,6 +66,8 @@ const computeValidatableFieldsForCoordinates = (fields) => {
         fields
       )
     );
+  } else if (fields.format === 'npm') {
+    return values(omit(['format'], fields));
   }
 };
 

@@ -339,7 +339,7 @@ public class DefaultHdsClientTest
     when(request.getInputStream()).thenReturn(new ServletInputStreamImpl(test));
     when(request.getHeaderNames())
         .thenReturn(Collections.enumeration(Collections.singletonList(HttpHeaders.USER_AGENT)));
-    // Use a smaller content-length than the actual incoming request (simulate gzip entity) 
+    // Use a smaller content-length than the actual incoming request (simulate gzip entity)
     when(request.getContentLength()).thenReturn(1);
     when(request.getMethod()).thenReturn("POST");
 
@@ -912,5 +912,23 @@ public class DefaultHdsClientTest
     client.execute(HdsClient.DEFAULT_RETRY_CREATOR.apply("test"), new HttpGet(configuration.getHdsUrl()));
     assertThat(requests.get()).isEqualTo(2);
     assertThat(queryStrings).containsExactly(null, "retryCount=1");
+  }
+
+  @Test
+  public void testGet_BlockedTelemetry() {
+    try {
+      System.setProperty(HdsClient.DISABLE_TELEMETRY_CONFIG_KEY, "true");
+
+      Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
+
+      for (String telemetryUrl : HdsClient.TELEMETRY_URLS) {
+        // If no request is made then there won't be any headers because the response is faked
+        client.get(InputStream.class, telemetryUrl, null);
+        assertThat(headers).isEmpty();
+      }
+    }
+    finally {
+      System.clearProperty(HdsClient.DISABLE_TELEMETRY_CONFIG_KEY);
+    }
   }
 }

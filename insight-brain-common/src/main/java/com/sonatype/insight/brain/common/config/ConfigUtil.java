@@ -31,4 +31,8 @@ public class ConfigUtil
   public static int getIntegerConfig(final String key, final int defaultValue) {
     return Integer.parseInt(getConfig(key, String.valueOf(defaultValue)));
   }
+
+  public static boolean getBooleanConfig(final String key, final boolean defaultValue) {
+    return Boolean.parseBoolean(getConfig(key, String.valueOf(defaultValue)));
+  }
 }

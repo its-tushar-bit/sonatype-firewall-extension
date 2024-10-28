@@ -52,5 +52,14 @@ public class ConfigUtilTest
     int configValue = ConfigUtil.getIntegerConfig(key, value);
     assertThat(configValue).isEqualTo(value);
   }
+
+  @Test
+  public void testGetConfig_Boolean() {
+    String key = "testGetConfig_Boolean";
+    boolean value = true;
+
+    boolean configValue = ConfigUtil.getBooleanConfig(key, value);
+    assertThat(configValue).isEqualTo(value);
+  }
 }
 

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.model.configuration;
 
+import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -13,9 +14,13 @@ import javax.persistence.Table;
 import com.sonatype.insight.brain.db.migrations.DatabaseMigrator;
 import com.sonatype.insight.model.HasStringId;
 
+import org.apache.openjpa.persistence.DataCache;
+
 /**
  * @since 1.33
  */
+@DataCache(timeout = 300_000) // 5 minutes
+@Cacheable
 @Entity
 @Table(name = "system_configuration_property")
 public class SystemConfigurationProperty

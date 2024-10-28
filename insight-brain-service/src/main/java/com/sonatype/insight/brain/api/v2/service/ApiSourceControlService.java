@@ -41,7 +41,6 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
-import com.sonatype.insight.brain.git.ScmRepoVisibilityService;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
@@ -90,10 +89,6 @@ public class ApiSourceControlService
 
   private static final int EMAIL_AND_COMMIT_DATE_MAP_LIMIT = 1000;
 
-  private static final String REPO_VISIBILITY_PRIVATE = "private";
-
-  private static final String REPO_VISIBILITY_PUBLIC = "public";
-
   private final PlexusCipher plexusCipher;
 
   private final SourceControlDAO sourceControlDAO;
@@ -126,8 +121,6 @@ public class ApiSourceControlService
 
   private final TelemetryUtils telemetryUtils;
 
-  private final ScmRepoVisibilityService scmRepoVisibilityService;
-
   @Inject
   public ApiSourceControlService(
       final PlexusCipher plexusCipher,
@@ -145,8 +138,7 @@ public class ApiSourceControlService
       final GitClientFactory gitClientFactory,
       final SourceControlUserActivityService sourceControlUserActivityService,
       final EncryptionKeyStore encryptionKeyStore,
-      final TelemetryUtils telemetryUtils,
-      final ScmRepoVisibilityService scmRepoVisibilityService)
+      final TelemetryUtils telemetryUtils)
   {
     this.plexusCipher = plexusCipher;
     this.sourceControlDAO = sourceControlDAO;
@@ -164,7 +156,6 @@ public class ApiSourceControlService
     this.sourceControlUserActivityService = sourceControlUserActivityService;
     this.encryptionKeyStore = encryptionKeyStore;
     this.telemetryUtils = telemetryUtils;
-    this.scmRepoVisibilityService = scmRepoVisibilityService;
   }
 
   @Authorize(permission = Permission.READ)
@@ -255,22 +246,18 @@ public class ApiSourceControlService
             .build();
         sourceControlDAO.insert(sourceControl);
         auditSourceControl(sourceControl);
-
-        SourceControl compositeSourceControl = getCompositeSourceControl(OwnerType.APPLICATION, sourceControl);
-        sendSourceControlTelemetryData(METHOD.ADD_OR_UPDATE, compositeSourceControl, OwnerType.APPLICATION);
-
         setTokenValueForReturn(sourceControl);
+        sendSourceControlTelemetryData(METHOD.ADD_OR_UPDATE,
+            getCompositeSourceControl(OwnerType.APPLICATION, sourceControl));
       }
       else if (shouldUpdateSourceControlRepositoryUrl(sourceControl.getRepositoryUrl())) {
         sourceControl.setRepositoryUrl(repositoryUrl);
         sourceControl.setRepositorySshUrl(sshUrl);
         sourceControlDAO.update(sourceControl);
         auditSourceControl(sourceControl);
-
-        SourceControl compositeSourceControl = getCompositeSourceControl(OwnerType.APPLICATION, sourceControl);
-        sendSourceControlTelemetryData(METHOD.ADD_OR_UPDATE, compositeSourceControl, OwnerType.APPLICATION);
-        
         setTokenValueForReturn(sourceControl);
+        sendSourceControlTelemetryData(METHOD.ADD_OR_UPDATE,
+            getCompositeSourceControl(OwnerType.APPLICATION, sourceControl));
       }
       else {
         log.debug("Skipping update of source control repository URL from {} to {}",
@@ -318,11 +305,8 @@ public class ApiSourceControlService
 
     sourceControlDAO.insert(sourceControl);
     auditSourceControl(sourceControl);
-
-    SourceControl compositeSourceControl = getCompositeSourceControl(ownerType, sourceControl);
-    sendSourceControlTelemetryData(METHOD.ADD, compositeSourceControl, ownerType);
-
     setTokenValueForReturn(sourceControl);
+    sendSourceControlTelemetryData(METHOD.ADD, getCompositeSourceControl(ownerType, sourceControl));
     return ApiSourceControlAdapter.convertToDTO(sourceControl);
   }
 
@@ -368,11 +352,8 @@ public class ApiSourceControlService
           .setEventPriority(EVENT_PRIORITY_HIGHER));
     }
     auditSourceControl(sourceControl);
-
-    SourceControl compositeSourceControl = getCompositeSourceControl(ownerType, sourceControl);
-    sendSourceControlTelemetryData(METHOD.UPDATE, compositeSourceControl, ownerType);
-
     setTokenValueForReturn(sourceControl);
+    sendSourceControlTelemetryData(METHOD.UPDATE, getCompositeSourceControl(ownerType, sourceControl));
     return ApiSourceControlAdapter.convertToDTO(sourceControl);
   }
 
@@ -394,8 +375,7 @@ public class ApiSourceControlService
     SourceControl compositeSourceControl = getCompositeSourceControl(ownerType, sourceControl);
     sourceControlDAO.delete(sourceControl);
     auditSourceControl(sourceControl);
-
-    sendSourceControlTelemetryData(METHOD.DELETE, compositeSourceControl, ownerType);
+    sendSourceControlTelemetryData(METHOD.DELETE, compositeSourceControl);
   }
 
   private void deleteSourceControlDirectory(String appId) {
@@ -420,7 +400,7 @@ public class ApiSourceControlService
   public SourceControl getCompositeSourceControlByOwnerDecrypted(final String ownerId) {
     SourceControl sourceControl = sourceControlDAO.buildCompositeSourceControlInApplication(ownerId);
     if (sourceControl != null && StringUtils.isNotEmpty(sourceControl.getToken())) {
-      fillWithDecryptedToken(sourceControl);
+      decryptToken(sourceControl);
     }
     return sourceControl;
   }
@@ -450,20 +430,15 @@ public class ApiSourceControlService
     }
   }
 
-  private void fillWithDecryptedToken(final SourceControl sourceControl) {
-    String token = decryptToken(sourceControl.getToken());
-    sourceControl.setToken(token);
-  }
-
-  private String decryptToken(final String encryptedToken) {
+  private void decryptToken(final SourceControl sourceControl) {
     synchronized (plexusCipher) {
       try {
-        String decrypted = plexusCipher.decrypt(encryptedToken, encryptionKeyStore.getKey());
+        String decrypted = plexusCipher.decrypt(sourceControl.getToken(), encryptionKeyStore.getKey());
         if (StringUtils.isNotBlank(decrypted)) {
-          return decrypted;
+          sourceControl.setToken(decrypted);
         }
         else {
-          return null;
+          sourceControl.setToken(null);
         }
       }
       catch (PlexusCipherException e) {
@@ -486,24 +461,15 @@ public class ApiSourceControlService
       throw new InvalidLicenseException();
     }
   }
-  
+
   private void sendSourceControlTelemetryData(
       final METHOD method,
-      final SourceControl sourceControl,
-      final OwnerType ownerType)
+      final SourceControl sourceControl)
   {
     Map<String, Object> attributes = new HashMap<>();
-    String repoVisibility = getRepoVisibility(sourceControl, ownerType);
-    if (repoVisibility != null) {
-      attributes.put("repo_visibility", repoVisibility);
-      // public_repository_url is only populated when the repository is public
-      attributes.put("public_repository_url",
-          REPO_VISIBILITY_PUBLIC.equals(repoVisibility) ? sourceControl.getRepositoryUrl() : null);
-    }
-    // repository_url is still populated for backward compatibility
-    attributes.put("repository_url", HdsClientAnalytics.obfuscate(sourceControl.getRepositoryUrl()));
     attributes.put("method", method);
     attributes.put("owner_id", HdsClientAnalytics.obfuscate(sourceControl.getOwnerId()));
+    attributes.put("repository_url", HdsClientAnalytics.obfuscate(sourceControl.getRepositoryUrl()));
     attributes.put("provider", sourceControl.getProvider() != null ? sourceControl.getProvider().toString() : null);
     attributes.put("enable_pull_requests", sourceControl.getRemediationPullRequestsEnabled());
     attributes.put("enable_status_checks", sourceControl.getStatusChecksEnabled());
@@ -514,33 +480,6 @@ public class ApiSourceControlService
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL);
     telemetryData.setAttributes(attributes);
     telemetrySender.send(telemetryData);
-  }
-
-  private String getRepoVisibility(final SourceControl sourceControl, final OwnerType ownerType) {
-    // only applications can have repositories
-    if (!OwnerType.APPLICATION.equals(ownerType)) {
-      return null;
-    }
-
-    GitRepositoryInfo gitRepositoryInfo =
-        SourceControlUtils.getGitRepositoryInfoForApplicationStatic(sourceControl, sourceControl.getOwnerId());
-    if (gitRepositoryInfo == null) {
-      return null;
-    }
-
-    try {
-      gitRepositoryInfo.token = decryptToken(sourceControl.getToken());
-      if (gitRepositoryInfo.token == null) {
-        return null;
-      }
-
-      boolean isPrivateRepository = scmRepoVisibilityService.isPrivateRepository(gitRepositoryInfo);
-      return isPrivateRepository ? REPO_VISIBILITY_PRIVATE : REPO_VISIBILITY_PUBLIC;
-    }
-    catch (Exception e) {
-      log.error("Unable to determine repository visibility for owner {}.", sourceControl.getOwnerId(), e);
-      return null;
-    }
   }
 
   private SourceControl getCompositeSourceControl(OwnerType ownerType, SourceControl sourceControl) {
@@ -620,7 +559,7 @@ public class ApiSourceControlService
     if (sourceControl.getToken() == null) {
       return;
     }
-    fillWithDecryptedToken(sourceControl);
+    decryptToken(sourceControl);
     Owner definingOwner = getOwnerDefiningToken(sourceControlsInHierarchy);
     definingOwnersByToken.computeIfAbsent(sourceControl.getToken(), token -> new LinkedHashSet<>())
         .add(definingOwner);

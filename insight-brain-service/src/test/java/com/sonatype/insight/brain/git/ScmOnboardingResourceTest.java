@@ -86,7 +86,7 @@ public class ScmOnboardingResourceTest
         .newSourceControl(ROOT_ORGANIZATION_ID, null, encryptedPwd, SourceControlProvider.GITHUB);
 
     // when we make a call to import a repository
-    String repoUrl = String.format("%s/org/repo.git", gitService.baseUrl());
+    String repoUrl = "https://localhost:5333/org/repo.git";
     List<SCMRepository> toAdd = singletonList(new SCMRepository(SourceControlProvider.GITHUB,
         repoUrl, null, true, "org", "repo", null));
     HttpResponse response = restRequest()

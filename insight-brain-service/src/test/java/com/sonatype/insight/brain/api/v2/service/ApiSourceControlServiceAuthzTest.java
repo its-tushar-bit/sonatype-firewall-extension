@@ -10,29 +10,19 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiPullRequestResults;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
-import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
-import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
-import com.sonatype.nexus.scm.api.GitApiClient;
-import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
-import com.google.inject.Binder;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 
 /**
  * @since 1.66
@@ -42,15 +32,9 @@ public class ApiSourceControlServiceAuthzTest
 {
   private static final String VALID_URL = "https://example.com/organization/project";
 
-  private static final String TOKEN = new String(
-      new PasswordHandler(new DefaultPlexusCipher(), new DefaultEncryptionKeyStore())
-          .encryptPassword("token".toCharArray())
-  );
-
   @Before
   public void before() {
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
-    lenient().when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
   }
 
   @Inject
@@ -58,15 +42,6 @@ public class ApiSourceControlServiceAuthzTest
 
   @Inject
   private AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
-
-  @Mock
-  private GitClientFactory mockGitClientFactory;
-
-  @Override
-  public void configure(final Binder binder) {
-    binder.bind(GitClientFactory.class).toInstance(mockGitClientFactory);
-    super.configure(binder);
-  }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetAll_Unauthenticated() {
@@ -171,7 +146,7 @@ public class ApiSourceControlServiceAuthzTest
   @Test
   public void testDeleteSourceControlByOwner_Authorized() {
     grantWritePermission(app.getId());
-    tempEntity.newSourceControl(app.getId(), VALID_URL, TOKEN, null);
+    tempEntity.newSourceControl(app.getId(), VALID_URL, "token", null);
     sourceControlService.deleteSourceControlByOwner(
         OwnerType.APPLICATION, app.getId());
   }
@@ -179,7 +154,7 @@ public class ApiSourceControlServiceAuthzTest
   @Test
   public void testAddOrUpdateSourceControl_AutomaticScmEnabled_Authorized() {
     // ensure org record exists
-    tempEntity.newSourceControl(app.getOrganizationId(), null, TOKEN, null);
+    tempEntity.newSourceControl(app.getOrganizationId(), null, "token", null);
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
     grantEvaluateApplicationPermission(org.getId());
     sourceControlService.addOrUpdateSourceControl(app.getPublicId(), VALID_URL, null);

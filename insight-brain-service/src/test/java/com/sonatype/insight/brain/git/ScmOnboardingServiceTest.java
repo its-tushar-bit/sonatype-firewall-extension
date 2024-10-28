@@ -80,7 +80,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.git.ScmOnboardingService.MAX_PUBLICID_RENAME_ATTEMPTS;
 import static com.sonatype.insight.brain.git.ScmOnboardingService.setScmParallelImportThreshold;
@@ -177,11 +176,7 @@ public class ScmOnboardingServiceTest
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication("tmpapp", org.getId());
     mockGetRequest(gitService, "/api/v3/user", MOCK_USER_JSON, HttpStatus.SC_OK);
-    gitService.stubFor(get(urlPathMatching("/api/v3/repos/.*/.*"))
-        .willReturn(aResponse()
-            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-            .withBody("{ \"private\": false }")));
-
+    mockGetRequest(gitService, "/rest/user", MOCK_USER_JSON, HttpStatus.SC_OK);
     rootOrgSourceControl = tempEntity
         .newSourceControl(ROOT_ORGANIZATION_ID, null, plexusCipher.encrypt("TOKEN", ENC), SourceControlProvider.GITHUB);
     rootOrgSourceControl.setSourceControlEvaluationsEnabled(true);
@@ -271,16 +266,12 @@ public class ScmOnboardingServiceTest
         + repo1;
     String repo2ReplacementUrl = gitService.baseUrl().replace("localhost", "admin@localhost") + repo2;
 
-    String resourceAsString = IOUtils.toString(
-        getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/" + PAGE_1),
-        StandardCharsets.UTF_8);
-    mockRepoForPage(gitService, 1, resourceAsString
+    mockRepoForPage(gitService, 1,
+        getResourceAsString(PAGE_1)
         .replaceFirst(repo1Url, repo1ReplacementUrl)
-        .replaceFirst(repo2Url, repo2ReplacementUrl));
-    resourceAsString = IOUtils.toString(
-        getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/" + PAGE_2),
-        StandardCharsets.UTF_8);
-    mockRepoForPage(gitService, 2, resourceAsString);
+        .replaceFirst(repo2Url, repo2ReplacementUrl)
+    );
+    mockRepoForPage(gitService, 2, getResourceAsString(PAGE_2));
 
     // given some of the repositories are already configured for SCM
     tempEntity.newSourceControl(app.getId(), gitService.baseUrl() + repo1, new Date());
@@ -341,7 +332,7 @@ public class ScmOnboardingServiceTest
         .isTrue();
 
     // when the repo is added with lower-case
-    String repoUrl = String.format("%s/org/mixedcase.git", gitService.baseUrl());
+    String repoUrl = "https://localhost/org/mixedcase.git";
     tempEntity.newSourceControl(app.getId(), repoUrl, new Date());
 
     // then loading repositories returns the trimmed results without the already-added one, even though the case
@@ -365,16 +356,19 @@ public class ScmOnboardingServiceTest
     mockRepoForPage(gitService, 1, page1);
     mockRepoForPage(gitService, 2, getResourceAsString(PAGE_2));
 
+    // given the raw data contains urls with embedded information
+    assertThat(page1).contains("https://admin:admin123@localhost/depshield-ci/create-react-app.git");
+    assertThat(page1).contains("https://admin@localhost/sonatype-nexus-community/nexus-repository-p2.git");
+
     // then the repository listing will strip out this embedded information to ensure it doesn't leak
     SCMRepositories repositories = scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
     Optional<SCMRepository> createReactApp = repositories.availableRepositories.stream()
         .filter(repository -> repository.getProject().equals("create-react-app")).findFirst();
-    assertThat(createReactApp.get().getHttpCloneUrl())
-        .isEqualTo(String.format("%s/depshield-ci/create-react-app", gitService.baseUrl()));
+    assertThat(createReactApp.get().getHttpCloneUrl()).isEqualTo("https://localhost/depshield-ci/create-react-app");
     Optional<SCMRepository> nxrmP2 = repositories.availableRepositories.stream()
         .filter(repository -> repository.getProject().equals("nexus-repository-p2")).findFirst();
     assertThat(nxrmP2.get().getHttpCloneUrl())
-        .isEqualTo(String.format("%s/sonatype-nexus-community/nexus-repository-p2", gitService.baseUrl()));
+        .isEqualTo("https://localhost/sonatype-nexus-community/nexus-repository-p2");
 
     // and: no source control evaluation events
     verifyNoSourceControlEvaluationEventsCreated();
@@ -409,13 +403,8 @@ public class ScmOnboardingServiceTest
   }
 
   private String getResourceAsString(String filename) throws IOException {
-    String resourceAsString = IOUtils.toString(
-        getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/" + filename),
+    return IOUtils.toString(getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/" + filename),
         StandardCharsets.UTF_8);
-    resourceAsString = resourceAsString.replaceAll("https://localhost", gitService.baseUrl());
-    resourceAsString = resourceAsString.replaceAll("https://admin@localhost", gitService.baseUrl());
-    resourceAsString = resourceAsString.replaceAll("https://admin:admin123@localhost", gitService.baseUrl());
-    return resourceAsString;
   }
 
   private void mockRepoForPage(WireMockRule gitService, int page, String json) {
@@ -583,20 +572,16 @@ public class ScmOnboardingServiceTest
     // given SCM imports are enabled
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
-    String repo1URL = String.format("%s/org/repo1", gitService.baseUrl());
-    String repo2URL = String.format("%s/org/repo2", gitService.baseUrl());
-    String repo3URL = String.format("%s/org/repo3", gitService.baseUrl());
-    String repo4URL = String.format("%s/org/repo4", gitService.baseUrl());
     // given a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(SourceControlProvider.GITHUB, repo1URL,
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1",
             "git@localhost:org/repo1.git", false, "org", "repo1", ""),
-        new SCMRepository(SourceControlProvider.GITHUB, repo2URL,
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo2",
             "git@localhost:org/repo2.git", false, "org", "repo2", ""),
-        new SCMRepository(SourceControlProvider.GITHUB, repo3URL,
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo3",
             "git@localhost:org/repo3.git", false, "org", "repo3", ""),
         // use org & app names with IQ app name restrictions
-        new SCMRepository(SourceControlProvider.GITHUB, repo4URL,
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo4",
             "git@localhost:org/repo4.git", false, "--bad-__-org", "--bad_name_99--", ""),
     };
     int totalRepoCount = 50;
@@ -632,7 +617,8 @@ public class ScmOnboardingServiceTest
     // and that all the clone URLs were added
     assertThat(sourceControlDAO.getAll().stream()
         .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID)
-        .map(SourceControl::getRepositoryUrl)).containsExactly(repo1URL, repo2URL, repo3URL, repo4URL);
+        .map(SourceControl::getRepositoryUrl)).containsExactly("http://localhost/org/repo1",
+        "http://localhost/org/repo2", "http://localhost/org/repo3", "http://localhost/org/repo4");
 
     // and that all the clone URLs were added
     assertThat(sourceControlDAO.getAll().stream()
@@ -658,11 +644,6 @@ public class ScmOnboardingServiceTest
     String bitBucketResponse = getResourceAsString(BITBUCKET_DEFAULT_BRANCH_RESPONSE);
     mockGetRequest(gitService, repo1GetDefaultBranchURL, bitBucketResponse, HttpStatus.SC_OK);
     mockGetRequest(gitService, repo2GetDefaultBranchURL, "", HttpStatus.SC_NO_CONTENT);
-    mockGetRequest(gitService, "/rest/user", MOCK_USER_JSON, HttpStatus.SC_OK);
-    gitService.stubFor(get(urlPathMatching("/rest/repos/scm/org"))
-        .willReturn(aResponse()
-            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-            .withBody("{ \"private\": false }")));
 
     // given a list of repos to import
     String repo1URL = String.format("%s/scm/org/repo1", gitService.baseUrl());
@@ -730,10 +711,9 @@ public class ScmOnboardingServiceTest
     // given an existing application which will match a repo which we'll import
     tempEntity.newApplication("repo1__org", org.getId());
 
-    String repo1URL = String.format("%s/org/repo1", gitService.baseUrl());
     // and a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(SourceControlProvider.GITHUB, repo1URL, null, false, "org", "repo1",
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", null, false, "org", "repo1",
             "a description")
     };
     int totalRepoCount = 50;
@@ -748,7 +728,7 @@ public class ScmOnboardingServiceTest
     assertThat(imported.size()).isEqualTo(1);
     assertThat(imported.get(0).getNamespace()).isEqualTo("org");
     assertThat(imported.get(0).getProject()).isEqualTo("repo1");
-    assertThat(imported.get(0).getHttpCloneUrl()).isEqualTo(repo1URL);
+    assertThat(imported.get(0).getHttpCloneUrl()).isEqualTo("http://localhost/org/repo1");
     assertThat(imported.get(0).getSourceControlProvider()).isEqualTo(SourceControlProvider.GITHUB);
     assertThat(imported.get(0).getDescription()).isEqualTo("a description");
     assertThat(response.getFailedRepositories()).isEmpty();
@@ -878,10 +858,9 @@ public class ScmOnboardingServiceTest
     // given SCM imports are enabled
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
-    String repo1URL = String.format("%s/org/repo1", gitService.baseUrl());
     // given a list of repos to import
     SCMRepository[] reposToImport = new SCMRepository[]{
-        new SCMRepository(SourceControlProvider.GITHUB, repo1URL, null, false, "org", "repo1", "")
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", null, false, "org", "repo1", "")
     };
 
     // and we call import
@@ -920,7 +899,7 @@ public class ScmOnboardingServiceTest
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
     // when we make a call to import a repository
-    String repoUrl = String.format("%s/org/repo1", gitService.baseUrl());
+    String repoUrl = "https://localhost:5333/org/repo.git";
     List<SCMRepository> toAdd = singletonList(new SCMRepository(SourceControlProvider.GITHUB,
         repoUrl, null, true, "??invalidorg??", "!!invalidproject!!", null));
     ImportResults importResults = scmOnboardingService.importRepositories(org.getId(),
@@ -940,14 +919,14 @@ public class ScmOnboardingServiceTest
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
     // and we have an existing repository
-    String repoUrl1 = String.format("%s/org/repo1.git", gitService.baseUrl());
+    String repoUrl1 = "https://localhost:5333/org/repo1.git";
     List<SCMRepository> toAdd = singletonList(new SCMRepository(SourceControlProvider.GITHUB,
         repoUrl1, null, true, "org", "project", null));
     scmOnboardingService.importRepositories(org.getId(),
         new ImportRepositoriesRequest(toAdd, 5, 2));
 
     // when we import another repository where the name only differs in invalid characters that have been stripped out
-    String repoUrl2 = String.format("%s/org/repo2.git", gitService.baseUrl());
+    String repoUrl2 = "https://localhost:5333/org/repo2.git";
     List<SCMRepository> toAddConflicting = singletonList(new SCMRepository(SourceControlProvider.GITHUB,
         repoUrl2, null, true, "org", "project!!", null));
     ImportResults importResults = scmOnboardingService.importRepositories(org.getId(),
@@ -968,11 +947,10 @@ public class ScmOnboardingServiceTest
     // given SCM imports are enabled
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
-    String repoUrl = String.format("%s/org/repo", gitService.baseUrl());
     // when we import another repository where the name only differs in invalid characters that have been stripped out
     // with more conflicts than we are willing to fix by renaming
     List<SCMRepository> toAdd = IntStream.range(0, MAX_PUBLICID_RENAME_ATTEMPTS + 2)
-        .mapToObj(i -> new SCMRepository(SourceControlProvider.GITHUB, repoUrl + i + ".git",
+        .mapToObj(i -> new SCMRepository(SourceControlProvider.GITHUB, "https://localhost:5333/org/repo" + i + ".git",
             null, true, "org", "project!!", null, null))
         .collect(Collectors.toList());
     ImportResults importResults = scmOnboardingService.importRepositories(org.getId(),
@@ -1507,10 +1485,9 @@ public class ScmOnboardingServiceTest
     rootOrgSourceControl.setSourceControlEvaluationsEnabled(internalSourceControlPolicyEvaluationsEnabled);
     sourceControlDAO.update(rootOrgSourceControl);
 
-    String repoUrl = String.format("%s/org/repo", gitService.baseUrl());
     // given a repo to import
     SCMRepository scmRepository =
-        new SCMRepository(SourceControlProvider.GITHUB, repoUrl, null, true, "org", "repo", "");
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo", null, true, "org", "repo", "");
     int totalRepoCount = 10;
     int prevImportedCount = 1;
 
@@ -1540,7 +1517,7 @@ public class ScmOnboardingServiceTest
     // and that all of the clone URLs were added
     assertThat(sourceControlDAO.getAll().stream() //
         .filter(sc -> !ROOT_ORGANIZATION_ID.equals(sc.getOwnerId())) //
-        .map(SourceControl::getRepositoryUrl)).containsExactly(repoUrl);
+        .map(SourceControl::getRepositoryUrl)).containsExactly("http://localhost/org/repo");
 
     // and source control evaluation request events were not created
     verifyNoSourceControlEvaluationEventsCreated();

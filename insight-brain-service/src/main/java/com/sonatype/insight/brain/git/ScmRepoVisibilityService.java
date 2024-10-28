@@ -61,7 +61,7 @@ public class ScmRepoVisibilityService
     return gitRepositoryInfo.provider.isScmSecured(gitRepositoryInfo.normalizedRepositoryUrl);
   }
 
-  public boolean isPrivateRepository(final GitRepositoryInfo gitRepositoryInfo) {
+  private boolean isPrivateRepository(final GitRepositoryInfo gitRepositoryInfo) {
     GitApiClient client = gitClientFactory.createApiClient(gitRepositoryInfo);
     try {
       return client.isRepositoryPrivate();

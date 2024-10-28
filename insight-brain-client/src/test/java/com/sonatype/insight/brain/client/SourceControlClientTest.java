@@ -24,20 +24,11 @@ import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.nexus.git.utils.api.GitException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.assertj.core.util.Files;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -54,21 +45,8 @@ public class SourceControlClientTest
 
   private Application application;
 
-  @Rule
-  public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
-
   @Before
   public void createApplication() {
-    gitService.stubFor(get(urlPathEqualTo("/api/v3/user"))
-        .willReturn(aResponse()
-            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-            .withBody("{\"username\":\"foo\"}")
-            .withStatus(HttpStatus.SC_OK)));
-    gitService.stubFor(get(urlPathMatching("/api/v3/repos/.*/.*"))
-        .willReturn(aResponse()
-            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-            .withBody("{ \"private\": false }")));
-
     automaticSourceControlConfigurationDAO = lookup(AutomaticSourceControlConfigurationDAO.class);
     application = tempEntity.newApplicationWithParent(APP_ID);
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
@@ -178,9 +156,9 @@ public class SourceControlClientTest
 
   private void addOrgSourceControlForTest() throws Exception {
     turnOnAutomaticSourceControl();
-    String repoUrl = String.format("%s/org/proj", gitService.baseUrl());
+
     ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(application.getId()).setRepositoryUrl(repoUrl)
+        new SourceControl.Builder().setOwnerId(application.getId()).setRepositoryUrl("https://github.com/org/proj")
             .setToken("token").build());
     HttpResponse response =
         restRequest().path("api", "v2", "sourceControl", OwnerType.APPLICATION.toString(), application.getId())

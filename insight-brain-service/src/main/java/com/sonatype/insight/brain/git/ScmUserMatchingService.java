@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class ScmUserMatchingService
 {
-  private static final Logger log = LoggerFactory.getLogger(ScmUserMatchingService.class);
+  private static final Logger log = LoggerFactory.getLogger(SourceControlScanService.class);
 
   private final GitClientFactory gitClientFactory;
 

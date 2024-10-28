@@ -15,26 +15,14 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
-import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
-import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpStatus;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -42,11 +30,6 @@ public class ApiSourceControlResourceTest
     extends AbstractResourceTest
 {
   static final String VALID_URL = "https://example.com/organization/project";
-
-  private static final String TOKEN = new String(
-      new PasswordHandler(new DefaultPlexusCipher(), new DefaultEncryptionKeyStore())
-          .encryptPassword("token".toCharArray())
-  );
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -56,21 +39,8 @@ public class ApiSourceControlResourceTest
 
   private Organization org;
 
-  @Rule
-  public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
-
   @Before
   public void setup() {
-    gitService.stubFor(get(urlPathEqualTo("/api/v3/user"))
-        .willReturn(aResponse()
-            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-            .withBody("{\"username\":\"foo\"}")
-            .withStatus(HttpStatus.SC_OK)));
-    gitService.stubFor(get(urlPathMatching("/api/v3/repos/.*/.*"))
-        .willReturn(aResponse()
-            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-            .withBody("{ \"private\": false }")));
-
     sourceControlConfigurationDAO = lookup(AutomaticSourceControlConfigurationDAO.class);
     app = tempEntity.newApplicationWithParent();
     org = tempEntity.newOrganization();
@@ -139,9 +109,8 @@ public class ApiSourceControlResourceTest
 
   @Test
   public void testAddSourceControlByOwner_ByApplication_HttpsUrl() throws Exception {
-    String repoUrl = String.format("%s/organization/project", gitService.baseUrl());
     ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
-        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(repoUrl).setToken("token")
+        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("token")
             .setCommitStatusEnabled(false)
             .build());
     HttpResponse response = restRequest()
@@ -153,7 +122,7 @@ public class ApiSourceControlResourceTest
 
     assertThat(result.id).isNotNull();
     assertThat(result.ownerId).isEqualTo(app.getId());
-    assertThat(result.repositoryUrl).isEqualTo(repoUrl);
+    assertThat(result.repositoryUrl).isEqualTo(VALID_URL);
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
     assertThat(result.provider).isNull();
     assertThat(result.commitStatusEnabled).isFalse();
@@ -182,10 +151,9 @@ public class ApiSourceControlResourceTest
 
   @Test
   public void testUpdateSourceControlByOwner_ByApplication_HttpsUrl() throws Exception {
-    String repoUrl = String.format("%s/organization/project", gitService.baseUrl());
     SourceControl sourceControl = tempEntity.newSourceControl(
-        app.getId(), repoUrl, "token", null);
-    sourceControl.setRepositoryUrl(repoUrl);
+        app.getId(), VALID_URL, "token", null);
+    sourceControl.setRepositoryUrl(VALID_URL);
     sourceControl.setCommitStatusEnabled(false);
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.BY_OWNER)
@@ -196,7 +164,7 @@ public class ApiSourceControlResourceTest
 
     ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
     assertThat(result.id).isEqualTo(sourceControl.getId());
-    assertThat(result.repositoryUrl).isEqualTo(repoUrl);
+    assertThat(result.repositoryUrl).isEqualTo(VALID_URL);
     assertThat(result.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
     assertThat(result.provider).isNull();
     assertThat(result.commitStatusEnabled).isFalse();
@@ -246,7 +214,7 @@ public class ApiSourceControlResourceTest
   @Test
   public void testDeleteSourceControlByOwner_ByOrganization() throws Exception {
     tempEntity.newSourceControl(
-        org.getId(), null, TOKEN, null);
+        org.getId(), null, "token", null);
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, org.getId())
@@ -256,9 +224,8 @@ public class ApiSourceControlResourceTest
 
   @Test
   public void testDeleteSourceControlByOwner_ByApplication() throws Exception {
-    String repoUrl = String.format("%s/organization/project", gitService.baseUrl());
     tempEntity.newSourceControl(
-        app.getId(), repoUrl, TOKEN, null);
+        app.getId(), VALID_URL, "token", null);
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
@@ -269,20 +236,20 @@ public class ApiSourceControlResourceTest
   @Test
   public void testAddOrUpdateSourceControl_AutomaticScmEnabled_HttpUrl() throws Exception {
     // ensure organization record exists
-    tempEntity.newSourceControl(app.getOrganizationId(), null, TOKEN, null);
+    tempEntity.newSourceControl(app.getOrganizationId(), null, "token", null);
 
     sourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
-    String repoUrl = String.format("%s/organization/project", gitService.baseUrl());
+
     HttpResponse response = restRequest()
         .query("publicId", app.getPublicId())
-        .query("repositoryUrl", repoUrl)
+        .query("repositoryUrl", VALID_URL)
         .post();
     assertResponseStatus(200, response);
     ApiSourceControlDTO result = response.getBody(ApiSourceControlDTO.class);
 
     assertThat(result.id).isNotNull();
     assertThat(result.ownerId).isEqualTo(app.getId());
-    assertThat(result.repositoryUrl).isEqualTo(repoUrl);
+    assertThat(result.repositoryUrl).isEqualTo(VALID_URL);
     assertThat(result.token).isNull();
     assertThat(result.provider).isNull();
 
@@ -296,7 +263,7 @@ public class ApiSourceControlResourceTest
 
     assertThat(result.id).isNotNull();
     assertThat(result.ownerId).isEqualTo(app.getId());
-    assertThat(result.repositoryUrl).isEqualTo(repoUrl); // should not change
+    assertThat(result.repositoryUrl).isEqualTo(VALID_URL); // should not change
     assertThat(result.token).isNull();
     assertThat(result.provider).isNull();
   }

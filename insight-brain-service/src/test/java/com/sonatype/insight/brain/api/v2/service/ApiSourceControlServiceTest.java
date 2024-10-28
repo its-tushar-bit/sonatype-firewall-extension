@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -342,7 +343,7 @@ public class ApiSourceControlServiceTest
       if (enabled && initialUrl == null) {
         assertTelemetry(METHOD.ADD_OR_UPDATE, app.getId(), expectedUrl, rootOrgSourcecontrol.getProvider().toString(),
             rootOrgSourcecontrol.getRemediationPullRequestsEnabled(), rootOrgSourcecontrol.getStatusChecksEnabled(),
-            rootOrgSourcecontrol.getBaseBranch());
+            rootOrgSourcecontrol.getBaseBranch(), null, rootOrgSourcecontrol.getRepositoryUrl());
       }
       else {
         verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
@@ -373,7 +374,7 @@ public class ApiSourceControlServiceTest
 
     assertTelemetry(METHOD.ADD_OR_UPDATE, app.getId(), httpUrl, rootOrgSourcecontrol.getProvider().toString(),
         rootOrgSourcecontrol.getRemediationPullRequestsEnabled(), rootOrgSourcecontrol.getStatusChecksEnabled(),
-        branch);
+        branch, null, null);
   }
 
   @Test
@@ -395,7 +396,7 @@ public class ApiSourceControlServiceTest
     assertThat(decrypted).isEqualTo(TOKEN);
     assertTelemetry(METHOD.ADD, org.getId(), reloaded.getRepositoryUrl(),
         null, reloaded.getRemediationPullRequestsEnabled(), reloaded.getStatusChecksEnabled(),
-        reloaded.getBaseBranch());
+        reloaded.getBaseBranch(), null, null);
   }
 
   @Test
@@ -412,7 +413,7 @@ public class ApiSourceControlServiceTest
     assertTelemetry(METHOD.ADD, org.getId(), sourceControl.repositoryUrl,
         sourceControl.provider, sourceControl.remediationPullRequestsEnabled,
         sourceControl.remediationPullRequestsEnabled,
-        sourceControl.baseBranch);
+        sourceControl.baseBranch, null, null);
 
     final ApiSourceControlDTO updatedScm =
         sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION,
@@ -421,7 +422,7 @@ public class ApiSourceControlServiceTest
     assertTelemetry(METHOD.UPDATE, org.getId(), sourceControl.repositoryUrl,
         sourceControl.provider, sourceControl.remediationPullRequestsEnabled,
         sourceControl.remediationPullRequestsEnabled,
-        sourceControl.baseBranch);
+        sourceControl.baseBranch, null, null);
 
     final SourceControl reloaded = sourceControlDAO.getByIdNotNull(sourceControl.id);
 
@@ -497,13 +498,13 @@ public class ApiSourceControlServiceTest
     assertThat(sourceControlService.getAll()).hasSize(2);
     assertTelemetry(METHOD.ADD, org.getId(), sourceControl.repositoryUrl, sourceControl.provider,
         sourceControl.remediationPullRequestsEnabled, sourceControl.statusChecksEnabled,
-        sourceControl.baseBranch);
+        sourceControl.baseBranch, null, null);
 
     sourceControlService.deleteSourceControlByOwner(OwnerType.ORGANIZATION, org.getId());
     assertThat(sourceControlService.getAll()).hasSize(1);
     assertTelemetry(METHOD.DELETE, org.getId(), sourceControl.repositoryUrl, sourceControl.provider,
         sourceControl.remediationPullRequestsEnabled, sourceControl.statusChecksEnabled,
-        sourceControl.baseBranch);
+        sourceControl.baseBranch, null, null);
   }
 
   @Test
@@ -512,13 +513,14 @@ public class ApiSourceControlServiceTest
     final ApiSourceControlDTO validSourceControl = ApiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken(TOKEN)
             .build());
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
 
     final ApiSourceControlDTO sourceControl = sourceControlService
         .addSourceControlByOwner(OwnerType.APPLICATION, app.getId(), validSourceControl);
     assertThat(sourceControlService.getAll()).hasSize(2);
     assertTelemetry(METHOD.ADD, app.getId(), sourceControl.repositoryUrl, rootOrgSourcecontrol.getProvider().toString(),
         rootOrgSourcecontrol.getRemediationPullRequestsEnabled(), rootOrgSourcecontrol.getStatusChecksEnabled(),
-        rootOrgSourcecontrol.getBaseBranch());
+        rootOrgSourcecontrol.getBaseBranch(), "public", sourceControl.repositoryUrl);
 
     File sourceControlDir = insightWork.getSourceControlDir(app.getId());
     sourceControlDir.mkdirs();
@@ -528,7 +530,8 @@ public class ApiSourceControlServiceTest
     assertThat(sourceControlService.getAll()).hasSize(1);
     assertTelemetry(METHOD.DELETE, app.getId(), sourceControl.repositoryUrl,
         rootOrgSourcecontrol.getProvider().toString(), rootOrgSourcecontrol.getRemediationPullRequestsEnabled(),
-        rootOrgSourcecontrol.getStatusChecksEnabled(), rootOrgSourcecontrol.getBaseBranch());
+        rootOrgSourcecontrol.getStatusChecksEnabled(), rootOrgSourcecontrol.getBaseBranch(),
+        "public", sourceControl.repositoryUrl);
 
     assertThat(sourceControlDir).doesNotExist();
   }
@@ -583,6 +586,8 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testAddSourceControlByOwner_licensedByAutomation() {
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
+
     setLicensedForSourceControlByAutomation();
     ApiSourceControlDTO sourceControlDTO = sourceControlService.addSourceControlByOwner(
         OwnerType.APPLICATION,
@@ -592,13 +597,15 @@ public class ApiSourceControlServiceTest
     assertThat(sourceControlDTO).isNotNull();
     assertTelemetry(METHOD.ADD, app.getId(), sourceControlDTO.repositoryUrl,
         rootOrgSourcecontrol.getProvider().toString(), rootOrgSourcecontrol.getRemediationPullRequestsEnabled(),
-        rootOrgSourcecontrol.getStatusChecksEnabled(), rootOrgSourcecontrol.getBaseBranch());
+        rootOrgSourcecontrol.getStatusChecksEnabled(), rootOrgSourcecontrol.getBaseBranch(),
+        "public", sourceControlDTO.repositoryUrl);
   }
 
   @Test
   public void testAddSourceControlByOwner_licensedByNotifications() {
     // Given
     setLicensedForSourceControlByNotifications();
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
 
     // When
     ApiSourceControlDTO sourceControlDTO = sourceControlService.addSourceControlByOwner(
@@ -611,7 +618,8 @@ public class ApiSourceControlServiceTest
     assertThat(sourceControlDTO).isNotNull();
     assertTelemetry(METHOD.ADD, app.getId(), sourceControlDTO.repositoryUrl,
         rootOrgSourcecontrol.getProvider().toString(), rootOrgSourcecontrol.getRemediationPullRequestsEnabled(),
-        rootOrgSourcecontrol.getStatusChecksEnabled(), rootOrgSourcecontrol.getBaseBranch());
+        rootOrgSourcecontrol.getStatusChecksEnabled(), rootOrgSourcecontrol.getBaseBranch(),
+        "public", sourceControlDTO.repositoryUrl);
   }
 
   @Test
@@ -627,12 +635,16 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testUpdateSourceControlByOwner_licensedByAutomation() throws Exception {
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
+
     setLicensedForSourceControlByAutomation();
     testUpdateSourceControlByOwner();
   }
 
   @Test
   public void testUpdateSourceControlByOwner_licensedByNotifications() throws Exception {
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
+
     setLicensedForSourceControlByNotifications();
     testUpdateSourceControlByOwner();
   }
@@ -664,7 +676,8 @@ public class ApiSourceControlServiceTest
     assertThat(sourceControlAfterUpdate.getPullRequestErrorCount()).isEqualTo(errorCount);
     assertTelemetry(METHOD.UPDATE, app.getId(), sourceControl.getRepositoryUrl(),
         rootOrgSourcecontrol.getProvider().toString(), rootOrgSourcecontrol.getRemediationPullRequestsEnabled(),
-        rootOrgSourcecontrol.getStatusChecksEnabled(), rootOrgSourcecontrol.getBaseBranch());
+        rootOrgSourcecontrol.getStatusChecksEnabled(), rootOrgSourcecontrol.getBaseBranch(),
+        "public", sourceControlAfterUpdate.getRepositoryUrl());
   }
 
   @Test
@@ -753,10 +766,94 @@ public class ApiSourceControlServiceTest
           final SourceControl reloaded = sourceControlDAO.getByIdNotNull(sourceControl.id);
 
           assertTelemetry(METHOD.ADD, tmpOrg.getId(), reloaded.getRepositoryUrl(), null /* provider */,
-              remediationPullRequestsEnabled, statusChecksEnabled, baseBranch);
+              remediationPullRequestsEnabled, statusChecksEnabled, baseBranch, null, null);
         }
       }
     }
+  }
+
+  @Test
+  public void testAddSourceControlByOwner_ForApplication_private_repo_to_telemetry() throws IOException {
+    GitApiClient mockGitApiClient = mock(GitApiClient.class);
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
+    when(mockGitApiClient.isRepositoryPrivate()).thenReturn(true);
+    final ApiSourceControlDTO validSourceControl = ApiSourceControlAdapter.convertToDTO(
+        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken(TOKEN)
+            .build());
+
+    final ApiSourceControlDTO sourceControl = sourceControlService
+        .addSourceControlByOwner(OwnerType.APPLICATION, app.getId(), validSourceControl);
+    assertThat(sourceControlService.getAll()).hasSize(2);
+    assertTelemetry(METHOD.ADD, app.getId(), sourceControl.repositoryUrl, rootOrgSourcecontrol.getProvider().toString(),
+        rootOrgSourcecontrol.getRemediationPullRequestsEnabled(), rootOrgSourcecontrol.getStatusChecksEnabled(),
+        rootOrgSourcecontrol.getBaseBranch(), "private", null);
+  }
+
+  @Test
+  public void testUpdateSourceControlByOwner_ForApplication_private_repo_to_telemetry() throws IOException {
+    GitApiClient mockGitApiClient = mock(GitApiClient.class);
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
+    when(mockGitApiClient.isRepositoryPrivate()).thenReturn(true);
+    final ApiSourceControlDTO validSourceControl = ApiSourceControlAdapter.convertToDTO(
+        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken(TOKEN)
+            .build());
+
+    final ApiSourceControlDTO sourceControl = sourceControlService
+        .addSourceControlByOwner(OwnerType.APPLICATION, app.getId(), validSourceControl);
+    assertThat(sourceControlService.getAll()).hasSize(2);
+    assertTelemetry(METHOD.ADD, app.getId(), sourceControl.repositoryUrl, rootOrgSourcecontrol.getProvider().toString(),
+        rootOrgSourcecontrol.getRemediationPullRequestsEnabled(), rootOrgSourcecontrol.getStatusChecksEnabled(),
+        rootOrgSourcecontrol.getBaseBranch(), "private", null);
+
+    ApiSourceControlDTO updatedControlDTO = sourceControlService.updateSourceControlByOwner(
+        OwnerType.APPLICATION, app.getId(), sourceControl);
+    assertThat(updatedControlDTO).isNotNull();
+    assertTelemetry(METHOD.UPDATE, app.getId(), sourceControl.repositoryUrl,
+        rootOrgSourcecontrol.getProvider().toString(), rootOrgSourcecontrol.getRemediationPullRequestsEnabled(),
+        rootOrgSourcecontrol.getStatusChecksEnabled(), rootOrgSourcecontrol.getBaseBranch(),
+        "private", null);
+  }
+
+  @Test
+  public void testDeleteSourceControlByOwner_ForApplication_private_repo_to_telemetry() throws IOException {
+    GitApiClient mockGitApiClient = mock(GitApiClient.class);
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
+    when(mockGitApiClient.isRepositoryPrivate()).thenReturn(true);
+    final ApiSourceControlDTO validSourceControl = ApiSourceControlAdapter.convertToDTO(
+        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken(TOKEN)
+            .build());
+
+    final ApiSourceControlDTO sourceControl = sourceControlService
+        .addSourceControlByOwner(OwnerType.APPLICATION, app.getId(), validSourceControl);
+    assertThat(sourceControlService.getAll()).hasSize(2);
+    assertTelemetry(METHOD.ADD, app.getId(), sourceControl.repositoryUrl, rootOrgSourcecontrol.getProvider().toString(),
+        rootOrgSourcecontrol.getRemediationPullRequestsEnabled(), rootOrgSourcecontrol.getStatusChecksEnabled(),
+        rootOrgSourcecontrol.getBaseBranch(), "private", null);
+
+    sourceControlService.deleteSourceControlByOwner(OwnerType.APPLICATION, app.getId());
+    assertThat(sourceControlService.getAll()).hasSize(1);
+    assertTelemetry(METHOD.DELETE, app.getId(), sourceControl.repositoryUrl,
+        rootOrgSourcecontrol.getProvider().toString(), rootOrgSourcecontrol.getRemediationPullRequestsEnabled(),
+        rootOrgSourcecontrol.getStatusChecksEnabled(), rootOrgSourcecontrol.getBaseBranch(),
+        "private", null);
+  }
+
+  @Test
+  public void testAddSourceControlByOwner_ForApplication_unable_determine_repo_visibility() throws IOException {
+    GitApiClient mockGitApiClient = mock(GitApiClient.class);
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
+    when(mockGitApiClient.isRepositoryPrivate()).thenThrow(IOException.class);
+    final ApiSourceControlDTO validSourceControl = ApiSourceControlAdapter.convertToDTO(
+        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken(TOKEN)
+            .build());
+
+    final ApiSourceControlDTO sourceControl = sourceControlService
+        .addSourceControlByOwner(OwnerType.APPLICATION, app.getId(), validSourceControl);
+
+    assertThat(sourceControlService.getAll()).hasSize(2);
+    assertTelemetry(METHOD.ADD, app.getId(), sourceControl.repositoryUrl, rootOrgSourcecontrol.getProvider().toString(),
+        rootOrgSourcecontrol.getRemediationPullRequestsEnabled(), rootOrgSourcecontrol.getStatusChecksEnabled(),
+        rootOrgSourcecontrol.getBaseBranch(), null, null);
   }
 
   @Test
@@ -822,7 +919,9 @@ public class ApiSourceControlServiceTest
                                final String provider,
                                final Boolean remediationPullRequestsEnabled,
                                final Boolean statusChecksEnabled,
-                               final String baseBranch)
+                               final String baseBranch,
+                               final String repoVisibility,
+                               final String publicRepositoryUrl)
   {
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
@@ -837,6 +936,10 @@ public class ApiSourceControlServiceTest
     expectedAttributes.put("enable_pull_requests", remediationPullRequestsEnabled);
     expectedAttributes.put("enable_status_checks", statusChecksEnabled);
     expectedAttributes.put("base_branch", baseBranch);
+    if (repoVisibility != null) {
+      expectedAttributes.put("repo_visibility", repoVisibility);
+      expectedAttributes.put("public_repository_url", publicRepositoryUrl);
+    }
     assertThat(telemetryData).isNotNull();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL);
     assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
@@ -928,6 +1031,8 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testUpdateSourceControlByOwner_createsEventOnUrlChange() {
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
+
     //given : Create sourcecontrol, with associated event
     ApiSourceControlDTO persistedSourceControlDTO = sourceControlService.addSourceControlByOwner(
         OwnerType.APPLICATION,
@@ -954,6 +1059,8 @@ public class ApiSourceControlServiceTest
 
   @Test
   public void testUpdateSourceControlByOwner_doesNotCreateEventWhenUrlNotChanged() {
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mock(GitApiClient.class));
+
     //given : Create sourcecontrol, with associated eval and comment
     ApiSourceControlDTO persistedSourceControlDTO = sourceControlService.addSourceControlByOwner(
         OwnerType.APPLICATION,

@@ -56,6 +56,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.git.ScmOnboardingService.setImportEventStatusUpdateThreshold;
 import static com.sonatype.insight.brain.git.ScmOnboardingService.setScmParallelImportMaxRepositoriesPerBatch;
@@ -129,7 +130,11 @@ public class ScmOnboardingServiceParallelTest
   public void setup() throws Exception {
     org = tempEntity.newOrganization();
     mockGetRequest(gitService, "/api/v3/user", MOCK_USER_JSON, HttpStatus.SC_OK);
-    mockGetRequest(gitService, "/rest/user", MOCK_USER_JSON, HttpStatus.SC_OK);
+    gitService.stubFor(get(urlPathMatching("/api/v3/repos/.*/.*"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody("{ \"private\": false }")));
+
     SourceControl rootOrgSourceControl = tempEntity
         .newSourceControl(ROOT_ORGANIZATION_ID, null, plexusCipher.encrypt("TOKEN", ENC), SourceControlProvider.GITHUB);
     rootOrgSourceControl.setSourceControlEvaluationsEnabled(true);
@@ -138,8 +143,13 @@ public class ScmOnboardingServiceParallelTest
   }
 
   private String getResourceAsString(String filename) throws IOException {
-    return IOUtils.toString(getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/" + filename),
+    String resourceAsString = IOUtils.toString(
+        getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/" + filename),
         StandardCharsets.UTF_8);
+    resourceAsString = resourceAsString.replaceAll("https://localhost", gitService.baseUrl());
+    resourceAsString = resourceAsString.replaceAll("https://admin@localhost", gitService.baseUrl());
+    resourceAsString = resourceAsString.replaceAll("https://admin:admin123@localhost", gitService.baseUrl());
+    return resourceAsString;
   }
 
   private void mockRepoForPage(WireMockRule gitService, int page, String json) {
@@ -159,6 +169,11 @@ public class ScmOnboardingServiceParallelTest
     String bitBucketResponse = getResourceAsString(BITBUCKET_DEFAULT_BRANCH_RESPONSE);
     mockGetRequest(gitService, repo1GetDefaultBranchURL, bitBucketResponse, HttpStatus.SC_OK);
     mockGetRequest(gitService, repo2GetDefaultBranchURL, "", HttpStatus.SC_NO_CONTENT);
+    mockGetRequest(gitService, "/rest/user", MOCK_USER_JSON, HttpStatus.SC_OK);
+    gitService.stubFor(get(urlPathMatching("/rest/repos/scm/org"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody("{ \"private\": false }")));
 
     // given a list of repos to import
     String repo1URL = String.format("%s/scm/org/repo1", gitService.baseUrl());

@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
+import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Rule;
 
@@ -21,6 +22,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
 public class AbstractScmOnboardingResourceTest
@@ -37,11 +39,20 @@ public class AbstractScmOnboardingResourceTest
     gitService.stubFor(get(urlPathEqualTo("/api/v3/user"))
         .willReturn(aResponse()
             .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-            .withBody("{\"username\":\"foo\"}")));
+            .withBody("{\"username\":\"foo\"}")
+            .withStatus(HttpStatus.SC_OK)));
+    gitService.stubFor(get(urlPathMatching("/api/v3/repos/.*/.*"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody("{ \"private\": false }")));
   }
 
   protected String getResourceAsString(String filename) throws IOException {
-    return IOUtils.toString(this.getClass().getResourceAsStream(filename), StandardCharsets.UTF_8);
+    String resourceAsString = IOUtils.toString(this.getClass().getResourceAsStream(filename), StandardCharsets.UTF_8);
+    resourceAsString = resourceAsString.replaceAll("https://localhost", gitService.baseUrl());
+    resourceAsString = resourceAsString.replaceAll("https://admin@localhost", gitService.baseUrl());
+    resourceAsString = resourceAsString.replaceAll("https://admin:admin123@localhost", gitService.baseUrl());
+    return resourceAsString;
   }
 
   protected void mockRepoForPage(WireMockRule gitService, int page, String json) {

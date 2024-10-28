@@ -58,6 +58,7 @@ import {
 import { actions as waiverActions } from 'MainRoot/waivers/waiverSlice';
 import {
   VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED,
+  VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED,
   VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED,
 } from 'MainRoot/violation/violationActions';
 import { getFutureDate } from 'MainRoot/util/jsUtil';
@@ -1593,6 +1594,7 @@ describe('waiverActions', function () {
           expect(store.getActions()).toHaveActionTypesInOrder([
             WAIVERS_DELETE_WAIVER_REQUESTED,
             WAIVERS_DELETE_WAIVER_FULFILLED,
+            VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED,
             '@@reduxUiRouter/stateGo',
             SET_SIDEBAR_NAV_LIST_DATA,
             WAIVERS_DELETE_MASK_TIMER_DONE,

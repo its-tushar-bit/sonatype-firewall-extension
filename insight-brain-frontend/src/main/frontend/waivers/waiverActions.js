@@ -408,9 +408,13 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
       .then(() => {
         dispatch(deleteWaiverFulfilled());
         const routerName = selectCurrentRouteName(state);
-        if (routerName === 'waiver.details') {
-          dispatch(filterDataByIdAndRedirectToNextWaiverOrDashboard(sidebarNavList.data, waiverId));
-        } else if (routerName === 'transitiveViolations') {
+        setTimeout(() => {
+          if (routerName === 'waiver.details') {
+            dispatch(filterDataByIdAndRedirectToNextWaiverOrDashboard(sidebarNavList.data, waiverId));
+          }
+          dispatch(deleteWaiverMaskTimerDone());
+        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        if (routerName === 'transitiveViolations') {
           const currentParams = selectRouterCurrentParams(state);
           const { ownerId = '', scanId = '', hash = '' } = currentParams;
           dispatch(loadTransitiveViolationWaivers(ownerId, scanId, hash));
@@ -422,9 +426,6 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
         } else {
           dispatch(reloadComponentWaivers ? policyViolationsActions.load() : loadApplicableWaivers(policyViolationId));
         }
-        setTimeout(() => {
-          dispatch(deleteWaiverMaskTimerDone());
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
       })
       .catch((err) => {
         dispatch(deleteWaiverFailed(Messages.getHttpErrorMessage(err)));

@@ -73,6 +73,9 @@ public class PolicyMonitorScheduler
     log.info("Policy Monitor is licensed");
     // randomize minute to avoid coordinated load spike for HDS scan processing
     LocalTime startTime = LocalTime.of(configuration.getPolicyMonitoringHour(), new Random().nextInt(15));
+    // The policyMonitoringTask instance used here is used only for scheduling.
+    // When the task is actually run, quartz creates a new PolicyMonitoringTask instance, which for MTIQ means one
+    // PolicyMonitoringTask instance per tenant.
     taskScheduler.scheduleDailyTask(policyMonitoringTask, startTime);
     log.info("Next Policy Monitor execution scheduled for tenant {} at {}", TenantThreadLocal.getTenant(),
         taskScheduler.getNextExecutionTime(policyMonitoringTask));

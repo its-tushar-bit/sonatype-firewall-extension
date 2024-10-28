@@ -77,6 +77,9 @@ public class AutomaticQuarantineReleaseScheduler
     }
     log.info("Licensed for Firewall Automatic Quarantine Release.");
     Duration timeInterval = Duration.ofMinutes(configuration.getAutomaticQuarantineReleaseTimeIntervalInMinutes());
+    // The automaticQuarantineReleaseTask instance used here is used only for scheduling.
+    // When the task is actually run, quartz creates a new AutomaticQuarantineReleaseTask instance, which for MTIQ means
+    // one AutomaticQuarantineReleaseTask instance per tenant.
     taskScheduler.schedulePeriodicTask(automaticQuarantineReleaseTask,
         timeInterval, getAutomaticQuarantineReleaseStartTime());
     log.info("Next Automatic Quarantine Release execution scheduled for tenant {} at {}", TenantThreadLocal.getTenant(),

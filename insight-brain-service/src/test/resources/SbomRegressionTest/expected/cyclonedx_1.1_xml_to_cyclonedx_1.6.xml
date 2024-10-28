@@ -159,7 +159,6 @@
       <properties>
         <property name="sonatype:match_state">exact</property>
         <property name="sonatype:match_filenames">pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</property>
-        <property name="sonatype:match_pathnames">SBOM-bom.xml/pkg:maven\com.fasterxml.jackson.core\jackson-databind@2.9.9?type=jar</property>
       </properties>
     </component>
   </components>

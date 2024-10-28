@@ -147,13 +147,6 @@ public abstract class AbstractCycloneDxExporter
             addOrUpdatePropertyInBom(bomComponent, "sonatype:match_filenames",
                 String.join(",", sonatypeComponent.getFilenamesList()));
           }
-
-          if (CollectionUtils.isNotEmpty(sonatypeComponent.getOccurrencesList())) {
-            String occurrences = sonatypeComponent.getOccurrencesList().stream()
-                .map(p -> SbomCycloneDxUtils.getFilteredPathname(p))
-                .collect(Collectors.joining(","));
-            addOrUpdatePropertyInBom(bomComponent, "sonatype:match_pathnames", occurrences);
-          }
         }
       }
     }

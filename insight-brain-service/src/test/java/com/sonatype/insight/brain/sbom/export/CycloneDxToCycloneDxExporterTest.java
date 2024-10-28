@@ -233,7 +233,6 @@ public class CycloneDxToCycloneDxExporterTest
         "abcdef",
         "pkg:maven/log4j/log4j@1.2.8?type=jar",
         "log4j-1.2.8.jar",
-        "path/to/log4j-1.2.8.jar",
         "similar"
     );
     tempEntity.newThirdPartyCoordinateSecurity(
@@ -261,7 +260,6 @@ public class CycloneDxToCycloneDxExporterTest
         "abcdef",
         "pkg:maven/log4j/log4j@1.2.8?type=jar",
         "log4j-1.2.8.jar",
-        "path/to/log4j-1.2.8.jar",
         "exact"
     );
     tempEntity.newThirdPartyCoordinateSecurity(
@@ -283,13 +281,13 @@ public class CycloneDxToCycloneDxExporterTest
     ThirdPartySbomMetadata sbomMetadata = insertTestData(testBomFile.getName(), thirdPartyFile);
     ThirdPartyFileCoordinate cp1 =
         tempEntity.newThirdPartyFileCoordinateWithMatchState(thirdPartyFile, "SBOM", "npm", "vue", "2.2.4", "2b0949b",
-            "pkg:npm/vue@2.2.4", "", "", "exact");
+            "pkg:npm/vue@2.2.4", "", "exact");
     ThirdPartyFileCoordinate cp2 =
         tempEntity.newThirdPartyFileCoordinateWithMatchState(thirdPartyFile, "SBOM", "npm", "vue", "2.2.5", "2b0949b",
-            "pkg:npm/vue@2.2.5", "", "","exact");
+            "pkg:npm/vue@2.2.5", "", "exact");
     ThirdPartyFileCoordinate cp3 =
         tempEntity.newThirdPartyFileCoordinateWithMatchState(thirdPartyFile, "SBOM", "npm", "vue", "2.2.6", "2b0949b",
-            "pkg:npm/vue@2.2.6", "", "","exact");
+            "pkg:npm/vue@2.2.6", "", "exact");
 
     ThirdPartyCoordinateSecurity v1cp1 = tempEntity.newThirdPartyCoordinateSecurity(
         cp1, "CVE-2018-6341", "DESC CVE-2018-6341", "NVD-link", 6.1d,

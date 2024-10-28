@@ -58,6 +58,7 @@ import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
+import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -503,7 +504,7 @@ public class SbomResultsMerger
     List<Occurrence> occurrences = pathnames.stream()
         .map(p -> {
           Occurrence o = new Occurrence();
-          o.setLocation(p);
+          o.setLocation(SbomCycloneDxUtils.getFilteredPathname(p));
           return o;
         }).collect(Collectors.toList());
     Evidence evidence = new Evidence();

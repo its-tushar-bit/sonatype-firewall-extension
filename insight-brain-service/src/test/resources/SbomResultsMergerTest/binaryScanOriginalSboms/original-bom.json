@@ -23,7 +23,7 @@
       "evidence" : {
         "occurrences" : [
           {
-            "location" : "dependency:/SBOM-bom.json/pkg:pypi\\orange@1.0.1"
+            "location" : "SBOM-bom.json/pkg:pypi\\orange@1.0.1"
           }
         ]
       }
@@ -37,7 +37,7 @@
       "evidence" : {
         "occurrences" : [
           {
-            "location" : "dependency:/app6-bom.xml/pkg:nuget\\Microsoft.Identity.Client.Extensions.Msal@2.23.0:00603c85922bf35d8edd"
+            "location" : "app6-bom.xml/pkg:nuget\\Microsoft.Identity.Client.Extensions.Msal@2.23.0:00603c85922bf35d8edd"
           }
         ]
       }
@@ -51,7 +51,7 @@
       "evidence" : {
         "occurrences" : [
           {
-            "location" : "dependency:/app6-bom.xml/pkg:nuget\\Microsoft.IdentityModel.Protocols@6.25.1:c795e78734c2860bb627"
+            "location" : "app6-bom.xml/pkg:nuget\\Microsoft.IdentityModel.Protocols@6.25.1:c795e78734c2860bb627"
           }
         ]
       }

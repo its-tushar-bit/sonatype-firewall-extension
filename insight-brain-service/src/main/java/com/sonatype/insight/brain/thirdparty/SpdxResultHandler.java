@@ -216,6 +216,7 @@ public class SpdxResultHandler
         ComponentIdentifier componentIdentifier = resolvedComponent.getLeft();
         if (componentIdentifier == null) {
           targetBom.addComponent(resolvedComponent.getRight());
+          log.debug("Component filtered for matching only with hash information {}", resolvedComponent.getRight());
         }
         else if (resolvedComponents.add(componentIdentifier)) {
           PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).ensureCompleteIdentifier();
@@ -228,14 +229,18 @@ public class SpdxResultHandler
           targetBom.addComponent(resolvedComponent.getRight());
         }
       }
+      else {
+        log.debug("Error processing component due to insufficient information: id {}, name {}, version {}",
+            spdxPackage.getId(), spdxPackage.getName(), spdxPackage.getVersionInfo().orElse(""));
+      }
     }
     catch (InvalidPackageURLException e) {
       log.debug("Component {} {} is missing coordinates. " + e.getMessage().replace(" for given format", ""),
           spdxPackage.getName(), spdxPackage.getVersionInfo().orElse(""), e);
     }
     catch (Exception e) {
-      log.debug("Error processing component : {} {}", spdxPackage.getName(), spdxPackage.getVersionInfo().orElse(""),
-          e);
+      log.debug("Error processing component due to insufficient information: id {}, name {}, version {}",
+          spdxPackage.getId(), spdxPackage.getName(), spdxPackage.getVersionInfo().orElse(""), e);
     }
   }
 
@@ -381,7 +386,7 @@ public class SpdxResultHandler
         PackageUrlIdentifier packageUrlIdentifier = resolvePackageUrl(packageUrl);
         if (StringUtils.isNoneBlank(packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion())) {
           componentInfoTelemetry.incrementPurlCount();
-          return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId, false);
+          return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId);
         }
         else {
           log.debug("PackageUrl is not valid {}", packageUrl);
@@ -401,7 +406,7 @@ public class SpdxResultHandler
       PackageUrlIdentifier packageUrlIdentifier = SbomIdentityUtils.buildPackageUrlFromCpe(cpe);
       if (packageUrlIdentifier != null) {
         componentInfoTelemetry.incrementCpeCount();
-        return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId, false);
+        return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId);
       }
     }
     return processComponentFromHashOrCoordinates(spdxPackage, rootPackageId);
@@ -410,8 +415,7 @@ public class SpdxResultHandler
   private Pair<ComponentIdentifier, Component> createComponent(
       final SpdxPackage spdxPackage,
       final PackageUrlIdentifier packageUrlIdentifier,
-      final String rootPackageId,
-      final boolean coordinates) throws InvalidSPDXAnalysisException
+      final String rootPackageId) throws InvalidSPDXAnalysisException
   {
     ComponentIdentifier componentIdentifier;
     Component component = new Component();
@@ -423,9 +427,8 @@ public class SpdxResultHandler
     if (hasHash) {
       setHash(sha1Optional.get(), component);
     }
-    if (!hasHash || !coordinates) {
-      component.setPurl(ThirdPartyScanResultUtils.getTruncatedPurl(packageUrlIdentifier.getPackageUrl()));
-    }
+
+    component.setPurl(ThirdPartyScanResultUtils.getTruncatedPurl(packageUrlIdentifier.getPackageUrl()));
     componentIdentifier = packageUrlIdentifier.toComponentIdentifier();
     componentIdentifier.ensureComplete();
     component.setName(packageUrlIdentifier.getName());
@@ -453,18 +456,6 @@ public class SpdxResultHandler
   {
     boolean isRootPackage = spdxPackage.getId().equals(rootPackageId);
 
-    // The hash has priority over coordinates
-    Optional<String> sha1Optional = getChecksum(spdxPackage, ChecksumAlgorithm.SHA1);
-    if (sha1Optional.isPresent()) {
-      componentInfoTelemetry.incrementHashCount();
-      Component component = new Component();
-      component.setType(isRootPackage ? Type.APPLICATION : Type.LIBRARY);
-      component.setBomRef(spdxPackage.getId());
-      spdxPackage.getName().ifPresent(component::setName);
-      setHash(sha1Optional.get(), component);
-      return Pair.of(null, component);
-    }
-
     // try using the SPDX package name and version
     String name = spdxPackage.getName().orElse(MISSING_COMPONENT_NAME);
     String version = spdxPackage.getVersionInfo().orElse("");
@@ -472,10 +463,20 @@ public class SpdxResultHandler
       componentInfoTelemetry.incrementCoordinateCount();
       PackageUrlIdentifier packageUrlIdentifier = resolvePackageUrl(
           getPackageUrlFromCoordinates(name, version, isRootPackage));
-      return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId, true);
+      return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId);
     }
     else {
-      log.debug("Component with invalid information, name {}", name);
+      // This scenario is only possible when only the hash is sent without coordinates nor purl
+      Optional<String> sha1Optional = getChecksum(spdxPackage, ChecksumAlgorithm.SHA1);
+      if (sha1Optional.isPresent()) {
+        componentInfoTelemetry.incrementHashCount();
+        Component component = new Component();
+        component.setType(isRootPackage ? Type.APPLICATION : Type.LIBRARY);
+        component.setBomRef(spdxPackage.getId());
+        spdxPackage.getName().ifPresent(component::setName);
+        setHash(sha1Optional.get(), component);
+        return Pair.of(null, component);
+      }
     }
     return null;
   }
@@ -543,7 +544,7 @@ public class SpdxResultHandler
       Collection<Relationship> relationships = spdxPackage.getRelationships();
       for (Relationship relationship : relationships) {
         if (relationship.getRelationshipType() == RelationshipType.DESCRIBES ||
-            !relationship.getRelatedSpdxElement().isPresent()) {
+            relationship.getRelatedSpdxElement().isEmpty()) {
           continue;
         }
         String refId1 = spdxPackage.getId();

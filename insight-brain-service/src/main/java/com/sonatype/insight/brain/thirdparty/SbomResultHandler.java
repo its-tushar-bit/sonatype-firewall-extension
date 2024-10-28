@@ -374,6 +374,7 @@ public class SbomResultHandler
         ComponentIdentifier componentIdentifier = resolvedComponent.getLeft();
         if (componentIdentifier == null) {
           targetBom.addComponent(resolvedComponent.getRight());
+          log.debug("Component filtered for matching only with hash information {}", resolvedComponent.getRight());
         }
         else if (resolvedComponents.add(componentIdentifier)) {
           PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).ensureCompleteIdentifier();
@@ -387,13 +388,18 @@ public class SbomResultHandler
           targetBom.addComponent(resolvedComponent.getRight());
         }
       }
+      else {
+        log.debug("Error processing component due to insufficient information: bom-ref {}, name {}, version {}",
+            sourceComponent.getBomRef(), sourceComponent.getName(), sourceComponent.getVersion());
+      }
     }
     catch (InvalidPackageURLException e) {
       log.debug("Component {} {} is missing coordinates. " + e.getMessage().replace(" for given format", ""),
           sourceComponent.getName(), sourceComponent.getVersion(), e);
     }
     catch (Exception e) {
-      log.debug("Error processing component : {} {}", sourceComponent.getName(), sourceComponent.getVersion(), e);
+      log.debug("Error processing component due to insufficient information: bom-ref {}, name {}, version {}",
+          sourceComponent.getBomRef(), sourceComponent.getName(), sourceComponent.getVersion(), e);
     }
   }
 
@@ -406,7 +412,7 @@ public class SbomResultHandler
         PackageUrlIdentifier packageUrlIdentifier = resolvePackageUrl(packageUrl);
         if (StringUtils.isNoneBlank(packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion())) {
           componentInfoTelemetry.incrementPurlCount();
-          return createComponent(sourceComponent, packageUrlIdentifier, false);
+          return createComponent(sourceComponent, packageUrlIdentifier);
         }
         else {
           log.debug("PackageUrl is not valid {}", packageUrl);
@@ -423,13 +429,13 @@ public class SbomResultHandler
     PackageUrlIdentifier packageUrlIdentifier = SbomIdentityUtils.buildPackageUrlFromCpe(cpe);
     if (packageUrlIdentifier != null) {
       componentInfoTelemetry.incrementCpeCount();
-      return createComponent(sourceComponent, packageUrlIdentifier, false);
+      return createComponent(sourceComponent, packageUrlIdentifier);
     }
     Swid swid = sourceComponent.getSwid();
     packageUrlIdentifier = SbomIdentityUtils.buildPackageUrlFromSwid(swid);
     if (packageUrlIdentifier != null) {
       componentInfoTelemetry.incrementSwidCount();
-      return createComponent(sourceComponent, packageUrlIdentifier, false);
+      return createComponent(sourceComponent, packageUrlIdentifier);
     }
 
     return processComponentFromHashOrCoordinates(sourceComponent);
@@ -445,7 +451,7 @@ public class SbomResultHandler
       PackageUrlIdentifier packageUrlIdentifier =
           resolvePackageUrl(getPackageUrlFromCoordinates(sourceComponent, name));
       componentInfoTelemetry.incrementCoordinateCount();
-      return createComponent(sourceComponent, packageUrlIdentifier, true);
+      return createComponent(sourceComponent, packageUrlIdentifier);
     }
     else {
       // This scenario is only possible when only the hash is sent without coordinates nor purl
@@ -490,8 +496,7 @@ public class SbomResultHandler
 
   private Pair<ComponentIdentifier, Component> createComponent(
       final Component sourceComponent,
-      final PackageUrlIdentifier packageUrlIdentifier,
-      final boolean coordinates)
+      final PackageUrlIdentifier packageUrlIdentifier)
   {
     ComponentIdentifier componentIdentifier;
     Component component = new Component();
@@ -503,10 +508,8 @@ public class SbomResultHandler
     if (hasHash) {
       setHash(sha1, component);
     }
-    if (!hasHash || !coordinates) {
-      component.setPurl(ThirdPartyScanResultUtils.getTruncatedPurl(packageUrlIdentifier.getPackageUrl()));
-    }
 
+    component.setPurl(ThirdPartyScanResultUtils.getTruncatedPurl(packageUrlIdentifier.getPackageUrl()));
     componentIdentifier = packageUrlIdentifier.toComponentIdentifier();
     componentIdentifier.ensureComplete();
     component.setName(packageUrlIdentifier.getName());

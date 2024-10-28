@@ -206,8 +206,11 @@ public class SbomResultHandlerTest
     assertThat(components).extracting(Component::getVersion)
         .containsOnly("9.0.14", "1.2.3", "2.9.9", "2.1.0");
     assertThat(components).extracting(Component::getPurl)
-        .containsExactlyInAnyOrder("pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar", null,
-            "pkg:generic/com.fasterxml.jackson.core/jackson-databind@2.9.9?sbom_type=library", null);
+        .containsExactlyInAnyOrder(
+            "pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar",
+            "pkg:generic/django@1.2.3?sbom_type=library",
+            "pkg:generic/com.fasterxml.jackson.core/jackson-databind@2.9.9?sbom_type=library",
+            "pkg:generic/joda-time/joda-time@2.1.0?sbom_type=library");
     assertThat(components).extracting("properties.size")
         .containsOnly(2, 2, 1, 2);
     assertThat(components.get(1).getProperties())
@@ -216,6 +219,26 @@ public class SbomResultHandlerTest
     assertThat(components.get(3).getProperties())
         .flatExtracting(Property::getValue)
         .contains("9188560f22e0b73070d2");
+  }
+
+  @Test
+  public void testHandleAndFilterContents_priority_Sha1_Then_Coordinates() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-component-hash-coordinates-components.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("bom.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    Bom bom = assertFilteredSbomFile(filteredContent, 1);
+    List<Component> components = bom.getComponents();
+    assertThat(components).extracting(Component::getName).containsOnly("tomcat-catalina");
+    assertThat(components).extracting(Component::getVersion).containsOnly("9.0.14");
+    assertThat(components).extracting(Component::getPurl)
+        .containsExactly("pkg:generic/org.apache.tomcat/tomcat-catalina@9.0.14?sbom_type=library");
+    assertThat(components).extracting("properties.size").containsOnly(2);
+    assertThat(components.get(0).getProperties())
+        .flatExtracting(Property::getValue)
+        .contains("e7b1000b94e835ffd37f");
   }
 
   @Test
@@ -239,7 +262,8 @@ public class SbomResultHandlerTest
         "pkg:generic/com.fasterxml.jackson.core/jackson-databind@2.9.9?sbom_type=library",
         "pkg:generic/apache/log4j@2.11.2?update=rc3",
         "pkg:generic/apache/log4j@2.12.2?language=en&update=rc1",
-        null, null);
+        "pkg:generic/django@1.2.3?sbom_type=library",
+        "pkg:generic/joda-time/joda-time@2.1.0?sbom_type=library");
     assertThat(components).extracting("properties.size")
         .containsOnly(2, 2, 2, 2, 1, 2);
     assertThat(components.get(1).getProperties())
@@ -271,7 +295,8 @@ public class SbomResultHandlerTest
         "pkg:generic/com.fasterxml.jackson.core/jackson-databind@2.9.9?sbom_type=library",
         "pkg:swid/Apache%20Log4J@2.11.2?tag_creator_name=Acme%2C%20Inc.&tag_creator_regid=example.com&" +
             "tag_id=swidgen-242eb18a-503e-ca37-393b-cf156ef09691_2.11.2",
-        null, null);
+        "pkg:generic/joda-time/joda-time@2.1.0?sbom_type=library",
+        "pkg:generic/django@1.2.3?sbom_type=library");
     assertThat(components).extracting("properties.size")
         .containsOnly(2, 2, 2, 1, 2);
     assertThat(components.get(1).getProperties())
@@ -299,7 +324,8 @@ public class SbomResultHandlerTest
     assertThat(components).extracting(component -> component.getType().getTypeName())
         .containsOnly("library", "library");
     assertThat(components).extracting(Component::getPurl)
-        .containsOnly(null, "pkg:generic/com.fasterxml.jackson.core/jackson-databind@2.9.9?sbom_type=library");
+        .containsOnly("pkg:generic/org.apache.tomcat/tomcat-catalina@9.0.14?publisher=Apache&sbom_type=library",
+            "pkg:generic/com.fasterxml.jackson.core/jackson-databind@2.9.9?sbom_type=library");
     assertThat(components).extracting("properties.size")
         .containsOnly(2, 1);
     assertThat(components.get(0).getProperties())
@@ -1942,8 +1968,7 @@ public class SbomResultHandlerTest
     assertThat(component2.getVersion()).isEqualTo("9.0.14");
     assertThat(component3.getVersion()).isEqualTo("1.0.0");
     assertThat(component1.getPurl()).isEqualTo("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar");
-    assertThat(component2.getPurl()).isNull();
-    assertThat(component3.getPurl()).isNull();
+    assertThat(component3.getPurl()).isEqualTo("pkg:generic/org.example/sample-library@1.0.0?sbom_type=library");
     assertThat(component1.getHashes()).isNull();
     assertThat(component2.getHashes()).isNull();
     assertThat(component3.getHashes()).isNull();
@@ -2573,7 +2598,7 @@ public class SbomResultHandlerTest
     }
     else {
       assertThat(coordinate.getFormat()).isEqualTo(PackageUrlIdentifier.GENERIC_FORMAT);
-      assertThat(coordinate.getPackageUrl()).isNull();
+      assertThat(coordinate.getPackageUrl()).isEqualTo("pkg:generic/group/test@1.0?sbom_type=file");
     }
 
     assertThat(coordinate.getHash()).isNotBlank();

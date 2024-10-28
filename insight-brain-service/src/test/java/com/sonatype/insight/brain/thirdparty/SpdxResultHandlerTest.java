@@ -170,6 +170,26 @@ public class SpdxResultHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_priority_Sha1_Then_Coordinates() throws Exception {
+    String sbomContent = getSbomXmlFile("hash-coordinates-components.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("bom.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = spdxResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    Bom bom = assertFilteredSbomFile(filteredContent, 1);
+    List<Component> components = bom.getComponents();
+    assertThat(components).extracting(Component::getName).containsOnly("tomcat-catalina");
+    assertThat(components).extracting(Component::getVersion).containsOnly("9.0.14");
+    assertThat(components).extracting(Component::getPurl)
+        .containsExactly("pkg:generic/tomcat-catalina@9.0.14?sbom_type=application");
+    assertThat(components).extracting("properties.size").containsOnly(2);
+    assertThat(components.get(0).getProperties())
+        .flatExtracting(Property::getValue)
+        .contains("e7b1000b94e835ffd37f");
+  }
+
+  @Test
   public void testHandleAndFilterContents_fallbackToCpe() throws Exception {
     String sbomContent = getSbomXmlFile("invalid-purl-bom.xml");
     ThirdPartyScanContent content =

@@ -5,35 +5,31 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import javax.inject.Inject;
-
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.organization.OwnerTelemetryCollector.OwnerData;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-
-import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.organization.ApplicationTelemetryCollector.ALL_OWNER_IDS_NAMES;
+import javax.inject.Inject;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import static com.sonatype.insight.brain.organization.OwnerTelemetryCollector.ALL_OWNER_IDS_NAMES;
+import static com.sonatype.insight.brain.organization.OwnerTelemetryCollector.OwnerData;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-public class ApplicationTelemetryCollectorTest
-    extends AbstractComponentTest
+public class OrganizationTelemetryCollectorTest extends AbstractComponentTest
 {
   @Inject
-  private ApplicationTelemetryCollector telemetryCollector;
+  private OrganizationTelemetryCollector telemetryCollector;
 
   @Inject
   private Configuration configuration;
@@ -44,65 +40,64 @@ public class ApplicationTelemetryCollectorTest
   @Inject
   private TelemetryUtils telemetryUtils;
 
-  private Organization org;
-
-  @Before
-  public void before() {
-    org = tempEntity.newOrganization();
-  }
-
   @Test
   public void testIsClusterTelemetry() {
     assertThat(telemetryCollector.isClusterTelemetry()).isTrue();
   }
 
   @Test
-  public void testCollectData_FeatureEnabled_CollectApplicationIds() {
-    Application app1 = tempEntity.newApplication(org.getId());
-    Application app2 = tempEntity.newApplication(org.getId());
-    Application app3 = tempEntity.newApplication(tempEntity.newOrganization().getId());
+  public void testCollectData_FeatureEnabled_CollectOrganizationIds() {
+    Organization org1 = tempEntity.newOrganization();
+    Organization org2 = tempEntity.newOrganization();
+    Organization org3 = tempEntity.newOrganization();
 
     TelemetryData telemetryData = telemetryCollector.collectData();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REAL_OWNER_IDS);
     assertThat(telemetryData.getAttributes()).containsKey(ALL_OWNER_IDS_NAMES);
     List<OwnerData> appData = (List<OwnerData>) telemetryData.getAttributes().get(ALL_OWNER_IDS_NAMES);
-    assertThat(appData).hasSize(3).extracting("ownerId", "ownerName", "ownerType").contains(
-        tuple(app1.getId(), app1.getName(), OwnerType.APPLICATION.toString()),
-        tuple(app2.getId(), app2.getName(), OwnerType.APPLICATION.toString()),
-        tuple(app3.getId(), app3.getName(), OwnerType.APPLICATION.toString()));
+    assertThat(appData).hasSize(4).extracting("ownerId", "ownerName", "ownerType").contains(
+        tuple("ROOT_ORGANIZATION_ID", "Root Organization", OwnerType.ORGANIZATION.toString()),
+        tuple(org1.getId(), org1.getName(), OwnerType.ORGANIZATION.toString()),
+        tuple(org2.getId(), org2.getName(), OwnerType.ORGANIZATION.toString()),
+        tuple(org3.getId(), org3.getName(), OwnerType.ORGANIZATION.toString()));
   }
 
   @Test
-  public void testCollectData_FeatureEnabled_CollectApplicationIds_obfuscatesInformationIfAdvancedReportingDisabled() {
+  public void testCollectData_FeatureEnabled_CollectOrganizationIds_obfuscatesInformationIfAdvancedReportingDisabled() {
     // Toggle advanced reporting to make sure values are being obfuscated accordingly
     Map<String, Object> properties =
         Collections.singletonMap(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED, false);
     configurationService.setConfigurationInDatabaseNoAuthz(properties);
     configuration.configurationChanged(properties.keySet());
 
-    Application app1 = tempEntity.newApplication(org.getId());
-    Application app2 = tempEntity.newApplication(org.getId());
-    Application app3 = tempEntity.newApplication(tempEntity.newOrganization().getId());
+    Organization org1 = tempEntity.newOrganization();
+    Organization org2 = tempEntity.newOrganization();
+    Organization org3 = tempEntity.newOrganization();
 
     TelemetryData telemetryData = telemetryCollector.collectData();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REAL_OWNER_IDS);
     assertThat(telemetryData.getAttributes()).containsKey(ALL_OWNER_IDS_NAMES);
     List<OwnerData> appData = (List<OwnerData>) telemetryData.getAttributes().get(ALL_OWNER_IDS_NAMES);
-    assertThat(appData).hasSize(3).extracting("ownerId", "ownerName", "ownerType").contains(
+    assertThat(appData).hasSize(4).extracting("ownerId", "ownerName", "ownerType").contains(
         tuple(
-            telemetryUtils.obfuscate(app1.getId()),
-            telemetryUtils.obfuscate(app1.getName()),
-            OwnerType.APPLICATION.toString()
+            telemetryUtils.obfuscate("ROOT_ORGANIZATION_ID"),
+            telemetryUtils.obfuscate("Root Organization"),
+            OwnerType.ORGANIZATION.toString()
         ),
         tuple(
-            telemetryUtils.obfuscate(app2.getId()),
-            telemetryUtils.obfuscate(app2.getName()),
-            OwnerType.APPLICATION.toString()
+            telemetryUtils.obfuscate(org1.getId()),
+            telemetryUtils.obfuscate(org1.getName()),
+            OwnerType.ORGANIZATION.toString()
         ),
         tuple(
-            telemetryUtils.obfuscate(app3.getId()),
-            telemetryUtils.obfuscate(app3.getName()),
-            OwnerType.APPLICATION.toString()
+            telemetryUtils.obfuscate(org2.getId()),
+            telemetryUtils.obfuscate(org2.getName()),
+            OwnerType.ORGANIZATION.toString()
+        ),
+        tuple(
+            telemetryUtils.obfuscate(org3.getId()),
+            telemetryUtils.obfuscate(org3.getName()),
+            OwnerType.ORGANIZATION.toString()
         )
     );
   }

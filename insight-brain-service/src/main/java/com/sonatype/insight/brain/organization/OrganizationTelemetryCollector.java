@@ -5,39 +5,34 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.telemetry.TelemetryCollector;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
-/**
- * @since 1.168
- */
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Named
 @Singleton
-public class ApplicationTelemetryCollector
-    extends OwnerTelemetryCollector
-    implements TelemetryCollector
+public class OrganizationTelemetryCollector extends OwnerTelemetryCollector implements TelemetryCollector
 {
-  private final ApplicationDAO applicationDAO;
+  private final OrganizationDAO organizationDAO;
 
   @Inject
-  public ApplicationTelemetryCollector(final ApplicationDAO applicationDAO, TelemetryUtils telemetryUtils) {
+  public OrganizationTelemetryCollector(OrganizationDAO organizationDAO, TelemetryUtils telemetryUtils) {
     super(telemetryUtils);
-    this.applicationDAO = applicationDAO;
+    this.organizationDAO = organizationDAO;
   }
 
   @Override
   public TelemetryData collectData() {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.REAL_OWNER_IDS);
-    List<OwnerTelemetryCollector.OwnerData> ownerData = applicationDAO.getAll().stream()
+    List<ApplicationTelemetryCollector.OwnerData> ownerData = organizationDAO.getAll().stream()
         .map(this::createOwnerData)
         .collect(Collectors.toList());
     telemetryData.put(ALL_OWNER_IDS_NAMES, ownerData);

@@ -87,7 +87,8 @@ public class ClusterTelemetryTaskTest
                                             TelemetryPurpose.REPOSITORY_CONFIGURATION, //
                                             TelemetryPurpose.SOURCE_CONTROL_METRICS, //
                                             TelemetryPurpose.CLUSTER_USAGE, //
-                                            TelemetryPurpose.REAL_OWNER_IDS, //
+                                            TelemetryPurpose.REAL_OWNER_IDS, // This one is for Applications
+                                            TelemetryPurpose.REAL_OWNER_IDS, // This one is for Organizations
     };
     verify(telemetrySenderMock, times(expectedPurposes.length)).send(allTelemetryDataCaptor.capture());
     List<TelemetryData> allTelemetryData =

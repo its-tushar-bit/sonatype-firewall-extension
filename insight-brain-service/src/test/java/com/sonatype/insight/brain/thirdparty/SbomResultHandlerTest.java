@@ -715,6 +715,34 @@ public class SbomResultHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_NoComponentsSaved() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-components-none-saved.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent("sbom-components-none-saved.xml",
+        null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String actualFilteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    assertThat(actualFilteredContent).isNotNull();
+    Bom actualFilteredBom = getBom(actualFilteredContent);
+    assertThat(actualFilteredBom).isNotNull();
+    assertThat(actualFilteredBom.getComponents()).hasSize(1);
+    Component actualComponent = actualFilteredBom.getComponents().get(0);
+    assertThat(actualComponent.getName()).isEqualTo("django");
+    assertThat(actualComponent.getProperties()).size().isEqualTo(1);
+    assertThat(actualComponent.getProperties().get(0).getName()).isEqualTo("Sonatype truncated SHA1");
+    assertThat(actualComponent.getProperties().get(0).getValue()).isEqualTo("e6b1000b94e835ffd37f");
+    assertThat(actualComponent.getVersion()).isNull();
+    assertThat(actualComponent.getHashes()).isNull();
+    assertThat(actualComponent.getAuthor()).isNull();
+    assertThat(actualComponent.getHashes()).isNull();
+    assertThat(actualComponent.getCpe()).isNull();
+    assertThat(actualComponent.getPurl()).isNull();
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(0);
+  }
+
+  @Test
   public void testHandleAndFilterContents_withVulnerabilities_xml_14() throws Exception {
     testHandleFilterContents(getSbomXmlFile("sbom-vulnerabilities-v1_4.xml"), "sbom-vulnerabilities-v1_4.xml",
         SbomFormat.XML);

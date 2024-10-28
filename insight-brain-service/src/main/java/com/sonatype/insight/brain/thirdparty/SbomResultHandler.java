@@ -410,7 +410,7 @@ public class SbomResultHandler
     try {
       if (StringUtils.isNotBlank(packageUrl)) {
         PackageUrlIdentifier packageUrlIdentifier = resolvePackageUrl(packageUrl);
-        if (StringUtils.isNoneBlank(packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion())) {
+        if (SbomIdentityUtils.packageUrlIdentifierHasMandatoryCoordinates(packageUrlIdentifier)) {
           componentInfoTelemetry.incrementPurlCount();
           return createComponent(sourceComponent, packageUrlIdentifier);
         }
@@ -427,13 +427,13 @@ public class SbomResultHandler
     }
     String cpe = sourceComponent.getCpe();
     PackageUrlIdentifier packageUrlIdentifier = SbomIdentityUtils.buildPackageUrlFromCpe(cpe);
-    if (packageUrlIdentifier != null) {
+    if (SbomIdentityUtils.packageUrlIdentifierHasMandatoryCoordinates(packageUrlIdentifier)) {
       componentInfoTelemetry.incrementCpeCount();
       return createComponent(sourceComponent, packageUrlIdentifier);
     }
     Swid swid = sourceComponent.getSwid();
     packageUrlIdentifier = SbomIdentityUtils.buildPackageUrlFromSwid(swid);
-    if (packageUrlIdentifier != null) {
+    if (SbomIdentityUtils.packageUrlIdentifierHasMandatoryCoordinates(packageUrlIdentifier)) {
       componentInfoTelemetry.incrementSwidCount();
       return createComponent(sourceComponent, packageUrlIdentifier);
     }
@@ -458,6 +458,7 @@ public class SbomResultHandler
       String sha1 = SbomUtils.getSha1(sourceComponent);
       if (StringUtils.isNotBlank(sha1)) {
         Component component = new Component();
+        component.setName(name);
         component.setType(sourceComponent.getType());
         component.setBomRef(sourceComponent.getBomRef());
         setHash(sha1, component);

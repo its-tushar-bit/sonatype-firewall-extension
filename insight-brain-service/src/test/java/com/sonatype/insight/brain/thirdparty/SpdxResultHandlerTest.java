@@ -205,7 +205,7 @@ public class SpdxResultHandlerTest
     assertThat(components).extracting(Component::getPurl)
         .containsExactly("pkg:generic/red_inc./fonts-filesystem@2.0.5");
 
-    assertDebugLogOutput("Invalid Component Identifier for provided purl pkg:rpm/fonts-filesystem@2.0.5");
+    assertDebugLogOutput("Invalid purl: pkg:rpm/fonts-filesystem@2.0.5");
   }
 
   @Test
@@ -431,6 +431,36 @@ public class SpdxResultHandlerTest
     assertFilteredSbomFile(filteredContent, 3, Algorithm.SHA_256);
 
     SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(false);
+  }
+
+  @Test
+  public void testHandleAndFilterContents_NoComponentsSaved() throws Exception {
+    String sbomContent = getSbomJsonFile("spdx-no-packages-saved.json");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("spdx-no-packages-saved.json", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String actualFilteredContent = spdxResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+
+    assertThat(actualFilteredContent).isNotNull();
+    Bom actualFilteredBom = getBom(actualFilteredContent);
+
+    assertThat(actualFilteredBom).isNotNull();
+    assertThat(actualFilteredBom.getComponents()).hasSize(1);
+    Component actualComponent = actualFilteredBom.getComponents().get(0);
+    assertThat(actualComponent.getName()).isEqualTo("django");
+    assertThat(actualComponent.getProperties()).size().isEqualTo(1);
+    assertThat(actualComponent.getProperties().get(0).getName()).isEqualTo("Sonatype truncated SHA1");
+    assertThat(actualComponent.getProperties().get(0).getValue()).isEqualTo("9188560f22e0b73070d2");
+    assertThat(actualComponent.getVersion()).isNull();
+    assertThat(actualComponent.getHashes()).isNull();
+    assertThat(actualComponent.getAuthor()).isNull();
+    assertThat(actualComponent.getHashes()).isNull();
+    assertThat(actualComponent.getCpe()).isNull();
+    assertThat(actualComponent.getPurl()).isNull();
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(0);
   }
 
   @Test

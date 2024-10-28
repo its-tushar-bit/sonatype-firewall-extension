@@ -384,7 +384,8 @@ public class SpdxResultHandler
       if (purlOptional.isPresent()) {
         String packageUrl = purlOptional.get();
         PackageUrlIdentifier packageUrlIdentifier = resolvePackageUrl(packageUrl);
-        if (StringUtils.isNoneBlank(packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion())) {
+        packageUrlIdentifier.ensureCompleteIdentifier();
+        if (SbomIdentityUtils.packageUrlIdentifierHasMandatoryCoordinates(packageUrlIdentifier)) {
           componentInfoTelemetry.incrementPurlCount();
           return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId);
         }
@@ -404,7 +405,7 @@ public class SpdxResultHandler
     if (cpeOptional.isPresent()) {
       String cpe = cpeOptional.get();
       PackageUrlIdentifier packageUrlIdentifier = SbomIdentityUtils.buildPackageUrlFromCpe(cpe);
-      if (packageUrlIdentifier != null) {
+      if (SbomIdentityUtils.packageUrlIdentifierHasMandatoryCoordinates(packageUrlIdentifier)) {
         componentInfoTelemetry.incrementCpeCount();
         return createComponent(spdxPackage, packageUrlIdentifier, rootPackageId);
       }

@@ -294,4 +294,9 @@ public class SbomIdentityUtils
     }
     return documentBuilderFactory;
   }
+
+  public static boolean  packageUrlIdentifierHasMandatoryCoordinates(PackageUrlIdentifier packageUrlIdentifier) {
+    return packageUrlIdentifier != null &&
+        StringUtils.isNoneBlank(packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion());
+  }
 }

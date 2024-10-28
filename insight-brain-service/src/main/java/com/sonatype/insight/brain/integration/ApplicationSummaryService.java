@@ -298,8 +298,17 @@ public class ApplicationSummaryService
 
     String applicationId = telemetryUtils.obfuscateIfAdvancedReportingDisabled(application.getId());
     String applicationName = telemetryUtils.obfuscateIfAdvancedReportingDisabled(application.getName());
+    String parentOwnerId = telemetryUtils.obfuscateIfAdvancedReportingDisabled(application.getParentOwnerId());
+    String ownerType = application.getType().toString();
+
     final OwnerMaintenanceTelemetry ownerMaintenanceTelemetry =
-        new OwnerMaintenanceTelemetry(applicationId, applicationName, OwnerMaintenanceTelemetry.TYPE_ADD);
+        new OwnerMaintenanceTelemetry(
+            applicationId,
+            applicationName,
+            parentOwnerId,
+            ownerType,
+            OwnerMaintenanceTelemetry.TYPE_ADD
+        );
     telemetryData.getAttributes().put(OwnerMaintenanceTelemetry.OWNER_MAINTENANCE_TELEMETRY, ownerMaintenanceTelemetry);
 
     telemetrySender.send(telemetryData, clientUserAgent);

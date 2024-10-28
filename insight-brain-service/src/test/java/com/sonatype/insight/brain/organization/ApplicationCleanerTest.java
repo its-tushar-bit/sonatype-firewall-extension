@@ -99,7 +99,13 @@ public class ApplicationCleanerTest
     final TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
 
     final OwnerMaintenanceTelemetry ownerMaintenanceTelemetry =
-        new OwnerMaintenanceTelemetry(app.getId(), app.getName(), OwnerMaintenanceTelemetry.TYPE_DELETE);
+        new OwnerMaintenanceTelemetry(
+            app.getId(),
+            app.getName(),
+            app.getParentOwnerId(),
+            app.getType().toString(),
+            OwnerMaintenanceTelemetry.TYPE_DELETE
+        );
     final Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put(OwnerMaintenanceTelemetry.OWNER_MAINTENANCE_TELEMETRY, ownerMaintenanceTelemetry);
 
@@ -120,8 +126,10 @@ public class ApplicationCleanerTest
   }
 
   private void assertTelemetryData(final OwnerMaintenanceTelemetry expected, final OwnerMaintenanceTelemetry actual) {
-    assertThat(actual.getRealApplicationId()).isEqualTo(expected.getRealApplicationId());
-    assertThat(actual.getApplicationName()).isEqualTo(expected.getApplicationName());
+    assertThat(actual.getOwnerId()).isEqualTo(expected.getOwnerId());
+    assertThat(actual.getOwnerName()).isEqualTo(expected.getOwnerName());
+    assertThat(actual.getParentOwnerId()).isEqualTo(expected.getParentOwnerId());
+    assertThat(actual.getOwnerType()).isEqualTo(expected.getOwnerType());
     assertThat(actual.getOwnerMaintenanceType()).isEqualTo(expected.getOwnerMaintenanceType());
   }
 }

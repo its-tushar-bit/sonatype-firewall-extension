@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.telemetry;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -25,11 +25,13 @@ public class OwnerMaintenanceTelemetryCreator
     this.telemetryUtils = telemetryUtils;
   }
 
-  public void sendOwnerMaintenanceTelemetry(Application application, String maintenanceType) {
-    String applicationId = telemetryUtils.obfuscateIfAdvancedReportingDisabled(application.getId());
-    String applicationName = telemetryUtils.obfuscateIfAdvancedReportingDisabled(application.getName());
+  public void sendOwnerMaintenanceTelemetry(Owner owner, String maintenanceType) {
+    String ownerId = telemetryUtils.obfuscateIfAdvancedReportingDisabled(owner.getId());
+    String ownerName = telemetryUtils.obfuscateIfAdvancedReportingDisabled(owner.getName());
+    String parentOwnerId = telemetryUtils.obfuscateIfAdvancedReportingDisabled(owner.getParentOwnerId());
+    String ownerType = owner.getType().toString();
     final OwnerMaintenanceTelemetry ownerMaintenanceTelemetry =
-        new OwnerMaintenanceTelemetry(applicationId, applicationName, maintenanceType);
+        new OwnerMaintenanceTelemetry(ownerId, ownerName, parentOwnerId, ownerType, maintenanceType);
 
     sendOwnerMaintenanceTelemetry(ownerMaintenanceTelemetry);
   }

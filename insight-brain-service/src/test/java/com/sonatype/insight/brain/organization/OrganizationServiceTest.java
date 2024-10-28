@@ -32,6 +32,8 @@ import com.sonatype.insight.brain.policy.waiver.WaivedComponentUpgradeScheduler;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
+import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetryCreator;
 import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
 import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
@@ -55,6 +57,11 @@ import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class OrganizationServiceTest
@@ -90,12 +97,16 @@ public class OrganizationServiceTest
   @Mock
   private WaivedComponentUpgradeScheduler waivedComponentUpgradeScheduler;
 
+  @Mock
+  private OwnerMaintenanceTelemetryCreator mockOwnerMaintenanceTelemetryCreator;
+
   private ListAppender<ILoggingEvent> loggingEventListAppender;
 
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
     binder.bind(WaivedComponentUpgradeScheduler.class).toInstance(waivedComponentUpgradeScheduler);
+    binder.bind(OwnerMaintenanceTelemetryCreator.class).toInstance(mockOwnerMaintenanceTelemetryCreator);
   }
 
   @Before
@@ -126,6 +137,7 @@ public class OrganizationServiceTest
     assertThat(organizationDAO.getById(childOrg.getId())).isNotNull();
     assertThat(iconFile).isFile();
     assertThat(iconDir).isDirectory();
+    verifyNoInteractions(mockOwnerMaintenanceTelemetryCreator);
   }
 
   @Test
@@ -141,6 +153,7 @@ public class OrganizationServiceTest
             "Cannot delete the parent organization for automatic application creation: " + organization.getName() + "."
         );
     assertThat(organizationDAO.getById(organizationId)).isNotNull();
+    verifyNoInteractions(mockOwnerMaintenanceTelemetryCreator);
   }
 
   @Test
@@ -167,13 +180,16 @@ public class OrganizationServiceTest
     for (Organization currentOrg : testList.subList(4, 7)) {
       assertThat(organizationDAO.getById(currentOrg.getId())).isNotNull();
     }
+
+    verify(mockOwnerMaintenanceTelemetryCreator, times(4))
+        .sendOwnerMaintenanceTelemetry(any(Organization.class), eq(OwnerMaintenanceTelemetry.TYPE_DELETE));
   }
 
   @Test
   public void testGetAll() {
     OrganizationService organizationService =
         new OrganizationService(null, null, null, organizationDAO, applicationDAO, null, policyViolationLoggerFactory,
-            null);
+            null, mockOwnerMaintenanceTelemetryCreator);
 
     List<Organization> orgs = organizationService.getAll();
     assertThat(orgs).hasSize(1);
@@ -183,7 +199,7 @@ public class OrganizationServiceTest
   public void testGetOrganization() {
     OrganizationService organizationService =
         new OrganizationService(null, null, null, organizationDAO, applicationDAO, null, policyViolationLoggerFactory,
-            null);
+            null, mockOwnerMaintenanceTelemetryCreator);
 
     Organization testOrg = tempEntity.newOrganization();
 
@@ -191,16 +207,18 @@ public class OrganizationServiceTest
     assertThat(resultOrg).isNotNull();
     assertThat(resultOrg.getName()).isEqualTo(testOrg.getName());
     assertThat(resultOrg.getId()).isEqualTo(testOrg.getId());
+    verifyNoInteractions(mockOwnerMaintenanceTelemetryCreator);
   }
 
   @Test
   public void testGetOrganization_idDoesNotExist() {
     OrganizationService organizationService =
         new OrganizationService(null, null, null, organizationDAO, applicationDAO, null, policyViolationLoggerFactory,
-            null);
+            null, mockOwnerMaintenanceTelemetryCreator);
 
     Organization resultOrg = organizationService.getOrganization("NOT_REAL_ID");
     assertThat(resultOrg).isNull();
+    verifyNoInteractions(mockOwnerMaintenanceTelemetryCreator);
   }
 
   @Test
@@ -225,6 +243,8 @@ public class OrganizationServiceTest
     assertThat(ownerEvent.owner.getId()).isEqualTo(organizationId);
     assertThat(orgAppSummaryEvent.organizations).hasSize(1);
     assertThat(orgAppSummaryEvent.applications).isEmpty();
+    verify(mockOwnerMaintenanceTelemetryCreator)
+        .sendOwnerMaintenanceTelemetry(eq(org), eq(OwnerMaintenanceTelemetry.TYPE_ADD));
 
     handler.setLatch(new CountDownLatch(2));
 
@@ -244,6 +264,8 @@ public class OrganizationServiceTest
     assertThat(ownerEvent.owner.getId()).isEqualTo(organizationId);
     assertThat(orgAppSummaryEvent.organizations).hasSize(1);
     assertThat(orgAppSummaryEvent.applications).isEmpty();
+    verify(mockOwnerMaintenanceTelemetryCreator)
+        .sendOwnerMaintenanceTelemetry(eq(created), eq(OwnerMaintenanceTelemetry.TYPE_UPDATE));
 
     handler.setLatch(new CountDownLatch(2));
 
@@ -262,6 +284,8 @@ public class OrganizationServiceTest
     assertThat(ownerEvent.owner.getId()).isEqualTo(organizationId);
     assertThat(orgAppSummaryEvent.organizations).isEmpty();
     assertThat(orgAppSummaryEvent.applications).isEmpty();
+    verify(mockOwnerMaintenanceTelemetryCreator)
+        .sendOwnerMaintenanceTelemetry(any(Organization.class), eq(OwnerMaintenanceTelemetry.TYPE_DELETE));
 
     eventBus.unregister(handler);
   }
@@ -292,6 +316,8 @@ public class OrganizationServiceTest
       assertThat(currentEvent.ownerId).isEqualTo(currentOrg.getId());
       assertThat(currentEvent.owner.getId()).isEqualTo(currentOrg.getId());
     }
+    verify(mockOwnerMaintenanceTelemetryCreator, times(6))
+        .sendOwnerMaintenanceTelemetry(any(Organization.class), eq(OwnerMaintenanceTelemetry.TYPE_DELETE));
 
     eventBus.unregister(handler);
   }
@@ -310,6 +336,8 @@ public class OrganizationServiceTest
     PolicyViolationLogDTOAssert
         .assertOrganizationPolicyViolationData(policyViolationLogDTOs.get(0), PolicyViolationLogEvent.CLEAR,
             organization, before, after, currentUser.getUsername());
+    verify(mockOwnerMaintenanceTelemetryCreator)
+        .sendOwnerMaintenanceTelemetry(any(Organization.class), eq(OwnerMaintenanceTelemetry.TYPE_DELETE));
   }
 
   @Test
@@ -330,6 +358,7 @@ public class OrganizationServiceTest
       .containsKey(parentOrganization2.getId())
       .containsKey(parentOrganization3.getId())
       .containsKey(ROOT_ORGANIZATION_ID);
+    verifyNoInteractions(mockOwnerMaintenanceTelemetryCreator);
   }
 
   @Test
@@ -357,5 +386,6 @@ public class OrganizationServiceTest
       .containsKey(parentOrganization4.getId())
       .containsKey(parentOrganization5.getId())
       .containsKey(ROOT_ORGANIZATION_ID);
+    verifyNoInteractions(mockOwnerMaintenanceTelemetryCreator);
   }
 }

@@ -302,12 +302,15 @@ public class ApplicationSummaryServiceTest
     final Application application = applicationDAO.getByPublicId(appPublicId);
     String applicationId = application.getId();
     String applicationName = application.getName();
+    String parentOwnerId = application.getParentOwnerId();
     if (!configuration.getAdvanceReportingInsightsEnabled()) {
       applicationId = telemetryUtils.obfuscate(applicationId);
       applicationName = telemetryUtils.obfuscate(applicationName);
+      parentOwnerId = telemetryUtils.obfuscate(parentOwnerId);
     }
-    assertThat(ownerMaintenanceTelemetryData.getRealApplicationId()).isEqualTo(applicationId);
-    assertThat(ownerMaintenanceTelemetryData.getApplicationName()).isEqualTo(applicationName);
+    assertThat(ownerMaintenanceTelemetryData.getOwnerId()).isEqualTo(applicationId);
+    assertThat(ownerMaintenanceTelemetryData.getOwnerName()).isEqualTo(applicationName);
+    assertThat(ownerMaintenanceTelemetryData.getParentOwnerId()).isEqualTo(parentOwnerId);
     assertThat(ownerMaintenanceTelemetryData.getOwnerMaintenanceType()).isEqualTo(OwnerMaintenanceTelemetry.TYPE_ADD);
   }
 

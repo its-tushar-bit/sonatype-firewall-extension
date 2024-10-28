@@ -138,10 +138,21 @@ public class OwnerMaintenanceTelemetryCreatorTest
       final String maintenanceType)
   {
     OwnerMaintenanceTelemetry ownerMaintenanceTelemetry =
-        new OwnerMaintenanceTelemetry(application.getId(), application.getName(), maintenanceType);
+        new OwnerMaintenanceTelemetry(
+            application.getId(),
+            application.getName(),
+            application.getParentOwnerId(),
+            application.getType().toString(),
+            maintenanceType
+        );
     if (!configuration.getAdvanceReportingInsightsEnabled()) {
-      ownerMaintenanceTelemetry = new OwnerMaintenanceTelemetry(telemetryUtils.obfuscate(application.getId()),
-          telemetryUtils.obfuscate(application.getName()), maintenanceType);
+      ownerMaintenanceTelemetry = new OwnerMaintenanceTelemetry(
+          telemetryUtils.obfuscate(application.getId()),
+          telemetryUtils.obfuscate(application.getName()),
+          telemetryUtils.obfuscate(application.getParentOwnerId()),
+          application.getType().toString(),
+          maintenanceType
+      );
     }
 
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
@@ -167,8 +178,10 @@ public class OwnerMaintenanceTelemetryCreatorTest
   }
 
   private void assertTelemetryData(final OwnerMaintenanceTelemetry expected, final OwnerMaintenanceTelemetry actual) {
-    assertThat(actual.getRealApplicationId()).isEqualTo(expected.getRealApplicationId());
-    assertThat(actual.getApplicationName()).isEqualTo(expected.getApplicationName());
+    assertThat(actual.getOwnerId()).isEqualTo(expected.getOwnerId());
+    assertThat(actual.getOwnerName()).isEqualTo(expected.getOwnerName());
+    assertThat(actual.getParentOwnerId()).isEqualTo(expected.getParentOwnerId());
+    assertThat(actual.getOwnerType()).isEqualTo(expected.getOwnerType());
     assertThat(actual.getOwnerMaintenanceType()).isEqualTo(expected.getOwnerMaintenanceType());
   }
 }

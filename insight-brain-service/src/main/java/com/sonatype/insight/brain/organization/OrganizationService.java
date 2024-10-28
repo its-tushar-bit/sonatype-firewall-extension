@@ -33,6 +33,8 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
+import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetryCreator;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -71,6 +73,8 @@ public class OrganizationService
 
   private final OrganizationApplicationManagementEventService organizationApplicationManagementEventService;
 
+  private final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator;
+
   @Inject
   public OrganizationService(
       final InsightWork work,
@@ -80,7 +84,9 @@ public class OrganizationService
       final ApplicationDAO applicationDAO,
       final ManagementEventService managementEventService,
       final PolicyViolationLoggerFactory policyViolationLoggerFactory,
-      final OrganizationApplicationManagementEventService organizationApplicationManagementEventService)
+      final OrganizationApplicationManagementEventService organizationApplicationManagementEventService,
+      final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator
+  )
   {
     this.work = work;
     this.applicationCleaner = applicationCleaner;
@@ -90,6 +96,7 @@ public class OrganizationService
     this.managementEventService = managementEventService;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.organizationApplicationManagementEventService = organizationApplicationManagementEventService;
+    this.ownerMaintenanceTelemetryCreator = ownerMaintenanceTelemetryCreator;
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
@@ -115,6 +122,7 @@ public class OrganizationService
 
     managementEventService.postEvent(CREATED, organization);
     organizationApplicationManagementEventService.postEvent();
+    ownerMaintenanceTelemetryCreator.sendOwnerMaintenanceTelemetry(organization, OwnerMaintenanceTelemetry.TYPE_ADD);
 
     return organization;
   }
@@ -127,6 +135,7 @@ public class OrganizationService
 
     managementEventService.postEvent(UPDATED, organization);
     organizationApplicationManagementEventService.postEvent();
+    ownerMaintenanceTelemetryCreator.sendOwnerMaintenanceTelemetry(organization, OwnerMaintenanceTelemetry.TYPE_UPDATE);
 
     return organization;
   }
@@ -188,6 +197,8 @@ public class OrganizationService
         tx.commit();
         managementEventService.postEvent(DELETED, organization);
         organizationApplicationManagementEventService.postEvent();
+        ownerMaintenanceTelemetryCreator
+            .sendOwnerMaintenanceTelemetry(organization, OwnerMaintenanceTelemetry.TYPE_DELETE);
         policyViolationLoggerFactory.newLogger(new Date(), organization).logClearEvent();
 
         log.info("Deleted organization '{}' with id {}.", organization.getName(), organization.getId());

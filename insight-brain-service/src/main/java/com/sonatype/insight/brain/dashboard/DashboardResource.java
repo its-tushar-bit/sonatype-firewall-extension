@@ -10,6 +10,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -276,12 +277,15 @@ public class DashboardResource
   @Produces("text/csv")
   @ExceptionMetered(name = "getPolicyWaiversExportExceptionMeter")
   @Audited(AuditEvent.EXPORT_DASHBOARD_WAIVER_LIST)
-  public Response getPolicyWaiversExport(@FormDataParam("filter") RisksFilterDTO risksFilterDTO) throws IOException {
+  public Response getPolicyWaiversExport(
+      @FormDataParam("filter") RisksFilterDTO risksFilterDTO,
+      @QueryParam("includeAutoWaivers") @DefaultValue("false") boolean includeAutoWaivers) throws IOException
+  {
     risksFilterDTO.pageSize = Integer.MAX_VALUE;
     risksFilterDTO.page = 0;
 
     final List<DashboardPolicyWaiverDTO> results = dashboardPolicyWaiverService
-        .getDashboardPolicyWaiversForExport(risksFilterDTO).dashboardResults;
+        .getDashboardPolicyWaiversForExport(risksFilterDTO, includeAutoWaivers).dashboardResults;
 
     String fileNamePrefix = calculateFileNamePrefixForView("waivers");
     return Csv.generate(Response.ok(), fileNamePrefix, DashboardPolicyWaiverDTO.getCsvHeader(), results).build();

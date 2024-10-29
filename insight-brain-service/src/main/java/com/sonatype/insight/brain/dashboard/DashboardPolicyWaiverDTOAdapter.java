@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.utils.ScopeOwnerUtils;
 
 public class DashboardPolicyWaiverDTOAdapter
@@ -72,11 +73,15 @@ public class DashboardPolicyWaiverDTOAdapter
     dto.ownerName = ownersById.get(autoPolicyWaiver.getOwnerId()).getName();
     dto.ownerType =
         ScopeOwnerUtils.getScopeOwnerType(ownersById.get(autoPolicyWaiver.getOwnerId()).getType(), dto.ownerId);
+    dto.componentMatchStrategy = ComponentMatcherStrategyForWaiver.DEFAULT;
+    dto.componentUpgradeAvailable = false;
     dto.isAutoWaiver = true;
 
     if (includeDetails) {
       dto.creatorId = autoPolicyWaiver.getCreatorId();
       dto.creatorName = autoPolicyWaiver.getCreatorName();
+      dto.comment = "";
+      dto.constraintFacts = null;
     }
 
     return dto;

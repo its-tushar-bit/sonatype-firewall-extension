@@ -72,7 +72,7 @@ public class DashboardPolicyWaiverDTO
   static String getCsvHeader() {
     return "Waiver Id, Threat level, Created Date, Expiration Date, Policy Id, Policy Name, Policy Constraints, " +
         "Scope Type, Scope Id, Scope Name, Component Match Strategy, Component Hash, Component Name, " +
-        "Upgrade, Created by Id, Created by Name,Comment";
+        "Upgrade, Created by Id, Created by Name,Comment, Is Auto Waiver";
   }
 
   public static String getComponentUpgradeAvailableValueCSVExport(Boolean isComponentUpgradeAvailable) {
@@ -95,10 +95,12 @@ public class DashboardPolicyWaiverDTO
     final String commentsCsv =
         CsvWritable.quoteFieldWhenSpecialCsvCharactersPresent(
             CsvWritable.escapeDoubleQuotes(StringUtils.defaultString(comment)));
+    final String policyIdCsv = StringUtils.defaultString(policyId);
+    final String policyNameCsv = StringUtils.defaultString(policyName);
 
-    return CsvWritable.joiner.join(id, threatLevel, createTimeCsv, expiryTimeCsv, policyId, policyName,
+    return CsvWritable.joiner.join(id, threatLevel, createTimeCsv, expiryTimeCsv, policyIdCsv, policyNameCsv,
         constraintFactsJsonCsv, ownerType, ownerId, ownerName, componentMatchStrategy, componentHashCsv, displayNameCsv,
-        waivedComponentUpgradeAvailableValueCsv, creatorIdCsv, creatorNameCsv, commentsCsv);
+        waivedComponentUpgradeAvailableValueCsv, creatorIdCsv, creatorNameCsv, commentsCsv, isAutoWaiver);
   }
 
   private String getConstraintFactsJsonCsv() {

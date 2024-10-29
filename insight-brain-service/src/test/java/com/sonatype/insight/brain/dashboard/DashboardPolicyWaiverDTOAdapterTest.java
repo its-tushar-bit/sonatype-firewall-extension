@@ -31,6 +31,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.DEFAULT;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -153,10 +154,10 @@ public class DashboardPolicyWaiverDTOAdapterTest
     assertThat(dto.ownerId).isEqualTo(autoPolicyWaiver.getOwnerId());
     assertThat(dto.ownerName).isEqualTo(ownersById.get(autoPolicyWaiver.getOwnerId()).getName());
     assertThat(dto.ownerType).isEqualTo(ownersById.get(autoPolicyWaiver.getOwnerId()).getType().toString());
-    assertThat(dto.componentMatchStrategy).isNull();
+    assertThat(dto.componentMatchStrategy).isEqualTo(DEFAULT);
     assertThat(dto.hash).isNull();
     assertThat(dto.componentIdentifier).isNull();
-    assertThat(dto.componentUpgradeAvailable).isNull();
+    assertThat(dto.componentUpgradeAvailable).isFalse();
     assertThat(dto.isAutoWaiver).isTrue();
   }
 

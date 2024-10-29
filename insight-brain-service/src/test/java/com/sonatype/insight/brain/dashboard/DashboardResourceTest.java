@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -718,16 +719,40 @@ public class DashboardResourceTest
     final ComponentDisplayName expectedComponentName =
         ComponentDisplayNameUtil.fromIdentifier(policyWaiver.getComponentIdentifier());
     String[] lines = response.getBodyText().split("\r\n");
-    String expectedFirstLine = format("%s,5,%s,%s,%s,%s,%s,application,%s,%s,EXACT_COMPONENT,hash,%s,%s,%s,%s,comment",
-        policyWaiver.getId(), csvTimestampFormatter.format(policyWaiver.getCreateTime()),/*no expiry*/"",
-        policy.getId(), policy.getName(), expectedConstraints, app.getId(), app.getName(), expectedComponentName,
-        "",policyWaiver.getCreatorId(), policyWaiver.getCreatorName());
-    String expectedSecondLine = format("%s,5,%s,%s,%s,%s,%s,organization,%s,%s,EXACT_COMPONENT,hash2,%s,%s,%s,%s,%s",
+    String expectedFirstLine =
+        format("%s,5,%s,%s,%s,%s,%s,application,%s,%s,EXACT_COMPONENT,hash,%s,%s,%s,%s,comment,%s",
+            policyWaiver.getId(), csvTimestampFormatter.format(policyWaiver.getCreateTime()),/*no expiry*/"",
+            policy.getId(), policy.getName(), expectedConstraints, app.getId(), app.getName(), expectedComponentName,
+            "", policyWaiver.getCreatorId(), policyWaiver.getCreatorName(), false);
+    String expectedSecondLine = format("%s,5,%s,%s,%s,%s,%s,organization,%s,%s,EXACT_COMPONENT,hash2,%s,%s,%s,%s,%s,%s",
         secondPolicyWaiver.getId(), csvTimestampFormatter.format(secondPolicyWaiver.getCreateTime()),/*no expiry*/"",
         policy.getId(), policy.getName(), "", org.getId(), org.getName(), "", "",
-        secondPolicyWaiver.getCreatorId(), secondPolicyWaiver.getCreatorName(), secondPolicyWaiver.getComment());
+        secondPolicyWaiver.getCreatorId(), secondPolicyWaiver.getCreatorName(), secondPolicyWaiver.getComment(), false);
 
     assertThat(lines).containsExactly(DashboardPolicyWaiverDTO.getCsvHeader(), expectedFirstLine, expectedSecondLine);
+
+    //includeAutoWaivers
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(app.getId());
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
+    response = restRequest().path(GET_POLICY_WAIVERS_EXPORT_PATH).part("filter", filter)
+        .query("includeAutoWaivers", true).post();
+    assertResponseOkAndCsvHeadersSet(response, "results-waivers");
+    lines = response.getBodyText().split("\r\n");
+    expectedFirstLine = format("%s,5,%s,%s,%s,%s,%s,application,%s,%s,EXACT_COMPONENT,hash,%s,%s,%s,%s,comment,%s",
+        policyWaiver.getId(), csvTimestampFormatter.format(policyWaiver.getCreateTime()),/*no expiry*/"",
+        policy.getId(), policy.getName(), expectedConstraints, app.getId(), app.getName(), expectedComponentName,
+        "", policyWaiver.getCreatorId(), policyWaiver.getCreatorName(), false);
+    expectedSecondLine = format("%s,5,%s,%s,%s,%s,%s,organization,%s,%s,EXACT_COMPONENT,hash2,%s,%s,%s,%s,%s,%s",
+        secondPolicyWaiver.getId(), csvTimestampFormatter.format(secondPolicyWaiver.getCreateTime()),/*no expiry*/"",
+        policy.getId(), policy.getName(), "", org.getId(), org.getName(), "", "",
+        secondPolicyWaiver.getCreatorId(), secondPolicyWaiver.getCreatorName(), secondPolicyWaiver.getComment(), false);
+    String expectedThirdLine = format("%s,7,%s,%s,%s,%s,%s,application,%s,%s,DEFAULT,%s,%s,%s,%s,%s,%s,%s",
+        autoPolicyWaiver.getId(), csvTimestampFormatter.format(autoPolicyWaiver.getCreateTime()),/*no expiry*/"",
+        "", "", "", app.getId(), app.getName(), "", "", "",
+        autoPolicyWaiver.getCreatorId(), autoPolicyWaiver.getCreatorName(), "", true);
+
+    assertThat(lines).containsExactly(DashboardPolicyWaiverDTO.getCsvHeader(), expectedFirstLine, expectedSecondLine,
+        expectedThirdLine);
   }
 
   @Test

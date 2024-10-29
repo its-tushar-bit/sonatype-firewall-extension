@@ -105,7 +105,14 @@ public class DashboardPolicyWaiverService
   public DashboardResultsDTO<DashboardPolicyWaiverDTO> getDashboardPolicyWaiversForExport(
       final RisksFilterDTO risksFilterDTO)
   {
-    return getDashboardPolicyWaivers(risksFilterDTO, true, false);
+    return getDashboardPolicyWaiversForExport(risksFilterDTO, false);
+  }
+
+  public DashboardResultsDTO<DashboardPolicyWaiverDTO> getDashboardPolicyWaiversForExport(
+      final RisksFilterDTO risksFilterDTO,
+      boolean includeAutoWaivers)
+  {
+    return getDashboardPolicyWaivers(risksFilterDTO, true, includeAutoWaivers);
   }
 
   public DashboardResultsDTO<DashboardPolicyWaiverDTO> getDashboardPolicyWaivers(

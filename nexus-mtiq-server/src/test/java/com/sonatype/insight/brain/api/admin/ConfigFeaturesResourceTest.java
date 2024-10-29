@@ -63,7 +63,8 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT.getId(),
       SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.getId(),
       SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI.getId(),
-      SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.getId(),
+      SystemConfigurationPropertyFeature.NON_BREAKING_VERSION_SUGGESTION_TELEMETRY.getId(),
+      SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.getId()
       };
 
   /**
@@ -94,6 +95,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT.getId(),
       SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.getId(),
       SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI.getId(),
+      SystemConfigurationPropertyFeature.NON_BREAKING_VERSION_SUGGESTION_TELEMETRY.getId(),
       SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.getId()
       };
 

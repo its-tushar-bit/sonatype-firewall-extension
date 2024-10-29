@@ -74,6 +74,7 @@ import com.sonatype.insight.brain.repository.RepositorySourceResponseDTO;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -93,6 +94,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.IdentificationSource.isThirdPartyIdentificationSource;
+import static com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint.COMPONENT_INFO;
 
 @Named
 public class ComponentInfoService
@@ -412,11 +414,11 @@ public class ComponentInfoService
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   public ComponentVersionInfoDTO getComponentVersionInfo_EvaluateComponentPermission(
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
-      ComponentIdentifier componentIdentifier)
+      ComponentIdentifier componentIdentifier, SourceEndpoint sourceEndpoint)
   {
     auditComponentAccess(componentIdentifier, null);
     return getComponentVersionInfoNoAuth(OwnerType.APPLICATION, applicationPublicId, componentIdentifier, null, null,
-        null, null);
+        null, null, sourceEndpoint);
   }
 
   /**
@@ -481,7 +483,7 @@ public class ComponentInfoService
     }
 
     return getComponentVersionInfoNoAuth(ownerType, ownerId, componentIdentifier, stageId, identificationSource, scanId,
-        dependencyType);
+        dependencyType, COMPONENT_INFO);
   }
 
   public ComponentVersionInfoDTO getComponentVersionInfoNoAuth(
@@ -491,7 +493,8 @@ public class ComponentInfoService
       String stageId,
       String identificationSource,
       String scanId,
-      DependencyType dependencyType)
+      DependencyType dependencyType,
+      SourceEndpoint sourceEndpoint)
   {
     Owner owner = idUtils.getOwnerNotNull(ownerType, ownerId);
     // For performance, it's very important to use only one instance of ComponentDetailsLoader.
@@ -508,7 +511,7 @@ public class ComponentInfoService
     }
     else {
       remediationDto = componentRemediationService.getSuggestedRemediation(componentIdentifier, componentDetailsDTOs,
-          owner, stageId, componentDetailsLoader);
+          owner, stageId, componentDetailsLoader, sourceEndpoint);
     }
     return new ComponentVersionInfoDTO(componentDetailsDTOs, remediationDto, result.getRight());
   }

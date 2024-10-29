@@ -399,7 +399,7 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
     }
     when(mockComponentRemediationService.getSuggestedRemediation(
         eq(componentIdentifier), eq(componentDetailsDTOList),
-        any(), any(), any())).thenReturn(remediationValueDto);
+        any(), any(), any(), any())).thenReturn(remediationValueDto);
   }
 
   private ApiVersionChangeOptionDTO getApiVersionChangeOptionDTO(ComponentIdentifier componentIdentifier) {

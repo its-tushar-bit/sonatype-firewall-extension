@@ -45,6 +45,8 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryMetrics;
+import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
@@ -104,6 +106,8 @@ public class ComponentRemediationService
 
   private final VersionScoringService versionScoringService;
 
+  private final NonBreakingRecommendationTelemetryMetrics nonBreakingRecommendationTelemetryMetrics;
+
   @Inject
   public ComponentRemediationService(
       TelemetrySender telemetrySender,
@@ -111,7 +115,8 @@ public class ComponentRemediationService
       ComponentPolicyEvaluator componentPolicyEvaluator,
       ProductLicense productLicense,
       TelemetryUtils telemetryUtils,
-      VersionScoringService versionScoringService)
+      VersionScoringService versionScoringService,
+      NonBreakingRecommendationTelemetryMetrics nonBreakingRecommendationTelemetryMetrics)
   {
     this.telemetrySender = telemetrySender;
     this.hdsClient = hdsClient;
@@ -119,6 +124,7 @@ public class ComponentRemediationService
     this.productLicense = productLicense;
     this.telemetryUtils = telemetryUtils;
     this.versionScoringService = versionScoringService;
+    this.nonBreakingRecommendationTelemetryMetrics = nonBreakingRecommendationTelemetryMetrics;
   }
 
   private ComponentIdentifier ensureCompleteIfNeeded(ComponentIdentifier componentIdentifier) {
@@ -142,15 +148,23 @@ public class ComponentRemediationService
       final List<ComponentDetailsDTO> allVersions,
       final Owner owner,
       final String stageId,
-      ComponentDetailsLoader componentDetailsLoader)
+      final ComponentDetailsLoader componentDetailsLoader,
+      final SourceEndpoint source
+  )
   {
-    return getSuggestedSelectedRemediation(
+    ApiComponentRemediationValueDTO suggestedRemediation = getSuggestedSelectedRemediation(
         currentComponent,
         allVersions,
         owner,
         stageId,
         componentDetailsLoader,
         shouldIncludeAdvancedStrategies(currentComponent));
+    // Collecting telemetry for non-breaking version suggestions can be expensive sometimes.
+    // It can be disabled by setting the feature flag to false.
+    if (SystemConfigurationPropertyFeature.NON_BREAKING_VERSION_SUGGESTION_TELEMETRY.isEnabled()) {
+      nonBreakingRecommendationTelemetryMetrics.collect(suggestedRemediation.suggestedVersionChange, owner, source);
+    }
+    return suggestedRemediation;
   }
 
   public ApiComponentRemediationValueDTO getSuggestedSelectedRemediation(

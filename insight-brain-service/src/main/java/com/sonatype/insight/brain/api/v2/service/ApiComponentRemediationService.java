@@ -48,6 +48,8 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.lang3.StringUtils;
 
+import static com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint.API_COMPONENT_REMEDIATION;
+
 /**
  * @since 1.64
  */
@@ -195,7 +197,7 @@ public class ApiComponentRemediationService
     else {
       if (parentComponentsToVersionsMap.isEmpty()) {
         remediationValueDto = componentRemediationService.getSuggestedRemediation(componentIdentifier, dtos, owner,
-            stageId, componentDetailsLoader);
+            stageId, componentDetailsLoader, API_COMPONENT_REMEDIATION);
 
         if (includeParentRem && apiDependencyTreeSearcher.isDirectNode()) {
           remediationValueDto.versionChanges.forEach(it -> it.setDirectDependency(true));

@@ -203,6 +203,9 @@ public enum SystemConfigurationPropertyFeature
 
   DEVELOPER_SUGGEST_NON_BREAKING_VERSION(SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION, false),
 
+  NON_BREAKING_VERSION_SUGGESTION_TELEMETRY(
+      SystemConfigurationProperty.NON_BREAKING_VERSION_SUGGESTION_TELEMETRY, true),
+
   SBOM_CONTINUOUS_MONITORING_UI(SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI, true),
 
   SBOM_POLICIES(SystemConfigurationProperty.SBOM_POLICIES, false),
@@ -222,7 +225,6 @@ public enum SystemConfigurationPropertyFeature
       return super.isEnabled(tx);
     }
   };
-
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

@@ -409,7 +409,8 @@ public class ScanPolicyEvaluatorTest
     dto.remediation = new ApiComponentRemediationValueDTO();
 
     doReturn(dto)
-        .when(mockComponentInfoService).getComponentVersionInfoNoAuth(any(), any(), any(), any(), any(), any(), any());
+        .when(mockComponentInfoService).getComponentVersionInfoNoAuth(
+            any(), any(), any(), any(), any(), any(), any(), any());
 
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
@@ -445,7 +446,8 @@ public class ScanPolicyEvaluatorTest
     dto.remediation.versionChanges.add(new ApiVersionChangeOptionDTO());
 
     doReturn(dto)
-        .when(mockComponentInfoService).getComponentVersionInfoNoAuth(any(), any(), any(), any(), any(), any(), any());
+        .when(mockComponentInfoService).getComponentVersionInfoNoAuth(
+            any(), any(), any(), any(), any(), any(), any(), any());
 
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
@@ -476,7 +478,8 @@ public class ScanPolicyEvaluatorTest
     dto.remediation.suggestedVersionChange = new ApiSuggestedVersionChangeOptionDTO();
 
     doReturn(dto)
-        .when(mockComponentInfoService).getComponentVersionInfoNoAuth(any(), any(), any(), any(), any(), any(), any());
+        .when(mockComponentInfoService).getComponentVersionInfoNoAuth(
+            any(), any(), any(), any(), any(), any(), any(), any());
 
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
@@ -510,7 +513,8 @@ public class ScanPolicyEvaluatorTest
     dto.remediation.versionChanges.add(new ApiVersionChangeOptionDTO());
 
     doReturn(dto)
-        .when(mockComponentInfoService).getComponentVersionInfoNoAuth(any(), any(), any(), any(), any(), any(), any());
+        .when(mockComponentInfoService).getComponentVersionInfoNoAuth(
+            any(), any(), any(), any(), any(), any(), any(), any());
 
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
@@ -542,7 +546,8 @@ public class ScanPolicyEvaluatorTest
     dto.remediation.versionChanges.add(new ApiVersionChangeOptionDTO());
 
     doReturn(dto)
-        .when(mockComponentInfoService).getComponentVersionInfoNoAuth(any(), any(), any(), any(), any(), any(), any());
+        .when(mockComponentInfoService).getComponentVersionInfoNoAuth(
+            any(), any(), any(), any(), any(), any(), any(), any());
 
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");

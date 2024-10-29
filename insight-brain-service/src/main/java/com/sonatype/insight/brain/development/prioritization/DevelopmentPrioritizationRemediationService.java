@@ -36,15 +36,12 @@ import com.sonatype.insight.brain.hds.ComponentRemediationService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritization;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
+import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.Maps;
 import com.google.common.annotations.VisibleForTesting;
 
-import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NON_FAILING;
-import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES;
-import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS;
-import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES;
 import static com.sonatype.insight.brain.git.PullRequestCommentingRemediationService.VERSION_KEY;
 
 @Named
@@ -139,7 +136,7 @@ public class DevelopmentPrioritizationRemediationService
 
     return componentRemediationService.getSuggestedRemediation(
         componentIdentifier, componentDetailsDTOs,
-        app, stage, componentDetailsLoader);
+        app, stage, componentDetailsLoader, SourceEndpoint.DEVELOPMENT_PRIORITIZATION);
   }
 
   /**
@@ -220,10 +217,11 @@ public class DevelopmentPrioritizationRemediationService
       return Optional.empty();
     }
 
-    return first(Arrays.asList(getVersionChangeOptional(versionChanges, NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES),
-        getVersionChangeOptional(versionChanges, NEXT_NO_VIOLATIONS),
-        getVersionChangeOptional(versionChanges, NEXT_NON_FAILING_WITH_DEPENDENCIES),
-        getVersionChangeOptional(versionChanges, NEXT_NON_FAILING)));
+    return first(Arrays.asList(
+        getVersionChangeOptional(versionChanges, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES),
+        getVersionChangeOptional(versionChanges, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS),
+        getVersionChangeOptional(versionChanges, ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES),
+        getVersionChangeOptional(versionChanges, ApiVersionChangeOptionType.NEXT_NON_FAILING)));
   }
 
   private static Optional<ApiVersionChangeOptionDTO> getVersionChangeOptional(

@@ -242,6 +242,8 @@ public class SystemConfigurationProperty
 
   public static final String DEVELOPER_SUGGEST_NON_BREAKING_VERSION = "developerSuggestNonBreakingVersion";
 
+  public static final String NON_BREAKING_VERSION_SUGGESTION_TELEMETRY = "nonBreakingVersionSuggestionTelemetry";
+
   public static final String SBOM_CONTINUOUS_MONITORING_UI = "sbomContinuousMonitoringUi";
 
   public static final String SBOM_POLICIES = "sbomPolicies";

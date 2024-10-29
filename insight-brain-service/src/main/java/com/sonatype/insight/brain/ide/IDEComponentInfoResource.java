@@ -30,6 +30,8 @@ import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
 
+import static com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint.IDE;
+
 @Path(IDEComponentInfoResource.RESOURCE_PATH)
 @Named
 @Timed
@@ -95,6 +97,6 @@ public class IDEComponentInfoResource
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
   {
     return componentInfoService.getComponentVersionInfo_EvaluateComponentPermission(applicationPublicId,
-        componentIdentifier);
+        componentIdentifier, IDE);
   }
 }

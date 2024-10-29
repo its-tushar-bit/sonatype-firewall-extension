@@ -83,6 +83,7 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.utils.ThreatLevel;
@@ -1343,7 +1344,8 @@ public class ScanPolicyEvaluator
         stageId,
         null,
         null,
-        null
+        null,
+        SourceEndpoint.SCAN_POLICY_EVALUATOR
     );
 
     if (dto == null || dto.remediation == null) {

@@ -24,6 +24,7 @@ import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
@@ -98,6 +99,6 @@ public class RepoManComponentInfoResource
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
   {
     return componentInfoService.getComponentVersionInfo_EvaluateComponentPermission(applicationPublicId,
-        componentIdentifier);
+        componentIdentifier, SourceEndpoint.REPO_MANAGER);
   }
 }

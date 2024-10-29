@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 
 import com.google.inject.Binder;
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -374,20 +375,21 @@ public class ComponentInfoServiceAuthzTest
     configureHdsClientMock();
     grantEvaluateComponentPermission(app.getId());
     componentInfoService.getComponentVersionInfo_EvaluateComponentPermission(app.getPublicId(),
-        COMPONENT_IDENTIFIER);
+        COMPONENT_IDENTIFIER, SourceEndpoint.IDE);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetComponentVersionInfo_EvaluateComponentPermission_Unauthorized() {
     login();
     componentInfoService.getComponentVersionInfo_EvaluateComponentPermission(app.getPublicId(),
-        COMPONENT_IDENTIFIER);
+        COMPONENT_IDENTIFIER, SourceEndpoint.IDE);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetComponentVersionInfo_EvaluateComponentPermission_Unauthenticated() {
     componentInfoService
-        .getComponentVersionInfo_EvaluateComponentPermission(app.getPublicId(), COMPONENT_IDENTIFIER);
+        .getComponentVersionInfo_EvaluateComponentPermission(
+            app.getPublicId(), COMPONENT_IDENTIFIER, SourceEndpoint.IDE);
   }
 
   private void testGetComponentVersionInfo_Authorized_ReadPermission(final Owner owner, final String ownerId)

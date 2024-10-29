@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -183,7 +184,7 @@ public class QuarantinedComponentService
 
     return componentInfoService.getComponentVersionInfoNoAuth(OwnerType.REPOSITORY,
         repositoryComponent.getRepositoryId(), repositoryComponent.getComponentIdentifier(), Stage.ID_PROXY,
-        repositoryComponent.getIdentificationSourceId(), null, null);
+        repositoryComponent.getIdentificationSourceId(), null, null, SourceEndpoint.QUARANTINED_COMPONENT);
   }
 
   NamedComponentDetails getQuarantinedComponentVersionDetails(

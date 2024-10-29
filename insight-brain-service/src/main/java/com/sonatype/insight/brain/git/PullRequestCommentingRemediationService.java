@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -32,6 +31,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.HasComponentId;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 @Named
@@ -108,7 +108,7 @@ public class PullRequestCommentingRemediationService
 
     ApiComponentRemediationValueDTO remediationValueDto =
         componentRemediationService.getSuggestedRemediation(componentIdentifier, componentDetailsDTOs,
-            app, null, componentDetailsLoader);
+            app, null, componentDetailsLoader, SourceEndpoint.PULL_REQUEST_COMMENTING);
 
     if (remediationValueDto != null) {
       Optional<ApiVersionChangeOptionDTO> versionChangeDTO =

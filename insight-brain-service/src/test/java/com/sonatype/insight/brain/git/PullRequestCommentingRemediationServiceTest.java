@@ -197,7 +197,7 @@ public class PullRequestCommentingRemediationServiceTest
           ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES));
     }
     when(mockComponentRemediationService.getSuggestedRemediation(
-        any(), any(), any(), any(), any())).thenReturn(remediationValueDto);
+        any(), any(), any(), any(), any(), any())).thenReturn(remediationValueDto);
   }
 
   private ApiVersionChangeOptionDTO getApiVersionChangeOptionDTO(

@@ -194,6 +194,7 @@ public class MTIQFeatureServiceTest
         SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT,
         SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING,
         SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI,
+        SystemConfigurationPropertyFeature.NON_BREAKING_VERSION_SUGGESTION_TELEMETRY,
         SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER
     ).collect(toSet()).toArray(new SystemConfigurationPropertyFeature[]{});
   }

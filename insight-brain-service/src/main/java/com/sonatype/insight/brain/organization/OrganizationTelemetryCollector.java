@@ -32,7 +32,7 @@ public class OrganizationTelemetryCollector extends OwnerTelemetryCollector impl
   @Override
   public TelemetryData collectData() {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.REAL_OWNER_IDS);
-    List<ApplicationTelemetryCollector.OwnerData> ownerData = organizationDAO.getAll().stream()
+    List<OwnerTelemetryCollector.OwnerData> ownerData = organizationDAO.getAll().stream()
         .map(this::createOwnerData)
         .collect(Collectors.toList());
     telemetryData.put(ALL_OWNER_IDS_NAMES, ownerData);

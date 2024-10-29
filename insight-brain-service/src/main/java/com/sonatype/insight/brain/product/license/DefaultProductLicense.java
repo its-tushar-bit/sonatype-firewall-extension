@@ -179,7 +179,7 @@ public class DefaultProductLicense
   @Override
   public Set<String> getProducts() {
     final Set<String> products = getProductLicenseData().products;
-    log.info("Fetched license products: [{}]", products);
+    log.trace("Fetched license products: [{}]", products);
     return products;
   }
 

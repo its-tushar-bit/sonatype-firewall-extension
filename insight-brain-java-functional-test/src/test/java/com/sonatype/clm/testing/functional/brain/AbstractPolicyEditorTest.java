@@ -65,6 +65,7 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.AbstractConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.ComponentEndOfLifeConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType;
@@ -231,7 +232,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(constraint.getName()).isEqualTo("New Constraint");
     assertThat(constraint.getOperator()).isEqualTo(LogicalOperator.OR);
 
-    assertThat(constraint.getConditions()).hasSize(28);
+    assertThat(constraint.getConditions()).hasSize(29);
     assertCondition(constraint.getConditions().get(0), AgeInDaysConditionType.ID, "older than",
         Integer.toString(3 * 365));
     assertCondition(constraint.getConditions().get(1), CoordinatesConditionType.ID, "match",
@@ -288,7 +289,8 @@ public abstract class AbstractPolicyEditorTest
         IntegrityRating.getById("1").getId());
     assertCondition(constraint.getConditions().get(27),
             DependencyTypeConditionType.ID, "is", "innersource");
-
+    assertCondition(constraint.getConditions().get(28),
+        ComponentEndOfLifeConditionType.ID, "is false", null);
     assertThat(newPolicy.getActions().get(Stage.ID_BUILD)).isEqualTo("warn");
 
     assertThat(newPolicy.getNotifications().getUserNotifications()).hasSize(1);
@@ -1501,6 +1503,12 @@ public abstract class AbstractPolicyEditorTest
     dependencyInnerSourceType.value().shouldHave(text("Direct")).click();
     dependencyInnerSourceType.value().listItem(2).shouldHave(text("InnerSource")).click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    newConstraint.addConditionButton().click();
+    DropdownConditionEditSection endOfLife = newConstraint.dropdownCondition(28);
+    endOfLife.type().chooseOptionWithHidden(conditionTypesOptionMap.get(ComponentEndOfLifeConditionType.class));
+    endOfLife.operator().shouldHave(text("is true")).click();
+    endOfLife.operator().listItem(1).shouldHave(text("is false")).click();
 
     newConstraint.conditionUnsupportedMessages().shouldHave(size(0));
   }

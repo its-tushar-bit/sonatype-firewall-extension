@@ -86,14 +86,4 @@ public class ComponentEndOfLifeConditionType
   public PolicyThreatCategory getThreatCategory() {
     return PolicyThreatCategory.QUALITY;
   }
-
-  /**
-   * This condition is temporarily disabled.
-   * Remove this override to enable this condition when EOL data is available.
-   * See https://sonatype.atlassian.net/browse/CLM-32433
-   */
-  @Override
-  public boolean isEnabled() {
-    return false;
-  }
 }

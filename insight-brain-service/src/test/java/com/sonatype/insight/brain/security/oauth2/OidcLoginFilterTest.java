@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -25,26 +26,18 @@ import com.google.inject.Binder;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.session.Session;
-import org.apache.shiro.subject.Subject;
 import org.eclipse.jetty.server.Response;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -127,33 +120,29 @@ public class OidcLoginFilterTest
     final HttpServletRequest request = mock(HttpServletRequest.class);
     final HttpServletResponse response = mock(HttpServletResponse.class);
     final ArgumentCaptor<String> indexUrlCaptor = ArgumentCaptor.forClass(String.class);
+    final ArgumentCaptor<Cookie> cookieCaptor = ArgumentCaptor.forClass(Cookie.class);
     final String issuer = idpServer.baseUrl();
     final String tokenUrl = String.format("%s/token", issuer);
-    final Subject mockedSubject = mock(Subject.class);
-    final Session mockedSession = mock(Session.class);
+
     when(mockBaseUrl.get()).thenReturn(BASE_URL);
 
-    try (MockedStatic<SecurityUtils> securityUtils = mockStatic(SecurityUtils.class)) {
-      securityUtils.when(SecurityUtils::getSubject).thenReturn(mockedSubject);
-      when(mockedSubject.getSession()).thenReturn(mockedSession);
+    tempEntity.newOidcConfiguration(issuer, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, tokenUrl);
+    when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
+    when(request.getParameter("code")).thenReturn("code");
+    idpServer.stubFor(post(urlPathEqualTo("/token"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody(getTokensResponse("token-response.json"))));
 
-      tempEntity.newOidcConfiguration(issuer, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, tokenUrl);
-      when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
-      when(request.getParameter("code")).thenReturn("code");
-      idpServer.stubFor(post(urlPathEqualTo("/token"))
-          .willReturn(aResponse()
-              .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-              .withBody(getTokensResponse("token-response.json"))));
+    oidcLoginFilter.doFilter(request, response, null);
 
-      oidcLoginFilter.doFilter(request, response, null);
-
-      verify(response).sendRedirect(indexUrlCaptor.capture());
-      verify(mockedSubject, times(2)).getSession();
-      verify(mockedSession).setAttribute(eq(JwtAuthenticationFilter.ACCESS_TOKEN_PARAM), any(String.class));
-      verify(mockedSession).setAttribute(eq(JwtAuthenticationFilter.ID_TOKEN_PARAM), any(String.class));
-      securityUtils.verify(SecurityUtils::getSubject, times(2));
-      assertThat(indexUrlCaptor.getValue()).isEqualTo(String.format("%s%s", BASE_URL, OidcLoginFilter.INDEX_HTML));
-    }
+    verify(response).sendRedirect(indexUrlCaptor.capture());
+    verify(response).addCookie(cookieCaptor.capture());
+    assertThat(cookieCaptor.getValue().getName()).isEqualTo(JwtAuthenticationFilter.ID_TOKEN_COOKIE);
+    assertThat(cookieCaptor.getValue().getValue()).isNotBlank();
+    assertThat(cookieCaptor.getValue().isHttpOnly()).isTrue();
+    assertThat(cookieCaptor.getValue().getSecure()).isTrue();
+    assertThat(indexUrlCaptor.getValue()).isEqualTo(String.format("%s%s", BASE_URL, OidcLoginFilter.INDEX_HTML));
   }
 
   @Test

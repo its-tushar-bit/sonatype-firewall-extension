@@ -13,6 +13,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -41,9 +42,7 @@ import com.nimbusds.openid.connect.sdk.Nonce;
 import com.nimbusds.openid.connect.sdk.OIDCTokenResponse;
 import com.nimbusds.openid.connect.sdk.OIDCTokenResponseParser;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
-import org.apache.shiro.session.Session;
 import org.eclipse.jetty.server.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +72,8 @@ public class OidcLoginFilter
   public static final String[] OIDC_SCOPES = {"openid", "profile", "email"};
 
   public static final String ERROR_AUTHORIZING_REQUEST = "Error authorizing request: %s";
+
+  public static final int ONE_MINUTE = 60;
 
   private final OidcConfigurationDAO oidcConfigurationDAO;
 
@@ -106,7 +107,7 @@ public class OidcLoginFilter
 
       // Handles the callback request from the IDP to get the Access and ID tokens
       if (path.contains(OAUTH_CALLBACK)) {
-        handleCallbackAndSetTokensOnSession(req, res, oidcConfiguration);
+        handleCallbackAndSetAuthCookie(req, res, oidcConfiguration);
       }
     }
     catch (AuthenticationException e) {
@@ -171,7 +172,7 @@ public class OidcLoginFilter
     }
   }
 
-  private void handleCallbackAndSetTokensOnSession(
+  private void handleCallbackAndSetAuthCookie(
       final HttpServletRequest req,
       final HttpServletResponse res,
       final OidcConfiguration oidcConfiguration)
@@ -198,9 +199,7 @@ public class OidcLoginFilter
       }
 
       OIDCTokenResponse successResponse = (OIDCTokenResponse) tokenResponse.toSuccessResponse();
-      addTokenToSession(JwtAuthenticationFilter.ID_TOKEN_PARAM, successResponse.getOIDCTokens().getIDTokenString());
-      addTokenToSession(JwtAuthenticationFilter.ACCESS_TOKEN_PARAM,
-          successResponse.getOIDCTokens().getAccessToken().getValue());
+      addSecureCookie(res, JwtAuthenticationFilter.ID_TOKEN_COOKIE, successResponse.getOIDCTokens().getIDTokenString());
 
       res.sendRedirect(redirectUri);
     }
@@ -208,10 +207,6 @@ public class OidcLoginFilter
       log.error(ERROR_GETTING_TOKENS, e);
       throw new AuthenticationException(ERROR_GETTING_TOKENS, e);
     }
-  }
-
-  private Session getSession() {
-    return SecurityUtils.getSubject().getSession();
   }
 
   private TokenRequest buildTokenRequest(
@@ -246,13 +241,12 @@ public class OidcLoginFilter
     }
   }
 
-  private void addTokenToSession(String id, String token) {
-    Session session = getSession();
-
-    if (session == null) {
-      return;
-    }
-
-    session.setAttribute(id, token);
+  private void addSecureCookie(final HttpServletResponse res, String id, String token) {
+    Cookie cookie = new Cookie(id, token);
+    cookie.setPath("/");
+    cookie.setSecure(true);
+    cookie.setHttpOnly(true);
+    cookie.setMaxAge(ONE_MINUTE);
+    res.addCookie(cookie);
   }
 }

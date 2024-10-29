@@ -6,27 +6,22 @@
 package com.sonatype.insight.brain.security.oauth2;
 
 import javax.inject.Inject;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
-import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.BearerToken;
-import org.apache.shiro.session.Session;
-import org.apache.shiro.subject.Subject;
 import org.junit.Test;
-import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -67,23 +62,18 @@ public class JwtAuthenticationFilterTest
   }
 
   @Test
-  public void testIsLoginAttempt_TrueWhenIdTokenIsPresentOnSession() {
+  public void testIsLoginAttempt_TrueWhenIdTokenCookieISPresent() {
     final String sub = "bob";
     final String issuer = "https://an-idp.com";
     final HttpServletRequest request = mock(HttpServletRequest.class);
-    final Subject mockedSubject = mock(Subject.class);
-    final Session mockedSession = mock(Session.class);
+
     SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(true);
+    String token = jwtGenerator.generateJWT(sub, issuer);
 
-    try (MockedStatic<SecurityUtils> securityUtils = mockStatic(SecurityUtils.class)) {
-      String token = jwtGenerator.generateJWT(sub, issuer);
+    when(request.getCookies()).thenReturn(new Cookie[]{new Cookie(JwtAuthenticationFilter.ID_TOKEN_COOKIE, token)});
 
-      securityUtils.when(SecurityUtils::getSubject).thenReturn(mockedSubject);
-      when(mockedSubject.getSession(false)).thenReturn(mockedSession);
-      when(mockedSession.getAttribute(JwtAuthenticationFilter.ID_TOKEN_PARAM)).thenReturn(token);
-
-      assertThat(jwtAuthenticationFilter.isLoginAttempt(request, null)).isTrue();
-    }
+    assertThat(jwtAuthenticationFilter.isLoginAttempt(request, null)).isTrue();
+    verify(request).getCookies();
   }
 
   @Test
@@ -104,32 +94,20 @@ public class JwtAuthenticationFilterTest
   }
 
   @Test
-  public void testCreateToken_ShouldCreateJwtToken_FromIdToken() {
+  public void testCreateToken_ShouldCreateJwtToken_FromIdTokenCookie() {
     final String subject = "bob";
     final String issuer = "https://an-idp.com";
     final HttpServletRequest request = mock(HttpServletRequest.class);
-    final Subject mockedSubject = mock(Subject.class);
-    final Session mockedSession = mock(Session.class);
+    String token = jwtGenerator.generateJWT(subject, issuer);
+    when(request.getCookies()).thenReturn(new Cookie[]{new Cookie(JwtAuthenticationFilter.ID_TOKEN_COOKIE, token)});
 
-    try (MockedStatic<SecurityUtils> securityUtils = mockStatic(SecurityUtils.class)) {
-      String token = jwtGenerator.generateJWT(subject, issuer);
+    AuthenticationToken authenticationToken = jwtAuthenticationFilter.createToken(request, null);
 
-      securityUtils.when(SecurityUtils::getSubject).thenReturn(mockedSubject);
-      when(mockedSubject.getSession(false)).thenReturn(mockedSession);
-      when(mockedSession.getAttribute(JwtAuthenticationFilter.ID_TOKEN_PARAM)).thenReturn(token);
-
-      AuthenticationToken authenticationToken = jwtAuthenticationFilter.createToken(request, null);
-
-      assertThat(authenticationToken).isInstanceOf(ShiroJsonWebToken.class);
-      ShiroJsonWebToken shiroJsonWebToken = (ShiroJsonWebToken) authenticationToken;
-      assertThat(shiroJsonWebToken.getPrincipal().getIssuer()).isEqualTo(issuer);
-      assertThat(shiroJsonWebToken.getPrincipal().getSubject()).isEqualTo(subject);
-      securityUtils.verify(SecurityUtils::getSubject, times(3));
-      verify(mockedSubject, times(3)).getSession(false);
-      verify(mockedSession).getAttribute(JwtAuthenticationFilter.ID_TOKEN_PARAM);
-      verify(mockedSession).removeAttribute(JwtAuthenticationFilter.ID_TOKEN_PARAM);
-      verify(mockedSession).removeAttribute(JwtAuthenticationFilter.ACCESS_TOKEN_PARAM);
-    }
+    assertThat(authenticationToken).isInstanceOf(ShiroJsonWebToken.class);
+    ShiroJsonWebToken shiroJsonWebToken = (ShiroJsonWebToken) authenticationToken;
+    assertThat(shiroJsonWebToken.getPrincipal().getIssuer()).isEqualTo(issuer);
+    assertThat(shiroJsonWebToken.getPrincipal().getSubject()).isEqualTo(subject);
+    verify(request).getCookies();
   }
 
   @Test

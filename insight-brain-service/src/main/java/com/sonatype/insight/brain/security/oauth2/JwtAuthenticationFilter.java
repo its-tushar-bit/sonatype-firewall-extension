@@ -5,17 +5,19 @@
  */
 package com.sonatype.insight.brain.security.oauth2;
 
+import java.util.stream.Stream;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationToken;
-import org.apache.shiro.session.Session;
 import org.apache.shiro.web.filter.authc.BearerHttpAuthenticationFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +29,7 @@ public class JwtAuthenticationFilter
 {
   private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class.getName());
 
-  public static final String ACCESS_TOKEN_PARAM = "accessToken";
-
-  public static final String ID_TOKEN_PARAM = "idToken";
+  public static final String ID_TOKEN_COOKIE = "IQ-ID-TOKEN";
 
   @Override
   protected boolean isLoginAttempt(ServletRequest request, ServletResponse response) {
@@ -39,7 +39,7 @@ public class JwtAuthenticationFilter
       return false;
     }
 
-    if (StringUtils.isNotBlank(getTokenFromSession(ID_TOKEN_PARAM))) {
+    if (StringUtils.isNotBlank(getAuthCookie(request, ID_TOKEN_COOKIE))) {
       return true;
     }
 
@@ -48,13 +48,12 @@ public class JwtAuthenticationFilter
 
   @Override
   protected AuthenticationToken createToken(ServletRequest request, ServletResponse response) {
-    String idToken = getTokenFromSession(ID_TOKEN_PARAM);
+    String idToken = getAuthCookie(request, ID_TOKEN_COOKIE);
 
     if (StringUtils.isNotBlank(idToken)) {
       log.debug("Attempting to execute login with ID Token");
       // Remove tokens from session
-      removeTokenFromSession(ID_TOKEN_PARAM);
-      removeTokenFromSession(ACCESS_TOKEN_PARAM);
+      removeCookie(request, response, ID_TOKEN_COOKIE);
       return new ShiroJsonWebToken(idToken, true);
     }
 
@@ -91,27 +90,36 @@ public class JwtAuthenticationFilter
     return true;
   }
 
-  private String getTokenFromSession(String token) {
-    Session session = getSession();
+  private String getAuthCookie(final ServletRequest request, String authCookie) {
+    if (request instanceof HttpServletRequest) {
+      HttpServletRequest req = (HttpServletRequest) request;
+      Cookie[] cookies = req.getCookies();
 
-    if (session == null) {
-      return null;
+      if (cookies == null) {
+        return null;
+      }
+
+      return Stream.of(cookies)
+          .filter(cookie -> authCookie.equalsIgnoreCase(cookie.getName()))
+          .map(Cookie::getValue)
+          .findFirst()
+          .orElse(null);
     }
 
-    return (String) session.getAttribute(token);
+    return null;
   }
 
-  private void removeTokenFromSession(String token) {
-    Session session = getSession();
+  private void removeCookie(final ServletRequest request, final ServletResponse response, String authCookie) {
+    if (request instanceof HttpServletRequest && response instanceof HttpServletResponse) {
+      HttpServletRequest req = (HttpServletRequest) request;
+      HttpServletResponse res = (HttpServletResponse) response;
 
-    if (session == null) {
-      return;
+      for (Cookie cookie : req.getCookies()) {
+        if (authCookie.equals(cookie.getName())) {
+          cookie.setMaxAge(0);
+          res.addCookie(cookie);
+        }
+      }
     }
-
-    session.removeAttribute(token);
-  }
-
-  private Session getSession() {
-    return SecurityUtils.getSubject().getSession(false);
   }
 }

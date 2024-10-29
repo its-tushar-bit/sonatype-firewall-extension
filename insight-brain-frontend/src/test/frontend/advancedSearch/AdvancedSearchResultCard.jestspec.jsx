@@ -102,6 +102,48 @@ describe('AdvancedSearchResultCard', () => {
     );
   });
 
+  it('passes the correct parameters to construct the SBOM Manager BOM link', () => {
+    const componentTypeResult = {
+      itemType: 'testItemType',
+      applicationPublicId: 'testAppPublicId',
+      applicationName: 'testApp',
+      applicationVersion: 'testAppVersion',
+    };
+
+    renderComponent({ searchResultItem: componentTypeResult, isSbomManager: true });
+
+    expect(screen.getByRole('link', { name: 'testAppVersion' })).toHaveAttribute('href', '/noop');
+    expect(minimalProps.$state.get).toHaveBeenCalledWith('sbomManager.management.view.bom');
+    expect(minimalProps.$state.href).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ applicationPublicId: 'testAppPublicId', versionId: 'testAppVersion' })
+    );
+  });
+
+  it('passes the correct parameters to construct the SBOM Manager CDP link', () => {
+    const componentTypeResult = {
+      itemType: 'testItemType',
+      applicationPublicId: 'testAppPublicId',
+      applicationName: 'testApp',
+      applicationVersion: 'testAppVersion',
+      componentHash: 'testHash',
+      vulnerabilityId: 'testVulnerabilityId',
+    };
+
+    renderComponent({ searchResultItem: componentTypeResult, isSbomManager: true });
+
+    expect(screen.getByRole('link', { name: 'testVulnerabilityId' })).toHaveAttribute('href', '/noop');
+    expect(minimalProps.$state.get).toHaveBeenCalledWith('sbomManager.component');
+    expect(minimalProps.$state.href).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        applicationPublicId: 'testAppPublicId',
+        sbomVersion: 'testAppVersion',
+        componentHash: 'testHash',
+      })
+    );
+  });
+
   it('passes the correct parameters to construct the non SBOM Manager app link', () => {
     const componentTypeResult = {
       itemType: 'testItemType',
@@ -169,7 +211,7 @@ describe('AdvancedSearchResultCard', () => {
     expect(screen.getByRole('cell', { name: 'Vulnerability Description' })).toBeVisible();
 
     // All other named cells should not exist
-    expect(screen.queryByRole('link', { name: 'testVulnerabilityId' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'testVulnerabilityId' })).toBeVisible();
     expect(screen.queryByRole('cell', { name: 'Application Category' })).not.toBeInTheDocument();
     expect(screen.queryByRole('cell', { name: 'Component Label' })).not.toBeInTheDocument();
     expect(screen.queryByRole('cell', { name: 'Component Name' })).not.toBeInTheDocument();

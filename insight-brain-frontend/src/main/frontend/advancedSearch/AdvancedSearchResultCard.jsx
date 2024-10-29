@@ -88,6 +88,17 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
       $state.href($state.get('management.edit.application.policy'), {
         applicationPublicId: searchResultItem.applicationPublicId,
         policyId: searchResultItem.policyId,
+      }),
+    getAppVersionHref = () =>
+      $state.href($state.get('sbomManager.management.view.bom'), {
+        applicationPublicId: searchResultItem.applicationPublicId,
+        versionId: searchResultItem.applicationVersion,
+      }),
+    getCdpHref = () =>
+      $state.href($state.get('sbomManager.component'), {
+        applicationPublicId: searchResultItem.applicationPublicId,
+        sbomVersion: searchResultItem.applicationVersion,
+        componentHash: searchResultItem.componentHash,
       });
 
   return (
@@ -127,7 +138,11 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
               <NxFontAwesomeIcon icon={faTableTree} />
             </td>
             <td className="nx-cell">Version</td>
-            <td className="nx-cell">{searchResultItem.applicationVersion}</td>
+            <td className="nx-cell">
+              <NxTextLink external={isDeveloper} href={getAppVersionHref()}>
+                {searchResultItem.applicationVersion}
+              </NxTextLink>
+            </td>
           </tr>
         )}
 
@@ -200,13 +215,9 @@ export default function AdvancedSearchResultCard({ searchResultItem, groupIdenti
             </td>
             <td className="nx-cell">Security Issue</td>
             <td className="nx-cell">
-              {isSbomManager ? (
-                searchResultItem.vulnerabilityId
-              ) : (
-                <NxTextLink external={isDeveloper} href={getVulnHref()}>
-                  {searchResultItem.vulnerabilityId}
-                </NxTextLink>
-              )}
+              <NxTextLink external={isDeveloper} href={isSbomManager ? getCdpHref() : getVulnHref()}>
+                {searchResultItem.vulnerabilityId}
+              </NxTextLink>
             </td>
           </tr>
         )}

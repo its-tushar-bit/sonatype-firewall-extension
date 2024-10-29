@@ -30,8 +30,12 @@ public abstract class OwnerTelemetryCollector
       type = OwnerType.ORGANIZATION.toString();
     }
 
-    return new OwnerData(telemetryUtils.obfuscateIfAdvancedReportingDisabled(owner.getId()),
-        type, telemetryUtils.obfuscateIfAdvancedReportingDisabled(owner.getName()));
+    return new OwnerData(
+        telemetryUtils.obfuscateIfAdvancedReportingDisabled(owner.getId()),
+        type,
+        telemetryUtils.obfuscateIfAdvancedReportingDisabled(owner.getName()),
+        telemetryUtils.obfuscateIfAdvancedReportingDisabled(owner.getParentOwnerId())
+    );
   }
 
   public static class OwnerData
@@ -42,14 +46,17 @@ public abstract class OwnerTelemetryCollector
 
     private String ownerName;
 
+    private String parentOwnerId;
+
     public OwnerData() {
       //for serialization
     }
 
-    public OwnerData(final String ownerId, final String ownerType, final String ownerName) {
+    public OwnerData(String ownerId, String ownerType, String ownerName, String parentOwnerId) {
       this.ownerId = ownerId;
       this.ownerType = ownerType;
       this.ownerName = ownerName;
+      this.parentOwnerId = parentOwnerId;
     }
 
     public String getOwnerId() {
@@ -62,6 +69,10 @@ public abstract class OwnerTelemetryCollector
 
     public String getOwnerName() {
       return ownerName;
+    }
+
+    public String getParentOwnerId() {
+      return parentOwnerId;
     }
   }
 }

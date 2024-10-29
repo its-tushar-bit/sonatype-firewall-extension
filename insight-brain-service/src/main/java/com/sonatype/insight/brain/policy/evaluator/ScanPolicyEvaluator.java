@@ -33,6 +33,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
@@ -577,7 +578,25 @@ public class ScanPolicyEvaluator
 
           List<Component> found = findComponentsByComponentIdentifierElseVersionless(components,
               oldPolicyViolation.getComponentIdentifier());
-          telemetryCollector.addTelemetryForFixedViolation(oldPolicyViolation, found);
+          // Add telemetry
+          ComponentIdentifier oldIdentifier = oldPolicyViolation.getComponentIdentifier();
+
+          // Get remediations that we would suggest on the "old" identifier. We will want to match
+          // the remediations up with the actual upgrade version, and if we have a match then we
+          // have correlation between our suggestions and the user action.
+          ApiComponentRemediationValueDTO suggestedRemediations = null;
+          try {
+            suggestedRemediations = developmentPrioritizationRemediationService
+                .getSuggestedRemediations(oldIdentifier, appId, stage.getStageName(), scanId);
+          }
+          catch (Exception e) {
+            // When running tests requesting remediation suggestions could throw an exception due to
+            // lack of a license. We don't want to fail the test because of this.
+            log.error(e.getMessage(), e);
+            suggestedRemediations = new ApiComponentRemediationValueDTO();
+          }
+
+          telemetryCollector.addTelemetryForFixedViolation(oldPolicyViolation, found, suggestedRemediations);
           results.fixedViolations.add(oldPolicyViolation);
         }
         // Existing policy violations.

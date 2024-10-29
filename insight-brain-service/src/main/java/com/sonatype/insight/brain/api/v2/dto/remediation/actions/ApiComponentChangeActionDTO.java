@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.dto.remediation.actions;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 
 /**
@@ -29,5 +30,12 @@ public class ApiComponentChangeActionDTO
   // for JSON
   public void setComponent(ApiComponentDTOV2 component) {
     this.component = component;
+  }
+
+  public String retrieveVersion() {
+    if (component != null && component.componentIdentifier != null) {
+      return component.componentIdentifier.toComponentIdentifier().get(ComponentIdentifier.VERSION);
+    }
+    return null;
   }
 }

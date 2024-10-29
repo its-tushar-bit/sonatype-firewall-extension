@@ -17,6 +17,8 @@ import java.util.concurrent.TimeUnit;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.component.Component;
@@ -100,6 +102,8 @@ public class PolicyViolationTelemetryCollector
 
   static final String CVSS_SCORE = "cvss_score";
 
+  static final String REMEDIATION_TYPE = "remediation_type";
+
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final PolicyWaiverDAO policyWaiverDAO;
@@ -127,18 +131,26 @@ public class PolicyViolationTelemetryCollector
     return Collections.unmodifiableList(telemetryDataList);
   }
 
-  public void addTelemetryForFixedViolation(PolicyViolation fixedPolicyViolation, List<Component> components) {
+  public void addTelemetryForFixedViolation(
+      PolicyViolation fixedPolicyViolation,
+      List<Component> components,
+      ApiComponentRemediationValueDTO remediations)
+  {
     if (fixedPolicyViolation != null) {
       TelemetryData telemetryData =
           createTelemetry(TelemetryPurpose.TIME_TO_REMEDIATE_POLICY_VIOLATION, fixedPolicyViolation, components)
               .put(FIX_TIME, timeOfPolicyEvaluation.getTime());
 
       telemetryDataList.add(telemetryData);
-      possiblyAddTelemetryForVersionChange(fixedPolicyViolation, components);
+      possiblyAddTelemetryForVersionChange(fixedPolicyViolation, components, remediations);
     }
   }
 
-  private void possiblyAddTelemetryForVersionChange(PolicyViolation fixedPolicyViolation, List<Component> components) {
+  private void possiblyAddTelemetryForVersionChange(
+      PolicyViolation fixedPolicyViolation,
+      List<Component> components,
+      ApiComponentRemediationValueDTO remediations)
+  {
     if (components.size() == 1) {
       String fixByVersionChange = calculateFixByVersionChange(components, fixedPolicyViolation);
       if (fixByVersionChange != null) {
@@ -146,6 +158,17 @@ public class PolicyViolationTelemetryCollector
             createTelemetry(TelemetryPurpose.TIME_TO_CHANGE_VERSION_POLICY_VIOLATION, fixedPolicyViolation, components)
                 .put(FIX_BY_VERSION_CHANGE, fixByVersionChange)
                 .put(FIX_TIME, timeOfPolicyEvaluation.getTime());
+
+        if (remediations != null) {
+          // If we have suggested remediations, try and find one that matches the fixed version.
+          // If we find that then lets report that the fixed version matches something we suggested,
+          // which might indicate a successful use of our data.
+          String fixedVersion = components.get(0).getVersion();
+          ApiVersionChangeOptionType remediationType = remediations.getRemediationType(fixedVersion);
+          if (remediationType != null) {
+            telemetryData.put(REMEDIATION_TYPE, remediationType.getNameForTelemetry());
+          }
+        }
 
         telemetryDataList.add(telemetryData);
       }

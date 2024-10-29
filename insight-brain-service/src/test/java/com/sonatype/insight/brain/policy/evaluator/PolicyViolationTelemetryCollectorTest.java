@@ -17,6 +17,13 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentChangeActionDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiSuggestedVersionChangeOptionDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
@@ -119,7 +126,8 @@ public class PolicyViolationTelemetryCollectorTest
     // when - pass in downgraded component
     telemetryCollector.addTelemetryForFixedViolation(
         testablePolicyViolation.getPolicyViolation(),
-        createWrappedComponent(lodashv3, true, false)
+        createWrappedComponent(lodashv3, true, false),
+        null
     );
 
     // then
@@ -150,7 +158,8 @@ public class PolicyViolationTelemetryCollectorTest
     // when - pass in multiple additional versions
     telemetryCollector.addTelemetryForFixedViolation(
         testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getAdditionalVersions()
+        testablePolicyViolation.getAdditionalVersions(),
+        null
     );
 
     // then
@@ -174,7 +183,8 @@ public class PolicyViolationTelemetryCollectorTest
     // when - pass in empty component list
     telemetryCollector.addTelemetryForFixedViolation(
         testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getComponents()
+        testablePolicyViolation.getComponents(),
+        null
     );
 
     // then
@@ -184,6 +194,51 @@ public class PolicyViolationTelemetryCollectorTest
 
   @Test
   public void testAddTelemetryForFixedViolation_FixedByUpgrade() {
+    doTestAddTelemetryForFixedViolation_FixedByUpgrade_AndRemediation(null);
+  }
+
+  @Test
+  public void testAddTelemetryForFixedViolation_FixedByUpgrade_GoldenPR() {
+    doTestAddTelemetryForFixedViolation_FixedByUpgrade_AndRemediation(
+        ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES);
+  }
+
+  @Test
+  public void testAddTelemetryForFixedViolation_FixedByUpgrade_Recommended() {
+    doTestAddTelemetryForFixedViolation_FixedByUpgrade_AndRemediation(
+        ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING);
+  }
+
+  @Test
+  public void testAddTelemetryForFixedViolation_FixedByUpgrade_NextNonFailing() {
+    doTestAddTelemetryForFixedViolation_FixedByUpgrade_AndRemediation(
+        ApiVersionChangeOptionType.NEXT_NON_FAILING);
+  }
+
+  @Test
+  public void testAddTelemetryForFixedViolation_FixedByUpgrade_NextNonFailingWithDependencies() {
+    doTestAddTelemetryForFixedViolation_FixedByUpgrade_AndRemediation(
+        ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
+  }
+
+  @Test
+  public void testAddTelemetryForFixedViolation_FixedByUpgrade_NextNoViolations() {
+    doTestAddTelemetryForFixedViolation_FixedByUpgrade_AndRemediation(
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
+  }
+
+  @Test
+  public void testAddTelemetryForFixedViolation_FixedByUpgrade_NextNoViolationsWithDependencies() {
+    doTestAddTelemetryForFixedViolation_FixedByUpgrade_AndRemediation(
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
+  }
+
+  private void doTestAddTelemetryForFixedViolation_FixedByUpgrade_AndRemediation(
+      ApiVersionChangeOptionType remediationType)
+  {
+    Component wrongComponent = new Component(lodashv4);
+    Component expectedComponent = new Component(lodashv5);
+
     // given a policy violation on lodash v4 that was fixed by downgrading
     TestablePolicyViolation testablePolicyViolation =
         TestablePolicyViolation.createDefaultViolationForComponent(lodashv4)
@@ -197,9 +252,12 @@ public class PolicyViolationTelemetryCollectorTest
         createTelemetryCollector(testablePolicyViolation.isScmEnabled());
 
     // when - pass in an upgraded component
+    ApiComponentRemediationValueDTO
+        remediationObject = createRemediationObject(expectedComponent, wrongComponent, remediationType);
     telemetryCollector.addTelemetryForFixedViolation(
         testablePolicyViolation.getPolicyViolation(),
-        createWrappedComponent(lodashv5, true, false)
+        createWrappedComponent(lodashv5, true, false),
+        remediationObject
     );
 
     // then
@@ -209,6 +267,52 @@ public class PolicyViolationTelemetryCollectorTest
         TIME_TO_REMEDIATE_POLICY_VIOLATION,
         TIME_TO_CHANGE_VERSION_POLICY_VIOLATION
     );
+    testablePolicyViolation.validateRemediationTelemetry(telemetryData, remediationType);
+  }
+
+  private ApiComponentRemediationValueDTO createRemediationObject(
+      Component expectedComponent,
+      Component wrongComponent,
+      final ApiVersionChangeOptionType remediationType)
+  {
+    // Generate a remediation object
+    ApiComponentRemediationValueDTO remediation = null; // = new ApiComponentRemediationValueDTO();
+    if (remediationType != null) {
+      remediation = new ApiComponentRemediationValueDTO();
+      for (ApiVersionChangeOptionType rType : ApiVersionChangeOptionType.values()) {
+        // If the remediation type is the expected one, use the expected component, otherwise use the wrong one
+        // which has a different version that will not match when the telemetry is generated.
+        Component useComponent = remediationType == rType ? expectedComponent : wrongComponent;
+        switch (rType) {
+          case RECOMMENDED_NON_BREAKING:
+            remediation.suggestedVersionChange =
+                new ApiSuggestedVersionChangeOptionDTO(rType, false, buildApiChangeAction(useComponent));
+            break;
+          case RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES:
+            // This is the last option, so check if it is the expected one. Otherwise, the suggested might already
+            // be set to the expected one.
+            if (rType.equals(remediationType)) {
+              remediation.suggestedVersionChange =
+                  new ApiSuggestedVersionChangeOptionDTO(rType, true, buildApiChangeAction(useComponent));
+            }
+            break;
+          default:
+            remediation.versionChanges.add(new ApiVersionChangeOptionDTO(rType, buildApiChangeAction(useComponent)));
+            break;
+        }
+      }
+    }
+    return remediation;
+  }
+
+  private ApiComponentChangeActionDTO buildApiChangeAction(final Component component) {
+    ApiComponentChangeActionDTO action = new ApiComponentChangeActionDTO();
+    ApiComponentDTOV2 apiComponent = new ApiComponentDTOV2();
+    ApiComponentIdentifierDTOV2 apiComponentIdentifier = ApiComponentIdentifierDTOV2
+        .fromComponentIdentifier(component.getComponentIdentifier());
+    apiComponent.componentIdentifier = apiComponentIdentifier;
+    action.setComponent(apiComponent);
+    return action;
   }
 
   @Test
@@ -227,7 +331,8 @@ public class PolicyViolationTelemetryCollectorTest
     // when - pass in same component version the violation is for
     telemetryCollector.addTelemetryForFixedViolation(
         testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getComponents()
+        testablePolicyViolation.getComponents(),
+        null
     );
 
     // then
@@ -255,7 +360,8 @@ public class PolicyViolationTelemetryCollectorTest
     // when - pass in same component version the violation is for
     telemetryCollector.addTelemetryForFixedViolation(
         testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getComponents()
+        testablePolicyViolation.getComponents(),
+        null
     );
 
     // then
@@ -656,6 +762,27 @@ public class PolicyViolationTelemetryCollectorTest
 
     private String createPolicyId(String policyName) {
       return "ID_" + policyName;
+    }
+
+    /**
+     * Ensure the remediation data is appropriately added to the telemetry. Other fields are already tested.
+     */
+    public void validateRemediationTelemetry(
+        List<TelemetryData> telemetryDataList,
+        final ApiVersionChangeOptionType remediationType)
+    {
+      for (int i = 0; i < telemetryDataList.size(); i++) {
+        TelemetryData telemetryData = telemetryDataList.get(i);
+        if (TIME_TO_CHANGE_VERSION_POLICY_VIOLATION.equals(telemetryData.getPurpose())) {
+          Map<String, Object> attributes = telemetryData.getAttributes();
+          if (null != remediationType) {
+            assertThat(attributes).containsEntry(REMEDIATION_TYPE, remediationType.getNameForTelemetry());
+          }
+          else {
+            assertThat(attributes).doesNotContainKey(REMEDIATION_TYPE);
+          }
+        }
+      }
     }
 
     void validateTelemetryDataForPurposes(List<TelemetryData> telemetryDataList, TelemetryPurpose... purposeCodes) {

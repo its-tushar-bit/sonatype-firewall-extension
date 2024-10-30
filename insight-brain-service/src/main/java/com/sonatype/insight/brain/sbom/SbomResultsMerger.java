@@ -241,7 +241,7 @@ public class SbomResultsMerger
     sbomPostImportMetricsTelemetry = new SbomPostImportMetricsTelemetry();
 
     // populate component dependency type map by walking dependency tree if dependency data is not present in bom.json
-    if (bomJsonData.get("dependencyDataIncluded") != null &&
+    if (bomJsonData.get("dependencyDataIncluded") == null ||
         !bomJsonData.get("dependencyDataIncluded").booleanValue()) {
       populateComponentDependencyTypeMap(componentDependencyTypeMap);
     }

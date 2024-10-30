@@ -171,29 +171,32 @@ public class DependencyResolver
       JsonNode dependencyTreeNode = dependenciesJson.path("dependencyTree");
 
       if (!dependencyTreeNode.isMissingNode()) {
+        boolean dependencyDataExists = false;
         DependencyNode tree = JsonUtils.asPojo(dependencyTreeNode, DependencyNode.class);
         if (tree != null) {
           PackageUrlIdentifier rootPurl = getPackageUrl(tree);
           if (rootPurl != null) {
             boolean isValidRootArtifact = saveInnerSourceComponent(rootPurl);
             if (isValidRootArtifact) {
+              dependencyDataExists = true;
               processInnerSourceDependencies(tree.getChildren());
             }
           }
           // no root ComponentIdentifier refers to a tree derived based on HDS data
           // or SBOM File where the parent component does not have a purl
           else if (CollectionUtils.isNotEmpty(tree.getChildren())) {
+            dependencyDataExists = true;
             updateDependencyInfoForComponentChildren(tree.getChildren(), true, false, null, false);
           }
-          addBomDependencyDataIndicator(bomJson);
+          addBomDependencyDataIndicator(bomJson, dependencyDataExists);
         }
       }
     }
   }
 
-  private void addBomDependencyDataIndicator(JsonNode bomJson) {
+  private void addBomDependencyDataIndicator(JsonNode bomJson, boolean dependencyDataExists) {
     ObjectNode bomNode = (ObjectNode) bomJson;
-    bomNode.put(FIELD_DEPENDENCY_INDICATOR, true);
+    bomNode.put(FIELD_DEPENDENCY_INDICATOR, dependencyDataExists);
   }
 
   //visible for testing

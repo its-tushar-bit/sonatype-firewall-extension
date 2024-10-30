@@ -49,6 +49,8 @@ public class PrioritizedComponent implements CsvWritable
 
   private String remediationVersion;
 
+  private final int highestReachableThreat;
+
   public PrioritizedComponent(
       final String displayName,
       final ComponentIdentifier componentIdentifier,
@@ -61,7 +63,8 @@ public class PrioritizedComponent implements CsvWritable
       final String highestThreatPolicyConstraintName,
       final boolean securityReachable,
       final int priority,
-      final DevelopmentPrioritizationComponentInfo prioritizationComponentInfo
+      final DevelopmentPrioritizationComponentInfo prioritizationComponentInfo,
+      final int highestReachableThreat
   )
   {
     this.displayName = displayName;
@@ -79,6 +82,7 @@ public class PrioritizedComponent implements CsvWritable
       this.remediationType = prioritizationComponentInfo.getRemediationType();
       this.remediationVersion = prioritizationComponentInfo.getRemediationVersion();
     }
+    this.highestReachableThreat = highestReachableThreat;
   }
 
   public ComponentIdentifier getComponentIdentifier() {
@@ -133,6 +137,10 @@ public class PrioritizedComponent implements CsvWritable
     return remediationVersion;
   }
 
+  public int getHighestReachableThreat() {
+    return highestReachableThreat;
+  }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -172,7 +180,9 @@ public class PrioritizedComponent implements CsvWritable
         securityReachable,
         priority,
         remediationType,
-        remediationVersion);
+        remediationVersion,
+        highestReachableThreat
+        );
   }
 
   @Override
@@ -191,6 +201,7 @@ public class PrioritizedComponent implements CsvWritable
         ", priority=" + priority +
         ", remediationType=" + remediationType +
         ", remediationVersion=" + remediationVersion +
+        ", highestReachableThreat=" + highestReachableThreat +
         '}';
   }
 
@@ -198,13 +209,13 @@ public class PrioritizedComponent implements CsvWritable
     // this is the dto involved in the export
     return "Display Name,Component Identifier,Component Hash,Dependency Type,Has Fail Action On Component,Action," +
             "Highest Threat,Highest Threat Policy Name,Highest Threat Policy Constraint Name,Security Reachable," +
-            "Priority,Remediation Type,Remediation Version";
+            "Priority,Remediation Type,Remediation Version,Highest Reachable Threat";
   }
 
   @Override
   public String toCsvLine() {
     return joiner.useForNull("").join(displayName, componentIdentifier, componentHash, dependencyType,
             hasFailActionOnComponent, action, highestThreat, highestThreatPolicyName, highestThreatPolicyConstraintName,
-            securityReachable, priority, remediationType, remediationVersion);
+            securityReachable, priority, remediationType, remediationVersion, highestReachableThreat);
   }
 }

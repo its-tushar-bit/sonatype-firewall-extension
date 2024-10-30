@@ -10,7 +10,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.Comparator;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -43,6 +45,7 @@ import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDE
 import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_TRANSITIVE;
 import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_UNKNOWN;
 import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_INNER_SOURCE;
+import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
 
 @Named
 public class DevelopmentPrioritiesService
@@ -141,16 +144,18 @@ public class DevelopmentPrioritiesService
               final ComponentIdentifier componentIdentifier = component.componentIdentifier != null ?
                       component.componentIdentifier.toComponentIdentifier() :
                       null;
-              final PolicyViolation highestPolicyViolation = getHighestThreat(policyViolations);
+              final PolicyViolation highestPolicyViolation = getHighestThreat(policyViolations, false);
               final int highestThreatLevel;
               final String policyName;
               final String highestThreatConstraintName;
+              int highestReachableThreatLevel = 0;
 
               if (highestPolicyViolation == null) {
                 highestThreatLevel = 0;
                 policyName = null;
                 highestThreatConstraintName = null;
               }
+
               else {
                 highestThreatLevel = highestPolicyViolation.policyThreatLevel;
                 policyName = highestPolicyViolation.policyName;
@@ -166,6 +171,13 @@ public class DevelopmentPrioritiesService
 
               final boolean securityReachable = hasSecurityViolations(policyViolations)
                       && isSecurityReachable(applicationPublicId, scanId, component.hash);
+
+              if (securityReachable) {
+                final PolicyViolation highestReachablePolicyViolation = getHighestThreat(policyViolations, true);
+                if (highestReachablePolicyViolation != null) {
+                  highestReachableThreatLevel = highestReachablePolicyViolation.policyThreatLevel;
+                }
+              }
 
               DevelopmentPrioritizationComponentInfo prioritizationComponentInfo = null;
               if (isBulkRecommendationsEnabled && componentIdentifier != null) {
@@ -186,11 +198,12 @@ public class DevelopmentPrioritiesService
                       highestThreatConstraintName,
                       component.hash,
                       securityReachable,
-                      prioritizationComponentInfo
+                      prioritizationComponentInfo,
+                      highestReachableThreatLevel
               );
             })
             .filter(unprioritizedComponent -> unprioritizedComponent.highestThreat > 0)
-            .sorted(this::compareScoreDescending)
+            .sorted(Comparator.comparingInt(this::getScore).thenComparingInt(this::getHighestThreat).reversed())
             .toList();
 
     return addPrioritiesToSortedList(sortedComponents, 1);
@@ -263,13 +276,21 @@ public class DevelopmentPrioritiesService
     return !violationsWithFails.isEmpty();
   }
 
-  final PolicyViolation getHighestThreat(List<PolicyThreats.PolicyViolation> activeViolations) {
+  final PolicyViolation getHighestThreat(
+      List<PolicyThreats.PolicyViolation> activeViolations,
+      boolean securityViolationsOnly)
+  {
     if (activeViolations.isEmpty()) {
       return null;
     }
 
-    final List<PolicyThreats.PolicyViolation> violation = activeViolations
-        .stream()
+    Stream<PolicyViolation> violationsStream = activeViolations.stream();
+    if (securityViolationsOnly) {
+      violationsStream =
+          violationsStream.filter(policyViolation ->
+              SECURITY.getName().equalsIgnoreCase(policyViolation.policyThreatCategory));
+    }
+    final List<PolicyThreats.PolicyViolation> violations = violationsStream
         .sorted((violationA, violationB) -> {
           if (violationA.policyThreatLevel != violationB.policyThreatLevel) {
             return Integer.compare(violationB.policyThreatLevel, violationA.policyThreatLevel);
@@ -279,9 +300,9 @@ public class DevelopmentPrioritiesService
             return String.CASE_INSENSITIVE_ORDER.compare(violationA.policyViolationId, violationB.policyViolationId);
           }
         })
-        .collect(Collectors.toList());
+        .toList();
 
-    return violation.get(0);
+    return violations.get(0);
   }
 
   final boolean hasSecurityViolations(List<PolicyThreats.PolicyViolation> activeViolations) {
@@ -291,7 +312,8 @@ public class DevelopmentPrioritiesService
 
     return activeViolations
         .stream()
-        .anyMatch(policyViolation -> "SECURITY".equals(policyViolation.policyThreatCategory));
+        .anyMatch(policyViolation ->
+            SECURITY.getName().equalsIgnoreCase(policyViolation.policyThreatCategory));
   }
 
   private List<PolicyThreats.PolicyViolation> getMatchingViolations(
@@ -346,18 +368,12 @@ public class DevelopmentPrioritiesService
 
   private int getScore(final UnprioritizedComponent unprioritizedComponent) {
     return getActionNumber(unprioritizedComponent.action) * 100000 +
-        getSecurityReachableNumber(unprioritizedComponent) * 1000 +
         getRecommendationNumber(unprioritizedComponent) * 100 +
-        unprioritizedComponent.highestThreat;
+        unprioritizedComponent.highestReachableThreat;
   }
 
-  private int getSecurityReachableNumber(final UnprioritizedComponent unprioritizedComponent) {
-    if (unprioritizedComponent.securityReachable) {
-      return 1;
-    }
-    else {
-      return 0;
-    }
+  private int getHighestThreat(final UnprioritizedComponent unprioritizedComponent) {
+    return unprioritizedComponent.highestThreat;
   }
 
   private int getActionNumber(final String action) {
@@ -389,19 +405,6 @@ public class DevelopmentPrioritiesService
   private void throwErrorIfDevelopmentNotEnabledByLicense() {
     if (!isDevelopmentFeatureEnabled()) {
       throw new NotAuthorizedException("This server is not licensed for Sonatype Developer.");
-    }
-  }
-
-  private int compareScoreDescending(final UnprioritizedComponent a, final UnprioritizedComponent b) {
-    final int scoreA = getScore(a);
-    final int scoreB = getScore(b);
-
-    if (scoreA != scoreB) {
-      return scoreB - scoreA;
-    }
-    else {
-      // fall back to hash comparison to preserve order when there are score collisions
-      return String.CASE_INSENSITIVE_ORDER.compare(a.hash, b.hash);
     }
   }
 
@@ -449,6 +452,8 @@ public class DevelopmentPrioritiesService
 
     public DevelopmentPrioritizationComponentInfo prioritizationComponentInfo;
 
+    public final int highestReachableThreat;
+
     public UnprioritizedComponent(
         final String displayName,
         final ComponentIdentifier componentIdentifier,
@@ -460,7 +465,8 @@ public class DevelopmentPrioritiesService
         final String highestThreatPolicyConstraintName,
         final String hash,
         final boolean securityReachable,
-        final DevelopmentPrioritizationComponentInfo prioritizationComponentInfo
+        final DevelopmentPrioritizationComponentInfo prioritizationComponentInfo,
+        final int highestReachableThreat
     )
     {
       this.displayName = displayName;
@@ -474,6 +480,7 @@ public class DevelopmentPrioritiesService
       this.hash = hash;
       this.securityReachable = securityReachable;
       this.prioritizationComponentInfo = prioritizationComponentInfo;
+      this.highestReachableThreat = highestReachableThreat;
     }
 
     public PrioritizedComponent toPrioritizedComponent(final int priority) {
@@ -489,7 +496,8 @@ public class DevelopmentPrioritiesService
           highestThreatPolicyConstraintName,
           securityReachable,
           priority,
-          prioritizationComponentInfo);
+          prioritizationComponentInfo,
+          highestReachableThreat);
     }
   }
 }

@@ -52,10 +52,24 @@ public class SbomCycloneDxUtilsTest
   }
 
   @Test
+  public void testGetSbomCreationDetails_Json_NoContactForSupplierAndManufacturer_Xml() throws Exception {
+    Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata-no-contact.xml");
+    String actual = SbomCycloneDxUtils.getSbomCreationDetailsJson(bom);
+    assertThat(actual).isEqualTo(expectedNoContactSbomMetadata());
+  }
+
+  @Test
   public void testGetSbomCreationDetails_Json_ToolChoice_Json() throws Exception {
     Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata.json");
     String actual = SbomCycloneDxUtils.getSbomCreationDetailsJson(bom);
     assertThat(actual).isEqualTo(expectedToolChoiceSbomMetadata());
+  }
+
+  @Test
+  public void testGetSbomCreationDetails_Json_NoContactForSupplierAndManufacturer_Json() throws Exception {
+    Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata-no-contact.json");
+    String actual = SbomCycloneDxUtils.getSbomCreationDetailsJson(bom);
+    assertThat(actual).isEqualTo(expectedNoContactSbomMetadata());
   }
 
   @Test
@@ -83,14 +97,14 @@ public class SbomCycloneDxUtilsTest
   public void testGetSbomCreationDetails_OnlyCreators_NoManufactureContacts() throws Exception {
     Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata-only-creators-manufacture-null-contacts.xml");
     String actual = SbomCycloneDxUtils.getSbomCreationDetailsJson(bom);
-    assertThat(actual).isEqualTo(expectedOnlyCreatorsSbomMetadata());
+    assertThat(actual).isEqualTo(expectedOnlyCreatorsSbomMetadataManufacturerNoContact());
   }
 
   @Test
   public void testGetSbomCreationDetails_OnlyCreators_NoSupplierContacts() throws Exception {
     Bom bom = getCycloneDxDocument("sbom-cyclonedx-with-metadata-only-creators-supplier-null-contacts.xml");
     String actual = SbomCycloneDxUtils.getSbomCreationDetailsJson(bom);
-    assertThat(actual).isEqualTo(expectedOnlyCreatorsSbomMetadata());
+    assertThat(actual).isEqualTo(expectedOnlyCreatorsSbomMetadataSupplierNoContact());
   }
 
   @Test
@@ -145,6 +159,15 @@ public class SbomCycloneDxUtilsTest
         "\"version\":\"1.0-RELEASE\"}]}";
   }
 
+  private String expectedNoContactSbomMetadata() {
+    return "{\"type\":\"application\",\"created\":\"2024-02-29T23:41:22Z\",\"creators\":[{\"type\":\"Author\"," +
+        "\"name\":\"John Doe\",\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"},{\"type\":" +
+        "\"Manufacturer\",\"name\":\"manufacturer\",\"url\":\"example.com,example2.com,example3.com\"}," +
+        "{\"type\":\"Supplier\",\"name\":\"supplier\",\"url\":\"example.com,example2.com,example3.com\"}]," +
+        "\"tools\":[{\"type\":\"application\",\"name\":\"Tool\"," +
+        "\"version\":\"1.0-RELEASE\"}]}";
+  }
+
   private String expectedLegacyToolSbomMetadata() {
     return "{\"type\":\"application\",\"created\":\"2024-02-29T23:41:22Z\",\"creators\":[{\"type\":\"Author\"" +
         ",\"name\":\"John Doe\",\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"},{\"type\":" +
@@ -160,6 +183,18 @@ public class SbomCycloneDxUtilsTest
   private String expectedOnlyCreatorsSbomMetadata() {
     return "{\"type\":\"application\",\"created\":\"2024-02-29T23:41:22Z\",\"creators\":[{\"type\":\"Author\"" +
         ",\"name\":\"John Doe\",\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"}]}";
+  }
+
+  private String expectedOnlyCreatorsSbomMetadataManufacturerNoContact() {
+    return "{\"type\":\"application\",\"created\":\"2024-02-29T23:41:22Z\",\"creators\":[{\"type\":\"Author\"" +
+        ",\"name\":\"John Doe\",\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"}," +
+        "{\"type\":\"Manufacturer\",\"name\":\"John Doe Inc.\"}]}";
+  }
+
+  private String expectedOnlyCreatorsSbomMetadataSupplierNoContact() {
+    return "{\"type\":\"application\",\"created\":\"2024-02-29T23:41:22Z\",\"creators\":[{\"type\":\"Author\"" +
+        ",\"name\":\"John Doe\",\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"}," +
+        "{\"type\":\"Supplier\",\"name\":\"John Doe Inc.\"}]}";
   }
 
   private String expectedOnlyToolsSbomMetadata() {

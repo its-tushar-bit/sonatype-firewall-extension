@@ -19,15 +19,14 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.sbom.utils.SbomCreationDetails.CreatorType;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.io.IOUtils;
-import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Method;
-import org.cyclonedx.parsers.BomParserFactory;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
@@ -37,6 +36,8 @@ import org.cyclonedx.model.OrganizationalEntity;
 import org.cyclonedx.model.Property;
 import org.cyclonedx.model.Service;
 import org.cyclonedx.model.Tool;
+import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Method;
+import org.cyclonedx.parsers.BomParserFactory;
 import org.cyclonedx.parsers.Parser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,7 +117,7 @@ public class SbomCycloneDxUtils
     buildCreatorsWithAuthors(extractedMetadata, metadataFromSbomFile);
     buildCreatorsWithManufacturer(extractedMetadata, metadataFromSbomFile);
     buildCreatorsWithSupplier(extractedMetadata, metadataFromSbomFile);
-    if (extractedMetadata.creators.size() == 0) {
+    if (extractedMetadata.creators.isEmpty()) {
       extractedMetadata.creators = null;
     }
   }
@@ -127,7 +128,7 @@ public class SbomCycloneDxUtils
       extractedMetadata.creators.addAll(authorsFromSbomFile.stream()
           .map(organizationalContact ->
               mapOrganizationalContactToCreator(organizationalContact, SbomCreationDetails.CreatorType.Author.name()))
-          .collect(Collectors.toList()));
+          .toList());
     }
   }
 
@@ -141,7 +142,11 @@ public class SbomCycloneDxUtils
           .map(contact -> mapOrganizationalContactToCreator(contact,
               SbomCreationDetails.CreatorType.Manufacturer.name(),
               manufactureFromSbomFile.getUrls()))
-          .collect(Collectors.toList()));
+          .toList());
+    }
+    else if (manufactureFromSbomFile != null) {
+      extractedMetadata.creators.add(
+          mapOrganizationalEntityToCreator(manufactureFromSbomFile, CreatorType.Manufacturer.name()));
     }
   }
 
@@ -149,9 +154,13 @@ public class SbomCycloneDxUtils
     OrganizationalEntity supplierFromSbomFile = metadataFromSbomFile.getSupplier();
     if (supplierFromSbomFile != null && CollectionUtils.isNotEmpty(supplierFromSbomFile.getContacts())) {
       extractedMetadata.creators.addAll(supplierFromSbomFile.getContacts().stream()
-          .map(contact -> mapOrganizationalContactToCreator(contact, SbomCreationDetails.CreatorType.Supplier.name(),
+          .map(contact -> mapOrganizationalContactToCreator(contact, CreatorType.Supplier.name(),
               supplierFromSbomFile.getUrls()))
-          .collect(Collectors.toList()));
+          .toList());
+    }
+    else if (supplierFromSbomFile != null) {
+      extractedMetadata.creators.add(
+          mapOrganizationalEntityToCreator(supplierFromSbomFile, CreatorType.Supplier.name()));
     }
   }
 
@@ -190,6 +199,21 @@ public class SbomCycloneDxUtils
     }
     if (organizationalContact.getPhone() != null) {
       creator.phone = organizationalContact.getPhone();
+    }
+    return creator;
+  }
+
+  private static SbomCreationDetails.Creator mapOrganizationalEntityToCreator(
+      OrganizationalEntity organizationalEntity,
+      String creatorType)
+  {
+    SbomCreationDetails.Creator creator = new SbomCreationDetails.Creator();
+    creator.type = creatorType;
+    if (organizationalEntity.getName() != null) {
+      creator.name = organizationalEntity.getName();
+    }
+    if (!CollectionUtils.isEmpty(organizationalEntity.getUrls())) {
+      creator.url = String.join(",", organizationalEntity.getUrls());
     }
     return creator;
   }
@@ -290,7 +314,7 @@ public class SbomCycloneDxUtils
     }
 
     return bom.getComponents().stream().filter(
-        bc -> packageUrl.equals(bc.getPurl()) ).findFirst();
+        bc -> packageUrl.equals(bc.getPurl())).findFirst();
   }
 
   public static void addSonatypeIdentifierPropertyToComponent(

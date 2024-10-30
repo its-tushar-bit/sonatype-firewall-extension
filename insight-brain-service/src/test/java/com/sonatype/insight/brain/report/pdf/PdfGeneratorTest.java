@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.report.pdf.PdfGenerator.Context;
 import com.sonatype.insight.brain.report.pdf.PdfGenerator.WordBreaker;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.components.BomPageMetadataDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -71,7 +72,7 @@ public class PdfGeneratorTest
   }
 
   @Test
-  public void testGenerate_SBOM() throws Exception {
+  public void testGenerate_SBOM_CDX() throws Exception {
     Application app = tempEntity.newApplicationWithParent("appPublicId", "appName");
     String scanId = "scanId";
     tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
@@ -87,9 +88,46 @@ public class PdfGeneratorTest
         List.of("author"),
         List.of("manufacturer"),
         List.of("supplier"),
+        Collections.emptyList(),
+        Collections.emptyList(),
+        SbomSpecification.CYCLONEDX.toString(),
+        "specVersion",
+        "fileFormat",
+        new Date(),
+        "scanId"
+    );
+    PdfData pdfData = PdfData.createSbomPdfData(
+        null,
+        "98",
+        policyViolationsData,
+        apiReportDataServiceV2.getRawData(app.getPublicId(), scanId),
+        bomPageMetadataDTO
+    );
+
+    PdfGenerator.generate(pdfFile, pdfData, Context.SBOM);
+    assertThat(pdfFile).isFile();
+  }
+
+  @Test
+  public void testGenerate_SBOM_SPDX() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("appPublicId", "appName");
+    String scanId = "scanId";
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    File reportFile = insightWork.getReportFile(app.getId(), scanId);
+    FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorTest/report", tempDir), reportFile);
+
+    ApiReportPolicyDataDTOV2 policyViolationsData =
+        apiReportDataServiceV2.getPolicyViolationsData(app.getPublicId(), scanId);
+    policyViolationsData.commitHash = "b141d3806df77594e4744bcf24b4cc95";
+    File pdfFile = PdfGenerator.getPdfFile(reportFile);
+
+    BomPageMetadataDTO bomPageMetadataDTO = new BomPageMetadataDTO(
+        Collections.emptyList(),
+        Collections.emptyList(),
+        Collections.emptyList(),
         List.of("person"),
         List.of("organization"),
-        "specification",
+        SbomSpecification.SPDX.toString(),
         "specVersion",
         "fileFormat",
         new Date(),

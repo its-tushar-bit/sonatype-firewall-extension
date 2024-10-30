@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Base64;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import javax.inject.Inject;
@@ -417,6 +418,28 @@ public class SbomImportServiceTest
     assertThrows("The provided requestId " + requestId + " is not valid.", BadRequestException.class,
         () ->
             sbomImportService.importDetectedSbom(application.getId(), requestId, "userAgent"));
+  }
+
+  @Test
+  public void testImportDetectedSbom_Failure_PathTraversalInFileName() {
+    String subpathBinaryRequestId = Base64.getEncoder().encodeToString("BINARY-fo-o/bar.jar".getBytes());
+    String parentDirBinaryRequestId = Base64.getEncoder().encodeToString("BINARY-../as-df/passwd".getBytes());
+
+    String subpathSbomRequestId = Base64.getEncoder()
+        .encodeToString("SBOM-application/json-SPDX-fo-o/bar.spdx.json".getBytes());
+    String parentDirSbomRequestId = Base64.getEncoder()
+        .encodeToString("SBOM-application/xml-CycloneDX-../as-df/passwd".getBytes());
+
+    var requestIds =
+        List.of(subpathBinaryRequestId, parentDirBinaryRequestId, subpathSbomRequestId, parentDirSbomRequestId);
+
+    for (String requestId : requestIds) {
+      assertThrows(
+          "The provided requestId " + requestId + " is not valid.",
+          BadRequestException.class,
+          () -> sbomImportService.importDetectedSbom(application.getId(), requestId, "userAgent")
+      );
+    }
   }
 
   @Test

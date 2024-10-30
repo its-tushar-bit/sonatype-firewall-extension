@@ -275,7 +275,8 @@ public class SbomMetadataUtils
   }
 
   private void validateFilename(String requestId, String storedfileName) {
-    if (StringUtils.indexOf(storedfileName, "-") == -1) {
+    if (!storedfileName.contains("-") || storedfileName.contains("/") ||
+        storedfileName.contains("\\")) {
       throw new BadRequestException("The provided requestId " + requestId + " is not valid.");
     }
   }

@@ -275,4 +275,18 @@ public class SbomMetadataUtilsTest
       sbomMetadataUtils.decodeRequestId(requestId);
     }).withMessage("The provided requestId " + requestId + " is not valid.");
   }
+
+  @Test
+  public void testDecodeRequestId_invalidPathTraversalInFileName() {
+    String[] filePaths = new String[]{"path/test.jar", "path\\test.jar"};
+    for (String filePath : filePaths) {
+      String filenameUUID = UUID.randomUUID().toString().replace("-", "");
+      String requestId = Base64.getEncoder()
+          .encodeToString(String.format("%s-%s-%s", SbomScanType.BINARY.name(), filenameUUID, filePath)
+              .getBytes(StandardCharsets.UTF_8));
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+        sbomMetadataUtils.decodeRequestId(requestId);
+      }).withMessage("The provided requestId " + requestId + " is not valid.");
+    }
+  }
 }

@@ -11,7 +11,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.UUID;
 import javax.inject.Inject;
@@ -161,7 +160,7 @@ public class SbomImportService
     SbomFormat sbomFormat = idElements.getSbomFormat();
     ItemContentType contentType = idElements.getContentType();
 
-    Path tmpImportFilePath = Paths.get(insightWork.getSbomTempDir().getPath(), idElements.getFilename());
+    Path tmpImportFilePath = insightWork.getSbomTempDir().toPath().resolve(idElements.getFilename());
     if (!Files.exists(tmpImportFilePath)) {
       throw new NotFoundException("Request with id " + requestId + " does not exist");
     }

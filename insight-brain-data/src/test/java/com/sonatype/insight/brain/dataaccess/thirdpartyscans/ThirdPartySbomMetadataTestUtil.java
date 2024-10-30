@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
@@ -18,11 +20,13 @@ public class ThirdPartySbomMetadataTestUtil
       String applicationId,
       String thirdPartyFileId)
   {
+    DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
+
     ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata();
     thirdPartySbomMetadata.setCreatedAt(new Date());
     thirdPartySbomMetadata.setApplicationId(applicationId);
     thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFileId);
-    thirdPartySbomMetadata.setSbomVersion(RandomStringUtils.randomAscii(10));
+    thirdPartySbomMetadata.setSbomVersion(dtFormatter.format(LocalDateTime.now()));
     thirdPartySbomMetadata.setFilename(RandomStringUtils.randomAscii(10));
     thirdPartySbomMetadata.setSerialNumber(RandomStringUtils.randomAscii(10));
     thirdPartySbomMetadata.setSpec(RandomStringUtils.randomAscii(10));

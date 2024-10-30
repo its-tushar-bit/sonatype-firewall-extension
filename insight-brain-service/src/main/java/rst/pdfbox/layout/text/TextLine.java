@@ -12,7 +12,6 @@ import java.util.Map;
 import com.sonatype.insight.brain.report.pdf.PdfGeneratorUtils;
 
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
-
 import rst.pdfbox.layout.util.CompatibilityHelper;
 
 /**
@@ -47,7 +46,7 @@ public class TextLine implements TextSequence {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> T getCachedValue(final String key, Class<T> type) {
+    private <T> T getCachedValue(final String key, @SuppressWarnings("unused") Class<T> type) {
 	return (T) cache.get(key);
     }
 
@@ -180,7 +179,6 @@ public class TextLine implements TextSequence {
 	    extraWordSpacing = (availableLineWidth - getWidth()) / (styledTextList.size()-1);
 	}
 	
-	FontDescriptor lastFontDesc = null;
 	float lastBaselineOffset = 0;
 	Color lastColor = null;
 	float gap = 0;

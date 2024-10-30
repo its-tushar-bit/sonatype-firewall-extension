@@ -18,11 +18,11 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent;
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent;
 import com.sonatype.insight.brain.callflow.ComponentReachabilityService;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
 import com.sonatype.insight.brain.features.FeaturesService;
@@ -38,20 +38,16 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_DIRECT;
+import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_INNER_SOURCE;
 import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_TRANSITIVE;
 import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_UNKNOWN;
-import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_INNER_SOURCE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
 
 @Named
 public class DevelopmentPrioritiesService
 {
-  private static final Logger log = LoggerFactory.getLogger(DevelopmentPrioritiesService.class);
-
   private final FeaturesService featuresService;
 
   private final DevelopmentPrioritiesReportService developmentPrioritiesReportService;

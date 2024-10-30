@@ -10,7 +10,6 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -293,32 +292,6 @@ public class CIEvaluationStatServiceTest
     result = ciEvaluationStatService
         .getBoundedCountOfApplicationsWithCiCdTriggeredEvaluationsNoAuth(new Date(evalTime3.getTime() - 2));
     assertThat(result).isEqualTo(1);
-  }
-
-  private void setUpApplications(final int maxApplications, final boolean includeEvaluations) {
-    Organization organization = tempEntity.newOrganization();
-
-    if (includeEvaluations) {
-      Application application = tempEntity.newApplication(organization.getId());
-      Application application2 = tempEntity.newApplication(organization.getId());
-
-      // Add 1 policy evaluation with a scan trigger type not CI, 1 with a scan trigger type of CI, and a 2nd for the
-      // same app (i.e. app2 should not count as an app without CI just because it has an eval of type not CI)
-      Calendar now = Calendar.getInstance();
-      tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, "testScanId1",
-          false, false, false, now.getTime(), "testCommitHash1", ScanTriggerType.IDE);
-      now.add(Calendar.MINUTE, 10);
-
-      tempEntity.newPolicyEvaluation(application2.getId(), Stage.ID_BUILD, "testScanId2",
-          false, false, false, now.getTime(), "testCommitHash2", ScanTriggerType.CONTINUOUS_INTEGRATION);
-      now.add(Calendar.MINUTE, 10);
-
-      tempEntity.newPolicyEvaluation(application2.getId(), Stage.ID_BUILD, "testScanId3",
-          false, false, false, now.getTime(), "testCommitHash3", ScanTriggerType.IDE);
-    }
-
-    int effectiveMax = includeEvaluations ? maxApplications - 2 : maxApplications;
-    tempEntity.createApplications(effectiveMax, organization);
   }
 
   private void createApplicationsWithCiCdEvaluationsAtMomentInTime(final int numberOfApplications, final Date date) {

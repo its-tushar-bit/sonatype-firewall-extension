@@ -115,8 +115,6 @@ public class ReferenceLicenseUpdater
 
     public String longDisplayName;
 
-    public String licenseCategoryId;
-
     @Override
     public int compareTo(@NotNull final License o) {
       return COMPARATOR.compare(this, o);

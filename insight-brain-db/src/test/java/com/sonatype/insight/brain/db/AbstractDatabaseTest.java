@@ -29,7 +29,7 @@ public abstract class AbstractDatabaseTest
     return new File((String) metadata.get(H2DiskTest.DATABASE_PATH));
   }
 
-  protected DatabaseConfig getDatabaseConfig(File databaseDir, String databaseName) {
+  protected DatabaseConfig getDatabaseConfig(String databaseName) {
     return databaseRule.getDatabaseConfig(databaseName);
   }
 

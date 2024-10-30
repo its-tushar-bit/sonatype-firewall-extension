@@ -50,7 +50,7 @@ public class ApiCallFlowAnalysisConfigService
 
   @Authorize(permission = Permission.WRITE)
   public ApiCallFlowAnalysisConfigDTO upsertCallFlowAnalysisConfig(
-      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @SuppressWarnings("unused") @AuthzContext(Key.TYPE) final OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) final String ownerId,
       final ApiCallFlowAnalysisConfigDTO apiCallFlowAnalysisConfigDTO)
   {
@@ -70,7 +70,7 @@ public class ApiCallFlowAnalysisConfigService
 
   @Authorize(permission = Permission.READ)
   public ApiCallFlowAnalysisConfigDTO getCallFlowAnalysisConfig(
-      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @SuppressWarnings("unused") @AuthzContext(Key.TYPE) final OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) final String ownerId) throws NotFoundException
   {
     return getCallFlowAnalysisConfig(ownerId);
@@ -87,7 +87,7 @@ public class ApiCallFlowAnalysisConfigService
 
   @Authorize(permission = Permission.WRITE)
   public void deleteCallFlowAnalysisConfig(
-      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @SuppressWarnings("unused") @AuthzContext(Key.TYPE) final OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) final String ownerId)
   {
     CallFlowAnalysisConfig existingConfigByOwner = callFlowAnalysisConfigDAO.getByOwnerId(ownerId);

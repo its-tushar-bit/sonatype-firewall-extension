@@ -3434,7 +3434,7 @@ public abstract class AbstractRepositoryServiceTest
         catalogDateLong = Instant.now().minusSeconds(2 * 24 * 60 * 60).toEpochMilli();
       }
       hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "hash" + i, MatchState.EXACT,
-          0 /* index */, filename, null, null, null, 0 /* popularity */, catalogDateLong));
+          0 /* index */, filename, catalogDateLong));
     }
     mockHdsRequestForMetadata(hdsResult);
 
@@ -3516,7 +3516,7 @@ public abstract class AbstractRepositoryServiceTest
         quarantinedComponentIdentifier = componentIdentifier;
       }
       hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "hash" + i, MatchState.EXACT,
-          0 /* index */, filename, null, null, null, 0 /* popularity */,
+          0 /* index */, filename,
           Instant.now().minusSeconds(2 * 24 * 60 * 60).toEpochMilli()));
     }
     mockHdsRequestForMetadata(hdsResult);
@@ -3595,7 +3595,7 @@ public abstract class AbstractRepositoryServiceTest
           .add(
               new RepositoryComponentEvaluationDataRequest(ComponentIdentifier.FORMAT_PYPI, pathname, null /* hash */));
       hdsResult.components.add(createComponentEvaluationData(componentIdentifier, "hash" + i, MatchState.EXACT,
-          0 /* index */, filename, null, null, null, 0 /* popularity */,
+          0 /* index */, filename,
           Instant.now().minusSeconds(2 * 24 * 60 * 60).toEpochMilli()));
     }
     mockHdsRequestForMetadata(hdsResult);
@@ -3653,10 +3653,6 @@ public abstract class AbstractRepositoryServiceTest
       MatchState matchState,
       int index,
       String filename,
-      Set<License> declaredLicenses,
-      Set<License> observedLicenses,
-      List<SecurityVulnerability> securityVulnerabilities,
-      Integer relativePopularity,
       long catalogDate)
   {
     ComponentEvaluationData componentEvaluationData =

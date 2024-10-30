@@ -19,13 +19,13 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dashboard.DashboardUtils;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
@@ -76,8 +76,6 @@ public class PolicyViolationAggregationService
 
   private final StageTypeService stageTypeService;
 
-  private final DashboardUtils dashboardUtils;
-
   private final ClusterLockManager clusterLockManager;
 
   private final Configuration configuration;
@@ -88,7 +86,6 @@ public class PolicyViolationAggregationService
       final PolicyEvaluationDAO policyEvaluationDAO,
       final PolicyViolationDAO policyViolationDAO,
       final PolicyViolationAggregationDAO violationAggregationDAO,
-      final DashboardUtils dashboardUtils,
       final ClusterLockManager clusterLockManager,
       final Configuration configuration)
   {
@@ -96,7 +93,6 @@ public class PolicyViolationAggregationService
     this.policyViolationDAO = policyViolationDAO;
     this.violationAggregationDAO = violationAggregationDAO;
     this.stageTypeService = stageTypeService;
-    this.dashboardUtils = dashboardUtils;
     this.clusterLockManager = clusterLockManager;
     this.configuration = configuration;
   }

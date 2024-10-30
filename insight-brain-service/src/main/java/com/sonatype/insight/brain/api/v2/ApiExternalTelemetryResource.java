@@ -11,7 +11,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
@@ -39,7 +38,6 @@ public class ApiExternalTelemetryResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   public void postExternalTelemetry(
-      @HeaderParam("user-agent") String userAgent,
       Map<String, Object> telemetryValues,
       @Context HttpServletRequest req)
   {

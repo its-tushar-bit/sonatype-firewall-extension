@@ -35,7 +35,7 @@ public class H2DatabaseBackupTest
       copyExistingDatabase = "H2DatabaseBackupTest/testBackupOperationalDataStore"
   )
   public void testBackup() throws Exception {
-    DatabaseConfig databaseConfig = getDatabaseConfig(getDatabasePath(), "ods");
+    DatabaseConfig databaseConfig = getDatabaseConfig("ods");
 
     BasicDataSource dataSource = new BasicDataSource();
     dataSource.setDriverClassName(databaseConfig.getDriverClassName());

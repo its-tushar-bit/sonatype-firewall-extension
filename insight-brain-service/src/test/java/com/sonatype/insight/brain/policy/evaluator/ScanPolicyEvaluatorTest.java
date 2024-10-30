@@ -3709,21 +3709,6 @@ public class ScanPolicyEvaluatorTest
     return result;
   }
 
-  private void assertPolicyEvaluation(String scanId, boolean isReevaluation) {
-    assertPolicyEvaluation(scanId, isReevaluation, false /* isForObsoleteScan */);
-  }
-
-  private void assertPolicyEvaluation(
-      String scanId,
-      boolean isReevaluation,
-      boolean isForObsoleteScan)
-  {
-    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(),
-        scanId);
-    assertThat(policyEvaluation.isReevaluation()).isEqualTo(isReevaluation);
-    assertThat(policyEvaluation.isForObsoleteScan()).isEqualTo(isForObsoleteScan);
-  }
-
   private void assertApplicationComponent(
       ComponentIdentifier componentIdentifier,
       Date time,

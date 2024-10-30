@@ -10,7 +10,6 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
-
 import static com.codeborne.selenide.Selenide.$$;
 
 public class EvaluateApplicationModal
@@ -41,7 +40,7 @@ public class EvaluateApplicationModal
   }
 
   public NotifyRadioButtons notifyRadioButtons() {
-    return new NotifyRadioButtons(selector);
+    return new NotifyRadioButtons();
   }
 
   public ProgressBar progressBar() {
@@ -66,12 +65,6 @@ public class EvaluateApplicationModal
 
   public static class NotifyRadioButtons
   {
-    private final String root;
-
-    public NotifyRadioButtons(String root) {
-      this.root = root;
-    }
-
     public NxRadio yes() {
       return new NxRadio($$(".nx-radio-checkbox").get(0));
     }

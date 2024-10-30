@@ -19,7 +19,6 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_CONFIG_FEATURES_PATH;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_SAAS_LIFECYCLE_SCM_ENABLED;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class MtiqApiSourceControlResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
@@ -132,12 +131,6 @@ public class MtiqApiSourceControlResourceTest
         .parameter(OwnerType.ORGANIZATION, org.getId())
         .body(sourceControl)
         .post();
-  }
-
-  private static void assertSourceControlFailed(HttpResponse response, SourceControlProvider provider) {
-    assertResponseStatus(400, response);
-    String message = String.format("SourceControl provider value '%s' is invalid, valid options are: github", provider);
-    assertThat(response.getBodyText()).contains(message);
   }
 
   private HttpRequest callConfigFeaturesEndpoint(String tenantSlug) {

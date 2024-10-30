@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.repository;
 
 import java.time.LocalDate;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -53,7 +54,9 @@ public class RequestSafeComponentsAutoSelectMetricEventHandler
   }
 
   @Subscribe
-  public void onSafeComponentsAutoSelectMetricRequested(RequestSafeComponentsAutoSelectMetricEvent event) {
+  public void onSafeComponentsAutoSelectMetricRequested(
+      @SuppressWarnings("unused") RequestSafeComponentsAutoSelectMetricEvent event)
+  {
     if (!firewallMetricsService.isValidProductLicense()) {
       log.debug("Firewall Metrics not collected due to Next-Gen Firewall not enabled");
       return;

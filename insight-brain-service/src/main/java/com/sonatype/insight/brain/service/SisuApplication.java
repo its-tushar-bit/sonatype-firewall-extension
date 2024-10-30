@@ -147,7 +147,10 @@ public abstract class SisuApplication<T extends Configuration>
   //
   // Allow the application to customize the environment
   //
-  protected void customize(T configuration, Environment environment) {
+  protected void customize(
+      @SuppressWarnings("unused") T configuration,
+      @SuppressWarnings("unused") Environment environment)
+  {
   }
 
   protected  <C> Iterable<BeanEntry<Annotation, C>> locate(BeanLocator locator, Class<C> type) {

@@ -46,14 +46,14 @@ public abstract class AbstractPolicyViolationConstraintFactsJsonAsyncDbMigration
   }
 
   @Override
-  protected boolean validateFinished(final AbstractSqlDAO<T> dao, final long processed, final long rows) {
+  protected boolean validateFinished(final long processed, final long rows) {
     if (dao instanceof AbstractPolicyViolationDAO) {
       long count = ((AbstractPolicyViolationDAO) dao).getCountWhereConstraintFactsJsonNotNull();
 
       return count == 0;
     }
     else {
-      return super.validateFinished(dao, processed, rows);
+      return super.validateFinished(processed, rows);
     }
   }
 }

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -102,10 +103,6 @@ public class OAuth2User
 
   public String getGroupsJson() {
     return groupsJson;
-  }
-
-  private void setGroupsJson(String groupsJson) {
-    this.groupsJson = groupsJson;
   }
 
   public Set<String> getGroups() {

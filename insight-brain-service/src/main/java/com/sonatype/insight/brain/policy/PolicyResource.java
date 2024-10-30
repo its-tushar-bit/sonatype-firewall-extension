@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -455,12 +456,6 @@ public class PolicyResource
         return importPolicies(ownerType, ownerId, is);
       }
     });
-  }
-
-  private List<Policy> getApplicableByOwnerIdWithHierarchy(final OwnerType ownerType, String ownerId) {
-    ownerId = idUtils.getInternalOwnerId(ownerType, ownerId);
-
-    return policyDAO.getApplicableByOwnerIdWithHierarchy(ownerId);
   }
 
   private PolicyImportResult importPolicies(OwnerType ownerType, String ownerId, InputStream in) throws IOException {

@@ -23,6 +23,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -685,7 +686,7 @@ public class IndexService
     return organizations.stream().map(org -> buildDocument(indexingContext, org)).collect(toList());
   }
 
-  Document buildDocument(IndexingContext indexingContext, Organization organization) {
+  Document buildDocument(@SuppressWarnings("unused") IndexingContext indexingContext, Organization organization) {
     return new DocumentBuilder(ItemType.ORGANIZATION) //
         .setOwner(organization) //
         .build();

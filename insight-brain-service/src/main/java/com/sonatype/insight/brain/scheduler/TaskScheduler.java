@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -432,7 +433,7 @@ public class TaskScheduler
     }
   }
 
-  protected QuartzJobStoreTX getQuartzJobStoreTX(InsightJob insightJob) {
+  protected QuartzJobStoreTX getQuartzJobStoreTX(@SuppressWarnings("unused") InsightJob insightJob) {
     return quartzJobStoreTX;
   }
 

@@ -41,11 +41,11 @@ public class CategoryTile
     return Condition.text("available to apps in " + organization.getName());
   }
 
-  public static WebElementCondition buttonText(Application application) {
+  public static WebElementCondition buttonText(@SuppressWarnings("unused") Application application) {
     return Condition.text("assign a category");
   }
 
-  public static WebElementCondition buttonText(Organization organization) {
+  public static WebElementCondition buttonText(@SuppressWarnings("unused") Organization organization) {
     return Condition.text("add a category");
   }
 

@@ -58,7 +58,7 @@ public class H2DatabaseStabilityTest
       copyExistingDatabase = "H2DatabaseStabilityTest"
   )
   public void testLegacyTimestampFormat() throws Exception {
-    DatabaseConfig databaseConfig = getDatabaseConfig(getDatabasePath(), "timestamp");
+    DatabaseConfig databaseConfig = getDatabaseConfig("timestamp");
     try (Connection connection = DriverManager.getConnection(databaseConfig.getUrl(), "", "");
         Statement statement = connection.createStatement();
         ResultSet results = statement.executeQuery("SELECT open_time FROM policy_violation")) {

@@ -103,7 +103,7 @@ public class LegacyDataStoreMigratorTest
   )
   public void testMigrate_VersionUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript() throws Exception {
     // Note - this test is an H2 database named `test.h2.db` which contains a schema named this
-    DatabaseConfig databaseConfig = getDatabaseConfig(getDatabasePath(), "test");
+    DatabaseConfig databaseConfig = getDatabaseConfig("test");
     String schemaName = "testMigrate_VersionUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript";
 
     DataSource dataSource = DataSourceProviderFactory
@@ -124,7 +124,7 @@ public class LegacyDataStoreMigratorTest
       copyExistingDatabase = "DataStoreMigratorTest/PostIncrementalMigrator"
   )
   public void testMigrate_RunsPostIncrementalMigrators() throws Exception {
-    DatabaseConfig databaseConfig = getDatabaseConfig(getDatabasePath(), "test");
+    DatabaseConfig databaseConfig = getDatabaseConfig("test");
     File databaseVersionFile = getDatabaseVersionFile(getDatabasePath(), "test");
     int desiredVersion = 12;
     assertThat(readDatabaseVersion(databaseVersionFile)).isEqualTo(String.valueOf(desiredVersion - 2));
@@ -165,7 +165,7 @@ public class LegacyDataStoreMigratorTest
     File databaseDir = getDatabasePath();
     File databaseVersionFile = getDatabaseVersionFile(databaseDir, "test");
     assertThat(databaseVersionFile).doesNotExist();
-    DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "test");
+    DatabaseConfig databaseConfig = getDatabaseConfig("test");
     DataSource dataSource = DataSourceProviderFactory
         .createDataSourceProvider(H2DatabaseEngine.INSTANCE)
         .getDataSource(databaseConfig, "MissingVersion");

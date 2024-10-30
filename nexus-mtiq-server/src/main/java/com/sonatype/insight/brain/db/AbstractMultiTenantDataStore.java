@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.db;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
@@ -63,7 +64,7 @@ public abstract class AbstractMultiTenantDataStore
   /**
    * Opportunity for implementers to add additional properties for the EntityManagerFactory
    */
-  protected void addAdditionalProps(final Map<String, Object> props) {
+  protected void addAdditionalProps(@SuppressWarnings("unused") final Map<String, Object> props) {
     // no-op
   }
 

@@ -11,7 +11,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 public abstract class NotificationValidator<R extends Notification>
 {
-  public ValidationResult validate(final TransactionContext tx, final R notification) {
+  public ValidationResult validate(@SuppressWarnings("unused") final TransactionContext tx, final R notification) {
     ValidationResult validationResult = new ValidationResult();
     for (String stageId : notification.getStageIds()) {
       if (!Notification.CONTINUOUS_MONITORING.equals(stageId) && StageTypes.getById(stageId) == null) {

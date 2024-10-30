@@ -162,7 +162,7 @@ public abstract class AsyncDbMigration<T extends HasStringId>
   protected void validateAndMarkMigrationFinished(final long processed) {
     long rows = dao.getCount();
 
-    if (validateFinished(dao, processed, rows)) {
+    if (validateFinished(processed, rows)) {
       log.info("Migration of {} completed. Adding Migration Tracker \"{}\" entry to prevent running again.",
           type, getMigrationName());
       migrationTrackerDAO.insertTracker(getMigrationName());
@@ -172,7 +172,7 @@ public abstract class AsyncDbMigration<T extends HasStringId>
     }
   }
 
-  protected boolean validateFinished(final AbstractSqlDAO<T> dao, final long processed, final long rows) {
+  protected boolean validateFinished(final long processed, final long rows) {
     return processed == rows;
   }
 

@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -40,7 +41,6 @@ import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
@@ -164,8 +164,6 @@ public class ScanPolicyEvaluator
 
   private final Configuration configuration;
 
-  private final ComponentLoaderFactory componentLoaderFactory;
-
   private final ClusterLockManager clusterLockManager;
 
   private final PolicyAlertUtil policyAlertUtil;
@@ -205,7 +203,6 @@ public class ScanPolicyEvaluator
       final SourceControlUtils sourceControlUtils,
       final CurrentUser currentUser,
       final Configuration configuration,
-      final ComponentLoaderFactory componentLoaderFactory,
       final ClusterLockManager clusterLockManager,
       final PolicyAlertUtil policyAlertUtil,
       final TelemetryUtils telemetryUtils,
@@ -236,7 +233,6 @@ public class ScanPolicyEvaluator
     this.sourceControlUtils = sourceControlUtils;
     this.currentUser = currentUser;
     this.configuration = configuration;
-    this.componentLoaderFactory = componentLoaderFactory;
     this.clusterLockManager = clusterLockManager;
     this.policyAlertUtil = policyAlertUtil;
     this.telemetryUtils = telemetryUtils;

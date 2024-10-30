@@ -9,7 +9,6 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverDTO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -26,9 +25,6 @@ public class ApiAutoPolicyWaiverServiceAuthzTest
 {
   @Inject
   private ApiAutoPolicyWaiverService apiAutoPolicyWaiverService;
-
-  @Inject
-  private PolicyViolationDAO policyViolationDAO;
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetAutoPolicyWaiver_Unauthenticated() {

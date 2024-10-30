@@ -16,6 +16,8 @@ public class ConfigurationValidationResult
 
   private ValidationResult repoPrivate;
 
+  private ValidationResult repoPublic;
+
   private ValidationResult tokenPermissions;
 
   private ValidationResult sshConfiguration;
@@ -29,6 +31,14 @@ public class ConfigurationValidationResult
 
   public void setRepoPrivate(final ValidationResult repoPrivate) {
     this.repoPrivate = repoPrivate;
+  }
+
+  public ValidationResult getRepoPublic() {
+    return repoPublic;
+  }
+
+  public void setRepoPublic(final ValidationResult repoPublic) {
+    this.repoPublic = repoPublic;
   }
 
   public ValidationResult getConfigurationComplete() {

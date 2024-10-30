@@ -79,7 +79,9 @@ public class ApiCompositeSourceControlConfigValidatorService
     result.setConfigurationComplete(new ValidationResult(true));
 
     try {
-      if (!scmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(gitInfo)) {
+      boolean isPrivateRepository = scmRepoVisibilityService.isPrivateRepository(gitInfo);
+      boolean isInternalRepository = scmRepoVisibilityService.isInternalRepository(gitInfo);
+      if (!isPrivateRepository && !isInternalRepository) {
         result.setRepoPrivate(new ValidationResult(false,
             "Repository must be private or internal to enable all SCM features. " +
                 "Support for public repositories is limited."));
@@ -87,12 +89,21 @@ public class ApiCompositeSourceControlConfigValidatorService
       else {
         result.setRepoPrivate(new ValidationResult(true));
       }
+
+      boolean isScmAllowedOnPublicRepositories = scmRepoVisibilityService.isScmAllowedOnPublicRepositories();
+      if (!isScmAllowedOnPublicRepositories || isPrivateRepository || isInternalRepository) {
+        result.setRepoPublic(new ValidationResult(false));
+      }
+      else {
+        result.setRepoPublic(new ValidationResult(true));
+      }
     }
     catch (Exception e) {
       // Don't propagate the exception message because it may contain server details that can help an attacker mount an
       // attack. See https://sonatype.atlassian.net/browse/CLM-29901.
       log.debug("Unable to determine if repository is private for app ID {}: {}", applicationId, e.getMessage(), e);
       result.setRepoPrivate(new ValidationResult(false, "Unable to determine if repository is private."));
+      result.setRepoPublic(new ValidationResult(false, "Unable to determine if repository is public."));
     }
 
     try {

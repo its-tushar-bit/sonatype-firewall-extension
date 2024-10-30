@@ -37,6 +37,12 @@ const TestConfigurationResults = () => {
       : sourceControl?.sshEnabled?.value;
   };
 
+  const showRepositoryResult = () => {
+    const isValidPublicRepo = result?.repoPublic?.valid;
+    const isValidPrivateRepo = result?.repoPrivate?.valid;
+    return isValidPrivateRepo || !isValidPublicRepo;
+  };
+
   const showTable = result || loading || error;
 
   return showTable ? (
@@ -57,7 +63,7 @@ const TestConfigurationResults = () => {
       </header>
       <NxList isLoading={loading} error={error}>
         <ListItem data={result?.configurationComplete} text="Configuration complete" />
-        <ListItem data={result?.repoPrivate} text="Private repository" />
+        {showRepositoryResult() && <ListItem data={result?.repoPrivate} text="Private repository" />}
         <ListItem data={result?.tokenPermissions} text="Sufficient token permissions" />
         {isSshEnabled(sourceControl) && <ListItem data={result?.sshConfiguration} text="SSH configuration complete" />}
       </NxList>

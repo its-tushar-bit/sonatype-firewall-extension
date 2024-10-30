@@ -57,7 +57,7 @@ public class ScmRepoVisibilityService
   /**
    * Returns {@code true} if a repository is internal only (e.g. GitHub Enterprise)
    */
-  private boolean isInternalRepository(final GitRepositoryInfo gitRepositoryInfo) {
+  public boolean isInternalRepository(final GitRepositoryInfo gitRepositoryInfo) {
     return gitRepositoryInfo.provider.isScmSecured(gitRepositoryInfo.normalizedRepositoryUrl);
   }
 
@@ -78,7 +78,7 @@ public class ScmRepoVisibilityService
    * on publicly visible repositories. This is due to legal concerns of leaking our proprietary data to the public.
    * However, we have a license based feature flag that allows disabling this restriction.
    */
-  private boolean isScmAllowedOnPublicRepositories() {
+  public boolean isScmAllowedOnPublicRepositories() {
     Set<Feature> features = featuresService.getFeatures();
     return features.contains(LicensedFeature.ALLOW_SCM_ON_PUBLIC_REPOS);
   }

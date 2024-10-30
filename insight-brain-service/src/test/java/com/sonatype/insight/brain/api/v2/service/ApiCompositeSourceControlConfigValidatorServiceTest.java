@@ -66,7 +66,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
   public void testValidateSourceControlConfig_validApplication() throws Exception {
     GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo(null);
     when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
-    when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(eq(gitRepositoryInfo))).thenReturn(true);
+    when(mockScmRepoVisibilityService.isPrivateRepository(eq(gitRepositoryInfo))).thenReturn(true);
     GitApiClient mockClient = mock(GitApiClient.class);
     when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
     when(mockClient.validateTokenPermissions()).thenReturn(new ValidationResult(true));
@@ -76,6 +76,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     assertThat(result).isNotNull();
     assertThat(result.getConfigurationComplete().isValid()).isTrue();
     assertThat(result.getRepoPrivate().isValid()).isTrue();
+    assertThat(result.getRepoPublic().isValid()).isFalse();
     assertThat(result.getTokenPermissions().isValid()).isTrue();
     assertThat(result.getSshConfiguration()).isNull();
   }
@@ -89,7 +90,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
 
     // and the repo is configured successfully
-    when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(eq(gitRepositoryInfo))).thenReturn(true);
+    when(mockScmRepoVisibilityService.isPrivateRepository(eq(gitRepositoryInfo))).thenReturn(true);
     GitApiClient mockClient = mock(GitApiClient.class);
     when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
     when(mockClient.validateTokenPermissions()).thenReturn(new ValidationResult(true));
@@ -108,6 +109,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     assertThat(result).isNotNull();
     assertThat(result.getConfigurationComplete().isValid()).isTrue();
     assertThat(result.getRepoPrivate().isValid()).isTrue();
+    assertThat(result.getRepoPublic().isValid()).isFalse();
     assertThat(result.getTokenPermissions().isValid()).isTrue();
     assertThat(result.getSshConfiguration().isValid()).isTrue();
   }
@@ -129,7 +131,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
   public void testValidateSourceControlConfig_privateRepo() throws IOException {
     GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo(null);
     when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
-    when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(eq(gitRepositoryInfo))).thenReturn(true);
+    when(mockScmRepoVisibilityService.isPrivateRepository(eq(gitRepositoryInfo))).thenReturn(true);
     GitApiClient mockClient = mock(GitApiClient.class);
     when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
     when(mockClient.validateTokenPermissions()).thenReturn(new ValidationResult(true));
@@ -139,6 +141,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     assertThat(result).isNotNull();
     assertThat(result.getConfigurationComplete().isValid()).isTrue();
     assertThat(result.getRepoPrivate().isValid()).isTrue();
+    assertThat(result.getRepoPublic().isValid()).isFalse();
     assertThat(result.getTokenPermissions().isValid()).isTrue();
   }
 
@@ -165,7 +168,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
   public void testValidateSourceControlConfig_privateRepoException() throws Exception {
     GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo("*/target");
     when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
-    when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(eq(gitRepositoryInfo)))
+    when(mockScmRepoVisibilityService.isPrivateRepository(eq(gitRepositoryInfo)))
         .thenThrow(new UncheckedIOException(new IOException("Unauthorized")));
     GitApiClient mockClient = mock(GitApiClient.class);
     when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
@@ -177,6 +180,8 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     assertThat(result.getConfigurationComplete().isValid()).isTrue();
     assertThat(result.getRepoPrivate().isValid()).isFalse();
     assertThat(result.getRepoPrivate().getMessage()).isEqualTo("Unable to determine if repository is private.");
+    assertThat(result.getRepoPublic().isValid()).isFalse();
+    assertThat(result.getRepoPublic().getMessage()).isEqualTo("Unable to determine if repository is public.");
     assertThat(result.getTokenPermissions().isValid()).isFalse();
     assertThat(result.getTokenPermissions().getMessage()).isEqualTo("Invalid permissions");
   }
@@ -185,7 +190,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
   public void testValidateSourceControlConfig_invalidPermissions() throws Exception {
     GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo("*/target");
     when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
-    when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(eq(gitRepositoryInfo))).thenReturn(true);
+    when(mockScmRepoVisibilityService.isPrivateRepository(eq(gitRepositoryInfo))).thenReturn(true);
     GitApiClient mockClient = mock(GitApiClient.class);
     when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
     when(mockClient.validateTokenPermissions()).thenReturn(new ValidationResult(false, "Invalid permissions"));
@@ -195,6 +200,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     assertThat(result).isNotNull();
     assertThat(result.getConfigurationComplete().isValid()).isTrue();
     assertThat(result.getRepoPrivate().isValid()).isTrue();
+    assertThat(result.getRepoPublic().isValid()).isFalse();
     assertThat(result.getTokenPermissions().isValid()).isFalse();
     assertThat(result.getTokenPermissions().getMessage()).isEqualTo("Invalid permissions");
   }
@@ -208,7 +214,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
 
     // and the repo is configured successfully
-    when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(eq(gitRepositoryInfo))).thenReturn(true);
+    when(mockScmRepoVisibilityService.isPrivateRepository(eq(gitRepositoryInfo))).thenReturn(true);
     GitApiClient mockClient = mock(GitApiClient.class);
     when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
     when(mockClient.validateTokenPermissions()).thenReturn(new ValidationResult(true));
@@ -227,6 +233,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     assertThat(result).isNotNull();
     assertThat(result.getConfigurationComplete().isValid()).isTrue();
     assertThat(result.getRepoPrivate().isValid()).isTrue();
+    assertThat(result.getRepoPublic().isValid()).isFalse();
     assertThat(result.getTokenPermissions().isValid()).isTrue();
 
     // and SSH has an error
@@ -329,7 +336,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
 
     // and the repo is configured successfully
-    when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(eq(gitRepositoryInfo))).thenReturn(true);
+    when(mockScmRepoVisibilityService.isPrivateRepository(eq(gitRepositoryInfo))).thenReturn(true);
     GitApiClient mockClient = mock(GitApiClient.class);
     when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
     when(mockClient.validateTokenPermissions()).thenReturn(new ValidationResult(true));
@@ -348,6 +355,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     assertThat(result).isNotNull();
     assertThat(result.getConfigurationComplete().isValid()).isTrue();
     assertThat(result.getRepoPrivate().isValid()).isTrue();
+    assertThat(result.getRepoPublic().isValid()).isFalse();
     assertThat(result.getTokenPermissions().isValid()).isTrue();
 
     // and SSH has an error
@@ -368,7 +376,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
 
     // and the repo is configured successfully
-    when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(eq(gitRepositoryInfo))).thenReturn(true);
+    when(mockScmRepoVisibilityService.isPrivateRepository(eq(gitRepositoryInfo))).thenReturn(true);
     GitApiClient mockClient = mock(GitApiClient.class);
     when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
     when(mockClient.validateTokenPermissions()).thenReturn(new ValidationResult(true));
@@ -386,6 +394,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     assertThat(result).isNotNull();
     assertThat(result.getConfigurationComplete().isValid()).isTrue();
     assertThat(result.getRepoPrivate().isValid()).isTrue();
+    assertThat(result.getRepoPublic().isValid()).isFalse();
     assertThat(result.getTokenPermissions().isValid()).isTrue();
 
     // and SSH has an error
@@ -395,6 +404,44 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     assertThat(result.getSshConfiguration().getMessage())
         .isEqualTo("Unable to clone a repository using SSH, check that "
             + "your SSH keys are configured properly and available to IQ.");
+  }
+
+  @Test
+  public void testValidateSourceControlConfig_privateRepo_and_allowedOnPublicRepositories() throws IOException {
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo(null);
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
+    when(mockScmRepoVisibilityService.isPrivateRepository(eq(gitRepositoryInfo))).thenReturn(true);
+    when(mockScmRepoVisibilityService.isScmAllowedOnPublicRepositories()).thenReturn(true);
+    GitApiClient mockClient = mock(GitApiClient.class);
+    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
+    when(mockClient.validateTokenPermissions()).thenReturn(new ValidationResult(true));
+
+    ConfigurationValidationResult result = service.validateSourceControlConfig("1234");
+
+    assertThat(result).isNotNull();
+    assertThat(result.getConfigurationComplete().isValid()).isTrue();
+    assertThat(result.getRepoPrivate().isValid()).isTrue();
+    assertThat(result.getRepoPublic().isValid()).isFalse();
+    assertThat(result.getTokenPermissions().isValid()).isTrue();
+  }
+
+  @Test
+  public void testValidateSourceControlConfig_publicRepo_and_allowedOnPublicRepositories() throws IOException {
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo(null);
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
+    when(mockScmRepoVisibilityService.isPrivateRepository(eq(gitRepositoryInfo))).thenReturn(false);
+    when(mockScmRepoVisibilityService.isScmAllowedOnPublicRepositories()).thenReturn(true);
+    GitApiClient mockClient = mock(GitApiClient.class);
+    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
+    when(mockClient.validateTokenPermissions()).thenReturn(new ValidationResult(true));
+
+    ConfigurationValidationResult result = service.validateSourceControlConfig("1234");
+
+    assertThat(result).isNotNull();
+    assertThat(result.getConfigurationComplete().isValid()).isTrue();
+    assertThat(result.getRepoPrivate().isValid()).isFalse();
+    assertThat(result.getRepoPublic().isValid()).isTrue();
+    assertThat(result.getTokenPermissions().isValid()).isTrue();
   }
 
   private GitRepositoryInfo getGitRepositoryInfo(String scanTarget) {

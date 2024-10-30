@@ -20,6 +20,7 @@ const unconfiguredTestResponse = {
     message: 'Some required values are missing or unsaved',
   },
   repoPrivate: null,
+  repoPublic: null,
   tokenPermissions: null,
   sshConfiguration: null,
 };
@@ -31,6 +32,10 @@ const configuredTestResponse = {
   },
   repoPrivate: {
     valid: true,
+    message: null,
+  },
+  repoPublic: {
+    valid: false,
     message: null,
   },
   tokenPermissions: {
@@ -51,6 +56,10 @@ const configurationTestErrorMessages = {
   repoPrivate: {
     valid: false,
     message: 'Unable to connect to repo: http://my.awesomerepo.com',
+  },
+  repoPublic: {
+    valid: false,
+    message: null,
   },
   tokenPermissions: {
     valid: false,
@@ -178,7 +187,7 @@ describe('testConfiguration', () => {
     });
   });
 
-  describe('success', () => {
+  describe('success for private repository', () => {
     beforeEach(() => {
       axiosMock.onGet(getValidateScmConfigButtonUrl(ownerType, ownerId)).reply(200, configuredTestResponse);
     });
@@ -264,6 +273,48 @@ describe('testConfiguration', () => {
         {
           expectedIconClass: 'iq-source-control-check-ok',
           expectedText: 'Sufficient token permissions',
+        },
+      ]);
+      done();
+    });
+  });
+
+  describe('success for public repository', () => {
+    beforeEach(() => {
+      axiosMock.onGet(getValidateScmConfigButtonUrl(ownerType, ownerId)).reply(200, {
+        ...configuredTestResponse,
+        repoPublic: {
+          valid: true,
+          message: null,
+        },
+        repoPrivate: {
+          valid: false,
+          message: null,
+        },
+      });
+    });
+
+    it('test configuration results should be ok when backend is configured', async (done) => {
+      renderComponent(setSshEnabledState({ value: true }));
+
+      const testConfigurationButton = screen.getByRole('button', { name: 'Test Configuration' });
+      fireEvent.click(testConfigurationButton);
+      expect(await screen.findByText('Configuration Test Results')).toBeVisible();
+
+      const results = screen.getByRole('list');
+      expect(results.children.length).toBe(3);
+      checkResults(results, [
+        {
+          expectedIconClass: 'iq-source-control-check-ok',
+          expectedText: 'Configuration complete',
+        },
+        {
+          expectedIconClass: 'iq-source-control-check-ok',
+          expectedText: 'Sufficient token permissions',
+        },
+        {
+          expectedIconClass: 'iq-source-control-check-ok',
+          expectedText: 'SSH configuration complete',
         },
       ]);
       done();

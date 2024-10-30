@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+
 import javax.inject.Inject;
 import javax.mail.Message;
 import javax.servlet.http.HttpServletRequest;
@@ -180,7 +181,7 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  public void testPolicyEvaluationPolling_ComplianceStageValidation() throws IOException {
+  public void testPolicyEvaluationPolling_ComplianceStageValidation() {
     assertThatNoException().isThrownBy(() -> policyEvaluateService.evaluateWithPolling(
         IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(ID_BUILD)));
 

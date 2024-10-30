@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -234,9 +235,6 @@ public class ThirdPartyFileCoordinateDAO
 
       result.setResults(dtos);
       return result;
-    }
-    catch (UnsupportedEncodingException e) {
-      throw new InternalServerException(e);
     }
   }
 
@@ -514,7 +512,7 @@ public class ThirdPartyFileCoordinateDAO
   private void setComponentNameParameters(
       String componentName,
       int index,
-      javax.persistence.Query paginationQuery) throws UnsupportedEncodingException
+      javax.persistence.Query paginationQuery)
   {
     if (StringUtils.containsAny(componentName, " : ", " ")) {
       String[] coordinates = Arrays.stream(componentName.split("\\s+:\\s+|\\s+")) //

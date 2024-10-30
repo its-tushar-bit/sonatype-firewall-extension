@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.IOException;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -81,12 +82,12 @@ public class ReportServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testProcessBrowseReport_Unauthenticated() throws IOException {
+  public void testProcessBrowseReport_Unauthenticated() {
     reportService.processBrowseReport(app.getId(), "unrealId", "path");
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testProcessBrowseReport_Unauthorized() throws IOException {
+  public void testProcessBrowseReport_Unauthorized() {
     login();
     reportService.processBrowseReport(app.getId(), "unrealId", "path");
   }

@@ -33,6 +33,7 @@ import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.ide.LicenseStatus;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.remediation.VersionScoringDTO;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
@@ -110,6 +111,7 @@ import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES;
 import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES;
+import static com.sonatype.insight.brain.hds.VersionScoringService.HDS_BULK_SCORE_VERSIONING_PATH;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ALP_OBSERVED_LICENSE_DETECTION_ENABLED;
 import static com.sonatype.insight.brain.model.license.License.NOT_SUPPORTED_ID;
 import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
@@ -122,6 +124,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -204,6 +207,8 @@ public class ComponentInfoServiceTest
 
     application = tempEntity.newApplicationWithParent();
     repository = tempEntity.newRepository();
+
+    mockHdsGetVersionScoringData();
   }
 
   private NamedComponentDetails newNamedComponentDetails(ComponentIdentifier componentIdentifier) {
@@ -3225,5 +3230,10 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.getDeclaredLicenses()).isEmpty();
     assertThat(componentDetails.getObservedLicenses()).isEmpty();
     assertThat(componentDetails.getEffectiveLicenses()).isEmpty();
+  }
+
+  private void mockHdsGetVersionScoringData() {
+    lenient().when(hdsClientMock.post(eq(VersionScoringDTO[].class), eq(HDS_BULK_SCORE_VERSIONING_PATH), anyList()))
+        .thenReturn(new VersionScoringDTO[] {});
   }
 }

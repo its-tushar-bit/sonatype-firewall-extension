@@ -22,7 +22,7 @@ import com.sonatype.clm.dto.model.remediation.VersionScoringDTO.ToVersionData;
 @Named
 public class VersionScoringService
 {
-  static final String HDS_BULK_SCORE_VERSIONING_PATH = "rest/component/version-scoring/list";
+  public static final String HDS_BULK_SCORE_VERSIONING_PATH = "rest/component/version-scoring/list";
 
   // Currently HDS only supports Maven version scoring.
   // Here at client side will have better performance if filtering out non-Maven formats.

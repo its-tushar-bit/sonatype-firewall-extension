@@ -981,20 +981,20 @@ public class ApiConfigFeaturesServiceTest
   }
 
   @Test
-  public void testEnableFeature_developerSuggestNonBreakingVersion() {
-    service.enableFeature(SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION);
+  public void testDisableFeature_developerSuggestNonBreakingVersion() {
+    service.disableFeature(SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION);
     assertThat(
         systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION)
             .getValue())
-        .isEqualTo("true");
+        .isEqualTo("false");
   }
 
   @Test
-  public void testDisableFeature_developerSuggestNonBreakingVersion_AlreadyDisabled() {
+  public void testEnableFeature_developerSuggestNonBreakingVersion_AlreadyEnabled() {
     assertThatThrownBy(
-        () -> service.disableFeature(
+        () -> service.enableFeature(
             SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already disabled.");
+        BadRequestException.class).hasMessage("Feature is already enabled.");
   }
 
   @Test

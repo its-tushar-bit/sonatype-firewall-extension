@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
+import com.sonatype.clm.dto.model.remediation.VersionScoringDTO;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
@@ -127,6 +128,7 @@ import static com.codeborne.selenide.Selenide.$$;
 import static com.sonatype.clm.testing.functional.utils.BaseUrl.resolveBaseUrl;
 import static com.sonatype.clm.testing.functional.utils.SeleniumChromeOptions.chromeOptions;
 import static com.sonatype.insight.brain.db.rule.DatabaseRule.DatabaseType.POSTGRES_DB;
+import static com.sonatype.insight.brain.hds.VersionScoringService.HDS_BULK_SCORE_VERSIONING_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -397,6 +399,8 @@ public abstract class AbstractFunctionalTest
     // Re-inject classes that have static dependencies
     DAOFactory daoFactory = new TestDAOFactory(databaseContainer);
     StaticInjectionTestHelper.inject(daoFactory);
+
+    mockHdsVersionScoringResponse();
   }
 
   @After
@@ -777,5 +781,11 @@ public abstract class AbstractFunctionalTest
 
   protected <T> T lookup(Class<T> type) {
     return testCLMServer.getCLMServer().getInstance(type);
+  }
+
+  private void mockHdsVersionScoringResponse() {
+    testCLMServer.getHdsServer()
+        .respondWith(new VersionScoringDTO[] {})
+        .atUri(HDS_BULK_SCORE_VERSIONING_PATH);
   }
 }

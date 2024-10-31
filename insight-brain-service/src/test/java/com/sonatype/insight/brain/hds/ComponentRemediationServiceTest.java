@@ -1264,7 +1264,6 @@ public class ComponentRemediationServiceTest
     // Version appearing first has the highest score.
     // Version not appearing has no score, usually because it has breaking changes.
     mockVersionScoring_mockSortedVersions("v6", "v4", "v2");
-    SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.setEnabled(true);
 
     setTransitiveSolverValue(false);
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
@@ -1294,7 +1293,6 @@ public class ComponentRemediationServiceTest
     setBreakingChangesCount(0,
         detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3, detailsDtoA1V4, detailsDtoA1V5, detailsDtoA1V6);
     mockVersionScoring_mockSortedVersions("v6");
-    SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.setEnabled(true);
 
     setTransitiveSolverValue(false);
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
@@ -1324,7 +1322,6 @@ public class ComponentRemediationServiceTest
     // Version appearing first has the highest score.
     // Version not appearing has no score, usually because it has breaking changes.
     mockVersionScoring_mockSortedVersions("v6", "v4", "v2");
-    SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.setEnabled(true);
 
     setTransitiveSolverValue(true);
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
@@ -1362,7 +1359,6 @@ public class ComponentRemediationServiceTest
     // Version appearing first has the highest score.
     // Version not appearing has no score, usually because it has breaking changes.
     mockVersionScoring_mockSortedVersions("v6", "v4", "v2", "v3");
-    SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.setEnabled(true);
 
     setTransitiveSolverValue(true);
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
@@ -1417,7 +1413,6 @@ public class ComponentRemediationServiceTest
     // Version appearing first has the highest score.
     // Version not appearing has no score, usually because it has breaking changes.
     mockVersionScoring_mockSortedVersions("v3", "v4", "v2");
-    SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.setEnabled(true);
 
     setTransitiveSolverValue(true);
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();

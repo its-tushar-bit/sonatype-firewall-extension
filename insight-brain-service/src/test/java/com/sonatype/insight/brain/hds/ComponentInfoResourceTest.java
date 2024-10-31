@@ -51,6 +51,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.convertToHdsUrl;
 import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.toLicenseDTO;
+import static com.sonatype.insight.brain.hds.VersionScoringService.HDS_BULK_SCORE_VERSIONING_PATH;
 import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -165,6 +166,7 @@ public class ComponentInfoResourceTest
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     HttpRequest requestMock = listRequest(getOwnerId(), identifier);
     hdsRespondWith(hdsComponentDetailsList).atUri(convertToHdsUrl(requestMock.getUrl()));
+    hdsRespondWith(new VersionScoringService[] {}).atUri(HDS_BULK_SCORE_VERSIONING_PATH);
 
     HttpRequest request = allVersionsRequest(app.getPublicId(), identifier)
         .query("dependencyType", DependencyType.INNER_SOURCE.getId())

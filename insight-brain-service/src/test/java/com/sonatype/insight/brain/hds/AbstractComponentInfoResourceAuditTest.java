@@ -24,6 +24,7 @@ import org.junit.Before;
 
 import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.convertToHdsUrl;
 import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.newComponentDetails;
+import static com.sonatype.insight.brain.hds.VersionScoringService.HDS_BULK_SCORE_VERSIONING_PATH;
 
 public abstract class AbstractComponentInfoResourceAuditTest
     extends AbstractAuditTest
@@ -62,5 +63,6 @@ public abstract class AbstractComponentInfoResourceAuditTest
     hdsComponentDetailsList.setList(Collections.singletonList(hdsComponentDetails));
     hdsRespondWith(hdsComponentDetailsList).atUri(convertToHdsUrl(httpRequest.getUrl()));
     hdsRespondWith(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>())).atUri("rest/component/dependencies");
+    hdsRespondWith(new VersionScoringService[] {}).atUri(HDS_BULK_SCORE_VERSIONING_PATH);
   }
 }

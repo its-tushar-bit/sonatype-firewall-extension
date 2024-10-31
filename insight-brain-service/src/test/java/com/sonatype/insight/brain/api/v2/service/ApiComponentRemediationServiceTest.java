@@ -22,6 +22,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.clm.dto.model.remediation.VersionScoringDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
@@ -59,11 +60,13 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.hds.VersionScoringService.HDS_BULK_SCORE_VERSIONING_PATH;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -145,6 +148,7 @@ public class ApiComponentRemediationServiceTest
   @Before
   public void setupApplication() {
     app = tempEntity.newApplicationWithParent();
+    mockHdsGetVersionScoringData();
   }
 
   @Test
@@ -744,6 +748,11 @@ public class ApiComponentRemediationServiceTest
   private void mockHdsGetComponentDependencies(ComponentDependenciesDTO dependenciesDto) {
     when(hdsClientMock.post(eq(ComponentDependenciesDTO.class), eq("rest/component/dependencies"), anyCollection()))
         .thenReturn(dependenciesDto);
+  }
+
+  private void mockHdsGetVersionScoringData() {
+    lenient().when(hdsClientMock.post(eq(VersionScoringDTO[].class), eq(HDS_BULK_SCORE_VERSIONING_PATH), anyList()))
+        .thenReturn(new VersionScoringDTO[] {});
   }
 
   private void mockLicenseFeature(boolean includeAdvancedStrategies) {

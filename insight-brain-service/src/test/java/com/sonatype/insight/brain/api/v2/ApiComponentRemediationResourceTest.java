@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChang
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.api.v2.service.ComponentEvaluationV2Helper;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.hds.VersionScoringService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -53,6 +54,7 @@ import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.hds.VersionScoringService.HDS_BULK_SCORE_VERSIONING_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiComponentRemediationResourceTest
@@ -81,6 +83,7 @@ public class ApiComponentRemediationResourceTest
     org = tempEntity.newOrganization("Org");
     app = tempEntity.newApplication(org.getId());
     setFeatures(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES, LicensedFeature.COMPONENT_EVALUATION);
+    mockVersionScoring();
   }
 
   @Test
@@ -495,6 +498,10 @@ public class ApiComponentRemediationResourceTest
 
   private void mockComponentEvaluationData(final ComponentEvaluationDataList componentEvaluationDataList) {
     hdsRespondWith(componentEvaluationDataList).atUri("rest/component/details/integration");
+  }
+
+  private void mockVersionScoring() {
+    hdsRespondWith(new VersionScoringService[] {}).atUri(HDS_BULK_SCORE_VERSIONING_PATH);
   }
 
   private void assertResponse(

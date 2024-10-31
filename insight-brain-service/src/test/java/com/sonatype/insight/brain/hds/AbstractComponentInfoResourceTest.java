@@ -33,6 +33,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.convertToHdsUrl;
 import static com.sonatype.insight.brain.hds.ComponentInfoResourceTestUtils.newComponentDetails;
+import static com.sonatype.insight.brain.hds.VersionScoringService.HDS_BULK_SCORE_VERSIONING_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractComponentInfoResourceTest
@@ -194,6 +195,7 @@ public abstract class AbstractComponentInfoResourceTest
     HttpRequest request = allVersionsRequest(getOwnerId(), MAVEN_COORDINATES);
     hdsRespondWith(hdsComponentDetailsList).atUri(convertToHdsUrl(request.getUrl()));
     hdsRespondWith(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>())).atUri("rest/component/dependencies");
+    hdsRespondWith(new VersionScoringService[] {}).atUri(HDS_BULK_SCORE_VERSIONING_PATH);
 
     HttpResponse response = request.get();
     assertResponseStatus(200, response);

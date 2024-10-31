@@ -148,6 +148,11 @@ public final class RepositoryPathnameSerializer
             name + "_" + version + (StringUtils.isBlank(namespace) ? "" : "-" + namespace) + "_" + "amd64" + ".deb";
         return String.join("/", "path", filename);
       }
+      case ComponentIdentifier.FORMAT_CARGO: {
+        String name = componentIdentifier.get(ComponentIdentifier.CARGO_NAME);
+        String version = componentIdentifier.get(ComponentIdentifier.VERSION);
+        return String.join("/", "crates", name, version, "download");
+      }
       default: {
         throw new BadRequestException(
             String.format("Unsupported format %s.", componentIdentifier.getFormat()));

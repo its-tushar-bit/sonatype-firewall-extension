@@ -132,6 +132,13 @@ public class RepositoryPathnameSerializerTest
   }
 
   @Test
+  public void testToPathname_Cargo() {
+    assertThat(toPathname(
+        ComponentIdentifier.createCargoCoordinates("name1", "version1", null)))
+        .isEqualTo("crates/name1/version1/download");
+  }
+
+  @Test
   public void testToPathname_PackageUrl() {
     assertThat(toPathname(PackageUrlIdentifier.toPackageUrl(
         ComponentIdentifier.createMavenCoordinates("com.sonatype", "test", "1.0", "uber", "jar"))))

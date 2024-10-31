@@ -62,12 +62,9 @@ public class ComponentEndOfLifeConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertThat(policyAlerts).hasSize(2);
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
-    assertFactCounts(1, 1, policyAlerts.get(1));
     assertContainsPolicyAlert(component1, policy, constraint, FailActionType.ID, ComponentEndOfLifeConditionType.ID,
-        policyAlerts);
-    assertContainsPolicyAlert(component3, policy, constraint, FailActionType.ID, ComponentEndOfLifeConditionType.ID,
         policyAlerts);
   }
 
@@ -103,12 +100,9 @@ public class ComponentEndOfLifeConditionTypeTest
 
     // Evaluate the policy
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
-    assertThat(policyAlerts).hasSize(2);
+    assertThat(policyAlerts).hasSize(1);
     assertFactCounts(1, 1, policyAlerts.get(0));
-    assertFactCounts(1, 1, policyAlerts.get(1));
     assertContainsPolicyAlert(component2, policy, constraint, FailActionType.ID, ComponentEndOfLifeConditionType.ID,
-        policyAlerts);
-    assertContainsPolicyAlert(component4, policy, constraint, FailActionType.ID, ComponentEndOfLifeConditionType.ID,
         policyAlerts);
   }
 }

@@ -72,11 +72,6 @@ public class ComponentEndOfLifeConditionType
   }
 
   @Override
-  protected boolean isApplicable(Component component) {
-    return true;
-  }
-
-  @Override
   protected boolean internalEvaluateCondition(Component component, String operator, String value) {
     boolean result = component.getEndOfLife().equals(ComponentEndOfLifeStatus.END_OF_LIFE_TRUE);
     return "is true".equals(operator) ? result : !result;

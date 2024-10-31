@@ -64,10 +64,10 @@ const loadTableData = createAsyncThunk(
     const state = getState();
     const { publicAppId, scanId } = selectRouterCurrentParams(state);
     const tableDataUrl = getPrioritiesPageTableData(publicAppId, scanId);
-    const { page } = selectPrioritiesPageSlice(state);
+    const { page, optionalComponentNameFilter } = selectPrioritiesPageSlice(state);
 
     return axios
-      .get(tableDataUrl, { params: { pageSize: TABLE_PAGE_SIZE, page } })
+      .get(tableDataUrl, { params: { pageSize: TABLE_PAGE_SIZE, page, optionalComponentNameFilter } })
       .then(({ data }) => ({ ...data, publicAppId, scanId }))
       .catch(rejectWithValue);
   }
@@ -153,10 +153,17 @@ const resetState = (state) => {
   };
 };
 
+const setComponentNameFilter = (state, { payload }) => {
+  return {
+    ...state,
+    optionalComponentNameFilter: payload,
+  };
+};
+
 const prioritiesPageSlice = createSlice({
   name: PRIORITIES_PAGE_REDUCER_NAME,
   initialState: initialState(),
-  reducers: { resetState, setPage },
+  reducers: { resetState, setPage, setComponentNameFilter },
   extraReducers: {
     [loadTableData.pending]: loadTableDataRequested,
     [loadTableData.fulfilled]: loadTableDataFulfilled,
@@ -182,6 +189,7 @@ function initialState() {
     total: null,
     publicAppId: null,
     scanId: null,
+    optionalComponentNameFilter: '',
   };
 }
 

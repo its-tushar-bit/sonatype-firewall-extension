@@ -8,8 +8,10 @@ package com.sonatype.insight.brain.development.prioritization;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -38,6 +40,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_DIRECT;
 import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_INNER_SOURCE;
@@ -80,21 +83,26 @@ public class DevelopmentPrioritiesService
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
       final String scanId,
       final int page,
-      final int pageSize
+      final int pageSize,
+      final String optionalComponentNameFilter
   )
   {
     final int skipCount = (page - 1) * pageSize;
-    List<PrioritizedComponent> allPrioritizedFindings =
-            getAllPrioritizedFindings(applicationPublicId, scanId);
+    final List<PrioritizedComponent> allPrioritizedFindings = getAllPrioritizedFindings(applicationPublicId, scanId);
+    final List<PrioritizedComponent> filteredPrioritizedFindings =
+        StringUtils.isNotEmpty(optionalComponentNameFilter) ? allPrioritizedFindings.stream()
+            .filter(
+                prioritizedComponent -> matchesFilter(prioritizedComponent.getDisplayName(),
+                    optionalComponentNameFilter)).toList() : allPrioritizedFindings;
 
     // pluck off top 3
-    final int top3Bound = Math.min(allPrioritizedFindings.size(), 3);
-    final List<PrioritizedComponent> top3Priorities = allPrioritizedFindings.subList(0, top3Bound);
+    final int top3Bound = Math.min(filteredPrioritizedFindings.size(), 3);
+    final List<PrioritizedComponent> top3Priorities = filteredPrioritizedFindings.subList(0, top3Bound);
 
     final List<PrioritizedComponent> remainingPrioritiesAll;
 
-    if (allPrioritizedFindings.size() > 3) {
-      remainingPrioritiesAll = allPrioritizedFindings.subList(3, allPrioritizedFindings.size());
+    if (filteredPrioritizedFindings.size() > 3) {
+      remainingPrioritiesAll = filteredPrioritizedFindings.subList(3, filteredPrioritizedFindings.size());
     }
     else {
       remainingPrioritiesAll = new ArrayList<>();
@@ -422,6 +430,11 @@ public class DevelopmentPrioritiesService
     final Set<Feature> features = featuresService.getFeatures();
 
     return features.contains(SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS);
+  }
+
+  private static boolean matchesFilter(final String componentName, final String filter) {
+    return componentName.toLowerCase(Locale.ROOT)
+        .matches(String.format(".*%s.*", Pattern.quote(filter.toLowerCase(Locale.ROOT))));
   }
 
   private static class UnprioritizedComponent

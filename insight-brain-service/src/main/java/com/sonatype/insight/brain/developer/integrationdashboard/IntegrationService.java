@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -184,7 +185,8 @@ public class IntegrationService
   }
 
   private static boolean matchesFilter(final String applicationName, final String filter) {
-    return applicationName.toLowerCase(Locale.ROOT).matches(String.format(".*%s.*", filter.toLowerCase(Locale.ROOT)));
+    return applicationName.toLowerCase(Locale.ROOT)
+        .matches(String.format(".*%s.*", Pattern.quote(filter.toLowerCase(Locale.ROOT))));
   }
 
   private static IntegrationStatusFilter getIntegrationStatusFilter(

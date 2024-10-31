@@ -44,6 +44,7 @@ describe('PrioritiesPageTable', () => {
       pageCount: 1,
       page: 1,
       total: null,
+      optionalComponentNameFilter: '',
     },
   };
 
@@ -56,10 +57,14 @@ describe('PrioritiesPageTable', () => {
       render(<PrioritiesPageTable />, { preloadedState: preloadedState || defaultPreloadedState });
 
     axiosMock
-      .onGet(getPrioritiesPageTableData(publicAppId, scanId), { params: { pageSize: 10, page: 1 } })
+      .onGet(getPrioritiesPageTableData(publicAppId, scanId), {
+        params: { pageSize: 10, page: 1, optionalComponentNameFilter: '' },
+      })
       .reply(200, mockResponsePage1);
     axiosMock
-      .onGet(getPrioritiesPageTableData(publicAppId, scanId), { params: { pageSize: 10, page: 2 } })
+      .onGet(getPrioritiesPageTableData(publicAppId, scanId), {
+        params: { pageSize: 10, page: 2, optionalComponentNameFilter: '' },
+      })
       .reply(200, mockResponsePage2);
   });
 
@@ -68,7 +73,7 @@ describe('PrioritiesPageTable', () => {
 
     expect(axiosMock.history.get.length).toBe(1);
     expect(axiosMock.history.get[0].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
-    expect(axiosMock.history.get[0].params).toEqual({ pageSize: 10, page: 1 });
+    expect(axiosMock.history.get[0].params).toEqual({ pageSize: 10, page: 1, optionalComponentNameFilter: '' });
 
     const table = screen.getByRole('table');
     expect(table).toBeInTheDocument();
@@ -89,7 +94,9 @@ describe('PrioritiesPageTable', () => {
 
   it('renders an error within the table when network call fails', async () => {
     axiosMock
-      .onGet(getPrioritiesPageTableData(publicAppId, scanId), { params: { pageSize: 10, page: 1 } })
+      .onGet(getPrioritiesPageTableData(publicAppId, scanId), {
+        params: { pageSize: 10, page: 1, optionalComponentNameFilter: '' },
+      })
       .reply(500, 'Error');
 
     renderComponent();
@@ -103,7 +110,9 @@ describe('PrioritiesPageTable', () => {
 
   it('clicking the retry button on error alert makes correct network request', async () => {
     axiosMock
-      .onGet(getPrioritiesPageTableData(publicAppId, scanId), { params: { pageSize: 10, page: 1 } })
+      .onGet(getPrioritiesPageTableData(publicAppId, scanId), {
+        params: { pageSize: 10, page: 1, optionalComponentNameFilter: '' },
+      })
       .reply(500, 'Error');
 
     renderComponent();
@@ -113,14 +122,16 @@ describe('PrioritiesPageTable', () => {
 
     expect(axiosMock.history.get.length).toBe(1);
     expect(axiosMock.history.get[0].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
-    expect(axiosMock.history.get[0].params).toEqual({ pageSize: 10, page: 1 });
+    expect(axiosMock.history.get[0].params).toEqual({ pageSize: 10, page: 1, optionalComponentNameFilter: '' });
 
-    const retryBtn = within(table).getByRole('button');
+    const buttons = within(table).getAllByRole('button');
+    expect(buttons.length).toBe(2);
+    const retryBtn = buttons[1];
     fireEvent.click(retryBtn);
 
     expect(axiosMock.history.get.length).toBe(2);
     expect(axiosMock.history.get[1].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
-    expect(axiosMock.history.get[1].params).toEqual({ pageSize: 10, page: 1 });
+    expect(axiosMock.history.get[1].params).toEqual({ pageSize: 10, page: 1, optionalComponentNameFilter: '' });
   });
 
   it('renders a table with 4 column headers', async () => {
@@ -129,7 +140,9 @@ describe('PrioritiesPageTable', () => {
     const table = await screen.findByRole('table');
     expect(table).toBeInTheDocument();
 
-    const columnheaders = within(table).getAllByRole('columnheader');
+    const rows = within(table).getAllByRole('row');
+    const headerRow = rows[0];
+    const columnheaders = within(headerRow).getAllByRole('columnheader');
     expect(columnheaders.length).toBe(4 + 1); //last column is to render chevron icon for clickable rows
   });
 
@@ -165,13 +178,15 @@ describe('PrioritiesPageTable', () => {
     expect(tooltip).toBeInTheDocument();
   });
 
-  it('renders a "no findings" message if number of priorities is 0', async () => {
+  it('renders a "No violations" message if number of priorities is 0', async () => {
     const numOfTopPriorities = 0;
     const numOfAdditionalPriorities = 0;
     const mockData = generateMockData(numOfTopPriorities, numOfAdditionalPriorities);
     const mockResponsePage1 = generateMockResponseByPage(1, mockData);
     axiosMock
-      .onGet(getPrioritiesPageTableData(publicAppId, scanId), { params: { pageSize: 10, page: 1 } })
+      .onGet(getPrioritiesPageTableData(publicAppId, scanId), {
+        params: { pageSize: 10, page: 1, optionalComponentNameFilter: '' },
+      })
       .reply(200, mockResponsePage1);
 
     renderComponent();
@@ -180,10 +195,66 @@ describe('PrioritiesPageTable', () => {
     expect(table).toBeInTheDocument();
 
     const rows = screen.getAllByRole('row');
-    expect(rows.length).toBe(2);
+    expect(rows.length).toBe(3);
 
-    const rowWithMessage = rows[1];
+    const rowWithMessage = rows[2];
     expect(rowWithMessage).toHaveTextContent('All clear! No violations were found during this evaluation.');
+  });
+
+  it('filters components by name', async () => {
+    jest.useFakeTimers();
+    const filteredResponse = {
+      topPriorities: [
+        {
+          displayName: 'ABC',
+          componentHash: faker.git.commitSha(),
+          dependencyType: faker.helpers.arrayElement(['Direct', 'Transitive', 'Inner Source']),
+          hasFailActionOnComponent: true,
+          action: 'fail',
+          highestThreat: faker.datatype.number({ min: 0, max: 10 }),
+          highestThreatPolicyName: faker.lorem.slug(),
+          highestThreatPolicyConstraintName: faker.lorem.sentence(),
+          priority: 1,
+          securityReachable: faker.datatype.boolean(),
+        },
+      ],
+      additionalPriorities: [
+        {
+          displayName: 'ABC',
+          componentHash: faker.git.commitSha(),
+          dependencyType: faker.helpers.arrayElement(['Direct', 'Transitive', 'Inner Source']),
+          hasFailActionOnComponent: true,
+          action: 'fail',
+          highestThreat: faker.datatype.number({ min: 0, max: 10 }),
+          highestThreatPolicyName: faker.lorem.slug(),
+          highestThreatPolicyConstraintName: faker.lorem.sentence(),
+          priority: 1,
+          securityReachable: faker.datatype.boolean(),
+        },
+      ],
+    };
+
+    axiosMock
+      .onGet(getPrioritiesPageTableData(publicAppId, scanId), {
+        params: { pageSize: 10, page: 1, optionalComponentNameFilter: 'ABC' },
+      })
+      .reply(200, filteredResponse);
+
+    renderComponent();
+    expect(axiosMock.history.get.length).toEqual(1);
+    expect(axiosMock.history.get[0].params).toEqual({ pageSize: 10, page: 1, optionalComponentNameFilter: '' });
+
+    const table = await screen.findByRole('table');
+    expect(table).toBeInTheDocument();
+
+    const filterInput = screen.getByPlaceholderText('component name');
+    fireEvent.change(filterInput, { target: { value: 'ABC' } });
+
+    jest.runAllTimers();
+
+    expect(axiosMock.history.get.length).toEqual(15); // 1 initial request + 13 async recommendation requests + 1 filtered request
+
+    expect(axiosMock.history.get[14].params).toEqual({ pageSize: 10, page: 1, optionalComponentNameFilter: 'ABC' });
   });
 
   describe('Top Priorities Accordion', () => {
@@ -193,7 +264,9 @@ describe('PrioritiesPageTable', () => {
       const mockData = generateMockData(numOfTopPriorities, numOfAdditionalPriorities);
       const mockResponsePage1 = generateMockResponseByPage(1, mockData);
       axiosMock
-        .onGet(getPrioritiesPageTableData(publicAppId, scanId), { params: { pageSize: 10, page: 1 } })
+        .onGet(getPrioritiesPageTableData(publicAppId, scanId), {
+          params: { pageSize: 10, page: 1, optionalComponentNameFilter: '' },
+        })
         .reply(200, mockResponsePage1);
 
       renderComponent();
@@ -227,7 +300,7 @@ describe('PrioritiesPageTable', () => {
       expect(table).toBeInTheDocument();
 
       let rows = screen.getAllByRole('row');
-      expect(rows.length).toBe(16);
+      expect(rows.length).toBe(17);
 
       const accordions = screen.getAllByRole('group');
 
@@ -241,14 +314,14 @@ describe('PrioritiesPageTable', () => {
       expect(topPrioritiesAccordion).toHaveAttribute('aria-expanded', 'false');
 
       rows = screen.getAllByRole('row');
-      expect(rows.length).toBe(13);
+      expect(rows.length).toBe(14);
 
       fireEvent.click(topPrioritiesAccordionTitle);
 
       expect(topPrioritiesAccordion).toHaveAttribute('aria-expanded', 'true');
 
       rows = screen.getAllByRole('row');
-      expect(rows.length).toBe(16);
+      expect(rows.length).toBe(17);
     });
 
     it('hides the accordion when not on first page', async () => {
@@ -290,8 +363,8 @@ describe('PrioritiesPageTable', () => {
     const table = await screen.findByRole('table');
     expect(table).toBeInTheDocument();
 
-    //table header row + top priorities header row + priority rows
-    const remainingFindingsRowNumber = 1 + 1 + NUM_OF_RESULTS_TOP_PRIORITIES;
+    //table header row + component filter row + top priorities header row + priority rows
+    const remainingFindingsRowNumber = 1 + 1 + 1 + NUM_OF_RESULTS_TOP_PRIORITIES;
     expect(within(table).getAllByRole('row')[remainingFindingsRowNumber]).toHaveTextContent(/remaining priorities/i);
   });
 
@@ -302,11 +375,11 @@ describe('PrioritiesPageTable', () => {
     expect(table).toBeInTheDocument();
 
     const rows = screen.getAllByRole('row');
-    // 1st row is header row, 2nd row is Top Priorities row, 3rd row is the first component row
-    const firstComponentRow = rows[2];
+    // 1st row is header row, 2nd row is component filter, 3nd row is Top Priorities row, 4th row is the first component row
+    const firstComponentRow = rows[3];
     const firstComponentHash = mockResponsePage1.topPriorities[0].componentHash;
 
-    const secondComponentRow = rows[3];
+    const secondComponentRow = rows[4];
     const secondComponentHash = mockResponsePage1.topPriorities[1].componentHash;
 
     fireEvent.click(firstComponentRow);
@@ -334,7 +407,7 @@ describe('PrioritiesPageTable', () => {
     it('makes correct network requests when page is changed', async () => {
       renderComponent();
       expect(axiosMock.history.get.length).toBe(1);
-      expect(axiosMock.history.get[0].params).toEqual({ pageSize: 10, page: 1 });
+      expect(axiosMock.history.get[0].params).toEqual({ pageSize: 10, page: 1, optionalComponentNameFilter: '' });
 
       const table = await screen.findByRole('table');
       expect(table).toBeInTheDocument();
@@ -349,7 +422,7 @@ describe('PrioritiesPageTable', () => {
 
       expect(axiosMock.history.get.length).toBe(15);
       expect(axiosMock.history.get[14].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
-      expect(axiosMock.history.get[14].params).toEqual({ pageSize: 10, page: 2 });
+      expect(axiosMock.history.get[14].params).toEqual({ pageSize: 10, page: 2, optionalComponentNameFilter: '' });
 
       await screen.findByRole('table');
       pagination = await screen.findByRole('navigation');
@@ -361,7 +434,7 @@ describe('PrioritiesPageTable', () => {
 
       expect(axiosMock.history.get.length).toBe(23);
       expect(axiosMock.history.get[22].url).toBe(getPrioritiesPageTableData(publicAppId, scanId));
-      expect(axiosMock.history.get[22].params).toEqual({ pageSize: 10, page: 1 });
+      expect(axiosMock.history.get[22].params).toEqual({ pageSize: 10, page: 1, optionalComponentNameFilter: '' });
     });
   });
 });

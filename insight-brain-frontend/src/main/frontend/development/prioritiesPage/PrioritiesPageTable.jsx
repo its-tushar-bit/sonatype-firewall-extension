@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   NxAccordion,
@@ -13,6 +13,8 @@ import {
   NxTooltip,
   useToggle,
   NxPagination,
+  NxFilterInput,
+  NX_STANDARD_DEBOUNCE_TIME,
 } from '@sonatype/react-shared-components';
 import PrioritiesPageRow from 'MainRoot/development/prioritiesPage/PrioritiesPageRow';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
@@ -22,6 +24,7 @@ import { selectRouterCurrentParams, selectCurrentRouteName } from 'MainRoot/redu
 import { actions } from 'MainRoot/development/prioritiesPage/slices/prioritiesPageSlice';
 import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
+import { debounce } from 'debounce';
 
 export default function PrioritiesPageTable() {
   const [showPriorityFindings, toggleShowPriorityFindings] = useToggle(true);
@@ -38,6 +41,7 @@ export default function PrioritiesPageTable() {
     pageCount,
     publicAppId: storedPublicId,
     scanId: storedScanId,
+    optionalComponentNameFilter,
   } = useSelector(selectPrioritiesPageSlice);
   const currentPage = pageCount && pageCount > 0 ? page - 1 : null;
   const isFirstPage = page === 1;
@@ -49,6 +53,11 @@ export default function PrioritiesPageTable() {
 
   const priorityTooltip = `Priority of actionable items based on this application's policy, component reachability status, recommendation availability, and threat score severity.`;
 
+  const filterByComponentName = (filter) => {
+    dispatch(actions.setComponentNameFilter(filter));
+    debouncedFilterComponentNameChange(filter);
+  };
+
   useEffect(() => {
     //If page is viewed for a different applicationId and scanId, reset pagination
     if (publicAppId !== storedPublicId || scanId !== storedScanId) {
@@ -56,6 +65,13 @@ export default function PrioritiesPageTable() {
     }
     doLoad();
   }, [page]);
+
+  const debouncedFilterComponentNameChange = useCallback(
+    debounce((value) => {
+      dispatch(actions.loadTableData(value));
+    }, NX_STANDARD_DEBOUNCE_TIME),
+    []
+  );
 
   return (
     <>
@@ -75,30 +91,47 @@ export default function PrioritiesPageTable() {
               <NxTable.Cell>Recommendation</NxTable.Cell>
               <NxTable.Cell chevron />
             </NxTable.Row>
+            <NxTable.Row className="nx-table-row--filter-header">
+              <NxTable.Cell />
+              <NxTable.Cell>
+                <NxFilterInput
+                  id="priorities-component-name-filter"
+                  placeholder="component name"
+                  onChange={filterByComponentName}
+                  value={optionalComponentNameFilter}
+                />
+              </NxTable.Cell>
+              <NxTable.Cell colSpan={3} />
+            </NxTable.Row>
           </NxTable.Head>
           <NxTable.Body
             isLoading={loadingTableData}
             retryHandler={doLoad}
             error={loadErrorTableData}
-            emptyMessage="All clear! No violations were found during this evaluation."
+            emptyMessage={
+              !optionalComponentNameFilter
+                ? 'All clear! No violations were found during this evaluation.'
+                : 'No Results'
+            }
           >
-            {/* {(loadingTableData === false || loadingTableData === null) && ( */}
             <>
               {!hasZeroFindings && isFirstPage && (
                 <>
-                  <NxTable.Row>
-                    <NxTable.Cell className="iq-priorities-page-priority-findings-toggle" colSpan={5}>
-                      <NxAccordion open={showPriorityFindings} onToggle={toggleShowPriorityFindings}>
-                        <NxAccordion.Header>
-                          <NxAccordion.Title>Top Priorities</NxAccordion.Title>
-                        </NxAccordion.Header>
-                      </NxAccordion>
-                    </NxTable.Cell>
-                  </NxTable.Row>
+                  {!optionalComponentNameFilter && (
+                    <NxTable.Row>
+                      <NxTable.Cell className="iq-priorities-page-priority-findings-toggle" colSpan={5}>
+                        <NxAccordion open={showPriorityFindings} onToggle={toggleShowPriorityFindings}>
+                          <NxAccordion.Header>
+                            <NxAccordion.Title>Top Priorities</NxAccordion.Title>
+                          </NxAccordion.Header>
+                        </NxAccordion>
+                      </NxTable.Cell>
+                    </NxTable.Row>
+                  )}
                   {showPriorityFindings && <DataRows dataset={topPrioritiesData} />}
                 </>
               )}
-              {!hasZeroFindings && (
+              {!hasZeroFindings && !optionalComponentNameFilter && (
                 <NxTable.Row>
                   <NxTable.Cell className="iq-priorities-page-all-findings" colSpan={5}>
                     Remaining Priorities
@@ -107,7 +140,6 @@ export default function PrioritiesPageTable() {
               )}
               <DataRows dataset={additionalPrioritiesData} />
             </>
-            {/* )} */}
           </NxTable.Body>
         </NxTable>
         {!hasZeroFindings && additionalPrioritiesData && (

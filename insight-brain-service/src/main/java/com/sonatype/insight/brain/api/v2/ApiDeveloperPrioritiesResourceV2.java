@@ -76,11 +76,12 @@ public class ApiDeveloperPrioritiesResourceV2
           @PathParam("applicationId") final String applicationId,
           @PathParam("scanId") final String scanId,
           @DefaultValue(DEFAULT_PAGE) @QueryParam("page") final int page,
-          @DefaultValue(DEFAULT_PAGE_SIZE) @QueryParam("pageSize") final int pageSize
+          @DefaultValue(DEFAULT_PAGE_SIZE) @QueryParam("pageSize") final int pageSize,
+          @QueryParam("optionalComponentNameFilter") final String optionalComponentNameFilter
   )
   {
     return developmentPrioritiesService
-            .getPrioritizedFindings(applicationId, scanId, page, pageSize);
+            .getPrioritizedFindings(applicationId, scanId, page, pageSize, optionalComponentNameFilter);
   }
 
   @GET

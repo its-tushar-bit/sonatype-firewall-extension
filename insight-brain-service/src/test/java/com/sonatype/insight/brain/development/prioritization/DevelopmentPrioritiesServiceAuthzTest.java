@@ -26,7 +26,7 @@ public class DevelopmentPrioritiesServiceAuthzTest
     login();
     assertThatThrownBy(
             () -> developmentPrioritiesService.getPrioritizedFindings(app.getPublicId(), "irrelevant",
-                    0, 10))
+                    0, 10, null))
             .isInstanceOf(UnauthorizedException.class);
   }
 
@@ -35,7 +35,7 @@ public class DevelopmentPrioritiesServiceAuthzTest
     grantReadPermission(app.getId());
     assertThatThrownBy(
             () -> developmentPrioritiesService.getPrioritizedFindings(app.getPublicId(), "irrelevant",
-                    0, 10 ))
+                    0, 10, null))
             .isInstanceOf(NotFoundException.class);
   }
 

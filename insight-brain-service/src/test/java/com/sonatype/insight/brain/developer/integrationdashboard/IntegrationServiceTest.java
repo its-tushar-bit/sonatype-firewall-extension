@@ -40,6 +40,7 @@ import org.mockito.Mock;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import static org.mockito.Mockito.verify;
@@ -635,6 +636,9 @@ public class IntegrationServiceTest
         integrationService.getIntegrationStatuses(1, 100, null, "298df", null, null);
     assertThat(notContainsResult.getResults())
         .isEmpty();
+
+    assertThatCode(() -> integrationService.getIntegrationStatuses(1, 100, null, "&}|+<:*", null, null))
+        .doesNotThrowAnyException();
   }
 
   @Test
@@ -785,6 +789,9 @@ public class IntegrationServiceTest
         integrationService.getIntegrationStatuses(1, 100, null, "298df", null, null);
     assertThat(notContainsResult.getResults())
         .isEmpty();
+
+    assertThatCode(() -> integrationService.getIntegrationStatuses(1, 100, null, "&}|+<:*", null, null))
+        .doesNotThrowAnyException();
   }
 
   @Test

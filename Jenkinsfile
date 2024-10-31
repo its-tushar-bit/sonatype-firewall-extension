@@ -534,7 +534,7 @@ void captureResultsAndCleanup() {
 }
 
 boolean isFunctionalTestsEnabled() {
-  return isDeployBranch(env, 'main') || params.functionalTestsEnabled
+  return isDeployBranch(env, 'main') || isMergeQueueBranch(env) || params.functionalTestsEnabled
 }
 
 boolean isBuildCachingEnabled() {
@@ -553,3 +553,9 @@ boolean shouldRunPolicyEvaluation() {
   return !isDynamicPolicyEvaluationEnabled() || haveDependenciesChanged(['pom.xml', 'package.json', 'yarn.lock'])
 }
 
+boolean isMergeQueueBranch(env) {
+  // BRANCH_NAME is only set for multi-branch pipelines, other pipelines need to fallback to GIT_BRANCH
+  String branchName = env.BRANCH_NAME ?: gitBranch(env)
+
+  return branchName != null && branchName.startsWith('pr-')
+}

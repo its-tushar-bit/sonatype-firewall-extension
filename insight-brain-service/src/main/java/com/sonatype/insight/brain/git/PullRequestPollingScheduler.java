@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.service.ScmNodeProcessor;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.security.OneTimeSystemRunnable;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
@@ -58,6 +59,8 @@ public class PullRequestPollingScheduler
 
   private final ShutdownHandler shutdownHandler;
 
+  private final ScmNodeProcessor scmNodeProcessor;
+
   public boolean disableForTesting;
 
   @Inject
@@ -65,10 +68,12 @@ public class PullRequestPollingScheduler
       final PullRequestPollingService pullRequestPollingService,
       final IqForScmLicenseChecker licenseChecker,
       final ApiConfigFeaturesService apiConfigFeaturesService,
-      final ShutdownHandler shutdownHandler)
+      final ShutdownHandler shutdownHandler,
+      ScmNodeProcessor scmNodeProcessor)
   {
     this(pullRequestPollingService, licenseChecker, apiConfigFeaturesService,
-        PULL_REQUEST_DISCOVERY_DELAY_SECONDS, PULL_REQUEST_DISCOVERY_INTERVAL_SECONDS, shutdownHandler);
+        PULL_REQUEST_DISCOVERY_DELAY_SECONDS, PULL_REQUEST_DISCOVERY_INTERVAL_SECONDS, shutdownHandler,
+        scmNodeProcessor);
   }
 
   @VisibleForTesting
@@ -78,7 +83,8 @@ public class PullRequestPollingScheduler
       final ApiConfigFeaturesService apiConfigFeaturesService,
       int pullRequestDiscoveryDelaySeconds,
       int pullRequestDiscoveryIntervalSeconds,
-      ShutdownHandler shutdownHandler)
+      ShutdownHandler shutdownHandler,
+      ScmNodeProcessor scmNodeProcessor)
   {
     this.pullRequestPollingService = pullRequestPollingService;
     this.licenseChecker = licenseChecker;
@@ -87,16 +93,21 @@ public class PullRequestPollingScheduler
     this.pullRequestDiscoveryIntervalSeconds = pullRequestDiscoveryIntervalSeconds;
     this.tenantScheduledExecutorServices = new TenantReference<>(() -> newExecutor());
     this.shutdownHandler = shutdownHandler;
+    this.scmNodeProcessor = scmNodeProcessor;
   }
 
   @Override
   public void register() {
-    startPullRequestPolling();
+    if (scmNodeProcessor.shouldRun()) {
+      startPullRequestPolling();
+    }
   }
 
   @Override
   public void deregister() {
-    stopPullRequestPolling();
+    if (scmNodeProcessor.shouldRun()) {
+      stopPullRequestPolling();
+    }
   }
 
   // Visible for testing

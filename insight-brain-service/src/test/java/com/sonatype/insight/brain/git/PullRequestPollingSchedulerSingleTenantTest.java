@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.service.ScmNodeProcessor;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
@@ -93,6 +94,9 @@ public class PullRequestPollingSchedulerSingleTenantTest
   @Mock
   private ShutdownHandler mockShutdownHandler;
 
+  @Mock
+  private ScmNodeProcessor scmNodeProcessor;
+
   private GitClientFactory gitClientFactorySpy;
 
   private PullRequestPollingScheduler scheduler;
@@ -156,7 +160,7 @@ public class PullRequestPollingSchedulerSingleTenantTest
 
     when(licenseCheckerMock.isPullRequestCommentingSupported()).thenReturn(true);
     scheduler = spy(new PullRequestPollingScheduler(service, licenseCheckerMock, apiConfigFeaturesService,
-        delaySeconds, intervalSeconds, mockShutdownHandler));
+        delaySeconds, intervalSeconds, mockShutdownHandler, scmNodeProcessor));
   }
 
   @After
@@ -196,6 +200,8 @@ public class PullRequestPollingSchedulerSingleTenantTest
         "https://localhost:12347/bar/qwerty", null, true, null, null, null);
 
     lookup(SourceControlDAO.class).delete(tempOrgSourceControl);
+
+    when(scmNodeProcessor.shouldRun()).thenReturn(true);
 
     // We need to wait for the _completion_ of the discoverPullRequestsForCommenting
     // method. Simply waiting for mockito to record a call to the spy is not enough as it only records when the

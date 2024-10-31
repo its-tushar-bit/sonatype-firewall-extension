@@ -19,6 +19,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
+import com.sonatype.insight.brain.service.ScmNodeProcessor;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.OneTimeSystemRunnable;
@@ -92,6 +93,8 @@ public class SourceControlEventOrchestrator
 
   private final ShutdownHandler shutdownHandler;
 
+  private final ScmNodeProcessor scmNodeProcessor;
+
   private int otherInstanceEventProcessingIntervalSeconds = SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS;
 
   private int otherInstanceEventProcessingStartupDelaySeconds = DEFAULT_EVENT_PROCESSING_STARTUP_DELAY_SECONDS;
@@ -107,7 +110,8 @@ public class SourceControlEventOrchestrator
       IqForScmLicenseChecker licenseChecker,
       SourceControlUtils sourceControlUtils,
       ApiConfigFeaturesService apiConfigFeaturesService,
-      ShutdownHandler shutdownHandler)
+      ShutdownHandler shutdownHandler,
+      ScmNodeProcessor scmNodeProcessor)
   {
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlEventProcessor = sourceControlEventProcessor;
@@ -118,6 +122,7 @@ public class SourceControlEventOrchestrator
     this.apiConfigFeaturesService = apiConfigFeaturesService;
     this.tenantScheduledExecutorServices = new TenantReference<>(this::newExecutor);
     this.shutdownHandler = shutdownHandler;
+    this.scmNodeProcessor = scmNodeProcessor;
   }
 
   // Visible for testing
@@ -150,18 +155,22 @@ public class SourceControlEventOrchestrator
     if (disableForTesting) {
       return;
     }
-    sourceControlEventPublisher.setSourceControlEventListener(this);
-    startEventProcessingExecutorService();
+    if (scmNodeProcessor.shouldRun()) {
+      sourceControlEventPublisher.setSourceControlEventListener(this);
+      startEventProcessingExecutorService();
+    }
   }
 
   @Override
   public void deregister() {
     synchronized (userEventManagerMap.get()) {
-      if (null != tenantScheduledExecutorServices.get()) {
-        tenantScheduledExecutorServices.get().shutdown();
-        notifyExecutorShutdown();
+      if (scmNodeProcessor.shouldRun()) {
+        if (null != tenantScheduledExecutorServices.get()) {
+          tenantScheduledExecutorServices.get().shutdown();
+          notifyExecutorShutdown();
+        }
+        userEventManagerMap.get().forEach((user, userEventManager) -> userEventManager.stop());
       }
-      userEventManagerMap.get().forEach((user, userEventManager) -> userEventManager.stop());
     }
   }
 

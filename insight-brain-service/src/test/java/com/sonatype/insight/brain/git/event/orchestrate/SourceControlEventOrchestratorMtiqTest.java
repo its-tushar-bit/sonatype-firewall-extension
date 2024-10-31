@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
+import com.sonatype.insight.brain.service.ScmNodeProcessor;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
@@ -58,6 +59,9 @@ public class SourceControlEventOrchestratorMtiqTest
   @Mock
   private ShutdownHandler mockShutdownHandler;
 
+  @Mock
+  private ScmNodeProcessor scmNodeProcessor;
+
   private SourceControlEventOrchestrator underTest;
 
   @Before
@@ -73,14 +77,15 @@ public class SourceControlEventOrchestratorMtiqTest
     SourceControlEventOrchestrator orchestrator = new SourceControlEventOrchestrator(
         mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
         mockSourceControlLoadBalancer, mockIqForScmLicenseChecker, mockSourceControlUtils,
-        mockApiConfigFeaturesService, mockShutdownHandler
-    );
+        mockApiConfigFeaturesService, mockShutdownHandler,
+        scmNodeProcessor);
 
     underTest = Mockito.spy(orchestrator);
   }
 
   @Test
   public void testOrchestrator_register_deregister() {
+    when(scmNodeProcessor.shouldRun()).thenReturn(true);
     testAsNewTenant(tenant -> {
       underTest.register();
       underTest.deregister();
@@ -92,8 +97,9 @@ public class SourceControlEventOrchestratorMtiqTest
 
   @Test
   public void testOrchestrator_multiple_tenants_register_deregister() {
-    Tenant tenant1 = testAsNewTenant(t1 -> underTest.register());
+    when(scmNodeProcessor.shouldRun()).thenReturn(true);
 
+    Tenant tenant1 = testAsNewTenant(t1 -> underTest.register());
     Tenant tenant2 = testAsNewTenant(t2 -> underTest.register());
 
     verify(underTest, times(2)).startEventProcessingExecutorService();

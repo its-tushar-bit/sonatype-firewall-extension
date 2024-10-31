@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.api.admin.authorization.JwtHttpAuthorizationFi
 import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkAuth0Provider;
 import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkLocalProvider;
 import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkProvider;
+import com.sonatype.insight.brain.api.admin.service.MtiqScmNodeProcessor;
 import com.sonatype.insight.brain.api.admin.service.MultiTenantActiveRequestCounterFilter;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.audit.AdminAuditContainerRequestFilter;
@@ -385,6 +386,7 @@ public class MultiTenantInsightBrainService
 
         bind(ProductLicense.class).to(MultiTenantProductLicense.class);
         bind(DefaultProductLicense.class).to(MultiTenantProductLicense.class);
+        bind(ScmNodeProcessor.class).to(MtiqScmNodeProcessor.class);
 
         List<Class<?>> extraToBan = new ArrayList<>();
         if (((MultiTenantInsightConfig) configuration()).isUsingDefaultEncryptionKeyStore()) {

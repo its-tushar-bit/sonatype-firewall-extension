@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.service.ScmNodeProcessor;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
@@ -71,6 +72,9 @@ public class SourceControlEventOrchestratorTest
   @Mock
   private ShutdownHandler mockShutdownHandler;
 
+  @Mock
+  private ScmNodeProcessor scmNodeProcessor;
+
   @Before
   public void setup() {
     MockitoAnnotations.openMocks(this);
@@ -82,8 +86,8 @@ public class SourceControlEventOrchestratorTest
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
         mockSourceControlLoadBalancer, mockIqForScmLicenseChecker, mockSourceControlUtils,
-        mockApiConfigFeaturesService, mockShutdownHandler
-    );
+        mockApiConfigFeaturesService, mockShutdownHandler,
+        scmNodeProcessor);
 
     ScheduledExecutorService scheduledExecutorService = sourceControlEventOrchestrator.newExecutor();
 
@@ -96,8 +100,8 @@ public class SourceControlEventOrchestratorTest
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
         mockSourceControlLoadBalancer, mockIqForScmLicenseChecker, mockSourceControlUtils,
-        mockApiConfigFeaturesService, mockShutdownHandler
-    );
+        mockApiConfigFeaturesService, mockShutdownHandler,
+        scmNodeProcessor);
     when(mockSourceControlLoadBalancer.reserveEvent(any())).thenReturn(true);
     GitRepositoryInfo gitRepositoryInfo =
         new GitRepositoryInfo("https://gitlab.org/organization/project", null, "user", "token", GITLAB,
@@ -133,8 +137,8 @@ public class SourceControlEventOrchestratorTest
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
         mockSourceControlLoadBalancer, mockIqForScmLicenseChecker, mockSourceControlUtils,
-        mockApiConfigFeaturesService, mockShutdownHandler
-    );
+        mockApiConfigFeaturesService, mockShutdownHandler,
+        scmNodeProcessor);
     when(mockSourceControlLoadBalancer.reserveEvent(any())).thenReturn(true);
     GitRepositoryInfo gitRepositoryInfo =
         new GitRepositoryInfo("https://bitbucket.org/organization/project", null, "user", "token", BITBUCKET,
@@ -170,8 +174,8 @@ public class SourceControlEventOrchestratorTest
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
         mockSourceControlLoadBalancer, mockIqForScmLicenseChecker, mockSourceControlUtils,
-        mockApiConfigFeaturesService, mockShutdownHandler
-    );
+        mockApiConfigFeaturesService, mockShutdownHandler,
+        scmNodeProcessor);
     when(mockSourceControlLoadBalancer.reserveEvent(any())).thenReturn(false);
 
     SourceControlEvent event =
@@ -189,6 +193,8 @@ public class SourceControlEventOrchestratorTest
     // given: orchestrator configured to run scheduled executor and fetch events from DB
     when(mockSourceControlLoadBalancer.reserveEvent(any())).thenReturn(true);
     when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
+    when(scmNodeProcessor.shouldRun()).thenReturn(true);
+
     GitRepositoryInfo gitRepositoryInfo =
         new GitRepositoryInfo("https://azure.org/organization/project", null, "user", "token", AZURE,
             "base-branch", true, true, true, true, false, null);
@@ -197,8 +203,8 @@ public class SourceControlEventOrchestratorTest
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
         mockSourceControlLoadBalancer, mockIqForScmLicenseChecker, mockSourceControlUtils,
-        mockApiConfigFeaturesService, mockShutdownHandler
-    );
+        mockApiConfigFeaturesService, mockShutdownHandler,
+        scmNodeProcessor);
 
     SourceControlEvent event =
         new SourceControlEvent().forDiscoveredPullRequest().setApplicationId(UUID.randomUUID().toString());
@@ -225,8 +231,8 @@ public class SourceControlEventOrchestratorTest
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
         mockSourceControlLoadBalancer, mockIqForScmLicenseChecker, mockSourceControlUtils,
-        mockApiConfigFeaturesService, mockShutdownHandler
-    );
+        mockApiConfigFeaturesService, mockShutdownHandler,
+        scmNodeProcessor);
 
     // the orchestrator starts, but it does nothing
     sourceControlEventOrchestrator.register();
@@ -240,8 +246,8 @@ public class SourceControlEventOrchestratorTest
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
         mockSourceControlLoadBalancer, mockIqForScmLicenseChecker, mockSourceControlUtils,
-        mockApiConfigFeaturesService, mockShutdownHandler
-    );
+        mockApiConfigFeaturesService, mockShutdownHandler,
+        scmNodeProcessor);
 
     SourceControlEventOrchestrator spyOrchestrator = Mockito.spy(sourceControlEventOrchestrator);
 
@@ -253,13 +259,15 @@ public class SourceControlEventOrchestratorTest
 
   @Test
   public void testStop() {
+    when(scmNodeProcessor.shouldRun()).thenReturn(true);
+
     when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
 
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
         mockSourceControlLoadBalancer, mockIqForScmLicenseChecker, mockSourceControlUtils,
-        mockApiConfigFeaturesService, mockShutdownHandler
-    );
+        mockApiConfigFeaturesService, mockShutdownHandler,
+        scmNodeProcessor);
 
     SourceControlEventOrchestrator spyOrchestrator = Mockito.spy(sourceControlEventOrchestrator);
 

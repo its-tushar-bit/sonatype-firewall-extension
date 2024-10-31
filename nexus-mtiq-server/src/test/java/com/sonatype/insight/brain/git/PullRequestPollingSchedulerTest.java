@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
+import com.sonatype.insight.brain.service.ScmNodeProcessor;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
@@ -45,6 +46,9 @@ public class PullRequestPollingSchedulerTest
   @Mock
   private ShutdownHandler mockShutdownHandler;
 
+  @Mock
+  private ScmNodeProcessor scmNodeProcessor;
+
   private PullRequestPollingScheduler scheduler;
 
   private final int delaySeconds = 1;
@@ -56,11 +60,13 @@ public class PullRequestPollingSchedulerTest
     when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
     when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
     scheduler = new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker, mockApiConfigFeaturesService,
-        delaySeconds, intervalSeconds, mockShutdownHandler);
+        delaySeconds, intervalSeconds, mockShutdownHandler, scmNodeProcessor);
   }
 
   @Test
   public void testPullRequestPollingScheduler_handlesMultipleTenants() throws InterruptedException {
+    when(scmNodeProcessor.shouldRun()).thenReturn(true);
+
     // given: scheduler instance with single tenant
     Tenant tenant1 = testAsNewTenant(t1 -> scheduler.register());
 

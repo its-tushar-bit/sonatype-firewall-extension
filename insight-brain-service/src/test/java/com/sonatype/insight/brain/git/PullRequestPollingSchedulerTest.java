@@ -9,6 +9,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.service.ScmNodeProcessor;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
 import org.junit.Test;
@@ -17,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
@@ -42,6 +44,9 @@ public class PullRequestPollingSchedulerTest
   @Mock
   private ShutdownHandler mockShutdownHandler;
 
+  @Mock
+  private ScmNodeProcessor scmNodeProcessor;
+
   public PullRequestPollingSchedulerTest() {
     super(PullRequestPollingScheduler.class);
   }
@@ -49,7 +54,7 @@ public class PullRequestPollingSchedulerTest
   @Test
   public void testNewExecutor() {
     PullRequestPollingScheduler pullRequestPollingScheduler = new PullRequestPollingScheduler(pullRequestPollingService,
-        licenseChecker, mockApiConfigFeaturesService, 2, 1, mockShutdownHandler);
+        licenseChecker, mockApiConfigFeaturesService, 2, 1, mockShutdownHandler, scmNodeProcessor);
 
     ScheduledExecutorService scheduledExecutorService = pullRequestPollingScheduler.newExecutor();
 
@@ -62,9 +67,10 @@ public class PullRequestPollingSchedulerTest
     final int delaySeconds = 2;
     final int intervalSeconds = 1;
     PullRequestPollingScheduler scheduler = new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker,
-        mockApiConfigFeaturesService, delaySeconds, intervalSeconds, mockShutdownHandler);
+        mockApiConfigFeaturesService, delaySeconds, intervalSeconds, mockShutdownHandler, scmNodeProcessor);
     when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
     when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
+    when(scmNodeProcessor.shouldRun()).thenReturn(true);
 
     // when: start scheduler and wait (less than full initial delay)
     scheduler.register();
@@ -115,11 +121,12 @@ public class PullRequestPollingSchedulerTest
     final int delaySeconds = 1;
     final int intervalSeconds = 1;
     PullRequestPollingScheduler scheduler = new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker,
-            mockApiConfigFeaturesService, delaySeconds, intervalSeconds, mockShutdownHandler);
+            mockApiConfigFeaturesService, delaySeconds, intervalSeconds, mockShutdownHandler, scmNodeProcessor);
     doThrow(new RuntimeException("some runtime exception")).when(pullRequestPollingService)
         .fetchAndSendPullRequestsForCommenting();
     when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
     when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
+    when(scmNodeProcessor.shouldRun()).thenReturn(true);
 
     // when: start scheduler, wait (delay + 1 interval)
     scheduler.register();
@@ -172,8 +179,9 @@ public class PullRequestPollingSchedulerTest
   public void testPullRequestPollingScheduler_unlicensed() throws Exception {
     // given: valid scheduler instance but missing license feature
     PullRequestPollingScheduler scheduler = new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker,
-        mockApiConfigFeaturesService, 2, 1, mockShutdownHandler);
+        mockApiConfigFeaturesService, 2, 1, mockShutdownHandler, scmNodeProcessor);
     when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
+    when(scmNodeProcessor.shouldRun()).thenReturn(true);
 
     // when: start scheduler and wait (less than full initial delay)
     scheduler.register();
@@ -195,9 +203,10 @@ public class PullRequestPollingSchedulerTest
     // given: valid scheduler instance but missing scm feature flag
     lenient().when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
     when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(false);
+    when(scmNodeProcessor.shouldRun()).thenReturn(true);
 
     PullRequestPollingScheduler scheduler = new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker,
-        mockApiConfigFeaturesService, 2, 1, mockShutdownHandler);
+        mockApiConfigFeaturesService, 2, 1, mockShutdownHandler, scmNodeProcessor);
 
     // when: start scheduler and wait (less than full initial delay)
     scheduler.register();
@@ -210,6 +219,51 @@ public class PullRequestPollingSchedulerTest
     Thread.sleep(2500);
 
     verify(pullRequestPollingService, never()).fetchAndSendPullRequestsForCommenting();
+
+    scheduler.deregister();
+  }
+
+  @Test
+  public void testPullRequestPollingScheduler_saasLifecycleNonBatchModeConfig() throws Exception {
+    // given: valid scheduler instance but missing scm feature flag
+    lenient().when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
+    when(scmNodeProcessor.shouldRun()).thenReturn(false);
+
+    PullRequestPollingScheduler scheduler = new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker,
+        mockApiConfigFeaturesService, 2, 1, mockShutdownHandler, scmNodeProcessor);
+
+    // when: start scheduler and wait (less than full initial delay)
+    scheduler.register();
+
+    Thread.sleep(2500);
+
+    verify(pullRequestPollingService, never()).fetchAndSendPullRequestsForCommenting();
+
+    scheduler.deregister();
+  }
+
+  @Test
+  public void testPullRequestPollingScheduler_saasLifecycleBatchModeConfig() throws Exception {
+    // given: valid scheduler instance but missing scm feature flag
+    lenient().when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
+    when(mockApiConfigFeaturesService.isSaasLifecycleScmEnabled()).thenReturn(true);
+    when(scmNodeProcessor.shouldRun()).thenReturn(false);
+    when(scmNodeProcessor.shouldRun()).thenReturn(true);
+
+    PullRequestPollingScheduler scheduler = new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker,
+        mockApiConfigFeaturesService, 2, 1, mockShutdownHandler, scmNodeProcessor);
+
+    // when: start scheduler and wait (less than full initial delay)
+    scheduler.register();
+
+    // then: PR polling scheduler is started, but it does nothing
+    assertThatLogMessagesEqual(
+        info("Scheduled discovery of SCM pull requests every 1 second(s) starting in 2 second(s)")
+    );
+
+    Thread.sleep(2500);
+
+    verify(pullRequestPollingService, atLeastOnce()).fetchAndSendPullRequestsForCommenting();
 
     scheduler.deregister();
   }

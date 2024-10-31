@@ -12,7 +12,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 
@@ -52,8 +51,6 @@ public class JwtAuthenticationFilter
 
     if (StringUtils.isNotBlank(idToken)) {
       log.debug("Attempting to execute login with ID Token");
-      // Remove tokens from session
-      removeCookie(request, response, ID_TOKEN_COOKIE);
       return new ShiroJsonWebToken(idToken, true);
     }
 
@@ -107,19 +104,5 @@ public class JwtAuthenticationFilter
     }
 
     return null;
-  }
-
-  private void removeCookie(final ServletRequest request, final ServletResponse response, String authCookie) {
-    if (request instanceof HttpServletRequest && response instanceof HttpServletResponse) {
-      HttpServletRequest req = (HttpServletRequest) request;
-      HttpServletResponse res = (HttpServletResponse) response;
-
-      for (Cookie cookie : req.getCookies()) {
-        if (authCookie.equals(cookie.getName())) {
-          cookie.setMaxAge(0);
-          res.addCookie(cookie);
-        }
-      }
-    }
   }
 }

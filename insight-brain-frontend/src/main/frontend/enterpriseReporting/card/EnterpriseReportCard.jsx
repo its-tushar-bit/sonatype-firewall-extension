@@ -27,11 +27,7 @@ export default function EnterpriseReportCard(props) {
   const btnClassName = 'iq-enterprise-reporting__dashboard__btn dashboard-id-btn-' + dashboard.dashboardId;
 
   return (
-    <div
-      id="enterprise-reporting-card"
-      className="iq-enterprise-reporting__dashboard"
-      role="enterprise-reporting-dashboard-card"
-    >
+    <div className="iq-enterprise-reporting__dashboard" role="enterprise-reporting-dashboard-card">
       <NxTile className="iq-enterprise-reporting__dashboard__tile">
         <NxTile.Header className="iq-enterprise-reporting__dashboard__header">
           <NxTile.HeaderTitle className="iq-enterprise-reporting__dashboard__header-title">

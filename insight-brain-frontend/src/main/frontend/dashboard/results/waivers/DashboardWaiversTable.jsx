@@ -89,13 +89,28 @@ export default function DashboardWaiversTable(props) {
       <NxTable className="nx-table--fixed-layout">
         <NxTable.Head>
           <NxTable.Row className="iq-dashboard-waivers-headers">
-            <NxTable.Cell onClick={() => doSort(0)} sortDir={getColumnDirection(0)} isSortable>
+            <NxTable.Cell
+              className="iq-size-controlled-cell"
+              onClick={() => doSort(0)}
+              sortDir={getColumnDirection(0)}
+              isSortable
+            >
               Threat
             </NxTable.Cell>
-            <NxTable.Cell onClick={() => doSort(1)} sortDir={getColumnDirection(1)} isSortable>
+            <NxTable.Cell
+              className="iq-waiver-date-header"
+              onClick={() => doSort(1)}
+              sortDir={getColumnDirection(1)}
+              isSortable
+            >
               Date Created
             </NxTable.Cell>
-            <NxTable.Cell onClick={() => doSort(2)} sortDir={getColumnDirection(2)} isSortable>
+            <NxTable.Cell
+              className="iq-waiver-date-header"
+              onClick={() => doSort(2)}
+              sortDir={getColumnDirection(2)}
+              isSortable
+            >
               Expiration
             </NxTable.Cell>
             <NxTable.Cell onClick={() => doSort(3)} sortDir={getColumnDirection(3)} isSortable>

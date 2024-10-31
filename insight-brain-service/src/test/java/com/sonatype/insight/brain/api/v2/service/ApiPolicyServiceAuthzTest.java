@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyListDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import com.google.common.collect.Sets;
@@ -33,6 +34,14 @@ public class ApiPolicyServiceAuthzTest
 
   private static final String APP_POLICY_NAME2 = "app-policy2";
 
+  public static final String REPOSITORY_POLICY_1 = "repository-policy1";
+
+  public static final String REPOSITORY_MANAGER_POLICY_1 = "repository-manager-policy1";
+
+  public static final String REPOSITORY_CONTAINER_POLICY_1 = "repository-container-policy1";
+
+  public static final String REPOSITORY_POLICY_2 = "repository-policy2";
+
   @Inject
   private ApiPolicyService apiPolicyService;
 
@@ -47,6 +56,13 @@ public class ApiPolicyServiceAuthzTest
 
     tempEntity.newPolicy(org2.getId(), ORG_POLICY_NAME2);
     tempEntity.newPolicy(app2.getId(), APP_POLICY_NAME2);
+
+    tempEntity.newPolicy(repositoryManager.getParentOwnerId(), REPOSITORY_CONTAINER_POLICY_1);
+    tempEntity.newPolicy(repositoryManager.getId(), REPOSITORY_MANAGER_POLICY_1);
+    tempEntity.newPolicy(repository.getId(), REPOSITORY_POLICY_1);
+
+    Repository repository1 = tempEntity.newRepository(repositoryManager);
+    tempEntity.newPolicy(repository1.getId(), REPOSITORY_POLICY_2);
   }
 
   @Test
@@ -85,5 +101,41 @@ public class ApiPolicyServiceAuthzTest
     ApiPolicyListDTO policyListDTO = apiPolicyService.getPolicies();
     assertThat(policyListDTO).isNotNull();
     assertThat(policyListDTO.policies).isEmpty();
+  }
+
+  @Test
+  public void testGetPolicies_AuthorizedRepositoryContainer() {
+    grantReadPermission(repositoryManager.getParentOwnerId());
+    ApiPolicyListDTO policyListDTO = apiPolicyService.getPolicies();
+    assertThat(policyListDTO).isNotNull();
+    assertThat(policyListDTO.policies).hasSize(5);
+    Set<String> policyNames = Sets.newHashSet(policyListDTO.policies.get(0).name, policyListDTO.policies.get(1).name,
+        policyListDTO.policies.get(2).name, policyListDTO.policies.get(3).name, policyListDTO.policies.get(4).name);
+    assertThat(policyNames).containsExactlyInAnyOrder(PARENT_ORG_POLICY_NAME1, REPOSITORY_CONTAINER_POLICY_1,
+        REPOSITORY_MANAGER_POLICY_1, REPOSITORY_POLICY_1, REPOSITORY_POLICY_2);
+  }
+
+  @Test
+  public void testGetPolicies_AuthorizedRepositoryManager() {
+    grantReadPermission(repositoryManager.getId());
+    ApiPolicyListDTO policyListDTO = apiPolicyService.getPolicies();
+    assertThat(policyListDTO).isNotNull();
+    assertThat(policyListDTO.policies).hasSize(5);
+    Set<String> policyNames = Sets.newHashSet(policyListDTO.policies.get(0).name, policyListDTO.policies.get(1).name,
+        policyListDTO.policies.get(2).name, policyListDTO.policies.get(3).name, policyListDTO.policies.get(4).name);
+    assertThat(policyNames).containsExactlyInAnyOrder(PARENT_ORG_POLICY_NAME1, REPOSITORY_CONTAINER_POLICY_1,
+        REPOSITORY_MANAGER_POLICY_1, REPOSITORY_POLICY_1, REPOSITORY_POLICY_2);
+  }
+
+  @Test
+  public void testGetPolicies_AuthorizedRepositories() {
+    grantReadPermission(repository.getId());
+    ApiPolicyListDTO policyListDTO = apiPolicyService.getPolicies();
+    assertThat(policyListDTO).isNotNull();
+    assertThat(policyListDTO.policies).hasSize(4);
+    Set<String> policyNames = Sets.newHashSet(policyListDTO.policies.get(0).name, policyListDTO.policies.get(1).name,
+        policyListDTO.policies.get(2).name, policyListDTO.policies.get(3).name);
+    assertThat(policyNames).containsExactlyInAnyOrder(PARENT_ORG_POLICY_NAME1, REPOSITORY_CONTAINER_POLICY_1,
+        REPOSITORY_MANAGER_POLICY_1, REPOSITORY_POLICY_1);
   }
 }

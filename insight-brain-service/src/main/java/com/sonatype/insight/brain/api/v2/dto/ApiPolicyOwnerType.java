@@ -10,5 +10,5 @@ package com.sonatype.insight.brain.api.v2.dto;
  */
 public enum ApiPolicyOwnerType
 {
-  APPLICATION, ORGANIZATION
+  APPLICATION, ORGANIZATION, REPOSITORY_CONTAINER, REPOSITORY_MANAGER, REPOSITORY
 }

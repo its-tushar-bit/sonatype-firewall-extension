@@ -302,7 +302,13 @@ const loadPoliciesFulfilled = (payload, state) =>
     lensPath(['policiesState']),
     merge(__, {
       loadedPolicies: true,
-      policies: payload.policies.filter((policy) => policy.ownerId === 'ROOT_ORGANIZATION_ID'),
+      policies: payload.policies.filter(
+        (policy) =>
+          policy.ownerId === 'ROOT_ORGANIZATION_ID' ||
+          policy.ownerType === 'REPOSITORY_CONTAINER' ||
+          policy.ownerType === 'REPOSITORY_MANAGER' ||
+          policy.ownerType === 'REPOSITORY'
+      ),
     }),
     state
   );

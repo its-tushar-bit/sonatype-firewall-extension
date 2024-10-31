@@ -22,8 +22,12 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.organization.OrganizationService;
+import com.sonatype.insight.brain.repository.RepositoryService;
 
 /**
  * @since 1.12.0
@@ -37,17 +41,22 @@ public class ApiPolicyService
 
   private final OrganizationService organizationService;
 
+  private final RepositoryService repositoryService;
+
   private final OwnerDAO ownerDAO;
 
   @Inject
-  public ApiPolicyService(final PolicyDAO policyDAO,
-                          final ApplicationService applicationService,
-                          final OrganizationService organizationService,
-                          final OwnerDAO ownerDAO)
+  public ApiPolicyService(
+      final PolicyDAO policyDAO,
+      final ApplicationService applicationService,
+      final OrganizationService organizationService,
+      final RepositoryService repositoryService,
+      final OwnerDAO ownerDAO)
   {
     this.policyDAO = policyDAO;
     this.applicationService = applicationService;
     this.organizationService = organizationService;
+    this.repositoryService = repositoryService;
     this.ownerDAO = ownerDAO;
   }
 
@@ -61,17 +70,35 @@ public class ApiPolicyService
     List<ApiPolicyDTO> apiPolicyList = new ArrayList<>();
     Set<String> applicationIds = new HashSet<>();
     Set<String> organizationIds = new HashSet<>();
-    getFilteredOwnerIds(applicationIds, organizationIds);
+    Set<String> repositoryManagerIds = new HashSet<>();
+    Set<String> repositoryIds = new HashSet<>();
+    // There is only a single repository container but left as a set to be consistent with the other ids
+    Set<String> repositoryContainerId = new HashSet<>();
+    getFilteredOwnerIds(applicationIds, organizationIds, repositoryIds, repositoryManagerIds, repositoryContainerId);
 
     List<Policy> appPolicies = policyDAO.getByOwnerIds(applicationIds);
     apiPolicyList.addAll(ApiPolicyAdapter.convert(appPolicies, ApiPolicyOwnerType.APPLICATION));
     List<Policy> orgPolicies = policyDAO.getByOwnerIds(organizationIds);
     apiPolicyList.addAll(ApiPolicyAdapter.convert(orgPolicies, ApiPolicyOwnerType.ORGANIZATION));
 
+    List<Policy> repositoryContainerPolicies = policyDAO.getByOwnerIds(repositoryContainerId);
+    apiPolicyList.addAll(ApiPolicyAdapter.convert(repositoryContainerPolicies,
+        ApiPolicyOwnerType.REPOSITORY_CONTAINER));
+    List<Policy> repositoryManagerPolicies = policyDAO.getByOwnerIds(repositoryManagerIds);
+    apiPolicyList.addAll(ApiPolicyAdapter.convert(repositoryManagerPolicies, ApiPolicyOwnerType.REPOSITORY_MANAGER));
+    List<Policy> repositoryPolicies = policyDAO.getByOwnerIds(repositoryIds);
+    apiPolicyList.addAll(ApiPolicyAdapter.convert(repositoryPolicies, ApiPolicyOwnerType.REPOSITORY));
+
     return apiPolicyList;
   }
 
-  private void getFilteredOwnerIds(Set<String> applicationIds, Set<String> organizationIds) {
+  private void getFilteredOwnerIds(
+      Set<String> applicationIds,
+      Set<String> organizationIds,
+      Set<String> repositoryIds,
+      Set<String> repositoryManagerIds,
+      Set<String> repositoryContainerIds)
+  {
     // Add the apps that the user has permissions to
     for (Application application : applicationService.getApplications()) {
       applicationIds.add(application.getId());
@@ -85,6 +112,28 @@ public class ApiPolicyService
       organizationIds.add(organization.getId());
       // as with apps, also add any parent orgs regardless of explicit permission
       addOrganizationIds(organization.getParentOrganizationId(), organizationIds);
+    }
+
+    // Add the repositories that the user has permissions to
+    for (Repository repository: repositoryService.getRepositoriesWithReadPermission()) {
+      repositoryIds.add(repository.getId());
+      // Need to add the repository manager and its hierarchy
+      repositoryManagerIds.add(repository.getRepositoryManagerId());
+      repositoryContainerIds.add(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+      addOrganizationIds(Organization.ROOT_ORGANIZATION_ID, organizationIds);
+    }
+
+    // Add the repository managers that the user has permissions to
+    for (RepositoryManager repositoryManager : repositoryService.getRepositoryManagers()) {
+      repositoryManagerIds.add(repositoryManager.getId());
+      repositoryContainerIds.add(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+      addOrganizationIds(Organization.ROOT_ORGANIZATION_ID, organizationIds);
+    }
+
+    // Add the repository container if the user has permission
+    if (repositoryService.checkReadPermissionRepositoryContainer()) {
+      repositoryContainerIds.add(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+      addOrganizationIds(Organization.ROOT_ORGANIZATION_ID, organizationIds);
     }
   }
 

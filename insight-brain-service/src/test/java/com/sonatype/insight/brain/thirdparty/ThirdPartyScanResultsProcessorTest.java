@@ -270,7 +270,8 @@ public class ThirdPartyScanResultsProcessorTest
         "PENDING",
         new Date(),
         creationDetailsToolsOnlyJson(),
-        "SBOM");
+        "SBOM",
+        false);
     assertThirdPartySbomMetadata(thirdPartyFileList.get(0), true, sbomMetadata);
     ThirdPartySbomMetadata thirdPartySbomMetadata =
         thirdPartySbomMetadataDAO.getByThirdPartyFileId(thirdPartyFileList.get(0).getId());
@@ -363,7 +364,8 @@ public class ThirdPartyScanResultsProcessorTest
         SbomStatus.PENDING.name(),
         new Date(),
         null,
-        "SBOM");
+        "SBOM",
+        false);
     assertThirdPartySbomMetadata(thirdPartyFileList.get(0), true, sbomMetadata);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).getSbomMetadataEntity(any(), any());
   }
@@ -436,7 +438,8 @@ public class ThirdPartyScanResultsProcessorTest
         SbomStatus.PENDING.name(),
         new Date(),
         null,
-        "SBOM");
+        "SBOM",
+        false);
     assertThirdPartySbomMetadata(thirdPartyFileList.get(0), true, sbomMetadata);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).getSbomMetadataEntity(any(), any());
   }
@@ -714,7 +717,8 @@ public class ThirdPartyScanResultsProcessorTest
         SbomStatus.PENDING.name(),
         new Date(),
         creationDetailsJson(),
-        "SBOM");
+        "SBOM",
+        false);
     assertThirdPartySbomMetadata(thirdPartyFileList.get(0), true, sbomMetadata);
     verify(thirdPartyScanResultsProcessorSpy, times(1)).getSbomMetadataEntity(any(), any());
   }

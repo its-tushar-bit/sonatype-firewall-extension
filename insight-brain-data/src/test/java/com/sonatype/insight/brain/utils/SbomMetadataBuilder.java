@@ -48,6 +48,8 @@ public class SbomMetadataBuilder
 
   private String scanType;
 
+  private boolean validationSkipped;
+
   public SbomMetadataBuilder(DAOFactory daoFactory) {
     thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
     thirdPartySbomMetadataDAO = daoFactory.createThirdPartySbomMetadataDAO();
@@ -68,6 +70,7 @@ public class SbomMetadataBuilder
     this.status = "ACTIVE";
     this.metadataJson = buildMetadataJson();
     this.scanType = "SBOM";
+    this.validationSkipped = false;
   }
 
   public static SbomMetadataBuilder newSbomMetadataBuilder(DAOFactory daoFactory) {
@@ -141,17 +144,27 @@ public class SbomMetadataBuilder
     return this;
   }
 
+  public SbomMetadataBuilder withScanType(String scanType) {
+    this.scanType = scanType;
+    return this;
+  }
+
+  public SbomMetadataBuilder withValidationSkipped(boolean validationSkipped) {
+    this.validationSkipped = validationSkipped;
+    return this;
+  }
+
   public ThirdPartySbomMetadata build() {
     ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata(
         thirdPartyFileId, applicationId, sbomVersion, filename, serialNumber, spec, specFormat, specVersion, status,
-        createdAt, metadataJson, scanType
+        createdAt, metadataJson, scanType, validationSkipped
     );
     thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
 
     return thirdPartySbomMetadata;
   }
 
-  private String buildMetadataJson() {
+  public static String buildMetadataJson() {
     String json =
             "{\"created\":\"2020-01-01T00:00:00Z\",\"creators\":[{\"type\":\"Author\",\"name\":\"John Doe\"," +
                 "\"email\":\"john.doe@example.com\",\"phone\":\"1-800-111-1111\"},{\"type\":\"Manufacturer\"," +

@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
@@ -12,6 +15,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.thirdpartyscans.ApiSbomApplicationsHistoryMetricDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
@@ -21,12 +25,16 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.scan.file.SbomFormat;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.db.IdUtil.newUUID;
+import static com.sonatype.insight.brain.utils.SbomMetadataBuilder.buildMetadataJson;
 import static com.sonatype.insight.brain.utils.SbomMetadataBuilder.newSbomMetadataBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -36,11 +44,15 @@ public class ThirdPartySbomMetadataDAOTest
 {
   private ThirdPartySbomMetadataDAO dao;
 
+  private ThirdPartyFileDAO thirdPartyFileDAO;
+
   @Before
   @Override
   public void setup() {
     super.setup();
+
     dao = daoFactory.createThirdPartySbomMetadataDAO();
+    thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
   }
 
   @Test
@@ -56,6 +68,7 @@ public class ThirdPartySbomMetadataDAOTest
     // Update
     entity.setSbomVersion("new version");
     entity.setSerialNumber("new serial number");
+    entity.setValidationSkipped(true);
     dao.update(entity);
 
     fetchedThirdPartySbomMetadata = dao.getById(entity.getId());
@@ -65,6 +78,52 @@ public class ThirdPartySbomMetadataDAOTest
     dao.delete(entity);
     fetchedThirdPartySbomMetadata = dao.getById(entity.getId());
     assertThat(fetchedThirdPartySbomMetadata).isNull();
+  }
+
+  @Test
+  public void testValidationSkipped_whenNull() throws SQLException {
+    ThirdPartyFile thirdPartyFile = new ThirdPartyFile("third-party-file", new Date());
+    thirdPartyFileDAO.insert(thirdPartyFile);
+
+    ThirdPartyScansDataStore thirdPartyScansDataStore = databaseRule.getThirdPartyScansDataStore();
+    String sql = "INSERT INTO " + thirdPartyScansDataStore.getDatabaseSchema() +
+        ".sbom_metadata (sbom_metadata_id, third_party_file_id, application_id, file_name, " +
+        "serial_number, sbom_version, spec, spec_format, spec_version, status, created_at, " +
+        "metadata_json, scan_type, validation_skipped) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, null);";
+
+    String randomString = RandomStringUtils.random(10, true, true);
+    String id = newUUID();
+
+    try (Connection connection = thirdPartyScansDataStore.getDataSource().getConnection()) {
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        statement.setString(1, id);
+        statement.setString(2, thirdPartyFile.getId());
+        statement.setString(3, randomString);
+        statement.setString(4, randomString);
+        statement.setString(5, randomString);
+        statement.setString(6, randomString);
+        statement.setString(7, randomString);
+        statement.setString(8, SbomFormat.XML.toString());
+        statement.setString(9, randomString);
+        statement.setString(10, "ACTIVE");
+        statement.setDate(11,  new java.sql.Date(new Date().getTime()));
+        statement.setString(12, buildMetadataJson());
+        statement.setString(13, "SBOM");
+        statement.executeUpdate();
+      }
+    }
+
+    // Read
+    ThirdPartySbomMetadata fetchedThirdPartySbomMetadata = dao.getById(id);
+    assertThat(fetchedThirdPartySbomMetadata.getValidationSkipped()).isFalse();
+
+    // Update
+    fetchedThirdPartySbomMetadata.setValidationSkipped(true);
+    dao.update(fetchedThirdPartySbomMetadata);
+
+    ThirdPartySbomMetadata updatedThirdPartySbomMetadata = dao.getById(fetchedThirdPartySbomMetadata.getId());
+    assertThat(updatedThirdPartySbomMetadata.getValidationSkipped()).isTrue();
+    assertThirdPartySbomMetadata(updatedThirdPartySbomMetadata, fetchedThirdPartySbomMetadata);
   }
 
   @Test
@@ -268,6 +327,7 @@ public class ThirdPartySbomMetadataDAOTest
     assertThat(actual.getStatus()).isEqualTo(expected.getStatus());
     assertThat(actual.getMetadataJson()).isEqualTo(expected.getMetadataJson());
     assertThat(actual.getScanType()).isEqualTo(expected.getScanType());
+    assertThat(actual.getValidationSkipped()).isEqualTo(expected.getValidationSkipped());
   }
 
   ThirdPartySbomMetadata createSbomMetadata(boolean save, String status) {

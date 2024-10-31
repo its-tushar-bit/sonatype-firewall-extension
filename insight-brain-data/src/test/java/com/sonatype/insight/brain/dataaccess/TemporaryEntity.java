@@ -4017,22 +4017,19 @@ public class TemporaryEntity
       String specFormat,
       String specVersion)
   {
-    ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata();
-    thirdPartySbomMetadata.setCreatedAt(new Date());
-    thirdPartySbomMetadata.setSerialNumber(RandomStringUtils.random(10, true, true));
-    thirdPartySbomMetadata.setSpec(spec);
-    thirdPartySbomMetadata.setSpecFormat(specFormat);
-    thirdPartySbomMetadata.setSpecVersion(specVersion);
-    thirdPartySbomMetadata.setStatus(status);
-    thirdPartySbomMetadata.setSbomVersion(sbomVersion);
-    thirdPartySbomMetadata.setApplicationId(applicationId);
-    thirdPartySbomMetadata.setFilename(fileName);
-    thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFileId);
-    thirdPartySbomMetadata.setScanType("SBOM");
+    Date createdAt = new Date();
 
-    thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
-
-    return thirdPartySbomMetadata;
+    return newThirdPartySbomMetadata(
+        thirdPartyFileId,
+        applicationId,
+        sbomVersion,
+        status,
+        fileName,
+        spec,
+        specFormat,
+        specVersion,
+        createdAt
+    );
   }
 
   public ThirdPartySbomMetadata newThirdPartySbomMetadata(
@@ -4058,6 +4055,7 @@ public class TemporaryEntity
     thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFileId);
     thirdPartySbomMetadata.setCreatedAt(createdAt);
     thirdPartySbomMetadata.setScanType("SBOM");
+    thirdPartySbomMetadata.setValidationSkipped(false);
 
     thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
 

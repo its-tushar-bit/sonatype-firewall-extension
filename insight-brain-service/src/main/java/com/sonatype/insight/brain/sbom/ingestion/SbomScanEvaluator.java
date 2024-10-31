@@ -167,7 +167,8 @@ public class SbomScanEvaluator
         SbomStatus.PENDING.toString(),
         new Date(),
         SbomCycloneDxUtils.getGenericSbomCreationDetailsAsString(),
-        SbomScanType.BINARY.toString()
+        SbomScanType.BINARY.toString(),
+        false
     );
     sbomMetadataUtils.insertThirdPartySbomMetadataWithRetry(thirdPartySbomMetadata);
     AuditData.get().setSbomVersion(thirdPartySbomMetadata, SbomAction.CREATE);

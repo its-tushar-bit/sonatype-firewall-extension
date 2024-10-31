@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.utils;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import com.sonatype.insight.brain.dataaccess.DAOFactory;
@@ -56,13 +54,12 @@ public class SbomMetadataBuilder
 
     ThirdPartyFile thirdPartyFile = new ThirdPartyFile("third-party-file", new Date());
     thirdPartyFileDAO.insert(thirdPartyFile);
-    DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
     this.createdAt = new Date();
     this.thirdPartyFileId = thirdPartyFile.getId();
     this.applicationId = RandomStringUtils.random(10, true, true);
     this.filename = RandomStringUtils.random(10, true, true);
     this.serialNumber = RandomStringUtils.random(10, true, true);
-    this.sbomVersion = dtFormatter.format(LocalDateTime.now());
+    this.sbomVersion = RandomStringUtils.random(10, true, true);;
     this.spec = RandomStringUtils.random(10, true, true);
     this.specFormat = SbomFormat.XML.toString();
     this.specVersion = RandomStringUtils.random(10, true, true);

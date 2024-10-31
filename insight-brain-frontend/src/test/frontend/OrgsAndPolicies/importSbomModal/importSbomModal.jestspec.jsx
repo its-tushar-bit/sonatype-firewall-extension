@@ -4,13 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import userEvent from '@testing-library/user-event';
+import { nxFileUploadStateHelpers } from '@sonatype/react-shared-components';
 
 import ImportSbomModal from 'MainRoot/OrgsAndPolicies/importSbomModal/ImportSbomModal';
 import { IMPORT_STATE } from 'MainRoot/OrgsAndPolicies/importSbomModal/importSbomModalSlice';
 import { getCommitImportedSbomUrl, getImportSbomUrl } from 'MainRoot/util/CLMLocation';
 
 import { axiosMockAdapter, fireEvent, render, screen } from 'TestRoot/SpecUtil';
-import userEvent from '@testing-library/user-event';
 
 describe('ImportSbomModal', () => {
   let renderComponent, axiosMock, defaultPreloadedState;
@@ -39,6 +40,7 @@ describe('ImportSbomModal', () => {
             importState: IMPORT_STATE.INITIAL,
             uploadProgress: 0,
             errorMessage: null,
+            fileInputState: nxFileUploadStateHelpers.initialState(null),
             sbomSummary: {
               versionId: null,
               totalComponents: null,
@@ -123,18 +125,36 @@ describe('ImportSbomModal', () => {
       it('shows the correct content', () => {
         renderComponent();
         expect(screen.getByText('Import File for Application testApplicationName')).toBeInTheDocument();
-        expect(screen.getByTestId('import-sbom-modal-file-upload')).toBeInTheDocument();
+        expect(document.querySelector('input[type=file]')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /Cancel/i })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /Import/i })).toBeInTheDocument();
       });
+    });
 
-      it('should disable import SBOM until a file is selected', async () => {
+    describe('Upload form validation', () => {
+      it('shows an error if the Import button is clicked when a file is not selected', async () => {
+        const user = userEvent.setup();
         renderComponent();
         const importButton = screen.getByRole('button', { name: /Import/i });
-        expect(importButton).toBeVisible();
-        expect(importButton).toBeDisabled();
-        setFileUploadValue(await screen.findByTestId('import-sbom-modal-file-upload'), createTestFile());
-        expect(importButton).not.toBeDisabled();
+        const fileUpload = document.querySelector('input[type=file]');
+
+        expect(fileUpload).not.toHaveAccessibleErrorMessage();
+        expect(importButton).toBeEnabled();
+
+        await user.click(importButton);
+
+        expect(fileUpload).toHaveAccessibleErrorMessage('This field is required!');
+        expect(fileUpload).toHaveAttribute('aria-invalid', 'true');
+        expect(screen.getByRole('alert', { name: /validation error/ })).toHaveTextContent(
+          'There were validation errors. Please select a file to upload.'
+        );
+
+        setFileUploadValue(fileUpload, createTestFile());
+
+        expect(fileUpload).not.toHaveAccessibleErrorMessage();
+        expect(fileUpload).not.toHaveAttribute('aria-invalid', 'true');
+        expect(screen.getByRole('button', { name: /Import/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Import/i })).toBeEnabled();
       });
     });
 
@@ -151,13 +171,13 @@ describe('ImportSbomModal', () => {
 
         renderComponent();
 
-        setFileUploadValue(await screen.findByTestId('import-sbom-modal-file-upload'), createTestFile());
+        setFileUploadValue(document.querySelector('input[type=file]'), createTestFile());
         const importButton = screen.getByRole('button', { name: /Import/i });
         fireEvent.click(importButton);
 
         expect(await screen.findByRole('progressbar')).toBeVisible();
-        expect(await screen.findByText('Import in progress...')).toBeVisible();
-        expect(await screen.findByText('Importing [test-file.json]...')).toBeVisible();
+        expect(screen.getByText('Import in progress…')).toBeVisible();
+        expect(screen.getByText('Importing [test-file.json]…')).toBeVisible();
 
         expect(screen.queryByRole('button', { name: /Cancel/i })).not.toBeInTheDocument();
         expect(screen.queryByRole('button', { name: /Close/i })).not.toBeInTheDocument();
@@ -187,26 +207,29 @@ describe('ImportSbomModal', () => {
 
         renderComponent();
 
-        setFileUploadValue(await screen.findByTestId('import-sbom-modal-file-upload'), createTestFile());
+        setFileUploadValue(document.querySelector('input[type=file]'), createTestFile());
         const importButton = screen.getByRole('button', { name: /import/i });
 
         fireEvent.click(importButton);
 
-        expect(await screen.findByText('Application Name')).toBeVisible();
-        expect(await screen.findByText('testApplicationName')).toBeVisible();
+        const applicationNameLabel = (await screen.findByText('Application Name')).closest('dt');
+        expect(applicationNameLabel).toBeVisible();
+        expect(applicationNameLabel.parentElement.querySelector('dd')).toHaveTextContent('testApplicationName');
 
-        const versionIdTextBox = await screen.findByRole('textbox', { name: /version id/i });
+        const versionIdTextBox = screen.getByRole('textbox', { name: /version id/i });
         expect(versionIdTextBox).toHaveValue('1.2.3');
         expect(versionIdTextBox).toBeDisabled();
 
-        expect(await screen.findByText('Total Components:')).toBeVisible();
-        expect(await screen.findByTestId('import-sbom-modal-total-components')).toHaveTextContent('1');
+        const totalComponentsLabel = screen.getByText('Total Components').closest('dt');
+        expect(totalComponentsLabel).toBeVisible();
+        expect(totalComponentsLabel.parentElement.querySelector('dd')).toHaveTextContent('1');
 
-        expect(await screen.findByText('Total Vulnerabilities:')).toBeVisible();
-        expect(await screen.findByTestId('import-sbom-modal-total-vulnerabilities')).toHaveTextContent('2');
+        const totalVulnsLabel = screen.getByText('Total Vulnerabilities').closest('dt');
+        expect(totalVulnsLabel).toBeVisible();
+        expect(totalVulnsLabel.parentElement.querySelector('dd')).toHaveTextContent('2');
 
         expect(
-          await screen.findByText(
+          screen.getByText(
             'Closing the modal will not interrupt the evaluation; it will still be in progress until completed. ' +
               'Once the evaluation is complete, you can view the SBOM in the SBOM table.'
           )
@@ -215,7 +238,7 @@ describe('ImportSbomModal', () => {
         expect(screen.queryByRole('button', { name: 'Import' })).not.toBeInTheDocument();
         expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument();
 
-        const closeButton = await screen.findByRole('button', { name: 'Close' });
+        const closeButton = screen.getByRole('button', { name: 'Close' });
         expect(closeButton).toBeVisible();
 
         fireEvent.click(closeButton);
@@ -234,7 +257,7 @@ describe('ImportSbomModal', () => {
 
         renderComponent();
 
-        setFileUploadValue(await screen.findByTestId('import-sbom-modal-file-upload'), createTestFile());
+        setFileUploadValue(document.querySelector('input[type=file]'), createTestFile());
         const importButton = screen.getByRole('button', { name: /import/i });
 
         fireEvent.click(importButton);

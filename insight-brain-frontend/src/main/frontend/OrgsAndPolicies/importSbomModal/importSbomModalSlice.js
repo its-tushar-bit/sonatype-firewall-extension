@@ -6,10 +6,12 @@
 import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { allPass, always, complement, is, isEmpty, isNil } from 'ramda';
+import { nxFileUploadStateHelpers } from '@sonatype/react-shared-components';
 
 import { getImportSbomUrl, getCommitImportedSbomUrl } from 'MainRoot/util/CLMLocation';
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 import { selectSelectedOwnerId } from '../orgsAndPoliciesSelectors';
+import { selectSelectedFile } from './importSbomModalSelectors';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
 const DEFAULT_ERROR_MESSAGE = 'Encountered unexpected error while attempting to upload.';
@@ -34,11 +36,12 @@ const sbomSummaryInitialState = Object.freeze({
 export const initialState = Object.freeze({
   isModalOpen: false,
   importState: IMPORT_STATE.INITIAL,
+  fileInputState: nxFileUploadStateHelpers.initialState(null),
   scanType: null,
   uploadProgress: 0,
   errorMessage: null,
   validationErrors: null,
-  sbomSummary: { ...sbomSummaryInitialState },
+  sbomSummary: sbomSummaryInitialState,
 });
 
 const setIsModalOpen = (state, { payload }) => {
@@ -49,9 +52,14 @@ const setUploadProgress = (state, { payload }) => {
   state.uploadProgress = payload;
 };
 
-const uploadFile = createAsyncThunk(`${REDUCER_NAME}/uploadFile`, (file, { dispatch, getState, rejectWithValue }) => {
+const setSelectedFile = (state, { payload }) => {
+  state.fileInputState = nxFileUploadStateHelpers.userInput(payload);
+};
+
+const uploadFile = createAsyncThunk(`${REDUCER_NAME}/uploadFile`, (_, { dispatch, getState, rejectWithValue }) => {
   const state = getState();
   const appId = selectSelectedOwnerId(state);
+  const file = selectSelectedFile(state);
 
   if (isNil(file)) {
     return;
@@ -59,7 +67,6 @@ const uploadFile = createAsyncThunk(`${REDUCER_NAME}/uploadFile`, (file, { dispa
 
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('filename', file.name);
 
   return axios
     .post(getImportSbomUrl(appId), formData, {
@@ -137,6 +144,7 @@ const importSbomModal = createSlice({
   reducers: {
     setIsModalOpen,
     setUploadProgress,
+    setSelectedFile,
     reset: always(initialState),
   },
   extraReducers: {

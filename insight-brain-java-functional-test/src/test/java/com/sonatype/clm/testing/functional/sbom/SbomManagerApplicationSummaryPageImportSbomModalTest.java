@@ -106,7 +106,7 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
         .shouldBe(enabled)
         .click();
 
-    importSbomModal.title().shouldHave(text("Import in progress..."));
+    importSbomModal.title().shouldHave(text("Import in progress…"));
     importSbomModal.progressBar().shouldBe(visible);
     importSbomModal.summaryApplicationName()
         .shouldHave(text("Test Application"));
@@ -137,10 +137,10 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
         .shouldBe(enabled)
         .click();
 
-    importSbomModal.title().shouldHave(text("Import in progress..."));
+    importSbomModal.title().shouldHave(text("Import in progress…"));
     importSbomModal.progressBar().shouldBe(visible);
     importSbomModal.binaryFilename().shouldBe(visible).shouldHave(text("xml-apis-1.4.01.jar"));
-    importSbomModal.binaryAppName().shouldBe(visible).shouldHave(text(application.getName()));
+    importSbomModal.summaryApplicationName().shouldBe(visible).shouldHave(text(application.getName()));
   }
 
   @Test
@@ -162,10 +162,10 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
         .shouldBe(enabled)
         .click();
 
-    importSbomModal.title().shouldHave(text("Import in progress..."));
+    importSbomModal.title().shouldHave(text("Import in progress…"));
     importSbomModal.progressBar().shouldBe(visible);
     importSbomModal.binaryFilename().shouldBe(visible).shouldHave(text("text.txt"));
-    importSbomModal.binaryAppName().shouldBe(visible).shouldHave(text(application.getName()));
+    importSbomModal.summaryApplicationName().shouldBe(visible).shouldHave(text(application.getName()));
   }
 
   @Test

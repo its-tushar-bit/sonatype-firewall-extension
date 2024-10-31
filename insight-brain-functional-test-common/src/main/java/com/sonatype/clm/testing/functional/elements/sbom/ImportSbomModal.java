@@ -50,7 +50,7 @@ public class ImportSbomModal
 
   //Summary content
   public SelenideElement summaryApplicationName() {
-    return child(".import-sbom-modal__application-name > dd");
+    return child("#import-sbom-modal-application-name");
   }
 
   public SelenideElement summaryInputVersionId() {
@@ -79,10 +79,6 @@ public class ImportSbomModal
 
   // Binary summary
   public SelenideElement binaryFilename() {
-    return child(".sbom-manager-import-sbom-modal__binary-summary > dd.filename");
-  }
-
-  public SelenideElement binaryAppName() {
-    return child(".sbom-manager-import-sbom-modal__binary-summary > dd.application-name");
+    return child("#import-sbom-modal-filename");
   }
 }

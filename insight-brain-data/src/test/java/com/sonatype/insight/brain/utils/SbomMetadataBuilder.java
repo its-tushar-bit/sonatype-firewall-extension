@@ -8,13 +8,12 @@ package com.sonatype.insight.brain.utils;
 import java.util.Date;
 
 import com.sonatype.insight.brain.dataaccess.DAOFactory;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.scan.file.SbomFormat;
-
-import org.apache.commons.lang3.RandomStringUtils;
 
 public class SbomMetadataBuilder
 {
@@ -56,13 +55,13 @@ public class SbomMetadataBuilder
     thirdPartyFileDAO.insert(thirdPartyFile);
     this.createdAt = new Date();
     this.thirdPartyFileId = thirdPartyFile.getId();
-    this.applicationId = RandomStringUtils.random(10, true, true);
-    this.filename = RandomStringUtils.random(10, true, true);
-    this.serialNumber = RandomStringUtils.random(10, true, true);
-    this.sbomVersion = RandomStringUtils.random(10, true, true);;
-    this.spec = RandomStringUtils.random(10, true, true);
+    this.applicationId = TemporaryEntity.uuid().substring(0, 10);
+    this.filename = TemporaryEntity.uuid().substring(0, 10);
+    this.serialNumber = TemporaryEntity.uuid().substring(0, 10);
+    this.sbomVersion = TemporaryEntity.uuid().substring(0, 10);
+    this.spec = TemporaryEntity.uuid().substring(0, 10);
     this.specFormat = SbomFormat.XML.toString();
-    this.specVersion = RandomStringUtils.random(10, true, true);
+    this.specVersion = TemporaryEntity.uuid().substring(0, 10);
     //this.status = SbomStatus.ACTIVE.toString();
     this.status = "ACTIVE";
     this.metadataJson = buildMetadataJson();

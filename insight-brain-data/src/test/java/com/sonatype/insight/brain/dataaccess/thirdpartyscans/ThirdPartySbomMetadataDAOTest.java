@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.thirdpartyscans.ApiSbomApplicationsHistoryMetricDTO;
@@ -27,7 +28,6 @@ import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.scan.file.SbomFormat;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -91,7 +91,7 @@ public class ThirdPartySbomMetadataDAOTest
         "serial_number, sbom_version, spec, spec_format, spec_version, status, created_at, " +
         "metadata_json, scan_type, validation_skipped) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, null);";
 
-    String randomString = RandomStringUtils.random(10, true, true);
+    String randomString = TemporaryEntity.uuid().substring(0, 10);
     String id = newUUID();
 
     try (Connection connection = thirdPartyScansDataStore.getDataSource().getConnection()) {

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Matcher;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.core.UriBuilder;
@@ -215,7 +216,7 @@ public class SbomMetadataUtils
         log.debug("SBOM with version {} may already exist for application with ID {}, retrying once",
             thirdPartySbomMetadata.getSbomVersion(), thirdPartySbomMetadata.getApplicationId());
         thirdPartySbomMetadata.setSbomVersion(String.join("_", thirdPartySbomMetadata.getSbomVersion(),
-            dtFormatter.format(LocalDateTime.now()), RandomStringUtils.randomAlphanumeric(3)));
+            dtFormatter.format(LocalDateTime.now()), RandomStringUtils.secure().nextAlphanumeric(3)));
         log.debug("Updating SBOM with version {} for application with ID {}", thirdPartySbomMetadata.getSbomVersion(),
             thirdPartySbomMetadata.getApplicationId());
         thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);

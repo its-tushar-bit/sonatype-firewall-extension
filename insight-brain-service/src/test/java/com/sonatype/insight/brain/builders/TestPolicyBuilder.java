@@ -7,13 +7,12 @@ package com.sonatype.insight.brain.builders;
 
 import java.util.Random;
 
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
-
-import org.apache.commons.lang3.RandomStringUtils;
 
 public class TestPolicyBuilder
 {
@@ -30,10 +29,10 @@ public class TestPolicyBuilder
   public TestPolicyBuilder withSampleTestValues() {
     this.policy.setId(null);
     this.policy.setThreatLevel(new Random().nextInt(9) + 2);
-    this.policy.setName(RandomStringUtils.randomAlphabetic(10));
+    this.policy.setName(TemporaryEntity.uuid().substring(0, 10));
 
     // add default constraint
-    Constraint constraint = new Constraint(null, RandomStringUtils.randomAlphabetic(10), LogicalOperator.AND);
+    Constraint constraint = new Constraint(null, TemporaryEntity.uuid().substring(0, 10), LogicalOperator.AND);
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     this.policy.addConstraint(constraint);
 

@@ -21,6 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -539,7 +540,7 @@ public class ScmOnboardingService
       // a duplicate name exception (due to normalization and stripping off special characters, etc.)
       // Adding a randomization to improve uniqueness (just once)
       log.debug("Resulted app name {} conflicts with an existing app. Randomizing name and retrying", name);
-      String newName = String.format("%s-%s", name, RandomStringUtils.randomAlphabetic(5));
+      String newName = String.format("%s-%s", name, RandomStringUtils.secure().nextAlphabetic(5));
       app = new Application(publicId, newName, orgId);
       applicationHelper.addApplication(app);
     }
@@ -991,7 +992,7 @@ public class ScmOnboardingService
 
   private Organization newChildOrganization(final String parentOrgId) {
     Organization parentOrg = orgDAO.getByIdNotNull(parentOrgId);
-    String childName = parentOrg.getName() + "-" + RandomStringUtils.randomAlphabetic(8);
+    String childName = parentOrg.getName() + "-" + RandomStringUtils.secure().nextAlphabetic(8);
     Organization child = new Organization(childName);
     child.setParentOrganizationId(parentOrg.getId());
     try {

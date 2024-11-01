@@ -19,6 +19,7 @@ import java.util.TreeMap;
 import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -30,21 +31,22 @@ import com.sonatype.insight.brain.RisksFilterDTOBuilder;
 import com.sonatype.insight.brain.api.v2.FeatureAlreadyDisabledException;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
 import com.sonatype.insight.brain.builders.TestPolicyBuilder;
-import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
-import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.dashboard.DashboardPolicyWaiverDTOComparator.DashboardPolicyWaiverOrderByEnum;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
+import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -58,7 +60,6 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Before;
 import org.junit.Test;
@@ -294,7 +295,7 @@ public class DashboardPolicyWaiverServiceTest
             .build());
 
     PolicyWaiver policyWaiver = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy.getId())
         .withOwnerId(repository.getId())
         .withExpiryTime(Date.from(Instant.now().plus(11, ChronoUnit.DAYS)))
@@ -303,7 +304,7 @@ public class DashboardPolicyWaiverServiceTest
     tempEntity.newWaiver(policyWaiver);
 
     PolicyWaiver policyWaiver1 = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy.getId())
         .withOwnerId(app1.getId())
         .withExpiryTime(Date.from(Instant.now().plus(11, ChronoUnit.DAYS)))
@@ -322,7 +323,7 @@ public class DashboardPolicyWaiverServiceTest
     assertPolicyWaiverWithoutDetails(dashboardPolicyWaivers.dashboardResults.get(0), policyWaiver, repository);
 
     PolicyWaiver policyWaiver2 = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy.getId())
         .withOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID)
         .withExpiryTime(Date.from(Instant.now().plus(5, ChronoUnit.DAYS)))
@@ -354,7 +355,7 @@ public class DashboardPolicyWaiverServiceTest
 
     // add app 1 waiver
     PolicyWaiver policyWaiver1 = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy.getId())
         .withOwnerId(app1.getId())
         .withExpiryTime(Date.from(Instant.now().plus(11, ChronoUnit.DAYS)))
@@ -365,7 +366,7 @@ public class DashboardPolicyWaiverServiceTest
     Organization org2 = tempEntity.newOrganization("Org3");
     Application application3 = tempEntity.newApplication("Application-3", " Applicatin-3", org2.getId());
     PolicyWaiver policyWaiverOrg2 = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy.getId())
         .withOwnerId(application3.getId())
         .withExpiryTime(Date.from(Instant.now().plus(11, ChronoUnit.DAYS)))
@@ -375,7 +376,7 @@ public class DashboardPolicyWaiverServiceTest
     // add waiver for empty org
     Organization org3 = tempEntity.newOrganization("Org4");
     PolicyWaiver policyWaiverOrg3 = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy.getId())
         .withOwnerId(org3.getId())
         .withExpiryTime(Date.from(Instant.now().plus(5, ChronoUnit.DAYS)))
@@ -384,7 +385,7 @@ public class DashboardPolicyWaiverServiceTest
 
     // add waiver for repo container
     PolicyWaiver policyWaiverRepoContainer = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy.getId())
         .withOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID)
         .withExpiryTime(Date.from(Instant.now().plus(10, ChronoUnit.DAYS)))
@@ -402,7 +403,7 @@ public class DashboardPolicyWaiverServiceTest
 
     // add repo waiver
     PolicyWaiver policyWaiver = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy.getId())
         .withOwnerId(repository.getId())
         .withExpiryTime(Date.from(Instant.now().plus(11, ChronoUnit.DAYS)))
@@ -905,28 +906,28 @@ public class DashboardPolicyWaiverServiceTest
             .build());
 
     PolicyWaiver policyWaiver1App1 = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy1.getId())
         .withOwnerId(app1.getId())
         .withExpiryTime(Date.from(Instant.now().plus(11, ChronoUnit.DAYS)))
         .build();
 
     PolicyWaiver policyWaiver2App1 = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphanumeric(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy2.getId())
         .withOwnerId(app1.getId())
         .withExpiryTime(Date.from(Instant.now().plus(7, ChronoUnit.DAYS)))
         .build();
 
     PolicyWaiver policyWaiver1App2 = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy1.getId())
         .withOwnerId(app2.getId())
         .withExpiryTime(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)))
         .build();
 
     PolicyWaiver policyWaiver2App2 = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy1.getId())
         .withOwnerId(app2.getId())
         .withExpiryTime(Date.from(Instant.now().plus(2, ChronoUnit.DAYS)))
@@ -984,21 +985,21 @@ public class DashboardPolicyWaiverServiceTest
             .build());
 
     PolicyWaiver policyWaiver1App1 = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy1.getId())
         .withOwnerId(app1.getId())
         .withExpiryTime(Date.from(Instant.now().plus(11, ChronoUnit.DAYS)))
         .build();
 
     PolicyWaiver policyWaiver2App1 = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphanumeric(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy2.getId())
         .withOwnerId(app1.getId())
         .withExpiryTime(Date.from(Instant.now().plus(7, ChronoUnit.DAYS)))
         .build();
 
     PolicyWaiver policyWaiver1App2 = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy3.getId())
         .withOwnerId(app2.getId())
         .withExpiryTime(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)))
@@ -1046,21 +1047,21 @@ public class DashboardPolicyWaiverServiceTest
             .build());
 
     PolicyWaiver expiredPolicyWaiverApp1 = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy1.getId())
         .withOwnerId(app1.getId())
         .withExpiryTime(Date.from(Instant.now().minus(11, ChronoUnit.DAYS)))
         .build();
 
     PolicyWaiver activePolicyWaiverApp1 = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy2.getId())
         .withOwnerId(app1.getId())
         .withExpiryTime(Date.from(Instant.now().plus(5, ChronoUnit.DAYS)))
         .build();
 
     PolicyWaiver activePolicyWaiverApp2 = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy2.getId())
         .withOwnerId(app2.getId())
         .withExpiryTime(Date.from(Instant.now().plus(3, ChronoUnit.DAYS)))
@@ -1109,21 +1110,21 @@ public class DashboardPolicyWaiverServiceTest
             .build());
 
     PolicyWaiver expiredPolicyWaiverApp1 = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy1.getId())
         .withOwnerId(app1.getId())
         .withExpiryTime(Date.from(Instant.now().minus(11, ChronoUnit.DAYS)))
         .build();
 
     PolicyWaiver activePolicyWaiverApp1 = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy2.getId())
         .withOwnerId(app1.getId())
         .withExpiryTime(Date.from(Instant.now().plus(5, ChronoUnit.DAYS)))
         .build();
 
     PolicyWaiver activePolicyWaiverApp2 = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withHash(TemporaryEntity.uuid().substring(0, 5))
         .withPolicyId(policy2.getId())
         .withOwnerId(app2.getId())
         .withExpiryTime(Date.from(Instant.now().plus(3, ChronoUnit.DAYS)))

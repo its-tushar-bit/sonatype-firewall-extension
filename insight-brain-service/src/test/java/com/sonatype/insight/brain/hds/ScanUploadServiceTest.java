@@ -13,6 +13,7 @@ import java.util.HashMap;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -31,7 +32,6 @@ import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Before;
 import org.junit.Test;
@@ -154,7 +154,7 @@ public class ScanUploadServiceTest
   @Test
   public void testUpload_NonThirdParty() throws Exception {
     String stageTypeId = ReleaseStageType.ID;
-    File scanFile = createScanFile(app, RandomStringUtils.randomAlphanumeric(10));
+    File scanFile = createScanFile(app, TemporaryEntity.uuid().substring(0, 10));
 
     service.upload(scanFile, app, stageTypeId, null, null, thirdPartyScanTelemetryData, null);
 
@@ -166,10 +166,10 @@ public class ScanUploadServiceTest
 
   @Test
   public void testUpload_BinaryWithNoThirdParty_ComplianceStage() throws Exception {
-    File scanFile = createScanFile(app, RandomStringUtils.randomAlphanumeric(10));
+    File scanFile = createScanFile(app, TemporaryEntity.uuid().substring(0, 10));
     String stageTypeId = ComplianceStageType.ID;
-    String scanId = RandomStringUtils.randomAlphanumeric(10);
-    String scanRequestId = RandomStringUtils.randomAlphanumeric(10);
+    String scanId = TemporaryEntity.uuid().substring(0, 10);
+    String scanRequestId = TemporaryEntity.uuid().substring(0, 10);
     ThirdPartyFile tpFile = tempEntity.newThirdPartyFile("filename");
     tempEntity.newThirdPartyScan(scanRequestId, scanId, tpFile);
     ThirdPartySbomMetadata sbomMetadata =
@@ -196,10 +196,10 @@ public class ScanUploadServiceTest
 
   @Test
   public void testUpload_BinaryWithThirdParty_ComplianceStage() throws Exception {
-    File scanFile = createScanFile(app, RandomStringUtils.randomAlphanumeric(10));
+    File scanFile = createScanFile(app, TemporaryEntity.uuid().substring(0, 10));
     String stageTypeId = ComplianceStageType.ID;
-    String scanId = RandomStringUtils.randomAlphanumeric(10);
-    String scanRequestId = RandomStringUtils.randomAlphanumeric(10);
+    String scanId = TemporaryEntity.uuid().substring(0, 10);
+    String scanRequestId = TemporaryEntity.uuid().substring(0, 10);
     ThirdPartyFile tpFile = tempEntity.newThirdPartyFile("filename");
     tempEntity.newThirdPartyScan(scanRequestId, scanId, tpFile);
     ThirdPartySbomMetadata sbomMetadata =
@@ -226,7 +226,7 @@ public class ScanUploadServiceTest
 
   @Test
   public void testUpload_MissingRequiredArguments() {
-    File scanFile = createScanFile(app, RandomStringUtils.randomAlphanumeric(10));
+    File scanFile = createScanFile(app, TemporaryEntity.uuid().substring(0, 10));
     String stageTypeId = ComplianceStageType.ID;
     //null app
     assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->

@@ -333,7 +333,6 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import com.google.common.collect.Table;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.openjpa.enhance.PersistenceCapable;
@@ -3999,7 +3998,7 @@ public class TemporaryEntity
       String status,
       String fileName)
   {
-    String sbomVersion = RandomStringUtils.random(10, true, true);
+    String sbomVersion = uuid().substring(0, 10);
     String spec = "CycloneDx";
     String specVersion = "1.5";
     String specFormat = "XML";
@@ -4044,7 +4043,7 @@ public class TemporaryEntity
       Date createdAt)
   {
     ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata();
-    thirdPartySbomMetadata.setSerialNumber(RandomStringUtils.random(10, true, true));
+    thirdPartySbomMetadata.setSerialNumber(uuid().substring(0, 10));
     thirdPartySbomMetadata.setSpec(spec);
     thirdPartySbomMetadata.setSpecFormat(specFormat);
     thirdPartySbomMetadata.setSpecVersion(specVersion);
@@ -4068,8 +4067,8 @@ public class TemporaryEntity
   {
     ThirdPartyUnknownComponent unknownComponent = new ThirdPartyUnknownComponent();
     unknownComponent.setFilename(filename);
-    unknownComponent.setId(RandomStringUtils.randomAlphanumeric(50));
-    unknownComponent.setHash(RandomStringUtils.randomAlphanumeric(20));
+    unknownComponent.setId(uuid());
+    unknownComponent.setHash(uuid().substring(0, 20));
     unknownComponent.setThirdPartyFileId(thirdPartyFile.getId());
     thirdPartyUnknownComponentDAO.insert(unknownComponent);
 
@@ -5293,10 +5292,10 @@ public class TemporaryEntity
     thirdPartySbomMetadata.setCreatedAt(new Date());
     thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFile.getId());
     thirdPartySbomMetadata.setFilename(uuid() + ".xml.gz");
-    thirdPartySbomMetadata.setSerialNumber(RandomStringUtils.random(10, true, true));
-    thirdPartySbomMetadata.setSpec(RandomStringUtils.random(10, true, true));
-    thirdPartySbomMetadata.setSpecFormat(RandomStringUtils.random(10, true, true));
-    thirdPartySbomMetadata.setSpecVersion(RandomStringUtils.random(10, true, true));
+    thirdPartySbomMetadata.setSerialNumber(uuid().substring(0, 10));
+    thirdPartySbomMetadata.setSpec(uuid().substring(0, 10));
+    thirdPartySbomMetadata.setSpecFormat(uuid().substring(0, 10));
+    thirdPartySbomMetadata.setSpecVersion(uuid().substring(0, 10));
     thirdPartySbomMetadata.setStatus(sbomStatus);
     thirdPartySbomMetadata.setScanType("SBOM");
 
@@ -5312,7 +5311,7 @@ public class TemporaryEntity
       thirdPartySbomMetadata.setSbomVersion(sbomVersion);
     }
     else {
-      thirdPartySbomMetadata.setSbomVersion(RandomStringUtils.random(10, true, true));
+      thirdPartySbomMetadata.setSbomVersion(uuid().substring(0, 10));
     }
 
     thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
@@ -5329,10 +5328,10 @@ public class TemporaryEntity
     thirdPartySbomMetadata.setCreatedAt(new Date());
     thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFile.getId());
     thirdPartySbomMetadata.setFilename("binary.temp");
-    thirdPartySbomMetadata.setSerialNumber(RandomStringUtils.random(10, true, true));
-    thirdPartySbomMetadata.setSpec(RandomStringUtils.random(10, true, true));
-    thirdPartySbomMetadata.setSpecFormat(RandomStringUtils.random(10, true, true));
-    thirdPartySbomMetadata.setSpecVersion(RandomStringUtils.random(10, true, true));
+    thirdPartySbomMetadata.setSerialNumber(uuid().substring(0, 10));
+    thirdPartySbomMetadata.setSpec(uuid().substring(0, 10));
+    thirdPartySbomMetadata.setSpecFormat(uuid().substring(0, 10));
+    thirdPartySbomMetadata.setSpecVersion(uuid().substring(0, 10));
     thirdPartySbomMetadata.setStatus(sbomStatus);
     thirdPartySbomMetadata.setScanType("BINARY");
 
@@ -5348,7 +5347,7 @@ public class TemporaryEntity
       thirdPartySbomMetadata.setSbomVersion(sbomVersion);
     }
     else {
-      thirdPartySbomMetadata.setSbomVersion(RandomStringUtils.random(10, true, true));
+      thirdPartySbomMetadata.setSbomVersion(uuid().substring(0, 10));
     }
 
     thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);

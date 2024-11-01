@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -866,19 +867,19 @@ public class PolicyWaiverDAOTest
     String policyId = policy.getId();
     String ownerId = organization.getId();
     List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
-    String hash1 = RandomStringUtils.randomAlphabetic(8);
+    String hash1 = TemporaryEntity.uuid().substring(0, 8);
 
     PolicyWaiver expiredPolicyWaiver =
-        new PolicyWaiver(hash1, policyId, ownerId, constraintFacts, RandomStringUtils.randomAlphabetic(8));
+        new PolicyWaiver(hash1, policyId, ownerId, constraintFacts, TemporaryEntity.uuid().substring(0, 8));
     expiredPolicyWaiver.setExpiryTime(Date.from(Instant.now().minus(5, ChronoUnit.DAYS)));
     tempEntity.newWaiver(expiredPolicyWaiver);
 
     PolicyWaiver activePolicyWaiver =
-        new PolicyWaiver(hash1, policyId, ownerId, constraintFacts, RandomStringUtils.randomAlphabetic(5));
+        new PolicyWaiver(hash1, policyId, ownerId, constraintFacts, TemporaryEntity.uuid().substring(0, 5));
     activePolicyWaiver.setExpiryTime(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
     tempEntity.newWaiver(activePolicyWaiver);
 
-    String associatedPackagedUrl = RandomStringUtils.randomAlphabetic(10);
+    String associatedPackagedUrl = TemporaryEntity.uuid().substring(0, 10);
     expiredPolicyWaiver.setAssociatedPackageUrl(associatedPackagedUrl);
 
     assertThatThrownBy(() -> dao.update(expiredPolicyWaiver)).isInstanceOf(BadRequestException.class)
@@ -891,17 +892,17 @@ public class PolicyWaiverDAOTest
     String policyId = policy.getId();
     String ownerId = organization.getId();
     List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
-    String hash1 = RandomStringUtils.randomAlphabetic(8);
+    String hash1 = TemporaryEntity.uuid().substring(0, 8);
 
     // initially add expiredPolicyWaiver with expiry date in the past.
     // Doing so will allow us to add second waiver with future expiry date.
     PolicyWaiver expiredPolicyWaiver =
-        new PolicyWaiver(hash1, policyId, ownerId, constraintFacts, RandomStringUtils.randomAlphabetic(5));
+        new PolicyWaiver(hash1, policyId, ownerId, constraintFacts, TemporaryEntity.uuid().substring(0, 5));
     expiredPolicyWaiver.setExpiryTime(Date.from(Instant.now().minus(5, ChronoUnit.DAYS)));
     tempEntity.newWaiver(expiredPolicyWaiver);
 
     PolicyWaiver activePolicyWaiver =
-        new PolicyWaiver(hash1, policyId, ownerId, constraintFacts, RandomStringUtils.randomAlphabetic(5));
+        new PolicyWaiver(hash1, policyId, ownerId, constraintFacts, TemporaryEntity.uuid().substring(0, 5));
     activePolicyWaiver.setExpiryTime(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
     tempEntity.newWaiver(activePolicyWaiver);
 

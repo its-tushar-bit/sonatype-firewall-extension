@@ -7,9 +7,10 @@ package com.sonatype.insight.brain.db;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.UUID;
+
 import javax.sql.DataSource;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +38,7 @@ public class DbApplicationNameGenerator
       log.debug("Unable to determine host name for the database 'application_name'. Will default to 'unknown'", e);
     }
     // add some randomness for the case of running multiple instances on a single machine
-    String randomness = RandomStringUtils.randomAlphanumeric(5);
+    String randomness = UUID.randomUUID().toString().substring(0, 5);
     return applicationNamePrefix + "-" + hostname + "-" + randomness;
   }
 

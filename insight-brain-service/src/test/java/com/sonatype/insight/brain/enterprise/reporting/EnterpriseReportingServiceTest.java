@@ -18,11 +18,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionAcquire;
 import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokens;
 import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokensResponse;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
@@ -45,7 +47,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.util.HashUtils;
 
 import com.google.inject.Binder;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -252,11 +253,9 @@ public class EnterpriseReportingServiceTest
     byte[] firstIconZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icon-1.zip").toURI()));
     DashboardMetadataDTO firstDashboardMetadataDTO = new DashboardMetadataDTO(
-        RandomStringUtils.random(8),
-        RandomStringUtils.random(8),
-        RandomStringUtils.random(8),
-        Collections.singletonList(RandomStringUtils.random(8)),
-        RandomStringUtils.random(8),
+        TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
+        TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
+        TemporaryEntity.uuid().substring(0, 8),
         firstIconImageFileName,
         1,
         false,
@@ -284,11 +283,9 @@ public class EnterpriseReportingServiceTest
     byte[] iconsZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icons.zip").toURI()));
     DashboardMetadataDTO firstDashboardMetadataDTO = new DashboardMetadataDTO(
-        RandomStringUtils.random(8),
-        RandomStringUtils.random(8),
-        RandomStringUtils.random(8),
-        Collections.singletonList(RandomStringUtils.random(8)),
-        RandomStringUtils.random(8),
+        TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
+        TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
+        TemporaryEntity.uuid().substring(0, 8),
         firstIconImageFileName,
         1,
         false,
@@ -298,11 +295,9 @@ public class EnterpriseReportingServiceTest
     byte[] secondIconBytes = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/" + secondIconImageFileName).toURI()));
     DashboardMetadataDTO secondDashboardMetadataDTO = new DashboardMetadataDTO(
-        RandomStringUtils.random(8),
-        RandomStringUtils.random(8),
-        RandomStringUtils.random(8),
-        Collections.singletonList(RandomStringUtils.random(8)),
-        RandomStringUtils.random(8),
+        TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
+        TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
+        TemporaryEntity.uuid().substring(0, 8),
         secondIconImageFileName,
         1,
         false,
@@ -332,11 +327,9 @@ public class EnterpriseReportingServiceTest
     byte[] firstIconZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icon-1.zip").toURI()));
     DashboardMetadataDTO firstDashboardMetadataDTO = new DashboardMetadataDTO(
-        RandomStringUtils.random(8),
-        RandomStringUtils.random(8),
-        RandomStringUtils.random(8),
-        Collections.singletonList(RandomStringUtils.random(8)),
-        RandomStringUtils.random(8),
+        TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
+        TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
+        TemporaryEntity.uuid().substring(0, 8),
         firstIconImageFileName,
         1,
         false,
@@ -366,11 +359,9 @@ public class EnterpriseReportingServiceTest
     byte[] firstIconZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icon-1.zip").toURI()));
     DashboardMetadataDTO firstDashboardMetadataDTO = new DashboardMetadataDTO(
-        RandomStringUtils.random(8),
-        RandomStringUtils.random(8),
-        RandomStringUtils.random(8),
-        Collections.singletonList(RandomStringUtils.random(8)),
-        RandomStringUtils.random(8),
+        TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
+        TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
+        TemporaryEntity.uuid().substring(0, 8),
         firstIconImageFileName,
         1,
         false,
@@ -396,11 +387,9 @@ public class EnterpriseReportingServiceTest
     byte[] secondIconZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icon-2.zip").toURI()));
     DashboardMetadataDTO secondDashboardMetadataDTO = new DashboardMetadataDTO(
-        RandomStringUtils.random(8),
-        RandomStringUtils.random(8),
-        RandomStringUtils.random(8),
-        Collections.singletonList(RandomStringUtils.random(8)),
-        RandomStringUtils.random(8),
+        TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
+        TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
+        TemporaryEntity.uuid().substring(0, 8),
         secondIconImageFileName,
         1,
         false,
@@ -428,9 +417,9 @@ public class EnterpriseReportingServiceTest
   }
 
   private static DashboardMetadataDTO generateLookerDashboardMetadata() {
-    return new DashboardMetadataDTO(RandomStringUtils.random(8), RandomStringUtils.random(8),
-        RandomStringUtils.random(8), Collections.singletonList(RandomStringUtils.random(8)),
-        RandomStringUtils.random(8), RandomStringUtils.random(8), 1, false,
+    return new DashboardMetadataDTO(TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
+        TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
+        TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8), 1, false,
         "dashboards/rolling_recap::rolling_recap");
   }
 
@@ -450,8 +439,9 @@ public class EnterpriseReportingServiceTest
   public void testGetIcon_valid_onlyRequestedOnce() throws Exception {
     String iconName = "icon-1.png";
     DashboardMetadataListDTO dashboardMetadataListDTO = new DashboardMetadataListDTO(Collections.singletonList(
-        new DashboardMetadataDTO(RandomStringUtils.random(8), RandomStringUtils.random(8), RandomStringUtils.random(8),
-            Collections.singletonList(RandomStringUtils.random(8)), RandomStringUtils.random(8), iconName,
+        new DashboardMetadataDTO(TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
+            TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
+            TemporaryEntity.uuid().substring(0, 8), iconName,
             1, false, "dashboards/rolling_recap::rolling_recap")));
     when(mockHdsClient.get(DashboardsVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));
@@ -507,8 +497,9 @@ public class EnterpriseReportingServiceTest
   public void testGetIcon_badRequest() throws Exception {
     String iconName = "icon-1.png";
     DashboardMetadataListDTO dashboardMetadataListDTO = new DashboardMetadataListDTO(Collections.singletonList(
-        new DashboardMetadataDTO(RandomStringUtils.random(8), RandomStringUtils.random(8), RandomStringUtils.random(8),
-            Collections.singletonList(RandomStringUtils.random(8)), RandomStringUtils.random(8), iconName,
+        new DashboardMetadataDTO(TemporaryEntity.uuid().substring(0, 8), TemporaryEntity.uuid().substring(0, 8),
+            TemporaryEntity.uuid().substring(0, 8), Collections.singletonList(TemporaryEntity.uuid().substring(0, 8)),
+            TemporaryEntity.uuid().substring(0, 8), iconName,
             1, false, "dashboards/rolling_recap::rolling_recap")));
     when(mockHdsClient.get(DashboardsVersionDTO.class,
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));

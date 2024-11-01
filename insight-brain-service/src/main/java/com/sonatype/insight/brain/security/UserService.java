@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.naming.NamingException;
@@ -239,7 +240,7 @@ public class UserService
     User user = userDAO.getByIdNotNull(userId);
     AuditData.get().setData("username", user.getUsername());
 
-    String password = RandomStringUtils.randomAlphanumeric(12);
+    String password = RandomStringUtils.secure().nextAlphanumeric(12);
 
     user.setPassword(passwordService.hashPassword(password));
 

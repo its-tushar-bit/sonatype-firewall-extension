@@ -8,10 +8,10 @@ package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyUnknownComponent;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -36,8 +36,7 @@ public class ThirdPartyThirdPartyUnknownComponentDAOTest
 
     ThirdPartyUnknownComponent entity = new ThirdPartyUnknownComponent();
     entity.setFilename("test-filename.xml");
-    entity.setId(RandomStringUtils.randomAlphanumeric(50));
-    entity.setHash(RandomStringUtils.randomAlphanumeric(20));
+    entity.setHash(TemporaryEntity.uuid().substring(0, 20));
     entity.setThirdPartyFileId(thirdPartyFile.getId());
     dao.insert(entity);
     assertThat(entity.getId()).isNotNull();

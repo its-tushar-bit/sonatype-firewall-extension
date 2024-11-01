@@ -6,10 +6,10 @@
 package com.sonatype.insight.brain.db.fixture.postgres;
 
 import java.time.ZoneId;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 import com.github.dockerjava.api.command.CreateContainerCmd;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -57,7 +57,7 @@ class PostgresTestContainer
    * will connect to the given database.
    */
   private static void assignContainerName(CreateContainerCmd createContainerCmd) {
-    createContainerCmd.withName("iq-test-db-" + RandomStringUtils.random(5, true, false).toLowerCase());
+    createContainerCmd.withName("iq-test-db-" + UUID.randomUUID().toString().substring(0, 5).toLowerCase());
   }
 
   /**

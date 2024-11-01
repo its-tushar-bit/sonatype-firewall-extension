@@ -31,6 +31,7 @@ import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.utils.proxy.ResponseCopyHandler;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -74,7 +75,6 @@ import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static com.sonatype.clm.testing.functional.elements.DashboardViolations.SEVERE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.joda.time.DateTime.now;
@@ -157,10 +157,10 @@ public class DashboardViolationsTest
         .newApplicationComponent(app1.getId(), BuildStageType.ID, "g1a1v1",
             ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"));
     releaseComponent = tempEntity
-        .newApplicationComponent(app2.getId(), ReleaseStageType.ID, randomAlphanumeric(10),
+        .newApplicationComponent(app2.getId(), ReleaseStageType.ID, TemporaryEntity.uuid().substring(0, 10),
             ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890"));
     operateComponent = tempEntity
-        .newApplicationComponent(app1.getId(), OperateStageType.ID, randomAlphanumeric(10),
+        .newApplicationComponent(app1.getId(), OperateStageType.ID, TemporaryEntity.uuid().substring(0, 10),
             ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"));
 
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
@@ -909,7 +909,7 @@ public class DashboardViolationsTest
       String group = "Group" + i;
       String artifact = "artifact" + i;
       String version = "version" + i;
-      String hash = randomAlphanumeric(20);
+      String hash = TemporaryEntity.uuid().substring(0, 20);
 
       tempEntity.newPolicyViolation(policyEvaluation, licensePolicy, group, artifact, version, hash, FailActionType.ID);
     }

@@ -9,11 +9,13 @@ import java.lang.reflect.Modifier;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -30,7 +32,6 @@ import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
 import com.google.inject.matcher.Matchers;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -203,19 +204,19 @@ public class PolicyWaiverComponentPurlMigratorTest
 
     String policyId = policy.getId();
     String ownerId = organization.getId();
-    String hash1 = RandomStringUtils.randomAlphabetic(8);
+    String hash1 = TemporaryEntity.uuid().substring(0, 8);
 
     tempEntity.newApplicationComponent(application.getId(), StageTypes.BUILD.getName(), hash1,
         getBasicComponentIdentifier());
 
     PolicyWaiver expiredPolicyWaiver =
-        new PolicyWaiver(hash1, policyId, ownerId, null, RandomStringUtils.randomAlphabetic(8));
+        new PolicyWaiver(hash1, policyId, ownerId, null, TemporaryEntity.uuid().substring(0, 8));
     expiredPolicyWaiver.setExpiryTime(Date.from(Instant.now().minus(5, ChronoUnit.DAYS)));
     expiredPolicyWaiver.setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT);
     tempEntity.newWaiver(expiredPolicyWaiver);
 
     PolicyWaiver activePolicyWaiver =
-        new PolicyWaiver(hash1, policyId, ownerId, null, RandomStringUtils.randomAlphabetic(5));
+        new PolicyWaiver(hash1, policyId, ownerId, null, TemporaryEntity.uuid().substring(0, 8));
     activePolicyWaiver.setExpiryTime(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
     activePolicyWaiver.setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT);
 

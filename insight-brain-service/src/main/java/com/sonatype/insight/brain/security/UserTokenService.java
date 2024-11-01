@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.naming.NameNotFoundException;
@@ -109,11 +110,11 @@ public class UserTokenService
       // We should also ensure that the userCode generated is unique.
       // We can't have two user tokens with the same userCode.
       do {
-        userCode = RandomStringUtils.randomAlphanumeric(8);
+        userCode = RandomStringUtils.secure().nextAlphanumeric(8);
       }
       while (userTokenDAO.getByUserCode(tx, userCode) != null);
 
-      String passCode = RandomStringUtils.randomAlphanumeric(44);
+      String passCode = RandomStringUtils.secure().nextAlphanumeric(44);
       String hashed = passwordService.hashPassword(passCode);
 
       UserToken userToken = new UserToken();

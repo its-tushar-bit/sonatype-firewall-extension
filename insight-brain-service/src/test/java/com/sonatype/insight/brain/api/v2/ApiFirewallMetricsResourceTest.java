@@ -5,9 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.time.LocalDate;
 import java.util.HashMap;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -19,6 +17,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.utils.DateConverter.toDate;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiFirewallMetricsResourceTest
@@ -31,8 +30,9 @@ public class ApiFirewallMetricsResourceTest
 
   @Test
   public void testGetFirewallMetrics() throws Exception {
-    Date testDate = new GregorianCalendar(2023, Calendar.OCTOBER, 1).getTime();
-    tempEntity.newFirewallMetrics(FirewallMetricsName.WAIVED_COMPONENTS, 10, testDate);
+    LocalDate fiveDaysAgoLocalDate =  LocalDate.now().minusDays(5);
+    tempEntity.newFirewallMetrics(FirewallMetricsName.WAIVED_COMPONENTS, 10,
+        toDate(fiveDaysAgoLocalDate), fiveDaysAgoLocalDate);
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
     HashMap<FirewallMetricsName, ApiFirewallMetricsResultDTO> firewallMetricsNameValueMap = response
@@ -43,6 +43,6 @@ public class ApiFirewallMetricsResourceTest
         objectMapper.convertValue(firewallMetricsNameValueMap.get("WAIVED_COMPONENTS"),
             ApiFirewallMetricsResultDTO.class);
     assertThat(apiFirewallMetricsResultDTO.getFirewallMetricsValue()).isEqualTo(10);
-    assertThat(apiFirewallMetricsResultDTO.getLatestUpdatedTime()).isEqualTo(testDate);
+    assertThat(apiFirewallMetricsResultDTO.getLatestUpdatedTime()).isEqualTo(toDate(fiveDaysAgoLocalDate));
   }
 }

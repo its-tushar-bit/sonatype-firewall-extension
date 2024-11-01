@@ -53,6 +53,7 @@ import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsNam
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.SAFE_VERSIONS_SELECTED_AUTOMATICALLY;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.SUPPLY_CHAIN_ATTACKS_BLOCKED;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.WAIVED_COMPONENTS;
+import static com.sonatype.insight.brain.utils.DateConverter.toDate;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -73,10 +74,12 @@ public class ApiFirewallMetricsServiceTest
 
   @Test
   public void testGetFirewallMetrics() {
-    Date testDate1 = new GregorianCalendar(2023, Calendar.OCTOBER, 1).getTime();
-    Date testDate2 = new GregorianCalendar(2023, Calendar.OCTOBER, 2).getTime();
-    tempEntity.newFirewallMetrics(WAIVED_COMPONENTS, 20, testDate1);
-    tempEntity.newFirewallMetrics(COMPONENTS_QUARANTINED, 10, testDate2);
+    LocalDate fiveDaysAgoLocalDate =  LocalDate.now().minusDays(5);
+    LocalDate oneYearAgoLocalDate =  LocalDate.now().minusMonths(12);
+    LocalDate twoYearsAgoLocalDate =  LocalDate.now().minusMonths(24);
+    tempEntity.newFirewallMetrics(WAIVED_COMPONENTS, 20, toDate(fiveDaysAgoLocalDate), fiveDaysAgoLocalDate);
+    tempEntity.newFirewallMetrics(COMPONENTS_QUARANTINED, 10, toDate(oneYearAgoLocalDate), oneYearAgoLocalDate);
+    tempEntity.newFirewallMetrics(NAMESPACE_ATTACKS_BLOCKED, 30, toDate(twoYearsAgoLocalDate), twoYearsAgoLocalDate);
 
     Map<FirewallMetricsName, ApiFirewallMetricsResultDTO> firewallMetricsNameValueMap =
         firewallMetricsService.getFirewallMetrics();
@@ -92,11 +95,11 @@ public class ApiFirewallMetricsServiceTest
     ApiFirewallMetricsResultDTO apiFirewallMetricsResultDTO6 =
         firewallMetricsNameValueMap.get(SAFE_VERSIONS_SELECTED_AUTOMATICALLY);
     assertThat(apiFirewallMetricsResultDTO1.getFirewallMetricsValue()).isEqualTo(20);
-    assertThat(apiFirewallMetricsResultDTO1.getLatestUpdatedTime()).isEqualTo(testDate1);
+    assertThat(apiFirewallMetricsResultDTO1.getLatestUpdatedTime()).isEqualTo(toDate(fiveDaysAgoLocalDate));
     assertThat(apiFirewallMetricsResultDTO2.getFirewallMetricsValue()).isEqualTo(10);
-    assertThat(apiFirewallMetricsResultDTO2.getLatestUpdatedTime()).isEqualTo(testDate2);
-    assertThat(apiFirewallMetricsResultDTO3.getFirewallMetricsValue()).isEqualTo(0);
-    assertThat(apiFirewallMetricsResultDTO3.getLatestUpdatedTime()).isNull();
+    assertThat(apiFirewallMetricsResultDTO2.getLatestUpdatedTime()).isEqualTo(toDate(oneYearAgoLocalDate));
+    assertThat(apiFirewallMetricsResultDTO3.getFirewallMetricsValue()).isEqualTo(30);
+    assertThat(apiFirewallMetricsResultDTO3.getLatestUpdatedTime()).isEqualTo(toDate(twoYearsAgoLocalDate));
     assertThat(apiFirewallMetricsResultDTO4.getFirewallMetricsValue()).isEqualTo(0);
     assertThat(apiFirewallMetricsResultDTO4.getLatestUpdatedTime()).isNull();
     assertThat(apiFirewallMetricsResultDTO5.getFirewallMetricsValue()).isEqualTo(0);

@@ -114,7 +114,7 @@ public class ApiThirdPartyScanServiceTest
   @Test
   public void testScanComponents_spdx_2_3_json_invalid() throws Exception {
     testScanComponentsWithFailure("invalid_spdx_2_3.json", SbomFormat.JSON,
-        "The sbom is not valid.\n - Missing required document name");
+        "The sbom is not valid.\n - Line: 1, Column: 2, Path: $, Error: required property 'name' not found");
   }
 
   @Test

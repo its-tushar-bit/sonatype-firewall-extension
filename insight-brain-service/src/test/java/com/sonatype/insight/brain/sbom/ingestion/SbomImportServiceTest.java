@@ -231,8 +231,8 @@ public class SbomImportServiceTest
     assertThat(actual.getSbomSummary()).isNull();
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDx SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly(
-        "$.components[1]: required property 'type' not found",
-        "$.components[2]: required property 'type' not found"
+        "Line: 11, Column: 6, Path: $.components[1], Error: required property 'type' not found",
+        "Line: 15, Column: 6, Path: $.components[2], Error: required property 'type' not found"
     );
   }
 
@@ -263,8 +263,10 @@ public class SbomImportServiceTest
     assertThat(actual.getSbomSummary()).isNull();
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDx SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly(
-        "cvc-complex-type.4: Attribute 'type' must appear on element 'component'.",
-        "cvc-complex-type.4: Attribute 'type' must appear on element 'component'."
+        "Line: 8, Column: 16, Path: //bom[1]/components[1], Error: cvc-complex-type.4: Attribute 'type' must appear " +
+            "on element 'component'.",
+        "Line: 12, Column: 16, Path: //bom[1]/components[1], Error: cvc-complex-type.4: Attribute 'type' must appear " +
+            "on element 'component'."
     );
   }
 
@@ -300,8 +302,10 @@ public class SbomImportServiceTest
     assertThat(actual.getSbomSummary()).isNull();
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid SPDX SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly(
-        "Missing required Creator",
-        "Missing required data license"
+        "Line: 13, Column: 6, Path: $.packages[1], Error: required property 'downloadLocation' not found",
+        "Line: 17, Column: 6, Path: $.packages[2], Error: required property 'downloadLocation' not found",
+        "Line: 1, Column: 2, Path: $, Error: required property 'creationInfo' not found",
+        "Line: 1, Column: 2, Path: $, Error: required property 'dataLicense' not found"
     );
   }
 

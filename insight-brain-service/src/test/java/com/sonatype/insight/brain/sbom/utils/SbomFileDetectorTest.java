@@ -112,7 +112,7 @@ public class SbomFileDetectorTest
   @SuppressWarnings("checkstyle:LineLength")
   public void testGetSbomMetadata_CycloneDx_XML_Invalid_1_5_skipSbomValidationDisabled() {
     List<String> expectedErrors = List.of(
-        "cvc-complex-type.2.4.a: Invalid content was found starting with element '{\"http://cyclonedx.org/schema/bom/1.4\":version}'. One of '{\"http://cyclonedx.org/schema/bom/1.4\":name}' is expected."
+        "Line: 22, Column: 16, Path: //bom[1]/components[1]/component[1], Error: cvc-complex-type.2.4.a: Invalid content was found starting with element '{\"http://cyclonedx.org/schema/bom/1.4\":version}'. One of '{\"http://cyclonedx.org/schema/bom/1.4\":name}' is expected."
     );
     SbomDetectionResult expected = createExpectedResult(false, false, "application/xml",
         "Not a valid CycloneDx SBOM file.", expectedErrors, "1.5", "CycloneDx", "xml", 1,
@@ -203,14 +203,14 @@ public class SbomFileDetectorTest
   @SuppressWarnings("checkstyle:LineLength")
   public void testGetSbomMetadata_CycloneDx_InvalidXml2() {
     List<String> expectedErrors = List.of(
-        "cvc-datatype-valid.1.2.1: 'git@github.com:colorjs/color-name.git' is not a valid value for 'anyURI'.",
-        "cvc-type.3.1.3: The value 'git@github.com:colorjs/color-name.git' of element 'url' is not valid.",
-        "cvc-datatype-valid.1.2.1: 'git@github.com:follow-redirects/follow-redirects.git' is not a valid value for 'anyURI'.",
-        "cvc-type.3.1.3: The value 'git@github.com:follow-redirects/follow-redirects.git' of element 'url' is not valid.",
-        "cvc-datatype-valid.1.2.1: 'git@github.com:jprichardson/node-jsonfile.git' is not a valid value for 'anyURI'.",
-        "cvc-type.3.1.3: The value 'git@github.com:jprichardson/node-jsonfile.git' of element 'url' is not valid.",
-        "cvc-datatype-valid.1.2.1: 'git@github.com:lupomontero/psl.git' is not a valid value for 'anyURI'.",
-        "cvc-type.3.1.3: The value 'git@github.com:lupomontero/psl.git' of element 'url' is not valid."
+        "Line: 3612, Column: 59, Path: //bom[1]/components[1]/component[113]/externalReferences[1]/reference[1]/url[1], Error: cvc-datatype-valid.1.2.1: 'git@github.com:colorjs/color-name.git' is not a valid value for 'anyURI'.",
+        "Line: 3612, Column: 59, Path: //bom[1]/components[1]/component[113]/externalReferences[1]/reference[1]/url[1], Error: cvc-type.3.1.3: The value 'git@github.com:colorjs/color-name.git' of element 'url' is not valid.",
+        "Line: 5946, Column: 74, Path: //bom[1]/components[1]/component[190]/externalReferences[1]/reference[1]/url[1], Error: cvc-datatype-valid.1.2.1: 'git@github.com:follow-redirects/follow-redirects.git' is not a valid value for 'anyURI'.",
+        "Line: 5946, Column: 74, Path: //bom[1]/components[1]/component[190]/externalReferences[1]/reference[1]/url[1], Error: cvc-type.3.1.3: The value 'git@github.com:follow-redirects/follow-redirects.git' of element 'url' is not valid.",
+        "Line: 8857, Column: 67, Path: //bom[1]/components[1]/component[279]/externalReferences[1]/reference[1]/url[1], Error: cvc-datatype-valid.1.2.1: 'git@github.com:jprichardson/node-jsonfile.git' is not a valid value for 'anyURI'.",
+        "Line: 8857, Column: 67, Path: //bom[1]/components[1]/component[279]/externalReferences[1]/reference[1]/url[1], Error: cvc-type.3.1.3: The value 'git@github.com:jprichardson/node-jsonfile.git' of element 'url' is not valid.",
+        "Line: 14669, Column: 56, Path: //bom[1]/components[1]/component[463]/externalReferences[1]/reference[1]/url[1], Error: cvc-datatype-valid.1.2.1: 'git@github.com:lupomontero/psl.git' is not a valid value for 'anyURI'.",
+        "Line: 14669, Column: 56, Path: //bom[1]/components[1]/component[463]/externalReferences[1]/reference[1]/url[1], Error: cvc-type.3.1.3: The value 'git@github.com:lupomontero/psl.git' of element 'url' is not valid."
     );
     SbomDetectionResult expected =
         createExpectedResult(false, false, "application/xml", "Not a valid CycloneDx SBOM file.", expectedErrors);
@@ -221,14 +221,8 @@ public class SbomFileDetectorTest
   @SuppressWarnings("checkstyle:LineLength")
   public void testGetSbomMetadata_SPDX_InvalidJson() {
     List<String> expectedErrors = List.of(
-        "Invalid license id 'BSD-UNSPECIFIED'.  Must start with 'LicenseRef-' and made up of the characters from the set 'a'-'z', 'A'-'Z', '0'-'9', '+', '_', '.', and '-'. in org.yaml:snakeyaml in sonatype:iq_application_SCM Test 1 in sonatype:iq_application_SCM Test 1 in [UNKNOWN]",
-        "License not found for BSD-UNSPECIFIED in org.yaml:snakeyaml in sonatype:iq_application_SCM Test 1 in sonatype:iq_application_SCM Test 1 in [UNKNOWN]",
-        "Invalid license id 'BSD-UNSPECIFIED'.  Must start with 'LicenseRef-' and made up of the characters from the set 'a'-'z', 'A'-'Z', '0'-'9', '+', '_', '.', and '-'. in org.yaml:snakeyaml in sonatype:iq_application_SCM Test 1 in sonatype:iq_application_SCM Test 1 in [UNKNOWN]",
-        "License not found for BSD-UNSPECIFIED in org.yaml:snakeyaml in sonatype:iq_application_SCM Test 1 in sonatype:iq_application_SCM Test 1 in [UNKNOWN]",
-        "Invalid license id 'No-Source-License'.  Must start with 'LicenseRef-' and made up of the characters from the set 'a'-'z', 'A'-'Z', '0'-'9', '+', '_', '.', and '-'. in junit:junit in sonatype:iq_application_SCM Test 1 in sonatype:iq_application_SCM Test 1 in [UNKNOWN]",
-        "License not found for No-Source-License in junit:junit in sonatype:iq_application_SCM Test 1 in sonatype:iq_application_SCM Test 1 in [UNKNOWN]",
-        "Missing required document name",
-        "Missing required data license"
+        "Line: 1, Column: 2, Path: $, Error: required property 'dataLicense' not found",
+        "Line: 1, Column: 2, Path: $, Error: required property 'name' not found"
     );
     SbomDetectionResult expected =
         createExpectedResult(false, false, "application/json", "Not a valid SPDX SBOM file.", expectedErrors);

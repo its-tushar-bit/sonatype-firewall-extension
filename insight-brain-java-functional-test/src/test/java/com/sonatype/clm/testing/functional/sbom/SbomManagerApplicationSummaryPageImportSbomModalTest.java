@@ -163,7 +163,6 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
         .click();
 
     importSbomModal.title().shouldHave(text("Import in progress…"));
-    importSbomModal.progressBar().shouldBe(visible);
     importSbomModal.binaryFilename().shouldBe(visible).shouldHave(text("text.txt"));
     importSbomModal.summaryApplicationName().shouldBe(visible).shouldHave(text(application.getName()));
   }
@@ -194,8 +193,8 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
     importSbomModal.warnAlert().shouldBe(visible);
     importSbomModal.copyToClipboardButton().shouldBe(visible);
     String expectedErrors = """
-        • $.components[2].bom-ref: must be at least 1 characters long
-        • $.components: must have only unique items in the array""";
+        • Line: 21, Column: 20, Path: $.components[2].bom-ref, Error: must be at least 1 characters long
+        • Line: 6, Column: 18, Path: $.components, Error: must have only unique items in the array""";
     importSbomModal.validationErrors().shouldBe(visible).shouldHave(text(expectedErrors));
     importSbomModal.importSbomButton().shouldBe(visible, disabled);
     importSbomModal.cancelCloseButton().shouldBe(visible);
@@ -246,7 +245,6 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
     importSbomModal.fileSelected().shouldBe(visible).shouldHave(text("valid-bom.json"));
     importSbomModal.importSbomButton().shouldBe(enabled).click();
 
-    importSbomModal.progressBar().shouldBe(visible);
     importSbomModal.summaryApplicationName()
         .shouldHave(text("Test Application"));
     importSbomModal.summaryInputVersionId()

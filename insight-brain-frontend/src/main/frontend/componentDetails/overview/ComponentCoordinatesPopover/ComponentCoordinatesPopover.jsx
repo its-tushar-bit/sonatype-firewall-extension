@@ -11,9 +11,12 @@ import { IqPopover } from 'MainRoot/react/IqPopover';
 
 import { selectShowComponentCoordinatesPopover } from '../overviewSelectors';
 import { actions } from '../overviewSlice';
+import { NxCopyToClipboard } from '@sonatype/react-shared-components';
+
+import './ComponentCoordinatesPopover.scss';
 
 export default function ComponentCoordinatesPopover(props) {
-  const { displayName, componentFormat } = props;
+  const { displayName, componentFormat, packageUrl } = props;
   const showComponentCoordinatesPopover = useSelector(selectShowComponentCoordinatesPopover);
   const dispatch = useDispatch();
   const onClose = () => dispatch(actions.toggleShowComponentCoordinatesPopover());
@@ -44,6 +47,13 @@ export default function ComponentCoordinatesPopover(props) {
               </div>
             )
         )}
+
+        <NxCopyToClipboard
+          className="iq-component-coordinates-copy-to-clipboard"
+          label="Package URL"
+          content={packageUrl}
+          inputProps={{ rows: 2 }}
+        />
       </dl>
     </IqPopover>
   );
@@ -54,4 +64,5 @@ ComponentCoordinatesPopover.propTypes = {
     parts: PropTypes.array,
   }).isRequired,
   componentFormat: PropTypes.string.isRequired,
+  packageUrl: PropTypes.string.isRequired,
 };

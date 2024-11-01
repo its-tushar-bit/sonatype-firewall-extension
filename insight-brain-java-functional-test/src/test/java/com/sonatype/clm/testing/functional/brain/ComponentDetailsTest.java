@@ -472,6 +472,8 @@ public class ComponentDetailsTest
     componentCoordinatesPopover.namingDefinitions()
         .shouldHave(exactTexts("Group com.mycila", "Artifact license-maven-plugin", "Version 2.11"));
 
+    componentCoordinatesPopover.copyToClipboard().shouldHave(text("Copy to Clipboard\nPackage URL"));
+
     eyesWatcher.eyesCheck("component details component coordinates popover");
 
     componentCoordinatesPopover.closeButton().click();

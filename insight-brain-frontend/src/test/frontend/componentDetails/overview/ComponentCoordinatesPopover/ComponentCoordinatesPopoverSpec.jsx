@@ -53,4 +53,10 @@ describe('ComponentCoordinatesPopover', () => {
     expect(screen.getByText('Artifact')).toBeVisible();
     expect(screen.getByText('jackson - core')).toBeVisible();
   });
+
+  it('renders packageUrl', () => {
+    render(<ComponentCoordinatesPopover packageUrl={'pkg:maven/com.test/jackson@1.4.5?type=jar'} />);
+    expect(screen.getByText('Package URL')).toBeVisible();
+    expect(screen.getByText('pkg:maven/com.test/jackson@1.4.5?type=jar')).toBeVisible();
+  });
 });

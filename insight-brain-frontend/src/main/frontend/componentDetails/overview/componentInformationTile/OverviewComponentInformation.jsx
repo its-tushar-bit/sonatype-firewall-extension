@@ -29,6 +29,7 @@ export default function OverviewComponentInformation({
   const {
     componentIdentifier,
     displayName,
+    packageUrl,
     matchState,
     identificationSource,
     componentCategories = [],
@@ -132,7 +133,9 @@ export default function OverviewComponentInformation({
         <OccurrencesPopoverContainer occurrences={pathnames} />
         <InnerSourceProducerReportModalContainer />
         <InnerSourceProducerPermissionsModalContainer />
-        {!isUnknown && <ComponentCoordinatesPopover displayName={displayName} componentFormat={format} />}
+        {!isUnknown && (
+          <ComponentCoordinatesPopover displayName={displayName} componentFormat={format} packageUrl={packageUrl} />
+        )}
         <header className="nx-tile-header">
           <div className="nx-tile-header__title">
             <h2 className="nx-h2">Component Information</h2>

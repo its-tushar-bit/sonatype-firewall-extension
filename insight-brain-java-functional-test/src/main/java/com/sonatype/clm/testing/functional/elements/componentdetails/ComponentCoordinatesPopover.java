@@ -43,4 +43,8 @@ public class ComponentCoordinatesPopover
   public SelenideElement title() {
     return child(".iq-popover-header__title-text");
   }
+
+  public SelenideElement copyToClipboard() {
+    return child(".nx-read-only > .iq-component-coordinates-copy-to-clipboard");
+  }
 }

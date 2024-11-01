@@ -69,7 +69,6 @@ public class WaivedComponentMetricsConsolidator
     log.info("Consolidating Waived Components metrics");
     long start = System.currentTimeMillis();
     List<Repository> repositories = repositoryDAO.getAll();
-    firewallMetricsDAO.deleteRecordsOlderThanOneYear(WAIVED_COMPONENTS);
     Date mostRecentMetricDateFound = ObjectUtils.defaultIfNull(
         firewallMetricsDAO.getMostRecentLastUpdatedAtDateByName(WAIVED_COMPONENTS),
         DateConverter.toDate(LocalDate.now().minusMonths(12)));

@@ -53,7 +53,7 @@ public class WaivedComponentsMetricsConsolidatorTest extends AbstractComponentTe
   }
 
   @Test
-  public void consolidateTest_deleteRecordsOlderThan1Year() {
+  public void consolidateTest_keepAllRecords() {
     initTestData();
     List<FirewallMetrics> allMetrics = firewallMetricsDAOTest.getAll();
     // Check initial data length
@@ -67,12 +67,8 @@ public class WaivedComponentsMetricsConsolidatorTest extends AbstractComponentTe
     consolidator.consolidate();
 
     allMetrics = firewallMetricsDAOTest.getAll();
-    // Check current data length. Records older than 1 year
-    // should have been deleted
-    assertThat(allMetrics)
-        .hasSize(2)
-        .anyMatch(firewallMetrics -> firewallMetrics.getMetricsDate().equals(LocalDate.now()))
-        .anyMatch(firewallMetrics -> firewallMetrics.getMetricsDate().equals(LocalDate.now().minusMonths(12)));
+    // Check the data length after consolidation
+    assertThat(allMetrics).hasSize(5);
   }
 
   @Test

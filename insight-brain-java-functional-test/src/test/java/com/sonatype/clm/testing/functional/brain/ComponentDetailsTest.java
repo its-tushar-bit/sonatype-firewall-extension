@@ -18,6 +18,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -84,6 +85,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.policy.LegacyViolationService;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
@@ -111,6 +113,7 @@ import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentDetailsTest
     extends AbstractFunctionalTest
@@ -139,6 +142,8 @@ public class ComponentDetailsTest
 
   private PolicyViolationDAO policyViolationDAO;
 
+  private Configuration configurationService;
+
   @BeforeClass
   public static void startup() {
     refreshOrOpen(DashboardPage.url());
@@ -150,6 +155,9 @@ public class ComponentDetailsTest
     policyDAO = lookup(PolicyDAO.class);
     applicationDAO = lookup(ApplicationDAO.class);
     policyViolationDAO = lookup(PolicyViolationDAO.class);
+    configurationService = lookup(Configuration.class);
+
+    assertThat(configurationService.isALPObservedLicenseDetectionEnabled()).isTrue();
 
     URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
@@ -1279,23 +1287,24 @@ public class ComponentDetailsTest
 
   @Test
   public void testLegalTab_LicenseDetectionTileAlpObservedLicensesDisabled() {
-    com.sonatype.insight.brain.service.Configuration configuration =
-        testCLMServer.getCLMServer().getInstance(com.sonatype.insight.brain.service.Configuration.class);
-    configuration.setALPObservedLicenseDetectionEnabled(false);
+    configurationService.setALPObservedLicenseDetectionEnabled(false);
 
-    refreshOrOpen(ComponentDetailsPage.urlToLegal(app, SCAN_ID, "ci6x9fypjoym3kwtai3m"));
+    try {
+      refreshOrOpen(ComponentDetailsPage.urlToLegal(app, SCAN_ID, "ci6x9fypjoym3kwtai3m"));
 
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-    componentDetailsPage.legalTabContent().shouldBe(visible);
+      ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+      componentDetailsPage.legalTabContent().shouldBe(visible);
 
-    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+      LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
 
-    licenseDetectionsTile
-        .shouldBe(visible)
-        .observedLicenses()
-        .shouldHave(text("Enable the Observed License Detection feature in the Advanced Legal Pack (ALP) add-on."));
+      licenseDetectionsTile.shouldBe(visible).observedLicenses()
+          .shouldHave(text("Enable the Observed License Detection feature in the Advanced Legal Pack (ALP) add-on."));
 
-    licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses()).isEmpty();
+      licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses()).isEmpty();
+    }
+    finally {
+      configurationService.setALPObservedLicenseDetectionEnabled(true);
+    }
   }
 
   @Test
@@ -1321,21 +1330,23 @@ public class ComponentDetailsTest
 
   @Test
   public void testLegalTab_LicensesPopoverAlpObservedLicensesDisabled() {
-    com.sonatype.insight.brain.service.Configuration configuration =
-        testCLMServer.getCLMServer().getInstance(com.sonatype.insight.brain.service.Configuration.class);
-    configuration.setALPObservedLicenseDetectionEnabled(false);
+    configurationService.setALPObservedLicenseDetectionEnabled(false);
+    try {
+      refreshOrOpen(ComponentDetailsPage.urlToLegal(app, SCAN_ID, "ci6x9fypjoym3kwtai3m"));
 
-    refreshOrOpen(ComponentDetailsPage.urlToLegal(app, SCAN_ID, "ci6x9fypjoym3kwtai3m"));
+      ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+      componentDetailsPage.legalTabContent().shouldBe(visible);
 
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-    componentDetailsPage.legalTabContent().shouldBe(visible);
+      LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+      licenseDetectionsTile.editLicenseButton().click();
 
-    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
-    licenseDetectionsTile.editLicenseButton().click();
-
-    EditLicensesPopover editPopover = new EditLicensesPopover();
-    editPopover.observedLicenses()
-        .shouldHave(text("Enable the Observed License Detection feature in the Advanced Legal Pack (ALP) add-on."));
+      EditLicensesPopover editPopover = new EditLicensesPopover();
+      editPopover.observedLicenses()
+          .shouldHave(text("Enable the Observed License Detection feature in the Advanced Legal Pack (ALP) add-on."));
+    }
+    finally {
+      configurationService.setALPObservedLicenseDetectionEnabled(true);
+    }
   }
 
   @Test

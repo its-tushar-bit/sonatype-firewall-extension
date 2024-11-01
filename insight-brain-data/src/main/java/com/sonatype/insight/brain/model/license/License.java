@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.model.license;
 
-import java.util.Set;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -16,7 +14,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.model.HasStringId;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.collect.ImmutableSet;
 
 // Copied from com.sonatype.insight.model.datamart.dto.License
 @Entity
@@ -35,15 +32,6 @@ public class License
   public static final String NO_SOURCE_LICENSE_ID = "No-Source-License";
 
   public static final String NOT_SUPPORTED_ID = "Not-Supported";
-
-  private static final Set<String> HIDDEN_ALP_OBSERVED_LICENSES_ECOSYSTEMS = ImmutableSet.of(
-      ComponentIdentifier.FORMAT_NUGET,
-      ComponentIdentifier.FORMAT_RUBYGEMS,
-      ComponentIdentifier.FORMAT_NPM,
-      ComponentIdentifier.FORMAT_PYPI,
-      ComponentIdentifier.FORMAT_RPM,
-      ComponentIdentifier.FORMAT_COMPOSER
-  );
 
   public License() {
   }
@@ -144,7 +132,7 @@ public class License
         || UNSPECIFIED_ID.equals(id) || NOT_SUPPORTED_ID.equals(id);
   }
 
-  public static boolean isAlpObservedLicenseEcosystemHidden(String format) {
-    return HIDDEN_ALP_OBSERVED_LICENSES_ECOSYSTEMS.contains(format);
+  public static boolean isAlpObservedLicenseFormatHidden(String format) {
+    return !ComponentIdentifier.FORMAT_MAVEN.equals(format);
   }
 }

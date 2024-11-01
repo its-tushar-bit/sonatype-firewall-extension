@@ -1232,7 +1232,7 @@ public class ComponentInfoService
         getSelectableLicenses(componentDetails.getDeclaredLicenses(), componentDetails.getObservedLicenses()));
     result.hiddenObservedLicenses = component.isHiddenObservedLicenses();
     result.supportAlpObservedLicenses = com.sonatype.insight.brain.model.license.License
-        .isAlpObservedLicenseEcosystemHidden(componentIdentifier.getFormat());
+        .isAlpObservedLicenseFormatHidden(componentIdentifier.getFormat());
     return result;
   }
 

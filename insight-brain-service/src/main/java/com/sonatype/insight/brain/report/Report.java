@@ -370,7 +370,7 @@ public final class Report
     Set<String> currentObservedLicenses = JsonUtils.getStringSetFromArray(matchedComponentNode.get("observedLicenses"));
     if (CollectionUtils.isNotEmpty(currentObservedLicenses) &&
         !currentObservedLicenses.equals(Collections.singleton(notSupportedLicense.getShortDisplayName()))) {
-      if (!isALPObservedLicenseEnabled && License.isAlpObservedLicenseEcosystemHidden(matchedComponent.getFormat())) {
+      if (!isALPObservedLicenseEnabled && License.isAlpObservedLicenseFormatHidden(matchedComponent.getFormat())) {
         matchedComponentNode.putArray("observedLicenses")
             .add(notSupportedLicense.getShortDisplayName());
         matchedComponentNode.put("hiddenObservedLicenses", true);

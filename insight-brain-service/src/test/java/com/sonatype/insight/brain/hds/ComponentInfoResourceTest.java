@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.repository.RepositoryQueryService;
+import com.sonatype.insight.brain.service.Configuration;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.commons.io.IOUtils;
@@ -68,10 +69,15 @@ public class ComponentInfoResourceTest
 
   private ApplicationDAO applicationDAO;
 
+  private Configuration configurationService;
+
   @Before
   public void setUp() {
     applicationDAO = lookup(ApplicationDAO.class);
     multiLicenseDAO = lookup(MultiLicenseDAO.class);
+    configurationService = lookup(Configuration.class);
+
+    assertThat(configurationService.isALPObservedLicenseDetectionEnabled()).isTrue();
   }
 
   protected HttpRequest vulnerabilitiesRequest(final OwnerType ownerType,

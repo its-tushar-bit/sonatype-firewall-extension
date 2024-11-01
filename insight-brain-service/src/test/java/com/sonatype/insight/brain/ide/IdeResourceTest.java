@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+
 import javax.mail.MessagingException;
 import javax.mail.util.ByteArrayDataSource;
 
@@ -72,9 +73,14 @@ public class IdeResourceTest
 {
   private HashComponentIdentifierDAO hashComponentIdentifierDAO;
 
+  private Configuration configurationService;
+
   @Before
   public void setUp() {
     hashComponentIdentifierDAO = lookup(HashComponentIdentifierDAO.class);
+    configurationService = lookup(Configuration.class);
+
+    assertThat(configurationService.isALPObservedLicenseDetectionEnabled()).isTrue();
   }
 
   @Override
@@ -707,18 +713,19 @@ public class IdeResourceTest
 
     mockHdsResponse(request, hdsResponse, 200);
 
-    Configuration configuration = getCLMServer().getInstance(Configuration.class);
-    configuration.setALPObservedLicenseDetectionEnabled(false);
+    configurationService.setALPObservedLicenseDetectionEnabled(false);
+    try {
+      HttpResponse response = request.get();
+      assertResponseStatus(200, response);
+      IdeMatchedComponent result = response.getBody(IdeMatchedComponent.class);
 
-    HttpResponse response = request.get();
-    assertResponseStatus(200, response);
-    IdeMatchedComponent result = response.getBody(IdeMatchedComponent.class);
-
-    assertThat(result).isNotNull();
-    assertThat(result.getAlerts())
-        .extracting(PolicyAlert::getTrigger)
-        .extracting(PolicyFact::getPolicyName)
-        .containsExactly(policy.getName());
+      assertThat(result).isNotNull();
+      assertThat(result.getAlerts()).extracting(PolicyAlert::getTrigger).extracting(PolicyFact::getPolicyName)
+          .containsExactly(policy.getName());
+    }
+    finally {
+      configurationService.setALPObservedLicenseDetectionEnabled(true);
+    }
   }
 
   @Test

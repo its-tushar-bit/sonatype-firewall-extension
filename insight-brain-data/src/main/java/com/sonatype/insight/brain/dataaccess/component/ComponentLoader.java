@@ -713,7 +713,7 @@ public class ComponentLoader
       Set<String> notSupportedLicenseIdSet = Collections.singleton(License.NOT_SUPPORTED_ID);
 
       if (!isAlpObservedLicenseDetectionEnabled
-          && License.isAlpObservedLicenseEcosystemHidden(componentInfo.getComponentIdentifier().getFormat())
+          && License.isAlpObservedLicenseFormatHidden(componentInfo.getComponentIdentifier().getFormat())
           && CollectionUtils.isNotEmpty(observedMultiLicenseIds)
           && !observedMultiLicenseIds.equals(notSupportedLicenseIdSet)) {
         observedMultiLicenseIds = notSupportedLicenseIdSet;

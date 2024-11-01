@@ -98,6 +98,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -143,7 +144,7 @@ public class FirewallComponentDetailsPageTest
   // no declared or observed licenses are provided
   private final String nonLicensed = "nonLicensed";
 
-  // overriden licenses by the user in IQ
+  // overridden licenses by the user in IQ
   private final String overriddenLicense = "overriddenLicense";
 
   private final String[] expectedLabelsTexts = {"Label 1", "Label 2", "Label 3", "Label 4"};
@@ -176,6 +177,8 @@ public class FirewallComponentDetailsPageTest
 
   private Date date;
 
+  private Configuration configurationService;
+
   @BeforeClass
   public static void startup() {
     refreshOrOpen(FirewallPage.url());
@@ -198,6 +201,9 @@ public class FirewallComponentDetailsPageTest
     repository = tempEntity.newRepository(repositoryManager, "repositoryPublicId");
     date = new Date();
     app = tempEntity.newApplication( "publicId", tempEntity.newOrganization().getId());
+
+    configurationService = lookup(Configuration.class);
+    assertThat(configurationService.isALPObservedLicenseDetectionEnabled()).isTrue();
   }
 
   private void waitUntilSpinnersGone() {
@@ -1621,29 +1627,29 @@ public class FirewallComponentDetailsPageTest
 
   @Test
   public void testLegalTab_LicenseDetectionTileAlpObservedLicensesDisabled() {
-    com.sonatype.insight.brain.service.Configuration configuration =
-        testCLMServer.getCLMServer().getInstance(com.sonatype.insight.brain.service.Configuration.class);
-    configuration.setALPObservedLicenseDetectionEnabled(false);
+    configurationService.setALPObservedLicenseDetectionEnabled(false);
+    try {
+      ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("p", "v");
+      ComponentDetails componentDetails = createComponentDetail("hash1", componentIdentifier, singleLicense);
+      componentDetailsArrayList.add(componentDetails);
 
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("p", "v");
-    ComponentDetails componentDetails = createComponentDetail("hash1", componentIdentifier, singleLicense);
-    componentDetailsArrayList.add(componentDetails);
+      RepositoryComponent component =
+          createRepositoryComponent(componentDetails.getHash(), componentDetails.getComponentIdentifier(), date, date);
 
-    RepositoryComponent component =
-        createRepositoryComponent(componentDetails.getHash(), componentDetails.getComponentIdentifier(), date, date);
+      refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
+      waitUntilSpinnersGone();
 
-    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
-    waitUntilSpinnersGone();
+      ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+      LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
 
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+      licenseDetectionsTile.shouldBe(visible).observedLicenses()
+          .shouldHave(text("Enable the Observed License Detection feature in the Advanced Legal Pack (ALP) add-on."));
 
-    licenseDetectionsTile
-        .shouldBe(visible)
-        .observedLicenses()
-        .shouldHave(text("Enable the Observed License Detection feature in the Advanced Legal Pack (ALP) add-on."));
-
-    licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses()).isEmpty();
+      licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses()).isEmpty();
+    }
+    finally {
+      configurationService.setALPObservedLicenseDetectionEnabled(true);
+    }
   }
 
   @Test
@@ -1675,27 +1681,29 @@ public class FirewallComponentDetailsPageTest
 
   @Test
   public void testLegalTab_LicensesPopoverAlpObservedLicensesDisabled() {
-    com.sonatype.insight.brain.service.Configuration configuration =
-        testCLMServer.getCLMServer().getInstance(com.sonatype.insight.brain.service.Configuration.class);
-    configuration.setALPObservedLicenseDetectionEnabled(false);
+    configurationService.setALPObservedLicenseDetectionEnabled(false);
+    try {
+      ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("p", "v");
+      ComponentDetails componentDetails = createComponentDetail("hash1", componentIdentifier, singleLicense);
+      componentDetailsArrayList.add(componentDetails);
 
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("p", "v");
-    ComponentDetails componentDetails = createComponentDetail("hash1", componentIdentifier, singleLicense);
-    componentDetailsArrayList.add(componentDetails);
+      RepositoryComponent component =
+          createRepositoryComponent(componentDetails.getHash(), componentDetails.getComponentIdentifier(), date, date);
 
-    RepositoryComponent component =
-        createRepositoryComponent(componentDetails.getHash(), componentDetails.getComponentIdentifier(), date, date);
+      refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
+      waitUntilSpinnersGone();
 
-    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
-    waitUntilSpinnersGone();
+      ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+      LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+      licenseDetectionsTile.editLicenseButton().click();
 
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
-    licenseDetectionsTile.editLicenseButton().click();
-
-    EditLicensesPopover editPopover = new EditLicensesPopover();
-    editPopover.observedLicenses()
-        .shouldHave(text("Enable the Observed License Detection feature in the Advanced Legal Pack (ALP) add-on."));
+      EditLicensesPopover editPopover = new EditLicensesPopover();
+      editPopover.observedLicenses()
+          .shouldHave(text("Enable the Observed License Detection feature in the Advanced Legal Pack (ALP) add-on."));
+    }
+    finally {
+      configurationService.setALPObservedLicenseDetectionEnabled(true);
+    }
   }
 
   @Test

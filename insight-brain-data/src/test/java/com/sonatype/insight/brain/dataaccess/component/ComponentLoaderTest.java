@@ -342,15 +342,29 @@ public class ComponentLoaderTest
   }
 
   @Test
-  public void testGetComponent_ObservedLicensesHiddenNotSupportedFormat() {
+  public void testGetComponent_ObservedLicensesHiddenNotSupportedFormat_AlpObservedLicenseDetectionEnabled() {
     MatchedComponent matchedComponent = new MatchedComponent();
     matchedComponent.setComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", "q", "v"));
     matchedComponent.addObservedLicenseId("MIT");
-    Component component = componentLoader.getComponent(matchedComponent, false);
+    Component component =
+        componentLoader.getComponent(matchedComponent, true /* isAlpObservedLicenseDetectionEnabled */);
     assertThat(component).isNotNull();
     assertThat(component.getObservedLicenseIds()).containsExactly("MIT");
     assertThat(component.getObservedMultiLicenseIds()).containsExactly("MIT");
     assertThat(component.isHiddenObservedLicenses()).isFalse();
+  }
+
+  @Test
+  public void testGetComponent_ObservedLicensesHiddenNotSupportedFormat_AlpObservedLicenseDetectionDisabled() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setComponentIdentifier(ComponentIdentifier.createAnameCoordinates("n", "q", "v"));
+    matchedComponent.addObservedLicenseId("MIT");
+    Component component =
+        componentLoader.getComponent(matchedComponent, false /* isAlpObservedLicenseDetectionEnabled */);
+    assertThat(component).isNotNull();
+    assertThat(component.getObservedLicenseIds()).containsExactly("Not-Supported");
+    assertThat(component.getObservedMultiLicenseIds()).containsExactly("Not-Supported");
+    assertThat(component.isHiddenObservedLicenses()).isTrue();
   }
 
   @Test

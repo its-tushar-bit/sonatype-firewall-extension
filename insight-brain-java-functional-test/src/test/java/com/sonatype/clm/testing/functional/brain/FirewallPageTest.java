@@ -623,7 +623,7 @@ public class FirewallPageTest
     firewallQuarantineTable.tableBodyRows().shouldHave(size(3));
     firewallQuarantineTable.tableBodyRows().shouldHave(texts("repoPublicId3", "repoPublicId2", "repoPublicId1"));
     // One character in the repository public id search should not trigger the search
-    firewallQuarantineTable.repositoryPublicIdInput().sendKeys("r");
+    firewallQuarantineTable.repositoryPublicIdInput().sendKeys("i");
     firewallQuarantineTable.tableBodyRows().shouldHave(size(3));
     firewallQuarantineTable.tableBodyRows().shouldHave(texts("repoPublicId3", "repoPublicId2", "repoPublicId1"));
     // Two characters in the repository public id search should trigger the search

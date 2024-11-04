@@ -229,7 +229,7 @@ public class SbomImportServiceTest
         new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)), TEST_FILENAME_JSON);
     assertThat(actual.getRequestId()).isEmpty();
     assertThat(actual.getSbomSummary()).isNull();
-    assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDx SBOM file.");
+    assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDX SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly(
         "Line: 11, Column: 6, Path: $.components[1], Error: required property 'type' not found",
         "Line: 15, Column: 6, Path: $.components[2], Error: required property 'type' not found"
@@ -261,7 +261,7 @@ public class SbomImportServiceTest
         new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)), TEST_FILENAME_XML);
     assertThat(actual.getRequestId()).isEmpty();
     assertThat(actual.getSbomSummary()).isNull();
-    assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDx SBOM file.");
+    assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDX SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly(
         "Line: 8, Column: 16, Path: //bom[1]/components[1], Error: cvc-complex-type.4: Attribute 'type' must appear " +
             "on element 'component'.",

@@ -229,7 +229,7 @@ public class SbomFileDetector
     }
     catch (IOException | ParseException | InvalidSbomException e) {
       log.debug("error parsing content as sbom", e);
-      sbomResult.errorMessage = "Not a valid CycloneDx SBOM file.";
+      sbomResult.errorMessage = "Not a valid CycloneDX SBOM file.";
       sbomResult.validationErrors = getErrors(e);
     }
     return sbomResult;

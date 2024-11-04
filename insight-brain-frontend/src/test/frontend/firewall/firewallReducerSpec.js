@@ -108,6 +108,7 @@ describe('firewallReducer', function () {
       sortField: 'quarantineTime',
       filterPolicies: [],
       filterComponentName: '',
+      filterRepositoryPublicId: '',
       lastUpdated: null,
     }),
   });
@@ -924,6 +925,24 @@ describe('firewallReducer', function () {
     });
   });
 
+  describe('FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER action', function () {
+    let minimumState = {};
+
+    it('updates the state', function () {
+      let payload = { repositoryPublicId: { repositoryPublicId: 'publicId' } };
+
+      expect(
+        reduce(minimumState, { type: 'FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER', payload: payload })
+      ).toEqual({
+        ...minimumState,
+        quarantineGridState: {
+          ...minimumState.quarantineGridState,
+          filterRepositoryPublicId: payload.repositoryPublicId,
+        },
+      });
+    });
+  });
+
   describe('FIREWALL_POLICIES_REQUESTED action', function () {
     let minimumState = { policiesState: {} };
 
@@ -1007,6 +1026,7 @@ describe('firewallReducer', function () {
           sortField: 'componentName',
           filterPolicies: ['123'],
           filterComponentName: '',
+          filterRepositoryPublicId: '',
         },
       };
       expect(reduce(customMinimumState, { type: 'FIREWALL_LOAD_DATA_REQUESTED' })).toEqual({

@@ -496,7 +496,15 @@ export function getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sort
   return uriTemplate`/api/v2/firewall/components/autoReleasedFromQuarantine` + params;
 }
 
-export function getFirewallQuarantineListUrl(page, pageSize, sortBy, sortAsc, policyIds, componentName) {
+export function getFirewallQuarantineListUrl(
+  page,
+  pageSize,
+  sortBy,
+  sortAsc,
+  policyIds,
+  componentName,
+  repositoryPublicId
+) {
   let params = toURIParams({
     page: page,
     pageSize: pageSize,
@@ -504,6 +512,7 @@ export function getFirewallQuarantineListUrl(page, pageSize, sortBy, sortAsc, po
     asc: sortAsc,
     policyId: policyIds,
     componentName: componentName,
+    repositoryPublicId: repositoryPublicId,
   });
 
   params = params.length === 0 ? '' : '?' + params;

@@ -592,6 +592,51 @@ public class FirewallPageTest
   }
 
   @Test
+  public void testFirewallQuarantineTable_RepositoryPublicIdSearch() {
+    Date date = new Date();
+    Policy policy =
+        tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "testFirewallQuarantineTable_RepositoryPublicIdSearch");
+    Repository repo1 = tempEntity.newRepository("repoPublicId1");
+    Repository repo2 = tempEntity.newRepository("repoPublicId2");
+    Repository repo3 = tempEntity.newRepository("repoPublicId3");
+    RepositoryComponent comp1 =
+        tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT, "repoPublicIdSearch1", "repoPublicIdSearch1",
+            ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), date, date);
+    RepositoryComponent comp2 =
+        tempEntity.newRepositoryComponent(repo2.getId(), MatchState.EXACT, "repoPublicIdSearch2", "repoPublicIdSearch2",
+            ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2"), date, date);
+    RepositoryComponent comp3 =
+        tempEntity.newRepositoryComponent(repo3.getId(), MatchState.EXACT, "repoPublicIdSearch3", "repoPublicIdSearch3",
+            ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3"), date, date);
+    tempEntity.newRepositoryPolicyViolation(comp1.getRepositoryId(), 5, comp1.getPathname(), false, FailActionType.ID,
+        policy.getId(), policy.getName(), comp1.getComponentIdentifier());
+    tempEntity.newRepositoryPolicyViolation(comp2.getRepositoryId(), 5, comp2.getPathname(), false, FailActionType.ID,
+        policy.getId(), policy.getName(), comp2.getComponentIdentifier());
+    tempEntity.newRepositoryPolicyViolation(comp3.getRepositoryId(), 5, comp3.getPathname(), false, FailActionType.ID,
+        policy.getId(), policy.getName(), comp3.getComponentIdentifier());
+
+    refreshOrOpen(FirewallPage.url());
+
+    page.shouldBe(visible);
+    FirewallQuarantineTable firewallQuarantineTable = page.firewallQuarantineTable();
+    // We initially have 3 rows
+    firewallQuarantineTable.tableBodyRows().shouldHave(size(3));
+    firewallQuarantineTable.tableBodyRows().shouldHave(texts("repoPublicId3", "repoPublicId2", "repoPublicId1"));
+    // One character in the repository public id search should not trigger the search
+    firewallQuarantineTable.repositoryPublicIdInput().sendKeys("r");
+    firewallQuarantineTable.tableBodyRows().shouldHave(size(3));
+    firewallQuarantineTable.tableBodyRows().shouldHave(texts("repoPublicId3", "repoPublicId2", "repoPublicId1"));
+    // Two characters in the repository public id search should trigger the search
+    firewallQuarantineTable.repositoryPublicIdInput().sendKeys("d1");
+    firewallQuarantineTable.tableBodyRows().shouldHave(size(1));
+    firewallQuarantineTable.tableBodyRows().shouldHave(texts("repoPublicId1"));
+    // Zero characters in the repository public id search should trigger the search
+    firewallQuarantineTable.repositoryPublicIdInput().sendKeys("\b\b");
+    firewallQuarantineTable.tableBodyRows().shouldHave(size(3));
+    firewallQuarantineTable.tableBodyRows().shouldHave(texts("repoPublicId3", "repoPublicId2", "repoPublicId1"));
+  }
+
+  @Test
   public void testFirewallQuarantineTable_RepoViewLink() {
     setupData();
     refreshOrOpen(FirewallPage.url());

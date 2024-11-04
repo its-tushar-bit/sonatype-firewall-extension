@@ -102,6 +102,8 @@ import {
   loadFirewallViolationDetails,
   FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER,
   setQuarantineGridComponentNameFilter,
+  FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER,
+  setQuarantineGridRepositoryPublicIdFilter,
   loadTileMetrics,
 } from '../../../main/frontend/firewall/firewallActions';
 import {
@@ -987,12 +989,14 @@ describe('firewallActions', function () {
             currentPage: 100,
             filterPolicies: ['id'],
             filterComponentName: 'name',
+            filterRepositoryPublicId: 'repositoryPublicId',
             sortDir: 'desc',
           },
         },
       };
       store = SpecUtil.mockReduxStore(state);
-      const expectedParams = '?page=101&pageSize=1000&sortBy=field&asc=false&policyId=id&componentName=name';
+      const expectedParams =
+        '?page=101&pageSize=1000&sortBy=field&asc=false&policyId=id&componentName=name&repositoryPublicId=repositoryPublicId';
       const payload = { pageCount: 2, results: [{ test: 'testVal' }, { test: 'testVal' }] };
       mockAxiosCalls({
         get: {
@@ -1275,6 +1279,38 @@ describe('firewallActions', function () {
       expect(actions[0].type).toBe(FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER);
       expect(actions[0].payload).toEqual(componentName);
       expect(actions[0].payload.componentName).toEqual(jasmine.any(String));
+    });
+  });
+
+  describe('setQuarantineGridRepositoryPublicIdFilter', function () {
+    it('immediately dispatches actions to set the repository public id filter for the quarantine grid', function () {
+      const repositoryPublicId = { repositoryPublicId: 'publicId' };
+      const currentPage = { currentPage: null };
+
+      store.dispatch(setQuarantineGridRepositoryPublicIdFilter(repositoryPublicId.repositoryPublicId));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(3);
+      expect(actions[0].type).toBe(FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER);
+      expect(actions[0].payload).toEqual(repositoryPublicId);
+      expect(actions[0].payload.repositoryPublicId).toEqual('publicId');
+      expect(actions[1].type).toBe(FIREWALL_QUARANTINE_GRID_SET_PAGE);
+      expect(actions[1].payload).toEqual(currentPage);
+      expect(actions[1].payload.currentPage).toBeNull();
+      expect(actions[2].type).toBe(FIREWALL_QUARANTINE_LIST_REQUESTED);
+      expect(actions[2].payload).toBeUndefined();
+    });
+
+    it('does not load the quarantine list if the repository public id is only 1 character', function () {
+      const repositoryPublicId = { repositoryPublicId: 'n' };
+
+      store.dispatch(setQuarantineGridRepositoryPublicIdFilter(repositoryPublicId.repositoryPublicId));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER);
+      expect(actions[0].payload).toEqual(repositoryPublicId);
+      expect(actions[0].payload.repositoryPublicId).toEqual(jasmine.any(String));
     });
   });
 

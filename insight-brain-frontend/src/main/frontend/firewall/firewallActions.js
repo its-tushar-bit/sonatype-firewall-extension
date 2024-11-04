@@ -123,6 +123,8 @@ export const FIREWALL_QUARANTINE_GRID_SET_PAGE = 'FIREWALL_QUARANTINE_GRID_SET_P
 export const FIREWALL_QUARANTINE_GRID_SET_SORTING = 'FIREWALL_QUARANTINE_GRID_SET_SORTING';
 export const FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER = 'FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER';
 export const FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER = 'FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER';
+export const FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER =
+  'FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER';
 export const FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED = 'FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED';
 
 const quarantineGridSetPage = payloadParamActionCreator(FIREWALL_QUARANTINE_GRID_SET_PAGE);
@@ -130,6 +132,9 @@ const quarantineGridSetSorting = payloadParamActionCreator(FIREWALL_QUARANTINE_G
 const quarantineGridSetPolicyFilter = payloadParamActionCreator(FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER);
 const quarantineGridSetComponentNameFilter = payloadParamActionCreator(
   FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER
+);
+const quarantineGridSetRepositoryPublicIdFilter = payloadParamActionCreator(
+  FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER
 );
 
 export const FIREWALL_QUARANTINE_SUMMARY_REQUESTED = 'FIREWALL_QUARANTINE_SUMMARY_REQUESTED';
@@ -467,6 +472,7 @@ export function loadQuarantineList() {
       apiPage = gridState.currentPage ? gridState.currentPage + 1 : 1,
       filterPolicies = gridState.filterPolicies.length < 1 ? null : gridState.filterPolicies,
       filterComponentName = gridState.filterComponentName === '' ? null : gridState.filterComponentName,
+      filterRepositoryPublicId = gridState.filterRepositoryPublicId === '' ? null : gridState.filterRepositoryPublicId,
       sortAsc = gridState.sortDir === 'asc';
 
     dispatch(loadQuarantineListRequested());
@@ -478,7 +484,8 @@ export function loadQuarantineList() {
           gridState.sortField,
           sortAsc,
           filterPolicies,
-          filterComponentName
+          filterComponentName,
+          filterRepositoryPublicId
         )
       )
       .then(({ data }) => {
@@ -606,6 +613,16 @@ export function setQuarantineGridComponentNameFilter(componentName) {
   return (dispatch) => {
     dispatch(quarantineGridSetComponentNameFilter({ componentName: componentName }));
     if (componentName.length !== 1) {
+      dispatch(quarantineGridSetPage({ currentPage: null }));
+      dispatch(loadQuarantineList());
+    }
+  };
+}
+
+export function setQuarantineGridRepositoryPublicIdFilter(repositoryPublicId) {
+  return (dispatch) => {
+    dispatch(quarantineGridSetRepositoryPublicIdFilter({ repositoryPublicId: repositoryPublicId }));
+    if (repositoryPublicId.length !== 1) {
       dispatch(quarantineGridSetPage({ currentPage: null }));
       dispatch(loadQuarantineList());
     }

@@ -30,6 +30,7 @@ describe('FirewallQuarantineTable', function () {
     setQuarantineGridSorting,
     setQuarantineGridPolicyFilter,
     setQuarantineGridComponentNameFilter,
+    setQuarantineGridRepositoryPublicIdFilter,
     goToRepositoryComponentDetailsPageSpy,
     hrefSpy,
     routerContextMock;
@@ -45,6 +46,7 @@ describe('FirewallQuarantineTable', function () {
     setQuarantineGridSorting = jasmine.createSpy('setQuarantineGridSorting');
     setQuarantineGridPolicyFilter = jasmine.createSpy('setQuarantineGridPolicyFilter');
     setQuarantineGridComponentNameFilter = jasmine.createSpy('setQuarantineGridComponentNameFilter');
+    setQuarantineGridRepositoryPublicIdFilter = jasmine.createSpy('setQuarantineGridRepositoryPublicIdFilter');
 
     hrefSpy = jasmine.createSpy('href').and.callFake(() => 'someHref');
     routerContextMock = { href: hrefSpy };
@@ -57,6 +59,7 @@ describe('FirewallQuarantineTable', function () {
       setQuarantineGridSorting: setQuarantineGridSorting,
       setQuarantineGridPolicyFilter: setQuarantineGridPolicyFilter,
       setQuarantineGridComponentNameFilter: setQuarantineGridComponentNameFilter,
+      setQuarantineGridRepositoryPublicIdFilter: setQuarantineGridRepositoryPublicIdFilter,
       loadedQuarantineList: true,
       loadedPolicies: true,
       quarantinePageCount: 1,
@@ -64,6 +67,7 @@ describe('FirewallQuarantineTable', function () {
       currentPage: 0,
       filterPolicies: [],
       filterComponentName: 'initialComponentName',
+      filterRepositoryPublicId: 'initialRepositoryPublicId',
       lastUpdated: DATE_TIME,
       quarantineList: [
         {
@@ -237,6 +241,15 @@ describe('FirewallQuarantineTable', function () {
       expect(input).toHaveValue('initialComponentName');
       input.simulate('change', 'name');
       expect(setQuarantineGridComponentNameFilter).toHaveBeenCalledWith('name');
+    });
+
+    it('calls the setQuarantineGridRepositoryPublicIdFilter when entering a repository public id', () => {
+      const component = getShallowComponent(),
+        input = component.find('#firewall-quarantine-table--repository-public-id');
+      expect(input).not.toBeNull();
+      expect(input).toHaveValue('initialRepositoryPublicId');
+      input.simulate('change', 'name');
+      expect(setQuarantineGridRepositoryPublicIdFilter).toHaveBeenCalledWith('name');
     });
   });
 

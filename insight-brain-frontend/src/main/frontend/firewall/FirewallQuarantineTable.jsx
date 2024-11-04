@@ -34,6 +34,7 @@ export default function FirewallQuarantineTable(props) {
     setQuarantineGridSorting,
     setQuarantineGridPolicyFilter,
     setQuarantineGridComponentNameFilter,
+    setQuarantineGridRepositoryPublicIdFilter,
     goToRepositoryComponentDetailsPage,
   } = props;
 
@@ -48,6 +49,7 @@ export default function FirewallQuarantineTable(props) {
     sortField,
     filterPolicies,
     filterComponentName,
+    filterRepositoryPublicId,
     lastUpdated,
   } = props;
 
@@ -138,7 +140,14 @@ export default function FirewallQuarantineTable(props) {
                   value={filterComponentName}
                 />
               </NxTableCell>
-              <NxTableCell />
+              <NxTableCell>
+                <NxFilterInput
+                  id="firewall-quarantine-table--repository-public-id"
+                  placeholder="repository"
+                  onChange={(value) => setQuarantineGridRepositoryPublicIdFilter(value)}
+                  value={filterRepositoryPublicId}
+                />
+              </NxTableCell>
               <NxTableCell />
             </NxTableRow>
           </NxTableHead>
@@ -227,6 +236,7 @@ FirewallQuarantineTable.propTypes = {
   setQuarantineGridSorting: PropTypes.func.isRequired,
   setQuarantineGridPolicyFilter: PropTypes.func.isRequired,
   setQuarantineGridComponentNameFilter: PropTypes.func.isRequired,
+  setQuarantineGridRepositoryPublicIdFilter: PropTypes.func.isRequired,
   loadedQuarantineList: PropTypes.bool.isRequired,
   quarantineList: PropTypes.array.isRequired,
   quarantinePageCount: PropTypes.number.isRequired,
@@ -237,6 +247,7 @@ FirewallQuarantineTable.propTypes = {
   sortField: PropTypes.string,
   filterPolicies: PropTypes.array,
   filterComponentName: PropTypes.string,
+  filterRepositoryPublicId: PropTypes.string,
   lastUpdated: PropTypes.object,
   goToRepositoryComponentDetailsPage: PropTypes.func,
 };

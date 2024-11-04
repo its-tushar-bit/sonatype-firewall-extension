@@ -1389,8 +1389,8 @@ describe('CLMLocation.js', function () {
     });
 
     it('should return a URL to get the firewall quarantine list with parameters', () => {
-      expect(CLMLocation.getFirewallQuarantineListUrl(1, 2, 'field', true, 'id', 'name')).toBe(
-        '/api/v2/firewall/components/quarantined?page=1&pageSize=2&sortBy=field&asc=true&policyId=id&componentName=name'
+      expect(CLMLocation.getFirewallQuarantineListUrl(1, 2, 'field', true, 'id', 'name', 'publicId')).toBe(
+        '/api/v2/firewall/components/quarantined?page=1&pageSize=2&sortBy=field&asc=true&policyId=id&componentName=name&repositoryPublicId=publicId'
       );
     });
 

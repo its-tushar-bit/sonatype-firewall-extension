@@ -167,6 +167,10 @@ public class FirewallPageComponents
     public SelenideElement componentNameInput() {
       return child("#firewall-quarantine-table--component-name");
     }
+
+    public SelenideElement repositoryPublicIdInput() {
+      return child("#firewall-quarantine-table--repository-public-id");
+    }
   }
 
   public static class FirewallAutoUnquarantineYtd

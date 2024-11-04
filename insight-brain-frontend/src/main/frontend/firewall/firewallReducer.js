@@ -21,6 +21,7 @@ import {
   FIREWALL_POLICIES_REQUESTED,
   FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER,
   FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER,
+  FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER,
   FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED,
   FIREWALL_QUARANTINE_GRID_SET_PAGE,
   FIREWALL_QUARANTINE_GRID_SET_SORTING,
@@ -171,6 +172,7 @@ export const initialState = Object.freeze({
     sortField: 'quarantineTime',
     filterPolicies: [],
     filterComponentName: '',
+    filterRepositoryPublicId: '',
     lastUpdated: null,
   }),
 });
@@ -616,6 +618,15 @@ const setQuarantineGridComponentNameFilter = (payload, state) =>
     state
   );
 
+const setQuarantineGridRepositoryPublicIdFilter = (payload, state) =>
+  over(
+    lensPath(['quarantineGridState']),
+    merge(__, {
+      filterRepositoryPublicId: payload.repositoryPublicId,
+    }),
+    state
+  );
+
 const setQuarantineGridLastUpdated = (payload, state) =>
   over(
     lensPath(['quarantineGridState']),
@@ -799,6 +810,7 @@ const setFirewallLoadDataRequested = (_, state) => {
     sortField: state.quarantineGridState.sortField,
     filterPolicies: state.quarantineGridState.filterPolicies,
     filterComponentName: state.quarantineGridState.filterComponentName,
+    filterRepositoryPublicId: state.quarantineGridState.filterRepositoryPublicId,
   };
   return {
     ...initialState,
@@ -836,6 +848,7 @@ const reducerActionMap = {
   [FIREWALL_QUARANTINE_GRID_SET_SORTING]: setQuarantineGridSorting,
   [FIREWALL_QUARANTINE_GRID_SET_POLICY_FILTER]: setQuarantineGridPolicyFilter,
   [FIREWALL_QUARANTINE_GRID_SET_COMPONENT_NAME_FILTER]: setQuarantineGridComponentNameFilter,
+  [FIREWALL_QUARANTINE_GRID_SET_REPOSITORY_PUBLIC_ID_FILTER]: setQuarantineGridRepositoryPublicIdFilter,
   [FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED]: setQuarantineGridLastUpdated,
   [FIREWALL_POLICIES_REQUESTED]: loadPoliciesRequested,
   [FIREWALL_POLICIES_FAILED]: loadPoliciesFailed,

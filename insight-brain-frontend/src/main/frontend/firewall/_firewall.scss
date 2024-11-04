@@ -149,6 +149,10 @@ h2.iq-firewall-table-label {
   .nx-text-input {
     width: 100% !important;
   }
+
+  #firewall-quarantine-table--repository-public-id {
+    margin-right: 0;
+  }
 }
 
 // id is used to get a high specificity

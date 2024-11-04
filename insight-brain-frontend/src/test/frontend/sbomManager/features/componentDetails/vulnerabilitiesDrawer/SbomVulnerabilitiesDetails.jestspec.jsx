@@ -155,8 +155,10 @@ describe('SbomVulnerabilityDetails', function () {
       it('contains an iq-vulnerability-details__sub-description-container for each severity, with the main one first', function () {
         const additionalSeverityScores = [
           { source: 'cve_cvss_4', sourceLabel: 'CVE CVSS 4', score: 9.7 },
+          { source: 'cve_cvss_31', sourceLabel: 'CVE CVSS 3.1', score: 9.0 },
           { source: 'cve_cvss_2', sourceLabel: 'CVE CVSS 2.0', score: 1 },
           { source: 'sonatype_cvss_4', sourceLabel: 'Sonatype CVSS 4', score: 9.6 },
+          { source: 'sonatype_cvss_31', sourceLabel: 'Sonatype CVSS 3.1', score: 5.0 },
           { source: 'sonatype_cvss_3', sourceLabel: 'Sonatype CVSS 3', score: 5.5 },
           { source: 'sonatype_cvss_2', sourceLabel: 'Sonatype CVSS 2.0', score: 8.0 },
         ];
@@ -169,13 +171,15 @@ describe('SbomVulnerabilityDetails', function () {
         const severitiesList = severityFragment.querySelectorAll(
           '.iq-vulnerability-details__sub-description-container'
         );
-        expect(severitiesList.length).toEqual(6);
+        expect(severitiesList.length).toEqual(8);
         assertIfSeverityPresentInDocument(severitiesList[0], 'CVE CVSS 3', '9.7');
         assertIfSeverityPresentInDocument(severitiesList[1], 'CVE CVSS 4', '9.7');
-        assertIfSeverityPresentInDocument(severitiesList[2], 'CVE CVSS 2.0', '1.0');
-        assertIfSeverityPresentInDocument(severitiesList[3], 'Sonatype CVSS 4', '9.6');
-        assertIfSeverityPresentInDocument(severitiesList[4], 'Sonatype CVSS 3', '5.5');
-        assertIfSeverityPresentInDocument(severitiesList[5], 'Sonatype CVSS 2.0', '8.0');
+        assertIfSeverityPresentInDocument(severitiesList[2], 'CVE CVSS 3.1', '9.0');
+        assertIfSeverityPresentInDocument(severitiesList[3], 'CVE CVSS 2.0', '1.0');
+        assertIfSeverityPresentInDocument(severitiesList[4], 'Sonatype CVSS 4', '9.6');
+        assertIfSeverityPresentInDocument(severitiesList[5], 'Sonatype CVSS 3.1', '5.0');
+        assertIfSeverityPresentInDocument(severitiesList[6], 'Sonatype CVSS 3', '5.5');
+        assertIfSeverityPresentInDocument(severitiesList[7], 'Sonatype CVSS 2.0', '8.0');
       });
 
       it('renders an .iq-vulnerability-details__sub-description-term--unknown when there is no source', function () {

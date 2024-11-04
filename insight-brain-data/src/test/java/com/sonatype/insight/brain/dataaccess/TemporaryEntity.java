@@ -615,7 +615,7 @@ public class TemporaryEntity
   private DevelopmentPrioritizationDAO developmentPrioritizationDAO;
 
   private AutoPolicyWaiverDAO autoPolicyWaiverDAO;
-  
+
   private AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO;
 
   private OAuth2ConfigurationDAO oAuth2ConfigurationDAO;
@@ -1740,9 +1740,9 @@ public class TemporaryEntity
         new Date()
     );
     autoPolicyWaiverDAO.insert(autoPolicyWaiver);
-    return autoPolicyWaiver; 
+    return autoPolicyWaiver;
   }
-  
+
   public AutoPolicyWaiver newAutoPolicyWaiver(String ownerId) {
     AutoPolicyWaiver autoPolicyWaiver = new AutoPolicyWaiver(
         ownerId,
@@ -1756,7 +1756,7 @@ public class TemporaryEntity
     autoPolicyWaiverDAO.insert(autoPolicyWaiver);
     return autoPolicyWaiver;
   }
-  
+
   public AutoPolicyWaiverRevocation newAutoPolicyWaiverRevocation(String ownerId, String autoPolicyWaiverId) {
     AutoPolicyWaiverRevocation autoPolicyWaiverRevocation = new AutoPolicyWaiverRevocation(
         ownerId,
@@ -4200,20 +4200,20 @@ public class TemporaryEntity
   }
 
   public ThirdPartyFileCoordinate newThirdPartyFileCoordinate(
-          String thirdPartyFileCoordinateId,
-          ThirdPartyFile thirdPartyFile,
-          String source,
-          String format,
-          String name,
-          String version,
-          String hash,
-          String packageUrl,
-          String matchState,
-          List<String> occurrences,
-          List<String> filenames)
+      String thirdPartyFileCoordinateId,
+      ThirdPartyFile thirdPartyFile,
+      String source,
+      String format,
+      String name,
+      String version,
+      String hash,
+      String packageUrl,
+      String matchState,
+      List<String> occurrences,
+      List<String> filenames)
   {
     ThirdPartyFileCoordinate fileCoordinate =
-            new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFile.getId());
+        new ThirdPartyFileCoordinate(hash, source, format, name, version, thirdPartyFile.getId());
     fileCoordinate.setPackageUrl(packageUrl);
     fileCoordinate.setIdentificationSources("SBOM");
     fileCoordinate.setOccurrencesList(occurrences);
@@ -4579,6 +4579,18 @@ public class TemporaryEntity
         new SourceControlDefaultBranchCommitHistory(applicationId, commitHash, commitTime, policyEvaluationId);
     sourceControlDefaultBranchCommitHistoryDAO.insert(sourceControlDefaultBranchCommitHistory);
     return sourceControlDefaultBranchCommitHistory;
+  }
+
+  public ThirdPartyVulnerability newThirdPartyVulnerability(
+      String referenceId,
+      float severity,
+      String source,
+      String ratingMethod)
+  {
+    ThirdPartyVulnerability vulnerability = newThirdPartyVulnerability(referenceId, severity, source);
+    vulnerability.setRatingMethod(ratingMethod);
+    thirdPartyVulnerabilityDAO.update(vulnerability);
+    return vulnerability;
   }
 
   public ThirdPartyVulnerability newThirdPartyVulnerability(String referenceId, float severity, String source) {

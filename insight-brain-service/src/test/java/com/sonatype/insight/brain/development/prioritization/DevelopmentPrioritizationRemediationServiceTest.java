@@ -124,7 +124,7 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
   }
 
   @Test
-  public void testGetPrioritizedRemediationVersions_noDetails() {
+  public void testGetRemediationVersions_noDetails() {
     Map<String, String> coordinates = Map.of("artifactId", "Artifact1", "groupId", "Group1", "version", "1.2.3");
     ComponentIdentifier componentIdentifier = new ComponentIdentifier("maven", coordinates);
 
@@ -135,13 +135,13 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
             .thenReturn(Collections.emptyMap());
 
     Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> remediationList =
-            service.getPrioritizedRemediationVersions(componentIdentifiers, application.getId(), "myStage", "scanId");
+            service.getRemediationVersions(componentIdentifiers, application.getId(), "myStage", "scanId");
 
     assertThat(remediationList).isEmpty();
   }
 
   @Test
-  public void testGetPrioritizedRemediationVersions_remediationNotFound() {
+  public void testGetRemediationVersions_remediationNotFound() {
     Map<String, String> coordinates = Map.of("artifactId", "Artifact1", "groupId", "Group1", "version", "1.2.3");
     ComponentIdentifier componentIdentifier = new ComponentIdentifier("maven", coordinates);
 
@@ -162,13 +162,13 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
             any(), any(), any(), eq(false))).thenReturn(null);
 
     Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> remediationList =
-            service.getPrioritizedRemediationVersions(componentIdentifiers, application.getId(), "myStage", "scanId");
+            service.getRemediationVersions(componentIdentifiers, application.getId(), "myStage", "scanId");
 
     assertThat(remediationList).isEmpty();
   }
 
   @Test
-  public void testGetPrioritizedRemediationVersions_remediationFound() {
+  public void testGetRemediationVersions_remediationFound() {
     Map<String, String> coordinates = Map.of("artifactId", "Artifact1", "groupId", "Group1", "version", "1.2.3");
     ComponentIdentifier componentIdentifier = new ComponentIdentifier("maven", coordinates);
 
@@ -184,10 +184,10 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
             .thenReturn(Collections.singletonMap(componentIdentifier.createAlternativeVersion(null),
                 componentDetailsDTOs));
 
-    componentRemediationService_SelectedRemediation_Setup(componentIdentifier, componentDetailsDTOs);
+    componentRemediationServiceSetup(componentIdentifier, componentDetailsDTOs);
 
     Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> remediationList =
-            service.getPrioritizedRemediationVersions(componentIdentifiers, application.getId(), "myStage", "scanId");
+            service.getRemediationVersions(componentIdentifiers, application.getId(), "myStage", "scanId");
 
     assertThat(remediationList).hasSize(1);
     PrioritizationRemediationVersionDTO prioritizationRemediationVersionDTO = remediationList.get(componentIdentifier);
@@ -198,7 +198,7 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
   }
 
   @Test
-  public void testGetPrioritizedRemediationVersions_multipleRemediationFound() {
+  public void testGetRemediationVersions_multipleRemediationFound() {
     Map<String, String> coordinates = Map.of("artifactId", "Artifact1", "groupId", "Group1", "version", "1.2.1");
     ComponentIdentifier componentIdentifier = new ComponentIdentifier("maven", coordinates);
 
@@ -244,12 +244,12 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
             componentIdentifier1.createAlternativeVersion(null), componentDetailsDTOs1,
             componentIdentifier2a.createAlternativeVersion(null), componentDetailsDTOs2));
 
-    componentRemediationService_SelectedRemediation_Setup(componentIdentifier, componentDetailsDTOs);
-    componentRemediationService_SelectedRemediation_Setup(componentIdentifier1, componentDetailsDTOs1);
-    componentRemediationService_SelectedRemediation_Setup(componentIdentifier2a, componentDetailsDTOs2);
+    componentRemediationServiceSetup(componentIdentifier, componentDetailsDTOs);
+    componentRemediationServiceSetup(componentIdentifier1, componentDetailsDTOs1);
+    componentRemediationServiceSetup(componentIdentifier2a, componentDetailsDTOs2);
 
     Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> remediationList =
-        service.getPrioritizedRemediationVersions(componentIdentifiers, application.getId(), "myStage", "scanId");
+        service.getRemediationVersions(componentIdentifiers, application.getId(), "myStage", "scanId");
 
     assertThat(remediationList).hasSize(3);
     PrioritizationRemediationVersionDTO prioritizationRemediationVersionDTO = remediationList.get(componentIdentifier);
@@ -344,37 +344,8 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
     assertThat(recommendedVersionChange.get()).isEqualTo(apiVersionChangeOptionDTO);
   }
 
-  @Test
-  public void testGetSuggestedRemediations_remediationFound() {
-    Map<String, String> coordinates = Map.of("artifactId", "Artifact1", "groupId", "Group1", "version", "1.2.3");
-    ComponentIdentifier componentIdentifier = new ComponentIdentifier("maven", coordinates);
-
-    ComponentDetailsDTO componentDetailsDTO = new ComponentDetailsDTO();
-    componentDetailsDTO.componentIdentifier = componentIdentifier;
-    componentDetailsDTO.violatedPolicyCount = 0;
-    List<ComponentDetailsDTO> componentDetailsDTOs = Collections.singletonList(componentDetailsDTO);
-
-    List<ComponentIdentifier> componentIdentifiers = Collections.singletonList(componentIdentifier);
-
-    when(mockComponentInfoService.getComponentDetailsForAllVersionsNoAuthBulk(
-        any(), eq(componentIdentifiers), eq("myStage"), eq("scanId"), any()))
-        .thenReturn(Collections.singletonMap(componentIdentifier.createAlternativeVersion(null),
-            componentDetailsDTOs));
-
-    mockComponentRemediationService(componentIdentifier, componentDetailsDTOs);
-
-    ApiComponentRemediationValueDTO remediations =
-        service.getSuggestedRemediations(componentIdentifier, application.getId(), "myStage", "scanId");
-
-    assertThat(remediations.versionChanges).hasSize(1);
-    ApiVersionChangeOptionDTO remediationVersion = remediations.versionChanges.get(0);
-    assertThat(remediationVersion.getData().retrieveVersion()).isEqualTo("1.2.3");
-    assertThat(remediationVersion.getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS);
-  }
-
-  private void componentRemediationService_SelectedRemediation_Setup(
-      ComponentIdentifier componentIdentifier,
-      List<ComponentDetailsDTO> componentDetailsDTOList)
+  private void componentRemediationServiceSetup(
+      ComponentIdentifier componentIdentifier, List<ComponentDetailsDTO> componentDetailsDTOList)
   {
     ApiComponentRemediationValueDTO remediationValueDto = new ApiComponentRemediationValueDTO();
     remediationValueDto.versionChanges = new LinkedList<>();
@@ -385,21 +356,6 @@ public class DevelopmentPrioritizationRemediationServiceTest extends AbstractCom
     when(mockComponentRemediationService.getSuggestedSelectedRemediation(
         eq(componentIdentifier), eq(componentDetailsDTOList),
         any(), any(), any(), eq(false))).thenReturn(remediationValueDto);
-  }
-
-  private void mockComponentRemediationService(
-      ComponentIdentifier componentIdentifier,
-      List<ComponentDetailsDTO> componentDetailsDTOList)
-  {
-    ApiComponentRemediationValueDTO remediationValueDto = new ApiComponentRemediationValueDTO();
-    remediationValueDto.versionChanges = new LinkedList<>();
-    if (componentIdentifier != null) {
-      remediationValueDto.versionChanges
-          .add(getApiVersionChangeOptionDTO(componentIdentifier));
-    }
-    when(mockComponentRemediationService.getSuggestedRemediation(
-        eq(componentIdentifier), eq(componentDetailsDTOList),
-        any(), any(), any(), any())).thenReturn(remediationValueDto);
   }
 
   private ApiVersionChangeOptionDTO getApiVersionChangeOptionDTO(ComponentIdentifier componentIdentifier) {

@@ -36,11 +36,10 @@ import com.sonatype.insight.brain.hds.ComponentRemediationService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritization;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
-import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import com.google.common.collect.Maps;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Maps;
 
 import static com.sonatype.insight.brain.git.PullRequestCommentingRemediationService.VERSION_KEY;
 
@@ -81,7 +80,7 @@ public class DevelopmentPrioritizationRemediationService
       List<ComponentIdentifier> componentIdentifiers, String scanId, String appId, Stage stage)
   {
     Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> remediationVersions =
-        getPrioritizedRemediationVersions(componentIdentifiers, appId, stage.getStageName(), scanId);
+        getRemediationVersions(componentIdentifiers, appId, stage.getStageName(), scanId);
     persistRemediationRecommendations(remediationVersions, scanId);
   }
 
@@ -112,34 +111,6 @@ public class DevelopmentPrioritizationRemediationService
   }
 
   /**
-   * Get the remediation(s) for the specified component that would be suggested
-   * in a normal evaluation.
-   */
-  public ApiComponentRemediationValueDTO getSuggestedRemediations(
-      ComponentIdentifier componentIdentifier,
-      String appInternalId,
-      String stage,
-      String scanId)
-  {
-    if (componentIdentifier == null) {
-      return null;
-    }
-    Application app = applicationDAO.getByIdNotNull(appInternalId);
-    ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(app);
-
-    Map<ComponentIdentifier, List<ComponentDetailsDTO>> componentDetailsForAllVersionsNoAuthBulk =
-        componentInfoService.getComponentDetailsForAllVersionsNoAuthBulk(app,
-            Collections.singletonList(componentIdentifier), stage, scanId, componentDetailsLoader);
-
-    ComponentIdentifier pkgIdentifier = componentIdentifier.createAlternativeVersion(null);
-    List<ComponentDetailsDTO> componentDetailsDTOs = componentDetailsForAllVersionsNoAuthBulk.get(pkgIdentifier);
-
-    return componentRemediationService.getSuggestedRemediation(
-        componentIdentifier, componentDetailsDTOs,
-        app, stage, componentDetailsLoader, SourceEndpoint.DEVELOPMENT_PRIORITIZATION);
-  }
-
-  /**
    * Get a prioritized list of remediation versions for the specified component identifier.
    *
    * This is distinct from the previous method because it explicitly disables the advanced strategy.
@@ -148,7 +119,7 @@ public class DevelopmentPrioritizationRemediationService
    *
    * https://sonatype.atlassian.net/browse/SDEV-1597
    */
-  public Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> getPrioritizedRemediationVersions(
+  public Map<ComponentIdentifier, PrioritizationRemediationVersionDTO> getRemediationVersions(
       List<ComponentIdentifier> componentIdentifiers,
       String appInternalId,
       String stage,

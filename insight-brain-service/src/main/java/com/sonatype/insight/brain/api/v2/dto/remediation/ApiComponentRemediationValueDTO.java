@@ -12,7 +12,6 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiComponentOve
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiPolicyWaiverOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiSuggestedVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
-import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -34,22 +33,4 @@ public class ApiComponentRemediationValueDTO
 
   @JsonIgnore
   public List<ApiComponentOverrideOptionDTO> componentOverrides = new ArrayList<>();
-
-  /**
-   * Return the version type for the remediation suggestion which matches the specified
-   * version.
-   */
-  public ApiVersionChangeOptionType getRemediationType(String version) {
-    if (suggestedVersionChange != null && suggestedVersionChange.getData() != null &&
-        version.equals(suggestedVersionChange.getData().retrieveVersion())) {
-      return suggestedVersionChange.getType();
-    }
-    for (ApiVersionChangeOptionDTO versionChange : versionChanges) {
-      if (versionChange != null && versionChange.getData() != null &&
-          version.equals(versionChange.getData().retrieveVersion())) {
-        return versionChange.getType();
-      }
-    }
-    return null;
-  }
 }

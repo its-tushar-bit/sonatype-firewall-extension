@@ -67,7 +67,7 @@ export default function ReportTitle() {
   const prioritiesPageName = useSelector(selectPrioritiesPageName);
 
   const prioritiesUrl = uiRouterState.href(
-    isPrioritiesPageContainer ? prioritiesPageName : 'prioritiesPageFromAppReport',
+    isPrioritiesPageContainer ? prioritiesPageName : 'prioritiesPageFromReports',
     { publicAppId: publicId, scanId }
   );
 

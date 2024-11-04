@@ -49,9 +49,6 @@ export const originNamesForAddRequestPages = {
   // Side Nav -> Reports -> Priorities -> Component Details -> Policy Violations -> Violation Details Popover -> Add Waiver
   CDP_WITHIN_PRIORITIES_PAGE_FROM_REPORTS:
     'componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails.violations',
-  // Side Nav -> Reports -> Report -> Options Dropdown -> Priorities -> Component Details -> Policy Violations -> Violation Details Popover -> Add Waiver
-  CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT:
-    'componentDetailsPageWithinPrioritiesPageContainerFromAppReport.componentDetails.violations',
   // Side Nav -> Developer -> View -> Component Details -> Policy Violations -> Violation Details Popover -> Add Waiver
   CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD:
     'componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.violations',
@@ -60,9 +57,6 @@ export const originNamesForAddRequestPages = {
   // Side Nav -> Reports -> Priorities -> Component Details -> Security -> Violation Details Popover -> Add Waiver
   CDP_WITHIN_PRIORITIES_PAGE_FROM_REPORTS_SECURITY:
     'componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails.security',
-  // Side Nav -> Reports -> Report -> Options Dropdown -> Priorities -> Component Details -> Security -> Violation Details Popover -> Add Waiver
-  CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT_SECURITY:
-    'componentDetailsPageWithinPrioritiesPageContainerFromAppReport.componentDetails.security',
   // Side Nav -> Developer -> View -> Component Details -> Security -> Violation Details Popover -> Add Waiver
   CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD_SECURITY:
     'componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.security',
@@ -71,9 +65,6 @@ export const originNamesForAddRequestPages = {
   // Side Nav -> Reports -> Priorities -> Component Details -> Legal -> Violation Details Popover -> Add Waiver
   CDP_WITHIN_PRIORITIES_PAGE_FROM_REPORTS_LEGAL:
     'componentDetailsPageWithinPrioritiesPageContainerFromReports.componentDetails.legal',
-  // Side Nav -> Reports -> Report -> Options Dropdown -> Priorities -> Component Details -> Legal -> Violation Details Popover -> Add Waiver
-  CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT_LEGAL:
-    'componentDetailsPageWithinPrioritiesPageContainerFromAppReport.componentDetails.legal',
   // Side Nav -> Developer -> View -> Component Details -> Legal -> Violation Details Popover -> Add Waiver
   CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD_LEGAL:
     'componentDetailsPageWithinPrioritiesPageContainerFromDashboard.componentDetails.legal',

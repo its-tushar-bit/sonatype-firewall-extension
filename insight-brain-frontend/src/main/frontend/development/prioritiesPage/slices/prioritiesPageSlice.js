@@ -14,7 +14,7 @@ import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/s
 
 export const PRIORITIES_PAGE_REDUCER_NAME = 'prioritiesPage';
 
-const TABLE_PAGE_SIZE = 10;
+export const TABLE_PAGE_SIZE = 10;
 
 const loadTableDataRequested = (state) => {
   return {

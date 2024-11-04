@@ -34,7 +34,7 @@ export const dependencyTypeMap = {
   Unknown: 'unknown',
 };
 
-export default function PrioritiesPageRow({ component, onClick }) {
+export default function PrioritiesPageRow({ component, onClick, index }) {
   const dispatch = useDispatch();
 
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
@@ -48,7 +48,6 @@ export default function PrioritiesPageRow({ component, onClick }) {
     dependencyType,
     action,
     highestThreat,
-    priority,
     highestThreatPolicyName,
     highestThreatPolicyConstraintName,
     securityReachable,
@@ -108,7 +107,7 @@ export default function PrioritiesPageRow({ component, onClick }) {
 
   return (
     <NxTable.Row isClickable onClick={onClick} data-analytics-id="sonatype-developer-priorities-page-component-row">
-      <NxTable.Cell className="iq-priorities-page-priority">{priority}</NxTable.Cell>
+      <NxTable.Cell className="iq-priorities-page-priority">{index}</NxTable.Cell>
       <NxTable.Cell>
         <div className="iq-priorities-page-components">
           <div className="iq-priorities-page-components__component">{displayName}</div>
@@ -225,4 +224,5 @@ PrioritiesPageRow.propTypes = {
     highestThreatPolicyConstraintName: PropTypes.string,
   }).isRequired,
   onClick: PropTypes.func.isRequired,
+  index: PropTypes.number.isRequired,
 };

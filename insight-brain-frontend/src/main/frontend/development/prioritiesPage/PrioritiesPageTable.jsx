@@ -25,6 +25,7 @@ import { actions } from 'MainRoot/development/prioritiesPage/slices/prioritiesPa
 import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { debounce } from 'debounce';
+import { TABLE_PAGE_SIZE } from './slices/prioritiesPageSlice';
 
 export default function PrioritiesPageTable() {
   const [showPriorityFindings, toggleShowPriorityFindings] = useToggle(true);
@@ -128,7 +129,7 @@ export default function PrioritiesPageTable() {
                       </NxTable.Cell>
                     </NxTable.Row>
                   )}
-                  {showPriorityFindings && <DataRows dataset={topPrioritiesData} />}
+                  {showPriorityFindings && <DataRows dataset={topPrioritiesData} page={page} indexOffset={0} />}
                 </>
               )}
               {!hasZeroFindings && !optionalComponentNameFilter && (
@@ -138,7 +139,7 @@ export default function PrioritiesPageTable() {
                   </NxTable.Cell>
                 </NxTable.Row>
               )}
-              <DataRows dataset={additionalPrioritiesData} />
+              <DataRows dataset={additionalPrioritiesData} page={page} indexOffset={topPrioritiesData?.length} />
             </>
           </NxTable.Body>
         </NxTable>
@@ -157,7 +158,7 @@ export default function PrioritiesPageTable() {
   );
 }
 
-function DataRows({ dataset }) {
+function DataRows({ dataset, page, indexOffset }) {
   const dispatch = useDispatch();
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
   const setSelectedComponent = (idx) => dispatch(selectComponent(idx));
@@ -168,8 +169,6 @@ function DataRows({ dataset }) {
       return 'componentDetailsPageWithinPrioritiesPageContainerFromDashboard';
     } else if (currentRouteName === 'prioritiesPageFromReports') {
       return 'componentDetailsPageWithinPrioritiesPageContainerFromReports';
-    } else if (currentRouteName === 'prioritiesPageFromAppReport') {
-      return 'componentDetailsPageWithinPrioritiesPageContainerFromAppReport';
     }
     return 'prioritiesPageContainer';
   };
@@ -180,14 +179,16 @@ function DataRows({ dataset }) {
     dispatch(stateGo(prioritiesState, { hash, publicId: publicAppId, scanId }));
   if (!dataset) return [];
 
-  return dataset.map((component, index) => {
+  return dataset.map((component, idx) => {
     const { componentHash } = component;
 
     const onRowClick = () => {
-      setSelectedComponent(index);
+      setSelectedComponent(idx);
       dispatchComponentDetailsPage(componentHash);
     };
 
-    return <PrioritiesPageRow key={componentHash} component={component} onClick={onRowClick} />;
+    const index = idx + (page - 1) * TABLE_PAGE_SIZE + 1 + indexOffset;
+
+    return <PrioritiesPageRow key={componentHash} component={component} onClick={onRowClick} index={index} />;
   });
 }

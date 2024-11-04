@@ -71,22 +71,16 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
         href = 'repositoryViolationWaiversHref';
       } else if (stateName === originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_REPORTS) {
         href = 'componentDetailsHrefPrioritiesPageFromReports';
-      } else if (stateName === originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT) {
-        href = 'componentDetailsHrefPrioritiesPageFromAppReport';
       } else if (stateName === originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD) {
         href = 'componentDetailsHrefPrioritiesPageFromDashboard';
       } else if (stateName === originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_REPORTS_SECURITY) {
         href = 'componentDetailsHrefPrioritiesPageFromReports_SecurityTab';
-      } else if (stateName === originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT_SECURITY) {
-        href = 'componentDetailsHrefPrioritiesPageFromAppReport_SecurityTab';
       } else if (
         stateName === originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD_SECURITY
       ) {
         href = 'componentDetailsHrefPrioritiesPageFromDashboard_SecurityTab';
       } else if (stateName === originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_REPORTS_LEGAL) {
         href = 'componentDetailsHrefPrioritiesPageFromReports_LegalTab';
-      } else if (stateName === originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT_LEGAL) {
-        href = 'componentDetailsHrefPrioritiesPageFromAppReport_LegalTab';
       } else if (
         stateName === originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD_LEGAL
       ) {
@@ -581,79 +575,6 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
           const backBtnLink = screen.getByRole('link', { name: 'Back to Component Details' });
           expect(backBtnLink).toBeInTheDocument();
           expect(backBtnLink).toHaveAttribute('href', 'componentDetailsHrefPrioritiesPageFromReports_LegalTab');
-        });
-      });
-    });
-  });
-
-  describe('when originated from priorities page from options dropdown in app report page', () => {
-    describe('and clicking on a row to go to the component details page', () => {
-      describe('and clicking on Policy Violations tab and clicking on Add Waiver', () => {
-        it(`renders a MenuBarBackButton with title 'Back to Component Details'
-          and navigates from the Add Waiver Page to the Component page`, () => {
-          renderComponent({
-            ...minimalProps,
-            prevStateName: originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT,
-          });
-
-          expect(hrefSpy).toHaveBeenCalledWith(
-            originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT,
-            {
-              publicId: 'publicId',
-              scanId: 'scanId',
-              hash: 'hash',
-            }
-          );
-
-          const backBtnLink = screen.getByRole('link', { name: 'Back to Component Details' });
-          expect(backBtnLink).toBeInTheDocument();
-          expect(backBtnLink).toHaveAttribute('href', 'componentDetailsHrefPrioritiesPageFromAppReport');
-        });
-      });
-
-      describe('and clicking on Security tab and clicking on Add Waiver', () => {
-        it(`renders a MenuBarBackButton with title 'Back to Component Details'
-          and navigates from the Add Waiver Page to the Component page`, () => {
-          renderComponent({
-            ...minimalProps,
-            prevStateName: originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT_SECURITY,
-          });
-
-          expect(hrefSpy).toHaveBeenCalledWith(
-            originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT_SECURITY,
-            {
-              publicId: 'publicId',
-              scanId: 'scanId',
-              hash: 'hash',
-            }
-          );
-
-          const backBtnLink = screen.getByRole('link', { name: 'Back to Component Details' });
-          expect(backBtnLink).toBeInTheDocument();
-          expect(backBtnLink).toHaveAttribute('href', 'componentDetailsHrefPrioritiesPageFromAppReport_SecurityTab');
-        });
-      });
-
-      describe('and clicking on Legal tab and clicking on Add Waiver', () => {
-        it(`renders a MenuBarBackButton with title 'Back to Component Details'
-          and navigates from the Add Waiver Page to the Component page`, () => {
-          renderComponent({
-            ...minimalProps,
-            prevStateName: originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT_LEGAL,
-          });
-
-          expect(hrefSpy).toHaveBeenCalledWith(
-            originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT_LEGAL,
-            {
-              publicId: 'publicId',
-              scanId: 'scanId',
-              hash: 'hash',
-            }
-          );
-
-          const backBtnLink = screen.getByRole('link', { name: 'Back to Component Details' });
-          expect(backBtnLink).toBeInTheDocument();
-          expect(backBtnLink).toHaveAttribute('href', 'componentDetailsHrefPrioritiesPageFromAppReport_LegalTab');
         });
       });
     });

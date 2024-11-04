@@ -45,6 +45,7 @@ describe('PrioritiesPageRow', () => {
   const minimalProps = {
     component: mockData,
     onClick: rowClickSpy,
+    index: 1,
   };
 
   beforeEach(() => {

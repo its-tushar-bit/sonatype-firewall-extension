@@ -259,9 +259,6 @@ export function returnToAddWaiverOriginPage() {
         return dispatch(stateGo(originNamesForAddRequestPages.REPOSITORY_VIOLATION_WAIVERS, prevParams));
 
       //Priorities Page Origin -> Component Details -> Policy Violations Tab
-      case originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT:
-        return dispatch(stateGo(originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT, prevParams));
-
       case originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD:
         return dispatch(
           stateGo(originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD, prevParams)
@@ -271,11 +268,6 @@ export function returnToAddWaiverOriginPage() {
         return dispatch(stateGo(originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_REPORTS, prevParams));
 
       //Priorities Page Origin -> Component Details -> Security Tab
-      case originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT_SECURITY:
-        return dispatch(
-          stateGo(originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT_SECURITY, prevParams)
-        );
-
       case originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD_SECURITY:
         return dispatch(
           stateGo(
@@ -290,11 +282,6 @@ export function returnToAddWaiverOriginPage() {
         );
 
       //Priorities Page Origin -> Component Details -> Legal Tab
-      case originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT_LEGAL:
-        return dispatch(
-          stateGo(originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_APP_REPORT_LEGAL, prevParams)
-        );
-
       case originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD_LEGAL:
         return dispatch(
           stateGo(originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_DEVELOPER_DASHBOARD_LEGAL, prevParams)

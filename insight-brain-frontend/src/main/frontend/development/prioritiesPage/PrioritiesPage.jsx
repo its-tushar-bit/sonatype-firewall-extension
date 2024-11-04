@@ -35,7 +35,7 @@ export default function PrioritiesPage() {
         href: uiRouterState.href('developer.dashboard'),
         text: 'Back to Developer Dashboard',
       };
-    } else if (currentRouteName === 'prioritiesPageFromReports' || currentRouteName === 'prioritiesPageFromAppReport') {
+    } else if (currentRouteName === 'prioritiesPageFromReports') {
       return {
         href: uiRouterState.href('developer.reports'),
         text: 'Back to Reports',

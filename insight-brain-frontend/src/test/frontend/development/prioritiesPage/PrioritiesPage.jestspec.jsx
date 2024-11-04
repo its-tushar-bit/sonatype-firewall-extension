@@ -141,28 +141,6 @@ describe('PrioritiesPage', () => {
       });
     });
 
-    describe('when priorities page is navigated from App Report page', () => {
-      const preloadedState = {
-        router: {
-          ...defaultPreloadedState.router,
-          currentState: {
-            name: 'prioritiesPageFromAppReport',
-          },
-        },
-      };
-
-      afterEach(() => removePortalContainer());
-
-      it('back button navigates back to reports Page', async () => {
-        setupPortalContainer();
-        renderComponent(preloadedState);
-
-        const backBtn = await screen.findByRole('link', { name: /back to reports/i });
-        expect(backBtn).toBeInTheDocument();
-        expect(backBtn).toHaveAttribute('href', 'developer.reports');
-      });
-    });
-
     describe('when priorities page is navigated from Developer Dashboard', () => {
       const preloadedState = {
         router: {

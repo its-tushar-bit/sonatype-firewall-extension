@@ -96,8 +96,6 @@ export const selectPrioritiesPageName = createSelector(
         return 'prioritiesPageFromDashboard';
       } else if (prioritiesPageContainerName === 'componentDetailsPageWithinPrioritiesPageContainerFromReports') {
         return 'prioritiesPageFromReports';
-      } else if (prioritiesPageContainerName === 'componentDetailsPageWithinPrioritiesPageContainerFromAppReport') {
-        return 'prioritiesPageFromAppReport';
       }
     }
     return '';

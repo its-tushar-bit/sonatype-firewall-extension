@@ -116,6 +116,13 @@ describe('FirewallQuarantineTable', function () {
     expect(table).toExist();
   });
 
+  it('renders table header', () => {
+    let component = getShallowComponent(),
+      header = component.find('.iq-firewall-table-label');
+
+    expect(header).toHaveText(`Components Actively in Quarantine`);
+  });
+
   describe('Renders table row', () => {
     it('renders a row within table', () => {
       // when the results table is rendered

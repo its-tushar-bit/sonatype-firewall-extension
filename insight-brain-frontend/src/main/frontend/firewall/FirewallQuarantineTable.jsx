@@ -81,7 +81,7 @@ export default function FirewallQuarantineTable(props) {
   return (
     <section id="firewall-quarantine-table">
       <header className="iq-firewall-table-header nx-page-title">
-        <h2 className="nx-h2 iq-firewall-table-label">Quarantine</h2>
+        <h2 className="nx-h2 iq-firewall-table-label">Components Actively in Quarantine</h2>
         <div className="iq-firewall-table__time visual-testing-ignore">
           {lastUpdated && 'Updated ' + formatDate(lastUpdated, FIREWALL_TIME_DATE_FORMAT)}
         </div>

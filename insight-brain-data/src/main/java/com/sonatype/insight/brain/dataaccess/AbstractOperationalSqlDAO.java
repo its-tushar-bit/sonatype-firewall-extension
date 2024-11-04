@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.sql.Array;
+import java.sql.Connection;
+import java.sql.JDBCType;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -99,6 +103,12 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     javax.persistence.Query query = tx.createNativeQuery(sQuery, resultClass);
     query.setFirstResult(offset).setMaxResults(pageSize);
     return query;
+  }
+
+  protected Array createArrayOf(JDBCType jdbcType, Object[] elements) throws SQLException {
+    try (Connection connection = operationalDataStore.getDataSource().getConnection()) {
+      return connection.createArrayOf(jdbcType.name(), elements);
+    }
   }
 
   protected String buildPositionalParameters(Collection<?> collection, int startFrom) {

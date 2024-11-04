@@ -5,12 +5,15 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.sql.JDBCType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -22,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.thirdpartyscans.SbomPolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.tenancy.TenantAwareFunction;
 import com.sonatype.insight.brain.tenancy.TenantAwareSupplier;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
@@ -31,6 +35,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import org.apache.commons.lang3.StringUtils;
 
 import static java.util.stream.Collectors.toList;
+
 
 /**
  * @since 1.11
@@ -544,6 +549,40 @@ public class PolicyViolationDAO
         " WHERE entity.fixTime IS NOT NULL" +
         " OR entity.waiveTime IS NOT NULL";
     return getList(sQuery);
+  }
+
+  public Map<String, SbomPolicyViolationSummaryDTO> getSbomPoliocyViolationSummaryForAnApplication(
+      Collection<String> applicationIds)
+  {
+    String sQuery = "" + //
+        "SELECT application_id," +
+        " COUNT(CASE WHEN (threat_level >= ?1) THEN 1 END) AS policyViolationCritical," + //
+        " COUNT(CASE WHEN (threat_level >= ?2) THEN 1 END) AS policyViolationSevere," + //
+        " COUNT(CASE WHEN (threat_level >= ?3) THEN 1 END) AS policyViolationModerate," + //
+        " COUNT(CASE WHEN (threat_level < ?4) THEN 1 END) AS policyViolationLow" + //
+        " FROM " + getDatabaseSchema() + ".policy_violation" + //
+        " WHERE fix_time is null" + //
+        " AND waive_time is null" + //
+        " AND stage_type_id = ?5" + //
+        " AND application_id = ANY(array[?6])" + //
+        " GROUP BY application_id";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = createNativeQuery(tx, sQuery,
+          8, 4, 2, 1.9, "compliance", createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
+
+      Map<String, SbomPolicyViolationSummaryDTO> applicationIdResultMap = new HashMap<>();
+
+      List<Object[]> resultStreamList = (List<Object[]>) query.getResultStream().collect(Collectors.toList());
+      for (Object[] result: resultStreamList) {
+        applicationIdResultMap.put(String.valueOf(result[0]), new SbomPolicyViolationSummaryDTO(result));
+      }
+
+      return applicationIdResultMap;
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public long getMeanTimeToRemediate(final int lookBackWindowDays) {

@@ -131,6 +131,43 @@ public class ApplicationAdapter
   }
 
   /**
+   * Create a list of application summary DTOs from the list of applications
+   *
+   * @param applicationList the list of applications
+   * @return the list of application summary DTOs
+   */
+  public List<ApplicationManagementSummaryDTO> createApplicationManagementSummariesWithOnlyAppNameFilter(
+      List<Application> applicationList,
+      String nameFilter)
+  {
+    if (nameFilter != null) {
+      nameFilter = nameFilter.toLowerCase(Locale.ENGLISH);
+    }
+
+    final List<ApplicationManagementSummaryDTO> applicationManagementSummaryDTOList = new ArrayList<>(
+        applicationList.size());
+
+    final List<String> internalNameList = new ArrayList<>(applicationList.size());
+    for (final Application application : applicationList) {
+
+      if (nameFilter != null && !application.getName().toLowerCase(Locale.ENGLISH).contains(nameFilter)) {
+        continue;
+      }
+
+      ApplicationManagementSummaryDTO summary = new ApplicationManagementSummaryDTO();
+      summary.setId(application.getId());
+      summary.setName(application.getName());
+      summary.setPublicId(application.getPublicId());
+      summary.setContact(new ContactDTO(application.getContactInternalName()));
+      applicationManagementSummaryDTOList.add(summary);
+
+      internalNameList.add(application.getContactInternalName());
+    }
+
+    return applicationManagementSummaryDTOList;
+  }
+
+  /**
    * Create the application management summary DTO from the application entity
    *
    * @param application The application entity

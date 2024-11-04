@@ -5295,6 +5295,18 @@ public class TemporaryEntity
     return waivedPolicyViolation;
   }
 
+  public PolicyViolation createPolicyViolationCompliance(
+      PolicyEvaluation policyEvaluation,
+      Policy policy
+  )
+  {
+    final PolicyViolation policyViolation = this.newPolicyViolation(policyEvaluation, policy);
+    policyViolation.setStageTypeId("compliance");
+    this.updatePolicyViolation(policyViolation);
+
+    return policyViolation;
+  }
+
   public ThirdPartySbomMetadata createSbomMetadata(
       final String applicationId, final String sbomVersion,
       final ThirdPartyFile thirdPartyFile,

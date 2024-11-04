@@ -1125,7 +1125,8 @@ public class TestDAOFactory
 
   @Override
   public ThirdPartySbomMetadataDAO createThirdPartySbomMetadataDAO() {
-    return new ThirdPartySbomMetadataDAO(dataStoreProvider.getThirdPartyScansDataStore());
+    return new ThirdPartySbomMetadataDAO(dataStoreProvider.getThirdPartyScansDataStore(),
+        dataStoreProvider.getOperationalDataStore());
   }
 
   @Override

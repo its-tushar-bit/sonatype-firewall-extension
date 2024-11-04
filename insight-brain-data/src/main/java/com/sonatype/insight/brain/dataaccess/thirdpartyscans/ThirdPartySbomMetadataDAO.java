@@ -5,23 +5,43 @@
  */
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
+import java.sql.JDBCType;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractThirdPartyScansSqlDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ApiSbomApplicationsHistoryMetricDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.SbomPolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.InternalServerException;
+
+
+import static com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO.createPaginationNativeQuery;
+import static com.sonatype.insight.brain.utils.CvssV3Severity.CRITICAL;
+import static com.sonatype.insight.brain.utils.CvssV3Severity.HIGH;
+import static com.sonatype.insight.brain.utils.CvssV3Severity.LOW;
+import static com.sonatype.insight.brain.utils.CvssV3Severity.MEDIUM;
+import static com.sonatype.insight.brain.utils.CvssV3Severity.NONE;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 @Named
 @Singleton
@@ -30,9 +50,17 @@ public class ThirdPartySbomMetadataDAO
 {
   private static final String ACTIVE_STATUS = "ACTIVE";
 
+  private OperationalDataStore operationalDataStore;
+
   @Inject
-  public ThirdPartySbomMetadataDAO(ThirdPartyScansDataStore thirdPartyScansDataStore) {
+  private PolicyViolationDAO policyViolationDAO;
+
+  @Inject
+  public ThirdPartySbomMetadataDAO(ThirdPartyScansDataStore thirdPartyScansDataStore,
+                                   OperationalDataStore operationalDataStore)
+  {
     super(thirdPartyScansDataStore);
+    this.operationalDataStore = operationalDataStore;
   }
 
   @Override
@@ -226,6 +254,166 @@ public class ThirdPartySbomMetadataDAO
     paginationQuery.setParameter(1, applicationId);
     paginationQuery.setParameter(2, status);
     return paginationQuery.getResultList();
+  }
+
+  public List<SbomApplicationSummaryDTO> getSbomApplicationsWithRecentlyImportedSbomVersion(
+      Set<String> applicationIds,
+      SbomApplicationsSortableField sortBy,
+      boolean asc,
+      int page,
+      int pageSize)
+  {
+    String databaseSchema = getDatabaseSchema();
+
+    String sQuery = "" + //
+        "SELECT sm.application_id as applicationInternalId," + //
+        "  sm.sbom_version as sbomVersion, " + //
+        "  sm.created_at as importDate, " + //
+        "  app.public_id as applicationPublicId, " + //
+        "  app.name as applicationName, " + //
+        "  COUNT(CASE WHEN (cs.severity = ?1) THEN 1 END) AS vulnerabilityNone, " + //
+        "  COUNT(CASE WHEN (cs.severity BETWEEN ?2 AND ?3) THEN 1 END) AS vulnerabilityLow, " + //
+        "  COUNT(CASE WHEN (cs.severity BETWEEN ?4 AND ?5) THEN 1 END) AS vulnerabilityMedium, " + //
+        "  COUNT(CASE WHEN (cs.severity BETWEEN ?6 AND ?7) THEN 1 END) AS vulnerabilityHigh, " + //
+        "  COUNT(CASE WHEN (cs.severity BETWEEN ?8 AND ?9) THEN 1 END) AS vulnerabilityCritical, " + //
+        " ROUND((COUNT(CASE WHEN (vex.coordinate_security_id IS NOT NULL) THEN 1 END)) * 100" + //
+        " / NULLIF(COUNT(cs.coordinate_security_id)::decimal, 0), 1) as annotatedPercentage" + //
+        " FROM " +  databaseSchema + ".sbom_metadata sm " + //
+        " JOIN " + //
+        "  (SELECT  application_id, max(created_at) as created_at " + //
+        "   FROM " +  databaseSchema + ".sbom_metadata " + //
+        "   group by application_id) sm2 " + //
+        " ON sm.application_id = sm2.application_id " + //
+        " AND sm.created_at = sm2.created_at " + //
+        " JOIN " + operationalDataStore.getDatabaseSchema() + ".application app" + //
+        " ON app.application_id = sm.application_id" + //
+        " LEFT JOIN " +  databaseSchema + ".coordinate_security cs" + //
+        " ON cs.sbom_metadata_id = sm.sbom_metadata_id" + //
+        " LEFT JOIN " +  databaseSchema + ".vulnerability_exploitability vex" + //
+        " ON cs.coordinate_security_id = vex.coordinate_security_id" + //
+        " WHERE sm.status = ?10";
+
+    if (isNotEmpty(applicationIds)) {
+      sQuery += " AND sm.application_id = ANY(array[?11])";
+    }
+    sQuery += " GROUP BY sm.application_id, sm.sbom_version, sm.created_at, app.public_id, app.name" +
+    generateOrderBySortFieldSelected(sortBy, asc);
+
+    int offset = (page - 1) * pageSize;
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query paginationQuery = createPaginationQueryWithScoreRangeParams(pageSize, sQuery, offset, tx);
+      if (isNotEmpty(applicationIds)) {
+        paginationQuery.setParameter(11, createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
+      }
+
+      List<SbomApplicationSummaryDTO> applicationPageApplicationSummaryDTOList =
+          ((Stream<Object[]>) paginationQuery.getResultStream()).map(SbomApplicationSummaryDTO::new)
+          .collect(Collectors.toList());
+      List<String> applicationIdsForPolicyViolation = applicationPageApplicationSummaryDTOList.stream()
+          .map(SbomApplicationSummaryDTO::getApplicationInternalId)
+          .collect(Collectors.toList());
+
+      //policy violation query results
+      Map<String, SbomPolicyViolationSummaryDTO> policyViolationSummaryMap;
+      policyViolationSummaryMap = policyViolationDAO
+            .getSbomPoliocyViolationSummaryForAnApplication(applicationIdsForPolicyViolation);
+
+      //combine results
+      for (SbomApplicationSummaryDTO applicationSummary: applicationPageApplicationSummaryDTOList) {
+        applicationSummary.setApplicationPagePolicyViolationSummary(
+            policyViolationSummaryMap.get(applicationSummary.getApplicationInternalId()));
+      }
+
+      return applicationPageApplicationSummaryDTOList;
+    }
+    catch (SQLException e) {
+      throw new InternalServerException(e);
+    }
+  }
+
+  public Map<String, SbomPolicyViolationSummaryDTO> getSbomPoliocyViolationSummaryForAnApplication(
+      Set<String> applicationIds)
+  {
+    String sQuery = "" + //
+        "SELECT application_id," +
+        " COUNT(CASE WHEN (threat_level >= ?1) THEN 1 END) AS policyViolationCritical," + //
+        " COUNT(CASE WHEN (threat_level >= ?2) THEN 1 END) AS policyViolationSevere," + //
+        " COUNT(CASE WHEN (threat_level >= ?3) THEN 1 END) AS policyViolationModerate," + //
+        " COUNT(CASE WHEN (threat_level < ?4) THEN 1 END) AS policyViolationLow" + //
+        " FROM " + operationalDataStore.getDatabaseSchema() + ".policy_violation" + //
+        " WHERE fix_time is null" +
+        " AND waive_time is null" +
+        " AND stage_type_id = ?5";
+    if (isNotEmpty(applicationIds)) {
+      sQuery += " AND application_id = ANY(array[?6])";
+    }
+    sQuery += " GROUP BY application_id";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = createNativeQuery(tx, sQuery,
+          8, 4, 2, 1.9, "compliance");
+      if (isNotEmpty(applicationIds)) {
+        query.setParameter(6, createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
+      }
+
+      Map<String, SbomPolicyViolationSummaryDTO> applicationIdResultMap = new HashMap<>();
+
+      List<Object[]> resultStreamList = (List<Object[]>) query.getResultStream().collect(Collectors.toList());
+      for (Object[] result: resultStreamList) {
+        applicationIdResultMap.put(String.valueOf(result[0]), new SbomPolicyViolationSummaryDTO(result));
+      }
+
+      return applicationIdResultMap;
+    }
+    catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private javax.persistence.Query createPaginationQueryWithScoreRangeParams(
+      final int pageSize,
+      final String sQuery,
+      final int offset,
+      final TransactionContext tx)
+  {
+    javax.persistence.Query paginationQuery = createPaginationNativeQuery(tx, sQuery, offset, pageSize);
+    paginationQuery.setParameter(1, NONE.getStartScoreRange());
+    paginationQuery.setParameter(2, LOW.getStartScoreRange());
+    paginationQuery.setParameter(3, LOW.getEndScoreRange());
+    paginationQuery.setParameter(4, MEDIUM.getStartScoreRange());
+    paginationQuery.setParameter(5, MEDIUM.getEndScoreRange());
+    paginationQuery.setParameter(6, HIGH.getStartScoreRange());
+    paginationQuery.setParameter(7, HIGH.getEndScoreRange());
+    paginationQuery.setParameter(8, CRITICAL.getStartScoreRange());
+    paginationQuery.setParameter(9, CRITICAL.getEndScoreRange());
+    paginationQuery.setParameter(10, "ACTIVE");
+    return paginationQuery;
+  }
+
+  private String generateOrderBySortFieldSelected(SbomApplicationsSortableField sortBy, boolean asc) {
+    if (sortBy == null) {
+      return "";
+    }
+    StringBuilder query = new StringBuilder();
+    String order = asc ? "ASC" : "DESC";
+    switch (sortBy) {
+      case IMPORT_DATE:
+        query.append(" ORDER BY importDate " + order);
+        break;
+      case PERCENTAGE_ANNOTATED:
+        query.append(" ORDER BY annotatedPercentage " + order);
+        break;
+      case LATEST_SBOM_VERSION:
+        query.append(" ORDER BY sbomVersion " + order);
+        break;
+      case APPLICATION_NAME:
+        query.append(" ORDER BY applicationName " + order);
+        break;
+      default:
+        break;
+    }
+    return query.toString();
   }
 
   public void makeSbomActiveIfExist(String scanId) {

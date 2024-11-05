@@ -54,9 +54,9 @@ import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.collections4.CollectionUtils;
 
 import static com.sonatype.insight.brain.sbom.utils.SbomCreationDetails.CreatorType.parseCreatorType;
 
@@ -292,23 +292,21 @@ public class SbomComponentsService
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
       String sbomVersion)
   {
-    ThirdPartySbomMetadata metadataEntity =
+    ThirdPartySbomMetadata thirdPartySbomMetadata =
         thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(applicationId, sbomVersion);
-    if (metadataEntity == null) {
+    if (thirdPartySbomMetadata == null) {
       throw new NotFoundException(
           String.format("Cannot find version %s for application with ID %s.", sbomVersion, applicationId));
     }
 
     ThirdPartyScan scanEntity =
-        thirdPartyScanDAO.getByThirdPartyFileId(metadataEntity.getThirdPartyFileId());
+        thirdPartyScanDAO.getByThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId());
 
-    return buildSbomMetadataDTO(
-        new SbomMetadataDTO(metadataEntity.getSpec(), metadataEntity.getSpecVersion(), metadataEntity.getSpecFormat(),
-            metadataEntity.getMetadataJson(), scanEntity.getScanId(), metadataEntity.getCreatedAt()));
+    return buildSbomMetadataDTO(thirdPartySbomMetadata, scanEntity);
   }
 
-  private BomPageMetadataDTO buildSbomMetadataDTO(SbomMetadataDTO sbomMetadataDTO) {
-    String metadataJson = sbomMetadataDTO.metadataJson;
+  private BomPageMetadataDTO buildSbomMetadataDTO(ThirdPartySbomMetadata sbomMetadata, ThirdPartyScan thirdPartyScan) {
+    String metadataJson = sbomMetadata.getMetadataJson();
     List<String> manufacturerList = new ArrayList<>();
     List<String> supplierList = new ArrayList<>();
     List<String> authorList = new ArrayList<>();
@@ -361,11 +359,12 @@ public class SbomComponentsService
         supplierList,
         personList,
         organizationList,
-        sbomMetadataDTO.specification,
-        sbomMetadataDTO.specVersion,
-        sbomMetadataDTO.fileFormat,
-        sbomMetadataDTO.createdAt,
-        sbomMetadataDTO.scanId
+        sbomMetadata.getSpec(),
+        sbomMetadata.getSpecVersion(),
+        sbomMetadata.getSpecFormat(),
+        sbomMetadata.getCreatedAt(),
+        thirdPartyScan.getScanId(),
+        sbomMetadata.getValidationSkipped()
     );
   }
 

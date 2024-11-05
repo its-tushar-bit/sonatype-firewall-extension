@@ -94,7 +94,8 @@ public class PdfGeneratorTest
         "specVersion",
         "fileFormat",
         new Date(),
-        "scanId"
+        "scanId",
+        false
     );
     PdfData pdfData = PdfData.createSbomPdfData(
         null,
@@ -131,7 +132,8 @@ public class PdfGeneratorTest
         "specVersion",
         "fileFormat",
         new Date(),
-        "scanId"
+        "scanId",
+        false
     );
     PdfData pdfData = PdfData.createSbomPdfData(
         null,

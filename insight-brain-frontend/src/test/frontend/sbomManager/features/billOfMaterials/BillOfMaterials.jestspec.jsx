@@ -27,7 +27,7 @@ import {
   cleanUpComponentsFilterDrawerPortalContainer,
   setupComponentsFilterDrawerPortalContainer,
 } from './billOfMaterialsComponentsTile/componentsFilterDrawer/ComponentsFilterDrawer.jestspec';
-import { fireEvent, queryByText } from '@testing-library/react';
+import { fireEvent } from '@testing-library/react';
 
 describe('BillOfMaterials Page', () => {
   let axiosMock, renderPage;
@@ -61,6 +61,7 @@ describe('BillOfMaterials Page', () => {
     fileFormat: 'json',
     createdAt: createdAt,
     scanId: 'scan-id',
+    validationSkipped: false,
   });
 
   const getSbomSummaryResponsePayload = Object.freeze({
@@ -187,7 +188,7 @@ describe('BillOfMaterials Page', () => {
       .onGet(getBillOfMaterialsComponentsUrl(...getBillOfMaterialsComponentsParams))
       .reply(200, getBillOfMaterialsComponentsResponsePayload);
 
-    const { container } = renderPage();
+    renderPage();
 
     jest.advanceTimersByTime(JEST_TIMER);
     jest.useRealTimers();
@@ -204,14 +205,76 @@ describe('BillOfMaterials Page', () => {
 
     const field = await screen.findByRole('button', { name: /Viewing:/i });
     expect(field).toHaveTextContent(`Viewing: ${SBOM_VERSION}`);
+  });
+
+  it('renders correct export options for a valid SBOM', async () => {
+    axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_PUBLIC_ID)).reply(200, getApplicationSummaryResponsePayload);
+    axiosMock
+      .onGet(getAllApplicationSbomVersions(APPLICATION_INTERNAL_ID))
+      .reply(200, getAllApplicationSbomVersionsResponsePayload);
+    axiosMock
+      .onGet(getSbomMetadataUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+      .reply(200, getSbomMetadataResponsePayload);
+    axiosMock.onGet(getSbomSummaryUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION)).reply(200, getSbomSummaryResponsePayload);
+    axiosMock
+      .onGet(getBillOfMaterialsComponentsUrl(...getBillOfMaterialsComponentsParams))
+      .reply(200, getBillOfMaterialsComponentsResponsePayload);
+
+    renderPage();
+
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
     // Check export options
-    const exportDropdown = container.querySelector('.nx-segmented-btn__dropdown-btn');
+    const exportButton = screen.getByRole('button', { name: 'Export SBOM' });
+    expect(exportButton).toBeVisible();
+    expect(exportButton).not.toBeDisabled();
+    const exportDropdown = screen.getByRole('button', { name: 'more options' });
     fireEvent.click(exportDropdown);
-    expect(queryByText(container, 'Export PDF')).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Export PDF' }).getAttribute('href')).toBe(
-      getSbomDownloadPdfUrl(APPLICATION_PUBLIC_ID, SBOM_VERSION)
-    );
+    const exportOriginalButton = screen.getByRole('button', { name: 'Export Original SBOM' });
+    expect(exportOriginalButton).toBeVisible();
+    expect(exportOriginalButton).not.toBeDisabled();
+    const additionalExportOptionsButton = screen.getByRole('button', { name: 'Additional Export Options' });
+    expect(additionalExportOptionsButton).toBeVisible();
+    expect(additionalExportOptionsButton).not.toBeDisabled();
+    const exportPdfLink = screen.getByRole('link', { name: 'Export PDF' });
+    expect(exportPdfLink).toBeVisible();
+    expect(exportPdfLink).not.toHaveClass('disabled');
+    expect(exportPdfLink.getAttribute('href')).toBe(getSbomDownloadPdfUrl(APPLICATION_PUBLIC_ID, SBOM_VERSION));
+  });
+
+  it('renders correct export options for an invalid SBOM', async () => {
+    axiosMock.onGet(getApplicationSummaryUrl(APPLICATION_PUBLIC_ID)).reply(200, getApplicationSummaryResponsePayload);
+    axiosMock
+      .onGet(getAllApplicationSbomVersions(APPLICATION_INTERNAL_ID))
+      .reply(200, getAllApplicationSbomVersionsResponsePayload);
+    axiosMock
+      .onGet(getSbomMetadataUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
+      .reply(200, { ...getSbomMetadataResponsePayload, validationSkipped: true });
+    axiosMock.onGet(getSbomSummaryUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION)).reply(200, getSbomSummaryResponsePayload);
+    axiosMock
+      .onGet(getBillOfMaterialsComponentsUrl(...getBillOfMaterialsComponentsParams))
+      .reply(200, getBillOfMaterialsComponentsResponsePayload);
+
+    renderPage();
+
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+    // Check export options
+    const exportOriginalButton = screen.getByRole('button', { name: 'Export Original SBOM' });
+    expect(exportOriginalButton).toBeVisible();
+    expect(exportOriginalButton).not.toBeDisabled();
+    const exportDropdown = screen.getByRole('button', { name: 'more options' });
+    fireEvent.click(exportDropdown);
+    const exportButton = screen.getByRole('button', { name: 'Export SBOM' });
+    expect(exportButton).toBeVisible();
+    expect(exportButton).toBeDisabled();
+    const additionalExportOptionsButton = screen.getByRole('button', { name: 'Additional Export Options' });
+    expect(additionalExportOptionsButton).toBeVisible();
+    expect(additionalExportOptionsButton).toBeDisabled();
+    const exportPdfLink = screen.getByRole('link', { name: 'Export PDF' });
+    expect(exportPdfLink).toBeVisible();
+    expect(exportPdfLink).toHaveClass('disabled');
+    expect(exportPdfLink.getAttribute('href')).toBeNull();
   });
 
   it('renders SummaryTile values correctly', async () => {

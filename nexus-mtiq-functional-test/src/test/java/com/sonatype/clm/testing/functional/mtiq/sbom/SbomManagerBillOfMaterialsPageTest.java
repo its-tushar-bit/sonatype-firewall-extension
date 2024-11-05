@@ -7,18 +7,21 @@ package com.sonatype.clm.testing.functional.mtiq.sbom;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
-import com.sonatype.clm.testing.functional.mtiq.AbstractMtiqFunctionalTest;
-import com.sonatype.clm.testing.functional.pages.sbom.BillOfMaterialsPageSummaryTile;
 import com.sonatype.clm.testing.functional.elements.sbom.ComponentsTile;
-import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerBillOfMaterialsPage;
+import com.sonatype.clm.testing.functional.mtiq.AbstractMtiqFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
+import com.sonatype.clm.testing.functional.pages.sbom.BillOfMaterialsPageSummaryTile;
 import com.sonatype.clm.testing.functional.pages.sbom.LearnMoreSbomManagerPage;
+import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerBillOfMaterialsPage;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -39,6 +42,8 @@ import com.sonatype.insight.scan.file.SbomFormat;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.eclipse.aether.util.version.GenericVersionScheme;
+import org.eclipse.aether.version.Version;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -47,6 +52,8 @@ import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
@@ -663,6 +670,68 @@ public class SbomManagerBillOfMaterialsPageTest
     downloadedSbom = sbomManagerBillOfMaterialsPage.exportSbomButtonModal().shouldHave(text("Export SBOM"))
         .download(3000L);
     assertThat(downloadedSbom.getName()).endsWith(".xml");
+  }
+
+  @Test
+  public void testBillOfMaterial_ExportOptions_ValidSbom() throws Exception {
+    insertComponentsTileSbomData();
+    refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
+
+    sbomManagerBillOfMaterialsPage.exportButton().shouldBe(enabled).shouldHave(text("Export SBOM"));
+    sbomManagerBillOfMaterialsPage.exportButtonMenu().click();
+    sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(0).shouldBe(enabled)
+        .shouldHave(text("Export Original SBOM"));
+    sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(1).shouldBe(enabled)
+        .shouldHave(text("Additional Export Options"));
+    sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(2).shouldNotHave(cssClass("disabled"))
+        .shouldHave(text("Export PDF"));
+
+    String cdxExportVersion = getCDXExportVersion(Files.readString(sbomManagerBillOfMaterialsPage.exportButton()
+        .download(3000L)
+        .toPath()));
+
+    sbomManagerBillOfMaterialsPage.exportButtonMenu().click();
+    String cdxOriginalExportVersion =
+        getCDXExportVersion(Files.readString(sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(0)
+            .download(3000L)
+            .toPath()));
+    assertThat(cdxOriginalExportVersion).isEqualTo("1.4");
+    
+    GenericVersionScheme scheme = new GenericVersionScheme();
+    Version parsedCdxExportVersion = scheme.parseVersion(cdxExportVersion);
+    Version parsedCdxOriginalExportVersion = scheme.parseVersion(cdxOriginalExportVersion);
+    assertThat(parsedCdxExportVersion.compareTo(parsedCdxOriginalExportVersion)).isGreaterThan(0);
+  }
+
+  @Test
+  public void testBillOfMaterial_ExportOptions_InvalidSbom() throws Exception {
+    insertComponentsTileSbomData();
+    sbomMetadata.setValidationSkipped(true);
+    thirdPartySbomMetadataDAO.update(sbomMetadata);
+    refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
+
+    sbomManagerBillOfMaterialsPage.exportButton().shouldBe(enabled).shouldHave(text("Export Original SBOM"));
+    sbomManagerBillOfMaterialsPage.exportButtonMenu().click();
+    sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(0).shouldBe(disabled)
+        .shouldHave(text("Export SBOM"));
+    sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(1).shouldBe(disabled)
+        .shouldHave(text("Additional Export Options"));
+    sbomManagerBillOfMaterialsPage.exportButtonMenuItems().get(2).shouldHave(cssClass("disabled"))
+        .shouldHave(text("Export PDF"));
+
+    String cdxOriginalExportVersion = getCDXExportVersion(Files.readString(sbomManagerBillOfMaterialsPage.exportButton()
+        .download(3000L)
+        .toPath()));
+    assertThat(cdxOriginalExportVersion).isEqualTo("1.4");
+  }
+
+  private String getCDXExportVersion(String content) {
+    Pattern pattern = Pattern.compile("http://cyclonedx.org/schema/bom/([\\d.]+)");
+    Matcher matcher = pattern.matcher(content);
+    if (matcher.find()) {
+      return matcher.group(1);
+    }
+    return null;
   }
 
   @Test

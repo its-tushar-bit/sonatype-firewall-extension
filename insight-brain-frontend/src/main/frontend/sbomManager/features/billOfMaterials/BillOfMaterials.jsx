@@ -12,6 +12,7 @@ import {
   NxPageTitle,
   NxStatefulSegmentedButton,
   NxStatefulSubmitMask,
+  NxTextLink,
   NxTooltip,
 } from '@sonatype/react-shared-components';
 import { faDownload, faFilePdf } from '@fortawesome/pro-solid-svg-icons';
@@ -136,6 +137,45 @@ export default function BillOfMaterials() {
     />
   ) : null;
 
+  const exportButtonTooltip =
+    sbomMetadata.fileFormat &&
+    sbomMetadata.specification &&
+    `Export the current version of SBOM in ${sbomMetadata.specification} and ${toUpper(
+      sbomMetadata.fileFormat
+    )} format.`;
+
+  const exportOriginalButtonTooltip = 'Export the original imported SBOM.';
+
+  const segmentButtonContent = sbomMetadata.validationSkipped ? (
+    <NxTooltip title={exportOriginalButtonTooltip}>
+      <span>
+        <NxFontAwesomeIcon icon={faDownload} />
+        <span>Export Original SBOM</span>
+      </span>
+    </NxTooltip>
+  ) : (
+    <NxTooltip title={exportButtonTooltip}>
+      <span>
+        <NxFontAwesomeIcon icon={faDownload} />
+        <span>Export SBOM</span>
+      </span>
+    </NxTooltip>
+  );
+
+  const firstChildButton = sbomMetadata.validationSkipped ? (
+    <button className="nx-dropdown-button disabled" onClick={downloadLatestSbomFile} disabled={true}>
+      <NxTooltip title={exportButtonTooltip}>
+        <span>Export SBOM</span>
+      </NxTooltip>
+    </button>
+  ) : (
+    <button className="nx-dropdown-button" onClick={downloadOriginalSbomFile}>
+      <NxTooltip title={exportOriginalButtonTooltip}>
+        <span>Export Original SBOM</span>
+      </NxTooltip>
+    </button>
+  );
+
   return (
     <>
       <MenuBarStatefulBreadcrumb />
@@ -156,38 +196,23 @@ export default function BillOfMaterials() {
               <NxStatefulSegmentedButton
                 className="sbom-manager-bill-of-materials-page__export-button"
                 variant="primary"
-                onClick={downloadLatestSbomFile}
-                buttonContent={
-                  <NxTooltip
-                    title={
-                      sbomMetadata.fileFormat &&
-                      sbomMetadata.specification &&
-                      `Export the current version of SBOM in ${sbomMetadata.specification} and ${toUpper(
-                        sbomMetadata.fileFormat
-                      )} format.`
-                    }
-                  >
-                    <span>
-                      <NxFontAwesomeIcon icon={faDownload} />
-                      <span>Export SBOM</span>
-                    </span>
-                  </NxTooltip>
-                }
+                onClick={sbomMetadata.validationSkipped ? downloadOriginalSbomFile : downloadLatestSbomFile}
+                buttonContent={segmentButtonContent}
               >
-                <button className="nx-dropdown-button" onClick={downloadOriginalSbomFile}>
-                  <NxTooltip title="Export the original imported SBOM.">
-                    <span>Export Original SBOM</span>
-                  </NxTooltip>
-                </button>
-                <button className="nx-dropdown-button" onClick={showSbomAdditionalExportOptionsModal}>
+                {firstChildButton}
+                <button
+                  className={`nx-dropdown-button ${sbomMetadata.validationSkipped ? 'disabled' : ''}`}
+                  onClick={showSbomAdditionalExportOptionsModal}
+                  disabled={sbomMetadata.validationSkipped}
+                >
                   <NxTooltip title="Export SBOM with customized options.">
                     <span>Additional Export Options</span>
                   </NxTooltip>
                 </button>
-                <a className="nx-dropdown-button" href={pdfUrl}>
+                <NxTextLink className="nx-dropdown-button" href={pdfUrl} disabled={sbomMetadata.validationSkipped}>
                   <NxFontAwesomeIcon icon={faFilePdf} />
                   <span>Export PDF</span>
-                </a>
+                </NxTextLink>
               </NxStatefulSegmentedButton>
             </NxButtonBar>
             <NxPageTitle.Description>

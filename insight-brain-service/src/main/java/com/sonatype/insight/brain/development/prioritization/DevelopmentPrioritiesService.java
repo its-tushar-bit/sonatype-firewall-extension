@@ -14,21 +14,26 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.Comparator;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.api.v2.dto.ApiDependencyDataDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent;
+import com.sonatype.insight.brain.api.v2.dto.*;
+import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
 import com.sonatype.insight.brain.callflow.ComponentReachabilityService;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.development.prioritization.dto.PrioritizationRemediationVersionDTO;
 import com.sonatype.insight.brain.features.FeaturesService;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
@@ -37,10 +42,13 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyViolation
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_DIRECT;
 import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_INNER_SOURCE;
@@ -51,6 +59,8 @@ import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECUR
 @Named
 public class DevelopmentPrioritiesService
 {
+  private static final Logger log = LoggerFactory.getLogger(DevelopmentPrioritiesService.class);
+
   private final FeaturesService featuresService;
 
   private final DevelopmentPrioritiesReportService developmentPrioritiesReportService;
@@ -63,19 +73,35 @@ public class DevelopmentPrioritiesService
 
   private boolean isBulkRecommendationsEnabled;
 
+  private final ApiComponentRemediationService apiComponentRemediationService;
+
+  private final DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService;
+
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
+  private final ApplicationDAO applicationDAO;
+
   @Inject
   public DevelopmentPrioritiesService(
       final FeaturesService featuresService,
       final DevelopmentPrioritiesReportService developmentPrioritiesReportService,
       final DevelopmentPrioritizationComponentInfoDAO prioritizationComponentInfoDAO,
       final ReportService reportService,
-      final ComponentReachabilityService componentReachabilityService)
+      final ComponentReachabilityService componentReachabilityService,
+      final ApiComponentRemediationService apiComponentRemediationService,
+      final DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService,
+      final PolicyEvaluationDAO policyEvaluationDAO,
+      final ApplicationDAO applicationDAO)
   {
     this.featuresService = featuresService;
     this.developmentPrioritiesReportService = developmentPrioritiesReportService;
     this.prioritizationComponentInfoDAO = prioritizationComponentInfoDAO;
     this.reportService = reportService;
     this.componentReachabilityService = componentReachabilityService;
+    this.apiComponentRemediationService = apiComponentRemediationService;
+    this.developmentPrioritiesUtilsService = developmentPrioritiesUtilsService;
+    this.policyEvaluationDAO = policyEvaluationDAO;
+    this.applicationDAO = applicationDAO;
   }
 
   @Authorize(permission = Permission.READ)
@@ -84,11 +110,18 @@ public class DevelopmentPrioritiesService
       final String scanId,
       final int page,
       final int pageSize,
-      final String optionalComponentNameFilter
+      final String optionalComponentNameFilter,
+      final boolean includeRemedation
   )
   {
     final int skipCount = (page - 1) * pageSize;
-    final List<PrioritizedComponent> allPrioritizedFindings = getAllPrioritizedFindings(applicationPublicId, scanId);
+    final int topCount = 3;
+
+    List<PrioritizedComponent> allPrioritizedFindings =
+        includeRemedation ?
+            getAllPrioritizedFindings(applicationPublicId, scanId, topCount, skipCount, pageSize) :
+            getAllPrioritizedFindings(applicationPublicId, scanId, 0, null, null);
+
     final List<PrioritizedComponent> filteredPrioritizedFindings =
         StringUtils.isNotEmpty(optionalComponentNameFilter) ? allPrioritizedFindings.stream()
             .filter(
@@ -96,13 +129,12 @@ public class DevelopmentPrioritiesService
                     optionalComponentNameFilter)).toList() : allPrioritizedFindings;
 
     // pluck off top 3
-    final int top3Bound = Math.min(filteredPrioritizedFindings.size(), 3);
+    final int top3Bound = Math.min(filteredPrioritizedFindings.size(), topCount);
     final List<PrioritizedComponent> top3Priorities = filteredPrioritizedFindings.subList(0, top3Bound);
-
     final List<PrioritizedComponent> remainingPrioritiesAll;
 
-    if (filteredPrioritizedFindings.size() > 3) {
-      remainingPrioritiesAll = filteredPrioritizedFindings.subList(3, filteredPrioritizedFindings.size());
+    if (filteredPrioritizedFindings.size() > topCount) {
+      remainingPrioritiesAll = filteredPrioritizedFindings.subList(topCount, filteredPrioritizedFindings.size());
     }
     else {
       remainingPrioritiesAll = new ArrayList<>();
@@ -123,10 +155,18 @@ public class DevelopmentPrioritiesService
         new ApiPageResult<>(totalSize, page, pageSize, remainingPriorities));
   }
 
+  /**
+    * This method is used to get all prioritized findings for the specified application Id and scan Id.
+    * If the skipCount and limit are provided, it will set remediation for the topCount
+    * components and the components inside the skip and limit remediation range (page size).
+   **/
   @Authorize(permission = Permission.READ)
   public List<PrioritizedComponent> getAllPrioritizedFindings(
       @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
-      final String scanId
+      final String scanId,
+      final int topCount,
+      final Integer remediationSkip,
+      final Integer remediationLimit
   )
   {
     throwErrorIfDevelopmentNotEnabledByLicense();
@@ -135,6 +175,11 @@ public class DevelopmentPrioritiesService
     final ApiReportRawDataDTOV2 apiReportRawDataDTOV2 =
             developmentPrioritiesReportService.getDependencyInformation(applicationPublicId, scanId);
     final PolicyThreats policyThreats = reportService.getPolicyThreats(applicationPublicId, scanId);
+
+    PolicyEvaluation policyEvaluation =
+        policyEvaluationDAO.getLastByApplicationIdAndScanId(
+            applicationDAO.getByPublicId(applicationPublicId).getId(),
+            scanId);
 
     isBulkRecommendationsEnabled = isBulkRecommendationsEnabled();
 
@@ -176,6 +221,8 @@ public class DevelopmentPrioritiesService
               final boolean securityReachable = hasSecurityViolations(policyViolations)
                       && isSecurityReachable(applicationPublicId, scanId, component.hash);
 
+              ApiVersionChangeOptionType remediationType = null;
+              String remediationVersion = null;
               if (securityReachable) {
                 final PolicyViolation highestReachablePolicyViolation = getHighestThreat(policyViolations, true);
                 if (highestReachablePolicyViolation != null) {
@@ -183,34 +230,120 @@ public class DevelopmentPrioritiesService
                 }
               }
 
-              DevelopmentPrioritizationComponentInfo prioritizationComponentInfo = null;
               if (isBulkRecommendationsEnabled && componentIdentifier != null) {
                 // component.hash and componentIdentifier.toSyntheticHash() have different values. The synthetic hash
                 // from the component identifier (does not use the binary) is what is stored in the database
-                prioritizationComponentInfo = prioritizationComponentInfoDAO.getByScanIdAndComponentHash(scanId,
+                DevelopmentPrioritizationComponentInfo prioritizationComponentInfo =
+                    prioritizationComponentInfoDAO.getByScanIdAndComponentHash(scanId,
                         componentIdentifier.toSyntheticHash());
+
+                if (prioritizationComponentInfo != null) {
+                  remediationType = prioritizationComponentInfo.getRemediationType();
+                  remediationVersion = prioritizationComponentInfo.getRemediationVersion();
+                }
               }
 
               return new UnprioritizedComponent(
-                      component.displayName,
-                      componentIdentifier,
-                      getDependencyType(component),
-                      hasFailActionOnComponent(policyViolations),
-                      getAction(policyViolations),
-                      highestThreatLevel,
-                      policyName,
-                      highestThreatConstraintName,
-                      component.hash,
-                      securityReachable,
-                      prioritizationComponentInfo,
-                      highestReachableThreatLevel
+                component,
+                getDependencyType(component),
+                hasFailActionOnComponent(policyViolations),
+                getAction(policyViolations),
+                highestThreatLevel,
+                policyName,
+                highestThreatConstraintName,
+                securityReachable,
+                remediationType,
+                remediationVersion,
+                highestReachableThreatLevel
               );
             })
             .filter(unprioritizedComponent -> unprioritizedComponent.highestThreat > 0)
             .sorted(Comparator.comparingInt(this::getScore).thenComparingInt(this::getHighestThreat).reversed())
             .toList();
 
-    return addPrioritiesToSortedList(sortedComponents, 1);
+    List<UnprioritizedComponent> sortedComponentsWithRemediation = setRemediationForComponents(
+        sortedComponents,
+        applicationPublicId,
+        scanId,
+        policyEvaluation != null ? policyEvaluation.getStageTypeId() : null,
+        topCount,
+        remediationSkip,
+        remediationLimit
+    );
+
+    // If skipCount and limit are not provided, return all sorted components without remediation
+    return addPrioritiesToSortedList(sortedComponentsWithRemediation);
+  }
+
+  /**
+    * This method is used to set remediation for components based on the skipCount and limit provided.
+    * If skipCount and limit are provided, it will set remediation for the topCount components and the
+    * components inside the skip and limit range (page size).
+   **/
+  private List<UnprioritizedComponent> setRemediationForComponents(
+      final List<UnprioritizedComponent> sortedComponents,
+      final String applicationPublicId,
+      final String scanId,
+      final String stageId,
+      final int topCount,
+      final Integer remediationSkip,
+      final Integer remediationLimit)
+  {
+    if (remediationSkip != null && remediationLimit != null) {
+      return IntStream.range(0, sortedComponents.size())
+          .mapToObj(index -> {
+            UnprioritizedComponent unprioritizedComponent = sortedComponents.get(index);
+
+            if (index < topCount ||
+                (index >= remediationSkip + topCount && index < remediationSkip + remediationLimit + topCount)
+            ) {
+              return loadRemediation(unprioritizedComponent, applicationPublicId, scanId, stageId);
+            }
+
+            return unprioritizedComponent;
+          })
+          .toList();
+    }
+
+    return sortedComponents;
+  }
+
+  private UnprioritizedComponent loadRemediation(UnprioritizedComponent unprioritizedComponent,
+                                                 String applicationPublicId, String scanId, String stageId)
+  {
+
+    ComponentIdentifier componentIdentifier = unprioritizedComponent.getComponentIdentifier();
+    if (!isBulkRecommendationsEnabled && componentIdentifier != null) {
+      try {
+        ApiComponentRemediationDTO apiComponentRemediationDTO =
+            apiComponentRemediationService.getSuggestedRemediationForComponentNoAuthz(
+                unprioritizedComponent.component,
+                OwnerType.APPLICATION,
+                applicationPublicId,
+                stageId,
+                null,
+                scanId,
+                false
+            );
+
+        if (apiComponentRemediationDTO != null) {
+          PrioritizationRemediationVersionDTO remediationVersionDTO =
+              developmentPrioritiesUtilsService.getPrioritizationRemediation(
+                  apiComponentRemediationDTO.remediation,
+                  componentIdentifier.get("version"));
+
+          if (remediationVersionDTO != null) {
+            unprioritizedComponent.remediationType = remediationVersionDTO.getRemediationType();
+            unprioritizedComponent.remediationVersion = remediationVersionDTO.getVersion();
+          }
+        }
+      }
+      catch (BadRequestException e) {
+        log.warn("Failed to get remediation for component: {}", componentIdentifier, e);
+      }
+    }
+
+    return unprioritizedComponent;
   }
 
   private String getDependencyType(ApiReportComponentDTOV2 reportBomComponent) {
@@ -256,7 +389,7 @@ public class DevelopmentPrioritiesService
 
           return policyViolation.actions.stream().anyMatch(action -> Action.ID_WARN.equals(action.actionType));
         })
-        .collect(Collectors.toList());
+        .toList();
 
     return !violationsWithWarns.isEmpty();
   }
@@ -275,7 +408,7 @@ public class DevelopmentPrioritiesService
 
           return policyViolation.actions.stream().anyMatch(action -> Action.ID_FAIL.equals(action.actionType));
         })
-        .collect(Collectors.toList());
+        .toList();
 
     return !violationsWithFails.isEmpty();
   }
@@ -334,8 +467,7 @@ public class DevelopmentPrioritiesService
   }
 
   private List<PrioritizedComponent> addPrioritiesToSortedList(
-      final List<UnprioritizedComponent> sortedComponents,
-      final int firstPriority
+      final List<UnprioritizedComponent> sortedComponents
   )
   {
     final List<PrioritizedComponent> prioritizedComponents = new ArrayList<>();
@@ -344,10 +476,10 @@ public class DevelopmentPrioritiesService
       return prioritizedComponents;
     }
 
-    prioritizedComponents.add(sortedComponents.get(0).toPrioritizedComponent(firstPriority));
-    int priority = firstPriority;
+    int priority = 1;
+    prioritizedComponents.add(sortedComponents.get(0).toPrioritizedComponent(priority));
 
-    for (int i = 1; i < sortedComponents.size(); i++) {
+    for (int i = priority; i < sortedComponents.size(); i++) {
       final UnprioritizedComponent componentToPrioritize = sortedComponents.get(i);
 
       final int currentScore = getScore(componentToPrioritize);
@@ -393,13 +525,13 @@ public class DevelopmentPrioritiesService
   }
 
   private int getRecommendationNumber(final UnprioritizedComponent unprioritizedComponent) {
-    if (isBulkRecommendationsEnabled && Objects.nonNull(unprioritizedComponent.prioritizationComponentInfo)) {
-      final String originalComponentVersion =
-          unprioritizedComponent.componentIdentifier.get(ComponentIdentifier.VERSION);
-      final String remediationVersion = unprioritizedComponent.prioritizationComponentInfo.getRemediationVersion();
+    if (isBulkRecommendationsEnabled && Objects.nonNull(unprioritizedComponent) &&
+        Objects.nonNull(unprioritizedComponent.remediationVersion)) {
+      final String originalComponentVersion = unprioritizedComponent.getComponentVersion();
+      final String remediationVersion = unprioritizedComponent.remediationVersion;
 
       // Remove from consideration situations where IQ recommends the same version because it isn't failing policy
-      if (!originalComponentVersion.equals(remediationVersion)) {
+      if (originalComponentVersion != null && !originalComponentVersion.equals(remediationVersion)) {
         return 1;
       }
     }
@@ -439,9 +571,7 @@ public class DevelopmentPrioritiesService
 
   private static class UnprioritizedComponent
   {
-    public final String displayName;
-
-    public final ComponentIdentifier componentIdentifier;
+    public ApiComponentDTOV2 component;
 
     public final String dependencyType;
 
@@ -455,48 +585,46 @@ public class DevelopmentPrioritiesService
 
     public final String highestThreatPolicyConstraintName;
 
-    public final String hash;
-
     public final boolean securityReachable;
 
-    public DevelopmentPrioritizationComponentInfo prioritizationComponentInfo;
+    public ApiVersionChangeOptionType remediationType;
+
+    public String remediationVersion;
 
     public final int highestReachableThreat;
 
     public UnprioritizedComponent(
-        final String displayName,
-        final ComponentIdentifier componentIdentifier,
+        final ApiComponentDTOV2 component,
         final String dependencyType,
         final Boolean hasFailActionOnComponent,
         final String action,
         final int highestThreat,
         final String highestThreatPolicyName,
         final String highestThreatPolicyConstraintName,
-        final String hash,
         final boolean securityReachable,
-        final DevelopmentPrioritizationComponentInfo prioritizationComponentInfo,
+        final ApiVersionChangeOptionType remediationType,
+        final String remediationVersion,
         final int highestReachableThreat
     )
     {
-      this.displayName = displayName;
-      this.componentIdentifier = componentIdentifier;
       this.dependencyType = dependencyType;
       this.hasFailActionOnComponent = hasFailActionOnComponent;
       this.action = action;
       this.highestThreat = highestThreat;
       this.highestThreatPolicyName = highestThreatPolicyName;
       this.highestThreatPolicyConstraintName = highestThreatPolicyConstraintName;
-      this.hash = hash;
       this.securityReachable = securityReachable;
-      this.prioritizationComponentInfo = prioritizationComponentInfo;
+      this.remediationType = remediationType;
+      this.remediationVersion = remediationVersion;
+      this.component = component;
       this.highestReachableThreat = highestReachableThreat;
     }
 
     public PrioritizedComponent toPrioritizedComponent(final int priority) {
       return new PrioritizedComponent(
-          displayName,
-          componentIdentifier,
-          hash,
+          component.displayName,
+          getComponentIdentifier(),
+          component.hash,
           dependencyType,
           hasFailActionOnComponent,
           action,
@@ -505,8 +633,21 @@ public class DevelopmentPrioritiesService
           highestThreatPolicyConstraintName,
           securityReachable,
           priority,
-          prioritizationComponentInfo,
+          remediationType,
+          remediationVersion,
           highestReachableThreat);
+    }
+
+    private ComponentIdentifier getComponentIdentifier() {
+      return component.componentIdentifier != null ?
+          component.componentIdentifier.toComponentIdentifier() :
+          null;
+    }
+
+    private String getComponentVersion() {
+      ComponentIdentifier componentIdentifier = getComponentIdentifier();
+      return componentIdentifier != null ?
+          componentIdentifier.get(ComponentIdentifier.VERSION) : null;
     }
   }
 }

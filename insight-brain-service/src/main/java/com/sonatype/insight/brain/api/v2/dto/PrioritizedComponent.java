@@ -10,7 +10,6 @@ import java.util.Objects;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
-import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
 import com.sonatype.insight.brain.utils.CsvWritable;
 
 public class PrioritizedComponent implements CsvWritable
@@ -63,7 +62,8 @@ public class PrioritizedComponent implements CsvWritable
       final String highestThreatPolicyConstraintName,
       final boolean securityReachable,
       final int priority,
-      final DevelopmentPrioritizationComponentInfo prioritizationComponentInfo,
+      final ApiVersionChangeOptionType remediationType,
+      final String remediationVersion,
       final int highestReachableThreat
   )
   {
@@ -78,10 +78,8 @@ public class PrioritizedComponent implements CsvWritable
     this.highestThreatPolicyConstraintName = highestThreatPolicyConstraintName;
     this.securityReachable = securityReachable;
     this.priority = priority;
-    if (prioritizationComponentInfo != null) {
-      this.remediationType = prioritizationComponentInfo.getRemediationType();
-      this.remediationVersion = prioritizationComponentInfo.getRemediationVersion();
-    }
+    this.remediationType = remediationType;
+    this.remediationVersion = remediationVersion;
     this.highestReachableThreat = highestReachableThreat;
   }
 

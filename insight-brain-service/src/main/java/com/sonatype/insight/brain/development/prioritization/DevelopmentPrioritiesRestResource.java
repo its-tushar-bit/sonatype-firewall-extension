@@ -49,6 +49,7 @@ public class DevelopmentPrioritiesRestResource
   )
   {
     return developmentPrioritiesService
-        .getPrioritizedFindings(applicationId, scanId, page, pageSize, optionalComponentNameFilter);
+        .getPrioritizedFindings(applicationId, scanId, page, pageSize,
+            optionalComponentNameFilter, false);
   }
 }

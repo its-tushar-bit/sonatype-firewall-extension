@@ -26,7 +26,7 @@ public class DevelopmentPrioritiesServiceAuthzTest
     login();
     assertThatThrownBy(
             () -> developmentPrioritiesService.getPrioritizedFindings(app.getPublicId(), "irrelevant",
-                    0, 10, null))
+                    0, 10, null, false))
             .isInstanceOf(UnauthorizedException.class);
   }
 
@@ -34,8 +34,8 @@ public class DevelopmentPrioritiesServiceAuthzTest
   public void getPrioritizedFindings_Authorized() {
     grantReadPermission(app.getId());
     assertThatThrownBy(
-            () -> developmentPrioritiesService.getPrioritizedFindings(app.getPublicId(), "irrelevant",
-                    0, 10, null))
+            () -> developmentPrioritiesService.getPrioritizedFindings(app.getPublicId(),
+        "irrelevant", 0, 10, null, false))
             .isInstanceOf(NotFoundException.class);
   }
 
@@ -43,7 +43,8 @@ public class DevelopmentPrioritiesServiceAuthzTest
   public void getAllPrioritizedFindings_Unauthorized() {
     login();
     assertThatThrownBy(
-            () -> developmentPrioritiesService.getAllPrioritizedFindings(app.getPublicId(), "irrelevant"))
+            () -> developmentPrioritiesService.getAllPrioritizedFindings(app.getPublicId(),
+                "irrelevant", 0, null, null))
             .isInstanceOf(UnauthorizedException.class);
   }
 
@@ -51,14 +52,16 @@ public class DevelopmentPrioritiesServiceAuthzTest
   public void getAllPrioritizedFindings_Authorized() {
     grantReadPermission(app.getId());
     assertThatThrownBy(
-            () -> developmentPrioritiesService.getAllPrioritizedFindings(app.getPublicId(), "irrelevant"))
+            () -> developmentPrioritiesService.getAllPrioritizedFindings(app.getPublicId(),
+                "irrelevant", 0, null, null))
             .isInstanceOf(NotFoundException.class);
   }
 
   @Test
   public void testGetComponentVersions_Unauthenticated() throws Exception {
     assertThatThrownBy(
-        () -> developmentPrioritiesService.getAllPrioritizedFindings(app.getPublicId(), "irrelevant"))
+        () -> developmentPrioritiesService.getAllPrioritizedFindings(app.getPublicId(),
+            "irrelevant", 0, null, null))
         .isInstanceOf(UnauthenticatedException.class);
   }
 }

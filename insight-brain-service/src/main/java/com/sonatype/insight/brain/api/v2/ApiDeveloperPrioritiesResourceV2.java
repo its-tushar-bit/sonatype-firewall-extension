@@ -65,8 +65,10 @@ public class ApiDeveloperPrioritiesResourceV2
               description = "The response field `topPriorities` returns the first 3 prioritized components and the " +
                   "`additionalPriorities` field returns the remaining prioritized components for the specified " +
                   "application Id and scan Id. Each result has all relevant component information, reachability" +
-                  " information, policy information, and the priority assigned to it." +
-                  "It has pagination support, and the default page size is 10.",
+                  "information, policy information, and the priority assigned to it." +
+                  "It has pagination support, and the default page size is 10." +
+                  "The parameter `includeRemediation` is required for the paginated result to " +
+                  "have remediation information.",
               useReturnTypeSchema = true
           )
       }
@@ -75,13 +77,15 @@ public class ApiDeveloperPrioritiesResourceV2
   public DevelopmentPrioritizationResults getPriorities(
           @PathParam("applicationId") final String applicationId,
           @PathParam("scanId") final String scanId,
+          @DefaultValue("false") @QueryParam("includeRemediation") boolean includeRemediation,
           @DefaultValue(DEFAULT_PAGE) @QueryParam("page") final int page,
           @DefaultValue(DEFAULT_PAGE_SIZE) @QueryParam("pageSize") final int pageSize,
           @QueryParam("optionalComponentNameFilter") final String optionalComponentNameFilter
   )
   {
     return developmentPrioritiesService
-            .getPrioritizedFindings(applicationId, scanId, page, pageSize, optionalComponentNameFilter);
+            .getPrioritizedFindings(applicationId, scanId, page, pageSize,
+                optionalComponentNameFilter, includeRemediation);
   }
 
   @GET
@@ -106,7 +110,9 @@ public class ApiDeveloperPrioritiesResourceV2
           @PathParam("applicationId") final String applicationId,
           @PathParam("scanId") final String scanId)
   {
-    List<PrioritizedComponent> results = developmentPrioritiesService.getAllPrioritizedFindings(applicationId, scanId);
+    List<PrioritizedComponent> results =
+        developmentPrioritiesService.getAllPrioritizedFindings(applicationId, scanId, 0, null,
+            null);
     String fileNamePrefix = applicationId + "-" + scanId + "-priorities";
     return Csv.generate(Response.ok(), fileNamePrefix, PrioritizedComponent.getCsvHeader(), results).build();
   }

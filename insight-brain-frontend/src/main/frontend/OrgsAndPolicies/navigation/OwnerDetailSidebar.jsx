@@ -434,7 +434,7 @@ export default function OwnerDetailSidebar() {
         ))}
       </NxCollapsibleItems>
       {/* Waivers */}
-      {!isRepositoriesRelated && isScmEnabled && isDeveloperDashboardEnabled && (
+      {!isRepositoriesRelated && isScmEnabled && isDeveloperDashboardEnabled && !isSbomManager && (
         <NxCollapsibleItems.Child role="menuitem">
           <NxTextLink className={`iq-noncollapsible ${isWaivers ? 'selected' : ''}`} href={`${linkMainHref}/waivers`}>
             Waivers

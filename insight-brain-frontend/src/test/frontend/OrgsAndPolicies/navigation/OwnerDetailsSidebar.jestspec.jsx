@@ -490,6 +490,16 @@ describe('OwnerDetailSidebar', () => {
     expect(screen.queryByText('Waivers')).not.toBeInTheDocument();
   });
 
+  it('does not render waivers when isSbomManager is true', () => {
+    jest.spyOn(routerSelectors, 'selectIsSbomManager').mockReturnValue(true);
+
+    mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
+
+    renderComponent();
+
+    expect(screen.queryByText('Waivers')).not.toBeInTheDocument();
+  });
+
   it('renders waivers when developerDashboardEnabled is true', () => {
     jest.spyOn(productFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').mockReturnValue(true);
 

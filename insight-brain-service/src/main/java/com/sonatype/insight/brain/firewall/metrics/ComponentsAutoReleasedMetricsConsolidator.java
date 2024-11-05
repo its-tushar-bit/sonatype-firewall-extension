@@ -76,8 +76,6 @@ public class ComponentsAutoReleasedMetricsConsolidator
 
     long start = System.currentTimeMillis();
 
-    firewallMetricsDAO.deleteRecordsOlderThanOneYear(COMPONENTS_AUTO_RELEASED);
-
     List<Repository> repositories = repositoryDAO.getAll();
 
     Date mostRecentMetricDateFound = ObjectUtils.defaultIfNull(

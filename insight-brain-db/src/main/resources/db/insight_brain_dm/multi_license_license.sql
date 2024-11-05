@@ -2671,6 +2671,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Fahd-El
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FAIPL-1.0','FAIPL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FAIPL-1.0-SD','FAIPL-1.0-SD');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FAIPL-1.0-SD-Monetization-Restriction','FAIPL-1.0-SD-Monetization-Restriction');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('FAIPL-UNSPECIFIED','FAIPL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Fair','Fair');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Fair-Source-License-0.9','Fair-Source-License-0.9');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Fair-Source-License-UNSPECIFIED','Fair-Source-License-UNSPECIFIED');
@@ -2839,6 +2840,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Google-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Google-Cloud-Platform-TOS','Google-Cloud-Platform-TOS');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Google-Fabric-SSA-RD01272017','Google-Fabric-SSA-RD01272017');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Google-Gemma-TOU-MD04012024','Google-Gemma-TOU-MD04012024');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Google-Gemma-TOU-UNSPECIFIED','Google-Gemma-TOU-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Google-ICL','Google-ICL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Google-TOS-V10252017','Google-TOS-V10252017');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GoogleMapControl-License-Agreement','GoogleMapControl-License-Agreement');
@@ -4402,6 +4404,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVIDIA-
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVIDIA-DL-Win-v7.0-v8.0','NVIDIA-DL-Win-v7.0-v8.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVIDIA-Nsight-VS-SLA-v5.5-v8.0','NVIDIA-Nsight-VS-SLA-v5.5-v8.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVIDIA-Nsight-VS-UNSPECIFIED','NVIDIA-Nsight-VS-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVIDIA-Open-MLA-UNSPECIFIED','NVIDIA-Open-MLA-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVIDIA-Open-MLA-vRD06142024','NVIDIA-Open-MLA-vRD06142024');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVIDIA-SCL-Neuralangelo','NVIDIA-SCL-Neuralangelo');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('NVIDIA-SCL-Radio','NVIDIA-SCL-Radio');
@@ -5347,6 +5350,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Zlib','
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('zlib-Acknowledgement','zlib-Acknowledgement');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Zoho-ManageEngine-App-Manager-EULA','Zoho-ManageEngine-App-Manager-EULA');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Zoom-Video-SDK-TOS-UD09262023','Zoom-Video-SDK-TOS-UD09262023');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('Zoom-Video-SDK-TOS-UNSPECIFIED','Zoom-Video-SDK-TOS-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ZoomCharts-EULA-2.3','ZoomCharts-EULA-2.3');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ZPL-1.0','ZPL-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('ZPL-1.1','ZPL-1.1');

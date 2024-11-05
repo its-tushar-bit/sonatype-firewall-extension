@@ -875,6 +875,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Fahd-
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('FAIPL-1.0','FAIPL-1.0','Fair AI Public License 1.0 - International');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('FAIPL-1.0-SD','FAIPL-1.0-SD','Fair AI Public License 1.0 - Stable Diffusion Variant');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('FAIPL-1.0-SD-Monetization-Restriction','FAIPL-1.0-SD-Monetization-Restriction','Fair AI Public License 1.0 - Stable Diffusion Variant with Monetization Restriction');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('FAIPL-UNSPECIFIED','FAIPL','FAIPL-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Fair','Fair','Fair License');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Fair-Source-License-0.9','Fair-Source-License-0.9','Fair Source License Version 0.9');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Fair-Source-License-UNSPECIFIED','Fair-Source-License','Fair Source License-Style License Not Identifiable by Sonatype');
@@ -1006,6 +1007,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Googl
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Google-Cloud-Platform-TOS','Google-Cloud-Platform-TOS','Google Cloud Platform Terms of Service');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Google-Fabric-SSA-RD01272017','Google-Fabric-SSA-RD01272017','Google Inc Fabric Software and Services Agreement - Release Date January 27, 2017');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Google-Gemma-TOU-MD04012024','Google-Gemma-TOU-MD04012024','Google Gemma Terms of Use - Modified Date 04-01-2024');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Google-Gemma-TOU-UNSPECIFIED','Google-Gemma-TOU','Google-Gemma-TOU-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Google-ICL','Google-ICL','Google Individual Contributor License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Google-TOS-V10252017','Google-TOS-V10252017','Google Terms of Service Version 10252017');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GoogleMapControl-License-Agreement','GoogleMapControl-License-Agreement','GoogleMapControl License Agreement');
@@ -1898,6 +1900,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('NVIDI
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('NVIDIA-DL-Win-v7.0-v8.0','NVIDIA-DL-Win-v7.0-v8.0','NVIDIA Driver License for Customer Use of NVIDIA Software on Windows - version 7.0 to 8.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('NVIDIA-Nsight-VS-SLA-v5.5-v8.0','NVIDIA-Nsight-VS-SLA-v5.5-v8.0','NVIDIA Nsight Development Platform, Visual Studio Edition Software License Agreement (Windows only) - version 5.5 to 8.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('NVIDIA-Nsight-VS-UNSPECIFIED','NVIDIA-Nsight-VS','NVIDIA-Nsight-VS-Style License Not Identifiable by Sonatype');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('NVIDIA-Open-MLA-UNSPECIFIED','NVIDIA-Open-MLA','NVIDIA-Open-MLA-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('NVIDIA-Open-MLA-vRD06142024','NVIDIA-Open-MLA-vRD06142024','NVIDIA Open Model License Agreement - version Release Date 06-14-2024');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('NVIDIA-SCL-Neuralangelo','NVIDIA-SCL-Neuralangelo','NVIDIA Source Code License for Neuralangelo');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('NVIDIA-SCL-Radio','NVIDIA-SCL-Radio','NVIDIA Source Code License for Radio');
@@ -2793,6 +2796,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Zlib'
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('zlib-Acknowledgement','zlib-Acknowledgement','zlib-libpng License with Acknowledgement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Zoho-ManageEngine-App-Manager-EULA','Zoho-ManageEngine-App-Manager-EULA','Zoho ManageEngine Applications Manager End User License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Zoom-Video-SDK-TOS-UD09262023','Zoom-Video-SDK-TOS-UD09262023','Zoom Video SDK Terms of Service - Updated Date 09-26-2023');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Zoom-Video-SDK-TOS-UNSPECIFIED','Zoom-Video-SDK-TOS','Zoom-Video-SDK-TOS-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('ZoomCharts-EULA-2.3','ZoomCharts-EULA-2.3','ZoomCharts End User License Agreement Version 2.3');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('ZPL-1.0','ZPL-1.0','Zope Public License 1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('ZPL-1.1','ZPL-1.1','Zope Public License 1.1');

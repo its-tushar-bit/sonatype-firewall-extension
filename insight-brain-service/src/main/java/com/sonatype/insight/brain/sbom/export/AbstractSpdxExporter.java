@@ -163,7 +163,7 @@ public abstract class AbstractSpdxExporter
       SpdxPackage.SpdxPackageBuilder pkgBuilder = newDocument
           .createPackage(pkg.getId(), pkgName, pkg.getLicenseConcluded(), pkg.getCopyrightText(),
               pkg.getLicenseDeclared())
-          .setFilesAnalyzed(false);
+          .setFilesAnalyzed(pkg.isFilesAnalyzed());
       pkg.getDownloadLocation().ifPresent(pkgBuilder::setDownloadLocation);
 
       ThirdPartyFileCoordinate matchingDbComponent = getMatchingDbComponent(pkg);

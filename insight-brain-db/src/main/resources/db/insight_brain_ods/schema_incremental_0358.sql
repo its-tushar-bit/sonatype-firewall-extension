@@ -1,4 +1,4 @@
--- Since 1.185
+-- Since 1.184
 -- SaaS Compatible
 UPDATE system_configuration_property
 SET value = SUBSTRING(system_configuration_property_id FROM 1 FOR 5)

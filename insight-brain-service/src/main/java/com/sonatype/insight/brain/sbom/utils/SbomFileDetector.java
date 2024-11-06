@@ -35,11 +35,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
+import org.cyclonedx.model.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spdx.library.InvalidSPDXAnalysisException;
@@ -293,7 +295,7 @@ public class SbomFileDetector
     sbomResult.summary.version = bom.getSpecVersion();
     sbomResult.summary.format = sbomFormat.toString();
     sbomResult.summary.componentCount = CollectionUtils.size(bom.getComponents());
-    sbomResult.summary.vulnerabilityCount = CollectionUtils.size(bom.getVulnerabilities());
+    sbomResult.summary.vulnerabilityCount = calculateNumberOfVulnerabilities(bom);
     sbomResult.summary.applicationName = SbomCycloneDxUtils.getApplicationNameSafely(bom);
     sbomResult.summary.applicationVersion = SbomCycloneDxUtils.getApplicationVersionSafely(bom);
     sbomResult.summary.serialNumber = SbomCycloneDxUtils.getOrGenerateSerialNumber(bom);
@@ -308,6 +310,23 @@ public class SbomFileDetector
       log.debug("File content is not valid a JSON document");
     }
     return false;
+  }
+
+  private static int calculateNumberOfVulnerabilities(Bom bom) {
+    // Count the number of vulnerabilities extensions. This was added to CDX older versions up to 1.3.
+    // Starting with 1.4, the current vulnerabilities attribute was added to the spec.
+    // For the calculation we add both counts, because they can't be in the SBOM at the same time.
+    int vulnerabilitiesExtensionsCount = 0;
+    if (bom.getComponents() != null) {
+      vulnerabilitiesExtensionsCount = bom.getComponents().stream()
+          .map(Component::getExtensions)
+          .filter(MapUtils::isNotEmpty)
+          .map(m -> m.get(SbomCycloneDxUtils.VULNERABILITY_KEY))
+          .filter(Objects::nonNull)
+          .mapToInt(extension -> extension.getExtensions().size())
+          .sum();
+    }
+    return CollectionUtils.size(bom.getVulnerabilities()) + vulnerabilitiesExtensionsCount;
   }
 
   @VisibleForTesting

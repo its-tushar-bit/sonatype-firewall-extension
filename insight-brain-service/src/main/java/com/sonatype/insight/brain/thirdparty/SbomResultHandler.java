@@ -115,8 +115,6 @@ public class SbomResultHandler
 
   protected static final String MISSING_COMPONENT_NAME = "[Not Provided]";
 
-  private static final String VULNERABILITY_KEY = "vulnerabilities";
-
   public static final String PURL_BOM_TYPE = "sbom_type";
 
   public static final String FILENAMES_COMPONENT_PROPERTY = "sonatype:match_filenames";
@@ -647,7 +645,7 @@ public class SbomResultHandler
     //Vulnerability extension is unsupported from 1.4+
     if (MapUtils.isNotEmpty(extensions) &&
         (!Version.VERSION_14.getVersionString().equals(bomVersion) || StringUtils.isBlank(bomVersion))) {
-      Extension vulnerabilityExtension = extensions.get(VULNERABILITY_KEY);
+      Extension vulnerabilityExtension = extensions.get(SbomCycloneDxUtils.VULNERABILITY_KEY);
       if (vulnerabilityExtension != null && CollectionUtils.isNotEmpty(vulnerabilityExtension.getExtensions())) {
         Set<String> vulnerabilityMap = new HashSet<>();
         for (ExtensibleType extensibleType : vulnerabilityExtension.getExtensions()) {

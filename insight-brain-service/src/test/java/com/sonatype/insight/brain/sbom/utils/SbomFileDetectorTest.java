@@ -79,7 +79,7 @@ public class SbomFileDetectorTest
   @Test
   public void testGetSbomMetadata_CycloneDx_XML_Valid_1_2() {
     SbomDetectionResult expected =
-        createExpectedResult(true, true, "application/xml", null, null, "1.2", "CycloneDx", "xml", 2, 0,
+        createExpectedResult(true, true, "application/xml", null, null, "1.2", "CycloneDx", "xml", 2, 1,
             "Acme Application",
             "9.1.1");
     getSbomMetadata("cyclonedx-valid-v1_2.tmp", expected);
@@ -88,7 +88,7 @@ public class SbomFileDetectorTest
   @Test
   public void testGetSbomMetadata_CycloneDx_XML_Valid_1_3() {
     SbomDetectionResult expected =
-        createExpectedResult(true, true, "application/xml", null, null, "1.3", "CycloneDx", "xml", 2, 0,
+        createExpectedResult(true, true, "application/xml", null, null, "1.3", "CycloneDx", "xml", 2, 1,
             "Acme Application",
             "9.1.1");
     getSbomMetadata("cyclonedx-valid-v1_3.tmp", expected);
@@ -97,7 +97,7 @@ public class SbomFileDetectorTest
   @Test
   public void testGetSbomMetadata_CycloneDxVulnerabilityExtension_XML_Valid_1_4() {
     SbomDetectionResult expected =
-        createExpectedResult(true, true, "application/xml", null, null, "1.4", "CycloneDx", "xml", 1, 0, null, null);
+        createExpectedResult(true, true, "application/xml", null, null, "1.4", "CycloneDx", "xml", 1, 1, null, null);
     getSbomMetadata("cyclonedx-vulnerability-ext-v1_4.tmp", expected);
   }
 

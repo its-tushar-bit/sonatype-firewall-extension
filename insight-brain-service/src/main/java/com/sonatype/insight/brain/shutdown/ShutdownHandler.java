@@ -76,6 +76,8 @@ public class ShutdownHandler
 
   private final PriorityBlockingQueue<FIFOEntry<ShutdownRequest<?>>> shutdownRequests;
 
+  private final int shutdownDelayMillis;
+
   private volatile boolean triggered;
 
   public ShutdownHandler() {
@@ -91,6 +93,16 @@ public class ShutdownHandler
     this.threadFactory = threadFactory;
     this.executorService = executorService;
     shutdownRequests = new PriorityBlockingQueue<>();
+    int shutdownDelayMillis;
+    try {
+      String s = System.getenv("SHUTDOWN_DELAY_MILLIS");
+      shutdownDelayMillis = s == null ? 0 : Integer.parseInt(s);
+    }
+    catch (NumberFormatException e) {
+      log.warn("Invalid SHUTDOWN_DELAY_MILLIS value, using default of 0.", e);
+      shutdownDelayMillis = 0;
+    }
+    this.shutdownDelayMillis = shutdownDelayMillis;
   }
 
   public boolean isTriggered() {
@@ -166,7 +178,16 @@ public class ShutdownHandler
     long end = start + timeout.toMillis();
     try {
       log.info("Initiating graceful shutdown.");
-
+      if (shutdownDelayMillis > 0) {
+        try {
+          log.info("Delaying shutdown by {} ms.", shutdownDelayMillis);
+          Thread.sleep(shutdownDelayMillis);
+        }
+        catch (InterruptedException e) {
+          log.warn("Interrupted during shutdown delay.", e);
+        }
+        log.info("Shutdown delay complete.");
+      }
       // While there are shutdown requests to process in the ordered queue
       while (!shutdownRequests.isEmpty()) {
 

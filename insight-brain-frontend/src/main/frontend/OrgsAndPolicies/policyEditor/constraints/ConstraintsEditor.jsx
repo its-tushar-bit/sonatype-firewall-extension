@@ -31,6 +31,7 @@ import {
 import ReadOnlyConstraint from './ReadOnlyConstraint';
 import EditableConstraint from './EditableConstraint';
 import { selectIsRepositoriesRelated, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { ageValidator, constraintNameValidator } from 'MainRoot/OrgsAndPolicies/utility/constraintUtil';
 
 const { initialState: initUserInput } = nxTextInputStateHelpers;
 
@@ -75,13 +76,12 @@ export default function ConstraintsEditor() {
         {
           conditionTypeId: 'AgeInDays',
           operator: 'older than',
-          value: initUserInput(''),
+          value: initUserInput('', ageValidator),
         },
       ],
       operator: 'OR',
-      name: initUserInput(''),
     };
-
+    newConstraint.name = initUserInput('', constraintNameValidator(constraints, newConstraint.name, newConstraint.id));
     updateEditConstraintId(newConstraint.id);
     setConstraint([...constraints, newConstraint]);
   }
@@ -98,7 +98,7 @@ export default function ConstraintsEditor() {
     const newCondition = {
       conditionTypeId: 'AgeInDays',
       operator: 'older than',
-      value: initUserInput(''),
+      value: initUserInput('', ageValidator),
     };
     const updatedConditions = [...constraints[constraintIndex].conditions, newCondition];
     setCondition({ constraintIndex, value: updatedConditions });

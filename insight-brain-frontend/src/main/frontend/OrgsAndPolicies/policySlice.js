@@ -5,7 +5,6 @@
  */
 import axios from 'axios';
 import {
-  any,
   always,
   includes,
   curryN,
@@ -103,6 +102,7 @@ import {
   coordinatesTypes,
   coordinatesFormatOptions,
   withDefaultValue,
+  constraintNameValidator,
 } from 'MainRoot/OrgsAndPolicies/utility/constraintUtil';
 import { loadActionStages, loadSbomStages } from './stagesSlice';
 import { startSaveMaskSuccessTimer, toggleBooleanProp } from 'MainRoot/util/reduxUtil';
@@ -161,12 +161,12 @@ export const initialState = {
     constraints: [
       {
         id: '' + new Date().getTime(),
-        name: initUserInput(''),
+        name: initUserInput('', constraintNameValidator([], '')),
         conditions: [
           {
             conditionTypeId: 'AgeInDays',
             operator: 'older than',
-            value: initUserInput(''),
+            value: initUserInput('', ageValidator),
           },
         ],
         operator: 'OR',
@@ -400,7 +400,7 @@ const changeCollapsibleSortField = (state, { payload }) => {
 const convertMatcherToUserInput = (policy) => {
   const constraints = policy.constraints.map((constraint) => {
     const conditions = constraint.conditions.map((condition) => {
-      let value = initUserInput(condition.value ?? '');
+      let value = initUserInput(condition.value ?? '', validateNonEmpty);
 
       if (condition.conditionTypeId === 'Coordinates') {
         const parts = condition.value.split(':');
@@ -408,13 +408,20 @@ const convertMatcherToUserInput = (policy) => {
           format: parts.shift(),
         };
         parts.forEach((part, partIdx) => {
-          value[coordinatesTypes[value.format][partIdx]] = initUserInput(part);
+          const field = coordinatesTypes[value.format][partIdx];
+          value[field] = initUserInput(part, getCoordinatesValidator(field));
         });
+      } else if (condition.conditionTypeId === 'AgeInDays') {
+        value = initUserInput(condition.value ?? '', ageValidator);
       }
       return { ...condition, value };
     });
 
-    return { ...constraint, conditions, name: initUserInput(constraint.name) };
+    return {
+      ...constraint,
+      conditions,
+      name: initUserInput(constraint.name, constraintNameValidator(policy.constraints, constraint.name, constraint.id)),
+    };
   });
 
   return { ...policy, constraints };
@@ -750,7 +757,7 @@ const updateOverridesFulfilled = (state, { payload }) => {
 
   // note: the server response (payload) mangles the values of coordinate policy conditions. So we can't just
   // take the full payload as the policy object
-  const policy = { ...payload, name: initUserInput(payload.name) };
+  const policy = { ...payload, name: initUserInput(payload.name, policyNameValidator([], '')) };
   Object.assign(state.currentPolicy, pick(['policyActionsOverrides', 'policyNotificationsOverrides', 'name'], policy));
   Object.assign(state.originalPolicy, pick(['policyActionsOverrides', 'policyNotificationsOverrides', 'name'], policy));
 
@@ -843,17 +850,7 @@ const setConstraintField = curryN(3, function setConstraintField(fieldName, stat
 
 const setConstraintNameField = curryN(3, function setConstraintNameField(fieldName, state, { payload }) {
   const { constraintIndex, value, id } = payload;
-
-  const duplicationValidator = () => {
-    const exists = any(
-      (item) => item.name?.trimmedValue?.toLowerCase() === value.toLowerCase() && id !== item.id,
-      state.currentPolicy.constraints
-    );
-    return exists ? 'Name is already in use' : null;
-  };
-
-  const constraintNameValidator = combineValidators([validateNonEmpty, duplicationValidator]);
-  const newValue = userInput(constraintNameValidator, value, state);
+  const newValue = userInput(constraintNameValidator(state.currentPolicy.constraints, value, id), value, state);
 
   return pathSet(['currentPolicy', 'constraints', constraintIndex, fieldName], newValue, state);
 });
@@ -927,7 +924,7 @@ const initCoordinatesFields = (value) => {
   };
 
   coordinatesTypes[value].forEach((field) => {
-    conditionValue[field] = initUserInput(withDefaultValue.includes(field) ? '*' : '');
+    conditionValue[field] = initUserInput(withDefaultValue.includes(field) ? '*' : '', getCoordinatesValidator(field));
   });
 
   return conditionValue;
@@ -946,19 +943,14 @@ const setConstraintCondition = curryN(2, function setConstraintCondition(state, 
   const { constraintIndex, conditionIndex, value } = payload;
   const { conditionTypeId } = value;
 
+  let returnValue = { ...value, value: initUserInput(value.value, validateNonEmpty) };
   if (conditionTypeId === 'Coordinates') {
-    return pathSet(
-      ['currentPolicy', 'constraints', constraintIndex, 'conditions', conditionIndex],
-      { ...value, value: initCoordinatesFields(coordinatesFormatOptions[0]) },
-      state
-    );
+    returnValue = { ...value, value: initCoordinatesFields(coordinatesFormatOptions[0]) };
+  } else if (conditionTypeId === 'AgeInDays') {
+    returnValue = { ...value, value: initUserInput(value.value, ageValidator) };
   }
 
-  return pathSet(
-    ['currentPolicy', 'constraints', constraintIndex, 'conditions', conditionIndex],
-    { ...value, value: initUserInput(value.value) },
-    state
-  );
+  return pathSet(['currentPolicy', 'constraints', constraintIndex, 'conditions', conditionIndex], returnValue, state);
 });
 
 const toggleCategoryIsApplied = (state, { payload: index }) => {

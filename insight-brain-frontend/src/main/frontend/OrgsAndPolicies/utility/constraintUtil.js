@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { mapObjIndexed, prop, omit, curryN, test, includes, equals, isNil, reject, values, forEach } from 'ramda';
+import { mapObjIndexed, prop, omit, curryN, test, includes, equals, isNil, reject, values, forEach, any } from 'ramda';
 import {
   validateNonEmpty,
   validateMinMax,
@@ -137,6 +137,17 @@ export const ageValidator = combineValidators([
   validateMinMax([1, Number.MAX_SAFE_INTEGER], 'Minimum allowed value is 1'),
 ]);
 
+export const constraintNameValidator = (constraints = [], value = '', id = '') => {
+  const duplicationValidator = () => {
+    const exists = any(
+      (item) => item.name?.trimmedValue?.toLowerCase() === value.toLowerCase() && id !== item.id,
+      constraints
+    );
+    return exists ? 'Name is already in use' : null;
+  };
+
+  return combineValidators([validateNonEmpty, duplicationValidator]);
+};
 export const withDefaultValue = ['qualifier', 'extension', 'classifier'];
 
 // 'qualifier', 'extension', 'classifier' fields can be empty

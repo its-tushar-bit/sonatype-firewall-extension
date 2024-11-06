@@ -425,7 +425,7 @@ describe('policySlice actions', () => {
             constraints: [
               {
                 id: 'd4fe6780471e4543bcb0e28d0e122b69',
-                name: { isPristine: true, value: 'Unpopular', trimmedValue: 'Unpopular', validationErrors: null },
+                name: { isPristine: true, value: 'Unpopular', trimmedValue: 'Unpopular', validationErrors: [] },
                 enabled: true,
                 operator: 'OR',
                 conditions: [

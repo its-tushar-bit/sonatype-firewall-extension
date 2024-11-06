@@ -229,19 +229,28 @@ public class PdfGenerator
 
   private void generate() throws IOException {
     try (PDDocument pdDocument = new PDDocument()) {
-      this.pdf = pdDocument;
-      initFontStyles(pdf);
-      setDocumentMetadata();
-      DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_STRING, Locale.ENGLISH);
-      createdOnDateTime = dateFormat.format(pdfData.createdDate);
-      analyzedOnDateTime = dateFormat.format(pdfData.analyzedDate);
-      addPolicyViolationsSection();
-      addVulnerabilitiesSection();
-      addLicensesSection();
-      addBomSection();
-      addPageNumbers();
-      pdf.save(pdfFile);
+      doGenerate(pdDocument);
     }
+  }
+
+  PDDocument getPdf() {
+    return pdf;
+  }
+
+  // Visible for testing.
+  void doGenerate(PDDocument pdDocument) throws IOException {
+    this.pdf = pdDocument;
+    initFontStyles(pdf);
+    setDocumentMetadata();
+    DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_STRING, Locale.ENGLISH);
+    createdOnDateTime = dateFormat.format(pdfData.createdDate);
+    analyzedOnDateTime = dateFormat.format(pdfData.analyzedDate);
+    addPolicyViolationsSection();
+    addVulnerabilitiesSection();
+    addLicensesSection();
+    addBomSection();
+    addPageNumbers();
+    pdf.save(pdfFile);
   }
 
   // Visible for testing

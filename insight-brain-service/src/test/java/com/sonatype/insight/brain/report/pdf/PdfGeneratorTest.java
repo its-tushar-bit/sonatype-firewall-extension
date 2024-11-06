@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.report.pdf;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -13,7 +14,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationBaseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
@@ -27,8 +27,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSecurityDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.report.pdf.PdfGenerator.Context;
 import com.sonatype.insight.brain.report.pdf.PdfGenerator.WordBreaker;
@@ -43,6 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.Before;
 import org.junit.Test;
 import org.vandeseer.easytable.structure.Row;
@@ -60,6 +59,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PdfGeneratorTest
     extends AbstractComponentTest
 {
+  private static final List<String> SBOM_SPECIFIC_CONTENT =
+      List.of("Bill of Materials Report", "SBOM Metadata", "Spec Version: specVersion", "File Format: fileFormat");
+
+  private static final List<String> SBOM_SPECIFIC_CONTENT_SPDX =
+      List.of("Person: person", "Organization: organization", "Specification: SPDX");
+
+  private static final List<String> SBOM_SPECIFIC_CONTENT_CDX =
+      List.of("Author: author", "Manufacturer: manufacturer", "Supplier: supplier", "Specification: CycloneDx");
+
+  private static final List<String> LIFECYCLE_SPECIFIC_CONTENT =
+      List.of("Sonatype Application Composition Report", "IQ Server release:", "Commit:",
+          "b141d3806df77594e4744bcf24b4cc95", "LEGACY VIOLATIONS");
+
   @Inject
   private ApiReportDataServiceV2 apiReportDataServiceV2;
 
@@ -105,8 +117,16 @@ public class PdfGeneratorTest
         bomPageMetadataDTO
     );
 
-    PdfGenerator.generate(pdfFile, pdfData, Context.SBOM);
+    PDDocument pdfDoc = generatePdf(pdfFile, pdfData, Context.SBOM);
     assertThat(pdfFile).isFile();
+
+    String pdfContent = stripTextFromPdf(1, 13, pdfDoc);
+
+    assertCommonSections(pdfContent);
+    assertThat(pdfContent)
+        .contains(SBOM_SPECIFIC_CONTENT)
+        .contains(SBOM_SPECIFIC_CONTENT_CDX)
+        .doesNotContain(LIFECYCLE_SPECIFIC_CONTENT);
   }
 
   @Test
@@ -143,8 +163,16 @@ public class PdfGeneratorTest
         bomPageMetadataDTO
     );
 
-    PdfGenerator.generate(pdfFile, pdfData, Context.SBOM);
+    PDDocument pdfDoc = generatePdf(pdfFile, pdfData, Context.SBOM);
     assertThat(pdfFile).isFile();
+
+    String pdfContent = stripTextFromPdf(1, 13, pdfDoc);
+
+    assertCommonSections(pdfContent);
+    assertThat(pdfContent)
+        .contains(SBOM_SPECIFIC_CONTENT)
+        .contains(SBOM_SPECIFIC_CONTENT_SPDX)
+        .doesNotContain(LIFECYCLE_SPECIFIC_CONTENT);
   }
 
   @Test
@@ -166,55 +194,69 @@ public class PdfGeneratorTest
         apiReportDataServiceV2.getRawData(app.getPublicId(), scanId)
     );
 
-    PdfGenerator.generate(pdfFile, pdfData, Context.LIFECYCLE);
+    PDDocument pdfDoc = generatePdf(pdfFile, pdfData, Context.LIFECYCLE);
     assertThat(pdfFile).isFile();
+
+    String pdfContent = stripTextFromPdf(1, 13, pdfDoc);
+
+    assertCommonSections(pdfContent);
+    assertThat(pdfContent)
+        .contains(LIFECYCLE_SPECIFIC_CONTENT)
+        .doesNotContain(SBOM_SPECIFIC_CONTENT)
+        .doesNotContain(SBOM_SPECIFIC_CONTENT_CDX)
+        .doesNotContain(SBOM_SPECIFIC_CONTENT_SPDX);
   }
 
-  @Test
-  public void testGenerate_sbomManager() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("appPublicId", "appName");
-    String scanId = "scanId";
-    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
-    File reportFile = insightWork.getReportFile(app.getId(), scanId);
-    FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorTest/report", tempDir), reportFile);
+  private void assertCommonSections(String pdfContent) {
+    List<String> headerSection = List.of("Policy Violations for appName Build Report", "Created on:",
+        "Analyzed on:");
+    List<String> pageCount = List.of("Page 1 of 13", "Page 2 of 13", "Page 3 of 13", "Page 4 of 13",
+        "Page 5 of 13", "Page 6 of 13", "Page 7 of 13", "Page 8 of 13", "Page 9 of 13", "Page 10 of 13",
+        "Page 11 of 13", "Page 12 of 13", "Page 13 of 13");
+    List<String> violationsSection = List.of("26 43 8 77 VIOLATIONS",
+        "Affecting 26 components",
+        "THREAT POLICY NAME POLICY TYPE COMPONENT",
+        "10 Security-Critical Security apache-collections : commons-collections : 3.1",
+        "10 Security-Critical Security com.fasterxml.jackson.core : jackson-databind : 2.0.4",
+        "9 Security-High Security apache-taglibs : standard : 1.1.2",
+        "9 Security-High Security axis : axis : 1.2",
+        "7 Security-Medium Security axis : axis : 1.2",
+        "7 Security-Medium Security axis : axis : 1.2",
+        "3 Security-Low Security commons-fileupload : commons-fileupload : 1.2.2",
+        "3 Security-Low Security org.springframework : spring-core : 3.2.4.RELEASE",
+        "2 Component-Unknown Other RegexMatch.dll",
+        "2 Component-Unknown Other WebGoat-6.0.1.war",
+        "1 Architecture-Cleanup Other junit : junit : 4.8.1",
+        "1 Architecture-Quality Quality aopalliance : aopalliance : 1.0");
+    List<String> vulnerabilitiesSection = List.of("Vulnerabilities for appName Build Report",
+        "VULNERABILITY CVSS SCORE COMPONENT", "CVE-2016-1000027 9.8 org.springframework : spring-web : 3.2.4.RELEASE",
+        "CVE-2016-1000031 9.8 commons-fileupload : commons-fileupload : 1.2.2",
+        "CVE-2017-7525 9.8 com.fasterxml.jackson.core : jackson-databind : 2.0.4",
+        "sonatype-2019-0115 9.8 org.webjars jquery 1.10.2",
+        "sonatype-2015-0327 3.7 org.springframework : spring-core : 3.2.4.RELEASE",
+        "sonatype-2019-0341 3.7 org.springframework.security : spring-security-web : 3.2.4.RELEASE",
+        "sonatype-2014-0058 3.6 org.webjars angularjs 1.2.16");
+    List<String> licensesSection = List.of("Licenses for appName Build Report",
+        "9 GPL-2.0 GPL-2.0 Not Supported org.owasp.webgoat webgoat-container 7.0",
+        "5 Apache-1.1 Apache-1.1 No Sources ecs : ecs : 1.4.2",
+        "5 Apache-1.1 Not Declared Apache-1.1 commons-digester : commons-digester : 1.4.1",
+        "2 LGPL-3.0 or MIT LGPL-3.0 or MIT Not Supported jquery-form 4.2.0",
+        "0 Apache-2.0 Apache-2.0 Apache-2.0 axis : axis-jaxrpc : 1.2",
+        "0 Apache-2.0 Apache-2.0 Apache-2.0 commons-fileupload : commons-fileupload : 1.2.2");
+    List<String> bomSection = List.of("Component BOM for appName Build Report",
+        "62 COMPONENTS", "95% of all components identified", "COMPONENT", "aopalliance : aopalliance : 1.0",
+        "apache-collections : commons-collections : 3.1", "apache-taglibs : standard : 1.1.2",
+        "axis : axis : 1.2", "axis : axis-ant : 1.2", "axis : axis-jaxrpc : 1.2",
+        "javax.mail : mail : 1.4.2", "javax.mail : mailapi : 1.4.2", "pywebtest-gitbook 0.0.1",
+        "RegexMatch.dll");
 
-    ApiReportPolicyDataDTOV2 policyViolationsData =
-        apiReportDataServiceV2.getPolicyViolationsData(app.getPublicId(), scanId);
-    policyViolationsData.commitHash = "b141d3806df77594e4744bcf24b4cc95";
-    File pdfFile = PdfGenerator.getPdfFile(reportFile);
-    PdfData pdfData = PdfData.createPdfData(
-        null,
-        "98",
-        policyViolationsData,
-        apiReportDataServiceV2.getRawData(app.getPublicId(), scanId)
-    );
-
-    PdfGenerator.generate(pdfFile, pdfData);
-    assertThat(pdfFile).isFile();
-  }
-
-  @Test
-  public void testGenerate_withLegacyViolation() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("appPublicId", "appName");
-    String scanId = "scanId";
-    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
-    Policy policy = tempEntity.newPolicy();
-    tempEntity.newLegacyPolicyViolation(policyEvaluation, policy,
-        ComponentIdentifier.createMavenCoordinates("org.apache.tiles", "tiles-core", "2.2.2"),
-        "01db730fbe26c148e3d0");
-    File reportFile = insightWork.getReportFile(app.getId(), scanId);
-    FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorTest/report", tempDir), reportFile);
-
-    File pdfFile = PdfGenerator.getPdfFile(reportFile);
-    PdfData pdfData = PdfData.createPdfData(
-        null,
-        "98",
-        apiReportDataServiceV2.getPolicyViolationsData(app.getPublicId(), scanId),
-        apiReportDataServiceV2.getRawData(app.getPublicId(), scanId)
-    );
-
-    PdfGenerator.generate(pdfFile, pdfData);
-    assertThat(pdfFile).isFile();
+    assertThat(pdfContent)
+        .contains(headerSection)
+        .contains(pageCount)
+        .contains(violationsSection)
+        .contains(vulnerabilitiesSection)
+        .contains(licensesSection)
+        .contains(bomSection);
   }
 
   @Test
@@ -1003,5 +1045,37 @@ public class PdfGeneratorTest
     ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
     component.hash = tempEntity.newRandomHash();
     return component;
+  }
+
+  private String stripTextFromPdf(int startPage, int endPage, final PDDocument pdfDoc) throws IOException {
+    PDFTextStripper textStripper = new PDFTextStripper();
+    textStripper.setStartPage(startPage);
+    textStripper.setEndPage(endPage);
+    textStripper.setAddMoreFormatting(false);
+    String pdfContent = "";
+
+    try {
+      pdfContent = textStripper.getText(pdfDoc);
+    }
+    catch (Exception ignored) {
+      // no need to log or do anything for tests.
+    }
+    pdfDoc.close();
+
+    return pdfContent;
+  }
+
+  PDDocument generatePdf(final File pdfFile, final PdfData pdfData, final Context context) throws IOException {
+    PDDocument pdDocument = new PDDocument();
+    try {
+      PdfGenerator pdfGenerator = new PdfGenerator(pdfFile, pdfData, context);
+      pdfGenerator.doGenerate(pdDocument);
+      return pdfGenerator.getPdf();
+    }
+    catch (Exception exception) {
+      pdDocument.close();
+    }
+
+    return null;
   }
 }

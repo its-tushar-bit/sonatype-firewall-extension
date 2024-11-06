@@ -243,7 +243,7 @@ public class ApiSpdxServiceTest
     try (InputStream inputStream = Files.newInputStream(inFile.toPath());
          GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(inputStream);
          TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)) {
-      TarArchiveEntry tarEntry = tarIn.getNextTarEntry();
+      TarArchiveEntry tarEntry = tarIn.getNextEntry();
       assertThat(tarEntry).isNotNull();
       if (tarEntry.getName().contains(".spdx.")) {
         spdxContent = IOUtils.toString(tarIn, StandardCharsets.UTF_8);
@@ -253,7 +253,7 @@ public class ApiSpdxServiceTest
         cdxContent = IOUtils.toString(tarIn, StandardCharsets.UTF_8);
         cdxFilename = tarEntry.getName();
       }
-      tarEntry = tarIn.getNextTarEntry();
+      tarEntry = tarIn.getNextEntry();
       assertThat(tarEntry).isNotNull();
       if (tarEntry.getName().contains(".spdx.")) {
         spdxContent = IOUtils.toString(tarIn, StandardCharsets.UTF_8);

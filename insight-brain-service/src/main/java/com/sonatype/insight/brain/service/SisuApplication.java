@@ -132,7 +132,8 @@ public abstract class SisuApplication<T extends Configuration>
   @VisibleForTesting
   public static SpaceModule getSpaceModule() {
     ClassSpace space = new URLClassSpace(SisuApplication.class.getClassLoader());
-    return new SpaceModule(space, new MultiPackageClassFinder("org.sonatype.*", "com.sonatype.*"));
+    return new SpaceModule(space, new MultiPackageClassFinder("org.sonatype.*", "com.sonatype.*"),
+        false /* isStrict */);
   }
 
   protected DropwizardAwareModule<T> wire(final List<Module> modules) {

@@ -63,7 +63,7 @@ import org.sonatype.licensing.product.util.LicenseFingerprinter;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Binder;
 import com.google.inject.TypeLiteral;
-import com.google.inject.matcher.AbstractMatcher;
+import com.google.inject.matcher.Matcher;
 import com.google.inject.spi.InjectionListener;
 import com.google.inject.spi.TypeEncounter;
 import com.google.inject.spi.TypeListener;
@@ -223,7 +223,7 @@ public class AbstractComponentTest
         encounter.register(injectionListener);
       }
     };
-    binder.bindListener(new AbstractMatcher<TypeLiteral<?>>()
+    binder.bindListener(new Matcher<TypeLiteral<?>>()
     {
       @Override
       public boolean matches(TypeLiteral<?> typeLiteral) {

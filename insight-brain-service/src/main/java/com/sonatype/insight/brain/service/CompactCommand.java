@@ -6,18 +6,20 @@
 package com.sonatype.insight.brain.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.Statement;
+
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
-import com.sonatype.insight.brain.db.datasource.DataSourceProviderFactory;
 import com.sonatype.insight.brain.db.DatabaseConfigProviderFactory;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.H2DatabaseUtil;
+import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
+import com.sonatype.insight.brain.db.datasource.DataSourceProviderFactory;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.H2DatabaseEngine;
@@ -72,7 +74,7 @@ public class CompactCommand
       }
       final long newSize = Files.size(databaseFile);
       final BigDecimal percentChange = new BigDecimal(100 - newSize * 100.0d / originalSize)
-          .setScale(2, BigDecimal.ROUND_HALF_EVEN);
+          .setScale(2, RoundingMode.HALF_EVEN);
       log.info("Successfully compacted {} from {} bytes to {} bytes (reduced by {}%) in {} ms", databaseFile,
           originalSize, newSize, percentChange, System.currentTimeMillis() - startTime);
     }

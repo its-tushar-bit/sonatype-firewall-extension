@@ -12,6 +12,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.GregorianCalendar;
 import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -33,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.apache.shiro.session.UnknownSessionException;
 import org.apache.shiro.session.mgt.SimpleSession;
 import org.apache.shiro.subject.SimplePrincipalCollection;
@@ -141,10 +143,11 @@ public class PersistedUserSession
   }
 
   private static ObjectMapper createObjectMapper() {
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.configure(MapperFeature.REQUIRE_SETTERS_FOR_GETTERS, true);
-    objectMapper.addMixIn(SamlSession.class, SamlSessionMixIn.class);
-    objectMapper.addMixIn(SamlPrincipal.class, SamlPrincipalMixIn.class);
+    ObjectMapper objectMapper = JsonMapper.builder() //
+        .configure(MapperFeature.REQUIRE_SETTERS_FOR_GETTERS, true) //
+        .addMixIn(SamlSession.class, SamlSessionMixIn.class) //
+        .addMixIn(SamlPrincipal.class, SamlPrincipalMixIn.class) //
+        .build();
     return objectMapper;
   }
 

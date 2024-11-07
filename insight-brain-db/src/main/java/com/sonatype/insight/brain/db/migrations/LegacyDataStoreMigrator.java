@@ -195,7 +195,8 @@ public class LegacyDataStoreMigrator
     try (InputStream is = getClass().getResourceAsStream(postIncrementalMigratorFileName)) {
       if (is != null) {
         Class<?> c = Class.forName(IOUtils.toString(is, StandardCharsets.UTF_8).trim());
-        PostIncrementalMigrator migrator = c.asSubclass(PostIncrementalMigrator.class).newInstance();
+        PostIncrementalMigrator migrator =
+            c.asSubclass(PostIncrementalMigrator.class).getDeclaredConstructor().newInstance();
         migrator.migrate(dataSource, databaseSchema);
       }
     }

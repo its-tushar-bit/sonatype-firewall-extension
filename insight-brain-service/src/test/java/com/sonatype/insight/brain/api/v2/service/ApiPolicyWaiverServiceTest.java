@@ -5,7 +5,24 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import com.google.inject.Binder;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.inject.Inject;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -50,6 +67,8 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
+
+import com.google.inject.Binder;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.joda.time.DateTime;
@@ -58,23 +77,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-
-import javax.inject.Inject;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverDTOTestUtils.assertApiPolicyWaiverDTO;
 import static com.sonatype.insight.brain.model.OwnerType.REPOSITORY_CONTAINER;
@@ -205,7 +207,6 @@ public class ApiPolicyWaiverServiceTest
   /**
    * @deprecated The tested method is deprecated
    */
-  @SuppressWarnings("deprecation")
   @Deprecated
   @Test
   public void testAddPolicyWaiver_InvalidPolicyViolationId() {
@@ -218,7 +219,6 @@ public class ApiPolicyWaiverServiceTest
   /**
    * @deprecated The tested method is deprecated
    */
-  @SuppressWarnings("deprecation")
   @Deprecated
   @Test
   public void testAddPolicyWaiver_InvalidOwnerType() {

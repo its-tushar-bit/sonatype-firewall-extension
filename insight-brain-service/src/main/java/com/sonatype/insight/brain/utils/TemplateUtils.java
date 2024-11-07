@@ -11,7 +11,7 @@ import java.util.Map;
 
 import freemarker.core.Environment;
 import freemarker.template.Configuration;
-import freemarker.template.DefaultObjectWrapper;
+import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
 
 public final class TemplateUtils
@@ -21,9 +21,9 @@ public final class TemplateUtils
   }
 
   public static Configuration createFreemarkerConfig() {
-    Configuration cfg = new Configuration();
+    Configuration cfg = new Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS);
     cfg.setClassForTemplateLoading(TemplateUtils.class, "/com/sonatype/insight/brain/policy/templates");
-    cfg.setObjectWrapper(new DefaultObjectWrapper());
+    cfg.setObjectWrapper(new DefaultObjectWrapperBuilder(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS).build());
     cfg.setLocale(java.util.Locale.US); // Prevent use of commas for radix
     cfg.setDefaultEncoding("UTF-8");
     cfg.setLocalizedLookup(false);

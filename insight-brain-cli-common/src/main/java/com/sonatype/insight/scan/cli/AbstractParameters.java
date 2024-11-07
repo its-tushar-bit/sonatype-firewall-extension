@@ -134,7 +134,7 @@ public abstract class AbstractParameters
     JCommander jc;
     try {
       // NOTE: Be sure to use a fresh params instance to not have current state spoil default values
-      jc = new JCommander(getClass().newInstance());
+      jc = new JCommander(getClass().getDeclaredConstructor().newInstance());
     }
     catch (Exception e) {
       throw new IllegalStateException(e);

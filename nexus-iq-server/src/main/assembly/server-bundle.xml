@@ -18,6 +18,11 @@
     <fileSet>
       <directory>src/main/resources</directory>
       <outputDirectory>.</outputDirectory>
+      <excludes>
+        <exclude>ASSEMBLY-README.txt</exclude>
+        <exclude>sonatype-iq-server</exclude>
+        <exclude>sonatype-iq-server.service</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <directory>src/main/filtered-resources</directory>

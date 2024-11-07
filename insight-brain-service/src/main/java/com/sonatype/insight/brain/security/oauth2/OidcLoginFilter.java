@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.security.oauth2;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -73,7 +74,7 @@ public class OidcLoginFilter
 
   public static final String ERROR_AUTHORIZING_REQUEST = "Error authorizing request: %s";
 
-  public static final int ONE_MINUTE = 60;
+  public static final int COOKIE_MAX_AGE_IN_SECONDS = 30;
 
   private final OidcConfigurationDAO oidcConfigurationDAO;
 
@@ -90,6 +91,7 @@ public class OidcLoginFilter
       throws IOException, ServletException
   {
     String path = req.getPathInfo();
+    String redirectUri = getRedirectUri();
 
     log.info("Calling OAuth endpoint {}", path);
 
@@ -100,6 +102,13 @@ public class OidcLoginFilter
         throw new AuthenticationException(OIDC_CONFIGURATION_INVALID);
       }
 
+      // Check if ID Token cookie is present, so no need to login again
+      String idToken = getCookie(req, JwtAuthenticationFilter.ID_TOKEN_COOKIE);
+      if (StringUtils.isNotBlank(idToken)) {
+        res.sendRedirect(redirectUri);
+        return;
+      }
+
       // Handles the login request by sending an authentication request
       if (path.contains(OAUTH_LOGIN)) {
         sendAuthorizationRequest(res, oidcConfiguration);
@@ -107,13 +116,17 @@ public class OidcLoginFilter
 
       // Handles the callback request from the IDP to get the Access and ID tokens
       if (path.contains(OAUTH_CALLBACK)) {
-        handleCallbackAndSetAuthCookie(req, res, oidcConfiguration);
+        handleCallbackAndSetAuthCookie(req, res, oidcConfiguration, redirectUri);
       }
     }
     catch (AuthenticationException e) {
       ErrorResponse errorResponse = new ErrorResponse(Response.SC_UNAUTHORIZED, e.getMessage());
       LoginErrorResponseHandler.sendError(res, errorResponse);
     }
+  }
+
+  private String getRedirectUri() {
+    return baseUrl.get() + INDEX_HTML;
   }
 
   private void sendAuthorizationRequest(final HttpServletResponse res, final OidcConfiguration oidcConfiguration)
@@ -175,7 +188,8 @@ public class OidcLoginFilter
   private void handleCallbackAndSetAuthCookie(
       final HttpServletRequest req,
       final HttpServletResponse res,
-      final OidcConfiguration oidcConfiguration)
+      final OidcConfiguration oidcConfiguration,
+      final String redirectUri)
   {
     String codeParameter = req.getParameter("code");
 
@@ -183,9 +197,6 @@ public class OidcLoginFilter
       String authErrorDescription = req.getParameter("error_description");
       throw new AuthenticationException(String.format(ERROR_AUTHORIZING_REQUEST, authErrorDescription));
     }
-
-    // Parse the request
-    String redirectUri = baseUrl.get() + INDEX_HTML;
 
     TokenRequest tokenRequest = buildTokenRequest(oidcConfiguration, redirectUri, codeParameter);
 
@@ -246,7 +257,21 @@ public class OidcLoginFilter
     cookie.setPath("/");
     cookie.setSecure(true);
     cookie.setHttpOnly(true);
-    cookie.setMaxAge(ONE_MINUTE);
+    cookie.setMaxAge(COOKIE_MAX_AGE_IN_SECONDS);
     res.addCookie(cookie);
+  }
+
+  private String getCookie(final HttpServletRequest request, String authCookie) {
+    Cookie[] cookies = request.getCookies();
+
+    if (cookies == null) {
+      return null;
+    }
+
+    return Stream.of(cookies)
+        .filter(cookie -> authCookie.equalsIgnoreCase(cookie.getName()))
+        .map(Cookie::getValue)
+        .findFirst()
+        .orElse(null);
   }
 }

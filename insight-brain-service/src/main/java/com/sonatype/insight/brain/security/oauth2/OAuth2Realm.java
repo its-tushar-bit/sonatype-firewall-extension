@@ -105,9 +105,20 @@ public class OAuth2Realm
 
     // Creating the oauth2 user
     SsoUser ssoUser = new SsoUser(principalUsername, firstName, lastName, email, ID, groups);
-    ssoUserService.updateSsoUserAndGroups(ssoUser, ssoUser.getGroups());
+    updateSsoUserAndGroups(ssoUser);
 
     return new UserPrincipal(ssoUser.getUsername(), ssoUser.calculateDisplayName(), ID, groups);
+  }
+
+  private void updateSsoUserAndGroups(final SsoUser ssoUser) {
+    try {
+      // This should not fail, but in case it fails, we should continue with the authentication.
+      ssoUserService.updateSsoUserAndGroups(ssoUser, ssoUser.getGroups());
+    }
+    catch (Exception e) {
+      // Adding warning to log the error and check details to fix issue
+      log.warn("Unexpected error updating SSO user and groups", e);
+    }
   }
 
   public String getPrincipalUsername(String username, String email, String subject) {

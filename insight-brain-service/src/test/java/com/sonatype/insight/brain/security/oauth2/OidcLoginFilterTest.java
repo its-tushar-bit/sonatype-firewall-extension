@@ -73,6 +73,27 @@ public class OidcLoginFilterTest
   }
 
   @Test
+  public void testDoFilter_RedirectsToIndexIfIdTokenCookieExists() throws ServletException, IOException {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    final HttpServletResponse response = mock(HttpServletResponse.class);
+    final ArgumentCaptor<String> indexUrlCaptor = ArgumentCaptor.forClass(String.class);
+    final String issuer = idpServer.baseUrl();
+    final String tokenUrl = String.format("%s/token", issuer);
+
+    when(mockBaseUrl.get()).thenReturn(BASE_URL);
+    when(request.getCookies()).thenReturn(new Cookie[]{new Cookie(JwtAuthenticationFilter.ID_TOKEN_COOKIE, "JWT")});
+
+    tempEntity.newOidcConfiguration(issuer, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, tokenUrl);
+    when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_LOGIN);
+
+    oidcLoginFilter.doFilter(request, response, null);
+
+    verify(response).sendRedirect(indexUrlCaptor.capture());
+    verify(request).getCookies();
+    assertThat(indexUrlCaptor.getValue()).isEqualTo(String.format("%s%s", BASE_URL, OidcLoginFilter.INDEX_HTML));
+  }
+
+  @Test
   public void testDoFilter_ThrowsExceptionWhenNoOidcConfigurationPresent() throws ServletException, IOException {
     final HttpServletRequest request = mock(HttpServletRequest.class);
     final HttpServletResponse response = mock(HttpServletResponse.class);

@@ -39,6 +39,7 @@ public class JwtAuthenticationFilter
     }
 
     if (StringUtils.isNotBlank(getAuthCookie(request, ID_TOKEN_COOKIE))) {
+      log.debug("Found cookie with the ID Token. Handling as login attempt.");
       return true;
     }
 

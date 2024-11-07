@@ -5,6 +5,7 @@
  */
 
 import * as dashboardActions from 'MainRoot/dashboard/results/dashboardResultsActions';
+import axios from 'axios';
 import {
   loadApplicationResults,
   loadComponentResults,
@@ -20,6 +21,7 @@ import {
   setWaiversPage,
 } from 'MainRoot/dashboard/results/dashboardResultsActions';
 import * as dashboardDataServices from 'MainRoot/dashboard/services/dashboard.data.service';
+import { getProductFeaturesUrl } from 'MainRoot/util/CLMLocation';
 
 describe('dashboardResultsActions', function () {
   let loadResults, setPage;
@@ -27,7 +29,8 @@ describe('dashboardResultsActions', function () {
   const newRisksSpy = jasmine.createSpy('getNewestRisks'),
     applicationsRiskSpy = jasmine.createSpy('getApplicationRisks'),
     componentRisksSpy = jasmine.createSpy('getComponentRisks'),
-    getWaiversSpy = jasmine.createSpy('getWaivers');
+    getWaiversSpy = jasmine.createSpy('getWaivers'),
+    getWaiversAndAutoWaiversSpy = jasmine.createSpy('getWaiversAndAutoWaivers');
 
   const tabs = [
     {
@@ -55,6 +58,7 @@ describe('dashboardResultsActions', function () {
         getApplicationRisks: applicationsRiskSpy,
         getComponentRisks: componentRisksSpy,
         getWaivers: getWaiversSpy,
+        getWaiversAndAutoWaivers: getWaiversAndAutoWaiversSpy,
         DASHBOARD_PAGE_SIZE: 25,
       },
     });
@@ -380,16 +384,64 @@ describe('dashboardResultsActions', function () {
   });
 
   describe('loadWaiverResults', () => {
-    it('calls loadResults with the applications resultsType', (done) => {
-      spyOn(dashboardDataServices, 'getWaivers').and.returnValue(
+    let getWaiversSpy, getWaiversAndAutoWaiversSpy, axiosGetSpy;
+
+    beforeEach(() => {
+      getWaiversSpy = spyOn(dashboardDataServices, 'getWaivers').and.returnValue(
         Promise.resolve({
           results: 'waiversResults',
           numResults: 3,
         })
       );
 
+      getWaiversAndAutoWaiversSpy = spyOn(dashboardDataServices, 'getWaiversAndAutoWaivers').and.returnValue(
+        Promise.resolve({
+          results: 'autoWaiversResults',
+          numResults: 3,
+        })
+      );
+
+      axiosGetSpy = spyOn(axios, 'get').and.returnValue(Promise.resolve({ data: ['auto-waivers'] }));
+    });
+
+    it('calls loadResults with getWaiversAndAutoWaivers if auto-waivers feature is enabled', (done) => {
       const store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(loadWaiverResults()).then(() => {
+        expect(axiosGetSpy).toHaveBeenCalledWith(getProductFeaturesUrl());
+        expect(getWaiversAndAutoWaiversSpy).toHaveBeenCalledWith(
+          initialState.dashboardFilter.appliedFilter,
+          initialState.dashboard.waivers.sortFields,
+          0
+        );
+        expect(store.getActions()).toHaveActionsInOrder([
+          {
+            type: 'LOAD_RESULTS_REQUESTED',
+            payload: 'waivers',
+          },
+          {
+            type: 'LOAD_RESULTS_FULFILLED',
+            payload: {
+              resultsType: 'waivers',
+              results: 'autoWaiversResults',
+              numResults: 3,
+            },
+          },
+        ]);
+        done();
+      });
+    });
+
+    it('calls loadResults with getWaivers if auto-waivers feature is not enabled', (done) => {
+      axiosGetSpy.and.returnValue(Promise.resolve({ data: [] }));
+
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(loadWaiverResults()).then(() => {
+        expect(axiosGetSpy).toHaveBeenCalledWith(getProductFeaturesUrl());
+        expect(getWaiversSpy).toHaveBeenCalledWith(
+          initialState.dashboardFilter.appliedFilter,
+          initialState.dashboard.waivers.sortFields,
+          0
+        );
         expect(store.getActions()).toHaveActionsInOrder([
           {
             type: 'LOAD_RESULTS_REQUESTED',
@@ -401,6 +453,28 @@ describe('dashboardResultsActions', function () {
               resultsType: 'waivers',
               results: 'waiversResults',
               numResults: 3,
+            },
+          },
+        ]);
+        done();
+      });
+    });
+
+    it('handles error from the service method', (done) => {
+      const store = SpecUtil.mockReduxStore(initialState);
+      getWaiversAndAutoWaiversSpy.and.returnValue(Promise.reject('service error'));
+
+      store.dispatch(loadWaiverResults()).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder([
+          {
+            type: 'LOAD_RESULTS_REQUESTED',
+            payload: 'waivers',
+          },
+          {
+            type: 'LOAD_RESULTS_FAILED',
+            payload: {
+              resultsType: 'waivers',
+              error: 'service error',
             },
           },
         ]);
@@ -446,20 +520,39 @@ describe('dashboardResultsActions', function () {
   });
 
   describe('setWaiversPage', () => {
-    it('calls setPage with the waivers resultsType', (done) => {
-      spyOn(dashboardDataServices, 'getWaivers').and.returnValue(
+    let getWaiversSpy, getWaiversAndAutoWaiversSpy, axiosGetSpy;
+
+    beforeEach(() => {
+      getWaiversSpy = spyOn(dashboardDataServices, 'getWaivers').and.returnValue(
         Promise.resolve({
-          results: 'waiverResults',
+          results: 'waiversResults',
           numResults: 3,
-          classyBrew: 'classyBrew',
         })
       );
+
+      getWaiversAndAutoWaiversSpy = spyOn(dashboardDataServices, 'getWaiversAndAutoWaivers').and.returnValue(
+        Promise.resolve({
+          results: 'autoWaiversResults',
+          numResults: 3,
+        })
+      );
+
+      axiosGetSpy = spyOn(axios, 'get').and.returnValue(Promise.resolve({ data: ['auto-waivers'] }));
+    });
+
+    it('calls setPage with the correct resultsType and page number, and uses getWaiversAndAutoWaivers if feature is enabled', (done) => {
       const store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(setWaiversPage(10)).then(() => {
+      store.dispatch(setWaiversPage(2)).then(() => {
+        expect(axiosGetSpy).toHaveBeenCalledWith(getProductFeaturesUrl());
+        expect(getWaiversAndAutoWaiversSpy).toHaveBeenCalledWith(
+          initialState.dashboardFilter.appliedFilter,
+          initialState.dashboard.waivers.sortFields,
+          0
+        );
         expect(store.getActions()).toHaveActionsInOrder([
           {
             type: 'DASHBOARD_SET_PAGE',
-            payload: { resultsType: 'waivers', page: 10 },
+            payload: { resultsType: 'waivers', page: 2 },
           },
           {
             type: 'LOAD_RESULTS_REQUESTED',
@@ -469,9 +562,63 @@ describe('dashboardResultsActions', function () {
             type: 'LOAD_RESULTS_FULFILLED',
             payload: {
               resultsType: 'waivers',
-              results: 'waiverResults',
+              results: 'autoWaiversResults',
               numResults: 3,
-              classyBrew: 'classyBrew',
+            },
+          },
+        ]);
+        done();
+      });
+    });
+
+    it('calls setPage with the correct resultsType and page number, and uses getWaivers if feature is not enabled', (done) => {
+      axiosGetSpy.and.returnValue(Promise.resolve({ data: [] }));
+
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(setWaiversPage(2)).then(() => {
+        expect(axiosGetSpy).toHaveBeenCalledWith(getProductFeaturesUrl());
+        expect(getWaiversSpy).toHaveBeenCalledWith(
+          initialState.dashboardFilter.appliedFilter,
+          initialState.dashboard.waivers.sortFields,
+          0
+        );
+        expect(store.getActions()).toHaveActionsInOrder([
+          {
+            type: 'DASHBOARD_SET_PAGE',
+            payload: { resultsType: 'waivers', page: 2 },
+          },
+          {
+            type: 'LOAD_RESULTS_REQUESTED',
+            payload: 'waivers',
+          },
+          {
+            type: 'LOAD_RESULTS_FULFILLED',
+            payload: {
+              resultsType: 'waivers',
+              results: 'waiversResults',
+              numResults: 3,
+            },
+          },
+        ]);
+        done();
+      });
+    });
+
+    it('handles error from the service method', (done) => {
+      const store = SpecUtil.mockReduxStore(initialState);
+      getWaiversAndAutoWaiversSpy.and.returnValue(Promise.reject('service error'));
+
+      store.dispatch(setWaiversPage(2)).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder([
+          {
+            type: 'DASHBOARD_SET_PAGE',
+            payload: { resultsType: 'waivers', page: 2 },
+          },
+          {
+            type: 'LOAD_RESULTS_FAILED',
+            payload: {
+              resultsType: 'waivers',
+              error: 'service error',
             },
           },
         ]);

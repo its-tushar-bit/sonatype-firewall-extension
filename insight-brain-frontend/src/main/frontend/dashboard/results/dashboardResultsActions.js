@@ -4,12 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { sortItemsByFields, sortWaiversByFields } from '../../util/sortUtils';
+import axios from 'axios';
 import {
   getApplicationRisks,
   getComponentRisks,
   getNewestRisks,
   getWaivers,
   DASHBOARD_PAGE_SIZE,
+  getWaiversAndAutoWaivers,
 } from '../services/dashboard.data.service';
 import dashboardServicesModule from '../services/module';
 import { isNil, partial } from 'ramda';
@@ -20,6 +22,7 @@ import {
   WAIVERS_RESULTS_TYPE,
 } from 'MainRoot/dashboard/results/dashboardResultsTypes';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { getProductFeaturesUrl } from 'MainRoot/util/CLMLocation';
 
 export const LOAD_RESULTS_REQUESTED = 'LOAD_RESULTS_REQUESTED';
 export const LOAD_RESULTS_FULFILLED = 'LOAD_RESULTS_FULFILLED';
@@ -123,18 +126,27 @@ function sortResultsFulfilled(resultsType, results) {
   };
 }
 
-function fetchResults(resultsType, state) {
+async function fetchResults(resultsType, state) {
+  const features = await axios
+    .get(getProductFeaturesUrl())
+    .then((response) => response.data) // Extract the data directly
+    .catch((error) => {
+      console.error('Error fetching product features:', error);
+      return [];
+    });
+
+  const autoWaiversFeature = features.includes('auto-waivers');
   const sortFields = state.dashboard[resultsType].sortFields;
   let pageFromParams = selectRouterCurrentParams(state)?.page;
   if (!isNil(pageFromParams)) {
     pageFromParams--;
   }
   const page = state.dashboard[resultsType].page ?? pageFromParams ?? 0;
-  const serviceMethod = getServiceMethod(resultsType);
+  const serviceMethod = getServiceMethod(resultsType, autoWaiversFeature);
   return serviceMethod(state.dashboardFilter.appliedFilter, sortFields, page);
 }
 
-function getServiceMethod(resultsType) {
+function getServiceMethod(resultsType, autoWaiversFeature) {
   switch (resultsType) {
     case 'violations':
       return getNewestRisks;
@@ -146,7 +158,7 @@ function getServiceMethod(resultsType) {
       return getApplicationRisks;
 
     case 'waivers':
-      return getWaivers;
+      return autoWaiversFeature ? getWaiversAndAutoWaivers : getWaivers;
 
     default:
       throw new Error('dashboard results is not supported for ' + resultsType);

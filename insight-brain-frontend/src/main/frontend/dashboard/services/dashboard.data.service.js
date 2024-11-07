@@ -12,7 +12,13 @@ import {
   translateWaiversSortFields,
 } from './sortFieldsUtils';
 
-import { getNewestRisksUrl, getApplicationRisksUrl, getComponentRisksUrl, getWaiversUrl } from '../../util/CLMLocation';
+import {
+  getNewestRisksUrl,
+  getApplicationRisksUrl,
+  getComponentRisksUrl,
+  getWaiversUrl,
+  getWaiversAndAutoWaiversUrl,
+} from '../../util/CLMLocation';
 
 import { createDashboardDataRequestPayload } from '../utils/dashboard.utils.module';
 import { createClassyBrew } from '../utils/classybrew.factory';
@@ -39,6 +45,16 @@ export function getApplicationRisks(filters, sortFields, page) {
     page
   );
   return axios.post(getApplicationRisksUrl(), request).then(dashboardRespopnseHandler(generateApplicationsSeries));
+}
+
+export function getWaiversAndAutoWaivers(filters, sortFields, page) {
+  const request = createDashboardDataRequestPayload(
+    filters,
+    DASHBOARD_PAGE_SIZE,
+    translateWaiversSortFields(sortFields),
+    page
+  );
+  return axios.post(getWaiversAndAutoWaiversUrl(), request).then(dashboardRespopnseHandler());
 }
 
 const applicationsScoreFields = ['totalRisk', 'criticalRisk', 'severeRisk', 'moderateRisk', 'lowRisk'];

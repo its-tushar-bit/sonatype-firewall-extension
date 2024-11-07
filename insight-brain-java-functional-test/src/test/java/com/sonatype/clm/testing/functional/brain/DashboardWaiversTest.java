@@ -160,6 +160,174 @@ public class DashboardWaiversTest
   }
 
   @Test
+  public void testWaiversTable_loadsAllAutoWaiversWithoutFilters() {
+    refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.waitUntilSpinnersGone();
+
+    policyWaivers = createAutoWaivers();
+    refresh();
+    DashboardPage.waitUntilSpinnersGone();
+
+    DashboardPage.dashboardContainer().shouldBe(visible);
+    table.waivers().shouldHave(size(9));
+
+    // check the tile details
+    WaiverTile waiver1 = table.firstWaiver();
+    waiver1.threatIndicator().shouldHave(SEVERE);
+    waiver1.threatNumber().shouldHave(text("7"));
+    waiver1.createTime().shouldHave(text(dateFormat.format(Date.from(twoDaysAgo))));
+    if (waiver1.policy() != null) {
+      waiver1.policy().shouldHave(
+          text("Policy 1")
+      );
+    }
+    waiver1.scope().shouldHave(text("Organization - Org 1"));
+    if (waiver1.component() != null) {
+      waiver1.component().shouldHave(
+          text("Group1 : Artifact1 : 1.2.3")
+      );
+    }
+    waiver1.upgradeAvailable().shouldHave(text("Available"));
+
+    WaiverTile waiver2 = table.waiver(1);
+    waiver2.threatIndicator().shouldHave(MODERATE);
+    waiver2.threatNumber().shouldHave(text("3"));
+    waiver2.createTime().shouldHave(text(dateFormat.format(Date.from(threeDaysAgo))));
+    if (waiver2.policy() != null) {
+      waiver2.policy().shouldHave(
+          text("Policy 3")
+      );
+    }
+    waiver2.scope().shouldHave(text("Application - App 2"));
+    if (waiver2.component() != null) {
+      waiver2.component().shouldHave(
+          text("Group1 : Artifact1 : 1.2.3")
+      );
+    }
+    waiver2.upgradeAvailable().shouldHave(text("Available"));
+
+    WaiverTile waiver3 = table.waiver(2);
+    waiver3.threatIndicator().shouldHave(CRITICAL);
+    waiver3.threatNumber().shouldHave(text("9"));
+    waiver3.createTime().shouldHave(text(dateFormat.format(Date.from(sixDaysAgo))));
+    if (waiver3.policy() != null) {
+      waiver3.policy().shouldHave(
+          text("Policy 2")
+      );
+    }
+    waiver3.scope().shouldHave(text("Organization - Org 1"));
+    if (waiver3.component() != null) {
+      waiver3.component().shouldHave(
+          text("All Components")
+      );
+    }
+    waiver3.upgradeAvailable().shouldHave(text("—"));
+
+    WaiverTile waiver4 = table.waiver(3);
+    waiver4.threatIndicator().shouldHave(CRITICAL);
+    waiver4.threatNumber().shouldHave(text("9"));
+    waiver4.createTime().shouldHave(text(dateFormat.format(Date.from(sevenDaysAgo))));
+    if (waiver4.policy() != null) {
+      waiver4.policy().shouldHave(
+          text("Policy 2")
+      );
+    }
+    waiver4.scope().shouldHave(text("Application - App 1"));
+    if (waiver4.component() != null) {
+      waiver4.component().shouldHave(
+          text("Group1 : Artifact1 (all versions)")
+      );
+    }
+    waiver4.upgradeAvailable().shouldHave(text("—"));
+
+    WaiverTile waiver6 = table.waiver(4);
+    waiver6.threatIndicator().shouldHave(SEVERE);
+    waiver6.threatNumber().shouldHave(text("4"));
+    waiver6.createTime().shouldHave(text(dateFormat.format(Date.from(eightDaysAgo))));
+    if (waiver6.policy() != null) {
+      waiver6.policy().shouldHave(
+          text("Policy 4")
+      );
+    }
+    waiver6.scope().shouldHave(text(rootOrg.getName()));
+    if (waiver6.component() != null) {
+      waiver6.component().shouldHave(
+          text("Group1 : Artifact1 : 1.2.3")
+      );
+    }
+    waiver6.upgradeAvailable().shouldHave(text("—"));
+
+    WaiverTile repositoryWaiver = table.waiver(5);
+    repositoryWaiver.threatIndicator().shouldHave(SEVERE);
+    repositoryWaiver.threatNumber().shouldHave(text("7"));
+    repositoryWaiver.createTime().shouldHave(text(dateFormat.format(Date.from(nineDaysAgo))));
+    if (repositoryWaiver.policy() != null) {
+      repositoryWaiver.policy().shouldHave(
+          text("Policy 1")
+      );
+    }
+    repositoryWaiver.scope().shouldHave(
+        text(repository1.getType().toString() + " - " + "repository")
+    );
+    if (repositoryWaiver.component() != null) {
+      repositoryWaiver.component().shouldHave(
+          text("Group1 : Artifact1 : 1.2.3")
+      );
+    }
+    repositoryWaiver.upgradeAvailable().shouldHave(text("Available"));
+
+    WaiverTile repositoryContainerWaiver = table.waiver(6);
+    repositoryContainerWaiver.threatIndicator().shouldHave(CRITICAL);
+    repositoryContainerWaiver.threatNumber().shouldHave(text("9"));
+    repositoryContainerWaiver.createTime().shouldHave(text(dateFormat.format(Date.from(fourteenDaysAgo))));
+    if (repositoryContainerWaiver.policy() != null) {
+      repositoryContainerWaiver.policy().shouldHave(
+          text("Policy 2")
+      );
+    }
+    repositoryContainerWaiver.scope().shouldHave(text("Repository Managers"));
+    if (repositoryContainerWaiver.component() != null) {
+      repositoryContainerWaiver.component().shouldHave(
+          text("Group1 : Artifact1 : 1.2.3")
+      );
+    }
+    repositoryContainerWaiver.upgradeAvailable().shouldHave(text("—"));
+
+    WaiverTile waiverParentOrg = table.waiver(7);
+    waiverParentOrg.threatIndicator().shouldHave(CRITICAL);
+    waiverParentOrg.threatNumber().shouldHave(text("9"));
+    waiverParentOrg.createTime().shouldHave(text(dateFormat.format(Date.from(thirtyDaysAgo))));
+    if (waiverParentOrg.policy() != null) {
+      waiverParentOrg.policy().shouldHave(
+          text("Policy 2")
+      );
+    }
+    waiverParentOrg.scope().shouldHave(text("Organization - Parent Org 1"));
+    if (waiverParentOrg.component() != null) {
+      waiverParentOrg.component().shouldHave(
+          text("Group1 : Artifact1 : 1.2.3")
+      );
+    }
+
+    WaiverTile waiver5 = table.waiver(8);
+    waiver5.threatIndicator().shouldHave(MODERATE);
+    waiver5.threatNumber().shouldHave(text("3"));
+    waiver5.createTime().shouldHave(text(dateFormat.format(Date.from(fiveDaysAgo))));
+    if (waiver5.policy() != null) {
+      waiver5.policy().shouldHave(
+          text("Policy 3")
+      );
+    }
+    waiver5.scope().shouldHave(text("Application - App 1"));
+    if (waiver5.component() != null) {
+      waiver5.component().shouldHave(
+          text("Group1 : Artifact1 : 1.2.3")
+      );
+    }
+    waiver5.upgradeAvailable().shouldHave(text("—"));
+  }
+
+  @Test
   public void testWaiversTable_loadsAllWaiversWithoutFilters() {
     refreshOrOpen(DashboardPage.urlToWaivers());
     DashboardPage.waitUntilSpinnersGone();
@@ -833,6 +1001,164 @@ public class DashboardWaiversTest
         "Researching",
         "Other",
         "(No reason provided)");
+  }
+
+  private ArrayList<PolicyWaiver> createAutoWaivers() {
+    parentOrganization = tempEntity.newOrganization("Parent Org 1");
+    organization = tempEntity.newOrganization("Org 1", parentOrganization);
+    application = tempEntity.newApplication("App 1", "app1", organization.getId());
+    application2 = tempEntity.newApplication("App 2", "app2", organization.getId());
+    repository1 = tempEntity.newRepository("Repository 1");
+
+    ArrayList<Policy> securityPolicies = new ArrayList<>() {{
+        this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 1", 7));
+        this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 2", 9));
+        this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 3", 3));
+        this.add(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "Policy 4", 4));
+      }};
+
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application.getId(),
+            StageTypes.BUILD.getId(), "scan1", false, false, Date.from(twoDaysAgo));
+
+    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(application2.getId(),
+            StageTypes.BUILD.getId(), "scan1", false, false, Date.from(twoDaysAgo));
+
+    tempEntity.newPolicyViolation(policyEvaluation1, securityPolicies.get(0), "Group1",
+            "Artifact1", "Version1", "hash1", "sonatype-2017-0507");
+    tempEntity.newPolicyViolation(policyEvaluation1, securityPolicies.get(1), "Group2",
+            "Artifact2", "Version2", "hash2", "sonatype-2017-8912");
+    tempEntity.newPolicyViolation(policyEvaluation2, securityPolicies.get(2), "Group3",
+        "Artifact3", "Version3", "hash3", "sonatype-2017-7848");
+    
+    PolicyWaiver policyWaiver1 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash1")
+        .withPolicyId(securityPolicies.get(0).getId())
+        .withOwnerId(organization.getId())
+        .withAssociatedPackageUrl(null)
+        .withComponentMatcherStrategyForWaiver(null)
+        .withComment(null)
+        .withCreateTime(Date.from(twoDaysAgo))
+        .withExpiryTime(null)
+        .withCreatorId(null)
+        .withCreatorName(null)
+        .withComponentUpgradeAvailable(null)
+        .build());
+
+    PolicyWaiver policyWaiver2 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash2")
+        .withPolicyId(securityPolicies.get(0).getId())
+        .withOwnerId(application2.getId())
+        .withAssociatedPackageUrl(null)
+        .withComponentMatcherStrategyForWaiver(null)
+        .withComment(null)
+        .withCreateTime(Date.from(threeDaysAgo))
+        .withExpiryTime(null)
+        .withCreatorId(null)
+        .withCreatorName(null)
+        .withComponentUpgradeAvailable(null)
+        .build());
+
+    PolicyWaiver policyWaiver3 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash3")
+        .withPolicyId(securityPolicies.get(0).getId())
+        .withOwnerId(application.getId())
+        .withAssociatedPackageUrl(null)
+        .withComponentMatcherStrategyForWaiver(null)
+        .withComment(null)
+        .withCreateTime(Date.from(fiveDaysAgo))
+        .withExpiryTime(null)
+        .withCreatorId(null)
+        .withCreatorName(null)
+        .withComponentUpgradeAvailable(null)
+        .build());
+
+    PolicyWaiver policyWaiver4 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash4")
+        .withPolicyId(securityPolicies.get(0).getId())
+        .withOwnerId(organization.getId())
+        .withAssociatedPackageUrl(null)
+        .withComponentMatcherStrategyForWaiver(null)
+        .withComment(null)
+        .withCreateTime(Date.from(sixDaysAgo))
+        .withExpiryTime(null)
+        .withCreatorId(null)
+        .withCreatorName(null)
+        .withComponentUpgradeAvailable(null)
+        .build());
+
+    PolicyWaiver policyWaiver5 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash5")
+        .withPolicyId(securityPolicies.get(0).getId())
+        .withOwnerId(application.getId())
+        .withAssociatedPackageUrl(null)
+        .withComponentMatcherStrategyForWaiver(null)
+        .withComment(null)
+        .withCreateTime(Date.from(sevenDaysAgo))
+        .withExpiryTime(null)
+        .withCreatorId(null)
+        .withCreatorName(null)
+        .withComponentUpgradeAvailable(null)
+        .build());
+
+    PolicyWaiver policyWaiver6 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash6")
+        .withPolicyId(securityPolicies.get(0).getId())
+        .withOwnerId(rootOrg.getId())
+        .withAssociatedPackageUrl(null)
+        .withComponentMatcherStrategyForWaiver(null)
+        .withComment(null)
+        .withCreateTime(Date.from(eightDaysAgo))
+        .withExpiryTime(null)
+        .withCreatorId(null)
+        .withCreatorName(null)
+        .withComponentUpgradeAvailable(null)
+        .build());
+
+    PolicyWaiver policyWaiver7 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash7")
+        .withPolicyId(securityPolicies.get(0).getId())
+        .withOwnerId(repository1.getId())
+        .withAssociatedPackageUrl(null)
+        .withComponentMatcherStrategyForWaiver(null)
+        .withComment(null)
+        .withCreateTime(Date.from(nineDaysAgo))
+        .withExpiryTime(null)
+        .withCreatorId(null)
+        .withCreatorName(null)
+        .withComponentUpgradeAvailable(null)
+        .build());
+
+    PolicyWaiver policyWaiver8 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash8")
+        .withPolicyId(securityPolicies.get(0).getId())
+        .withOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID)
+        .withAssociatedPackageUrl(null)
+        .withComponentMatcherStrategyForWaiver(null)
+        .withComment(null)
+        .withCreateTime(Date.from(fourteenDaysAgo))
+        .withExpiryTime(null)
+        .withCreatorId(null)
+        .withCreatorName(null)
+        .withComponentUpgradeAvailable(null)
+        .build());
+
+    PolicyWaiver policyWaiver9 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash9")
+        .withPolicyId(securityPolicies.get(0).getId())
+        .withOwnerId(parentOrganization.getId())
+        .withAssociatedPackageUrl(null)
+        .withComponentMatcherStrategyForWaiver(null)
+        .withComment(null)
+        .withCreateTime(Date.from(thirtyDaysAgo))
+        .withExpiryTime(null)
+        .withCreatorId(null)
+        .withCreatorName(null)
+        .withComponentUpgradeAvailable(null)
+        .build());
+
+    return new ArrayList<>(
+        Arrays.asList(policyWaiver1, policyWaiver2, policyWaiver3, policyWaiver4, policyWaiver5, policyWaiver6,
+            policyWaiver7, policyWaiver8, policyWaiver9));
   }
 
   private ArrayList<PolicyWaiver> createWaivers() {

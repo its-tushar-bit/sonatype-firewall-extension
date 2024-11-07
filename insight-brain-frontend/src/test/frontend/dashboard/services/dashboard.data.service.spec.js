@@ -10,11 +10,12 @@ import {
   getApplicationRisksUrl,
   getComponentRisksUrl,
   getWaiversUrl,
+  getWaiversAndAutoWaiversUrl,
 } from '../../../../main/frontend/util/CLMLocation';
 import { waiverMatcherStrategy } from 'MainRoot/util/waiverUtils';
 
 describe('dashboard.data.service.spec', function () {
-  let classyBrewSpy, getNewestRisks, getApplicationRisks, getComponentRisks, getWaivers;
+  let classyBrewSpy, getNewestRisks, getApplicationRisks, getComponentRisks, getWaivers, getWaiversAndAutoWaivers;
 
   const filter = { filterParam: 'filter value' };
 
@@ -43,6 +44,7 @@ describe('dashboard.data.service.spec', function () {
     getApplicationRisks = dashboardDataService.getApplicationRisks;
     getComponentRisks = dashboardDataService.getComponentRisks;
     getWaivers = dashboardDataService.getWaivers;
+    getWaiversAndAutoWaivers = dashboardDataService.getWaiversAndAutoWaivers;
   });
 
   describe('getNewestRisks()', function () {
@@ -382,6 +384,97 @@ describe('dashboard.data.service.spec', function () {
       getWaivers(filter, ['-component', 'createTime', '-expiryTime', '-scope', 'policyName', 'threatLevel'], 0);
 
       expect(axios.post).toHaveBeenCalledWith(waiversUrl, expectedRequestData);
+    });
+  });
+
+  describe('getWaiversAndAutoWaivers()', function () {
+    it('populates component name', function (done) {
+      const data = {
+        dashboardResults: [
+          {
+            id: '35513cecc0214e0cb0207238dc1fba6e',
+            threatLevel: 7,
+            policyId: '67a74447c2bf4c53b8e26f93b16ad4ee',
+            policyName: 'Component-Similar',
+            ownerId: 'ROOT_ORGANIZATION_ID',
+            ownerName: 'Root Organization',
+            ownerType: 'organization',
+            componentMatchStrategy: waiverMatcherStrategy.ALL_VERSIONS,
+            displayName: 'org.sonatype.nexus : nexus-rest-client',
+          },
+          {
+            id: 'bbb045cb733d4868bd6d30e4384e19f4',
+            threatLevel: 9,
+            policyId: '358f08a34c7b47739f6962b35b84fbea',
+            policyName: 'Security-High',
+            ownerId: '79e2b6864a4d4f5fbce461cf930c3f2c',
+            ownerName: 'unprotected zip big java app',
+            ownerType: 'application',
+            componentMatchStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
+            displayName: 'commons-beanutils : commons-beanutils : 1.8.3',
+          },
+        ],
+        numResults: 2,
+      };
+      const autoWaiversUrl = getWaiversAndAutoWaiversUrl();
+
+      mockAxiosCalls({
+        post: {
+          [autoWaiversUrl]: Promise.resolve({ data }),
+        },
+      });
+
+      getWaiversAndAutoWaivers(filter, [], 0).then(function (data) {
+        const { results, numResults } = data;
+        expect(axios.post).toHaveBeenCalledWith(autoWaiversUrl, { ...expectedRequestPayload, pageSize: 100 });
+        expect(results[0].id).toBe('35513cecc0214e0cb0207238dc1fba6e');
+        expect(results[0].displayName).toBe('org.sonatype.nexus : nexus-rest-client');
+        expect(results[0].ownerName).toBe('Root Organization');
+        expect(results[0].ownerType).toBe('organization');
+        expect(results[0].threatLevel).toBe(7);
+        expect(results[0].policyName).toBe('Component-Similar');
+        expect(results[1].id).toBe('bbb045cb733d4868bd6d30e4384e19f4');
+        expect(results[1].displayName).toBe('commons-beanutils : commons-beanutils : 1.8.3');
+        expect(results[1].ownerName).toBe('unprotected zip big java app');
+        expect(results[1].ownerType).toBe('application');
+        expect(results[1].threatLevel).toBe(9);
+        expect(results[1].policyName).toBe('Security-High');
+        expect(numResults).toBe(2);
+        done();
+      });
+    });
+
+    it('translates sortFields', function () {
+      const autoWaiversUrl = getWaiversAndAutoWaiversUrl(),
+        expectedSortFields = [
+          '-COMPONENT_SCOPE',
+          'CREATION_DATE',
+          '-EXPIRATION_DATE',
+          '-OWNER_SCOPE',
+          'POLICY_NAME',
+          'THREAT_LEVEL',
+        ];
+
+      const expectedRequestData = {
+        ...expectedRequestPayload,
+        orderBy: expectedSortFields.join(','),
+      };
+
+      mockAxiosCalls({
+        post: {
+          [autoWaiversUrl]: Promise.resolve({
+            data: { dashboardResults: [], numResults: 0 },
+          }),
+        },
+      });
+
+      getWaiversAndAutoWaivers(
+        filter,
+        ['-component', 'createTime', '-expiryTime', '-scope', 'policyName', 'threatLevel'],
+        0
+      );
+
+      expect(axios.post).toHaveBeenCalledWith(autoWaiversUrl, expectedRequestData);
     });
   });
 });

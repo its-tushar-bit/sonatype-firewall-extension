@@ -8,7 +8,7 @@ import * as PropTypes from 'prop-types';
 import moment from 'moment';
 import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
 import UpgradeAvailableIndicator from 'MainRoot/react/upgradeAvailableIndicator/UpgradeAvailableIndicator';
-import { NxTable, NxThreatIndicator, NxOverflowTooltip } from '@sonatype/react-shared-components';
+import { NxTable, NxThreatIndicator, NxOverflowTooltip, NxSmallTag } from '@sonatype/react-shared-components';
 import { isWaiverAllVersionsOrExact, shouldShowUpgradeIndicator } from 'MainRoot/util/waiverUtils';
 
 export default function DashboardWaiversTableRow({ stateGo, waiver, page }) {
@@ -52,12 +52,20 @@ export default function DashboardWaiversTableRow({ stateGo, waiver, page }) {
       </NxTable.Cell>
       <NxTable.Cell>
         <NxOverflowTooltip>
-          <div className="nx-truncate-ellipsis">{waiverExpiryTime}</div>
+          <div>
+            {waiver.isAutoWaiver === true ? (
+              <NxSmallTag color="green" style={{ margin: '0' }}>
+                Auto
+              </NxSmallTag>
+            ) : (
+              waiverExpiryTime
+            )}
+          </div>
         </NxOverflowTooltip>
       </NxTable.Cell>
       <NxTable.Cell>
         <NxOverflowTooltip>
-          <div className="nx-truncate-ellipsis">{policyName}</div>
+          <div>{policyName ? policyName : <span>{'—'}</span>}</div>
         </NxOverflowTooltip>
       </NxTable.Cell>
       <NxTable.Cell>
@@ -66,7 +74,9 @@ export default function DashboardWaiversTableRow({ stateGo, waiver, page }) {
         </NxOverflowTooltip>
       </NxTable.Cell>
       <NxTable.Cell>
-        {isWaiverAllVersionsOrExact(waiver) ? (
+        {waiver.componentIdentifier === null ? (
+          <span>{'—'}</span>
+        ) : isWaiverAllVersionsOrExact(waiver) ? (
           <ComponentDisplay component={waiver} truncate={true} matcherStrategy={componentMatchStrategy} />
         ) : (
           'All Components'
@@ -91,12 +101,12 @@ export const waiverPropTypes = PropTypes.shape({
   threatLevel: PropTypes.number.isRequired,
   createTime: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   expiryTime: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-  policyName: PropTypes.string.isRequired,
+  policyName: PropTypes.string,
   ownerId: PropTypes.string.isRequired,
   ownerName: PropTypes.string,
   ownerType: PropTypes.string.isRequired,
   scope: PropTypes.string.isRequired,
-  componentMatchStrategy: PropTypes.string.isRequired,
+  componentMatchStrategy: PropTypes.string,
   componentUpgradeAvailable: PropTypes.bool,
 });
 

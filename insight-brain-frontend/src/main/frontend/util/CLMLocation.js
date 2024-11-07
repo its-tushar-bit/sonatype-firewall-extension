@@ -137,6 +137,10 @@ export function getWaiversUrl() {
   return uriTemplate`/rest/dashboard/policy/policyWaivers`;
 }
 
+export function getWaiversAndAutoWaiversUrl() {
+  return uriTemplate`/rest/dashboard/policy/policyWaivers?includeAutoWaivers=true`;
+}
+
 export function getWaiversExportUrl() {
   return uriTemplate`/rest/dashboard/export/policyWaivers`;
 }

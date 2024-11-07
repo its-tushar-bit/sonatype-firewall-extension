@@ -100,32 +100,6 @@ public class FirewallMetricsDAOTest
         .hasSecond(13);
   }
 
-  @Test
-  public void deleteRecordsOlderThanOneYear() {
-    initTestData();
-    // Create new metric with 5 days ago date, so for certain is
-    // less than one year old record
-    LocalDate fiveDaysAgoLocalDate =  LocalDate.now().minusDays(5);
-    tempEntity.newFirewallMetrics(COMPONENTS_QUARANTINED, 55, toDate(fiveDaysAgoLocalDate), fiveDaysAgoLocalDate);
-
-    // Initial size before deleting old records
-    assertThat(dao.getAll()).hasSize(5);
-
-    dao.deleteRecordsOlderThanOneYear( COMPONENTS_QUARANTINED );
-
-    // We assert after deleting is less than original size
-    List<FirewallMetrics> metricsAfterDelete = dao.getAll();
-    assertThat(metricsAfterDelete).hasSizeLessThan(5)
-        // Verify new record created was not  deleted
-        .anyMatch(firewallMetrics -> firewallMetrics
-            .getMetricsDate().isEqual(fiveDaysAgoLocalDate));
-
-    // Verify a record older than 1 year was indeed deleted
-    assertThat(metricsAfterDelete)
-        .extracting(FirewallMetrics::getMetricsDate)
-        .noneMatch(metricsDate -> metricsDate.isBefore(LocalDate.now().minusYears(1)));
-  }
-
   private void initTestDates() {
     Date date2019 = new GregorianCalendar(2019, Calendar.JANUARY, 1, 8, 3, 12 ).getTime();
     Date date2022 = new GregorianCalendar(2022, Calendar.FEBRUARY, 2, 18,

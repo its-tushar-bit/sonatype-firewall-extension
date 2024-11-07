@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.firewall.metrics.FirewallMetricsComponentsAutoReleasedConsolidatorCronJob;
 import com.sonatype.insight.brain.firewall.metrics.FirewallMetricsComponentWaivedConsolidatorCronJob;
 import com.sonatype.insight.brain.firewall.metrics.FirewallMetricsComponentQuarantinedConsolidatorCronJob;
-import com.sonatype.insight.brain.firewall.metrics.DeleteOldFirewallMetricsForSafeComponentsAutoSelectedCronJob;
 import com.sonatype.insight.brain.git.DefaultBranchMonitor;
 import com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventOrchestrator;
 import com.sonatype.insight.brain.git.PullRequestCommentPurger;
@@ -334,7 +333,6 @@ public class DefaultTestInsightBrainService
     getInstance(FirewallMetricsComponentsAutoReleasedConsolidatorCronJob.class).disableForTesting = true;
     getInstance(FirewallMetricsComponentWaivedConsolidatorCronJob.class).disableForTesting = true;
     getInstance(FirewallMetricsComponentQuarantinedConsolidatorCronJob.class).disableForTesting = true;
-    getInstance(DeleteOldFirewallMetricsForSafeComponentsAutoSelectedCronJob.class).disableForTesting = true;
     getInstance(SourceControlLoadBalancer.class).disableForTesting = true;
     getInstance(PendingSbomMetadataCleaner.class).disableForTesting = true;
   }

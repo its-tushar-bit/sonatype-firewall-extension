@@ -54,7 +54,7 @@ public class QuarantinedComponentMetricsConsolidatorTest
   }
 
   @Test
-  public void consolidateTest_deleteRecordsOlderThan1Year() {
+  public void consolidateTest_keepAllRecords() {
     initTestData();
     List<FirewallMetrics> allMetrics = firewallMetricsDAOTest.getAll();
     // Check initial data length
@@ -68,15 +68,8 @@ public class QuarantinedComponentMetricsConsolidatorTest
     consolidator.consolidate();
 
     allMetrics = firewallMetricsDAOTest.getAll();
-    // Check current data length. Records older than 1 year
-    // should have been deleted
-    assertThat(allMetrics).hasSize(2)
-        // Check f records that are at least 1 year old
-        .anyMatch(firewallMetrics -> firewallMetrics.getMetricsDate().equals(LocalDate.now()))
-        // Metric gets retained as date is not OLDER than 12 months
-        .anyMatch(firewallMetrics
-            -> firewallMetrics.getMetricsDate().equals(LocalDate.now()
-            .minusMonths(12)));
+    // Check current data length. No records should have been removed
+    assertThat(allMetrics).hasSize(5);
   }
 
   @Test

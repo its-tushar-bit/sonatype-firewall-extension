@@ -58,8 +58,6 @@ public class QuarantinedComponentMetricsConsolidator
     log.info("Consolidating Quarantined Components metrics");
     long start = System.currentTimeMillis();
 
-    firewallMetricsDAO.deleteRecordsOlderThanOneYear(COMPONENTS_QUARANTINED);
-
     Date mostRecentMetricDateFound = firewallMetricsDAO.getMostRecentLastUpdatedAtDateByName(COMPONENTS_QUARANTINED);
 
     Map<LocalDate, Long> quarantinedComponentsCount;

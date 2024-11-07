@@ -62,18 +62,6 @@ public class FirewallMetricsDAO
     return getSingle(Date.class, sQuery, metricName);
   }
 
-  public void deleteRecordsOlderThanOneYear(FirewallMetricsName metricsName) {
-    String sQuery = "SELECT entity " +
-            "FROM FirewallMetrics entity WHERE " +
-            "entity.metricsName = ?1 AND " +
-            "entity.metricsDate < ?2";
-
-    LocalDate oneYearAgoDate = LocalDate.now().minusMonths(12);
-    List<FirewallMetrics> toBeDeleted = getList(sQuery,
-        metricsName, oneYearAgoDate);
-    toBeDeleted.forEach(this::delete);
-  }
-
   @SuppressWarnings("unchecked")
   public Map<FirewallMetricsName, ApiFirewallMetricsResultDTO> getMetricsValueByName() {
     try (TransactionContext tx = createTransactionContext()) {

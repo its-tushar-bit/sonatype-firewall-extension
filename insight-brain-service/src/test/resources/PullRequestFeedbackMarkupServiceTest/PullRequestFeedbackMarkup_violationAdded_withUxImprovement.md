@@ -1,4 +1,4 @@
-### :thinking: Nexus IQ found multiple policy violations introduced by this PR:<br /><img alt="Preview" title="Preview" src="https://cdn.sonatype.com/iq-for-scm/1.0/Preview.svg" width="70" height="20">
+### :thinking: Nexus IQ found multiple policy violations introduced by this PR:<br /><img alt="Preview" title="Preview" src="https://cdn.sonatype.com/iq-for-scm/1.0/preview.png" width="70" height="20">
 
 <details>
 <summary title="Threat Level: 10 of 10"><a href="#;"><img alt="T10" src="https://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png" width="4" height="14"></a> 

@@ -1,7 +1,7 @@
 
 
 
-# <a href="#;"> <img title="Critical" alt="Critical" src="https://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png" width="20" height="20"/></a> <a href="#;"> <img title="Direct Dependency" alt="Direct Dependency" src="https://cdn.sonatype.com/iq-for-scm/1.0/d-logo.png" width="20" height="20"/></a> Sonatype IQ found issues introduced by com.fasterxml.jackson.core.jackson-databind:2.13.1<br /><a href="#;"> <img title="Preview" alt="Preview" src="https://cdn.sonatype.com/iq-for-scm/1.0/Preview.svg" width="70" height="20"/></a>
+# <a href="#;"> <img title="Critical" alt="Critical" src="https://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png" width="20" height="20"/></a> <a href="#;"> <img title="Direct Dependency" alt="Direct Dependency" src="https://cdn.sonatype.com/iq-for-scm/1.0/d-logo.png" width="20" height="20"/></a> Sonatype IQ found issues introduced by com.fasterxml.jackson.core.jackson-databind:2.13.1<br /><a href="#;"> <img title="Preview" alt="Preview" src="https://cdn.sonatype.com/iq-for-scm/1.0/preview.png" width="70" height="20"/></a>
 <details>
 <br/>
 
@@ -20,8 +20,8 @@ No recommended versions are available for this component (
 
 | **Severity** | **Issue** | **Organization Policy Violation** |
 | --- | --- | --- |
-| <b>Threat level:</b> 10<br><b>CVSS Score:</b> 6.7<br><br><a href="#;"> <img title="Sonatype Deep Dive" alt="Sonatype Deep Dive" src="https://cdn.sonatype.com/iq-for-scm/1.0/DeepDive.svg" width="900" /></a> | [SONATYPE-123-01] The is a description of SONATYPE-123-01 | [View Details](https://iq.example.com/ui/links/policyViolationReport/pv3?utm_source=github) <br /><img src="https://cdn.sonatype.com/iq-for-scm/1.0/Filler.svg" width="600" height="0" display="hidden">|
-| <b>Threat level:</b> 10<br><b>CVSS Score:</b> 5.6<br><br><a href="#;"> <img title="Sonatype Fast Track" alt="Sonatype Fast Track" src="https://cdn.sonatype.com/iq-for-scm/1.0/FastTrack.svg" width="900" /></a> | [CVE-123-01] The is a description of CVE-123-01 | [View Details](https://iq.example.com/ui/links/policyViolationReport/pv3?utm_source=github) <br /><img src="https://cdn.sonatype.com/iq-for-scm/1.0/Filler.svg" width="600" height="0" display="hidden">|
+| <b>Threat level:</b> 10<br><b>CVSS Score:</b> 6.7<br><br><a href="#;"> <img title="Sonatype Deep Dive" alt="Sonatype Deep Dive" src="https://cdn.sonatype.com/iq-for-scm/1.0/deep-dive-large.png" width="900" /></a> | [SONATYPE-123-01] The is a description of SONATYPE-123-01 | [View Details](https://iq.example.com/ui/links/policyViolationReport/pv3?utm_source=github) <br /><img src="https://cdn.sonatype.com/iq-for-scm/1.0/Filler.svg" width="600" height="0" display="hidden">|
+| <b>Threat level:</b> 10<br><b>CVSS Score:</b> 5.6<br><br><a href="#;"> <img title="Sonatype Fast Track" alt="Sonatype Fast Track" src="https://cdn.sonatype.com/iq-for-scm/1.0/fast-track-large.png" width="900" /></a> | [CVE-123-01] The is a description of CVE-123-01 | [View Details](https://iq.example.com/ui/links/policyViolationReport/pv3?utm_source=github) <br /><img src="https://cdn.sonatype.com/iq-for-scm/1.0/Filler.svg" width="600" height="0" display="hidden">|
 | <b>Threat level:</b> 7<br><b>CVSS Score:</b> N/A | None | [View Details](https://iq.example.com/ui/links/policyViolationReport/pv2?utm_source=github) <br /><img src="https://cdn.sonatype.com/iq-for-scm/1.0/Filler.svg" width="600" height="0" display="hidden">|
 </details>
 </details>

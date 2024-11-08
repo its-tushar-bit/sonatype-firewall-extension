@@ -27,7 +27,7 @@ Direct dependency | **Threat level: ${threatLevel}** | [View Component Details i
 <details>
   <summary>View Security Details</summary>
 <#else>
-### :thinking: Nexus IQ found <#if ( policiesViolatedCount > 1 )>policy violations<#else>a policy violation</#if> introduced by:<#lt><#if (provider.name() == "GITHUB" || provider.name() == "GITLAB") && scmChangesEnabled><br /><img title="Preview" alt="Preview" src="https://cdn.sonatype.com/iq-for-scm/1.0/Preview.svg" width="70" height="20"/></#if>
+### :thinking: Nexus IQ found <#if ( policiesViolatedCount > 1 )>policy violations<#else>a policy violation</#if> introduced by:<#lt><#if (provider.name() == "GITHUB" || provider.name() == "GITLAB") && scmChangesEnabled><br /><img title="Preview" alt="Preview" src="https://cdn.sonatype.com/iq-for-scm/1.0/preview.png" width="70" height="20"/></#if>
 
 <details open>
 </#if>

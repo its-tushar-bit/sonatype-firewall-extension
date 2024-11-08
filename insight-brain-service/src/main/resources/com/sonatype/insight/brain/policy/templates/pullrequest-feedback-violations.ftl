@@ -1,7 +1,7 @@
 <#include "iq-for-scm-common.ftl">
 <#if provider.name() == "GITLAB"><#assign width=14><#else><#assign width=12></#if>
 <#if ( policiesViolatedCount > 0 )>
-### :thinking: Nexus IQ found <#if ( policiesViolatedCount > 1 )>multiple policy violations<#else>a policy violation</#if> introduced by this <#if provider.name() == "GITLAB">MR<#else>PR</#if>:<#lt><#if (provider.name() == "GITHUB" || provider.name() == "GITLAB") && scmChangesEnabled><br /><img alt="Preview" title="Preview" src="https://cdn.sonatype.com/iq-for-scm/1.0/Preview.svg" width="70" height="20"></#if>
+### :thinking: Nexus IQ found <#if ( policiesViolatedCount > 1 )>multiple policy violations<#else>a policy violation</#if> introduced by this <#if provider.name() == "GITLAB">MR<#else>PR</#if>:<#lt><#if (provider.name() == "GITHUB" || provider.name() == "GITLAB") && scmChangesEnabled><br /><img alt="Preview" title="Preview" src="https://cdn.sonatype.com/iq-for-scm/1.0/preview.png" width="70" height="20"></#if>
 
 <#list componentList as component>
 <details>

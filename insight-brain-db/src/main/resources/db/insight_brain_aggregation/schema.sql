@@ -134,3 +134,4 @@ CREATE TABLE firewall_metrics (
     CONSTRAINT firewall_metrics_id_pk PRIMARY KEY (firewall_metrics_id),
     CONSTRAINT firewall_metrics_date_name_uk UNIQUE (metrics_date, metrics_name)
 );
+CREATE INDEX firewall_metrics_name_date_idx ON firewall_metrics(metrics_name, metrics_date);

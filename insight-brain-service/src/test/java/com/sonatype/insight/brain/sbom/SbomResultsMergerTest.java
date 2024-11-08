@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.Zipper;
@@ -59,8 +60,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.Binder;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
+import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.Property;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.cyclonedx.model.vulnerability.Vulnerability.Analysis;
@@ -301,8 +304,25 @@ public class SbomResultsMergerTest
       String actualSbomAsString = IOUtils.toString(actualInputStream, Charset.defaultCharset());
       String expectedSbomAsString = IOUtils.toString(expectedInputStream, Charset.defaultCharset());
       assertThatJson(actualSbomAsString)
-          .whenIgnoringPaths("metadata.timestamp", "components[*].bom-ref", "components[*].properties[0].value")
-          .isEqualTo(expectedSbomAsString);
+          .whenIgnoringPaths("metadata.timestamp", "components[*].bom-ref",
+              "components[*].properties[0].value", "dependencies").isEqualTo(expectedSbomAsString);
+      Bom actualBom = SbomCycloneDxUtils.parseContentNoValidation(actualSbomAsString);
+      List<Dependency> actualDependencies = actualBom.getDependencies();
+      assertThat(actualDependencies).hasSize(1);
+      Dependency actualDependency = actualDependencies.get(0);
+      assertThat(actualDependency.getDependencies()).hasSize(1);
+      String actualParentComponentBomRef = actualDependency.getRef();
+      String actualChildComponentBomRef = actualDependency.getDependencies().get(0).getRef();
+      Component actualParentComponent = actualBom.getComponents().stream()
+          .filter(it -> it.getBomRef().equals(actualParentComponentBomRef)).findFirst().get();
+      Component actualChildComponent = actualBom.getComponents().stream()
+          .filter(it -> it.getBomRef().equals(actualChildComponentBomRef)).findFirst().get();
+      assertThat(actualParentComponent.getPurl())
+          .isEqualTo("pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0");
+      assertThat(actualChildComponent.getPurl()).isEqualTo("pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1");
+    }
+    catch (ParseException e) {
+      throw new RuntimeException(e);
     }
 
     //filtered scan file is generated and exists

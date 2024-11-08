@@ -17,8 +17,7 @@
             "version": "6.25.1"
           }
         },
-        "packageUrl": "pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1",
-        "direct": true
+        "packageUrl": "pkg:nuget/Microsoft.IdentityModel.Protocols@6.25.1"
       }
     ],
     "module": true

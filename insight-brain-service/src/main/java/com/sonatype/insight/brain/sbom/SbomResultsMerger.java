@@ -24,6 +24,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
@@ -34,6 +35,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -56,7 +58,6 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
-import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
@@ -66,10 +67,8 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.thirdparty.SbomStatus;
-import com.sonatype.insight.dependency.DependencyNode;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.application.ScannerDriver;
 import com.sonatype.insight.scan.file.SbomFormat;
@@ -95,6 +94,7 @@ import org.cyclonedx.Version;
 import org.cyclonedx.generators.BomGeneratorFactory;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
+import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.Evidence;
 import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
@@ -115,9 +115,7 @@ import static com.sonatype.insight.brain.utils.CvssV3Severity.resolveRatingSever
 @Named
 public class SbomResultsMerger
 {
-  private static final Logger log = LoggerFactory.getLogger(ReportService.class);
-
-  public static final int MAX_RECURSION_DEPTH = 100000;
+  private static final Logger log = LoggerFactory.getLogger(SbomResultsMerger.class);
 
   public static final String NVD = "NVD";
 
@@ -169,9 +167,9 @@ public class SbomResultsMerger
 
   private SbomPostImportMetricsTelemetry sbomPostImportMetricsTelemetry;
 
-  private List<SbomResultsMatcherTelemetry> bestMatchResultsTelemetries = new ArrayList<>();
+  private final List<SbomResultsMatcherTelemetry> bestMatchResultsTelemetries = new ArrayList<>();
 
-  private Map<ComponentIdentifier, String> componentDependencyTypeMap = new HashMap<>();
+  private final DependencyTreeParser dependencyTreeParser = new DependencyTreeParser();
 
   private Bom originalBom = null;
 
@@ -222,10 +220,46 @@ public class SbomResultsMerger
   {
     initializeMerge(sbomMetadata, reportFile);
     mergeSonatypeDataWithSbomData(sbomMetadata, scanId);
+    addDependencyDataForOriginalSbom();
     sendTelemetries();
     createAndSaveOriginalSbom(sbomMetadata);
     createAndSaveFilteredScanFile(sbomMetadata);
     cleanUpPreviousReport(sbomMetadata.getApplicationId(), sbomMetadata.getThirdPartyFileId(), scanId);
+  }
+
+  private void addDependencyDataForOriginalSbom() {
+    if (originalBom == null || this.dependenciesJsonData == null ||
+        CollectionUtils.isEmpty(originalBom.getComponents())) {
+      return;
+    }
+
+    Map<String, Set<String>> componentPurlToBomRef = new HashMap<>();
+
+    originalBom.getComponents().forEach(component -> {
+      if (componentPurlToBomRef.containsKey(component.getPurl())) {
+        componentPurlToBomRef.get(component.getPurl()).add(component.getBomRef());
+      }
+      else {
+        Set<String> bomRefSet = new HashSet<>();
+        bomRefSet.add(component.getBomRef());
+        componentPurlToBomRef.put(component.getPurl(), bomRefSet);
+      }
+    });
+
+    for (Component component : originalBom.getComponents()) {
+      Optional<Set<String>> childrenDependenciesOptional =
+          dependencyTreeParser.getComponentDependencies(component.getPurl());
+      if (childrenDependenciesOptional.isPresent() && CollectionUtils.isNotEmpty(childrenDependenciesOptional.get())) {
+        Dependency dependency = new Dependency(component.getBomRef());
+        childrenDependenciesOptional.get().stream()
+            .filter(childDependencyPurl -> CollectionUtils.isNotEmpty(componentPurlToBomRef.get(childDependencyPurl)))
+            .map(childDependencyPurl ->
+                new Dependency(componentPurlToBomRef.get(childDependencyPurl).iterator().next()))
+            .toList()
+            .forEach(dependency::addDependency);
+        originalBom.addDependency(dependency);
+      }
+    }
   }
 
   private void initializeMerge(final ThirdPartySbomMetadata sbomMetadata, final File reportFile) throws IOException {
@@ -240,11 +274,7 @@ public class SbomResultsMerger
         dependenciesReportEntry != null ? JsonUtils.parse(dependenciesReportEntry.buf) : null;
     sbomPostImportMetricsTelemetry = new SbomPostImportMetricsTelemetry();
 
-    // populate component dependency type map by walking dependency tree if dependency data is not present in bom.json
-    if (bomJsonData.get("dependencyDataIncluded") == null ||
-        !bomJsonData.get("dependencyDataIncluded").booleanValue()) {
-      populateComponentDependencyTypeMap(componentDependencyTypeMap);
-    }
+    dependencyTreeParser.parse(dependenciesJsonData);
 
     // create an original SBOM and filtered scan file for continuous monitoring in the case of binary scans
     if (SbomStatus.PENDING.toString().equals(sbomMetadata.getStatus()) &&
@@ -271,20 +301,19 @@ public class SbomResultsMerger
     }
 
     if (!resultsConsideringSonatypeId.isEmpty()) {
-      mergeResultsConsideringSonatypeIdentifier(scanId, componentDependencyTypeMap, resultsConsideringSonatypeId,
+      mergeResultsConsideringSonatypeIdentifier(scanId, resultsConsideringSonatypeId,
           sonatypeVulnerabilityResults, sonatypeLicenseResults, sbomMetadata, originalBom, filteredBom);
     }
 
     if (resultsConsideringSonatypeId.isEmpty() || (!resultsNotConsideringSonatypeId.isEmpty() &&
         SbomScanType.BINARY.toString().equals(sbomMetadata.getScanType()))) {
-      mergeResultsNotConsideringSonatypeIdentifier(scanId, componentDependencyTypeMap, resultsNotConsideringSonatypeId,
+      mergeResultsNotConsideringSonatypeIdentifier(scanId, resultsNotConsideringSonatypeId,
           sonatypeVulnerabilityResults, sonatypeLicenseResults, sbomMetadata, originalBom, filteredBom);
     }
   }
 
   private void mergeResultsConsideringSonatypeIdentifier(
       final String scanId,
-      final Map<ComponentIdentifier, String> componentDependencyTypeMap,
       final MultiValuedMap<String, Pair<ComponentIdentifier, JsonNode>> resultsWithSonatypeId,
       final Map<ComponentIdentifier, Set<SecurityVulnerability>> sonatypeVulnerabilityResults,
       final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
@@ -303,7 +332,7 @@ public class SbomResultsMerger
       if (CollectionUtils.size(identityResults) == 1) {
         //no multi results. perform merge using this result.
         Pair<ComponentIdentifier, JsonNode> idResult = identityResults.iterator().next();
-        doMergeConsideringSonatypeIdentifier(scanId, componentDependencyTypeMap, sonatypeVulnerabilityResults,
+        doMergeConsideringSonatypeIdentifier(scanId, sonatypeVulnerabilityResults,
             sonatypeLicenseResults, thirdPartySbomMetadata, originalBom, filteredBom, idResult, sbomComponent);
       }
       else {
@@ -312,7 +341,7 @@ public class SbomResultsMerger
         //more than 1 hds result for the thirdparty component. perform best match
         Pair<ComponentIdentifier, JsonNode> idResult =
             SbomResultsMatcher.bestMatch(sbomComponent, identityResults, bestMatchResultsTelemetry);
-        doMergeConsideringSonatypeIdentifier(scanId, componentDependencyTypeMap, sonatypeVulnerabilityResults,
+        doMergeConsideringSonatypeIdentifier(scanId, sonatypeVulnerabilityResults,
             sonatypeLicenseResults, thirdPartySbomMetadata, originalBom, filteredBom, idResult, sbomComponent);
       }
     }
@@ -320,7 +349,6 @@ public class SbomResultsMerger
 
   private void mergeResultsNotConsideringSonatypeIdentifier(
       final String scanId,
-      final Map<ComponentIdentifier, String> componentDependencyTypeMap,
       final Map<ComponentIdentifier, JsonNode> resultsWithNoSonatypeId,
       final Map<ComponentIdentifier, Set<SecurityVulnerability>> sonatypeVulnerabilityResults,
       final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
@@ -346,7 +374,7 @@ public class SbomResultsMerger
         alreadyInsertedComponentIds.add(sbomComponent.getId());
       }
 
-      mergeResultComponentToDatabase(scanId, componentDependencyTypeMap, bomNode, bomPurl.getPackageUrl(),
+      mergeResultComponentToDatabase(scanId, bomNode, bomPurl.getPackageUrl(),
           sbomComponent, bomComponentIdentifier, sonatypeVulnerabilityResults, sonatypeLicenseResults,
           thirdPartySbomMetadata);
     }
@@ -354,7 +382,6 @@ public class SbomResultsMerger
 
   private void doMergeConsideringSonatypeIdentifier(
       final String scanId,
-      final Map<ComponentIdentifier, String> componentDependencyTypeMap,
       final Map<ComponentIdentifier, Set<SecurityVulnerability>> sonatypeVulnerabilityResults,
       final Map<ComponentIdentifier, Map<String, JsonNode>> sonatypeLicenseResults,
       final ThirdPartySbomMetadata thirdPartySbomMetadata,
@@ -367,8 +394,7 @@ public class SbomResultsMerger
     ComponentIdentifier bomComponentIdentifier = idResult.getKey();
     addNewComponentsForBinaryScan(bomNode, originalBom, filteredBom, sbomComponent,
         sbomComponent.getThirdPartyFileId());
-    mergeResultComponentToDatabase(scanId,
-        componentDependencyTypeMap, bomNode, getBomPurl(bomNode, bomComponentIdentifier),
+    mergeResultComponentToDatabase(scanId, bomNode, getBomPurl(bomNode, bomComponentIdentifier),
         sbomComponent, bomComponentIdentifier, sonatypeVulnerabilityResults, sonatypeLicenseResults,
         thirdPartySbomMetadata);
   }
@@ -392,7 +418,6 @@ public class SbomResultsMerger
 
   private void mergeResultComponentToDatabase(
       final String scanId,
-      final Map<ComponentIdentifier, String> componentDependencyTypeMap,
       final JsonNode bomNode,
       final String bomPurl,
       final ThirdPartyFileCoordinate sbomComponent,
@@ -411,7 +436,7 @@ public class SbomResultsMerger
       sbomComponent.setDependencyType(bomNode.get("directDependency").booleanValue() ? "D" : "T");
     }
     else {
-      updateComponentDependencyType(sbomComponent, componentDependencyTypeMap);
+      updateComponentDependencyType(sbomComponent);
     }
     if (bomNode.get("website") != null && !bomNode.get("website").isNull()) {
       sbomComponent.setWebsite(bomNode.get("website").asText());
@@ -583,7 +608,7 @@ public class SbomResultsMerger
       thirdPartySecurity.setSeverityDescription(resolveRatingSeverity(sonatypeVulnerabilityData.getSeverity()).name());
     }
     if (StringUtils.isNotBlank(sonatypeVulnerabilityData.getSource())) {
-      if (CVE.equals(sonatypeVulnerabilityData.getSource().toUpperCase())) {
+      if (CVE.equalsIgnoreCase(sonatypeVulnerabilityData.getSource())) {
         thirdPartySecurity.setVulnerabilitySource(NVD);
       }
       else {
@@ -769,20 +794,17 @@ public class SbomResultsMerger
     thirdPartyFileCoordinateDAO.update(sbomComponent);
   }
 
-  private void updateComponentDependencyType(
-      final ThirdPartyFileCoordinate sbomComponent,
-      Map<ComponentIdentifier, String> componentDependencyTypeMap)
-  {
+  private void updateComponentDependencyType(final ThirdPartyFileCoordinate sbomComponent) {
     if (StringUtils.isBlank(sbomComponent.getPackageUrl())) {
       return;
     }
-
     try {
       ComponentIdentifier sbomComponentIdentifier =
           ComponentIdentifierAdapter.toComponentIdentifier(sbomComponent.getPackageUrl());
-      sbomComponent.setDependencyType(componentDependencyTypeMap.get(sbomComponentIdentifier));
+      Optional<String> dependencyType = dependencyTreeParser.getDependencyType(sbomComponentIdentifier);
+      dependencyType.ifPresent(sbomComponent::setDependencyType);
     }
-    catch (InvalidPackageURLException e) {
+    catch (InvalidComponentIdentifierException e) {
       log.debug(
           "There was an error while trying to convert the purl into a component identifier - {purl: {}, " +
               "componentName: {}, componentHash: {}, componentVersion: {}}",
@@ -990,22 +1012,6 @@ public class SbomResultsMerger
     }
   }
 
-  private void populateComponentDependencyTypeMap(Map<ComponentIdentifier, String> componentDependencyTypeMap)
-      throws IOException
-  {
-    if (dependenciesJsonData == null) {
-      return;
-    }
-    JsonNode dependencyTreeNode = dependenciesJsonData.path("dependencyTree");
-    if (!dependencyTreeNode.isMissingNode()) {
-      DependencyNode tree = JsonUtils.asPojo(dependencyTreeNode, DependencyNode.class);
-      if (tree == null) {
-        return;
-      }
-      walkTreeAndPopulateDirectDependencyType(Collections.singletonList(tree), componentDependencyTypeMap, 0);
-    }
-  }
-
   @VisibleForTesting
   Bom createNewBom() {
     Bom bom = new Bom();
@@ -1018,22 +1024,6 @@ public class SbomResultsMerger
     metadata.setToolChoice(toolInformation);
     bom.setMetadata(metadata);
     return bom;
-  }
-
-  private void walkTreeAndPopulateDirectDependencyType(
-      List<DependencyNode> children,
-      Map<ComponentIdentifier, String> componentDependencyTypeMap,
-      int recursionDepth)
-  {
-    for (DependencyNode child : children) {
-      componentDependencyTypeMap.putIfAbsent(child.getComponentIdentifier(), child.isDirect() ? "D" : "T");
-      if (++recursionDepth <= MAX_RECURSION_DEPTH) {
-        walkTreeAndPopulateDirectDependencyType(child.getChildren(), componentDependencyTypeMap, recursionDepth);
-      }
-      else {
-        log.warn("Dependency tree depth exceeded {}, skipping child dependencies", recursionDepth);
-      }
-    }
   }
 
   private ThirdPartyFileCoordinate findExistingComponentUsingCoordinates(
@@ -1050,7 +1040,6 @@ public class SbomResultsMerger
       //We set it to null to force create a new record instead of updating the other similar record
       sbomComponent = null;
     }
-
     return sbomComponent;
   }
 }

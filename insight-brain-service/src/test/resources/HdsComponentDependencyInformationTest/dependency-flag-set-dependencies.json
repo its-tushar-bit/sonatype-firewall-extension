@@ -8,6 +8,7 @@
       }
     },
     "packageUrl" : "pkg:nuget/Microsoft.Identity.Client.Extensions.Msal@2.23.0",
+    "direct": true,
     "children": [
       {
         "componentIdentifier": {

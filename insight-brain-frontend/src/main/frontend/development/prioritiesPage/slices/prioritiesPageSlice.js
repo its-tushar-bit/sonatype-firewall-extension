@@ -140,8 +140,17 @@ const setPage = (state, { payload }) => {
   };
 };
 
-const resetState = () => {
-  return initialState();
+const resetState = (state) => {
+  return {
+    ...state,
+    topPrioritiesData: null,
+    additionalPrioritiesData: null,
+    loadingTableData: false,
+    loadErrorTableData: null,
+    loadingMetadata: false,
+    loadErrorMetaData: null,
+    recommendations: {},
+  };
 };
 
 const setComponentNameFilter = (state, { payload }) => {

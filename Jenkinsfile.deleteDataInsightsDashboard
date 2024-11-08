@@ -82,7 +82,7 @@ pipeline {
               // bump the version
               existingConfig.version = existingConfig.version + 1
 
-              echo 'the update config will be: '
+              echo 'the updated config will be: '
               echo writeJSON(returnText: true, json: existingConfig, pretty: 2)
 
               echo 'persisting to the us-east-2 bucket'

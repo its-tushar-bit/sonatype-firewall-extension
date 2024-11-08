@@ -6,16 +6,18 @@
 import React from 'react';
 import { render } from 'TestRoot/SpecUtil';
 import { screen } from '@testing-library/dom';
-import VulnerabilitiesSummary from 'MainRoot/sbomManager/features/componentDetails/VulnerabilitiesSummary';
+import ComponentSummary from 'MainRoot/sbomManager/features/componentDetails/ComponentSummary';
 
 describe('ComponentDetailsPage', () => {
   let renderPage;
 
   const mockComponentSummary = {
+    isSbomPoliciesSupported: false,
     vulnerabilitySummary: {
       highestCvssScore: 9,
       verifiedVulnerabilitiesCount: 84,
       unverifiedVulnerabilitiesCount: 21,
+      sonatypeIdentifiedVulnerabilitiesCount: 0,
     },
     disclosedVulnerabilities: [
       {
@@ -28,10 +30,14 @@ describe('ComponentDetailsPage', () => {
       },
     ],
     additionalVulnerabilities: [],
+    policyViolationSummary: {
+      severe: 1,
+      critical: 3,
+    },
   };
 
   beforeEach(() => {
-    renderPage = (props = {}) => render(<VulnerabilitiesSummary {...props} />);
+    renderPage = (props = {}) => render(<ComponentSummary {...props} />);
   });
 
   it('Renders page content', async () => {
@@ -54,26 +60,20 @@ describe('ComponentDetailsPage', () => {
     );
   });
 
-  it('Renders page content with category and  website if present', async () => {
+  it('Renders policy violations section when sbomPolicies is enabled', async () => {
     const props = {
-      vulnerabilitySummary: {
-        highestCvssScore: 9,
-        verifiedVulnerabilitiesCount: 4,
-        unverifiedVulnerabilitiesCount: 2,
-        category: 'Some Category',
-        website: 'someURL',
-      },
+      isSbomPoliciesSupported: true,
     };
-    renderPage(props);
+    renderPage({ ...mockComponentSummary, ...props });
+    expect(screen.getByText('Policy Violations')).toBeVisible();
+    const severeThreatCounter = await screen.findByTestId('severe-threat-counter');
+    expect(severeThreatCounter).toBeInTheDocument();
+    expect(severeThreatCounter.textContent).toContain(mockComponentSummary.policyViolationSummary.severe.toString());
 
-    expect(await screen.findByText('Component Summary')).toBeVisible();
-
-    const categoryContainer = await screen.findByTestId('category');
-    expect(categoryContainer).toBeInTheDocument();
-    expect(categoryContainer.textContent).toContain(props.vulnerabilitySummary.category);
-
-    const websiteContainer = await screen.findByTestId('website');
-    expect(websiteContainer).toBeInTheDocument();
-    expect(websiteContainer.textContent).toEqual(props.vulnerabilitySummary.website);
+    const criticalThreatCounter = await screen.findByTestId('critical-threat-counter');
+    expect(criticalThreatCounter).toBeInTheDocument();
+    expect(criticalThreatCounter.textContent).toContain(
+      mockComponentSummary.policyViolationSummary.critical.toString()
+    );
   });
 });

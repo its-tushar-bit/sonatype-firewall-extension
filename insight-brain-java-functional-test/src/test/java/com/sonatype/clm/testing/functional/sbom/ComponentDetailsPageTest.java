@@ -136,7 +136,8 @@ public class ComponentDetailsPageTest
     sbomManagerComponentDetailsPage.componentSummary().highestScoreValue().shouldHave(text("9.6"));
     sbomManagerComponentDetailsPage.componentSummary().sonatypeVerified().shouldHave(text("0 Sonatype Verified"));
     sbomManagerComponentDetailsPage.componentSummary().unVerified().shouldHave(text("3 Unverified"));
-
+    sbomManagerComponentDetailsPage.componentSummary().severePolicyViolation().shouldHave(text("0"));
+    sbomManagerComponentDetailsPage.componentSummary().criticalPolicyViolation().shouldHave(text("1"));
     // Disclosed vulnerabilities
     sbomManagerComponentDetailsPage.disclosedVulnerabilities().header().shouldHave(text("Disclosed Vulnerabilities"));
 

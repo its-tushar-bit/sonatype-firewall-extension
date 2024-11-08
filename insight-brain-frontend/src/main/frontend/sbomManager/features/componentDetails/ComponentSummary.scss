@@ -15,11 +15,28 @@
   &__vulnerabilities-verified {
     flex-grow: 0.1;
     margin-top: 0;
+    width: 160px;
     &__content {
       display: flex;
-      width: 60%;
+      width: 100%;
       flex-wrap: wrap;
       column-gap: var(--nx-spacing-4x);
+    }
+  }
+  &__policy-violations {
+    margin: 0 var(--nx-spacing-6x) 0 0;
+    &__content {
+      display: flex;
+      gap: 8px;
+    }
+
+    .policy-violations-threat-counter {
+      display: flex;
+      align-items: center;
+
+      .nx-small-threat-counter-container {
+        margin-left: 0;
+      }
     }
   }
   &__category,

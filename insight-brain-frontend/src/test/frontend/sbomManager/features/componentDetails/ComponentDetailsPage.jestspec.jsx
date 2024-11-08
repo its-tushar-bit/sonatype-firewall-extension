@@ -159,6 +159,7 @@ describe('ComponentDetailsPage', () => {
       highestCvssScore: 9,
       verifiedVulnerabilitiesCount: 10,
       unverifiedVulnerabilitiesCount: 5,
+      sonatypeIdentifiedVulnerabilitiesCount: 0,
     },
     disclosedVulnerabilities: [
       {
@@ -194,6 +195,10 @@ describe('ComponentDetailsPage', () => {
       },
     ],
     additionalVulnerabilities: [],
+    policyViolationSummary: {
+      severe: 1,
+      critical: 3,
+    },
   };
 
   const mockSbomPolicyViolationReport = {

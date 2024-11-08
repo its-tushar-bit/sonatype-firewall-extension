@@ -48,7 +48,7 @@ import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelector
 import ComponentDetailsDependencyTreeTile from 'MainRoot/sbomManager/features/componentDetails/dependecyTree/ComponentDetailsDependencyTreeTile';
 import { selectInternalAppId } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSelectors';
 import ComponentDetailsSbomInfo from 'MainRoot/sbomManager/features/componentDetails/ComponentDetailsSbomInfo';
-import VulnerabilitiesSummary from 'MainRoot/sbomManager/features/componentDetails/VulnerabilitiesSummary';
+import ComponentSummary from 'MainRoot/sbomManager/features/componentDetails/ComponentSummary';
 import SbomVulnerabilityDetailsPopover from 'MainRoot/sbomManager/features/componentDetails/vulnerabilitiesDrawer/SbomVulnerabilityDetailsPopover';
 
 import PolicyViolationsTile from 'MainRoot/sbomManager/features/componentDetails/policyViolationsTile/PolicyViolationsTile';
@@ -317,17 +317,19 @@ export default function ComponentDetailsPage() {
                   </NxTag>
                 )}
               </ComponentDetailsHeader>
+              {componentDetails.vulnerabilitySummary && (
+                <ComponentSummary
+                  vulnerabilitySummary={componentDetails.vulnerabilitySummary}
+                  policyViolationSummary={componentDetails.policyViolationSummary}
+                  isSbomPoliciesSupported={isSbomPoliciesSupported}
+                ></ComponentSummary>
+              )}
               <NxTabs activeTab={activeTabIndex} onTabSelect={setActiveTabIndex}>
                 <NxTabList>
                   <NxTab>Vulnerability</NxTab>
                   {isSbomPoliciesSupported && <NxTab>Policy Violations</NxTab>}
                 </NxTabList>
                 <NxTabPanel>
-                  {componentDetails.vulnerabilitySummary && (
-                    <VulnerabilitiesSummary
-                      vulnerabilitySummary={componentDetails.vulnerabilitySummary}
-                    ></VulnerabilitiesSummary>
-                  )}
                   <VulnerabilitiesTile
                     tableUniqueIdentifier={'disclosedVulnerabilities'}
                     vulnerabilities={componentDetails?.disclosedVulnerabilities}

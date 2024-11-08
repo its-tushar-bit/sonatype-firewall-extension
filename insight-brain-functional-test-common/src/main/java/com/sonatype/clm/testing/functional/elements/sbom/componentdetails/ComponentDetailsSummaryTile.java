@@ -40,4 +40,14 @@ public class ComponentDetailsSummaryTile extends BasicElement<ComponentDetailsSu
   public SelenideElement unVerified() {
     return child(".sbom-manager-component-detail-tile__vulnerabilities-verified span[data-testid='unverified']");
   }
+
+  public SelenideElement severePolicyViolation() {
+    return child(".sbom-manager-component-detail-tile__policy-violations__content " +
+            "[data-testid='severe-threat-counter']");
+  }
+
+  public SelenideElement criticalPolicyViolation() {
+    return child(".sbom-manager-component-detail-tile__policy-violations__content " +
+            "[data-testid='critical-threat-counter']");
+  }
 }

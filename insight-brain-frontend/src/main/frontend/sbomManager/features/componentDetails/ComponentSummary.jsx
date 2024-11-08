@@ -5,24 +5,22 @@
  */
 
 import React from 'react';
-import { NxFontAwesomeIcon, NxH2, NxTextLink, NxThreatIndicator, NxTile } from '@sonatype/react-shared-components';
-import { faCheckCircle, faExclamationTriangle, faExternalLink } from '@fortawesome/pro-solid-svg-icons';
+import {
+  allThreatLevelNumbers,
+  NxFontAwesomeIcon,
+  NxH2,
+  NxSmallThreatCounter,
+  NxThreatIndicator,
+  NxTile,
+} from '@sonatype/react-shared-components';
+import { faCheckCircle, faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
 import './ComponentSummary.scss';
 import * as PropTypes from 'prop-types';
 
-export default function ComponentSummary(props) {
-  const { componentDetails } = props;
-  const {
-    highestCvssScore,
-    verifiedVulnerabilitiesCount,
-    unverifiedVulnerabilitiesCount,
-    category,
-    website,
-  } = componentDetails.componentSummary;
+export default function ComponentSummary({ vulnerabilitySummary, policyViolationSummary, isSbomPoliciesSupported }) {
+  const { highestCvssScore, verifiedVulnerabilitiesCount, unverifiedVulnerabilitiesCount } = vulnerabilitySummary;
 
-  ComponentSummary.propTypes = {
-    componentDetails: PropTypes.object,
-  };
+  const { severe: severePolicyViolations, critical: criticalPolicyViolations } = policyViolationSummary;
 
   return (
     <NxTile id="sbom-manager-component-detail-tile" className="sbom-manager-component-detail-tile">
@@ -32,56 +30,80 @@ export default function ComponentSummary(props) {
         </NxTile.HeaderTitle>
       </NxTile.Header>
       <NxTile.Content className="sbom-manager-component-detail-tile__content">
-        <div className="sbom-manager-component-detail-tile__highest-cvss-score">
-          <div>
-            <b>Highest CVSS Score</b>
+        {highestCvssScore !== undefined && (
+          <div className="sbom-manager-component-detail-tile__highest-cvss-score">
+            <div>
+              <b>Highest CVSS Score</b>
+            </div>
+            <div>
+              <NxThreatIndicator
+                policyThreatLevel={allThreatLevelNumbers.find((n) => n === Math.floor(highestCvssScore))}
+                presentational
+                className="threat-indicator-icon"
+              />
+              <span data-testid="highestCvssScore">{highestCvssScore}</span>
+            </div>
           </div>
-          <div>
-            <NxThreatIndicator policyThreatLevel={highestCvssScore} presentational className="threat-indicator-icon" />
-
-            <span>{highestCvssScore}</span>
+        )}
+        {(verifiedVulnerabilitiesCount !== undefined || unverifiedVulnerabilitiesCount !== undefined) && (
+          <div className="sbom-manager-component-detail-tile__vulnerabilities-verified">
+            <div>
+              <b>Vulnerabilities Verified</b>
+            </div>
+            <div className="sbom-manager-component-detail-tile__vulnerabilities-verified__content">
+              {verifiedVulnerabilitiesCount !== undefined && (
+                <div>
+                  <NxFontAwesomeIcon className="sbom-verified-icon" icon={faCheckCircle} />
+                  <span data-testid="verified">
+                    <b>{verifiedVulnerabilitiesCount}</b> Sonatype Verified
+                  </span>
+                </div>
+              )}
+              {unverifiedVulnerabilitiesCount !== undefined && (
+                <div>
+                  <NxFontAwesomeIcon className="sbom-unverified-icon" icon={faExclamationTriangle} />
+                  <span data-testid="unverified">
+                    <b>{unverifiedVulnerabilitiesCount}</b> Unverified
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-
-        <div className="sbom-manager-component-detail-tile__vulnerabilities-verified">
-          <div>
-            <b>Vulnerabilities Verified</b>
+        )}
+        {isSbomPoliciesSupported && (
+          <div className="sbom-manager-component-detail-tile__policy-violations">
+            <div>
+              <b>Policy Violations</b>
+            </div>
+            <div className="sbom-manager-component-detail-tile__policy-violations__content">
+              <div className="policy-violations-threat-counter">
+                <NxSmallThreatCounter data-testid="severe-threat-counter" severeCount={severePolicyViolations || 0} />
+                <p>Severe</p>
+              </div>
+              <div className="policy-violations-threat-counter">
+                <NxSmallThreatCounter
+                  data-testid="critical-threat-counter"
+                  criticalCount={criticalPolicyViolations || 0}
+                />
+                <p>Critical</p>
+              </div>
+            </div>
           </div>
-          <div>
-            <NxFontAwesomeIcon className={'sbom-verified-icon'} icon={faCheckCircle} />
-            <span data-testid="verified">
-              <b>{verifiedVulnerabilitiesCount}</b> Sonatype Verified
-            </span>
-          </div>
-          <div>
-            <NxFontAwesomeIcon className={'sbom-unverified-icon'} icon={faExclamationTriangle} />
-            <span data-testid="unverified">
-              <b>{unverifiedVulnerabilitiesCount}</b> Unverified
-            </span>
-          </div>
-        </div>
-
-        <div className="sbom-manager-component-detail-tile__category">
-          <div>
-            <b>Category</b>
-          </div>
-          <div data-testid="category">{category && <span>{category}</span>}</div>
-        </div>
-
-        <div className="sbom-manager-component-detail-tile__website">
-          <div>
-            <b>Website</b>
-          </div>
-          <div data-testid="website">
-            {website && (
-              <NxTextLink id="sbom-component-details-link" href="#">
-                <span>{website}</span>
-                <NxFontAwesomeIcon className={'sbom-external-link-icon'} icon={faExternalLink} />
-              </NxTextLink>
-            )}
-          </div>
-        </div>
+        )}
       </NxTile.Content>
     </NxTile>
   );
 }
+
+ComponentSummary.propTypes = {
+  vulnerabilitySummary: PropTypes.shape({
+    highestCvssScore: PropTypes.number,
+    verifiedVulnerabilitiesCount: PropTypes.number,
+    unverifiedVulnerabilitiesCount: PropTypes.number,
+  }).isRequired,
+  policyViolationSummary: PropTypes.shape({
+    severe: PropTypes.number,
+    critical: PropTypes.number,
+  }).isRequired,
+  isSbomPoliciesSupported: PropTypes.bool,
+};

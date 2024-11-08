@@ -75,6 +75,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.nexus.scm.GitApiClientFactory;
+import com.sonatype.nexus.scm.InvalidRepositoryUrlException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GeneralSCMApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient;
@@ -252,6 +253,9 @@ public class ScmOnboardingService
       List<SCMRepository> allRepositories = postProcess(generalClient.listAllRepositories());
       List<SCMRepository> availableRepositories = trimAlreadyConfigured(allRepositories);
       return new SCMRepositories(allRepositories.size(), availableRepositories);
+    }
+    catch (InvalidRepositoryUrlException e) {
+      throw new BadRequestException(e);
     }
     catch (UnknownHostException e) {
       return new SCMRepositories(SCM_UNKNOWN_HOST_FAILURE);

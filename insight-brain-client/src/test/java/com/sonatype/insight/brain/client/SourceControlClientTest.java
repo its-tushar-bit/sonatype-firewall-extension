@@ -151,14 +151,16 @@ public class SourceControlClientTest
     assertThatExceptionOfType(HttpResponseException.class)
         .isThrownBy(() -> client.addOrUpdateSourceControlRecord(newApp.getPublicId(), "https://not good"))
         .withMessage(
-            "SourceControl repositoryUrl is invalid: Illegal character in authority at index 8: https://not good")
+            "SourceControl repositoryUrl is invalid: Invalid project URL. "
+                + "Illegal character in authority at index 8: https://not good")
         .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(400));
 
     assertThatExceptionOfType(HttpResponseException.class)
         .isThrownBy(() -> client.addOrUpdateSourceControlRecord(newApp.getPublicId(), "https://not good",
             Files.currentFolder().getPath()))
         .withMessage(
-            "SourceControl repositoryUrl is invalid: Illegal character in authority at index 8: https://not good")
+            "SourceControl repositoryUrl is invalid: Invalid project URL. "
+                + "Illegal character in authority at index 8: https://not good")
         .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(400));
   }
 

@@ -56,7 +56,7 @@ public class DeveloperEnablementService
     final boolean hasLifecycleProduct = LIFECYCLE_PRODUCTS.stream().anyMatch(productLicense::hasProduct);
     final String version = versionService.getVersion();
     final boolean isEligibleVersion = isEligibleVersion();
-    log.info("Has Lifecycle product = {} ; Has eligible version = {}, version = {}", hasLifecycleProduct,
+    log.trace("Has Lifecycle product = {} ; Has eligible version = {}, version = {}", hasLifecycleProduct,
         isEligibleVersion, version);
     return hasLifecycleProduct && isEligibleVersion;
   }

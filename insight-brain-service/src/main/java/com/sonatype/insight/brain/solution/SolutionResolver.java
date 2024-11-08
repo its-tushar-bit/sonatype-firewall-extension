@@ -86,11 +86,11 @@ public class SolutionResolver
    * case none of the licensed products map over to solutions
    */
   public Set<Solution> getLicensedSolutions() {
-    log.info("Setting licensed solutions for the Solution Switcher");
+    log.trace("Setting licensed solutions for the Solution Switcher");
     Set<Solution> licensedSolutions = new HashSet<>();
 
     if (hasAnyProduct(DEVELOPER_PRODUCTS)) {
-      log.info("Adding Developer product to licenced solutions");
+      log.trace("Adding Developer product to licenced solutions");
       licensedSolutions.add(Solution.DEVELOPER);
     }
 
@@ -115,7 +115,7 @@ public class SolutionResolver
 
   private boolean hasAnyProduct(List<String> products) {
     final boolean hasAnyProduct = products.stream().anyMatch(productLicense::hasProduct);
-    log.info("Products [{}] are included in the license products set [{}]? = {}", products,
+    log.trace("Products [{}] are included in the license products set [{}]? = {}", products,
         productLicense.getProducts(), hasAnyProduct);
     return hasAnyProduct;
   }

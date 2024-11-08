@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
 import com.sonatype.insight.brain.git.RemediationBranchNamePrefixGenerator;
@@ -26,6 +27,7 @@ import com.sonatype.insight.brain.git.RemediationPullRequestFeatureCheck;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -75,6 +77,8 @@ public class PolicyAlertScmNotifier
 
   private final ShutdownHandler shutdownHandler;
 
+  private final FeaturesService featuresService;
+
   @VisibleForTesting
   PullRequestInvoker pullRequestInvoker = new PullRequestInvoker();
 
@@ -85,6 +89,7 @@ public class PolicyAlertScmNotifier
    * @param remediationService                 service to lookup suggested remediations
    * @param policyAlertSourceCodeOrganizer     service to aggregate policy alerts
    * @param organizationDAO
+   * @param featuresService
    */
   @Inject
   public PolicyAlertScmNotifier(
@@ -96,7 +101,8 @@ public class PolicyAlertScmNotifier
       final PullRequestRemediationService pullRequestRemediationService,
       final SourceControlEventPublisher sourceControlEventPublisher,
       final OrganizationDAO organizationDAO,
-      final ShutdownHandler shutdownHandler)
+      final ShutdownHandler shutdownHandler,
+      final FeaturesService featuresService)
   {
     this.remediationPullRequestFeatureCheck = remediationPullRequestFeatureCheck;
     this.remediationService = remediationService;
@@ -107,6 +113,7 @@ public class PolicyAlertScmNotifier
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.organizationDAO = organizationDAO;
     this.shutdownHandler = shutdownHandler;
+    this.featuresService = featuresService;
   }
 
   /**
@@ -155,33 +162,60 @@ public class PolicyAlertScmNotifier
         policyAlertSourceCodeOrganizer.getNotificationsForScm(policyNotifications);
 
     for (Map.Entry<ComponentIdentifier, List<PolicyNotification>> entry : sortedComponentAlerts.entrySet()) {
-      if (!isFormatSupported(entry.getKey().getFormat())) {
-        log.debug("Format '{}' is not supported for automatic remediation", entry.getKey());
+      final ComponentIdentifier componentIdentifier = entry.getKey();
+      if (!isFormatSupported(componentIdentifier.getFormat())) {
+        log.debug("Format '{}' is not supported for automatic remediation", componentIdentifier);
         continue;
       }
 
       Optional<RemediationVersionDTO> remediationVersion =
-          remediationService.getRemediationVersion(entry.getKey(), app.getId());
+          remediationService.getRemediationVersion(componentIdentifier, app.getId());
 
       if (remediationVersion.isPresent()) {
+        /*
+        A 'non-breaking with dependencies versions PR' (aka 'Golden PR') is a PR made with remediation versions of type
+        RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES only.
+        A 'regular' PR is a PR made with remediation versions of all other types.
+
+        A Golden PR is created for Maven components if the 'developerSuggestNonBreakingVersion' feature flag is enabled
+        and if a non-breaking with dependencies version (aka 'Golden version') is available.
+
+        If the component is a Maven component and the feature flag is enabled, but there is no Golden version
+        available, no PR is created.
+
+        A regular automated remediation PR is created for non-Maven components or when the feature flag is not enabled.
+         */
+        if (shouldCreateNonBreakingVersionsPR(componentIdentifier)) {
+          final ApiVersionChangeOptionType remediationType = remediationVersion.get().getRemediationType();
+          if (!ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES.equals(remediationType)) {
+            continue;
+          }
+        }
+
         String nextVersion = remediationVersion.get().getVersion();
         ApiVersionChangeOptionType remediationType = remediationVersion.get().getRemediationType();
         String stringRemediationType = remediationType.getDisplayName();
-        final String branchName = getBranchName(app, entry.getKey(), nextVersion);
+        final String branchName = getBranchName(app, componentIdentifier, nextVersion);
 
         if (!sourceControlEventPublisher.doesRemediationEventExistForBranch(app.getId(), branchName)) {
+          final List<PolicyNotification> notifications = entry.getValue();
           PullRequestRemediationDetails pullRequestRemediationDetails =
-              new PullRequestRemediationDetails(entry.getKey(), nextVersion, stringRemediationType,
-                  remediationVersion.get().getBreakingChangesCount(), branchName, entry.getValue(), app,
+              new PullRequestRemediationDetails(componentIdentifier, nextVersion, stringRemediationType,
+                  remediationVersion.get().getBreakingChangesCount(), branchName, notifications, app,
                   scanId, stage.getStageTypeId(), baseUrl.getConfigured(), gitRepositoryInfo.provider,
                   gitRepositoryInfo.normalizedRepositoryUrl, organizationDAO);
           publishRemediationPullRequestEvent(pullRequestRemediationDetails);
         }
       }
       else {
-        log.debug("No remediation options found for component [{}]", entry.getKey());
+        log.debug("No remediation options found for component [{}]", componentIdentifier);
       }
     }
+  }
+
+  private boolean shouldCreateNonBreakingVersionsPR(final ComponentIdentifier componentIdentifier) {
+    return componentIdentifier.isMaven() && featuresService.getFeatures()
+        .contains(SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION);
   }
 
   private void publishRemediationPullRequestEvent(PullRequestRemediationDetails pullRequestRemediationDetails) {

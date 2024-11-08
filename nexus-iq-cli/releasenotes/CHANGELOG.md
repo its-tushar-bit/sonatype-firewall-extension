@@ -7,6 +7,10 @@
 -->
 # Changelog
 
+## Version 1.184.0 (November 08, 2024)
+* Removed the mount path requirement for Sonatype Container Security
+* Added support for files ending with the pattern .cdx.json
+
 ## Version 1.183.0 (October 10, 2024)
 * Maintenance release
 

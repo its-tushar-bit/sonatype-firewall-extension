@@ -69,6 +69,13 @@ export default function FirewallPage(props) {
           </NxPageTitle.Headings>
         </NxPageTitle>
         <FirewallStatus {...props} />
+        <header className="iq-firewall-metrics-header">
+          <h2 className="nx-h2 iq-firewall-metrics-label">Component Data Insights</h2>
+          <span>
+            These totals include quarantined, waived, and auto-released components that differ from those actively in
+            quarantine.
+          </span>
+        </header>
         <FirewallMetrics
           supplyChainAttacksBlocked={supplyChainAttacksBlocked}
           namespaceAttacksBlocked={namespaceAttacksBlocked}

@@ -164,6 +164,10 @@ h2.iq-firewall-table-label {
   }
 }
 
+#firewall-metrics {
+  margin: var(--nx-spacing-6x) 0 var(--nx-spacing-6x) 0;
+}
+
 .iq-firewall-metrics-content {
   display: flex;
   flex-direction: column;

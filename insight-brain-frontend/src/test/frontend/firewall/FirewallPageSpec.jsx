@@ -99,6 +99,17 @@ describe('FirewallPage', function () {
     getMountedComponent = enzymeUtils.getMountedComponent(Firewall, minimalProps);
   });
 
+  it('renders firewall metrics header with correct title and description', function () {
+    let component = getShallowComponent(),
+      header = component.find('.iq-firewall-metrics-label'),
+      description = component.find('.iq-firewall-metrics-header').find('span');
+
+    expect(header).toHaveText(`Component Data Insights`);
+    expect(description).toHaveText(
+      `These totals include quarantined, waived, and auto-released components that differ from those actively in quarantine.`
+    );
+  });
+
   it('renders a component with the "nx-page-main" class', function () {
     expect(getShallowComponent().find('.nx-page-main')).toExist();
   });

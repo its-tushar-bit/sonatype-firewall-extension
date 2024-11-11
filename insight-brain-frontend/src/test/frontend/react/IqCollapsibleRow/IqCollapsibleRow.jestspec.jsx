@@ -6,6 +6,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 import IqCollapsibleRow from 'MainRoot/react/IqCollapsibleRow/IqCollapsibleRow';
+import userEvent from '@testing-library/user-event';
 
 let renderComponent, minimalProps;
 
@@ -55,16 +56,16 @@ describe('IqCollapsibleRow', () => {
     expect(childContent).toBeVisible();
   });
 
-  it('toggles on click if there are children', () => {
+  it('toggles on click if there are children', async () => {
     renderComponent({ minimalProps }, <div>Child content</div>);
 
     const headerTitle = screen.getByRole('row', { name: 'My title' });
-    const childContent = screen.getByText('Child content');
 
-    expect(childContent).toBeVisible();
-    fireEvent.click(headerTitle.children[0]);
-    expect(childContent).not.toBeInTheDocument();
-    fireEvent.click(headerTitle);
-    expect(childContent).toBeVisible();
+    expect(screen.getByText('Child content')).toBeVisible();
+    await userEvent.click(headerTitle.children[0]);
+    expect(screen.queryByText('Child content')).not.toBeInTheDocument();
+    await userEvent.click(headerTitle.children[0]);
+
+    expect(screen.getByText('Child content')).toBeVisible();
   });
 });

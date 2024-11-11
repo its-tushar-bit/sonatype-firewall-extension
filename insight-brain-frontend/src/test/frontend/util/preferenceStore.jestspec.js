@@ -76,5 +76,12 @@ describe('preferenceStore', function () {
       currentValue = isLeftNavigationOpen();
       expect(currentValue).toBe(false);
     });
+
+    it('dispatches a storage event on the window', () => {
+      const eventSpy = jest.fn();
+      window.addEventListener('storage', eventSpy);
+      setLeftNavigationOpen(false);
+      expect(eventSpy).toHaveBeenCalled();
+    });
   });
 });

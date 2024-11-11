@@ -29,7 +29,7 @@ describe('IqScopeDropdown', () => {
       type: 'organization',
     },
   ];
-  const onChangeHandlerSpy = jasmine.createSpy('onChangeHandler');
+  const onChangeHandlerSpy = jest.fn();
   const getOptionText = ({ label, name }) => (label === 'Repository_container' ? name : `${label} - ${name}`);
 
   const renderComponent = () =>

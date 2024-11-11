@@ -46,7 +46,7 @@ describe('FirewallRepositoryList', () => {
       },
     ];
     title = 'Test Repositories';
-    onChangeMock = jasmine.createSpy('onChange');
+    onChangeMock = jest.fn();
     minimalProps = {
       title,
       repositories,
@@ -76,8 +76,6 @@ describe('FirewallRepositoryList', () => {
   });
 
   it('renders unsupported repository tooltip', async function () {
-    SpecUtil.requestIdleCallbackInvokeImmediate();
-
     renderComponent({ supportedFormats: ['format1', 'format3'] });
     const disabledIcon = screen.getByTestId('repo-disabled-icon');
 

@@ -15,7 +15,7 @@ describe('accessTileUtil', () => {
         },
       ];
       const result = findOutIfRolesWithoutLocalMembersExists(membersByRoles);
-      expect(result).toBeTrue();
+      expect(result).toBe(true);
     });
 
     it('returns false when at least one members exist in  role', () => {
@@ -25,7 +25,7 @@ describe('accessTileUtil', () => {
         },
       ];
       const result = findOutIfRolesWithoutLocalMembersExists(membersByRoles);
-      expect(result).toBeFalse();
+      expect(result).toBe(false);
     });
   });
 });

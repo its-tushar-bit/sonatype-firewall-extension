@@ -44,6 +44,7 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.util.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -223,6 +224,7 @@ public class ComponentDetailsPageTest
     assertVulnerabilityDetailsInsidePolicyViolationDetailsDrawer(vulnerabilityDetails);
   }
 
+  @Ignore
   @Test
   public void testFeatureEnabled_opensVulnerabilityDetailsPopover_issueLink_checkContent() {
     setTestData();

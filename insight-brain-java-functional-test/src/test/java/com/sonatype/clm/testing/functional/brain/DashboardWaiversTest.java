@@ -43,7 +43,6 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
@@ -161,7 +160,6 @@ public class DashboardWaiversTest
   }
 
   @Test
-  @Ignore
   public void testWaiversTable_loadsAllAutoWaiversWithoutFilters() {
     refreshOrOpen(DashboardPage.urlToWaivers());
     DashboardPage.waitUntilSpinnersGone();
@@ -189,15 +187,15 @@ public class DashboardWaiversTest
           text("Group1 : Artifact1 : 1.2.3")
       );
     }
-    waiver1.upgradeAvailable().shouldHave(text("Available"));
+    waiver1.upgradeAvailable().shouldHave(text("—"));
 
     WaiverTile waiver2 = table.waiver(1);
-    waiver2.threatIndicator().shouldHave(MODERATE);
-    waiver2.threatNumber().shouldHave(text("3"));
+    waiver2.threatIndicator().shouldHave(SEVERE);
+    waiver2.threatNumber().shouldHave(text("7"));
     waiver2.createTime().shouldHave(text(dateFormat.format(Date.from(threeDaysAgo))));
     if (waiver2.policy() != null) {
       waiver2.policy().shouldHave(
-          text("Policy 3")
+          text("Policy 1")
       );
     }
     waiver2.scope().shouldHave(text("Application - App 2"));
@@ -206,52 +204,52 @@ public class DashboardWaiversTest
           text("Group1 : Artifact1 : 1.2.3")
       );
     }
-    waiver2.upgradeAvailable().shouldHave(text("Available"));
+    waiver2.upgradeAvailable().shouldHave(text("—"));
 
     WaiverTile waiver3 = table.waiver(2);
-    waiver3.threatIndicator().shouldHave(CRITICAL);
-    waiver3.threatNumber().shouldHave(text("9"));
-    waiver3.createTime().shouldHave(text(dateFormat.format(Date.from(sixDaysAgo))));
+    waiver3.threatIndicator().shouldHave(SEVERE);
+    waiver3.threatNumber().shouldHave(text("7"));
+    waiver3.createTime().shouldHave(text(dateFormat.format(Date.from(fiveDaysAgo))));
     if (waiver3.policy() != null) {
       waiver3.policy().shouldHave(
-          text("Policy 2")
+          text("Policy 1")
       );
     }
-    waiver3.scope().shouldHave(text("Organization - Org 1"));
+    waiver3.scope().shouldHave(text("Application - App 1"));
     if (waiver3.component() != null) {
       waiver3.component().shouldHave(
-          text("All Components")
+          text("Group1 : Artifact1 : 1.2.3")
       );
     }
     waiver3.upgradeAvailable().shouldHave(text("—"));
 
     WaiverTile waiver4 = table.waiver(3);
-    waiver4.threatIndicator().shouldHave(CRITICAL);
-    waiver4.threatNumber().shouldHave(text("9"));
-    waiver4.createTime().shouldHave(text(dateFormat.format(Date.from(sevenDaysAgo))));
+    waiver4.threatIndicator().shouldHave(SEVERE);
+    waiver4.threatNumber().shouldHave(text("7"));
+    waiver4.createTime().shouldHave(text(dateFormat.format(Date.from(sixDaysAgo))));
     if (waiver4.policy() != null) {
       waiver4.policy().shouldHave(
-          text("Policy 2")
+          text("Policy 1")
       );
     }
-    waiver4.scope().shouldHave(text("Application - App 1"));
+    waiver4.scope().shouldHave(text("Organization - Org 1"));
     if (waiver4.component() != null) {
       waiver4.component().shouldHave(
-          text("Group1 : Artifact1 (all versions)")
+          text("Group1 : Artifact1 : 1.2.3")
       );
     }
     waiver4.upgradeAvailable().shouldHave(text("—"));
 
     WaiverTile waiver6 = table.waiver(4);
     waiver6.threatIndicator().shouldHave(SEVERE);
-    waiver6.threatNumber().shouldHave(text("4"));
-    waiver6.createTime().shouldHave(text(dateFormat.format(Date.from(eightDaysAgo))));
+    waiver6.threatNumber().shouldHave(text("7"));
+    waiver6.createTime().shouldHave(text(dateFormat.format(Date.from(sevenDaysAgo))));
     if (waiver6.policy() != null) {
       waiver6.policy().shouldHave(
-          text("Policy 4")
+          text("Policy 1")
       );
     }
-    waiver6.scope().shouldHave(text(rootOrg.getName()));
+    waiver6.scope().shouldHave(text("Application - App 1"));
     if (waiver6.component() != null) {
       waiver6.component().shouldHave(
           text("Group1 : Artifact1 : 1.2.3")
@@ -262,32 +260,30 @@ public class DashboardWaiversTest
     WaiverTile repositoryWaiver = table.waiver(5);
     repositoryWaiver.threatIndicator().shouldHave(SEVERE);
     repositoryWaiver.threatNumber().shouldHave(text("7"));
-    repositoryWaiver.createTime().shouldHave(text(dateFormat.format(Date.from(nineDaysAgo))));
+    repositoryWaiver.createTime().shouldHave(text(dateFormat.format(Date.from(eightDaysAgo))));
     if (repositoryWaiver.policy() != null) {
       repositoryWaiver.policy().shouldHave(
           text("Policy 1")
       );
     }
-    repositoryWaiver.scope().shouldHave(
-        text(repository1.getType().toString() + " - " + "repository")
-    );
+    repositoryWaiver.scope().shouldHave(text("Root Organization"));
     if (repositoryWaiver.component() != null) {
       repositoryWaiver.component().shouldHave(
           text("Group1 : Artifact1 : 1.2.3")
       );
     }
-    repositoryWaiver.upgradeAvailable().shouldHave(text("Available"));
+    repositoryWaiver.upgradeAvailable().shouldHave(text("—"));
 
     WaiverTile repositoryContainerWaiver = table.waiver(6);
-    repositoryContainerWaiver.threatIndicator().shouldHave(CRITICAL);
-    repositoryContainerWaiver.threatNumber().shouldHave(text("9"));
-    repositoryContainerWaiver.createTime().shouldHave(text(dateFormat.format(Date.from(fourteenDaysAgo))));
+    repositoryContainerWaiver.threatIndicator().shouldHave(SEVERE);
+    repositoryContainerWaiver.threatNumber().shouldHave(text("7"));
+    repositoryContainerWaiver.createTime().shouldHave(text(dateFormat.format(Date.from(nineDaysAgo))));
     if (repositoryContainerWaiver.policy() != null) {
       repositoryContainerWaiver.policy().shouldHave(
-          text("Policy 2")
+          text("Policy 1")
       );
     }
-    repositoryContainerWaiver.scope().shouldHave(text("Repository Managers"));
+    repositoryContainerWaiver.scope().shouldHave(text("Repository - Repository 1"));
     if (repositoryContainerWaiver.component() != null) {
       repositoryContainerWaiver.component().shouldHave(
           text("Group1 : Artifact1 : 1.2.3")
@@ -296,15 +292,15 @@ public class DashboardWaiversTest
     repositoryContainerWaiver.upgradeAvailable().shouldHave(text("—"));
 
     WaiverTile waiverParentOrg = table.waiver(7);
-    waiverParentOrg.threatIndicator().shouldHave(CRITICAL);
-    waiverParentOrg.threatNumber().shouldHave(text("9"));
-    waiverParentOrg.createTime().shouldHave(text(dateFormat.format(Date.from(thirtyDaysAgo))));
+    waiverParentOrg.threatIndicator().shouldHave(SEVERE);
+    waiverParentOrg.threatNumber().shouldHave(text("7"));
+    waiverParentOrg.createTime().shouldHave(text(dateFormat.format(Date.from(fourteenDaysAgo))));
     if (waiverParentOrg.policy() != null) {
       waiverParentOrg.policy().shouldHave(
-          text("Policy 2")
+          text("Policy 1")
       );
     }
-    waiverParentOrg.scope().shouldHave(text("Organization - Parent Org 1"));
+    waiverParentOrg.scope().shouldHave(text("Repository Managers"));
     if (waiverParentOrg.component() != null) {
       waiverParentOrg.component().shouldHave(
           text("Group1 : Artifact1 : 1.2.3")
@@ -312,15 +308,15 @@ public class DashboardWaiversTest
     }
 
     WaiverTile waiver5 = table.waiver(8);
-    waiver5.threatIndicator().shouldHave(MODERATE);
-    waiver5.threatNumber().shouldHave(text("3"));
-    waiver5.createTime().shouldHave(text(dateFormat.format(Date.from(fiveDaysAgo))));
+    waiver5.threatIndicator().shouldHave(SEVERE);
+    waiver5.threatNumber().shouldHave(text("7"));
+    waiver5.createTime().shouldHave(text(dateFormat.format(Date.from(thirtyDaysAgo))));
     if (waiver5.policy() != null) {
       waiver5.policy().shouldHave(
-          text("Policy 3")
+          text("Policy 1")
       );
     }
-    waiver5.scope().shouldHave(text("Application - App 1"));
+    waiver5.scope().shouldHave(text("Organization - Parent Org 1"));
     if (waiver5.component() != null) {
       waiver5.component().shouldHave(
           text("Group1 : Artifact1 : 1.2.3")
@@ -1031,12 +1027,21 @@ public class DashboardWaiversTest
             "Artifact2", "Version2", "hash2", "sonatype-2017-8912");
     tempEntity.newPolicyViolation(policyEvaluation2, securityPolicies.get(2), "Group3",
         "Artifact3", "Version3", "hash3", "sonatype-2017-7848");
+
+    TreeMap<String, String> coordinates = new TreeMap<>() {{
+        this.put("artifactId", "Artifact1");
+        this.put("groupId", "Group1");
+        this.put("version", "1.2.3");
+      }};
+
+    ComponentIdentifier componentIdentifier = new ComponentIdentifier("maven", coordinates);
+    String purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
     
     PolicyWaiver policyWaiver1 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
         .withHash("hash1")
         .withPolicyId(securityPolicies.get(0).getId())
         .withOwnerId(organization.getId())
-        .withAssociatedPackageUrl(null)
+        .withAssociatedPackageUrl(purl)
         .withComponentMatcherStrategyForWaiver(null)
         .withComment(null)
         .withCreateTime(Date.from(twoDaysAgo))
@@ -1050,7 +1055,7 @@ public class DashboardWaiversTest
         .withHash("hash2")
         .withPolicyId(securityPolicies.get(0).getId())
         .withOwnerId(application2.getId())
-        .withAssociatedPackageUrl(null)
+        .withAssociatedPackageUrl(purl)
         .withComponentMatcherStrategyForWaiver(null)
         .withComment(null)
         .withCreateTime(Date.from(threeDaysAgo))
@@ -1064,7 +1069,7 @@ public class DashboardWaiversTest
         .withHash("hash3")
         .withPolicyId(securityPolicies.get(0).getId())
         .withOwnerId(application.getId())
-        .withAssociatedPackageUrl(null)
+        .withAssociatedPackageUrl(purl)
         .withComponentMatcherStrategyForWaiver(null)
         .withComment(null)
         .withCreateTime(Date.from(fiveDaysAgo))
@@ -1078,7 +1083,7 @@ public class DashboardWaiversTest
         .withHash("hash4")
         .withPolicyId(securityPolicies.get(0).getId())
         .withOwnerId(organization.getId())
-        .withAssociatedPackageUrl(null)
+        .withAssociatedPackageUrl(purl)
         .withComponentMatcherStrategyForWaiver(null)
         .withComment(null)
         .withCreateTime(Date.from(sixDaysAgo))
@@ -1092,7 +1097,7 @@ public class DashboardWaiversTest
         .withHash("hash5")
         .withPolicyId(securityPolicies.get(0).getId())
         .withOwnerId(application.getId())
-        .withAssociatedPackageUrl(null)
+        .withAssociatedPackageUrl(purl)
         .withComponentMatcherStrategyForWaiver(null)
         .withComment(null)
         .withCreateTime(Date.from(sevenDaysAgo))
@@ -1106,7 +1111,7 @@ public class DashboardWaiversTest
         .withHash("hash6")
         .withPolicyId(securityPolicies.get(0).getId())
         .withOwnerId(rootOrg.getId())
-        .withAssociatedPackageUrl(null)
+        .withAssociatedPackageUrl(purl)
         .withComponentMatcherStrategyForWaiver(null)
         .withComment(null)
         .withCreateTime(Date.from(eightDaysAgo))
@@ -1120,7 +1125,7 @@ public class DashboardWaiversTest
         .withHash("hash7")
         .withPolicyId(securityPolicies.get(0).getId())
         .withOwnerId(repository1.getId())
-        .withAssociatedPackageUrl(null)
+        .withAssociatedPackageUrl(purl)
         .withComponentMatcherStrategyForWaiver(null)
         .withComment(null)
         .withCreateTime(Date.from(nineDaysAgo))
@@ -1134,7 +1139,7 @@ public class DashboardWaiversTest
         .withHash("hash8")
         .withPolicyId(securityPolicies.get(0).getId())
         .withOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID)
-        .withAssociatedPackageUrl(null)
+        .withAssociatedPackageUrl(purl)
         .withComponentMatcherStrategyForWaiver(null)
         .withComment(null)
         .withCreateTime(Date.from(fourteenDaysAgo))
@@ -1148,7 +1153,7 @@ public class DashboardWaiversTest
         .withHash("hash9")
         .withPolicyId(securityPolicies.get(0).getId())
         .withOwnerId(parentOrganization.getId())
-        .withAssociatedPackageUrl(null)
+        .withAssociatedPackageUrl(purl)
         .withComponentMatcherStrategyForWaiver(null)
         .withComment(null)
         .withCreateTime(Date.from(thirtyDaysAgo))

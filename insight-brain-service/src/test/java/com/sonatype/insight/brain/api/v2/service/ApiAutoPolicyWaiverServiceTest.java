@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.List;
 import javax.inject.Inject;
 
+import com.google.inject.Binder;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverAdapter;
@@ -25,17 +26,27 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverTelemetry.AutoPolicyWaiverAction;
+import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverTelemetryMetrics;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.isNotNull;
 
 public class ApiAutoPolicyWaiverServiceTest
     extends AbstractComponentTest
 {
+  @Mock
+  private AutoPolicyWaiverTelemetryMetrics autoPolicyWaiverTelemetryMetrics;
+
   @Inject
   private AutoPolicyWaiverDAO autoPolicyWaiverDAO;
 
@@ -44,6 +55,12 @@ public class ApiAutoPolicyWaiverServiceTest
 
   @Inject
   private ApiAutoPolicyWaiverService apiAutoPolicyWaiverService;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(AutoPolicyWaiverTelemetryMetrics.class).toInstance(autoPolicyWaiverTelemetryMetrics);
+    super.configure(binder);
+  }
 
   @Test
   public void testAddAutoPolicyWaiver_Application() {
@@ -61,6 +78,9 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(resultingDTO.threatLevel).isEqualTo(dto.threatLevel);
     assertThat(resultingDTO.reachable).isEqualTo(dto.reachable);
     assertThat(resultingDTO.pathForward).isEqualTo(dto.pathForward);
+
+    Mockito.verify(autoPolicyWaiverTelemetryMetrics).collect(isNotNull(), eq(OwnerType.APPLICATION),
+        eq(AutoPolicyWaiverAction.CREATE), isNull());
   }
 
   @Test
@@ -79,6 +99,10 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(resultingDTO.threatLevel).isEqualTo(dto.threatLevel);
     assertThat(resultingDTO.reachable).isEqualTo(dto.reachable);
     assertThat(resultingDTO.pathForward).isEqualTo(dto.pathForward);
+
+    Mockito.verify(autoPolicyWaiverTelemetryMetrics).collect(isNotNull(),
+        eq(OwnerType.ORGANIZATION),
+        eq(AutoPolicyWaiverAction.CREATE), isNull());
   }
 
   @Test
@@ -87,6 +111,8 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThatThrownBy(() ->
         apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.REPOSITORY, "fakeRepoId", dto)).isInstanceOf(
         IllegalStateException.class).hasMessage("Unknown owner type: repository");
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -105,6 +131,8 @@ public class ApiAutoPolicyWaiverServiceTest
         apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto)).isInstanceOf(
             BadRequestException.class)
         .hasMessage("Invalid threat level: " + dto.threatLevel + ". Value must be between 1 and 10.");
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -123,6 +151,8 @@ public class ApiAutoPolicyWaiverServiceTest
         apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto)).isInstanceOf(
             BadRequestException.class)
         .hasMessage("Invalid threat level: " + dto.threatLevel + ". Value must be between 1 and 10.");
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -146,6 +176,8 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(waiver.creatorId).isEqualTo(autoPolicyWaiver.getCreatorId());
     assertThat(waiver.creatorName).isEqualTo(autoPolicyWaiver.getCreatorName());
     assertThat(waiver.createTime).isEqualTo(autoPolicyWaiver.getCreateTime());
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -169,6 +201,8 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(waiver.creatorId).isEqualTo(autoPolicyWaiver.getCreatorId());
     assertThat(waiver.creatorName).isEqualTo(autoPolicyWaiver.getCreatorName());
     assertThat(waiver.createTime).isEqualTo(autoPolicyWaiver.getCreateTime());
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -176,6 +210,8 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThatThrownBy(() ->
         apiAutoPolicyWaiverService.getAutoPolicyWaiver(OwnerType.REPOSITORY, "fakeRepoId",
             "fakeWaiverId")).isInstanceOf(IllegalStateException.class).hasMessage("Unknown owner type: repository");
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -185,6 +221,10 @@ public class ApiAutoPolicyWaiverServiceTest
     apiAutoPolicyWaiverService.deleteAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
         autoPolicyWaiver.getId());
     assertThat(autoPolicyWaiverDAO.getById(autoPolicyWaiver.getId())).isNull();
+
+    Mockito.verify(autoPolicyWaiverTelemetryMetrics).collect(isNotNull(),
+        eq(OwnerType.APPLICATION),
+        eq(AutoPolicyWaiverAction.DELETE), isNull());
   }
 
   @Test
@@ -194,6 +234,10 @@ public class ApiAutoPolicyWaiverServiceTest
     apiAutoPolicyWaiverService.deleteAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(),
         autoPolicyWaiver.getId());
     assertThat(autoPolicyWaiverDAO.getById(autoPolicyWaiver.getId())).isNull();
+
+    Mockito.verify(autoPolicyWaiverTelemetryMetrics).collect(isNotNull(),
+        eq(OwnerType.ORGANIZATION),
+        eq(AutoPolicyWaiverAction.DELETE), isNull());
   }
 
   @Test
@@ -201,6 +245,8 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThatThrownBy(() ->
         apiAutoPolicyWaiverService.deleteAutoPolicyWaiver(OwnerType.REPOSITORY, "fakeRepoId",
             "fakeWaiverId")).isInstanceOf(IllegalStateException.class).hasMessage("Unknown owner type: repository");
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -215,6 +261,8 @@ public class ApiAutoPolicyWaiverServiceTest
         NotFoundException.class).hasMessage(
         "Cannot find an auto policy waiver with ID " + autoPolicyWaiver.getId() + " for " + OwnerType.APPLICATION
             + " with ID " + application.getId());
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -234,6 +282,8 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(waiver.creatorId).isEqualTo(autoPolicyWaiver.getCreatorId());
     assertThat(waiver.creatorName).isEqualTo(autoPolicyWaiver.getCreatorName());
     assertThat(waiver.createTime).isEqualTo(autoPolicyWaiver.getCreateTime());
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -253,6 +303,8 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(waiver.creatorId).isEqualTo(autoPolicyWaiver.getCreatorId());
     assertThat(waiver.creatorName).isEqualTo(autoPolicyWaiver.getCreatorName());
     assertThat(waiver.createTime).isEqualTo(autoPolicyWaiver.getCreateTime());
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -262,6 +314,8 @@ public class ApiAutoPolicyWaiverServiceTest
     List<ApiAutoPolicyWaiverDTO> autoPolicyWaiverDTOList =
         apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.APPLICATION, application.getId());
     assertThat(autoPolicyWaiverDTOList).isEmpty();
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -269,6 +323,8 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThatThrownBy(() ->
         apiAutoPolicyWaiverService.getAutoPolicyWaivers(OwnerType.REPOSITORY, "fakeRepoId")).isInstanceOf(
         IllegalStateException.class).hasMessage("Unknown owner type: repository");
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -286,6 +342,10 @@ public class ApiAutoPolicyWaiverServiceTest
             dto.autoPolicyWaiverId, dto);
     assertThat(responseDto.threatLevel).isEqualTo(dto.threatLevel);
     assertThat(responseDto.pathForward).isEqualTo(dto.pathForward);
+
+    Mockito.verify(autoPolicyWaiverTelemetryMetrics).collect(isNotNull(),
+        eq(OwnerType.APPLICATION),
+        eq(AutoPolicyWaiverAction.UPDATE), isNull());
   }
 
   @Test
@@ -303,6 +363,10 @@ public class ApiAutoPolicyWaiverServiceTest
             dto.autoPolicyWaiverId, dto);
     assertThat(responseDto.threatLevel).isEqualTo(dto.threatLevel);
     assertThat(responseDto.pathForward).isEqualTo(dto.pathForward);
+
+    Mockito.verify(autoPolicyWaiverTelemetryMetrics).collect(isNotNull(),
+        eq(OwnerType.ORGANIZATION),
+        eq(AutoPolicyWaiverAction.UPDATE), isNull());
   }
 
   @Test
@@ -314,6 +378,8 @@ public class ApiAutoPolicyWaiverServiceTest
         apiAutoPolicyWaiverService.updateAutoPolicyWaiver(OwnerType.REPOSITORY, "fakeRepoId", dto.autoPolicyWaiverId,
             dto)).isInstanceOf(
         IllegalStateException.class).hasMessage("Unknown owner type: repository");
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -327,6 +393,8 @@ public class ApiAutoPolicyWaiverServiceTest
             dto.autoPolicyWaiverId, dto)).isInstanceOf(
             BadRequestException.class)
         .hasMessage("Invalid threat level: " + dto.threatLevel + ". Value must be between 1 and 10.");
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -340,6 +408,8 @@ public class ApiAutoPolicyWaiverServiceTest
             dto.autoPolicyWaiverId, dto)).isInstanceOf(
             BadRequestException.class)
         .hasMessage("Invalid threat level: " + dto.threatLevel + ". Value must be between 1 and 10.");
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -351,6 +421,8 @@ public class ApiAutoPolicyWaiverServiceTest
         apiAutoPolicyWaiverService.updateAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
             autoPolicyWaiverDTO.autoPolicyWaiverId, autoPolicyWaiverDTO)).isInstanceOf(BadRequestException.class)
         .hasMessage("No changes made to auto policy waiver configuration");
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -362,6 +434,8 @@ public class ApiAutoPolicyWaiverServiceTest
         apiAutoPolicyWaiverService.updateAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(),
             "mismatchedId", autoPolicyWaiverDTO)).isInstanceOf(BadRequestException.class)
         .hasMessage("Auto policy waiver ID in requst path does not match request body");
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -377,6 +451,8 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThatThrownBy(() ->
         apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.APPLICATION, application.getId(), dto)).isInstanceOf(
         BadRequestException.class).hasMessage("An auto policy waiver is already configured for " + application.getId());
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -393,6 +469,8 @@ public class ApiAutoPolicyWaiverServiceTest
         apiAutoPolicyWaiverService.addAutoPolicyWaiver(OwnerType.ORGANIZATION, organization.getId(), dto)).isInstanceOf(
             BadRequestException.class)
         .hasMessage("An auto policy waiver is already configured for " + organization.getId());
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -406,6 +484,8 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(responseDTO.autoPolicyWaiverId).isEqualTo(autoPolicyWaiver.getId());
     assertThat(responseDTO.autoPolicyWaiverOwnerId).isEqualTo(application.getId());
     assertThat(responseDTO.autoPolicyWaiverOwnerName).isEqualTo(application.getName());
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -419,6 +499,8 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(responseDTO.autoPolicyWaiverId).isEqualTo(autoPolicyWaiver.getId());
     assertThat(responseDTO.autoPolicyWaiverOwnerId).isEqualTo(organization.getId());
     assertThat(responseDTO.autoPolicyWaiverOwnerName).isEqualTo(organization.getName());
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -426,6 +508,8 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThatThrownBy(() ->
         apiAutoPolicyWaiverService.getAutoPolicyWaiverStatus(OwnerType.REPOSITORY, "fakeRepoId")).isInstanceOf(
         IllegalStateException.class).hasMessage("Unknown owner type: repository");
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -438,6 +522,8 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(responseDTO.autoPolicyWaiverId).isNull();
     assertThat(responseDTO.autoPolicyWaiverOwnerId).isNull();
     assertThat(responseDTO.autoPolicyWaiverOwnerName).isNull();
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -450,6 +536,8 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(responseDTO.autoPolicyWaiverId).isNull();
     assertThat(responseDTO.autoPolicyWaiverOwnerId).isNull();
     assertThat(responseDTO.autoPolicyWaiverOwnerName).isNull();
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -464,6 +552,8 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(responseDTO.autoPolicyWaiverId).isEqualTo(autoPolicyWaiver.getId());
     assertThat(responseDTO.autoPolicyWaiverOwnerId).isEqualTo(parentOrganization.getId());
     assertThat(responseDTO.autoPolicyWaiverOwnerName).isEqualTo(parentOrganization.getName());
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -478,6 +568,8 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(responseDTO.autoPolicyWaiverId).isEqualTo(autoPolicyWaiver.getId());
     assertThat(responseDTO.autoPolicyWaiverOwnerId).isEqualTo(parentOrganization.getId());
     assertThat(responseDTO.autoPolicyWaiverOwnerName).isEqualTo(parentOrganization.getName());
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -493,6 +585,8 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(responseDTO.autoPolicyWaiverId).isEqualTo(autoPolicyWaiver.getId());
     assertThat(responseDTO.autoPolicyWaiverOwnerId).isEqualTo(grandParentOrganization.getId());
     assertThat(responseDTO.autoPolicyWaiverOwnerName).isEqualTo(grandParentOrganization.getName());
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -508,6 +602,8 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(responseDTO.autoPolicyWaiverId).isEqualTo(autoPolicyWaiver.getId());
     assertThat(responseDTO.autoPolicyWaiverOwnerId).isEqualTo(grandParentOrganization.getId());
     assertThat(responseDTO.autoPolicyWaiverOwnerName).isEqualTo(grandParentOrganization.getName());
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 
   @Test
@@ -535,5 +631,7 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(results.pathForward).isFalse();
     assertThat(results.creatorId).isEqualTo("fakeCreatorId");
     assertThat(results.creatorName).isEqualTo("fakeCreatorName");
+
+    Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
 }

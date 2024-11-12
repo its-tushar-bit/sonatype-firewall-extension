@@ -53,11 +53,7 @@ import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
-import com.sonatype.insight.brain.model.AggregateFile;
-import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
-import com.sonatype.insight.brain.model.ApplicationComponentLicense;
-import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.*;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
@@ -81,6 +77,8 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverTelemetry.AutoPolicyWaiverAction;
+import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverTelemetryMetrics;
 import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
@@ -178,6 +176,8 @@ public class ScanPolicyEvaluator
 
   private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
+  private final AutoPolicyWaiverTelemetryMetrics autoPolicyWaiverTelemetryMetrics;
+
   @Inject
   public ScanPolicyEvaluator(
       final InsightWork insightWork,
@@ -208,7 +208,8 @@ public class ScanPolicyEvaluator
       final FeaturesService featuresService,
       final ComponentInfoService componentInfoService,
       final ReportComponentService reportComponentService,
-      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO)
+      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
+      final AutoPolicyWaiverTelemetryMetrics autoPolicyWaiverTelemetryMetrics)
   {
     this.work = insightWork;
     this.reportService = reportService;
@@ -240,6 +241,7 @@ public class ScanPolicyEvaluator
     this.reportComponentService = reportComponentService;
     componentInfoService.setToolName("ci");
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
+    this.autoPolicyWaiverTelemetryMetrics = autoPolicyWaiverTelemetryMetrics;
   }
 
   public ScanPolicyEvaluatorResults evaluate(
@@ -503,6 +505,17 @@ public class ScanPolicyEvaluator
             if (violationShouldBeAutoWaived) {
               policyViolation.setWaiveTime(policyEvaluation.getTime());
               policyViolation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+
+              Owner owner = ownerDAO.getById(autoPolicyWaiver.getOwnerId());
+
+              if (owner != null) {
+                autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, owner.getType(),
+                    AutoPolicyWaiverAction.APPLY, policyViolation);
+              }
+              else {
+                autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, null,
+                    AutoPolicyWaiverAction.APPLY, policyViolation);
+              }
             }
           }
 

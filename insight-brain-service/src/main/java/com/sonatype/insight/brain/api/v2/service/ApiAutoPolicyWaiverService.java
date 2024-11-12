@@ -30,6 +30,8 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverTelemetry.AutoPolicyWaiverAction;
+import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverTelemetryMetrics;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -47,6 +49,8 @@ public class ApiAutoPolicyWaiverService
 
   private final CurrentUser currentUser;
 
+  private final AutoPolicyWaiverTelemetryMetrics autoPolicyWaiverTelemetryMetrics;
+
   @Inject
   public ApiAutoPolicyWaiverService(
       AutoPolicyWaiverDAO autoPolicyWaiverDAO,
@@ -54,7 +58,8 @@ public class ApiAutoPolicyWaiverService
       OrganizationDAO organizationDAO,
       PolicyViolationDAO policyViolationDAO,
       OwnerDAO ownerDAO,
-      CurrentUser currentUser
+      CurrentUser currentUser,
+      AutoPolicyWaiverTelemetryMetrics autoPolicyWaiverTelemetryMetrics
   )
   {
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
@@ -63,6 +68,7 @@ public class ApiAutoPolicyWaiverService
     this.policyViolationDAO = policyViolationDAO;
     this.ownerDAO = ownerDAO;
     this.currentUser = currentUser;
+    this.autoPolicyWaiverTelemetryMetrics = autoPolicyWaiverTelemetryMetrics;
   }
 
   @Authorize(permission = Permission.READ)
@@ -126,6 +132,8 @@ public class ApiAutoPolicyWaiverService
     autoPolicyWaiver.setCreateTime(new Date());
     autoPolicyWaiverDAO.insert(autoPolicyWaiver);
     auditAutoPolicyWaiver(autoPolicyWaiver);
+    autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, ownerType,
+        AutoPolicyWaiverAction.CREATE, null);
     return ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
   }
 
@@ -154,6 +162,8 @@ public class ApiAutoPolicyWaiverService
     autoPolicyWaiver.setPathForward(apiAutoPolicyWaiverDTO.pathForward);
     autoPolicyWaiverDAO.update(autoPolicyWaiver);
     auditAutoPolicyWaiver(autoPolicyWaiver);
+    autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, ownerType,
+        AutoPolicyWaiverAction.UPDATE, null);
     return ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
   }
 
@@ -172,6 +182,8 @@ public class ApiAutoPolicyWaiverService
     }
     auditAutoPolicyWaiver(autoPolicyWaiver);
     autoPolicyWaiverDAO.delete(autoPolicyWaiver);
+    autoPolicyWaiverTelemetryMetrics.collect(autoPolicyWaiver, ownerType,
+        AutoPolicyWaiverAction.DELETE, null);
   }
 
   @Authorize(permission = Permission.READ)

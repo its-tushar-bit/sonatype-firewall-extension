@@ -50,6 +50,27 @@ public class AutoPolicyWaiver
   }
 
   public AutoPolicyWaiver(
+      String id,
+      String ownerId,
+      int threatLevel,
+      boolean reachable,
+      boolean pathForward,
+      String creatorId,
+      String creatorName,
+      Date createTime
+  )
+  {
+    this.id = id;
+    this.ownerId = ownerId;
+    this.threatLevel = threatLevel;
+    this.reachable = reachable;
+    this.pathForward = pathForward;
+    this.creatorId = creatorId;
+    this.creatorName = creatorName;
+    this.createTime = createTime;
+  }
+
+  public AutoPolicyWaiver(
       String ownerId,
       int threatLevel,
       boolean reachable,

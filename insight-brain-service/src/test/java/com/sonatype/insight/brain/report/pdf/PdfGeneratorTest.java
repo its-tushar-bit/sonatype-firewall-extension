@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationBaseDTO;
@@ -117,10 +118,8 @@ public class PdfGeneratorTest
         bomPageMetadataDTO
     );
 
-    PDDocument pdfDoc = generatePdf(pdfFile, pdfData, Context.SBOM);
+    String pdfContent = generatePdfAndStripText(pdfFile, pdfData, Context.SBOM, 1, 13);
     assertThat(pdfFile).isFile();
-
-    String pdfContent = stripTextFromPdf(1, 13, pdfDoc);
 
     assertCommonSections(pdfContent);
     assertThat(pdfContent)
@@ -163,10 +162,8 @@ public class PdfGeneratorTest
         bomPageMetadataDTO
     );
 
-    PDDocument pdfDoc = generatePdf(pdfFile, pdfData, Context.SBOM);
+    String pdfContent = generatePdfAndStripText(pdfFile, pdfData, Context.SBOM, 1, 13);
     assertThat(pdfFile).isFile();
-
-    String pdfContent = stripTextFromPdf(1, 13, pdfDoc);
 
     assertCommonSections(pdfContent);
     assertThat(pdfContent)
@@ -194,10 +191,8 @@ public class PdfGeneratorTest
         apiReportDataServiceV2.getRawData(app.getPublicId(), scanId)
     );
 
-    PDDocument pdfDoc = generatePdf(pdfFile, pdfData, Context.LIFECYCLE);
+    String pdfContent = generatePdfAndStripText(pdfFile, pdfData, Context.LIFECYCLE, 1, 13);
     assertThat(pdfFile).isFile();
-
-    String pdfContent = stripTextFromPdf(1, 13, pdfDoc);
 
     assertCommonSections(pdfContent);
     assertThat(pdfContent)
@@ -1047,35 +1042,23 @@ public class PdfGeneratorTest
     return component;
   }
 
-  private String stripTextFromPdf(int startPage, int endPage, final PDDocument pdfDoc) throws IOException {
-    PDFTextStripper textStripper = new PDFTextStripper();
-    textStripper.setStartPage(startPage);
-    textStripper.setEndPage(endPage);
-    textStripper.setAddMoreFormatting(false);
-    String pdfContent = "";
-
-    try {
-      pdfContent = textStripper.getText(pdfDoc);
-    }
-    catch (Exception ignored) {
-      // no need to log or do anything for tests.
-    }
-    pdfDoc.close();
-
-    return pdfContent;
-  }
-
-  PDDocument generatePdf(final File pdfFile, final PdfData pdfData, final Context context) throws IOException {
-    PDDocument pdDocument = new PDDocument();
-    try {
+  private String generatePdfAndStripText(
+      final File pdfFile,
+      final PdfData pdfData,
+      final Context context,
+      int startPage,
+      int endPage) throws IOException
+  {
+    try (PDDocument pdDocument = new PDDocument()) {
       PdfGenerator pdfGenerator = new PdfGenerator(pdfFile, pdfData, context);
       pdfGenerator.doGenerate(pdDocument);
-      return pdfGenerator.getPdf();
-    }
-    catch (Exception exception) {
-      pdDocument.close();
-    }
+      PDFTextStripper textStripper = new PDFTextStripper();
+      textStripper.setStartPage(startPage);
+      textStripper.setEndPage(endPage);
+      textStripper.setAddMoreFormatting(false);
+      String pdfContent = textStripper.getText(pdfGenerator.getPdf());
 
-    return null;
+      return pdfContent;
+    }
   }
 }

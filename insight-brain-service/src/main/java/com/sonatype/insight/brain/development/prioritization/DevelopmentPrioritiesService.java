@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.Comparator;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -140,9 +140,6 @@ public class DevelopmentPrioritiesService
       remainingPrioritiesAll = new ArrayList<>();
     }
 
-    // get total size before adjusting for pagination (pagination is only over remaining non-top 3 components
-    final long totalSize = remainingPrioritiesAll.size();
-
     // take a page from remaining priorities
     final List<PrioritizedComponent> remainingPriorities = remainingPrioritiesAll
         .stream()
@@ -150,9 +147,22 @@ public class DevelopmentPrioritiesService
         .limit(pageSize)
         .collect(Collectors.toList());
 
+    // get total size before adjusting for pagination (pagination is only over remaining non-top 3 components
+    final long totalSizeForRemainingPriorities = remainingPrioritiesAll.size();
+
+    // get total size before for pagination
+    final long totalSize = filteredPrioritizedFindings.size();
+
+    final List<PrioritizedComponent> prioritizedFindingsForPagination = filteredPrioritizedFindings
+        .stream()
+        .skip(skipCount)
+        .limit(pageSize)
+        .collect(Collectors.toList());
+
     return new DevelopmentPrioritizationResults(
         top3Priorities,
-        new ApiPageResult<>(totalSize, page, pageSize, remainingPriorities));
+        new ApiPageResult<>(totalSizeForRemainingPriorities, page, pageSize, remainingPriorities),
+        new ApiPageResult<>(totalSize, page, pageSize, prioritizedFindingsForPagination));
   }
 
   /**
@@ -476,27 +486,9 @@ public class DevelopmentPrioritiesService
       return prioritizedComponents;
     }
 
-    int priority = 1;
-    prioritizedComponents.add(sortedComponents.get(0).toPrioritizedComponent(priority));
-
-    for (int i = priority; i < sortedComponents.size(); i++) {
+    for (int i = 0; i < sortedComponents.size(); i++) {
       final UnprioritizedComponent componentToPrioritize = sortedComponents.get(i);
-
-      final int currentScore = getScore(componentToPrioritize);
-      final int lastScore = getScore(sortedComponents.get(i - 1));
-
-      final boolean sameAsLastScore = lastScore == currentScore;
-
-      if (sameAsLastScore) {
-        prioritizedComponents.add(
-            componentToPrioritize.toPrioritizedComponent(priority)
-        );
-      }
-      else {
-        prioritizedComponents.add(
-            componentToPrioritize.toPrioritizedComponent(++priority)
-        );
-      }
+      prioritizedComponents.add(componentToPrioritize.toPrioritizedComponent(i + 1));
     }
 
     return prioritizedComponents;

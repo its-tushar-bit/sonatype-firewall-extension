@@ -148,13 +148,13 @@ public class ApiDevelopmentPrioritiesResourceTest
         "groupId=org.jclouds.driver, version=1.3.1},1fbeda8a0725179493e9,Unknown,false,none,10,Security-Critical," +
         "Medium risk CVSS score,false,1,,,0");
     assertThat(lines[2]).isEqualTo("displayName,maven: {artifactId=tomcat-util, groupId=tomcat, " +
-        "version=5.5.23},1249e25aebb15358be45,Unknown,false,none,9,Security-High,High risk CVSS score,false,1,,,0");
+        "version=5.5.23},1249e25aebb15358be45,Unknown,false,none,9,Security-High,High risk CVSS score,false,2,,,0");
     assertThat(lines[3]).isEqualTo("displayName,maven: {artifactId=geronimo-tomcat, groupId=geronimo, " +
-        "version=1.0},30a69958223a2c6215e2,Unknown,false,none,7,Security-Medium,Medium risk CVSS score,false,1,,,0");
+        "version=1.0},30a69958223a2c6215e2,Unknown,false,none,7,Security-Medium,Medium risk CVSS score,false,3,,,0");
     assertThat(lines[4]).isEqualTo("displayName,maven: {artifactId=com.alkacon.opencms.v8.twitter, " +
         "groupId=org.opencms.modules, version=8.0.2},2c2a4719e64a7e39545c,Unknown,false,none,2,Security-Low," +
-        "Medium risk CVSS score,false,1,,,0");
+        "Medium risk CVSS score,false,4,,,0");
     assertThat(lines[5]).isEqualTo("displayName,maven: {artifactId=logback-access, groupId=ch.qos.logback, " +
-        "version=0.6},47b6857af4a1cc50875a,Unknown,false,none,2,Security-Low,Medium risk CVSS score,false,1,,,0");
+        "version=0.6},47b6857af4a1cc50875a,Unknown,false,none,2,Security-Low,Medium risk CVSS score,false,5,,,0");
   }
 }

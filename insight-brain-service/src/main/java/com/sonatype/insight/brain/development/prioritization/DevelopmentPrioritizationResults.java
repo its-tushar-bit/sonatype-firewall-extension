@@ -18,13 +18,17 @@ public class DevelopmentPrioritizationResults
 
   private final ApiPageResult<PrioritizedComponent> additionalPriorities;
 
+  private final ApiPageResult<PrioritizedComponent> priorities;
+
   public DevelopmentPrioritizationResults(
       final List<PrioritizedComponent> topPriorities,
-      final ApiPageResult<PrioritizedComponent> additionalPriorities
+      final ApiPageResult<PrioritizedComponent> additionalPriorities,
+      final ApiPageResult<PrioritizedComponent> priorities
   )
   {
     this.topPriorities = topPriorities;
     this.additionalPriorities = additionalPriorities;
+    this.priorities = priorities;
   }
 
   public List<PrioritizedComponent> getTopPriorities() {
@@ -35,12 +39,17 @@ public class DevelopmentPrioritizationResults
     return additionalPriorities;
   }
 
+  public ApiPageResult<PrioritizedComponent> getPriorities() {
+    return priorities;
+  }
+
   @Override
   public String toString() {
+
     return "DevelopmentPrioritizationResults{" +
         "topPriorities=" + topPriorities +
         ", additionalPriorities=" + additionalPriorities +
-        '}';
+        ", priorities=" + priorities + '}';
   }
 
   @Override
@@ -53,11 +62,12 @@ public class DevelopmentPrioritizationResults
     }
     DevelopmentPrioritizationResults that = (DevelopmentPrioritizationResults) o;
     return Objects.equals(topPriorities, that.topPriorities) &&
-        Objects.equals(additionalPriorities, that.additionalPriorities);
+        Objects.equals(additionalPriorities, that.additionalPriorities) &&
+        Objects.equals(priorities, that.priorities);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(topPriorities, additionalPriorities);
+    return Objects.hash(topPriorities, additionalPriorities, priorities);
   }
 }

@@ -129,7 +129,7 @@ public class DevelopmentPrioritiesServiceTest
   }
 
   @Test
-  public void testGetPrioritizedFindings_ShouldCorrectlyOrderByThreatScoreDescendingIfPriorityIsTheSame() {
+  public void testGetPrioritizedFindings_ShouldCorrectlyOrderByThreatScoreDescendingIfThreatLevelIsTheSame() {
     // === GIVEN ===
     final ApiReportComponentDTOV2 component1 = createComponent("aaa", "component1");
     final List<PolicyViolation> component1Violations = Lists.newArrayList(
@@ -140,7 +140,7 @@ public class DevelopmentPrioritiesServiceTest
         component1Violations
     );
 
-    // Although all components have same priority, since this has the highest threat, it should come first
+    // Has the highest non-security-reachable threat
     final ApiReportComponentDTOV2 component2 = createComponent("bbb", "component2");
     final List<PolicyViolation> component2Violations = Lists.newArrayList(
         createPolicyViolation(9, "b", "policy-b", false));
@@ -153,7 +153,7 @@ public class DevelopmentPrioritiesServiceTest
     Collections.shuffle(component2Violations);
     final PolicyThreats.Component component3Threats = createPolicyThreatsComponents(component3, component3Violations);
 
-    // has the highest threat security-reachable violations
+    // has the highest threat security-reachable threat
     final ApiReportComponentDTOV2 component4 = createComponent("ddd", "component4");
     final List<PolicyViolation> component4Violations = Lists.newArrayList(
         createPolicyViolation(
@@ -173,14 +173,10 @@ public class DevelopmentPrioritiesServiceTest
         .getAllPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1, null, null);
 
     assertThat(results).containsExactly(
-        toPrioritizedComponent(component4, 7, "policy-d", 1, "Unknown", false, null, "none", true,
-            null, null, 7),
-        toPrioritizedComponent(component2, 9, "policy-b", 2, "Unknown", false, null, "none",
-            false, null, null, 0),
-        toPrioritizedComponent(component1, 6, "policy-a", 2, "Unknown", false, null, "none",
-            false, null, null, 0),
-        toPrioritizedComponent(component3, 3, "policy-c", 2, "Unknown", false, null, "none",
-            false, null, null, 0)
+        toPrioritizedComponent(component4, 7, "policy-d", 1, "Unknown", false, null, "none", true, null, null, 7),
+        toPrioritizedComponent(component2, 9, "policy-b", 2, "Unknown", false, null, "none", false, null, null, 0),
+        toPrioritizedComponent(component1, 6, "policy-a", 3, "Unknown", false, null, "none", false, null, null, 0),
+        toPrioritizedComponent(component3, 3, "policy-c", 4, "Unknown", false, null, "none", false, null, null, 0)
     );
 
     verifyServiceCallsInvokedWithExpectedArguments();
@@ -230,7 +226,7 @@ public class DevelopmentPrioritiesServiceTest
     Collections.shuffle(component4Violations);
     final PolicyThreats.Component component4Threats = createPolicyThreatsComponents(component4, component4Violations);
 
-    //  has highest threat violations, none are security-reachable violations, so will have same priority as component1
+    // has the highest threat violations, none are security-reachable, so will have same priority as component1
     final ApiReportComponentDTOV2 component5 = createComponent("eee", "component5");
     final List<PolicyViolation> component5Violations = Lists.newArrayList(
         createPolicyViolation(5, "k", "policy-k", false),
@@ -251,19 +247,13 @@ public class DevelopmentPrioritiesServiceTest
         .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1,
             GIVEN_PAGE_SIZE_10, null, false);
 
-    assertThat(results.getTopPriorities()).containsExactly(
-            toPrioritizedComponent(component2, 9, "policy-g", 1, "Unknown", false, null, "none",
-                true, null, null, 9),
-            toPrioritizedComponent(component4, 8, "policy-h", 2, "Unknown", false, null, "none",
-                true, null, null, 5),
-            toPrioritizedComponent(component1, 10, "policy-e", 3, "Unknown", false, null, "none",
-                false, null, null, 0));
+    assertThat(results.getPriorities().getResults()).containsExactly(
+            toPrioritizedComponent(component2, 9, "policy-g", 1, "Unknown", false, null, "none", true, null, null, 9),
+            toPrioritizedComponent(component4, 8, "policy-h", 2, "Unknown", false, null, "none", true, null, null, 5),
+            toPrioritizedComponent(component1, 10, "policy-e", 3, "Unknown", false, null, "none", false, null, null, 0),
+            toPrioritizedComponent(component5, 7, "policy-l", 4, "Unknown", false, null, "none", false, null, null, 0));
 
-    assertThat(results.getAdditionalPriorities().getResults()).containsExactly(
-            toPrioritizedComponent(component5, 7, "policy-l", 3, "Unknown", false, null, "none",
-                false, null, null, 0));
-
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 1, 1, 1, 1);
+    assertPaginationResultCorrect(results.getPriorities(), 4, 4, 1, 1);
 
     verifyServiceCallsInvokedWithExpectedArguments();
   }
@@ -308,15 +298,14 @@ public class DevelopmentPrioritiesServiceTest
         .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1,
             GIVEN_PAGE_SIZE_10, null, false);
 
-    assertThat(results.getTopPriorities()).containsExactlyInAnyOrder(
+    assertThat(results.getPriorities().getResults()).containsExactlyInAnyOrder(
         // "policy-f" of threat level 10 is a legacy violation, so not in the priority list.
         toPrioritizedComponent(component2, 7, "policy-g", null, 1),
         // "policy-b,d,e" of threat level 6 are a legacy violations, so not in the priority list.
-        toPrioritizedComponent(component1, 5, "policy-c", null, 1)
+        toPrioritizedComponent(component1, 5, "policy-c", null, 2)
     );
 
-    // should be no additional priorities, everything is in top 3
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 0, 0, 0, 1);
+    assertPaginationResultCorrect(results.getPriorities(), 2, 2, 1, 1);
 
     verifyServiceCallsInvokedWithExpectedArguments();
   }
@@ -365,16 +354,15 @@ public class DevelopmentPrioritiesServiceTest
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID,
                 GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10, null, false);
 
-    final List<PrioritizedComponent> top3 = results.getTopPriorities();
-    assertThat(top3).hasSize(3);
-    assertThat(top3.get(0).getDependencyType()).isEqualTo("Unknown");
-    assertThat(top3.get(1).getDependencyType()).isEqualTo("Transitive");
-    assertThat(top3.get(2).getDependencyType()).isEqualTo("Inner Source");
+    assertPaginationResultCorrect(results.getPriorities(), 5, 5, 1, 1);
 
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 2, 2, 1, 1);
-    final List<PrioritizedComponent> additionalPriorities = results.getAdditionalPriorities().getResults();
-    assertThat(additionalPriorities.get(0).getDependencyType()).isEqualTo("Direct");
-    assertThat(additionalPriorities.get(1).getDependencyType()).isEqualTo("Transitive");
+    final List<PrioritizedComponent> priorities = results.getPriorities().getResults();
+    assertThat(priorities).hasSize(5);
+    assertThat(priorities.get(0).getDependencyType()).isEqualTo("Unknown");
+    assertThat(priorities.get(1).getDependencyType()).isEqualTo("Transitive");
+    assertThat(priorities.get(2).getDependencyType()).isEqualTo("Inner Source");
+    assertThat(priorities.get(3).getDependencyType()).isEqualTo("Direct");
+    assertThat(priorities.get(4).getDependencyType()).isEqualTo("Transitive");
 
     verifyServiceCallsInvokedWithExpectedArguments();
   }
@@ -438,74 +426,73 @@ public class DevelopmentPrioritiesServiceTest
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID,
                 GIVEN_PAGE_1, 66, null, false);
 
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 3, 3, 1, 1);
+    assertPaginationResultCorrect(results.getPriorities(), 6, 6, 1, 1);
 
-    final List<PrioritizedComponent> actualTop3 = results.getTopPriorities();
-    final List<PrioritizedComponent> actualAdditionalPriorities = results.getAdditionalPriorities().getResults();
+    final List<PrioritizedComponent> priorities = results.getPriorities().getResults();
 
-    // top 3 should be reachable and failings actions with descending threat levels
-    assertThat(actualTop3).hasSize(3);
+    // should be ordered by reachable and failings actions with descending threat levels
+    assertThat(priorities).hasSize(6);
 
-    PrioritizedComponent top3FirstComponent = actualTop3.get(0);
-    assertThat(top3FirstComponent.getDisplayName()).isEqualTo("reachable-component-with-fail-action0");
-    assertThat(top3FirstComponent.getPriority()).isEqualTo(1);
-    assertThat(top3FirstComponent.getAction()).isEqualTo("fail");
-    assertThat(top3FirstComponent.getHasFailActionOnComponent()).isTrue();
-    assertThat(top3FirstComponent.isSecurityReachable()).isTrue();
-    assertThat(top3FirstComponent.getHighestThreat()).isEqualTo(9);
-    assertThat(top3FirstComponent.getHighestReachableThreat()).isEqualTo(9);
+    PrioritizedComponent prioritizedComponent = priorities.get(0);
+    assertThat(prioritizedComponent.getDisplayName()).isEqualTo("reachable-component-with-fail-action0");
+    assertThat(prioritizedComponent.getPriority()).isEqualTo(1);
+    assertThat(prioritizedComponent.getAction()).isEqualTo("fail");
+    assertThat(prioritizedComponent.getHasFailActionOnComponent()).isTrue();
+    assertThat(prioritizedComponent.isSecurityReachable()).isTrue();
+    assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(9);
 
-    PrioritizedComponent top3SecondComponent = actualTop3.get(1);
-    assertThat(top3SecondComponent.getDisplayName()).isEqualTo("component-with-fail-action0");
-    assertThat(top3SecondComponent.getPriority()).isEqualTo(2);
-    assertThat(top3SecondComponent.getAction()).isEqualTo("fail");
-    assertThat(top3SecondComponent.getHasFailActionOnComponent()).isTrue();
-    assertThat(top3SecondComponent.isSecurityReachable()).isFalse();
-    assertThat(top3SecondComponent.getHighestThreat()).isEqualTo(9);
-    assertThat(top3SecondComponent.getHighestReachableThreat()).isEqualTo(0);
+    prioritizedComponent = priorities.get(1);
+    assertThat(prioritizedComponent.getDisplayName()).isEqualTo("component-with-fail-action0");
+    assertThat(prioritizedComponent.getPriority()).isEqualTo(2);
+    assertThat(prioritizedComponent.getAction()).isEqualTo("fail");
+    assertThat(prioritizedComponent.getHasFailActionOnComponent()).isTrue();
+    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
-    PrioritizedComponent top3ThirdComponent = actualTop3.get(2);
-    assertThat(top3ThirdComponent.getDisplayName()).isEqualTo("reachable-component-with-warn-action0");
-    assertThat(top3ThirdComponent.getPriority()).isEqualTo(3);
-    assertThat(top3ThirdComponent.getAction()).isEqualTo("warn");
-    assertThat(top3ThirdComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(top3ThirdComponent.isSecurityReachable()).isTrue();
-    assertThat(top3ThirdComponent.getHighestThreat()).isEqualTo(9);
-    assertThat(top3ThirdComponent.getHighestReachableThreat()).isEqualTo(9);
+    prioritizedComponent = priorities.get(2);
+    assertThat(prioritizedComponent.getDisplayName()).isEqualTo("reachable-component-with-warn-action0");
+    assertThat(prioritizedComponent.getPriority()).isEqualTo(3);
+    assertThat(prioritizedComponent.getAction()).isEqualTo("warn");
+    assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isTrue();
+    assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(9);
 
-    PrioritizedComponent additionalFirstComponent = actualAdditionalPriorities.get(0);
-    assertThat(additionalFirstComponent.getDisplayName()).isEqualTo("component-with-warn-action0");
-    assertThat(additionalFirstComponent.getPriority()).isEqualTo(4);
-    assertThat(additionalFirstComponent.getAction()).isEqualTo("warn");
-    assertThat(additionalFirstComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(additionalFirstComponent.isSecurityReachable()).isFalse();
-    assertThat(additionalFirstComponent.getHighestThreat()).isEqualTo(9);
-    assertThat(additionalFirstComponent.getHighestReachableThreat()).isEqualTo(0);
+    prioritizedComponent = priorities.get(3);
+    assertThat(prioritizedComponent.getDisplayName()).isEqualTo("component-with-warn-action0");
+    assertThat(prioritizedComponent.getPriority()).isEqualTo(4);
+    assertThat(prioritizedComponent.getAction()).isEqualTo("warn");
+    assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
-    PrioritizedComponent additionalSecondComponent = actualAdditionalPriorities.get(1);
-    assertThat(additionalSecondComponent.getDisplayName()).isEqualTo("reachable-component-with-no-action0");
-    assertThat(additionalSecondComponent.getPriority()).isEqualTo(5);
-    assertThat(additionalSecondComponent.getAction()).isEqualTo("none");
-    assertThat(additionalSecondComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(additionalSecondComponent.isSecurityReachable()).isTrue();
-    assertThat(additionalSecondComponent.getHighestThreat()).isEqualTo(9);
-    assertThat(additionalSecondComponent.getHighestReachableThreat()).isEqualTo(9);
+    prioritizedComponent = priorities.get(4);
+    assertThat(prioritizedComponent.getDisplayName()).isEqualTo("reachable-component-with-no-action0");
+    assertThat(prioritizedComponent.getPriority()).isEqualTo(5);
+    assertThat(prioritizedComponent.getAction()).isEqualTo("none");
+    assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isTrue();
+    assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(9);
 
-    PrioritizedComponent additionalThirdComponent = actualAdditionalPriorities.get(2);
-    assertThat(additionalThirdComponent.getDisplayName()).isEqualTo("component-with-no-action0");
-    assertThat(additionalThirdComponent.getPriority()).isEqualTo(6);
-    assertThat(additionalThirdComponent.getAction()).isEqualTo("none");
-    assertThat(additionalThirdComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(additionalThirdComponent.isSecurityReachable()).isFalse();
-    assertThat(additionalThirdComponent.getHighestThreat()).isEqualTo(9);
-    assertThat(additionalThirdComponent.getHighestReachableThreat()).isEqualTo(0);
+    prioritizedComponent = priorities.get(5);
+    assertThat(prioritizedComponent.getDisplayName()).isEqualTo("component-with-no-action0");
+    assertThat(prioritizedComponent.getPriority()).isEqualTo(6);
+    assertThat(prioritizedComponent.getAction()).isEqualTo("none");
+    assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
     verifyServiceCallsInvokedWithExpectedArguments();
   }
 
   @Test
   public void testGetPrioritizedFindings_shouldSortCorrectlyWithAllPrioritizationCriteria_WithBulkRecommendations() {
-    // === Given (in expected order of priority) ===
+    // === Given ===
     // FAIL ACTION
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> failingComponentsWithSecurityReachable =
         generateComponentAtEachThreatLevelWithActionWithRecommendations(
@@ -603,130 +590,129 @@ public class DevelopmentPrioritiesServiceTest
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID,
                 GIVEN_PAGE_1, 129, null, false);
 
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 9, 9, 1, 1);
+    assertPaginationResultCorrect(results.getPriorities(), 12, 12, 1, 1);
 
-    final List<PrioritizedComponent> actualTop3 = results.getTopPriorities();
-    final List<PrioritizedComponent> actualAdditionalPriorities = results.getAdditionalPriorities().getResults();
+    final List<PrioritizedComponent> priorities = results.getPriorities().getResults();
 
-    PrioritizedComponent top3FirstComponent = actualTop3.get(0);
-    assertThat(top3FirstComponent.getDisplayName())
+    PrioritizedComponent prioritizedComponent = priorities.get(0);
+    assertThat(prioritizedComponent.getDisplayName())
         .isEqualTo("reachable-component-with-fail-action-with-recommendation0");
-    assertThat(top3FirstComponent.getPriority()).isEqualTo(1);
-    assertThat(top3FirstComponent.getAction()).isEqualTo("fail");
-    assertThat(top3FirstComponent.getHasFailActionOnComponent()).isTrue();
-    assertThat(top3FirstComponent.isSecurityReachable()).isTrue();
-    assertThat(top3FirstComponent.getHighestThreat()).isEqualTo(9);
-    assertThat(top3FirstComponent.getHighestReachableThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getPriority()).isEqualTo(1);
+    assertThat(prioritizedComponent.getAction()).isEqualTo("fail");
+    assertThat(prioritizedComponent.getHasFailActionOnComponent()).isTrue();
+    assertThat(prioritizedComponent.isSecurityReachable()).isTrue();
+    assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(9);
 
-    PrioritizedComponent top3SecondComponent = actualTop3.get(1);
-    assertThat(top3SecondComponent.getDisplayName())
+    prioritizedComponent = priorities.get(1);
+    assertThat(prioritizedComponent.getDisplayName())
         .isEqualTo("non-reachable-component-with-fail-action-with-recommendation0");
-    assertThat(top3SecondComponent.getPriority()).isEqualTo(2);
-    assertThat(top3SecondComponent.getAction()).isEqualTo("fail");
-    assertThat(top3SecondComponent.getHasFailActionOnComponent()).isTrue();
-    assertThat(top3SecondComponent.isSecurityReachable()).isFalse();
-    assertThat(top3SecondComponent.getHighestThreat()).isEqualTo(9);
-    assertThat(top3SecondComponent.getHighestReachableThreat()).isEqualTo(0);
+    assertThat(prioritizedComponent.getPriority()).isEqualTo(2);
+    assertThat(prioritizedComponent.getAction()).isEqualTo("fail");
+    assertThat(prioritizedComponent.getHasFailActionOnComponent()).isTrue();
+    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
-    PrioritizedComponent top3ThirdComponent = actualTop3.get(2);
-    assertThat(top3ThirdComponent.getDisplayName())
+    prioritizedComponent = priorities.get(2);
+    assertThat(prioritizedComponent.getDisplayName())
         .isEqualTo("reachable-component-with-fail-action-no-recommendation0");
-    assertThat(top3ThirdComponent.getPriority()).isEqualTo(3);
-    assertThat(top3ThirdComponent.getAction()).isEqualTo("fail");
-    assertThat(top3ThirdComponent.getHasFailActionOnComponent()).isTrue();
-    assertThat(top3ThirdComponent.isSecurityReachable()).isTrue();
-    assertThat(top3ThirdComponent.getHighestThreat()).isEqualTo(9);
-    assertThat(top3ThirdComponent.getHighestReachableThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getPriority()).isEqualTo(3);
+    assertThat(prioritizedComponent.getAction()).isEqualTo("fail");
+    assertThat(prioritizedComponent.getHasFailActionOnComponent()).isTrue();
+    assertThat(prioritizedComponent.isSecurityReachable()).isTrue();
+    assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(9);
 
-    PrioritizedComponent additionalPrioritiesComponent = actualAdditionalPriorities.get(0);
-    assertThat(additionalPrioritiesComponent.getDisplayName())
+    prioritizedComponent = priorities.get(3);
+    assertThat(prioritizedComponent.getDisplayName())
         .isEqualTo("non-reachable-component-with-fail-action-no-recommendation0");
-    assertThat(additionalPrioritiesComponent.getPriority()).isEqualTo(4);
-    assertThat(additionalPrioritiesComponent.getAction()).isEqualTo("fail");
-    assertThat(additionalPrioritiesComponent.getHasFailActionOnComponent()).isTrue();
-    assertThat(additionalPrioritiesComponent.isSecurityReachable()).isFalse();
-    assertThat(additionalPrioritiesComponent.getHighestThreat()).isEqualTo(9);
-    assertThat(additionalPrioritiesComponent.getHighestReachableThreat()).isEqualTo(0);
+    assertThat(prioritizedComponent.getPriority()).isEqualTo(4);
+    assertThat(prioritizedComponent.getAction()).isEqualTo("fail");
+    assertThat(prioritizedComponent.getHasFailActionOnComponent()).isTrue();
+    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
-    additionalPrioritiesComponent = actualAdditionalPriorities.get(1);
-    assertThat(additionalPrioritiesComponent.getDisplayName())
+    prioritizedComponent = priorities.get(4);
+    assertThat(prioritizedComponent.getDisplayName())
         .isEqualTo("reachable-component-with-warn-action-with-recommendation0");
-    assertThat(additionalPrioritiesComponent.getPriority()).isEqualTo(5);
-    assertThat(additionalPrioritiesComponent.getAction()).isEqualTo("warn");
-    assertThat(additionalPrioritiesComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(additionalPrioritiesComponent.isSecurityReachable()).isTrue();
-    assertThat(additionalPrioritiesComponent.getHighestThreat()).isEqualTo(9);
-    assertThat(additionalPrioritiesComponent.getHighestReachableThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getPriority()).isEqualTo(5);
+    assertThat(prioritizedComponent.getAction()).isEqualTo("warn");
+    assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isTrue();
+    assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(9);
 
-    additionalPrioritiesComponent = actualAdditionalPriorities.get(2);
-    assertThat(additionalPrioritiesComponent.getDisplayName())
+    prioritizedComponent = priorities.get(5);
+    assertThat(prioritizedComponent.getDisplayName())
         .isEqualTo("non-reachable-component-with-warn-action-with-recommendation0");
-    assertThat(additionalPrioritiesComponent.getPriority()).isEqualTo(6);
-    assertThat(additionalPrioritiesComponent.getAction()).isEqualTo("warn");
-    assertThat(additionalPrioritiesComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(additionalPrioritiesComponent.isSecurityReachable()).isFalse();
-    assertThat(additionalPrioritiesComponent.getHighestThreat()).isEqualTo(9);
-    assertThat(additionalPrioritiesComponent.getHighestReachableThreat()).isEqualTo(0);
+    assertThat(prioritizedComponent.getPriority()).isEqualTo(6);
+    assertThat(prioritizedComponent.getAction()).isEqualTo("warn");
+    assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
-    additionalPrioritiesComponent = actualAdditionalPriorities.get(3);
-    assertThat(additionalPrioritiesComponent.getDisplayName())
+    prioritizedComponent = priorities.get(6);
+    assertThat(prioritizedComponent.getDisplayName())
         .isEqualTo("reachable-component-with-warn-action-no-recommendation0");
-    assertThat(additionalPrioritiesComponent.getPriority()).isEqualTo(7);
-    assertThat(additionalPrioritiesComponent.getAction()).isEqualTo("warn");
-    assertThat(additionalPrioritiesComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(additionalPrioritiesComponent.isSecurityReachable()).isTrue();
-    assertThat(additionalPrioritiesComponent.getHighestThreat()).isEqualTo(9);
-    assertThat(additionalPrioritiesComponent.getHighestReachableThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getPriority()).isEqualTo(7);
+    assertThat(prioritizedComponent.getAction()).isEqualTo("warn");
+    assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isTrue();
+    assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(9);
 
-    additionalPrioritiesComponent = actualAdditionalPriorities.get(4);
-    assertThat(additionalPrioritiesComponent.getDisplayName())
+    prioritizedComponent = priorities.get(7);
+    assertThat(prioritizedComponent.getDisplayName())
         .isEqualTo("non-reachable-component-with-warn-action-no-recommendation0");
-    assertThat(additionalPrioritiesComponent.getPriority()).isEqualTo(8);
-    assertThat(additionalPrioritiesComponent.getAction()).isEqualTo("warn");
-    assertThat(additionalPrioritiesComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(additionalPrioritiesComponent.isSecurityReachable()).isFalse();
-    assertThat(additionalPrioritiesComponent.getHighestThreat()).isEqualTo(9);
-    assertThat(additionalPrioritiesComponent.getHighestReachableThreat()).isEqualTo(0);
+    assertThat(prioritizedComponent.getPriority()).isEqualTo(8);
+    assertThat(prioritizedComponent.getAction()).isEqualTo("warn");
+    assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
-    additionalPrioritiesComponent = actualAdditionalPriorities.get(5);
-    assertThat(additionalPrioritiesComponent.getDisplayName())
+    prioritizedComponent = priorities.get(8);
+    assertThat(prioritizedComponent.getDisplayName())
         .isEqualTo("reachable-component-with-no-action-with-recommendation0");
-    assertThat(additionalPrioritiesComponent.getPriority()).isEqualTo(9);
-    assertThat(additionalPrioritiesComponent.getAction()).isEqualTo("none");
-    assertThat(additionalPrioritiesComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(additionalPrioritiesComponent.isSecurityReachable()).isTrue();
-    assertThat(additionalPrioritiesComponent.getHighestThreat()).isEqualTo(9);
-    assertThat(additionalPrioritiesComponent.getHighestReachableThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getPriority()).isEqualTo(9);
+    assertThat(prioritizedComponent.getAction()).isEqualTo("none");
+    assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isTrue();
+    assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(9);
 
-    additionalPrioritiesComponent = actualAdditionalPriorities.get(6);
-    assertThat(additionalPrioritiesComponent.getDisplayName())
+    prioritizedComponent = priorities.get(9);
+    assertThat(prioritizedComponent.getDisplayName())
         .isEqualTo("non-reachable-component-with-no-action-with-recommendation0");
-    assertThat(additionalPrioritiesComponent.getPriority()).isEqualTo(10);
-    assertThat(additionalPrioritiesComponent.getAction()).isEqualTo("none");
-    assertThat(additionalPrioritiesComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(additionalPrioritiesComponent.isSecurityReachable()).isFalse();
-    assertThat(additionalPrioritiesComponent.getHighestThreat()).isEqualTo(9);
-    assertThat(additionalPrioritiesComponent.getHighestReachableThreat()).isEqualTo(0);
+    assertThat(prioritizedComponent.getPriority()).isEqualTo(10);
+    assertThat(prioritizedComponent.getAction()).isEqualTo("none");
+    assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
-    additionalPrioritiesComponent = actualAdditionalPriorities.get(7);
-    assertThat(additionalPrioritiesComponent.getDisplayName())
+    prioritizedComponent = priorities.get(10);
+    assertThat(prioritizedComponent.getDisplayName())
         .isEqualTo("reachable-component-with-no-action-no-recommendation0");
-    assertThat(additionalPrioritiesComponent.getPriority()).isEqualTo(11);
-    assertThat(additionalPrioritiesComponent.getAction()).isEqualTo("none");
-    assertThat(additionalPrioritiesComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(additionalPrioritiesComponent.isSecurityReachable()).isTrue();
-    assertThat(additionalPrioritiesComponent.getHighestThreat()).isEqualTo(9);
-    assertThat(additionalPrioritiesComponent.getHighestReachableThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getPriority()).isEqualTo(11);
+    assertThat(prioritizedComponent.getAction()).isEqualTo("none");
+    assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isTrue();
+    assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(9);
 
-    additionalPrioritiesComponent = actualAdditionalPriorities.get(8);
-    assertThat(additionalPrioritiesComponent.getDisplayName())
+    prioritizedComponent = priorities.get(11);
+    assertThat(prioritizedComponent.getDisplayName())
         .isEqualTo("non-reachable-component-with-no-action-no-recommendation0");
-    assertThat(additionalPrioritiesComponent.getPriority()).isEqualTo(12);
-    assertThat(additionalPrioritiesComponent.getAction()).isEqualTo("none");
-    assertThat(additionalPrioritiesComponent.getHasFailActionOnComponent()).isFalse();
-    assertThat(additionalPrioritiesComponent.isSecurityReachable()).isFalse();
-    assertThat(additionalPrioritiesComponent.getHighestThreat()).isEqualTo(9);
-    assertThat(additionalPrioritiesComponent.getHighestReachableThreat()).isEqualTo(0);
+    assertThat(prioritizedComponent.getPriority()).isEqualTo(12);
+    assertThat(prioritizedComponent.getAction()).isEqualTo("none");
+    assertThat(prioritizedComponent.getHasFailActionOnComponent()).isFalse();
+    assertThat(prioritizedComponent.isSecurityReachable()).isFalse();
+    assertThat(prioritizedComponent.getHighestThreat()).isEqualTo(9);
+    assertThat(prioritizedComponent.getHighestReachableThreat()).isEqualTo(0);
 
     verifyServiceCallsInvokedWithExpectedArguments();
   }
@@ -751,17 +737,13 @@ public class DevelopmentPrioritiesServiceTest
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID,
                 GIVEN_PAGE_1, 66, null, false);
 
-    final List<PrioritizedComponent> actualTop3 = results.getTopPriorities();
-    final List<PrioritizedComponent> actualAdditionalPriorities = results.getAdditionalPriorities().getResults();
+    final List<PrioritizedComponent> priorities = results.getPriorities().getResults();
 
-    assertThat(actualTop3)
-        .hasSize(3)
+    assertThat(priorities)
+        .hasSize(11)
         .allSatisfy(result -> assertThat(result.isSecurityReachable()).isFalse());
 
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 8, 8, 1, 1);
-
-    assertThat(actualAdditionalPriorities)
-        .allSatisfy(result -> assertThat(result.isSecurityReachable()).isFalse());
+    assertPaginationResultCorrect(results.getPriorities(), 11, 11, 1, 1);
   }
 
   @Test
@@ -784,16 +766,12 @@ public class DevelopmentPrioritiesServiceTest
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID,
                 GIVEN_PAGE_1,66, null, false);
 
-    final List<PrioritizedComponent> actualTop3 = results.getTopPriorities();
-    final List<PrioritizedComponent> actualAdditionalProperties = results.getAdditionalPriorities().getResults();
+    final List<PrioritizedComponent> priorities = results.getPriorities().getResults();
 
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 8, 8, 1, 1);
+    assertPaginationResultCorrect(results.getPriorities(), 11, 11, 1, 1);
 
-    assertThat(actualTop3)
-        .hasSize(3)
-        .allSatisfy(result -> assertThat(result.isSecurityReachable()).isTrue());
-
-    assertThat(actualAdditionalProperties)
+    assertThat(priorities)
+        .hasSize(11)
         .allSatisfy(result -> assertThat(result.isSecurityReachable()).isTrue());
   }
 
@@ -818,13 +796,13 @@ public class DevelopmentPrioritiesServiceTest
         component3,
         Lists.newArrayList(createPolicyViolation(9, "c", "policy-c", false)));
 
-    // will be the lowest priority (3) and in additional priorities
+    // will be the lowest priority (3)
     final ApiReportComponentDTOV2 component4 = createComponent("ddd", "component4");
     final PolicyThreats.Component component4Threats = createPolicyThreatsComponents(
         component4,
         Lists.newArrayList(createPolicyViolation(2, "d", "policy-d", false)));
 
-    // will also be the lowest priority (3) and in additional priorities
+    // will also be the lowest priority (3)
     final ApiReportComponentDTOV2 component5 = createComponent("eee", "component5");
     final PolicyThreats.Component component5Threats = createPolicyThreatsComponents(
         component5,
@@ -844,40 +822,37 @@ public class DevelopmentPrioritiesServiceTest
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID,
                 GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10, null, false);
 
-    final List<PrioritizedComponent> actualTop3 = results.getTopPriorities();
-    List<PrioritizedComponent> actualAdditionalPriorities = results.getAdditionalPriorities().getResults();
+    List<PrioritizedComponent> priorities = results.getPriorities().getResults();
 
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 2, 2, 1, 1);
-    assertThat(actualAdditionalPriorities).hasSize(2);
-    assertThat(actualTop3).hasSize(3);
+    assertPaginationResultCorrect(results.getPriorities(), 5, 5, 1, 1);
+    assertThat(priorities).hasSize(5);
 
-    assertThat(actualTop3.get(0).getComponentHash()).isEqualTo("ccc");
-    assertThat(actualTop3.get(0).getPriority()).isEqualTo(1);
+    assertThat(priorities.get(0).getComponentHash()).isEqualTo("ccc");
+    assertThat(priorities.get(0).getPriority()).isEqualTo(1);
 
-    assertThat(actualTop3.get(1).getComponentHash()).isEqualTo("aaa");
-    assertThat(actualTop3.get(1).getPriority()).isEqualTo(1);
+    assertThat(priorities.get(1).getComponentHash()).isEqualTo("aaa");
+    assertThat(priorities.get(1).getPriority()).isEqualTo(2);
 
-    assertThat(actualTop3.get(2).getComponentHash()).isEqualTo("bbb");
-    assertThat(actualTop3.get(2).getPriority()).isEqualTo(1);
+    assertThat(priorities.get(2).getComponentHash()).isEqualTo("bbb");
+    assertThat(priorities.get(2).getPriority()).isEqualTo(3);
 
-    assertThat(actualAdditionalPriorities.get(0).getComponentHash()).isEqualTo("ddd");
-    assertThat(actualAdditionalPriorities.get(0).getPriority()).isEqualTo(1);
+    assertThat(priorities.get(3).getComponentHash()).isEqualTo("ddd");
+    assertThat(priorities.get(3).getPriority()).isEqualTo(4);
 
-    assertThat(actualAdditionalPriorities.get(1).getComponentHash()).isEqualTo("eee");
-    assertThat(actualAdditionalPriorities.get(1).getPriority()).isEqualTo(1);
+    assertThat(priorities.get(4).getComponentHash()).isEqualTo("eee");
+    assertThat(priorities.get(4).getPriority()).isEqualTo(5);
 
     verifyServiceCallsInvokedWithExpectedArguments();
 
-    // === THEN - Should cary forward priority even across pagination ===
+    // === THEN - Should carry forward priority even across pagination ===
     results =
         developmentPrioritiesService
-            .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 2, 1,
-                null, false);
-    actualAdditionalPriorities = results.getAdditionalPriorities().getResults();
+            .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 2, 1, null, false);
+    priorities = results.getPriorities().getResults();
 
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 1, 2, 2, 2);
-    assertThat(actualAdditionalPriorities.get(0).getComponentHash()).isEqualTo("eee");
-    assertThat(actualAdditionalPriorities.get(0).getPriority()).isEqualTo(1);
+    assertPaginationResultCorrect(results.getPriorities(), 1, 5, 5, 2);
+    assertThat(priorities.get(0).getComponentHash()).isEqualTo("aaa");
+    assertThat(priorities.get(0).getPriority()).isEqualTo(2);
   }
 
   @Test
@@ -940,14 +915,10 @@ public class DevelopmentPrioritiesServiceTest
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID,
                 GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10, null, false);
 
-    final List<PrioritizedComponent> actualTop3 = results.getTopPriorities();
-    List<PrioritizedComponent> actualAdditionalPriorities = results.getAdditionalPriorities().getResults();
+    final List<PrioritizedComponent> priorities = results.getPriorities().getResults();
 
-    assertThat(actualTop3)
-        .hasSize(3)
-        .allSatisfy(prioritizedComponent -> assertThat(prioritizedComponent.getHighestThreat()).isPositive());
-    assertThat(actualAdditionalPriorities)
-        .hasSize(1)
+    assertThat(priorities)
+        .hasSize(4)
         .allSatisfy(prioritizedComponent -> assertThat(prioritizedComponent.getHighestThreat()).isPositive());
 
     verifyServiceCallsInvokedWithExpectedArguments();
@@ -1013,9 +984,9 @@ public class DevelopmentPrioritiesServiceTest
     // === THEN ===
     final List<PrioritizedComponent> results =
         developmentPrioritiesService
-            .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID,
-                GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10, null, false)
-            .getTopPriorities();
+            .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10,
+                null, false)
+            .getPriorities().getResults();
 
     final ComponentIdentifier actualComponentIdentifier = results.get(0).getComponentIdentifier();
     assertThat(actualComponentIdentifier).isEqualTo(someComponentIdentifier);
@@ -1057,59 +1028,33 @@ public class DevelopmentPrioritiesServiceTest
     when(featuresService.getFeatures()).thenReturn(Sets.newHashSet(DEVELOPER_DASHBOARD));
 
     // === Then ===
-    final List<String> expectedTop3HashesInOrder = new ArrayList<>();
-    final List<String> expectedAdditionalHashesInOrder = new ArrayList<>();
+    final List<String> expectedHashesInOrder = new ArrayList<>();
 
     // the mock data was created in the ascending threat order, the sorted results returned will be in descending
     Collections.reverse(failingComponents.getA());
     Collections.reverse(warningComponents.getA());
 
-    // add the expected top 3 components hashes
-    expectedTop3HashesInOrder.addAll(
-        failingComponents.getA().subList(0, 3).stream().map(comp -> comp.hash).collect(Collectors.toList()));
-
-    // add the additional failing component hashes in order
-    expectedAdditionalHashesInOrder.addAll(
-        failingComponents.getA().subList(3, failingComponents.getA().size())
-            .stream()
-            .map(comp -> comp.hash)
-            .collect(Collectors.toList()));
-
-    // finally add the component hashes with warnings in order
-    expectedAdditionalHashesInOrder.addAll(warningComponents.getA()
-        .stream()
-        .map(comp -> comp.hash)
-        .collect(Collectors.toList())
-        .subList(0, warningComponents.getA().size()));
+    // add the expected components hashes
+    expectedHashesInOrder.addAll(
+        failingComponents.getA().stream().map(comp -> comp.hash).collect(Collectors.toList()));
+    expectedHashesInOrder.addAll(
+        warningComponents.getA().stream().map(comp -> comp.hash).collect(Collectors.toList())
+    );
 
     // check first page contains priorities 1-10 and the first 10 hashes
     DevelopmentPrioritizationResults results = developmentPrioritiesService
         .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1,
             GIVEN_PAGE_SIZE_10, null, false);
 
-    // should be same regardless of page
-    assertTop3Hashes(results.getTopPriorities(), expectedTop3HashesInOrder);
+    assertPaginationResultCorrect(results.getPriorities(), 10, 22, 3, 1);
 
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 10, 19, 2, 1);
+    List<PrioritizedComponent> priorities = results.getPriorities().getResults();
 
-    List<PrioritizedComponent> additionalPriorities = results.getAdditionalPriorities().getResults();
-
-    // Assertion for first 8 security-reachable violations in additionalPriorities (3 already exist in topPriorities)
-    int nonTop3SecurityReachableStartIndex = 3;
-    for (int i = 0; i < additionalPriorities.size() - nonTop3SecurityReachableStartIndex; i++) {
-      final PrioritizedComponent actualComponent = additionalPriorities.get(i);
-      assertThat(actualComponent.getPriority()).isEqualTo(i + nonTop3SecurityReachableStartIndex + 1);
-      assertThat(actualComponent.getComponentHash()).isEqualTo(expectedAdditionalHashesInOrder.get(i));
-    }
-
-    // Assertion for first 2 non-security-reachable components in additionalPriorities
-    int nonTop3NonSecurityReachableStartIndex = 8;
-    for (int i = nonTop3NonSecurityReachableStartIndex; i < additionalPriorities.size(); i++) {
-      final PrioritizedComponent actualComponent = additionalPriorities.get(i);
-      assertThat(actualComponent.getPriority()).isEqualTo(12); //will be constant as highestReachableThreat = 0
-      // Since all non-security-reachable components will have same priority, cannot check for correct order.
-      // Instead, check if the hash exists.
-      assertThat(expectedAdditionalHashesInOrder).contains(actualComponent.getComponentHash());
+    // Assertion for first 10 security-reachable violations
+    for (int i = 0; i < priorities.size(); i++) {
+      final PrioritizedComponent actualComponent = priorities.get(i);
+      assertThat(actualComponent.getPriority()).isEqualTo(i + 1);
+      assertThat(actualComponent.getComponentHash()).isEqualTo(expectedHashesInOrder.get(i));
     }
 
     // check second page contains priorities 11-20 and the next 10 hashes
@@ -1118,44 +1063,46 @@ public class DevelopmentPrioritiesServiceTest
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 2,
                 GIVEN_PAGE_SIZE_10, null, false);
 
-    // should be same regardless of page
-    assertTop3Hashes(results.getTopPriorities(), expectedTop3HashesInOrder);
+    assertPaginationResultCorrect(results.getPriorities(), 10, 22, 3, 2);
 
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 9, 19, 2, 2);
+    priorities = results.getPriorities().getResults();
 
-    additionalPriorities = results.getAdditionalPriorities().getResults();
+    // Assert first component to be security-reachable
+    int priorityOffset = 10;
+    PrioritizedComponent firstComponent = priorities.get(0);
+    assertThat(firstComponent.getPriority()).isEqualTo(1 + priorityOffset);
+    assertThat(firstComponent.getComponentHash()).isEqualTo(expectedHashesInOrder.get(priorityOffset));
 
     // second page will all be non-security-reachable components
-    for (int i = 0; i < additionalPriorities.size(); i++) {
-      final PrioritizedComponent actualComponent = additionalPriorities.get(i);
-      assertThat(actualComponent.getPriority()).isEqualTo(12);
-      // Since all non-security-reachable components will have same priority, cannot check for correct order.
-      // Instead, check if the hash exists.
-      assertThat(expectedAdditionalHashesInOrder).contains(actualComponent.getComponentHash());
+    for (int i = 1; i < priorities.size(); i++) {
+      final PrioritizedComponent actualComponent = priorities.get(i);
+      assertThat(actualComponent.getPriority()).isEqualTo(1 + priorityOffset + i);
+      assertThat(actualComponent.getComponentHash()).isEqualTo(expectedHashesInOrder.get(i + priorityOffset));
     }
 
-    // check last page contains priorities 20-22 and the final 2 hashes
+    // check last page contains the final hash
     results =
         developmentPrioritiesService
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 3,
                 GIVEN_PAGE_SIZE_10, null, false);
 
-    // should be same regardless of page
-    assertTop3Hashes(results.getTopPriorities(), expectedTop3HashesInOrder);
+    priorities = results.getPriorities().getResults();
 
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 0, 19, 2, 3);
+    assertPaginationResultCorrect(results.getPriorities(), 2, 22, 3, 3);
 
-    assertThat(results.getAdditionalPriorities().getResults()).isEmpty();
+    priorityOffset = 20;
+    // third page will all be non-security-reachable components
+    for (int i = 0; i < priorities.size(); i++) {
+      final PrioritizedComponent actualComponent = priorities.get(i);
+      assertThat(actualComponent.getPriority()).isEqualTo(1 + priorityOffset + i);
+      assertThat(actualComponent.getComponentHash()).isEqualTo(expectedHashesInOrder.get(i + priorityOffset));
+    }
 
     // should return empty list if requesting a page past the end
     results =
         developmentPrioritiesService
-            .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 4,
-                GIVEN_PAGE_SIZE_10, null, false);
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 0, 19, 2, 4);
-
-    // should be same regardless of page
-    assertTop3Hashes(results.getTopPriorities(), expectedTop3HashesInOrder);
+            .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 4, GIVEN_PAGE_SIZE_10, null, false);
+    assertPaginationResultCorrect(results.getPriorities(), 0, 22, 3, 4);
 
     // check first page contains priorities 1-5 and the first 5 hashes
     results =
@@ -1163,18 +1110,14 @@ public class DevelopmentPrioritiesServiceTest
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 1, 5,
                 null, false);
 
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 5, 19, 4, 1);
+    assertPaginationResultCorrect(results.getPriorities(), 5, 22, 5, 1);
 
-    // should be same regardless of page
-    assertTop3Hashes(results.getTopPriorities(), expectedTop3HashesInOrder);
+    priorities = results.getPriorities().getResults();
 
-    additionalPriorities = results.getAdditionalPriorities().getResults();
-
-    int priorityOffset = 4;
-    for (int i = 0; i < additionalPriorities.size(); i++) {
-      final PrioritizedComponent actualComponent = additionalPriorities.get(i);
-      assertThat(actualComponent.getPriority()).isEqualTo(i + priorityOffset);
-      assertThat(actualComponent.getComponentHash()).isEqualTo(expectedAdditionalHashesInOrder.get(i));
+    for (int i = 0; i < priorities.size(); i++) {
+      final PrioritizedComponent actualComponent = priorities.get(i);
+      assertThat(actualComponent.getPriority()).isEqualTo(i + 1);
+      assertThat(actualComponent.getComponentHash()).isEqualTo(expectedHashesInOrder.get(i));
     }
 
     // check second page contains priorities 6-10 and the next 5 hashes
@@ -1183,29 +1126,70 @@ public class DevelopmentPrioritiesServiceTest
             .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 2, 5,
                 null, false);
 
-    assertPaginationResultCorrect(results.getAdditionalPriorities(), 5, 19, 4, 2);
+    assertPaginationResultCorrect(results.getPriorities(), 5, 22, 5, 2);
 
-    // should be same regardless of page
-    assertTop3Hashes(results.getTopPriorities(), expectedTop3HashesInOrder);
+    priorities = results.getPriorities().getResults();
 
-    additionalPriorities = results.getAdditionalPriorities().getResults();
-
-    // Assertion for first 3 security-reachable components in 2nd page of additionalPriorities
-    priorityOffset = 9;
-    for (int i = 0; i < 3; i++) {
-      final PrioritizedComponent actualComponent = additionalPriorities.get(i);
-      assertThat(actualComponent.getPriority()).isEqualTo(i + priorityOffset);
-      assertThat(actualComponent.getComponentHash()).isEqualTo(expectedAdditionalHashesInOrder.get(i + 5));
+    // Assertion for security-reachable components in 2nd page of additionalPriorities
+    priorityOffset = 5;
+    for (int i = 0; i < priorities.size(); i++) {
+      final PrioritizedComponent actualComponent = priorities.get(i);
+      assertThat(actualComponent.getPriority()).isEqualTo(i + priorityOffset + 1);
+      assertThat(actualComponent.getComponentHash()).isEqualTo(expectedHashesInOrder.get(i + priorityOffset));
     }
 
-    // Assertion for first 2 non-security-reachable components in additionalPriorities
-    nonTop3NonSecurityReachableStartIndex = 3;
-    for (int i = nonTop3NonSecurityReachableStartIndex; i < additionalPriorities.size(); i++) {
-      final PrioritizedComponent actualComponent = additionalPriorities.get(i);
-      assertThat(actualComponent.getPriority()).isEqualTo(12); //will be constant as highestReachableThreat = 0
-      // Since all non-security-reachable components will have same priority, cannot check for correct order.
-      // Instead, check if the hash exists.
-      assertThat(expectedAdditionalHashesInOrder).contains(actualComponent.getComponentHash());
+    // check third page contains priorities 10-15 and the next 5 hashes
+    results =
+        developmentPrioritiesService
+            .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 3, 5, null, false);
+
+    assertPaginationResultCorrect(results.getPriorities(), 5, 22, 5, 3);
+
+    priorities = results.getPriorities().getResults();
+
+    // Assertion for security-reachable components in 2nd page
+    priorityOffset = 10;
+    firstComponent = priorities.get(0);
+    assertThat(firstComponent.getPriority()).isEqualTo(1 + priorityOffset);
+    assertThat(firstComponent.getComponentHash()).isEqualTo(expectedHashesInOrder.get(priorityOffset));
+
+    // Non-security-reachable components
+    for (int i = 1; i < priorities.size(); i++) {
+      final PrioritizedComponent actualComponent = priorities.get(i);
+      assertThat(actualComponent.getPriority()).isEqualTo(i + priorityOffset + 1);
+      assertThat(actualComponent.getComponentHash()).isEqualTo(expectedHashesInOrder.get(i + priorityOffset));
+    }
+
+    // check fourth page contains the next 5 hashes
+    results =
+        developmentPrioritiesService
+            .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 4, 5, null, false);
+
+    assertPaginationResultCorrect(results.getPriorities(), 5, 22, 5, 4);
+
+    priorities = results.getPriorities().getResults();
+
+    priorityOffset = 15;
+    for (int i = 0; i < priorities.size(); i++) {
+      final PrioritizedComponent actualComponent = priorities.get(i);
+      assertThat(actualComponent.getPriority()).isEqualTo(i + priorityOffset + 1);
+      assertThat(actualComponent.getComponentHash()).isEqualTo(expectedHashesInOrder.get(i + priorityOffset));
+    }
+
+    // check fifth page contains the next 2 hashes
+    results =
+        developmentPrioritiesService
+            .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 5, 5, null, false);
+
+    assertPaginationResultCorrect(results.getPriorities(), 2, 22, 5, 5);
+
+    priorities = results.getPriorities().getResults();
+
+    priorityOffset = 20;
+    for (int i = 0; i < priorities.size(); i++) {
+      final PrioritizedComponent actualComponent = priorities.get(i);
+      assertThat(actualComponent.getPriority()).isEqualTo(i + priorityOffset + 1);
+      assertThat(actualComponent.getComponentHash()).isEqualTo(expectedHashesInOrder.get(i + priorityOffset));
     }
   }
 
@@ -1284,14 +1268,10 @@ public class DevelopmentPrioritiesServiceTest
         GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, 0, null, null);
 
     assertThat(results).containsExactly(
-        toPrioritizedComponent(component2, 9, "policy-g", 1, "Unknown", false, null, "none", true,
-            null, null, 9),
-            toPrioritizedComponent(component4, 8, "policy-h", 2, "Unknown", false, null, "none",
-                true, null, null, 5),
-            toPrioritizedComponent(component1, 10, "policy-e", 3, "Unknown", false, null, "none",
-                false, null, null, 0),
-            toPrioritizedComponent(component5, 7, "policy-l", 3, "Unknown", false, null, "none",
-                false, null, null, 0));
+            toPrioritizedComponent(component2, 9, "policy-g", 1, "Unknown", false, null, "none", true, null, null, 9),
+            toPrioritizedComponent(component4, 8, "policy-h", 2, "Unknown", false, null, "none", true, null, null, 5),
+            toPrioritizedComponent(component1, 10, "policy-e", 3, "Unknown", false, null, "none", false, null, null, 0),
+            toPrioritizedComponent(component5, 7, "policy-l", 4, "Unknown", false, null, "none", false, null, null, 0));
 
     verifyServiceCallsInvokedWithExpectedArguments();
   }
@@ -1448,7 +1428,7 @@ public class DevelopmentPrioritiesServiceTest
   }
 
   @Test
-  public void testGetAllPrioritizedFindings_shouldReuseTheSamePriorityWhenTheyHaveTheSameScore() {
+  public void testGetAllPrioritizedFindings_shouldHaveDescendingPriorityWhenTheyHaveTheSameScore() {
     // === GIVEN ===
     // will be middle priority with component2 (priority 2)
     final ApiReportComponentDTOV2 component1 = createComponent("aaa", "component1");
@@ -1468,13 +1448,13 @@ public class DevelopmentPrioritiesServiceTest
         component3,
         Lists.newArrayList(createPolicyViolation(9, "c", "policy-c", false)));
 
-    // will be the lowest priority (3) and in additional priorities
+    // will be the lowest priority (3)
     final ApiReportComponentDTOV2 component4 = createComponent("ddd", "component4");
     final PolicyThreats.Component component4Threats = createPolicyThreatsComponents(
         component4,
         Lists.newArrayList(createPolicyViolation(2, "d", "policy-d", false)));
 
-    // will also be the lowest priority (3) and in additional priorities
+    // will also be the lowest priority (3)
     final ApiReportComponentDTOV2 component5 = createComponent("eee", "component5");
     final PolicyThreats.Component component5Threats = createPolicyThreatsComponents(
         component5,
@@ -1502,16 +1482,16 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(results.get(0).getPriority()).isEqualTo(1);
 
     assertThat(results.get(1).getComponentHash()).isEqualTo("aaa");
-    assertThat(results.get(1).getPriority()).isEqualTo(1);
+    assertThat(results.get(1).getPriority()).isEqualTo(2);
 
     assertThat(results.get(2).getComponentHash()).isEqualTo("bbb");
-    assertThat(results.get(2).getPriority()).isEqualTo(1);
+    assertThat(results.get(2).getPriority()).isEqualTo(3);
 
     assertThat(results.get(3).getComponentHash()).isEqualTo("ddd");
-    assertThat(results.get(3).getPriority()).isEqualTo(1);
+    assertThat(results.get(3).getPriority()).isEqualTo(4);
 
     assertThat(results.get(4).getComponentHash()).isEqualTo("eee");
-    assertThat(results.get(4).getPriority()).isEqualTo(1);
+    assertThat(results.get(4).getPriority()).isEqualTo(5);
 
     verifyServiceCallsInvokedWithExpectedArguments();
   }
@@ -1568,7 +1548,7 @@ public class DevelopmentPrioritiesServiceTest
 
   @Test
   public void testGetAllPrioritizedFindings_shouldSortCorrectlyWithAllPrioritizationCriteria_WithBulkRecommendations() {
-    // === Given (in expected order of priority) ===
+    // === Given ===
     // FAIL ACTION
     final Pair<List<ApiReportComponentDTOV2>, List<Component>> failingComponentsWithSecurityReachable =
         generateComponentAtEachThreatLevelWithActionWithRecommendations(
@@ -2011,9 +1991,9 @@ public class DevelopmentPrioritiesServiceTest
 
     assertThat(results).containsExactlyInAnyOrder(
         // "policy-f" of threat level 10 is a legacy violation, so not in the priority list.
-        toPrioritizedComponent(component1, 5, "policy-c", null, 1),
+        toPrioritizedComponent(component2, 7, "policy-g", null, 1),
         // "policy-b,d,e" of threat level 6 are a legacy violations, so not in the priority list.
-        toPrioritizedComponent(component2, 7, "policy-g", null, 1)
+        toPrioritizedComponent(component1, 5, "policy-c", null, 2)
     );
 
   }
@@ -2065,11 +2045,11 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(results).containsExactly(
         toPrioritizedComponentWithRemediation(component3, 9, "policy-c", null, 1,
             ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, "v3"),
-        toPrioritizedComponentWithRemediation(component1, 7, "policy-a", null, 1,
+        toPrioritizedComponentWithRemediation(component1, 7, "policy-a", null, 2,
             ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, "v3"),
-        toPrioritizedComponentWithRemediation(component2, 7, "policy-b", null, 1,
+        toPrioritizedComponentWithRemediation(component2, 7, "policy-b", null, 3,
             ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, "v3"),
-        toPrioritizedComponentWithRemediation(component4, 2, "policy-d", null, 1,
+        toPrioritizedComponentWithRemediation(component4, 2, "policy-d", null, 4,
             ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, "v3")
     );
   }
@@ -2154,18 +2134,18 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(results).containsExactly(
         toPrioritizedComponentWithRemediation(component3, 9, "policy-c", null, 1,
             ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, "v3"),
-        toPrioritizedComponentWithRemediation(component6, 9, "policy-g", null, 1,
+        toPrioritizedComponentWithRemediation(component6, 9, "policy-g", null, 2,
             ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, "v3"),
-        toPrioritizedComponentWithRemediation(component9, 9, "policy-j", null, 1,
+        toPrioritizedComponentWithRemediation(component9, 9, "policy-j", null, 3,
             ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, "v3"),
-        toPrioritizedComponentWithRemediation(component1, 7, "policy-a", null, 1,
+        toPrioritizedComponentWithRemediation(component1, 7, "policy-a", null, 4,
             ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, "v3"),
-        toPrioritizedComponentWithRemediation(component2, 7, "policy-b", null, 1,
+        toPrioritizedComponentWithRemediation(component2, 7, "policy-b", null, 5,
             ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, "v3"),
-        toPrioritizedComponent(component5, 7, "policy-f", null, 1),
-        toPrioritizedComponent(component8, 7, "policy-i", null, 1),
-        toPrioritizedComponent(component4, 2, "policy-d", null, 1),
-        toPrioritizedComponent(component7, 2, "policy-h", null, 1)
+        toPrioritizedComponent(component5, 7, "policy-f", null, 6),
+        toPrioritizedComponent(component8, 7, "policy-i", null, 7),
+        toPrioritizedComponent(component4, 2, "policy-d", null, 8),
+        toPrioritizedComponent(component7, 2, "policy-h", null, 9)
     );
 
     // === Then ===
@@ -2178,18 +2158,18 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(results).containsExactlyInAnyOrder(
         toPrioritizedComponentWithRemediation(component3, 9, "policy-c", null, 1,
             ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, "v3"),
-        toPrioritizedComponentWithRemediation(component6, 9, "policy-g", null, 1,
+        toPrioritizedComponentWithRemediation(component6, 9, "policy-g", null, 2,
             ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, "v3"),
-        toPrioritizedComponentWithRemediation(component9, 9, "policy-j", null, 1,
+        toPrioritizedComponentWithRemediation(component9, 9, "policy-j", null, 3,
             ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, "v3"),
-        toPrioritizedComponent(component1, 7, "policy-a", null, 1),
-        toPrioritizedComponent(component2, 7, "policy-b", null, 1),
-        toPrioritizedComponent(component5, 7, "policy-f", null, 1),
-        toPrioritizedComponentWithRemediation(component8, 7, "policy-i", null, 1,
+        toPrioritizedComponent(component1, 7, "policy-a", null, 4),
+        toPrioritizedComponent(component2, 7, "policy-b", null, 5),
+        toPrioritizedComponent(component5, 7, "policy-f", null, 6),
+        toPrioritizedComponentWithRemediation(component8, 7, "policy-i", null, 7,
             ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, "v3"),
-        toPrioritizedComponentWithRemediation(component4, 2, "policy-d", null, 1,
+        toPrioritizedComponentWithRemediation(component4, 2, "policy-d", null, 8,
             ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, "v3"),
-        toPrioritizedComponent(component7, 2, "policy-h", null, 1)
+        toPrioritizedComponent(component7, 2, "policy-h", null, 9)
     );
   }
 
@@ -2247,21 +2227,17 @@ public class DevelopmentPrioritiesServiceTest
     when(featuresService.getFeatures()).thenReturn(Sets.newHashSet(DEVELOPER_DASHBOARD));
 
     DevelopmentPrioritizationResults results = developmentPrioritiesService
-        .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1,
-            GIVEN_PAGE_SIZE_10, "Dog", false);
-    assertThat(results.getTopPriorities())
+        .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10,
+            "Dog", false);
+    assertThat(results.getPriorities().getResults())
         .hasSize(2)
         .extracting(PrioritizedComponent::getDisplayName)
         .containsExactlyInAnyOrder("DoG", "More dogS");
-    assertThat(results.getAdditionalPriorities().getResults())
-        .isEmpty();
 
     results = developmentPrioritiesService
-        .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1,
-            GIVEN_PAGE_SIZE_10, "cat", false);
-    assertThat(results.getTopPriorities())
-        .isEmpty();
-    assertThat(results.getAdditionalPriorities().getResults())
+        .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10,
+            "cat", false);
+    assertThat(results.getPriorities().getResults())
         .isEmpty();
 
     assertThatCode(() -> developmentPrioritiesService

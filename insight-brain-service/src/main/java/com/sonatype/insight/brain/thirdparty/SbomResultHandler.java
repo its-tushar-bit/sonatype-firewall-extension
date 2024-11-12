@@ -24,6 +24,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -116,12 +117,6 @@ public class SbomResultHandler
   protected static final String MISSING_COMPONENT_NAME = "[Not Provided]";
 
   public static final String PURL_BOM_TYPE = "sbom_type";
-
-  public static final String FILENAMES_COMPONENT_PROPERTY = "sonatype:match_filenames";
-
-  public static final String MATCH_STATE_COMPONENT_PROPERTY = "sonatype:match_state";
-
-  public static final String MATCH_STATE_LEGACY_COMPONENT_PROPERTY = "Match State";
 
   protected final ThirdPartyFileDAO thirdPartyFileDAO;
 
@@ -531,7 +526,7 @@ public class SbomResultHandler
 
   protected void setHash(final String sha1, final Component component) {
     Property property = new Property();
-    property.setName(SbomUtils.SONATYPE_HASH_PROPERTY_NAME);
+    property.setName(SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
     property.setValue(StringUtils.truncate(sha1, 0, HashHelper.MAX_LENGTH));
     component.addProperty(property);
   }
@@ -602,12 +597,14 @@ public class SbomResultHandler
           sourceComponent.getEvidence().getOccurrences().stream().map(Occurrence::getLocation).toList());
     }
     if (CollectionUtils.isNotEmpty(sourceComponent.getProperties())) {
-      fileCoordinate.setFilenames(getComponentPropertyAsString(sourceComponent, FILENAMES_COMPONENT_PROPERTY));
-      fileCoordinate.setMatchStateId(getComponentPropertyAsString(sourceComponent, MATCH_STATE_COMPONENT_PROPERTY));
+      fileCoordinate.setFilenames(getComponentPropertyAsString(sourceComponent,
+          SbomTaxonomy.CDX_MATCH_FILENAMES_PROPERTY_NAME));
+      fileCoordinate.setMatchStateId(getComponentPropertyAsString(sourceComponent,
+          SbomTaxonomy.CDX_MATCH_STATE_PROPERTY_NAME));
       if (StringUtils.isEmpty(fileCoordinate.getMatchStateId())) {
         // Fallback to legacy property
         fileCoordinate.setMatchStateId(
-            getComponentPropertyAsString(sourceComponent, MATCH_STATE_LEGACY_COMPONENT_PROPERTY));
+            getComponentPropertyAsString(sourceComponent, SbomTaxonomy.LEGACY_MATCH_STATE_PROPERTY_NAME));
       }
     }
     componentInfoTelemetry.incrementEcosystemCount(fileCoordinate.getFormat());

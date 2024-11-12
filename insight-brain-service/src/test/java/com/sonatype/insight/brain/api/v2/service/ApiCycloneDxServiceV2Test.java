@@ -21,6 +21,7 @@ import javax.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
@@ -41,7 +42,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.SbomFormat;
-import com.sonatype.insight.util.SbomUtils;
 
 import com.github.packageurl.PackageURL;
 import com.github.packageurl.PackageURL.StandardTypes;
@@ -671,9 +671,9 @@ public class ApiCycloneDxServiceV2Test
             "pkg:fake/com.google.guava/guava@30.1-jre?type=jar",
             false, "Apache-2.0");
     final Property identificationSource = component1.getProperties().stream()
-        .filter(p -> p.getName().equals(SbomUtils.IDENTIFICATION_SOURCE_PROPERTY_NAME)).findFirst()
+        .filter(p -> p.getName().equals(SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME)).findFirst()
         .orElse(new Property());
-    identificationSource.setName(SbomUtils.IDENTIFICATION_SOURCE_PROPERTY_NAME);
+    identificationSource.setName(SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME);
     identificationSource.setValue("third-party-cvss4");
 
     assertThat(bom.getComponents())
@@ -826,22 +826,22 @@ public class ApiCycloneDxServiceV2Test
 
     if (bomVersion.compareTo(Version.VERSION_12) > 0 && hashStr != null) {
       Property property = new Property();
-      property.setName(SbomUtils.SONATYPE_HASH_PROPERTY_NAME);
+      property.setName(SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
       property.setValue(hashStr);
       component.addProperty(property);
 
       Property matchStateProperty = new Property();
-      matchStateProperty.setName("sonatype:match_state");
+      matchStateProperty.setName(SbomTaxonomy.CDX_MATCH_STATE_PROPERTY_NAME);
       matchStateProperty.setValue(matchState);
       component.addProperty(matchStateProperty);
 
       Property identificationSource = new Property();
-      identificationSource.setName(SbomUtils.IDENTIFICATION_SOURCE_PROPERTY_NAME);
+      identificationSource.setName(SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME);
       identificationSource.setValue(IdentificationSource.SONATYPE.getName());
       component.addProperty(identificationSource);
 
       Property filenamesProperty = new Property();
-      filenamesProperty.setName("sonatype:match_filenames");
+      filenamesProperty.setName(SbomTaxonomy.CDX_MATCH_FILENAMES_PROPERTY_NAME);
       filenamesProperty.setValue(filenames);
       component.addProperty(filenamesProperty);
     }

@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
@@ -450,7 +451,8 @@ public class SpdxResultHandlerTest
     Component actualComponent = actualFilteredBom.getComponents().get(0);
     assertThat(actualComponent.getName()).isEqualTo("django");
     assertThat(actualComponent.getProperties()).size().isEqualTo(1);
-    assertThat(actualComponent.getProperties().get(0).getName()).isEqualTo("Sonatype truncated SHA1");
+    assertThat(actualComponent.getProperties().get(0).getName()).isEqualTo(
+        SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
     assertThat(actualComponent.getProperties().get(0).getValue()).isEqualTo("9188560f22e0b73070d2");
     assertThat(actualComponent.getVersion()).isNull();
     assertThat(actualComponent.getHashes()).isNull();

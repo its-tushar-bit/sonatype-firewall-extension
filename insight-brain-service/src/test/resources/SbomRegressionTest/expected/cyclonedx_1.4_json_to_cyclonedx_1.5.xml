@@ -52,7 +52,7 @@
         <license bom-ref="52650b5d-5658-4c1a-ac4d-20ae5358d4af">
           <id>EPL-2.0</id>
           <properties>
-            <property name="identificationSources">SBOM</property>
+            <property name="sonatype:identification_sources">SBOM</property>
           </properties>
         </license>
       </licenses>

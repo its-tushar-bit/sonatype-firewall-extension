@@ -151,7 +151,7 @@
         <license>
           <name>See-License-Clause</name>
           <properties>
-            <property name="identificationSources">Sonatype</property>
+            <property name="sonatype:identification_sources">Sonatype</property>
           </properties>
         </license>
       </licenses>
@@ -190,7 +190,7 @@
         </target>
       </affects>
       <properties>
-        <property name="identificationSources">Sonatype</property>
+        <property name="sonatype:identification_sources">Sonatype</property>
       </properties>
     </vulnerability>
     <vulnerability bom-ref="CVE-2022-42004-b43a463f38e440088e91289445536956">
@@ -230,7 +230,7 @@
         </target>
       </affects>
       <properties>
-        <property name="identificationSources">Sonatype</property>
+        <property name="sonatype:identification_sources">Sonatype</property>
       </properties>
     </vulnerability>
     <vulnerability bom-ref="CVE-2022-42003-3c88bf45c2334fa5928fc12243f42028">
@@ -260,7 +260,7 @@
         </target>
       </affects>
       <properties>
-        <property name="identificationSources">Sonatype</property>
+        <property name="sonatype:identification_sources">Sonatype</property>
       </properties>
     </vulnerability>
     <vulnerability bom-ref="CVE-2020-25649-a858033c63c54424b129e4299a6b7deb">
@@ -290,7 +290,7 @@
         </target>
       </affects>
       <properties>
-        <property name="identificationSources">Sonatype</property>
+        <property name="sonatype:identification_sources">Sonatype</property>
       </properties>
     </vulnerability>
     <vulnerability bom-ref="CVE-2020-36518-798341f1b6704308ba192fe4ae70b7f0">
@@ -320,7 +320,7 @@
         </target>
       </affects>
       <properties>
-        <property name="identificationSources">Sonatype</property>
+        <property name="sonatype:identification_sources">Sonatype</property>
       </properties>
     </vulnerability>
     <vulnerability bom-ref="CVE-2018-7489-c1dbc8c00ccc4a749e3d0885ad1551df">
@@ -348,7 +348,7 @@
         </target>
       </affects>
       <properties>
-        <property name="identificationSources">SBOM</property>
+        <property name="sonatype:identification_sources">SBOM</property>
       </properties>
     </vulnerability>
     <vulnerability bom-ref="CVE-2019-12814-1ee6fb9866da46a9bce1a95f77b9e955">
@@ -378,7 +378,7 @@
         </target>
       </affects>
       <properties>
-        <property name="identificationSources">Sonatype</property>
+        <property name="sonatype:identification_sources">Sonatype</property>
       </properties>
     </vulnerability>
   </vulnerabilities>

@@ -86,7 +86,7 @@
             "id": "EPL-2.0",
             "properties": [
               {
-                "name": "identificationSources",
+                "name": "sonatype:identification_sources",
                 "value": "SBOM"
               }
             ]

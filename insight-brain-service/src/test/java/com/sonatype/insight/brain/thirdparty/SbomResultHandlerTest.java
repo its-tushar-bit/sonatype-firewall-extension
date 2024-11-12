@@ -23,6 +23,7 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -52,7 +53,6 @@ import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
-import com.sonatype.insight.util.SbomUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
@@ -729,7 +729,8 @@ public class SbomResultHandlerTest
     Component actualComponent = actualFilteredBom.getComponents().get(0);
     assertThat(actualComponent.getName()).isEqualTo("django");
     assertThat(actualComponent.getProperties()).size().isEqualTo(1);
-    assertThat(actualComponent.getProperties().get(0).getName()).isEqualTo("Sonatype truncated SHA1");
+    assertThat(actualComponent.getProperties().get(0).getName()).isEqualTo(
+        SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
     assertThat(actualComponent.getProperties().get(0).getValue()).isEqualTo("e6b1000b94e835ffd37f");
     assertThat(actualComponent.getVersion()).isNull();
     assertThat(actualComponent.getHashes()).isNull();
@@ -2002,10 +2003,10 @@ public class SbomResultHandlerTest
     assertThat(component3.getHashes()).isNull();
     assertThat(component1.getProperties()).isNotNull().hasSize(1);
     assertThat(component2.getProperties()).hasSize(2);
-    assertThat(component2.getProperties().get(0).getName()).isEqualTo(SbomUtils.SONATYPE_HASH_PROPERTY_NAME);
+    assertThat(component2.getProperties().get(0).getName()).isEqualTo(SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
     assertThat(component2.getProperties().get(0).getValue()).isEqualTo("e6b1000b94e835ffd37f");
     assertThat(component3.getProperties()).hasSize(2);
-    assertThat(component3.getProperties().get(0).getName()).isEqualTo(SbomUtils.SONATYPE_HASH_PROPERTY_NAME);
+    assertThat(component3.getProperties().get(0).getName()).isEqualTo(SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
     assertThat(component3.getProperties().get(0).getValue()).isEqualTo("716e4909ac2db42da409");
   }
 

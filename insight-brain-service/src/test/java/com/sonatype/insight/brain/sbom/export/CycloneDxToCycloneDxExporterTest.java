@@ -15,6 +15,7 @@ import java.util.NoSuchElementException;
 import java.util.zip.GZIPInputStream;
 import javax.inject.Inject;
 
+import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -394,7 +395,7 @@ public class CycloneDxToCycloneDxExporterTest
     assertThat(updatedSonatype0053.getProperties())
         .hasSize(1)
         .anyMatch(p ->
-            p.getName().equalsIgnoreCase("identificationSources") &&
+            p.getName().equalsIgnoreCase(SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME) &&
                 p.getValue().equals("G,F"));
     assertThat(updatedSonatype0053.getCwes()).hasSize(1)
         .anyMatch(cwe -> cwe.equals(1234));
@@ -436,7 +437,7 @@ public class CycloneDxToCycloneDxExporterTest
     assertThat(vulnerabilityABC.getProperties())
         .hasSize(1)
         .anyMatch(p ->
-            p.getName().equalsIgnoreCase("identificationSources") &&
+            p.getName().equalsIgnoreCase(SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME) &&
                 p.getValue().equals("M"));
 
     // Vex
@@ -592,7 +593,7 @@ public class CycloneDxToCycloneDxExporterTest
   private void assertLicenseHasIdentificationSources(License license, String identificationSources) {
     assertThat(CollectionUtils.isEmpty(license.getProperties())).isFalse();
     Property foundProperty = license.getProperties().stream().filter( property -> property.getName()
-        .equals("identificationSources")).findFirst().orElse(null);
+        .equals(SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME)).findFirst().orElse(null);
     assertThat(foundProperty).isNotNull()
         .extracting(Property::getValue)
         .isEqualTo(identificationSources);

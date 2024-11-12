@@ -52,7 +52,7 @@
       <version>9.0.14</version>
       <purl>pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar</purl>
       <properties>
-        <property name="Sonatype truncated SHA1">e6b1000b94e835ffd37f</property>
+        <property name="sonatype:truncated_sha1">e6b1000b94e835ffd37f</property>
         <property name="sonatypeIdentifier">ignored</property>
       </properties>
     </component>

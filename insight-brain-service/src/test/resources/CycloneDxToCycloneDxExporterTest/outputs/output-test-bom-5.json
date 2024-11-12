@@ -31,7 +31,7 @@
             "id" : "MPL-2.0",
             "properties" : [
               {
-                "name" : "identificationSources",
+                "name" : "sonatype:identification_sources",
                 "value" : "SBOM,Sonatype"
               }
             ]
@@ -42,20 +42,16 @@
       "modified" : false,
       "properties" : [
         {
-          "name" : "Sonatype truncated SHA1",
+          "name" : "sonatype:truncated_sha1",
           "value" : "dd0034398d593aa3588c"
-        },
-        {
-          "name" : "Match State",
-          "value" : "exact"
-        },
-        {
-          "name" : "Identification Source",
-          "value" : "Sonatype"
         },
         {
           "name" : "sonatype:match_state",
           "value" : "exact"
+        },
+        {
+          "name" : "sonatype:identification_sources",
+          "value" : "Sonatype"
         },
         {
           "name" : "sonatype:match_filenames",
@@ -96,7 +92,7 @@
       ],
       "properties" : [
         {
-          "name" : "identificationSources",
+          "name" : "sonatype:identification_sources",
           "value" : "G,F"
         }
       ]

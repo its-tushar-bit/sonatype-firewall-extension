@@ -92,7 +92,7 @@
       ],
       "properties" : [
         {
-          "name" : "identificationSources",
+          "name" : "sonatype:identification_sources",
           "value" : "SBOM,Sonatype"
         }
       ]
@@ -137,7 +137,7 @@
       ],
       "properties" : [
         {
-          "name" : "identificationSources",
+          "name" : "sonatype:identification_sources",
           "value" : "SBOM,Sonatype"
         }
       ]
@@ -175,7 +175,7 @@
       ],
       "properties" : [
         {
-          "name" : "identificationSources",
+          "name" : "sonatype:identification_sources",
           "value" : "Sonatype"
         }
       ]

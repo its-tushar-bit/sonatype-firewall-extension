@@ -24,13 +24,13 @@
         <license>
           <id>Apache-2.0</id>
           <properties>
-            <property name="identificationSources">SBOM,Sonatype</property>
+            <property name="sonatype:identification_sources">SBOM,Sonatype</property>
           </properties>
         </license>
         <license>
           <id>MIT</id>
           <properties>
-            <property name="identificationSources">Sonatype</property>
+            <property name="sonatype:identification_sources">Sonatype</property>
           </properties>
         </license>
       </licenses>
@@ -86,7 +86,7 @@
         </target>
       </affects>
       <properties>
-        <property name="identificationSources">SBOM,Sonatype</property>
+        <property name="sonatype:identification_sources">SBOM,Sonatype</property>
       </properties>
     </vulnerability>
     <vulnerability>
@@ -122,7 +122,7 @@
         </target>
       </affects>
       <properties>
-        <property name="identificationSources">Sonatype</property>
+        <property name="sonatype:identification_sources">Sonatype</property>
       </properties>
     </vulnerability>
   </vulnerabilities>

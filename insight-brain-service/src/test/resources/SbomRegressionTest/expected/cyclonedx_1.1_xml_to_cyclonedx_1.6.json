@@ -211,7 +211,7 @@
             "name": "See-License-Clause",
             "properties": [
               {
-                "name": "identificationSources",
+                "name": "sonatype:identification_sources",
                 "value": "Sonatype"
               }
             ]
@@ -261,7 +261,7 @@
       ],
       "properties" : [
         {
-          "name" : "identificationSources",
+          "name" : "sonatype:identification_sources",
           "value" : "Sonatype"
         }
       ]
@@ -305,7 +305,7 @@
       ],
       "properties" : [
         {
-          "name" : "identificationSources",
+          "name" : "sonatype:identification_sources",
           "value" : "Sonatype"
         }
       ]
@@ -339,7 +339,7 @@
       ],
       "properties" : [
         {
-          "name" : "identificationSources",
+          "name" : "sonatype:identification_sources",
           "value" : "Sonatype"
         }
       ]
@@ -373,7 +373,7 @@
       ],
       "properties" : [
         {
-          "name" : "identificationSources",
+          "name" : "sonatype:identification_sources",
           "value" : "Sonatype"
         }
       ]
@@ -407,7 +407,7 @@
       ],
       "properties" : [
         {
-          "name" : "identificationSources",
+          "name" : "sonatype:identification_sources",
           "value" : "Sonatype"
         }
       ]
@@ -439,7 +439,7 @@
       ],
       "properties" : [
         {
-          "name" : "identificationSources",
+          "name" : "sonatype:identification_sources",
           "value" : "SBOM"
         }
       ]
@@ -473,7 +473,7 @@
       ],
       "properties" : [
         {
-          "name" : "identificationSources",
+          "name" : "sonatype:identification_sources",
           "value" : "Sonatype"
         }
       ]

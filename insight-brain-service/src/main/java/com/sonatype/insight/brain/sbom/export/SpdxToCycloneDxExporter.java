@@ -19,6 +19,7 @@ import java.util.zip.GZIPInputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -34,7 +35,6 @@ import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.util.HashUtils;
-import com.sonatype.insight.util.SbomUtils;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -143,7 +143,7 @@ public class SpdxToCycloneDxExporter
 
   private void setSonatypeSha1Hash(final String sha1, final Component component) {
     Property property = new Property();
-    property.setName(SbomUtils.SONATYPE_HASH_PROPERTY_NAME);
+    property.setName(SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
     property.setValue(StringUtils.truncate(sha1, 0, HashHelper.MAX_LENGTH));
     component.addProperty(property);
   }

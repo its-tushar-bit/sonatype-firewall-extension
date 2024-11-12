@@ -14,11 +14,13 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
+import com.sonatype.insight.util.SbomUtils;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -41,8 +43,6 @@ import static com.google.common.collect.Lists.newArrayList;
 
 public class SbomExportUtils
 {
-  public static final String IDENTIFICATION_SOURCES_PROPERTY = "identificationSources";
-
   public static Vulnerability createCycloneDxVulnerabilityFromDbData(
       Component bomComponent,
       ThirdPartyCoordinateSecurity sonatypeVulnerability,
@@ -83,23 +83,8 @@ public class SbomExportUtils
     bomVulnerability.setRatings(Collections.singletonList(
         updateVulnerabilityRatingWithSonatypeData(new Rating(), sonatypeVulnerability)));
 
-    if (CollectionUtils.isEmpty(bomVulnerability.getProperties())) {
-      if (StringUtils.isNotEmpty(sonatypeVulnerability.getIdentificationSources())) {
-        bomVulnerability.setProperties(Collections.singletonList(createCycloneDxIdentificationSourceProperty(
-            sonatypeVulnerability.getIdentificationSources())));
-      }
-    }
-    else {
-      Optional<Property> identificationSources = bomVulnerability.getProperties().stream().filter(
-          property -> property.getName().equals(IDENTIFICATION_SOURCES_PROPERTY)).findFirst();
-      if (identificationSources.isPresent()) {
-        identificationSources.get().setValue(sonatypeVulnerability.getIdentificationSources());
-      }
-      else {
-        bomVulnerability.getProperties().add(createCycloneDxIdentificationSourceProperty(
-            sonatypeVulnerability.getIdentificationSources()));
-      }
-    }
+    bomVulnerability.setProperties(addOrUpdateBomElementProperty(bomVulnerability.getProperties(),
+          SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME, sonatypeVulnerability.getIdentificationSources()));
 
     if (sonatypeVexInformation != null) {
       Analysis analysis = bomVulnerability.getAnalysis();
@@ -114,13 +99,6 @@ public class SbomExportUtils
     return bomVulnerability;
   }
 
-  public static Property createCycloneDxIdentificationSourceProperty(String value) {
-    Property property = new Property();
-    property.setName(IDENTIFICATION_SOURCES_PROPERTY);
-    property.setValue(value);
-    return property;
-  }
-
   public static License createCycloneDxLicenseFromDbData(ThirdPartyCoordinateLicense sonatypeComponentLicense) {
     License license = new License();
     String licenseId = sonatypeComponentLicense.getLicenseId();
@@ -131,19 +109,84 @@ public class SbomExportUtils
     else {
       license.setName(licenseId);
     }
+    return updateCycloneDxLicenseFromDbData(license, sonatypeComponentLicense);
+  }
 
-    license.setUrl(sonatypeComponentLicense.getUrl());
-    if (StringUtils.isNotEmpty(sonatypeComponentLicense.getIdentificationSources())) {
-      if (license.getProperties() == null) {
-        license.setProperties(Collections.singletonList(createCycloneDxIdentificationSourceProperty(
-            sonatypeComponentLicense.getIdentificationSources())));
-      }
-      else {
-        license.getProperties().add(createCycloneDxIdentificationSourceProperty(
-            sonatypeComponentLicense.getIdentificationSources()));
+  public static License updateCycloneDxLicenseFromDbData(
+      License bomLicense,
+      ThirdPartyCoordinateLicense sonatypeComponentLicense)
+  {
+    if (sonatypeComponentLicense.getUrl() != null) {
+      bomLicense.setUrl(sonatypeComponentLicense.getUrl());
+    }
+    bomLicense.setProperties(addOrUpdateBomElementProperty(bomLicense.getProperties(),
+        SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME, sonatypeComponentLicense.getIdentificationSources()));
+    return bomLicense;
+  }
+
+  public static List<Property> addOrUpdateBomElementProperty(
+      List<Property> properties,
+      String propName,
+      String propValue)
+  {
+    if (CollectionUtils.isEmpty(properties)) {
+      if (StringUtils.isNotEmpty(propValue)) {
+        properties = new ArrayList<>();
+        properties.add(createCycloneDxProperty(propName, propValue));
       }
     }
-    return license;
+    else {
+      Optional<Property> existingProperty = properties.stream().filter(
+          property -> property.getName().equals(propName)).findFirst();
+      if (existingProperty.isPresent()) {
+        if (StringUtils.isNotEmpty(propValue)) {
+          existingProperty.get().setValue(propValue);
+        }
+      }
+      else {
+        if (!updateCycloneDxLegacyPropertyIfPresent(properties, propName, propValue)) {
+          if (StringUtils.isNotEmpty(propValue)) {
+            properties.add(createCycloneDxProperty(propName, propValue));
+          }
+        }
+      }
+    }
+    return properties;
+  }
+
+  public static Property createCycloneDxProperty(String propName, String propValue) {
+    Property property = new Property();
+    property.setName(propName);
+    property.setValue(propValue);
+    return property;
+  }
+
+  public static boolean updateCycloneDxLegacyPropertyIfPresent(List<Property> properties,
+                                                            String propName, String propValue)
+  {
+    if (SbomUtils.getLegacyPropertyForCdxProperty(propName) != null) {
+      if (CollectionUtils.isNotEmpty(properties)) {
+        Optional<Property> legacyProperty = properties.stream().filter(
+            property -> property.getName().equals(SbomUtils.getLegacyPropertyForCdxProperty(propName))).findFirst();
+        if (legacyProperty.isPresent()) {
+          legacyProperty.get().setName(propName);
+          if (StringUtils.isNotEmpty(propValue)) {
+            legacyProperty.get().setValue(propValue);
+          }
+          return true;
+        }
+        // Check for identificationSources, another legacy property specific to SBOM Manager
+        else if (propName.equals(SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME)) {
+          Optional<Property> identificationSourcesProperty = properties.stream().filter(
+              property -> property.getName().equals("identificationSources")).findFirst();
+          if (identificationSourcesProperty.isPresent()) {
+            identificationSourcesProperty.get().setName(SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME);
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   private static Rating updateVulnerabilityRatingWithSonatypeData(

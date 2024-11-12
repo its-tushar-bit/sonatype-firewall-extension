@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -45,7 +46,6 @@ import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.OrganizationalEntity;
-import org.cyclonedx.model.Property;
 import org.cyclonedx.model.license.Expression;
 import org.cyclonedx.model.metadata.ToolInformation;
 import org.cyclonedx.model.vulnerability.Vulnerability;
@@ -55,10 +55,11 @@ import org.spdx.library.model.license.AnyLicenseInfo;
 import org.spdx.library.model.license.LicenseInfoFactory;
 import org.spdx.library.model.license.ListedLicenses;
 
-import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.IDENTIFICATION_SOURCES_PROPERTY;
-import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxIdentificationSourceProperty;
+import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.addOrUpdateBomElementProperty;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxLicenseFromDbData;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxVulnerabilityFromDbData;
+import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.updateCycloneDxLegacyPropertyIfPresent;
+import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.updateCycloneDxLicenseFromDbData;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.updateCycloneDxVulnerabilityFromDbData;
 import static org.spdx.library.SpdxConstants.NON_STD_LICENSE_ID_PRENUM;
 
@@ -121,11 +122,36 @@ public abstract class AbstractCycloneDxExporter
         if (bomComponentFound.isPresent()) {
           Component bomComponent = bomComponentFound.get();
 
+          // Add or update bom component properties with sonatype data
+          bomComponent.setProperties(addOrUpdateBomElementProperty(bomComponent.getProperties(),
+              SbomTaxonomy.CDX_MATCH_STATE_PROPERTY_NAME, sonatypeComponent.getMatchStateId()));
+
+          if (CollectionUtils.isNotEmpty(sonatypeComponent.getFilenamesList())) {
+            bomComponent.setProperties(addOrUpdateBomElementProperty(bomComponent.getProperties(),
+                SbomTaxonomy.CDX_MATCH_FILENAMES_PROPERTY_NAME,
+                String.join(",", sonatypeComponent.getFilenamesList())));
+          }
+
+          bomComponent.setProperties(addOrUpdateBomElementProperty(bomComponent.getProperties(),
+              SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME, null));
+
+          bomComponent.setProperties(addOrUpdateBomElementProperty(bomComponent.getProperties(),
+              SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME, null));
+
           // Merge sonatype vulnerabilities into bom
           mergeSonatypeDataVulnerabilities(bomComponent, sonatypeComponentVulnerabilities, bomVulnerabilitiesList,
               newBomVulnerabilities);
+
           // If no new licenses were recovered from db, skip merge process (left current licenses unaltered)
-          if (sonatypeComponentLicenses == null) {
+          // Update any legacy property names in the current licenses
+          if (CollectionUtils.isEmpty(sonatypeComponentLicenses)) {
+            if (bomComponent.getLicenses() != null &&
+                CollectionUtils.isNotEmpty(bomComponent.getLicenses().getLicenses())) {
+              for (License license : bomComponent.getLicenses().getLicenses()) {
+                updateCycloneDxLegacyPropertyIfPresent(license.getProperties(),
+                    SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME, null);
+              }
+            }
             continue;
           }
           LicenseChoice bomLicenseChoice = getBomComponentLicenses(bomComponent);
@@ -138,15 +164,6 @@ public abstract class AbstractCycloneDxExporter
             // 1.6+ new library won't validate/generate  an empty array of licenses and a null expression on a component
             bomComponent.setLicenses(null);
           }
-
-          if (StringUtils.isNotEmpty(sonatypeComponent.getMatchStateId())) {
-            addOrUpdatePropertyInBom(bomComponent, "sonatype:match_state", sonatypeComponent.getMatchStateId());
-          }
-
-          if (CollectionUtils.isNotEmpty(sonatypeComponent.getFilenamesList())) {
-            addOrUpdatePropertyInBom(bomComponent, "sonatype:match_filenames",
-                String.join(",", sonatypeComponent.getFilenamesList()));
-          }
         }
       }
     }
@@ -156,7 +173,6 @@ public abstract class AbstractCycloneDxExporter
     if (CollectionUtils.isEmpty(bom.getProperties())) {
       bom.setProperties(null);
     }
-
     return bom;
   }
 
@@ -251,7 +267,7 @@ public abstract class AbstractCycloneDxExporter
         Optional<License> licenseFromBom = bomLicenseChoice.getLicenses().stream()
             .filter(it -> doLicensesMatch(sonatypeComponentLicense, it)).findFirst();
         if (licenseFromBom.isPresent()) {
-          updateBomComponentLicenseWithSonatypeData(licenseFromBom.get(), sonatypeComponentLicense);
+          updateCycloneDxLicenseFromDbData(licenseFromBom.get(), sonatypeComponentLicense);
           continue;
         }
       }
@@ -314,33 +330,6 @@ public abstract class AbstractCycloneDxExporter
     return licenses;
   }
 
-  private void updateBomComponentLicenseWithSonatypeData(
-      License bomLicense,
-      ThirdPartyCoordinateLicense sonatypeComponentLicense)
-  {
-    if (sonatypeComponentLicense.getUrl() != null) {
-      bomLicense.setUrl(sonatypeComponentLicense.getUrl());
-    }
-
-    if (CollectionUtils.isEmpty(bomLicense.getProperties())) {
-      if (StringUtils.isNotEmpty(sonatypeComponentLicense.getIdentificationSources())) {
-        bomLicense.setProperties(Collections.singletonList(createCycloneDxIdentificationSourceProperty(
-            sonatypeComponentLicense.getIdentificationSources())));
-      }
-    }
-    else {
-      Optional<Property> identificationSources = bomLicense.getProperties().stream().filter(
-          property -> property.getName().equals(IDENTIFICATION_SOURCES_PROPERTY)).findFirst();
-      if (identificationSources.isPresent()) {
-        identificationSources.get().setValue(sonatypeComponentLicense.getIdentificationSources());
-      }
-      else {
-        bomLicense.getProperties().add(createCycloneDxIdentificationSourceProperty(
-            sonatypeComponentLicense.getIdentificationSources()));
-      }
-    }
-  }
-
   private void generateNewBomMetadata(Bom bom) {
     Metadata newBomMetadata = new Metadata();
     newBomMetadata.setTimestamp(new Date());
@@ -383,21 +372,6 @@ public abstract class AbstractCycloneDxExporter
           bom.getDependencies().set(rootDependencyIndex, newRootDependency);
         }
       }
-    }
-  }
-
-  private void addOrUpdatePropertyInBom(Component bomComponent, String propName, String propValue) {
-    Property bomProperty = new Property();
-    bomProperty.setName(propName);
-    bomProperty.setValue(propValue);
-    if (CollectionUtils.isNotEmpty(bomComponent.getProperties())) {
-      bomComponent.getProperties().stream()
-          .filter(p -> p.getName().equals(bomProperty.getName()))
-          .findFirst()
-          .ifPresentOrElse(p -> p.setValue(bomProperty.getValue()), () -> bomComponent.addProperty(bomProperty));
-    }
-    else {
-      bomComponent.addProperty(bomProperty);
     }
   }
 }

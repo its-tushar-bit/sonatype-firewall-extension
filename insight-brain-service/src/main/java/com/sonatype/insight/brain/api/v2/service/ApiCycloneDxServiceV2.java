@@ -28,6 +28,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
@@ -43,6 +44,7 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationHelper;
+import com.sonatype.insight.brain.sbom.export.SbomExportUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -51,7 +53,6 @@ import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-import com.sonatype.insight.util.SbomUtils;
 
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
@@ -300,11 +301,13 @@ public class ApiCycloneDxServiceV2
       Metadata metadata = new Metadata();
 
       if (version.compareTo(Version.VERSION_12) > 0) {
-        Property scanIdProperty = createProperty("Scan ID", policyEvaluation.getScanId());
+        Property scanIdProperty = SbomExportUtils.createCycloneDxProperty(
+            "Scan ID", policyEvaluation.getScanId());
         metadata.addProperty(scanIdProperty);
 
         if (StringUtils.isNotBlank(data.globalInformation.dataVersionDate)) {
-          Property dataDate = createProperty("Data Date", data.globalInformation.dataVersionDate);
+          Property dataDate = SbomExportUtils.createCycloneDxProperty(
+              "Data Date", data.globalInformation.dataVersionDate);
           metadata.addProperty(dataDate);
         }
       }
@@ -759,24 +762,17 @@ public class ApiCycloneDxServiceV2
     // Properties are only supported for xml/json schema version 1.3+
     if (version.compareTo(Version.VERSION_12) > 0) {
       if (reportComponent.hash != null) {
-        addProperty(SbomUtils.SONATYPE_HASH_PROPERTY_NAME, reportComponent.hash, bomComponent);
+        bomComponent.setProperties(SbomExportUtils.addOrUpdateBomElementProperty(bomComponent.getProperties(),
+            SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME, reportComponent.hash));
       }
-      addProperty("sonatype:match_state", reportComponent.matchState, bomComponent);
-      addProperty(SbomUtils.IDENTIFICATION_SOURCE_PROPERTY_NAME, reportComponent.identificationSource, bomComponent);
+      bomComponent.setProperties(SbomExportUtils.addOrUpdateBomElementProperty(bomComponent.getProperties(),
+          SbomTaxonomy.CDX_MATCH_STATE_PROPERTY_NAME, reportComponent.matchState));
+      bomComponent.setProperties(SbomExportUtils.addOrUpdateBomElementProperty(bomComponent.getProperties(),
+          SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME, reportComponent.identificationSource));
       if (CollectionUtils.isNotEmpty(reportComponent.filenames)) {
-        addProperty("sonatype:match_filenames", StringUtils.join(reportComponent.filenames, ","), bomComponent);
+        bomComponent.setProperties(SbomExportUtils.addOrUpdateBomElementProperty(bomComponent.getProperties(),
+            SbomTaxonomy.CDX_MATCH_FILENAMES_PROPERTY_NAME, StringUtils.join(reportComponent.filenames, ",")));
       }
     }
-  }
-
-  private static void addProperty(final String name, final String value, final Component component) {
-    component.addProperty(createProperty(name, value));
-  }
-
-  private static Property createProperty(final String name, final String value) {
-    Property property = new Property();
-    property.setName(name);
-    property.setValue(value);
-    return property;
   }
 }

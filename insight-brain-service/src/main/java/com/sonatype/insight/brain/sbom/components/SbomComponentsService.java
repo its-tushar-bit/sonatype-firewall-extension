@@ -122,6 +122,8 @@ public class SbomComponentsService
       throw new NotFoundException("Could not find SBOM version " + sbomVersion + " for application " + applicationId);
     }
 
+    ThirdPartyScan scan = thirdPartyScanDAO.getByThirdPartyFileId(sbomMetadata.getThirdPartyFileId());
+
     ThirdPartyFileCoordinate component =
         thirdPartyFileCoordinateDAO.getBySbomMetadataIdAndComponentHash(sbomMetadata.getId(), componentHash);
     if (component == null) {
@@ -141,7 +143,7 @@ public class SbomComponentsService
     CDPSbomComponentDetailsDTO componentDetailsDTO = new CDPSbomComponentDetailsDTO(component.getHash(),
         component.getPackageUrl(), component.getName(), component.getVersion(), component.getId());
     componentDetailsDTO.setDependencyType(getDependencyType(component.getDependencyType()));
-    componentDetailsDTO.setMetadata(getSbomMetadata(applicationId, sbomMetadata.getCreatedAt()));
+    componentDetailsDTO.setMetadata(getSbomMetadata(applicationId, sbomMetadata.getCreatedAt(), scan.getScanId()));
     componentDetailsDTO.setVulnerabilitySummary(getVulnerabilitySummary(vulnerabilityList));
     componentDetailsDTO.setOccurrences(component.getOccurrencesList());
     componentDetailsDTO.setMatchState(component.getMatchStateId());
@@ -180,13 +182,14 @@ public class SbomComponentsService
 
   }
 
-  private CDPSbomMetadataDTO getSbomMetadata(String applicationId, Date sbomMetadataCreatedAt) {
+  private CDPSbomMetadataDTO getSbomMetadata(String applicationId, Date sbomMetadataCreatedAt, String scanId) {
     Application application = applicationDAO.getById(applicationId);
     Organization organization = organizationDAO.getById(application.getOrganizationId());
     CDPSbomMetadataDTO cdpSbomMetadataDTO = new CDPSbomMetadataDTO();
     cdpSbomMetadataDTO.setApplicationName(application.getName());
     cdpSbomMetadataDTO.setOrganizationName(organization.getName());
     cdpSbomMetadataDTO.setSbomCreationTime(sbomMetadataCreatedAt);
+    cdpSbomMetadataDTO.setScanId(scanId);
     return cdpSbomMetadataDTO;
   }
 
@@ -251,7 +254,8 @@ public class SbomComponentsService
               new VulnerabilityDetailsDTO(vulnerability.getSeverity(), vulnerability.getRefId(),
                   vulnerability.getDescription(),
                   vulnerability.getIdentificationSources().contains(IdentificationSource.SBOM.getName()) &&
-                      vulnerability.getIdentificationSources().contains(IdentificationSource.SONATYPE.getName()));
+                      vulnerability.getIdentificationSources().contains(IdentificationSource.SONATYPE.getName()),
+                  vulnerability.getIdentificationSources());
           if (vex != null) {
             vulnerabilityDetailsDTO.setAnalysisStatus(vex.getState());
             vulnerabilityDetailsDTO.setJustification(vex.getJustification());

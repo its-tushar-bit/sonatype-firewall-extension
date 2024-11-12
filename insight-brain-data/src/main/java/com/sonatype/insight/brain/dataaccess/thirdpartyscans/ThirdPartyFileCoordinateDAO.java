@@ -77,11 +77,11 @@ public class ThirdPartyFileCoordinateDAO
     }
   }
 
-  public ThirdPartyFileCoordinate getByPackageUrlAndScanId(String purl, String scanId) {
+  public List<ThirdPartyFileCoordinate> getByPackageUrlAndScanId(String purl, String scanId) {
     String sQuery = "SELECT TPF FROM ThirdPartyScan TPS," + //
         " ThirdPartyFileCoordinate TPF" + //
         " WHERE TPS.thirdPartyFileId=TPF.thirdPartyFileId AND TPF.packageUrl=?1 AND TPS.scanId=?2";
-    return get(sQuery, purl, scanId);
+    return getList(sQuery, purl, scanId);
   }
 
   public ThirdPartyFileCoordinate getByPackageUrlAndHashAndScanId(String purl, String hash, String scanId) {

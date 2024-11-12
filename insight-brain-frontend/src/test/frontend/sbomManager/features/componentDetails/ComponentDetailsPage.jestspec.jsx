@@ -152,6 +152,7 @@ describe('ComponentDetailsPage', () => {
       organizationName: 'test-org',
       applicationName: 'sbom',
       sbomCreationTime: 1713279301273,
+      scanId: 'scan-id',
     },
     matchState: 'similar',
     filenames: null,
@@ -170,6 +171,7 @@ describe('ComponentDetailsPage', () => {
         justification: 'code_not_present',
         details: 'Unreachable code',
         verified: true,
+        identificationSources: 'SBOM,Sonatype',
       },
       {
         cvssScore: 7,
@@ -179,6 +181,7 @@ describe('ComponentDetailsPage', () => {
         justification: null,
         details: null,
         verified: true,
+        identificationSources: 'SBOM,Sonatype',
         latestPreviousAnnotation: {
           sbomVersion: '1.0',
           analysisStatus: 'exploitable',

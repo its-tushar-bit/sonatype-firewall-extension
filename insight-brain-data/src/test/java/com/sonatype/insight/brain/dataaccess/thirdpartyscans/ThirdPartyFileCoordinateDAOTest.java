@@ -112,12 +112,12 @@ public class ThirdPartyFileCoordinateDAOTest
     ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(
         thirdPartyFileDAO.getById(fileCoordinate.getThirdPartyFileId()));
 
-    ThirdPartyFileCoordinate result = thirdPartyFileCoordinateDAO.getByPackageUrlAndScanId(
+    List<ThirdPartyFileCoordinate> result = thirdPartyFileCoordinateDAO.getByPackageUrlAndScanId(
         fileCoordinate.getPackageUrl(), thirdPartyScan.getScanId());
 
-    assertThat(result).isNotNull();
+    assertThat(result).isNotEmpty();
     assertThirdPartyCoordinateFile(fileCoordinate.getHash(), fileCoordinate.getSource(), fileCoordinate.getFormat(),
-        fileCoordinate.getName(), fileCoordinate.getVersion(), fileCoordinate.getThirdPartyFileId(), result);
+        fileCoordinate.getName(), fileCoordinate.getVersion(), fileCoordinate.getThirdPartyFileId(), result.get(0));
   }
 
   @Test

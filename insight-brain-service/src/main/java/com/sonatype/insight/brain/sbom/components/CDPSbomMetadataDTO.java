@@ -15,6 +15,8 @@ public class CDPSbomMetadataDTO
 
   private Date sbomCreationTime;
 
+  private String scanId;
+
   public String getOrganizationName() {
     return organizationName;
   }
@@ -37,5 +39,13 @@ public class CDPSbomMetadataDTO
 
   public void setSbomCreationTime(final Date sbomCreationTime) {
     this.sbomCreationTime = sbomCreationTime;
+  }
+
+  public String getScanId() {
+    return scanId;
+  }
+
+  public void setScanId(final String scanId) {
+    this.scanId = scanId;
   }
 }

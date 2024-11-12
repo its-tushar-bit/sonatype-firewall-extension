@@ -388,4 +388,87 @@ describe('SBOM Manager componentDetailsSlice', function () {
       expect(newState.sbomPolicyViolations.policy).toEqual(fakePartialReportData);
     });
   });
+
+  describe('sbomComponentDetailsPage/loadVulnerabilityDetails', () => {
+    it('/pending', () => {
+      const state = {
+        loadingVulnerabilityDetail: false,
+        loadVulnerabilityDetailError: null,
+      };
+
+      const newState = reducer(state, {
+        type: 'sbomComponentDetailsPage/loadVulnerabilityDetails/pending',
+      });
+
+      expect(newState.loadingVulnerabilityDetail).toBe(true);
+      expect(newState.loadVulnerabilityDetailError).toBe(null);
+    });
+
+    it('/failed', () => {
+      const state = {
+        loadingVulnerabilityDetail: true,
+        loadVulnerabilityDetailError: null,
+      };
+
+      const payload = {
+        response: {
+          data: 'payload-error',
+        },
+      };
+
+      const newState = reducer(state, {
+        type: 'sbomComponentDetailsPage/loadVulnerabilityDetails/rejected',
+        payload,
+      });
+
+      expect(newState.loadingVulnerabilityDetail).toBe(false);
+      expect(newState.loadVulnerabilityDetailError).toBe('payload-error');
+      expect(newState.vulnerabilityDetails).toBe(null);
+    });
+
+    it('/fulfilled', () => {
+      const state = {
+        loadingVulnerabilityDetail: true,
+        loadVulnerabilityDetailError: null,
+      };
+
+      const fakeVulnerabilityDetails = {
+        identifier: 'CVE-2024-2398',
+        vulnerabilityLink: 'https://igel.com/',
+        source: {
+          shortName: 'INTERNAL',
+          longName: 'INTERNAL',
+        },
+        mainSeverity: {
+          source: 'cve_cvss_3',
+          sourceLabel: 'CVE CVSS 3',
+          score: 7.5,
+          vector: 'AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N',
+        },
+        severityScores: null,
+        weakness: {
+          cweSource: '',
+          cweIds: [],
+        },
+        categories: null,
+        description: null,
+        explanationMarkdown: '',
+        detectionMarkdown: null,
+        recommendationMarkdown: '',
+        advisories: [],
+        researchType: null,
+        isAdvancedVulnerabilityDetection: false,
+        detectionType: null,
+      };
+
+      const newState = reducer(state, {
+        type: 'sbomComponentDetailsPage/loadVulnerabilityDetails/fulfilled',
+        payload: fakeVulnerabilityDetails,
+      });
+
+      expect(newState.loadingVulnerabilityDetail).toBe(false);
+      expect(newState.loadVulnerabilityDetailError).toBe(null);
+      expect(newState.vulnerabilityDetails).toEqual(fakeVulnerabilityDetails);
+    });
+  });
 });

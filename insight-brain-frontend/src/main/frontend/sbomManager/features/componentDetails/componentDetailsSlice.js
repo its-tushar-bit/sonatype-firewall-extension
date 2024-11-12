@@ -248,11 +248,13 @@ const loadComponentDependencyTreeData = createAsyncThunk(
 const loadVulnerabilityDetails = createAsyncThunk(
   `${REDUCER_NAME}/loadVulnerabilityDetails`,
   ({ componentIdentifier, vulnerability, extraParams }, { rejectWithValue }) => {
-    const { ownerId, hash, isRepositoryComponent } = extraParams;
+    const { ownerId, hash, isRepositoryComponent, scanId } = extraParams;
     const ownerType = isRepositoryComponent ? 'repository' : 'application';
     const extraQueryParameters = {
       ownerType,
       ownerId,
+      scanId,
+      identificationSource: vulnerability.source,
     };
 
     const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl(

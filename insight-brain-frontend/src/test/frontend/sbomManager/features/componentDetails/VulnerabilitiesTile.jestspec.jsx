@@ -56,6 +56,7 @@ describe('Vulnerabilities Tile', () => {
       justification: null,
       details: null,
       verified: true,
+      identificationSources: 'SBOM,Sonatype',
       latestPreviousAnnotation: {
         sbomVersion: '1.0',
         analysisStatus: 'exploitable',
@@ -72,6 +73,7 @@ describe('Vulnerabilities Tile', () => {
       details:
         'Automated dataflow analysis and manual code review indicates that the vulnerable code was removed and replaced.',
       verified: false,
+      identificationSources: 'SBOM',
     },
     {
       cvssScore: 6,
@@ -80,6 +82,7 @@ describe('Vulnerabilities Tile', () => {
       justification: 'requires_dependency',
       details: 'CVE-2022-38752 for zookeeper-sbom/pkg:maven/io.fabric8.jube/war@2.2.0?type=war',
       verified: true,
+      identificationSources: 'SBOM,Sonatype',
     },
   ];
 
@@ -91,6 +94,7 @@ describe('Vulnerabilities Tile', () => {
       justification: null,
       details: null,
       verified: false,
+      identificationSources: 'Sonatype',
     },
     {
       cvssScore: 8,
@@ -99,6 +103,7 @@ describe('Vulnerabilities Tile', () => {
       justification: null,
       details: null,
       verified: false,
+      identificationSources: 'Sonatype',
     },
   ];
 

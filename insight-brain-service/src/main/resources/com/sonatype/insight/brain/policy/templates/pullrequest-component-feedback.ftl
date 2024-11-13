@@ -97,7 +97,7 @@ Direct dependency | **Threat level: ${threatLevelDisplay.value}** \| [View Compo
   <summary>View Security Details</summary>
 
 <#else>
-# <@threatLevelIndicatorComponent/> <@dependencyIndicatorComponent/> Sonatype IQ found issues introduced by ${componentDisplayName}<#if provider == "github" || provider == "gitlab"><br /><@imageComponent mdImage=previewImage imgWidth=70 imgHeight=20/></#if>
+# <@threatLevelIndicatorComponent/> <@dependencyIndicatorComponent/> Sonatype IQ found issues introduced by ${componentDisplayName}
 <details>
 <br/>
 

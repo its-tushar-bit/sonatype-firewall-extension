@@ -59,7 +59,6 @@ public class ComponentFeedbackMDRendererTest
                         null, "https://example.com/policyViolations/5")
             ),
             DIRECT_DEP_LOGO,
-            SONATYPE_PREVIEW_TAG,
             "        <version>2.15.0</version>",
         true
     );

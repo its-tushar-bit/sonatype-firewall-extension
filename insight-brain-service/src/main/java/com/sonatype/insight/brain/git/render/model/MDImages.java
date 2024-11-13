@@ -29,9 +29,7 @@ public enum MDImages
   LOW_INDICATOR("Low", "dark-blue-bar.png"),
   UNKNOWN_INDICATOR("", "light-blue-bar.png"),
   SONATYPE_FAST_TRACK_TAG("Sonatype Fast Track", "fast-track-large.png"),
-  SONATYPE_DEEP_DIVE_TAG("Sonatype Deep Dive", "deep-dive-large.png"),
-  SONATYPE_PREVIEW_TAG("Preview", "preview.png")
-  ;
+  SONATYPE_DEEP_DIVE_TAG("Sonatype Deep Dive", "deep-dive-large.png");
 
   private static final String CDN_SCM_URL = resolveCdnBaseUrl() + "iq-for-scm/1.0/";
 

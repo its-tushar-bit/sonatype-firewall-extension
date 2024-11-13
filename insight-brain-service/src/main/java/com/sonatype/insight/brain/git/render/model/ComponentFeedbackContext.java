@@ -42,9 +42,7 @@ public class ComponentFeedbackContext
   private final List<SecurityIssue> securityIssues;
 
   private final MDImages dependencyImage;
-
-  private final MDImages previewImage;
-
+  
   private final String codeSuggestion;
 
   private final boolean hasSecurityIssues;
@@ -60,7 +58,6 @@ public class ComponentFeedbackContext
                                   final boolean hasRemediationForDependencies,
                                   final List<SecurityIssue> securityIssues,
                                   final MDImages dependencyImage,
-                                  final MDImages previewImage,
                                   final String codeSuggestion,
                                   final boolean hasSecurityIssues)
   {
@@ -75,7 +72,6 @@ public class ComponentFeedbackContext
     this.hasRemediationForDependencies = hasRemediationForDependencies;
     this.securityIssues = requireNonNull(securityIssues);
     this.dependencyImage = dependencyImage;
-    this.previewImage = previewImage;
     this.codeSuggestion = codeSuggestion;
     this.hasSecurityIssues = hasSecurityIssues;
   }
@@ -132,11 +128,7 @@ public class ComponentFeedbackContext
   public MDImages getDependencyImage() {
     return dependencyImage;
   }
-
-  public MDImages getPreviewImage() {
-    return previewImage;
-  }
-
+  
   public boolean isHasSecurityIssues() {
     return hasSecurityIssues;
   }

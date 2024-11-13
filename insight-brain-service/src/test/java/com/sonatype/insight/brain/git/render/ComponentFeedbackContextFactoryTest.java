@@ -444,7 +444,6 @@ public class ComponentFeedbackContextFactoryTest
             false,
             expectedSecurityIssues,
             DIRECT_DEP_LOGO,
-            SONATYPE_PREVIEW_TAG,
             NO_CODE_SUGGESTION,
         true);
   }
@@ -466,7 +465,6 @@ public class ComponentFeedbackContextFactoryTest
             false,
             securityIssues,
             DIRECT_DEP_LOGO,
-            SONATYPE_PREVIEW_TAG,
             NO_CODE_SUGGESTION,
         false);
   }
@@ -511,7 +509,6 @@ public class ComponentFeedbackContextFactoryTest
             hasRemediationDeps,
             securityIssues,
             DIRECT_DEP_LOGO,
-            SONATYPE_PREVIEW_TAG,
             codeSuggestion,
         true);
   }

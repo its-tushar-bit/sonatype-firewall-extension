@@ -146,7 +146,7 @@ public class SbomFileDetector
     }
     // If there are any SBOM validation errors from parsing
     // then we should set this to be an SBOM scan rather than a binary scan
-    if (result.validationErrors != null) {
+    if (result.isSbom && (result.validationErrors != null || StringUtils.isNotEmpty(result.errorMessage))) {
       result.isBinary = false;
     }
     return result;
@@ -161,9 +161,11 @@ public class SbomFileDetector
 
   private SbomDetectionResult attemptDetectingSbomFromContent(final String sbom, final SbomDetectionResult sbomResult) {
     if (ThirdPartyUtils.looksLikeCycloneDX(sbom)) {
+      sbomResult.isSbom = true;
       return tryDetectingAsCycloneDx(sbom, sbomResult);
     }
     else if (SbomSpdxUtils.looksLikeSpdxDocument(sbom)) {
+      sbomResult.isSbom = true;
       try {
         return tryDetectingAsSpdx(sbom, sbomResult);
       }
@@ -186,7 +188,6 @@ public class SbomFileDetector
       SbomFormat sbomFormat = SbomFormat.forMimeType(sbomResult.mimeType);
       SpdxDocument spdxDocument =
           ThirdPartyUtils.parseAndValidateSpdx(sbom, Objects.requireNonNull(sbomFormat));
-      sbomResult.isSbom = true;
       populateSpdxResult(sbomResult, sbomFormat, spdxDocument);
     }
     catch (UnsupportedSbomException e) {
@@ -222,7 +223,6 @@ public class SbomFileDetector
         }
       }
 
-      sbomResult.isSbom = true;
       populateCycloneDxResult(sbomResult, sbomFormat, bom);
     }
     catch (UnsupportedSbomException e) {

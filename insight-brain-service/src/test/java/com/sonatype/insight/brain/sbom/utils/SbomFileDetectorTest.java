@@ -65,7 +65,7 @@ public class SbomFileDetectorTest
   @Test
   public void testGetSbomMetadata_CycloneDx_XML_Valid_1_0() {
     SbomDetectionResult expected =
-        createExpectedResult(false, true, "application/xml", "CycloneDX XML 1.0 version is not supported", null);
+        createExpectedResult(true, false, "application/xml", "CycloneDX XML 1.0 version is not supported", null);
     getSbomMetadata("cyclonedx-valid-v1_0.tmp", expected);
   }
 
@@ -114,7 +114,7 @@ public class SbomFileDetectorTest
     List<String> expectedErrors = List.of(
         "Line: 22, Column: 16, Path: //bom[1]/components[1]/component[1], Error: cvc-complex-type.2.4.a: Invalid content was found starting with element '{\"http://cyclonedx.org/schema/bom/1.4\":version}'. One of '{\"http://cyclonedx.org/schema/bom/1.4\":name}' is expected."
     );
-    SbomDetectionResult expected = createExpectedResult(false, false, "application/xml",
+    SbomDetectionResult expected = createExpectedResult(true, false, "application/xml",
         "Not a valid CycloneDX SBOM file.", expectedErrors, "1.5", "CycloneDx", "xml", 1,
         1, null, null);
     getSbomMetadata("cyclonedx-invalid-v1_5-xml.tmp", expected);
@@ -155,7 +155,7 @@ public class SbomFileDetectorTest
   @Test
   public void testGetSbomMetadata_SPDX_XML_Valid_2_2() {
     SbomDetectionResult expected =
-        createExpectedResult(false, true, "application/xml", "SPDX 2.2 version is not supported", null);
+        createExpectedResult(true, false, "application/xml", "SPDX 2.2 version is not supported", null);
     getSbomMetadata("spdx-v2_2-xml.tmp", expected);
   }
 
@@ -195,7 +195,7 @@ public class SbomFileDetectorTest
         "org.xml.sax.SAXParseException; lineNumber: 24; columnNumber: 14; The end-tag for element type \"component\" must end with a '>' delimiter."
     );
     SbomDetectionResult expected =
-        createExpectedResult(false, false, "application/xml", "Not a valid CycloneDX SBOM file.", expectedErrors);
+        createExpectedResult(true, false, "application/xml", "Not a valid CycloneDX SBOM file.", expectedErrors);
     getSbomMetadata("cyclonedx-invalid-xml.tmp", expected);
   }
 
@@ -213,7 +213,7 @@ public class SbomFileDetectorTest
         "Line: 14669, Column: 56, Path: //bom[1]/components[1]/component[463]/externalReferences[1]/reference[1]/url[1], Error: cvc-type.3.1.3: The value 'git@github.com:lupomontero/psl.git' of element 'url' is not valid."
     );
     SbomDetectionResult expected =
-        createExpectedResult(false, false, "application/xml", "Not a valid CycloneDX SBOM file.", expectedErrors);
+        createExpectedResult(true, false, "application/xml", "Not a valid CycloneDX SBOM file.", expectedErrors);
     getSbomMetadata("cyclonedx-invalid-2-xml.tmp", expected);
   }
 
@@ -225,14 +225,14 @@ public class SbomFileDetectorTest
         "Line: 1, Column: 2, Path: $, Error: required property 'name' not found"
     );
     SbomDetectionResult expected =
-        createExpectedResult(false, false, "application/json", "Not a valid SPDX SBOM file.", expectedErrors);
+        createExpectedResult(true, false, "application/json", "Not a valid SPDX SBOM file.", expectedErrors);
     getSbomMetadata("spdx-invalid-json.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_SPDX_InvalidXml() {
     SbomDetectionResult expected =
-        createExpectedResult(false, true, "application/xml", "Not a valid/supported sbom file.", null);
+        createExpectedResult(true, false, "application/xml", "Not a valid/supported sbom file.", null);
     getSbomMetadata("spdx-invalid-xml.tmp", expected);
   }
 

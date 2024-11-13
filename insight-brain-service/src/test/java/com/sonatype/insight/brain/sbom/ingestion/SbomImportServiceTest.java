@@ -271,6 +271,34 @@ public class SbomImportServiceTest
   }
 
   @Test
+  public void testDetectSbom_Failure_Invalid_CDX_XML_MissingXmlns() {
+    String sbom = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <bom version="1">
+          <components>
+            <component type="library">
+              <name>example-library1</name>
+              <version>1.0.0</version>
+            </component>
+            <component>
+              <name>example-library2</name>
+              <version>1.0.0</version>
+            </component>
+            <component>
+              <name>example-library3</name>
+              <version>1.0.0</version>
+            </component>
+          </components>
+        </bom>
+        """;
+
+    SbomDetectionResultDTO sbomDetectionResultDTO = sbomImportService.detectSbom(application.getId(),
+        new ByteArrayInputStream(sbom.getBytes(StandardCharsets.UTF_8)), TEST_FILENAME_XML);
+    assertThat(sbomDetectionResultDTO).isNotNull();
+    assertThat(sbomDetectionResultDTO.getErrorMessage()).isEqualTo("CycloneDX XML null version is not supported");
+  }
+
+  @Test
   public void testDetectSbom_Failure_Invalid_SPDX_JSON() {
     String sbom = """
         {

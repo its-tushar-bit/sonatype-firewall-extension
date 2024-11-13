@@ -40,6 +40,7 @@ import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.model.ItemContentType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -115,7 +116,7 @@ public class SbomImportService
     String filenameToUseForRequestId = "";
     SbomScanType scanType = null;
 
-    if (result.isSbom) {
+    if (result.isSbom && CollectionUtils.isEmpty(result.validationErrors) && StringUtils.isEmpty(result.errorMessage)) {
       scanType = SbomScanType.SBOM;
       filenameToUseForRequestId = String.format("%s-%s-%s-%s-%s", scanType.name(), result.mimeType,
           (result.summary != null ? result.summary.specification : ""), fileNameUUID, originalFilename);
@@ -130,7 +131,7 @@ public class SbomImportService
         throw new BadRequestException("Importing binary files for SBOM Manager is disabled.");
       }
     }
-    else if (result.validationErrors != null) {
+    else if (result.validationErrors != null || StringUtils.isNotEmpty(result.errorMessage)) {
       scanType = SbomScanType.SBOM;
       deleteTempFile(tempSbomFile, result.errorMessage);
     }

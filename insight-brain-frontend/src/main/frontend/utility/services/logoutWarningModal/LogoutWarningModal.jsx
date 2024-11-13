@@ -24,9 +24,10 @@ export default function LogoutWarningModal({ onClick, startingCount }) {
     };
   }, []);
 
-  const sessionTimeoutText = typeof sessionTimeoutMilliseconds === 'number'
-    ? `${Math.floor(sessionTimeoutMilliseconds / 1000 / 60)} minutes of inactivity`
-    : 'inactivity';
+  const sessionTimeoutText =
+    typeof sessionTimeoutMilliseconds === 'number'
+      ? `${Math.floor(sessionTimeoutMilliseconds / 1000 / 60)} minutes of inactivity`
+      : 'inactivity';
 
   return (
     <NxModal id="logout-warning-modal">

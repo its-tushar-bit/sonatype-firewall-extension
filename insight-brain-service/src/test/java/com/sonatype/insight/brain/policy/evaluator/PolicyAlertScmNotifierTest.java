@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
@@ -96,6 +97,9 @@ public class PolicyAlertScmNotifierTest
   @Mock
   private FeaturesService featuresService;
 
+  @Inject
+  StageTypeService stageTypeService;
+
   private PolicyAlertScmNotifier scmNotifier;
 
   private Application application;
@@ -114,7 +118,7 @@ public class PolicyAlertScmNotifierTest
     scmNotifier =
         new PolicyAlertScmNotifier(remediationPullRequestFeatureCheck, mockPullRequestCommentingRemediationService,
             new PolicyAlertSourceCodeOrganizer(), baseUrl, sourceControlUtils, mockPullRequestRemediationService,
-            mockSourceControlEventPublisher, organizationDAO, mockShutdownHandler, featuresService);
+            mockSourceControlEventPublisher, organizationDAO, mockShutdownHandler, featuresService, stageTypeService);
     Organization organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(NAME, PUBLIC_ID, organization.getId());
   }
@@ -147,7 +151,22 @@ public class PolicyAlertScmNotifierTest
 
     // then we see no calls to the PR engine
     assertThat(logOutput).atDebugLevel().contains(
-        "Ignoring Pull Request notification for the 'develop' stage for application 'abc123' and scan 'scanId'");
+        "Ignoring Pull Request notification for the stage 'develop' for application 'abc123' and scan 'scanId'");
+    verifyNoInteractions(mockSourceControlEventPublisher);
+  }
+
+  @Test
+  public void test_complianceStageNotSupported() {
+    // given we have repository info for an application
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
+            .thenReturn(gitRepositoryInfo);
+
+    // when we send notifications
+    scmNotifier.sendNotifications(application, "scanId", new Stage(Stage.ID_COMPLIANCE), buildPolicyNotification());
+
+    // then we see no calls to the PR engine
+    assertThat(logOutput).atDebugLevel().contains(
+            "Ignoring Pull Request notification for the stage 'compliance' for application 'abc123' and scan 'scanId'");
     verifyNoInteractions(mockSourceControlEventPublisher);
   }
 

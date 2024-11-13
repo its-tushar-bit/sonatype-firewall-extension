@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
@@ -77,6 +78,8 @@ public class PolicyAlertScmNotifier
 
   private final ShutdownHandler shutdownHandler;
 
+  private final StageTypeService stageTypeService;
+
   private final FeaturesService featuresService;
 
   @VisibleForTesting
@@ -102,7 +105,8 @@ public class PolicyAlertScmNotifier
       final SourceControlEventPublisher sourceControlEventPublisher,
       final OrganizationDAO organizationDAO,
       final ShutdownHandler shutdownHandler,
-      final FeaturesService featuresService)
+      final FeaturesService featuresService,
+      final StageTypeService stageTypeService)
   {
     this.remediationPullRequestFeatureCheck = remediationPullRequestFeatureCheck;
     this.remediationService = remediationService;
@@ -113,6 +117,7 @@ public class PolicyAlertScmNotifier
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.organizationDAO = organizationDAO;
     this.shutdownHandler = shutdownHandler;
+    this.stageTypeService = stageTypeService;
     this.featuresService = featuresService;
   }
 
@@ -130,9 +135,11 @@ public class PolicyAlertScmNotifier
   {
     final GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
 
-    if (Stage.ID_DEVELOP.equals(stage.getStageTypeId())) {
-      log.debug("Ignoring Pull Request notification for the 'develop' stage for application '{}' and scan '{}'",
-          app.getPublicId(), scanId);
+    if (stageTypeService.getLicensedStageTypes(StageTypeService.LIFECYCLE_CONTEXT).stream()
+            .noneMatch(stageType -> stageType.getId().equals(stage.getStageTypeId()))
+            || Stage.ID_DEVELOP.equals(stage.getStageTypeId())) {
+      log.debug("Ignoring Pull Request notification for the stage '{}' for application '{}' and scan '{}'",
+          stage.getStageTypeId(), app.getPublicId(), scanId);
       return;
     }
 

@@ -44,7 +44,6 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.util.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -224,9 +223,8 @@ public class ComponentDetailsPageTest
     assertVulnerabilityDetailsInsidePolicyViolationDetailsDrawer(vulnerabilityDetails);
   }
 
-  @Ignore
   @Test
-  public void testFeatureEnabled_opensVulnerabilityDetailsPopover_issueLink_checkContent() {
+  public void testFeatureEnabled_opensVulnerabilityDetailsPopover_issueLink_checkContent_ThirdParty() {
     setTestData();
     mockHdsResponseForVulnerabilityDetails();
 
@@ -235,6 +233,32 @@ public class ComponentDetailsPageTest
 
     SelenideElement linkThirdRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
         .getColumnData(2, 1);
+    linkThirdRowColumn.shouldBe(visible);
+    linkThirdRowColumn.shouldHave(text("CVE-4812"));
+
+    SelenideElement issueLink = linkThirdRowColumn.find("a");
+    issueLink.shouldBe(visible);
+    issueLink.click();
+
+    VulnerabilityDetailsPopover vulnerabilityDetailsPopover =
+        sbomManagerComponentDetailsPage.vulnerabilityDetailsPopover();
+    vulnerabilityDetailsPopover.shouldBe(visible);
+
+    assertVulnerabilityDetailsFromThirdParty(vulnerabilityDetailsPopover);
+  }
+
+  @Test
+  public void testFeatureEnabled_opensVulnerabilityDetailsPopover_issueLink_checkContent_Sonatype() {
+    testOrganization = tempEntity.newOrganization();
+    testApplication = tempEntity.newApplication(testOrganization.getId());
+    setVulnerabilityTablesData(minimumDataSet(), true, "Sonatype");
+    mockHdsResponseForVulnerabilityDetails();
+
+    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
+        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+
+    SelenideElement linkThirdRowColumn = sbomManagerComponentDetailsPage.sonatypeVulnerabilitiesTile()
+        .getColumnData(4, 1);
     linkThirdRowColumn.shouldBe(visible);
     linkThirdRowColumn.shouldHave(text("CVE-4812"));
 
@@ -480,7 +504,7 @@ public class ComponentDetailsPageTest
   private void setTestData() {
     testOrganization = tempEntity.newOrganization();
     testApplication = tempEntity.newApplication(testOrganization.getId());
-    setVulnerabilityTablesData(minimumDataSet(), true);
+    setVulnerabilityTablesData(minimumDataSet(), true, "SBOM");
   }
 
   private void setTestDataWithSecondaryData() {
@@ -504,8 +528,8 @@ public class ComponentDetailsPageTest
         file, "SBOM", "maven", "testComponent", "1.2", TEST_COMPONENT_HASH, TEST_COMPONENT_PURL
     );
 
-    setVulnerabilityTablesData(fileCoordinate, true);
-    setVulnerabilityTablesData(minimumDataSet(), false);
+    setVulnerabilityTablesData(fileCoordinate, true, "SBOM");
+    setVulnerabilityTablesData(minimumDataSet(), false, "SBOM");
   }
 
   private ThirdPartyFileCoordinate minimumDataSet() {
@@ -550,19 +574,23 @@ public class ComponentDetailsPageTest
 
   private void setVulnerabilityTablesData(
       ThirdPartyFileCoordinate thirdPartyFileCoordinate,
-      boolean withVexAnnotations)
+      boolean withVexAnnotations, String identificationSource)
   {
-    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "ABC-123", "test vulnerability",
-        "http://123.xyz", 5.6d, "testSeverity", "testUser");
+    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "ABC-123", null, "test vulnerability",
+        "http://123.xyz", 5.6d, "testUser", "source", "v:1", "test severity", "123", "m1", "r1", "a1",
+        identificationSource);
     ThirdPartyCoordinateSecurity vulnerabilityDEF456 = tempEntity.newThirdPartyCoordinateSecurity(
-        thirdPartyFileCoordinate, "DEF-456", "test vulnerability2",
-        "http://1234.xyz", 1.6d, "testSeverity", "testUser");
+        thirdPartyFileCoordinate, "DEF-456", null,
+        "test vulnerability2", "http://1234.xyz", 1.6d, "testUser", "source", "v:1", "testSeverity",
+        "1234", "m1", "r1", "a1",
+        identificationSource);
     if (withVexAnnotations) {
       tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityDEF456, "DEF-456", "exploitable",
           "code_not_present", "rollback", "test vex detail");
     }
-    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "CVE-4812", "test vulnerability",
-        "http://12345.xyz", 1.5d, "testSeverity", "testUser");
+    tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "CVE-4812", null, "test vulnerability",
+        "http://12345.xyz", 1.5d, "testUser", "source", "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H", "testSeverity",
+        "12345", "m3", "r3", "a3", identificationSource);
 
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "sonatype-123", "test sonatype vulnerability",
         "http://sonatype.com", 9.6d, "testUser", "SONATYPE",
@@ -710,6 +738,40 @@ public class ComponentDetailsPageTest
             .getVulnerabilityDetailsContentBySecondColumnIdx(7);
     cvssDetailsContent.shouldHave(text("CVE CVSS 31.5"));
     cvssDetailsContent.shouldHave(text("CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"));
+  }
+
+  public void assertVulnerabilityDetailsFromThirdParty(VulnerabilityDetailsPopover vulnerabilityDetailsPopover) {
+    vulnerabilityDetailsPopover.popoverTitle().shouldHave(text("Vulnerability Details CVE-4812"));
+    vulnerabilityDetailsPopover.packageUrl().shouldHave(text("pkg:maven/2/3@1.1"));
+    vulnerabilityDetailsPopover.vulnerabilityId().shouldHave(text("CVE-4812"));
+
+    SelenideElement issueContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(1);
+    issueContent.shouldHave(text("CVE-4812"));
+
+    SelenideElement severityContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(2);
+    severityContent.shouldHave(text("Unknown1.5"));
+
+    SelenideElement weaknessContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(3);
+    weaknessContent.shouldHave(text("CWE12345"));
+
+    SelenideElement sourceContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(4);
+    sourceContent.shouldHave(text("source"));
+
+    SelenideElement explanationContent =
+        vulnerabilityDetailsPopover.getVulnerabilityDetailsContentBySecondColumnIdx(1);
+    explanationContent.shouldHave(text("test vulnerability"));
+
+    SelenideElement recomendationContent = vulnerabilityDetailsPopover
+        .getVulnerabilityDetailsContentBySecondColumnIdx(2);
+    recomendationContent.shouldHave(text("r3"));
+
+    SelenideElement detectionContent = vulnerabilityDetailsPopover
+        .getVulnerabilityDetailsContentBySecondColumnIdx(3);
+    detectionContent.shouldHave(text("a3"));
+
+    SelenideElement cdssDetailsContent = vulnerabilityDetailsPopover
+        .getVulnerabilityDetailsContentBySecondColumnIdx(4);
+    cdssDetailsContent.shouldHave(text("CVSS VectorCVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"));
   }
 
   public void assertVulnerabilityDetails(VulnerabilityDetailsPopover vulnerabilityDetailsPopover) {

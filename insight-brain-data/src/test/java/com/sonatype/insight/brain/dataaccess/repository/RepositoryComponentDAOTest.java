@@ -11,6 +11,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -441,7 +443,7 @@ public class RepositoryComponentDAOTest
     Date date2021 = new GregorianCalendar(2021, Calendar.MAY, 1).getTime();
     Date date2022 = new GregorianCalendar(2022, Calendar.MAY, 1).getTime();
     List<Date> dates = Arrays.asList(date2020, date2021, date2022);
-    Map<LocalDate,Long> result = dao.getAutoReleaseQuarantinedCountByRepositoryIdAndDate(
+    Map<LocalDate, Long> result = dao.getAutoReleaseQuarantinedCountByRepositoryIdAndDate(
         RepositoryContainer.REPOSITORY_CONTAINER_ID,
         DateConverter.toDate(LocalDate.now()),
         true);
@@ -726,6 +728,56 @@ public class RepositoryComponentDAOTest
   }
 
   @Test
+  public void testGetTotalFirewallRepositoryComponents_filterByQuarantineDays() {
+    // Test #1 - Filter by past 1 day(s). No components should be returned.
+    // Setup
+    setupMockDataForGetFirewallRepositoryComponents();
+
+    Instant past1Days = Instant.now().minus(1, ChronoUnit.DAYS);
+    Instant past7Days = Instant.now().minus(7, ChronoUnit.DAYS);
+
+    Date past7DaysQuarantineTime = Date.from(past7Days);
+
+    Repository repository1 = tempEntity.newRepository(repositoryManager);
+    Repository repository2 = tempEntity.newRepository(repositoryManager);
+
+    RepositoryComponent component1 = tempEntity.newRepositoryComponent(repository1.getId(), "/quarantined/test",
+        past7DaysQuarantineTime, null, past7DaysQuarantineTime, false);
+    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repository2.getId(), "/quarantined/test2",
+        past7DaysQuarantineTime, null, past7DaysQuarantineTime, false);
+
+    tempEntity.newRepositoryPolicyViolation(repository1.getId(), 5, component1.getPathname(), false, FailActionType.ID,
+        "policy_id", "policy", component1.getComponentIdentifier());
+    tempEntity.newRepositoryPolicyViolation(repository2.getId(), 5, component2.getPathname(), false, FailActionType.ID,
+        "policy_id", "policy", component2.getComponentIdentifier());
+
+    String filterQuarantineTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        .format(LocalDateTime.ofInstant(past1Days, ZoneId.systemDefault()));
+    List<FirewallFilterField> filterFields =
+        List.of(new FirewallFilterField(FirewallFilterableField.QUARANTINE_TIME, filterQuarantineTime));
+
+    FirewallRepositoryComponentFilter filter = new FirewallRepositoryComponentFilter(1, 2,
+        FirewallComponentFilterState.QUARANTINE, FirewallSortableField.QUARANTINE_TIME, true, filterFields);
+
+    // Act
+    Long count = dao.getTotalFirewallRepositoryComponents(filter);
+
+    assertThat(count).isEqualTo(0);
+
+    // Test #2 - Filter by past 7 day(s). Two components should be returned.
+    // Setup
+    filterQuarantineTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        .format(LocalDateTime.ofInstant(past7Days, ZoneId.systemDefault()));
+    filterFields = List.of(new FirewallFilterField(FirewallFilterableField.QUARANTINE_TIME, filterQuarantineTime));
+    filter.filterFields = filterFields;
+
+    // Act
+    count = dao.getTotalFirewallRepositoryComponents(filter);
+
+    assertThat(count).isEqualTo(2);
+  }
+
+  @Test
   public void testGetFirewallRepositoryComponents_filterByComponentName() {
     Repository repository = tempEntity.newRepository();
     RepositoryComponent repositoryComponent1 = newQuarantinedRepositoryComponent(repository.getId(), "a1");
@@ -979,13 +1031,13 @@ public class RepositoryComponentDAOTest
     Date date2021 = DateUtils.parseDate("2021-05-01", "yyyy-MM-dd");
     Date date2022 = DateUtils.parseDate("2022-05-01", "yyyy-MM-dd");
     List<Date> dates = Arrays.asList(date2020, date2021, date2022);
-    Map<LocalDate,Long> result = dao.getConsolidatedQuarantinedComponentsMetricByDate(
+    Map<LocalDate, Long> result = dao.getConsolidatedQuarantinedComponentsMetricByDate(
         DateConverter.toDate(LocalDate.now()));
     assertThat(result).isEmpty();
     dates.forEach(date -> {
       tempEntity.newRepositoryComponent(repository1.getId(),
           repository1.getId() + "/" + date.toString(),
-          date, null );
+          date, null);
     });
     // 2020 year exclusive
     result = dao.getConsolidatedQuarantinedComponentsMetricByDate(date2020);

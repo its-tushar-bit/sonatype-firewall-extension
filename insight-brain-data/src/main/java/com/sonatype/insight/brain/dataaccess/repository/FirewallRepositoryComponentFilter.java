@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
 
@@ -42,13 +42,8 @@ public class FirewallRepositoryComponentFilter
   }
 
   public Map<FirewallFilterableField, String> getFilterFieldsMap() {
-    Map<FirewallFilterableField, String> map = new EnumMap<>(FirewallFilterableField.class);
-
-    for (FirewallFilterField filterField : this.filterFields) {
-      map.put(filterField.getField(), filterField.getValue());
-    }
-
-    return map;
+    return filterFields.stream()
+        .collect(Collectors.toMap(FirewallFilterField::getField, FirewallFilterField::getValue));
   }
 
   public enum FirewallComponentFilterState

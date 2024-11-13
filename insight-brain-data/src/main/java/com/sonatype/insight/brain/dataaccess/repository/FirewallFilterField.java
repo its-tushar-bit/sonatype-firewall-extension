@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
+import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 
 public class FirewallFilterField
@@ -25,6 +27,16 @@ public class FirewallFilterField
     this.value = String.join(MULTI_VALUE_SEPARATOR, values);
   }
 
+  public FirewallFilterField(final FirewallFilterableField field, final Object value) {
+    this.field = field;
+    if (value instanceof Collection<?>) {
+      this.value = String.join(MULTI_VALUE_SEPARATOR, (Set<String>) value);
+    }
+    else {
+      this.value = Optional.ofNullable(value).map(String::valueOf).orElse(null);
+    }
+  }
+
   public FirewallFilterableField getField() {
     return field;
   }
@@ -38,5 +50,6 @@ public class FirewallFilterField
     POLICY_ID,
     COMPONENT_NAME,
     REPOSITORY_PUBLIC_ID,
+    QUARANTINE_TIME,
   }
 }

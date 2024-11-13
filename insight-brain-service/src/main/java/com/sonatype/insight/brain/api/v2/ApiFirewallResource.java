@@ -5,11 +5,17 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -49,7 +55,7 @@ import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryCompon
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -152,8 +158,16 @@ public class ApiFirewallResource
       @DefaultValue("true") @QueryParam("asc") boolean asc
   )
   {
-    return getComponents(uriInfo, page, pageSize, policyId != null ? Collections.singleton(policyId) : null,
-        componentName, null, sortBy, FirewallSortableField.RELEASE_QUARANTINE_TIME, asc,
+    HashMap<FirewallFilterableField, Object> filterFieldsMap = new HashMap<>();
+    filterFieldsMap.put(FirewallFilterableField.POLICY_ID, Optional.ofNullable(policyId).map(Set::of).orElse(null));
+    filterFieldsMap.put(FirewallFilterableField.COMPONENT_NAME, componentName);
+
+    List<FirewallFilterField> filterFields = buildFilterFieldsList(filterFieldsMap);
+
+    FirewallSortableField sortableField =
+        initializeSortField(sortBy, FirewallSortableField.RELEASE_QUARANTINE_TIME);
+
+    return getComponents(uriInfo, page, pageSize, asc, filterFields, sortableField,
         FirewallComponentFilterState.UNQUARANTINE_AUTO);
   }
 
@@ -166,17 +180,29 @@ public class ApiFirewallResource
       @QueryParam("policyId") Set<String> policyIds,
       @QueryParam("componentName") String componentName,
       @QueryParam("repositoryPublicId") String repositoryPublicId,
+      @QueryParam("quarantineDays") Integer quarantineDays,
       @QueryParam("sortBy") String sortBy,
       @DefaultValue("false") @QueryParam("asc") boolean asc
   )
   {
-    return getComponents(uriInfo, page, pageSize, policyIds, componentName, repositoryPublicId, sortBy,
-        FirewallSortableField.QUARANTINE_TIME, asc, FirewallComponentFilterState.QUARANTINE);
+    HashMap<FirewallFilterableField, Object> filterFieldsMap = new HashMap<>();
+    filterFieldsMap.put(FirewallFilterableField.POLICY_ID, policyIds);
+    filterFieldsMap.put(FirewallFilterableField.COMPONENT_NAME, componentName);
+    filterFieldsMap.put(FirewallFilterableField.REPOSITORY_PUBLIC_ID, repositoryPublicId);
+    filterFieldsMap.put(FirewallFilterableField.QUARANTINE_TIME, quarantineDays);
+
+    List<FirewallFilterField> filterFields = buildFilterFieldsList(filterFieldsMap);
+
+    final FirewallSortableField sortableField =
+        initializeSortField(sortBy, FirewallSortableField.QUARANTINE_TIME);
+
+    return getComponents(uriInfo, page, pageSize, asc, filterFields, sortableField,
+        FirewallComponentFilterState.QUARANTINE);
   }
 
   /**
    * Enables/disables anonymous access to the Quarantined Component view
-   * 
+   *
    * @since 1.136
    */
   @PUT
@@ -275,33 +301,14 @@ public class ApiFirewallResource
       final UriInfo uriInfo,
       final int page,
       final int pageSize,
-      final Set<String> policyIds,
-      final String componentName,
-      final String repositoryPublicId,
-      final String sortBy,
-      final FirewallSortableField defaultSortableField,
-      final boolean asc,
+      final boolean isAscendingSort,
+      final List<FirewallFilterField> filterFields,
+      final FirewallSortableField sortableField,
       final FirewallComponentFilterState firewallComponentFilterState)
   {
-    List<FirewallFilterField> filterFields = new ArrayList<>();
-    if (CollectionUtils.isNotEmpty(policyIds)) {
-      filterFields.add(new FirewallFilterField(FirewallFilterableField.POLICY_ID, policyIds));
-    }
-
-    if (StringUtils.isNotBlank(componentName)) {
-      filterFields.add(new FirewallFilterField(FirewallFilterableField.COMPONENT_NAME, componentName.toLowerCase()));
-    }
-
-    if (StringUtils.isNotBlank(repositoryPublicId)) {
-      filterFields.add(
-          new FirewallFilterField(FirewallFilterableField.REPOSITORY_PUBLIC_ID, repositoryPublicId.toLowerCase()));
-    }
-
-    final FirewallSortableField sortableField = sortBy == null ? defaultSortableField : initializeSortField(sortBy);
-
     final FirewallRepositoryComponentFilter firewallFilter =
         new FirewallRepositoryComponentFilter(page, pageSize, firewallComponentFilterState, sortableField,
-            asc, filterFields);
+            isAscendingSort, filterFields);
 
     if (firewallComponentFilterState.equals(FirewallComponentFilterState.QUARANTINE)) {
       return new PaginationResponseBuilder<>(uriInfo.getAbsolutePath().getPath(), page, pageSize,
@@ -317,7 +324,14 @@ public class ApiFirewallResource
         .build();
   }
 
-  private FirewallSortableField initializeSortField(final String sortBy) {
+  private FirewallSortableField initializeSortField(
+      final String sortBy,
+      final FirewallSortableField defaultSortableField)
+  {
+    if (StringUtils.isEmpty(sortBy)) {
+      return defaultSortableField;
+    }
+
     final FirewallSortableField sortableField;
     try {
       sortableField = FirewallSortableField.getByLabel(sortBy);
@@ -326,5 +340,45 @@ public class ApiFirewallResource
       throw new BadRequestException("sortBy field is invalid");
     }
     return sortableField;
+  }
+
+  private List<FirewallFilterField> buildFilterFieldsList(final Map<FirewallFilterableField, Object> filterFieldsMap) {
+    return filterFieldsMap.entrySet().stream()
+        .filter(this::filterFieldFn)
+        .map(this::mapFieldFn)
+        .toList();
+  }
+
+  private boolean filterFieldFn(Entry<FirewallFilterableField, Object> entry) {
+    FirewallFilterableField key = entry.getKey();
+    Object value = entry.getValue();
+
+    return Optional.ofNullable(value)
+        .filter(ObjectUtils::isNotEmpty)
+        .filter(v -> !key.equals(FirewallFilterableField.QUARANTINE_TIME) || (Integer) v > 0)
+        .isPresent();
+  }
+
+  private FirewallFilterField mapFieldFn(Entry<FirewallFilterableField, Object> entry) {
+    FirewallFilterableField key = entry.getKey();
+    Object value = entry.getValue();
+
+    if (key.equals(FirewallFilterableField.COMPONENT_NAME) ||
+        key.equals(FirewallFilterableField.REPOSITORY_PUBLIC_ID)) {
+      String lowerCaseValue = ((String) value).toLowerCase();
+      return new FirewallFilterField(key, lowerCaseValue);
+    }
+
+    if (key.equals(FirewallFilterableField.QUARANTINE_TIME)) {
+      String quarantineTime = quarantineDaysToQuarantineTime((Integer) value);
+      return new FirewallFilterField(key, quarantineTime);
+    }
+
+    return new FirewallFilterField(key, value);
+  }
+
+  private String quarantineDaysToQuarantineTime(Integer quarantineDays) {
+    return DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(
+        LocalDateTime.ofInstant(Instant.now().minus(quarantineDays, ChronoUnit.DAYS), ZoneOffset.UTC));
   }
 }

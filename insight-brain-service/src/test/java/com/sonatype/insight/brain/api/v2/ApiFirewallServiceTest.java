@@ -5,9 +5,12 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,7 +20,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -126,7 +128,7 @@ public class ApiFirewallServiceTest
 
   @Inject
   private RepositoryDAO repositoryDAO;
-  
+
   @Inject
   private RepositoryComponentDAO repositoryComponentDAO;
 
@@ -817,12 +819,12 @@ public class ApiFirewallServiceTest
 
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     tempEntity.newRepository(repositoryManager, "testRepoNpm", RepositoryType.proxy, "npm",
-            may5th20239AM);
+        may5th20239AM);
     Repository repository =
-            tempEntity.newRepository(repositoryManager, "testRepoMaven", RepositoryType.proxy, "maven", may5th202311AM);
+        tempEntity.newRepository(repositoryManager, "testRepoMaven", RepositoryType.proxy, "maven", may5th202311AM);
 
     ApiRepositoryListDTO apiRepositoryListDTO = apiFirewallService.getConfiguredRepositories(repositoryManager.getId(),
-            may5th202310AM.getTime());
+        may5th202310AM.getTime());
 
     assertThat(apiRepositoryListDTO.repositories).hasSize(1);
     ApiRepositoryDTO apiRepositoryDTO = apiRepositoryListDTO.repositories.get(0);
@@ -833,9 +835,9 @@ public class ApiFirewallServiceTest
     assertThat(apiRepositoryDTO.auditEnabled).isEqualTo(repository.isAuditEnabled());
     assertThat(apiRepositoryDTO.quarantineEnabled).isEqualTo(repository.isQuarantineEnabled());
     assertThat(apiRepositoryDTO.policyCompliantComponentSelectionEnabled).isEqualTo(
-            repository.isPolicyCompliantComponentSelectionEnabled());
+        repository.isPolicyCompliantComponentSelectionEnabled());
     assertThat(apiRepositoryDTO.namespaceConfusionProtectionEnabled).isEqualTo(
-            repository.isNamespaceConfusionProtectionEnabled());
+        repository.isNamespaceConfusionProtectionEnabled());
   }
 
   @Test
@@ -851,18 +853,18 @@ public class ApiFirewallServiceTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
 
     Repository repository1 = tempEntity.newRepository(repositoryManager, "testRepoNpm1", RepositoryType.proxy, "npm",
-            new Date(0));
+        new Date(0));
 
     Repository repository2 = tempEntity.newRepository(repositoryManager, "testRepoNpm2", RepositoryType.proxy, "npm",
-            new Date(1));
+        new Date(1));
 
     Repository repository3 = tempEntity.newRepository(repositoryManager, TemporaryEntity.uuid());
 
     ApiRepositoryListDTO apiRepositoryListDTO =
-            apiFirewallService.getConfiguredRepositories(repositoryManager.getId(), null);
+        apiFirewallService.getConfiguredRepositories(repositoryManager.getId(), null);
 
     assertThat(apiRepositoryListDTO.repositories).extracting(r -> r.publicId)
-            .containsExactlyInAnyOrder(repository1.getName(), repository2.getName(), repository3.getName());
+        .containsExactlyInAnyOrder(repository1.getName(), repository2.getName(), repository3.getName());
   }
 
   @Test
@@ -893,7 +895,7 @@ public class ApiFirewallServiceTest
 
     // then
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
-      () -> apiFirewallService.evaluateComponents(someOtherRepoManagerId, repository.getId(), requestList))
+            () -> apiFirewallService.evaluateComponents(someOtherRepoManagerId, repository.getId(), requestList))
         .withMessage("RepositoryManager with ID " + someOtherRepoManagerId + " does not exist.");
   }
 
@@ -905,8 +907,9 @@ public class ApiFirewallServiceTest
     String someOtherRepoId = "someOtherRepoManagerId";
 
     // then
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
-      () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), someOtherRepoId, requestList))
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), someOtherRepoId,
+            requestList))
         .withMessage("Repository with ID " + someOtherRepoId + " does not exist.");
   }
 
@@ -919,7 +922,7 @@ public class ApiFirewallServiceTest
 
     // then
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
-        () -> apiFirewallService.evaluateComponents(repositoryManager.getId(), repository.getId(), requestList))
+            () -> apiFirewallService.evaluateComponents(repositoryManager.getId(), repository.getId(), requestList))
         .withMessage(
             "Repository '" + repository.getId() + "' not found in repository manager '" + repositoryManager.getId() +
                 "'.");
@@ -932,7 +935,7 @@ public class ApiFirewallServiceTest
 
     // then
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-      () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(), null))
+            () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(), null))
         .withMessage("There should be at least 1 component to evaluate.");
   }
 
@@ -945,7 +948,8 @@ public class ApiFirewallServiceTest
 
     // then
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-      () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(), requestList))
+            () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(),
+                requestList))
         .withMessage("There should be at least 1 component to evaluate.");
   }
 
@@ -957,7 +961,8 @@ public class ApiFirewallServiceTest
 
     // then
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-      () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(), requestList))
+            () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(),
+                requestList))
         .withMessage("There should be at least 1 component to evaluate.");
   }
 
@@ -977,7 +982,8 @@ public class ApiFirewallServiceTest
 
     // then
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-      () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(), requestList))
+            () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(),
+                requestList))
         .withMessage("Max amount of components to evaluate is '100'.");
   }
 
@@ -992,7 +998,8 @@ public class ApiFirewallServiceTest
         new ApiRepositoryComponentEvaluationRequest(repositoryComponent.getPathname(), repositoryComponent.getHash()));
     // then
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-      () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(), requestList))
+            () -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(),
+                requestList))
         .withMessage("The format must be specified.");
   }
 
@@ -1955,6 +1962,98 @@ public class ApiFirewallServiceTest
     details = apiFirewallService.getQuarantinedComponents(filter);
 
     // VERIFY
+    assertThat(details.getTotal()).isEqualTo(1);
+    assertThat(details.getResults()).hasSize(1);
+    assertFirewallQuarantinedDetails(repo2, c2, violation2, details.getResults().get(0));
+  }
+
+  @Test
+  public void testGetQuarantinedComponents_sortAndFilterByQuarantineTime() {
+    // Test #1 - No filters, sort by QUARANTINE_TIME desc
+    // Arrange
+    Instant past1Days = Instant.now().minus(1, ChronoUnit.DAYS);
+    Instant past7Days = Instant.now().minus(7, ChronoUnit.DAYS);
+
+    Date past1DaysQuarantineTime = Date.from(past1Days);
+    Date past7DaysQuarantineTime = Date.from(past7Days);
+
+    RepositoryManager rm1 = tempEntity.newRepositoryManager();
+    Repository repo1 = tempEntity.newRepository(rm1, "repo1", true, true);
+    Repository repo2 = tempEntity.newRepository(rm1, "repo2", true, true);
+
+    final RepositoryComponent c1 =
+        tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT, "pathname1", "hash1",
+            ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1"), past7DaysQuarantineTime,
+            past7DaysQuarantineTime);
+    final RepositoryComponent c2 =
+        tempEntity.newRepositoryComponent(repo2.getId(), MatchState.EXACT, "pathname2", "hash2",
+            ComponentIdentifier.createMavenCoordinates("g2", "a2", "v1"), past7DaysQuarantineTime,
+            past7DaysQuarantineTime);
+    final RepositoryComponent c3 =
+        tempEntity.newRepositoryComponent(repo2.getId(), MatchState.EXACT, "pathname3", "hash3",
+            ComponentIdentifier.createMavenCoordinates("g1", "a3", "v1"), past1DaysQuarantineTime,
+            past1DaysQuarantineTime);
+
+    Policy policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, "policy", 10, Action.ID_FAIL,
+        Stage.ID_PROXY, null);
+    RepositoryPolicyViolation violation1 = PolicyViolationTestHelper.createPolicyViolationFail(policy, c1, tempEntity);
+    RepositoryPolicyViolation violation2 = PolicyViolationTestHelper.createPolicyViolationFail(policy, c2, tempEntity);
+    RepositoryPolicyViolation violation3 = PolicyViolationTestHelper.createPolicyViolationFail(policy, c3, tempEntity);
+
+    FirewallRepositoryComponentFilter filter =
+        new FirewallRepositoryComponentFilter(1, 10, FirewallComponentFilterState.QUARANTINE,
+            FirewallSortableField.QUARANTINE_TIME, false, List.of());
+
+    // Act
+    ApiPageResult<ApiFirewallQuarantinedComponentDto> details =
+        apiFirewallService.getQuarantinedComponents(filter);
+
+    assertThat(details.getTotal()).isEqualTo(3);
+    assertThat(details.getResults()).hasSize(3);
+    assertFirewallQuarantinedDetails(repo2, c3, violation3, details.getResults().get(0));
+    assertFirewallQuarantinedDetails(repo2, c2, violation2, details.getResults().get(1));
+    assertFirewallQuarantinedDetails(repo1, c1, violation1, details.getResults().get(2));
+
+    // Test #2 - No filters, sort by QUARANTINE_TIME asc
+    // Arrange
+    filter.asc = true;
+
+    // Act
+    details = apiFirewallService.getQuarantinedComponents(filter);
+
+    assertThat(details.getTotal()).isEqualTo(3);
+    assertThat(details.getResults()).hasSize(3);
+    assertFirewallQuarantinedDetails(repo2, c2, violation2, details.getResults().get(0));
+    assertFirewallQuarantinedDetails(repo1, c1, violation1, details.getResults().get(1));
+    assertFirewallQuarantinedDetails(repo2, c3, violation3, details.getResults().get(2));
+
+    // Test #3 - Filter and sort by QUARANTINE_TIME asc
+    // Arrange
+    String quarantineTimeFilter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        .format(LocalDateTime.ofInstant(past1Days, ZoneId.systemDefault()));
+    filter.filterFields =
+        List.of(new FirewallFilterField(FirewallFilterableField.QUARANTINE_TIME, quarantineTimeFilter));
+
+    // Act
+    details = apiFirewallService.getQuarantinedComponents(filter);
+
+    assertThat(details.getTotal()).isEqualTo(1);
+    assertThat(details.getResults()).hasSize(1);
+    assertFirewallQuarantinedDetails(repo2, c3, violation3, details.getResults().get(0));
+
+    // Test #4 - Filter by all fields and sort by QUARANTINE_TIME asc
+    // Arrange
+    quarantineTimeFilter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        .format(LocalDateTime.ofInstant(past7Days, ZoneId.systemDefault()));
+    filter.filterFields =
+        List.of(new FirewallFilterField(FirewallFilterableField.REPOSITORY_PUBLIC_ID, repo2.getPublicId()),
+            new FirewallFilterField(FirewallFilterableField.POLICY_ID, policy.getId()),
+            new FirewallFilterField(FirewallFilterableField.COMPONENT_NAME, c2.getDisplayName()),
+            new FirewallFilterField(FirewallFilterableField.QUARANTINE_TIME, quarantineTimeFilter));
+
+    // Act
+    details = apiFirewallService.getQuarantinedComponents(filter);
+
     assertThat(details.getTotal()).isEqualTo(1);
     assertThat(details.getResults()).hasSize(1);
     assertFirewallQuarantinedDetails(repo2, c2, violation2, details.getResults().get(0));

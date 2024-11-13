@@ -12,13 +12,12 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -171,8 +170,8 @@ public class RepositoryComponentDAO
   }
 
   /**
-  * @since 1.170
-  * */
+   * @since 1.170
+   */
   public Map<LocalDate, Long> getConsolidatedQuarantinedComponentsMetricByDate(Date date) {
     String sQuery = "SELECT CAST(entity.quarantine_time AS DATE) as metrics_date, " +
         "COUNT(entity.repository_component_id) as metrics_value " +
@@ -292,25 +291,14 @@ public class RepositoryComponentDAO
           " AND violation.active = true" +
           " AND violation.waived = false";
 
-      if (queryRequiresComponentDisplayName(filter)) {
-        select1 += " AND LOWER(component.display_name) LIKE ?1";
-      }
+      List<String> policyIds = getPolicyIdsFromFilter(filter);
 
-      if (queryRequiresRepositoryPublicId(filter)) {
-        select1 += " AND LOWER(repository.public_id) LIKE ?2";
-      }
-
-      List<String> policyIds = Collections.EMPTY_LIST;
-      if (queryRequiresPolicyViolations(filter)) {
-        policyIds = Arrays.asList(filter.getFilterFieldsMap().get(FirewallFilterableField.POLICY_ID)
-            .split(FirewallFilterField.MULTI_VALUE_SEPARATOR));
-        select1 += " AND violation.policy_id IN " + buildPositionalParameters(policyIds, 3);
-      }
+      select1 += addFilterParameters(filter, policyIds);
 
       select1 += " GROUP BY component.quarantine_time, component.component_id_format," +
-              " component.component_id_coordinates_json, component.pathname," +
-              " component.repository_id, repository.public_id, component.display_name, component.hash," +
-              " component.match_state_id";
+          " component.component_id_coordinates_json, component.pathname," +
+          " component.repository_id, repository.public_id, component.display_name, component.hash," +
+          " component.match_state_id";
 
       int offset = (filter.page - 1) * filter.pageSize;
 
@@ -338,9 +326,8 @@ public class RepositoryComponentDAO
       select2 += " LIMIT " + filter.pageSize + " OFFSET " + offset;
 
       javax.persistence.Query query = tx.createNativeQuery(select2);
-      query.setParameter(1, '%' + filter.getFilterFieldsMap().get(FirewallFilterableField.COMPONENT_NAME) + '%');
-      query.setParameter(2, '%' + filter.getFilterFieldsMap().get(FirewallFilterableField.REPOSITORY_PUBLIC_ID) + '%');
-      addPositionalParameters(query, policyIds, 3);
+
+      setFilterParameters(query, filter, policyIds);
 
       List<FirewallQuarantinedComponentDetails> results = ((Stream<Object[]>) query.getResultStream())
           .map(array -> new FirewallQuarantinedComponentDetails(
@@ -355,10 +342,79 @@ public class RepositoryComponentDAO
               (String) array[8],
               (String) array[9],
               (String) array[10],
-              array[11] == null ? null : new Date(((Timestamp) array[11]).getTime())
-          )).collect(Collectors.toList());
+              toDate(array[11])
+          ))
+          .collect(Collectors.toList());
 
       return results;
+    }
+  }
+
+  private List<String> getPolicyIdsFromFilter(FirewallRepositoryComponentFilter filter) {
+    return Optional.ofNullable(filter.getFilterFieldsMap().get(FirewallFilterableField.POLICY_ID))
+        .map(policyIdsString -> policyIdsString.split(FirewallFilterField.MULTI_VALUE_SEPARATOR))
+        .map(Arrays::asList)
+        // or else, return an empty list
+        .orElse(List.of());
+  }
+
+  private Date toDate(Object o) {
+    return Optional.ofNullable(o).map(t -> ((Timestamp) t)).map(Timestamp::getTime).map(Date::new)
+        // or else, return null
+        .orElse(null);
+  }
+
+  private String addFilterParameters(FirewallRepositoryComponentFilter filter, List<String> policyIds) {
+    String filterQuery = "";
+    int parameterIndex = 1;
+
+    if (filterFieldsMapContainsField(filter, FirewallFilterableField.COMPONENT_NAME)) {
+      filterQuery += " AND LOWER(component.display_name) LIKE ?" + parameterIndex++;
+    }
+
+    if (filterFieldsMapContainsField(filter, FirewallFilterableField.REPOSITORY_PUBLIC_ID)) {
+      filterQuery += " AND LOWER(repository.public_id) LIKE ?" + parameterIndex++;
+    }
+
+    if (filterFieldsMapContainsField(filter, FirewallFilterableField.QUARANTINE_TIME)) {
+      filterQuery += " AND component.quarantine_time >= CAST(?" + (parameterIndex++) + " AS TIMESTAMP)";
+    }
+
+    // Filter check intentionally left last and not incrementing index, as it adds positional parameters.
+    // e.g.: (?p1, ?p2, ..., ?pn)
+    if (filterFieldsMapContainsField(filter, FirewallFilterableField.POLICY_ID)) {
+      filterQuery += " AND violation.policy_id IN " + buildPositionalParameters(policyIds, parameterIndex);
+    }
+
+    return filterQuery;
+  }
+
+  private void setFilterParameters(
+      javax.persistence.Query query,
+      FirewallRepositoryComponentFilter filter,
+      List<String> policyIds)
+  {
+    int parameterIndex = 1;
+
+    if (filterFieldsMapContainsField(filter, FirewallFilterableField.COMPONENT_NAME)) {
+      query.setParameter(parameterIndex++,
+          '%' + filter.getFilterFieldsMap().get(FirewallFilterableField.COMPONENT_NAME) + '%');
+    }
+
+    if (filterFieldsMapContainsField(filter, FirewallFilterableField.REPOSITORY_PUBLIC_ID)) {
+      query.setParameter(parameterIndex++,
+          '%' + filter.getFilterFieldsMap().get(FirewallFilterableField.REPOSITORY_PUBLIC_ID) + '%');
+    }
+
+    if (filterFieldsMapContainsField(filter, FirewallFilterableField.QUARANTINE_TIME)) {
+      query.setParameter(parameterIndex++,
+          filter.getFilterFieldsMap().get(FirewallFilterableField.QUARANTINE_TIME));
+    }
+
+    // Filter check intentionally left last and not incrementing index, as it adds positional parameters.
+    // e.g.: (?p1, ?p2, ..., ?pn)
+    if (filterFieldsMapContainsField(filter, FirewallFilterableField.POLICY_ID)) {
+      addPositionalParameters(query, policyIds, parameterIndex);
     }
   }
 
@@ -415,13 +471,13 @@ public class RepositoryComponentDAO
       final javax.persistence.Query paginationQuery =
           createPaginationQuery(tx, sQuery.toString(), offset, filter.pageSize);
 
-      if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.POLICY_ID)) {
+      if (filterFieldsMapContainsField(filter, FirewallFilterableField.POLICY_ID)) {
         paginationQuery.setParameter(parameterIndex++,
             filter.getFilterFieldsMap().get(FirewallFilterableField.POLICY_ID)
                 .split(FirewallFilterField.MULTI_VALUE_SEPARATOR));
       }
 
-      if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.COMPONENT_NAME)) {
+      if (filterFieldsMapContainsField(filter, FirewallFilterableField.COMPONENT_NAME)) {
         paginationQuery.setParameter(parameterIndex,
             "%" + StringUtils.lowerCase(filter.getFilterFieldsMap().get(FirewallFilterableField.COMPONENT_NAME)) + "%");
       }
@@ -435,17 +491,17 @@ public class RepositoryComponentDAO
     List<Object> parameters = new ArrayList<>();
 
     // FILTER
-    if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.POLICY_ID)) {
+    if (filterFieldsMapContainsField(filter, FirewallFilterableField.POLICY_ID)) {
       parameters.add(filter.getFilterFieldsMap().get(FirewallFilterableField.POLICY_ID)
           .split(FirewallFilterField.MULTI_VALUE_SEPARATOR));
     }
 
-    if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.COMPONENT_NAME)) {
+    if (filterFieldsMapContainsField(filter, FirewallFilterableField.COMPONENT_NAME)) {
       parameters.add(
           "%" + StringUtils.lowerCase(filter.getFilterFieldsMap().get(FirewallFilterableField.COMPONENT_NAME)) + "%");
     }
 
-    if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.REPOSITORY_PUBLIC_ID)) {
+    if (filterFieldsMapContainsField(filter, FirewallFilterableField.REPOSITORY_PUBLIC_ID)) {
       parameters.add(
           "%" + StringUtils.lowerCase(filter.getFilterFieldsMap().get(FirewallFilterableField.REPOSITORY_PUBLIC_ID)) +
               "%");
@@ -492,11 +548,11 @@ public class RepositoryComponentDAO
     MutableBoolean sQueryContainsWhereClause = new MutableBoolean();
     int parameterIndex = 1;
 
-    if (queryRequiresRepositoryPublicId(filter)) {
+    if (filterFieldsMapContainsField(filter, FirewallFilterableField.REPOSITORY_PUBLIC_ID)) {
       sQuery.append(" , Repository repo");
     }
 
-    if (queryRequiresPolicyViolations(filter)) {
+    if (filterFieldsMapContainsField(filter, FirewallFilterableField.POLICY_ID)) {
       sQuery.append(" , RepositoryPolicyViolation policyViolation")
           .append(" WHERE component.repositoryId = policyViolation.repositoryId")
           .append(" AND component.pathname = policyViolation.pathname")
@@ -510,7 +566,7 @@ public class RepositoryComponentDAO
 
     sQuery.append(getFirewallComponentStateClause(sQueryContainsWhereClause, filter));
 
-    if (queryRequiresComponentDisplayName(filter)) {
+    if (filterFieldsMapContainsField(filter, FirewallFilterableField.COMPONENT_NAME)) {
       if (sQueryContainsWhereClause.getValue()) {
         sQuery.append(" AND");
       }
@@ -521,7 +577,7 @@ public class RepositoryComponentDAO
       sQuery.append(" LOWER(component.displayName) LIKE ?").append(parameterIndex++);
     }
 
-    if (queryRequiresRepositoryPublicId(filter)) {
+    if (filterFieldsMapContainsField(filter, FirewallFilterableField.REPOSITORY_PUBLIC_ID)) {
       if (sQueryContainsWhereClause.getValue()) {
         sQuery.append(" AND");
       }
@@ -532,19 +588,26 @@ public class RepositoryComponentDAO
       sQuery.append(" component.repositoryId = repo.id AND LOWER(repo.publicId) LIKE ?").append(parameterIndex);
     }
 
+    if (filterFieldsMapContainsField(filter, FirewallFilterableField.QUARANTINE_TIME)) {
+      if (sQueryContainsWhereClause.getValue()) {
+        sQuery.append(" AND");
+      }
+      else {
+        sQuery.append(" WHERE");
+        sQueryContainsWhereClause.setTrue();
+      }
+      sQuery.append(String.format(" component.quarantineTime >= {ts '%s'}",
+          filter.getFilterFieldsMap().get(FirewallFilterableField.QUARANTINE_TIME)));
+    }
+
     return sQuery.toString();
   }
 
-  private static boolean queryRequiresPolicyViolations(FirewallRepositoryComponentFilter filter) {
-    return filter.getFilterFieldsMap().containsKey(FirewallFilterableField.POLICY_ID);
-  }
-
-  private static boolean queryRequiresComponentDisplayName(FirewallRepositoryComponentFilter filter) {
-    return filter.getFilterFieldsMap().containsKey(FirewallFilterableField.COMPONENT_NAME);
-  }
-
-  private static boolean queryRequiresRepositoryPublicId(FirewallRepositoryComponentFilter filter) {
-    return filter.getFilterFieldsMap().containsKey(FirewallFilterableField.REPOSITORY_PUBLIC_ID);
+  private static boolean filterFieldsMapContainsField(
+      FirewallRepositoryComponentFilter filter,
+      FirewallFilterableField firewallFilterableField)
+  {
+    return filter.getFilterFieldsMap().containsKey(firewallFilterableField);
   }
 
   private static String getFirewallComponentStateClause(

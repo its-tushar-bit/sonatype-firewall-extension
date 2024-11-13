@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -652,14 +651,14 @@ public class ApiFirewallService
   public ApiRepositoryManagerDTO addRepositoryManager(ApiRepositoryManagerDTO apiRepositoryManagerDTO) {
     productLicense.validateFeature(LicensedFeature.FIREWALL);
     checkWritePermission(RepositoryContainer.SINGLETON);
-    
+
     if (apiRepositoryManagerDTO.id != null) {
       throw new BadRequestException("The repository manager ID must be null.");
     }
 
     RepositoryManager repositoryManager = toRepositoryManager(apiRepositoryManagerDTO);
     repositoryManagerDAO.insert(repositoryManager);
-    
+
     AuditData.get().setRepositoryManager(repositoryManager);
 
     return fromRepositoryManager(repositoryManager);

@@ -201,7 +201,18 @@ public enum SystemConfigurationPropertyFeature
 
   SBOM_BINARY_SCANNING(SystemConfigurationProperty.SBOM_BINARY_SCANNING, true),
 
-  DEVELOPER_SUGGEST_NON_BREAKING_VERSION(SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION, true),
+  DEVELOPER_SUGGEST_NON_BREAKING_VERSION(SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION, true)
+  {
+    // See SDEV-1629. A feature flag with enabledWhenAbsent = true and an entry in the db with a value of true is not
+    // treated as enabled.
+    @Override
+    public boolean isEnabled(TransactionContext tx) {
+      final SystemConfigurationProperty systemConfigurationProperty =
+          systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
+      return systemConfigurationProperty == null ? super.isEnabled(tx) :
+          Boolean.parseBoolean(systemConfigurationProperty.getValue());
+    }
+  },
 
   NON_BREAKING_VERSION_SUGGESTION_TELEMETRY(
       SystemConfigurationProperty.NON_BREAKING_VERSION_SUGGESTION_TELEMETRY, true),

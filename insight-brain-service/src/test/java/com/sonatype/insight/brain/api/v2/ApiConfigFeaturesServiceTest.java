@@ -987,6 +987,8 @@ public class ApiConfigFeaturesServiceTest
         systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION)
             .getValue())
         .isEqualTo("false");
+    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION))
+        .isFalse();
   }
 
   @Test
@@ -995,6 +997,29 @@ public class ApiConfigFeaturesServiceTest
         () -> service.enableFeature(
             SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION)).isInstanceOf(
         BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testIsEnabled_developerSuggestNonBreakingVersion_EnabledByDefault() {
+    // Enabled by default
+    assertThat(
+        systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION))
+        .isNull();
+    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION))
+        .isTrue();
+  }
+
+  @Test
+  public void testIsEnabled_developerSuggestNonBreakingVersion() {
+    final SystemConfigurationProperty systemConfigurationProperty =
+        new SystemConfigurationProperty(SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION, "true");
+    systemConfigurationPropertyDAO.insert(systemConfigurationProperty);
+    assertThat(
+        systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.DEVELOPER_SUGGEST_NON_BREAKING_VERSION)
+            .getValue())
+        .isEqualTo("true");
+    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION))
+        .isTrue();
   }
 
   @Test

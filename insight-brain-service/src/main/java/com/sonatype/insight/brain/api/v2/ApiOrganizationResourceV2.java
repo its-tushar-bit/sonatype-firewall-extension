@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.io.IOException;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -34,6 +33,11 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.organization.MoveOrganizationService;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * @since 1.11.0
@@ -41,6 +45,9 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.ORG_RESOURCE_PATH)
+@Tag(name = "Organizations",
+    description = "Use this REST API to create new organizations, retrieve, edit " +
+        "or delete existing organizations.")
 public class ApiOrganizationResourceV2
 {
   public static final String ORGANIZATION_ID = "{organizationId}";
@@ -62,7 +69,24 @@ public class ApiOrganizationResourceV2
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public ApiOrganizationListDTO getOrganizations(@QueryParam("organizationName") Set<String> organizationNames) {
+  @Operation(description = "Use this method to retrieve organizations with names matching those specified or " +
+      "all if not specified." +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "The response contains a list of organizations. For each " +
+                  "organization the response contains organization id, organization name, " +
+                  "parent organization id, and its associated tags with additional details.",
+              useReturnTypeSchema = true
+          )
+      })
+  public ApiOrganizationListDTO getOrganizations(
+      @Parameter(description = "Enter the organization names.")
+      @QueryParam("organizationName") Set<String> organizationNames)
+  {
     return apiOrganizationService.getOrganizations(organizationNames);
   }
 
@@ -72,7 +96,24 @@ public class ApiOrganizationResourceV2
   @GET
   @Path(ORGANIZATION_ID)
   @Produces(MediaType.APPLICATION_JSON)
-  public ApiOrganizationDTO getOrganization(@PathParam("organizationId") String organizationId) {
+  @Operation(description = "Use this method to retrieve the details of an organization by providing the organization " +
+      "id." +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "The response contains the details for the specified  " +
+                  "organization including organization id, organization name, " +
+                  "parent organization id, and its associated tags with additional details.",
+              useReturnTypeSchema = true
+          )
+      })
+  public ApiOrganizationDTO getOrganization(
+      @Parameter(description = "Enter the organization id.", required = true)
+      @PathParam("organizationId") String organizationId)
+  {
     return apiOrganizationService.getOrganizationById(organizationId);
   }
 
@@ -83,7 +124,28 @@ public class ApiOrganizationResourceV2
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_ORGANIZATION)
-  public ApiOrganizationDTO addOrganization(final ApiOrganizationDTO organizationDTO) {
+  @Operation(description = "Use this method to add a new organization." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit IQ Elements",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "The response contains the assigned organization id and all other organization " +
+                  "details specified.")
+      })
+  public ApiOrganizationDTO addOrganization(
+      @RequestBody(
+          description = "The request JSON should include the name of the organization (should be unique), " +
+              "name of the parent organization and tags containing additional organization details. " +
+              "If the parent organization is not specified, this organization will be created under the root " +
+              "organization. " +
+              "Tags represent identifying characteristics of an application. They are created at the organization " +
+              "level and then applied to applications under the organization. The tags can be used to decide which " +
+              "applications will be evaluated against a selected policy."
+
+      ) final ApiOrganizationDTO organizationDTO)
+  {
     return apiOrganizationService.addOrganization(organizationDTO);
   }
 
@@ -95,8 +157,26 @@ public class ApiOrganizationResourceV2
   @Path(MOVE_ORGANIZATION_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.UPDATE_ORGANIZATION)
+  @Operation(description = "Use this method to change the parent organization." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit IQ Elements",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "The organization has been successfully moved under the parent organization id provided."
+          ),
+          @ApiResponse(
+              responseCode = "409",
+              description = "Encountered conflicts while inheriting policy elements of the new parent organization. " +
+                  "The organization could not be moved under the new parent organization id provided."
+          )
+      }
+  )
   public Response moveOrganization(
+      @Parameter(description = "Enter the id for the organization to be moved under the new parent.")
       @PathParam("organizationId") final String orgId,
+      @Parameter(description = "Enter the id for the new parent organization.")
       @PathParam("destinationId") final String newParentOrgId,
       @DefaultValue("false") @QueryParam("failEarlyOnError") final boolean failEarlyOnError
   )
@@ -117,7 +197,20 @@ public class ApiOrganizationResourceV2
   @DELETE
   @Path(ORGANIZATION_ID)
   @Audited(AuditEvent.DELETE_ORGANIZATION)
-  public void deleteOrganization(@PathParam("organizationId") final String organizationId) throws IOException {
+  @Operation(description = "Use this method to delete an existing organization, by providing the organization id." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit IQ Elements",
+      responses = {
+          @ApiResponse(
+              responseCode = "204",
+              description = "The specified organization has been deleted."
+          )
+      })
+  public void deleteOrganization(
+      @Parameter(description = "Enter the organization id to be deleted.")
+      @PathParam("organizationId") final String organizationId) throws IOException
+  {
     apiOrganizationService.deleteOrganization(organizationId);
   }
 }

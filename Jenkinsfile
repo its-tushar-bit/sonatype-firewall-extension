@@ -213,7 +213,7 @@ void pushDockerImageIfDeployBranch() {
     dir("nexus-iq-server") {
         withSonatypeDockerRegistry() {
             String latest = "${sonatypeDockerRegistryId()}/${imageName}:latest"
-            sh "docker buildx create --use"
+            sh "docker buildx create --use --driver-opt image=${sonatypeDockerRegistryId()}/moby/buildkit:buildx-stable-1"
             sh "docker buildx build --platform=linux/amd64,linux/arm64 --build-arg " +
                 "SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg " +
                 "IQ_SERVER_VERSION=${iqVersion} " +
@@ -294,7 +294,7 @@ void pushMTIQDockerImage() {
         // build two images, one named mtiq with a default command to start the server, and the other with a default
         // command to migrate the database
         ['server': 'Dockerfile', 'migrate-mtiq-db': 'Dockerfile-migrate-mtiq-db'].each { imageName, dockerfile ->
-          sh 'docker buildx create --use'
+          sh "docker buildx create --use --driver-opt image=${sonatypeDockerRegistryId()}/moby/buildkit:buildx-stable-1"
           sh "docker buildx build --platform=linux/amd64,linux/arm64 " +
               " -f ${dockerfile} " +
               " --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} " +

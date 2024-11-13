@@ -1,0 +1,125 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.policy;
+
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.IntStream;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
+import com.sonatype.insight.brain.hds.ComponentInfoService;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.lqa.LqaFormat;
+
+@Named
+@Singleton
+public class PathForwardInspector
+{
+  private final ComponentInfoService componentInfoService;
+
+  private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
+
+  private final ApplicationDAO applicationDAO;
+
+  private final Map<ComponentIdentifier, Boolean> violatedComponentMap = new ConcurrentHashMap<>();
+
+  @Inject
+  public PathForwardInspector(
+      final ComponentInfoService componentInfoService,
+      final ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
+      final ApplicationDAO applicationDAO)
+  {
+    this.componentInfoService = componentInfoService;
+    this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
+    this.applicationDAO = applicationDAO;
+    componentInfoService.setToolName("ci");
+  }
+
+  public Map<ComponentIdentifier, Boolean> getViolatedComponentMap() {
+    return violatedComponentMap;
+  }
+
+  public boolean containsUpgradeableVersion(
+      final Component component,
+      final String appId,
+      final String stageId,
+      final String scanId)
+  {
+    ComponentIdentifier componentIdentifier = component.getComponentIdentifier();
+
+    if (!isKnownFormat(componentIdentifier)) {
+      return false;
+    }
+
+    Boolean hasPathForward = violatedComponentMap.get(componentIdentifier);
+    if (hasPathForward != null) {
+      return hasPathForward;
+    }
+
+    Application app = applicationDAO.getByIdNotNull(appId);
+    ComponentDetailsLoader componentDetailsLoader = componentDetailsLoaderFactory.newInstance(app);
+    List<ComponentDetailsDTO> componentDetailsDTOList =
+        componentInfoService.getComponentDetailsForAllVersionsNoAuth(app,
+            componentIdentifier, stageId, null, scanId, null, componentDetailsLoader).getLeft();
+
+    int currentComponentIndex = findCurrentComponentIndex(componentDetailsDTOList, componentIdentifier);
+    if (currentComponentIndex == -1) {
+      return false;
+    }
+    hasPathForward = componentDetailsDTOList.stream().parallel()
+        .skip(currentComponentIndex)
+        .anyMatch(dto -> dto.violatedPolicyCount == 0);
+
+    violatedComponentMap.putIfAbsent(componentIdentifier, hasPathForward);
+
+    return hasPathForward;
+  }
+
+  private int findCurrentComponentIndex(
+      List<ComponentDetailsDTO> allVersions,
+      ComponentIdentifier componentIdentifier)
+  {
+    ComponentIdentifier completeIdentifier = ensureCompleteIfNeeded(componentIdentifier);
+
+    return IntStream.range(0, allVersions.size())
+        .filter(i -> ensureCompleteIfNeeded(allVersions.get(i).componentIdentifier)
+            .equals(completeIdentifier))
+        .findFirst()
+        .orElse(-1);
+  }
+
+  private ComponentIdentifier ensureCompleteIfNeeded(ComponentIdentifier componentIdentifier) {
+    if (ComponentIdentifier.FORMAT_CONAN.equals(componentIdentifier.getFormat())) {
+      try {
+        componentIdentifier.ensureComplete();
+      }
+      catch (InvalidComponentIdentifierException e) {
+        throw new BadRequestException(e.getMessage(), e);
+      }
+    }
+    return componentIdentifier;
+  }
+
+  private boolean isKnownFormat(ComponentIdentifier identifier) {
+    return ComponentIdentifier.getSupportedFormats().contains(identifier.getFormat()) ||
+        LqaFormat.isLqaFormat(identifier.getFormat());
+  }
+
+  public void cleanUp() {
+    violatedComponentMap.clear();
+  }
+}

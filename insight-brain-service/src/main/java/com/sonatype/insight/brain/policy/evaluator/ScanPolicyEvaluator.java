@@ -51,7 +51,6 @@ import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioriti
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
-import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.*;
 import com.sonatype.insight.brain.model.component.Component;
@@ -66,6 +65,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.policy.LegacyViolationService;
+import com.sonatype.insight.brain.policy.PathForwardInspector;
 import com.sonatype.insight.brain.policy.violation.ApplicationPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
@@ -79,7 +79,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverTelemetry.AutoPolicyWaiverAction;
 import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverTelemetryMetrics;
-import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.utils.ThreatLevel;
@@ -178,6 +177,8 @@ public class ScanPolicyEvaluator
 
   private final AutoPolicyWaiverTelemetryMetrics autoPolicyWaiverTelemetryMetrics;
 
+  private final PathForwardInspector pathForwardInspector;
+
   @Inject
   public ScanPolicyEvaluator(
       final InsightWork insightWork,
@@ -209,7 +210,8 @@ public class ScanPolicyEvaluator
       final ComponentInfoService componentInfoService,
       final ReportComponentService reportComponentService,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
-      final AutoPolicyWaiverTelemetryMetrics autoPolicyWaiverTelemetryMetrics)
+      final AutoPolicyWaiverTelemetryMetrics autoPolicyWaiverTelemetryMetrics,
+      final PathForwardInspector pathForwardInspector)
   {
     this.work = insightWork;
     this.reportService = reportService;
@@ -242,6 +244,7 @@ public class ScanPolicyEvaluator
     componentInfoService.setToolName("ci");
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.autoPolicyWaiverTelemetryMetrics = autoPolicyWaiverTelemetryMetrics;
+    this.pathForwardInspector = pathForwardInspector;
   }
 
   public ScanPolicyEvaluatorResults evaluate(
@@ -496,12 +499,16 @@ public class ScanPolicyEvaluator
             policyViolation.setPolicyWaiverComment(policyWaiver.getComment());
           }
 
-          if (autoPolicyWaiver != null && policyViolation.isActive()) {
+          if (canEvaluateWithAutoWaiver(autoPolicyWaiver, policyViolation)) {
+            Component component =
+                findComponentByComponentIdentifier(components, policyViolation.getComponentIdentifier());
             boolean violationShouldBeAutoWaived = evaluateAutoPolicyWaiver(
                 appId,
+                component,
                 policyViolation,
                 autoPolicyWaiver,
-                stage.getStageTypeId());
+                stage.getStageTypeId(),
+                scanId);
             if (violationShouldBeAutoWaived) {
               policyViolation.setWaiveTime(policyEvaluation.getTime());
               policyViolation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
@@ -522,6 +529,7 @@ public class ScanPolicyEvaluator
           results.allViolations.add(policyViolation);
         }
       }
+      pathForwardInspector.cleanUp();
 
       if (!stage.getStageTypeId().equals(Stage.ID_COMPLIANCE)) {
         setLegacyViolations(tx, isLegacyViolationEnabled, app, policies, policyEvaluation.getTime(),
@@ -767,6 +775,14 @@ public class ScanPolicyEvaluator
 
       return results;
     }
+  }
+
+  private static boolean canEvaluateWithAutoWaiver(
+      final AutoPolicyWaiver autoPolicyWaiver,
+      final PolicyViolation policyViolation)
+  {
+    return autoPolicyWaiver != null && policyViolation.isActive() &&
+        policyViolation.getThreatCategory().equals(PolicyThreatCategory.SECURITY);
   }
 
   /**
@@ -1292,16 +1308,19 @@ public class ScanPolicyEvaluator
 
   private boolean evaluateAutoPolicyWaiver(
       String appId,
+      Component component,
       PolicyViolation policyViolation,
       AutoPolicyWaiver autoPolicyWaiver,
-      String stageId)
+      String stageId,
+      String scanId)
   {
-
-    boolean hasPolicyWaiver = hasPolicyWaiver(policyViolation);
-    boolean threatLevel = doesViolationMeetThreatLevelCriteria(policyViolation, autoPolicyWaiver);
-    boolean hasPathForward = doesViolationHavePathForward(appId, policyViolation, autoPolicyWaiver, stageId);
-
-    return threatLevel && !hasPolicyWaiver && !hasPathForward;
+    if (hasPolicyWaiver(policyViolation)) {
+      return false;
+    }
+    if (!doesViolationMeetThreatLevelCriteria(policyViolation, autoPolicyWaiver)) {
+      return false;
+    }
+    return !componentHavePathForward(appId, component, autoPolicyWaiver, stageId, scanId);
   }
 
   private boolean hasPolicyWaiver(PolicyViolation policyViolation) {
@@ -1314,34 +1333,20 @@ public class ScanPolicyEvaluator
     return policyViolation.getThreatLevel() <= autoPolicyWaiver.getThreatLevel();
   }
 
-  private boolean doesViolationHavePathForward(
+  private boolean componentHavePathForward(
       String appId,
-      PolicyViolation policyViolation,
+      Component component,
       AutoPolicyWaiver autoPolicyWaiver,
-      String stageId)
+      String stageId,
+      String scanId)
   {
     Boolean hasPathForward = autoPolicyWaiver.hasPathForward();
-    if (hasPathForward == null || !hasPathForward || policyViolation.getComponentIdentifier() == null) {
+    if (hasPathForward == null || !hasPathForward || component.getComponentIdentifier() == null) {
       // Auto waiver does not have path forward enabled. No need to evaluate this condition.
       return false;
     }
-    componentInfoService.setToolName("ci");
-    ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfoNoAuth(
-        OwnerType.APPLICATION,
-        appId,
-        policyViolation.getComponentIdentifier(),
-        stageId,
-        null,
-        null,
-        null,
-        SourceEndpoint.SCAN_POLICY_EVALUATOR
-    );
 
-    if (dto == null || dto.remediation == null) {
-      // if either of these are null, we can't be sure if there is a path forward; don't auto waive in that case
-      return true;
-    }
-    return !dto.remediation.versionChanges.isEmpty() || dto.remediation.suggestedVersionChange != null;
+    return pathForwardInspector.containsUpgradeableVersion(component, appId, stageId, scanId);
   }
 
   private AutoPolicyWaiver getApplicableAutoPolicyWaiver(String applicationId) {

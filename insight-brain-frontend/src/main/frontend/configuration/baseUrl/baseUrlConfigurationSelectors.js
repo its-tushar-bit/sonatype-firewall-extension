@@ -8,8 +8,6 @@ import { createSelector } from '@reduxjs/toolkit';
 
 export const selectBaseUrlConfigurationSlice = prop('baseUrlConfiguration');
 
-export const selectUser = prop('user');
-
 export const selectFormState = createSelector(selectBaseUrlConfigurationSlice, prop('formState'));
 export const selectLoading = createSelector(selectBaseUrlConfigurationSlice, prop('loading'));
 export const selectSubmitMaskState = createSelector(selectBaseUrlConfigurationSlice, prop('submitMaskState'));
@@ -24,8 +22,6 @@ export const selectHasAllRequiredFields = createSelector(
   selectBaseUrlConfigurationSlice,
   ({ formState: { baseUrl } }) => !!baseUrl.trimmedValue
 );
-
-export const selectCurrentUser = createSelector(selectUser, prop('currentUser'));
 
 export const selectServerData = createSelector(selectBaseUrlConfigurationSlice, prop('serverData'));
 export const selectShowDeleteModal = createSelector(selectBaseUrlConfigurationSlice, prop('showDeleteModal'));

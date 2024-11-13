@@ -6,11 +6,9 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions } from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSlice';
-import {
-  selectShouldDisplayNotice,
-  selectCurrentUser,
-} from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSelectors';
+import { selectShouldDisplayNotice } from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSelectors';
 import { selectIsBaseUrlConfigurationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectCurrentUser } from 'MainRoot/user/userSelectors';
 
 export default function BaseUrlNotSetNotice() {
   const dispatch = useDispatch();

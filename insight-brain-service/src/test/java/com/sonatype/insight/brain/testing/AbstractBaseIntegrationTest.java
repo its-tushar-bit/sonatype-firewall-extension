@@ -17,9 +17,11 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +30,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMultipart;
@@ -96,7 +97,6 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryHeader;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.networking.PortAllocator;
-
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
@@ -783,6 +783,16 @@ public abstract class AbstractBaseIntegrationTest
     properties.put(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, supportReadLimitBytes);
 
     setProperties(properties);
+  }
+
+  protected Object getProperty(String propertyName) {
+    ApiConfigurationService service = getCLMServer().getInstance(ApiConfigurationService.class);
+    return service.getConfigurationNoAuthz(propertyName);
+  }
+
+  protected Map<String, Object> getProperties(String... propertyNames) {
+    ApiConfigurationService service = getCLMServer().getInstance(ApiConfigurationService.class);
+    return service.getConfigurationNoAuthz(new HashSet<>(Arrays.asList(propertyNames)));
   }
 
   protected void setProperties(Map<String, Object> properties) {

@@ -21,7 +21,11 @@ describe('IqHttpInterceptors', function () {
     angular.mock.module(CLMLocation.default.name);
   });
 
-  beforeEach(angular.mock.module(iqHttpInterceptors.name));
+  beforeEach(
+    angular.mock.module(iqHttpInterceptors.name, function ($provide) {
+      SpecUtil.mockNgRedux($provide);
+    })
+  );
 
   beforeEach(inject(function (_$httpBackend_, _$http_) {
     $httpBackend = _$httpBackend_;

@@ -15,7 +15,8 @@ describe('LogoutWarningModal', function () {
     jasmine.clock().install();
     mockOnClick = jasmine.createSpy();
     props = { onClick: mockOnClick, startingCount: 60 };
-    renderComponent = (additionalProps) => render(<LogoutWarningModal {...props} {...additionalProps} />);
+    renderComponent = (additionalProps, preloadedState) =>
+      render(<LogoutWarningModal {...props} {...additionalProps} />, { preloadedState: preloadedState });
   });
 
   afterEach(function () {
@@ -25,15 +26,23 @@ describe('LogoutWarningModal', function () {
   it('renders a modal', function () {
     renderComponent();
     expect(screen.getByText('Session Timeout Warning')).toBeVisible();
-    expect(screen.getByText('Due to 30 minutes of inactivity', { exact: false })).toBeVisible();
+    expect(screen.getByText('Due to inactivity', { exact: false })).toBeVisible();
   });
 
   it('starts the countdown based on the passed prop', function () {
     renderComponent();
-    expect(screen.getByText('Due to 30 minutes of inactivity you will be logged out in 60 seconds.')).toBeVisible();
+    expect(screen.getByText('Due to inactivity you will be logged out in 60 seconds.')).toBeVisible();
 
     renderComponent({ startingCount: 120 });
-    expect(screen.getByText('Due to 30 minutes of inactivity you will be logged out in 120 seconds.')).toBeVisible();
+    expect(screen.getByText('Due to inactivity you will be logged out in 120 seconds.')).toBeVisible();
+  });
+
+  it('renders the session timeout based on the state', function () {
+    renderComponent();
+    expect(screen.getByText('Due to inactivity you will be logged out in 60 seconds.')).toBeVisible();
+
+    renderComponent({}, { user: { currentUser: { sessionTimeoutMilliseconds: 45 * 60 * 1000 } } });
+    expect(screen.getByText('Due to 45 minutes of inactivity you will be logged out in 60 seconds.')).toBeVisible();
   });
 
   it('calls onClick when the button is clicked', function () {
@@ -50,9 +59,7 @@ describe('LogoutWarningModal', function () {
     renderComponent({ startingCount: start });
 
     while (start >= 0) {
-      expect(
-        await screen.findByText(`Due to 30 minutes of inactivity you will be logged out in ${start} seconds.`)
-      ).toBeVisible();
+      expect(await screen.findByText(`Due to inactivity you will be logged out in ${start} seconds.`)).toBeVisible();
       jasmine.clock().tick(1000);
       start--;
     }

@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.security;
 
 import java.net.URI;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -27,7 +26,9 @@ import com.sonatype.insight.brain.service.Configuration;
 
 import com.codahale.metrics.annotation.Timed;
 import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
+import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 
 /**
  * Manages user account authentication sessions which provide access to the server.
@@ -49,13 +50,17 @@ public class UserSessionResource
 
   private final IdPLogoutUrlBuilder idPLogoutUrlBuilder;
 
+  private final DefaultWebSessionManager defaultWebSessionManager;
+
   @Inject
   public UserSessionResource(
       Configuration configuration,
-      IdPLogoutUrlBuilder idPLogoutUrlBuilder)
+      IdPLogoutUrlBuilder idPLogoutUrlBuilder,
+      DefaultWebSessionManager defaultWebSessionManager)
   {
     this.configuration = configuration;
     this.idPLogoutUrlBuilder = idPLogoutUrlBuilder;
+    this.defaultWebSessionManager = defaultWebSessionManager;
   }
 
   /**
@@ -101,7 +106,11 @@ public class UserSessionResource
   @Produces(MediaType.APPLICATION_JSON)
   @GET
   public AuthenticationStatus getStatus() {
-    return AuthenticationStatus.fromSubject(SecurityUtils.getSubject());
+    AuthenticationStatus authenticationStatus = AuthenticationStatus.fromSubject(SecurityUtils.getSubject());
+    if (authenticationStatus.sessionTimeoutMilliseconds == null) {
+      authenticationStatus.setSessionTimeoutMilliseconds(defaultWebSessionManager.getGlobalSessionTimeout());
+    }
+    return authenticationStatus;
   }
 
   /**
@@ -120,6 +129,8 @@ public class UserSessionResource
     private boolean isInternalUser;
 
     private Set<String> groups;
+
+    private Long sessionTimeoutMilliseconds;
 
     /**
      * Status for a user that is not authenticated.
@@ -148,6 +159,11 @@ public class UserSessionResource
         else {
           status.setUsername(subject.getPrincipal().toString());
         }
+      }
+
+      Session session = subject.getSession(false);
+      if (session != null) {
+        status.sessionTimeoutMilliseconds = session.getTimeout();
       }
 
       return status;
@@ -191,6 +207,14 @@ public class UserSessionResource
 
     public void setGroups(Set<String> groups) {
       this.groups = groups;
+    }
+
+    public Long getSessionTimeoutMilliseconds() {
+      return sessionTimeoutMilliseconds;
+    }
+
+    public void setSessionTimeoutMilliseconds(Long sessionTimeoutMilliseconds) {
+      this.sessionTimeoutMilliseconds = sessionTimeoutMilliseconds;
     }
   }
 }

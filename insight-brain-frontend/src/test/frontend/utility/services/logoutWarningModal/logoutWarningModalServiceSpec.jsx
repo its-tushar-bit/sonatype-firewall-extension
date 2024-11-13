@@ -13,7 +13,11 @@ describe('logoutWarningModalService', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   let $rootScope, logoutWarningModalService;
 
-  beforeEach(angular.mock.module(logoutWarningModalModule.name));
+  beforeEach(
+    angular.mock.module(logoutWarningModalModule.name, function ($provide) {
+      SpecUtil.mockNgRedux($provide);
+    })
+  );
 
   beforeEach(inject(function (_$rootScope_, _logoutWarningModalService_) {
     $rootScope = _$rootScope_;
@@ -53,7 +57,7 @@ describe('logoutWarningModalService', function () {
   it('uses the value passed to `open` to initialize the count in the modal', (done) => {
     logoutWarningModalService.open(120);
     const alertContent = document.querySelector('.nx-alert__content');
-    expect(alertContent.textContent).toEqual('Due to 30 minutes of inactivity you will be logged out in 120 seconds.');
+    expect(alertContent.textContent).toEqual('Due to inactivity you will be logged out in 120 seconds.');
     setTimeout(done, 0);
   });
 

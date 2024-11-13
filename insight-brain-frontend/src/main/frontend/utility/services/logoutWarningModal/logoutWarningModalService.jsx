@@ -10,8 +10,9 @@ import { getSessionUrl } from '../../../util/CLMLocation';
 
 import { showNotification } from '../notificationService';
 import LogoutWarningModal from './LogoutWarningModal';
+import { Provider } from 'react-redux';
 
-export default function logoutWarningModalService() {
+export default function logoutWarningModalService($ngRedux) {
   let modalPromise = null;
 
   function resetIsShowing() {
@@ -47,7 +48,12 @@ export default function logoutWarningModalService() {
       fireSimpleRequest();
     };
 
-    ReactDOM.render(<LogoutWarningModal onClick={onExtendClick} startingCount={secondsLeft} />, logoutWarningDiv);
+    ReactDOM.render(
+      <Provider store={$ngRedux}>
+        <LogoutWarningModal onClick={onExtendClick} startingCount={secondsLeft} />
+      </Provider>,
+      logoutWarningDiv
+    );
     showNotification('Session Timeout Warning', {
       body: `Your ${productEdition} session will expire in 2 minutes due to inactivity.`,
     });
@@ -57,3 +63,5 @@ export default function logoutWarningModalService() {
 
   return { open };
 }
+
+logoutWarningModalService.$inject = ['$ngRedux'];

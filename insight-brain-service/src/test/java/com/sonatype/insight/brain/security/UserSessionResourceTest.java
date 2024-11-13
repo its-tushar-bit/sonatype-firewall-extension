@@ -9,11 +9,12 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.HttpCookie;
 import java.nio.charset.StandardCharsets;
-
+import java.util.Map;
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
@@ -108,33 +109,64 @@ public class UserSessionResourceTest
 
   @Test
   public void testStatus() throws Exception {
+    Integer originalGlobalSessionTimeout = (Integer) getProperty(SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES);
+    try {
+      // uninstall license and should find all these tests run uninhibited as they are unlicensed paths
+      getTestProductLicenseManager().uninstallLicense();
 
-    // uninstall license and should find all these tests run uninhibited as they are unlicensed paths
-    getTestProductLicenseManager().uninstallLicense();
+      // logged out by default, so 401 expected
+      HttpResponse response = status(null);
+      assertResponseStatus(401, response);
 
-    // logged out by default, so 401 expected
-    HttpResponse response = status(null);
-    assertResponseStatus(401, response);
+      response = login(User.ADMIN_USERNAME, "admin123");
+      assertResponseStatus(204, response);
 
-    response = login(User.ADMIN_USERNAME, "admin123");
-    assertResponseStatus(204, response);
+      HttpCookie sessionCookie = response.getSessionCookie();
+      assertThat(sessionCookie).isNotNull();
 
-    HttpCookie sessionCookie = response.getSessionCookie();
-    assertThat(sessionCookie).isNotNull();
+      response = status(sessionCookie);
+      assertResponseStatus(200, response);
+      AuthenticationStatus status = response.getBody(AuthenticationStatus.class);
+      assertThat(status.isAuthenticated()).isTrue();
+      assertThat(status.getUsername()).isEqualTo(User.ADMIN_USERNAME);
+      assertThat(status.getGroups()).containsExactly(Group.AUTHENTICATED_USERS_GROUP_ID);
+      assertThat(status.getSessionTimeoutMilliseconds()).isEqualTo(originalGlobalSessionTimeout * 60 * 1000);
 
-    response = status(sessionCookie);
-    assertResponseStatus(200, response);
-    AuthenticationStatus status = response.getBody(AuthenticationStatus.class);
-    assertThat(status.isAuthenticated()).isTrue();
-    assertThat(status.getUsername()).isEqualTo(User.ADMIN_USERNAME);
-    assertThat(status.getGroups()).containsExactly(Group.AUTHENTICATED_USERS_GROUP_ID);
+      setProperties(Map.of(SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES, originalGlobalSessionTimeout + 1));
 
-    response = logout(sessionCookie);
-    assertResponseStatus(204, response);
+      response = status(sessionCookie);
+      assertResponseStatus(200, response);
+      status = response.getBody(AuthenticationStatus.class);
+      assertThat(status.isAuthenticated()).isTrue();
+      assertThat(status.getUsername()).isEqualTo(User.ADMIN_USERNAME);
+      assertThat(status.getGroups()).containsExactly(Group.AUTHENTICATED_USERS_GROUP_ID);
+      assertThat(status.getSessionTimeoutMilliseconds()).isEqualTo(originalGlobalSessionTimeout * 60 * 1000);
 
-    // this cookie should no longer be valid
-    response = status(sessionCookie);
-    assertResponseStatus(401, response);
+      logout(sessionCookie);
+      response = login(User.ADMIN_USERNAME, "admin123");
+      assertResponseStatus(204, response);
+
+      sessionCookie = response.getSessionCookie();
+      assertThat(sessionCookie).isNotNull();
+
+      response = status(sessionCookie);
+      assertResponseStatus(200, response);
+      status = response.getBody(AuthenticationStatus.class);
+      assertThat(status.isAuthenticated()).isTrue();
+      assertThat(status.getUsername()).isEqualTo(User.ADMIN_USERNAME);
+      assertThat(status.getGroups()).containsExactly(Group.AUTHENTICATED_USERS_GROUP_ID);
+      assertThat(status.getSessionTimeoutMilliseconds()).isEqualTo((originalGlobalSessionTimeout + 1) * 60 * 1000L);
+
+      response = logout(sessionCookie);
+      assertResponseStatus(204, response);
+
+      // this cookie should no longer be valid
+      response = status(sessionCookie);
+      assertResponseStatus(401, response);
+    }
+    finally {
+      resetProperties(SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES);
+    }
   }
 
   @Test

@@ -7,9 +7,12 @@ import React, { useState, useEffect } from 'react';
 import { dec } from 'ramda';
 import { NxButton, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
+import { useSelector } from 'react-redux';
+import { selectSessionTimeoutMilliseconds } from 'MainRoot/user/userSelectors';
 
 export default function LogoutWarningModal({ onClick, startingCount }) {
   const [secondsLeft, setSecondsLeft] = useState(startingCount);
+  const sessionTimeoutMilliseconds = useSelector(selectSessionTimeoutMilliseconds);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -21,6 +24,10 @@ export default function LogoutWarningModal({ onClick, startingCount }) {
     };
   }, []);
 
+  const sessionTimeoutText = typeof sessionTimeoutMilliseconds === 'number'
+    ? `${Math.floor(sessionTimeoutMilliseconds / 1000 / 60)} minutes of inactivity`
+    : 'inactivity';
+
   return (
     <NxModal id="logout-warning-modal">
       <header className="nx-modal-header">
@@ -28,7 +35,7 @@ export default function LogoutWarningModal({ onClick, startingCount }) {
       </header>
       <div className="nx-modal-content">
         <NxWarningAlert>
-          Due to 30 minutes of inactivity you will be logged out in {Math.max(secondsLeft, 0)} seconds.
+          Due to {sessionTimeoutText} you will be logged out in {Math.max(secondsLeft, 0)} seconds.
         </NxWarningAlert>
       </div>
       <footer className="nx-footer">

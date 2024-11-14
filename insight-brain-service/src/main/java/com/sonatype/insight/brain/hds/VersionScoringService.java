@@ -18,10 +18,14 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.remediation.VersionScoringDTO;
 import com.sonatype.clm.dto.model.remediation.VersionScoringDTO.ToVersionData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 public class VersionScoringService
 {
+  private static final Logger log = LoggerFactory.getLogger(VersionScoringService.class);
+
   public static final String HDS_BULK_SCORE_VERSIONING_PATH = "rest/component/version-scoring/list";
 
   // Currently HDS only supports Maven version scoring.
@@ -61,8 +65,10 @@ public class VersionScoringService
   }
 
   private Collection<VersionScoringDTO> getVersionScoringNoAuth(Collection<ComponentIdentifier> componentIdentifiers) {
-    return List.of(
+    final List<VersionScoringDTO> versionScoringData = List.of(
         hdsClient.post(VersionScoringDTO[].class, HDS_BULK_SCORE_VERSIONING_PATH, componentIdentifiers)
     );
+    log.debug("Received {} version scoring entries from HDS", versionScoringData.size());
+    return versionScoringData;
   }
 }

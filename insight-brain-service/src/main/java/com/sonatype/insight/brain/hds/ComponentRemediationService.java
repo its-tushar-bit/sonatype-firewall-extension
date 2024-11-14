@@ -59,6 +59,8 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.83
@@ -67,6 +69,8 @@ import org.apache.commons.collections4.CollectionUtils;
 @Named
 public class ComponentRemediationService
 {
+  private static final Logger log = LoggerFactory.getLogger(ComponentRemediationService.class);
+
   public static final List<ApiVersionChangeOptionType> PREFERABLE_TYPE_ORDER = List.of(
       ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
       ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING,
@@ -214,6 +218,7 @@ public class ComponentRemediationService
       // Defined outside the feature-flagged block to avoid duplicate computation.
       List<String> nonBreakingVersionsSortedByScore = new ArrayList<>();
       if (SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.isEnabled()) {
+        log.debug("Fetching non-breaking versions for component: {}", currentComponent);
         nonBreakingVersionsSortedByScore.addAll(versionScoringService.getSortedNonBreakingVersionsNoAuth(
             List.of(currentComponent)).getOrDefault(currentComponent, Collections.emptyList()));
         Set<ComponentIdentifier> nonViolatingVersionsSet =
@@ -263,6 +268,7 @@ public class ComponentRemediationService
               });
           
           if (SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.isEnabled()) {
+            log.debug("Fetching non-breaking versions with dependencies for component: {}", currentComponent);
             Set<ComponentIdentifier> nonViolatingVersionsWithDependenciesSet =
                 findNoViolatingAboveSeverityThreshold(currentIndex, allVersions, 2)
                 .filter(dto -> {
@@ -290,6 +296,7 @@ public class ComponentRemediationService
       }
     }
     componentRemediationDto.versionChanges = sortAndDeduplicateVersionChanges(componentRemediationDto.versionChanges);
+    log.debug("Created {} component remediation version changes", componentRemediationDto.versionChanges.size());
     sendTelemetry(owner, currentComponent, telemetryAttributes);
     return componentRemediationDto;
   }

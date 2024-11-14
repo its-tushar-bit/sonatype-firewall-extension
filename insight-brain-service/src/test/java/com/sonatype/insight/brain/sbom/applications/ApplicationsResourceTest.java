@@ -5,13 +5,12 @@
  */
 package com.sonatype.insight.brain.sbom.applications;
 
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationListSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationsSortableField;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -111,29 +110,28 @@ public class ApplicationsResourceTest
         .query("pageSize", 3)
         .get();
     assertResponseStatus(200, response);
-    List<SbomApplicationSummaryDTO> resultDtoList =
-        Arrays.asList(response.getBody(SbomApplicationSummaryDTO[].class));
+    SbomApplicationListSummaryDTO resultDtoList = response.getBody(SbomApplicationListSummaryDTO.class);
 
-    assertThat(resultDtoList.size()).isEqualTo(1);
-    SbomApplicationSummaryDTO applicationPageApplicationSummaryDTO = resultDtoList.get(0);
+    assertThat(resultDtoList.getApplications()).hasSize(1);
+    SbomApplicationSummaryDTO applicationPageApplicationSummaryDTO = resultDtoList.getApplications().get(0);
     assertThat(applicationPageApplicationSummaryDTO.getAnnotatedPercentage()).isEqualTo(28.6);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPageVulnerabilitySummary().getVulnerabilityNone())
+    assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getNone())
         .isEqualTo(1);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPageVulnerabilitySummary().getVulnerabilityLow())
+    assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getLow())
         .isEqualTo(1);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPageVulnerabilitySummary().getVulnerabilityMedium())
+    assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getMedium())
         .isEqualTo(1);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPageVulnerabilitySummary().getVulnerabilityHigh())
+    assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getHigh())
         .isEqualTo(2);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPageVulnerabilitySummary().getVulnerabilityCritical())
+    assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getCritical())
         .isEqualTo(2);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPagePolicyViolationSummary()
+    assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
         .getCritical()).isEqualTo(0);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPagePolicyViolationSummary()
+    assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
         .getSevere()).isEqualTo(1);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPagePolicyViolationSummary()
+    assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
         .getModerate()).isEqualTo(1);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPagePolicyViolationSummary()
+    assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
         .getLow()).isEqualTo(0);
   }
 

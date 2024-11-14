@@ -10,7 +10,8 @@ public enum SbomApplicationsSortableField
   IMPORT_DATE("import_date"),
   APPLICATION_NAME("application_name"),
   LATEST_SBOM_VERSION("latest_sbom_version"),
-  PERCENTAGE_ANNOTATED("percentage_annotated");
+  PERCENTAGE_ANNOTATED("percentage_annotated"),
+  VULNERABILITY("vulnerability");
 
   private final String column;
 

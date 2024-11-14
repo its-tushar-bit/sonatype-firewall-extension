@@ -15,7 +15,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationSummaryDTO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationListSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationsSortableField;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -48,7 +48,7 @@ public class SbomApplicationsService
     this.applicationDAO = applicationDAO;
   }
 
-  public List<SbomApplicationSummaryDTO> getApplications(
+  public SbomApplicationListSummaryDTO getApplications(
       String applicationName,
       SbomApplicationsSortableField sortBy,
       boolean asc,
@@ -58,7 +58,7 @@ public class SbomApplicationsService
     validatePagination(page, pageSize);
     List<Application> applications = applicationService.getApplications();
     if (applications.isEmpty()) {
-      return new ArrayList<>();
+      return new SbomApplicationListSummaryDTO(new ArrayList<>());
     }
 
     List<ApplicationManagementSummaryDTO> filteredByApplicationName = applicationAdapter
@@ -66,7 +66,7 @@ public class SbomApplicationsService
     Set<String> filteredApplicationIds = filteredByApplicationName.stream().map(ApplicationManagementSummaryDTO::getId)
         .collect(Collectors.toSet());
     if (filteredApplicationIds.isEmpty()) {
-      return new ArrayList<>();
+      return new SbomApplicationListSummaryDTO(new ArrayList<>());
     }
     boolean hasPermissionInAllAppsWithNameFilter = filteredApplicationIds.size() == applicationDAO.getCount();
     filteredApplicationIds = hasPermissionInAllAppsWithNameFilter ? Collections.emptySet() : filteredApplicationIds;

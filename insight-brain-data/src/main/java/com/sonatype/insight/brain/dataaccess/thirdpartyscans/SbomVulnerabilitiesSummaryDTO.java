@@ -7,53 +7,53 @@ package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
 public class SbomVulnerabilitiesSummaryDTO
 {
-  private long vulnerabilityNone;
+  private long none;
 
-  private long vulnerabilityLow;
+  private long low;
 
-  private long vulnerabilityMedium;
+  private long medium;
 
-  private long vulnerabilityHigh;
+  private long high;
 
-  private long vulnerabilityCritical;
+  private long critical;
 
-  public long getVulnerabilityNone() {
-    return vulnerabilityNone;
+  public long getNone() {
+    return none;
   }
 
-  public long getVulnerabilityLow() {
-    return vulnerabilityLow;
+  public long getLow() {
+    return low;
   }
 
-  public long getVulnerabilityMedium() {
-    return vulnerabilityMedium;
+  public long getMedium() {
+    return medium;
   }
 
-  public long getVulnerabilityHigh() {
-    return vulnerabilityHigh;
+  public long getHigh() {
+    return high;
   }
 
-  public long getVulnerabilityCritical() {
-    return vulnerabilityCritical;
+  public long getCritical() {
+    return critical;
   }
 
-  public void setVulnerabilityNone(final long vulnerabilityNone) {
-    this.vulnerabilityNone = vulnerabilityNone;
+  public void setNone(final long none) {
+    this.none = none;
   }
 
-  public void setVulnerabilityLow(final long vulnerabilityLow) {
-    this.vulnerabilityLow = vulnerabilityLow;
+  public void setLow(final long low) {
+    this.low = low;
   }
 
-  public void setVulnerabilityMedium(final long vulnerabilityMedium) {
-    this.vulnerabilityMedium = vulnerabilityMedium;
+  public void setMedium(final long medium) {
+    this.medium = medium;
   }
 
-  public void setVulnerabilityHigh(final long vulnerabilityHigh) {
-    this.vulnerabilityHigh = vulnerabilityHigh;
+  public void setHigh(final long high) {
+    this.high = high;
   }
 
-  public void setVulnerabilityCritical(final long vulnerabilityCritical) {
-    this.vulnerabilityCritical = vulnerabilityCritical;
+  public void setCritical(final long critical) {
+    this.critical = critical;
   }
 }

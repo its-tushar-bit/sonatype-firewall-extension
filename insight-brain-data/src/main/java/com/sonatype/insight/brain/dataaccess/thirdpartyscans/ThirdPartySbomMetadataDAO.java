@@ -256,7 +256,7 @@ public class ThirdPartySbomMetadataDAO
     return paginationQuery.getResultList();
   }
 
-  public List<SbomApplicationSummaryDTO> getSbomApplicationsWithRecentlyImportedSbomVersion(
+  public SbomApplicationListSummaryDTO getSbomApplicationsWithRecentlyImportedSbomVersion(
       Set<String> applicationIds,
       SbomApplicationsSortableField sortBy,
       boolean asc,
@@ -277,7 +277,8 @@ public class ThirdPartySbomMetadataDAO
         "  COUNT(CASE WHEN (cs.severity BETWEEN ?6 AND ?7) THEN 1 END) AS vulnerabilityHigh, " + //
         "  COUNT(CASE WHEN (cs.severity BETWEEN ?8 AND ?9) THEN 1 END) AS vulnerabilityCritical, " + //
         " ROUND((COUNT(CASE WHEN (vex.coordinate_security_id IS NOT NULL) THEN 1 END)) * 100" + //
-        " / NULLIF(COUNT(cs.coordinate_security_id)::decimal, 0), 1) as annotatedPercentage" + //
+        " / NULLIF(COUNT(cs.coordinate_security_id)::decimal, 0), 1) as annotatedPercentage, " + //
+        " COUNT(*) OVER() AS full_count" + //
         " FROM " +  databaseSchema + ".sbom_metadata sm " + //
         " JOIN " + //
         "  (SELECT  application_id, max(created_at) as created_at " + //
@@ -306,9 +307,16 @@ public class ThirdPartySbomMetadataDAO
       if (isNotEmpty(applicationIds)) {
         paginationQuery.setParameter(11, createArrayOf(JDBCType.VARCHAR, applicationIds.toArray()));
       }
+      SbomApplicationListSummaryDTO result = new SbomApplicationListSummaryDTO();
 
       List<SbomApplicationSummaryDTO> applicationPageApplicationSummaryDTOList =
-          ((Stream<Object[]>) paginationQuery.getResultStream()).map(SbomApplicationSummaryDTO::new)
+          ((Stream<Object[]>) paginationQuery.getResultStream())
+              .peek(array -> {
+                if (result.getTotalCount() == 0) {
+                  result.setTotalCount(( (Long) array[11]).intValue());
+                }
+              })
+              .map(SbomApplicationSummaryDTO::new)
           .collect(Collectors.toList());
       List<String> applicationIdsForPolicyViolation = applicationPageApplicationSummaryDTOList.stream()
           .map(SbomApplicationSummaryDTO::getApplicationInternalId)
@@ -321,11 +329,12 @@ public class ThirdPartySbomMetadataDAO
 
       //combine results
       for (SbomApplicationSummaryDTO applicationSummary: applicationPageApplicationSummaryDTOList) {
-        applicationSummary.setApplicationPagePolicyViolationSummary(
+        applicationSummary.setPolicyViolationSummary(
             policyViolationSummaryMap.get(applicationSummary.getApplicationInternalId()));
       }
 
-      return applicationPageApplicationSummaryDTOList;
+      result.setApplications(applicationPageApplicationSummaryDTOList);
+      return result;
     }
     catch (SQLException e) {
       throw new InternalServerException(e);
@@ -409,6 +418,12 @@ public class ThirdPartySbomMetadataDAO
         break;
       case APPLICATION_NAME:
         query.append(" ORDER BY applicationName " + order);
+        break;
+      case VULNERABILITY:
+        query.append(" ORDER BY vulnerabilityCritical ").append(order)
+            .append(" , vulnerabilityHigh ").append(order)
+            .append(" , vulnerabilityMedium ").append(order)
+            .append(" , vulnerabilityLow ").append(order);
         break;
       default:
         break;

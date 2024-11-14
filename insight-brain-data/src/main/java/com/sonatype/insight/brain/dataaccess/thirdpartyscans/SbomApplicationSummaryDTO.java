@@ -25,9 +25,9 @@ public class SbomApplicationSummaryDTO
   @JsonSerialize(using = ISODateSerializer.class)
   private Date importDate;
 
-  private SbomVulnerabilitiesSummaryDTO sbomVulnerabilitiesSummaryDTO;
+  private SbomVulnerabilitiesSummaryDTO vulnerabilitySummary;
 
-  private SbomPolicyViolationSummaryDTO applicationPagePolicyViolationSummary;
+  private SbomPolicyViolationSummaryDTO policyViolationSummary;
 
   private Double annotatedPercentage;
 
@@ -41,13 +41,13 @@ public class SbomApplicationSummaryDTO
     applicationName = String.valueOf(result[4]);
     SbomVulnerabilitiesSummaryDTO sbomVulnerabilitiesSummaryDTO =
         new SbomVulnerabilitiesSummaryDTO();
-    sbomVulnerabilitiesSummaryDTO.setVulnerabilityNone((Long)result[5]);
-    sbomVulnerabilitiesSummaryDTO.setVulnerabilityLow((Long)result[6]);
-    sbomVulnerabilitiesSummaryDTO.setVulnerabilityMedium((Long)result[7]);
-    sbomVulnerabilitiesSummaryDTO.setVulnerabilityHigh((Long)result[8]);
-    sbomVulnerabilitiesSummaryDTO.setVulnerabilityCritical((Long)result[9]);
-    this.applicationPagePolicyViolationSummary = policyViolationSummary;
-    this.sbomVulnerabilitiesSummaryDTO = sbomVulnerabilitiesSummaryDTO;
+    sbomVulnerabilitiesSummaryDTO.setNone((Long)result[5]);
+    sbomVulnerabilitiesSummaryDTO.setLow((Long)result[6]);
+    sbomVulnerabilitiesSummaryDTO.setMedium((Long)result[7]);
+    sbomVulnerabilitiesSummaryDTO.setHigh((Long)result[8]);
+    sbomVulnerabilitiesSummaryDTO.setCritical((Long)result[9]);
+    this.policyViolationSummary = policyViolationSummary;
+    this.vulnerabilitySummary = sbomVulnerabilitiesSummaryDTO;
     annotatedPercentage = result[10] == null ? null : ((Number)result[10]).doubleValue();
   }
 
@@ -63,34 +63,34 @@ public class SbomApplicationSummaryDTO
     applicationName = String.valueOf(result[4]);
     SbomVulnerabilitiesSummaryDTO sbomVulnerabilitiesSummaryDTO =
         new SbomVulnerabilitiesSummaryDTO();
-    sbomVulnerabilitiesSummaryDTO.setVulnerabilityNone((Long)result[5]);
-    sbomVulnerabilitiesSummaryDTO.setVulnerabilityLow((Long)result[6]);
-    sbomVulnerabilitiesSummaryDTO.setVulnerabilityMedium((Long)result[7]);
-    sbomVulnerabilitiesSummaryDTO.setVulnerabilityHigh((Long)result[8]);
-    sbomVulnerabilitiesSummaryDTO.setVulnerabilityCritical((Long)result[9]);
-    this.applicationPagePolicyViolationSummary = null;
-    this.sbomVulnerabilitiesSummaryDTO = sbomVulnerabilitiesSummaryDTO;
+    sbomVulnerabilitiesSummaryDTO.setNone((Long)result[5]);
+    sbomVulnerabilitiesSummaryDTO.setLow((Long)result[6]);
+    sbomVulnerabilitiesSummaryDTO.setMedium((Long)result[7]);
+    sbomVulnerabilitiesSummaryDTO.setHigh((Long)result[8]);
+    sbomVulnerabilitiesSummaryDTO.setCritical((Long)result[9]);
+    this.policyViolationSummary = null;
+    this.vulnerabilitySummary = sbomVulnerabilitiesSummaryDTO;
     annotatedPercentage = result[10] == null ? null : ((Number)result[10]).doubleValue();
   }
 
-  public SbomVulnerabilitiesSummaryDTO getApplicationPageVulnerabilitySummary() {
-    return sbomVulnerabilitiesSummaryDTO;
+  public SbomVulnerabilitiesSummaryDTO getVulnerabilitySummary() {
+    return vulnerabilitySummary;
   }
 
-  public SbomPolicyViolationSummaryDTO getApplicationPagePolicyViolationSummary() {
-    return applicationPagePolicyViolationSummary;
+  public SbomPolicyViolationSummaryDTO getPolicyViolationSummary() {
+    return policyViolationSummary;
   }
 
-  public void setApplicationPageVulnerabilitySummary(
+  public void setVulnerabilitySummary(
       final SbomVulnerabilitiesSummaryDTO sbomVulnerabilitiesSummaryDTO)
   {
-    this.sbomVulnerabilitiesSummaryDTO = sbomVulnerabilitiesSummaryDTO;
+    this.vulnerabilitySummary = sbomVulnerabilitiesSummaryDTO;
   }
 
-  public void setApplicationPagePolicyViolationSummary(
-      final SbomPolicyViolationSummaryDTO applicationPagePolicyViolationSummary)
+  public void setPolicyViolationSummary(
+      final SbomPolicyViolationSummaryDTO policyViolationSummary)
   {
-    this.applicationPagePolicyViolationSummary = applicationPagePolicyViolationSummary;
+    this.policyViolationSummary = policyViolationSummary;
   }
 
   public String getApplicationInternalId() {

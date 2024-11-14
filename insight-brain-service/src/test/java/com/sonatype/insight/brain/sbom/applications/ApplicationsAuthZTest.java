@@ -6,10 +6,10 @@
 package com.sonatype.insight.brain.sbom.applications;
 
 import java.util.Date;
-import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationListSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationsSortableField;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -44,18 +44,20 @@ public class ApplicationsAuthZTest
 
   @Test
   public void testGetApplications_Unauthenticated() {
-    List<SbomApplicationSummaryDTO> result = applicationService.getApplications(null, null, true, 1, 1);
+    SbomApplicationListSummaryDTO result = applicationService.getApplications(null, null, true, 1, 1);
     assertThat(result).isNotNull();
-    assertThat(result.size()).isEqualTo(0);
+    assertThat(result.getApplications()).isEmpty();
+    assertThat(result.getTotalCount()).isZero();
   }
 
   @Test
   public void testGetApplications_UnauthorizedException() {
     login();
-    List<SbomApplicationSummaryDTO> result = applicationService
+    SbomApplicationListSummaryDTO result = applicationService
         .getApplications(null, null, true, 1, 1);
     assertThat(result).isNotNull();
-    assertThat(result.size()).isEqualTo(0);
+    assertThat(result.getApplications()).isEmpty();
+    assertThat(result.getTotalCount()).isZero();
   }
 
   @Test
@@ -106,29 +108,30 @@ public class ApplicationsAuthZTest
     tempEntity.newPolicyViolation(policyEvaluation, policy, "g1",
         "a1", "v1", "h1", "r1");
 
-    List<SbomApplicationSummaryDTO> resultDtoList = applicationService.getApplications(null,
+    SbomApplicationListSummaryDTO resultDtoList = applicationService.getApplications(null,
         SbomApplicationsSortableField.IMPORT_DATE, true, 1, 3);
 
-    assertThat(resultDtoList.size()).isEqualTo(1);
-    SbomApplicationSummaryDTO applicationPageApplicationSummaryDTO = resultDtoList.get(0);
+    assertThat(resultDtoList.getApplications()).hasSize(1);
+    assertThat(resultDtoList.getTotalCount()).isEqualTo(1);
+    SbomApplicationSummaryDTO applicationPageApplicationSummaryDTO = resultDtoList.getApplications().get(0);
     assertThat(applicationPageApplicationSummaryDTO.getAnnotatedPercentage()).isEqualTo(28.6);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPageVulnerabilitySummary().getVulnerabilityNone())
+    assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getNone())
         .isEqualTo(1);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPageVulnerabilitySummary().getVulnerabilityLow())
+    assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getLow())
         .isEqualTo(1);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPageVulnerabilitySummary().getVulnerabilityMedium())
+    assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getMedium())
         .isEqualTo(1);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPageVulnerabilitySummary().getVulnerabilityHigh())
+    assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getHigh())
         .isEqualTo(2);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPageVulnerabilitySummary().getVulnerabilityCritical())
+    assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getCritical())
         .isEqualTo(2);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPagePolicyViolationSummary()
+    assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
         .getCritical()).isEqualTo(0);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPagePolicyViolationSummary()
+    assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
         .getSevere()).isEqualTo(1);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPagePolicyViolationSummary()
+    assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
         .getModerate()).isEqualTo(1);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPagePolicyViolationSummary()
+    assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
         .getLow()).isEqualTo(0);
   }
 

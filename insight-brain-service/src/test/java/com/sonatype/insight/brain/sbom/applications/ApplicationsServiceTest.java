@@ -6,11 +6,11 @@
 package com.sonatype.insight.brain.sbom.applications;
 
 import java.util.Date;
-import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationListSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationsSortableField;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -75,11 +75,12 @@ public class ApplicationsServiceTest
   public void testGetApplications_NoSbom() {
     tempEntity.newApplicationWithParent();
 
-    List<SbomApplicationSummaryDTO> result = service.getApplications("DUMMY",
+    SbomApplicationListSummaryDTO result = service.getApplications("DUMMY",
         null, true, 1, 1);
 
     assertThat(result).isNotNull();
-    assertThat(result.size()).isEqualTo(0);
+    assertThat(result.getApplications()).isEmpty();
+    assertThat(result.getTotalCount()).isZero();
   }
 
   @Test
@@ -128,30 +129,30 @@ public class ApplicationsServiceTest
     tempEntity.newPolicyViolation(policyEvaluation, policy, "g1",
         "a1", "v1", "h1", "r1");
 
-    List<SbomApplicationSummaryDTO> resultDtoList = service.getApplications(null,
+    SbomApplicationListSummaryDTO resultDtoList = service.getApplications(null,
         SbomApplicationsSortableField.IMPORT_DATE, false, 1, 3);
 
-    assertThat(resultDtoList.size()).isEqualTo(1);
-
-    SbomApplicationSummaryDTO applicationPageApplicationSummaryDTO = resultDtoList.get(0);
+    assertThat(resultDtoList.getApplications()).hasSize(1);
+    assertThat(resultDtoList.getTotalCount()).isEqualTo(1);
+    SbomApplicationSummaryDTO applicationPageApplicationSummaryDTO = resultDtoList.getApplications().get(0);
     assertThat(applicationPageApplicationSummaryDTO.getAnnotatedPercentage()).isEqualTo(28.6);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPageVulnerabilitySummary().getVulnerabilityNone())
+    assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getNone())
         .isEqualTo(1);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPageVulnerabilitySummary().getVulnerabilityLow())
+    assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getLow())
         .isEqualTo(1);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPageVulnerabilitySummary().getVulnerabilityMedium())
+    assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getMedium())
         .isEqualTo(1);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPageVulnerabilitySummary().getVulnerabilityHigh())
+    assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getHigh())
         .isEqualTo(2);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPageVulnerabilitySummary().getVulnerabilityCritical())
+    assertThat(applicationPageApplicationSummaryDTO.getVulnerabilitySummary().getCritical())
         .isEqualTo(2);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPagePolicyViolationSummary()
+    assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
         .getCritical()).isEqualTo(0);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPagePolicyViolationSummary()
+    assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
         .getSevere()).isEqualTo(1);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPagePolicyViolationSummary()
+    assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
         .getModerate()).isEqualTo(1);
-    assertThat(applicationPageApplicationSummaryDTO.getApplicationPagePolicyViolationSummary()
+    assertThat(applicationPageApplicationSummaryDTO.getPolicyViolationSummary()
         .getLow()).isEqualTo(0);
   }
 
@@ -234,24 +235,24 @@ public class ApplicationsServiceTest
         policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ComplianceStageType.ID, "scanId1App1");
     tempEntity.newPolicyViolation(policyEvaluation, policy, "g1", "a1", "v1", "h1", "r1");
 
-    List<SbomApplicationSummaryDTO> resultDtoList = service.getApplications("appName",
+    SbomApplicationListSummaryDTO resultDtoList = service.getApplications("appName",
         SbomApplicationsSortableField.IMPORT_DATE, false, 1, 5);
 
-    assertThat(resultDtoList.size()).isEqualTo(1);
-
-    SbomApplicationSummaryDTO applicationPageApplicationSummaryDTO1 = resultDtoList.get(0);
+    assertThat(resultDtoList.getApplications()).hasSize(1);
+    assertThat(resultDtoList.getTotalCount()).isEqualTo(1);
+    SbomApplicationSummaryDTO applicationPageApplicationSummaryDTO1 = resultDtoList.getApplications().get(0);
     assertThat(applicationPageApplicationSummaryDTO1.getAnnotatedPercentage()).isEqualTo(100);
-    assertThat(applicationPageApplicationSummaryDTO1.getApplicationPageVulnerabilitySummary().getVulnerabilityNone())
+    assertThat(applicationPageApplicationSummaryDTO1.getVulnerabilitySummary().getNone())
         .isEqualTo(0);
-    assertThat(applicationPageApplicationSummaryDTO1.getApplicationPageVulnerabilitySummary().getVulnerabilityLow())
+    assertThat(applicationPageApplicationSummaryDTO1.getVulnerabilitySummary().getLow())
         .isEqualTo(0);
-    assertThat(applicationPageApplicationSummaryDTO1.getApplicationPageVulnerabilitySummary().getVulnerabilityMedium())
+    assertThat(applicationPageApplicationSummaryDTO1.getVulnerabilitySummary().getMedium())
         .isEqualTo(0);
-    assertThat(applicationPageApplicationSummaryDTO1.getApplicationPageVulnerabilitySummary().getVulnerabilityHigh())
+    assertThat(applicationPageApplicationSummaryDTO1.getVulnerabilitySummary().getHigh())
         .isEqualTo(0);
-    assertThat(applicationPageApplicationSummaryDTO1.getApplicationPageVulnerabilitySummary()
-        .getVulnerabilityCritical()).isEqualTo(1);
-    assertThat(applicationPageApplicationSummaryDTO1.getApplicationPagePolicyViolationSummary()).isNull();
+    assertThat(applicationPageApplicationSummaryDTO1.getVulnerabilitySummary()
+        .getCritical()).isEqualTo(1);
+    assertThat(applicationPageApplicationSummaryDTO1.getPolicyViolationSummary()).isNull();
   }
 
   private void insertVEXToThirdPartyCoordinateSecurity(ThirdPartyCoordinateSecurity coordinateSecurity) {

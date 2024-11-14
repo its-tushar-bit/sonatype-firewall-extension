@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.sbom.applications;
 
-import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -16,7 +15,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationSummaryDTO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationListSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationsSortableField;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -44,7 +43,7 @@ public class ApplicationsResource
   @Path(SBOMS_APPLICATIONS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
-  public List<SbomApplicationSummaryDTO> getApplicationDetails(
+  public SbomApplicationListSummaryDTO getApplicationDetails(
       @QueryParam("applicationName") String applicationName,
       @DefaultValue("IMPORT_DATE") @QueryParam("sortBy") SbomApplicationsSortableField sortBy,
       @DefaultValue("false") @QueryParam("asc") boolean asc,

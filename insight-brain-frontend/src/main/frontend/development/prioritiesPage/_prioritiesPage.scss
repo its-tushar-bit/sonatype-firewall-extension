@@ -68,7 +68,23 @@ priorities-page {
 
   .iq-priorities-page-table {
     .nx-cell {
-      height: 100%;
+      align-content: center;
+    }
+
+    .nx-cell--header:nth-child(1) {
+      width: 120px;
+    }
+
+    .nx-cell--header:nth-child(3) {
+      width: 385px;
+    }
+
+    .nx-cell--header:nth-child(4) {
+      width: 225px;
+    }
+
+    .iq-policy-violation-row__reachability {
+      padding: 0;
     }
 
     .iq-priorities-page-table-info-icon.nx-icon {
@@ -97,18 +113,22 @@ priorities-page {
 
     .iq-priorities-page-priority {
       font-weight: bold;
+      text-align: center;
+    }
+
+    .iq-priorities-page-dependency-indicator {
+      margin-right: var(--nx-spacing-2x);
     }
 
     .iq-priorities-page-policy-details {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-
       .iq-priorities-page-policy-details__desc {
-        display: flex;
+        display: grid;
+        grid-template-columns: minmax(auto, 48px) 14px 19px 150px 1fr;
+        grid-column-gap: var(--nx-spacing-2x);
         align-items: center;
+
         svg.iq-priorities-page-policy-details__desc-threat-indicator.nx-threat-indicator {
-          margin-left: 0;
+          margin: 0;
         }
 
         .iq-priorities-page-policy-details__desc-threat {
@@ -116,11 +136,11 @@ priorities-page {
         }
 
         .iq-priorities-page-policy-details__desc-policy-action {
-          margin: 0 0 0 var(--nx-spacing-2x);
           text-transform: capitalize;
           padding: 0px 6px;
           border-radius: 10px;
           font-size: 14px;
+          text-align: center;
 
           &.fail {
             color: var(--nx-swatch-white);
@@ -142,8 +162,10 @@ priorities-page {
 
     .iq-priorities-page-components {
       display: flex;
-      flex-direction: column;
-      gap: 6px;
+      flex-direction: row;
+      align-items: center;
+      gap: var(--nx-spacing-2x);
+      max-width: 90%;
 
       .iq-priorities-page-components__detail {
         display: flex;
@@ -166,6 +188,22 @@ priorities-page {
 
       .iq-priorities-page-remediation__upgrade-desc {
         font-size: 14px;
+      }
+
+      .iq-suggested-fix {
+        display: flex;
+        gap: var(--nx-spacing-2x);
+        align-items: center;
+
+        .iq-golden-star {
+          max-width: 100%;
+          width: 34px;
+          height: 22px;
+        }
+      }
+
+      .nx-loading-spinner {
+        margin: 0;
       }
     }
   }

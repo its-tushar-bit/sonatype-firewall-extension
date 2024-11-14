@@ -201,7 +201,7 @@ export const setRemediations = (remediation, actualVersion, stageId) => {
 };
 
 export const getAsyncRecommendationsPrioritiesPage = (remediation, actualVersion, stageId) => {
-  if (remediation && remediation.versionChanges?.length > 0) {
+  if (remediation && remediation.versionChanges) {
     const filteredVersions = remediation.versionChanges.filter((item) => getRemediationVersion(item) !== actualVersion);
 
     const recommendedSuggestion =

@@ -14,13 +14,12 @@ import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/s
 
 export const PRIORITIES_PAGE_REDUCER_NAME = 'prioritiesPage';
 
-export const TABLE_PAGE_SIZE = 10;
+export const TABLE_PAGE_SIZE = 15;
 
 const loadTableDataRequested = (state) => {
   return {
     ...state,
-    topPrioritiesData: null,
-    additionalPrioritiesData: null,
+    priorities: null,
     loadingTableData: true,
     loadErrorTableData: null,
   };
@@ -28,15 +27,13 @@ const loadTableDataRequested = (state) => {
 
 const loadTableDataFulfilled = (state, { payload }) => {
   const {
-    topPriorities,
-    additionalPriorities: { total, page, pageSize, pageCount, results },
+    priorities: { total, page, pageSize, pageCount, results },
     publicAppId,
     scanId,
   } = payload;
   return {
     ...state,
-    topPrioritiesData: topPriorities,
-    additionalPrioritiesData: results,
+    priorities: results,
     loadingTableData: false,
     loadErrorTableData: null,
     pageSize,
@@ -51,8 +48,7 @@ const loadTableDataFulfilled = (state, { payload }) => {
 const loadTableDataFailed = (state, { payload }) => {
   return {
     ...state,
-    topPrioritiesData: null,
-    additionalPrioritiesData: null,
+    priorities: null,
     loadingTableData: false,
     loadErrorTableData: Messages.getHttpErrorMessage(payload),
   };
@@ -143,8 +139,7 @@ const setPage = (state, { payload }) => {
 const resetState = (state) => {
   return {
     ...state,
-    topPrioritiesData: null,
-    additionalPrioritiesData: null,
+    priorities: null,
     loadingTableData: false,
     loadErrorTableData: null,
     loadingMetadata: false,
@@ -176,8 +171,7 @@ const prioritiesPageSlice = createSlice({
 
 function initialState() {
   return {
-    topPrioritiesData: null,
-    additionalPrioritiesData: null,
+    priorities: null,
     loadingTableData: false,
     loadErrorTableData: null,
     loadingMetadata: false,

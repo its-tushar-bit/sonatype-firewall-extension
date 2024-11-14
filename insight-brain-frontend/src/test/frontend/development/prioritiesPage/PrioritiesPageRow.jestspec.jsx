@@ -45,7 +45,6 @@ describe('PrioritiesPageRow', () => {
   const minimalProps = {
     component: mockData,
     onClick: rowClickSpy,
-    index: 1,
   };
 
   beforeEach(() => {
@@ -112,22 +111,20 @@ describe('PrioritiesPageRow', () => {
     const componentCell = cells[1];
     expect(componentCell).toHaveTextContent(mockData.displayName);
 
-    if (mockData.securityReachable) {
-      expect(componentCell).toHaveTextContent('Security-Reachable');
-    }
-
-    const policyCell = cells[2];
-    expect(policyCell).toHaveTextContent(mockData.highestThreat);
-    expect(policyCell).toHaveTextContent(mockData.highestThreatPolicyName);
-    expect(policyCell).toHaveTextContent(mockData.highestThreatPolicyConstraintName);
+    const reasonForPriorityCell = cells[2];
+    expect(reasonForPriorityCell).toHaveTextContent(mockData.highestThreat);
+    expect(reasonForPriorityCell).toHaveTextContent(mockData.highestThreatPolicyName);
 
     if (mockData.action !== 'none') {
-      expect(policyCell).toHaveTextContent(mockData.action);
+      expect(reasonForPriorityCell).toHaveTextContent(mockData.action);
     }
 
-    const recommendationCell = cells[3];
-    expect(recommendationCell).toHaveTextContent(`Upgrade to ${mockData.remediationVersion}`);
-    expect(recommendationCell).toHaveTextContent(`Next version with no Build failure`);
+    if (mockData.securityReachable) {
+      expect(reasonForPriorityCell).toHaveTextContent('Reachable');
+    }
+
+    const suggestedFixCell = cells[3];
+    expect(suggestedFixCell).toHaveTextContent(`${mockData.remediationVersion}`);
   });
 });
 

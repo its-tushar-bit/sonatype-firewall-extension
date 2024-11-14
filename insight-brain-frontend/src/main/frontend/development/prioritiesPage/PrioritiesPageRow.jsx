@@ -5,7 +5,14 @@
  */
 
 import React, { useEffect, useMemo } from 'react';
-import { NxLoadingSpinner, NxTable, NxTag, NxThreatIndicator } from '@sonatype/react-shared-components';
+import {
+  NxLoadingSpinner,
+  NxOverflowTooltip,
+  NxTableRow,
+  NxTableCell,
+  NxThreatIndicator,
+  NxTooltip,
+} from '@sonatype/react-shared-components';
 import DependencyIndicator from 'MainRoot/DependencyTree/DependencyIndicator';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions } from './slices/prioritiesPageSlice';
@@ -24,8 +31,9 @@ import {
   RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
 } from '../../componentDetails/overview/riskRemediation/recommendedVersionsUtils';
 import PropTypes from 'prop-types';
-import { isNilOrEmpty } from '../../util/jsUtil';
 import { selectReportStageId } from 'MainRoot/applicationReport/applicationReportSelectors';
+import ReachabilityStatus from 'MainRoot/componentDetails/ReachabilityStatus/ReachabilityStatus';
+import GoldenStar from 'MainRoot/img/golden-star.svg';
 
 export const dependencyTypeMap = {
   Direct: 'direct',
@@ -34,7 +42,16 @@ export const dependencyTypeMap = {
   Unknown: 'unknown',
 };
 
-export default function PrioritiesPageRow({ component, onClick, index }) {
+export const recommendationTypeMap = {
+  'next-no-violations': 'Next non-violating version',
+  'next-no-violations-with-dependencies': 'Next non-violating with dependencies version',
+  'next-non-failing': 'Next non-failing version',
+  'next-non-failing-with-dependencies': 'Next non-failing with dependencies version',
+  'recommended-non-breaking': 'Recommended non-breaking version',
+  'recommended-non-breaking-with-dependencies': 'Recommended non-breaking with dependencies version',
+};
+
+export default function PrioritiesPageRow({ component, onClick }) {
   const dispatch = useDispatch();
 
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
@@ -48,8 +65,8 @@ export default function PrioritiesPageRow({ component, onClick, index }) {
     dependencyType,
     action,
     highestThreat,
+    priority,
     highestThreatPolicyName,
-    highestThreatPolicyConstraintName,
     securityReachable,
     componentIdentifier,
     componentHash,
@@ -58,7 +75,7 @@ export default function PrioritiesPageRow({ component, onClick, index }) {
     remediationVersion,
   } = component;
 
-  const policyAction = action === 'none' ? null : action;
+  const policyAction = action === 'none' ? '' : action;
   const formattedDependencyType = dependencyTypeMap[dependencyType];
   const actualVersion = componentIdentifier?.coordinates?.version;
   const isUnknown = formattedDependencyType === dependencyTypeMap.Unknown && componentIdentifier === null;
@@ -106,43 +123,43 @@ export default function PrioritiesPageRow({ component, onClick, index }) {
   }, [isDeveloperBulkRecommendationsEnabled]);
 
   return (
-    <NxTable.Row isClickable onClick={onClick} data-analytics-id="sonatype-developer-priorities-page-component-row">
-      <NxTable.Cell className="iq-priorities-page-priority">{index}</NxTable.Cell>
-      <NxTable.Cell>
-        <div className="iq-priorities-page-components">
-          <div className="iq-priorities-page-components__component">{displayName}</div>
-          <div className="iq-priorities-page-components__detail">
-            <span data-testid="dependency-type">
+    <NxTableRow isClickable onClick={onClick} data-analytics-id="sonatype-developer-priorities-page-component-row">
+      <NxTableCell className="iq-priorities-page-priority">{priority}</NxTableCell>
+      <NxTableCell>
+        <NxOverflowTooltip>
+          <div className="nx-truncate-ellipsis">
+            <span className="iq-priorities-page-dependency-indicator" data-testid="dependency-type">
               {formattedDependencyType === dependencyTypeMap.Unknown ? null : (
                 <DependencyIndicator type={formattedDependencyType} />
               )}
             </span>
-            {securityReachable ? (
-              <NxTag className="iq-priorities-page-components__detail-tag">Security-Reachable</NxTag>
-            ) : null}
+            <span className="iq-priorities-page-components__component">{displayName}</span>
           </div>
-        </div>
-      </NxTable.Cell>
-      <NxTable.Cell>
-        <div className="iq-priorities-page-policy-details">
-          <div className="iq-priorities-page-policy-details__desc">
+        </NxOverflowTooltip>
+      </NxTableCell>
+      <NxTableCell>
+        <span className="iq-priorities-page-policy-details">
+          <span className="iq-priorities-page-policy-details__desc">
+            <span className={`iq-priorities-page-policy-details__desc-policy-action ${policyAction}`}>
+              {policyAction}
+            </span>
+
             <NxThreatIndicator
               className="iq-priorities-page-policy-details__desc-threat-indicator"
               policyThreatLevel={highestThreat}
             />
             <span className="iq-priorities-page-policy-details__desc-threat">{highestThreat}</span>
-
-            {policyAction && (
-              <span className={`iq-priorities-page-policy-details__desc-policy-action ${policyAction}`}>
-                {policyAction}
+            <NxOverflowTooltip>
+              <span className="iq-priorities-page-policy-details__policy nx-truncate-ellipsis">
+                {highestThreatPolicyName}
               </span>
-            )}
-          </div>
-          <div className="iq-priorities-page-policy-details__constraint">{highestThreatPolicyConstraintName}</div>
-          <div className="iq-priorities-page-policy-details__policy">{highestThreatPolicyName}</div>
-        </div>
-      </NxTable.Cell>
-      <NxTable.Cell>
+            </NxOverflowTooltip>
+
+            {securityReachable && <ReachabilityStatus reachabilityStatus={'REACHABLE'} />}
+          </span>
+        </span>
+      </NxTableCell>
+      <NxTableCell>
         <div className="iq-priorities-page-remediation">
           <Recommendation
             loading={loading}
@@ -152,9 +169,9 @@ export default function PrioritiesPageRow({ component, onClick, index }) {
             recommendation={recommendation}
           />
         </div>
-      </NxTable.Cell>
-      <NxTable.Cell chevron />
-    </NxTable.Row>
+      </NxTableCell>
+      <NxTableCell chevron />
+    </NxTableRow>
   );
 }
 
@@ -163,30 +180,17 @@ function Recommendation({ loading, error, isUnknown, actualVersion, recommendati
     return <NxLoadingSpinner />;
   }
 
-  if (error || isUnknown) {
-    return <div className="iq-priorities-page-remediation__upgrade">No recommendation available</div>;
-  }
-
-  const { version, text, type } = recommendation || {};
-
-  const recommendationText = !version || actualVersion === version ? null : `Upgrade to ${version}`;
-  let recommendationSubtext = !text ? '' : text;
-
-  if (type === RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES) {
-    recommendationSubtext = 'Non-breaking upgrade resolving issues for this component and its dependencies';
-  } else if (type === RECOMMENDED_NON_BREAKING) {
-    recommendationSubtext = 'Non-breaking upgrade resolving issues for this component';
-  }
-
-  if (isNilOrEmpty(recommendationText)) {
-    return <div className="iq-priorities-page-remediation__upgrade">{recommendationSubtext}</div>;
+  if (error || isUnknown || !recommendation?.version || actualVersion === recommendation?.version) {
+    return <span>-</span>;
   }
 
   return (
-    <>
-      <div className="iq-priorities-page-remediation__upgrade">{recommendationText}</div>
-      <div className="iq-priorities-page-remediation__upgrade-desc">{recommendationSubtext}</div>
-    </>
+    <NxTooltip title={recommendationTypeMap[recommendation?.type]}>
+      <div className="iq-suggested-fix">
+        <span>{recommendation?.version}</span>{' '}
+        {recommendation?.isGolden && <img src={GoldenStar} className="iq-golden-star" />}
+      </div>
+    </NxTooltip>
   );
 }
 
@@ -224,5 +228,4 @@ PrioritiesPageRow.propTypes = {
     highestThreatPolicyConstraintName: PropTypes.string,
   }).isRequired,
   onClick: PropTypes.func.isRequired,
-  index: PropTypes.number.isRequired,
 };

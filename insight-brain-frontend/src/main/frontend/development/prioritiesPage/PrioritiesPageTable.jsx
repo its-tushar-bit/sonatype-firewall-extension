@@ -7,11 +7,9 @@
 import React, { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  NxAccordion,
   NxFontAwesomeIcon,
   NxTable,
   NxTooltip,
-  useToggle,
   NxPagination,
   NxFilterInput,
   NX_STANDARD_DEBOUNCE_TIME,
@@ -23,21 +21,16 @@ import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectRouterCurrentParams, selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions } from 'MainRoot/development/prioritiesPage/slices/prioritiesPageSlice';
 import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
-import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { debounce } from 'debounce';
-import { TABLE_PAGE_SIZE } from './slices/prioritiesPageSlice';
 
 export default function PrioritiesPageTable() {
-  const [showPriorityFindings, toggleShowPriorityFindings] = useToggle(true);
-
   const dispatch = useDispatch();
   const doLoad = () => dispatch(actions.loadTableData());
 
   const {
     loadingTableData,
     loadErrorTableData,
-    topPrioritiesData,
-    additionalPrioritiesData,
+    priorities,
     page,
     pageCount,
     publicAppId: storedPublicId,
@@ -45,11 +38,9 @@ export default function PrioritiesPageTable() {
     optionalComponentNameFilter,
   } = useSelector(selectPrioritiesPageSlice);
   const currentPage = pageCount && pageCount > 0 ? page - 1 : null;
-  const isFirstPage = page === 1;
 
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
 
-  const hasZeroFindings = isNilOrEmpty(topPrioritiesData) && isNilOrEmpty(additionalPrioritiesData);
   const setPage = (page) => dispatch(actions.setPage(page));
 
   const priorityTooltip = `Priority of actionable items based on this application's policy, component reachability status, recommendation availability, and threat score severity.`;
@@ -77,10 +68,10 @@ export default function PrioritiesPageTable() {
   return (
     <>
       <div className="nx-table-container">
-        <NxTable className="iq-priorities-page-table">
+        <NxTable className="iq-priorities-page-table nx-table--fixed-layout">
           <NxTable.Head>
             <NxTable.Row>
-              <NxTable.Cell>
+              <NxTable.Cell className="iq-priorities-page-priority-header-cell">
                 <NxTooltip title={priorityTooltip}>
                   <span>
                     Priority <NxFontAwesomeIcon className="iq-priorities-page-table-info-icon" icon={faInfoCircle} />
@@ -88,8 +79,8 @@ export default function PrioritiesPageTable() {
                 </NxTooltip>
               </NxTable.Cell>
               <NxTable.Cell>Component</NxTable.Cell>
-              <NxTable.Cell>Policy</NxTable.Cell>
-              <NxTable.Cell>Recommendation</NxTable.Cell>
+              <NxTable.Cell>Reason for priority</NxTable.Cell>
+              <NxTable.Cell className="iq-priorities-page-suggested-fix-header-cell">Suggested fix</NxTable.Cell>
               <NxTable.Cell chevron />
             </NxTable.Row>
             <NxTable.Row className="nx-table-row--filter-header">
@@ -115,50 +106,23 @@ export default function PrioritiesPageTable() {
                 : 'No Results'
             }
           >
-            <>
-              {!hasZeroFindings && isFirstPage && (
-                <>
-                  {!optionalComponentNameFilter && (
-                    <NxTable.Row>
-                      <NxTable.Cell className="iq-priorities-page-priority-findings-toggle" colSpan={5}>
-                        <NxAccordion open={showPriorityFindings} onToggle={toggleShowPriorityFindings}>
-                          <NxAccordion.Header>
-                            <NxAccordion.Title>Top Priorities</NxAccordion.Title>
-                          </NxAccordion.Header>
-                        </NxAccordion>
-                      </NxTable.Cell>
-                    </NxTable.Row>
-                  )}
-                  {showPriorityFindings && <DataRows dataset={topPrioritiesData} page={page} indexOffset={0} />}
-                </>
-              )}
-              {!hasZeroFindings && !optionalComponentNameFilter && (
-                <NxTable.Row>
-                  <NxTable.Cell className="iq-priorities-page-all-findings" colSpan={5}>
-                    Remaining Priorities
-                  </NxTable.Cell>
-                </NxTable.Row>
-              )}
-              <DataRows dataset={additionalPrioritiesData} page={page} indexOffset={topPrioritiesData?.length} />
-            </>
+            <DataRows dataset={priorities} />
           </NxTable.Body>
         </NxTable>
-        {!hasZeroFindings && additionalPrioritiesData && (
-          <div className="nx-table-container__footer">
-            <NxPagination
-              aria-controls="pagination-table"
-              pageCount={pageCount}
-              currentPage={currentPage}
-              onChange={setPage}
-            />
-          </div>
-        )}
+        <div className="nx-table-container__footer">
+          <NxPagination
+            aria-controls="pagination-table"
+            pageCount={pageCount}
+            currentPage={currentPage}
+            onChange={setPage}
+          />
+        </div>
       </div>
     </>
   );
 }
 
-function DataRows({ dataset, page, indexOffset }) {
+function DataRows({ dataset }) {
   const dispatch = useDispatch();
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
   const setSelectedComponent = (idx) => dispatch(selectComponent(idx));
@@ -179,16 +143,14 @@ function DataRows({ dataset, page, indexOffset }) {
     dispatch(stateGo(prioritiesState, { hash, publicId: publicAppId, scanId }));
   if (!dataset) return [];
 
-  return dataset.map((component, idx) => {
+  return dataset.map((component, index) => {
     const { componentHash } = component;
 
     const onRowClick = () => {
-      setSelectedComponent(idx);
+      setSelectedComponent(index);
       dispatchComponentDetailsPage(componentHash);
     };
 
-    const index = idx + (page - 1) * TABLE_PAGE_SIZE + 1 + indexOffset;
-
-    return <PrioritiesPageRow key={componentHash} component={component} onClick={onRowClick} index={index} />;
+    return <PrioritiesPageRow key={componentHash} component={component} onClick={onRowClick} />;
   });
 }

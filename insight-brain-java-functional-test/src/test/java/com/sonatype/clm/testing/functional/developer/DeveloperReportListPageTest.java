@@ -49,12 +49,9 @@ import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrollIntoVie
 public class DeveloperReportListPageTest
     extends AbstractFunctionalTest
 {
-  private static final int TOTAL_APPS_FOR_PRIORITIES_PAGE = 15;
+  private static final int TOTAL_APPS_FOR_PRIORITIES_PAGE = 20;
 
-  private static final int TOTAL_PRIORITIES_PER_PAGE = 10;
-
-  // Remove after we stop showing the top 3 separately
-  private static final boolean SEPARATE_TOP_3_PRIORITIES = true;
+  private static final int TOTAL_PRIORITIES_PER_PAGE = 15;
 
   private final ApplicationReportPage reportPage = new ApplicationReportPage();
 
@@ -130,12 +127,7 @@ public class DeveloperReportListPageTest
     ElementsCollection firstPage =
         PrioritiesPage.prioritiesTableRows();
 
-    if (SEPARATE_TOP_3_PRIORITIES) {
-      firstPage.shouldHave(size(TOTAL_PRIORITIES_PER_PAGE + 3));
-    }
-    else {
-      firstPage.shouldHave(size(TOTAL_PRIORITIES_PER_PAGE));
-    }
+    firstPage.shouldHave(size(TOTAL_PRIORITIES_PER_PAGE));
 
     firstPage.get(0).find(".iq-priorities-page-components__component")
         .shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
@@ -153,17 +145,12 @@ public class DeveloperReportListPageTest
         .shouldHave(text("9"));
 
     ScrollUtil.scrollIntoView(PrioritiesPage.lastPageLink());
-    PrioritiesPage.lastPageLink().shouldHave(text("3")).click();
+    PrioritiesPage.lastPageLink().shouldHave(text("2")).click();
 
     ElementsCollection lastPage =
         PrioritiesPage.prioritiesTableRows();
 
-    if (SEPARATE_TOP_3_PRIORITIES) {
-      lastPage.shouldHave(size(5));
-    }
-    else {
-      lastPage.shouldHave(size(8));
-    }
+    lastPage.shouldHave(size(13));
   }
 
   @Test
@@ -206,7 +193,7 @@ public class DeveloperReportListPageTest
     catch (IOException e) {
       throw new RuntimeException(e);
     }
-    setUpAppsForExtras( 2);
+    setUpAppsForExtras(2);
   }
 
   private void setUpMainApp(int id, String reportResourceName) throws IOException {

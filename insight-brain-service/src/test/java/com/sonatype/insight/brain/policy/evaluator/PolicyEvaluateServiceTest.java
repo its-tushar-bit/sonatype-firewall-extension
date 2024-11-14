@@ -21,7 +21,6 @@ import java.util.function.Function;
 import javax.inject.Inject;
 import javax.mail.Message;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.BadRequestException;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -185,9 +184,8 @@ public class PolicyEvaluateServiceTest
     assertThatNoException().isThrownBy(() -> policyEvaluateService.evaluateWithPolling(
         IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(ID_BUILD)));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
-        policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(),
-            ClientScanType.SONATYPE, null, new Stage(ID_COMPLIANCE))).withMessage("Invalid stage: compliance");
+    assertThatNoException().isThrownBy(() -> policyEvaluateService.evaluateWithPolling(
+        IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(ID_COMPLIANCE)));
 
     assertThatNoException().isThrownBy(() -> policyEvaluateService.evaluateWithPolling(
         "statusId", app, ClientScanType.SONATYPE, new Stage(ID_COMPLIANCE), ScanTriggerType.SBOM_API, mock(File.class),

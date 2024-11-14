@@ -331,9 +331,8 @@ public class PolicyEvaluateService
       String clientInstanceId,
       ScanContext scanContext)
   {
-    if (stageTypeService.getLicensedStageTypes(StageTypeService.LIFECYCLE_CONTEXT).stream()
-        .anyMatch(stageType -> stageType.getId().equals(stage.getStageTypeId())) ||
-        isComplianceStageWithSbomTrigger(stage, scanTriggerType))
+    if (stageTypeService.getLicensedStageTypes().stream()
+        .anyMatch(stageType -> stageType.getId().equals(stage.getStageTypeId())))
     {
       PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
           createPersistedPolicyEvaluationPollingResultIfNeeded(app.getId(), statusId);
@@ -354,10 +353,6 @@ public class PolicyEvaluateService
     else {
       throw new BadRequestException("Invalid stage: " + stage.getStageTypeId());
     }
-  }
-
-  private boolean isComplianceStageWithSbomTrigger(Stage stage, ScanTriggerType scanTriggerType) {
-    return stage.getStageTypeId().equals(Stage.ID_COMPLIANCE) && ScanTriggerType.isSbomTrigger(scanTriggerType);
   }
 
   public PersistedPolicyEvaluationPollingResult createPersistedPolicyEvaluationPollingResultIfNeeded(

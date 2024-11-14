@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.utils.ReportHelper;
-import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -34,8 +34,14 @@ public class SbomImportResourceTest
   private PolicyEvaluationHelper policyEvaluationHelper;
 
   @Before
-  public void before() {
-    licenseManager.setFeatures(LicensedFeature.SBOM_MANAGER);
+  public void before() throws Exception {
+
+    licenseManager.setProducts(
+        ProductLicenseDetails.PRODUCT_SBOM_MANAGER
+    );
+
+    installLicense();
+
     application = tempEntity.newApplicationWithParent();
 
     policyEvaluationHelper = lookup(PolicyEvaluationHelper.class);

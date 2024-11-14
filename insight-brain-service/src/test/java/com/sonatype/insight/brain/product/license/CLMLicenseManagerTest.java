@@ -770,7 +770,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.NOTIFICATIONS,
         LicensedFeature.DATA_RETENTION,
         LicensedFeature.ORGS_AND_APPS,
-        LicensedFeature.ENFORCEMENT);
+        LicensedFeature.ENFORCEMENT,
+        LicensedFeature.APPLICATION_EVALUATION);
   }
 
   @Test
@@ -787,7 +788,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.NOTIFICATIONS,
         LicensedFeature.DATA_RETENTION,
         LicensedFeature.ORGS_AND_APPS,
-        LicensedFeature.ENFORCEMENT);
+        LicensedFeature.ENFORCEMENT,
+        LicensedFeature.APPLICATION_EVALUATION);
   }
 
   @Test

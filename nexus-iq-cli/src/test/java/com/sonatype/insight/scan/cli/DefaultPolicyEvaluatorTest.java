@@ -236,6 +236,52 @@ public abstract class DefaultPolicyEvaluatorTest
   }
 
   @Test
+  public void testRun_CliValidationForComplianceStage_NotContainerTarget() throws Exception {
+    tempEntity.newApplicationWithParent("the-app-id");
+
+    Set<LicensedFeature> features = new HashSet<>(testProductLicense.getFeatures());
+    features.add(LicensedFeature.SBOM_MANAGER);
+    setFeatures(features.toArray(new LicensedFeature[0]));
+
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
+        "-t", "compliance", "src/test/data/artifact.jar");
+    withTestRunner(params)
+        .expectFailExit()
+        .expectErrorLog("compliance stage scans for the provided scan targets are not supported")
+        .doPolicyEvaluationRun();
+  }
+
+  @Test
+  public void testRun_CliValidationForComplianceStage_IsContainerTargetAndSbomManagerNotEnabled() throws Exception {
+    tempEntity.newApplicationWithParent("the-app-id");
+
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), "-E", //
+        "-t", "compliance", "container:registry/image:tag");
+    withTestRunner(params)
+        .expectFailExit()
+        .expectErrorLog("compliance stage scans are not supported by your license")
+        .doPolicyEvaluationRun();
+  }
+
+  @Test
+  public void testRun_CliValidationForComplianceStage_IsContainerTargetAndSbomManagerEnabled() throws Exception {
+    tempEntity.newApplicationWithParent("the-app-id");
+
+    Set<LicensedFeature> features = new HashSet<>(testProductLicense.getFeatures());
+    features.add(LicensedFeature.SBOM_MANAGER);
+    setFeatures(features.toArray(new LicensedFeature[0]));
+
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), "-E", //
+        "-t", "compliance", "container:registry/image:tag");
+    withTestRunner(params)
+        .expectPolicyEvaluationResult(newPolicyEvaluationResultForOneComponent())
+        .doPolicyEvaluationRun();
+  }
+
+  @Test
   public void testRun_SomeViolations() throws Exception {
     Application app = tempEntity.newApplicationWithParent("the-app-id");
     createPolicy(app.getId(), "Policy Name", Action.ID_WARN, 10);

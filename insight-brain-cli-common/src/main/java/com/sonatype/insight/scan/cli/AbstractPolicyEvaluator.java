@@ -30,6 +30,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.signature.ComponentWithSignaturesList;
 import com.sonatype.clm.dto.model.signature.VulnerabilitySignatureAnalysisDTO;
 import com.sonatype.insight.brain.client.PolicyAction;
@@ -196,9 +197,11 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       throw new ExitException(1, message);
     }
     for (String scanTarget : params.getScanTargets()) {
-      if (isContainerTargetSoSkipFileExistsCheck(scanTarget)) {
+      if (isValidContainerScanTarget(params, restClient, scanTarget)) {
         continue;
       }
+
+      validateComplianceScanTargets(params, restClient);
 
       File file = new File(scanTarget);
       if (!file.exists()) {
@@ -210,8 +213,31 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     }
   }
 
-  private boolean isContainerTargetSoSkipFileExistsCheck(final String scanTarget) {
-    return scanTarget.startsWith("container:");
+  private void validateComplianceScanTargets(P params, RestClient restClient) throws ExitException {
+    if (params.getStage().getStageTypeId().equals(Stage.ID_COMPLIANCE)) {
+      String message = String.format("compliance stage scans for the provided scan targets are not supported");
+      log.error(message);
+      saveErrorData(params, CLIError.forConfigurationError(message), restClient);
+      throw new ExitException(1, message);
+    }
+  }
+
+  private boolean isValidContainerScanTarget(
+      P params,
+      RestClient restClient,
+      final String scanTarget) throws ExitException
+  {
+    if (scanTarget.startsWith("container:")) {
+      if (params.getStage().getStageTypeId().equals(Stage.ID_COMPLIANCE)
+          && !getLicensedFeatures(params, restClient).contains("sbom-manager")) {
+        String message = String.format("compliance stage scans are not supported by your license");
+        log.error(message);
+        saveErrorData(params, CLIError.forConfigurationError(message), restClient);
+        throw new ExitException(1, message);
+      }
+      return true;
+    }
+    return false;
   }
 
   protected CliScanResult scan(

@@ -3,15 +3,45 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import * as PropTypes from 'prop-types';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { NxTile, NxH2, NxTable, NxThreatIndicator } from '@sonatype/react-shared-components';
-import { compose, defaultTo, descend, flatten, has, head, ifElse, map, prop, propOr, sortWith } from 'ramda';
+import {
+  always,
+  compose,
+  defaultTo,
+  descend,
+  flatten,
+  has,
+  head,
+  ifElse,
+  isNil,
+  map,
+  prop,
+  propOr,
+  sortWith,
+  when,
+} from 'ramda';
 
 import { actions } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
+import { selectSbomComponentDetails } from '../componentDetailsSelector';
 
-const PolicyViolationsTile = ({ policy }) => {
+const PolicyViolationsTile = ({ applicationPublicId, sbomVersion }) => {
+  const { componentDetails, sbomPolicyViolations } = useSelector(selectSbomComponentDetails);
+
+  useEffect(() => {
+    if (componentDetails?.fileCoordinateId) {
+      dispatch(
+        actions.loadSbomPolicyViolations({
+          applicationPublicId,
+          sbomVersion,
+          fileCoordinateId: componentDetails.fileCoordinateId,
+        })
+      );
+    }
+  }, [applicationPublicId, sbomVersion, componentDetails]);
+
   const dispatch = useDispatch();
 
   const sortedViolations = useMemo(
@@ -20,8 +50,8 @@ const PolicyViolationsTile = ({ policy }) => {
         sortWith([descend(prop('policyThreatLevel'))]),
         ifElse(has('allViolations'), prop('allViolations'), propOr([], 'activeViolations')),
         defaultTo({})
-      )(policy),
-    [policy]
+      )(when(isNil, always([]))(sbomPolicyViolations.policy)),
+    [sbomPolicyViolations.policy]
   );
 
   const openPolicyViolationDetailsDrawerClickHandler = (policyViolationId) => () =>
@@ -70,7 +100,13 @@ const PolicyViolationsTile = ({ policy }) => {
               <NxTable.Cell chevron />
             </NxTable.Row>
           </NxTable.Head>
-          <NxTable.Body emptyMessage="No policy violations">{tableRows}</NxTable.Body>
+          <NxTable.Body
+            isLoading={sbomPolicyViolations.loading}
+            error={sbomPolicyViolations.error}
+            emptyMessage="No policy violations"
+          >
+            {tableRows}
+          </NxTable.Body>
         </NxTable>
       </NxTile.Content>
     </NxTile>
@@ -78,7 +114,8 @@ const PolicyViolationsTile = ({ policy }) => {
 };
 
 PolicyViolationsTile.propTypes = {
-  policy: PropTypes.object,
+  applicationPublicId: PropTypes.string,
+  sbomVersion: PropTypes.string,
 };
 
 export default PolicyViolationsTile;

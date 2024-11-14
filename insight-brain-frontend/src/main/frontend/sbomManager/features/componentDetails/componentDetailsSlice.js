@@ -6,6 +6,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { always, compose, findIndex, includes, prop, values, without } from 'ramda';
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import {
   getApplicationSummaryUrl,
@@ -20,7 +21,7 @@ import {
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 import { propSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
-import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
 const REDUCER_NAME = 'sbomComponentDetailsPage';
 
@@ -444,7 +445,7 @@ const loadSbomPolicyViolationsFulfilled = (state, { payload }) => {
 const loadSbomPolicyViolationsRejected = (state, { payload }) => {
   state.sbomPolicyViolations = Object.freeze({
     loading: false,
-    error: payload.response.data,
+    error: Messages.getHttpErrorMessage(payload),
     policy: null,
   });
 };

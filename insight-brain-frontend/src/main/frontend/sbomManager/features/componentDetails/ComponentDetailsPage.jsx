@@ -77,7 +77,6 @@ export default function ComponentDetailsPage() {
     activeTabIndex,
     disclosedVulnerabilitiesSortConfiguration,
     additionalVulnerabilitiesSortConfiguration,
-    sbomPolicyViolations,
   } = useSelector(selectSbomComponentDetails);
   const showDeleteModal = useSelector(selectShowDeleteModal);
   const deleteError = useSelector(selectDeleteError);
@@ -175,18 +174,6 @@ export default function ComponentDetailsPage() {
   }, []);
 
   useEffect(() => {
-    if (componentDetails?.fileCoordinateId && isSbomPoliciesSupported) {
-      dispatch(
-        actions.loadSbomPolicyViolations({
-          applicationPublicId,
-          sbomVersion,
-          fileCoordinateId: componentDetails.fileCoordinateId,
-        })
-      );
-    }
-  }, [applicationPublicId, sbomVersion, componentDetails, isSbomPoliciesSupported]);
-
-  useEffect(() => {
     if (internalAppId) {
       load();
     }
@@ -282,8 +269,8 @@ export default function ComponentDetailsPage() {
         <MenuBarStatefulBreadcrumb />
         <NxLoadWrapper
           retryHandler={load}
-          loading={isProductFeaturesLoading || isLoading || (isSbomPoliciesSupported && sbomPolicyViolations.loading)}
-          error={errorLoadingProductFeatures || noSbomManagerEnabledError || loadError || sbomPolicyViolations?.error}
+          loading={isProductFeaturesLoading || isLoading}
+          error={errorLoadingProductFeatures || noSbomManagerEnabledError || loadError}
         >
           {componentDetails && (
             <div className="sbom-component-details">
@@ -364,7 +351,7 @@ export default function ComponentDetailsPage() {
                 </NxTabPanel>
                 {isSbomPoliciesSupported && (
                   <NxTabPanel>
-                    <PolicyViolationsTile policy={sbomPolicyViolations.policy} />
+                    <PolicyViolationsTile applicationPublicId={applicationPublicId} sbomVersion={sbomVersion} />
                   </NxTabPanel>
                 )}
               </NxTabs>

@@ -4,14 +4,26 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { screen, render, within } from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, screen, render, waitFor, within } from 'TestRoot/SpecUtil';
+import { getSbomPolicyViolationReportUrl } from 'MainRoot/util/CLMLocation';
 
 import PolicyViolationsTile from 'MainRoot/sbomManager/features/componentDetails/policyViolationsTile/PolicyViolationsTile';
 
 describe('PolicyViolationsTile', () => {
   let renderTile;
 
-  const mockPolicyWithNoViolations = Object.freeze({
+  const axiosMock = axiosMockAdapter();
+
+  const APPLICATION_PUBLIC_ID = 'APPLICATION-PUBLIC-ID';
+  const SBOM_VERSION = 'SBOM-VERSION';
+  const FILE_COORDINATE_ID = 'FILE_COORDINATE_ID';
+
+  const componentProps = Object.freeze({
+    applicationPublicId: APPLICATION_PUBLIC_ID,
+    sbomVersion: SBOM_VERSION,
+  });
+
+  const mockPolicyWithNoViolationsResponse = Object.freeze({
     hash: 'POLICY-HASH',
     componentIdentifier: null,
     policyId: 'POLICY-ID',
@@ -21,7 +33,7 @@ describe('PolicyViolationsTile', () => {
     allViolations: [],
   });
 
-  const mockPolicy = Object.freeze({
+  const mockPolicyResponse = Object.freeze({
     hash: 'POLICY-HASH',
     componentIdentifier: null,
     policyId: 'POLICY-ID',
@@ -110,12 +122,47 @@ describe('PolicyViolationsTile', () => {
     ],
   });
 
+  const mockState = Object.freeze({
+    productFeatures: {
+      productFeatures: {
+        'sbom-manager': true,
+        'sbom-policies': true,
+        loading: false,
+      },
+    },
+    router: {
+      currentState: { name: 'sbomManager.component' },
+      currentParams: {
+        applicationPublicId: APPLICATION_PUBLIC_ID,
+        versionId: SBOM_VERSION,
+        sbomVersion: SBOM_VERSION,
+      },
+    },
+
+    sbomComponentDetailsPage: {
+      componentDetails: {
+        fileCoordinateId: FILE_COORDINATE_ID,
+      },
+      sbomPolicyViolations: {
+        loading: true,
+        error: null,
+        policy: null,
+      },
+    },
+  });
+
   beforeEach(() => {
-    renderTile = (policy) => render(<PolicyViolationsTile policy={policy} />);
+    renderTile = () => render(<PolicyViolationsTile {...componentProps} />, { preloadedState: { ...mockState } });
   });
 
   it('renders the correct violations in order', async () => {
-    renderTile(mockPolicy);
+    axiosMock
+      .onGet(getSbomPolicyViolationReportUrl(APPLICATION_PUBLIC_ID, SBOM_VERSION, FILE_COORDINATE_ID))
+      .reply(200, mockPolicyResponse);
+
+    renderTile();
+
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
     expect(await screen.findByText('Policy Violations')).toBeVisible();
 
@@ -151,10 +198,28 @@ describe('PolicyViolationsTile', () => {
   });
 
   it('renders correct empty content', async () => {
-    renderTile(mockPolicyWithNoViolations);
+    axiosMock
+      .onGet(getSbomPolicyViolationReportUrl(APPLICATION_PUBLIC_ID, SBOM_VERSION, FILE_COORDINATE_ID))
+      .reply(200, mockPolicyWithNoViolationsResponse);
+
+    renderTile();
+
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
     expect(await screen.findByText('Policy Violations')).toBeVisible();
 
     expect(screen.getByText('No policy violations')).toBeVisible();
+  });
+
+  it('renders error', async () => {
+    axiosMock
+      .onGet(getSbomPolicyViolationReportUrl(APPLICATION_PUBLIC_ID, SBOM_VERSION, FILE_COORDINATE_ID))
+      .reply(500, {});
+
+    renderTile();
+
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
+
+    expect(screen.getByText('An error occurred loading data. Error')).toBeVisible();
   });
 });

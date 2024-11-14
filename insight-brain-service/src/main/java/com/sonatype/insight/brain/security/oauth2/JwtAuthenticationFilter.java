@@ -30,6 +30,8 @@ public class JwtAuthenticationFilter
 
   public static final String ID_TOKEN_COOKIE = "IQ-ID-TOKEN";
 
+  public static final String LOGIN_REQUEST = "rest/user/session";
+
   @Override
   protected boolean isLoginAttempt(ServletRequest request, ServletResponse response) {
     if (!SystemConfigurationPropertyFeature.OAUTH2_ENABLED.isEnabled()) {
@@ -38,12 +40,18 @@ public class JwtAuthenticationFilter
       return false;
     }
 
-    if (StringUtils.isNotBlank(getAuthCookie(request, ID_TOKEN_COOKIE))) {
-      log.debug("Found cookie with the ID Token. Handling as login attempt.");
+    if (isLoginRequestWithCookie(request)) {
+      log.debug("Found cookie with the ID Token on a login request, Handling Authentication with OAuth2 Realm");
       return true;
     }
 
     return super.isLoginAttempt(request, response);
+  }
+
+  private boolean isLoginRequestWithCookie(final ServletRequest request) {
+    String idTokenCookie = getAuthCookie(request, ID_TOKEN_COOKIE);
+    String path = ((HttpServletRequest) request).getPathInfo();
+    return StringUtils.isNotBlank(idTokenCookie) && path != null && path.contains(LOGIN_REQUEST);
   }
 
   @Override

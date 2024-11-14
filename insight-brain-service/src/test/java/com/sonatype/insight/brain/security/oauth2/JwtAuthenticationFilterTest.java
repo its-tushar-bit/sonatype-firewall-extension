@@ -62,7 +62,7 @@ public class JwtAuthenticationFilterTest
   }
 
   @Test
-  public void testIsLoginAttempt_TrueWhenIdTokenCookieISPresent() {
+  public void testIsLoginAttempt_TrueWhenIdTokenCookieIsPresentAndIsLoginRequest() {
     final String sub = "bob";
     final String issuer = "https://an-idp.com";
     final HttpServletRequest request = mock(HttpServletRequest.class);
@@ -71,8 +71,25 @@ public class JwtAuthenticationFilterTest
     String token = jwtGenerator.generateJWT(sub, issuer);
 
     when(request.getCookies()).thenReturn(new Cookie[]{new Cookie(JwtAuthenticationFilter.ID_TOKEN_COOKIE, token)});
+    when(request.getPathInfo()).thenReturn(JwtAuthenticationFilter.LOGIN_REQUEST);
 
     assertThat(jwtAuthenticationFilter.isLoginAttempt(request, null)).isTrue();
+    verify(request).getCookies();
+  }
+
+  @Test
+  public void testIsLoginAttempt_FalseWhenIdTokenCookieIsPresentAndIsNotLoginRequest() {
+    final String sub = "bob";
+    final String issuer = "https://an-idp.com";
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+
+    SystemConfigurationPropertyFeature.OAUTH2_ENABLED.setEnabled(true);
+    String token = jwtGenerator.generateJWT(sub, issuer);
+
+    when(request.getCookies()).thenReturn(new Cookie[]{new Cookie(JwtAuthenticationFilter.ID_TOKEN_COOKIE, token)});
+    when(request.getPathInfo()).thenReturn("not/login/request/path");
+
+    assertThat(jwtAuthenticationFilter.isLoginAttempt(request, null)).isFalse();
     verify(request).getCookies();
   }
 

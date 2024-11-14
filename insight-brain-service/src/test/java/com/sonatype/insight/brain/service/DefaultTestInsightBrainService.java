@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.firewall.metrics.FirewallMetricsComponentsAutoReleasedConsolidatorCronJob;
 import com.sonatype.insight.brain.firewall.metrics.FirewallMetricsComponentWaivedConsolidatorCronJob;
 import com.sonatype.insight.brain.firewall.metrics.FirewallMetricsComponentQuarantinedConsolidatorCronJob;
+import com.sonatype.insight.brain.firewall.metrics.DeleteOldFirewallMetricsForSafeComponentsAutoSelectedCronJob;
 import com.sonatype.insight.brain.git.DefaultBranchMonitor;
 import com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventOrchestrator;
 import com.sonatype.insight.brain.git.PullRequestCommentPurger;
@@ -202,11 +203,11 @@ public class DefaultTestInsightBrainService
     if (dropWizardConfigFile.exists()) {
       // I have no idea why, but INFO level is not enabled at this point
       log.warn("Using DropWizard config file {}", dropWizardConfigFile.getAbsolutePath());
-      args = new String[] { "server", dropWizardConfigFile.getAbsolutePath() };
+      args = new String[]{"server", dropWizardConfigFile.getAbsolutePath()};
     }
     else {
       log.warn("Cannot find DropWizard config file {}", dropWizardConfigFile.getAbsolutePath());
-      args = new String[] { "server" };
+      args = new String[]{"server"};
     }
 
     DefaultTestInsightBrainService.this.run(args);
@@ -244,7 +245,6 @@ public class DefaultTestInsightBrainService
         }
       };
     });
-
   }
 
   @Override
@@ -304,7 +304,8 @@ public class DefaultTestInsightBrainService
   }
 
   public BiConsumer<ServletRequest, ServletResponse> getRestRequestFilterHandler() {
-    return restRequestFilterHandler != null ? restRequestFilterHandler : (a, b) -> { };
+    return restRequestFilterHandler != null ? restRequestFilterHandler : (a, b) -> {
+    };
   }
 
   @Override
@@ -333,6 +334,7 @@ public class DefaultTestInsightBrainService
     getInstance(FirewallMetricsComponentsAutoReleasedConsolidatorCronJob.class).disableForTesting = true;
     getInstance(FirewallMetricsComponentWaivedConsolidatorCronJob.class).disableForTesting = true;
     getInstance(FirewallMetricsComponentQuarantinedConsolidatorCronJob.class).disableForTesting = true;
+    getInstance(DeleteOldFirewallMetricsForSafeComponentsAutoSelectedCronJob.class).disableForTesting = true;
     getInstance(SourceControlLoadBalancer.class).disableForTesting = true;
     getInstance(PendingSbomMetadataCleaner.class).disableForTesting = true;
   }
@@ -354,7 +356,8 @@ public class DefaultTestInsightBrainService
 
   @Override
   protected DatabaseConfigProvider getDatabaseConfigProvider(InsightConfig insightConfig) {
-    return new DatabaseConfigProvider() {
+    return new DatabaseConfigProvider()
+    {
       @Override
       public DatabaseConfig getDatabaseConfig(final DatabaseName databaseName) {
         // Use in memory db

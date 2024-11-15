@@ -320,20 +320,22 @@ void pushMTIQDockerImage() {
 void runAllTests(Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J) {
   buildAndTest(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
 
-  if (isFastCopyEnabled()) {
-    runSafely "zip --symlinks -q -r ${m2Zip} .zion/repository/*"
-    runSafely 'find . \\( -type d \\( -name "test-classes" -o -name "classes" \\) -o -type f -name "pom.xml" -o -path "*/src/*" -o -type d -name .mvn \\) ! -path "./insight-brain-frontend/target/*" ! -path "./insight-brain-functional-test-common/target/*" -print | zip -q -r iq-tests.zip -@'
+  if (!isMergeQueueBranch(env)) {
+    if (isFastCopyEnabled()) {
+      runSafely "zip --symlinks -q -r ${m2Zip} .zion/repository/*"
+      runSafely 'find . \\( -type d \\( -name "test-classes" -o -name "classes" \\) -o -type f -name "pom.xml" -o -path "*/src/*" -o -type d -name .mvn \\) ! -path "./insight-brain-frontend/target/*" ! -path "./insight-brain-functional-test-common/target/*" -print | zip -q -r iq-tests.zip -@'
 
-    //\( -type d \( -name "test-classes" -o -name "classes" \) -o -type f -name "pom.xml" -o -path "*/src/*" \)
+      //\( -type d \( -name "test-classes" -o -name "classes" \) -o -type f -name "pom.xml" -o -path "*/src/*" \)
 
-    archiveArtifacts(artifacts: "${m2Zip}, ${iqTestsZip}", fingerprint: false)
+      archiveArtifacts(artifacts: "${m2Zip}, ${iqTestsZip}", fingerprint: false)
+    }
+    else {
+      runSafely "zip --symlinks -q -r ${workspaceZip} . "
+      archiveArtifacts(artifacts: workspaceZip, fingerprint: false)
+    }
+
+    parallel(getParallelTests())
   }
-  else {
-    runSafely "zip --symlinks -q -r ${workspaceZip} . "
-    archiveArtifacts(artifacts: workspaceZip, fingerprint: false)
-  }
-
-  parallel(getParallelTests())
 }
 
 private static String addBuildCacheOptions(String mavenOptions, boolean enabled) {

@@ -93,6 +93,6 @@ describe('Coordinates', () => {
 
     fireEvent.change(screen.getByDisplayValue('groupId'), { target: { value: 'new-group-id', name: 'groupId' } });
 
-    expect(onInputChangeSpy).toHaveBeenCalledWith('new-group-id', 'groupId', 1, 1);
+    expect(onInputChangeSpy).toHaveBeenCalledWith('new-group-id', 'groupId', 1, 1, 'maven');
   });
 });

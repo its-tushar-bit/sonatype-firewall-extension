@@ -148,7 +148,20 @@ export const constraintNameValidator = (constraints = [], value = '', id = '') =
 
   return combineValidators([validateNonEmpty, duplicationValidator]);
 };
-export const withDefaultValue = ['qualifier', 'extension', 'classifier'];
+
+export const withDefaultValue = {
+  maven: ['extension', 'classifier'],
+  'a-name': ['qualifier'],
+  pypi: ['qualifier', 'extension'],
+  npm: [],
+};
+
+export const optionalFields = {
+  maven: ['classifier'],
+  'a-name': ['qualifier'],
+  pypi: ['qualifier', 'extension'],
+  npm: [],
+};
 
 // 'qualifier', 'extension', 'classifier' fields can be empty
 // but if value is present it should not contain : symbol
@@ -162,8 +175,8 @@ export const validatePatternMatchAndEmptyValue = curryN(
   }
 );
 
-export const getCoordinatesValidator = (fieldName) => {
-  const validator = includes(fieldName, withDefaultValue)
+export const getCoordinatesValidator = (fieldName, type) => {
+  const validator = includes(fieldName, optionalFields[type])
     ? [validatePatternMatchAndEmptyValue(/^[^:]+$/, '')]
     : [validateNonEmpty, validatePatternMatch(/^[^:]+$/, '')];
 

@@ -409,7 +409,7 @@ const convertMatcherToUserInput = (policy) => {
         };
         parts.forEach((part, partIdx) => {
           const field = coordinatesTypes[value.format][partIdx];
-          value[field] = initUserInput(part, getCoordinatesValidator(field));
+          value[field] = initUserInput(part, getCoordinatesValidator(field, value.format));
         });
       } else if (condition.conditionTypeId === 'AgeInDays') {
         value = initUserInput(condition.value ?? '', ageValidator);
@@ -909,8 +909,8 @@ const setConstraintConditionFieldByDataType = curryN(
 );
 
 const setConstraintCoordinatesInput = curryN(2, function setConstraintCoordinatesInput(state, { payload }) {
-  const { constraintIndex, conditionIndex, value, name } = payload;
-  const newValue = userInput(getCoordinatesValidator(name), value, state);
+  const { constraintIndex, conditionIndex, value, name, format } = payload;
+  const newValue = userInput(getCoordinatesValidator(name, format), value, state);
   return pathSet(
     ['currentPolicy', 'constraints', constraintIndex, 'conditions', conditionIndex, 'value', name],
     newValue,
@@ -918,13 +918,16 @@ const setConstraintCoordinatesInput = curryN(2, function setConstraintCoordinate
   );
 });
 
-const initCoordinatesFields = (value) => {
+const initCoordinatesFields = (type) => {
   const conditionValue = {
-    format: value,
+    format: type,
   };
 
-  coordinatesTypes[value].forEach((field) => {
-    conditionValue[field] = initUserInput(withDefaultValue.includes(field) ? '*' : '', getCoordinatesValidator(field));
+  coordinatesTypes[type].forEach((field) => {
+    conditionValue[field] = initUserInput(
+      withDefaultValue[type].includes(field) ? '*' : '',
+      getCoordinatesValidator(field, type)
+    );
   });
 
   return conditionValue;

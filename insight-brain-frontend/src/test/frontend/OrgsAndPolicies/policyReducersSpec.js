@@ -733,11 +733,11 @@ describe('policySlice reducers', () => {
                   operator: 'match',
                   value: {
                     format: 'maven',
-                    groupId: initUserInput('', getCoordinatesValidator('groupId')),
-                    artifactId: initUserInput('', getCoordinatesValidator('artifactId')),
-                    version: initUserInput('', getCoordinatesValidator('version')),
-                    extension: initUserInput('*', getCoordinatesValidator('extension')),
-                    classifier: initUserInput('*', getCoordinatesValidator('classifier')),
+                    groupId: initUserInput('', getCoordinatesValidator('groupId', 'maven')),
+                    artifactId: initUserInput('', getCoordinatesValidator('artifactId', 'maven')),
+                    version: initUserInput('', getCoordinatesValidator('version', 'maven')),
+                    extension: initUserInput('*', getCoordinatesValidator('extension', 'maven')),
+                    classifier: initUserInput('*', getCoordinatesValidator('classifier', 'maven')),
                   },
                 },
               ],
@@ -756,9 +756,9 @@ describe('policySlice reducers', () => {
         operator: 'match',
         value: {
           format: 'a-name',
-          name: initUserInput('', getCoordinatesValidator('name')),
-          qualifier: initUserInput('*', getCoordinatesValidator('qualifier')),
-          version: initUserInput('', getCoordinatesValidator('version')),
+          name: initUserInput('', getCoordinatesValidator('name', 'a-name')),
+          qualifier: initUserInput('*', getCoordinatesValidator('qualifier', 'a-name')),
+          version: initUserInput('', getCoordinatesValidator('version', 'a-name')),
         },
       });
     });
@@ -778,11 +778,11 @@ describe('policySlice reducers', () => {
                   operator: 'match',
                   value: {
                     format: 'maven',
-                    groupId: initUserInput('', getCoordinatesValidator('groupId')),
-                    artifactId: initUserInput('', getCoordinatesValidator('artifactId')),
-                    version: initUserInput('', getCoordinatesValidator('version')),
-                    extension: initUserInput('*', getCoordinatesValidator('extension')),
-                    classifier: initUserInput('*', getCoordinatesValidator('classifier')),
+                    groupId: initUserInput('', getCoordinatesValidator('groupId', 'maven')),
+                    artifactId: initUserInput('', getCoordinatesValidator('artifactId', 'maven')),
+                    version: initUserInput('', getCoordinatesValidator('version', 'maven')),
+                    extension: initUserInput('*', getCoordinatesValidator('extension', 'maven')),
+                    classifier: initUserInput('*', getCoordinatesValidator('classifier', 'maven')),
                   },
                 },
               ],
@@ -801,10 +801,10 @@ describe('policySlice reducers', () => {
         operator: 'match',
         value: {
           format: 'pypi',
-          name: initUserInput('', getCoordinatesValidator('name')),
-          qualifier: initUserInput('*', getCoordinatesValidator('qualifier')),
-          version: initUserInput('', getCoordinatesValidator('version')),
-          extension: initUserInput('*', getCoordinatesValidator('extension')),
+          name: initUserInput('', getCoordinatesValidator('name', 'pypi')),
+          qualifier: initUserInput('*', getCoordinatesValidator('qualifier', 'pypi')),
+          version: initUserInput('', getCoordinatesValidator('version', 'pypi')),
+          extension: initUserInput('*', getCoordinatesValidator('extension', 'pypi')),
         },
       });
     });
@@ -826,11 +826,11 @@ describe('policySlice reducers', () => {
                   operator: 'match',
                   value: {
                     format: 'maven',
-                    groupId: initUserInput('', getCoordinatesValidator('groupId')),
-                    artifactId: initUserInput('', getCoordinatesValidator('artifactId')),
-                    version: initUserInput('', getCoordinatesValidator('version')),
-                    extension: initUserInput('*', getCoordinatesValidator('extension')),
-                    classifier: initUserInput('*', getCoordinatesValidator('classifier')),
+                    groupId: initUserInput('', getCoordinatesValidator('groupId', 'maven')),
+                    artifactId: initUserInput('', getCoordinatesValidator('artifactId', 'maven')),
+                    version: initUserInput('', getCoordinatesValidator('version', 'maven')),
+                    extension: initUserInput('*', getCoordinatesValidator('extension', 'maven')),
+                    classifier: initUserInput('*', getCoordinatesValidator('classifier', 'maven')),
                   },
                 },
               ],
@@ -841,7 +841,7 @@ describe('policySlice reducers', () => {
 
       const { currentPolicy } = reducer(state, {
         type: 'policy/setConstraintCoordinatesInput',
-        payload: { constraintIndex: 0, conditionIndex: 0, value: 'version value', name: 'version' },
+        payload: { constraintIndex: 0, conditionIndex: 0, value: 'version value', name: 'version', format: 'maven' },
       });
 
       expect(currentPolicy.constraints[0].conditions[0]).toEqual({
@@ -849,16 +849,16 @@ describe('policySlice reducers', () => {
         operator: 'match',
         value: {
           format: 'maven',
-          groupId: initUserInput('', getCoordinatesValidator('groupId')),
-          artifactId: initUserInput('', getCoordinatesValidator('artifactId')),
+          groupId: initUserInput('', getCoordinatesValidator('groupId', 'maven')),
+          artifactId: initUserInput('', getCoordinatesValidator('artifactId', 'maven')),
           version: {
             value: 'version value',
             trimmedValue: 'version value',
             isPristine: false,
             validationErrors: [],
           },
-          extension: initUserInput('*', getCoordinatesValidator('extension')),
-          classifier: initUserInput('*', getCoordinatesValidator('classifier')),
+          extension: initUserInput('*', getCoordinatesValidator('extension', 'maven')),
+          classifier: initUserInput('*', getCoordinatesValidator('classifier', 'maven')),
         },
       });
     });
@@ -1075,11 +1075,11 @@ describe('policySlice reducers', () => {
         operator: 'match',
         value: {
           format: 'maven',
-          groupId: initUserInput('', getCoordinatesValidator('groupId')),
-          artifactId: initUserInput('', getCoordinatesValidator('artifactId')),
-          version: initUserInput('', getCoordinatesValidator('version')),
-          extension: initUserInput('*', getCoordinatesValidator('extension')),
-          classifier: initUserInput('*', getCoordinatesValidator('classifier')),
+          groupId: initUserInput('', getCoordinatesValidator('groupId', 'maven')),
+          artifactId: initUserInput('', getCoordinatesValidator('artifactId', 'maven')),
+          version: initUserInput('', getCoordinatesValidator('version', 'maven')),
+          extension: initUserInput('*', getCoordinatesValidator('extension', 'maven')),
+          classifier: initUserInput('*', getCoordinatesValidator('classifier', 'maven')),
         },
       });
     });

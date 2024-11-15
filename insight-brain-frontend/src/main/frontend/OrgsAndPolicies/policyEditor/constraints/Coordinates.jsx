@@ -15,7 +15,7 @@ import {
 export default function Coordinates({ onFormatChange, onInputChange, fields, constraintIdx, conditionIdx }) {
   function onTextInputChange(event) {
     const { value, name } = event.currentTarget;
-    onInputChange(value, name, constraintIdx, conditionIdx);
+    onInputChange(value, name, constraintIdx, conditionIdx, fields.format);
   }
 
   return (
@@ -25,6 +25,7 @@ export default function Coordinates({ onFormatChange, onInputChange, fields, con
         onChange={onFormatChange}
         value={fields.format}
         aria-label="Coordinates format"
+        data-testid="constraint__coordinates-format"
       >
         {coordinatesFormatOptions.map((option) => (
           <option key={option} value={option}>

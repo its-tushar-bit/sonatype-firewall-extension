@@ -137,8 +137,8 @@ export default function ConstraintsEditor() {
     setConstraintCoordinatesFormat({ constraintIndex, conditionIndex, value: updatedFormat });
   }
 
-  function onCoordinatesInputChange(value, name, constraintIndex, conditionIndex) {
-    setConstraintCoordinatesInput({ constraintIndex, conditionIndex, value, name });
+  function onCoordinatesInputChange(value, name, constraintIndex, conditionIndex, format) {
+    setConstraintCoordinatesInput({ constraintIndex, conditionIndex, value, name, format });
   }
 
   function onConditionOperatorChange(event, constraintIndex, conditionIndex) {

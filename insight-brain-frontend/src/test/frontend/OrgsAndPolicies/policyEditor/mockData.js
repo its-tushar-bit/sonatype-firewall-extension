@@ -14,6 +14,16 @@ export const conditionType = [
     name: 'Age',
     id: 'AgeInDays',
   },
+  {
+    enabled: true,
+    name: 'Coordinates',
+    id: 'Coordinates',
+    supportedOperators: ['match', 'do not match'],
+    valueTypeId: 'CoordinatesValueType',
+    autoUnquarantineSupported: false,
+    valueHint: null,
+    threatCategory: 'OTHER',
+  },
 ];
 
 export const actionStage = [
@@ -28,6 +38,12 @@ export const actionStage = [
 
 export const conditionValueType = [
   { dataType: 'Integer', allowMultiple: false, availableValues: null, id: 'AgeInDaysValueType' },
+  {
+    id: 'CoordinatesValueType',
+    dataType: 'String',
+    allowMultiple: false,
+    availableValues: null,
+  },
 ];
 
 export const applicablePolicies = {

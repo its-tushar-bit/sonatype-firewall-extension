@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.net.URI;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -12,8 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriBuilder;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.http.HttpURI;
-import org.eclipse.jetty.http.HttpURI.Mutable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,8 +124,11 @@ public class BaseUrl
         proto = request.getScheme();
       }
 
-      Mutable updatedUrl = HttpURI.build(request.getRequestURL().toString()).scheme(proto);
-      return new StringBuffer(updatedUrl.asString());
+      URI updatedUri = UriBuilder.fromUri(request.getRequestURL().toString())
+          .scheme(proto)
+          .build();
+
+      return new StringBuffer(updatedUri.toString());
     }
   }
 

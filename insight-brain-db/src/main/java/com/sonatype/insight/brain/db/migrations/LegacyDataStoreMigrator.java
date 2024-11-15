@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.db.datastore.DataStore;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.DatabaseEngine;
 import com.sonatype.insight.db.H2DatabaseEngine;
+import com.sonatype.insight.db.PostgresDatabaseEngine;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -42,6 +43,13 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
 /**
  * Migrate an individual {@link DataStore}
+ *
+ * schema_incremental_####.sql applies to postgres and h2
+ * schema_incremental_####.h2.sql applies to h2 only
+ * schema_incremental_####.pg.sql applies to postgres only
+ * schema_incremental_####.cls lists classes that implement PostIncrementalMigrator and run after the incremental
+ * migrations
+ * Note: Only .sql or (.h2.sql and .pg.sql) can exist for a given version
  */
 public class LegacyDataStoreMigrator
     implements DataStoreMigrator
@@ -116,16 +124,7 @@ public class LegacyDataStoreMigrator
 
       String setSchemaSql = databaseEngine.buildSetSchemaSql(databaseSchema);
       for (int i = currentVersion + 1; i <= desiredVersion; i++) {
-        String scriptName = getIncrementalFileName(dataStoreId, "sql", i);
-        runScript(setSchemaSql, scriptName);
-        String postIncrementalMigratorFileName = getIncrementalFileName(dataStoreId, "cls", i);
-        runPostIncrementalMigrator(postIncrementalMigratorFileName, dataSource, databaseSchema);
-        if (DatabaseUtil.legacySchemaVersionTableExists(dataStore)) {
-          updateLegacyDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchema, i);
-        }
-        else {
-          FileUtils.writeStringToFile(databaseVersionFile, String.valueOf(i), StandardCharsets.UTF_8);
-        }
+        migrateToVersion(i, dataStoreId, setSchemaSql, dataSource, databaseSchema, databaseVersionFile, databaseEngine);
       }
 
       FileCleaner fileCleaner = new FileCleaner();
@@ -139,6 +138,38 @@ public class LegacyDataStoreMigrator
     }
     catch (IOException | SQLException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  private void migrateToVersion(
+      final int version,
+      final String dataStoreId,
+      final String setSchemaSql,
+      final DataSource dataSource,
+      final String databaseSchema,
+      final File databaseVersionFile,
+      final DatabaseEngine databaseEngine) throws SQLException, IOException
+  {
+    // Applies to both Postgres and H2
+    String scriptName = getIncrementalFileName(dataStoreId, "sql", version);
+    Resource script = loadIncrementalScriptResource(scriptName);
+
+    if (!script.exists()) {
+      // If no generic sql file exists for this version then look for database specific scripts
+      // .h2.sql for h2, .pg.sql for Postgres
+      scriptName = getDatabaseSpecificIncrementalFileName(version, dataStoreId, databaseEngine);
+    }
+
+    runScript(setSchemaSql, scriptName);
+
+    String postIncrementalMigratorFileName = getIncrementalFileName(dataStoreId, "cls", version);
+    runPostIncrementalMigrator(postIncrementalMigratorFileName, dataSource, databaseSchema);
+
+    if (DatabaseUtil.legacySchemaVersionTableExists(dataStore)) {
+      updateLegacyDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchema, version);
+    }
+    else {
+      FileUtils.writeStringToFile(databaseVersionFile, String.valueOf(version), StandardCharsets.UTF_8);
     }
   }
 
@@ -166,8 +197,19 @@ public class LegacyDataStoreMigrator
     return LegacyDataStoreMigrator.determineDesiredVersion(dataStoreId);
   }
 
-  private static String getIncrementalFileName(String dataStoreId, String extension, int scriptIndex) {
+  // Visible for testing
+  static String getIncrementalFileName(String dataStoreId, String extension, int scriptIndex) {
     return "/db/" + dataStoreId + "/schema_incremental_" + String.format("%1$04d", scriptIndex) + "." + extension;
+  }
+
+  // Visible for testing
+  static String getDatabaseSpecificIncrementalFileName(
+      final int version,
+      final String dataStoreId,
+      final DatabaseEngine databaseEngine)
+  {
+    String databaseEngineExtension = PostgresDatabaseEngine.INSTANCE.equals(databaseEngine) ? "pg.sql" : "h2.sql";
+    return getIncrementalFileName(dataStoreId, databaseEngineExtension, version);
   }
 
   // Public visibility for tests only.
@@ -176,7 +218,16 @@ public class LegacyDataStoreMigrator
     for (int version = 1; version < 10000; version++) {
       Resource incrementalScript =
           loadIncrementalScriptResource(getIncrementalFileName(dataStoreId, "sql", version));
-      if (incrementalScript.exists()) {
+
+      Resource h2IncrementalScript =
+          loadIncrementalScriptResource(
+              getDatabaseSpecificIncrementalFileName(version, dataStoreId, H2DatabaseEngine.INSTANCE));
+
+      Resource pgIncrementalScript =
+          loadIncrementalScriptResource(
+              getDatabaseSpecificIncrementalFileName(version, dataStoreId, PostgresDatabaseEngine.INSTANCE));
+
+      if (incrementalScript.exists() || h2IncrementalScript.exists() || pgIncrementalScript.exists()) {
         foundScripts = true;
       }
       else if (foundScripts) {
@@ -238,7 +289,8 @@ public class LegacyDataStoreMigrator
     }
   }
 
-  private static Resource loadIncrementalScriptResource(String scriptName) {
+  // Visible for testing
+  static Resource loadIncrementalScriptResource(String scriptName) {
     return new DefaultResourceLoader().getResource(scriptName);
   }
 

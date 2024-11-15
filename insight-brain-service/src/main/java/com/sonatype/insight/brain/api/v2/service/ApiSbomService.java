@@ -373,8 +373,8 @@ public class ApiSbomService
       if (SystemConfigurationPropertyFeature.SBOM_POLICIES.isEnabled()) {
         try {
           PolicyThreats.Component component =
-              sbomPolicyService.getPolicyViolationsByFileCoordinateId(applicationId, version,
-                  sbomComponentDTO.getFileCoordinateId());
+              sbomPolicyService.getPolicyViolationsByFileCoordinateIdOrHash(applicationId, version,
+                  sbomComponentDTO.getFileCoordinateId(), sbomComponentDTO.getHash());
           if (component != null) {
             sbomComponentDTO.setPolicyViolationCount(component.activeViolations.size());
           }

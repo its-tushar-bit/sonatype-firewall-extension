@@ -31,12 +31,13 @@ const PolicyViolationsTile = ({ applicationPublicId, sbomVersion }) => {
   const { componentDetails, sbomPolicyViolations } = useSelector(selectSbomComponentDetails);
 
   useEffect(() => {
-    if (componentDetails?.fileCoordinateId) {
+    if (componentDetails?.fileCoordinateId || componentDetails?.hash) {
       dispatch(
         actions.loadSbomPolicyViolations({
           applicationPublicId,
           sbomVersion,
           fileCoordinateId: componentDetails.fileCoordinateId,
+          hash: componentDetails.hash,
         })
       );
     }

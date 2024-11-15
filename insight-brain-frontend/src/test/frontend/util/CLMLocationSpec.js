@@ -794,6 +794,25 @@ describe('CLMLocation.js', function () {
         '/rest/report/application-public-id/sbom/sbom-version/sbomPolicyViolationReport?fileCoordinateId=file-coordinate-id'
       );
     });
+
+    it('should return the url for getting SBOM policy violation report with hash', function () {
+      expect(
+        CLMLocation.getSbomPolicyViolationReportUrl('application-public-id', 'sbom-version', null, 'some-hash')
+      ).toBe('/rest/report/application-public-id/sbom/sbom-version/sbomPolicyViolationReport?hash=some-hash');
+    });
+
+    it('should return the url for getting SBOM policy violation report with fileCoordinateId and hash', function () {
+      expect(
+        CLMLocation.getSbomPolicyViolationReportUrl(
+          'application-public-id',
+          'sbom-version',
+          'file-coordinate-id',
+          'some-hash'
+        )
+      ).toBe(
+        '/rest/report/application-public-id/sbom/sbom-version/sbomPolicyViolationReport?fileCoordinateId=file-coordinate-id&hash=some-hash'
+      );
+    });
   });
 
   describe('getTotalSbomsAnalyzedUrl', function () {

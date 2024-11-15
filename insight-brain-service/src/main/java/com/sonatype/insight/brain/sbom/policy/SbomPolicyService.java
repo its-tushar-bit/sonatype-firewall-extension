@@ -16,8 +16,10 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
+import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.thirdparty.SbomStatus;
@@ -69,14 +71,15 @@ public class SbomPolicyService
   }
 
   @Authorize(permission = Permission.READ)
-  public JsonNode getPolicyViolationsJsonNodeByFileCoordinateId(
+  public JsonNode getPolicyViolationsJsonNodeByFileCoordinateIdOrHash(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
       String sbomVersion,
       String fileCoordinateId,
+      String hash,
       ReportEntry policyThreatsReportEntry) throws IOException
   {
-    if (StringUtils.isBlank(fileCoordinateId)) {
-      throw new BadRequestException("fileCoordinateId cannot be null or empty");
+    if (StringUtils.isAllBlank(fileCoordinateId, hash)) {
+      throw new BadRequestException("fileCoordinateId and hash cannot be both null or empty.");
     }
 
     ReportEntry policyViolationsReportEntry = policyThreatsReportEntry != null ? policyThreatsReportEntry
@@ -87,7 +90,7 @@ public class SbomPolicyService
     }
 
     String scanId = getScanIdForPolicyViolation(applicationId, sbomVersion);
-    String bomComponentHash = findComponentHashInReport(applicationId, scanId, fileCoordinateId);
+    String bomComponentHash = findComponentHashInReport(applicationId, scanId, fileCoordinateId, hash);
 
     if (StringUtils.isBlank(bomComponentHash)) {
       return null;
@@ -108,28 +111,41 @@ public class SbomPolicyService
   private String findComponentHashInReport(
       String applicationId,
       String scanId,
-      String fileCoordinateId) throws IOException
+      String fileCoordinateId,
+      String hash) throws IOException
   {
-    ReportEntry bomReportEntry = reportService.processBrowseReport(applicationId, scanId, "bom.json");
+    ReportEntry bomReportEntry = reportService.processBrowseReport(applicationId, scanId, Report.BOM_JSON_FILENAME);
     if (bomReportEntry == null) {
       return null;
     }
 
     ContainerNode<?> bomReportJson = JsonUtils.parse(bomReportEntry.buf);
     JsonNode bomReportAaData = bomReportJson.get("aaData");
+    String matchingHash = null;
 
     for (JsonNode bomComponentNode : bomReportAaData) {
-      JsonNode sonatypeIdentifierNode = bomComponentNode.get("sonatypeIdentifier");
+      JsonNode sonatypeIdentifierNode = bomComponentNode.get(SbomCycloneDxUtils.PROPERTY_SONATYPE_IDENTIFIER);
+      JsonNode hashNode = bomComponentNode.get("hash");
 
-      if (sonatypeIdentifierNode != null && !sonatypeIdentifierNode.isNull()) {
-        String sonatypeIdentifier = sonatypeIdentifierNode.asText();
-
-        if (fileCoordinateId.equals(sonatypeIdentifier)) {
-          return bomComponentNode.get("hash").asText();
+      if (isJsonNodeNotNull(hashNode)) {
+        // Match first by sonatypeIdentifier
+        if (isJsonNodeNotNull(sonatypeIdentifierNode)
+            && StringUtils.isNotBlank(fileCoordinateId)
+            && fileCoordinateId.equals(sonatypeIdentifierNode.asText())) {
+          return hashNode.asText();
+        }
+        // Fallback match by hash
+        else if (StringUtils.isNotBlank(hash) && matchingHash == null && hash.equals(hashNode.asText())) {
+          matchingHash = hashNode.asText();
         }
       }
     }
-    return null;
+
+    return matchingHash;
+  }
+
+  private boolean isJsonNodeNotNull(JsonNode jsonNode) {
+    return jsonNode != null && !jsonNode.isNull();
   }
 
   private String getScanIdForPolicyViolation(String applicationId, String sbomVersion) {
@@ -146,13 +162,14 @@ public class SbomPolicyService
   }
 
   @Authorize(permission = Permission.READ)
-  public PolicyThreats.Component getPolicyViolationsByFileCoordinateId(
+  public PolicyThreats.Component getPolicyViolationsByFileCoordinateIdOrHash(
       @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
       String sbomVersion,
-      String fileCoordinateId) throws IOException
+      String fileCoordinateId,
+      String hash) throws IOException
   {
     JsonNode jsonNode =
-        getPolicyViolationsJsonNodeByFileCoordinateId(applicationId, sbomVersion, fileCoordinateId, null);
+        getPolicyViolationsJsonNodeByFileCoordinateIdOrHash(applicationId, sbomVersion, fileCoordinateId, hash, null);
     return jsonNode != null ? JsonUtils.asPojo(jsonNode, PolicyThreats.Component.class) : null;
   }
 }

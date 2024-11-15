@@ -601,7 +601,7 @@ describe('ComponentDetailsPage', () => {
         .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
         .reply(200, mockComponentDetails);
       axiosMock
-        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId, componentHash))
         .reply(200, mockSbomPolicyViolationReport);
 
       renderPage();
@@ -622,7 +622,7 @@ describe('ComponentDetailsPage', () => {
         .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
         .reply(200, mockComponentDetails);
       axiosMock
-        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId, componentHash))
         .reply(200, mockSbomPolicyViolationReport);
       renderPage();
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
@@ -645,7 +645,7 @@ describe('ComponentDetailsPage', () => {
         .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
         .reply(200, mockComponentDetails);
       axiosMock
-        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId, componentHash))
         .reply(200, mockSbomPolicyViolationReport);
       renderPage();
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
@@ -668,7 +668,7 @@ describe('ComponentDetailsPage', () => {
         .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
         .reply(200, mockComponentDetails);
       axiosMock
-        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId, componentHash))
         .reply(200, mockSbomPolicyViolationReport);
       renderPage();
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
@@ -692,7 +692,7 @@ describe('ComponentDetailsPage', () => {
       .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
       .reply(200, mockComponentDetails);
     axiosMock
-      .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+      .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId, componentHash))
       .reply(200, mockSbomPolicyViolationReport);
     const { container } = renderPage();
 
@@ -719,7 +719,7 @@ describe('ComponentDetailsPage', () => {
 
     axiosMock.onGet(getSbomVulnerabibilityAnalysisReferenceData()).reply(200, vulnerabilityAnalysisReferenceData);
     axiosMock
-      .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+      .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId, componentHash))
       .reply(200, mockSbomPolicyViolationReport);
     const { container } = renderPage();
 
@@ -755,7 +755,7 @@ describe('ComponentDetailsPage', () => {
       .onPut(getSbomVulnerabilityAnnotationUrl(applicationInternalId, sbomVersion, 'sonatype-2018-0863'))
       .reply(200, {});
     axiosMock
-      .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+      .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId, componentHash))
       .reply(200, mockSbomPolicyViolationReport);
 
     const { container } = renderPage();
@@ -790,7 +790,7 @@ describe('ComponentDetailsPage', () => {
         .onPut(getSbomVulnerabilityAnnotationUrl(applicationInternalId, sbomVersion, 'sonatype-2018-0863'))
         .reply(200, {});
       axiosMock
-        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId, componentHash))
         .reply(200, mockSbomPolicyViolationReport);
 
       await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
@@ -815,7 +815,7 @@ describe('ComponentDetailsPage', () => {
         .onDelete(getSbomVulnerabilityAnnotationUrl(applicationInternalId, sbomVersion, 'sonatype-2018-0863'))
         .reply(200, {});
       axiosMock
-        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId, componentHash))
         .reply(200, mockSbomPolicyViolationReport);
 
       const dialog = await openDeleteAnnotationModal();
@@ -833,7 +833,7 @@ describe('ComponentDetailsPage', () => {
         .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
         .reply(200, mockComponentDetails);
       axiosMock
-        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId, componentHash))
         .reply(200, mockSbomPolicyViolationReport);
 
       axiosMock.onGet(getSbomVulnerabibilityAnalysisReferenceData()).reply(200, vulnerabilityAnalysisReferenceData);
@@ -862,7 +862,7 @@ describe('ComponentDetailsPage', () => {
         .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
         .reply(200, mockComponentDetails);
       axiosMock
-        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId, componentHash))
         .reply(200, mockSbomPolicyViolationReport);
       axiosMock.onGet(getSbomVulnerabibilityAnalysisReferenceData()).reply(200, vulnerabilityAnalysisReferenceData);
       axiosMock
@@ -883,7 +883,7 @@ describe('ComponentDetailsPage', () => {
         .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
         .reply(200, mockComponentDetails);
       axiosMock
-        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId, componentHash))
         .reply(200, mockSbomPolicyViolationReport);
       axiosMock.onGet(getSbomVulnerabibilityAnalysisReferenceData()).reply(200, vulnerabilityAnalysisReferenceData);
       axiosMock
@@ -905,7 +905,7 @@ describe('ComponentDetailsPage', () => {
         .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
         .reply(200, mockComponentDetails);
       axiosMock
-        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+        .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId, componentHash))
         .reply(200, mockSbomPolicyViolationReport);
       axiosMock.onGet(getSbomVulnerabibilityAnalysisReferenceData()).reply(200, vulnerabilityAnalysisReferenceData);
       axiosMock
@@ -932,7 +932,7 @@ describe('ComponentDetailsPage', () => {
       .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
       .reply(200, mockComponentDetails);
     axiosMock
-      .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+      .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId, componentHash))
       .reply(200, mockSbomPolicyViolationReport);
 
     const { container } = renderPage();
@@ -976,7 +976,7 @@ describe('ComponentDetailsPage', () => {
       .onGet(getSbomComponentDetailsUrl(applicationInternalId, sbomVersion, componentHash))
       .reply(500, 'There was an error');
     axiosMock
-      .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId))
+      .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId, componentHash))
       .reply(200, mockSbomPolicyViolationReport);
 
     renderPage();

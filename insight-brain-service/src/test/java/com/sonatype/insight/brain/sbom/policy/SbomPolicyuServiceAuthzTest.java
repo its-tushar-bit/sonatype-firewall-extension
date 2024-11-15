@@ -64,48 +64,48 @@ public class SbomPolicyuServiceAuthzTest extends AbstractServiceAuthzTest
   }
 
   @Test
-  public void testGetPolicyViolationsJsonNodeByFileCoordinateId_Authorized() {
+  public void testGetPolicyViolationsJsonNodeByFileCoordinateIdOrHash_Authorized() {
     grantReadPermission(app.getId());
 
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> sbomPolicyService.getPolicyViolationsJsonNodeByFileCoordinateId(app.getId(), "12345678",
-            "fileCoordinateId1", new ReportEntry("report", 12345L, new byte[20])))
+        .isThrownBy(() -> sbomPolicyService.getPolicyViolationsJsonNodeByFileCoordinateIdOrHash(app.getId(), "12345678",
+            "fileCoordinateId1", null, new ReportEntry("report", 12345L, new byte[20])))
         .withMessage("Cannot find version 12345678 for application with ID " + app.getId() + ".");
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetPolicyViolationsJsonNodeByFileCoordinateId_Unauthenticated() throws Exception {
-    sbomPolicyService.getPolicyViolationsJsonNodeByFileCoordinateId(app.getId(), "12345678",
-        "fileCoordinateId1", new ReportEntry("report", 12345L, new byte[20]));
+  public void testGetPolicyViolationsJsonNodeByFileCoordinateIdOrHash_Unauthenticated() throws Exception {
+    sbomPolicyService.getPolicyViolationsJsonNodeByFileCoordinateIdOrHash(app.getId(), "12345678",
+        "fileCoordinateId1", null, new ReportEntry("report", 12345L, new byte[20]));
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetPolicyViolationsJsonNodeByFileCoordinateId_Unauthorized() throws Exception {
+  public void testGetPolicyViolationsJsonNodeByFileCoordinateIdOrHash_Unauthorized() throws Exception {
     login();
-    sbomPolicyService.getPolicyViolationsJsonNodeByFileCoordinateId(app.getId(), "12345678",
-        "fileCoordinateId1", new ReportEntry("report", 12345L, new byte[20]));
+    sbomPolicyService.getPolicyViolationsJsonNodeByFileCoordinateIdOrHash(app.getId(), "12345678",
+        "fileCoordinateId1", null, new ReportEntry("report", 12345L, new byte[20]));
   }
 
   @Test
-  public void testGetPolicyViolationsByFileCoordinateId_Authorized() {
+  public void testGetPolicyViolationsByFileCoordinateIdOrHash_Authorized() {
     grantReadPermission(app.getId());
 
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> sbomPolicyService.getPolicyViolationsByFileCoordinateId(app.getId(), "12345678",
-            "fileCoordinateId1"))
+        .isThrownBy(() -> sbomPolicyService.getPolicyViolationsByFileCoordinateIdOrHash(app.getId(), "12345678",
+            "fileCoordinateId1", null))
         .withMessage("Cannot find version 12345678 for application with ID " + app.getId() + ".");
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetPolicyViolationsByFileCoordinateId_Unauthenticated() throws IOException {
-    sbomPolicyService.getPolicyViolationsByFileCoordinateId(app.getId(), "12345678",
-        "fileCoordinateId1");
+  public void testGetPolicyViolationsByFileCoordinateIdOrHash_Unauthenticated() throws IOException {
+    sbomPolicyService.getPolicyViolationsByFileCoordinateIdOrHash(app.getId(), "12345678",
+        "fileCoordinateId1", null);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetPolicyViolationsByFileCoordinateId_Unauthorized() throws IOException {
+  public void testGetPolicyViolationsByFileCoordinateIdOrHash_Unauthorized() throws IOException {
     login();
-    sbomPolicyService.getPolicyViolationsByFileCoordinateId(app.getId(), "12345678",
-        "fileCoordinateId1");
+    sbomPolicyService.getPolicyViolationsByFileCoordinateIdOrHash(app.getId(), "12345678",
+        "fileCoordinateId1", null);
   }
 }

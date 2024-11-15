@@ -157,8 +157,8 @@ public class SbomComponentsService
     componentDetailsDTO.setWebsite(component.getWebsite());
 
     try {
-      PolicyThreats.Component componentFound = sbomPolicyService.getPolicyViolationsByFileCoordinateId(applicationId,
-          sbomVersion, component.getId());
+      PolicyThreats.Component componentFound = sbomPolicyService.getPolicyViolationsByFileCoordinateIdOrHash(
+          applicationId, sbomVersion, component.getId(), component.getHash());
 
       SbomPolicyViolationSummaryDTO policyViolationSummary = componentFound != null ?
           calculatePolicyViolationSummary(componentFound.activeViolations) :

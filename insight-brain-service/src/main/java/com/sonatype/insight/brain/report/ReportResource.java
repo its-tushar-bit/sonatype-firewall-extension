@@ -219,6 +219,7 @@ public class ReportResource
       final String applicationPublicId,
       @PathParam("sbomVersion") final String sbomVersion,
       @QueryParam("fileCoordinateId") final String fileCoordinateId,
+      @QueryParam("hash") final String hash,
       @Context final HttpServletRequest httpRequest) throws IOException
   {
     String applicationInternalId = applicationDAO.getByPublicIdNotNull(applicationPublicId).getId();
@@ -230,8 +231,8 @@ public class ReportResource
     }
 
     if (StringUtils.isNotEmpty(fileCoordinateId)) {
-      JsonNode jsonNode = sbomPolicyService.getPolicyViolationsJsonNodeByFileCoordinateId(applicationInternalId,
-          sbomVersion, fileCoordinateId, policyThreatsReportEntry);
+      JsonNode jsonNode = sbomPolicyService.getPolicyViolationsJsonNodeByFileCoordinateIdOrHash(applicationInternalId,
+          sbomVersion, fileCoordinateId, hash, policyThreatsReportEntry);
 
       if (jsonNode != null) {
         ResponseBuilder response = Response.ok(jsonNode);

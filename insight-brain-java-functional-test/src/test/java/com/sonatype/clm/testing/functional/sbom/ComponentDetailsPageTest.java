@@ -133,6 +133,7 @@ public class ComponentDetailsPageTest
     sbomManagerComponentDetailsPage.componentSummary().highestScoreLabel().shouldHave(text("Highest CVSS Score"));
     sbomManagerComponentDetailsPage.componentSummary().vulnerabilitiesVerifiedLabel()
         .shouldHave(text("Vulnerabilities Verified"));
+    sbomManagerComponentDetailsPage.componentSummary().policyViolationsLabel().shouldHave(text("Policy Violations"));
     sbomManagerComponentDetailsPage.componentSummary().highestScoreValue().shouldHave(text("9.6"));
     sbomManagerComponentDetailsPage.componentSummary().sonatypeVerified().shouldHave(text("0 Sonatype Verified"));
     sbomManagerComponentDetailsPage.componentSummary().unVerified().shouldHave(text("3 Unverified"));

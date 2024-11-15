@@ -11,7 +11,7 @@ import com.codeborne.selenide.SelenideElement;
 
 public class ComponentDetailsSummaryTile extends BasicElement<ComponentDetailsSummaryTile>
 {
-  static final String ROOT_SELECTOR = "#sbom-manager-component-detail-tile";
+  static final String ROOT_SELECTOR = ".sbom-manager-component-detail-tile";
 
   public ComponentDetailsSummaryTile() {
     super(ROOT_SELECTOR);
@@ -22,32 +22,39 @@ public class ComponentDetailsSummaryTile extends BasicElement<ComponentDetailsSu
   }
 
   public SelenideElement highestScoreLabel() {
-    return child(".sbom-manager-component-detail-tile__highest-cvss-score div b");
+    return child(".sbom-manager-component-detail-tile__highest-cvss-score .nx-read-only__label");
   }
 
   public SelenideElement highestScoreValue() {
-    return child(".sbom-manager-component-detail-tile__highest-cvss-score span[data-testid='highestCvssScore']");
+    return child(".sbom-manager-component-detail-tile__highest-cvss-score .nx-read-only__data " +
+            "span[data-testid='highestCvssScore']");
   }
 
   public SelenideElement vulnerabilitiesVerifiedLabel() {
-    return child(".sbom-manager-component-detail-tile__vulnerabilities-verified div b");
+    return child(".sbom-manager-component-detail-tile__vulnerabilities-verified .nx-read-only__label");
+  }
+
+  public SelenideElement policyViolationsLabel() {
+    return child(".sbom-manager-component-detail-tile__policy-violations .nx-read-only__label");
   }
 
   public SelenideElement sonatypeVerified() {
-    return child(".sbom-manager-component-detail-tile__vulnerabilities-verified span[data-testid='verified']");
+    return child(".sbom-manager-component-detail-tile__vulnerabilities-verified .nx-read-only__data " +
+            "span[data-testid='verified']");
   }
 
   public SelenideElement unVerified() {
-    return child(".sbom-manager-component-detail-tile__vulnerabilities-verified span[data-testid='unverified']");
+    return child(".sbom-manager-component-detail-tile__vulnerabilities-verified .nx-read-only__data " +
+            "span[data-testid='unverified']");
   }
 
   public SelenideElement severePolicyViolation() {
-    return child(".sbom-manager-component-detail-tile__policy-violations__content " +
-            "[data-testid='severe-threat-counter']");
+    return child(".sbom-manager-component-detail-tile__policy-violations .nx-small-threat-counter--severe " +
+            ".nx-small-threat-counter__count");
   }
 
   public SelenideElement criticalPolicyViolation() {
-    return child(".sbom-manager-component-detail-tile__policy-violations__content " +
-            "[data-testid='critical-threat-counter']");
+    return child(".sbom-manager-component-detail-tile__policy-violations .nx-small-threat-counter--critical " +
+            ".nx-small-threat-counter__count");
   }
 }

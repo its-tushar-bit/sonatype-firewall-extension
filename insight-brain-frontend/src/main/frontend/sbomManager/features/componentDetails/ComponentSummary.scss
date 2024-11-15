@@ -4,44 +4,27 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
 .sbom-manager-component-detail-tile {
   &__content {
-    display: flex;
+    grid-template-columns: repeat(3, auto);
+
+    .nx-read-only__data {
+      @include nx-container-helpers.container-horizontal;
+    }
   }
 
-  &__highest-cvss-score {
-    flex-grow: 0.1;
-  }
-  &__vulnerabilities-verified {
-    flex-grow: 0.1;
-    margin-top: 0;
-    width: 160px;
-    &__content {
-      display: flex;
-      width: 100%;
-      flex-wrap: wrap;
-      column-gap: var(--nx-spacing-4x);
-    }
-  }
   &__policy-violations {
-    margin: 0 var(--nx-spacing-6x) 0 0;
-    &__content {
-      display: flex;
-      gap: 8px;
-    }
+    @include nx-container-helpers.container-horizontal;
 
     .policy-violations-threat-counter {
-      display: flex;
-      align-items: center;
+      display: inline-block;
 
-      .nx-small-threat-counter-container {
-        margin-left: 0;
+      .critical-threat-category {
+        margin-right: var(--nx-spacing-2x);
       }
     }
-  }
-  &__category,
-  &__website {
-    margin: 0 var(--nx-spacing-6x) 0 0;
   }
 
   .sbom-verified-icon {
@@ -50,15 +33,5 @@
 
   .sbom-unverified-icon {
     color: var(--nx-swatch-orange-50);
-  }
-
-  .sbom-external-link-icon {
-    color: #0459c8;
-  }
-
-  .threat-indicator-icon,
-  .sbom-unverified-icon,
-  .sbom-verified-icon {
-    margin-left: 0;
   }
 }

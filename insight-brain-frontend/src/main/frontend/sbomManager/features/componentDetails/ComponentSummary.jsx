@@ -9,6 +9,7 @@ import {
   allThreatLevelNumbers,
   NxFontAwesomeIcon,
   NxH2,
+  NxReadOnly,
   NxSmallThreatCounter,
   NxThreatIndicator,
   NxTile,
@@ -23,73 +24,62 @@ export default function ComponentSummary({ vulnerabilitySummary, policyViolation
   const { severe: severePolicyViolations, critical: criticalPolicyViolations } = policyViolationSummary;
 
   return (
-    <NxTile id="sbom-manager-component-detail-tile" className="sbom-manager-component-detail-tile">
+    <NxTile className="sbom-manager-component-detail-tile">
       <NxTile.Header>
         <NxTile.HeaderTitle>
           <NxH2>Component Summary</NxH2>
         </NxTile.HeaderTitle>
       </NxTile.Header>
-      <NxTile.Content className="sbom-manager-component-detail-tile__content">
-        {highestCvssScore !== undefined && (
-          <div className="sbom-manager-component-detail-tile__highest-cvss-score">
-            <div>
-              <b>Highest CVSS Score</b>
-            </div>
-            <div>
+      <NxTile.Content>
+        <NxReadOnly className="nx-read-only--grid sbom-manager-component-detail-tile__content">
+          <NxReadOnly.Item className="sbom-manager-component-detail-tile__highest-cvss-score">
+            <NxReadOnly.Label>Highest CVSS Score</NxReadOnly.Label>
+            <NxReadOnly.Data>
               <NxThreatIndicator
                 policyThreatLevel={allThreatLevelNumbers.find((n) => n === Math.floor(highestCvssScore))}
                 presentational
-                className="threat-indicator-icon"
               />
               <span data-testid="highestCvssScore">{highestCvssScore}</span>
-            </div>
-          </div>
-        )}
-        {(verifiedVulnerabilitiesCount !== undefined || unverifiedVulnerabilitiesCount !== undefined) && (
-          <div className="sbom-manager-component-detail-tile__vulnerabilities-verified">
-            <div>
-              <b>Vulnerabilities Verified</b>
-            </div>
-            <div className="sbom-manager-component-detail-tile__vulnerabilities-verified__content">
+            </NxReadOnly.Data>
+          </NxReadOnly.Item>
+          {(verifiedVulnerabilitiesCount !== undefined || unverifiedVulnerabilitiesCount !== undefined) && (
+            <NxReadOnly.Item className="sbom-manager-component-detail-tile__vulnerabilities-verified">
+              <NxReadOnly.Label>Vulnerabilities Verified</NxReadOnly.Label>
               {verifiedVulnerabilitiesCount !== undefined && (
-                <div>
+                <NxReadOnly.Data>
                   <NxFontAwesomeIcon className="sbom-verified-icon" icon={faCheckCircle} />
                   <span data-testid="verified">
                     <b>{verifiedVulnerabilitiesCount}</b> Sonatype Verified
                   </span>
-                </div>
+                </NxReadOnly.Data>
               )}
               {unverifiedVulnerabilitiesCount !== undefined && (
-                <div>
+                <NxReadOnly.Data>
                   <NxFontAwesomeIcon className="sbom-unverified-icon" icon={faExclamationTriangle} />
                   <span data-testid="unverified">
                     <b>{unverifiedVulnerabilitiesCount}</b> Unverified
                   </span>
-                </div>
+                </NxReadOnly.Data>
               )}
-            </div>
-          </div>
-        )}
-        {isSbomPoliciesSupported && (
-          <div className="sbom-manager-component-detail-tile__policy-violations">
-            <div>
-              <b>Policy Violations</b>
-            </div>
-            <div className="sbom-manager-component-detail-tile__policy-violations__content">
-              <div className="policy-violations-threat-counter">
-                <NxSmallThreatCounter data-testid="severe-threat-counter" severeCount={severePolicyViolations || 0} />
-                <p>Severe</p>
-              </div>
-              <div className="policy-violations-threat-counter">
+            </NxReadOnly.Item>
+          )}
+          {isSbomPoliciesSupported && (
+            <NxReadOnly.Item className="sbom-manager-component-detail-tile__policy-violations">
+              <NxReadOnly.Label>Policy Violations</NxReadOnly.Label>
+              <NxReadOnly.Data className="policy-violations-threat-counter">
                 <NxSmallThreatCounter
                   data-testid="critical-threat-counter"
                   criticalCount={criticalPolicyViolations || 0}
                 />
-                <p>Critical</p>
-              </div>
-            </div>
-          </div>
-        )}
+                <span className="critical-threat-category">Critical</span>
+              </NxReadOnly.Data>
+              <NxReadOnly.Data className="policy-violations-threat-counter">
+                <NxSmallThreatCounter data-testid="severe-threat-counter" severeCount={severePolicyViolations || 0} />
+                <span>Severe</span>
+              </NxReadOnly.Data>
+            </NxReadOnly.Item>
+          )}
+        </NxReadOnly>
       </NxTile.Content>
     </NxTile>
   );

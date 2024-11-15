@@ -24,6 +24,7 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -142,7 +143,7 @@ public class SbomResultsMergerTest
     PackageUrlIdentifier purl4 =
         new PackageUrlIdentifier("pkg:maven/com.sun.istack/istack-commons-runtime@4.1.2?type=jar");
 
-    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile("binary.temp");
     Application app = tempEntity.newApplicationWithParent();
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
     ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(app.getId(), "1", file, "PENDING");
@@ -220,6 +221,10 @@ public class SbomResultsMergerTest
 
     //verify original SBOM
     Bom originalBom = merger.getOriginalBom();
+    assertThat(originalBom.getProperties()).hasSize(1);
+    assertThat(originalBom.getProperties().get(0).getName())
+        .isEqualTo(SbomTaxonomy.CDX_ORIGINAL_FILE_PROPERTY_NAME);
+    assertThat(originalBom.getProperties().get(0).getValue()).isEqualTo("binary.temp");
     assertThat(originalBom.getComponents()).hasSize(4)
         .allSatisfy(component -> assertThat(component.getProperties()).isNull());
     Component bomComponent =
@@ -284,7 +289,7 @@ public class SbomResultsMergerTest
   {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
-    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile("binary.temp");
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
     ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(null, "1", file, "PENDING");
 
@@ -470,7 +475,7 @@ public class SbomResultsMergerTest
   {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
-    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile("binary.temp");
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
     ThirdPartySbomMetadata sbomMetadata = tempEntity.createSbomMetadataForBinaryScan(null, "1", file, "PENDING");
 
@@ -1104,7 +1109,7 @@ public class SbomResultsMergerTest
   {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
-    final ThirdPartyFile file = tempEntity.newThirdPartyFile();
+    final ThirdPartyFile file = tempEntity.newThirdPartyFile("binary.temp");
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
 
     // Record existing in db before importing

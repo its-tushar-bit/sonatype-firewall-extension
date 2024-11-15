@@ -71,5 +71,11 @@
         "07b6716f2d40409aadb83f37422a4bba"
       ]
     }
+  ],
+  "properties" : [
+    {
+      "name" : "sonatype:original_file",
+      "value" : "binary.temp"
+    }
   ]
 }

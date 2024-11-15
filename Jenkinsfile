@@ -138,15 +138,15 @@ make(
         postBuild()
     },
     onUnstable: {
-      if (!isMergeQueueBranch(env)) {
         postBuild()
-      }
     }
 )
 
 void postBuild() {
-  pushDockerImageIfDeployBranch()
-  pushMTIQDockerImage()
+  if (!isMergeQueueBranch(env)) {
+    pushDockerImageIfDeployBranch()
+    pushMTIQDockerImage()
+  }
 }
 
 void configureBranchJob() {

@@ -12,7 +12,7 @@ import java.util.List;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 
-import io.dropwizard.server.DefaultServerFactory;
+import io.dropwizard.core.server.DefaultServerFactory;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,11 +53,11 @@ public class AssetsTest
 
     response = restRequest().path("bundle.js").get();
     assertResponseStatus(200, response);
-    assertThat(response.getContentType()).isEqualToIgnoringCase("application/javascript;charset=UTF-8");
+    assertThat(response.getContentType()).isEqualToIgnoringCase("text/javascript;charset=UTF-8");
 
     response = restRequest().path("fonts/glyphicons-regular.woff").get();
     assertResponseStatus(200, response);
-    assertThat(response.getContentType()).isEqualToIgnoringCase("application/font-woff;charset=UTF-8");
+    assertThat(response.getContentType()).isEqualToIgnoringCase("font/woff;charset=utf-8");
   }
 
   @Test

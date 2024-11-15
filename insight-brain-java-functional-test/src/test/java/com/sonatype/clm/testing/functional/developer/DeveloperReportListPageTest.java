@@ -8,7 +8,6 @@ package com.sonatype.clm.testing.functional.developer;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Calendar;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxDropdown;
@@ -16,16 +15,12 @@ import com.sonatype.clm.testing.functional.elements.NxTree;
 import com.sonatype.clm.testing.functional.elements.componentdetails.DependencyTreeTile;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
-import com.sonatype.clm.testing.functional.pages.PrioritiesPage;
 import com.sonatype.clm.testing.functional.pages.DeveloperReportListPage;
+import com.sonatype.clm.testing.functional.pages.PrioritiesPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.model.policy.stages.SourceStageType;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -49,8 +44,6 @@ import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrollIntoVie
 public class DeveloperReportListPageTest
     extends AbstractFunctionalTest
 {
-  private static final int TOTAL_APPS_FOR_PRIORITIES_PAGE = 20;
-
   private static final int TOTAL_PRIORITIES_PER_PAGE = 15;
 
   private final ApplicationReportPage reportPage = new ApplicationReportPage();
@@ -193,7 +186,6 @@ public class DeveloperReportListPageTest
     catch (IOException e) {
       throw new RuntimeException(e);
     }
-    setUpAppsForExtras(2);
   }
 
   private void setUpMainApp(int id, String reportResourceName) throws IOException {
@@ -209,47 +201,5 @@ public class DeveloperReportListPageTest
     TestReportEvaluator evaluator =
         new TestReportEvaluator(app, "scan-" + id, zippedReport, baseUrlFromTest, work);
     evaluator.evaluatePolicy();
-  }
-
-  private void setUpAppsForExtras( int offset) {
-    for (int i = offset; i < TOTAL_APPS_FOR_PRIORITIES_PAGE + offset; i++) {
-      final Application application = tempEntity.newApplicationWithParent("extraAppId" + i, "extraAppName" + i);
-
-      // The extras can be of type Source or Build
-      final String stageId = i % 2 == 0 ? SourceStageType.ID : BuildStageType.ID;
-
-      // Evaluate an app and create a report for the priorities page to use
-      evaluate(application, i, stageId, "/canned-reports/small-report");
-
-      // Set total risk at the build stage
-      final PolicyEvaluation policyEvaluation =
-          tempEntity.newPolicyEvaluation(application.getId(), stageId, "extraScan-" + i,
-              getCalendarForOldEval().getTime());
-      final Policy policy = tempEntity.newPolicy(application);
-      // between 1 and 5
-      policy.setThreatLevel(i % 5 + 1);
-      tempEntity.newPolicyViolation(policyEvaluation, policy);
-    }
-  }
-
-  private static Calendar getCalendarForOldEval() {
-    Calendar calendarForOldEval = Calendar.getInstance();
-    calendarForOldEval.add(Calendar.DATE, -100);
-    return calendarForOldEval;
-  }
-
-  private void evaluate(
-      final Application application, final int scanNum, final String stageId, final String reportResourceName)
-  {
-    final URL zippedReport = ReportHelper.zipReport(reportResourceName, tempDir);
-    final InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
-    final TestReportEvaluator evaluator =
-        new TestReportEvaluator(application, "scan-" + scanNum, zippedReport, baseUrlFromTest, work, stageId);
-    try {
-      evaluator.evaluatePolicy();
-    }
-    catch (final IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 }

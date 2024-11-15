@@ -49,6 +49,7 @@ import com.sonatype.nexus.git.utils.Environment.AzureDevOpsCI;
 import com.sonatype.nexus.git.utils.Environment.GitLabCI;
 import com.sonatype.nexus.git.utils.commit.CommitHashFinderBuilder;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
@@ -368,10 +369,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     PolicyEvaluationResult policyEvaluationResult = eval.getResult();
-    ApiCallFlowAnalysisConfigDTO iqCallFlowParams = fetchCallFlowAnalysisConfig(params, restClient);
-    if (shouldRunCallFlowAnalysis(iqCallFlowParams, params)) {
-      policyEvaluationResult = runCallFlowAnalysis(restClient, eval, params, iqCallFlowParams);
-    }
+    policyEvaluationResult = enrichResultIfCallFlowAnalysisEnabled(params, restClient, eval, policyEvaluationResult);
 
     log.info("");
     log.info("");
@@ -397,6 +395,24 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     processResults(params, eval.getScanReceipt(), policyEvaluationResult, outcome, restClient);
   }
 
+  @VisibleForTesting
+  PolicyEvaluationResult enrichResultIfCallFlowAnalysisEnabled(
+      final P params,
+      final RestClient restClient,
+      final PolicyEvaluationPollingResult eval,
+      PolicyEvaluationResult policyEvaluationResult) throws ExitException
+  {
+    // If call flow analysis is not enabled, don't bother fetching the config
+    if (params.isRunCallFlowAnalysis() || params.getCallFlowAnalysisNamespaces() != null) {
+      ApiCallFlowAnalysisConfigDTO iqCallFlowParams = fetchCallFlowAnalysisConfig(params, restClient);
+      if (iqCallFlowParams != null && iqCallFlowParams.enabled) {
+        policyEvaluationResult = runCallFlowAnalysis(restClient, eval, params, iqCallFlowParams);
+      }
+    }
+    // If call flow analysis is not enabled or fetched config forbids doing call flow analysis, return original result
+    return policyEvaluationResult;
+  }
+
   private ApiCallFlowAnalysisConfigDTO fetchCallFlowAnalysisConfig(P params, RestClient restClient) {
     try {
       return restClient.getCallFlowAnalysisConfig("application", params.getApplicationId());
@@ -411,11 +427,6 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
           params.getApplicationId());
     }
     return null;
-  }
-
-  private boolean shouldRunCallFlowAnalysis(ApiCallFlowAnalysisConfigDTO iqCallFlowParams, P params) {
-    return (iqCallFlowParams != null && iqCallFlowParams.enabled) ||
-        params.isRunCallFlowAnalysis() || params.getCallFlowAnalysisNamespaces() != null;
   }
 
   protected RestClient createClient(Configuration configuration) {

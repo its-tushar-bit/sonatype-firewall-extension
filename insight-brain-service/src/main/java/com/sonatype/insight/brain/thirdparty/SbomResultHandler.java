@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
-import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,8 +46,9 @@ import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-import com.sonatype.insight.scan.file.InvalidSbomException;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.file.SbomProcessingException;
+import com.sonatype.insight.scan.file.SbomValidationException;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -68,7 +68,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclonedx.Version;
 import org.cyclonedx.exception.GeneratorException;
-import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.generators.BomGeneratorFactory;
 import org.cyclonedx.generators.xml.BomXmlGenerator;
 import org.cyclonedx.model.Bom;
@@ -204,7 +203,7 @@ public class SbomResultHandler
   }
 
   //visible for testing
-  Bom parseBom(final ThirdPartyScanContent content) throws ParseException, IOException {
+  Bom parseBom(final ThirdPartyScanContent content) throws SbomProcessingException {
     String extension = FilenameUtils.getExtension(content.getPath());
     SbomFormat sbomFormat = SbomFormat.forString(extension.toLowerCase(Locale.ROOT));
     componentInfoTelemetry.setContentType(sbomFormat.name());
@@ -212,7 +211,7 @@ public class SbomResultHandler
     try {
       return ThirdPartyUtils.parseAndValidateCycloneDx(content.getContent(), sbomFormat);
     }
-    catch (InvalidSbomException ex) {
+    catch (SbomValidationException ex) {
       isSbomValid = false;
       if (SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled()) {
         log.info("SBOM validation skipped per configuration");

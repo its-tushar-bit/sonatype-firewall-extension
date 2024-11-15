@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.sbom.utils;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,11 +25,14 @@ import javax.xml.parsers.SAXParserFactory;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.utils.AutoDeletingTempFile;
-import com.sonatype.insight.scan.file.InvalidSbomException;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.file.SbomProcessingException;
+import com.sonatype.insight.scan.file.SbomValidationException;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.UnsupportedSbomException;
+import com.sonatype.insight.scan.file.ValidationException;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
@@ -42,6 +44,7 @@ import org.apache.tika.Tika;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
+import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spdx.library.InvalidSPDXAnalysisException;
@@ -50,9 +53,9 @@ import org.spdx.library.model.SpdxPackage;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
+import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML;
 import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
@@ -74,21 +77,6 @@ public class SbomFileDetector
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   private static final SAXParserFactory saxParserFactory;
-
-  public SbomDetectionResult getSbomDetectionResult(final InputStream sbomInputStream) {
-    if (sbomInputStream == null) {
-      return sbomDetectionErrorResult("Provided content is not recognizable as an SBOM.", null);
-    }
-
-    try (AutoDeletingTempFile tempFile = new AutoDeletingTempFile()) {
-      Files.copy(sbomInputStream, tempFile.getPath(), REPLACE_EXISTING);
-      return detect(tempFile.getPath().toFile());
-    }
-    catch (IOException e) {
-      log.error("error detecting SBOM metadata", e);
-      return sbomDetectionErrorResult("Internal error in processing SBOM.", e);
-    }
-  }
 
   public SbomDetectionResult getSbomDetectionResult(String sbomString) {
     if (StringUtils.isBlank(sbomString)) {
@@ -194,7 +182,7 @@ public class SbomFileDetector
       sbomResult.errorMessage = e.getMessage();
       sbomResult.validationErrors = getErrors(e);
     }
-    catch (InvalidSbomException e) {
+    catch (SbomProcessingException e) {
       log.debug("error parsing content as sbom", e);
       sbomResult.errorMessage = "Not a valid SPDX SBOM file.";
       sbomResult.validationErrors = getErrors(e);
@@ -211,7 +199,7 @@ public class SbomFileDetector
         bom = ThirdPartyUtils.parseAndValidateCycloneDx(fileContent,
             Objects.requireNonNull(sbomFormat));
       }
-      catch (InvalidSbomException ex) {
+      catch (SbomValidationException ex) {
         if (SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled()) {
           log.info("Validation was skipped due to system property skipSbomImportValidation being enabled.");
           bom = ThirdPartyUtils.parseCycloneDxWithNoValidation(fileContent,
@@ -229,7 +217,7 @@ public class SbomFileDetector
       sbomResult.errorMessage = e.getMessage();
       sbomResult.validationErrors = getErrors(e);
     }
-    catch (IOException | ParseException | InvalidSbomException e) {
+    catch (SbomProcessingException e) {
       log.debug("error parsing content as sbom", e);
       sbomResult.errorMessage = "Not a valid CycloneDX SBOM file.";
       sbomResult.validationErrors = getErrors(e);
@@ -241,27 +229,109 @@ public class SbomFileDetector
     if (t == null) {
       return null;
     }
-    List<String> errors = new ArrayList<>();
-    populateErrors(new HashSet<>(), t, errors);
-    if (errors.isEmpty()) {
+    List<ValidationException> validationExceptions = new ArrayList<>();
+    populateErrors(new HashSet<>(), t, validationExceptions);
+    removeDuplicates(validationExceptions);
+    if (validationExceptions.isEmpty()) {
       return null;
     }
-    return errors;
+    return validationExceptions.stream().map(ValidationException::getMessage).toList();
   }
 
-  private void populateErrors(final Set<Throwable> processed, final Throwable t, final List<String> errors) {
+  private void populateErrors(
+      final Set<Throwable> processed,
+      final Throwable t,
+      final List<ValidationException> validationExceptions)
+  {
     if (!processed.add(t)) {
       return;
     }
-    if (t instanceof ParseException || t instanceof InvalidSPDXAnalysisException) {
-      errors.add(t.getMessage());
+    if (t instanceof ValidationException validationException) {
+      validationExceptions.add(validationException);
+    }
+    else if (t instanceof JsonParseException jsonParseException) {
+      validationExceptions.add(new ValidationException(jsonParseException));
+    }
+    else if (t instanceof SAXParseException saxParseException) {
+      validationExceptions.add(new ValidationException(saxParseException));
+    }
+    else if (t instanceof ParseException ||
+        t instanceof InvalidSPDXAnalysisException ||
+        t instanceof JSONException
+    ) {
+      validationExceptions.add(new ValidationException(t));
     }
     for (Throwable child : t.getSuppressed()) {
-      populateErrors(processed, child, errors);
+      populateErrors(processed, child, validationExceptions);
     }
     if (t.getCause() != null) {
-      populateErrors(processed, t.getCause(), errors);
+      populateErrors(processed, t.getCause(), validationExceptions);
     }
+  }
+
+  private void removeDuplicates(final List<ValidationException> validationExceptions) {
+    for (int i = validationExceptions.size() - 1; i >= 0; i--) {
+      ValidationException validationException1 = validationExceptions.get(i);
+      for (int j = i - 1; j >= 0; j--) {
+        ValidationException validationException2 = validationExceptions.get(j);
+        int redundantIndex = getRedundantIndex(validationException1, validationException2);
+        if (redundantIndex == 0) {
+          validationExceptions.remove(i);
+          break;
+        }
+        else if (redundantIndex == 1) {
+          validationExceptions.remove(j);
+          i--;
+        }
+      }
+    }
+  }
+
+  private int getRedundantIndex(
+      final ValidationException validationException,
+      final ValidationException otherValidationException)
+  {
+    String errorMessage = validationException.getOriginalMessage();
+    String otherErrorMessage = otherValidationException.getOriginalMessage();
+
+    // The error messages are not similar enough for either to be considered redundant
+    if (!errorMessage.contains(otherErrorMessage) && !otherErrorMessage.contains(errorMessage)) {
+      return -1;
+    }
+
+    // The errors have different locations
+    if (validationException.getLine() != null && otherValidationException.getLine() != null &&
+        !Objects.equals(validationException.getLine(), otherValidationException.getLine())) {
+      return -1;
+    }
+    if (validationException.getColumn() != null && otherValidationException.getColumn() != null &&
+        !Objects.equals(validationException.getColumn(), otherValidationException.getColumn())) {
+      return -1;
+    }
+    if (validationException.getPath() != null && otherValidationException.getPath() != null &&
+        !Objects.equals(validationException.getPath(), otherValidationException.getPath())) {
+      return -1;
+    }
+
+    // Which error has less information
+    return countParts(validationException) < countParts(otherValidationException) ? 0 : 1;
+  }
+
+  private int countParts(final ValidationException validationException) {
+    int count = 0;
+    if (validationException.getLine() != null) {
+      count++;
+    }
+    if (validationException.getColumn() != null) {
+      count++;
+    }
+    if (validationException.getPath() != null) {
+      count++;
+    }
+    if (validationException.getOriginalMessage() != null) {
+      count++;
+    }
+    return count;
   }
 
   private void populateSpdxResult(

@@ -45,8 +45,8 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-import com.sonatype.insight.scan.file.InvalidSbomException;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.file.SbomProcessingException;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.UnsupportedSbomException;
 import com.sonatype.insight.scan.model.ProjectScanItem;
@@ -1097,7 +1097,7 @@ public class SbomResultHandlerTest
   public void testHandleAndFilterContents_invalidSbom_content() throws Exception {
     testHandleAndFilterContents_invalid_sbom(getSbomXmlFile("scan-with-invalid-license-id.xml"),
         "scan-with-invalid-sbom-data-cli.xml");
-    assertThat(logOutputUtils.getErrorMessages(ThirdPartyUtils.class.getName()))
+    assertThat(logOutputUtils.getDebugMessages(ThirdPartyUtils.class.getName()))
         .contains("The sbom is not valid. There were 2 errors.");
   }
 
@@ -2254,7 +2254,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-v1_4-invalid-bom.xml", null, null, null,
             getSbomXmlFile("sbom-v1_4-invalid-bom.xml"));
-    assertThatExceptionOfType(InvalidSbomException.class)
+    assertThatExceptionOfType(SbomProcessingException.class)
         .isThrownBy(() -> sbomResultHandler.parseBom(content));
   }
 

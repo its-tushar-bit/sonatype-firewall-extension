@@ -26,10 +26,11 @@ import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.thirdparty.SbomIdentityUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-import com.sonatype.insight.scan.file.InvalidSbomException;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.file.SbomValidationException;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.UnsupportedSbomException;
+import com.sonatype.insight.scan.file.ValidationException;
 
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
@@ -110,7 +111,7 @@ public final class SbomSpdxUtils
   }
 
   public static void validateDocument(SbomFormat format, SpdxDocument spdxDocument)
-      throws UnsupportedSbomException
+      throws UnsupportedSbomException, SbomValidationException
   {
     if (format != null) {
       try {
@@ -132,17 +133,17 @@ public final class SbomSpdxUtils
     }
   }
 
-  private static void validateSpdx(SpdxDocument spdxDocument) {
+  private static void validateSpdx(SpdxDocument spdxDocument) throws SbomValidationException {
     List<String> verificationErrors = spdxDocument.verify().stream()
         .filter(s -> !DEPRECATION_PATTERN.matcher(s).matches())
-        .collect(Collectors.toList());
+        .toList();
 
     if (!verificationErrors.isEmpty()) {
-      InvalidSbomException invalidSbomException = new InvalidSbomException("The spdx document is not valid.");
+      SbomValidationException sbomValidationException = new SbomValidationException("The spdx document is not valid.");
       // the "Relationship error: " prefix is added sometimes multiple times and doesn't bring any value in itself
-      verificationErrors.forEach(ve -> invalidSbomException.addSuppressed(
-          new InvalidSPDXAnalysisException(ve.replace("Relationship error: ", ""))));
-      throw invalidSbomException;
+      verificationErrors.forEach(ve -> sbomValidationException.addSuppressed(
+          new ValidationException(null, null, null, ve.replace("Relationship error: ", ""), null)));
+      throw sbomValidationException;
     }
   }
 

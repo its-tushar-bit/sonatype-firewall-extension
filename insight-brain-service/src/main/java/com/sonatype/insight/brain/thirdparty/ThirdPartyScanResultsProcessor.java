@@ -54,7 +54,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.Xpp3Util;
 import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.insight.scan.file.InvalidSbomException;
+import com.sonatype.insight.scan.file.SbomProcessingException;
 import com.sonatype.insight.scan.file.UnsupportedSbomException;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.scan.model.ProjectScanItem;
@@ -454,7 +454,7 @@ public class ThirdPartyScanResultsProcessor
     try {
       SbomDetectionResult sbomDetectionResult = sbomFileDetector.getSbomDetectionResult(sbomContent);
       if (sbomDetectionResult == null || sbomDetectionResult.summary == null) {
-        throw new InvalidSbomException("SBOM metadata could not be identified.");
+        throw new SbomProcessingException("SBOM metadata could not be identified.");
       }
       ThirdPartySbomMetadata thirdPartySbomMetadata = getSbomMetadataEntity(scanContext, sbomDetectionResult);
       sbomMetadataUtils.insertThirdPartySbomMetadataWithRetry(thirdPartySbomMetadata);
@@ -462,7 +462,7 @@ public class ThirdPartyScanResultsProcessor
 
       AuditData.get().setSbomVersion(thirdPartySbomMetadata, SbomAction.CREATE);
     }
-    catch (InvalidSbomException | UnsupportedSbomException ex) {
+    catch (SbomProcessingException | UnsupportedSbomException ex) {
       log.debug("there was an error while trying to save sbom metadata", ex);
     }
   }

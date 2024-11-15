@@ -368,8 +368,8 @@ public class SbomImportServiceTest
     assertThat(actual.getSbomSummary()).isNull();
     assertThat(actual.getErrorMessage()).isEqualTo("Not a valid SPDX SBOM file.");
     assertThat(actual.getValidationErrors()).containsExactly(
-        "Missing required Creator",
-        "Missing required data license"
+        "Error: Missing required Creator",
+        "Error: Missing required data license"
     );
   }
 

@@ -50,8 +50,9 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.application.ScannerDriver;
-import com.sonatype.insight.scan.file.InvalidSbomException;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.file.SbomProcessingException;
+import com.sonatype.insight.scan.file.SbomValidationException;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.file.UnsupportedSbomException;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -59,10 +60,8 @@ import com.sonatype.insight.scan.model.ItemContentType;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
-import org.cyclonedx.exception.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spdx.library.InvalidSPDXAnalysisException;
 
 /**
  * @since 1.76
@@ -161,7 +160,7 @@ public class ApiThirdPartyScanService
         try {
           ThirdPartyUtils.parseAndValidateCycloneDx(sbom, format);
         }
-        catch (InvalidSbomException ex) {
+        catch (SbomValidationException ex) {
           if (SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled()) {
             ThirdPartyUtils.parseCycloneDxWithNoValidation(sbom, format);
             log.info("SBOM validation skipped per configuration");
@@ -174,15 +173,15 @@ public class ApiThirdPartyScanService
         return ItemContentType.SBOM;
       }
     }
-    catch (ParseException | IOException | InvalidSPDXAnalysisException e) {
-      throw new BadRequestException("sbom content cannot be parsed", e);
-    }
-    catch (InvalidSbomException | UnsupportedSbomException e) {
+    catch (SbomValidationException | UnsupportedSbomException e) {
       StringBuilder message = new StringBuilder(e.getMessage());
       for (Throwable suppressedEx : e.getSuppressed()) {
         message.append("\n - ").append(suppressedEx.getMessage());
       }
       throw new NotAcceptableException(message.toString());
+    }
+    catch (SbomProcessingException e) {
+      throw new BadRequestException("SBOM content cannot be parsed.", e);
     }
   }
 

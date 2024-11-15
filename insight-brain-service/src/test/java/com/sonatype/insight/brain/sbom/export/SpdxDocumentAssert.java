@@ -19,6 +19,7 @@ import java.util.Set;
 
 import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.file.SbomValidationException;
 import com.sonatype.insight.scan.file.UnsupportedSbomException;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -101,7 +102,7 @@ public class SpdxDocumentAssert
       SbomSpdxUtils.validateDocument(this.sbomFormat, actual);
       return this;
     }
-    catch (UnsupportedSbomException e) {
+    catch (UnsupportedSbomException | SbomValidationException e) {
       throw assertionError(shouldNotHaveThrown(e));
     }
   }

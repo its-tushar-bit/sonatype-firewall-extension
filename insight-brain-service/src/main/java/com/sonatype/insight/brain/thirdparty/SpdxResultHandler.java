@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -44,6 +43,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.file.SbomProcessingException;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -700,7 +700,7 @@ public class SpdxResultHandler
   }
 
   private SpdxDocument parseSpdxContent(final ThirdPartyScanContent content)
-      throws IOException, InvalidSPDXAnalysisException
+      throws SbomProcessingException
   {
     String extension = FilenameUtils.getExtension(content.getPath());
     SbomFormat sbomFormat = SbomFormat.forString(extension.toLowerCase(Locale.ROOT));

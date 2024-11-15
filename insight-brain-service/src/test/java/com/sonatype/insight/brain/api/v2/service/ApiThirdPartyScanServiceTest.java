@@ -120,7 +120,7 @@ public class ApiThirdPartyScanServiceTest
   @Test
   public void testScanComponents_spdx_2_3_xml_invalid() throws Exception {
     testScanComponentsWithFailure("invalid_spdx_2_3.xml", SbomFormat.XML,
-        "The sbom is not valid.\n - Missing required creators");
+        "The sbom is not valid.\n - Error: Missing required creators");
   }
 
   @Test
@@ -401,7 +401,7 @@ public class ApiThirdPartyScanServiceTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> thirdPartyScanService.scanComponents(appId, "clair", "build", bom, null,
             SbomFormat.JSON))
-        .withMessage("sbom content cannot be parsed");
+        .withMessage("SBOM content cannot be parsed.");
   }
 
   @Test
@@ -411,7 +411,7 @@ public class ApiThirdPartyScanServiceTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> thirdPartyScanService.scanComponents(appId, "clair", "build", bom, null,
             SbomFormat.XML))
-        .withMessage("sbom content cannot be parsed");
+        .withMessage("SBOM content cannot be parsed.");
   }
 
   private void testScanComponents_Invalid_Content(String fileName) throws Exception {

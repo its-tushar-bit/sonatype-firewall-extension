@@ -138,7 +138,9 @@ make(
         postBuild()
     },
     onUnstable: {
+      if (!isMergeQueueBranch(env)) {
         postBuild()
+      }
     }
 )
 
@@ -362,18 +364,19 @@ Map<String, Closure> getParallelTests() {
   }
 
   // These tests make use of iq-tests.zip which does not include insight-brain-frontend (1.2GB)
-  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 A', 'OpenJDK 17', '.*/[A].*Test.class', zips)
-  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 B', 'OpenJDK 17', '.*/[B].*Test.class', zips)
-  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 D-G', 'OpenJDK 17', '.*/[D-G].*Test.class', zips)
-  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 H-J', 'OpenJDK 17', '.*/[H-K].*Test.class', zips)
-  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 L-N', 'OpenJDK 17', '.*/[L-N].*Test.class', zips)
-  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 O-P', 'OpenJDK 17', '.*/[O-P].*Test.class', zips)
-  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 R + T', 'OpenJDK 17', '.*/[RT].*Test.class', zips)
-  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 S', 'OpenJDK 17', '.*/[S].*Test.class', zips)
-  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 C + U-Z', 'OpenJDK 17', '.*/[CU-Z].*Test.class', zips)
-  testStages << createMtiqUnitTests('MTIQ Unit and Integration Tests - OpenJDK 17', 'OpenJDK 17', zips)
-  testStages << createFrontendTests('Frontend Tests - Jasmine/Jest', zips)
-
+  if (isUnitTestsEnabled()) {
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 A', 'OpenJDK 17', '.*/[A].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 B', 'OpenJDK 17', '.*/[B].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 D-G', 'OpenJDK 17', '.*/[D-G].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 H-J', 'OpenJDK 17', '.*/[H-K].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 L-N', 'OpenJDK 17', '.*/[L-N].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 O-P', 'OpenJDK 17', '.*/[O-P].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 R + T', 'OpenJDK 17', '.*/[RT].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 S', 'OpenJDK 17', '.*/[S].*Test.class', zips)
+    testStages << createUnitTests('Unit and Integration Tests - OpenJDK 17 C + U-Z', 'OpenJDK 17', '.*/[CU-Z].*Test.class', zips)
+    testStages << createMtiqUnitTests('MTIQ Unit and Integration Tests - OpenJDK 17', 'OpenJDK 17', zips)
+    testStages << createFrontendTests('Frontend Tests - Jasmine/Jest', zips)
+  }
   return testStages
 }
 
@@ -534,7 +537,11 @@ void captureResultsAndCleanup() {
 }
 
 boolean isFunctionalTestsEnabled() {
-  return isDeployBranch(env, 'main') || isMergeQueueBranch(env) || params.functionalTestsEnabled
+  return isDeployBranch(env, 'main') || params.functionalTestsEnabled
+}
+
+boolean isUnitTestsEnabled() {
+  return !isMergeQueueBranch(env)
 }
 
 boolean isBuildCachingEnabled() {
@@ -550,12 +557,12 @@ boolean isFastCopyEnabled() {
 }
 
 boolean shouldRunPolicyEvaluation() {
-  return !isDynamicPolicyEvaluationEnabled() || haveDependenciesChanged(['pom.xml', 'package.json', 'yarn.lock'])
+  return !isMergeQueueBranch(env) && (!isDynamicPolicyEvaluationEnabled() || haveDependenciesChanged(['pom.xml', 'package.json', 'yarn.lock']))
 }
 
 boolean isMergeQueueBranch(env) {
   // BRANCH_NAME is only set for multi-branch pipelines, other pipelines need to fallback to GIT_BRANCH
   String branchName = env.BRANCH_NAME ?: gitBranch(env)
 
-  return branchName != null && branchName.startsWith('pr-')
+  return branchName != null && branchName.startsWith('gh-readonly-queue/main/pr-')
 }

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.security.oauth2;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +80,7 @@ public class OidcLoginFilterTest
     final ArgumentCaptor<String> indexUrlCaptor = ArgumentCaptor.forClass(String.class);
     final String issuer = idpServer.baseUrl();
     final String tokenUrl = String.format("%s/token", issuer);
+    final String expectedUrl = String.format("%s%s", BASE_URL, OidcLoginFilter.INDEX_HTML);
 
     when(mockBaseUrl.get()).thenReturn(BASE_URL);
     when(request.getCookies()).thenReturn(new Cookie[]{new Cookie(JwtAuthenticationFilter.ID_TOKEN_COOKIE, "JWT")});
@@ -90,7 +92,33 @@ public class OidcLoginFilterTest
 
     verify(response).sendRedirect(indexUrlCaptor.capture());
     verify(request).getCookies();
-    assertThat(indexUrlCaptor.getValue()).isEqualTo(String.format("%s%s", BASE_URL, OidcLoginFilter.INDEX_HTML));
+    assertThat(indexUrlCaptor.getValue()).isEqualTo(expectedUrl);
+  }
+
+  @Test
+  public void testDoFilter_RedirectsToIndexWithHashIfIdTokenCookieExistsAndHashParameterIsSent()
+      throws ServletException, IOException
+  {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    final HttpServletResponse response = mock(HttpServletResponse.class);
+    final ArgumentCaptor<String> indexUrlCaptor = ArgumentCaptor.forClass(String.class);
+    final String issuer = idpServer.baseUrl();
+    final String tokenUrl = String.format("%s/token", issuer);
+    final String hash = "#/dashboard/violations";
+    final String expectedUrl = String.format("%s%s%s", BASE_URL, OidcLoginFilter.INDEX_HTML, hash);
+
+    when(mockBaseUrl.get()).thenReturn(BASE_URL);
+    when(request.getCookies()).thenReturn(new Cookie[]{new Cookie(JwtAuthenticationFilter.ID_TOKEN_COOKIE, "JWT")});
+
+    tempEntity.newOidcConfiguration(issuer, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, tokenUrl);
+    when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_LOGIN);
+    when(request.getParameter("hash")).thenReturn(hash);
+
+    oidcLoginFilter.doFilter(request, response, null);
+
+    verify(response).sendRedirect(indexUrlCaptor.capture());
+    verify(request).getCookies();
+    assertThat(indexUrlCaptor.getValue()).isEqualTo(expectedUrl);
   }
 
   @Test
@@ -109,6 +137,7 @@ public class OidcLoginFilterTest
     final HttpServletRequest request = mock(HttpServletRequest.class);
     final HttpServletResponse response = mock(HttpServletResponse.class);
     final ArgumentCaptor<String> authorizationUrlCaptor = ArgumentCaptor.forClass(String.class);
+    final String expectedUrl = String.format("%s%s", BASE_URL, OidcLoginFilter.OAUTH_CALLBACK);
     when(mockBaseUrl.get()).thenReturn(BASE_URL);
 
     tempEntity.newOidcConfiguration(ISSUER, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, TOKEN_URL);
@@ -117,7 +146,27 @@ public class OidcLoginFilterTest
     oidcLoginFilter.doFilter(request, response, null);
 
     verify(response).sendRedirect(authorizationUrlCaptor.capture());
-    assertAuthorizationUrlIsTheExpected(authorizationUrlCaptor.getValue());
+    assertAuthorizationUrlIsTheExpected(authorizationUrlCaptor.getValue(), expectedUrl);
+  }
+
+  @Test
+  public void testDoFilter_Login_RedirectsToAuthorizationUrlWithHash() throws ServletException, IOException {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    final HttpServletResponse response = mock(HttpServletResponse.class);
+    final ArgumentCaptor<String> authorizationUrlCaptor = ArgumentCaptor.forClass(String.class);
+    final String hash = "#/dashboard/violations";
+    final String expectedUrl = String.format("%s%s?hash=%s", BASE_URL, OidcLoginFilter.OAUTH_CALLBACK,
+        URLEncoder.encode(hash, StandardCharsets.UTF_8));
+    when(mockBaseUrl.get()).thenReturn(BASE_URL);
+
+    tempEntity.newOidcConfiguration(ISSUER, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, TOKEN_URL);
+    when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_LOGIN);
+    when(request.getParameter("hash")).thenReturn(hash);
+
+    oidcLoginFilter.doFilter(request, response, null);
+
+    verify(response).sendRedirect(authorizationUrlCaptor.capture());
+    assertAuthorizationUrlIsTheExpected(authorizationUrlCaptor.getValue(), expectedUrl);
   }
 
   @Test
@@ -150,6 +199,7 @@ public class OidcLoginFilterTest
     tempEntity.newOidcConfiguration(issuer, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, tokenUrl);
     when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
     when(request.getParameter("code")).thenReturn("code");
+    when(request.getParameter("hash")).thenReturn("");
     idpServer.stubFor(post(urlPathEqualTo("/token"))
         .willReturn(aResponse()
             .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
@@ -167,6 +217,39 @@ public class OidcLoginFilterTest
   }
 
   @Test
+  public void testDoFilter_Callback_GetTokensAndRedirectsToIndexIncludingHash() throws ServletException, IOException {
+    final HttpServletRequest request = mock(HttpServletRequest.class);
+    final HttpServletResponse response = mock(HttpServletResponse.class);
+    final ArgumentCaptor<String> indexUrlCaptor = ArgumentCaptor.forClass(String.class);
+    final ArgumentCaptor<Cookie> cookieCaptor = ArgumentCaptor.forClass(Cookie.class);
+    final String issuer = idpServer.baseUrl();
+    final String hash = "#/dashboard/violations";
+    final String expectedUrl = String.format("%s%s%s", BASE_URL, OidcLoginFilter.INDEX_HTML, hash);
+    final String tokenUrl = String.format("%s/token", issuer);
+
+    when(mockBaseUrl.get()).thenReturn(BASE_URL);
+
+    tempEntity.newOidcConfiguration(issuer, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, tokenUrl);
+    when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
+    when(request.getParameter("code")).thenReturn("code");
+    when(request.getParameter("hash")).thenReturn(hash);
+    idpServer.stubFor(post(urlPathEqualTo("/token"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody(getTokensResponse("token-response.json"))));
+
+    oidcLoginFilter.doFilter(request, response, null);
+
+    verify(response).sendRedirect(indexUrlCaptor.capture());
+    verify(response).addCookie(cookieCaptor.capture());
+    assertThat(cookieCaptor.getValue().getName()).isEqualTo(JwtAuthenticationFilter.ID_TOKEN_COOKIE);
+    assertThat(cookieCaptor.getValue().getValue()).isNotBlank();
+    assertThat(cookieCaptor.getValue().isHttpOnly()).isTrue();
+    assertThat(cookieCaptor.getValue().getSecure()).isTrue();
+    assertThat(indexUrlCaptor.getValue()).isEqualTo(expectedUrl);
+  }
+
+  @Test
   public void testDoFilter_Callback_ThrowErrorIfNotAbleToBuildRequest() throws ServletException, IOException {
     final HttpServletRequest request = mock(HttpServletRequest.class);
     final HttpServletResponse response = mock(HttpServletResponse.class);
@@ -178,6 +261,8 @@ public class OidcLoginFilterTest
     tempEntity.newOidcConfiguration(issuer, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, tokenUrl);
     when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
     when(request.getParameter("code")).thenReturn("code");
+    when(request.getParameter("hash")).thenReturn("");
+
     idpServer.stubFor(post(urlPathEqualTo("/token"))
         .willReturn(aResponse()
             .withStatus(400)
@@ -200,6 +285,7 @@ public class OidcLoginFilterTest
     when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
     when(request.getParameter("error_description")).thenReturn(errorMessage);
     when(request.getParameter("code")).thenReturn("");
+    when(request.getParameter("hash")).thenReturn("");
 
     oidcLoginFilter.doFilter(request, response, null);
 
@@ -217,6 +303,7 @@ public class OidcLoginFilterTest
     tempEntity.newOidcConfiguration(ISSUER, CLIENT_ID, CLIENT_SECRET, AUTHORIZATION_URL, ":");
     when(request.getPathInfo()).thenReturn(OidcLoginFilter.OAUTH_CALLBACK);
     when(request.getParameter("code")).thenReturn("code");
+    when(request.getParameter("hash")).thenReturn("");
 
     oidcLoginFilter.doFilter(request, response, null);
 
@@ -246,13 +333,12 @@ public class OidcLoginFilterTest
     verifyNoMoreInteractions(writer);
   }
 
-  private static void assertAuthorizationUrlIsTheExpected(String authorizationUrl) {
+  private static void assertAuthorizationUrlIsTheExpected(String authorizationUrl, String expectedUrl) {
     QueryStringDecoder decoder = new QueryStringDecoder(authorizationUrl);
     Map<String, List<String>> parameters = decoder.parameters();
     assertThat(authorizationUrl).contains(AUTHORIZATION_URL);
     assertThat(parameters.get("client_id")).contains(CLIENT_ID);
-    assertThat(parameters.get("redirect_uri")).contains(
-        String.format("%s%s", BASE_URL, OidcLoginFilter.OAUTH_CALLBACK));
+    assertThat(parameters.get("redirect_uri")).contains(expectedUrl);
     assertThat(parameters.get("response_type")).contains("code");
     assertThat(parameters.get("state")).isNotEmpty();
     assertThat(parameters.get("nonce")).isNotEmpty();

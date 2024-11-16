@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.security.oauth2;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.stream.Stream;
 import javax.inject.Inject;
@@ -91,7 +93,8 @@ public class OidcLoginFilter
       throws IOException, ServletException
   {
     String path = req.getPathInfo();
-    String redirectUri = getRedirectUri();
+    String hash = req.getParameter("hash");
+    String encodedHash = StringUtils.isNotBlank(hash) ? URLEncoder.encode(hash, StandardCharsets.UTF_8) : hash;
 
     log.info("Calling OAuth endpoint {}", path);
 
@@ -105,18 +108,22 @@ public class OidcLoginFilter
       // Check if ID Token cookie is present, so no need to login again
       String idToken = getCookie(req, JwtAuthenticationFilter.ID_TOKEN_COOKIE);
       if (StringUtils.isNotBlank(idToken)) {
-        res.sendRedirect(redirectUri);
+        String redirectUrl = buildRedirectUrl(INDEX_HTML, hash, false);
+        res.sendRedirect(redirectUrl);
         return;
       }
 
       // Handles the login request by sending an authentication request
       if (path.contains(OAUTH_LOGIN)) {
-        sendAuthorizationRequest(res, oidcConfiguration);
+        String callbackUrl = buildRedirectUrl(OAUTH_CALLBACK, encodedHash, true);
+        sendAuthorizationRequest(res, oidcConfiguration, callbackUrl);
       }
 
       // Handles the callback request from the IDP to get the Access and ID tokens
       if (path.contains(OAUTH_CALLBACK)) {
-        handleCallbackAndSetAuthCookie(req, res, oidcConfiguration, redirectUri);
+        String callbackUrl = buildRedirectUrl(INDEX_HTML, encodedHash, true);
+        String redirectUrl = buildRedirectUrl(INDEX_HTML, hash, false);
+        handleCallbackAndSetAuthCookie(req, res, oidcConfiguration, callbackUrl, redirectUrl);
       }
     }
     catch (AuthenticationException e) {
@@ -125,16 +132,29 @@ public class OidcLoginFilter
     }
   }
 
-  private String getRedirectUri() {
-    return baseUrl.get() + INDEX_HTML;
+  private String buildRedirectUrl(final String path, final String hash, final boolean useQueryParamForHash) {
+    boolean hasHash = StringUtils.isNotBlank(hash);
+    StringBuilder redirect = new StringBuilder()
+        .append(baseUrl.get())
+        .append(path);
+
+    if (useQueryParamForHash && hasHash) {
+      redirect.append("?hash=");
+      redirect.append(hash);
+    }
+    else if (hasHash) {
+      redirect.append(hash);
+    }
+
+    return redirect.toString();
   }
 
-  private void sendAuthorizationRequest(final HttpServletResponse res, final OidcConfiguration oidcConfiguration)
+  private void sendAuthorizationRequest(
+      final HttpServletResponse res, final OidcConfiguration oidcConfiguration,
+      final String callbackUrl)
       throws IOException
   {
-    String callbackUri = baseUrl.get() + OAUTH_CALLBACK;
-
-    AuthenticationRequest authorizeUrlRequest = buildAuthenticationRequest(oidcConfiguration, callbackUri);
+    AuthenticationRequest authorizeUrlRequest = buildAuthenticationRequest(oidcConfiguration, callbackUrl);
 
     String authorizeUrl = authorizeUrlRequest.toURI().toString();
 
@@ -189,7 +209,8 @@ public class OidcLoginFilter
       final HttpServletRequest req,
       final HttpServletResponse res,
       final OidcConfiguration oidcConfiguration,
-      final String redirectUri)
+      final String callbackUrl,
+      final String redirectUrl)
   {
     String codeParameter = req.getParameter("code");
 
@@ -198,7 +219,7 @@ public class OidcLoginFilter
       throw new AuthenticationException(String.format(ERROR_AUTHORIZING_REQUEST, authErrorDescription));
     }
 
-    TokenRequest tokenRequest = buildTokenRequest(oidcConfiguration, redirectUri, codeParameter);
+    TokenRequest tokenRequest = buildTokenRequest(oidcConfiguration, callbackUrl, codeParameter);
 
     try {
       TokenResponse tokenResponse = OIDCTokenResponseParser.parse(tokenRequest.toHTTPRequest().send());
@@ -212,7 +233,7 @@ public class OidcLoginFilter
       OIDCTokenResponse successResponse = (OIDCTokenResponse) tokenResponse.toSuccessResponse();
       addSecureCookie(res, JwtAuthenticationFilter.ID_TOKEN_COOKIE, successResponse.getOIDCTokens().getIDTokenString());
 
-      res.sendRedirect(redirectUri);
+      res.sendRedirect(redirectUrl);
     }
     catch (Exception e) {
       log.error(ERROR_GETTING_TOKENS, e);

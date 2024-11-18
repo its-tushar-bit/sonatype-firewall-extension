@@ -32,8 +32,18 @@ export default function DashboardWaivers() {
 
   const isLoading = (!waivers.results && !waivers.error) || waiverSelector.waiverReasons.loading;
 
+  const modifiedWaivers = {
+    ...waivers,
+    results: waivers?.results
+      ? waivers.results.map((waiver) => ({
+          ...waiver,
+          expiryTime: waiver.expiryTime === null && waiver.isAutoWaiver ? -1 : waiver.expiryTime,
+        }))
+      : [],
+  };
+
   const tableProps = {
-    waivers,
+    waivers: modifiedWaivers,
     sortWaivers,
     dispatchPagination,
     stateGo,

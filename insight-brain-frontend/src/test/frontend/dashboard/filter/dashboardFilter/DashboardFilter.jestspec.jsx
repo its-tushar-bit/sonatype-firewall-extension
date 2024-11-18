@@ -36,20 +36,23 @@ import {
   getRepositoriesUrl,
 } from 'MainRoot/util/CLMLocation';
 import defaultFilter from 'MainRoot/dashboard/filter/defaultFilter';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('DashboardFilter', () => {
   const rootOrganizationId = 'ROOT_ORGANIZATION_ID';
   const group1Id = 'group-id-1';
 
-  let axiosMock;
+  let axiosMock, selectIsAutoWaiversSpy;
 
   beforeEach(() => {
+    selectIsAutoWaiversSpy = jest.spyOn(productFeaturesSelectors, 'selectIsAutoWaiversEnabled').mockReturnValue(true);
     axiosMock = axiosMockAdapter();
   });
 
   describe('filters conditional rendering', () => {
     it('renders only filters that are not conditional', async () => {
       renderComponent();
+      await waitFor(() => expect(screen.queryByText('Loading...')).not.toBeInTheDocument());
 
       let filters = within(getFilter()).getAllByRole('group');
       expect(filters.length).toBe(5);
@@ -324,6 +327,7 @@ describe('DashboardFilter', () => {
     });
 
     it('shows preloaded values for filters as checked when persisted', () => {
+      selectIsAutoWaiversSpy.mockReturnValue(false);
       renderComponent({
         dashboardFilter: getFilterState({
           showRepositoriesFilter: true,
@@ -421,6 +425,123 @@ describe('DashboardFilter', () => {
       fireEvent.click(within(expirationDateFilter).getByRole('button', { name: /Expiration Date/ }));
       const expirationDates = within(expirationDateFilter).getAllByRole('menuitemradio');
       expect(expirationDates.length).toBe(7);
+
+      const expirationDate = within(expirationDateFilter).getByLabelText('in 90 days');
+      expect(expirationDate).toBeVisible();
+      expect(expirationDate).toHaveAttribute('checked');
+
+      fireEvent.click(within(ageFilter).getByRole('button', { name: /Age/ }));
+      const age = within(ageFilter).getByLabelText('past 90 days');
+      expect(age).toBeVisible();
+      expect(age).toHaveAttribute('checked');
+
+      fireEvent.click(within(reasonFilter).getByRole('button', { name: /Reason/ }));
+      const reasons = within(reasonFilter).getAllByRole('menuitemcheckbox');
+      expect(reasons.length).toBe(4);
+
+      const reason = within(reasonFilter).getByLabelText('REASON-1');
+      expect(reason).toBeVisible();
+      expect(reason).toHaveAttribute('checked');
+    });
+
+    it('shows preloaded values for filters as checked when persisted with auto-waivers feature flag on', () => {
+      renderComponent({
+        dashboardFilter: getFilterState({
+          showRepositoriesFilter: true,
+          showStagesFilter: true,
+          showViolationStateFilter: true,
+          showExpirationDateFilter: true,
+          showAgeFilter: true,
+          showPolicyWaiverReasonFilter: true,
+          selected: getSelected({
+            organizations: new Set([group1Id]),
+            applications: new Set(['app-1-id']),
+            repositories: new Set(['repo123']),
+            categories: new Set(['cat']),
+            stages: new Set(['release']),
+            policyTypes: new Set(['QUALITY']),
+            policyViolationStates: new Set(['OPEN', 'LEGACY_VIOLATION']),
+            maxDaysOld: 90,
+            expirationDate: 'IN_90_DAYS',
+            policyThreatLevels: [2, 10],
+            policyWaiverReasonIds: new Set(['some-reason-id-1']),
+          }),
+        }),
+      });
+      const organizationsFilter = getAndAssertFilterExists(0, 'Organizations');
+      const applicationsFilter = getAndAssertFilterExists(1, 'Applications');
+      const repositoriesFilter = getAndAssertFilterExists(2, 'Repositories');
+      const categoriesFilter = getAndAssertFilterExists(3, 'Application Categories');
+      const stagesFilter = getAndAssertFilterExists(4, 'Stages');
+      const policyTypesFilter = getAndAssertFilterExists(5, 'Policy Types');
+      const violationStateFilter = getAndAssertFilterExists(6, 'Violation State');
+      const expirationDateFilter = getAndAssertFilterExists(7, 'Expiration Date');
+      const ageFilter = getAndAssertFilterExists(8, 'Age');
+      const reasonFilter = getAndAssertFilterExists(10, 'Reason');
+
+      fireEvent.click(within(organizationsFilter).getByRole('button', { name: /Organizations/ }));
+      const organizations = within(organizationsFilter).getAllByRole('menuitemcheckbox');
+      expect(organizations.length).toBe(2);
+
+      const organization = within(organizationsFilter).getByLabelText('group-1');
+      expect(organization).toBeVisible();
+      expect(organization).toHaveAttribute('checked');
+
+      fireEvent.click(within(applicationsFilter).getByRole('button', { name: /Applications/ }));
+      const applications = within(applicationsFilter).getAllByRole('menuitemcheckbox');
+      expect(applications.length).toBe(3);
+
+      const application = within(applicationsFilter).getByLabelText('App1');
+      expect(application).toBeVisible();
+      expect(application).toHaveAttribute('checked');
+
+      fireEvent.click(within(repositoriesFilter).getByRole('button', { name: /Repositories/ }));
+      const repositories = within(repositoriesFilter).getAllByRole('menuitemcheckbox');
+      expect(repositories.length).toBe(3);
+
+      const repository = within(repositoriesFilter).getByLabelText('maven-central - 12345-67890');
+      expect(repository).toBeVisible();
+      expect(repository).toHaveAttribute('checked');
+
+      fireEvent.click(within(categoriesFilter).getByRole('button', { name: /Categories/ }));
+      const categories = within(categoriesFilter).getAllByRole('menuitemcheckbox');
+      expect(categories.length).toBe(3);
+
+      const category = within(categoriesFilter).getByLabelText('Cat');
+      expect(category).toBeVisible();
+      expect(category).toHaveAttribute('checked');
+
+      fireEvent.click(within(stagesFilter).getByRole('button', { name: /Stages/ }));
+      const stages = within(stagesFilter).getAllByRole('menuitemcheckbox');
+      expect(stages.length).toBe(5);
+
+      const stage = within(stagesFilter).getByLabelText('Release');
+      expect(stage).toBeVisible();
+      expect(stage).toHaveAttribute('checked');
+
+      fireEvent.click(within(policyTypesFilter).getByRole('button', { name: /Policy Types/ }));
+      const policyTypes = within(policyTypesFilter).getAllByRole('menuitemcheckbox');
+      expect(policyTypes.length).toBe(5);
+
+      const policyType = within(policyTypesFilter).getByLabelText('Quality');
+      expect(policyType).toBeVisible();
+      expect(policyType).toHaveAttribute('checked');
+
+      fireEvent.click(within(violationStateFilter).getByRole('button', { name: /Violation State/ }));
+      const violationStates = within(violationStateFilter).getAllByRole('menuitemcheckbox');
+      expect(violationStates.length).toBe(4);
+
+      const violationState1 = within(violationStateFilter).getByLabelText('Open');
+      expect(violationState1).toBeVisible();
+      expect(violationState1).toHaveAttribute('checked');
+
+      const violationState2 = within(violationStateFilter).getByLabelText('Legacy');
+      expect(violationState2).toBeVisible();
+      expect(violationState2).toHaveAttribute('checked');
+
+      fireEvent.click(within(expirationDateFilter).getByRole('button', { name: /Expiration Date/ }));
+      const expirationDates = within(expirationDateFilter).getAllByRole('menuitemradio');
+      expect(expirationDates.length).toBe(8);
 
       const expirationDate = within(expirationDateFilter).getByLabelText('in 90 days');
       expect(expirationDate).toBeVisible();

@@ -129,7 +129,7 @@ function sortResultsFulfilled(resultsType, results) {
 async function fetchResults(resultsType, state) {
   const features = await axios
     .get(getProductFeaturesUrl())
-    .then((response) => response.data) // Extract the data directly
+    .then((response) => response.data)
     .catch((error) => {
       console.error('Error fetching product features:', error);
       return [];

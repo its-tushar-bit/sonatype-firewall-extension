@@ -427,8 +427,8 @@ public class DashboardFilterTest
     DashboardPage.waitUntilSpinnersGone();
     expirationDateFilter.shouldBe(visible).shouldHave(text("all"));
     expirationDateFilter.twisty().click();
-    expirationDateFilter.singleSelectList().shouldHave(size(7)).shouldHave(
-        texts("all", "in 24 hours", "in 7 days", "in 30 days", "in 90 days", "in over 90 days", "never"));
+    expirationDateFilter.singleSelectList().shouldHave(size(8)).shouldHave(
+        texts("all", "auto", "in 24 hours", "in 7 days", "in 30 days", "in 90 days", "in over 90 days", "never"));
     expirationDateFilter.all().shouldBe(selected);
     expirationDateFilter.in24hours().shouldNotBe(selected).click();
     expirationDateFilter.in24hours().shouldBe(selected);
@@ -451,11 +451,11 @@ public class DashboardFilterTest
 
     // check waiver results change
     DashboardFilters.apply();
-    waiversTab().counter().shouldBe(visible).shouldHave(text("1"));
+    waiversTab().counter().shouldBe(visible).shouldHave(text("7"));
 
     expirationDateFilter.in30days().shouldNotBe(selected).click();
     DashboardFilters.apply();
-    waiversTab().counter().shouldBe(visible).shouldHave(text("7"));
+    waiversTab().counter().shouldBe(visible).shouldHave(text("4"));
 
     expirationDateFilter.all().shouldNotBe(selected).click();
     DashboardFilters.apply();

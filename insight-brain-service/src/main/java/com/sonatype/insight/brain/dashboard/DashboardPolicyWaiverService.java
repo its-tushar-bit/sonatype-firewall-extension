@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.dashboard.ExpirationDate.ALL;
 import static com.sonatype.insight.brain.dashboard.ExpirationDate.NEVER;
+import static com.sonatype.insight.brain.dashboard.ExpirationDate.AUTO;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -167,7 +168,8 @@ public class DashboardPolicyWaiverService
     if (includeAutoWaivers) {
       Predicate<AutoPolicyWaiver> autoPolicyWaiverPredicate = getFilteringPredicateForAutoPolicyWaivers(owners.keySet())
           .and(getFilteringPredicateForAutoWaiverThreatLevel(policyThreatLevelRange))
-          .and(getFilteringPredicateForAutoWaiverThreatCategory(policyThreatCategories));
+          .and(getFilteringPredicateForAutoWaiverThreatCategory(policyThreatCategories))
+          .and(getFilteringPredicateForAutoWaiverExpirationDates(expirationDate));
       List<AutoPolicyWaiver> autoPolicyWaivers = autoPolicyWaiverDAO.getAll();
       filteredWaiverDTOs.addAll(
           filterAutoPolicyWaiversAndBuildDTOs(autoPolicyWaivers, autoPolicyWaiverPredicate, dtoAdapter));
@@ -366,6 +368,17 @@ public class DashboardPolicyWaiverService
     }
     return autoPolicyWaiver -> policyThreatCategories.test(PolicyThreatCategory.SECURITY) &&
         autoPolicyWaiver.isReachable();
+  }
+
+  private Predicate<AutoPolicyWaiver> getFilteringPredicateForAutoWaiverExpirationDates(
+          final ExpirationDate expirationDate)
+  {
+    if (expirationDate == AUTO || expirationDate == ALL) {
+      return autoPolicyWaiver -> true;
+    }
+    else {
+      return autoPolicyWaiver -> false;
+    }
   }
 
   private List<DashboardPolicyWaiverDTO> filterAutoPolicyWaiversAndBuildDTOs(

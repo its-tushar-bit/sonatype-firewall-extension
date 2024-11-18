@@ -55,6 +55,10 @@ export const expirationDates = [
     name: 'all',
   },
   {
+    id: 'AUTO',
+    name: 'auto',
+  },
+  {
     id: 'IN_24_HOURS',
     name: 'in 24 hours',
   },

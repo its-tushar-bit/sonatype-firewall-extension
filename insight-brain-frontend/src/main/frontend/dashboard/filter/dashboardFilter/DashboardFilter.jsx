@@ -13,6 +13,7 @@ import {
   NxStatefulCollapsibleMultiSelect,
 } from '@sonatype/react-shared-components';
 
+import { selectIsAutoWaiversEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import IqOrgAppPicker from '../../../components/iqOrgAppPicker/IqOrgAppPicker';
 import IqTreeViewPolicyThreatSlider from '../../../react/IqTreeViewPolicyThreatSlider';
 import IqPopover from '../../../react/IqPopover';
@@ -33,6 +34,7 @@ import {
 } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 
 export default function DashboardFilter() {
+  const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
   const dispatch = useDispatch();
 
   const applyFilter = (filter, basedOnFilterName) =>
@@ -60,7 +62,7 @@ export default function DashboardFilter() {
     path(['waivers', 'waiverReasons'])
   );
 
-  const {
+  let {
     loading: dashboardFilterLoading,
     loadError: dashboardFilterLoadError,
     loadErrorFilterName,
@@ -85,6 +87,8 @@ export default function DashboardFilter() {
     selected,
   } = useSelector(prop('dashboardFilter'));
 
+  expirationDates = filterAutoExpirationDates(expirationDates, isAutoWaiversEnabled);
+
   const loading = dashboardFilterLoading || waiverReasonsLoading;
   const loadError = dashboardFilterLoadError || waiverReasonsLoadError;
 
@@ -108,6 +112,13 @@ export default function DashboardFilter() {
     }),
     stringifiedAges = showAgeFilter ? map(stringifyNullableAgeOption, ages) : [],
     stringifiedSelectedAge = selected.maxDaysOld ? selected.maxDaysOld.toString() : selected.maxDaysOld;
+
+  function filterAutoExpirationDates(dates, isAutoWaiversEnabled) {
+    if (!isAutoWaiversEnabled) {
+      return dates.filter((date) => date.id !== 'AUTO');
+    }
+    return dates;
+  }
 
   function onAgeChange(selectedAge) {
     const ageAsNumber = selectedAge ? parseInt(selectedAge, 10) : null;

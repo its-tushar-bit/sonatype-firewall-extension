@@ -45,6 +45,8 @@ export function getCoordinatesValue(value) {
     return `${value.format}:${fields.name}:${fields.version}:${fields.qualifier}:${fields.extension}`;
   } else if (value.format === 'npm') {
     return `${value.format}:${fields.packageId}:${fields.version}`;
+  } else if (value.format === 'cargo') {
+    return `${value.format}:${fields.name}:${fields.version}:${fields.type}`;
   }
 }
 
@@ -154,6 +156,7 @@ export const withDefaultValue = {
   'a-name': ['qualifier'],
   pypi: ['qualifier', 'extension'],
   npm: [],
+  cargo: ['type'],
 };
 
 export const optionalFields = {
@@ -161,6 +164,7 @@ export const optionalFields = {
   'a-name': ['qualifier'],
   pypi: ['qualifier', 'extension'],
   npm: [],
+  cargo: ['type'],
 };
 
 // 'qualifier', 'extension', 'classifier' fields can be empty
@@ -188,9 +192,10 @@ export const coordinatesTypes = {
   'a-name': ['name', 'qualifier', 'version'],
   pypi: ['name', 'version', 'qualifier', 'extension'],
   npm: ['packageId', 'version'],
+  cargo: ['name', 'version', 'type'],
 };
 
-export const coordinatesFormatOptions = ['maven', 'a-name', 'pypi', 'npm'];
+export const coordinatesFormatOptions = ['maven', 'a-name', 'pypi', 'npm', 'cargo'];
 
 export const fieldTypeToPlaceholder = {
   groupId: 'Group ID',
@@ -201,6 +206,7 @@ export const fieldTypeToPlaceholder = {
   qualifier: 'Qualifier',
   name: 'Name',
   packageId: 'Package ID',
+  type: 'Type',
 };
 
 export const conditionsWithoutValue = [

@@ -57,6 +57,12 @@ public class CoordinatesConditionTypeTest
         "Coordinates were g2 : a2 (match g2 : a2)");
   }
 
+  @Test
+  public void testEvaluate_Cargo_MatchExact() {
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_CARGO,
+        "Coordinates were g2 : a2 : v2 (match g2 : a2 : v2)");
+  }
+
   private void testEvaluate_MatchExact(String format, String expectedMessage) {
     // Create policy constraints
     Constraint constraint = createConstraint("match", format + ":g2:a2:v2");
@@ -345,6 +351,12 @@ public class CoordinatesConditionTypeTest
         "Coordinates were g2 : a2 (match g2 : a*)");
   }
 
+  @Test
+  public void testEvaluate_Cargo_MatchWildcard() {
+    testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_CARGO,
+        "Coordinates were g2 : a2 : v2 (match g2 : a* : v2)");
+  }
+
   private void testEvaluate_MatchWildcard(String format, String expectedMessage) {
     // Create policy constraints
     Constraint constraint = createConstraint("match", format + ":g2:a*:v2");
@@ -399,6 +411,12 @@ public class CoordinatesConditionTypeTest
         "Coordinates were g1 : a1 (do not match g2 : a2)");
   }
 
+  @Test
+  public void testEvaluate_Cargo_DoNotMatchExact() {
+    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_CARGO,
+        "Coordinates were g1 : a1 : v1 (do not match g2 : a2 : v2)");
+  }
+
   private void testEvaluate_DoNotMatchExact(String format, String expectedMessage) {
     // Create policy constraints
     Constraint constraint = createConstraint("do not match", format + ":g2:a2:v2");
@@ -451,6 +469,12 @@ public class CoordinatesConditionTypeTest
   public void testEvaluate_npm_DoNotMatchWildcard() {
     testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_NPM,
         "Coordinates were g1 : a1 (do not match g2 : a*)");
+  }
+
+  @Test
+  public void testEvaluate_Cargo_DoNotMatchWildcard() {
+    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_CARGO,
+        "Coordinates were g1 : a1 : v1 (do not match g2 : a* : v2)");
   }
 
   private void testEvaluate_DoNotMatchWildcard(String format, String expectedMessage) {
@@ -556,6 +580,30 @@ public class CoordinatesConditionTypeTest
   }
 
   @Test
+  public void testEvaluate_MatchCargoCoordinates_OptionalCoordinates() {
+    Constraint constraint = createConstraint("match", ComponentIdentifier.FORMAT_CARGO + ":cargo:1:");
+    List<Constraint> constraints = Collections.singletonList(constraint);
+
+    Policy policy = new Policy("PolicyId1", "Policy Name 1");
+    policy.setConstraints(constraints);
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
+
+    List<Component> components = new ArrayList<>();
+    Component component =
+        ComponentFactory.forCoordinates(ComponentIdentifier.FORMAT_CARGO, "cargo", "1", "");
+    components.add(component);
+
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
+    assertThat(policyAlerts).hasSize(1);
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID,
+        policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Coordinates were cargo : 1 (match cargo : 1)");
+  }
+
+  @Test
   public void testEvaluate_EscapeUnsafeCharacter() {
     String artifactId = "\\\"\r\n\t'";
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
@@ -639,6 +687,13 @@ public class CoordinatesConditionTypeTest
     assertConvertIfNeeded("pypi:n:v:q:e", "pypi:n:v:q:e");
 
     assertConvertIfNeeded("npm:n::", "npm:n:*");
+
+    assertConvertIfNeeded("cargo:n::", "cargo:n:*:");
+    assertConvertIfNeeded("cargo:n:v:", "cargo:n:v:");
+    assertConvertIfNeeded("cargo:n::t", "cargo:n:*:t");
+    assertConvertIfNeeded("cargo:::t", "cargo:*:*:t");
+    assertConvertIfNeeded("cargo:", "cargo:*:*:*");
+    assertConvertIfNeeded("cargo::v:", "cargo:*:v:");
   }
 
   private void assertConvertIfNeeded(final String value, final String expectedConvertedValue) {

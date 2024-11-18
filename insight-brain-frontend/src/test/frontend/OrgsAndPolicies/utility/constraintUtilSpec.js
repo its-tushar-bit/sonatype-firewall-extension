@@ -180,5 +180,18 @@ describe('constraintUtil', () => {
         expect(getCoordinatesValue(value)).toBe('npm:packageId:version');
       });
     });
+
+    describe('cargo', () => {
+      const value = {
+        format: 'cargo',
+        name: initUserInput('name'),
+        version: initUserInput('version'),
+        type: initUserInput('type'),
+      };
+
+      it('returns combined coordinates value for cargo', () => {
+        expect(getCoordinatesValue(value)).toBe('cargo:name:version:type');
+      });
+    });
   });
 });

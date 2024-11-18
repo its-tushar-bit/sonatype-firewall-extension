@@ -28,6 +28,7 @@ import org.slf4j.MDC;
 
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -89,11 +90,62 @@ public class ClusterTelemetryTaskTest
                                             TelemetryPurpose.CLUSTER_USAGE, //
                                             TelemetryPurpose.REAL_OWNER_IDS, // This one is for Applications
                                             TelemetryPurpose.REAL_OWNER_IDS, // This one is for Organizations
+                                            // TelemetryPurpose.APPLICATION_CATEGORY, Sent with a different overload:
+                                            // .send(TelemetryData telemetryData)
     };
     verify(telemetrySenderMock, times(expectedPurposes.length)).send(allTelemetryDataCaptor.capture());
     List<TelemetryData> allTelemetryData =
         allTelemetryDataCaptor.getAllValues().stream().flatMap(List::stream).collect(toList());
     assertThat(allTelemetryData).extracting(TelemetryData::getPurpose).containsOnly(expectedPurposes);
+  }
+
+  @Test
+  public void testExecutePaginatedCollector() {
+    // Given 1 collector with only 2 pages
+    TelemetryCollectorsProvider telemetryCollectorsProviderMock = mockTelemetryCollectorsProvider();
+
+    ClusterTelemetryTask simpleClusterTelemetryTask = new ClusterTelemetryTask(
+        telemetryCollectorsProviderMock,
+        taskSchedulerMock,
+        telemetrySenderMock
+    );
+
+    // When
+    simpleClusterTelemetryTask.execute(mock(JobExecutionContext.class));
+
+    //Then verify that 2 pages were sent
+    verify(telemetrySenderMock, times(2)).send(any(TelemetryData.class));
+  }
+
+  private TelemetryCollectorsProvider mockTelemetryCollectorsProvider() {
+    TelemetryCollectorsProvider telemetryCollectorsProviderMock = mock(TelemetryCollectorsProvider.class);
+    ApplicationCategoryTelemetryCollector applicationCategoryTelemetryCollectorMock =
+        mockApplicationCategoryTelemetryCollector();
+
+    when(telemetryCollectorsProviderMock.getTelemetryCollectors())
+        .thenReturn(List.of(applicationCategoryTelemetryCollectorMock));
+
+    return telemetryCollectorsProviderMock;
+  }
+
+  private ApplicationCategoryTelemetryCollector mockApplicationCategoryTelemetryCollector() {
+    ApplicationCategoryTelemetryCollector applicationCategoryTelemetryCollectorMock =
+        mock(ApplicationCategoryTelemetryCollector.class);
+
+    when(applicationCategoryTelemetryCollectorMock.isClusterTelemetry())
+        .thenReturn(true);
+
+    when(applicationCategoryTelemetryCollectorMock.hasMoreData())
+        .thenReturn(true)
+        .thenReturn(false);
+
+    when(applicationCategoryTelemetryCollectorMock.firstPage())
+        .thenReturn(mock(TelemetryData.class)); // Page 1
+
+    when(applicationCategoryTelemetryCollectorMock.nextPage())
+        .thenReturn(mock(TelemetryData.class)); // Page 2
+
+    return applicationCategoryTelemetryCollectorMock;
   }
 
   @Test

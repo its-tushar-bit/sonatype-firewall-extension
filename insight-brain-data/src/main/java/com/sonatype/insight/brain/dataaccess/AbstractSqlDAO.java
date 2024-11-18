@@ -206,6 +206,31 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
     return query;
   }
 
+  /**
+   * Creates a native SQL query with pagination support.
+   * This method uses the provided SQL query string to create a native query using the given
+   * {@link TransactionContext}. It also applies pagination by setting the starting offset
+   * and the maximum number of results to return.
+   *
+   * @param tx        the {@link TransactionContext} used to create the query. It must not be null.
+   * @param sQuery    the native SQL query string to execute. It must not be null or empty.
+   * @param offset    the starting position of the first result (zero-based). For example,
+   *                  to skip the first 10 results, set this to 10.
+   * @param pageSize  the maximum number of results to return. A positive integer specifies the page size.
+   * @return          a {@link javax.persistence.Query} object configured with the specified SQL query,
+   *                  offset, and page size.
+   */
+  public static javax.persistence.Query createNativePaginationQuery(
+      TransactionContext tx,
+      String sQuery,
+      int offset,
+      int pageSize)
+  {
+    javax.persistence.Query query = tx.createNativeQuery(sQuery);
+    query.setFirstResult(offset).setMaxResults(pageSize);
+    return query;
+  }
+
   protected abstract DataStore getDataStore();
 
   protected <C> List<C> getScalars(Class<C> type, String sQuery, Object... parameters) {

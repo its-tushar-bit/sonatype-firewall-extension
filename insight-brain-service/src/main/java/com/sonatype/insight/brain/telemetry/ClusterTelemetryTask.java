@@ -65,11 +65,37 @@ public class ClusterTelemetryTask
   public void execute(JobExecutionContext context) {
     execute(() -> {
       for (TelemetryCollector clusterTelemetryCollector : clusterTelemetryCollectors) {
-        telemetrySender.send(clusterTelemetryCollector.collectAllData());
+        log.debug("Sending telemetry for {}", clusterTelemetryCollector.getClass().getSimpleName());
+        long start = System.currentTimeMillis();
+
+        if (clusterTelemetryCollector instanceof PaginatedTelemetryCollector paginatedTelemetryCollector) {
+          sendPaginatedTelemetry(paginatedTelemetryCollector);
+        }
+        else {
+          telemetrySender.send(clusterTelemetryCollector.collectAllData());
+        }
+
+        long stop = System.currentTimeMillis();
+        log.debug("Telemetry for {} sent in {}ms", clusterTelemetryCollector.getClass(), stop - start);
       }
     }, log, TELEMETRY_SEND_ERROR);
   }
-  
+
+  private void sendPaginatedTelemetry(PaginatedTelemetryCollector paginatedTelemetryCollector) {
+    try {
+      log.trace("Sending first page of telemetry for {}", paginatedTelemetryCollector.getClass());
+      telemetrySender.send(paginatedTelemetryCollector.firstPage());
+      while (paginatedTelemetryCollector.hasMoreData()) {
+        log.trace("Sending next page of telemetry for {}", paginatedTelemetryCollector.getClass());
+        telemetrySender.send(paginatedTelemetryCollector.nextPage());
+      }
+      log.trace("All pages of telemetry for {} sent", paginatedTelemetryCollector.getClass());
+    }
+    catch (Exception e) {
+      log.error("Skipping telemetry collection for {} due to an error", paginatedTelemetryCollector.getClass(), e);
+    }
+  }
+
   @Override
   public String getJobName() {
     return NAME;

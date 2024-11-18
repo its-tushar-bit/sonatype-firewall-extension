@@ -7,13 +7,17 @@ package com.sonatype.insight.brain.dataaccess.tag;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
+import com.sonatype.insight.brain.model.tag.ApplicationTagNameDTO;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import org.junit.Before;
@@ -33,12 +37,109 @@ public class ApplicationTagDAOTest
 
   private Tag tag;
 
+  private Application application1;
+
+  private Application application2;
+
+  private List<Application> applicationList;
+
   @Before
   @Override
   public void setup() {
     super.setup();
     dao = daoFactory.createApplicationTagDAO();
     tag = tempEntity.newTag(organization.getId());
+    application1 = tempEntity.newApplication(organization.getId());
+    application2 = tempEntity.newApplication(organization.getId());
+
+    applicationList = Stream.of(application, application1, application2)
+        .sorted(Comparator.comparing(Application::getId))
+        .toList();
+  }
+
+  @Test
+  public void testGetAllApplicationIdsWithTags() {
+    // Given
+    Tag tag1 = insertTag(organization.getId(), "tag1");
+    Tag tag2 = insertTag(organization.getId(), "tag2");
+    Tag tag3 = insertTag(organization.getId(), "tag3");
+    Tag tag4 = insertTag(organization.getId(), "tag4");
+    Tag tag5 = insertTag(organization.getId(), "tag5");
+
+    insertApplicationTag(application.getId(), tag.getId());
+    insertApplicationTag(application.getId(), tag1.getId());
+    insertApplicationTag(application.getId(), tag2.getId());
+    insertApplicationTag(application1.getId(), tag2.getId());
+    insertApplicationTag(application1.getId(), tag3.getId());
+    insertApplicationTag(application1.getId(), tag4.getId());
+    insertApplicationTag(application2.getId(), tag4.getId());
+    insertApplicationTag(application2.getId(), tag5.getId());
+
+    // When
+    List<ApplicationTagNameDTO> page1 = dao.getPaginatedApplicationIdsWithTags(1, 3);
+    List<ApplicationTagNameDTO> page2 = dao.getPaginatedApplicationIdsWithTags(2, 3);
+    List<ApplicationTagNameDTO> page3 = dao.getPaginatedApplicationIdsWithTags(3, 3);
+    List<ApplicationTagNameDTO> page4 = dao.getPaginatedApplicationIdsWithTags(4, 3);
+    List<ApplicationTagNameDTO> allItems = dao.getPaginatedApplicationIdsWithTags(1, 10);
+
+    // Then - Page 1
+    String firstAppId = applicationList.get(0).getId();
+    assertThat(page1).extracting(ApplicationTagNameDTO::applicationId)
+        .contains(firstAppId, firstAppId, firstAppId)
+        .hasSize(3);
+
+    // Page 2
+    String secondAppId = applicationList.get(1).getId();
+    assertThat(page2).extracting(ApplicationTagNameDTO::applicationId)
+        .contains(secondAppId, secondAppId, secondAppId)
+        .hasSize(3);
+
+    // Page 3
+    String thirdAppId = applicationList.get(2).getId();
+    assertThat(page3).extracting(ApplicationTagNameDTO::applicationId)
+        .contains(thirdAppId, thirdAppId)
+        .hasSize(2);
+
+    assertThat(page4).hasSize(0);
+
+    HashSet<String> nonDuplicatedAppIds = allItems.stream()
+        .map(ApplicationTagNameDTO::applicationId)
+        .collect(Collectors.toCollection(HashSet::new));
+
+    assertThat(nonDuplicatedAppIds)
+        .contains(application.getId(), application1.getId(), application2.getId())
+        .hasSize(3);
+
+    assertThat(allItems)
+        .extracting(ApplicationTagNameDTO::applicationId)
+        .hasSize(8);
+
+    HashSet<String> nonDuplicatedTags = allItems.stream()
+        .map(ApplicationTagNameDTO::tagName)
+        .collect(Collectors.toCollection(HashSet::new));
+
+    assertThat(nonDuplicatedTags)
+        .contains(
+            tag.getName(),
+            tag1.getName(),
+            tag2.getName(),
+            tag3.getName(),
+            tag4.getName(),
+            tag5.getName()
+        )
+        .hasSize(6);
+
+    assertThat(allItems)
+        .extracting(ApplicationTagNameDTO::tagName)
+        .hasSize(8);
+  }
+
+  private Tag insertTag(String organizationId, String name) {
+    return tempEntity.newTag(organizationId, name);
+  }
+
+  private void insertApplicationTag(String applicationId, String tagId) {
+    dao.insert(new ApplicationTag(applicationId, tagId));
   }
 
   @Test

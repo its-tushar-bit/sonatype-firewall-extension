@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.tag;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -16,6 +17,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.brain.model.tag.ApplicationTagNameDTO;
 
 /**
  * @since 1.9
@@ -78,5 +80,26 @@ public class ApplicationTagDAO
         " WHERE entity.applicationId IN ?1";
 
     return getListWithSqlInClause(applicationIds, inClauseValuesPartition -> getList(sQuery, inClauseValuesPartition));
+  }
+
+  @SuppressWarnings("unchecked")
+  public List<ApplicationTagNameDTO> getPaginatedApplicationIdsWithTags(
+      final int page,
+      final int pageSize)
+  {
+    String sQuery =
+        "SELECT application_tag.application_id, tag.name" +
+            " FROM " + getDatabaseSchema() + ".application_tag application_tag" +
+            " INNER JOIN " + getDatabaseSchema() + ".tag tag ON application_tag.tag_id = tag.tag_id" +
+            " ORDER BY application_tag.application_id, tag.name";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      int offSet = (page - 1) * pageSize;
+      javax.persistence.Query nativeQuery = createNativePaginationQuery(tx, sQuery, offSet, pageSize);
+      List<Object[]> resultList = nativeQuery.getResultList();
+      return resultList.stream()
+          .map(result -> new ApplicationTagNameDTO((String) result[0], (String) result[1]))
+          .collect(Collectors.toList());
+    }
   }
 }

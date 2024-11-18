@@ -77,6 +77,7 @@ import org.junit.Test;
 import org.junit.contrib.java.lang.system.ExpectedSystemExit;
 import org.quartz.JobPersistenceException;
 
+import static com.sonatype.insight.brain.telemetry.PaginatedTelemetryCollectorImpl.DATA_LIST;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -94,7 +95,8 @@ public class InsightBrainServiceTest
       TelemetryPurpose.CONFIGURATION_PROPERTIES, TelemetryPurpose.REALM, TelemetryPurpose.SOURCE_CONTROL_METRICS,
       TelemetryPurpose.SOURCE_CONTROL_RATE_LIMITS, TelemetryPurpose.ROLE_USAGE, TelemetryPurpose.RUNTIME_ENVIRONMENT,
       TelemetryPurpose.REPOSITORY_CONFIGURATION, TelemetryPurpose.CLUSTER_USAGE, TelemetryPurpose.REAL_OWNER_IDS,
-      TelemetryPurpose.REAL_OWNER_IDS // One for apps and another for organizations
+      TelemetryPurpose.REAL_OWNER_IDS, // One for apps and another for organizations
+      TelemetryPurpose.APPLICATION_CATEGORY
   };
 
   @Rule
@@ -209,6 +211,10 @@ public class InsightBrainServiceTest
           assertThat(telemetryDataReceived.getAttributes())
               .containsKey(ApplicationTelemetryCollector.ALL_OWNER_IDS_NAMES);
           break;
+        case APPLICATION_CATEGORY:
+          assertThat(telemetryDataReceived.getAttributes())
+              .containsKey(DATA_LIST);
+          break;
         default:
           fail("Unexpected telemetry purpose: " + telemetryPurpose);
           break;
@@ -293,7 +299,7 @@ public class InsightBrainServiceTest
     responses.clear();
     defaultTelemetryScheduler.getTelemetryRunnable().run();
     temporarilyEnableQuartzTelemetry();
-    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(14));
+    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(15));
     Date expectedMaxCreateTime = new Date();
     Collection<TelemetryData> allTelemetryData =
         assertTelemetry(responses, expectedMinCreateTime, expectedMaxCreateTime);

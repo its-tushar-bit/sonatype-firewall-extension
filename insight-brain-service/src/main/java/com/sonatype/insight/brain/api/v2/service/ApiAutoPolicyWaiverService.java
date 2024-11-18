@@ -85,7 +85,9 @@ public class ApiAutoPolicyWaiverService
           "Cannot find an auto policy waiver with ID " + autoPolicyWaiverId + " for " + ownerType
               + " with ID " + ownerId);
     }
-    return ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
+    Owner owner = ownerDAO.getById(ownerId);
+
+    return ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver, owner);
   }
 
   @Authorize(permission = Permission.READ)
@@ -94,11 +96,13 @@ public class ApiAutoPolicyWaiverService
       @AuthzContext(Key.INTERNAL_ID) String ownerId)
   {
     checkOwnerType(ownerType, ownerId);
+    Owner owner = ownerDAO.getById(ownerId);
     List<ApiAutoPolicyWaiverDTO> apiAutoPolicyWaiverDTOs = new ArrayList<>();
 
     List<AutoPolicyWaiver> autoPolicyWaivers = autoPolicyWaiverDAO.getByOwnerId(ownerId);
     autoPolicyWaivers.forEach(
-        autoPolicyWaiver -> apiAutoPolicyWaiverDTOs.add(ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver)));
+        autoPolicyWaiver -> apiAutoPolicyWaiverDTOs.add(
+            ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver, owner)));
 
     return apiAutoPolicyWaiverDTOs;
   }
@@ -231,8 +235,10 @@ public class ApiAutoPolicyWaiverService
     String autoPolicyWaiverId = policyViolation.getAutoPolicyWaiverId();
     String applicationId = policyViolation.getApplicationId();
     AutoPolicyWaiver autoPolicyWaiver = getAutoPolicyWaiverByAppOwnerHierarchy(autoPolicyWaiverId, applicationId);
+    String ownerId = policyViolation.getOwnerId();
+    Owner owner = ownerDAO.getById(ownerId);
 
-    return ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver);
+    return ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver, owner);
   }
 
   private AutoPolicyWaiver getAutoPolicyWaiverByAppOwnerHierarchy(String autoPolicyWaiverId, String applicationId) {

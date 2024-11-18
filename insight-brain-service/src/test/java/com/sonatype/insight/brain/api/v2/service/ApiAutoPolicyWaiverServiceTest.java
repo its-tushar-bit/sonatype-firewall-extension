@@ -166,7 +166,11 @@ public class ApiAutoPolicyWaiverServiceTest
 
     assertThat(waiver).isNotNull();
     assertThat(waiver.autoPolicyWaiverId).isEqualTo(autoPolicyWaiver.getId());
+
     assertThat(waiver.ownerId).isEqualTo(autoPolicyWaiver.getOwnerId());
+    assertThat(waiver.ownerName).isEqualTo(application.getName());
+    assertThat(waiver.ownerType).isEqualTo(OwnerType.APPLICATION.toString());
+    assertThat(waiver.publicId).isEqualTo(application.getPublicId());
 
     assertThat(waiver.threatLevel).isEqualTo(autoPolicyWaiver.getThreatLevel());
     assertThat(waiver.pathForward).isEqualTo(autoPolicyWaiver.hasPathForward());
@@ -191,7 +195,11 @@ public class ApiAutoPolicyWaiverServiceTest
 
     assertThat(waiver).isNotNull();
     assertThat(waiver.autoPolicyWaiverId).isEqualTo(autoPolicyWaiver.getId());
+
     assertThat(waiver.ownerId).isEqualTo(autoPolicyWaiver.getOwnerId());
+    assertThat(waiver.ownerName).isEqualTo(organization.getName());
+    assertThat(waiver.ownerType).isEqualTo(OwnerType.ORGANIZATION.toString());
+    assertThat(waiver.publicId).isEqualTo(organization.getPublicId());
 
     assertThat(waiver.threatLevel).isEqualTo(autoPolicyWaiver.getThreatLevel());
     assertThat(waiver.pathForward).isEqualTo(autoPolicyWaiver.hasPathForward());
@@ -282,6 +290,10 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(waiver.creatorId).isEqualTo(autoPolicyWaiver.getCreatorId());
     assertThat(waiver.creatorName).isEqualTo(autoPolicyWaiver.getCreatorName());
     assertThat(waiver.createTime).isEqualTo(autoPolicyWaiver.getCreateTime());
+    assertThat(waiver.ownerId).isEqualTo(application.getId());
+    assertThat(waiver.ownerName).isEqualTo(application.getName());
+    assertThat(waiver.ownerType).isEqualTo(OwnerType.APPLICATION.toString());
+    assertThat(waiver.publicId).isEqualTo(application.getPublicId());
 
     Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }
@@ -303,6 +315,10 @@ public class ApiAutoPolicyWaiverServiceTest
     assertThat(waiver.creatorId).isEqualTo(autoPolicyWaiver.getCreatorId());
     assertThat(waiver.creatorName).isEqualTo(autoPolicyWaiver.getCreatorName());
     assertThat(waiver.createTime).isEqualTo(autoPolicyWaiver.getCreateTime());
+    assertThat(waiver.ownerId).isEqualTo(organization.getId());
+    assertThat(waiver.ownerName).isEqualTo(organization.getName());
+    assertThat(waiver.ownerType).isEqualTo(OwnerType.ORGANIZATION.toString());
+    assertThat(waiver.publicId).isEqualTo(organization.getPublicId());
 
     Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
   }

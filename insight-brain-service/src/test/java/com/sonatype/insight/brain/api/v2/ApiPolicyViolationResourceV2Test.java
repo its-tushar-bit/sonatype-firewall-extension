@@ -466,6 +466,9 @@ public class ApiPolicyViolationResourceV2Test
 
     assertThat(apiPolicyWaivers).isNotNull();
     assertThat(apiPolicyWaivers.ownerId).isEqualTo(ownerId);
+    assertThat(apiPolicyWaivers.ownerName).isEqualTo(newApp.getName());
+    assertThat(apiPolicyWaivers.ownerType).isEqualTo(OwnerType.APPLICATION.toString());
+    assertThat(apiPolicyWaivers.publicId).isEqualTo(newApp.getPublicId());
     assertThat(apiPolicyWaivers.threatLevel).isEqualTo(7);
     assertThat(apiPolicyWaivers.reachable).isTrue();
     assertThat(apiPolicyWaivers.pathForward).isFalse();

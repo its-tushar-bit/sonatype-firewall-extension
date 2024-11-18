@@ -25,6 +25,15 @@ public class ApiAutoPolicyWaiverDTO
   public String ownerId;
 
   @JsonInclude(Include.NON_EMPTY)
+  public String ownerType;
+
+  @JsonInclude(Include.NON_EMPTY)
+  public String ownerName;
+
+  @JsonInclude(Include.NON_EMPTY)
+  public String publicId;
+
+  @JsonInclude(Include.NON_EMPTY)
   public int threatLevel;
 
   public Boolean reachable;

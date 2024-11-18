@@ -43,9 +43,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { selectIssueForActions } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSelector';
 import { analysisStatusIndicator, transformJustification } from './componentDetailsUtils';
 import cx from 'classnames';
+import { pickFirstVexResponse } from 'MainRoot/sbomManager/features/componentDetails/vexAnnotationsDrawer/VexAnnotationDrawer';
 
-export const isVexFieldAnnotated = (vexFieldAnnotation, vulnerabilityValidVexFieldStates) =>
-  vulnerabilityValidVexFieldStates.map((entry) => entry.key).indexOf(vexFieldAnnotation) > -1;
+export const isVexFieldAnnotated = (vexFieldAnnotation, vulnerabilityValidVexFieldStates) => {
+  return (
+    vulnerabilityValidVexFieldStates.map((entry) => entry.key).indexOf(pickFirstVexResponse(vexFieldAnnotation)) > -1
+  );
+};
 
 const sortVulnerabilities = (vulnerabilites, { sortBy, sortDirection }) => {
   const sortConfig = cond([

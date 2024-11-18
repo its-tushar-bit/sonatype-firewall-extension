@@ -54,7 +54,9 @@ import SbomVulnerabilityDetailsPopover from 'MainRoot/sbomManager/features/compo
 import PolicyViolationsTile from 'MainRoot/sbomManager/features/componentDetails/policyViolationsTile/PolicyViolationsTile';
 import PolicyViolationDetailsDrawer from 'MainRoot/sbomManager/features/componentDetails//policyViolationDetailsDrawer/PolicyViolationDetailsDrawer';
 
-import VexAnnotationDrawer from 'MainRoot/sbomManager/features/componentDetails/vexAnnotationsDrawer/VexAnnotationDrawer';
+import VexAnnotationDrawer, {
+  pickFirstVexResponse,
+} from 'MainRoot/sbomManager/features/componentDetails/vexAnnotationsDrawer/VexAnnotationDrawer';
 import { isNil } from 'ramda';
 import DeleteAnnotationModal from 'MainRoot/sbomManager/features/componentDetails/DeleteAnnotationModal';
 import CopyAnnotationModal from 'MainRoot/sbomManager/features/componentDetails/CopyAnnotationModal';
@@ -139,7 +141,7 @@ export default function ComponentDetailsPage() {
       vulnerabilityAnalysis: {
         state: selectedVulnerability.latestPreviousAnnotation.analysisStatus,
         justification: selectedVulnerability.latestPreviousAnnotation.justification,
-        response: selectedVulnerability.latestPreviousAnnotation.response,
+        response: pickFirstVexResponse(selectedVulnerability.latestPreviousAnnotation.response),
         detail: selectedVulnerability.latestPreviousAnnotation.detail,
       },
     };

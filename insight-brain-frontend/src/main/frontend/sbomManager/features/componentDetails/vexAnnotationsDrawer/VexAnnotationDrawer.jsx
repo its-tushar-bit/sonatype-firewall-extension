@@ -126,7 +126,7 @@ export default function VexAnnotationDrawer(props) {
       isRowAnnotated
         ? isNil(initialValue)
           ? options[0]?.key
-          : filterCommaSeparatedValues(initialValue)
+          : pickFirstVexResponse(initialValue)
         : DROPDOWN_SELECT_OPTION,
       validator
     );
@@ -136,7 +136,7 @@ export default function VexAnnotationDrawer(props) {
       isJustificationSet
         ? isNil(initialValue)
           ? options[0]?.key
-          : filterCommaSeparatedValues(initialValue)
+          : pickFirstVexResponse(initialValue)
         : DROPDOWN_SELECT_OPTION,
       validator
     );
@@ -146,13 +146,10 @@ export default function VexAnnotationDrawer(props) {
       isResponseSet
         ? isNil(initialValue)
           ? options[0]?.key
-          : filterCommaSeparatedValues(initialValue)
+          : pickFirstVexResponse(initialValue)
         : DROPDOWN_SELECT_OPTION,
       validator
     );
-
-  const filterCommaSeparatedValues = (commaSeparatedValue) =>
-    commaSeparatedValue.includes(',') ? commaSeparatedValue.split(',')[0] : commaSeparatedValue;
 
   const [analysisStatusControlState, setAnalysisStatusControlState] = getDefaultStateForAnalysisDropdown(
     analysisStatus,
@@ -600,3 +597,8 @@ VexAnnotationDrawer.propTypes = {
 
   componentPurl: PropTypes.string,
 };
+
+export const pickFirstVexResponse = (commaSeparatedValue) =>
+  !isNil(commaSeparatedValue) && commaSeparatedValue.includes(',')
+    ? commaSeparatedValue.split(',')[0]
+    : commaSeparatedValue;

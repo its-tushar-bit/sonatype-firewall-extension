@@ -163,7 +163,7 @@ public class ComponentDetailsPageTest
 
     SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(false);
     refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
-            .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
 
     sbomManagerComponentDetailsPage.tabs().shouldHave(size(1));
     sbomManagerComponentDetailsPage.tabs().get(0).shouldHave(text("Vulnerability"));
@@ -175,7 +175,7 @@ public class ComponentDetailsPageTest
 
     SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
     refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
-            .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
 
     sbomManagerComponentDetailsPage.tabs().get(1).shouldHave(text("Policy Violations")).click();
 
@@ -185,11 +185,11 @@ public class ComponentDetailsPageTest
     sbomManagerComponentDetailsPage.policyViolationsTile().getColumnData(0, 0).shouldHave(text("9"));
     sbomManagerComponentDetailsPage.policyViolationsTile().getColumnData(0, 1).shouldHave(text("Security-High"));
     sbomManagerComponentDetailsPage.policyViolationsTile().getColumnData(0, 2)
-            .shouldHave(text("Medium risk CVSS score"));
+        .shouldHave(text("Medium risk CVSS score"));
     sbomManagerComponentDetailsPage.policyViolationsTile().getColumnData(0, 3).shouldHave(text(
-            "Found security vulnerability CVE-4812 with severity 5.3.\n"
-        + "Found security vulnerability CVE-4812 with severity 5.3.\n"
-        + "Found security vulnerability CVE-4812 with status 'Open', not 'Not Applicable'."));
+        "Found security vulnerability CVE-4812 with severity 5.3.\n"
+            + "Found security vulnerability CVE-4812 with severity 5.3.\n"
+            + "Found security vulnerability CVE-4812 with status 'Open', not 'Not Applicable'."));
   }
 
   @Test
@@ -199,7 +199,7 @@ public class ComponentDetailsPageTest
     SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(true);
 
     refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
-            .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
 
     sbomManagerComponentDetailsPage.tabs().get(1).shouldHave(text("Policy Violations")).click();
 
@@ -211,15 +211,15 @@ public class ComponentDetailsPageTest
 
     sbomManagerComponentDetailsPage.policyViolationDetailsDrawer.shouldBe(visible);
     PolicyViolationDetailsDrawer.PolicyViolationConstraintInfo policyViolationConstraintInfo
-            = PolicyViolationDetailsDrawer.policyViolationConstraintInfo();
+        = PolicyViolationDetailsDrawer.policyViolationConstraintInfo();
     policyViolationConstraintInfo.title().shouldHave(text("Policy Constraint"));
     policyViolationConstraintInfo.reasons().shouldHave(text(
-            "Found security vulnerability CVE-4812 with severity 5.3.\n"
+        "Found security vulnerability CVE-4812 with severity 5.3.\n"
             + "Found security vulnerability CVE-4812 with severity 5.3.\n"
             + "Found security vulnerability CVE-4812 with status 'Open', not 'Not Applicable'."));
 
     PolicyViolationDetailsDrawer.VulnerabilityDetails vulnerabilityDetails
-            = PolicyViolationDetailsDrawer.vulnerabilityDetails();
+        = PolicyViolationDetailsDrawer.vulnerabilityDetails();
 
     assertVulnerabilityDetailsInsidePolicyViolationDetailsDrawer(vulnerabilityDetails);
   }
@@ -252,7 +252,7 @@ public class ComponentDetailsPageTest
   public void testFeatureEnabled_opensVulnerabilityDetailsPopover_issueLink_checkContent_Sonatype() {
     testOrganization = tempEntity.newOrganization();
     testApplication = tempEntity.newApplication(testOrganization.getId());
-    setVulnerabilityTablesData(minimumDataSet(), true, "Sonatype");
+    setVulnerabilityTablesData(minimumDataSet(), true, "Sonatype", false);
     mockHdsResponseForVulnerabilityDetails();
 
     refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
@@ -303,6 +303,62 @@ public class ComponentDetailsPageTest
   }
 
   @Test
+  public void testFeatureEnabled_opensVexDrawer_addButton_checkContentWithVex_singleResponse() {
+    setTestData();
+
+    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
+        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+
+    SelenideElement dropdownButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
+        .getColumnData(1, 5);
+    dropdownButtonFirstRowColumn.shouldBe(visible);
+
+    ElementsCollection rowButtons = dropdownButtonFirstRowColumn.findAll("button");
+    SelenideElement ellipsisButton = rowButtons.get(0);
+    ellipsisButton.shouldBe(visible);
+    ellipsisButton.click();
+
+    SelenideElement addAnnotationButton = rowButtons.get(1);
+    addAnnotationButton.shouldBe(visible);
+    addAnnotationButton.shouldHave(text("Edit Annotation"));
+    addAnnotationButton.click();
+
+    VexAnnotationDrawer vexDrawer = sbomManagerComponentDetailsPage.vexAnnotationDrawer();
+    vexDrawer.shouldBe(visible);
+    assertVexAnnotationForm(vexDrawer, "DEF-456", TEST_COMPONENT_PURL, "1.6", "Unverified",
+        "test vulnerability", "Exploitable", "Code not present",
+        "Rollback", "Update", "");
+  }
+
+  @Test
+  public void testFeatureEnabled_opensVexDrawer_addButton_checkContentWithVex_multipleResponse() {
+    setTestDataWithMultipleResponsesInVexAnnotation();
+
+    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
+        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+
+    SelenideElement dropdownButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
+        .getColumnData(1, 5);
+    dropdownButtonFirstRowColumn.shouldBe(visible);
+
+    ElementsCollection rowButtons = dropdownButtonFirstRowColumn.findAll("button");
+    SelenideElement ellipsisButton = rowButtons.get(0);
+    ellipsisButton.shouldBe(visible);
+    ellipsisButton.click();
+
+    SelenideElement addAnnotationButton = rowButtons.get(1);
+    addAnnotationButton.shouldBe(visible);
+    addAnnotationButton.shouldHave(text("Edit Annotation"));
+    addAnnotationButton.click();
+
+    VexAnnotationDrawer vexDrawer = sbomManagerComponentDetailsPage.vexAnnotationDrawer();
+    vexDrawer.shouldBe(visible);
+    assertVexAnnotationForm(vexDrawer, "DEF-456", TEST_COMPONENT_PURL, "1.6", "Unverified",
+        "test vulnerability", "Exploitable", "Code not present",
+        "Rollback", "Update", "");
+  }
+
+  @Test
   public void testFeatureEnabled_opensVexDrawer_addButton_submitFormSuccessfully() {
     setTestData();
 
@@ -312,12 +368,12 @@ public class ComponentDetailsPageTest
     SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
         .getColumnData(0, 5);
     actionButtonFirstRowColumn.shouldBe(visible);
-    ElementsCollection rowButtons =  actionButtonFirstRowColumn.findAll("button");
-    SelenideElement ellipsisButton =  rowButtons.get(0);
+    ElementsCollection rowButtons = actionButtonFirstRowColumn.findAll("button");
+    SelenideElement ellipsisButton = rowButtons.get(0);
     ellipsisButton.shouldBe(visible);
     ellipsisButton.click();
 
-    SelenideElement addAnnotationButton =  rowButtons.get(1);
+    SelenideElement addAnnotationButton = rowButtons.get(1);
     addAnnotationButton.shouldBe(visible);
     addAnnotationButton.shouldHave(text("Add Annotation"));
     addAnnotationButton.click();
@@ -332,7 +388,7 @@ public class ComponentDetailsPageTest
     vexDrawer.shouldNotBe(visible);
 
     ellipsisButton.click();
-    SelenideElement editAnnotationButton =  actionButtonFirstRowColumn.findAll("button").get(1);
+    SelenideElement editAnnotationButton = actionButtonFirstRowColumn.findAll("button").get(1);
     editAnnotationButton.shouldHave(text("Edit Annotation"));
     editAnnotationButton.click();
 
@@ -352,12 +408,12 @@ public class ComponentDetailsPageTest
     SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
         .getColumnData(1, 5);
     actionButtonFirstRowColumn.shouldBe(visible);
-    ElementsCollection rowButtons =  actionButtonFirstRowColumn.findAll("button");
-    SelenideElement ellipsisButton =  rowButtons.get(0);
+    ElementsCollection rowButtons = actionButtonFirstRowColumn.findAll("button");
+    SelenideElement ellipsisButton = rowButtons.get(0);
     ellipsisButton.shouldBe(visible);
     ellipsisButton.click();
 
-    SelenideElement editAnnotationButton =  rowButtons.get(1);
+    SelenideElement editAnnotationButton = rowButtons.get(1);
     editAnnotationButton.shouldBe(visible);
     editAnnotationButton.shouldHave(text("Edit Annotation"));
 
@@ -446,13 +502,55 @@ public class ComponentDetailsPageTest
 
   @Test
   public void testFeatureEnabled_opensCopyAnnotationModal_cancelAndSubmitButtons() {
-    setTestDataWithSecondaryData();
+    setTestDataWithSecondaryData(false);
 
     lookup(SbomComponentsService.class).getSbomComponentDetails(
         testApplication.getId(),
         thirdPartySbomMetadata.getSbomVersion(),
         thirdPartyFileCoordinate.getHash()
     );
+
+    refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
+        .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
+
+    SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
+        .getColumnData(1, 5);
+    actionButtonFirstRowColumn.shouldBe(visible);
+    ElementsCollection rowButtons = actionButtonFirstRowColumn.findAll("button");
+    SelenideElement ellipsisButton = rowButtons.get(0);
+    ellipsisButton.shouldBe(visible);
+    ellipsisButton.click();
+
+    SelenideElement deleteAnnotationButton = rowButtons.find(text("Delete Annotation"));
+    deleteAnnotationButton.shouldNotBe(visible);
+
+    SelenideElement copyAnnotationButton = rowButtons.get(2);
+    copyAnnotationButton.shouldBe(visible);
+    copyAnnotationButton.shouldHave(text("Copy Annotation"));
+
+    copyAnnotationButton.click();
+
+    CopyAnnotationModal copyModal = sbomManagerComponentDetailsPage.copyAnnotationModal();
+    copyModal.shouldBe(visible);
+
+    copyModal.header().shouldBe(visible).shouldHave(text("Copy annotation for DEF-456"));
+    copyModal.body().shouldBe(visible).shouldHave(text(
+        "Are you sure you want to copy \"Exploitable\" annotation for DEF-456 from previous version mockVersionId_2?"
+    ));
+    copyModal.cancelButton().shouldBe(visible).shouldHave(text("Cancel"));
+    copyModal.submitButton().shouldBe(visible).shouldHave(text("Copy"));
+    copyModal.cancelButton().click();
+    copyModal.shouldNotBe(visible);
+    ellipsisButton.click();
+    copyAnnotationButton.click();
+    copyModal.submitButton().click();
+    copyModal.successModal().shouldBe(visible);
+    copyModal.shouldNotBe(visible);
+  }
+
+  @Test
+  public void testFeatureEnabled_opensCopyAnnotationModal_multipleResponses() {
+    setTestDataWithSecondaryData(true);
 
     refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
         .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
@@ -505,10 +603,16 @@ public class ComponentDetailsPageTest
   private void setTestData() {
     testOrganization = tempEntity.newOrganization();
     testApplication = tempEntity.newApplication(testOrganization.getId());
-    setVulnerabilityTablesData(minimumDataSet(), true, "SBOM");
+    setVulnerabilityTablesData(minimumDataSet(), true, "SBOM", false);
   }
 
-  private void setTestDataWithSecondaryData() {
+  private void setTestDataWithMultipleResponsesInVexAnnotation() {
+    testOrganization = tempEntity.newOrganization();
+    testApplication = tempEntity.newApplication(testOrganization.getId());
+    setVulnerabilityTablesData(minimumDataSet(), true, "SBOM", true);
+  }
+
+  private void setTestDataWithSecondaryData(final boolean multipleResponsesInVexAnnotation) {
     testOrganization = tempEntity.newOrganization();
     testApplication = tempEntity.newApplication(testOrganization.getId());
 
@@ -529,8 +633,8 @@ public class ComponentDetailsPageTest
         file, "SBOM", "maven", "testComponent", "1.2", TEST_COMPONENT_HASH, TEST_COMPONENT_PURL
     );
 
-    setVulnerabilityTablesData(fileCoordinate, true, "SBOM");
-    setVulnerabilityTablesData(minimumDataSet(), false, "SBOM");
+    setVulnerabilityTablesData(fileCoordinate, true, "SBOM", multipleResponsesInVexAnnotation);
+    setVulnerabilityTablesData(minimumDataSet(), false, "SBOM", multipleResponsesInVexAnnotation);
   }
 
   private ThirdPartyFileCoordinate minimumDataSet() {
@@ -575,7 +679,9 @@ public class ComponentDetailsPageTest
 
   private void setVulnerabilityTablesData(
       ThirdPartyFileCoordinate thirdPartyFileCoordinate,
-      boolean withVexAnnotations, String identificationSource)
+      boolean withVexAnnotations,
+      String identificationSource,
+      boolean withMultipleResponsesInVexAnnotation)
   {
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "ABC-123", null, "test vulnerability",
         "http://123.xyz", 5.6d, "testUser", "source", "v:1", "test severity", "123", "m1", "r1", "a1",
@@ -587,7 +693,7 @@ public class ComponentDetailsPageTest
         identificationSource);
     if (withVexAnnotations) {
       tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityDEF456, "DEF-456", "exploitable",
-          "code_not_present", "rollback", "test vex detail");
+          "code_not_present", withMultipleResponsesInVexAnnotation ? "rollback,update" : "rollback", "test vex detail");
     }
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "CVE-4812", null, "test vulnerability",
         "http://12345.xyz", 1.5d, "testUser", "source", "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H", "testSeverity",
@@ -651,17 +757,17 @@ public class ComponentDetailsPageTest
       table.getColumnData(0, 3).shouldHave(text(analysisStatus));
       table.getColumnData(0, 4).shouldHave(text(justification));
     }
-    else
-    {
+    else {
       table.getColumnData(0, 2).shouldHave(text(analysisStatus));
       table.getColumnData(0, 3).shouldHave(text(justification));
     }
   }
 
-  public void assertVexAnnotationForm(VexAnnotationDrawer vexAnnotationDrawer, String issue, String purl,
-                                      String cvssScore, String verificationStatus, String vulnerabilityDescription,
-                                      String analysisStatusDropdown, String justificationDropdown,
-                                      String responseDropdown, String submitButtonText, String annotationDetails)
+  public void assertVexAnnotationForm(
+      VexAnnotationDrawer vexAnnotationDrawer, String issue, String purl,
+      String cvssScore, String verificationStatus, String vulnerabilityDescription,
+      String analysisStatusDropdown, String justificationDropdown,
+      String responseDropdown, String submitButtonText, String annotationDetails)
   {
     vexAnnotationDrawer.header().shouldBe(visible);
     vexAnnotationDrawer.closeButton().shouldBe(visible);
@@ -702,41 +808,41 @@ public class ComponentDetailsPageTest
     categoryContent.shouldHave(text("Data"));
 
     SelenideElement descriptionFromCveContent =
-            vulnerabilityDetails.getVulnerabilityDetailsContentBySecondColumnIdx(1);
+        vulnerabilityDetails.getVulnerabilityDetailsContentBySecondColumnIdx(1);
     descriptionFromCveContent.shouldHave(text("In spring security versions prior to 5.4.11+, 5.5.7+ , 5.6.4+ " +
-            "and older unsupported versions, RegexRequestMatcher can easily be misconfigured to be bypassed on some " +
-            "servlet containers. Applications using RegexRequestMatcher with `.`" +
-            " in the regular expression are possibly " +
-            "vulnerable to an authorization bypass."));
+        "and older unsupported versions, RegexRequestMatcher can easily be misconfigured to be bypassed on some " +
+        "servlet containers. Applications using RegexRequestMatcher with `.`" +
+        " in the regular expression are possibly " +
+        "vulnerable to an authorization bypass."));
 
     SelenideElement explanationContent = vulnerabilityDetails
-            .getVulnerabilityDetailsContentBySecondColumnIdx(2);
+        .getVulnerabilityDetailsContentBySecondColumnIdx(2);
     explanationContent.shouldHave(text("The spring-security-web package is vulnerable to Authorization Bypass. " +
         "The RegexRequestMatcher() function in the RegexRequestMatcher class and the addSecureUrl() function in " +
         "the DefaultFilterInvocationSecurityMetadataSource class can return an unexpected match when a . character " +
         "is used in a regular expression."));
 
     SelenideElement detectionContent = vulnerabilityDetails
-            .getVulnerabilityDetailsContentBySecondColumnIdx(3);
+        .getVulnerabilityDetailsContentBySecondColumnIdx(3);
     detectionContent.shouldHave(text("The application is vulnerable by using this component."));
 
     SelenideElement recommendationContent = vulnerabilityDetails
-            .getVulnerabilityDetailsContentBySecondColumnIdx(4);
+        .getVulnerabilityDetailsContentBySecondColumnIdx(4);
     recommendationContent.shouldHave(text("We recommend upgrading to a version of this component that is " +
-            "not vulnerable to this specific issue"));
+        "not vulnerable to this specific issue"));
 
     SelenideElement rootCauseContent = vulnerabilityDetails
-            .getVulnerabilityDetailsContentBySecondColumnIdx(5);
+        .getVulnerabilityDetailsContentBySecondColumnIdx(5);
     rootCauseContent.shouldHave(text("spring-security-web-5.6.2.jar"));
     rootCauseContent.shouldHave(text("org/springframework/security/web/util/matcher/" +
-            "RegexRequestMatcher.class[5.6.0.M0 , 5.6.4"));
+        "RegexRequestMatcher.class[5.6.0.M0 , 5.6.4"));
 
     SelenideElement advisoriesContent = vulnerabilityDetails
-            .getVulnerabilityDetailsContentBySecondColumnIdx(6);
+        .getVulnerabilityDetailsContentBySecondColumnIdx(6);
     advisoriesContent.shouldHave(text("Third Partyhttps://issues.apache.org/jira/browse/FILEUPLOAD-250"));
 
     SelenideElement cvssDetailsContent = vulnerabilityDetails
-            .getVulnerabilityDetailsContentBySecondColumnIdx(7);
+        .getVulnerabilityDetailsContentBySecondColumnIdx(7);
     cvssDetailsContent.shouldHave(text("CVE CVSS 31.5"));
     cvssDetailsContent.shouldHave(text("CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"));
   }

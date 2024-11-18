@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.sbom.components;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -22,7 +21,6 @@ import javax.inject.Singleton;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -31,7 +29,6 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.component.ComponentCategory;
 import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.thirdpartyscans.BomPageSbomSummaryDTO;
@@ -80,8 +77,6 @@ public class SbomComponentsService
 
   private final ThirdPartyScanDAO thirdPartyScanDAO;
 
-  private final ComponentCategoryDAO componentCategoryDAO;
-
   private static final Logger log = LoggerFactory.getLogger(SbomComponentsService.class);
 
   @Inject
@@ -93,8 +88,7 @@ public class SbomComponentsService
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO vexDAO,
-      final SbomPolicyService sbomPolicyService,
-      final ComponentCategoryDAO componentCategoryDAO)
+      final SbomPolicyService sbomPolicyService)
   {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
@@ -104,7 +98,6 @@ public class SbomComponentsService
     this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.sbomPolicyService = sbomPolicyService;
-    this.componentCategoryDAO = componentCategoryDAO;
   }
 
   @Authorize(permission = Permission.READ)
@@ -153,8 +146,6 @@ public class SbomComponentsService
         getVulnerabilitiesDetails(sbomMetadata, vulnerabilityList, vexAnnotationsMap, true));
     componentDetailsDTO.setSonatypeIdentifiedVulnerabilities(
         getVulnerabilitiesDetails(sbomMetadata, vulnerabilityList, vexAnnotationsMap, false));
-    componentDetailsDTO.setCategories(getComponentCategoryPaths(component.getCategoryIds()));
-    componentDetailsDTO.setWebsite(component.getWebsite());
 
     try {
       PolicyThreats.Component componentFound = sbomPolicyService.getPolicyViolationsByFileCoordinateIdOrHash(
@@ -170,16 +161,6 @@ public class SbomComponentsService
     catch (IOException e) {
       throw new InternalServerException("Policy threat report can not be parsed", e);
     }
-  }
-
-  private List<String> getComponentCategoryPaths(String ids) {
-    if (ids == null || ids.trim().isBlank()) {
-      return Collections.emptyList();
-    }
-    List<String> componentCategoryIds = Arrays.asList(ids.split(","));
-    return componentCategoryDAO.getByComponentCategoryIds(componentCategoryIds).stream()
-        .map(ComponentCategory::getPath).collect(Collectors.toList());
-
   }
 
   private CDPSbomMetadataDTO getSbomMetadata(String applicationId, Date sbomMetadataCreatedAt, String scanId) {

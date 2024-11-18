@@ -292,8 +292,6 @@ public class SbomComponentsServiceTest
     assertThat(actual.getOccurrences()).isEmpty();
     assertThat(actual.getDisclosedVulnerabilities()).isEmpty();
     assertThat(actual.getSonatypeIdentifiedVulnerabilities()).isEmpty();
-    assertThat(actual.getCategories()).hasSize(component.getCategoryIds().split(",").length);
-
   }
 
   private void assertSbomComponentDetailsDTO(
@@ -313,10 +311,6 @@ public class SbomComponentsServiceTest
     assertThat(actual.getMetadata().getApplicationName()).isEqualTo(app.getName());
     assertThat(actual.getMetadata().getOrganizationName()).isEqualTo(org.getName());
     assertThat(actual.getMetadata().getSbomCreationTime()).isEqualTo(sbom.getCreatedAt());
-    assertThat(actual.getCategories()).hasSize(component.getCategoryIds().split(",").length);
-    assertThat(actual.getCategories().get(0)).isEqualTo("Sonatype");
-    assertThat(actual.getCategories().get(1)).isEqualTo("Analytics");
-    assertThat(actual.getWebsite()).isEqualTo("https://www.sonatype.com");
     if (CollectionUtils.isEmpty(component.getOccurrencesList())) {
       assertThat(actual.getOccurrences()).isEmpty();
     }

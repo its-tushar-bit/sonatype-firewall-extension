@@ -27,10 +27,6 @@ public class CDPSbomComponentDetailsDTO
 
   private SbomPolicyViolationSummaryDTO policyViolationSummary;
 
-  private List<String> categories;
-
-  private String website;
-
   public CDPSbomComponentDetailsDTO() {
     // no op
   }
@@ -100,21 +96,5 @@ public class CDPSbomComponentDetailsDTO
 
   public void setPolicyViolationSummary(final SbomPolicyViolationSummaryDTO policyViolationSummary) {
     this.policyViolationSummary = policyViolationSummary;
-  }
-
-  public List<String> getCategories() {
-    return categories;
-  }
-
-  public void setCategories(final List<String> categories) {
-    this.categories = categories;
-  }
-
-  public String getWebsite() {
-    return website;
-  }
-
-  public void setWebsite(final String website) {
-    this.website = website;
   }
 }

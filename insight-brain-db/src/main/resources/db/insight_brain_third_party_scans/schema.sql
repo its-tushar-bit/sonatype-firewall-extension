@@ -40,8 +40,6 @@ CREATE TABLE file_coordinate (
   dependency_type        VARCHAR(2)   NULL,
   identification_sources VARCHAR(100) NULL,
   match_state_id VARCHAR(20) NULL,
-  website VARCHAR(1000) NULL,
-  category_ids TEXT NULL,
   occurrences TEXT NULL,
   filenames TEXT NULL,
   CONSTRAINT file_coordinate_pk PRIMARY KEY (file_coordinate_id),

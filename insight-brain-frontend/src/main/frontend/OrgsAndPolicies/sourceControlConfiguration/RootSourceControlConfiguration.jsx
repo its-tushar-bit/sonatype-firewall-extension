@@ -31,6 +31,7 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/sourceControlConfigurationSlice';
 import ScmProviderOptions from 'MainRoot/OrgsAndPolicies/sourceControlConfiguration/ScmProviderOptions';
+import RenderMarkdown from 'MainRoot/react/RenderMarkdown';
 
 const RootSourceControlConfiguration = () => {
   const dispatch = useDispatch();
@@ -155,7 +156,7 @@ const RootSourceControlConfiguration = () => {
               }
             >
               <span className="iq-source-control-toggle__title">{title}</span>
-              <p className="iq-source-control-toggle__text">{description}</p>
+              <RenderMarkdown className="iq-source-control-toggle__text">{description}</RenderMarkdown>
             </NxToggle>
           </NxTooltip>
         );

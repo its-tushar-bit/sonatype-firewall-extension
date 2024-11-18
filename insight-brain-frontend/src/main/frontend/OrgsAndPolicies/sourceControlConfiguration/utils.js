@@ -48,9 +48,11 @@ export const SOURCE_CONTROL_OPTIONS = [
   },
   {
     id: 'source-control-remediation-pull-requests',
-    title: 'Automated Remediation Pull Requests',
+    title: 'Automated Remediation with GoldenPRs™',
     description:
-      'Create Pull requests with remediation suggestions for policy violations discovered on the default branch.',
+      'Create pull requests with remediation suggestions for policy violations discovered on the default branch.\n' +
+      '##### Golden Versions for Maven\n' +
+      'Pull requests for Maven dependencies are generated when the recommended version, including transitive dependencies, is non-breaking and safe to use.',
     optionName: 'remediationPullRequestsEnabled',
   },
   {

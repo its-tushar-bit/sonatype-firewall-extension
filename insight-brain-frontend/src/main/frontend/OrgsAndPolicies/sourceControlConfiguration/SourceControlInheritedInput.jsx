@@ -8,6 +8,7 @@ import React from 'react';
 import { NxFieldset, NxFontAwesomeIcon, NxRadio, NxTooltip } from '@sonatype/react-shared-components';
 import { faQuestionCircle } from '@fortawesome/pro-solid-svg-icons';
 import { SCM_FEATURE_UNSUPPORTED_MESSAGE } from './utils';
+import RenderMarkdown from 'MainRoot/react/RenderMarkdown';
 
 const SourceControlInheritedInput = ({
   title,
@@ -21,7 +22,7 @@ const SourceControlInheritedInput = ({
   const label = (
     <>
       {title}{' '}
-      <NxTooltip title={isDisabled ? '' : description}>
+      <NxTooltip title={isDisabled ? '' : <RenderMarkdown>{description}</RenderMarkdown>}>
         <NxFontAwesomeIcon icon={faQuestionCircle} />
       </NxTooltip>
     </>

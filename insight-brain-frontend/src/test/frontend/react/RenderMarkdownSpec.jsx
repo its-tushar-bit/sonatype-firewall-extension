@@ -5,12 +5,12 @@
  */
 import React from 'react';
 import { render, shallow, mount } from 'enzyme';
-import RenderMarkdown from 'MainRoot/react/IqVulnerabilityDetails/details/RenderMarkdown';
+import RenderMarkdown from 'MainRoot/react/RenderMarkdown';
 
 describe('RenderMarkdown', function () {
-  it('passes .iq-vulnerability-details__html-detail className prop to ReactCommonmark', function () {
-    const shallowRender = shallow(<RenderMarkdown>content</RenderMarkdown>);
-    expect(shallowRender).toHaveClassName('iq-vulnerability-details__html-detail');
+  it('passes className prop to ReactCommonmark', function () {
+    const shallowRender = shallow(<RenderMarkdown className="test-class">content</RenderMarkdown>);
+    expect(shallowRender).toHaveClassName('test-class');
   });
 
   it('handles single ticks', function () {

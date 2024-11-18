@@ -215,7 +215,7 @@ void pushDockerImageIfDeployBranch() {
     dir("nexus-iq-server") {
         withSonatypeDockerRegistry() {
             String latest = "${sonatypeDockerRegistryId()}/${imageName}:latest"
-            sh "docker buildx create --use --driver-opt image=${sonatypeDockerRegistryId()}/moby/buildkit:buildx-stable-1"
+            sh "docker buildx create --use --driver-opt image=${sonatypeDockerRegistryId()}/moby/buildkit"
             sh "docker buildx build --platform=linux/amd64,linux/arm64 --build-arg " +
                 "SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg " +
                 "IQ_SERVER_VERSION=${iqVersion} " +

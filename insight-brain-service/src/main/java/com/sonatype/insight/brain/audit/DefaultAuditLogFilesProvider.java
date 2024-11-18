@@ -29,7 +29,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.MissingNode;
-import io.dropwizard.logging.common.DefaultLoggingFactory;
+import io.dropwizard.logging.DefaultLoggingFactory;
 
 @Named
 @Singleton

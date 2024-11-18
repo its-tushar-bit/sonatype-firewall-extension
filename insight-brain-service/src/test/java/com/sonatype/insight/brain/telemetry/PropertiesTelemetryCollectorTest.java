@@ -19,7 +19,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.jetty.HttpsConnectorFactory;
-import io.dropwizard.core.server.DefaultServerFactory;
+import io.dropwizard.server.DefaultServerFactory;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

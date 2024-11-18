@@ -18,7 +18,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import io.dropwizard.jetty.ConnectorFactory;
 import io.dropwizard.jetty.HttpsConnectorFactory;
-import io.dropwizard.core.server.DefaultServerFactory;
+import io.dropwizard.server.DefaultServerFactory;
 
 /**
  * @since 1.69

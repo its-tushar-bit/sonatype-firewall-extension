@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.dropwizard.logging.common.DefaultLoggingFactory;
+import io.dropwizard.logging.DefaultLoggingFactory;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

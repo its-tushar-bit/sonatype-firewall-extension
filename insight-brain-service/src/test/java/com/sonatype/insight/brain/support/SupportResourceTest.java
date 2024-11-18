@@ -19,8 +19,8 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import io.dropwizard.logging.common.DefaultLoggingFactory;
-import io.dropwizard.logging.common.FileAppenderFactory;
+import io.dropwizard.logging.DefaultLoggingFactory;
+import io.dropwizard.logging.FileAppenderFactory;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 

@@ -34,14 +34,14 @@ import io.dropwizard.configuration.ConfigurationException;
 import io.dropwizard.configuration.ConfigurationParsingException;
 import io.dropwizard.configuration.ConfigurationSourceProvider;
 import io.dropwizard.configuration.YamlConfigurationFactory;
-import io.dropwizard.logging.common.AbstractAppenderFactory;
-import io.dropwizard.logging.common.AppenderFactory;
-import io.dropwizard.logging.common.DefaultLoggingFactory;
-import io.dropwizard.logging.common.filter.FilterFactory;
+import io.dropwizard.logging.AbstractAppenderFactory;
+import io.dropwizard.logging.AppenderFactory;
+import io.dropwizard.logging.DefaultLoggingFactory;
+import io.dropwizard.logging.filter.FilterFactory;
 import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
 import io.dropwizard.request.logging.RequestLogFactory;
 import io.dropwizard.request.logging.old.LogbackClassicRequestLogFactory;
-import io.dropwizard.core.server.AbstractServerFactory;
+import io.dropwizard.server.AbstractServerFactory;
 import io.dropwizard.util.Duration;
 
 public class InsightConfigurationFactory

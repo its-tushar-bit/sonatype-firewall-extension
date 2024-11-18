@@ -10,7 +10,7 @@ import javax.ws.rs.core.UriBuilder;
 import ch.qos.logback.access.spi.IAccessEvent;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.FilterReply;
-import io.dropwizard.logging.common.filter.FilterFactory;
+import io.dropwizard.logging.filter.FilterFactory;
 
 /**
  * Based on the example at https://www.dropwizard.io/1.2.1/docs/manual/core.html#logging-filters

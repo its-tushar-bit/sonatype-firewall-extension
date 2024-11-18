@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.db;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
 
-import io.dropwizard.core.setup.Environment;
+import io.dropwizard.setup.Environment;
 
 /**
  * <p>

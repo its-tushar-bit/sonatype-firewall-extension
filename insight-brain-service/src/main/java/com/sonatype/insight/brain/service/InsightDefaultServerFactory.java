@@ -9,7 +9,7 @@ import java.util.Collections;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import io.dropwizard.core.server.DefaultServerFactory;
+import io.dropwizard.server.DefaultServerFactory;
 
 /**
  * Custom {@link DefaultServerFactory} with updated defaults. We used to set them externally in InsightConfig, but if

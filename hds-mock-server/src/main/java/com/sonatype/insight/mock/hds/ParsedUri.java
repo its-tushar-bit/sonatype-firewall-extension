@@ -13,7 +13,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jetty.util.MultiMap;
 import org.eclipse.jetty.util.UrlEncoded;
 
 class ParsedUri
@@ -27,9 +26,8 @@ class ParsedUri
     path = u.getPath();
     query = new LinkedHashMap<>();
     if (u.getRawQuery() != null) {
-      MultiMap<String> urlEncoded = new MultiMap<>();
-      UrlEncoded.decodeTo(u.getRawQuery(), urlEncoded, UrlEncoded.ENCODING);
-      for (String key : urlEncoded.keySet()) {
+      UrlEncoded urlEncoded = new UrlEncoded(u.getRawQuery());
+      for (String key : (Collection<String>) urlEncoded.keySet()) {
         Collection<Object> values = new LinkedHashSet<>();
         query.put(key, values);
         Collection<String> decodedValues = urlEncoded.getValues(key);

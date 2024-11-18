@@ -41,10 +41,8 @@ public class HttpHeaderValidatorFilterChainTest
   public void testInvalidHeader_Host() throws Exception {
     HttpResponse response = restRequest().header("X-Forwarded-Host", "\"><script>alert(document.domain)</script>")
         .post();
-
-    // Jetty 10 now handles this rather than HttpHeaderValidatorFilter (see ForwardRequestCustomizer#onError)
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).contains("Bad header value for X-Forwarded-Host");
+    assertThat(response.getBodyText()).isEqualTo("Illegal header value detected in 'Host'");
   }
 
   @Test
@@ -58,9 +56,7 @@ public class HttpHeaderValidatorFilterChainTest
   @Test
   public void testInvalidHeader_ForwardedHost() throws Exception {
     HttpResponse response = restRequest().header("Forwarded", "host=\"><script>alert(document.domain)</script>").post();
-
-    // Jetty 10 now handles this rather than HttpHeaderValidatorFilter (see ForwardRequestCustomizer#onError)
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).contains("Bad header value for Forwarded");
+    assertThat(response.getBodyText()).isEqualTo("Illegal header value detected in 'Forwarded'");
   }
 }

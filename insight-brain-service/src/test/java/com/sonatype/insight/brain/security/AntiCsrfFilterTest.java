@@ -19,7 +19,7 @@ import com.sonatype.insight.test.networking.SslProperties;
 
 import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.jetty.HttpsConnectorFactory;
-import io.dropwizard.core.server.DefaultServerFactory;
+import io.dropwizard.server.DefaultServerFactory;
 import org.junit.Before;
 import org.junit.Test;
 

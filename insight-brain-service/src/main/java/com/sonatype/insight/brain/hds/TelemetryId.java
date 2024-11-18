@@ -24,8 +24,8 @@ import com.sonatype.insight.brain.service.InsightConfig;
 
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
-import io.dropwizard.core.server.DefaultServerFactory;
 import io.dropwizard.jetty.HttpConnectorFactory;
+import io.dropwizard.server.DefaultServerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

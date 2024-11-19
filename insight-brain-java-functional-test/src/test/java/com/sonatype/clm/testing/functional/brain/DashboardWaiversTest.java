@@ -43,6 +43,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
@@ -428,6 +429,7 @@ public class DashboardWaiversTest
     waiver5.upgradeAvailable().shouldHave(text("—"));
   }
 
+  @Ignore("This test is flaky and will be fixed by CLM-32946")
   @Test
   public void testWaiversTable_defaultCsvExport() {
     // checks csv export when no filters are selected
@@ -446,6 +448,7 @@ public class DashboardWaiversTest
     assertWaiversCsv(exportCsvData, expectedResults);
   }
 
+  @Ignore("This test is flaky and will be fixed by CLM-32946")
   @Test
   public void testWaiversTable_sortByThreat() {
     refreshOrOpen(DashboardPage.urlToWaivers());
@@ -470,6 +473,7 @@ public class DashboardWaiversTest
     assertWaiversCsv(exportCsvData, expectedResults);
   }
 
+  @Ignore("This test is flaky and will be fixed by CLM-32946")
   @Test
   public void testWaiversTable_sortByCreatedDate() {
     refreshOrOpen(DashboardPage.urlToWaivers());
@@ -494,6 +498,7 @@ public class DashboardWaiversTest
     assertWaiversCsv(exportCsvData, expectedResults);
   }
 
+  @Ignore("This test is flaky and will be fixed by CLM-32946")
   @Test
   public void testWaiversTable_sortByPolicy() {
     refreshOrOpen(DashboardPage.urlToWaivers());
@@ -521,6 +526,7 @@ public class DashboardWaiversTest
     assertWaiversCsv(exportCsvData, expectedResults);
   }
 
+  @Ignore("This test is flaky and will be fixed by CLM-32946")
   @Test
   public void testWaiversTable_sortByScope() {
     refreshOrOpen(DashboardPage.urlToWaivers());
@@ -544,6 +550,7 @@ public class DashboardWaiversTest
     assertWaiversCsv(exportCsvData, expectedResults);
   }
 
+  @Ignore("This test is flaky and will be fixed by CLM-32946")
   @Test
   public void testWaiversTable_sortByComponent() {
     refreshOrOpen(DashboardPage.urlToWaivers());

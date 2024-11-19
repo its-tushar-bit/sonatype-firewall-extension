@@ -5,6 +5,26 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.validation.constraints.NotNull;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -61,25 +81,6 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.validation.constraints.NotNull;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
@@ -182,7 +183,7 @@ public class ApiPolicyWaiverService
       final OwnerType ownerType,
       final String comment)
   {
-    PolicyViolation policyViolation = policyViolationDAO.getById(policyViolationId);
+    PolicyViolation policyViolation = policyViolationDAO.getByIdWithConstraintFacts(policyViolationId);
 
     if (policyViolation == null) {
       throw new NotFoundException("Could not find policy violation with ID " + policyViolationId + ".");
@@ -214,9 +215,9 @@ public class ApiPolicyWaiverService
       final String policyViolationId,
       final ApiWaiverOptionsDTO waiverOptionsDTO)
   {
-    AbstractPolicyViolation abstractPolicyViolation = policyViolationDAO.getById(policyViolationId);
+    AbstractPolicyViolation abstractPolicyViolation = policyViolationDAO.getByIdWithConstraintFacts(policyViolationId);
     if (abstractPolicyViolation == null) {
-      abstractPolicyViolation = repositoryPolicyViolationDAO.getById(policyViolationId);
+      abstractPolicyViolation = repositoryPolicyViolationDAO.getByIdWithConstraintFacts(policyViolationId);
     }
 
     if (abstractPolicyViolation == null) {
@@ -559,9 +560,9 @@ public class ApiPolicyWaiverService
 
   @NotNull
   private AbstractPolicyViolation getAbstractPolicyViolation(final String violationId) {
-    AbstractPolicyViolation policyViolation = policyViolationDAO.getById(violationId);
+    AbstractPolicyViolation policyViolation = policyViolationDAO.getByIdWithConstraintFacts(violationId);
     if (policyViolation == null) {
-      policyViolation = repositoryPolicyViolationDAO.getById(violationId);
+      policyViolation = repositoryPolicyViolationDAO.getByIdWithConstraintFacts(violationId);
       if (policyViolation == null) {
         throw new NotFoundException("Could not find policy violation with ID " + violationId + ".");
       }

@@ -27,44 +27,39 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
-import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFactsDAOProvider;
+import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFacts;
 import com.sonatype.insight.brain.model.policy.PolicyViolationSummary;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.json.store.JsonUtils;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class RepositoryPolicyViolationDAOTest
     extends AbstractDbDAOTest
 {
   private RepositoryPolicyViolationDAO dao;
 
-  private PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO;
+  private PolicyViolationConstraintFactsDAO constraintFactsDAO;
 
   @Before
   @Override
   public void setup() {
     super.setup();
     dao = daoFactory.createRepositoryPolicyViolationDAO();
-    policyViolationConstraintFactsDAO = daoFactory.createPolicyViolationConstraintFactsDAO();
-    PolicyViolationConstraintFactsDAOProvider.inject(policyViolationConstraintFactsDAO);
-  }
-
-  @After
-  public void tearDown() {
-    PolicyViolationConstraintFactsDAOProvider.inject(null);
+    constraintFactsDAO = daoFactory.createPolicyViolationConstraintFactsDAO();
   }
 
   @Test
-  public void testCRUD() {
+  public void testCRUD() throws Exception {
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
 
     // Create
@@ -78,21 +73,34 @@ public class RepositoryPolicyViolationDAOTest
     dao.insert(policyViolation);
     assertThat(policyViolation.getId()).isNotNull();
 
-    // Read
-    policyViolation = dao.getById(policyViolation.getId());
-    assertThat(policyViolation).isNotNull();
-    assertPolicyViolation(repository.getId(), "path", policy.getId(), policy.getName(), 5,
-        PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier, now, null /* actionTypeId */,
-        policyViolation);
+    // Test constraints stored
+    assertThat(policyViolation.getConstraintFactsId()).isNotNull();
+    PolicyViolationConstraintFacts facts = constraintFactsDAO.getById(policyViolation.getConstraintFactsId());
+    ConstraintFact[] constraintFacts = JsonUtils.parse(facts.getConstraintFactsJson(), ConstraintFact[].class);
+    assertThat(constraintFacts[0].getConstraintId()).isEqualTo(constraintFact.getConstraintId());
 
+    // Read
+    {
+      RepositoryPolicyViolation persistedPolicyViolation = dao.getById(policyViolation.getId());
+      assertThat(persistedPolicyViolation).isNotNull();
+      assertPolicyViolation(repository.getId(), "path", policy.getId(), policy.getName(), 5,
+          PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier, now, null /* actionTypeId */,
+          persistedPolicyViolation);
+      assertThatExceptionOfType(IllegalStateException.class)
+          .isThrownBy(() -> persistedPolicyViolation.getConstraintFactsJson())
+          .withMessageContaining("Constraint facts are not loaded yet for policyViolationId=");
+    }
+
+    // Update
     policyViolation.setActionTypeId(Action.ID_FAIL);
     dao.update(policyViolation);
 
     // Read
-    policyViolation = dao.getById(policyViolation.getId());
-    assertThat(policyViolation).isNotNull();
+    RepositoryPolicyViolation persistedpolicyViolation = dao.getById(policyViolation.getId());
+    assertThat(persistedpolicyViolation).isNotNull();
     assertPolicyViolation(repository.getId(), "path", policy.getId(), policy.getName(), 5,
-        PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier, now, Action.ID_FAIL, policyViolation);
+        PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier, now, Action.ID_FAIL,
+        persistedpolicyViolation);
 
     // Delete
     dao.delete(policyViolation);

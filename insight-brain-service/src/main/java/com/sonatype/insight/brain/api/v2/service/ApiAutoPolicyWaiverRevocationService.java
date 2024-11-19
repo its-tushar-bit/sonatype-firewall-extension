@@ -7,10 +7,12 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -228,10 +230,12 @@ public class ApiAutoPolicyWaiverRevocationService
     AuditData.get().setData("autoPolicyWaiverRevocationId", autoPolicyWaiverRevocation.getId());
   }
 
+  // Package visible for tests
   String getCveIdentifiers(PolicyViolation policyViolation) {
     if (policyViolation == null) {
       throw new IllegalStateException("PolicyViolation cannot be null");
     }
+    policyViolationDAO.loadConstraintFacts(Collections.singletonList(policyViolation));
     List<ConstraintFact> constraintFacts = policyViolation.getConstraintFacts();
     List<ConditionFact> securityConditions = getSecurityConditions(constraintFacts);
     return String.join(",", securityConditions.stream().map(this::matchCVEs).flatMap(List::stream).distinct().toList());

@@ -377,6 +377,7 @@ public class ApiFirewallService
       List<RepositoryPolicyViolation> violations = repositoryPolicyViolationDAO
           .getByRepositoryIdAndPathnameAndActionAndNotWaived(component.getRepositoryId(), component.getPathname(),
               Action.ID_FAIL);
+      repositoryPolicyViolationDAO.loadConstraintFacts(violations);
       for (RepositoryPolicyViolation policyViolation : violations) {
         final ApiPolicyViolationDTOV2 policyViolationDTO = ApiPolicyViolationAdapter.convert(policyViolation);
         apiFirewallComponentDTO.quarantinePolicyViolations.add(policyViolationDTO);

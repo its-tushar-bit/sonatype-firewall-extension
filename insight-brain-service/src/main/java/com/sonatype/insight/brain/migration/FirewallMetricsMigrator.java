@@ -20,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.Query;
@@ -54,7 +55,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO.createPaginationQuery;
+import static com.sonatype.insight.brain.dataaccess.AbstractSqlDAO.createPaginationQuery;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.COMPONENTS_AUTO_RELEASED;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.COMPONENTS_QUARANTINED;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.NAMESPACE_ATTACKS_BLOCKED;
@@ -221,6 +222,7 @@ public class FirewallMetricsMigrator
           paginationQuery.setParameter(2, toDate(fromDate));
         }
         repositoryPolicyViolations = paginationQuery.getResultList();
+        repositoryPolicyViolationDAO.loadConstraintFacts(repositoryPolicyViolations);
 
         for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
           apiFirewallMetricsService.checkFirewallMetricsInRepositoryPolicyViolation(repositoryPolicyViolation,

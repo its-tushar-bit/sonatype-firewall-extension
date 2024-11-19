@@ -96,8 +96,10 @@ public class SuccessMetricsReportDataServiceTest
   private PolicyEvaluationDAO policyEvaluationDAO;
 
   private void fixViolations(PolicyEvaluation evaluation, Predicate<PolicyViolation> exclude) {
-    for (PolicyViolation fixedViolation : policyViolationDAO
-        .getUnfixedByApplicationIdAndStageId(evaluation.getApplicationId(), evaluation.getStageTypeId())) {
+    List<PolicyViolation> policyViolations = policyViolationDAO
+        .getUnfixedByApplicationIdAndStageId(evaluation.getApplicationId(), evaluation.getStageTypeId());
+    policyViolationDAO.loadConstraintFacts(policyViolations);
+    for (PolicyViolation fixedViolation : policyViolations) {
       if (exclude == null || !exclude.test(fixedViolation)) {
         fixedViolation.setFixTime(evaluation.getTime());
         policyViolationDAO.update(fixedViolation);

@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain.labs;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.function.Predicate;
 
@@ -109,8 +110,10 @@ public class SuccessMetricsChartsTest
       PolicyEvaluation evaluation,
       Predicate<PolicyViolation> exclude)
   {
-    for (PolicyViolation fixedViolation : policyViolationDAO
-        .getUnfixedByApplicationIdAndStageId(evaluation.getApplicationId(), evaluation.getStageTypeId())) {
+    List<PolicyViolation> policyViolations = policyViolationDAO
+        .getUnfixedByApplicationIdAndStageId(evaluation.getApplicationId(), evaluation.getStageTypeId());
+    policyViolationDAO.loadConstraintFacts(policyViolations);
+    for (PolicyViolation fixedViolation : policyViolations) {
       if (exclude == null || !exclude.test(fixedViolation)) {
         fixedViolation.setFixTime(evaluation.getTime());
         policyViolationDAO.update(fixedViolation);

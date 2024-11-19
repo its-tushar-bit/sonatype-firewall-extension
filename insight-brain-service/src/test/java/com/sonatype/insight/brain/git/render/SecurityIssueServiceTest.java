@@ -13,18 +13,21 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.service.VulnerabilityDetailsService;
 import com.sonatype.insight.brain.git.render.model.SecurityIssue;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.ResearchType;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.Mock;
-import com.google.common.collect.ImmutableList;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.sonatype.insight.brain.git.render.ComponentFeedbackHelper.TEST_COMPONENT_IDENTIFIER;
+import static com.sonatype.insight.brain.git.render.ComponentFeedbackHelper.generateConditionFact;
+import static com.sonatype.insight.brain.git.render.ComponentFeedbackHelper.generateConstraintFact;
 import static com.sonatype.insight.brain.git.render.ComponentFeedbackHelper.generatePV;
 import static com.sonatype.insight.brain.git.render.ComponentFeedbackHelper.generatePVWithManyConditionFacts;
 import static com.sonatype.insight.brain.git.render.ComponentFeedbackHelper.generateSecurityVulnerabilityData;
@@ -188,7 +191,8 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
   @Test
   public void testGetSecurityIssuesFromViolations_withoutVulns() {
     // Given a PV with no Vulnerabilities
-    final PolicyViolation pv = generatePV(PV_ID_1, TEST_COMPONENT_IDENTIFIER);
+    final PolicyViolation pv = generatePV(PV_ID_1, TEST_COMPONENT_IDENTIFIER,
+        generateConstraintFact(generateConditionFact(AgeInDaysConditionType.ID, "1")));
 
     // When SecurityIssueService is called
     final List<SecurityIssue> actualSecurityIssues = underTest.getSecurityIssuesFromViolations(IQ_BASE_URL,
@@ -198,8 +202,8 @@ public class SecurityIssueServiceTest extends AbstractComponentTest
     assertThat(actualSecurityIssues).hasSize(1);
     final SecurityIssue actualSecurityIssue = actualSecurityIssues.get(0);
 
-    // then assert the input PolicyViolation does not have ConstraintFacts
-    assertThat(pv.getConstraintFacts()).isNull();
+    // then assert the input PolicyViolation has ConstraintFacts
+    assertThat(pv.getConstraintFacts()).isNotNull();
 
     // then expect the security issue to have a null vulnerability field and null description
     assertThat(actualSecurityIssue.getThreatLevel()).isEqualTo(pv.getThreatLevel());

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.model.policy;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -13,47 +14,23 @@ import java.util.UUID;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFactsDAO;
-import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.scan.util.HashUtils;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
 public class RepositoryPolicyViolationTest
 {
   private static final ComponentIdentifier MAVEN_IDENTIFIER = ComponentIdentifier.createMavenCoordinates("groupId",
       "artifactId", "version");
 
-  @Mock
-  private PolicyViolationConstraintFactsDAO constraintsDAO;
-
-  @Before
-  public void setup() {
-    PolicyViolationConstraintFactsDAOProvider.inject(constraintsDAO);
-  }
-
-  @After
-  public void tearDown() {
-    PolicyViolationConstraintFactsDAOProvider.inject(null);
-  }
-
   @Test
-  public void testConstructorConstraintFacts() {
+  public void testConstructor_ConstraintFacts() {
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
     String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
 
@@ -67,44 +44,28 @@ public class RepositoryPolicyViolationTest
   }
 
   @Test
-  public void testSetConstraintFactsJson() {
+  public void testSetConstraintFacts_Null() {
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
 
-    List<ConstraintFact> constraintFacts = createConstraintFacts(2);
-    String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
-
-    String constraintsFactsHash = HashHelper.truncateHash(HashUtils.hash(constraintFactsJson, HashUtils.SHA1));
-    when(constraintsDAO.getById(anyString()))
-        .thenReturn(new PolicyViolationConstraintFacts(constraintsFactsHash, constraintFactsJson));
-
-    policyViolation.setConstraintFactsId(constraintsFactsHash);
-    assertThat(policyViolation.getConstraintFactsJson()).isEqualTo(constraintFactsJson);
-    assertConstraintFacts(policyViolation.getConstraintFacts(), constraintFacts);
+    assertThatThrownBy(() -> policyViolation.setConstraintFacts(null)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("ConstraintFacts cannot be null or empty.");
   }
 
   @Test
-  public void testSetConstraintFactsJson_Null() {
+  public void testSetConstraintFacts_Empty() {
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
 
-    assertThatThrownBy(() -> policyViolation.setConstraintFactsJson(null)).isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("ConstraintFactsJson cannot be null or empty.");
+    assertThatThrownBy(() -> policyViolation.setConstraintFacts(Collections.emptyList()))
+        .isInstanceOf(IllegalArgumentException.class).hasMessage("ConstraintFacts cannot be null or empty.");
   }
 
   @Test
-  public void testSetConstraintFactsJson_Empty() {
-    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
-
-    assertThatThrownBy(() -> policyViolation.setConstraintFactsJson(" ")).isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("ConstraintFactsJson cannot be null or empty.");
-  }
-
-  @Test
-  public void testConstructorConstraintFacts_Null() {
+  public void testConstructor_ConstraintFacts_Null() {
     assertThatThrownBy(() -> {
       List<ConstraintFact> constraintFacts = null;
       new RepositoryPolicyViolation("repositoryId", "path", new Date(), "policyId", "policyName", 5 /* threatLevel */,
           PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFacts);
-    }).isInstanceOf(IllegalArgumentException.class).hasMessage("ConstraintFacts cannot be null");
+    }).isInstanceOf(IllegalArgumentException.class).hasMessage("ConstraintFacts cannot be null or empty.");
   }
 
   private List<ConstraintFact> createConstraintFacts(int count) {
@@ -224,12 +185,33 @@ public class RepositoryPolicyViolationTest
   }
 
   @Test
-  public void testGetConstraintsJsonLegacy() {
+  public void testGetConstraintFacts() {
     List<ConstraintFact> constraintFacts = createConstraintFacts(1);
     RepositoryPolicyViolation policyViolation =
         new RepositoryPolicyViolation("repositoryId", "path", new Date(), "policyId", "policyName", 5 /* threatLevel */,
             PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFacts);
 
-    assertThat(policyViolation.getConstraintFactsJsonWithoutLoading()).isNotBlank();
+    assertConstraintFacts(policyViolation.getConstraintFacts(), constraintFacts);
+
+    policyViolation.clearConstraintFacts();
+
+    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> policyViolation.getConstraintFacts())
+        .withMessageContaining("Constraint facts are not loaded yet for policyViolationId=");
+  }
+
+  @Test
+  public void testGetConstraintFactsJson() {
+    List<ConstraintFact> constraintFacts = createConstraintFacts(1);
+    String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
+    RepositoryPolicyViolation policyViolation =
+        new RepositoryPolicyViolation("repositoryId", "path", new Date(), "policyId", "policyName", 5 /* threatLevel */,
+            PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFacts);
+
+    assertThat(policyViolation.getConstraintFactsJson()).isEqualTo(constraintFactsJson);
+
+    policyViolation.clearConstraintFacts();
+
+    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> policyViolation.getConstraintFactsJson())
+        .withMessageContaining("Constraint facts are not loaded yet for policyViolationId=");
   }
 }

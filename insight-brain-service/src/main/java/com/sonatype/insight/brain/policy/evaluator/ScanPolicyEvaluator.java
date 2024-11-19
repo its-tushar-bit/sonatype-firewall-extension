@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -52,7 +53,11 @@ import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
-import com.sonatype.insight.brain.model.*;
+import com.sonatype.insight.brain.model.AggregateFile;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.ApplicationComponentLicense;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
@@ -543,6 +548,7 @@ public class ScanPolicyEvaluator
       if (isForLatestScan) {
         List<PolicyViolation> oldPolicyViolations = policyViolationDAO.getUnfixedByApplicationIdAndStageId(tx, appId,
             stage.getStageTypeId());
+        policyViolationDAO.loadConstraintFacts(oldPolicyViolations);
         PolicyViolationDiff<PolicyViolation> policyViolationDiff = PolicyViolationDigester
             .digestPolicyViolations(oldPolicyViolations, results.allViolations);
 
@@ -638,7 +644,7 @@ public class ScanPolicyEvaluator
             }
             oldPolicyViolation.setThreatCategory(newPolicyViolation.getThreatCategory());
             oldPolicyViolation.setActionTypeId(newPolicyViolation.getActionTypeId());
-            oldPolicyViolation.setConstraintFactsJson(newPolicyViolation.getConstraintFactsJson());
+            oldPolicyViolation.setConstraintFacts(newPolicyViolation.getConstraintFacts());
             oldPolicyViolation.setFilename(newPolicyViolation.getFilename());
             oldPolicyViolation.setPolicyName(newPolicyViolation.getPolicyName());
 
@@ -836,6 +842,7 @@ public class ScanPolicyEvaluator
     else {
       List<PolicyViolation> legacyViolations =
           policyViolationDAO.getUnfixedLegacyViolationByApplicationId(tx, app.getId());
+      policyViolationDAO.loadConstraintFacts(legacyViolations);
       if (!legacyViolations.isEmpty()) {
         PolicyViolationDiff<PolicyViolation> policyViolationDiff = PolicyViolationDigester
             .digestPolicyViolations(legacyViolations, policyViolations);

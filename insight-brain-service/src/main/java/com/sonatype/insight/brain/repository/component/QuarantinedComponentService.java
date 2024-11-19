@@ -167,6 +167,7 @@ public class QuarantinedComponentService
     checkAccess(repositoryComponent);
 
     final List<RepositoryPolicyViolation> policyViolations = getQuarantinedPolicyViolations(repositoryComponent);
+    repositoryPolicyViolationDAO.loadConstraintFacts(policyViolations);
 
     List<RepositoryPolicyViolationDTO> repositoryPolicyViolationDTOs =
         policyViolations.stream().sorted(Comparator.comparingInt(RepositoryPolicyViolation::getThreatLevel).reversed())

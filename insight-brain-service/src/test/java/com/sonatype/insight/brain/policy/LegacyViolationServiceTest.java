@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -200,6 +201,7 @@ public class LegacyViolationServiceTest
                                             List<PolicyViolation> policyViolations,
                                             String userName) throws Exception
   {
+    policyViolationDAO.loadConstraintFacts(policyViolations);
     Organization org = organizationDAO.getById(app.getOrganizationId());
     List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
         .assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolationLogEvent, policyViolations.size());

@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
-import com.sonatype.insight.json.store.JsonUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,7 +41,7 @@ public class PolicyViolationTestHelper
     policyViolation.setPolicyName(policy.getName());
     policyViolation.setThreatLevel(policy.getThreatLevel());
     policyViolation.setThreatCategory(policy.getThreatCategory());
-    policyViolation.setConstraintFactsJson(createConstraintFactsJsonAndReturn(policy));
+    policyViolation.setConstraintFacts(createConstraintFacts(policy));
     policyViolation.setActionTypeId(Action.ID_FAIL);
     return tempEntity.newRepositoryPolicyViolation(policyViolation);
   }
@@ -61,7 +60,7 @@ public class PolicyViolationTestHelper
     policyViolation.setPolicyName(policy.getName());
     policyViolation.setThreatLevel(policy.getThreatLevel());
     policyViolation.setThreatCategory(policy.getThreatCategory());
-    policyViolation.setConstraintFactsJson(createConstraintFactsJsonAndReturn(policy));
+    policyViolation.setConstraintFacts(createConstraintFacts(policy));
     policyViolation.setActionTypeId(Action.ID_FAIL);
     policyViolation.setWaived(true);
     policyViolation.setPolicyWaiverId("waiver1");
@@ -86,11 +85,11 @@ public class PolicyViolationTestHelper
     policyViolation.setPolicyName(policy.getName());
     policyViolation.setThreatLevel(policy.getThreatLevel());
     policyViolation.setThreatCategory(policy.getThreatCategory());
-    policyViolation.setConstraintFactsJson(createConstraintFactsJsonAndReturn(policy));
+    policyViolation.setConstraintFacts(createConstraintFacts(policy));
     tempEntity.newRepositoryPolicyViolation(policyViolation);
   }
 
-  private static String createConstraintFactsJsonAndReturn(Policy policy) {
+  private static List<ConstraintFact> createConstraintFacts(Policy policy) {
     Constraint constraint = policy.getConstraints().get(0);
     Condition condition = constraint.getConditions().get(0);
     TriggerReference triggerReference = new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "refId");
@@ -99,7 +98,7 @@ public class PolicyViolationTestHelper
     constraintFact.addConditionFact(new ConditionFact("", 0, "", "random for condition "
         + condition.getConditionTypeId(), triggerReference));
 
-    return JsonUtils.writeUnformatted(Collections.singleton(constraintFact));
+    return Collections.singletonList(constraintFact);
   }
 
   public static void assertApiPolicyViolationDTOV2(

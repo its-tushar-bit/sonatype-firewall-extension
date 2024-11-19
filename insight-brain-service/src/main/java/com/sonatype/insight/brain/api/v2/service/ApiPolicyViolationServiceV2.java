@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -30,6 +32,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
@@ -250,6 +253,7 @@ public class ApiPolicyViolationServiceV2
     Collection<PolicyViolation> policyViolations =
         policyViolationDAO.getActiveByApplicationIdsAndPolicyIds(applicationIds, policyIds, openTimeAfter,
             openTimeBefore);
+    policyViolationDAO.loadConstraintFacts(policyViolations);
     log.debug("Loaded {} policy violations for {} applications and {} policies in {} ms", policyViolations.size(),
         applicationIds.size(), policyIds.size(), System.currentTimeMillis() - start);
 
@@ -630,7 +634,13 @@ public class ApiPolicyViolationServiceV2
           PolicyThreatCategory.getByName(policyViolation.policyThreatCategory.toLowerCase(Locale.ROOT)));
       result.setId(policyViolation.policyViolationId);
       result.setActionTypeId(policyViolation.actions.isEmpty() ? null : policyViolation.actions.get(0).actionType);
-      result.setConstraintFactsJson(policyViolation.constraintFactsJson);
+      try {
+        result.setConstraintFacts(
+            Arrays.asList(JsonUtils.parse(policyViolation.constraintFactsJson, ConstraintFact[].class)));
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
       result.setComponentIdentifier(component.componentIdentifier);
       result.setHash(component.hash);
       results.add(result);

@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -102,8 +103,12 @@ public class PolicyViolationReachabilityService
       List<PolicyViolation> policyViolations,
       Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers)
   {
-    return policyViolations.stream()
-        .filter(this::isMavenSecurityViolation)
+    List<PolicyViolation> filteredPolicyViolations =
+        policyViolations.stream().filter(this::isMavenSecurityViolation).toList();
+    
+    policyViolationDAO.loadConstraintFacts(filteredPolicyViolations);
+
+    return filteredPolicyViolations.stream()
         .peek(policyViolation -> updateReachabilityStatus(policyViolation, reachableVulnerabilitiesByPurlIdentifiers))
         .collect(Collectors.toList());
   }

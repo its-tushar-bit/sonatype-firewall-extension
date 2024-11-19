@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -62,6 +63,8 @@ public class NewestRiskService
 
   private final OrganizationDAO organizationDAO;
 
+  private final PolicyViolationDAO policyViolationDAO;
+
   private final PolicyViolationLoader policyViolationLoader;
 
   private final DashboardUtils dashboardUtils;
@@ -71,12 +74,14 @@ public class NewestRiskService
   @Inject
   public NewestRiskService(ApplicationService applicationService,
                            OrganizationDAO organizationDAO,
+      PolicyViolationDAO policyViolationDAO,
                            PolicyViolationLoader policyViolationLoader,
                            DashboardUtils dashboardUtils,
                            final AuditService auditService)
   {
     this.applicationService = applicationService;
     this.organizationDAO = organizationDAO;
+    this.policyViolationDAO = policyViolationDAO;
     this.policyViolationLoader = policyViolationLoader;
     this.dashboardUtils = dashboardUtils;
     this.auditService = auditService;
@@ -186,6 +191,7 @@ public class NewestRiskService
             }
             policyViolationCount.addAndGet(policyViolations.size());
 
+            policyViolationDAO.loadConstraintFacts(policyViolations);
             PolicyViolationDiff<PolicyViolation> diff = PolicyViolationDigester
                 .digestPolicyViolations(allUniqueAppPolicyViolations, policyViolations);
             for (PolicyViolation policyViolation : diff.getAppeared()) {

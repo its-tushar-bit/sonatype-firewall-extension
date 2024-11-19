@@ -16,6 +16,7 @@ import java.util.Objects;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
@@ -739,6 +740,7 @@ public abstract class AbstractRepositoryService
         repositoryPolicyViolations = repositoryPolicyViolationDAO
             .getActiveByRepositoryIdAndPathname(tx, repositoryComponent.getRepositoryId(),
                 repositoryComponent.getPathname());
+        repositoryPolicyViolationDAO.loadConstraintFacts(repositoryPolicyViolations);
         for (RepositoryPolicyViolation policyViolation : repositoryPolicyViolations) {
           repositoryPolicyViolationDAO.delete(tx, policyViolation);
           repositoryPolicyViolationLogger.add(PolicyViolationLogEvent.FIX, policyViolation);

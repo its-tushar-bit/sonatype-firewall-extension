@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -204,6 +205,7 @@ public class ApiComponentDetailsAdapter
       componentEvaluationResult.catalogDate = repositoryComponentEvaluationData.catalogDate;
       List<RepositoryPolicyViolation> repositoryPolicyViolations =
           repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(repository.getId(), pathname);
+      repositoryPolicyViolationDAO.loadConstraintFacts(repositoryPolicyViolations);
       componentEvaluationResult.policyViolations.addAll(
           repositoryPolicyViolations.stream().map(this::convert).collect(Collectors.toList()));
       resultDTO.results.add(componentEvaluationResult);

@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -37,35 +38,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.APPLICATION_ID;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.AUTO_POLICY_WAIVER_ID;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_DOWNGRADE;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_IDENTIFIER;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_NAME;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_NAMESPACE;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_UPGRADE;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_VERSION;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.CONDITION_TYPE;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COUNT;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.CVE_NUMBER;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.CVSS_SCORE;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.DIRECT_DEPENDENCY;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.ECOSYSTEM;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.FIX_BY_VERSION_CHANGE;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.FIX_TIME;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.INNERSOURCE_DEPENDENCY;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.IS_SCM_ENABLED;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.LEGACY_VIOLATION_TIME;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.OPEN_TIME;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.POLICY_VIOLATION_ID;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.POLICY_WAIVER_ID;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.STAGE;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.THREAT_CATEGORY;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.THREAT_LEVEL;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.TIME;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.UNWAIVE_TIME;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.WAIVER_EXPIRATION;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.WAIVE_TIME;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.*;
 import static com.sonatype.insight.brain.telemetry.TelemetryUtils.REAL_APPLICATION_ID;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.CONDITION_TYPE_VIOLATION;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.TIME_TO_CHANGE_VERSION_POLICY_VIOLATION;
@@ -482,6 +455,10 @@ public class PolicyViolationTelemetryCollectorTest
       policyViolation.setApplicationId(policyEvaluation.getApplicationId());
       policyViolation.setStageTypeId(policyEvaluation.getStageTypeId());
       policyViolation.setOpenTime(policyEvaluation.getTime());
+      cveIdentifier = "CVE-123";
+      cvssScore = 7.5;
+      policyViolation.setConstraintFacts(
+          ConditionGenerator.createConstraintFactsWithInjectedCondition(cveIdentifier, cvssScore, 1));
     }
 
     static TestablePolicyViolation createDefaultViolationForComponent(ComponentIdentifier componentIdentifier) {

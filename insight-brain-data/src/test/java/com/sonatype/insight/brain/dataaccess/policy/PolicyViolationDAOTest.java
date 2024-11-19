@@ -31,7 +31,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFacts;
-import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFactsDAOProvider;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
@@ -41,32 +40,26 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class PolicyViolationDAOTest
     extends AbstractDbDAOTest
 {
   private PolicyViolationDAO dao;
 
-  private PolicyViolationConstraintFactsDAO constraintsDAO;
+  private PolicyViolationConstraintFactsDAO constraintFactsDAO;
 
   @Before
   @Override
   public void setup() {
     super.setup();
     dao = daoFactory.createPolicyViolationDAO();
-    constraintsDAO = daoFactory.createPolicyViolationConstraintFactsDAO();
-    PolicyViolationConstraintFactsDAOProvider.inject(constraintsDAO);
-  }
-
-  @After
-  public void tearDown() {
-    PolicyViolationConstraintFactsDAOProvider.inject(null);
+    constraintFactsDAO = daoFactory.createPolicyViolationConstraintFactsDAO();
   }
 
   @Test
@@ -87,26 +80,32 @@ public class PolicyViolationDAOTest
 
     // Test constraints stored
     assertThat(policyViolation.getConstraintFactsId()).isNotNull();
-    PolicyViolationConstraintFacts facts = constraintsDAO.getById(policyViolation.getConstraintFactsId());
+    PolicyViolationConstraintFacts facts = constraintFactsDAO.getById(policyViolation.getConstraintFactsId());
     ConstraintFact[] constraintFacts = JsonUtils.parse(facts.getConstraintFactsJson(), ConstraintFact[].class);
     assertThat(constraintFacts[0].getConstraintId()).isEqualTo(constraintFact.getConstraintId());
 
     // Read
-    policyViolation = dao.getById(policyViolation.getId());
-    assertThat(policyViolation).isNotNull();
-    assertPolicyViolation(policyEvaluation.getApplicationId(), policyEvaluation.getStageTypeId(), policy.getId(),
-        policy.getName(), 5, PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier, "filename",
-        policyEvaluation.getTime(), null /* actionTypeId */, policyViolation);
+    {
+      PolicyViolation persistedPolicyViolation = dao.getById(policyViolation.getId());
+      assertThat(persistedPolicyViolation).isNotNull();
+      assertPolicyViolation(policyEvaluation.getApplicationId(), policyEvaluation.getStageTypeId(), policy.getId(),
+          policy.getName(), 5, PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier, "filename",
+          policyEvaluation.getTime(), null /* actionTypeId */, persistedPolicyViolation);
+      assertThatExceptionOfType(IllegalStateException.class)
+          .isThrownBy(() -> persistedPolicyViolation.getConstraintFactsJson())
+          .withMessageContaining("Constraint facts are not loaded yet for policyViolationId=");
+    }
 
+    // Update
     policyViolation.setActionTypeId(Action.ID_FAIL);
     dao.update(policyViolation);
 
     // Read
-    policyViolation = dao.getById(policyViolation.getId());
+    PolicyViolation persistedPolicyViolation = dao.getById(policyViolation.getId());
     assertThat(policyViolation).isNotNull();
     assertPolicyViolation(policyEvaluation.getApplicationId(), policyEvaluation.getStageTypeId(), policy.getId(),
         policy.getName(), 5, PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier, "filename",
-        policyEvaluation.getTime(), Action.ID_FAIL, policyViolation);
+        policyEvaluation.getTime(), Action.ID_FAIL, persistedPolicyViolation);
 
     // Delete
     dao.delete(policyViolation);
@@ -1350,14 +1349,12 @@ public class PolicyViolationDAOTest
     dao.update(violation0);
     PolicyEvaluation evaluation1 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan-1",
         new Date(System.currentTimeMillis() - 900));
-    for (int i = 0; i < PolicyViolationDAO.DELETE_BATCH_SIZE + 2; i++) {
-      tempEntity.newPolicyViolation(evaluation1, policy);
-    }
     PolicyEvaluation evaluation2 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan-2",
         new Date(System.currentTimeMillis() - 500));
-    for (PolicyViolation violation : dao.getByApplicationId(app.getId())) {
-      violation.setFixTime(evaluation2.getTime());
-      dao.update(violation);
+    for (int i = 0; i < PolicyViolationDAO.DELETE_BATCH_SIZE + 2; i++) {
+      PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation1, policy);
+      policyViolation.setFixTime(evaluation2.getTime());
+      dao.update(policyViolation);
     }
     PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation2, policy);
     PolicyViolation violation2 = tempEntity.newPolicyViolation(evaluation2, policy);
@@ -1638,26 +1635,5 @@ public class PolicyViolationDAOTest
         .containsExactlyInAnyOrder(waivedViolation1.getId(), expiredWaivedViolation.getId(), waivedViolation2.getId(),
             fixedViolation.getId())
         .doesNotContain(unfixedUnwaivedViolation.getId());
-  }
-
-  @Test
-  public void testGetConstraintFacts() {
-    Policy policy = tempEntity.newPolicy(application);
-    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID,
-        "PolicyViolationDAOTestScanId");
-
-    ConstraintFact constraintFact = new ConstraintFact("constraintdata", "constraintdata", "constraintdata");
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1",
-        "Version1");
-    PolicyViolation policyViolation = new PolicyViolation(policyEvaluation, policy.getId(), policy.getName(), 5,
-        PolicyThreatCategory.LICENSE, "acacacacacac", componentIdentifier, List.of(constraintFact), "filename");
-    assertThat(policyViolation.getId()).isNull();
-
-    dao.insert(policyViolation);
-
-    assertThat(policyViolation.getId()).isNotNull();
-
-    List<ConstraintFact> constraintFacts = dao.getById(policyViolation.getId()).getConstraintFacts();
-    assertThat(constraintFacts.get(0).getConstraintId()).isEqualTo(constraintFact.getConstraintId());
   }
 }

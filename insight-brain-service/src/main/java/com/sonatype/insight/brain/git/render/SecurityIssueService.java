@@ -18,6 +18,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.service.VulnerabilityDetailsService;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.git.render.model.MDImages;
 import com.sonatype.insight.brain.git.render.model.SecurityIssue;
 import com.sonatype.insight.brain.git.render.model.SeverityInfo;
@@ -53,11 +54,15 @@ public class SecurityIssueService
 
   private final VulnerabilityDetailsService vulnerabilityDetailsService;
 
+  private final PolicyViolationDAO policyViolationDAO;
+
   @Inject
   public SecurityIssueService(
-      final VulnerabilityDetailsService vulnerabilityDetailsService)
+      final VulnerabilityDetailsService vulnerabilityDetailsService,
+      final PolicyViolationDAO policyViolationDAO)
   {
     this.vulnerabilityDetailsService = vulnerabilityDetailsService;
+    this.policyViolationDAO = policyViolationDAO;
   }
 
   public List<SecurityIssue> getSecurityIssuesFromViolations(
@@ -65,6 +70,7 @@ public class SecurityIssueService
       final List<PolicyViolation> policyViolations,
       final SourceControlProvider provider)
   {
+    policyViolationDAO.loadConstraintFacts(policyViolations);
     // Since a vulnerability can be associated with multiple PVs,
     // we need to aggregate to ensure only 1 call to the vulnerabilityDetailsService is made per vulnerability
     final Map<String, Collection<PolicyViolation>> agg = aggregateViolationsByRefId(policyViolations);

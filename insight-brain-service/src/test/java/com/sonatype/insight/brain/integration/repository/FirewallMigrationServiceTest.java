@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -406,7 +407,7 @@ public class FirewallMigrationServiceTest
       .thenComparing(RepositoryPolicyViolation::getThreatLevel) //
       .thenComparing(RepositoryPolicyViolation::getThreatCategory) //
       .thenComparing(RepositoryPolicyViolation::getHash, nullSafe()) //
-      .thenComparing(RepositoryPolicyViolation::getConstraintFactsJson) //
+      .thenComparing(RepositoryPolicyViolation::getConstraintFactsId) //
       .thenComparing(RepositoryPolicyViolation::getActionTypeId, nullSafe()) //
       .thenComparing(RepositoryPolicyViolation::isWaived) //
       .thenComparing(RepositoryPolicyViolation::getComponentIdentifier, nullSafe());

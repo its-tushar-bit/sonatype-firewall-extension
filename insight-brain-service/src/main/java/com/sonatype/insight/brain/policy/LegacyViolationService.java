@@ -7,14 +7,15 @@ package com.sonatype.insight.brain.policy;
 
 import java.util.Date;
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -99,6 +100,7 @@ public class LegacyViolationService
       tx.begin();
       List<PolicyViolation> legacyViolations =
           policyViolationDAO.getUnfixedLegacyViolationByApplicationId(tx, app.getId());
+      policyViolationDAO.loadConstraintFacts(legacyViolations);
       for (PolicyViolation legacyViolation : legacyViolations) {
         legacyViolation.setLegacyViolationTime(null);
         policyViolationDAO.update(tx, legacyViolation);
@@ -136,6 +138,7 @@ public class LegacyViolationService
       clusterLock.lock();
       tx.begin();
       List<PolicyViolation> policyViolations = policyViolationDAO.getUnfixedByApplicationId(tx, app.getId());
+      policyViolationDAO.loadConstraintFacts(policyViolations);
       int changedPolicyViolationCount = 0;
       for (PolicyViolation policyViolation : policyViolations) {
         if (!policyViolation.isLegacyViolation()) {

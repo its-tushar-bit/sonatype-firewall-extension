@@ -99,6 +99,7 @@ public class PolicyCentricReportWaiverTest
     assertThat(policyWaivers).hasSize(1);
 
     PolicyWaiver policyWaiver = policyWaivers.get(0);
+    policyViolationDAO.loadConstraintFacts(policyViolations);
     PolicyViolation policyViolation = policyViolations.stream()
         .filter(violation -> policyWaiver.getConstraintFactsJson().equals(violation.getConstraintFactsJson()))
         .findFirst().get();

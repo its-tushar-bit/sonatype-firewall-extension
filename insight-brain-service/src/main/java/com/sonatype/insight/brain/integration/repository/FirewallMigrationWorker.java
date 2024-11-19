@@ -137,6 +137,7 @@ public class FirewallMigrationWorker
 
     List<RepositoryPolicyViolation> policyViolations = repositoryPolicyViolationDAO
         .getByRepositoryId(sourceRepository.getId());
+    repositoryPolicyViolationDAO.loadConstraintFacts(policyViolations);
     log.info("Starting the migration of {} policy violations for repository {}:{} ({})...", policyViolations.size(),
         targetRepository.getRepositoryManagerId(), targetRepository.getPublicId(), targetRepository.getId());
     for (RepositoryPolicyViolation violation : policyViolations) {

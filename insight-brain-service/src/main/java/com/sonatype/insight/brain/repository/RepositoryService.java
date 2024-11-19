@@ -16,6 +16,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -420,6 +421,7 @@ public class RepositoryService
 
     List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
         .getActiveByRepositoryIdAndPathname(repositoryId, repositoryComponent.getPathname());
+    repositoryPolicyViolationDAO.loadConstraintFacts(repositoryPolicyViolations);
 
     List<RepositoryPolicyViolationDTO> repositoryPolicyViolationDTOs =
         repositoryPolicyViolations.stream().map(this::toRepositoryPolicyViolationDTO).collect(toList());
@@ -438,6 +440,8 @@ public class RepositoryService
       throw new NotFoundException("Cannot find a repository policy violation with ID " + repositoryPolicyViolationId
           + " in repository with ID " + repositoryId + ".");
     }
+
+    repositoryPolicyViolationDAO.loadConstraintFacts(Collections.singletonList(repositoryPolicyViolation));
 
     auditComponentPath(repositoryPolicyViolation.getPathname());
     AuditData.get().setComponentIdentifier(repositoryPolicyViolation.getComponentIdentifier())

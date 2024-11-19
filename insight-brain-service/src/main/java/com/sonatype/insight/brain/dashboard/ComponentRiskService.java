@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -21,6 +22,7 @@ import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -51,17 +53,21 @@ public class ComponentRiskService
 
   private final AuditService auditService;
 
+  private final PolicyViolationDAO policyViolationDAO;
+
   @Inject
   public ComponentRiskService(
       final ApplicationService applicationService,
       final PolicyViolationLoader policyViolationLoader,
       final DashboardUtils dashboardUtils,
-      final AuditService auditService)
+      final AuditService auditService,
+      final PolicyViolationDAO policyViolationDAO)
   {
     this.applicationService = applicationService;
     this.policyViolationLoader = policyViolationLoader;
     this.dashboardUtils = dashboardUtils;
     this.auditService = auditService;
+    this.policyViolationDAO = policyViolationDAO;
   }
 
   /**
@@ -153,7 +159,9 @@ public class ComponentRiskService
       Application application = appView.getApplication();
       for (ApplicationStageView appStageView : appView.getStageViews()) {
         PolicyEvaluation evaluation = appStageView.getLastEvaluation();
-        for (PolicyViolation violation : appStageView.getFilteredViolations()) {
+        List<PolicyViolation> policyViolations = appStageView.getFilteredViolations();
+        policyViolationDAO.loadConstraintFacts(policyViolations);
+        for (PolicyViolation violation : policyViolations) {
           policyViolationDTOs.add(PolicyViolationAdapter.createPolicyViolationDTO(application, evaluation, violation));
         }
       }

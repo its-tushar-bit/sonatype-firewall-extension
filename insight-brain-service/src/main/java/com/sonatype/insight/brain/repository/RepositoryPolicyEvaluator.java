@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -460,9 +461,11 @@ public class RepositoryPolicyEvaluator
       persistPolicyViolations(tx, repository, evaluationTime, component, policies,
           policyViolationLogger, event, allPolicyAlertsByComponent, policyWaiversByComponent);
       repositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
-          canBeQuarantined, isNotificationsToBeSent, forMonitoring, activeAlerts, policyNotifications);
+          canBeQuarantined, forMonitoring, activeAlerts);
 
       tx.commit();
+
+      sendRepositoryComponentTelemetry(policyNotifications, repositoryComponent, repository, isNotificationsToBeSent);
       AuditData.get().commitSubEvents();
       policyViolationLogger.log();
     }
@@ -475,10 +478,8 @@ public class RepositoryPolicyEvaluator
       Date evaluationTime,
       Component component,
       boolean canBeQuarantined,
-      boolean isNotificationsToBeSent,
       boolean forMonitoring,
-      List<PolicyAlert> activeAlerts,
-      List<PolicyNotification> policyNotifications)
+      List<PolicyAlert> activeAlerts)
   {
     String pathname = component.getPathnames().get(0);
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(tx,
@@ -532,7 +533,6 @@ public class RepositoryPolicyEvaluator
 
       repositoryComponentDAO.update(tx, repositoryComponent);
     }
-    sendRepositoryComponentTelemetry(policyNotifications, repositoryComponent, repository, isNotificationsToBeSent);
     return repositoryComponent;
   }
 
@@ -558,6 +558,7 @@ public class RepositoryPolicyEvaluator
 
     List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
         .getActiveByRepositoryIdAndPathnameAndWaived(repository.getId(), repositoryComponent.getPathname(), false);
+    repositoryPolicyViolationDAO.loadConstraintFacts(repositoryPolicyViolations);
     repositoryComponentTelemetryCreator.sendRepositoryComponentTelemetry(repositoryComponent,
         repositoryPolicyViolations, repository.getRepositoryManagerId(),
         RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE,
@@ -572,6 +573,7 @@ public class RepositoryPolicyEvaluator
   {
     List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
         .getActiveByRepositoryIdAndPathname(repository.getId(), repositoryComponent.getPathname());
+    repositoryPolicyViolationDAO.loadConstraintFacts(repositoryPolicyViolations);
     repositoryComponentTelemetryCreator.sendRepositoryComponentTelemetry(repositoryComponent,
         repositoryPolicyViolations, repository.getRepositoryManagerId(),
         repositoryComponent.isQuarantined() ? RepositoryComponentTelemetryEventType.QUARANTINE
@@ -594,6 +596,7 @@ public class RepositoryPolicyEvaluator
     // Get the persisted RepositoryPolicyViolations for this component
     List<RepositoryPolicyViolation> oldPolicyViolations =
         repositoryPolicyViolationDAO.getActiveByRepositoryIdAndPathname(tx, repository.getId(), pathname);
+    repositoryPolicyViolationDAO.loadConstraintFacts(oldPolicyViolations);
 
     // Build the list of current RepositoryPolicyViolations for this component
     List<RepositoryPolicyViolation> newPolicyViolations = new ArrayList<>();

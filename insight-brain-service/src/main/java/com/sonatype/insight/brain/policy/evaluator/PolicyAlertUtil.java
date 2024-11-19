@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -27,6 +28,7 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -45,10 +47,17 @@ public class PolicyAlertUtil
 
   private final PolicyDAO policyDAO;
 
+  private final PolicyViolationDAO policyViolationDAO;
+
   @Inject
-  public PolicyAlertUtil(final OwnerDAO ownerDAO, final PolicyDAO policyDAO) {
+  public PolicyAlertUtil(
+      final OwnerDAO ownerDAO,
+      final PolicyDAO policyDAO,
+      final PolicyViolationDAO policyViolationDAO)
+  {
     this.ownerDAO = ownerDAO;
     this.policyDAO = policyDAO;
+    this.policyViolationDAO = policyViolationDAO;
   }
 
   public List<PolicyAlert> createPolicyAlerts(
@@ -76,6 +85,8 @@ public class PolicyAlertUtil
         policyDAO.getByIds(policyViolations.stream().map(PolicyViolation::getPolicyId).collect(toSet())).stream()
             .collect(toMap(Policy::getId, Function.identity()));
     List<PolicyAlert> result = new ArrayList<>();
+
+    policyViolationDAO.loadConstraintFacts(policyViolations);
     for (PolicyViolation policyViolation : policyViolations) {
       String policyId = policyViolation.getPolicyId();
       PolicyFact policyFact = new PolicyFact(policyId, policyViolation.getPolicyName(),

@@ -163,52 +163,6 @@ public class PullRequestCommentingHashBuilderTest
   }
 
   @Test
-  public void testGenerateHash_NoConditionFacts_Success() throws Exception {
-    // given:
-    PolicyViolationDiff<PolicyViolation> diff = new PolicyViolationDiffBuilder()
-        .withAddedViolations(2)
-        .withUnknownComponentsAdded(2)
-        .withRemovedViolations(1)
-        .withUnknownComponentsRemoved(1)
-        .withConditionFactsPerConstraintFact(0)
-        .build();
-    SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = createRemediationVersionMap(2);
-
-    // when:
-    String hash = new PullRequestCommentingHashBuilder()
-        .withPolicyViolationDiff(diff)
-        .withRemediationVersionMap(remediationVersionMap)
-        .generateHash();
-
-    // then: the hash is successfully calculated
-    assertThat(hash).isNotNull();
-    assertThat(hash.length()).isEqualTo(40);
-  }
-
-  @Test
-  public void testGenerateHash_NoConstraintFacts_Success() throws Exception {
-    // given:
-    PolicyViolationDiff<PolicyViolation> diff = new PolicyViolationDiffBuilder()
-        .withAddedViolations(2)
-        .withUnknownComponentsAdded(2)
-        .withRemovedViolations(1)
-        .withUnknownComponentsRemoved(1)
-        .withConstraintFactsPerViolation(0)
-        .build();
-    SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = createRemediationVersionMap(2);
-
-    // when:
-    String hash = new PullRequestCommentingHashBuilder()
-        .withPolicyViolationDiff(diff)
-        .withRemediationVersionMap(remediationVersionMap)
-        .generateHash();
-
-    // then: the hash is successfully calculated
-    assertThat(hash).isNotNull();
-    assertThat(hash.length()).isEqualTo(40);
-  }
-
-  @Test
   public void testGenerateHash_NoChanges_SameHash() throws Exception {
     // given:
     PolicyViolationDiff<PolicyViolation> diff1 = new PolicyViolationDiffBuilder().build();

@@ -16,12 +16,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -43,32 +43,16 @@ import static java.util.stream.Collectors.toList;
 @Named
 @Singleton
 public class PolicyViolationDAO
-    extends AbstractOperationalSqlDAO<PolicyViolation>
-    implements AbstractPolicyViolationDAO
+    extends AbstractPolicyViolationDAO<PolicyViolation>
 {
   static final int DELETE_BATCH_SIZE = 100;
-
-  private final PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO;
 
   @Inject
   public PolicyViolationDAO(
       OperationalDataStore operationalDataStore,
       PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO)
   {
-    super(operationalDataStore);
-    this.policyViolationConstraintFactsDAO = policyViolationConstraintFactsDAO;
-  }
-
-  @Override
-  public void insert(final TransactionContext tx, final PolicyViolation entity) {
-    storeConstraints(policyViolationConstraintFactsDAO, entity);
-    super.insert(tx, entity);
-  }
-
-  @Override
-  public void update(final TransactionContext tx, final PolicyViolation entity) {
-    storeConstraints(policyViolationConstraintFactsDAO, entity);
-    super.update(tx, entity);
+    super(operationalDataStore, policyViolationConstraintFactsDAO);
   }
 
   public List<PolicyViolation> getByApplicationId(String applicationId) {
@@ -533,14 +517,6 @@ public class PolicyViolationDAO
         " WHERE entity.waiveTime IS NOT NULL" +
         " AND entity.fixTime IS NULL";
     return getSingle(Number.class, sQuery).intValue();
-  }
-
-  @Override
-  public long getCountWhereConstraintFactsJsonNotNull() {
-    String sQuery = "SELECT COUNT(entity) FROM " + getEntityName() +
-        " entity WHERE entity.constraintFactsJson IS NOT NULL";
-
-    return getSingle(Long.class, sQuery);
   }
 
   public List<PolicyViolation> getWaivedFixed() {

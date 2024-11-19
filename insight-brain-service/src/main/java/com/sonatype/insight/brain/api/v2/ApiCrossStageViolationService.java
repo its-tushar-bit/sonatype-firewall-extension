@@ -122,6 +122,8 @@ public class ApiCrossStageViolationService
         .sorted(Comparator.comparing(PolicyViolation::getOpenTime))
         .collect(Collectors.toList());
 
+    policyViolationDAO.loadConstraintFacts(Collections.singletonList(constituentViolation));
+    policyViolationDAO.loadConstraintFacts(allApplicableViolations);
     Collection<PolicyViolation> violationsToMerge = getViolationsToMerge(constituentViolation, allApplicableViolations,
         allowEarlierViolations);
     Collection<PolicyEvaluation> evaluationsForViolationsToMerge = getEvaluationsForViolations(violationsToMerge);
@@ -286,7 +288,6 @@ public class ApiCrossStageViolationService
             eval -> createStageData(eval, violationsByStageTypeId.get(eval.getStageTypeId())),
             (first, later) -> later
         ));
-
     dto.constraintViolations = PolicyViolationAdapter.convert(firstViolation);
 
     return dto;

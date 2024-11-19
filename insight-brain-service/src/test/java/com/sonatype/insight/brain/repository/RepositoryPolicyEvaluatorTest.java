@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.mail.Message;
 
@@ -307,6 +308,7 @@ public class RepositoryPolicyEvaluatorTest
       List<RepositoryPolicyViolation> policyViolations)
       throws Exception
   {
+    repositoryPolicyViolationDAO.loadConstraintFacts(policyViolations);
     List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
         .assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolationLogEvent, policyViolations.size());
     policyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
@@ -718,6 +720,7 @@ public class RepositoryPolicyEvaluatorTest
     // ... yielding one active/waived violation
     List<RepositoryPolicyViolation> policyViolations =
         repositoryPolicyViolationDAO.getByRepositoryId(repository.getId());
+    repositoryPolicyViolationDAO.loadConstraintFacts(policyViolations);
 
     assertThat(policyViolations).hasSize(1);
 

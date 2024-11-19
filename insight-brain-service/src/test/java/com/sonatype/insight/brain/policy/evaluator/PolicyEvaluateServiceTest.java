@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -355,6 +356,7 @@ public class PolicyEvaluateServiceTest
     // One legacy violation
     PolicyViolation policyViolation = policyViolationDAO
         .getActiveByApplicationIdAndStageId(app.getId(), stage.getStageTypeId()).get(0);
+    policyViolationDAO.loadConstraintFacts(Collections.singletonList(policyViolation));
     policyViolation.setLegacyViolationTime(new Date());
     policyViolationDAO.update(policyViolation);
     scanId = simulateReportIsAvailable();

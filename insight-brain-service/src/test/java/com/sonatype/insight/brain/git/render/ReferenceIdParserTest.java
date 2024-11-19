@@ -76,13 +76,6 @@ public class ReferenceIdParserTest
   }
 
   @Test
-  public void testParseReferenceIds_missingConstraintFacts() {
-    final PolicyViolation policyViolation = generatePV(PV_ID, TEST_COMPONENT_IDENTIFIER);
-    final Set<String> actualRefIds = parseReferenceIds(policyViolation);
-    assertThat(actualRefIds).isEmpty();
-  }
-
-  @Test
   public void testParseReferenceIds_missingConditionFacts() {
     final PolicyViolation policyViolation = generatePV(PV_ID, TEST_COMPONENT_IDENTIFIER, generateConstraintFact());
     final Set<String> actualRefIds = parseReferenceIds(policyViolation);

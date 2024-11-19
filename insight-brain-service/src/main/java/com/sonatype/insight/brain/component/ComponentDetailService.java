@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -126,6 +127,7 @@ public class ComponentDetailService
         appStageDetailDTO.time = policyEvaluation.getTime().getTime();
         appStageDetailDTO.scanId = policyEvaluation.getScanId();
 
+        policyViolationDAO.loadConstraintFacts(policyViolations);
         for (PolicyViolation policyViolation : policyViolations) {
           String policyAndConstraintHashId = computeUniqueAppPolicyConstraintId(policyViolation);
 

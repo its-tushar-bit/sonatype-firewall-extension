@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.List;
+import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -43,5 +46,11 @@ public class PolicyViolationConstraintFactsDAO
   @Override
   public void update(final TransactionContext tx, final PolicyViolationConstraintFacts entity) {
     throw new UnsupportedOperationException("Constraints are immutable");
+  }
+
+  public List<PolicyViolationConstraintFacts> getByIds(Set<String> constraintFactsIds) {
+    String sQuery = "SELECT entity FROM PolicyViolationConstraintFacts entity WHERE entity.id IN ?1";
+    return getListWithSqlInClause(constraintFactsIds,
+        inClauseValuesPartition -> getList(sQuery, inClauseValuesPartition));
   }
 }

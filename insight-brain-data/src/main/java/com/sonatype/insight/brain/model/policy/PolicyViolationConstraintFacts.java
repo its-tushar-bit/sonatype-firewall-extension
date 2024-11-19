@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
-import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -13,14 +12,6 @@ import javax.persistence.Table;
 
 import com.sonatype.insight.model.HasStringId;
 
-import org.apache.openjpa.persistence.DataCache;
-
-/**
- * This entity is immutable so it is safe to cache it and caching reduces the need for database round trips and means
- * the constraint facts json can be lazy loaded by the relating entities that require it.
- */
-@DataCache(timeout = 10000)
-@Cacheable
 @Entity
 @Table(name = "policy_violation_constraint_facts")
 public class PolicyViolationConstraintFacts

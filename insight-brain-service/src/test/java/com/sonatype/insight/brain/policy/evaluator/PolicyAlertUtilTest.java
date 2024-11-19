@@ -50,7 +50,7 @@ public class PolicyAlertUtilTest
     OwnerDAO ownerDAO = daoFactory.createOwnerDAO();
     policyDAO = daoFactory.createPolicyDAO();
     policyViolationDAO = daoFactory.createPolicyViolationDAO();
-    policyAlertUtil = new PolicyAlertUtil(ownerDAO, policyDAO);
+    policyAlertUtil = new PolicyAlertUtil(ownerDAO, policyDAO, policyViolationDAO);
   }
 
   @Test

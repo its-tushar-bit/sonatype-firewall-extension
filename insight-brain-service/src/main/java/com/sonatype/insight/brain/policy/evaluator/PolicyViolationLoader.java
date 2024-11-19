@@ -203,6 +203,10 @@ public class PolicyViolationLoader
   }
 
   private void sortViolations(Map<String, ApplicationView> appViewsByAppId) {
+    List<PolicyViolation> allPolicyViolations =
+        appViewsByAppId.values().stream().flatMap(appView -> appView.getStageViews().stream())
+            .flatMap(appStageView -> appStageView.getFilteredViolations().stream()).toList();
+    policyViolationDAO.loadConstraintFacts(allPolicyViolations);
     for (ApplicationView appView : appViewsByAppId.values()) {
       for (ApplicationStageView appStageView : appView.stageViewsByStageTypeId.values()) {
         appStageView.getFilteredViolations().sort(PolicyViolationComparator.COMPARATOR);

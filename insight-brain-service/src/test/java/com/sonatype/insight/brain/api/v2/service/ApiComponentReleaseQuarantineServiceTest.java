@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -137,6 +138,7 @@ public class ApiComponentReleaseQuarantineServiceTest
         result.componentReleasedFromQuarantine;
 
     repositoryPolicyViolation = repositoryPolicyViolationDAO.getById(repositoryPolicyViolation.getId());
+    repositoryPolicyViolationDAO.loadConstraintFacts(Collections.singleton(repositoryPolicyViolation));
     PolicyWaiver policyWaiver = policyWaiverDAO.getByIdNotNull(repositoryPolicyViolation.getPolicyWaiverId());
     assertThat(policyWaiver.getComment()).isEqualTo("comment");
     assertThat(policyWaiver.getCreateTime()).isAfter(quarantineTime);
@@ -285,6 +287,7 @@ public class ApiComponentReleaseQuarantineServiceTest
         result.componentReleasedFromQuarantine;
 
     repositoryPolicyViolation = repositoryPolicyViolationDAO.getById(repositoryPolicyViolation.getId());
+    repositoryPolicyViolationDAO.loadConstraintFacts(Collections.singleton(repositoryPolicyViolation));
     PolicyWaiver policyWaiver = policyWaiverDAO.getByIdNotNull(repositoryPolicyViolation.getPolicyWaiverId());
     assertThat(policyWaiver.getComment()).isEqualTo("comment");
     assertThat(policyWaiver.getCreateTime()).isAfter(quarantineTime);

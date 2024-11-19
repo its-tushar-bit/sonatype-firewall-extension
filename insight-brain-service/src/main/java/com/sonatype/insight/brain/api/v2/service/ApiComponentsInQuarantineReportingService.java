@@ -103,6 +103,7 @@ public class ApiComponentsInQuarantineReportingService
       List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
           .getByRepositoryIdAndPathnameAndActionAndNotWaived(repository.getId(),
               repositoryComponent.getPathname(), Action.ID_FAIL);
+      repositoryPolicyViolationDAO.loadConstraintFacts(repositoryPolicyViolations);
       for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
         policyViolationDTOV2List.add(ApiPolicyViolationAdapter.convert(repositoryPolicyViolation));
       }

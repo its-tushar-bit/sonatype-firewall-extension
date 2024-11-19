@@ -18,9 +18,11 @@ import java.util.Optional;
 import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -44,6 +46,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.utils.TemplateHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.DiffPosition;
 
@@ -412,7 +415,7 @@ public class PullRequestFeedbackDetailsTest
         "policy-id-1",
         "policy-name-1",
         9,
-        getConstraintJson("policy-violation-1-constraint", "CVE-2024-1")
+        createConstraintFact("policy-violation-1-constraint", "CVE-2024-1")
     );
 
     // policy violation 2, present against the new component version
@@ -424,7 +427,7 @@ public class PullRequestFeedbackDetailsTest
         "policy-id-2",
         "policy-name-2",
         7,
-        getConstraintJson("policy-violation-2-constraint", "CVE-2024-2")
+        createConstraintFact("policy-violation-2-constraint", "CVE-2024-2")
     );
     final PolicyViolation policyViolation2AgainstNewVersion = createPolicyViolation(
         component1MinorVersionBump, // component 1 at a new version
@@ -434,7 +437,7 @@ public class PullRequestFeedbackDetailsTest
         "policy-id-2",
         "policy-name-2",
         7,
-        getConstraintJson("policy-violation-2-constraint", "CVE-2024-2")
+        createConstraintFact("policy-violation-2-constraint", "CVE-2024-2")
     );
 
     final PolicyViolationDiff<PolicyViolation> evaluationDiff = createDiff(
@@ -510,7 +513,7 @@ public class PullRequestFeedbackDetailsTest
         "policy-id-1",
         "policy-name-1",
         9,
-        getConstraintJson("policy-violation-1-constraint", "CVE-2024-1")
+        createConstraintFact("policy-violation-1-constraint", "CVE-2024-1")
     );
 
     // this one will show up as introduced
@@ -522,7 +525,7 @@ public class PullRequestFeedbackDetailsTest
         "policy-id-2",
         "policy-name-2",
         7,
-        getConstraintJson("policy-violation-2-constraint", "CVE-2024-2")
+        createConstraintFact("policy-violation-2-constraint", "CVE-2024-2")
     );
 
     final ComponentIdentifier component1MinorVersionBump = component1.createAlternativeVersion("0.0.2");
@@ -535,7 +538,7 @@ public class PullRequestFeedbackDetailsTest
         "policy-name-1",
         9,
         // same constraint json as policyViolation1
-        getConstraintJson("policy-violation-1-constraint", "CVE-2024-1")
+        createConstraintFact("policy-violation-1-constraint", "CVE-2024-1")
     );
 
     // This component has 1 violation in appeared and that same 1 violation in cleared for bumped version of the
@@ -555,7 +558,7 @@ public class PullRequestFeedbackDetailsTest
         "policy-id-3",
         "policy-name-3",
         5,
-        getConstraintJson("policy-violation-3-constraint", "CVE-2024-3")
+        createConstraintFact("policy-violation-3-constraint", "CVE-2024-3")
     );
 
     final PolicyViolation policyViolation3AgainstNewVersion = createPolicyViolation(
@@ -566,7 +569,7 @@ public class PullRequestFeedbackDetailsTest
         "policy-id-3",
         "policy-name-3",
         5,
-        getConstraintJson("policy-violation-3-constraint", "CVE-2024-3")
+        createConstraintFact("policy-violation-3-constraint", "CVE-2024-3")
     );
 
     final PolicyViolationDiff<PolicyViolation> evaluationDiff = createDiff(
@@ -1161,7 +1164,7 @@ public class PullRequestFeedbackDetailsTest
     clearedPolicyViolation1.setPolicyId(originalPolicyViolation.getPolicyId() + postfix);
     clearedPolicyViolation1.setPolicyName(originalPolicyViolation.getPolicyName());
     clearedPolicyViolation1.setThreatLevel(originalPolicyViolation.getThreatLevel());
-    clearedPolicyViolation1.setConstraintFactsJson(originalPolicyViolation.getConstraintFactsJson());
+    clearedPolicyViolation1.setConstraintFacts(originalPolicyViolation.getConstraintFacts());
 
     return clearedPolicyViolation1;
   }
@@ -1192,7 +1195,7 @@ public class PullRequestFeedbackDetailsTest
       final String policyId,
       final String policyName,
       final int threatLevel,
-      final String constraintFactJson
+      final ConstraintFact constraintFact
   )
   {
     final PolicyViolation policyViolation = new PolicyViolation();
@@ -1204,7 +1207,7 @@ public class PullRequestFeedbackDetailsTest
     policyViolation.setPolicyId(policyId);
     policyViolation.setPolicyName(policyName);
     policyViolation.setThreatLevel(threatLevel);
-    policyViolation.setConstraintFactsJson(constraintFactJson);
+    policyViolation.setConstraintFacts(Collections.singletonList(constraintFact));
 
     return policyViolation;
   }
@@ -1226,10 +1229,10 @@ public class PullRequestFeedbackDetailsTest
         componentInfo);
   }
 
-  private String getConstraintJson(
+  private ConstraintFact createConstraintFact(
       final String constraintName,
       final String cve
-  )
+  ) throws IOException
   {
     final String str = "[" +
         "{" +
@@ -1244,7 +1247,7 @@ public class PullRequestFeedbackDetailsTest
         "\"reference\":{\"value\":\"%s\",\"type\":\"SECURITY_VULNERABILITY_REFID\"}," +
         "\"triggerJson\":\"{}\"}]}]";
 
-    return String.format(str, constraintName, cve, cve);
+    return JsonUtils.parse(String.format(str, constraintName, cve, cve), ConstraintFact[].class)[0];
   }
 
   private PolicyViolationDiff<PolicyViolation> createDiff(

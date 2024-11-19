@@ -10,12 +10,10 @@ import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFactsDAOProvider;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -50,12 +48,6 @@ public class AsyncDbMigrationTest
     // policyDAO is populated and used for the test migration
     applicationDAO = daoFactory.createApplicationDAO();
     migrationTrackerDAO = daoFactory.createMigrationTrackerDAO();
-  }
-
-  @After
-  @Override
-  public void tearDown() {
-    PolicyViolationConstraintFactsDAOProvider.inject(null);
   }
 
   @Test

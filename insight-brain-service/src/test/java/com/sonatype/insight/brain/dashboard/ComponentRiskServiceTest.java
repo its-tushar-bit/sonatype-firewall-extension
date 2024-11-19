@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -114,8 +115,10 @@ public class ComponentRiskServiceTest
   }
 
   private void fixViolations(PolicyEvaluation evaluation) {
-    for (PolicyViolation fixedViolation : violationDAO
-        .getUnfixedByApplicationIdAndStageId(evaluation.getApplicationId(), evaluation.getStageTypeId())) {
+    List<PolicyViolation> policyViolations =
+        violationDAO.getUnfixedByApplicationIdAndStageId(evaluation.getApplicationId(), evaluation.getStageTypeId());
+    violationDAO.loadConstraintFacts(policyViolations);
+    for (PolicyViolation fixedViolation : policyViolations) {
       fixedViolation.setFixTime(evaluation.getTime());
       violationDAO.update(fixedViolation);
     }

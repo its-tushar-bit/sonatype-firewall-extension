@@ -293,6 +293,7 @@ public class AutomaticQuarantineRelease
   {
     List<RepositoryPolicyViolation> violations = repositoryPolicyViolationDAO
         .getByRepositoryIdAndPathname(quarantinedComponent.getRepositoryId(), quarantinedComponent.getPathname());
+    repositoryPolicyViolationDAO.loadConstraintFacts(violations);
 
     for (RepositoryPolicyViolation violation : violations) {
       for (ConstraintFact constraintFact : violation.getConstraintFacts()) {

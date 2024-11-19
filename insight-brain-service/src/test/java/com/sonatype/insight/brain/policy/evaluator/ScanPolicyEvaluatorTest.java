@@ -2026,6 +2026,7 @@ public class ScanPolicyEvaluatorTest
 
     // There should be only one policy violation (the existing one).
     List<PolicyViolation> policyViolationsAfter = policyViolationDAO.getByApplicationId(application.getId());
+    policyViolationDAO.loadConstraintFacts(policyViolationsAfter);
     assertThat(policyViolationsAfter).hasSize(1);
     PolicyViolation policyViolationAfter = policyViolationsAfter.get(0);
     assertThat(policyViolationAfter.getId()).isEqualTo(policyViolationBefore.getId());
@@ -3373,6 +3374,7 @@ public class ScanPolicyEvaluatorTest
 
     // This is what disabling legacy violations performs for an application
     policyViolationDAO.getByApplicationId(application.getId()).forEach(policyViolation -> {
+      policyViolationDAO.loadConstraintFacts(Collections.singletonList(policyViolation));
       policyViolation.setLegacyViolationTime(null);
       policyViolationDAO.update(policyViolation);
     });
@@ -3459,12 +3461,10 @@ public class ScanPolicyEvaluatorTest
     try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
       tx.begin();
 
-      Query updateIdQuery = tx.createQuery("UPDATE PolicyViolation entity SET entity.constraintFactsId = NULL");
-      updateIdQuery.executeUpdate();
-
-      Query updateJsonQuery = tx.createQuery("UPDATE PolicyViolation entity SET entity.constraintFactsJson = ?1");
-      updateJsonQuery.setParameter(1, policyViolationConstraintFacts.getConstraintFactsJson());
-      updateJsonQuery.executeUpdate();
+      Query updateQuery = tx.createQuery("UPDATE PolicyViolation entity " + ""
+          + "SET entity.constraintFactsId = NULL, entity.deprecatedConstraintFactsJson = ?1");
+      updateQuery.setParameter(1, policyViolationConstraintFacts.getConstraintFactsJson());
+      updateQuery.executeUpdate();
 
       tx.commit();
     }
@@ -3497,6 +3497,7 @@ public class ScanPolicyEvaluatorTest
     // This is what enabling legacy violations performs for an application
     Date currentDate = new Date();
     policyViolationDAO.getByApplicationId(application.getId()).forEach(policyViolation -> {
+      policyViolationDAO.loadConstraintFacts(Collections.singletonList(policyViolation));
       policyViolation.setLegacyViolationTime(currentDate);
       policyViolationDAO.update(policyViolation);
     });
@@ -3527,6 +3528,7 @@ public class ScanPolicyEvaluatorTest
       List<PolicyViolation> policyViolations,
       String userName) throws Exception
   {
+    policyViolationDAO.loadConstraintFacts(policyViolations);
     List<PolicyViolationLogDTO> policyViolationLogDTOs =
         PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolationLogEvent,
             policyViolations.size());

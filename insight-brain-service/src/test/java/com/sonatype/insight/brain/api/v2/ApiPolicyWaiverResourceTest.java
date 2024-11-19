@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.function.UnaryOperator;
+
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 
@@ -46,7 +47,6 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.joda.time.DateTime;
@@ -395,20 +395,15 @@ public class ApiPolicyWaiverResourceTest
        The api will now not allow creating waiver with expiry date in the past.
      */
 
-    AbstractPolicyViolation abstractPolicyViolation = policyViolationDAO.getById(policyViolation.getId());
+    policyViolation = policyViolationDAO.getById(policyViolation.getId());
+    policyViolationDAO.loadConstraintFacts(Collections.singletonList(policyViolation));
     Date expiryTime = DateTime.now().minusDays(1).toDate();
     String waiverComment = "some comment";
-    try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
-      tx.begin();
+    PolicyWaiver policyWaiver = new PolicyWaiver("h1", policyViolation.getPolicyId(), app.getId(), waiverComment);
+    policyWaiver.setConstraintFactsJson(policyViolation.getConstraintFactsJson());
+    policyWaiver.setExpiryTime(expiryTime);
 
-      PolicyWaiver policyWaiver =
-          new PolicyWaiver("h1", abstractPolicyViolation.getPolicyId(), app.getId(), waiverComment);
-      policyWaiver.setConstraintFactsJson(abstractPolicyViolation.getConstraintFactsJson());
-      policyWaiver.setExpiryTime(expiryTime);
-
-      policyWaiverDAO.insert(tx, policyWaiver);
-      tx.commit();
-    }
+    policyWaiverDAO.insert(policyWaiver);
 
     // should not return a policy as the one existing is expired
     List<PolicyWaiver> activePolicyWaivers = policyWaiverDAO.getActiveByOwnerId(app.getId());

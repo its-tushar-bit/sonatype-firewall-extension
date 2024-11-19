@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.repository;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -104,6 +105,7 @@ public class RepositoryComponentDeleteService
       // Delete related policy violations
       List<RepositoryPolicyViolation> repositoryPolicyViolations =
           repositoryPolicyViolationDAO.getByRepositoryIdAndPathname(tx, repoId, componentPath);
+      repositoryPolicyViolationDAO.loadConstraintFacts(repositoryPolicyViolations);
       repositoryPolicyViolations
           .forEach(repositoryPolicyViolation -> repositoryPolicyViolationDAO.delete(tx, repositoryPolicyViolation));
 

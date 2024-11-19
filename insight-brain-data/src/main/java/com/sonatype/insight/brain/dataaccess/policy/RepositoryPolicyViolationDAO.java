@@ -17,11 +17,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter.SortField;
@@ -44,30 +44,14 @@ import static java.util.stream.Collectors.toMap;
 @Named
 @Singleton
 public class RepositoryPolicyViolationDAO
-    extends AbstractOperationalSqlDAO<RepositoryPolicyViolation>
-    implements AbstractPolicyViolationDAO
+    extends AbstractPolicyViolationDAO<RepositoryPolicyViolation>
 {
-  private final PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO;
-
   @Inject
   public RepositoryPolicyViolationDAO(
       OperationalDataStore operationalDataStore,
       PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO)
   {
-    super(operationalDataStore);
-    this.policyViolationConstraintFactsDAO = policyViolationConstraintFactsDAO;
-  }
-
-  @Override
-  public void insert(final TransactionContext tx, final RepositoryPolicyViolation entity) {
-    storeConstraints(policyViolationConstraintFactsDAO, entity);
-    super.insert(tx, entity);
-  }
-
-  @Override
-  public void update(final TransactionContext tx, final RepositoryPolicyViolation entity) {
-    storeConstraints(policyViolationConstraintFactsDAO, entity);
-    super.update(tx, entity);
+    super(operationalDataStore, policyViolationConstraintFactsDAO);
   }
 
   public List<RepositoryPolicyViolation> getActiveByRepositoryIdAndPathname(String repositoryId, String pathname) {
@@ -461,14 +445,6 @@ public class RepositoryPolicyViolationDAO
       return ((Stream<Object[]>) query.getResultStream()) //
           .collect(toMap(row -> getInteger(row[0]), row -> getInteger(row[1])));
     }
-  }
-
-  @Override
-  public long getCountWhereConstraintFactsJsonNotNull() {
-    String sQuery = "SELECT COUNT(entity) FROM " + getEntityName() +
-        " entity WHERE entity.constraintFactsJson IS NOT NULL";
-
-    return getSingle(Long.class, sQuery);
   }
 
   private boolean hasNonViolatingFilter(final Set<String> violationStateFilters) {

@@ -7,10 +7,12 @@ package com.sonatype.insight.brain.git;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -37,7 +39,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -226,8 +227,9 @@ public class PullRequestLocationDiscoveryServiceTest
     }
 
     PolicyViolation build() {
+      ConstraintFact constraintFact = new ConstraintFact("constraintId", "constraintName", "operatorName");
       return new PolicyViolation(evaluation, "policyId", "policyName", 5, PolicyThreatCategory.LICENSE, "hash",
-          componentIdentifier, emptyList(), null);
+          componentIdentifier, Collections.singletonList(constraintFact), null);
     }
   }
 

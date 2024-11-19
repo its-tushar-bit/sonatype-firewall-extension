@@ -5,7 +5,22 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import javax.inject.Inject;
+
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -25,6 +40,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dashboard.PolicyViolationState;
 import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
@@ -43,25 +59,12 @@ import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools.ThreadPools;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 /**
  * @since 1.76
@@ -81,6 +84,8 @@ public class ApiComponentsWithWaiversReportingService
 
   private final RepositoryService repositoryService;
 
+  private final PolicyViolationDAO policyViolationDao;
+
   private final RepositoryPolicyViolationDAO repositoryPolicyViolationDao;
 
   private final PolicyWaiverDAO policyWaiverDao;
@@ -96,6 +101,7 @@ public class ApiComponentsWithWaiversReportingService
       ApplicationService applicationService,
       PolicyViolationLoader policyViolationLoader,
       RepositoryService repositoryService,
+      PolicyViolationDAO policyViolationDao,
       RepositoryPolicyViolationDAO repositoryPolicyViolationDao,
       PolicyWaiverDAO policyWaiverDao,
       OwnerDAO ownerDAO)
@@ -103,6 +109,7 @@ public class ApiComponentsWithWaiversReportingService
     this.applicationService = applicationService;
     this.policyViolationLoader = policyViolationLoader;
     this.repositoryService = repositoryService;
+    this.policyViolationDao = policyViolationDao;
     this.repositoryPolicyViolationDao = repositoryPolicyViolationDao;
     this.policyWaiverDao = policyWaiverDao;
     this.ownerDAO = ownerDAO;
@@ -191,9 +198,12 @@ public class ApiComponentsWithWaiversReportingService
                * component identifier, we filter and group the waived policy violations by non-null component identifier
                * and process accordingly.
                */
-              policyViolations
+              List<PolicyViolation> filteredPolicyViolations = policyViolations
                   .stream()
-                  .filter(p -> p.getComponentIdentifier() != null)
+                  .filter(p -> p.getComponentIdentifier() != null).toList();
+              policyViolationDao.loadConstraintFacts(filteredPolicyViolations);
+              filteredPolicyViolations
+                  .stream()
                   .collect(Collectors.groupingBy(PolicyViolation::getComponentIdentifier))
                   .forEach((componentIdentifier, policyViolationsByComponent) -> {
                     applicationComponentsWithWaiversCount.incrementAndGet();
@@ -207,9 +217,11 @@ public class ApiComponentsWithWaiversReportingService
                   });
 
               // Filter and group policy violations by hash where the component identifier is null but does have a hash
-              policyViolations
+              filteredPolicyViolations = policyViolations.stream()
+                  .filter(p -> p.getComponentIdentifier() == null && p.getHash() != null).toList();
+              policyViolationDao.loadConstraintFacts(filteredPolicyViolations);
+              filteredPolicyViolations
                   .stream()
-                  .filter(p -> p.getComponentIdentifier() == null && p.getHash() != null)
                   .collect(Collectors.groupingBy(PolicyViolation::getHash))
                   .forEach((hash, policyViolationsByHash) -> {
                     applicationComponentsWithWaiversCount.incrementAndGet();
@@ -253,6 +265,7 @@ public class ApiComponentsWithWaiversReportingService
 
       List<RepositoryPolicyViolation> repositoryPolicyViolations =
           repositoryPolicyViolationDao.getActiveWaivedRepositoryPolicyViolations(idToRepositoryMap.keySet());
+      repositoryPolicyViolationDao.loadConstraintFacts(repositoryPolicyViolations);
 
       repositoryPolicyViolations.stream()
           .filter(violationFilterPredicate)

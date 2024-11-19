@@ -10,6 +10,7 @@ import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -23,9 +24,8 @@ import com.sonatype.insight.brain.utils.Sha1Util;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * @since 1.17
@@ -51,11 +51,30 @@ public abstract class AbstractPolicyViolation
   @Column(name = "hash")
   private String hash;
 
+  /**
+   * The policy violation constraint facts used to be stored in the same db table, as json string, in the
+   * constraint_facts_json column and mapped to the constraintFactsJson field in this class, and they were loaded
+   * automatically from constraintFactsJson.
+   * That was changed to store them in a separate table policy_violation_constraint_facts and linked here by their ID,
+   * in order to reduce the db size and the memory consumption.
+   * After this change, the old constraint_facts_json db column was not removed because it is used by the data migrator.
+   * This column is now mapped to the deprecatedConstraintFactsJson field, which should only be used by the migrator.
+   * The constraint facts are not loaded automatically anymore. This saves memory everywhere where policy violations are
+   * used and the constraint facts are not needed.
+   * Any code that needs the constraint facts must call the (Repository)PolicyViolationDAO.loadConstraintFacts() method
+   * explicitly.
+   */
   @Column(name = "constraint_facts_id")
   private String constraintFactsId;
 
+  @Transient
+  private List<ConstraintFact> constraintFacts;
+
+  /**
+   * To be used only by the AbstractPolicyViolationConstraintFactsJsonAsyncDbMigration class and its tests.
+   */
   @Column(name = "constraint_facts_json")
-  private String constraintFactsJson;
+  private String deprecatedConstraintFactsJson;
 
   @Column(name = "action_type_id")
   private String actionTypeId;
@@ -73,9 +92,6 @@ public abstract class AbstractPolicyViolation
 
   @Column(name = "waive_time")
   private Date waiveTime;
-
-  @Transient
-  private List<ConstraintFact> constraintFacts;
 
   public AbstractPolicyViolation() {
   }
@@ -143,57 +159,33 @@ public abstract class AbstractPolicyViolation
   }
 
   public String getConstraintFactsJson() {
-    // Lazy load constraint facts from PolicyViolationConstraintFacts table when needed
-    if (constraintFactsJson == null && isNotBlank(getConstraintFactsId())) {
-      constraintFactsJson = PolicyViolationConstraintFactsDAOProvider.getConstraintFactsJson(getConstraintFactsId());
-    }
-    return constraintFactsJson;
+    return JsonUtils.writeUnformatted(getConstraintFacts());
   }
-
-  // This is to support the migration of the constraint facts from the JSON to an ID without triggering a read
-  @Deprecated
-  public String getConstraintFactsJsonWithoutLoading() {
-    return constraintFactsJson;
-  }
-
-  public void setConstraintFactsJson(String constraintFactsJson) {
-    setConstraintFactsJsonInternal(constraintFactsJson);
-    constraintFacts = null; // If set externally then we reset the constraint facts
-  }
-
-  private void setConstraintFactsJsonInternal(String constraintFactsJson) {
-    if (StringUtils.isBlank(constraintFactsJson)) {
-      throw new IllegalArgumentException("ConstraintFactsJson cannot be null or empty.");
-    }
-
-    this.constraintFactsJson = constraintFactsJson;
-  }
-
+  
   /**
-   * This method nulls the JSON so that it doesn't get written to the DB but retains the in memory constraintFacts which
-   * can still be used to prevent unnecessary lazy loading and database round trips
+   * To be used only for tests
    */
-  public void clearConstraintFactsJson() {
-    this.constraintFactsJson = null;
+  public void clearConstraintFacts() {
+    this.constraintFacts = null;
   }
 
   public void setConstraintFacts(List<ConstraintFact> constraintFacts) {
-    if (constraintFacts == null) {
-      throw new IllegalArgumentException("ConstraintFacts cannot be null");
+    if (CollectionUtils.isEmpty(constraintFacts)) {
+      throw new IllegalArgumentException("ConstraintFacts cannot be null or empty.");
     }
 
     this.constraintFacts = constraintFacts;
-    setConstraintFactsJsonInternal(JsonUtils.writeUnformatted(constraintFacts));
   }
 
   @Override
   public List<ConstraintFact> getConstraintFacts() {
-    // Short circuit to avoid a trip to the database to get the JSON if we already have the constraint facts
     if (constraintFacts != null) {
       return constraintFacts;
     }
 
-    String json = getConstraintFactsJson();
+    // Since (Repository)PolicyViolationConstraintFactsJsonAsyncDbMigration runs async, there is a time window where the
+    // system has to be able to use migrated and unmigrated policy violations.
+    String json = deprecatedConstraintFactsJson;
     if (!StringUtils.isBlank(json)) {
       try {
         constraintFacts = Arrays.asList(JsonUtils.parse(json, ConstraintFact[].class));
@@ -202,7 +194,18 @@ public abstract class AbstractPolicyViolation
         throw new UncheckedIOException("Failed to read constraint facts for policy violation " + getId(), e);
       }
     }
-    return constraintFacts;
+
+    if (constraintFacts != null) {
+      return constraintFacts;
+    }
+
+    throw new IllegalStateException("Constraint facts are not loaded yet for policyViolationId=" + getId()
+        + ". Use the " + getClass().getSimpleName()
+        + "DAO.loadConstraintFacts() method to load the constraint facts explicitly.");
+  }
+
+  public boolean constraintFactsAreLoaded() {
+    return !CollectionUtils.isEmpty(constraintFacts);
   }
 
   public String getActionTypeId() {
@@ -262,7 +265,7 @@ public abstract class AbstractPolicyViolation
 
   public void setConstraintFactsId(final String id) {
     if (StringUtils.isBlank(id)) {
-      throw new IllegalArgumentException("ConstraintFactsJson cannot be null or empty.");
+      throw new IllegalArgumentException("ConstraintFactsId cannot be null or empty.");
     }
 
     this.constraintFactsId = id;
@@ -270,5 +273,19 @@ public abstract class AbstractPolicyViolation
 
   public static String calculateConstraintFactsId(String constraintFactsJson) {
     return Sha1Util.halfSha1(constraintFactsJson);
+  }
+
+  /**
+   * To be used only by the AbstractPolicyViolationConstraintFactsJsonAsyncDbMigration class and its tests.
+   */
+  public String getDeprecatedConstraintFactsJson() {
+    return deprecatedConstraintFactsJson;
+  }
+
+  /**
+   * To be used only by the AbstractPolicyViolationConstraintFactsJsonAsyncDbMigration class and its tests.
+   */
+  public void setDeprecatedConstraintFactsJson(String deprecatedConstraintFactsJson) {
+    this.deprecatedConstraintFactsJson = deprecatedConstraintFactsJson;
   }
 }

@@ -38,9 +38,10 @@ public abstract class AbstractPolicyViolationConstraintFactsJsonAsyncDbMigration
       final T violation,
       final TransactionContext tx)
   {
-    String constraintFactsJson = violation.getConstraintFactsJsonWithoutLoading();
+    String constraintFactsJson = violation.getDeprecatedConstraintFactsJson();
     if (constraintFactsJson != null) {
-      // AbstractPolicyViolationDAO automatically removes the JSON and sets the ID when policy violations are saved
+      // AbstractPolicyViolationDAO automatically removes the deprecated JSON and sets the ID when policy violations are
+      // saved.
       dao.update(tx, violation);
     }
   }
@@ -48,7 +49,7 @@ public abstract class AbstractPolicyViolationConstraintFactsJsonAsyncDbMigration
   @Override
   protected boolean validateFinished(final long processed, final long rows) {
     if (dao instanceof AbstractPolicyViolationDAO) {
-      long count = ((AbstractPolicyViolationDAO) dao).getCountWhereConstraintFactsJsonNotNull();
+      long count = ((AbstractPolicyViolationDAO<?>) dao).getCountWhereDeprecatedConstraintFactsJsonNotNull();
 
       return count == 0;
     }

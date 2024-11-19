@@ -32,27 +32,11 @@ import org.apache.commons.lang3.StringUtils;
 public class CoordinatesConditionType
     extends AbstractComponentConditionType<String>
 {
-  private static final Map<String, Set<Integer>> FORMAT_TO_OPTIONAL_COORDINATE_INDEXES = new HashMap<>();
-
-  static {
-    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_MAVEN, Collections.singleton(5));
-    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_ANAME, Collections.singleton(2));
-    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_PYPI, ImmutableSet.of(3, 4));
-    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_NPM, Collections.emptySet());
-    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_COMPOSER, Collections.emptySet());
-    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_CARGO, ImmutableSet.of(3));
-  }
-
   public static final String ID = "Coordinates";
 
-  private static List<String> supportedOperators;
+  private static final Map<String, Set<Integer>> FORMAT_TO_OPTIONAL_COORDINATE_INDEXES = new HashMap<>();
 
-  static {
-    supportedOperators = new ArrayList<>();
-    supportedOperators.add("match");
-    supportedOperators.add("do not match");
-    supportedOperators = Collections.unmodifiableList(supportedOperators);
-  }
+  private static List<String> supportedOperators;
 
   @Override
   public String getId() {
@@ -134,7 +118,7 @@ public class CoordinatesConditionType
     final ComponentIdentifier componentIdentifier = getComponentIdentifier(value);
 
     boolean match = new ArtifactCoordinate(componentIdentifier).matches(component.getComponentIdentifier());
-    return "match".equals(operator) ? match : !match;
+    return "match".equals(operator) == match;
   }
 
   private ComponentIdentifier getComponentIdentifier(final String value) {
@@ -159,6 +143,10 @@ public class CoordinatesConditionType
       case ComponentIdentifier.FORMAT_NPM:
         componentIdentifier = ComponentIdentifier
             .createNpmCoordinates(coordinates[1], coordinates[2]);
+        break;
+      case ComponentIdentifier.FORMAT_CONAN:
+        componentIdentifier = ComponentIdentifier
+            .createConanCoordinates(coordinates[1], coordinates[2], coordinates[3], coordinates[4]);
         break;
       case ComponentIdentifier.FORMAT_COMPOSER:
         componentIdentifier = ComponentIdentifier
@@ -190,6 +178,7 @@ public class CoordinatesConditionType
       case ComponentIdentifier.FORMAT_ANAME:
       case ComponentIdentifier.FORMAT_PYPI:
       case ComponentIdentifier.FORMAT_NPM:
+      case ComponentIdentifier.FORMAT_CONAN:
       case ComponentIdentifier.FORMAT_COMPOSER:
       case ComponentIdentifier.FORMAT_CARGO:
         break;
@@ -199,5 +188,22 @@ public class CoordinatesConditionType
     }
 
     super.validateCondition(tx, condition, ownerId);
+  }
+
+  static {
+    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_MAVEN, Collections.singleton(5));
+    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_ANAME, Collections.singleton(2));
+    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_PYPI, ImmutableSet.of(3, 4));
+    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_NPM, Collections.emptySet());
+    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_CONAN, ImmutableSet.of(3, 4));
+    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_COMPOSER, Collections.emptySet());
+    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_CARGO, ImmutableSet.of(3));
+  }
+
+  static {
+    supportedOperators = new ArrayList<>();
+    supportedOperators.add("match");
+    supportedOperators.add("do not match");
+    supportedOperators = Collections.unmodifiableList(supportedOperators);
   }
 }

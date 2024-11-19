@@ -68,6 +68,17 @@ const computeValidatableFieldsForCoordinates = (fields) => {
     );
   } else if (fields.format === 'npm') {
     return values(omit(['format'], fields));
+  } else if (fields.format === 'conan') {
+    return values(
+      omit(
+        [
+          'format',
+          isEmpty(fields.channel?.trimmedValue) ? 'channel' : null,
+          isEmpty(fields.owner?.trimmedValue) ? 'owner' : null,
+        ],
+        fields
+      )
+    );
   } else if (fields.format === 'composer') {
     return values(omit(['format'], fields));
   } else if (fields.format === 'cargo') {

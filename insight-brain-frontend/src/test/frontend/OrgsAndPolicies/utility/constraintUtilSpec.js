@@ -181,6 +181,20 @@ describe('constraintUtil', () => {
       });
     });
 
+    describe('conan', () => {
+      const value = {
+        format: 'conan',
+        name: initUserInput('name'),
+        version: initUserInput('version'),
+        channel: initUserInput('channel'),
+        owner: initUserInput('owner'),
+      };
+
+      it('returns combined coordinates value for conan', () => {
+        expect(getCoordinatesValue(value)).toBe('conan:name:version:channel:owner');
+      });
+    });
+
     describe('composer', () => {
       const value = {
         format: 'composer',

@@ -58,6 +58,12 @@ public class CoordinatesConditionTypeTest
   }
 
   @Test
+  public void testEvaluate_composer_MatchExact() {
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_COMPOSER,
+        "Coordinates were g2/a2/v2 (match g2/a2/v2)");
+  }
+
+  @Test
   public void testEvaluate_Cargo_MatchExact() {
     testEvaluate_MatchExact(ComponentIdentifier.FORMAT_CARGO,
         "Coordinates were g2 : a2 : v2 (match g2 : a2 : v2)");
@@ -352,6 +358,12 @@ public class CoordinatesConditionTypeTest
   }
 
   @Test
+  public void testEvaluate_composer_MatchWildcard() {
+    testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_COMPOSER,
+        "Coordinates were g2/a2/v2 (match g2/a*/v2)");
+  }
+
+  @Test
   public void testEvaluate_Cargo_MatchWildcard() {
     testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_CARGO,
         "Coordinates were g2 : a2 : v2 (match g2 : a* : v2)");
@@ -412,6 +424,12 @@ public class CoordinatesConditionTypeTest
   }
 
   @Test
+  public void testEvaluate_composer_DoNotMatchExact() {
+    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_COMPOSER,
+        "Coordinates were g1/a1/v1 (do not match g2/a2/v2)");
+  }
+
+  @Test
   public void testEvaluate_Cargo_DoNotMatchExact() {
     testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_CARGO,
         "Coordinates were g1 : a1 : v1 (do not match g2 : a2 : v2)");
@@ -469,6 +487,12 @@ public class CoordinatesConditionTypeTest
   public void testEvaluate_npm_DoNotMatchWildcard() {
     testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_NPM,
         "Coordinates were g1 : a1 (do not match g2 : a*)");
+  }
+
+  @Test
+  public void testEvaluate_composer_DoNotMatchWildcard() {
+    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_COMPOSER,
+        "Coordinates were g1/a1/v1 (do not match g2/a*/v2)");
   }
 
   @Test
@@ -687,6 +711,15 @@ public class CoordinatesConditionTypeTest
     assertConvertIfNeeded("pypi:n:v:q:e", "pypi:n:v:q:e");
 
     assertConvertIfNeeded("npm:n::", "npm:n:*");
+
+    assertConvertIfNeeded("composer:n::::", "composer:n:*:*");
+    assertConvertIfNeeded("composer::n::", "composer:*:n:*");
+    assertConvertIfNeeded("composer:::v", "composer:*:*:v");
+    assertConvertIfNeeded("composer:n:n::", "composer:n:n:*");
+    assertConvertIfNeeded("composer:n::v", "composer:n:*:v");
+    assertConvertIfNeeded("composer::n:v", "composer:*:n:v");
+    assertConvertIfNeeded("composer:n:n:v", "composer:n:n:v");
+    assertConvertIfNeeded("composer:::", "composer:*:*:*");
 
     assertConvertIfNeeded("cargo:n::", "cargo:n:*:");
     assertConvertIfNeeded("cargo:n:v:", "cargo:n:v:");

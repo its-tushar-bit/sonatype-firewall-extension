@@ -68,6 +68,8 @@ const computeValidatableFieldsForCoordinates = (fields) => {
     );
   } else if (fields.format === 'npm') {
     return values(omit(['format'], fields));
+  } else if (fields.format === 'composer') {
+    return values(omit(['format'], fields));
   } else if (fields.format === 'cargo') {
     return values(omit(['format', isEmpty(fields.type?.trimmedValue) ? 'type' : null], fields));
   }

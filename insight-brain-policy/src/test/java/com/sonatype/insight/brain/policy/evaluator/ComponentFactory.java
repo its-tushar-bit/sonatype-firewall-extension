@@ -45,6 +45,9 @@ public class ComponentFactory
       case ComponentIdentifier.FORMAT_NPM:
         componentIdentifier = ComponentIdentifier.createNpmCoordinates(coord[0], coord[1]);
         break;
+      case ComponentIdentifier.FORMAT_COMPOSER:
+        componentIdentifier = ComponentIdentifier.createComposerCoordinates(coord[0], coord[1], coord[2]);
+        break;
       case ComponentIdentifier.FORMAT_CARGO:
         componentIdentifier = ComponentIdentifier.createCargoCoordinates(coord[0], coord[1], coord[2]);
         break;

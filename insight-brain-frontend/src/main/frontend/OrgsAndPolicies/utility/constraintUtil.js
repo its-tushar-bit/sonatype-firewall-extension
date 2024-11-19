@@ -45,6 +45,8 @@ export function getCoordinatesValue(value) {
     return `${value.format}:${fields.name}:${fields.version}:${fields.qualifier}:${fields.extension}`;
   } else if (value.format === 'npm') {
     return `${value.format}:${fields.packageId}:${fields.version}`;
+  } else if (value.format === 'composer') {
+    return `${value.format}:${fields.namespace}:${fields.name}:${fields.version}`;
   } else if (value.format === 'cargo') {
     return `${value.format}:${fields.name}:${fields.version}:${fields.type}`;
   }
@@ -156,6 +158,7 @@ export const withDefaultValue = {
   'a-name': ['qualifier'],
   pypi: ['qualifier', 'extension'],
   npm: [],
+  composer: [],
   cargo: ['type'],
 };
 
@@ -164,10 +167,9 @@ export const optionalFields = {
   'a-name': ['qualifier'],
   pypi: ['qualifier', 'extension'],
   npm: [],
+  composer: [],
   cargo: ['type'],
 };
-
-// 'qualifier', 'extension', 'classifier' fields can be empty
 // but if value is present it should not contain : symbol
 export const validatePatternMatchAndEmptyValue = curryN(
   3,
@@ -192,10 +194,11 @@ export const coordinatesTypes = {
   'a-name': ['name', 'qualifier', 'version'],
   pypi: ['name', 'version', 'qualifier', 'extension'],
   npm: ['packageId', 'version'],
+  composer: ['namespace', 'name', 'version'],
   cargo: ['name', 'version', 'type'],
 };
 
-export const coordinatesFormatOptions = ['maven', 'a-name', 'pypi', 'npm', 'cargo'];
+export const coordinatesFormatOptions = ['maven', 'a-name', 'pypi', 'npm', 'composer', 'cargo'];
 
 export const fieldTypeToPlaceholder = {
   groupId: 'Group ID',
@@ -206,6 +209,7 @@ export const fieldTypeToPlaceholder = {
   qualifier: 'Qualifier',
   name: 'Name',
   packageId: 'Package ID',
+  namespace: 'Namespace',
   type: 'Type',
 };
 

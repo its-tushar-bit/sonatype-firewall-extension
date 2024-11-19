@@ -181,6 +181,19 @@ describe('constraintUtil', () => {
       });
     });
 
+    describe('composer', () => {
+      const value = {
+        format: 'composer',
+        namespace: initUserInput('namespace'),
+        name: initUserInput('name'),
+        version: initUserInput('version'),
+      };
+
+      it('returns combined coordinates value for composer', () => {
+        expect(getCoordinatesValue(value)).toBe('composer:namespace:name:version');
+      });
+    });
+
     describe('cargo', () => {
       const value = {
         format: 'cargo',

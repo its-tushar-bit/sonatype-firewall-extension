@@ -23,7 +23,7 @@ public class AutoPolicyWaiverDAOTest
     extends AbstractDbDAOTest
 {
   private AutoPolicyWaiverDAO dao;
-  
+
   private AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO;
 
   @Before
@@ -105,7 +105,7 @@ public class AutoPolicyWaiverDAOTest
     assertThat(queryResult.getCreatorName()).isEqualTo(autoPolicyWaiverInstance.getCreatorName());
     assertThat(queryResult.getCreateTime()).isEqualTo(autoPolicyWaiverInstance.getCreateTime());
   }
-  
+
   @Test
   public void testDelete_CascadesToAutoPolicyWaiverRevocations() {
     AutoPolicyWaiver autoPolicyWaiverInstanceOne = new AutoPolicyWaiver(
@@ -118,7 +118,7 @@ public class AutoPolicyWaiverDAOTest
         new Date()
     );
     dao.insert(autoPolicyWaiverInstanceOne);
-    
+
     AutoPolicyWaiver autoPolicyWaiverInstanceTwo = new AutoPolicyWaiver(
         "other",
         3,
@@ -129,7 +129,7 @@ public class AutoPolicyWaiverDAOTest
         new Date()
     );
     dao.insert(autoPolicyWaiverInstanceTwo);
-    
+
     AutoPolicyWaiverRevocation revocationOne = new AutoPolicyWaiverRevocation(
         "fake",
         "creatorId",
@@ -153,16 +153,16 @@ public class AutoPolicyWaiverDAOTest
         "scanId"
     );
     autoPolicyWaiverRevocationDAO.insert(revocationTwo);
-    
+
     dao.delete(autoPolicyWaiverInstanceOne);
 
     List<AutoPolicyWaiver> autoPolicyWaivers = dao.getAll();
     assertThat(autoPolicyWaivers).hasSize(1);
-    
+
     List<AutoPolicyWaiverRevocation> autoPolicyWaiverRevocations =
         autoPolicyWaiverRevocationDAO.getAll();
     assertThat(autoPolicyWaiverRevocations).hasSize(1).allSatisfy(revocationInstance -> {
-      revocationInstance.getAutoPolicyWaiverId().equals(autoPolicyWaiverInstanceTwo.getId());
+      assertThat(revocationInstance.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiverInstanceTwo.getId());
     });
   }
 }

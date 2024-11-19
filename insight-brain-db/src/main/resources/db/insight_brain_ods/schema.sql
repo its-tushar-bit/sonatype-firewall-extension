@@ -1878,9 +1878,15 @@ CREATE TABLE IF NOT EXISTS auto_policy_waiver_revocation (
     creator_name varchar(210) NOT NULL,
     create_time TIMESTAMP NOT NULL,
     auto_policy_waiver_id varchar(50) NOT NULL,
-    hash varchar(20) NOT NULL,
+    hash varchar(20) NULL,
     associated_package_url varchar(1000) NULL,
     scan_id varchar(50) NOT NULL,
+    component_match_strategy varchar(30) NULL,
+    policy_violation_id varchar(50) NULL,
+    threat_level SMALLINT NULL,
+    policy_name varchar(60) NULL,
+    component_display_name VARCHAR(200) NULL,
+    vulnerability_identifiers VARCHAR(200) NULL,
     CONSTRAINT auto_policy_waiver_revocation_pk
     PRIMARY KEY (auto_policy_waiver_revocation_id),
     CONSTRAINT auto_policy_waiver_revocation_auto_waiver_fk 

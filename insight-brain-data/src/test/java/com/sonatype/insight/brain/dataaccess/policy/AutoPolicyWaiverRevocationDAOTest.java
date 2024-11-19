@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -23,19 +24,19 @@ public class AutoPolicyWaiverRevocationDAOTest
     extends AbstractDbDAOTest
 {
   private AutoPolicyWaiverRevocationDAO dao;
-  
+
   @Before
   @Override
   public void setup() {
     super.setup();
     dao = daoFactory.createAutoPolicyWaiverRevocationDAO();
   }
-  
+
   @Test
   public void testCRUD() {
     Application app = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiverOne = tempEntity.newAutoPolicyWaiver(app.getId());
-    
+
     // Create
     AutoPolicyWaiverRevocation revocation = new AutoPolicyWaiverRevocation(
         app.getId(),
@@ -43,12 +44,13 @@ public class AutoPolicyWaiverRevocationDAOTest
         "fakeCreatorName",
         new Date(),
         autoPolicyWaiverOne.getId(),
-        "fakeHash",
+        "scanId",
+        "fakehash",
         "fakePurl",
-        "fakeScan"
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT
     );
     dao.insert(revocation);
-    
+
     // Read
     AutoPolicyWaiverRevocation instance = dao.getById(revocation.getId());
     assertThat(instance.getId()).isEqualTo(revocation.getId());
@@ -59,79 +61,82 @@ public class AutoPolicyWaiverRevocationDAOTest
     assertThat(instance.getHash()).isEqualTo(revocation.getHash());
     assertThat(instance.getAssociatedPackageUrl()).isEqualTo(revocation.getAssociatedPackageUrl());
     assertThat(instance.getScanId()).isEqualTo(revocation.getScanId());
-    
+    assertThat(instance.getComponentMatchStrategy()).isEqualTo(ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
+
     // Update
     instance.setHash("anotherFakeHash");
     instance.setScanId("anotherFakeScanId");
+    instance.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
     dao.update(instance);
     instance = dao.getById(revocation.getId());
     assertThat(instance.getHash()).isEqualTo("anotherFakeHash");
     assertThat(instance.getScanId()).isEqualTo("anotherFakeScanId");
-    
+    assertThat(instance.getComponentMatchStrategy()).isEqualTo(ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
+
     // Delete
     dao.delete(instance);
     instance = dao.getById(revocation.getId());
     assertThat(instance).isNull();
   }
-  
+
   @Test
   public void testGetByOwnerId() {
     Application app = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiverOne = tempEntity.newAutoPolicyWaiver(app.getId());
     AutoPolicyWaiver autoPolicyWaiverTwo = tempEntity.newAutoPolicyWaiver(app.getOrganizationId());
-    
+
     Organization otherOrg = tempEntity.newOrganization("fakeOrgOne");
     AutoPolicyWaiver autoPolicyWaiverThree = tempEntity.newAutoPolicyWaiver(otherOrg.getId());
-    
+
     AutoPolicyWaiverRevocation revocationOne = new AutoPolicyWaiverRevocation(
         app.getId(),
         "fakeCreatorId",
         "fakeCreatorName",
         new Date(),
         autoPolicyWaiverOne.getId(),
+        "fakeScan",
         "fakeHash",
-        "fakePurl",
-        "fakeScan"
+        "fakePurl"
     );
-    
+
     AutoPolicyWaiverRevocation revocationTwo = new AutoPolicyWaiverRevocation(
         app.getOrganizationId(),
         "fakeCreatorId",
         "fakeCreatorName",
         new Date(),
         autoPolicyWaiverTwo.getId(),
+        "fakeScan",
         "fakeHash",
-        "fakePurl",
-        "fakeScan"
+        "fakePurl"
     );
-    
+
     AutoPolicyWaiverRevocation revocationThree = new AutoPolicyWaiverRevocation(
         app.getOrganizationId(),
         "fakeCreatorId",
         "fakeCreatorName",
         new Date(),
         autoPolicyWaiverTwo.getId(),
-        "fakeHashTwo",
-        "fakePurlTwo",
-        "fakeScan" 
+        "fakeScan",
+        "fakeHash",
+        "fakePurl"
     );
-    
+
     AutoPolicyWaiverRevocation revocationFour = new AutoPolicyWaiverRevocation(
         otherOrg.getId(),
         "fakeCreatorId",
         "fakeCreatorName",
         new Date(),
         autoPolicyWaiverThree.getId(),
-        "fakeHashTwo",
-        "fakePurlTwo",
-        "fakeScan"
+        "fakeScan",
+        "fakeHash",
+        "fakePurl"
     );
-    
+
     dao.insert(revocationOne);
     dao.insert(revocationTwo);
     dao.insert(revocationThree);
     dao.insert(revocationFour);
-    
+
     List<AutoPolicyWaiverRevocation> appOneRevocations = dao.getByOwnerId(app.getId());
     assertThat(appOneRevocations).hasSize(1).allSatisfy(waiverRevocation -> {
       assertThat(waiverRevocation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiverOne.getId());
@@ -142,14 +147,14 @@ public class AutoPolicyWaiverRevocationDAOTest
     assertThat(parentOrgRevocations).hasSize(2).allSatisfy(waiverRevocation -> {
       assertThat(waiverRevocation.getOwnerId()).isEqualTo(app.getOrganizationId());
     });
-    
+
     List<AutoPolicyWaiverRevocation> otherOrgRevocations = dao.getByOwnerId(otherOrg.getId());
     assertThat(otherOrgRevocations).hasSize(1).allSatisfy(waiverRevocation -> {
       assertThat(waiverRevocation.getOwnerId()).isEqualTo(otherOrg.getId());
       assertThat(waiverRevocation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiverThree.getId());
     });
   }
-  
+
   @Test
   public void testGetByOwnerIdAndHash() {
     Application app = tempEntity.newApplicationWithParent();
@@ -165,9 +170,9 @@ public class AutoPolicyWaiverRevocationDAOTest
         "fakeCreatorName",
         new Date(),
         autoPolicyWaiverOne.getId(),
+        "fakeScan",
         "fakeHashOne",
-        "fakePurl",
-        "fakeScan"
+        "fakePurl"
     );
 
     AutoPolicyWaiverRevocation revocationTwo = new AutoPolicyWaiverRevocation(
@@ -176,9 +181,9 @@ public class AutoPolicyWaiverRevocationDAOTest
         "fakeCreatorName",
         new Date(),
         autoPolicyWaiverTwo.getId(),
+        "fakeScan",
         "fakeHashTwo",
-        "fakePurl",
-        "fakeScan"
+        "fakePurl"
     );
 
     AutoPolicyWaiverRevocation revocationThree = new AutoPolicyWaiverRevocation(
@@ -187,9 +192,9 @@ public class AutoPolicyWaiverRevocationDAOTest
         "fakeCreatorName",
         new Date(),
         autoPolicyWaiverTwo.getId(),
+        "fakeScan",
         "fakeHashThree",
-        "fakePurlTwo",
-        "fakeScan"
+        "fakePurl"
     );
 
     AutoPolicyWaiverRevocation revocationFour = new AutoPolicyWaiverRevocation(
@@ -198,27 +203,27 @@ public class AutoPolicyWaiverRevocationDAOTest
         "fakeCreatorName",
         new Date(),
         autoPolicyWaiverThree.getId(),
+        "fakeScan",
         "fakeHashTwo",
-        "fakePurlTwo",
-        "fakeScan"
+        "fakePurl"
     );
 
     dao.insert(revocationOne);
     dao.insert(revocationTwo);
     dao.insert(revocationThree);
     dao.insert(revocationFour);
-    
+
     List<AutoPolicyWaiverRevocation> appOneRevocations = dao.getByOwnerIdAndHash(app.getId(), "fakeHashOne");
     assertThat(appOneRevocations).hasSize(1).allSatisfy(waiverRevocation -> {
       assertThat(waiverRevocation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiverOne.getId());
       assertThat(waiverRevocation.getOwnerId()).isEqualTo(app.getId());
       assertThat(waiverRevocation.getHash()).isEqualTo("fakeHashOne");
     });
-    
+
     List<AutoPolicyWaiverRevocation> nonExtantHashes = dao.getByOwnerIdAndHash(app.getId(), "fakeHashTen");
     assertThat(nonExtantHashes).hasSize(0);
-    
-    List<AutoPolicyWaiverRevocation> parentOrgRevocations = 
+
+    List<AutoPolicyWaiverRevocation> parentOrgRevocations =
         dao.getByOwnerIdAndHash(app.getOrganizationId(), "fakeHashTwo");
     assertThat(parentOrgRevocations).hasSize(1).allSatisfy(waiverRevocation -> {
       assertThat(waiverRevocation.getOwnerId()).isEqualTo(app.getOrganizationId());
@@ -226,37 +231,37 @@ public class AutoPolicyWaiverRevocationDAOTest
       assertThat(waiverRevocation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiverTwo.getId());
     });
 
-    List<AutoPolicyWaiverRevocation> otherOrgRevocations = 
+    List<AutoPolicyWaiverRevocation> otherOrgRevocations =
         dao.getByOwnerIdAndHash(otherOrg.getId(), "fakeHashTwo");
     assertThat(otherOrgRevocations).hasSize(1).allSatisfy(waiverRevocation -> {
       assertThat(waiverRevocation.getOwnerId()).isEqualTo(otherOrg.getId());
       assertThat(waiverRevocation.getHash()).isEqualTo("fakeHashTwo");
       assertThat(waiverRevocation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiverThree.getId());
-    }); 
+    });
   }
-  
+
   @Test
   public void testGetByOwnerIdAndAutoPolicyWaiverId() {
     Application app = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiverForApp = tempEntity.newAutoPolicyWaiver(app.getId());
     tempEntity.newAutoPolicyWaiver(app.getOrganizationId());
-    
-    List<AutoPolicyWaiverRevocation> revocationsOne = 
+
+    List<AutoPolicyWaiverRevocation> revocationsOne =
         dao.getByOwnerIdAndAutoPolicyWaiverId(app.getId(), autoPolicyWaiverForApp.getId());
     assertThat(revocationsOne).hasSize(0);
-    
+
     AutoPolicyWaiverRevocation revocation = new AutoPolicyWaiverRevocation(
         app.getId(),
         "fake",
         "fake",
         new Date(),
         autoPolicyWaiverForApp.getId(),
+        "scanId",
         "hash",
-        "purl",
-        "scan ID"
+        "purl"
     );
     dao.insert(revocation);
-    
+
     List<AutoPolicyWaiverRevocation> revocationsTwo =
         dao.getByOwnerIdAndAutoPolicyWaiverId(app.getId(), autoPolicyWaiverForApp.getId());
     assertThat(revocationsTwo).hasSize(1).allSatisfy(waiverRevocation -> {
@@ -264,41 +269,136 @@ public class AutoPolicyWaiverRevocationDAOTest
       waiverRevocation.getOwnerId().equals(app.getId());
     });
   }
-  
+
   @Test
   public void testGetByOwnerIdAndAutoPolicyWaiverIdAndHash() {
     Application app = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiverForApp = tempEntity.newAutoPolicyWaiver(app.getId());
     tempEntity.newAutoPolicyWaiver(app.getOrganizationId());
-    
-    AutoPolicyWaiverRevocation revocationOne = 
+
+    AutoPolicyWaiverRevocation revocationOne =
         dao.getByOwnerIdAndAutoPolicyWaiverIdAndHash(app.getId(), autoPolicyWaiverForApp.getId(), "hash");
     assertThat(revocationOne).isNull();
-    
+
     AutoPolicyWaiverRevocation revocation = new AutoPolicyWaiverRevocation(
         app.getId(),
         "fake",
         "fake",
         new Date(),
         autoPolicyWaiverForApp.getId(),
+        "scanId",
         "hash",
-        "purl",
-        "scan ID"
+        "purl"
     );
     dao.insert(revocation);
-    
+
     AutoPolicyWaiverRevocation revocationTwo =
         dao.getByOwnerIdAndAutoPolicyWaiverIdAndHash(app.getId(), autoPolicyWaiverForApp.getId(), "hash");
     assertThat(revocationTwo).isNotNull();
     assertThat(revocationTwo.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiverForApp.getId());
     assertThat(revocationTwo.getOwnerId()).isEqualTo(app.getId());
     assertThat(revocationTwo.getHash()).isEqualTo("hash");
-    
+
     AutoPolicyWaiverRevocation revocationThree = dao.getByOwnerIdAndAutoPolicyWaiverIdAndHash(
         app.getOrganizationId(),
         autoPolicyWaiverForApp.getId(),
         "hash"
     );
     assertThat(revocationThree).isNull();
+  }
+
+  @Test
+  public void testGetByOwnerIdAndAutoPolicyWaiverIdPaginated() {
+    Application app = tempEntity.newApplicationWithParent();
+    AutoPolicyWaiver waiver = tempEntity.newAutoPolicyWaiver(app.getId());
+    tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
+    tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
+    tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
+    tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
+    tempEntity.newAutoPolicyWaiverRevocation(app.getId(), waiver.getId());
+
+    List<AutoPolicyWaiverRevocation> resultOne = dao.getByOwnerIdAndAutoPolicyWaiverIdPaginated(
+        waiver.getOwnerId(),
+        waiver.getId(),
+        1,
+        3
+    );
+
+    assertThat(resultOne).hasSize(3);
+
+    List<AutoPolicyWaiverRevocation> resultTwo = dao.getByOwnerIdAndAutoPolicyWaiverIdPaginated(
+        waiver.getOwnerId(),
+        waiver.getId(),
+        2,
+        3
+    );
+    assertThat(resultTwo).hasSize(2);
+  }
+
+  @Test
+  public void testGetByOwnerIdAndAutoPolicyWaiverIdPaginated_MultipleAppsAndWaivers() {
+    Application appOne = tempEntity.newApplicationWithParent();
+    Application appTwo = tempEntity.newApplicationWithParent();
+    AutoPolicyWaiver waiverOne = tempEntity.newAutoPolicyWaiver(appOne.getId());
+    AutoPolicyWaiver waiverTwo = tempEntity.newAutoPolicyWaiver(appTwo.getId());
+
+    tempEntity.newAutoPolicyWaiverRevocation(appOne.getId(), waiverOne.getId());
+    tempEntity.newAutoPolicyWaiverRevocation(appOne.getId(), waiverOne.getId());
+    tempEntity.newAutoPolicyWaiverRevocation(appOne.getId(), waiverOne.getId());
+    tempEntity.newAutoPolicyWaiverRevocation(appOne.getId(), waiverOne.getId());
+    tempEntity.newAutoPolicyWaiverRevocation(appOne.getId(), waiverOne.getId());
+    tempEntity.newAutoPolicyWaiverRevocation(appTwo.getId(), waiverTwo.getId());
+    tempEntity.newAutoPolicyWaiverRevocation(appTwo.getId(), waiverTwo.getId());
+    tempEntity.newAutoPolicyWaiverRevocation(appTwo.getId(), waiverTwo.getId());
+    tempEntity.newAutoPolicyWaiverRevocation(appTwo.getId(), waiverTwo.getId());
+    tempEntity.newAutoPolicyWaiverRevocation(appTwo.getId(), waiverTwo.getId());
+
+    List<AutoPolicyWaiverRevocation> resultOne = dao.getByOwnerIdAndAutoPolicyWaiverIdPaginated(
+        waiverOne.getOwnerId(),
+        waiverOne.getId(),
+        1,
+        3
+    );
+
+    assertThat(resultOne).hasSize(3).allSatisfy(waiverRevocation -> {
+      assertThat(waiverRevocation.getOwnerId()).isEqualTo(waiverOne.getOwnerId());
+      assertThat(waiverRevocation.getAutoPolicyWaiverId()).isEqualTo(waiverOne.getId());
+    });
+
+    List<AutoPolicyWaiverRevocation> resultTwo = dao.getByOwnerIdAndAutoPolicyWaiverIdPaginated(
+        waiverOne.getOwnerId(),
+        waiverOne.getId(),
+        2,
+        3
+    );
+
+    assertThat(resultTwo).hasSize(2).allSatisfy(waiverRevocation -> {
+      assertThat(waiverRevocation.getOwnerId()).isEqualTo(waiverOne.getOwnerId());
+      assertThat(waiverRevocation.getAutoPolicyWaiverId()).isEqualTo(waiverOne.getId());
+    });
+
+    List<AutoPolicyWaiverRevocation> resultThree = dao.getByOwnerIdAndAutoPolicyWaiverIdPaginated(
+        waiverTwo.getOwnerId(),
+        waiverTwo.getId(),
+        1,
+        3
+    );
+
+    assertThat(resultThree).hasSize(3).allSatisfy(waiverRevocation -> {
+      assertThat(waiverRevocation.getOwnerId()).isEqualTo(waiverTwo.getOwnerId());
+      assertThat(waiverRevocation.getAutoPolicyWaiverId()).isEqualTo(waiverTwo.getId());
+    });
+
+    List<AutoPolicyWaiverRevocation> resultFour = dao.getByOwnerIdAndAutoPolicyWaiverIdPaginated(
+        waiverTwo.getOwnerId(),
+        waiverTwo.getId(),
+        2,
+        3
+    );
+
+    assertThat(resultFour).hasSize(2).allSatisfy(waiverRevocation -> {
+      assertThat(waiverRevocation.getOwnerId()).isEqualTo(waiverTwo.getOwnerId());
+      assertThat(waiverRevocation.getAutoPolicyWaiverId()).isEqualTo(waiverTwo.getId());
+    });
   }
 }

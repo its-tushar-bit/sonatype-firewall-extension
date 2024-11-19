@@ -1155,7 +1155,7 @@ public class TestDAOFactory
     AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO = createAutoPolicyWaiverRevocationDAO();
     return new AutoPolicyWaiverDAO(dataStoreProvider.getOperationalDataStore(), autoPolicyWaiverRevocationDAO);
   }
-  
+
   @Override
   public AutoPolicyWaiverRevocationDAO createAutoPolicyWaiverRevocationDAO() {
     return new AutoPolicyWaiverRevocationDAO(dataStoreProvider.getOperationalDataStore());

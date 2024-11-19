@@ -9,6 +9,7 @@ import java.util.Date;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverRevocationDTO;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
 
 import org.junit.Test;
 
@@ -35,6 +36,12 @@ public class ApiAutoPolicyWaiverRevocationAdapterTest
     autoPolicyWaiverRevocation.setHash("hash");
     autoPolicyWaiverRevocation.setAssociatedPackageUrl("url");
     autoPolicyWaiverRevocation.setScanId("scanId");
+    autoPolicyWaiverRevocation.setComponentMatchStrategy(ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
+    autoPolicyWaiverRevocation.setPolicyViolationId("fakeViolationId");
+    autoPolicyWaiverRevocation.setThreatLevel(8);
+    autoPolicyWaiverRevocation.setPolicyName("policyName");
+    autoPolicyWaiverRevocation.setComponentDisplayName("componentDisplayName");
+    autoPolicyWaiverRevocation.setVulnerabilityIdentifiers("vulnerabilityIdentifiers");
 
     ApiAutoPolicyWaiverRevocationDTO apiAutoPolicyWaiverRevocationDTO =
         ApiAutoPolicyWaiverRevocationAdapter.convertToDTO(autoPolicyWaiverRevocation);
@@ -51,5 +58,15 @@ public class ApiAutoPolicyWaiverRevocationAdapterTest
     assertThat(apiAutoPolicyWaiverRevocationDTO.associatedPackageUrl).isEqualTo(
         autoPolicyWaiverRevocation.getAssociatedPackageUrl());
     assertThat(apiAutoPolicyWaiverRevocationDTO.scanId).isEqualTo(autoPolicyWaiverRevocation.getScanId());
+    assertThat(apiAutoPolicyWaiverRevocationDTO.componentMatchStrategy).isEqualTo(
+        autoPolicyWaiverRevocation.getComponentMatchStrategy());
+    assertThat(apiAutoPolicyWaiverRevocationDTO.policyViolationId).isEqualTo(
+        autoPolicyWaiverRevocation.getPolicyViolationId());
+    assertThat(apiAutoPolicyWaiverRevocationDTO.threatLevel).isEqualTo(autoPolicyWaiverRevocation.getThreatLevel());
+    assertThat(apiAutoPolicyWaiverRevocationDTO.policyName).isEqualTo(autoPolicyWaiverRevocation.getPolicyName());
+    assertThat(apiAutoPolicyWaiverRevocationDTO.componentDisplayName).isEqualTo(
+        autoPolicyWaiverRevocation.getComponentDisplayName());
+    assertThat(apiAutoPolicyWaiverRevocationDTO.vulnerabilityIdentifiers).isEqualTo(
+        autoPolicyWaiverRevocation.getVulnerabilityIdentifiers());
   }
 }

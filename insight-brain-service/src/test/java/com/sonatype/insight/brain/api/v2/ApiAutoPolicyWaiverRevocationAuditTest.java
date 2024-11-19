@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.Date;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverRevocationDTO;
@@ -16,6 +19,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -46,12 +50,16 @@ public class ApiAutoPolicyWaiverRevocationAuditTest
   public void testAddAutoPolicyWaiverRevocation_Application() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId());
+    tempEntity.newPolicy(application.getOrganizationId());
+    ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
+    tempEntity.newPolicyEvaluation(application.getId(), "stageId", "scanId", new Date());
 
     ApiAutoPolicyWaiverRevocationDTO revocation = new ApiAutoPolicyWaiverRevocationDTO();
     revocation.ownerId = application.getId();
     revocation.autoPolicyWaiverId = autoPolicyWaiver.getId();
-    revocation.hash = "hash";
     revocation.scanId = "scanId";
+    revocation.hash = "hash";
+    revocation.componentMatchStrategy = ComponentMatcherStrategyForRevocation.EXACT_COMPONENT;
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + OWNERS_PATH)
@@ -69,13 +77,17 @@ public class ApiAutoPolicyWaiverRevocationAuditTest
   @Test
   public void testAddAutoPolicyWaiverRevocation_Organization() throws Exception {
     Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(org.getId());
-
+    tempEntity.newPolicy(org.getId());
+    ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "jar");
+    tempEntity.newPolicyEvaluation(app.getId(), "stageId", "scanId", new Date());
     ApiAutoPolicyWaiverRevocationDTO revocation = new ApiAutoPolicyWaiverRevocationDTO();
     revocation.ownerId = org.getId();
     revocation.autoPolicyWaiverId = autoPolicyWaiver.getId();
-    revocation.hash = "hash";
     revocation.scanId = "scanId";
+    revocation.componentMatchStrategy = ComponentMatcherStrategyForRevocation.ALL_VERSIONS;
+    revocation.associatedPackageUrl = "http://example.com/package";
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + OWNERS_PATH)
@@ -100,7 +112,7 @@ public class ApiAutoPolicyWaiverRevocationAuditTest
     revocation.autoPolicyWaiverId = autoPolicyWaiver.getId();
     revocation.hash = "hash";
     revocation.scanId = "scanId";
-    
+
     restRequest().with(unauthorizedUser())
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + OWNERS_PATH)
         .parameter(OwnerType.APPLICATION, application.getId())
@@ -120,7 +132,7 @@ public class ApiAutoPolicyWaiverRevocationAuditTest
 
     restRequest()
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + BY_AUTO_POLICY_WAIVER_REVOCATION_ID_PATH)
-        .parameter(OwnerType.APPLICATION, app.getId(), revocation.getId())
+        .parameter(OwnerType.APPLICATION, app.getId(), autoPolicyWaiver.getId(), revocation.getId())
         .delete();
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_AUTO_WAIVER_REVOCATION, null);
@@ -137,7 +149,7 @@ public class ApiAutoPolicyWaiverRevocationAuditTest
 
     restRequest()
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + BY_AUTO_POLICY_WAIVER_REVOCATION_ID_PATH)
-        .parameter(OwnerType.ORGANIZATION, organization.getId(), revocation.getId())
+        .parameter(OwnerType.ORGANIZATION, organization.getId(), autoPolicyWaiver.getId(), revocation.getId())
         .delete();
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_AUTO_WAIVER_REVOCATION, null);
@@ -149,12 +161,12 @@ public class ApiAutoPolicyWaiverRevocationAuditTest
   public void testDeleteAutoPolicyWaiverRevocation_Unauthorized() throws Exception {
     Organization organization = tempEntity.newOrganization();
     AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(organization.getId());
-    AutoPolicyWaiverRevocation revocation = 
+    AutoPolicyWaiverRevocation revocation =
         tempEntity.newAutoPolicyWaiverRevocation(organization.getId(), autoPolicyWaiver.getId());
-    
+
     restRequest().with(unauthorizedUser())
         .path(PublicApiPaths.AUTO_POLICY_WAIVER_REVOCATION_PATH + "/" + BY_AUTO_POLICY_WAIVER_REVOCATION_ID_PATH)
-        .parameter(OwnerType.ORGANIZATION, organization.getId(), revocation.getId())
+        .parameter(OwnerType.ORGANIZATION, organization.getId(), autoPolicyWaiver.getId(), revocation.getId())
         .delete();
 
     final AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_AUTO_WAIVER_REVOCATION, "unauthorized");

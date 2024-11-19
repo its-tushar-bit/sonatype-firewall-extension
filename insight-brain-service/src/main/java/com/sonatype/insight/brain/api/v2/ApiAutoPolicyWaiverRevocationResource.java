@@ -5,15 +5,19 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -23,7 +27,9 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import io.micrometer.core.annotation.Timed;
@@ -47,7 +53,10 @@ public class ApiAutoPolicyWaiverRevocationResource
 
   static final String OWNERS_PATH = "{ownerType: application|organization}/{ownerId}";
 
-  static final String BY_AUTO_POLICY_WAIVER_REVOCATION_ID_PATH = OWNERS_PATH + "/{autoPolicyWaiverRevocationId}";
+  static final String BY_AUTO_POLICY_WAIVER_ID_PATH = OWNERS_PATH + "/{autoPolicyWaiverId}";
+
+  static final String BY_AUTO_POLICY_WAIVER_REVOCATION_ID_PATH =
+      OWNERS_PATH + "/{autoPolicyWaiverId}/{autoPolicyWaiverRevocationId}";
 
   @Inject
   public ApiAutoPolicyWaiverRevocationResource(
@@ -117,12 +126,35 @@ public class ApiAutoPolicyWaiverRevocationResource
       @PathParam("ownerType") OwnerType ownerType,
       @Parameter(description = "Enter the corresponding id for the ownerType specified above.", required = true)
       @PathParam("ownerId") String ownerId,
+      @Parameter(description = "Enter the relevant Auto Policy Waiver ID.", required = true)
+      @PathParam("autoPolicyWaiverId") String autoPolicyWaiverId,
       @Parameter(description = "Enter the autoPolicyWaiverId to be deleted")
       @PathParam("autoPolicyWaiverRevocationId") String autoPolicyWaiverRevocationId)
   {
     checkAutoPolicyWaiversFeatureEnabled();
     apiAutoPolicyWaiverRevocationService
         .deleteAutoPolicyWaiverRevocation(ownerType, ownerId, autoPolicyWaiverRevocationId);
+  }
+
+  @GET
+  @Path(BY_AUTO_POLICY_WAIVER_ID_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.READ)
+  public List<ApiAutoPolicyWaiverRevocationDTO> getAutoPolicyWaiverRevocations(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      @PathParam("autoPolicyWaiverId") String autoPolicyWaiverId,
+      @DefaultValue("1") @QueryParam("page") int page,
+      @DefaultValue("10") @QueryParam("pageSize") int pageSize)
+  {
+    checkAutoPolicyWaiversFeatureEnabled();
+    return apiAutoPolicyWaiverRevocationService.getAutoPolicyWaiverRevocations(
+        ownerType,
+        ownerId,
+        autoPolicyWaiverId,
+        page,
+        pageSize
+    );
   }
 
   private void checkAutoPolicyWaiversFeatureEnabled() {

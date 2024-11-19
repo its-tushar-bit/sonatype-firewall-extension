@@ -428,6 +428,6 @@ public interface DAOFactory
   AutoPolicyWaiverDAO createAutoPolicyWaiverDAO();
   
   AutoPolicyWaiverRevocationDAO createAutoPolicyWaiverRevocationDAO();
-
+  
   MalwareDefenseMetricsDAO createMalwareDefenseMetricsDAO();
 }

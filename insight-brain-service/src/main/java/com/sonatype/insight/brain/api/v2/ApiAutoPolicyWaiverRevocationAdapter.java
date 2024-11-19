@@ -28,7 +28,12 @@ public class ApiAutoPolicyWaiverRevocationAdapter
     dto.hash = autoPolicyWaiverRevocation.getHash();
     dto.associatedPackageUrl = autoPolicyWaiverRevocation.getAssociatedPackageUrl();
     dto.scanId = autoPolicyWaiverRevocation.getScanId();
-
+    dto.componentMatchStrategy = autoPolicyWaiverRevocation.getComponentMatchStrategy();
+    dto.policyViolationId = autoPolicyWaiverRevocation.getPolicyViolationId();
+    dto.threatLevel = autoPolicyWaiverRevocation.getThreatLevel();
+    dto.policyName = autoPolicyWaiverRevocation.getPolicyName();
+    dto.componentDisplayName = autoPolicyWaiverRevocation.getComponentDisplayName();
+    dto.vulnerabilityIdentifiers = autoPolicyWaiverRevocation.getVulnerabilityIdentifiers();
     return dto;
   }
 }

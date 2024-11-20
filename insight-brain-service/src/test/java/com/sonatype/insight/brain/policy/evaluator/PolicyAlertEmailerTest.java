@@ -330,8 +330,12 @@ public class PolicyAlertEmailerTest
     Policy policy = tempEntity.newPolicy(app);
     String emailAddress1 = "test1@sonatype.com";
     String emailAddress2 = "test2@sonatype.com";
+    String emailAddress3 = "test3@sonatype.com";
+    String emailAddress4 = "test4@sonatype.com";
     policy.getNotifications().add(new UserNotification(emailAddress1, Notification.CONTINUOUS_MONITORING));
     policy.getNotifications().add(new UserNotification(emailAddress2, Notification.CONTINUOUS_MONITORING));
+    policy.getNotifications().add(new UserNotification(emailAddress3, Notification.SBOM_CONTINUOUS_MONITORING));
+    policy.getNotifications().add(new UserNotification(emailAddress4, Notification.SBOM_CONTINUOUS_MONITORING));
     policyDAO.update(policy);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
@@ -339,7 +343,7 @@ public class PolicyAlertEmailerTest
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
-    assertEmailAddresses(emailAddress1, emailAddress2);
+    assertEmailAddresses(emailAddress1, emailAddress2, emailAddress3, emailAddress4);
   }
 
   @Test

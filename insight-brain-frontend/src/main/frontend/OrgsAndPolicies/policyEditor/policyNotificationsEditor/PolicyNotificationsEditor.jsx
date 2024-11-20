@@ -108,6 +108,8 @@ export default function PolicyNotificationsEditor() {
   };
   const isNotificationsInheritOverrideEnabled = useSelector(selectIsNotificationsInheritOverrideEnabled);
   const isNotificationsTableEnabled = useSelector(selectIsNotificationsTableEnabled);
+  const isSbomManager = useSelector(selectIsSbomManager);
+  const continuousMonitoringStageId = isSbomManager ? 'sbom-continuous-monitoring' : 'continuous-monitoring';
 
   const hasStage = (notification, stageId) => (notification.stageIds ?? []).includes(stageId);
 
@@ -261,13 +263,13 @@ export default function PolicyNotificationsEditor() {
                       <NxCheckbox
                         aria-label={`notify ${recipient.displayName} for continuous-monitoring`}
                         disabled={
-                          isDisabled(recipient, 'continuous-monitoring') ||
+                          isDisabled(recipient, continuousMonitoringStageId) ||
                           !isMonitoringSupported ||
                           isRepositoriesRelated
                         }
-                        isChecked={hasStage(recipient, 'continuous-monitoring')}
+                        isChecked={hasStage(recipient, continuousMonitoringStageId)}
                         onChange={() =>
-                          toggleNotificationRecipientStage({ recipient, stageId: 'continuous-monitoring' })
+                          toggleNotificationRecipientStage({ recipient, stageId: continuousMonitoringStageId })
                         }
                       />
                     </NxTooltip>

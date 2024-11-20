@@ -774,6 +774,66 @@ describe('PolicyNotificationsEditor', () => {
       expect(last(checkboxes)).not.toBeChecked();
     });
 
+    describe('uses correct stageId based on isSbomManager flag', () => {
+      it('uses sbom-continuous-monitoring when isSbomManager is true', async () => {
+        const spy = spyOn(policyActions, 'toggleNotificationRecipientStage').and.callThrough();
+        const sbomState = {
+          ...state,
+          router: {
+            currentParams: { organizationId: 'organizationId' },
+            currentState: { name: 'sbomManager.organization' },
+          },
+        };
+        renderComponent(sbomState);
+        await waitFor(() => screen.getByRole('table'));
+        const table = screen.getByRole('table', { name: 'Edit policy notifications table' });
+        const checkboxes = within(table).getAllByRole('checkbox');
+        expect(last(checkboxes)).toBeEnabled();
+        expect(last(checkboxes)).not.toBeChecked();
+        expect(screen.getByLabelText('notify user@email.com for continuous-monitoring')).toBeInTheDocument();
+
+        fireEvent.click(last(checkboxes));
+        expect(last(checkboxes)).toBeEnabled();
+        expect(last(checkboxes)).toBeChecked();
+        expect(spy).toHaveBeenCalledTimes(1);
+        expect(spy).toHaveBeenCalledWith({
+          ownerId: 'ownerId',
+          recipient: {
+            emailAddress: 'user@email.com',
+            stageIds: ['proxy', 'develop'],
+            displayName: 'user@email.com',
+          },
+          stageId: 'sbom-continuous-monitoring',
+        });
+      });
+
+      it('uses continuous-monitoring when isSbomManager is false', async () => {
+        const spy = spyOn(policyActions, 'toggleNotificationRecipientStage').and.callThrough();
+        renderComponent(state);
+
+        await waitFor(() => screen.getByRole('table'));
+        const table = screen.getByRole('table', { name: 'Edit policy notifications table' });
+        const checkboxes = within(table).getAllByRole('checkbox');
+        expect(last(checkboxes)).toBeEnabled();
+        expect(last(checkboxes)).not.toBeChecked();
+        expect(screen.getByLabelText('notify user@email.com for continuous-monitoring')).toBeInTheDocument();
+
+        fireEvent.click(last(checkboxes));
+        expect(last(checkboxes)).toBeEnabled();
+        expect(last(checkboxes)).toBeChecked();
+        expect(spy).toHaveBeenCalledTimes(1);
+        expect(spy).toHaveBeenCalledWith({
+          ownerId: 'ownerId',
+          recipient: {
+            emailAddress: 'user@email.com',
+            stageIds: ['proxy', 'develop'],
+            displayName: 'user@email.com',
+          },
+          stageId: 'continuous-monitoring',
+        });
+      });
+    });
+
     describe('when enforcement is not supported', () => {
       it('renders notifications not supported message when firewall is not supported', async () => {
         const preloadedState = compose(

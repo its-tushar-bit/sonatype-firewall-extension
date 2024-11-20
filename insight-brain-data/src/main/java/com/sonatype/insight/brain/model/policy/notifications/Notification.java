@@ -18,6 +18,8 @@ public abstract class Notification
 {
   public static final String CONTINUOUS_MONITORING = "continuous-monitoring";
 
+  public static final String SBOM_CONTINUOUS_MONITORING = "sbom-continuous-monitoring";
+
   private Set<String> stageIds = new TreeSet<>();
 
   protected Notification(String... stageIds) {
@@ -26,7 +28,7 @@ public abstract class Notification
 
   public boolean isApplicable(String stageId, boolean continuousMonitoring) {
     if (continuousMonitoring) {
-      return stageIds.contains(CONTINUOUS_MONITORING);
+      return stageIds.contains(CONTINUOUS_MONITORING) || stageIds.contains(SBOM_CONTINUOUS_MONITORING);
     }
     return stageIds.contains(stageId);
   }

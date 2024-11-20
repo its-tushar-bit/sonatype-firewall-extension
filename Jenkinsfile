@@ -77,7 +77,7 @@ make(
     iqPolicyEvaluation: { stage ->
         if (shouldRunPolicyEvaluation()) {
           def callflowConfig = isDeployBranch(env, 'main') ? [
-              enable: true,
+              enable: false,
               includes: [
                   'nexus-iq-server/target/insight-brain-service-*.jar'
               ],

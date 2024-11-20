@@ -9,22 +9,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -33,11 +29,8 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
-import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.HasComponentId;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -46,18 +39,12 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.security.CurrentUser;
-import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.brain.utils.IdUtils;
-import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codahale.metrics.annotation.Timed;
-
-import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
-import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 
 /**
  * @since 1.6
@@ -75,8 +62,6 @@ public class PolicyWaiverResource
 
   private final OwnerDAO ownerDAO;
 
-  private final RepositoryDAO repositoryDAO;
-
   private final RepositoryComponentDAO repositoryComponentDAO;
 
   private final ApplicationComponentDAO applicationComponentDAO;
@@ -85,102 +70,23 @@ public class PolicyWaiverResource
 
   private final PolicyDAO policyDAO;
 
-  private final PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator;
-
-  private final CurrentUser currentUser;
-
   private final IdUtils idUtils;
 
   @Inject
   public PolicyWaiverResource(
       final OwnerDAO ownerDAO,
-      final RepositoryDAO repositoryDAO,
       final RepositoryComponentDAO repositoryComponentDAO,
       final ApplicationComponentDAO applicationComponentDAO,
       final PolicyWaiverDAO policyWaiverDAO,
       final PolicyDAO policyDAO,
-      final PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator,
-      final CurrentUser currentUser,
       final IdUtils idUtils)
   {
     this.ownerDAO = ownerDAO;
-    this.repositoryDAO = repositoryDAO;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.applicationComponentDAO = applicationComponentDAO;
     this.policyWaiverDAO = policyWaiverDAO;
     this.policyDAO = policyDAO;
-    this.policyWaiverTelemetryCreator = policyWaiverTelemetryCreator;
-    this.currentUser = currentUser;
     this.idUtils = idUtils;
-  }
-
-  @POST
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
-  @Audited(AuditEvent.CREATE_WAIVER)
-  public PolicyWaiver addPolicyWaiver(
-      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") OwnerType ownerType,
-      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") String ownerId,
-      PolicyWaiver policyWaiver)
-  {
-    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
-
-    if (policyWaiver.getConstraintFactsJson() == null || policyWaiver.getConstraintFactsJson().isEmpty()) {
-      throw new BadRequestException("Policy waiver must have constraint facts.");
-    }
-
-    policyWaiver.setId(null);
-    policyWaiver.setOwnerId(internalOwnerId);
-    policyWaiver.setCreatorId(currentUser.getUserPrincipal().getUsername());
-    policyWaiver.setCreatorName(currentUser.getUserPrincipal().getDisplayName());
-    policyWaiver.setComponentMatchStrategy(policyWaiver.getHash() == null ? ALL_COMPONENTS : EXACT_COMPONENT);
-    policyWaiver.setAssociatedPackageUrl(getPurlForPolicyWaiver(policyWaiver, ownerType));
-    policyWaiverDAO.insert(policyWaiver);
-    auditPolicyWaiver(policyWaiver);
-    policyWaiverTelemetryCreator.sendWaiverTelemetryWithoutViolationInformation(policyWaiver, ownerType);
-    return policyWaiver;
-  }
-
-  private String getPurlForPolicyWaiver(PolicyWaiver policyWaiver, OwnerType ownerType) {
-    if (!EXACT_COMPONENT.equals(policyWaiver.getComponentMatchStrategy())) {
-      return null;
-    }
-
-    if (OwnerType.REPOSITORY.equals(ownerType)) {
-      ComponentIdentifier repositoryComponentIdentifier =
-          getRepositoryComponentIdentifierForOwner(policyWaiver, policyWaiver.getOwnerId());
-      return PackageUrlIdentifier.toPackageUrl(repositoryComponentIdentifier);
-    }
-
-    if (OwnerType.APPLICATION.equals(ownerType) || OwnerType.ORGANIZATION.equals(ownerType)) {
-      ApplicationComponent possibleComponent = applicationComponentDAO.getLastByHash(policyWaiver.getHash());
-      if (possibleComponent != null) {
-        return PackageUrlIdentifier.toPackageUrl(possibleComponent.getComponentIdentifier());
-      }
-    }
-
-    if (OwnerType.REPOSITORY_CONTAINER.equals(ownerType) || OwnerType.REPOSITORY_MANAGER.equals(ownerType)
-        || (OwnerType.ORGANIZATION.equals(ownerType)
-            && Organization.ROOT_ORGANIZATION_ID.equals(policyWaiver.getOwnerId()))) {
-      Function<Owner, ComponentIdentifier> findPossibleRepositoryComponentForRepositoryOrNull =
-          owner -> getRepositoryComponentIdentifierForOwner(policyWaiver, owner.getId());
-      ComponentIdentifier repositoryComponentIdentifier = repositoryDAO.getAll().stream()
-          .filter(repository -> RepositoryType.proxy.equals(repository.getRepositoryType()))
-          .map(findPossibleRepositoryComponentForRepositoryOrNull)
-          .filter(Objects::nonNull).findAny().orElse(null);
-      return PackageUrlIdentifier.toPackageUrl(repositoryComponentIdentifier);
-    }
-
-    return null;
-  }
-
-  private ComponentIdentifier getRepositoryComponentIdentifierForOwner(
-      final PolicyWaiver policyWaiver,
-      final String ownerId)
-  {
-    return repositoryComponentDAO.getByRepositoryIdAndHash(ownerId, policyWaiver.getHash()).stream()
-        .map(HasComponentId::getComponentIdentifier).filter(Objects::nonNull).findAny().orElse(null);
   }
 
   private <T extends HasComponentId> ComponentIdentifier getComponentIdentifierFromOwnerIdAndHash(
@@ -358,16 +264,5 @@ public class PolicyWaiverResource
       extends PolicyWaiver
   {
     public String policyName;
-  }
-
-  private void auditPolicyWaiver(PolicyWaiver policyWaiver) {
-    AuditData.get().setData("policyWaiverId", policyWaiver.getId())
-        .setPolicy(policyDAO.getByIdNotNull(policyWaiver.getPolicyId()))
-        .setComment(policyWaiver.getComment())
-        .setComponentHash(policyWaiver.getHash());
-    if (policyWaiver.getConstraintFacts() != null) {
-      AuditData.get().setData("policyConstraints",
-          policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(Collectors.toList()));
-    }
   }
 }

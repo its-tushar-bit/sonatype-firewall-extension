@@ -54,16 +54,6 @@ public class PolicyWaiverTelemetryCreator
     sendWaiverTelemetry(policyWaiverTelemetry, policyViolationTelemetry);
   }
 
-  public void sendWaiverTelemetryWithoutViolationInformation(
-      final PolicyWaiver policyWaiver,
-      final OwnerType ownerType)
-  {
-    final PolicyWaiverTelemetry policyWaiverTelemetry = new PolicyWaiverTelemetry(policyWaiver, ownerType.toString());
-    final PolicyViolationTelemetry policyViolationTelemetry =
-        new PolicyViolationTelemetry(policyWaiver.getConstraintFacts());
-    sendWaiverTelemetry(policyWaiverTelemetry, policyViolationTelemetry);
-  }
-
   private void sendWaiverTelemetry(
       final PolicyWaiverTelemetry policyWaiverTelemetry,
       PolicyViolationTelemetry policyViolationTelemetry)

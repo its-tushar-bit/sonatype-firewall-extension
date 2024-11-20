@@ -5,16 +5,9 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import java.util.Collections;
-
-import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.HttpRequest;
-import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Before;
@@ -23,8 +16,6 @@ import org.junit.Test;
 public class PolicyWaiverResourceAuthzTest
     extends AbstractResourceAuthzTest
 {
-  private PolicyWaiverDAO policyWaiverDAO;
-
   private Policy policy;
 
   @Override
@@ -34,25 +25,7 @@ public class PolicyWaiverResourceAuthzTest
 
   @Before
   public void init() {
-    policyWaiverDAO = lookup(PolicyWaiverDAO.class);
     policy = tempEntity.newPolicy(app);
-  }
-
-  @Test
-  public void testAddPolicyWaiver() throws Exception {
-    grantPermission(app.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
-
-    HttpRequest request = restRequest().body(new PolicyWaiver("hash", policy.getId(), null,
-        Collections.singletonList(new ConstraintFact("id", "name", "operator")), "comment"));
-    HttpResponse response = testAuthzPost(request.parameter(OwnerType.APPLICATION, app.getPublicId()));
-    policyWaiverDAO.delete(response.getBody(PolicyWaiver.class));
-
-    grantPermission(org.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
-
-    request.body(new PolicyWaiver("hash", policy.getId(), null,
-        Collections.singletonList(new ConstraintFact("id", "name", "operator")), "comment"));
-    response = testAuthzPost(request.parameter(OwnerType.ORGANIZATION, org.getId()));
-    policyWaiverDAO.delete(response.getBody(PolicyWaiver.class));
   }
 
   @Test

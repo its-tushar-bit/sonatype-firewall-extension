@@ -5,63 +5,41 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import javax.mail.MessagingException;
-import javax.mail.util.ByteArrayDataSource;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.policy.PolicyWaiverResource.AppliedWaivers;
 import com.sonatype.insight.brain.policy.PolicyWaiverResource.PolicyWaiverDTO;
 import com.sonatype.insight.brain.policy.PolicyWaiverResource.WaiversByOwner;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.mock.hds.HttpResponseProcessor;
-import com.sonatype.insight.telemetry.model.TelemetryData;
-import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
-import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
-import static com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
-import static com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator.POLICY_WAIVER_TELEMETRY;
-import static com.sonatype.insight.telemetry.model.TelemetryPurpose.POLICY_WAIVER;
-import static java.util.stream.Collectors.groupingBy;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyWaiverResourceTest
     extends AbstractResourceTest
 {
-  private PolicyWaiverDAO policyWaiverDAO;
-
   private PolicyTagDAO policyTagDAO;
 
   private PolicyDAO policyDAO;
@@ -72,7 +50,6 @@ public class PolicyWaiverResourceTest
 
   @Before
   public void setUp() {
-    policyWaiverDAO = lookup(PolicyWaiverDAO.class);
     policyTagDAO = lookup(PolicyTagDAO.class);
     policyDAO = lookup(PolicyDAO.class);
     organizationDAO = lookup(OrganizationDAO.class);
@@ -81,133 +58,6 @@ public class PolicyWaiverResourceTest
 
   private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
     return restRequest().path(PolicyWaiverResource.RESOURCE_PATH).parameter(ownerType, ownerId);
-  }
-
-  @Test
-  public void testCRU_Application() throws Exception {
-    String appPublicId = "PolicyWaiverResourceTest_AppId";
-    Application application = tempEntity.newApplicationWithParent(appPublicId);
-    String constraintFactsJson = JsonUtils.writeUnformatted(Collections.singletonList(new ConstraintFact()));
-    ComponentIdentifier mavenCoordinates =
-        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "versionId", null, "jar");
-    tempEntity.newApplicationComponent(application.getId(), "build", "componentHash", mavenCoordinates);
-    testCRU(OwnerType.APPLICATION, appPublicId, application.getId(), constraintFactsJson);
-  }
-
-  @Test
-  public void testCRU_Organization() throws Exception {
-    Organization organization = tempEntity.newOrganization("PolicyWaiverResourceTest");
-    Application application = tempEntity.newApplication(organization.getId());
-    String constraintFactsJson = JsonUtils.writeUnformatted(Collections.singletonList(new ConstraintFact()));
-    ComponentIdentifier mavenCoordinates =
-        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "versionId", null, "jar");
-    tempEntity.newApplicationComponent(application.getId(), "build", "componentHash", mavenCoordinates);
-    testCRU(OwnerType.ORGANIZATION, organization.getId(), organization.getId(), constraintFactsJson);
-  }
-
-  @Test
-  public void testCRU_Root_Organization() throws Exception {
-    String rootOrganizationId = Organization.ROOT_ORGANIZATION_ID;
-    Application application = tempEntity.newApplication(rootOrganizationId);
-    Repository repository = tempEntity.newRepository();
-    String constraintFactsJson = JsonUtils.writeUnformatted(Collections.singletonList(new ConstraintFact()));
-    ComponentIdentifier mavenCoordinates =
-        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "versionId", null, "jar");
-    tempEntity.newApplicationComponent(application.getId(), "build", "someOtherHash",
-        mavenCoordinates.createAlternativeVersion("beta"));
-    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathToComponent", "componentHash",
-        mavenCoordinates, false);
-    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname", "someOtherHash", null, false);
-    testCRU(OwnerType.ORGANIZATION, rootOrganizationId, rootOrganizationId, constraintFactsJson);
-  }
-
-  @Test
-  public void testCRU_Repository() throws Exception {
-    Repository repository = tempEntity.newRepository("foo");
-    String constraintFactsJson = JsonUtils.writeUnformatted(Collections.singletonList(new ConstraintFact()));
-    ComponentIdentifier mavenCoordinates =
-        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "versionId", null, "jar");
-    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathToComponent", "componentHash",
-        mavenCoordinates, false);
-    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname", "someOtherHash", null, false);
-
-    testCRU(OwnerType.REPOSITORY, repository.getId(), repository.getId(), constraintFactsJson);
-  }
-
-  @Test
-  public void testCRU_RepositoryContainer() throws Exception {
-    Repository repository = tempEntity.newRepository("foo");
-    String constraintFactsJson = JsonUtils.writeUnformatted(Collections.singletonList(new ConstraintFact()));
-    ComponentIdentifier mavenCoordinates =
-        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "versionId", null, "jar");
-    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathToComponent", "componentHash",
-        mavenCoordinates, false);
-    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname", "someOtherHash", null, false);
-
-    testCRU(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
-        RepositoryContainer.REPOSITORY_CONTAINER_ID, constraintFactsJson);
-  }
-
-  @Test
-  public void testCRU_NullConstraintFacts() throws Exception {
-    final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
-    startIqTestServer(config -> getHdsServer()
-        .respondWith((HttpResponseProcessor) (request, response) -> responses.put(
-            new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus()))
-        .andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
-
-    String appPublicId = "PolicyWaiverResourceTest_AppId";
-    Application application = tempEntity.newApplicationWithParent(appPublicId);
-    String policyId = createPolicy(application.getId()).getId();
-
-    PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policyId, null /* ownerId */, "My comment");
-    HttpResponse response = restRequest(OwnerType.APPLICATION, application.getPublicId()).body(policyWaiver).post();
-    assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).isEqualTo("Policy waiver must have constraint facts.");
-
-    final Map<TelemetryPurpose, List<TelemetryItem>> telemetryItemsMap =
-        getTelemetryItems(ImmutableMap.copyOf(responses)).stream()
-            .collect(groupingBy(telemetryItem -> telemetryItem.getTelemetryPurposes().get(0)));
-    assertThat(telemetryItemsMap).doesNotContainKey(POLICY_WAIVER);
-  }
-
-  private void testCRU(OwnerType ownerType, String ownerPublicId, String ownerId, String constraintFactsJson)
-      throws Exception
-  {
-    final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
-    startIqTestServer(config -> getHdsServer()
-        .respondWith((HttpResponseProcessor) (request, response) -> responses.put(
-            new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus()))
-        .andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
-
-    String policyId = createPolicy(ownerId).getId();
-
-    // Create
-    PolicyWaiver policyWaiver = new PolicyWaiver("componentHash", policyId, null /* ownerId */, null, "My comment");
-    policyWaiver.setConstraintFactsJson(constraintFactsJson);
-    HttpResponse response = restRequest(ownerType, ownerPublicId).body(policyWaiver).post();
-    assertResponseStatus(200, response);
-    PolicyWaiver responseWaiver = response.getBody(PolicyWaiver.class);
-    assertPolicyWaiver(policyId, ownerId, "My comment", constraintFactsJson, policyWaiver.getConstraintFacts(),
-        "admin", "Admin BuiltIn", responseWaiver);
-    assertThat(responseWaiver.getAssociatedPackageUrl()).isNotNull()
-        .isEqualTo("pkg:maven/groupId/artifactId@versionId?type=jar");
-    assertThat(policyWaiverDAO.getById(responseWaiver.getId()).getConstraintFactsJson())
-        .isEqualTo(constraintFactsJson);
-
-    // Get
-    response = restRequest(ownerType, ownerPublicId).path("component", policyWaiver.getHash()).get();
-    assertResponseStatus(200, response);
-    AppliedWaivers policyWaivers = response.getBody(AppliedWaivers.class);
-    assertThat(policyWaivers).isNotNull();
-    assertThat(policyWaivers.waiversByOwner).hasSize(1);
-    assertThat(policyWaivers.waiversByOwner.get(0).waivers).hasSize(1);
-    assertPolicyWaiverDTO(policyId, ownerPublicId, "My comment", policyWaiver.getConstraintFactsJson(),
-        policyWaiver.getConstraintFacts(), "admin", "Admin BuiltIn",
-        policyWaivers.waiversByOwner.get(0).waivers.get(0));
-
-    // Assert that telemetry was sent
-    assertTelemetry(responseWaiver, ownerType, responses);
   }
 
   private void assertWaiversByOwner(
@@ -221,44 +71,6 @@ public class PolicyWaiverResourceTest
     assertThat(actual.waivers).hasSize(1);
     assertPolicyWaiverDTO(policyId, expectedOwnerId, waiverComment, constraintFactsJson, constraints,
         creatorId, creatorName, actual.waivers.get(0));
-  }
-
-  private void assertTelemetry(
-      final PolicyWaiver policyWaiver,
-      final OwnerType ownerType,
-      final Map<ByteArrayDataSource, Integer> responses) throws MessagingException, IOException
-  {
-    final Map<TelemetryPurpose, List<TelemetryItem>> telemetryItemsMap =
-        getTelemetryItems(ImmutableMap.copyOf(responses)).stream()
-            .collect(groupingBy(telemetryItem -> telemetryItem.getTelemetryPurposes().get(0)));
-    assertThat(telemetryItemsMap).containsKey(POLICY_WAIVER);
-    final List<TelemetryItem> telemetryItems = telemetryItemsMap.get(POLICY_WAIVER);
-    assertThat(telemetryItems).hasSize(1);
-    final TelemetryItem telemetryItem = telemetryItems.get(0);
-    assertThat(telemetryItem.getTelemetryPurposes()).hasSize(1);
-    assertThat(telemetryItem.getTelemetryPurposes().get(0)).isEqualTo(POLICY_WAIVER);
-    assertThat(telemetryItem.getTelemetryData()).hasSize(1);
-    final TelemetryData telemetryData = telemetryItem.getTelemetryData().get(0);
-    final Map<String, Object> attributes = telemetryData.getAttributes();
-    assertThat(attributes).hasSize(2);
-    assertThat(attributes).containsKey(POLICY_WAIVER_TELEMETRY);
-    assertThat(attributes).containsKey(POLICY_VIOLATION_TELEMETRY);
-
-    final Map<String, Object> policyWaiverTelemetry = (Map) attributes.get(POLICY_WAIVER_TELEMETRY);
-    assertThat(policyWaiverTelemetry).containsEntry("ownerType", ownerType.toString());
-    assertThat(policyWaiverTelemetry)
-        .containsEntry("policyWaiverId", policyWaiver.getId());
-    assertThat(policyWaiverTelemetry).containsEntry("ownerId", policyWaiver.getOwnerId());
-    assertThat(policyWaiverTelemetry).containsEntry("componentHash", policyWaiver.getHash());
-    assertThat(policyWaiverTelemetry).containsEntry("waiverTime",
-        policyWaiver.getCreateTime() == null ? null : policyWaiver.getCreateTime().toInstant().toEpochMilli());
-    assertThat(policyWaiverTelemetry).containsEntry("waiverExpiration",
-        policyWaiver.getExpiryTime() == null ? null : policyWaiver.getExpiryTime().toInstant().toEpochMilli());
-
-    final List<Map<String, Object>> policyViolationTelemetries = (List) attributes.get(POLICY_VIOLATION_TELEMETRY);
-    assertThat(policyViolationTelemetries).hasSize(1);
-    final Map<String, Object> policyViolationTelemetry = policyViolationTelemetries.get(0);
-    assertThat((List) policyViolationTelemetry.get("constraints")).hasSize(policyWaiver.getConstraintFacts().size());
   }
 
   @Test
@@ -630,19 +442,5 @@ public class PolicyWaiverResourceTest
         .isEqualTo(OwnerType.APPLICATION.equals(owner.getType()) ? owner.getPublicId() : owner.getId());
     assertThat(actual.getName()).isEqualTo(owner.getName());
     assertThat(actual.getType()).isEqualTo(owner.getType());
-  }
-
-  // not all owner types are valid for policy creation
-  private Policy createPolicy(String ownerId) {
-    for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      if (isPolicyApplicable(owner.getType())) {
-        return tempEntity.newPolicy(owner);
-      }
-    }
-    throw new IllegalStateException("No valid policy targets found");
-  }
-
-  private boolean isPolicyApplicable(OwnerType candidate) {
-    return OwnerType.ORGANIZATION.equals(candidate) || OwnerType.APPLICATION.equals(candidate);
   }
 }

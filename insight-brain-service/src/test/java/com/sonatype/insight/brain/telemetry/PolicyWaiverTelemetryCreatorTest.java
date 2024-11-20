@@ -211,78 +211,6 @@ public class PolicyWaiverTelemetryCreatorTest
     assertTelemetryByOwnerType(policyWaiver, OwnerType.APPLICATION, policyViolation);
   }
 
-  @Test
-  public void testSendWaiverTelemetryWithoutViolationInformation() {
-    // setup
-    final PolicyWaiver policyWaiver = new PolicyWaiver();
-    policyWaiver.setId("ID");
-    policyWaiver.setCreateTime(new Date());
-    policyWaiver.setOwnerId("APP");
-    policyWaiver.setExpiryTime(new Date());
-    policyWaiver.setHash("HASH");
-    policyWaiver.setConstraintFacts(createConstraintFacts());
-
-    // when: telemetry is sent
-    telemetryCreator.sendWaiverTelemetryWithoutViolationInformation(policyWaiver, OwnerType.APPLICATION);
-
-    // then: expected telemetry entries are sent
-    assertTelemetryNoViolationInformation(policyWaiver, OwnerType.APPLICATION);
-  }
-
-  @Test
-  public void testsendWaiverTelemetryWithoutViolationInformation_TimestampsNull() {
-    // setup
-    final PolicyWaiver policyWaiver = new PolicyWaiver();
-    policyWaiver.setId("ID");
-    policyWaiver.setCreateTime(null);
-    policyWaiver.setOwnerId("APP");
-    policyWaiver.setExpiryTime(null);
-    policyWaiver.setHash("HASH");
-    policyWaiver.setConstraintFacts(createConstraintFacts());
-
-    // when: telemetry is sent
-    telemetryCreator.sendWaiverTelemetryWithoutViolationInformation(policyWaiver, OwnerType.APPLICATION);
-
-    // then: expected telemetry entries are sent
-    assertTelemetryNoViolationInformation(policyWaiver, OwnerType.APPLICATION);
-  }
-
-  @Test
-  public void testSendWaiverTelemetryWithoutViolationInformation_EmptyConstraintFacts() {
-    // setup
-    final PolicyWaiver policyWaiver = new PolicyWaiver();
-    policyWaiver.setId("ID");
-    policyWaiver.setCreateTime(new Date());
-    policyWaiver.setOwnerId("APP");
-    policyWaiver.setExpiryTime(new Date());
-    policyWaiver.setHash("HASH");
-    policyWaiver.setConstraintFacts(Collections.emptyList());
-
-    // when: telemetry is sent
-    telemetryCreator.sendWaiverTelemetryWithoutViolationInformation(policyWaiver, OwnerType.APPLICATION);
-
-    // then: expected telemetry entries are sent
-    assertTelemetryNoViolationInformation(policyWaiver, OwnerType.APPLICATION);
-  }
-
-  @Test
-  public void testSendWaiverTelemetryWithoutViolationInformation_NullConstraintFacts() {
-    // setup
-    final PolicyWaiver policyWaiver = new PolicyWaiver();
-    policyWaiver.setId("ID");
-    policyWaiver.setCreateTime(new Date());
-    policyWaiver.setOwnerId("APP");
-    policyWaiver.setExpiryTime(new Date());
-    policyWaiver.setHash("HASH");
-    policyWaiver.setConstraintFacts(null);
-
-    // when: telemetry is sent
-    telemetryCreator.sendWaiverTelemetryWithoutViolationInformation(policyWaiver, OwnerType.APPLICATION);
-
-    // then: expected telemetry entries are sent
-    assertTelemetryNoViolationInformation(policyWaiver, OwnerType.APPLICATION);
-  }
-
   private List<ConstraintFact> createConstraintFacts() {
     final List<ConstraintFact> constraintFacts = new ArrayList<>();
 
@@ -298,18 +226,6 @@ public class PolicyWaiverTelemetryCreatorTest
     conditionFacts.add(new ConditionFact("cond", 0, "SUMMARY", "This is the reason"));
 
     return constraintFacts;
-  }
-
-  private void assertTelemetryNoViolationInformation(
-      final PolicyWaiver policyWaiver,
-      final OwnerType ownerType)
-  {
-    final PolicyViolationTelemetry policyViolationTelemetry =
-        new PolicyViolationTelemetry(policyWaiver.getConstraintFacts(), null, null, null);
-    final PolicyWaiverTelemetry policyWaiverTelemetry =
-        new PolicyWaiverTelemetry(policyWaiver.getId(), ownerType.toString(), policyWaiver.getOwnerId(), null,
-            policyWaiver.getHash(), null, policyWaiver.getCreateTime(), policyWaiver.getExpiryTime(), null);
-    assertTelemetry(policyViolationTelemetry, policyWaiverTelemetry);
   }
 
   private void assertTelemetryByOwnerType(

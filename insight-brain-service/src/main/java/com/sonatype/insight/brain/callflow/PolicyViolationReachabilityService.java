@@ -71,18 +71,10 @@ public class PolicyViolationReachabilityService
 
     List<PolicyViolation> policyViolations =
         policyViolationDAO.getUnfixedByApplicationIdAndStageId(applicationId, stageId);
+    policyViolationDAO.loadConstraintFacts(policyViolations);
     logger.debug("Retrieved {} unfixed policy violations for applicationId: {}, stageId: {}", policyViolations.size(),
         applicationId, stageId);
-    List<PolicyViolation> reachableSecurityViolations = getReachableSecurityViolations(policyViolations,
-        reachableVulnerabilitiesByPurlIdentifiers);
-
-    try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
-      tx.begin();
-      for (PolicyViolation policyViolation : reachableSecurityViolations) {
-        policyViolationDAO.update(tx, policyViolation);
-      }
-      tx.commit();
-    }
+    updateMavenSecurityViolationsReachableStatus(policyViolations, reachableVulnerabilitiesByPurlIdentifiers);
 
     PolicyThreats policyThreats = PolicyThreatsAdapter.createPolicyThreats(policyViolations, null, null);
     Report.putEntry(reportFile, Report.POLICY_THREATS, JsonUtils.generate(policyThreats));
@@ -99,18 +91,21 @@ public class PolicyViolationReachabilityService
     return null;
   }
 
-  private List<PolicyViolation> getReachableSecurityViolations(
+  private void updateMavenSecurityViolationsReachableStatus(
       List<PolicyViolation> policyViolations,
       Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers)
   {
     List<PolicyViolation> filteredPolicyViolations =
         policyViolations.stream().filter(this::isMavenSecurityViolation).toList();
-    
-    policyViolationDAO.loadConstraintFacts(filteredPolicyViolations);
 
-    return filteredPolicyViolations.stream()
-        .peek(policyViolation -> updateReachabilityStatus(policyViolation, reachableVulnerabilitiesByPurlIdentifiers))
-        .collect(Collectors.toList());
+    try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+      tx.begin();
+      filteredPolicyViolations.forEach(policyViolation -> {
+        updateReachabilityStatus(policyViolation, reachableVulnerabilitiesByPurlIdentifiers);
+        policyViolationDAO.update(tx, policyViolation);
+      });
+      tx.commit();
+    }
   }
 
   private boolean isMavenSecurityViolation(PolicyViolation policyViolation) {
@@ -122,11 +117,9 @@ public class PolicyViolationReachabilityService
       PolicyViolation policyViolation,
       Map<PackageUrlIdentifier, Set<String>> reachableVulnerabilitiesByPurlIdentifiers)
   {
-    if (policyViolation.getComponentIdentifier().isMaven()) {
-      boolean isReachable = isVulnerabilityReachable(policyViolation, reachableVulnerabilitiesByPurlIdentifiers);
-      policyViolation.setReachabilityStatus(
-          isReachable ? ReachabilityStatus.REACHABLE : ReachabilityStatus.NON_REACHABLE);
-    }
+    boolean isReachable = isVulnerabilityReachable(policyViolation, reachableVulnerabilitiesByPurlIdentifiers);
+    policyViolation
+        .setReachabilityStatus(isReachable ? ReachabilityStatus.REACHABLE : ReachabilityStatus.NON_REACHABLE);
   }
 
   private boolean isVulnerabilityReachable(

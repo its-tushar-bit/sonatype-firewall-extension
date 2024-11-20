@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -30,6 +31,7 @@ import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverTelemetry.AutoPolicy
 import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverTelemetryMetrics;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Test;
 import org.mockito.Mock;
@@ -623,7 +625,7 @@ public class ApiAutoPolicyWaiverServiceTest
   }
 
   @Test
-  public void testGetApplicableAutoPolicyWaivers() {
+  public void testGetApplicableAutoPolicyWaiver() {
     List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
     Organization newOrg = tempEntity.newOrganization("NewOrg");
     Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
@@ -639,15 +641,171 @@ public class ApiAutoPolicyWaiverServiceTest
 
     policyViolationDAO.update(violation);
 
-    ApiAutoPolicyWaiverDTO results = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
+    ApiAutoPolicyWaiverDTO result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
 
-    assertThat(results.ownerId).isEqualTo(ownerId);
-    assertThat(results.threatLevel).isEqualTo(7);
-    assertThat(results.reachable).isTrue();
-    assertThat(results.pathForward).isFalse();
-    assertThat(results.creatorId).isEqualTo("fakeCreatorId");
-    assertThat(results.creatorName).isEqualTo("fakeCreatorName");
+    assertThat(result.ownerId).isEqualTo(ownerId);
+    assertThat(result.threatLevel).isEqualTo(7);
+    assertThat(result.reachable).isTrue();
+    assertThat(result.pathForward).isFalse();
+    assertThat(result.creatorId).isEqualTo("fakeCreatorId");
+    assertThat(result.creatorName).isEqualTo("fakeCreatorName");
 
     Mockito.verifyNoInteractions(autoPolicyWaiverTelemetryMetrics);
+  }
+
+  @Test
+  public void testGetApplicableAutoPolicyWaiver_EXACT_COMPONENT_withRevocationHashMatched() {
+    List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
+    Organization newOrg = tempEntity.newOrganization("NewOrg");
+    Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(newApp.getId(), BuildStageType.ID, "scanId");
+    Policy policy = tempEntity.newPolicy(newOrg);
+    ComponentIdentifier identifier =
+        ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.0", "c1", "jar");
+    String ownerId = newApp.getId();
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(ownerId);
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, identifier, "fakeHash");
+    violation.setConstraintFacts(constraintFacts);
+    violation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+
+    policyViolationDAO.update(violation);
+    //add revocation with policy violation Id
+    tempEntity.newAutoPolicyWaiverRevocation(ownerId, autoPolicyWaiver.getId(), violation.getId(),
+        PackageUrlIdentifier.toPackageUrl(identifier), "fakeHash",
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
+
+    ApiAutoPolicyWaiverDTO result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
+
+    assertThat(result).isNull();
+  }
+
+  @Test
+  public void testGetApplicableAutoPolicyWaiver_EXACT_COMPONENT_withRevocationHashNotMatched() {
+    List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
+    Organization newOrg = tempEntity.newOrganization("NewOrg");
+    Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(newApp.getId(), BuildStageType.ID, "scanId");
+    Policy policy = tempEntity.newPolicy(newOrg);
+    ComponentIdentifier identifier =
+        ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.0", "c1", "jar");
+    String ownerId = newApp.getId();
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(ownerId);
+    //different "hash" in the revocation
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, identifier, "Diffhash");
+    violation.setConstraintFacts(constraintFacts);
+    violation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+
+    policyViolationDAO.update(violation);
+    //add revocation with diff hash not, and violation id null
+    tempEntity.newAutoPolicyWaiverRevocation(ownerId, autoPolicyWaiver.getId(), null,
+        PackageUrlIdentifier.toPackageUrl(identifier), "fakeHash",
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
+
+    ApiAutoPolicyWaiverDTO result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
+
+    assertThat(result.ownerId).isEqualTo(ownerId);
+    assertThat(result.threatLevel).isEqualTo(7);
+    assertThat(result.reachable).isTrue();
+    assertThat(result.pathForward).isFalse();
+    assertThat(result.creatorId).isEqualTo("fakeCreatorId");
+    assertThat(result.creatorName).isEqualTo("fakeCreatorName");
+  }
+
+  @Test
+  public void testGetApplicableAutoPolicyWaiver_EXACT_COMPONENT_withRevocationHashNotMatchedButViolationIdMatched() {
+    List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
+    Organization newOrg = tempEntity.newOrganization("NewOrg");
+    Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(newApp.getId(), BuildStageType.ID, "scanId");
+    Policy policy = tempEntity.newPolicy(newOrg);
+    ComponentIdentifier identifier =
+        ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.0", "c1", "jar");
+    String ownerId = newApp.getId();
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(ownerId);
+    //same "hash" in the revocation
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, identifier, "fakeHash");
+    violation.setConstraintFacts(constraintFacts);
+    violation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+
+    policyViolationDAO.update(violation);
+    //add revocation with policy violation
+    tempEntity.newAutoPolicyWaiverRevocation(ownerId, autoPolicyWaiver.getId(), violation.getId(),
+        PackageUrlIdentifier.toPackageUrl(identifier), "diffHash",
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
+
+    ApiAutoPolicyWaiverDTO result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
+
+    assertThat(result).isNull();
+  }
+
+  //DEFAULT
+  @Test
+  public void testGetApplicableAutoPolicyWaiver_DEFAULT() {
+    List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
+    Organization newOrg = tempEntity.newOrganization("NewOrg");
+    Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(newApp.getId(), BuildStageType.ID, "scanId");
+    Policy policy = tempEntity.newPolicy(newOrg);
+    ComponentIdentifier identifier =
+        ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.0", "c1", "jar");
+    String ownerId = newApp.getId();
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(ownerId);
+    //same "hash" in the revocation
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, identifier, "fakeHash");
+    violation.setConstraintFacts(constraintFacts);
+    violation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+
+    policyViolationDAO.update(violation);
+    //add revocation with policy violation
+    tempEntity.newAutoPolicyWaiverRevocation(ownerId, autoPolicyWaiver.getId(), violation.getId(),
+        PackageUrlIdentifier.toPackageUrl(identifier), "diffHash",
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
+
+    ApiAutoPolicyWaiverDTO result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
+
+    assertThat(result).isNull();
+  }
+
+  //ALL_VERSIONS AND EXACT With NO Violation
+  @Test
+  public void testGetApplicableAutoPolicyWaiver_NoViolationIdInRevocation() {
+    List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
+    Organization newOrg = tempEntity.newOrganization("NewOrg");
+    Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(newApp.getId(), BuildStageType.ID, "scanId");
+    Policy policy = tempEntity.newPolicy(newOrg);
+    ComponentIdentifier identifier =
+        ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.0", "c1", "jar");
+    String ownerId = newApp.getId();
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(ownerId);
+    //same "hash" in the revocation
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, identifier, "fakeHash");
+    violation.setConstraintFacts(constraintFacts);
+    violation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+
+    policyViolationDAO.update(violation);
+    //add revocation with different version and NO policy violation
+    ComponentIdentifier diffVersionIdentifier =
+        ComponentIdentifier.createMavenCoordinates("group", "artifact", "2.0", "c1", "jar");
+    tempEntity.newAutoPolicyWaiverRevocation(ownerId, autoPolicyWaiver.getId(), null,
+        PackageUrlIdentifier.toPackageUrl(diffVersionIdentifier), "diffHash",
+        ComponentMatcherStrategyForRevocation.EXACT_COMPONENT);
+
+    ApiAutoPolicyWaiverDTO result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
+
+    assertThat(result.ownerId).isEqualTo(ownerId);
+    assertThat(result.threatLevel).isEqualTo(7);
+    assertThat(result.reachable).isTrue();
+    assertThat(result.pathForward).isFalse();
+    assertThat(result.creatorId).isEqualTo("fakeCreatorId");
+    assertThat(result.creatorName).isEqualTo("fakeCreatorName");
+
+    //add revocation with ALL VERSIONS and NO policy violation
+    tempEntity.newAutoPolicyWaiverRevocation(ownerId, autoPolicyWaiver.getId(), null,
+        PackageUrlIdentifier.toPackageUrl(diffVersionIdentifier), "diffHash",
+        ComponentMatcherStrategyForRevocation.ALL_VERSIONS);
+    result = apiAutoPolicyWaiverService.getApplicableAutoPolicyWaiver(violation.getId());
+
+    assertThat(result).isNull();
   }
 }

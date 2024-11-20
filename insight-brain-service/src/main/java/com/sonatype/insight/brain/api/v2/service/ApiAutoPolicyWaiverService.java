@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.insight.brain.api.v2.ApiAutoPolicyWaiverAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiAutoPolicyWaiverStatusDTO;
@@ -18,14 +19,17 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverRevocationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.policy.AutoPolicyWaiverRevocationMatcherWrapper;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -51,6 +55,8 @@ public class ApiAutoPolicyWaiverService
 
   private final AutoPolicyWaiverTelemetryMetrics autoPolicyWaiverTelemetryMetrics;
 
+  private final AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO;
+
   @Inject
   public ApiAutoPolicyWaiverService(
       AutoPolicyWaiverDAO autoPolicyWaiverDAO,
@@ -59,7 +65,8 @@ public class ApiAutoPolicyWaiverService
       PolicyViolationDAO policyViolationDAO,
       OwnerDAO ownerDAO,
       CurrentUser currentUser,
-      AutoPolicyWaiverTelemetryMetrics autoPolicyWaiverTelemetryMetrics
+      AutoPolicyWaiverTelemetryMetrics autoPolicyWaiverTelemetryMetrics,
+      AutoPolicyWaiverRevocationDAO autoPolicyWaiverRevocationDAO
   )
   {
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
@@ -69,6 +76,7 @@ public class ApiAutoPolicyWaiverService
     this.ownerDAO = ownerDAO;
     this.currentUser = currentUser;
     this.autoPolicyWaiverTelemetryMetrics = autoPolicyWaiverTelemetryMetrics;
+    this.autoPolicyWaiverRevocationDAO = autoPolicyWaiverRevocationDAO;
   }
 
   @Authorize(permission = Permission.READ)
@@ -227,18 +235,46 @@ public class ApiAutoPolicyWaiverService
     return dto;
   }
 
+  @Authorize(permission = Permission.READ)
   public ApiAutoPolicyWaiverDTO getApplicableAutoPolicyWaiver(final String violationId) {
     PolicyViolation policyViolation = policyViolationDAO.getById(violationId);
     if (policyViolation == null) {
       throw new NotFoundException("Could not find policy violation with ID " + violationId + ".");
     }
-    String autoPolicyWaiverId = policyViolation.getAutoPolicyWaiverId();
-    String applicationId = policyViolation.getApplicationId();
-    AutoPolicyWaiver autoPolicyWaiver = getAutoPolicyWaiverByAppOwnerHierarchy(autoPolicyWaiverId, applicationId);
-    String ownerId = policyViolation.getOwnerId();
-    Owner owner = ownerDAO.getById(ownerId);
 
-    return ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver, owner);
+    if (policyViolation.getAutoPolicyWaiverId() == null) {
+      return null;
+    }
+
+    AutoPolicyWaiver autoPolicyWaiver = getAutoPolicyWaiverByAppOwnerHierarchy(
+        policyViolation.getAutoPolicyWaiverId(), policyViolation.getApplicationId());
+
+    if (autoPolicyWaiver != null) {
+      List<AutoPolicyWaiverRevocation> autoPolicyWaiverRevocations =
+          autoPolicyWaiverRevocationDAO.getByOwnerIdAndAutoPolicyWaiverId(
+              autoPolicyWaiver.getOwnerId(),
+              autoPolicyWaiver.getId()
+          );
+
+      boolean allRevocationsInvalid = true;
+      for (AutoPolicyWaiverRevocation revocation : autoPolicyWaiverRevocations) {
+        boolean matches = new AutoPolicyWaiverRevocationMatcherWrapper(revocation)
+            .matchesComponent(new ComponentFact(policyViolation.getComponentIdentifier(), policyViolation.getHash()));
+
+        if (matches || (revocation.getPolicyViolationId() != null &&
+            revocation.getPolicyViolationId().equals(violationId))) {
+          allRevocationsInvalid = false;
+          break;
+        }
+      }
+
+      if (allRevocationsInvalid) {
+        String ownerId = policyViolation.getOwnerId();
+        Owner owner = ownerDAO.getById(ownerId);
+        return ApiAutoPolicyWaiverAdapter.convertToDTO(autoPolicyWaiver, owner);
+      }
+    }
+    return null;
   }
 
   private AutoPolicyWaiver getAutoPolicyWaiverByAppOwnerHierarchy(String autoPolicyWaiverId, String applicationId) {

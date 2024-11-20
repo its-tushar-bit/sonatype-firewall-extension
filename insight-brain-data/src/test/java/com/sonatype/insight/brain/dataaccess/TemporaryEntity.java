@@ -236,6 +236,7 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.notification.UserViewedProductNotification;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation.ComponentMatcherStrategyForRevocation;
 import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -1770,6 +1771,30 @@ public class TemporaryEntity
         "pkg:maven/group/artifact@2.0?classifier=c1&type=jar",
         EXACT_COMPONENT
     );
+    autoPolicyWaiverRevocationDAO.insert(autoPolicyWaiverRevocation);
+    return autoPolicyWaiverRevocation;
+  }
+
+  public AutoPolicyWaiverRevocation newAutoPolicyWaiverRevocation(
+      String ownerId,
+      String autoPolicyWaiverId,
+      String policyViolationId,
+      String associatedPackageUrl,
+      String hash,
+      ComponentMatcherStrategyForRevocation componentMatcherStrategyForRevocation)
+  {
+    AutoPolicyWaiverRevocation autoPolicyWaiverRevocation = new AutoPolicyWaiverRevocation(
+        ownerId,
+        "fakeCreatorId",
+        "fakeCreatorName",
+        new Date(),
+        autoPolicyWaiverId,
+        "fakeScanId",
+        hash,
+        associatedPackageUrl,
+        componentMatcherStrategyForRevocation
+    );
+    autoPolicyWaiverRevocation.setPolicyViolationId(policyViolationId);
     autoPolicyWaiverRevocationDAO.insert(autoPolicyWaiverRevocation);
     return autoPolicyWaiverRevocation;
   }

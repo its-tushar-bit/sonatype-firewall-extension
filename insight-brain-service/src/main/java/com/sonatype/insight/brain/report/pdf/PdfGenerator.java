@@ -109,7 +109,7 @@ public class PdfGenerator
       MEDIA_BOX_SIZE.getHeight() - USER_SPACE_UNITS_PER_INCH
   );
 
-  private static final String DATE_FORMAT_STRING = "EEE MMM dd yyyy 'at' HH:mm:ss";
+  static final String DATE_FORMAT_STRING = "EEE MMM dd yyyy 'at' HH:mm:ss 'UTC' Z";
 
   private static final int PADDING = 3;
 

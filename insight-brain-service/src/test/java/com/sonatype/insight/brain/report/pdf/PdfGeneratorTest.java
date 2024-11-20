@@ -7,12 +7,13 @@ package com.sonatype.insight.brain.report.pdf;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationBaseDTO;
@@ -203,8 +204,10 @@ public class PdfGeneratorTest
   }
 
   private void assertCommonSections(String pdfContent) {
+    DateTimeFormatter timeZoneFormatter = DateTimeFormatter.ofPattern("Z");
+    String timeZoneOffset = ZonedDateTime.now().format(timeZoneFormatter);
     List<String> headerSection = List.of("Policy Violations for appName Build Report", "Created on:",
-        "Analyzed on:");
+        "Analyzed on:", "UTC " + timeZoneOffset);
     List<String> pageCount = List.of("Page 1 of 13", "Page 2 of 13", "Page 3 of 13", "Page 4 of 13",
         "Page 5 of 13", "Page 6 of 13", "Page 7 of 13", "Page 8 of 13", "Page 9 of 13", "Page 10 of 13",
         "Page 11 of 13", "Page 12 of 13", "Page 13 of 13");

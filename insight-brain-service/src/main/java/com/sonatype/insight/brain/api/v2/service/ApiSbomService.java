@@ -418,7 +418,8 @@ public class ApiSbomService
       final String fileName,
       final boolean enableBinaryImport,
       final String clientUserAgent,
-      final String applicationVersion)
+      final String applicationVersion,
+      final boolean ignoreValidationError)
   {
     if (sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
       throw new PaymentRequiredException(
@@ -427,13 +428,15 @@ public class ApiSbomService
     if (applicationVersion != null && (StringUtils.isBlank(applicationVersion) || applicationVersion.length() > 200)) {
       throw new BadRequestException("applicationVersion cannot be blank and must be between 1 and 200 characters.");
     }
+
     File clientFile = saveInputStreamAsFile(inputStream, fileName);
-    SbomDetectionResult sbomDetectionResult = sbomFileDetector.getSbomDetectionResult(clientFile);
+    SbomDetectionResult sbomDetectionResult = sbomFileDetector.getSbomDetectionResult(clientFile,
+        ignoreValidationError);
     if (sbomDetectionResult.isSbom) {
       return scanAndEvaluateSbomFile(applicationId, clientFile, sbomDetectionResult, clientUserAgent,
           applicationVersion);
     }
-    else if (enableBinaryImport && sbomDetectionResult.isBinary) {
+    else if (enableBinaryImport) {
       if (SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.isEnabled()) {
         log.debug("Initiating binary SBOM import for application {}", applicationId);
         return scanAndEvaluateBinaryFile(applicationId, clientUserAgent, clientFile, applicationVersion);
@@ -507,7 +510,7 @@ public class ApiSbomService
     ApiThirdPartyScanTicketDTO scanTicketDTO =
         sbomScanEvaluator.evaluateSbom(applicationId, sbomFile, SbomFormat.forMimeType(sbomDetectionResult.mimeType),
             sbomMetadataUtils.determineItemContentType(sbomDetectionResult.summary.specification),
-            ScanTriggerType.SBOM_API, clientUserAgent, applicationVersion);
+            ScanTriggerType.SBOM_API, clientUserAgent, applicationVersion, sbomDetectionResult.isValid);
     return Response.ok(Status.ACCEPTED)
         .entity(scanTicketDTO)
         .build();

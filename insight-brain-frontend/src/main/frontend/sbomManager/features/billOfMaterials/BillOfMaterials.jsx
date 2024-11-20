@@ -146,32 +146,32 @@ export default function BillOfMaterials() {
 
   const exportOriginalButtonTooltip = 'Export the original imported SBOM.';
 
-  const segmentButtonContent = sbomMetadata.validationSkipped ? (
-    <NxTooltip title={exportOriginalButtonTooltip}>
-      <span>
-        <NxFontAwesomeIcon icon={faDownload} />
-        <span>Export Original SBOM</span>
-      </span>
-    </NxTooltip>
-  ) : (
+  const segmentButtonContent = sbomMetadata.isValid ? (
     <NxTooltip title={exportButtonTooltip}>
       <span>
         <NxFontAwesomeIcon icon={faDownload} />
         <span>Export SBOM</span>
       </span>
     </NxTooltip>
+  ) : (
+    <NxTooltip title={exportOriginalButtonTooltip}>
+      <span>
+        <NxFontAwesomeIcon icon={faDownload} />
+        <span>Export Original SBOM</span>
+      </span>
+    </NxTooltip>
   );
 
-  const firstChildButton = sbomMetadata.validationSkipped ? (
-    <button className="nx-dropdown-button disabled" onClick={downloadLatestSbomFile} disabled={true}>
-      <NxTooltip title={exportButtonTooltip}>
-        <span>Export SBOM</span>
-      </NxTooltip>
-    </button>
-  ) : (
+  const firstChildButton = sbomMetadata.isValid ? (
     <button className="nx-dropdown-button" onClick={downloadOriginalSbomFile}>
       <NxTooltip title={exportOriginalButtonTooltip}>
         <span>Export Original SBOM</span>
+      </NxTooltip>
+    </button>
+  ) : (
+    <button className="nx-dropdown-button disabled" onClick={downloadLatestSbomFile} disabled={true}>
+      <NxTooltip title={exportButtonTooltip}>
+        <span>Export SBOM</span>
       </NxTooltip>
     </button>
   );
@@ -196,20 +196,20 @@ export default function BillOfMaterials() {
               <NxStatefulSegmentedButton
                 className="sbom-manager-bill-of-materials-page__export-button"
                 variant="primary"
-                onClick={sbomMetadata.validationSkipped ? downloadOriginalSbomFile : downloadLatestSbomFile}
+                onClick={sbomMetadata.isValid ? downloadLatestSbomFile : downloadOriginalSbomFile}
                 buttonContent={segmentButtonContent}
               >
                 {firstChildButton}
                 <button
-                  className={`nx-dropdown-button ${sbomMetadata.validationSkipped ? 'disabled' : ''}`}
+                  className={`nx-dropdown-button ${sbomMetadata.isValid ? '' : 'disabled'}`}
                   onClick={showSbomAdditionalExportOptionsModal}
-                  disabled={sbomMetadata.validationSkipped}
+                  disabled={!sbomMetadata.isValid}
                 >
                   <NxTooltip title="Export SBOM with customized options.">
                     <span>Additional Export Options</span>
                   </NxTooltip>
                 </button>
-                <NxTextLink className="nx-dropdown-button" href={pdfUrl} disabled={sbomMetadata.validationSkipped}>
+                <NxTextLink className="nx-dropdown-button" href={pdfUrl} disabled={!sbomMetadata.isValid}>
                   <NxFontAwesomeIcon icon={faFilePdf} />
                   <span>Export PDF</span>
                 </NxTextLink>

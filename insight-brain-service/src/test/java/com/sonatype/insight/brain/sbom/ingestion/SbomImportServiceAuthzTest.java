@@ -34,14 +34,14 @@ public class SbomImportServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testDetectSbom_Unauthenticated() {
-    sbomImportService.detectSbom("abcd", new ByteArrayInputStream(new byte[1]), TEST_FILENAME);
+    sbomImportService.detectSbom("abcd", new ByteArrayInputStream(new byte[1]), TEST_FILENAME, false);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testDetectSbom_Unauthorized() {
     login();
     Application application = tempEntity.newApplicationWithParent();
-    sbomImportService.detectSbom(application.getId(), new ByteArrayInputStream(new byte[1]), TEST_FILENAME);
+    sbomImportService.detectSbom(application.getId(), new ByteArrayInputStream(new byte[1]), TEST_FILENAME, false);
   }
 
   @Test
@@ -50,7 +50,7 @@ public class SbomImportServiceAuthzTest
     Application application = tempEntity.newApplicationWithParent();
     SbomDetectionResultDTO dto =
         sbomImportService.detectSbom(application.getId(), new ByteArrayInputStream(new byte[1]),
-            TEST_FILENAME);
+            TEST_FILENAME, false);
     assertThat(dto.getRequestId()).isNotEmpty();
   }
 
@@ -71,7 +71,7 @@ public class SbomImportServiceAuthzTest
     grantWritePermission();
     Application application = tempEntity.newApplicationWithParent();
     Response response = sbomImportService.importDetectedSbom(application.getId(),
-        "U0JPTS1hcHBsaWNhdGlvbi94bWwtQ3ljbG9uZUR4LTkxMWQ2MTk1MWU5NDQyOTRiYTYwNGI4YTlmZGJkM2NmLWZpbGUuemlw",
+        "U0JPTS1mYWxzZS1qc29uLVNCT00tYWUyNmJmZjhmMjExNGI2MjlkNjFkNjI2ZmQ1Y2FiYzctdGVzdF9ib20uanNvbg==",
         "userAgent");
     ApiThirdPartyScanTicketDTO status = (ApiThirdPartyScanTicketDTO) response.getEntity();
     policyEvaluationHelper.awaitEvaluationFinished(application.getId(), status.requestId);

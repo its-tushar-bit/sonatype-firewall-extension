@@ -349,7 +349,7 @@ public class SbomComponentsService
         sbomMetadata.getSpecFormat(),
         sbomMetadata.getCreatedAt(),
         thirdPartyScan.getScanId(),
-        sbomMetadata.getValidationSkipped()
+        sbomMetadata.getIsValid()
     );
   }
 

@@ -62,8 +62,8 @@ public class ThirdPartySbomMetadata
   @Column(name = "scan_type")
   private String scanType;
 
-  @Column(name = "validation_skipped")
-  private boolean validationSkipped;
+  @Column(name = "is_valid")
+  private boolean isValid;
 
   public ThirdPartySbomMetadata(
       String thirdPartyFileId,
@@ -78,7 +78,7 @@ public class ThirdPartySbomMetadata
       Date createdAt,
       String metadataJson,
       String scanType,
-      boolean validationSkipped)
+      boolean isValid)
   {
 
     this.thirdPartyFileId = thirdPartyFileId;
@@ -93,7 +93,7 @@ public class ThirdPartySbomMetadata
     this.createdAt = createdAt;
     this.metadataJson = metadataJson;
     this.scanType = scanType;
-    this.validationSkipped = validationSkipped;
+    this.isValid = isValid;
   }
 
   @Override
@@ -202,11 +202,11 @@ public class ThirdPartySbomMetadata
     this.scanType = scanType;
   }
 
-  public boolean getValidationSkipped() {
-    return validationSkipped;
+  public boolean getIsValid() {
+    return isValid;
   }
 
-  public void setValidationSkipped(final Boolean validationSkipped) {
-    this.validationSkipped = validationSkipped != null && validationSkipped;
+  public void setIsValid(final Boolean isValid) {
+    this.isValid = isValid == null || isValid;
   }
 }

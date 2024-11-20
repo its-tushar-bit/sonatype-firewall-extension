@@ -45,7 +45,7 @@ public class SbomMetadataBuilder
 
   private String scanType;
 
-  private boolean validationSkipped;
+  private boolean isValid;
 
   public SbomMetadataBuilder(DAOFactory daoFactory) {
     thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
@@ -66,7 +66,7 @@ public class SbomMetadataBuilder
     this.status = "ACTIVE";
     this.metadataJson = buildMetadataJson();
     this.scanType = "SBOM";
-    this.validationSkipped = false;
+    this.isValid = true;
   }
 
   public static SbomMetadataBuilder newSbomMetadataBuilder(DAOFactory daoFactory) {
@@ -145,15 +145,15 @@ public class SbomMetadataBuilder
     return this;
   }
 
-  public SbomMetadataBuilder withValidationSkipped(boolean validationSkipped) {
-    this.validationSkipped = validationSkipped;
+  public SbomMetadataBuilder withIsValid(boolean isValid) {
+    this.isValid = isValid;
     return this;
   }
 
   public ThirdPartySbomMetadata build() {
     ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata(
         thirdPartyFileId, applicationId, sbomVersion, filename, serialNumber, spec, specFormat, specVersion, status,
-        createdAt, metadataJson, scanType, validationSkipped
+        createdAt, metadataJson, scanType, isValid
     );
     thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
 

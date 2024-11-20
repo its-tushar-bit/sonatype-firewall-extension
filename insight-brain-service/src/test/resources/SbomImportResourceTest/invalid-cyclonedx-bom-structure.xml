@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom serialNumber="urn:uuid:a140fd3c-3ded-4bb0-a640-dc31e2904dc9" version="1" xmlns="http://cyclonedx.org/schema/bom/1.5">
+    <metadata>
+        <timestamp>2024-02-29T23:41:22Z</timestamp>
+        <tools>
+            <tool>
+                <vendor>Sonatype Inc.</vendor>
+                <name>Nexus IQ Server</name>
+                <version>1.174.0-SNAPSHOT</version>
+            </tool>
+        </tools>
+        <component type="application" bom-ref="08dd5978-577c-46a6-8bae-4f3d1a243b43">
+            <group>sonatype</group>
+            <name>iq_application_vuln</name>
+            <version>a140fd3c3ded4bb0a640dc31e2904dc9</version>
+            <purl>pkg:generic/sonatype/iq_application_vuln@a140fd3c3ded4bb0a640dc31e2904dc9</purl>
+        </component>
+        <properties>
+            <property name="Scan ID">a140fd3c3ded4bb0a640dc31e2904dc9</property>
+        </properties>
+    </metadata>
+    <badStructure
+    <components>
+        <component type="library" bom-ref="435d9efa-2c0c-4078-91fb-7fdec24fcad0">
+            <group>com.h2database</group>
+            <name>h2</name>
+            <version>2.2.224</version>
+            <licenses>
+                <license>
+                    <id>MPL-2.0</id>
+                </license>
+                <license>
+                    <id>LGPL-3.0</id>
+                </license>
+                <license>
+                    <id>BSD-3-Clause</id>
+                </license>
+                <license>
+                    <id>EPL-1.0</id>
+                </license>
+            </licenses>
+            <purl>pkg:maven/com.h2database/h2@2.2.224?type=jar</purl>
+            <modified>false</modified>
+            <properties>
+                <property name="Sonatype truncated SHA1">7bdade27d8cd197d9b5c</property>
+                <property name="Match State">exact</property>
+                <property name="Identification Source">Sonatype</property>
+            </properties>
+            <evidence>
+                <occurrences>
+                    <occurrence>
+                        <location>h2-2.2.224.jar</location>
+                    </occurrence>
+                </occurrences>
+            </evidence>
+        </component>
+    </components>
+    <externalReferences><reference type="bom"><url>http://localhost:8070/ui/links/application/vuln/report/a140fd3c3ded4bb0a640dc31e2904dc9</url><comment>IQ Report</comment></reference></externalReferences>
+    <vulnerabilities>
+        <vulnerability>
+            <id>sonatype-2018-0863</id>
+            <source>
+                <name>SONATYPE</name>
+                <url>http://localhost:8070/ui/links/vln/sonatype-2018-0863</url>
+            </source>
+            <ratings>
+                <rating>
+                    <source>
+                        <name>SONATYPE</name>
+                    </source>
+                    <score>6.0</score>
+                    <severity>high</severity>
+                    <method>other</method>
+                    <vector>CVSS:3.1/AV:L/AC:L/PR:H/UI:N/S:C/C:H/I:N/A:N</vector>
+                </rating>
+            </ratings>
+            <cwes>
+                <cwe>59</cwe>
+            </cwes>
+            <affects>
+                <target>
+                    <ref>435d9efa-2c0c-4078-91fb-7fdec24fcad0</ref>
+                </target>
+            </affects>
+        </vulnerability>
+    </vulnerabilities>
+</bom>

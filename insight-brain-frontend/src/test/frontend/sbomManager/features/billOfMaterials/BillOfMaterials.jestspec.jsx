@@ -61,7 +61,7 @@ describe('BillOfMaterials Page', () => {
     fileFormat: 'json',
     createdAt: createdAt,
     scanId: 'scan-id',
-    validationSkipped: false,
+    isValid: true,
   });
 
   const getSbomSummaryResponsePayload = Object.freeze({
@@ -249,7 +249,7 @@ describe('BillOfMaterials Page', () => {
       .reply(200, getAllApplicationSbomVersionsResponsePayload);
     axiosMock
       .onGet(getSbomMetadataUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION))
-      .reply(200, { ...getSbomMetadataResponsePayload, validationSkipped: true });
+      .reply(200, { ...getSbomMetadataResponsePayload, isValid: false });
     axiosMock.onGet(getSbomSummaryUrl(APPLICATION_INTERNAL_ID, SBOM_VERSION)).reply(200, getSbomSummaryResponsePayload);
     axiosMock
       .onGet(getBillOfMaterialsComponentsUrl(...getBillOfMaterialsComponentsParams))

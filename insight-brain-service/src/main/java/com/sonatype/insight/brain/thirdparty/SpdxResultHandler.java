@@ -120,27 +120,42 @@ public class SpdxResultHandler
         SpdxDocument spdxDocument = parseSpdxContent(content);
         Bom targetBom = new Bom();
         List<ProjectScanItem> moduleDependencies = new ArrayList<>();
+
         log.info("Processing SPDX content for file: {}", content.getPath());
         processSpdxDocument(content.getPath(), spdxDocument, targetBom, thirdPartyFile, moduleDependencies);
         componentInfoTelemetry.setSpec(SPDX.name());
         componentInfoTelemetry.setSpecVersion(spdxDocument.getSpecVersion());
         componentInfoTelemetry.setHasDependencies(!moduleDependencies.isEmpty());
+
+        boolean isValid = isValid();
         TelemetryData thirdPartyScanComponentInfoTelemetryData =
             telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry,
-                SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled(), true);
+                SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled(), isValid);
         telemetrySender.send(thirdPartyScanComponentInfoTelemetryData);
-        if (CollectionUtils.isEmpty(targetBom.getComponents())) {
-          return new FilteredThirdPartyContent(content.getContent(), moduleDependencies);
-        }
-        else {
-          return new FilteredThirdPartyContent(generateFilteredSbom(targetBom), moduleDependencies);
-        }
+
+        String sbomContent = CollectionUtils.isEmpty(targetBom.getComponents()) ?
+            content.getContent() : generateFilteredSbom(targetBom);
+        return new FilteredThirdPartyContent(sbomContent, moduleDependencies, !isValid);
       }
+
       return new FilteredThirdPartyContent(content.getContent());
     }
     catch (Exception e) {
       throw new RuntimeException("Error filtering SPDX file " + content.getPath(), e);
     }
+  }
+
+  private SpdxDocument parseSpdxContent(final ThirdPartyScanContent content)
+      throws SbomProcessingException
+  {
+    String extension = FilenameUtils.getExtension(content.getPath());
+    SbomFormat sbomFormat = SbomFormat.forString(extension.toLowerCase(Locale.ROOT));
+    componentInfoTelemetry.setContentType(sbomFormat.name());
+
+    if (isValid()) {
+      return ThirdPartyUtils.parseAndValidateSpdx(content.getContent(), sbomFormat);
+    }
+    return ThirdPartyUtils.parseSpdxWithNoValidation(content.getContent(), sbomFormat);
   }
 
   private void processSpdxDocument(
@@ -160,7 +175,9 @@ public class SpdxResultHandler
           thirdPartyFile, tx);
       tx.commit();
     }
-    processDependencyGraph(spdxDocument, targetBom, moduleDependencies, thirdPartyFile);
+    if (isValid()) {
+      processDependencyGraph(spdxDocument, targetBom, moduleDependencies, thirdPartyFile);
+    }
   }
 
   private void processComponents(
@@ -276,8 +293,11 @@ public class SpdxResultHandler
     fileCoordinate.setIdentificationSources(SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE);
     componentInfoTelemetry.incrementEcosystemCount(fileCoordinate.getFormat());
     thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
-    saveLicenses(spdxPackage, fileCoordinate.getId(), component.getPurl(), tx);
-    saveVulnerabilities(spdxPackage, fileCoordinate.getId(), component.getPurl(), tx);
+
+    if (isValid()) {
+      saveLicenses(spdxPackage, fileCoordinate.getId(), component.getPurl(), tx);
+      saveVulnerabilities(spdxPackage, fileCoordinate.getId(), component.getPurl(), tx);
+    }
 
     return fileCoordinate.getId();
   }
@@ -482,7 +502,7 @@ public class SpdxResultHandler
     return null;
   }
 
-  private String getPackageUrlFromCoordinates(String  name, String version, boolean isRootPackage)
+  private String getPackageUrlFromCoordinates(String  name, final String version, boolean isRootPackage)
       throws MalformedPackageURLException
   {
     String group = null;
@@ -671,7 +691,7 @@ public class SpdxResultHandler
     return Optional.empty();
   }
 
-  private Optional<String> getChecksum(final SpdxPackage spdxPackage, ChecksumAlgorithm algorithm)
+  private Optional<String> getChecksum(final SpdxPackage spdxPackage, final ChecksumAlgorithm algorithm)
       throws InvalidSPDXAnalysisException
   {
     final Collection<Checksum> checksums = spdxPackage.getChecksums();
@@ -697,14 +717,5 @@ public class SpdxResultHandler
     else {
       return thirdPartyIdentificationSource;
     }
-  }
-
-  private SpdxDocument parseSpdxContent(final ThirdPartyScanContent content)
-      throws SbomProcessingException
-  {
-    String extension = FilenameUtils.getExtension(content.getPath());
-    SbomFormat sbomFormat = SbomFormat.forString(extension.toLowerCase(Locale.ROOT));
-    componentInfoTelemetry.setContentType(sbomFormat.name());
-    return ThirdPartyUtils.parseAndValidateSpdx(content.getContent(), sbomFormat);
   }
 }

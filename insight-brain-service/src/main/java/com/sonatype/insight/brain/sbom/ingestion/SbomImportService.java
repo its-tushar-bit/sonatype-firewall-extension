@@ -11,7 +11,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Base64;
 import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -38,14 +37,14 @@ import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.scan.file.SbomFormat;
-import com.sonatype.insight.scan.model.ItemContentType;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.sbom.ingestion.SbomRequestIdElements.decodeFromRequestId;
 
 @Named
 @Singleton
@@ -86,12 +85,12 @@ public class SbomImportService
   public SbomDetectionResultDTO detectSbom(
       @AuthzContext(Key.APPLICATION_ID) String applicationId,
       InputStream sbom,
-      String originalFilename)
+      String originalFilename,
+      boolean ignoreValidationError)
   {
     if (applicationDAO.getById(applicationId) == null) {
       throw new NotFoundException("Application with id " + applicationId + " does not exist");
     }
-
     if (sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
       throw new PaymentRequiredException("You have exceeded the licensed limit of " + productLicense.getMaxSboms()
           + " sboms.");
@@ -111,81 +110,71 @@ public class SbomImportService
       }
       throw new InternalServerException("Internal error saving the supplied file", e);
     }
-    SbomDetectionResult result = sbomFileDetector.getSbomDetectionResult(tempSbomFile);
 
-    String filenameToUseForRequestId = "";
-    SbomScanType scanType = null;
+    SbomDetectionResult result = sbomFileDetector.getSbomDetectionResult(tempSbomFile, ignoreValidationError);
 
-    if (result.isSbom && CollectionUtils.isEmpty(result.validationErrors) && StringUtils.isEmpty(result.errorMessage)) {
-      scanType = SbomScanType.SBOM;
-      filenameToUseForRequestId = String.format("%s-%s-%s-%s-%s", scanType.name(), result.mimeType,
-          (result.summary != null ? result.summary.specification : ""), fileNameUUID, originalFilename);
+    SbomRequestIdElements idElements;
+    if (result.isSbom && StringUtils.isNotEmpty(result.errorMessage)) {
+      deleteTempFile(tempSbomFile, result.errorMessage);
+      return new SbomDetectionResultDTO("", SbomScanType.SBOM, result);
     }
-    else if (result.isBinary) {
+    else if (result.isSbom) {
+      String sbomSpecification = result.summary != null ? result.summary.specification : "";
+      idElements = new SbomRequestIdElements(fileNameUUID, originalFilename, SbomFormat.forMimeType(result.mimeType),
+          sbomMetadataUtils.determineItemContentType(sbomSpecification), result.isValid);
+    }
+    else {
       if (SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.isEnabled()) {
-        scanType = SbomScanType.BINARY;
-        filenameToUseForRequestId =
-            String.format("%s-%s-%s", scanType.name(), fileNameUUID, originalFilename);
+        idElements = new SbomRequestIdElements(fileNameUUID, originalFilename);
       }
       else {
+        deleteTempFile(tempSbomFile, "Importing binary files for SBOM Manager is disabled.");
         throw new BadRequestException("Importing binary files for SBOM Manager is disabled.");
       }
     }
-    else if (result.validationErrors != null || StringUtils.isNotEmpty(result.errorMessage)) {
-      scanType = SbomScanType.SBOM;
-      deleteTempFile(tempSbomFile, result.errorMessage);
-    }
-    else {
-      log.debug("Unable to process the SBOM import for file: {}, error: {}", tempFilename, result.errorMessage);
-      deleteTempFile(tempSbomFile, result.errorMessage);
 
-      throw new BadRequestException("Unable to process the input file");
-    }
-
-    String requestId = Base64.getEncoder().encodeToString(filenameToUseForRequestId.getBytes());
-    return new SbomDetectionResultDTO(requestId, result.summary, result.errorMessage, result.validationErrors,
-        scanType);
+    return new SbomDetectionResultDTO(idElements, result);
   }
 
   @Authorize(permission = Permission.WRITE)
   public Response importDetectedSbom(
-      @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
-      String requestId, String clientUserAgent)
+      @AuthzContext(Key.APPLICATION_ID) String applicationId,
+      String requestId,
+      String clientUserAgent)
   {
     if (sbomMetadataUtils.hasMaxSbomLimitBeenReached()) {
       throw new PaymentRequiredException("You have exceeded the licensed limit of " + productLicense.getMaxSboms()
           + " sboms.");
     }
 
-    SbomRequestIdElements idElements = sbomMetadataUtils.decodeRequestId(requestId);
-    SbomFormat sbomFormat = idElements.getSbomFormat();
-    ItemContentType contentType = idElements.getContentType();
+    SbomRequestIdElements idElements = decodeFromRequestId(requestId);
+    if (idElements == null) {
+      throw new BadRequestException("Request with id " + requestId + " does not exist");
+    }
 
-    Path tmpImportFilePath = insightWork.getSbomTempDir().toPath().resolve(idElements.getFilename());
+    Path tmpImportFilePath = insightWork.getSbomTempDir().toPath().resolve(idElements.getStoredFileName());
     if (!Files.exists(tmpImportFilePath)) {
       throw new NotFoundException("Request with id " + requestId + " does not exist");
     }
 
     Path tmpDir = null;
-    String originalFileName = StringUtils.substringAfter(idElements.getFilename(), "-");
     try {
       //copy the file to a new directory to avoid name conflicts in case of concurrent imports with the same file name
       tmpDir = Files.createTempDirectory(insightWork.getSbomTempDir().toPath(), null);
-      File tmpFileToScan = new File(tmpDir.toFile(), originalFileName);
+      File tmpFileToScan = new File(tmpDir.toFile(), idElements.getOriginalFileName());
       FileUtils.copyFile(tmpImportFilePath.toFile(), tmpFileToScan);
 
       if (SbomScanType.SBOM.equals(idElements.getScanType())) {
-        ApiThirdPartyScanTicketDTO importTicket = sbomScanEvaluator.evaluateSbom(
-            applicationId, tmpFileToScan, sbomFormat, contentType, ScanTriggerType.SBOM_UI, clientUserAgent, null);
+        ApiThirdPartyScanTicketDTO importTicket = sbomScanEvaluator.evaluateSbom(applicationId, tmpFileToScan,
+            idElements.getSbomFormat(), idElements.getContentType(), ScanTriggerType.SBOM_UI, clientUserAgent, null,
+            idElements.isSbomValid());
+
         return Response.status(Status.ACCEPTED).entity(importTicket).build();
       }
       else { //Binary
-        ApiThirdPartyScanTicketDTO scanTicketDTO =
-            sbomScanEvaluator.evaluateBinary(applicationId, tmpFileToScan, ScanTriggerType.SBOM_UI, clientUserAgent,
-                null);
-        return Response.status(Status.ACCEPTED)
-            .entity(scanTicketDTO)
-            .build();
+        ApiThirdPartyScanTicketDTO scanTicketDTO = sbomScanEvaluator.evaluateBinary(applicationId, tmpFileToScan,
+            ScanTriggerType.SBOM_UI, clientUserAgent, null);
+        return Response.status(Status.ACCEPTED).entity(scanTicketDTO).build();
       }
     }
     catch (IOException e) {

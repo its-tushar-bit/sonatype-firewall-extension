@@ -64,6 +64,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class SpdxResultHandlerTest
     extends AbstractDataTest
@@ -77,6 +78,8 @@ public class SpdxResultHandlerTest
   private ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
 
   private ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO;
+
+  private ThirdPartyScanContext thirdPartyScanContext;
 
   private TelemetryUtils telemetryUtils;
 
@@ -104,11 +107,13 @@ public class SpdxResultHandlerTest
     thirdPartyCoordinateSecurityDAO = daoFactory.createThirdPartyCoordinateSecurityDAO();
     thirdPartyFileCoordinateDAO = daoFactory.createThirdPartyFileCoordinateDAO();
     thirdPartyFileDAO = daoFactory.createThirdPartyFileDAO();
+    thirdPartyScanContext = mock(ThirdPartyScanContext.class);
     multiLicenseDAO = daoFactory.createMultiLicenseDAO();
 
     spdxResultHandler =
         new SpdxResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender, null);
+            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
+            thirdPartyScanContext);
   }
 
   @Test
@@ -235,20 +240,34 @@ public class SpdxResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_invalid_Xml() throws Exception {
-    testHandleAndFilterContents_invalid(getSbomXmlFile("spdx-invalid.xml"), "spdx-invalid.xml");
+    testHandleAndFilterContents_invalid_isValidTrue(getSbomXmlFile("spdx-invalid.xml"), "spdx-invalid.xml");
   }
 
   @Test
   public void testHandleAndFilterContents_invalid_Json() throws Exception {
-    testHandleAndFilterContents_invalid(getSbomJsonFile("spdx-invalid.json"), "spdx-invalid.json");
+    testHandleAndFilterContents_invalid_isValidTrue(getSbomJsonFile("spdx-invalid.json"), "spdx-invalid.json");
   }
 
-  private void testHandleAndFilterContents_invalid(String sbomContent, String path) {
-    ThirdPartyScanContent content = new ThirdPartyScanContent(path, null, null, null, sbomContent);
+  @Test
+  public void testHandleAndFilterContents_invalid_Xml_isValidFalse() throws Exception {
+    when(thirdPartyScanContext.isValid()).thenReturn(false);
+
+    String sbomContent = getSbomXmlFile("invalid-spdx-v2_3.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent("invalid-spdx-v2_3.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
-    assertThatExceptionOfType(RuntimeException.class)
-        .isThrownBy(() -> spdxResultHandler.handleAndFilterContents(content, thirdPartyFile))
+    FilteredThirdPartyContent filteredThirdPartyContent =
+        spdxResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredThirdPartyContent.hasErrors()).isTrue();
+  }
+
+  private void testHandleAndFilterContents_invalid_isValidTrue(String sbomContent, String path) {
+    ThirdPartyScanContent content = new ThirdPartyScanContent(path, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
+
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(
+            () -> spdxResultHandler.handleAndFilterContents(content, thirdPartyFile))
         .withMessage("Error filtering SPDX file " + path);
 
     assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId())).isEmpty();
@@ -326,6 +345,7 @@ public class SpdxResultHandlerTest
     String sbomContent = getSbomJsonFile("spdx-licenses.json");
     ThirdPartyScanContent content = new ThirdPartyScanContent("spdx-licenses.json", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
     FilteredThirdPartyContent filteredContent =
         spdxResultHandler.handleAndFilterContents(content, thirdPartyFile);
     String sbomXml = filteredContent.getContent();
@@ -389,6 +409,7 @@ public class SpdxResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null, null);
     thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
+    thirdPartyScanContext.setIsValid(true);
     spdxResultHandler =
         new SpdxResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
@@ -588,7 +609,7 @@ public class SpdxResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("spdx.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
     String filteredContent = spdxResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 4);
 
@@ -600,6 +621,9 @@ public class SpdxResultHandlerTest
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
 
     Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    assertThat(telemetryAttributes.get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(false);
+    assertThat(telemetryAttributes.get("is_sbom_valid")).isEqualTo(true);
+
     SbomComponentInfoTelemetry componentInfoTelemetry =
         (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
 
@@ -613,9 +637,6 @@ public class SpdxResultHandlerTest
     assertThat(componentInfoTelemetry.getHasDependencies()).isEqualTo(true);
     assertThat(componentInfoTelemetry.getValidLicensesCount()).isEqualTo(2);
     assertThat(componentInfoTelemetry.getInvalidLicensesCount()).isEqualTo(0);
-
-    assertThat(telemetryAttributes.get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(false);
-    assertThat(telemetryAttributes.get("is_sbom_valid")).isEqualTo(true);
   }
 
   @Test
@@ -624,6 +645,7 @@ public class SpdxResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("spdx.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
 
     spdxResultHandler.handleAndFilterContents(content, thirdPartyFile);
 
@@ -635,6 +657,9 @@ public class SpdxResultHandlerTest
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
 
     Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    assertThat(telemetryAttributes.get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(false);
+    assertThat(telemetryAttributes.get("is_sbom_valid")).isEqualTo(true);
+
     assertThat(telemetryAttributes).isNotNull();
     SbomComponentInfoTelemetry componentInfoTelemetry =
         (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
@@ -647,6 +672,7 @@ public class SpdxResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("spdx.json", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
 
     String filteredContent = spdxResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 2);
@@ -659,6 +685,9 @@ public class SpdxResultHandlerTest
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
 
     Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    assertThat(telemetryAttributes.get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(false);
+    assertThat(telemetryAttributes.get("is_sbom_valid")).isEqualTo(true);
+
     SbomComponentInfoTelemetry componentInfoTelemetry =
         (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
 
@@ -677,6 +706,7 @@ public class SpdxResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("spdx.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
 
     String filteredContent = spdxResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 5);
@@ -689,6 +719,9 @@ public class SpdxResultHandlerTest
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
 
     Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    assertThat(telemetryAttributes.get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(false);
+    assertThat(telemetryAttributes.get("is_sbom_valid")).isEqualTo(true);
+
     SbomComponentInfoTelemetry componentInfoTelemetry =
         (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
 
@@ -700,6 +733,39 @@ public class SpdxResultHandlerTest
     assertThat(componentInfoTelemetry.getHashCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getCoordinateCount()).isEqualTo(1);
     assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("generic", 3), entry("maven", 1));
+  }
+
+  @Test
+  public void testHandleAndFilterContents_invalidSbom_skipSbomValidationFeatureEnabled_telemetryData()
+      throws Exception
+  {
+    SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
+
+    String sbomContent = getSbomXmlFile("spdx-invalid.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("spdx-invalid.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    when(thirdPartyScanContext.isValid()).thenReturn(false);
+
+    spdxResultHandler.handleAndFilterContents(content, thirdPartyFile);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
+
+    Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    assertThat(telemetryAttributes.get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(true);
+    assertThat(telemetryAttributes.get("is_sbom_valid")).isEqualTo(false);
+
+    SbomComponentInfoTelemetry componentInfoTelemetry =
+        (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
+    assertThat(telemetryAttributes).isNotNull();
+    assertThat(componentInfoTelemetry.getContentType()).isEqualTo("XML");
+    assertThat(componentInfoTelemetry.getSpec()).isEqualTo("SPDX");
+    assertThat(componentInfoTelemetry.getSpecVersion()).isEqualTo("SPDX-2.3");
   }
 
   private void assertCpeAndSwid(ThirdPartyScanContent content) throws Exception {

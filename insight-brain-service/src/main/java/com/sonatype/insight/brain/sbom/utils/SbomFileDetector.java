@@ -78,14 +78,15 @@ public class SbomFileDetector
 
   private static final SAXParserFactory saxParserFactory;
 
-  public SbomDetectionResult getSbomDetectionResult(String sbomString) {
+  public SbomDetectionResult getSbomDetectionResult(String sbomString, boolean ignoreValidationError) {
+
     if (StringUtils.isBlank(sbomString)) {
       return sbomDetectionErrorResult("Provided content is not recognizable as an SBOM.", null);
     }
 
     try (AutoDeletingTempFile tempFile = new AutoDeletingTempFile()) {
       Path file = Files.writeString(tempFile.getPath(), sbomString);
-      return detect(file.toFile());
+      return detect(file.toFile(), ignoreValidationError);
     }
     catch (IOException e) {
       log.error("error detecting SBOM metadata", e);
@@ -93,11 +94,11 @@ public class SbomFileDetector
     }
   }
 
-  public SbomDetectionResult getSbomDetectionResult(File sbomFile) {
-    return detect(sbomFile);
+  public SbomDetectionResult getSbomDetectionResult(final File sbomFile, final boolean ignoreValidationError) {
+    return detect(sbomFile, ignoreValidationError);
   }
 
-  private SbomDetectionResult detect(File sbomFile) {
+  private SbomDetectionResult detect(final File sbomFile, final boolean ignoreValidationError) {
     if (sbomFile == null || !sbomFile.exists() || sbomFile.length() == 0) {
       return sbomDetectionErrorResult("Invalid SBOM file input.", null);
     }
@@ -105,24 +106,23 @@ public class SbomFileDetector
     SbomDetectionResult result;
     try {
       result = new SbomDetectionResult();
-      result.isBinary = true;
       result.mimeType = tika.detect(sbomFile);
       if (TEXT_PLAIN.equals(result.mimeType)) {
         String sbomStringContent = getSbomStringContent(sbomFile);
         if (isPlainTextValidJson(sbomStringContent)) {
           result.mimeType = APPLICATION_JSON;
-          attemptDetectingSbomFromContent(sbomStringContent, result);
+          attemptDetectingSbomFromContent(sbomStringContent, result, ignoreValidationError);
         }
         else if (isPlainTextValidXml(sbomStringContent)) {
           result.mimeType = APPLICATION_XML;
-          attemptDetectingSbomFromContent(sbomStringContent, result);
+          attemptDetectingSbomFromContent(sbomStringContent, result, ignoreValidationError);
         }
         else {
           result.errorMessage = PROVIDED_FILE_NOT_SUPPORTED_ERROR;
         }
       }
       else if (supportedSbomMimeTypes.contains(result.mimeType)) {
-        attemptDetectingSbomFromContent(getSbomStringContent(sbomFile), result);
+        attemptDetectingSbomFromContent(getSbomStringContent(sbomFile), result, ignoreValidationError);
       }
       else {
         result.errorMessage = PROVIDED_FILE_NOT_SUPPORTED_ERROR;
@@ -132,97 +132,128 @@ public class SbomFileDetector
       log.debug("error detecting SBOM metadata", e);
       result = sbomDetectionErrorResult("Internal error in processing SBOM.", e);
     }
-    // If there are any SBOM validation errors from parsing
-    // then we should set this to be an SBOM scan rather than a binary scan
-    if (result.isSbom && (result.validationErrors != null || StringUtils.isNotEmpty(result.errorMessage))) {
-      result.isBinary = false;
-    }
+
     return result;
   }
 
-  private SbomDetectionResult sbomDetectionErrorResult(String errorMessage, Exception e) {
+  private SbomDetectionResult sbomDetectionErrorResult(final String errorMessage, final Exception e) {
     SbomDetectionResult result = new SbomDetectionResult();
     result.errorMessage = errorMessage;
     result.validationErrors = getErrors(e);
     return result;
   }
 
-  private SbomDetectionResult attemptDetectingSbomFromContent(final String sbom, final SbomDetectionResult sbomResult) {
+  private SbomDetectionResult attemptDetectingSbomFromContent(
+      final String sbom,
+      final SbomDetectionResult sbomResult,
+      final boolean ignoreValidationError)
+  {
     if (ThirdPartyUtils.looksLikeCycloneDX(sbom)) {
-      sbomResult.isSbom = true;
-      return tryDetectingAsCycloneDx(sbom, sbomResult);
+      return tryDetectingAsCycloneDx(sbom, sbomResult, ignoreValidationError);
     }
     else if (SbomSpdxUtils.looksLikeSpdxDocument(sbom)) {
-      sbomResult.isSbom = true;
-      try {
-        return tryDetectingAsSpdx(sbom, sbomResult);
-      }
-      catch (IOException | InvalidSPDXAnalysisException e) {
-        log.error("Not a valid/supported sbom file.", e);
-        sbomResult.errorMessage = "Not a valid/supported sbom file.";
-        sbomResult.validationErrors = getErrors(e);
-      }
+      return tryDetectingAsSpdx(sbom, sbomResult, ignoreValidationError);
     }
     else {
-      sbomResult.errorMessage = "Not a valid/supported sbom file.";
+      sbomResult.errorMessage = "Not a valid/supported SBOM file.";
     }
     return sbomResult;
   }
 
-  private SbomDetectionResult tryDetectingAsSpdx(final String sbom, final SbomDetectionResult sbomResult)
-      throws IOException, InvalidSPDXAnalysisException
+  private SbomDetectionResult tryDetectingAsSpdx(
+      final String sbom,
+      final SbomDetectionResult sbomResult,
+      final boolean ignoreValidationError)
   {
     try {
       SbomFormat sbomFormat = SbomFormat.forMimeType(sbomResult.mimeType);
-      SpdxDocument spdxDocument =
-          ThirdPartyUtils.parseAndValidateSpdx(sbom, Objects.requireNonNull(sbomFormat));
+      sbomResult.isSbom = true;
+
+      SpdxDocument spdxDocument;
+      try {
+        spdxDocument = ThirdPartyUtils.parseAndValidateSpdx(sbom, Objects.requireNonNull(sbomFormat));
+        sbomResult.isValid = true;
+      }
+      catch (SbomValidationException e) {
+        sbomResult.isValid = false;
+        sbomResult.isValidationErrorIgnorable = true;
+
+        if (shouldIgnoreValidationError(ignoreValidationError)) {
+          spdxDocument = ThirdPartyUtils.parseSpdxWithNoValidation(sbom, Objects.requireNonNull(sbomFormat));
+        }
+        else {
+          sbomResult.errorMessage = "Not a valid SPDX SBOM file.";
+          sbomResult.validationErrors = getErrors(e);
+
+          return sbomResult;
+        }
+      }
+
       populateSpdxResult(sbomResult, sbomFormat, spdxDocument);
     }
     catch (UnsupportedSbomException e) {
+      sbomResult.isValid = false;
+      sbomResult.isValidationErrorIgnorable = false;
       sbomResult.errorMessage = e.getMessage();
       sbomResult.validationErrors = getErrors(e);
     }
-    catch (SbomProcessingException e) {
-      log.debug("error parsing content as sbom", e);
+    catch (SbomProcessingException | InvalidSPDXAnalysisException e) {
+      sbomResult.isValid = false;
+      sbomResult.isValidationErrorIgnorable = false;
       sbomResult.errorMessage = "Not a valid SPDX SBOM file.";
       sbomResult.validationErrors = getErrors(e);
     }
     return sbomResult;
   }
 
-  private SbomDetectionResult tryDetectingAsCycloneDx(final String fileContent, final SbomDetectionResult sbomResult) {
+  private SbomDetectionResult tryDetectingAsCycloneDx(
+      final String fileContent,
+      final SbomDetectionResult sbomResult,
+      final boolean ignoreValidationError)
+  {
     try {
       SbomFormat sbomFormat = SbomFormat.forMimeType(sbomResult.mimeType);
+      sbomResult.isSbom = true;
 
       Bom bom;
       try {
-        bom = ThirdPartyUtils.parseAndValidateCycloneDx(fileContent,
-            Objects.requireNonNull(sbomFormat));
+        bom = ThirdPartyUtils.parseAndValidateCycloneDx(fileContent, Objects.requireNonNull(sbomFormat));
+        sbomResult.isValid = true;
       }
-      catch (SbomValidationException ex) {
-        if (SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled()) {
-          log.info("Validation was skipped due to system property skipSbomImportValidation being enabled.");
-          bom = ThirdPartyUtils.parseCycloneDxWithNoValidation(fileContent,
-              Objects.requireNonNull(sbomFormat));
-          log.info("SBOM validation skipped per configuration");
+      catch (SbomValidationException e) {
+        sbomResult.isValid = false;
+        sbomResult.isValidationErrorIgnorable = true;
+
+        if (shouldIgnoreValidationError(ignoreValidationError)) {
+          bom = ThirdPartyUtils.parseCycloneDxWithNoValidation(fileContent, Objects.requireNonNull(sbomFormat));
         }
         else {
-          throw ex;
+          sbomResult.errorMessage = "Not a valid CycloneDX SBOM file.";
+          sbomResult.validationErrors = getErrors(e);
+
+          return sbomResult;
         }
       }
 
       populateCycloneDxResult(sbomResult, sbomFormat, bom);
     }
     catch (UnsupportedSbomException e) {
+      sbomResult.isValid = false;
+      sbomResult.isValidationErrorIgnorable = false;
       sbomResult.errorMessage = e.getMessage();
       sbomResult.validationErrors = getErrors(e);
     }
     catch (SbomProcessingException e) {
-      log.debug("error parsing content as sbom", e);
+      sbomResult.isValid = false;
+      sbomResult.isValidationErrorIgnorable = false;
       sbomResult.errorMessage = "Not a valid CycloneDX SBOM file.";
       sbomResult.validationErrors = getErrors(e);
     }
     return sbomResult;
+  }
+
+  private boolean shouldIgnoreValidationError(final boolean ignoreValidationError) {
+    return ignoreValidationError || SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.isEnabled();
   }
 
   private List<String> getErrors(final Throwable t) {
@@ -372,7 +403,7 @@ public class SbomFileDetector
     sbomResult.summary.creationDetails = SbomCycloneDxUtils.getSbomCreationDetailsJson(bom);
   }
 
-  private boolean isPlainTextValidJson(String sbomContent) {
+  private boolean isPlainTextValidJson(final String sbomContent) {
     try {
       return objectMapper.readTree(sbomContent) != null;
     }
@@ -400,7 +431,7 @@ public class SbomFileDetector
   }
 
   @VisibleForTesting
-  boolean isPlainTextValidXml(String sbomContent) {
+  boolean isPlainTextValidXml(final String sbomContent) {
     try {
       SAXParser saxParser = saxParserFactory.newSAXParser();
       saxParser.parse(new ByteArrayInputStream(sbomContent.getBytes(StandardCharsets.UTF_8)), new DefaultHandler());
@@ -412,7 +443,7 @@ public class SbomFileDetector
     return false;
   }
 
-  private String getSbomStringContent(File sbomFile) throws IOException {
+  private String getSbomStringContent(final File sbomFile) throws IOException {
     return FileUtils.readFileToString(sbomFile, StandardCharsets.UTF_8);
   }
 

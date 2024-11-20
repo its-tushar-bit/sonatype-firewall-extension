@@ -25,7 +25,7 @@ const sbomMetadataInitialState = {
   specVersion: null,
   fileFormat: null,
   createdAt: null,
-  validationSkipped: null,
+  isValid: null,
 };
 
 const vulnerabilitiesSummaryInitialState = Object.freeze({
@@ -246,7 +246,7 @@ describe('billOfMaterialsPage reducers have the correct state when the following
         specVersion: '2.3',
         fileFormat: 'json',
         createdAt: '2024-01-12T20:11:22Z',
-        validationSkipped: false,
+        isValid: true,
         scanId: 'scan-id',
       };
 

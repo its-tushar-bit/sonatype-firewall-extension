@@ -31,6 +31,8 @@ public class ThirdPartyScanContext
 
   private String sbomMetadataId;
 
+  private boolean isValid;
+
   public ThirdPartyScanContext(
       final String scanRequestId,
       final String applicationId,
@@ -115,5 +117,13 @@ public class ThirdPartyScanContext
 
   public SbomScanType getScanType() {
     return scanType;
+  }
+
+  public boolean isValid() {
+    return isValid;
+  }
+
+  public void setIsValid(final boolean isValid) {
+    this.isValid = isValid;
   }
 }

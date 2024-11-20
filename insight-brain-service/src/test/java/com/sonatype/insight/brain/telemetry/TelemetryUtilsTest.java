@@ -70,7 +70,7 @@ public class TelemetryUtilsTest
     componentInfoTelemetry.incrementInvalidLicensesCount();
     componentInfoTelemetry.setHasDependencies(true);
     TelemetryData telemetryData =
-        telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry, true, false);
+        telemetryUtils.buildThirdPartyScanComponentInfoTelemetryData(componentInfoTelemetry, true, true);
     SbomComponentInfoTelemetry componentIdCounts =
         (SbomComponentInfoTelemetry) telemetryData.getAttributes().get("sbom_data_summary");
     assertThat(componentIdCounts.getPurlCount()).isEqualTo(1);
@@ -82,7 +82,7 @@ public class TelemetryUtilsTest
     assertThat(componentIdCounts.getValidLicensesCount()).isEqualTo(1);
     assertThat(componentIdCounts.getInvalidLicensesCount()).isEqualTo(2);
     assertThat(telemetryData.getAttributes().get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(true);
-    assertThat(telemetryData.getAttributes().get("is_sbom_valid")).isEqualTo(false);
+    assertThat(telemetryData.getAttributes().get("is_sbom_valid")).isEqualTo(true);
   }
 
   @Test

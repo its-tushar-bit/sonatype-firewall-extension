@@ -10,7 +10,7 @@ package com.sonatype.insight.brain.scan;
  * parameters everywhere. It is similar to {@link com.sonatype.insight.brain.thirdparty.ThirdPartyScanContext} but is
  * intended to be usable for any scan.
  */
-public record ScanContext(String applicationVersion)
+public record ScanContext(String applicationVersion, boolean isValid)
 {
   /**
    * This builder is intended to make constructing a {@link ScanContext} easier by not having to set all fields.
@@ -19,13 +19,20 @@ public record ScanContext(String applicationVersion)
   {
     private String applicationVersion;
 
+    private boolean isValid;
+
     public Builder applicationVersion(final String applicationVersion) {
       this.applicationVersion = applicationVersion;
       return this;
     }
 
+    public Builder isValid(final boolean isValid) {
+      this.isValid = isValid;
+      return this;
+    }
+
     public ScanContext build() {
-      return new ScanContext(applicationVersion);
+      return new ScanContext(applicationVersion, isValid);
     }
   }
 }

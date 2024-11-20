@@ -91,7 +91,7 @@ public class SbomScanEvaluator
         insightWork.getScanDir(applicationId)
     );
     ApiThirdPartyScanTicketDTO scanTicketDTO = sbomMetadataUtils.createSbomImportTicket(applicationId);
-    createAndSaveThirdPartyData(
+    createAndSaveBinaryThirdPartyData(
         applicationId,
         tmpFileToScan.getName(),
         applicationVersion,
@@ -103,7 +103,8 @@ public class SbomScanEvaluator
         application,
         clientScanType,
         new Stage(StageTypes.COMPLIANCE.getId()),
-        scanTriggerType, scanResult.getScanFile(),
+        scanTriggerType,
+        scanResult.getScanFile(),
         ScannerDriver.SBOM_API.getValue(),
         clientUserAgent,
         null
@@ -118,7 +119,8 @@ public class SbomScanEvaluator
       ItemContentType contentType,
       ScanTriggerType scanTriggerType,
       String clientUserAgent,
-      String applicationVersion)
+      String applicationVersion,
+      boolean isValid)
   {
     Application application = applicationDAO.getById(applicationId);
     ApiThirdPartyScanTicketDTO importTicket = sbomMetadataUtils.createSbomImportTicket(applicationId);
@@ -140,12 +142,12 @@ public class SbomScanEvaluator
         ScannerDriver.SBOM_API.getValue(),
         clientUserAgent,
         null,
-        new ScanContext.Builder().applicationVersion(applicationVersion).build()
+        new ScanContext.Builder().applicationVersion(applicationVersion).isValid(isValid).build()
     );
     return importTicket;
   }
 
-  private void createAndSaveThirdPartyData(
+  private void createAndSaveBinaryThirdPartyData(
       String applicationId,
       String fileName,
       String applicationVersion,
@@ -168,7 +170,7 @@ public class SbomScanEvaluator
         new Date(),
         SbomCycloneDxUtils.getGenericSbomCreationDetailsAsString(),
         SbomScanType.BINARY.toString(),
-        false
+        true
     );
     sbomMetadataUtils.insertThirdPartySbomMetadataWithRetry(thirdPartySbomMetadata);
     AuditData.get().setSbomVersion(thirdPartySbomMetadata, SbomAction.CREATE);

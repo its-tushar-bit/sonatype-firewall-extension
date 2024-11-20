@@ -35,7 +35,7 @@ public class BomPageMetadataDTO
 
   public String scanId;
 
-  public boolean validationSkipped;
+  public boolean isValid;
 
   public BomPageMetadataDTO(
       final List<String> author,
@@ -48,7 +48,7 @@ public class BomPageMetadataDTO
       final String fileFormat,
       final Date createdAt,
       final String scanId,
-      final boolean validationSkipped)
+      final boolean isValid)
   {
     this.author = author;
     this.manufacturer = manufacturer;
@@ -60,7 +60,7 @@ public class BomPageMetadataDTO
     this.fileFormat = fileFormat;
     this.createdAt = createdAt;
     this.scanId = scanId;
-    this.validationSkipped = validationSkipped;
+    this.isValid = isValid;
   }
 
   public BomPageMetadataDTO() {

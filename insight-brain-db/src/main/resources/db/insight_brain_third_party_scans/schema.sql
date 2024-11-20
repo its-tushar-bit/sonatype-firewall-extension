@@ -132,6 +132,7 @@ CREATE TABLE sbom_metadata (
     sbom_version VARCHAR(200) NOT NULL,
     scan_type VARCHAR(20) NOT NULL,
     validation_skipped BOOLEAN,
+    is_valid BOOLEAN,
     CONSTRAINT sbom_metadata_pk PRIMARY KEY (sbom_metadata_id),
     CONSTRAINT sbom_metadata_third_party_file_fk FOREIGN KEY (third_party_file_id)
        REFERENCES third_party_file (third_party_file_id),

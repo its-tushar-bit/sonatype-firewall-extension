@@ -15,6 +15,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -56,10 +57,11 @@ public class SbomImportResource
   public SbomDetectionResultDTO detectSbom(
       @PathParam("applicationId") String applicationId,
       @FormDataParam("file") InputStream sbom,
-      @FormDataParam("file") FormDataContentDisposition fileDetail
+      @FormDataParam("file") FormDataContentDisposition fileDetail,
+      @QueryParam("ignoreValidationError") boolean ignoreValidationError
   )
   {
-    return sbomImportService.detectSbom(applicationId, sbom, fileDetail.getFileName());
+    return sbomImportService.detectSbom(applicationId, sbom, fileDetail.getFileName(), ignoreValidationError);
   }
 
   @POST

@@ -610,6 +610,32 @@ public class ApiSbomResourceTest
   }
 
   @Test
+  public void testImportSbom_InvalidSPDX_IgnoreValidationError() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
+
+    mockReport("SCAN-ID", "/" + getClass().getSimpleName() + "/report");
+
+    byte[] sbomFile = loadFileFromAssets("/" + getClass().getSimpleName() + "/invalid-spdx.json");
+    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_IMPORT_PATH)
+        .query("ignoreValidationError", true)
+        .part("file", "spdx.json", sbomFile)
+        .part("applicationId", app.getId())
+        .post();
+
+    assertResponseStatus(Status.OK.getStatusCode(), response);
+    ApiThirdPartyScanTicketDTO apiThirdPartyScanTicketDTO = response.getBody(ApiThirdPartyScanTicketDTO.class);
+    assertThat(apiThirdPartyScanTicketDTO.statusUrl).startsWith(
+        String.format("%s%s/%s/status", PublicApiPaths.SBOM_RESOURCE_PATH, ApiSbomResource.SBOMS_APPLICATIONS_PATH,
+            app.getId()));
+
+    ApiSbomStatusDTO resultDTO = getSbomStatusDTO(apiThirdPartyScanTicketDTO.statusUrl);
+    assertThat(resultDTO.errorMessage).isNull();
+    assertThat(resultDTO.isError).isFalse();
+    assertSbomMetadataIdIsSetOnThirdPartyCoordinateSecurityEntities(resultDTO);
+  }
+
+  @Test
   public void testImportSbom_CycloneDX() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
@@ -662,6 +688,33 @@ public class ApiSbomResourceTest
     assertThat(resultDTO.errorMessage).isNull();
     assertThat(resultDTO.isError).isFalse();
     assertThat(resultDTO.version).isEqualTo(applicationVersion);
+    assertSbomMetadataIdIsSetOnThirdPartyCoordinateSecurityEntities(resultDTO);
+  }
+
+  @Test
+  public void testImportSbom_InvalidCycloneDX_IgnoreValidationError() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Files.createDirectories(insightWork.getSbomDir(app.getId()).toPath());
+
+    mockReport("SCAN-ID", "/" + getClass().getSimpleName() + "/report");
+
+    byte[] sbomFile = loadFileFromAssets("/" + getClass().getSimpleName() + "/invalid-third-party-simple-bom.xml");
+    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_IMPORT_PATH)
+        .parameter(app.getId())
+        .query("ignoreValidationError", true)
+        .part("file", "third-party-simple-bom.xml", sbomFile)
+        .part("applicationId", app.getId())
+        .post();
+
+    assertResponseStatus(Status.OK.getStatusCode(), response);
+    ApiThirdPartyScanTicketDTO apiThirdPartyScanTicketDTO = response.getBody(ApiThirdPartyScanTicketDTO.class);
+    assertThat(apiThirdPartyScanTicketDTO.statusUrl).startsWith(
+        String.format("%s%s/%s/status", PublicApiPaths.SBOM_RESOURCE_PATH, ApiSbomResource.SBOMS_APPLICATIONS_PATH,
+            app.getId()));
+
+    ApiSbomStatusDTO resultDTO = getSbomStatusDTO(apiThirdPartyScanTicketDTO.statusUrl);
+    assertThat(resultDTO.errorMessage).isNull();
+    assertThat(resultDTO.isError).isFalse();
     assertSbomMetadataIdIsSetOnThirdPartyCoordinateSecurityEntities(resultDTO);
   }
 

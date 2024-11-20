@@ -276,8 +276,10 @@ public class ApiSbomResource
       @FormDataParam("file") InputStream inputStream,
       @FormDataParam("file") FormDataContentDisposition fileDetail,
       @FormDataParam("applicationVersion") String applicationVersion,
-      @Parameter(description = "Enable importing as a binary file. default = false")
+      @Parameter(description = "Enable importing as a binary file.")
       @QueryParam("enableBinaryImport") @DefaultValue("false") boolean enableBinaryImport,
+      @Parameter(description = "Skip the SBOM validation if an error occurs.")
+      @QueryParam("ignoreValidationError") @DefaultValue("false") boolean ignoreValidationError,
       @Context final HttpServletRequest request
   )
   {
@@ -285,7 +287,7 @@ public class ApiSbomResource
       throw new BadRequestException("Missing required parameter [applicationId]");
     }
     return apiSbomService.importSbom(applicationId, inputStream, fileDetail.getFileName(), enableBinaryImport,
-        HdsClient.getClientUserAgent(request), applicationVersion);
+        HdsClient.getClientUserAgent(request), applicationVersion, ignoreValidationError);
   }
 
   @Operation(summary = "Get sbom import status",

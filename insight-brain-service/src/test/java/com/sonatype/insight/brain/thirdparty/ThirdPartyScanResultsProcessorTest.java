@@ -37,7 +37,6 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
@@ -839,9 +838,7 @@ public class ThirdPartyScanResultsProcessorTest
   }
 
   @Test
-  public void testHandle_cdx_invalidFile_skipSbomValidationEnabled() throws Exception {
-    SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
-
+  public void testHandle_cdx_invalidFile() throws Exception {
     File scanFile = getScanFile("scan-invalid-cdx.xml");
     String scanId = TemporaryEntity.uuid();
     File tempScanFile = tempDir.newFile();
@@ -849,6 +846,7 @@ public class ThirdPartyScanResultsProcessorTest
     ThirdPartyScanContext context =
         new ThirdPartyScanContext("scanRequestId", DUMMY_APP_ID, SbomScanType.SBOM, scanFile,
             StageTypes.RELEASE.getName());
+    context.setIsValid(false);
 
     String scanRequestId =
         thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), context,
@@ -873,7 +871,7 @@ public class ThirdPartyScanResultsProcessorTest
   }
 
   @Test
-  public void testHandle_cdx_invalidFile_skipSbomValidationDisabled() throws Exception {
+  public void testHandle_cdx_invalidFile_isValidTrue() throws Exception {
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
     File scanFile = getScanFile("scan-invalid-cdx.xml");
@@ -883,6 +881,7 @@ public class ThirdPartyScanResultsProcessorTest
     ThirdPartyScanContext context =
         new ThirdPartyScanContext("scanRequestId", application.getId(), SbomScanType.SBOM, scanFile,
             StageTypes.RELEASE.getName());
+    context.setIsValid(true);
 
     String scanRequestId =
         thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), context, null);
@@ -895,9 +894,7 @@ public class ThirdPartyScanResultsProcessorTest
   }
 
   @Test
-  public void testHandle_cdx_validFile_skipSbomValidationEnabled() throws Exception {
-    SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
-
+  public void testHandle_cdx_validFile_isValidTrue() throws Exception {
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
     File scanFile = getScanFile("scan-valid-cdx.xml");
@@ -907,6 +904,7 @@ public class ThirdPartyScanResultsProcessorTest
     ThirdPartyScanContext context =
         new ThirdPartyScanContext("scanRequestId", application.getId(), SbomScanType.SBOM, scanFile,
             StageTypes.RELEASE.getName());
+    context.setIsValid(true);
 
     String scanRequestId =
         thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), context, null);
@@ -920,8 +918,8 @@ public class ThirdPartyScanResultsProcessorTest
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(fileCoordinate.get(0).getId());
     List<ThirdPartyCoordinateLicense> coordinateLicenses =
         thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(fileCoordinate.get(0).getId());
-    assertThat(coordinateSecurities).isNotEmpty().hasSize(1);
-    assertThat(coordinateLicenses).isNotEmpty().hasSize(2);
+    assertThat(coordinateSecurities).hasSize(1);
+    assertThat(coordinateLicenses).hasSize(2);
   }
 
   private void assertLogOutput(final String message) {
@@ -1169,7 +1167,9 @@ public class ThirdPartyScanResultsProcessorTest
   }
 
   private static ThirdPartyScanContext mockContext(final File scanFile) {
-    return new ThirdPartyScanContext("scanRequestId", DUMMY_APP_ID, SbomScanType.SBOM, scanFile,
-        DEFAULT_STAGE_TYPE);
+    ThirdPartyScanContext thirdPartyScanContext =
+        new ThirdPartyScanContext("scanRequestId", DUMMY_APP_ID, SbomScanType.SBOM, scanFile, DEFAULT_STAGE_TYPE);
+    thirdPartyScanContext.setIsValid(true);
+    return thirdPartyScanContext;
   }
 }

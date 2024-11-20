@@ -706,7 +706,7 @@ public class SbomManagerBillOfMaterialsPageTest
   @Test
   public void testBillOfMaterial_ExportOptions_InvalidSbom() throws Exception {
     insertComponentsTileSbomData();
-    sbomMetadata.setValidationSkipped(true);
+    sbomMetadata.setIsValid(false);
     thirdPartySbomMetadataDAO.update(sbomMetadata);
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
 

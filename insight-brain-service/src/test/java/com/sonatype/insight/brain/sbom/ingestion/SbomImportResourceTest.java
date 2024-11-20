@@ -74,6 +74,8 @@ public class SbomImportResourceTest
     assertThat(actual.getSbomSummary().version).isEqualTo("1.5");
     assertThat(actual.getErrorMessage()).isNullOrEmpty();
     assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
+    assertThat(actual.getIsValid()).isTrue();
+    assertThat(actual.getIsValidationErrorIgnorable()).isNull();
   }
 
   @Test
@@ -98,6 +100,8 @@ public class SbomImportResourceTest
     assertThat(actual.getSbomSummary().version).isEqualTo("2.3");
     assertThat(actual.getErrorMessage()).isNullOrEmpty();
     assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
+    assertThat(actual.getIsValid()).isTrue();
+    assertThat(actual.getIsValidationErrorIgnorable()).isNull();
   }
 
   @Test
@@ -115,16 +119,149 @@ public class SbomImportResourceTest
     assertThat(actual.getRequestId()).isNotEmpty();
     assertThat(actual.getSbomSummary()).isNull();
     assertThat(actual.getScanType()).isEqualTo(SbomScanType.BINARY);
+    assertThat(actual.getIsValid()).isNull();
+    assertThat(actual.getIsValidationErrorIgnorable()).isNull();
   }
 
   @Test
-  public void testDetectSbom_InvalidSbom() throws Exception {
+  public void testDetectSbom_InvalidCycloneDxSbom() throws Exception {
+    URL resource = SbomImportResourceTest.class.getResource("/SbomImportResourceTest/invalid-cyclonedx-bom.xml");
+    File sbom = new File(Objects.requireNonNull(resource).getFile());
     HttpResponse response = restRequest()
         .parameter(application.getId())
-        .part("file", "sbom.xml", new byte[1])
+        .query("ignoreValidationError", false)
+        .part("file", sbom.getName(), Files.readAllBytes(sbom.toPath()))
         .path(SbomImportResource.DETECT_PATH)
         .post();
+
     assertResponseStatus(200, response);
+    SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
+    assertThat(actual.getRequestId()).isEmpty();
+    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
+    assertThat(actual.getIsValid()).isFalse();
+    assertThat(actual.getIsValidationErrorIgnorable()).isTrue();
+    assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDX SBOM file.");
+  }
+
+  @Test
+  public void testDetectSbom_InvalidSpdxSbom() throws Exception {
+    URL resource = SbomImportResourceTest.class.getResource("/SbomImportResourceTest/invalid-spdx-bom.json");
+    File sbom = new File(Objects.requireNonNull(resource).getFile());
+    HttpResponse response = restRequest()
+        .parameter(application.getId())
+        .query("ignoreValidationError", false)
+        .part("file", sbom.getName(), Files.readAllBytes(sbom.toPath()))
+        .path(SbomImportResource.DETECT_PATH)
+        .post();
+
+    SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
+    assertResponseStatus(200, response);
+    assertThat(actual.getRequestId()).isEmpty();
+    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
+    assertThat(actual.getIsValid()).isFalse();
+    assertThat(actual.getIsValidationErrorIgnorable()).isTrue();
+    assertThat(actual.getErrorMessage()).isEqualTo("Not a valid SPDX SBOM file.");
+  }
+
+  @Test
+  public void testDetectSbom_InvalidCycloneDxSbomStructure() throws Exception {
+    URL resource =
+        SbomImportResourceTest.class.getResource("/SbomImportResourceTest/invalid-cyclonedx-bom-structure.xml");
+    File sbom = new File(Objects.requireNonNull(resource).getFile());
+    HttpResponse response = restRequest()
+        .parameter(application.getId())
+        .query("ignoreValidationError", true)
+        .part("file", sbom.getName(), Files.readAllBytes(sbom.toPath()))
+        .path(SbomImportResource.DETECT_PATH)
+        .post();
+
+    assertResponseStatus(200, response);
+    SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
+    assertThat(actual.getRequestId()).isEmpty();
+    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
+    assertThat(actual.getIsValid()).isFalse();
+    assertThat(actual.getIsValidationErrorIgnorable()).isFalse();
+    assertThat(actual.getErrorMessage()).isEqualTo("Not a valid CycloneDX SBOM file.");
+  }
+
+  @Test
+  public void testDetectSbom_InvalidSpdxSbomStructure() throws Exception {
+    URL resource = SbomImportResourceTest.class.getResource("/SbomImportResourceTest/invalid-spdx-bom-structure.json");
+    File sbom = new File(Objects.requireNonNull(resource).getFile());
+    HttpResponse response = restRequest()
+        .parameter(application.getId())
+        .query("ignoreValidationError", true)
+        .part("file", sbom.getName(), Files.readAllBytes(sbom.toPath()))
+        .path(SbomImportResource.DETECT_PATH)
+        .post();
+
+    SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
+    assertResponseStatus(200, response);
+    assertThat(actual.getRequestId()).isEmpty();
+    assertThat(actual.getSbomSummary()).isNull();
+    assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
+    assertThat(actual.getIsValid()).isFalse();
+    assertThat(actual.getIsValidationErrorIgnorable()).isFalse();
+    assertThat(actual.getErrorMessage()).isEqualTo("Not a valid SPDX SBOM file.");
+  }
+
+  @Test
+  public void testDetectSbom_InvalidCycloneDxSbom_IgnoreValidationError() throws Exception {
+    URL resource = SbomImportResourceTest.class.getResource("/SbomImportResourceTest/invalid-cyclonedx-bom.xml");
+    File sbom = new File(Objects.requireNonNull(resource).getFile());
+    HttpResponse response = restRequest()
+        .parameter(application.getId())
+        .query("ignoreValidationError", true)
+        .part("file", sbom.getName(), Files.readAllBytes(sbom.toPath()))
+        .path(SbomImportResource.DETECT_PATH)
+        .post();
+
+    assertResponseStatus(200, response);
+    SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
+    assertThat(actual.getRequestId()).isNotEmpty();
+    assertThat(actual.getIsValid()).isFalse();
+    assertThat(actual.getIsValidationErrorIgnorable()).isTrue();
+    assertThat(actual.getSbomSummary()).isNotNull();
+    assertThat(actual.getSbomSummary().applicationName).isEqualTo("iq_application_vuln");
+    assertThat(actual.getSbomSummary().applicationVersion).isEqualTo("a140fd3c3ded4bb0a640dc31e2904dc9");
+    assertThat(actual.getSbomSummary().componentCount).isEqualTo(1);
+    assertThat(actual.getSbomSummary().vulnerabilityCount).isEqualTo(1);
+    assertThat(actual.getSbomSummary().specification).isEqualTo("CycloneDx");
+    assertThat(actual.getSbomSummary().format).isEqualTo("xml");
+    assertThat(actual.getSbomSummary().version).isEqualTo("1.5");
+    assertThat(actual.getErrorMessage()).isNullOrEmpty();
+    assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
+  }
+
+  @Test
+  public void testDetectSbom_InvalidSpdxSbom_IgnoreValidationError() throws Exception {
+    URL resource = SbomImportResourceTest.class.getResource("/SbomImportResourceTest/invalid-spdx-bom.json");
+    File sbom = new File(Objects.requireNonNull(resource).getFile());
+    HttpResponse response = restRequest()
+        .parameter(application.getId())
+        .query("ignoreValidationError", true)
+        .part("file", sbom.getName(), Files.readAllBytes(sbom.toPath()))
+        .path(SbomImportResource.DETECT_PATH)
+        .post();
+
+    SbomDetectionResultDTO actual = response.getBody(SbomDetectionResultDTO.class);
+    assertResponseStatus(200, response);
+    assertThat(actual.getRequestId()).isNotEmpty();
+    assertThat(actual.getIsValid()).isFalse();
+    assertThat(actual.getIsValidationErrorIgnorable()).isTrue();
+    assertThat(actual.getSbomSummary()).isNotNull();
+    assertThat(actual.getSbomSummary().applicationName).isEqualTo("sonatype:iq_application_SCM Test 1");
+    assertThat(actual.getSbomSummary().applicationVersion).isEqualTo("76b10b862e7b42009f2415097620928c");
+    assertThat(actual.getSbomSummary().componentCount).isEqualTo(6);
+    assertThat(actual.getSbomSummary().vulnerabilityCount).isEqualTo(5);
+    assertThat(actual.getSbomSummary().specification).isEqualTo("SPDX");
+    assertThat(actual.getSbomSummary().format).isEqualTo("json");
+    assertThat(actual.getSbomSummary().version).isEqualTo("2.3");
+    assertThat(actual.getErrorMessage()).isNullOrEmpty();
+    assertThat(actual.getScanType()).isEqualTo(SbomScanType.SBOM);
   }
 
   @Test
@@ -159,21 +296,32 @@ public class SbomImportResourceTest
 
   @Test
   public void testImportDetectedSbom_BINARY_Success() throws Exception {
-    testImportDetectedSbom_Success("binary.jar");
+    testImportDetectedSbom_Success("binary.jar", false);
   }
 
   @Test
   public void testImportDetectedSbom_SBOM_Success() throws Exception {
-    testImportDetectedSbom_Success("valid-spdx-bom.json");
+    testImportDetectedSbom_Success("valid-spdx-bom.json", false);
   }
 
-  private void testImportDetectedSbom_Success(String fileName) throws Exception {
+  @Test
+  public void testImportDetectedSbom_SkipSpdxSbomValidation_Success() throws Exception {
+    testImportDetectedSbom_Success("invalid-spdx-bom.json", true);
+  }
+
+  @Test
+  public void testImportDetectedSbom_SkipCycloneDxSbomValidation_Success() throws Exception {
+    testImportDetectedSbom_Success("invalid-cyclonedx-bom.xml", true);
+  }
+
+  private void testImportDetectedSbom_Success(String fileName, boolean ignoreValidationError) throws Exception {
     mockHdsReportDownload();
 
     URL resource = SbomImportResourceTest.class.getResource("/SbomImportResourceTest/" + fileName);
     File sbom = new File(Objects.requireNonNull(resource).getFile());
     HttpResponse responseDetect = restRequest()
         .parameter(application.getId())
+        .query("ignoreValidationError", ignoreValidationError)
         .part("file", sbom.getName(), Files.readAllBytes(sbom.toPath()))
         .path(SbomImportResource.DETECT_PATH)
         .post();

@@ -121,7 +121,8 @@ public class ThirdPartyScanResultsProcessor
       ThirdPartyResultHandlerFactory thirdPartyResultHandlerFactory,
       InsightWork insightWork,
       ProductLicense productLicense,
-      SbomFileDetector sbomFileDetector, final SbomMetadataUtils sbomMetadataUtils)
+      SbomFileDetector sbomFileDetector,
+      SbomMetadataUtils sbomMetadataUtils)
   {
     this.telemetrySender = telemetrySender;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
@@ -448,11 +449,10 @@ public class ThirdPartyScanResultsProcessor
     return null;
   }
 
-  private void saveThirdPartySbomMetadata(
-      ThirdPartyScanContext scanContext, String sbomContent)
-  {
+  private void saveThirdPartySbomMetadata(ThirdPartyScanContext scanContext, String sbomContent) {
     try {
-      SbomDetectionResult sbomDetectionResult = sbomFileDetector.getSbomDetectionResult(sbomContent);
+      // We want the SBOM detection result to be saved even if the SBOM is invalid
+      SbomDetectionResult sbomDetectionResult = sbomFileDetector.getSbomDetectionResult(sbomContent, true);
       if (sbomDetectionResult == null || sbomDetectionResult.summary == null) {
         throw new SbomProcessingException("SBOM metadata could not be identified.");
       }
@@ -478,6 +478,7 @@ public class ThirdPartyScanResultsProcessor
     sbomMetadata.setFilename(scanContext.getSbomFileName());
     sbomMetadata.setSbomVersion(getApplicationVersion(
         scanContext.getApplicationId(), scanContext.getApplicationVersion(), sbomDetectionResult));
+    sbomMetadata.setIsValid(scanContext.isValid());
     sbomMetadata.setSerialNumber(sbomDetectionResult.summary.serialNumber);
     sbomMetadata.setSpec(sbomDetectionResult.summary.specification);
     sbomMetadata.setSpecFormat(sbomDetectionResult.summary.format);

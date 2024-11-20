@@ -4020,17 +4020,8 @@ public class TemporaryEntity
   {
     Date createdAt = new Date();
 
-    return newThirdPartySbomMetadata(
-        thirdPartyFileId,
-        applicationId,
-        sbomVersion,
-        status,
-        fileName,
-        spec,
-        specFormat,
-        specVersion,
-        createdAt
-    );
+    return newThirdPartySbomMetadata(thirdPartyFileId, applicationId, sbomVersion, status, fileName, spec, specFormat,
+        specVersion, createdAt);
   }
 
   public ThirdPartySbomMetadata newThirdPartySbomMetadata(
@@ -4044,6 +4035,22 @@ public class TemporaryEntity
       String specVersion,
       Date createdAt)
   {
+    return newThirdPartySbomMetadata(thirdPartyFileId, applicationId, sbomVersion, status, fileName, spec, specFormat,
+        specVersion, createdAt, true);
+  }
+
+  public ThirdPartySbomMetadata newThirdPartySbomMetadata(
+      String thirdPartyFileId,
+      String applicationId,
+      String sbomVersion,
+      String status,
+      String fileName,
+      String spec,
+      String specFormat,
+      String specVersion,
+      Date createdAt,
+      boolean isValid)
+  {
     ThirdPartySbomMetadata thirdPartySbomMetadata = new ThirdPartySbomMetadata();
     thirdPartySbomMetadata.setSerialNumber(uuid().substring(0, 10));
     thirdPartySbomMetadata.setSpec(spec);
@@ -4056,7 +4063,7 @@ public class TemporaryEntity
     thirdPartySbomMetadata.setThirdPartyFileId(thirdPartyFileId);
     thirdPartySbomMetadata.setCreatedAt(createdAt);
     thirdPartySbomMetadata.setScanType("SBOM");
-    thirdPartySbomMetadata.setValidationSkipped(false);
+    thirdPartySbomMetadata.setIsValid(isValid);
 
     thirdPartySbomMetadataDAO.insert(thirdPartySbomMetadata);
 

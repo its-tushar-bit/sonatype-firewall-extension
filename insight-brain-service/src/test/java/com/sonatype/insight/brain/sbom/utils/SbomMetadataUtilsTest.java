@@ -8,10 +8,7 @@ package com.sonatype.insight.brain.sbom.utils;
 import java.io.File;
 import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.List;
-import java.util.UUID;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -22,13 +19,9 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
-import com.sonatype.insight.brain.sbom.SbomSpecification;
-import com.sonatype.insight.brain.sbom.ingestion.SbomRequestIdElements;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.thirdparty.SbomScanType;
-import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.scan.application.ScannerDriver;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -198,95 +191,5 @@ public class SbomMetadataUtilsTest
     assertThat(thirdPartySbomMetadataList).hasSize(2);
     assertThat(sbomVersions).containsExactlyInAnyOrder(thirdPartySbomMetadata.getSbomVersion(),
         duplicateThirdPartySbomMetadata.getSbomVersion());
-  }
-
-  @Test
-  public void testDecodeRequestId_emptyRequestId() {
-    assertThat(sbomMetadataUtils.decodeRequestId("")).isNull();
-  }
-
-  @Test
-  public void testDecodeRequestId_invalidRequestId() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      sbomMetadataUtils.decodeRequestId("invalid");
-    }).withMessage("The provided requestId invalid is not valid.");
-  }
-
-  @Test
-  public void testDecodeRequestId_validRequestId_SBOM_CDX() {
-    String filenameUUID = UUID.randomUUID().toString().replace("-", "");
-    String originalFilename = "test-bom.json";
-
-    String requestId = Base64.getEncoder().encodeToString(
-        String.format("%s-%s-%s-%s-%s", SbomScanType.SBOM.name(), "application/json", SbomSpecification.CYCLONEDX,
-            filenameUUID, originalFilename).getBytes(StandardCharsets.UTF_8));
-    SbomRequestIdElements requestIdElements = sbomMetadataUtils.decodeRequestId(requestId);
-
-    assertThat(requestIdElements).isNotNull();
-    assertThat(requestIdElements.getScanType()).isEqualTo(SbomScanType.SBOM);
-    assertThat(requestIdElements.getSbomFormat()).isEqualTo(SbomFormat.JSON);
-    assertThat(requestIdElements.getFilename()).isEqualTo(String.format("%s-%s", filenameUUID, originalFilename));
-    assertThat(requestIdElements.getContentType()).isEqualTo(ItemContentType.SBOM);
-  }
-
-  @Test
-  public void testDecodeRequestId_validRequestId_SBOM_SPDX() {
-    String filenameUUID = UUID.randomUUID().toString().replace("-", "");
-    String originalFilename = "test-bom.json";
-
-    String requestId = Base64.getEncoder().encodeToString(
-        String.format("%s-%s-%s-%s-%s", SbomScanType.SBOM.name(), "application/xml", SbomSpecification.SPDX,
-            filenameUUID, originalFilename).getBytes(StandardCharsets.UTF_8));
-    SbomRequestIdElements requestIdElements = sbomMetadataUtils.decodeRequestId(requestId);
-
-    assertThat(requestIdElements).isNotNull();
-    assertThat(requestIdElements.getScanType()).isEqualTo(SbomScanType.SBOM);
-    assertThat(requestIdElements.getSbomFormat()).isEqualTo(SbomFormat.XML);
-    assertThat(requestIdElements.getFilename()).isEqualTo(String.format("%s-%s", filenameUUID, originalFilename));
-    assertThat(requestIdElements.getContentType()).isEqualTo(ItemContentType.SPDX);
-  }
-
-  @Test
-  public void testDecodeRequestId_validRequestId_BINARY() {
-    String filenameUUID = UUID.randomUUID().toString().replace("-", "");
-    String originalFilename = "test.jar";
-
-    String requestId =
-        Base64.getEncoder()
-            .encodeToString(String.format("%s-%s-%s", SbomScanType.BINARY.name(), filenameUUID, originalFilename)
-                .getBytes(StandardCharsets.UTF_8));
-    SbomRequestIdElements requestIdElements = sbomMetadataUtils.decodeRequestId(requestId);
-
-    assertThat(requestIdElements).isNotNull();
-    assertThat(requestIdElements.getScanType()).isEqualTo(SbomScanType.BINARY);
-    assertThat(requestIdElements.getSbomFormat()).isNull();
-    assertThat(requestIdElements.getFilename()).isEqualTo(String.format("%s-%s", filenameUUID, originalFilename));
-    assertThat(requestIdElements.getContentType()).isNull();
-  }
-
-  @Test
-  public void testDecodeRequestId_invalidSbomScanType() {
-    String filenameUUID = UUID.randomUUID().toString().replace("-", "");
-    String originalFilename = "test.jar";
-    String requestId = Base64.getEncoder()
-        .encodeToString(String.format("%s-%s-%s", "INVALID_REQUEST_TYPE", filenameUUID, originalFilename)
-            .getBytes(StandardCharsets.UTF_8));
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      sbomMetadataUtils.decodeRequestId(requestId);
-    }).withMessage("The provided requestId " + requestId + " is not valid.");
-  }
-
-  @Test
-  public void testDecodeRequestId_invalidPathTraversalInFileName() {
-    String[] filePaths = new String[]{"path/test.jar", "path\\test.jar"};
-    for (String filePath : filePaths) {
-      String filenameUUID = UUID.randomUUID().toString().replace("-", "");
-      String requestId = Base64.getEncoder()
-          .encodeToString(String.format("%s-%s-%s", SbomScanType.BINARY.name(), filenameUUID, filePath)
-              .getBytes(StandardCharsets.UTF_8));
-      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-        sbomMetadataUtils.decodeRequestId(requestId);
-      }).withMessage("The provided requestId " + requestId + " is not valid.");
-    }
   }
 }

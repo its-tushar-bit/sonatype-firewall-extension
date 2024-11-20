@@ -56,10 +56,10 @@ public class ScanHandler
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
-  ScanReceipt handle(HttpServletRequest httpRequest,
-                     @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
-                     ClientScanType clientScanType)
-      throws IOException
+  ScanReceipt handle(
+      HttpServletRequest httpRequest,
+      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
+      ClientScanType clientScanType) throws IOException
   {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     File tempScanFile = createTempScanFile(httpRequest, app);
@@ -89,7 +89,7 @@ public class ScanHandler
       throws IOException
   {
     return handle(tempScanFile, app, clientScanType, thirdPartyScanTelemetryData, stageTypeId, clientUserAgent,
-        scanRequestId, null);
+        scanRequestId, new ScanContext.Builder().isValid(true).build());
   }
 
   public ScanReceipt handle(

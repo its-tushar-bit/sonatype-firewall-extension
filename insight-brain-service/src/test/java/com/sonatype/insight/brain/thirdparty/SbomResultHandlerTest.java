@@ -94,6 +94,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class SbomResultHandlerTest
     extends AbstractComponentTest
@@ -119,6 +120,9 @@ public class SbomResultHandlerTest
   @Mock
   private TelemetrySender telemetrySender;
 
+  @Mock
+  private ThirdPartyScanContext thirdPartyScanContext;
+
   @Inject
   private MultiLicenseDAO multiLicenseDAO;
 
@@ -136,7 +140,8 @@ public class SbomResultHandlerTest
   public void before() {
     sbomResultHandler =
         new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
-            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender, null);
+            thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
+            thirdPartyScanContext);
   }
 
   @Test
@@ -341,6 +346,7 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null, null);
     thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
+    thirdPartyScanContext.setIsValid(true);
     sbomResultHandler =
         new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
@@ -391,6 +397,7 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null, null);
     thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
+    thirdPartyScanContext.setIsValid(true);
     sbomResultHandler =
         new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
@@ -422,6 +429,7 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null, null);
     thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
+    thirdPartyScanContext.setIsValid(true);
     sbomResultHandler =
         new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
@@ -463,6 +471,7 @@ public class SbomResultHandlerTest
     String sbomContent = getSbomXmlFile("sbom-license.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent("sbom-license.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom unfilteredSbom = getBom(sbomContent);
@@ -494,6 +503,7 @@ public class SbomResultHandlerTest
     String sbom = getSbomJsonFile("license-expression-bom.json");
     ThirdPartyScanContent content = new ThirdPartyScanContent("license-expression-bom.json", null, null, null, sbom);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
 
     sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
 
@@ -532,6 +542,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-duplicate-license.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom unfilteredSbom = getBom(sbomContent);
@@ -561,6 +572,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-duplicated-component-license-vulnerability.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
@@ -590,6 +602,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-long-purl-format.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
@@ -612,6 +625,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-license-expression.xml", null, null, null, sbom);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
 
     sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
 
@@ -689,6 +703,8 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null, null);
     thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
+    thirdPartyScanContext.setIsValid(true);
+
     sbomResultHandler =
         new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
@@ -874,6 +890,7 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null, null);
     thirdPartyScanContext.setSbomMetadataId("someSbomMetadataId");
+    thirdPartyScanContext.setIsValid(true);
     sbomResultHandler =
         new SbomResultHandler(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils, telemetrySender,
@@ -944,6 +961,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-vulnerabilities-missing-fields.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     Bom filteredSbom = assertFilteredSbomFile(filteredContent, 5);
@@ -1032,6 +1050,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-duplicated-vulnerabilities.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 1);
@@ -1089,13 +1108,13 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_invalidSbom() throws Exception {
-    testHandleAndFilterContents_invalid_sbom(getSbomXmlFile("scan-with-invalid-sbom-data-cli.xml"),
+    testHandleAndFilterContents_invalidSbom_isValidTrue(getSbomXmlFile("scan-with-invalid-sbom-data-cli.xml"),
         "scan-with-invalid-sbom-data-cli.xml");
   }
 
   @Test
   public void testHandleAndFilterContents_invalidSbom_content() throws Exception {
-    testHandleAndFilterContents_invalid_sbom(getSbomXmlFile("scan-with-invalid-license-id.xml"),
+    testHandleAndFilterContents_invalidSbom_isValidTrue(getSbomXmlFile("scan-with-invalid-license-id.xml"),
         "scan-with-invalid-sbom-data-cli.xml");
     assertThat(logOutputUtils.getDebugMessages(ThirdPartyUtils.class.getName()))
         .contains("The sbom is not valid. There were 2 errors.");
@@ -1103,18 +1122,19 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_invalidSbom_Xml_v1_2() throws Exception {
-    testHandleAndFilterContents_invalid_sbom(getSbomXmlFile("scan-with-invalid-sbom-v1_2.xml"),
+    testHandleAndFilterContents_invalidSbom_isValidTrue(getSbomXmlFile("scan-with-invalid-sbom-v1_2.xml"),
         "scan-with-invalid-sbom-v1_2.xml");
   }
 
   @Test
   public void testHandleAndFilterContents_invalidSbom_Json() throws Exception {
-    testHandleAndFilterContents_invalid_sbom(getSbomJsonFile("sbom-invalid.json"), "sbom-invalid.json");
+    testHandleAndFilterContents_invalidSbom_isValidTrue(getSbomJsonFile("sbom-invalid.json"), "sbom-invalid.json");
   }
 
-  private void testHandleAndFilterContents_invalid_sbom(String sbomContent, String path) {
+  private void testHandleAndFilterContents_invalidSbom_isValidTrue(String sbomContent, String path) {
     ThirdPartyScanContent content = new ThirdPartyScanContent(path, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
 
     assertThatExceptionOfType(RuntimeException.class)
         .isThrownBy(() -> sbomResultHandler.handleAndFilterContents(content, thirdPartyFile))
@@ -1787,6 +1807,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-truncate-coordinates-for-hds.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 1);
 
@@ -2033,6 +2054,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-root-dependency-not-first.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
 
     FilteredThirdPartyContent filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
 
@@ -2227,6 +2249,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("bom.json", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 1);
@@ -2250,17 +2273,16 @@ public class SbomResultHandlerTest
   }
 
   @Test
-  public void testParseBom_invalidSbom_skipSbomValidationDisabled() throws Exception {
-    ThirdPartyScanContent content =
-        new ThirdPartyScanContent("sbom-v1_4-invalid-bom.xml", null, null, null,
-            getSbomXmlFile("sbom-v1_4-invalid-bom.xml"));
+  public void testParseBom_invalidSbom() throws Exception {
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
+    ThirdPartyScanContent content = new ThirdPartyScanContent("sbom-v1_4-invalid-bom.xml", null, null, null,
+        getSbomXmlFile("sbom-v1_4-invalid-bom.xml"));
     assertThatExceptionOfType(SbomProcessingException.class)
         .isThrownBy(() -> sbomResultHandler.parseBom(content));
   }
 
   @Test
-  public void testParseBom_invalidSbom_skipSbomValidationEnabled() throws Exception {
-    SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
+  public void testParseBom_invalidSbom_isValidFalse() throws Exception {
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-v1_4-invalid-bom.xml", null, null, null,
             getSbomXmlFile("sbom-v1_4-invalid-bom.xml"));
@@ -2281,8 +2303,7 @@ public class SbomResultHandlerTest
   @Test
   public void testHandleAndFilterContents_fallbackToCpe() throws Exception {
     ThirdPartyScanContent content =
-        new ThirdPartyScanContent("invalid-purl-bom.json", null, null, null,
-            getSbomJsonFile("invalid-purl-bom.json"));
+        new ThirdPartyScanContent("invalid-purl-bom.json", null, null, null, getSbomJsonFile("invalid-purl-bom.json"));
 
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
@@ -2297,33 +2318,104 @@ public class SbomResultHandlerTest
   }
 
   @Test
-  public void testHandleAndFilterContents_validSbom_skipSbomVaidationDisabled() throws Exception {
+  public void testHandleAndFilterContents_validSbom() throws Exception {
     String sbomContent = getSbomXmlFile("sbom-v1_4.xml");
-    ThirdPartyScanContent content =
-        new ThirdPartyScanContent("sbom-v1_4.xml", null, null, null,
-            sbomContent);
+    ThirdPartyScanContent content = new ThirdPartyScanContent("sbom-v1_4.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
+
     FilteredThirdPartyContent filteredThirdPartyContent =
         sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
     assertThat(filteredThirdPartyContent.hasErrors()).isFalse();
   }
 
   @Test
-  public void testHandleAndFilterContents_invalidSbom_skipSbomVaidationEnabled() throws Exception {
-    SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
-    String sbomContent = getSbomXmlFile("sbom-v1_4-invalid-bom.xml");
+  public void testHandleAndFilterContents_validSbom_telemetryData() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-v1_4.xml");
     ThirdPartyScanContent content =
-        new ThirdPartyScanContent("sbom-v1_4-invalid-bom.xml", null, null, null,
-            sbomContent);
+        new ThirdPartyScanContent("sbom-v1_4-invalid-bom.xml", null, null, null, sbomContent);
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    FilteredThirdPartyContent filteredThirdPartyContent =
-        sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
-    assertThat(filteredThirdPartyContent.hasErrors()).isTrue();
+    sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
+
+    Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    assertThat(telemetryAttributes).isNotNull();
+    assertThat(telemetryAttributes.get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(false);
+    assertThat(telemetryAttributes.get("is_sbom_valid")).isEqualTo(true);
+
+    SbomComponentInfoTelemetry componentInfoTelemetry =
+        (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
+    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("generic", 1), entry("maven", 1));
   }
 
   @Test
-  public void testHandleAndFilterContents_invalidSbom_skipValidationEnabled_telemetryData() throws Exception {
+  public void testHandleAndFilterContents_validSbom_skipSbomValidationFeatureEnabled_telemetryData() throws Exception {
     SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
+    String sbomContent = getSbomXmlFile("sbom-v1_4.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-v1_4-invalid-bom.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
+
+    Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    assertThat(telemetryAttributes).isNotNull();
+    assertThat(telemetryAttributes.get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(true);
+    assertThat(telemetryAttributes.get("is_sbom_valid")).isEqualTo(true);
+
+    SbomComponentInfoTelemetry componentInfoTelemetry =
+        (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
+    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("generic", 1), entry("maven", 1));
+  }
+
+  @Test
+  public void testHandleAndFilterContents_invalidSbom_telemetryData() throws Exception {
+    when(thirdPartyScanContext.isValid()).thenReturn(false);
+
+    String sbomContent = getSbomXmlFile("sbom-v1_4-invalid-bom.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-v1_4-invalid-bom.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
+
+    Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
+    assertThat(telemetryAttributes).isNotNull();
+    assertThat(telemetryAttributes.get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(false);
+    assertThat(telemetryAttributes.get("is_sbom_valid")).isEqualTo(false);
+
+    SbomComponentInfoTelemetry componentInfoTelemetry =
+        (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
+    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("fake", 1));
+  }
+
+  @Test
+  public void testHandleAndFilterContents_invalidSbom_skipSbomValidationFeatureEnabled_telemetryData()
+      throws Exception
+  {
+    SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
+    when(thirdPartyScanContext.isValid()).thenReturn(false);
+
     String sbomContent = getSbomXmlFile("sbom-v1_4-invalid-bom.xml");
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-v1_4-invalid-bom.xml", null, null, null,
@@ -2349,64 +2441,12 @@ public class SbomResultHandlerTest
   }
 
   @Test
-  public void testHandleAndFilterContents_validSbom_skipValidationEnabled_telemetryData() throws Exception {
-    SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
-    String sbomContent = getSbomXmlFile("sbom-v1_4.xml");
-    ThirdPartyScanContent content =
-        new ThirdPartyScanContent("sbom-v1_4-valid-bom.xml", null, null, null,
-            sbomContent);
-    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
-
-    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
-    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
-
-    assertThat(telemetryData).isNotNull();
-    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
-
-    Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
-    assertThat(telemetryAttributes).isNotNull();
-    assertThat(telemetryAttributes.get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(true);
-    assertThat(telemetryAttributes.get("is_sbom_valid")).isEqualTo(true);
-
-    SbomComponentInfoTelemetry componentInfoTelemetry =
-        (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
-    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("generic", 1), entry("maven", 1));
-  }
-
-  @Test
-  public void testHandleAndFilterContents_validSbom_skipValidationDisabled_telemetryData() throws Exception {
-    String sbomContent = getSbomXmlFile("sbom-v1_4.xml");
-    ThirdPartyScanContent content =
-        new ThirdPartyScanContent("sbom-v1_4-invalid-bom.xml", null, null, null,
-            sbomContent);
-    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
-    sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
-
-    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(telemetrySender).send(telemetryDataArgumentCaptor.capture());
-    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
-
-    assertThat(telemetryData).isNotNull();
-    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SBOM_DATA_METRICS);
-
-    Map<String, Object> telemetryAttributes = telemetryData.getAttributes();
-    assertThat(telemetryAttributes).isNotNull();
-    assertThat(telemetryAttributes.get("is_skip_sbom_validation_feature_flag_enabled")).isEqualTo(false);
-    assertThat(telemetryAttributes.get("is_sbom_valid")).isEqualTo(true);
-
-    SbomComponentInfoTelemetry componentInfoTelemetry =
-        (SbomComponentInfoTelemetry) telemetryAttributes.get("sbom_data_summary");
-    assertThat(componentInfoTelemetry.getEcosystemCount()).contains(entry("generic", 1), entry("maven", 1));
-  }
-
-  @Test
   public void testDependencyGraph_telemetryData() throws Exception {
     String sbomContent = getSbomXmlFile("sbom-v1_4.xml");
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-v1_4.xml", null, null, null,
             sbomContent);
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
 
@@ -2429,6 +2469,7 @@ public class SbomResultHandlerTest
   @Test
   public void testDependencyGraph_noDependencies_telemetryData() throws Exception {
     String sbomContent = getSbomXmlFile("sbom-v1_4_no_dependencies.xml");
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-v1_4_no_dependencies.xml", null, null, null,
             sbomContent);
@@ -2454,6 +2495,7 @@ public class SbomResultHandlerTest
   @Test
   public void testInvalidLicenses_telemetryData() throws Exception {
     String sbomContent = getSbomXmlFile("sbom-license-invalid-expression.xml");
+    when(thirdPartyScanContext.isValid()).thenReturn(true);
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("sbom-license-invalid-expression.xml", null, null, null,
             sbomContent);

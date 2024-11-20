@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Date;
 import java.util.HashMap;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -82,6 +83,35 @@ public class ScanUploadServiceTest
   }
 
   @Test
+  public void testUpload() throws Exception {
+    File scanFile = createScanFile(app, TemporaryEntity.uuid().substring(0, 10));
+    String stageTypeId = ComplianceStageType.ID;
+    String scanId = TemporaryEntity.uuid().substring(0, 10);
+    String scanRequestId = TemporaryEntity.uuid().substring(0, 10);
+    String sbomVersion = TemporaryEntity.uuid().substring(0, 10);
+    ThirdPartyFile tpFile = tempEntity.newThirdPartyFile("filename");
+    tempEntity.newThirdPartyScan(scanRequestId, scanId, tpFile);
+
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), sbomVersion, SbomStatus.PENDING.toString(),
+            "filename", "CycloneDx", "XML", "1.5", new Date(), false);
+    sbomMetadata.setScanType(SbomScanType.SBOM.toString());
+    thirdPartySbomMetadataDAO.update(sbomMetadata);
+
+    ScanReceipt mockReceipt = new ScanReceipt();
+    mockReceipt.setScanId(scanId);
+    when(scanUploader.upload(any(File.class), eq(app), eq(stageTypeId), eq(null))).thenReturn(mockReceipt);
+    ScanReceipt uploadReceipt =
+        service.upload(scanFile, app, stageTypeId, null, null, thirdPartyScanTelemetryData, scanRequestId);
+
+    verify(scanUploader, times(1)).upload(any(File.class), eq(app), eq(stageTypeId), eq(null));
+    verify(thirdPartyScanDAO, times(1)).updateScanIdForScanRequest(scanRequestId, mockReceipt.getScanId());
+    assertThat(uploadReceipt).isEqualTo(mockReceipt);
+    assertThat(thirdPartyScanTelemetryData.getAttributes()).extracting("scan_file_type")
+        .isEqualTo(SbomScanType.SBOM.name());
+  }
+
+  @Test
   public void testFilterAndUpload() throws Exception {
     Stage stage = new Stage(ReleaseStageType.ID);
     String scanId = "ScanUploadServiceTest_scanId";
@@ -98,9 +128,7 @@ public class ScanUploadServiceTest
         .thenReturn(scanRequestId);
     when(scanUploader.upload(any(File.class), eq(app), eq(stage.getStageTypeId()), eq(null)))
         .thenReturn(scanReceipt);
-    when(thirdPartyScanResultsProcessorMock.filterAndSaveData(eq(scanFile), any(File.class),
-        any(File.class), eq(null), eq(null)))
-        .thenReturn(scanRequestId);
+
     ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
     String testClientUserAgent = "client_user_agent";
     when(scanUploader.upload(any(File.class), eq(app), eq(stage.getStageTypeId()), clientUserAgentArgCaptor.capture()))
@@ -111,7 +139,6 @@ public class ScanUploadServiceTest
     verify(thirdPartyScanResultsProcessorMock, times(1))
         .filterAndSaveData(eq(scanFile), any(File.class), any(File.class), eq(mockContext), eq(null));
     verify(thirdPartyScanDAO, times(1)).updateScanIdForScanRequest(scanRequestId, scanId);
-
     assertThat(clientUserAgentArgCaptor.getValue()).isEqualTo(testClientUserAgent);
   }
 

@@ -76,7 +76,7 @@ public class SbomImportResourceAuditTest
     HttpResponse responseCommit = restRequest()
         .path(SbomImportResource.RESOURCE_PATH, SbomImportResource.COMMIT_PATH)
         .parameter(app.getId(),
-            "U0JPTS1hcHBsaWNhdGlvbi94bWwtQ3ljbG9uZUR4LTkxMWQ2MTk1MWU5NDQyOTRiYTYwNGI4YTlmZGJkM2NmLWZpbGUuemlw")
+            "U0JPTS1mYWxzZS14bWwtU0JPTS05MTFkNjE5NTFlOTQ0Mjk0YmE2MDRiOGE5ZmRiZDNjZi1maWxlLnppcA==")
         .post();
     assertResponseStatus(404, responseCommit);
     List<AuditDTO> auditDTOs = assertAuditLogs(AuditEvent.CREATE_SBOM_VERSION, 1, "not-found");

@@ -9,15 +9,18 @@ import java.util.List;
 
 public class SbomDetectionResult
 {
-  public boolean isSbom = false;
+  public List<String> validationErrors;
 
-  public boolean isBinary = false;
+  public SbomSummary summary;
 
   public String errorMessage;
 
-  public List<String> validationErrors;
-
   public String mimeType;
 
-  public SbomSummary summary;
+  public Boolean isValidationErrorIgnorable;
+
+  public Boolean isValid;
+
+  // Is this file an SBOM, if not it is a binary file
+  public boolean isSbom;
 }

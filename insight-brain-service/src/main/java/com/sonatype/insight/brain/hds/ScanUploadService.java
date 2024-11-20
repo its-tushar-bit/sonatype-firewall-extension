@@ -178,13 +178,12 @@ public class ScanUploadService
       final String stageTypeId,
       final ScanContext scanContext)
   {
-    ThirdPartyScanContext thirdPartyScanContext = null;
     if (scanRequestId != null && ComplianceStageType.ID.equals(stageTypeId)) {
       ThirdPartyScan scan = thirdPartyScanDAO.getSingleByScanRequestId(scanRequestId);
       if (scan != null) {
         ThirdPartySbomMetadata sbomMetadata =
             thirdPartySbomMetadataDAO.getByThirdPartyFileId(scan.getThirdPartyFileId());
-        thirdPartyScanContext =
+        ThirdPartyScanContext thirdPartyScanContext =
             new ThirdPartyScanContext(scanRequestId, app.getId(), SbomScanType.valueOf(sbomMetadata.getScanType()),
                 scanFile, stageTypeId);
         thirdPartyScanContext.setThirdPartyFileId(sbomMetadata.getThirdPartyFileId());
@@ -192,15 +191,21 @@ public class ScanUploadService
         thirdPartyScanContext.setApplicationVersion(sbomMetadata.getSbomVersion());
         thirdPartyScanContext.setSbomMetadataId(sbomMetadata.getId());
         thirdPartyScanContext.setThirdPartyScanId(scan.getId());
+        thirdPartyScanContext.setIsValid(sbomMetadata.getIsValid());
+
+        return thirdPartyScanContext;
       }
     }
-    if (thirdPartyScanContext == null) {
-      String newScanRequestId = UUID.randomUUID().toString().replace("-", "");
-      thirdPartyScanContext =
-          new ThirdPartyScanContext(newScanRequestId, app.getId(), SbomScanType.SBOM, scanFile, stageTypeId);
-      if (scanContext != null) {
-        thirdPartyScanContext.setApplicationVersion(scanContext.applicationVersion());
-      }
+
+    String newScanRequestId = UUID.randomUUID().toString().replace("-", "");
+    ThirdPartyScanContext thirdPartyScanContext =
+        new ThirdPartyScanContext(newScanRequestId, app.getId(), SbomScanType.SBOM, scanFile, stageTypeId);
+    if (scanContext != null) {
+      thirdPartyScanContext.setApplicationVersion(scanContext.applicationVersion());
+      thirdPartyScanContext.setIsValid(scanContext.isValid());
+    }
+    else {
+      thirdPartyScanContext.setIsValid(true);
     }
     return thirdPartyScanContext;
   }

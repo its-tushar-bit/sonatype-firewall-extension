@@ -68,7 +68,7 @@ public class ThirdPartySbomMetadataDAOTest
     // Update
     entity.setSbomVersion("new version");
     entity.setSerialNumber("new serial number");
-    entity.setValidationSkipped(true);
+    entity.setIsValid(false);
     dao.update(entity);
 
     fetchedThirdPartySbomMetadata = dao.getById(entity.getId());
@@ -115,14 +115,14 @@ public class ThirdPartySbomMetadataDAOTest
 
     // Read
     ThirdPartySbomMetadata fetchedThirdPartySbomMetadata = dao.getById(id);
-    assertThat(fetchedThirdPartySbomMetadata.getValidationSkipped()).isFalse();
+    assertThat(fetchedThirdPartySbomMetadata.getIsValid()).isFalse();
 
     // Update
-    fetchedThirdPartySbomMetadata.setValidationSkipped(true);
+    fetchedThirdPartySbomMetadata.setIsValid(true);
     dao.update(fetchedThirdPartySbomMetadata);
 
     ThirdPartySbomMetadata updatedThirdPartySbomMetadata = dao.getById(fetchedThirdPartySbomMetadata.getId());
-    assertThat(updatedThirdPartySbomMetadata.getValidationSkipped()).isTrue();
+    assertThat(updatedThirdPartySbomMetadata.getIsValid()).isTrue();
     assertThirdPartySbomMetadata(updatedThirdPartySbomMetadata, fetchedThirdPartySbomMetadata);
   }
 
@@ -327,7 +327,7 @@ public class ThirdPartySbomMetadataDAOTest
     assertThat(actual.getStatus()).isEqualTo(expected.getStatus());
     assertThat(actual.getMetadataJson()).isEqualTo(expected.getMetadataJson());
     assertThat(actual.getScanType()).isEqualTo(expected.getScanType());
-    assertThat(actual.getValidationSkipped()).isEqualTo(expected.getValidationSkipped());
+    assertThat(actual.getIsValid()).isEqualTo(expected.getIsValid());
   }
 
   ThirdPartySbomMetadata createSbomMetadata(boolean save, String status) {

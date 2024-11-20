@@ -51,145 +51,141 @@ public class SbomFileDetectorTest
 
   @Test
   public void testGetSbomMetadata_CycloneDx_Json_Valid_1_4() throws Exception {
-    SbomDetectionResult expected =
-        createExpectedResult(true, true, "application/json", null, null, "1.4", "CycloneDx", "json", 1, 1,
-            "example-sbom-application-1.4",
-            "0.0.1");
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/json", "1.4", "CycloneDx", "json", 1, 1,
+        "example-sbom-application-1.4", "0.0.1");
+
     checkSbomMetadata("cyclonedx-valid-v1_4-json.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDx_Json_Valid_1_5() throws Exception {
-    SbomDetectionResult expected =
-        createExpectedResult(true, true, "application/json", null, null, "1.5", "CycloneDx", "json", 1, 1,
-            "example-sbom-application-1.5",
-            "1.0.1");
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/json", "1.5", "CycloneDx", "json", 1, 1,
+        "example-sbom-application-1.5", "1.0.1");
+
     checkSbomMetadata("cyclonedx-valid-v1_5-json.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDx_XML_Valid_1_0() throws Exception {
     SbomDetectionResult expected =
-        createExpectedResult(true, false, "application/xml", "CycloneDX XML 1.0 version is not supported", null);
+        createInvalidSbomExpectedResult("application/xml", "CycloneDX XML 1.0 version is not supported", null, false);
     checkSbomMetadata("cyclonedx-valid-v1_0.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDx_XML_Valid_1_1() throws Exception {
-    SbomDetectionResult expected =
-        createExpectedResult(true, true, "application/xml", null, null, "1.1", "CycloneDx", "xml", 1, 0, null, null);
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/xml", "1.1", "CycloneDx", "xml", 1, 0,
+         null, null);
+
     checkSbomMetadata("cyclonedx-valid-v1_1.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDx_XML_Valid_1_2() throws Exception {
-    SbomDetectionResult expected =
-        createExpectedResult(true, true, "application/xml", null, null, "1.2", "CycloneDx", "xml", 2, 1,
-            "Acme Application",
-            "9.1.1");
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/xml", "1.2", "CycloneDx", "xml", 2, 1,
+        "Acme Application", "9.1.1");
+
     checkSbomMetadata("cyclonedx-valid-v1_2.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDx_XML_Valid_1_3() throws Exception {
-    SbomDetectionResult expected =
-        createExpectedResult(true, true, "application/xml", null, null, "1.3", "CycloneDx", "xml", 2, 1,
-            "Acme Application",
-            "9.1.1");
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/xml", "1.3", "CycloneDx", "xml", 2, 1,
+        "Acme Application", "9.1.1");
     checkSbomMetadata("cyclonedx-valid-v1_3.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDxVulnerabilityExtension_XML_Valid_1_4() throws Exception {
-    SbomDetectionResult expected =
-        createExpectedResult(true, true, "application/xml", null, null, "1.4", "CycloneDx", "xml", 1, 1, null, null);
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/xml", "1.4", "CycloneDx", "xml", 1, 1,
+        null, null);
     checkSbomMetadata("cyclonedx-vulnerability-ext-v1_4.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDx_XML_Valid_1_5() throws Exception {
-    SbomDetectionResult expected =
-        createExpectedResult(true, true, "application/xml", null, null, "1.5", "CycloneDx", "xml", 1, 1, null, null);
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/xml", "1.5", "CycloneDx", "xml", 1, 1,
+        null, null);
     checkSbomMetadata("cyclonedx-valid-v1_5-xml.tmp", expected);
   }
 
   @Test
   @SuppressWarnings("checkstyle:LineLength")
-  public void testGetSbomMetadata_CycloneDx_XML_Invalid_1_5_skipSbomValidationDisabled() throws Exception {
+  public void testGetSbomMetadata_CycloneDx_XML_Invalid_1_4() throws Exception {
     List<String> expectedErrors = List.of(
         "Line: 22, Column: 16, Path: //bom[1]/components[1]/component[1], Error: cvc-complex-type.2.4.a: Invalid content was found starting with element '{\"http://cyclonedx.org/schema/bom/1.4\":version}'. One of '{\"http://cyclonedx.org/schema/bom/1.4\":name}' is expected."
     );
-    SbomDetectionResult expected = createExpectedResult(true, false, "application/xml",
-        "Not a valid CycloneDX SBOM file.", expectedErrors, "1.5", "CycloneDx", "xml", 1,
-        1, null, null);
-    checkSbomMetadata("cyclonedx-invalid-v1_5-xml.tmp", expected);
+    SbomDetectionResult expected =
+        createInvalidSbomExpectedResult("application/xml", "Not a valid CycloneDX SBOM file.", expectedErrors, true);
+    checkSbomMetadata("cyclonedx-invalid-v1_4-xml.tmp", expected);
   }
 
   @Test
-  public void testGetSbomMetadata_CycloneDx_XML_Invalid_1_5_skipSbomValidationEnabled() throws Exception {
+  public void testGetSbomMetadata_CycloneDx_XML_Invalid_1_4_ignoreValidationError() throws Exception {
+    SbomDetectionResult expected = createValidationIgnoredExpectedResult("application/xml", "1.4", "CycloneDx", "xml",
+        1, 1, "insight-scanner", "2.36.19-SNAPSHOT");
+    checkSbomMetadata("cyclonedx-invalid-v1_4-xml.tmp", expected, true);
+  }
+
+  @Test
+  public void testGetSbomMetadata_CycloneDx_XML_Invalid_1_4_SKIP_SBOM_IMPORT_VALIDATION() throws Exception {
     SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
-    SbomDetectionResult expected =
-        createExpectedResult(true, true, "application/xml", null, null, "1.5", "CycloneDx", "xml", 1, 1, null, null);
-    checkSbomMetadata("cyclonedx-valid-v1_5-xml.tmp", expected);
+    SbomDetectionResult expected = createValidationIgnoredExpectedResult("application/xml", "1.4", "CycloneDx", "xml",
+        1, 1, "insight-scanner", "2.36.19-SNAPSHOT");
+    checkSbomMetadata("cyclonedx-invalid-v1_4-xml.tmp", expected, false);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDx_Valid_Xml5() throws Exception {
-    SbomDetectionResult expected =
-        createExpectedResult(true, true, "application/xml", null, null, "1.5", "CycloneDx", "xml", 1, 0, null, null);
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/xml", "1.5", "CycloneDx", "xml", 1, 0,
+        null, null);
     checkSbomMetadata("cyclonedx-valid-xml.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDx_XML_Valid_OtherExtension() throws Exception {
-    SbomDetectionResult expected =
-        createExpectedResult(true, true, "application/xml", null, null, "1.4", "CycloneDx", "xml", 2, 0,
-            "Acme Application", "9.1.1");
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/xml", "1.4", "CycloneDx", "xml", 2, 0,
+        "Acme Application", "9.1.1");
     checkSbomMetadata("cyclonedx-valid-bom-uknown-extension.abc", expected);
   }
 
   @Test
   public void testGetSbomMetadata_SPDX_XML_Valid_2_3() throws Exception {
-    SbomDetectionResult expected =
-        createExpectedResult(true, true, "application/xml", null, null, "2.3", "SPDX", "xml", 6, 13,
-            "sonatype:iq_application_SCM Test 1",
-            "76b10b862e7b42009f2415097620928c");
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/xml", "2.3", "SPDX", "xml", 6, 13,
+        "sonatype:iq_application_SCM Test 1", "76b10b862e7b42009f2415097620928c");
     checkSbomMetadata("spdx-v2_3-xml.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_SPDX_XML_Valid_2_2() throws Exception {
     SbomDetectionResult expected =
-        createExpectedResult(true, false, "application/xml", "SPDX 2.2 version is not supported", null);
+        createInvalidSbomExpectedResult("application/xml", "SPDX 2.2 version is not supported", null, false);
     checkSbomMetadata("spdx-v2_2-xml.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_SPDX_Json_Valid_2_3() throws Exception {
-    SbomDetectionResult expected2 =
-        createExpectedResult(true, true, "application/json", null, null, "2.3", "SPDX", "json", 6, 5,
-            "sonatype:iq_application_SCM Test 1", "76b10b862e7b42009f2415097620928c");
-    checkSbomMetadata("spdx-v2_3-json.tmp", expected2);
+    SbomDetectionResult expected = createValidSbomExpectedResult("application/json", "2.3", "SPDX", "json", 6, 5,
+        "sonatype:iq_application_SCM Test 1", "76b10b862e7b42009f2415097620928c");
+    checkSbomMetadata("spdx-v2_3-json.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_Other_Xml() throws Exception {
-    SbomDetectionResult expected =
-        createExpectedResult(false, true, "application/xml", "Not a valid/supported sbom file.", null);
+    SbomDetectionResult expected = createBinaryExpectedResult("application/xml", "Not a valid/supported SBOM file.");
     checkSbomMetadata("non-sbom-xml.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_Other_Json() throws Exception {
-    SbomDetectionResult expected =
-        createExpectedResult(false, true, "application/json", "Not a valid/supported sbom file.", null);
+    SbomDetectionResult expected = createBinaryExpectedResult("application/json", "Not a valid/supported SBOM file.");
     checkSbomMetadata("non-sbom-json.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_CycloneDx_InvalidJson() throws Exception {
     SbomDetectionResult expected =
-        createExpectedResult(false, true, "text/plain", "Provided file type is not a supported SBOM file type.", null);
+        createBinaryExpectedResult("text/plain", "Provided file type is not a supported SBOM file type.");
     checkSbomMetadata("scyclonedx-invalid-json.tmp", expected);
   }
 
@@ -197,10 +193,9 @@ public class SbomFileDetectorTest
   @SuppressWarnings("checkstyle:LineLength")
   public void testGetSbomMetadata_CycloneDx_InvalidXml() throws Exception {
     List<String> expectedErrors = List.of(
-        "Line: 24, Column: 14, Error: The end-tag for element type \"component\" must end with a '>' delimiter."
-    );
+        "Line: 24, Column: 14, Error: The end-tag for element type \"component\" must end with a '>' delimiter.");
     SbomDetectionResult expected =
-        createExpectedResult(true, false, "application/xml", "Not a valid CycloneDX SBOM file.", expectedErrors);
+        createInvalidSbomExpectedResult("application/xml", "Not a valid CycloneDX SBOM file.", expectedErrors, false);
     checkSbomMetadata("cyclonedx-invalid-xml.tmp", expected);
   }
 
@@ -218,44 +213,54 @@ public class SbomFileDetectorTest
         "Line: 14669, Column: 56, Path: //bom[1]/components[1]/component[463]/externalReferences[1]/reference[1]/url[1], Error: cvc-type.3.1.3: The value 'git@github.com:lupomontero/psl.git' of element 'url' is not valid."
     );
     SbomDetectionResult expected =
-        createExpectedResult(true, false, "application/xml", "Not a valid CycloneDX SBOM file.", expectedErrors);
+        createInvalidSbomExpectedResult("application/xml", "Not a valid CycloneDX SBOM file.", expectedErrors, true);
     checkSbomMetadata("cyclonedx-invalid-2-xml.tmp", expected);
   }
 
   @Test
-  @SuppressWarnings("checkstyle:LineLength")
   public void testGetSbomMetadata_SPDX_InvalidJson() throws Exception {
-    List<String> expectedErrors = List.of(
-        "Line: 1, Column: 2, Path: $, Error: required property 'dataLicense' not found",
-        "Line: 1, Column: 2, Path: $, Error: required property 'name' not found"
-    );
+    List<String> expectedErrors =
+        List.of("Line: 1, Column: 2, Path: $, Error: required property 'dataLicense' not found",
+            "Line: 1, Column: 2, Path: $, Error: required property 'name' not found");
     SbomDetectionResult expected =
-        createExpectedResult(true, false, "application/json", "Not a valid SPDX SBOM file.", expectedErrors);
+        createInvalidSbomExpectedResult("application/json", "Not a valid SPDX SBOM file.", expectedErrors, true);
     checkSbomMetadata("spdx-invalid-json.tmp", expected);
   }
 
   @Test
+  public void testGetSbomMetadata_SPDX_InvalidJson_ignoreValidationError() throws Exception {
+    SbomDetectionResult expected = createValidationIgnoredExpectedResult("application/json", "2.3", "SPDX", "json", 6,
+        13, "sonatype:iq_application_SCM Test 1", "76b10b862e7b42009f2415097620928c");
+    checkSbomMetadata("spdx-invalid-json.tmp", expected, true);
+  }
+
+  @Test
+  public void testGetSbomMetadata_SPDX_InvalidJson_SKIP_SBOM_IMPORT_VALIDATION() throws Exception {
+    SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.setEnabled(true);
+    SbomDetectionResult expected = createValidationIgnoredExpectedResult("application/json", "2.3", "SPDX", "json", 6,
+        13, "sonatype:iq_application_SCM Test 1", "76b10b862e7b42009f2415097620928c");
+    checkSbomMetadata("spdx-invalid-json.tmp", expected, true);
+  }
+
+  @Test
   public void testGetSbomMetadata_SPDX_InvalidXml() throws Exception {
-    List<String> expectedErrors = List.of(
-        "Error: Mismatched externalRefs and packages at 880 [character 12 line 21]"
-    );
-    SbomDetectionResult expected =
-        createExpectedResult(true, false, "application/xml", "Not a valid SPDX SBOM file.", expectedErrors);
+    SbomDetectionResult expected = createInvalidSbomExpectedResult("application/xml", "Not a valid SPDX SBOM file.",
+        List.of("Error: Mismatched externalRefs and packages at 880 [character 12 line 21]"), false);
     checkSbomMetadata("spdx-invalid-xml.tmp", expected);
   }
 
   @Test
   public void testGetSbomMetadata_Other_Binary() throws Exception {
-    SbomDetectionResult expected1 = createExpectedResult(false, true, "application/java-vm",
-        "Provided file type is not a supported SBOM file type.", null);
-    checkSbomMetadataUsingFile("test.bin", expected1);
-    checkSbomMetadataUsingFileWithGenericExtension("test.bin", expected1);
+    SbomDetectionResult expected = createBinaryExpectedResult("application/java-vm",
+        "Provided file type is not a supported SBOM file type.");
+    checkSbomMetadataUsingFile("test.bin", expected, false);
+    checkSbomMetadataUsingFileWithGenericExtension("test.bin", expected, false);
   }
 
   @Test
   public void testGetSbomMetadata_Other_Text() throws Exception {
-    SbomDetectionResult expected =
-        createExpectedResult(false, true, "text/plain", "Provided file type is not a supported SBOM file type.", null);
+    SbomDetectionResult expected = createBinaryExpectedResult("text/plain",
+        "Provided file type is not a supported SBOM file type.");
     checkSbomMetadata("test.tt", expected);
   }
 
@@ -283,25 +288,22 @@ public class SbomFileDetectorTest
   @Test
   @SuppressWarnings("checkstyle:LineLength")
   public void testGetSbomMetadata_CDX_Json_BadStructure() throws Exception {
-    List<String> expectedErrors = List.of(
-        "Error: Unable to parse BOM from byte array",
-        "Line: 11, Column: 3, Error: Unexpected close marker ']': expected '}' (for Object starting at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 6, column: 2])"
-    );
+    List<String> expectedErrors = List.of("Error: Unable to parse BOM from byte array",
+        "Line: 11, Column: 3, Error: Unexpected close marker ']': expected '}' (for Object starting at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 6, column: 2])");
     SbomDetectionResult expected1 =
-        createExpectedResult(true, false, "application/json", "Not a valid CycloneDX SBOM file.", expectedErrors);
-    checkSbomMetadataUsingFile("cdx-bad-structure.json", expected1);
+        createInvalidSbomExpectedResult("application/json", "Not a valid CycloneDX SBOM file.", expectedErrors, false);
+    checkSbomMetadataUsingFile("cdx-bad-structure.json", expected1, false);
     SbomDetectionResult expected2 =
-        createExpectedResult(false, true, "text/plain", "Provided file type is not a supported SBOM file type.", null);
-    checkSbomMetadataUsingFileWithGenericExtension("cdx-bad-structure.json", expected2);
+        createBinaryExpectedResult("text/plain", "Provided file type is not a supported SBOM file type.");
+    checkSbomMetadataUsingFileWithGenericExtension("cdx-bad-structure.json", expected2, false);
   }
 
   @Test
   public void testGetSbomMetadata_CDX_Xml_BadStructure() throws Exception {
     List<String> expectedErrors = List.of(
-        "Line: 9, Column: 1, Error: The end-tag for element type \"components\" must end with a '>' delimiter."
-    );
+        "Line: 9, Column: 1, Error: The end-tag for element type \"components\" must end with a '>' delimiter.");
     SbomDetectionResult expected =
-        createExpectedResult(true, false, "application/xml", "Not a valid CycloneDX SBOM file.", expectedErrors);
+        createInvalidSbomExpectedResult("application/xml", "Not a valid CycloneDX SBOM file.", expectedErrors, false);
     checkSbomMetadata("cdx-bad-structure.xml", expected);
   }
 
@@ -309,73 +311,79 @@ public class SbomFileDetectorTest
   @SuppressWarnings("checkstyle:LineLength")
   public void testGetSbomMetadata_SPDX_Json_BadStructure() throws Exception {
     List<String> expectedErrors = List.of(
-        "Line: 20, Column: 3, Error: Unexpected close marker ']': expected '}' (for Object starting at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 15, column: 2])"
-    );
+        "Line: 20, Column: 3, Error: Unexpected close marker ']': expected '}' (for Object starting at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 15, column: 2])");
     SbomDetectionResult expected1 =
-        createExpectedResult(true, false, "application/json", "Not a valid SPDX SBOM file.", expectedErrors);
-    checkSbomMetadataUsingFile("spdx-bad-structure.json", expected1);
+        createInvalidSbomExpectedResult("application/json", "Not a valid SPDX SBOM file.", expectedErrors, false);
+    checkSbomMetadataUsingFile("spdx-bad-structure.json", expected1, false);
     SbomDetectionResult expected2 =
-        createExpectedResult(false, true, "text/plain", "Provided file type is not a supported SBOM file type.", null);
-    checkSbomMetadataUsingFileWithGenericExtension("spdx-bad-structure.json", expected2);
+        createBinaryExpectedResult("text/plain", "Provided file type is not a supported SBOM file type.");
+    checkSbomMetadataUsingFileWithGenericExtension("spdx-bad-structure.json", expected2, false);
   }
 
   @Test
   public void testGetSbomMetadata_SPDX_Xml_BadStructure() throws Exception {
-    List<String> expectedErrors = List.of(
-        "Error: Misplaced '<' at 606 [character 1 line 20]"
-    );
+    List<String> expectedErrors = List.of("Error: Misplaced '<' at 606 [character 1 line 20]");
     SbomDetectionResult expected =
-        createExpectedResult(true, false, "application/xml", "Not a valid SPDX SBOM file.", expectedErrors);
+        createInvalidSbomExpectedResult("application/xml", "Not a valid SPDX SBOM file.", expectedErrors, false);
     checkSbomMetadata("spdx-bad-structure.xml", expected);
   }
-  
+
   @Test
   public void testGetSbomMetadata_Json_BadStructure() throws Exception {
     SbomDetectionResult expected1 =
-        createExpectedResult(false, true, "application/json", "Not a valid/supported sbom file.", null);
-    checkSbomMetadataUsingFile("bad-structure.json", expected1);
+        createBinaryExpectedResult("application/json", "Not a valid/supported SBOM file.");
+    checkSbomMetadataUsingFile("bad-structure.json", expected1, false);
     SbomDetectionResult expected2 =
-        createExpectedResult(false, true, "text/plain", "Provided file type is not a supported SBOM file type.", null);
-    checkSbomMetadataUsingFileWithGenericExtension("bad-structure.json", expected2);
+        createBinaryExpectedResult("text/plain", "Provided file type is not a supported SBOM file type.");
+    checkSbomMetadataUsingFileWithGenericExtension("bad-structure.json", expected2, false);
   }
-  
+
   @Test
   public void testGetSbomMetadata_Xml_BadStructure() throws Exception {
     SbomDetectionResult expected =
-        createExpectedResult(false, true, "application/xml", "Not a valid/supported sbom file.", null);
+        createBinaryExpectedResult("application/xml", "Not a valid/supported SBOM file.");
     checkSbomMetadata("bad-structure.xml", expected);
   }
 
-  private void checkSbomMetadataUsingFile(String fileName, SbomDetectionResult expected) {
+  private void checkSbomMetadataUsingFile(
+      String fileName, SbomDetectionResult expected, boolean ignoreValidationError)
+  {
     File fileToDetect = getTestFile(fileName);
-    SbomDetectionResult resultFromFile = detector.getSbomDetectionResult(fileToDetect);
+    SbomDetectionResult resultFromFile = detector.getSbomDetectionResult(fileToDetect, ignoreValidationError);
 
     verifySbomDetectionResult(resultFromFile, expected);
   }
 
-  private void checkSbomMetadataUsingString(String fileName, SbomDetectionResult expected) throws Exception {
+  private void checkSbomMetadataUsingString(
+      String fileName, SbomDetectionResult expected, boolean ignoreValidationError) throws Exception
+  {
     File fileToDetect = getTestFile(fileName);
     SbomDetectionResult resultFromFile =
-        detector.getSbomDetectionResult(Files.readString(fileToDetect.toPath(), StandardCharsets.UTF_8));
+        detector.getSbomDetectionResult(Files.readString(fileToDetect.toPath(), StandardCharsets.UTF_8),
+            ignoreValidationError);
 
     verifySbomDetectionResult(resultFromFile, expected);
   }
 
-  private void checkSbomMetadataUsingFileWithGenericExtension(String fileName, SbomDetectionResult expected)
-      throws Exception
+  private void checkSbomMetadataUsingFileWithGenericExtension(
+      String fileName, SbomDetectionResult expected, boolean ignoreValidationError) throws Exception
   {
     File fileToDetect = copyFileWithGenericExtension(getTestFile(fileName));
-    SbomDetectionResult resultFromFile = detector.getSbomDetectionResult(fileToDetect);
+    SbomDetectionResult resultFromFile = detector.getSbomDetectionResult(fileToDetect, ignoreValidationError);
 
     verifySbomDetectionResult(resultFromFile, expected);
   }
 
-  private void checkSbomMetadata(String fileName, SbomDetectionResult expected)
+  private void checkSbomMetadata(String fileName, SbomDetectionResult expected, boolean ignoreValidationError)
       throws Exception
   {
-    checkSbomMetadataUsingFile(fileName, expected);
-    checkSbomMetadataUsingString(fileName, expected);
-    checkSbomMetadataUsingFileWithGenericExtension(fileName, expected);
+    checkSbomMetadataUsingFile(fileName, expected, ignoreValidationError);
+    checkSbomMetadataUsingString(fileName, expected, ignoreValidationError);
+    checkSbomMetadataUsingFileWithGenericExtension(fileName, expected, ignoreValidationError);
+  }
+
+  private void checkSbomMetadata(String fileName, SbomDetectionResult expected) throws Exception {
+    checkSbomMetadata(fileName, expected, false);
   }
 
   private File copyFileWithGenericExtension(File file) throws Exception {
@@ -384,19 +392,63 @@ public class SbomFileDetectorTest
     return target;
   }
 
-  private static SbomDetectionResult createExpectedResult(
+  private static SbomDetectionResult createValidSbomExpectedResult(
+      String mimeType,
+      String version,
+      String specification,
+      String format,
+      int componentCount,
+      int vulnerabilityCount,
+      String applicationName,
+      String applicationVersion)
+  {
+    return createExpectedResult(true, true, null, mimeType, null, null, version, specification, format,
+        componentCount, vulnerabilityCount, applicationName, applicationVersion);
+  }
+
+  private static SbomDetectionResult createValidationIgnoredExpectedResult(
+      String mimeType,
+      String version,
+      String specification,
+      String format,
+      int componentCount,
+      int vulnerabilityCount,
+      String applicationName,
+      String applicationVersion)
+  {
+    return createExpectedResult(true, false, true, mimeType, null, null, version, specification, format,
+        componentCount, vulnerabilityCount, applicationName, applicationVersion);
+  }
+
+  private static SbomDetectionResult createInvalidSbomExpectedResult(
+      String mimeType,
+      String errorMessage,
+      List<String> errors,
+      Boolean isValidationErrorIgnorable)
+  {
+    return createExpectedErrorResult(true, false, isValidationErrorIgnorable, mimeType, errorMessage, errors);
+  }
+
+  private static SbomDetectionResult createBinaryExpectedResult(String mimeType, String errorMessage) {
+    return createExpectedErrorResult(false, null, null, mimeType, errorMessage, null);
+  }
+
+  private static SbomDetectionResult createExpectedErrorResult(
       boolean isSbom,
-      boolean isBinary,
+      Boolean isValid,
+      Boolean isValidationErrorIgnorable,
       String mimeType,
       String errorMessage,
       List<String> errors)
   {
-    return createExpectedResult(isSbom, isBinary, mimeType, errorMessage, errors, null, null, null, 0, 0, null, null);
+    return createExpectedResult(isSbom, isValid, isValidationErrorIgnorable, mimeType, errorMessage, errors,
+        null, null, null, 0, 0, null, null);
   }
 
   private static SbomDetectionResult createExpectedResult(
       boolean isSbom,
-      boolean isBinary,
+      Boolean isValid,
+      Boolean isValidationErrorIgnorable,
       String mimeType,
       String errorMessage,
       List<String> errors,
@@ -410,7 +462,8 @@ public class SbomFileDetectorTest
   {
     SbomDetectionResult expected = new SbomDetectionResult();
     expected.isSbom = isSbom;
-    expected.isBinary = isBinary;
+    expected.isValid = isValid;
+    expected.isValidationErrorIgnorable = isValidationErrorIgnorable;
     expected.mimeType = mimeType;
     if (errorMessage != null) {
       expected.errorMessage = errorMessage;
@@ -434,7 +487,8 @@ public class SbomFileDetectorTest
       SbomDetectionResult expected)
   {
     assertThat(result.isSbom).isEqualTo(expected.isSbom);
-    assertThat(result.isBinary).isEqualTo(expected.isBinary);
+    assertThat(result.isValid).isEqualTo(expected.isValid);
+    assertThat(result.isValidationErrorIgnorable).isEqualTo(expected.isValidationErrorIgnorable);
     assertThat(result.mimeType).isEqualTo(expected.mimeType);
     assertThat(result.errorMessage).isEqualTo(expected.errorMessage);
     assertThat(result.validationErrors).isEqualTo(expected.validationErrors);

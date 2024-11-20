@@ -201,36 +201,6 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
   }
 
   @Test
-  public void testImportSbomModal_fileUploadFail_nonValidationError() {
-    refreshOrOpen(SbomManagerApplicationSummaryPage.url(application.getPublicId()));
-
-    SbomsTile sbomsTile = SbomManagerApplicationSummaryPage.sbomsTile();
-    sbomsTile.importButton().click();
-    ImportSbomModal importSbomModal = sbomSummaryPage.importSbomModal();
-
-    importSbomModal.shouldBe(visible);
-
-    File file = new File(testFilesPath + "empty.json");
-
-    importSbomModal.title().shouldHave(text("Import File for Application " + application.getName()));
-    importSbomModal.fileUpload().shouldBe(visible).uploadFile(file);
-    importSbomModal.fileSelected().shouldBe(visible).shouldHave(text("empty.json"));
-    importSbomModal.cancelCloseButton().shouldBe(visible);
-
-    importSbomModal.importSbomButton().shouldBe(visible, enabled).click();
-
-    importSbomModal.title().shouldHave(text("Error Importing SBOM"));
-    importSbomModal.fileUpload().shouldNotBe(visible);
-    importSbomModal.fileSelected().shouldNotBe(visible);
-    importSbomModal.errorAlert().shouldBe(visible);
-    importSbomModal.warnAlert().shouldNotBe(visible);
-    importSbomModal.copyToClipboardButton().shouldNotBe(visible);
-    importSbomModal.validationErrors().shouldNotBe(visible);
-    importSbomModal.importSbomButton().shouldBe(visible, disabled);
-    importSbomModal.cancelCloseButton().shouldBe(visible);
-  }
-
-  @Test
   public void testImportSbomModal_toastMessage() {
     refreshOrOpen(SbomManagerApplicationSummaryPage.url(application.getPublicId()));
 

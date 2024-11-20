@@ -65,12 +65,12 @@ public final class TelemetryUtils
 
   public TelemetryData buildThirdPartyScanComponentInfoTelemetryData(
       final SbomComponentInfoTelemetry componentInfoTelemetry,
-      final boolean isFeatureFlagEnabled,
+      final boolean isSkipValidationFeatureFlagEnabled,
       final boolean isSbomValid)
   {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SBOM_DATA_METRICS);
     telemetryData.put(SbomComponentInfoTelemetry.ATTRIBUTE_NAME, componentInfoTelemetry);
-    telemetryData.put("is_skip_sbom_validation_feature_flag_enabled", isFeatureFlagEnabled);
+    telemetryData.put("is_skip_sbom_validation_feature_flag_enabled", isSkipValidationFeatureFlagEnabled);
     telemetryData.put("is_sbom_valid", isSbomValid);
 
     return telemetryData;

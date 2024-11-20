@@ -53,7 +53,7 @@ export const sbomMetadataInitialState = Object.freeze({
   specVersion: null,
   fileFormat: null,
   createdAt: null,
-  validationSkipped: null,
+  isValid: null,
 });
 
 export const vulnerabilitiesSummaryInitialState = Object.freeze({

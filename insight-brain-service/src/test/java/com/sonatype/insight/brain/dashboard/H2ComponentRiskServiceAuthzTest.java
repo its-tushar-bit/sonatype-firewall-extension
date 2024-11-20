@@ -18,7 +18,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ComponentRiskServiceAuthzTest
+public class H2ComponentRiskServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject

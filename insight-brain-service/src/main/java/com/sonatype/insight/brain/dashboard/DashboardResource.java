@@ -66,7 +66,7 @@ public class DashboardResource
 
   private final NewestRiskService newestRiskService;
 
-  private final DashboardPolicyWaiverService dashboardPolicyWaiverService;
+  private final PolicyWaiverService policyWaiverService;
 
   @Inject
   public DashboardResource(
@@ -74,13 +74,13 @@ public class DashboardResource
       DashboardFilterService dashboardFilterService,
       ComponentRiskService componentRiskService,
       NewestRiskService newestRiskService,
-      DashboardPolicyWaiverService dashboardPolicyWaiverService)
+      PolicyWaiverService policyWaiverService)
   {
     this.applicationRiskService = applicationRiskService;
     this.componentRiskService = componentRiskService;
     this.dashboardFilterService = dashboardFilterService;
     this.newestRiskService = newestRiskService;
-    this.dashboardPolicyWaiverService = dashboardPolicyWaiverService;
+    this.policyWaiverService = policyWaiverService;
   }
 
   @POST
@@ -265,7 +265,7 @@ public class DashboardResource
     if (risksFilterDTO == null) {
       throw new BadRequestException("Invalid filter supplied for request.");
     }
-    return dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTO, includeAutoWaivers);
+    return policyWaiverService.getDashboardPolicyWaivers(risksFilterDTO, includeAutoWaivers);
   }
 
   /**
@@ -284,7 +284,7 @@ public class DashboardResource
     risksFilterDTO.pageSize = Integer.MAX_VALUE;
     risksFilterDTO.page = 0;
 
-    final List<DashboardPolicyWaiverDTO> results = dashboardPolicyWaiverService
+    final List<DashboardPolicyWaiverDTO> results = policyWaiverService
         .getDashboardPolicyWaiversForExport(risksFilterDTO, includeAutoWaivers).dashboardResults;
 
     String fileNamePrefix = calculateFileNamePrefixForView("waivers");

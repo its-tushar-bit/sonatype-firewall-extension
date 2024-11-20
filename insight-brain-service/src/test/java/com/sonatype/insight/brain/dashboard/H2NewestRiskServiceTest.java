@@ -50,14 +50,14 @@ import static com.sonatype.insight.brain.utils.DisplayFieldValueAssertionUtil.as
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class NewestRiskServiceTest
+public class H2NewestRiskServiceTest
     extends AbstractComponentTest
 {
   @Inject
   private PolicyViolationDAO policyViolationDAO;
 
   @Inject
-  private NewestRiskService newestRiskService;
+  private H2NewestRiskService newestRiskService;
 
   @Inject
   private TestProductLicense testProductLicense;

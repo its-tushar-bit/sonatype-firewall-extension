@@ -20,13 +20,13 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.dashboard.ExpirationDate.NEVER;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DashboardPolicyWaiverServiceAuthzTest
+public class H2PolicyWaiverServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   private RisksFilterDTOBuilder risksFilterDTOBuilder;
 
   @Inject
-  private DashboardPolicyWaiverService dashboardPolicyWaiverService;
+  private H2PolicyWaiverService dashboardPolicyWaiverService;
 
   private Organization parentOrg;
 

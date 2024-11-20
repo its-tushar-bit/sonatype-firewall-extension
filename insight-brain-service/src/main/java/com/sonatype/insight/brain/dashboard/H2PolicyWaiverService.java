@@ -18,7 +18,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -55,9 +54,10 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 @Named
-public class DashboardPolicyWaiverService
+public class H2PolicyWaiverService
+    implements PolicyWaiverService
 {
-  private static final Logger log = LoggerFactory.getLogger(DashboardPolicyWaiverService.class);
+  private static final Logger log = LoggerFactory.getLogger(H2PolicyWaiverService.class);
 
   private final DashboardUtils dashboardUtils;
 
@@ -79,7 +79,7 @@ public class DashboardPolicyWaiverService
       Collectors.toMap(Owner::getId, Function.identity(), (existing, replacement) -> existing);
 
   @Inject
-  public DashboardPolicyWaiverService(
+  public H2PolicyWaiverService(
       DashboardUtils dashboardUtils,
       ApplicationService applicationService,
       OrganizationService organizationService,
@@ -99,16 +99,19 @@ public class DashboardPolicyWaiverService
     this.repositoryService = repositoryService;
   }
 
+  @Override
   public DashboardResultsDTO<DashboardPolicyWaiverDTO> getDashboardPolicyWaivers(final RisksFilterDTO risksFilterDTO) {
     return getDashboardPolicyWaivers(risksFilterDTO, false, false);
   }
 
+  @Override
   public DashboardResultsDTO<DashboardPolicyWaiverDTO> getDashboardPolicyWaiversForExport(
       final RisksFilterDTO risksFilterDTO)
   {
     return getDashboardPolicyWaiversForExport(risksFilterDTO, false);
   }
 
+  @Override
   public DashboardResultsDTO<DashboardPolicyWaiverDTO> getDashboardPolicyWaiversForExport(
       final RisksFilterDTO risksFilterDTO,
       boolean includeAutoWaivers)
@@ -116,6 +119,7 @@ public class DashboardPolicyWaiverService
     return getDashboardPolicyWaivers(risksFilterDTO, true, includeAutoWaivers);
   }
 
+  @Override
   public DashboardResultsDTO<DashboardPolicyWaiverDTO> getDashboardPolicyWaivers(
       final RisksFilterDTO risksFilterDTO,
       boolean includeAutoWaivers)

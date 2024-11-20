@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.util.Collections;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -17,11 +16,11 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class NewestRiskServiceAuthzTest
+public class H2NewestRiskServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
-  private NewestRiskService newestRiskService;
+  private H2NewestRiskService newestRiskService;
 
   @Test
   public void testGetNewestRisks_ExplicitApplicationFilter_Unauthenticated() {

@@ -19,7 +19,6 @@ import java.util.TreeMap;
 import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -80,11 +79,11 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class DashboardPolicyWaiverServiceTest
+public class H2PolicyWaiverServiceTest
     extends AbstractComponentTest
 {
   @Inject
-  private DashboardPolicyWaiverService dashboardPolicyWaiverService;
+  private H2PolicyWaiverService dashboardPolicyWaiverService;
 
   @Inject
   private TestProductLicense testProductLicense;

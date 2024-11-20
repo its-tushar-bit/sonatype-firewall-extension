@@ -43,11 +43,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class ApplicationRiskServiceTest
+public class H2ApplicationRiskServiceTest
     extends AbstractComponentTest
 {
   @Inject
-  private ApplicationRiskService applicationRiskService;
+  private H2ApplicationRiskService applicationRiskService;
 
   @Inject
   private TestProductLicense testProductLicense;

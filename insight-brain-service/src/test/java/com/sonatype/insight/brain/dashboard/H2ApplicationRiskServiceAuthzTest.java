@@ -22,11 +22,11 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ApplicationRiskServiceAuthzTest
+public class H2ApplicationRiskServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
-  private ApplicationRiskService applicationRiskService;
+  private H2ApplicationRiskService applicationRiskService;
 
   @Before
   public void setup() {

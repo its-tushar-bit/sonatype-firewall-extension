@@ -53,6 +53,7 @@ import {
   selectIsScmEnabled,
   selectIsSbomContinuousMonitoringUiEnabled,
   selectIsDeveloperDashboardEnabled,
+  selectIsAutoWaiversEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSlice';
 import Hexagon from 'MainRoot/react/Hexagon';
@@ -109,6 +110,7 @@ export default function OwnerDetailSidebar() {
   const isSbomContinuousMonitoringUiEnabled = useSelector(selectIsSbomContinuousMonitoringUiEnabled);
   const isWaivers = useSelector(selectIsWaivers);
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
+  const isAutoWaiverEnabled = useSelector(selectIsAutoWaiversEnabled);
 
   const uiRouterState = useRouterState();
 
@@ -434,7 +436,7 @@ export default function OwnerDetailSidebar() {
         ))}
       </NxCollapsibleItems>
       {/* Waivers */}
-      {!isRepositoriesRelated && isScmEnabled && isDeveloperDashboardEnabled && !isSbomManager && (
+      {!isRepositoriesRelated && isDeveloperDashboardEnabled && !isSbomManager && isAutoWaiverEnabled && (
         <NxCollapsibleItems.Child role="menuitem">
           <NxTextLink className={`iq-noncollapsible ${isWaivers ? 'selected' : ''}`} href={`${linkMainHref}/waivers`}>
             Waivers

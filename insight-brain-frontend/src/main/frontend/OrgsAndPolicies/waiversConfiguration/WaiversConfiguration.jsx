@@ -26,12 +26,14 @@ import { actions } from 'MainRoot/OrgsAndPolicies/automatedWaiversSlice';
 import './_waiversConfiguration.scss';
 import { selectWaiversConfigPage, selectWaiversSlice } from 'MainRoot/OrgsAndPolicies/automatedWaiversSelectors';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const WaiversConfiguration = () => {
   const dispatch = useDispatch();
   const { loading, loadError } = useSelector(selectProductFeaturesSlice);
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
   const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
+  const isSbomManager = useSelector(selectIsSbomManager);
 
   const doLoad = () => dispatch(actions.loadWaiversConfigurationPage());
 
@@ -41,7 +43,7 @@ const WaiversConfiguration = () => {
 
   return (
     <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
-      {isDeveloperDashboardEnabled && isAutoWaiversEnabled ? (
+      {isDeveloperDashboardEnabled && isAutoWaiversEnabled && !isSbomManager ? (
         <WaiversConfigurationContents />
       ) : (
         <LicenseLockScreenForWaivers />

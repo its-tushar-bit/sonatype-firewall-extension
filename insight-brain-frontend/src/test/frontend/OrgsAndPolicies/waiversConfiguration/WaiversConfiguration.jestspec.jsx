@@ -9,6 +9,7 @@ import { render, screen, waitFor } from 'TestRoot/SpecUtil';
 import axiosMockAdapter from 'axios-mock-adapter';
 import axios from 'axios';
 import * as ProductFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { getWaiversConfigurationURL } from 'MainRoot/util/CLMLocation';
 
 describe('Waivers Configuration Component', () => {
@@ -99,6 +100,18 @@ describe('Waivers Configuration Component', () => {
   it('renders LicenseLockScreenForWaivers when one of feature flags is disabled', async () => {
     jest.spyOn(ProductFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').mockReturnValue(true);
     jest.spyOn(ProductFeaturesSelectors, 'selectIsAutoWaiversEnabled').mockReturnValue(false);
+    render(<WaiversConfiguration />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Automated Waivers' })).toBeVisible();
+      expect(screen.getByTestId('iq-integrations__missing-license')).toBeVisible();
+    });
+  });
+
+  it('renders LicenseLockScreenForWaivers when isSbomManager is true', async () => {
+    jest.spyOn(ProductFeaturesSelectors, 'selectIsDeveloperDashboardEnabled').mockReturnValue(true);
+    jest.spyOn(ProductFeaturesSelectors, 'selectIsAutoWaiversEnabled').mockReturnValue(true);
+    jest.spyOn(routerSelectors, 'selectIsSbomManager').mockReturnValue(true);
     render(<WaiversConfiguration />);
 
     await waitFor(() => {

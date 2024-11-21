@@ -13,7 +13,7 @@ import {
   selectIsDeveloperDashboardEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
-import { selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsSbomManager, selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function AutomatedWaiversTile() {
@@ -26,13 +26,14 @@ export default function AutomatedWaiversTile() {
   const router = useSelector(selectRouterSlice());
   const { to, params } = deriveEditRoute(router, 'edit-waivers');
   const href = uiStateRouter.href(to, params);
+  const isSbomManager = useSelector(selectIsSbomManager);
 
   const doLoad = () => dispatch(actions.loadWaiversConfiguration());
   useEffect(() => {
     doLoad();
   }, []);
 
-  if (!isDeveloperEnabled || !isAutoWaiversEnabled) {
+  if (!isDeveloperEnabled || !isAutoWaiversEnabled || isSbomManager) {
     return null;
   }
 

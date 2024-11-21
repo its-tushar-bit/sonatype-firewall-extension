@@ -9,6 +9,7 @@ import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeatu
 import AutomatedWaiversTile from 'MainRoot/OrgsAndPolicies/ownerSummary/AutomatedWaiversTile';
 import { getCompositeSourceControlUrl, getWaiversConfigurationURL } from 'MainRoot/util/CLMLocation';
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('AutomatedWaiversTile', () => {
   let axiosMock, renderComponent, state;
@@ -231,6 +232,14 @@ describe('AutomatedWaiversTile', () => {
     it('does not render when isAutoWaiverEnabled is false', async () => {
       jest.spyOn(productFeaturesSelectors, 'selectIsAutoWaiversEnabled').mockReturnValue(false);
 
+      renderComponent(initialState);
+
+      const title = screen.queryByText('Waivers');
+      expect(title).toBeNull();
+    });
+
+    it('does not render when isSbomManager is true', async () => {
+      jest.spyOn(routerSelectors, 'selectIsSbomManager').mockReturnValue(false);
       renderComponent(initialState);
 
       const title = screen.queryByText('Waivers');

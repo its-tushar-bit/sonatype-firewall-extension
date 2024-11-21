@@ -181,6 +181,18 @@ describe('constraintUtil', () => {
       });
     });
 
+    describe('cocoapods', () => {
+      const value = {
+        format: 'cocoapods',
+        name: initUserInput('name'),
+        version: initUserInput('version'),
+      };
+
+      it('returns combined coordinates value for cocoapods', () => {
+        expect(getCoordinatesValue(value)).toBe('cocoapods:name:version');
+      });
+    });
+
     describe('conan', () => {
       const value = {
         format: 'conan',

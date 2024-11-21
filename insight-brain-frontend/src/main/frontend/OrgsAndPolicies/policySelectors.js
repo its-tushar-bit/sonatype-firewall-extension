@@ -68,6 +68,8 @@ const computeValidatableFieldsForCoordinates = (fields) => {
     );
   } else if (fields.format === 'npm') {
     return values(omit(['format'], fields));
+  } else if (fields.format === 'cocoapods') {
+    return values(omit(['format'], fields));
   } else if (fields.format === 'conan') {
     return values(
       omit(

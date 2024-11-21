@@ -699,6 +699,34 @@ describe('PolicyEditorSpec', () => {
           expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');
         });
 
+        it('for cocoapods', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
+          renderComponent(initState);
+
+          const conditionTypeSelect = await screen.findByTestId('constraint__condition-type');
+          fireEvent.change(conditionTypeSelect, { target: { value: 'Coordinates' } });
+          const coordinatesFormatSelect = await screen.findByTestId('constraint__coordinates-format');
+
+          fireEvent.change(coordinatesFormatSelect, { target: { value: 'cocoapods' } });
+
+          const conditionNameInput = screen.getByPlaceholderText('Name');
+          const conditionVersionInput = screen.getByPlaceholderText('Version');
+
+          expect(conditionNameInput).toBeVisible();
+          expect(conditionVersionInput).toBeVisible();
+
+          let createButton = await screen.findByText('Create');
+
+          fireEvent.click(createButton);
+          const alert = screen.getByText(
+            'There were validation errors. Unable to save: fields with invalid or missing data'
+          );
+          expect(alert).toBeVisible();
+
+          expect(conditionNameInput.parentElement.parentElement).toHaveClass('invalid');
+          expect(conditionVersionInput.parentElement.parentElement).toHaveClass('invalid');
+        });
+
         it('for conan', async () => {
           setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
           renderComponent(initState);

@@ -58,6 +58,12 @@ public class CoordinatesConditionTypeTest
   }
 
   @Test
+  public void testEvaluate_cocoapods_MatchExact() {
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_COCOAPODS,
+        "Coordinates were g2 : a2 (match g2 : a2)");
+  }
+
+  @Test
   public void testEvaluate_Conan_MatchExact() {
     testEvaluate_MatchExact(ComponentIdentifier.FORMAT_CONAN,
         "Coordinates were g2 : a2 : v2 : e2 (match g2 : a2 : v2 : *)");
@@ -364,6 +370,12 @@ public class CoordinatesConditionTypeTest
   }
 
   @Test
+  public void testEvaluate_cocoapods_MatchWildcard() {
+    testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_COCOAPODS,
+        "Coordinates were g2 : a2 (match g2 : a*)");
+  }
+
+  @Test
   public void testEvaluate_Conan_MatchWildcard() {
     testEvaluate_MatchWildcard(ComponentIdentifier.FORMAT_CONAN,
         "Coordinates were g2 : a2 : v2 : e2 (match g2 : a* : v2 : *)");
@@ -436,6 +448,12 @@ public class CoordinatesConditionTypeTest
   }
 
   @Test
+  public void testEvaluate_cocoapods_DoNotMatchExact() {
+    testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_COCOAPODS,
+        "Coordinates were g1 : a1 (do not match g2 : a2)");
+  }
+
+  @Test
   public void testEvaluate_Conan_DoNotMatchExact() {
     testEvaluate_DoNotMatchExact(ComponentIdentifier.FORMAT_CONAN,
         "Coordinates were g1 : a1 : v1 : e1 (do not match g2 : a2 : v2 : *)");
@@ -504,6 +522,12 @@ public class CoordinatesConditionTypeTest
   @Test
   public void testEvaluate_npm_DoNotMatchWildcard() {
     testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_NPM,
+        "Coordinates were g1 : a1 (do not match g2 : a*)");
+  }
+
+  @Test
+  public void testEvaluate_cocoapods_DoNotMatchWildcard() {
+    testEvaluate_DoNotMatchWildcard(ComponentIdentifier.FORMAT_COCOAPODS,
         "Coordinates were g1 : a1 (do not match g2 : a*)");
   }
 
@@ -762,6 +786,11 @@ public class CoordinatesConditionTypeTest
     assertConvertIfNeeded("pypi:n:v:q:e", "pypi:n:v:q:e");
 
     assertConvertIfNeeded("npm:n::", "npm:n:*");
+
+    assertConvertIfNeeded("cocoapods:n::", "cocoapods:n:*");
+    assertConvertIfNeeded("cocoapods::::", "cocoapods:*:*");
+    assertConvertIfNeeded("cocoapods::v:", "cocoapods:*:v");
+    assertConvertIfNeeded("cocoapods:n:v", "cocoapods:n:v");
 
     assertConvertIfNeeded("conan:n", "conan:n:*:*:*");
     assertConvertIfNeeded("conan::v", "conan:*:v:*:*");

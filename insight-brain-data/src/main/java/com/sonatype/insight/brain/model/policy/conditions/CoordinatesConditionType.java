@@ -144,6 +144,10 @@ public class CoordinatesConditionType
         componentIdentifier = ComponentIdentifier
             .createNpmCoordinates(coordinates[1], coordinates[2]);
         break;
+      case ComponentIdentifier.FORMAT_COCOAPODS:
+        componentIdentifier = ComponentIdentifier
+            .createCocoapodsCoordinates(coordinates[1], coordinates[2]);
+        break;
       case ComponentIdentifier.FORMAT_CONAN:
         componentIdentifier = ComponentIdentifier
             .createConanCoordinates(coordinates[1], coordinates[2], coordinates[3], coordinates[4]);
@@ -178,6 +182,7 @@ public class CoordinatesConditionType
       case ComponentIdentifier.FORMAT_ANAME:
       case ComponentIdentifier.FORMAT_PYPI:
       case ComponentIdentifier.FORMAT_NPM:
+      case ComponentIdentifier.FORMAT_COCOAPODS:
       case ComponentIdentifier.FORMAT_CONAN:
       case ComponentIdentifier.FORMAT_COMPOSER:
       case ComponentIdentifier.FORMAT_CARGO:
@@ -198,6 +203,7 @@ public class CoordinatesConditionType
     FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_CONAN, ImmutableSet.of(3, 4));
     FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_COMPOSER, Collections.emptySet());
     FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_CARGO, ImmutableSet.of(3));
+    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_COCOAPODS, Collections.emptySet());
   }
 
   static {

@@ -45,6 +45,8 @@ export function getCoordinatesValue(value) {
     return `${value.format}:${fields.name}:${fields.version}:${fields.qualifier}:${fields.extension}`;
   } else if (value.format === 'npm') {
     return `${value.format}:${fields.packageId}:${fields.version}`;
+  } else if (value.format === 'cocoapods') {
+    return `${value.format}:${fields.name}:${fields.version}`;
   } else if (value.format === 'conan') {
     return `${value.format}:${fields.name}:${fields.version}:${fields.channel}:${fields.owner}`;
   } else if (value.format === 'composer') {
@@ -160,6 +162,7 @@ export const withDefaultValue = {
   'a-name': ['qualifier'],
   pypi: ['qualifier', 'extension'],
   npm: [],
+  cocoapods: [],
   conan: ['channel', 'owner'],
   composer: [],
   cargo: ['type'],
@@ -170,6 +173,7 @@ export const optionalFields = {
   'a-name': ['qualifier'],
   pypi: ['qualifier', 'extension'],
   npm: [],
+  cocoapods: [],
   conan: ['channel', 'owner'],
   composer: [],
   cargo: ['type'],
@@ -198,12 +202,13 @@ export const coordinatesTypes = {
   'a-name': ['name', 'qualifier', 'version'],
   pypi: ['name', 'version', 'qualifier', 'extension'],
   npm: ['packageId', 'version'],
+  cocoapods: ['name', 'version'],
   conan: ['name', 'version', 'channel', 'owner'],
   composer: ['namespace', 'name', 'version'],
   cargo: ['name', 'version', 'type'],
 };
 
-export const coordinatesFormatOptions = ['maven', 'a-name', 'pypi', 'npm', 'conan', 'composer', 'cargo'];
+export const coordinatesFormatOptions = ['maven', 'a-name', 'pypi', 'npm', 'cocoapods', 'conan', 'composer', 'cargo'];
 
 export const fieldTypeToPlaceholder = {
   groupId: 'Group ID',

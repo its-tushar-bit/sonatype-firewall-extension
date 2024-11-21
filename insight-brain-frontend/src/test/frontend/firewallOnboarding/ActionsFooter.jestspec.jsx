@@ -7,21 +7,28 @@
 import React from 'react';
 import { last } from 'ramda';
 
-import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
+import { render, screen, fireEvent, axiosMockAdapter } from 'TestRoot/SpecUtil';
 import ActionsFooter from 'MainRoot/firewallOnboarding/ActionsFooter';
-import { actions } from 'MainRoot/firewallOnboarding/firewallOnboardingSlice';
+import { actions, initialState, REDUCER_NAME } from 'MainRoot/firewallOnboarding/firewallOnboardingSlice';
 import { steps } from 'MainRoot/firewallOnboarding/firewallOnboardingUtils';
 import * as RouterActions from '../../../main/frontend/reduxUiRouter/routerActions';
+import userEvent from '@testing-library/user-event';
+import { getConfigureFirewallOnboardingUrl, getConfigureRepositoriesUrl } from 'MainRoot/util/CLMLocation';
 
 describe('ActionsFooter', function () {
-  const renderComponent = (currentStep) => render(<ActionsFooter currentStep={currentStep} />);
+  const renderComponent = (currentStep, preloadedState) =>
+    render(<ActionsFooter currentStep={currentStep} />, { preloadedState });
   const HELP_URL = 'http://links.sonatype.com/products/nxiq/doc/firewall-onboarding';
 
-  beforeAll(() => {
-    spyOn(actions, 'continueToNextStep').and.callThrough();
-    spyOn(actions, 'goBackToPreviousStep').and.callThrough();
-    spyOn(actions, 'launchFirewall').and.callThrough();
-    spyOn(RouterActions, 'stateGo').and.callThrough();
+  let axiosMock;
+
+  beforeEach(() => {
+    jest.spyOn(actions, 'continueToNextStep');
+    jest.spyOn(actions, 'goBackToPreviousStep');
+    jest.spyOn(actions, 'launchFirewall');
+    jest.spyOn(RouterActions, 'stateGo');
+
+    axiosMock = axiosMockAdapter();
   });
 
   describe('when the current step is the first step', () => {
@@ -144,14 +151,47 @@ describe('ActionsFooter', function () {
       expect(actions.goBackToPreviousStep).toHaveBeenCalled();
     });
 
-    it('renders "launch firewall" button', () => {
-      renderComponent(last(steps));
+    it('renders "launch firewall" button', async () => {
+      const unconfiguredRepoId = '915a860b-ac30-49a9-be40-34755107dac0';
+      const state = {
+        [REDUCER_NAME]: {
+          ...initialState,
+          unconfiguredRepoManagers: {
+            repoManagers: [getRepository(unconfiguredRepoId)],
+            loading: false,
+            loadError: null,
+          },
+        },
+      };
+
+      mockAxiosCallsLaunchFirewallAction(unconfiguredRepoId);
+
+      renderComponent(last(steps), state);
       const launchButton = screen.getByRole('button', { name: /launch firewall/i });
 
       expect(launchButton).toBeVisible();
-      fireEvent.click(launchButton);
+
+      await userEvent.click(launchButton);
+
       expect(actions.launchFirewall).toHaveBeenCalled();
       expect(RouterActions.stateGo).toHaveBeenCalled();
     });
   });
+
+  function getRepository(id, configured = false) {
+    return {
+      id,
+      instanceId: `some-instance-id-${id}`,
+      productName: `some-product-name-${id}`,
+      productVersion: `some-product-version-${id}`,
+      userAgent: `some-user-agent-${id}`,
+      configured,
+      configureTime: new Date(),
+    };
+  }
+
+  function mockAxiosCallsLaunchFirewallAction(unconfiguredRepoId) {
+    axiosMock.onPut(getConfigureFirewallOnboardingUrl()).reply(200, { protectionRules: {} });
+    axiosMock.onPut(getConfigureRepositoriesUrl(unconfiguredRepoId)).reply(200);
+  }
 });

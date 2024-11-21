@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverRevocation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -38,6 +39,8 @@ import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverTelemetry.AutoPolicy
 import com.sonatype.insight.brain.telemetry.AutoPolicyWaiverTelemetryMetrics;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+
+import org.apache.shiro.authz.UnauthorizedException;
 
 public class ApiAutoPolicyWaiverService
 {
@@ -331,5 +334,12 @@ public class ApiAutoPolicyWaiverService
       @AuthzContext(Key.OWNER) Owner owner)
   {
     return autoPolicyWaiverDAO.getByIdAndOwnerIdNullable(autoPolicyWaiverId, owner.getId());
+  }
+
+  public void ensureAutoWaiverEnabled() {
+    if (!SystemConfigurationPropertyFeature.AUTO_WAIVERS.isEnabled()) {
+      throw new UnauthorizedException(
+          SystemConfigurationPropertyFeature.AUTO_WAIVERS.getId() + " feature is disabled.");
+    }
   }
 }

@@ -443,6 +443,7 @@ public class ApiPolicyViolationResourceV2Test
 
   @Test
   public void testGetApplicableAutoWaiver() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
     List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
     Organization newOrg = tempEntity.newOrganization("NewOrg");
     Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
@@ -484,6 +485,7 @@ public class ApiPolicyViolationResourceV2Test
 
   @Test
   public void testGetApplicableAutoWaiver_NoAutoPolicyWaiverApplied() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
     List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
     Organization newOrg = tempEntity.newOrganization("NewOrg");
     Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
@@ -508,6 +510,7 @@ public class ApiPolicyViolationResourceV2Test
 
   @Test
   public void testGetApplicableAutoWaiver_whenRevocationAppliedOnAppLevelAutoPolicyWaiver() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
     List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
     Organization newOrg = tempEntity.newOrganization("NewOrg");
     Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
@@ -560,7 +563,8 @@ public class ApiPolicyViolationResourceV2Test
   }
 
   @Test
-        public void testGetApplicableAutoWaiver_whenRevocationAppliedOnOrgLevelAutoPolicyWaiver() throws Exception {
+  public void testGetApplicableAutoWaiver_whenRevocationAppliedOnOrgLevelAutoPolicyWaiver() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
     List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
     Organization newOrg = tempEntity.newOrganization("NewOrg");
     Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
@@ -593,6 +597,7 @@ public class ApiPolicyViolationResourceV2Test
   public void testGetApplicableAutoWaiver_ALL_VERSION_whenRevocationAppliedOnAppLevelAutoPolicyWaiver()
       throws Exception
   {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(true);
     List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
     Organization newOrg = tempEntity.newOrganization("NewOrg");
     Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
@@ -622,5 +627,35 @@ public class ApiPolicyViolationResourceV2Test
         .get();
 
     assertResponseStatus(204, response);
+  }
+
+  @Test
+  public void testGetApplicableAutoWaiver_AutoPolicyWaiverNotEnabled() throws Exception {
+    SystemConfigurationPropertyFeature.AUTO_WAIVERS.setEnabled(false);
+    List<ConstraintFact> constraintFacts = tempEntity.createArbitraryConstraintFacts();
+    Organization newOrg = tempEntity.newOrganization("NewOrg");
+    Application newApp = tempEntity.newApplication("NewApp", "AppPublicId", newOrg.getId());
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(newApp.getId(), BuildStageType.ID, "scanId");
+    Policy policy = tempEntity.newPolicy(newOrg);
+    ComponentIdentifier identifier =
+        ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.0", "c1", "jar");
+    String ownerId = newApp.getId();
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(ownerId);
+    PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, identifier, "hash");
+    violation.setConstraintFacts(constraintFacts);
+    violation.setAutoPolicyWaiverId(autoPolicyWaiver.getId());
+
+    policyViolationDAO.update(violation);
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
+        .path(ApiPolicyViolationResourceV2.VIOLATIONID +
+            ApiPolicyViolationResourceV2.APPLICABLE_AUTO_WAIVER_PATH)
+        .parameter(violation.getId())
+        .get();
+
+    assertResponseStatus(403, response);
+    assertThat(response.getBodyText())
+        .contains(SystemConfigurationPropertyFeature.AUTO_WAIVERS.getId() + " feature is disabled.");
   }
 }
